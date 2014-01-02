@@ -8,115 +8,213 @@ Backing up MongoDB Systems
    :backlinks: none
    :local:
 
-A backup plan is an important part of any operational disaster recovery
-plan. A good backup plan can bring services back up and running with
-minimal data loss as quickly as possible. A good backup plan also
-involves *testing* the recovery process before it's needed, to make
-future recovery a predictable process.
+A good backup is an important part of any disaster recovery
+plan. Depending on the specifics of the deployment, infrastructure,
+and application requirements, MongoDB supports several backup options.
 
-MongoDB supports features like :term:`replica sets <replica set>`
-and :term:`journaling`, that :doc:`make it possible to recover
-transparently </tutorials/maintain-valid-data-files>` from many
-types of disasters without downtime or data loss. In some cases,
-an appropriate backup solution may simply be to expand your usage of
-MongoDB's native replication features.
+Backup Options
+--------------
 
-All deployments should use replication and journaling, regardless
-of backup plan. But replication and journaling may not always be
-sufficient. Your application may require a more traditional approach
-to backups.
+Simple Backups
+~~~~~~~~~~~~~~
 
-MongoDB provides tools and procedures to automate appropriate backups
-of the state of your data at a known time; to confirm that your
-backups are complete and correct; and to restore backed up data to
-a fresh server in case of need.
+At the simplest level, you can back up a MongoDB system by disabling
+application writes and copying the data files from ``/data/db``
+to a backup medium. The benefit of this approach is that it is
+straightforward and uses common tools available by default on any
+operating system.
 
-When designing a backup plan, bear in mind that to produce any backup
-requires CPU cycles and other computing resources. Schedule backups
-during times of low application load. Look for ways to reduce the
-total size of backups by backing up less critical data less frequently.
+This approach has several drawbacks. One is that it requires making the
+database unavailable for application writes during the backup. Data
+files that are written to while being copied may result in one part
+of the copied file conflicting with another part. This type of error
+renders the data files invalid. To avoid that, you must disable
+application writes for the full duration of the backup.
 
-Consider the type of database to back up. Replica sets and standalone
-instances are more straightforward to back up than sharded clusters. In
-addition to backing up data, sharded cluster backups must also include
-the contents of the config servers, as well as the scripts that will
-recreate the cluster and restore the data.
+A second drawback is that the backed up files will be larger than
+they need to be. To speed up queries, MongoDB data files pad BSON
+documents to allow queries to quickly find relevant entries. MongoDB
+also stores indexes in data files, which add unnecessarily to the
+size of the backup.
 
-Consider the type of disaster that may necessitate recovering from
-backups. Should the backup hardware run on different power lines than
-the main servers? Should they be stored in a different building, or
-perhaps in an even more distant location? Choose the backup approach
-that best meets these needs.
+If size and write availability are not issues for you, then this simple
+approach may be best. If you need better up-time and space efficiency,
+or if you want to ensure a lighter overall load on the system, MongoDB
+supports several alternative approaches, each with their own strengths.
 
 MMS Backups
------------
+~~~~~~~~~~~
 
-.. include:: /includes/fact-mms-backup-service-notice.rst
+The `MongoDB Management Service
+<https://mms.10gen.com/?pk_campaign=MongoDB-Org&pk_kwd=Backup-Docs>`_
+supports `backup and restore for MongoDB deployments
+<https://mms.mongodb.com/help/backup/>`_.
+
+MMS Replica Set Backups
+```````````````````````
+
+MMS backups rely on a :doc:`Backup Agent
+</tutorial/install-and-start-backup-agent/>` that runs as a local
+client of a MongoDB deployment. MMS sends you an alert if the backup
+agent goes down or if the remote backups fall too far behind the
+deployment.
+
+The backup agent initially synchronizes your data to a secure
+remote server that is managed by MMS. This process is similar to
+synchronizing a new replica set member, and places a corresponding
+load on the running deployment.
+
+After the initial synchronization, the MMS backup tracks the replica
+set :term:`oplog` in much the same way that the secondary members
+track the primary. This updates the backup at roughly the same speed
+as secondary members, and produces a continuous backup that is always
+up-to-date.
+
+In addition to retaining periodic snapshots, MMS backups also retain
+24 hours of oplog data. This allows you to restore the replica set
+to any given snapshot, or to any single moment within the past day.
+
+To restore from an MMS backup, you can download a ``.tar.gz`` file
+from the remote MMS servers, or have MMS copy a restored set of
+ready-to-use data files into a local directory.
+
+.. _mms-sharded-cluster-backups:
+
+MMS Sharded Cluster Backups
+```````````````````````````
+
+MMS handles sharded cluster backups differently from replica set
+backups. The obstacle MMS overcomes is that sharded clusters balance
+data across several replica sets, migrating chunks of data from one
+replica set to another as needed. As a result, if a chunk migration
+occurs during the backup procedure, it could result in the same data
+existing on two replica sets at the same time. Deployments handle
+this situation seamlessly, but a backup that contains duplicate data
+will not produce a valid restore.
+
+MMS addresses this situation by inserting an identifiable token into
+the collections of all replica sets in the sharded cluster. This
+token acts as a time stamp that tells MMS when its reached the final
+documents of the initial backup. In this way, the final state of
+each replica set in the backup includes only unique data, and no
+duplicate chunks.
 
 Filesystem Snapshots
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
-Use snapshots to make a backup of a complete filesystem,
-including MongoDB data and any other data that may reside on that
-filesystem. Snapshots use a copy-on-write approach, to track data
-writes as they occur during the backup.
+:doc:`Filesystem snapshots
+</tutorial/backup-and-restore-with-filesystem-snapshots>` are a
+relatively low-resource approach to backups. It improves on simply
+copying all data files at once, which uses many times more computing
+resources and may make the system less responsive to application
+queries. Filesystem snapshots use a copy-on-write approach that is
+slower than a simple copy, and makes the backup operation appear to
+be no more resource-intensive than the ordinary level of application
+queries.
 
-A benefit of using filesystem snapshots is that they are faster and
-use fewer computing resources than other approaches. The drawbacks
-are each of the constraints and requirements that follow:
+To initiate a filesystem snapshot, you must first briefly
+disable application writes while MongoDB creates the equivalent
+of symbolic links between the data on the source filesystem and a
+special snapshot disk volume. Creating these links is a quick and
+low-resource operation. Instead of copying data, MongoDB simply
+creates pointers to the data. Once MongoDB creates the snapshot,
+it re-enables application writes.
 
-:doc:`MongoDB snapshots
-</tutorial/backup-and-restore-with-filesystem-snapshots>` require
-journaling to be enabled on each :program:`mongod` instance being
-backed up. Journaling ensures that the data files remain valid while
-being copied into backups.
+After initiating a filesystem snapshot, each time an application
+performs a data write, MongoDB breaks the link to the newly written
+document. The old document remains on the snapshot volume, while
+MongoDB writes the new document to the production deployment. In this
+way, the snapshot acts as if writes are still disabled, and remains
+a single point-in-time copy.
 
-If you intend to allow application writes during the snapshot
-operation, the journal file must be on the same filesystem as the data
-files. [XXX why?] Otherwise, you must disable application writes for
-the duration of the snapshot.
+Having established the snapshot as a point-in-time copy, you
+may then archive the snapshot while MongoDB continues to serve
+queries, without risking data inconsistency. An expanded form of
+this technique can be used to :doc:`back up a full sharded cluster
+</tutorial/backup-sharded-cluster-with-filesystem-snapshots>`
 
-Not all filesystem types support taking snapshots. Before deciding on
-snapshots as part of any backup strategy, ensure that the underlying
-filesystem supports snapshots.
+A drawback of snapshots is that it snapshots everything on the source
+filesystem, rather than only the MongoDB data files. This may not
+be an issue if the snapshot volume has enough space for everything
+in the source filesystem, or if the deployment's design keeps all
+MongoDB data files on a dedicated filesystem.
 
-Snapshots are most easily made for :term:`replica sets
-<replica set>` and standalone :program:`mongod` instances,
-because in those cases the database files sit on just a single
-filesystem. Making a :doc:`snapshot of a full sharded cluster
-</tutorial/backup-sharded-cluster-with-filesystem-snapshots>` is more
-complex, because data in sharded clusters can migrate from one shard to
-another. You can still snapshots a sharded cluster, but you must turn
-off the :term:`balancer` during the snapshot operation. Otherwise chunk
-migrations could result in a single chunk showing up in the snapshots
-of two different filesystems, rendering the backup files invalid.
+Another drawback of filesystem snapshots is that only certain
+filesystems support it. Before deciding on snapshots as part of
+any backup strategy, ensure that the underlying filesystem supports
+snapshots.
 
 ``mongodump``
--------------
+~~~~~~~~~~~~~
 
-While filesystem snapshots rely largely on third-party tools to
-create the backup, you may also :doc:`create a backup with mongodump
-</tutorial/backup-and-restore-with-binary-database-dumps>`. The
-:program:`mongodump` tool uses MongoDB's native querying
-operations to extract collection data from data files. By default,
-:program:`mongodump` output does not represent a specific point-in-time
-backup. If you need to back up data relative to a specific point
-in time, :program:`mongodump` supports using the :option:`--oplog
-<mongodump --oplog>` option to ensure that the backup matches the
-state of the database at the time :program:`mongodump` terminates.
+MongoDB provides a versatile :program:`mongodump` tool that
+reads database collections and dumps them to an efficiently
+packed file. :program:`mongodump` can read unused data files,
+or connect directly to a running :program:`mongod` instance. It
+can also :doc:`back up each component of a sharded cluster
+</tutorial/backup-sharded-cluster-with-database-dumps>`, or
+connect directly to a running :program:`mongos` instance and
+:doc:`back up an entire sharded cluster to a single output file
+</tutorial/backup-small-sharded-cluster-with-mongodump>`. In
+some cases, :program:`mongodump` can also
+:doc:`replay any data writes that entered the oplog
+</tutorial/backup-and-restore-with-binary-database-dumps>` during
+:program:`mongodump`'s execution, thus creating a point-in-time
+backup that corresponds to the moment :program:`mongodump` completes
+its execution.
 
-A benefit of using :program:`mongodump` is its ability to back
-up only the collections you want to back up, rather than the whole
-filesystem. This allows for smaller backups and more efficient use of
-computing resources. A related benefit is that :program:`mongorestore`
-can restore subsets of data rather than the full data set.
+One drawback of :program:`mongodump` is that it queries every document
+in each collection it backs up, and so can be more resource-intensive
+than other forms of backups. A way to mitigate this is to back up
+only the collections that contain crucial data.
 
-The drawback of using :program:`mongodump` is that even when
-restricting a backup to only certain collections, the operation may use
-more computing resources than a filesystem snapshot. Another drawback
-is that while :program:`mongodump` can be used to back up a replica
-set, it should never be used to back up a standalone :program:`mongod`
-instance. [XXX why not?]
+Another drawback is that :program:`mongodump` does not back up any
+local collections by default. Local collections must be backed up
+explicitly on each replica set member.
+
+Another drawback is that :program:`mongodump` cannot back up
+a standalone :program:`mongod` instance. It must operate on a
+:term:`replica set`. [[XXX why?]]
+
+Replication
+~~~~~~~~~~~
+
+All deployments should use :term:`replica sets <replica
+set>` and :term:`journaling` in their design. In many
+cases these features :doc:`ensure a seamless recovery
+</tutorials/maintain-valid-data-files>` from outages and hardware
+failures.
+
+Each member of a replica set can be thought of as an ongoing backup
+of a running database or shard of a cluster. Whenever MongoDB does a
+data write to the primary member of a replica set, the altered data
+propagates quickly to all secondary members. If the primary member
+suffers a hardware failure or outage, a secondary will be almost
+immediately assigned to replace it. In this case, the only data that
+might be lost is the data that did not yet have time to replicate
+from the primary to the secondaries before the outage occurred.
+
+In addition to minimal down time and minimal data loss, replication
+also provides a seamless process for hardware recovery. Once the
+hardware has been repaired or the outage has been restored, you may add
+the recovered server to the running replica set with no interruption
+of service.
+
+Considerations for Sharded Clusters
+-----------------------------------
+
+As mentioned in :ref:`mms-sharded-cluster-backups`, chunk
+migration complicates making a backup of a running sharded
+cluster.
+
+It may be necessary to :doc:`turn off the balancer
+</tutorial/schedule-backup-window-for-sharded-clusters>` or stop
+application writes in order to ensure that all backed up data files
+remain valid.
+
+When backing up any sharded cluster, it is also
+necessary to :doc:`back up the config server metadata
+</tutorial/backup-sharded-cluster-metadata>`.
 
 Testing and Restoring Backups
 -----------------------------
