@@ -11,7 +11,7 @@ Hidden Replica Set Members
 A hidden member maintains a copy of the :term:`primary's <primary>`
 data set but is **invisible** to client applications. Hidden members
 are good for workloads with different usage patterns from the other
-members in the :term:`replica set`. Hidden members always are 
+members in the :term:`replica set`. Hidden members are always
 :ref:`priority 0 members <replica-set-secondary-only-members>` and
 **cannot become primary**. The :method:`db.isMaster()` method does not
 display hidden members. Hidden members, however, **do vote** in
@@ -23,19 +23,36 @@ is hidden.
 
 .. include:: /images/replica-set-hidden-member.rst
 
-Secondary reads do not reach a hidden member, so the member receives
-no traffic beyond what replication requires. It can be useful to keep a hidden
-member dedicated for tasks such as reporting, backups, and also in conjunction 
-with the slaveDelay option.
+Behavior
+--------
 
-Note that in a sharded cluster, mongos will not see the hidden members. Thus 
-in a sharded environment, hidden is useful mainly just as a type of backup.
+Read Operations
+~~~~~~~~~~~~~~~
 
-Keep in mind that hidden members (by default) vote in replica set
-elections.  Thus, if you stop the hidden mongod, be sure you still 
-have a majority up or your primary will "step down".  One alternate approach 
-to getting a consistent backup image is to use :method:`db.fsyncLock()` to flush all writes and lock the
-:program:`mongod` instance for the duration of the backup.
+Clients will not distribute reads with the appropriate :ref:`read
+preference <read-preference>` to hidden members. As a result, these
+members receive no traffic other than basic replication. Use hidden
+members for dedicated tasks such as reporting and
+backups. :doc:`Delayed members </core/replica-set-delayed-members>`_
+should be hidden.
+
+In a sharded cluster, :program:`mongos` do not interact with hidden
+members.
+
+Voting
+~~~~~~
+
+Hidden members *do* vote in replica set elections. If you stop a
+hidden member, ensure that the set has an active majority or the
+:term:`primary` will step down.
+
+For the purposes of backups, you can avoid stopping a hidden member
+with the :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()`
+operations to flush all writes and lock the:program:`mongod` instance
+for the duration of the backup operation.
+
+Further Reading
+---------------
 
 For more information about backing up MongoDB databases,
 see :doc:`/core/backups`. To configure a hidden member, see
