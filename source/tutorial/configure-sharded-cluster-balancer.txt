@@ -118,31 +118,27 @@ Require Replication before Chunk Migration (Secondary Throttle)
 ---------------------------------------------------------------
 
 .. versionadded:: 2.2.1
-   ``_secondaryThrottle`` became an option to the balancer and to
-   command :dbcommand:`moveChunk`. ``_secondaryThrottle`` makes it
-   possible to require the balancer wait for replication to
-   secondaries during migrations.
+   ``_secondaryThrottle`` became an option to the balancer and to the
+   :dbcommand:`moveChunk` command. ``_secondaryThrottle`` requires
+   the balancer to have a ``{ w: majority }`` write concern on each
+   delete and insert operation. This causes the balancer to wait for
+   each chunk migration to replicate to a majority of secondaries
+   before initiating a new chunk migration.
+
+Before 2.2.1, chunk migration writes did not wait to replicate to
+secondaries before starting the next chunk migration. Replication to a
+majority of members occurred only after the balancer wrote all relevant
+chunks to the destination shard, but before it deleted those chunks
+from the source shard. This had the effect of creating a bottleneck
+at the end of the migration operation. A ``_secondaryThrottle``
+value of ``true`` smoothes out the load over all chunk migrations,
+eliminating the bottleneck.
 
 .. versionchanged:: 2.4
    ``_secondaryThrottle`` became the default mode for all balancer and
-   :dbcommand:`moveChunk` operations.
-
-Before 2.2.1, the write operations required to migrate chunks between
-shards do not need to replicate to secondaries in order to
-succeed. However, you can configure the balancer to require migration
-related write operations to replicate to secondaries. This throttles
-or slows the migration process and in doing so reduces the potential
-impact of migrations on a sharded cluster.
-
-You can throttle migrations by enabling the balancer's
-``_secondaryThrottle`` parameter. When enabled, secondary throttle
-requires a ``{ w : 2 }`` write concern on delete and insertion
-operations, so that every operation propagates to at least one
-secondary before the balancer issues the next operation.
-
-Starting with version 2.4 the default secondaryThrottle value is
-``true``.  To revert to previous behavior, set ``_secondaryThrottle``
-to ``false``.
+   :dbcommand:`moveChunk` operations, though ``_secondaryThrottle``
+   is not required by the balancer. To revert to previous behavior,
+   set ``_secondaryThrottle`` to ``false``.
 
 .. BACKGROUND NOTES
    Specifically, secondary throttle affects the first and fourth
@@ -154,16 +150,19 @@ to ``false``.
    3) Stop writes, allow shardB to get final changes, commit migration to config server
    4) cleanup now-inactive data on shardA in chunk range (once all cursors are done)
 
-You enable or disable ``_secondaryThrottle`` directly in the
-:data:`~config.settings` collection in the :ref:`config database
-<config-database>` by running the following commands from a
-:program:`mongo` shell, connected to a :program:`mongos` instance:
+Run the following commands from a :program:`mongo` shell that is
+connected to a :program:`mongos` instance to enable or disable
+``_secondaryThrottle`` directly in the :data:`~config.settings`
+collection of the :ref:`config database <config-database>`:
 
 .. code-block:: javascript
 
    use config
    db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } } , { upsert : true } )
 
-You also can enable secondary throttle when issuing the
-:dbcommand:`moveChunk` command by setting ``_secondaryThrottle`` to
-``true``. For more information, see :dbcommand:`moveChunk`.
+When changing the value of ``_secondaryThrottle``, the balancer
+may not immediately require a ``{ w: majority }`` write concern on
+delete and insert operations. To ensure that ``_secondaryThrottle``
+takes effect immediately, stop the balancer and restart it with the
+selected value of ``_secondaryThrottle``.
+
