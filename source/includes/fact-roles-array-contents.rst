@@ -1,7 +1,7 @@
 .. the including document should define a |local-cmd-name| replacement
 
 In the ``roles`` field, you can specify both
-:ref:`system-defined roles <system-user-roles>` and :ref:`user-defined
+:ref:`built-in roles <built-in-roles>` and :ref:`user-defined
 role <user-defined-roles>`. 
 
 To specify a role that exists in the same database where
