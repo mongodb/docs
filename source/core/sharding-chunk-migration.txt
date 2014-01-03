@@ -98,20 +98,28 @@ Chunk Migration Write Concern
 
 .. versionchanged:: 2.4
 
-   With ``secondaryThrottle`` set to ``true``, all chunk copies and
-   deletes have a write concern of ``w: 2``. With ``secondaryThrottle``
-   set to ``false``, chunk copies and deletes have a write concern of
-   [XXX ask Greg].
+   ``secondaryThrottle`` defaults to ``true``. With
+   ``secondaryThrottle`` set to ``true``, the :dbcommand:`moveChunk`
+   command and the MongoDB balancer use an approximate write concern
+   of :ref:`w: 2 <write-concern-replica-acknowledged>` for all chunk
+   copy and delete operations. With ``secondaryThrottle`` set to
+   ``false``, chunk copy and delete operations have an approximate
+   write concern of :ref:`w: 1 <write-concern-acknowledged>`.
+
+   Write concern is identified only approximately here, because the
+   operations are internal to MongoDB, and are handled in a more
+   complex way than normal write operations.
 
    Regardless of the value of ``secondaryThrottle``, certain parts
-   of chunk migration have a strict write concern:
+   of chunk migration have a stricter replication policy:
 
    - MongoDB stops application writes to the source shard before
      updating the config servers with the chunk locations on
      the destination shard, and restarts application writes
-     afterwards. During that time some chunk migrations may still
-     need time to complete. Those remaining operations have a write
-     concern of ``w: majority, j: true``.
+     afterwards. During that time some chunk migrations may
+     still need time to complete. Those remaining operations
+     have a write concern of ``w: majority`` and :ref:`j: true
+     <write-concern-replica-journaled>`.
 
    - After a chunk migration occurs on the primary
      member of the target shard's replica set, the migration must
