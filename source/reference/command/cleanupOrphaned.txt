@@ -15,12 +15,8 @@ Definition
    deletes :term:`orphaned data <orphaned document>`, or those
    documents on a shard that have shard key values that do not fall
    within the ranges of the :term:`chunks <chunk>` owned by that
-   shard. Delete operations use a :term:`write concern` of ``w:
+   shard. The delete operations use a :term:`write concern` of ``w:
    majority``.
-
-   Run :dbcommand:`cleanupOrphaned` directly on the :program:`mongod`
-   instance on the primary replica set member of the shard. Do not
-   run :dbcommand:`cleanupOrphaned` from a :program:`mongos` instance.
 
    :dbcommand:`cleanupOrphaned` has the following prototype form:
 
@@ -49,10 +45,10 @@ Behavior
 You do not need to disable the balancer before running
 :dbcommand:`cleanupOrphaned`.
 
-Do not run :dbcommand:`cleanupOrphaned` from :program:`mongos` instances:
-instead, run :dbcommand:`cleanupOrphaned` while connected directly to
-the :program:`mongod` that is currently the primary replica set member
-of the shard.
+Do not run :dbcommand:`cleanupOrphaned` on a :program:`mongos`
+instance: instead, run :dbcommand:`cleanupOrphaned` on the
+:program:`mongod` that is the primary replica set member of the shard
+to be cleaned.
 
 Output
 ------
@@ -83,11 +79,6 @@ a subset of the following fields:
      documents, but could not confirm replication before the 1
      hour timeout. In this case, replication does occur, but only
      after :dbcommand:`cleanupOrphaned` returns.
-
-   .. important::
-
-      Do not use the value of :data:`cleanupOrphaned.ok` as an indicator
-      that :dbcommand:`cleanupOrphaned` found or deleted any documents.
 
 .. data:: cleanupOrphaned.startingAtKey
 
@@ -143,8 +134,9 @@ Specify a Different Initial Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the ``admin`` database, to clean up a sharded ``info`` collection
-in the ``test`` database, given a shard that has only a single chunk,
-where :method:`sh.status` reports the following range:
+in the ``test`` database, consider a shard that has only a single
+chunk, and where :method:`sh.status` reports the following range for
+that chunk:
 
 .. code-block:: javascript
 
