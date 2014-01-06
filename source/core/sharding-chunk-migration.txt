@@ -96,14 +96,63 @@ primary can orphan data from multiple migrations.
 Chunk Migration Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 2.4
+Internal operations like chunk migration don't fit exactly into the definitions
+of write concern established for user operations. The following explanations
+should be taken as approximations.
 
-   While copying and deleting data during migrations, the balancer
-   waits for :ref:`replication to secondaries
-   <replica-set-write-concern>` for every document. This slows the potential 
-   speed of a chunk migration but ensures that a large number of chunk 
-   migrations *cannot* affect the availability of a sharded cluster.
-   
-   See also :v2.2:`Secondary Throttle in the v2.2 Manual
-   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`.
+Write concern for chunk migration depends on whether the balancer or
+the :dbcommand:`moveChunk` command operate with ``_secondaryThrottle``
+set to ``true`` or ``false``.
+
+Before 2.2.1, chunk migration writes did not wait to replicate to
+secondaries before starting the next chunk migration (the equivalent
+of ``w: 1``). After all relevant chunks had been written to the
+destination shard, the balancer would wait for replication to
+a majority of members (the equivalent of ``w: majority``) before
+deleting the chunks from the source shard.
+
+This had the effect of creating a replication bottleneck at the end
+of migration.
+
+.. versionadded:: 2.2.1
+
+   ``_secondaryThrottle`` became an option to the balancer and to the
+   :dbcommand:`moveChunk` command. ``_secondaryThrottle`` requires the
+   balancer to have a ``{ w: 2 }`` write concern on each delete and
+   insert operation. This causes the balancer to wait for each chunk
+   migration to replicate to at least one secondary before initiating
+   a new chunk migration.
+
+   As in the case before 2.2.1, after all relevant chunks are written
+   to the destination shard, the balancer waits for replication to
+   a majority of members (the equivalent of ``w: majority``) before
+   deleting the chunks from the source shard.
+
+The ``_secondaryThrottle`` behavior of 2.2.1 and later smoothes out
+the load somewhat over the duration of the migration, eliminating
+the bottleneck. See also :v2.2:`Secondary Throttle in the v2.2 Manual
+</tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`.
+
+.. versionchanged:: 2.4
+   ``_secondaryThrottle`` became the default mode for all balancer and
+   :dbcommand:`moveChunk` operations. The balancer does not require
+   ``_secondaryThrottle`` to be ``true``. To revert to previous
+   behavior, set ``_secondaryThrottle`` to ``false``.
+
+.. BACKGROUND NOTES
+   Specifically, secondary throttle affects the first and fourth
+   phases (informal phases) of chunk migration. Migration can happen during
+   the second and third phases (the "steady state"):
+   1) copies the documents in the chunk from shardA to shardB
+   2) continues to copy over ongoing changes that occurred during the initial copy step,
+      as well as current changes to that chunk range
+   3) Stop writes, allow shardB to get final changes, commit migration to config server
+   4) cleanup now-inactive data on shardA in chunk range (once all cursors are done)
+
+When you :ref:`change the value
+<sharded-cluster-config-secondary-throttle>` of ``_secondaryThrottle``,
+the balancer may not immediately require the new write concern on
+delete and insert operations. To ensure that ``_secondaryThrottle``
+takes effect immediately, stop the balancer and restart it with the
+selected value of ``_secondaryThrottle``.
 
