@@ -29,24 +29,23 @@ supports `backup and restore for MongoDB deployments
 MMS Replica Set Backups
 ```````````````````````
 
-MMS backups rely on the user `installing a Backup Agent
+To use MMS backups, you must `install a Backup Agent
 <http://mms.mongodb.com/help/backup/tutorial/install-and-start-backup-agent/>`_
-that runs as a local client of a MongoDB deployment. MMS sends you
-an alert if the backup agent goes down or if the remote backups fall
-too far behind the deployment.
+that copies data across the network and monitors the connection to the
+MMS servers. If the backup agent goes down or if the remote backups
+fall too far behind the deployment, MMS sends you an alert.
 
-The backup agent initially synchronizes your data from a single
-member of your replica set to a secure remote server that is managed
-by MMS. This process is similar to synchronizing a new replica set
-member. A significant difference is that you may configure the MMS
-backup to synchronize from a secondary member, which places less load
-on the running deployment than synchronizing from the primary.
+The backup agent initially synchronizes data from a single member of
+your replica set to the MMS secure remote servers. This is similar to
+synchronizing a new replica set member, but unlike other secondaries
+the MMS backup can synchronize from a secondary member. This places
+less load on a running deployment.
 
-During the initial synchronization, the MMS backup tracks the replica
+During the initial synchronization, the backup agent tracks the replica
 set :term:`oplog` in much the same way that the secondary members
-track the primary. This updates the backup at roughly the same speed
-as secondary members, and produces a continuous backup that is always
-up-to-date.
+track the primary. Following the oplog, the MMS backup updates at
+roughly the same speed as secondary members, and produces a continuous
+backup that is always up-to-date.
 
 In addition to retaining periodic snapshots, MMS backups also retain
 24 hours of oplog data. This allows you to restore the replica set
@@ -85,9 +84,10 @@ Implementation
 ``````````````
 
 :doc:`Filesystem snapshots
-</tutorial/backup-and-restore-with-filesystem-snapshots>` use
-copy-on-write to create a point-in-time :term:`replica set` backup
-as of the time you initiate the snapshot.
+</tutorial/backup-and-restore-with-filesystem-snapshots>` are
+third-party tools that most commonly use copy-on-write to create a
+point-in-time backup of a full filesystem, as of the time you initiate
+the snapshot.
 
 Snapshots can also :doc:`back up a full sharded cluster
 </tutorial/backup-sharded-cluster-with-filesystem-snapshots>`.
@@ -97,13 +97,16 @@ Advantages
 
 Snapshots back up the state of the database at a known point in time,
 the moment when you initiated the snapshot. This makes it possible to
-predict exactly what data will be in the restored replica set. Other
-forms of backup may not provide exact point-in-time resolution, but
-provide a valid, consistent backup of the state of the database at
-some point during the backup.
+predict exactly what data will be in the restored replica set.
+
+Other forms of backup may not provide exact point-in-time resolution,
+but provide a valid, consistent backup of the state of the database
+at some point during the backup.
 
 Snapshots can be incremental, so that each incremental snapshot uses
 a small fraction of the computing resources needed for a full backup.
+Incremental backups make snapshots a relatively inexpensive backup
+option.
 
 Even making a full snapshot is a relatively low-resource operation.
 Copy-on-write ensures that the snapshot operation appears to be no more
@@ -143,23 +146,29 @@ you to back up only the collections you need, or to schedule different
 frequencies of backups for different collections.
 
 :program:`mongodump` reads data files in whatever way
-they are available. :program:`mongodump` can connect
-directly to a running :program:`mongod` instance. Or if
-no :program:`mongod` is running, :program:`mongodump`
-can read the data files directly. :program:`mongodump` can
-connect to a running :program:`mongos` instance in order to
-:doc:`back up an entire sharded cluster to a single output file
-</tutorial/backup-small-sharded-cluster-with-mongodump>`. However,
-the more common case is for :program:`mongodump`
-to :doc:`back up each component of a sharded cluster
-</tutorial/backup-sharded-cluster-with-database-dumps>` individually.
+they are available:
+
+- :program:`mongodump` can connect directly to a running
+  :program:`mongod` instance.
+
+- if no :program:`mongod` is running, you may configure
+  :program:`mongodump` to read the data files directly on disk.
+
+- :program:`mongodump` can connect to a running :program:`mongos`
+  instance in order to :doc:`back up an entire
+  sharded cluster to a single output file
+  </tutorial/backup-small-sharded-cluster-with-mongodump>`.
+
+- :program:`mongodump` can also :doc:`back up each component of a
+  sharded cluster
+  </tutorial/backup-sharded-cluster-with-database-dumps>` individually.
 
 :program:`mongodump` provides the option to
 :doc:`replay any data writes that entered the oplog
 </tutorial/backup-and-restore-with-binary-database-dumps>` during
 :program:`mongodump`'s execution. This creates a point-in-time backup
-that corresponds to the moment :program:`mongodump` finishes building
-the backup.
+that corresponds to the moment :program:`mongodump` completes its
+execution.
 
 Considerations
 ``````````````
@@ -168,7 +177,7 @@ Considerations
 backs up, and so can be more resource-intensive than other forms of
 backups.
 
-:program:`mongodump` does not back up any local collections by
+:program:`mongodump` does not back up local collections by
 default. Local collections must be backed up explicitly on each
 replica set member.
 
@@ -184,11 +193,12 @@ Implementation
 ``````````````
 
 MongoDB data files may be copied directly to a backup medium. For a
-single :program:`mongod` instance, you must disable application writes,
-and copy the data files from ``/data/db``. For a :term:`replica set`,
-you may shut down a secondary member and copy the data files from its
-``/data/db`` directory while still allowing application writes to
-the primary member.
+single :program:`mongod` instance, you must disable application writes
+and copy the data files from ``/data/db``.
+
+For a :term:`replica set`, you may shut down a secondary member
+and copy the data files from its ``/data/db`` directory while still
+allowing application writes to the primary member.
 
 Advantages
 ``````````
@@ -230,7 +240,7 @@ Sharded Cluster Considerations
 ------------------------------
 
 In sharded clusters, data moves around in ways that complicate
-making backups. During normal operation, application writes may
+backup operations. During normal operation, application writes may
 occur on different shards at different times, and are not necessarily
 immediately available to queries. In addition, the balancer migrates
 chunks of data from one shard to another, leaving a window of time
@@ -241,9 +251,8 @@ and consistency between shards. This may require :doc:`turning off
 the balancer </tutorial/schedule-backup-window-for-sharded-clusters>`
 or stopping application writes.
 
-When backing up any sharded cluster, it is also
-necessary to :doc:`back up the config server metadata
-</tutorial/backup-sharded-cluster-metadata>`.
+When backing up any sharded cluster, you must also :doc:`back up the
+config server metadata </tutorial/backup-sharded-cluster-metadata>`.
 
 Testing and Restoring Backups
 -----------------------------
