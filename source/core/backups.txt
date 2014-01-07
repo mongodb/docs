@@ -13,30 +13,33 @@ secure storage medium, and a procedure to verify the integrity of
 all backups. MongoDB supports several backup options, each with their
 own advantages and considerations.
 
+Backup Methods
+--------------
+
 .. list-table::
    :header-rows: 1
 
    * -
-     - **mongodump**
-     - **Snapshots**
-     - **MMS Backup**
+     - ``mongodump``
+     - Snapshots
+     - MMS Backup
 
-   * - Initial complexity
-     - Medium
+   * - Point In Time Replica Set Recovery
+     - Snapshot moments only
+     - Snapshot moments only
+     - Arbitrary points in the last 24 hours
+
+   * - System Overhead
      - High
+     - Varies
      - Low
 
-   * - Confidence in backups
-     - Medium
-     - Medium
+   * - Impact on MongoDB Operation
      - High
+     - Low
+     - Low
 
-   * - Point in time replica set recovery
-     - Snapshot moments only
-     - Snapshot moments only
-     - 24H
-
-   * - System overhead
+   * - Impact on Underlying System
      - High
      - Varies
      - Low
@@ -46,32 +49,26 @@ own advantages and considerations.
      - With work
      - Yes
 
-   * - Consistent sharded cluster snapshot
+   * - Consistent Sharded Cluster Snapshot
      - Difficult
      - Difficult
      - Yes
 
-.. .. include:: /includes/table/backup-approaches.rst
-
-Backup Options
---------------
-
-MMS Backups
-~~~~~~~~~~~
+MMS Backup
+~~~~~~~~~~
 
 The `MongoDB Management Service
 <https://mms.10gen.com/?pk_campaign=MongoDB-Org&pk_kwd=Backup-Docs>`_
-supports `backup and restore for MongoDB deployments
-<https://mms.mongodb.com/help/backup/>`_.
+supports :mms:`backup and restore for MongoDB deployments </backup>`.
 
-Implementation
-``````````````
+Operation
+`````````
 
-MMS Replica Sets
-''''''''''''''''
+Replica Sets
+^^^^^^^^^^^^
 
-`MMS backups for replica sets
-<http://mms.mongodb.com/help/backup/tutorial/enable-backup-for-replica-set/>`_
+:mms:`MMS backups for replica sets
+</backup/tutorial/enable-backup-for-replica-set/>`
 uses a small backup agent. The backup agent initially
 replicates a secondary member of the running deployment to a remote
 backup server. The backup agent then follows the replica set oplog in
@@ -80,8 +77,8 @@ real time and mirrors all writes onto the remote server.
 MMS sends out an alert if the backup agent becomes unreachable or if
 the remote backup falls too far behind the running deployment.
 
-MMS Sharded Clusters
-''''''''''''''''''''
+Sharded Clusters
+^^^^^^^^^^^^^^^^
 
 Sharded clusters run multiple independent replica sets, each of which
 is a single shard of the cluster. MongoDB apportions new documents
@@ -89,8 +86,8 @@ among the shards, and the MongoDB balancer periodically migrates data
 from one shard to another to ensure a balanced application load across
 all shards.
 
-`MMS backups for sharded clusters
-<http://mms.mongodb.com/help/backup/tutorial/enable-backup-for-sharded-cluster/>`_
+:mms:`MMS backups for sharded clusters
+</backup/tutorial/enable-backup-for-sharded-cluster/>`
 initially temporarily stops the balancer and inserts a special
 document into each shard. This document defines the point-in-time of
 the MMS snapshot.
@@ -101,17 +98,17 @@ up to the point-in-time defined by the special document.
 The backup agent uses the same operation on a regular schedule to
 make additional snapshots over time.
 
-Advantages
-~~~~~~~~~~
+Benefits
+````````
 
-MMS is easy to set up and use. The backup agent is `simple to install
-<http://mms.mongodb.com/help/backup/tutorial/install-and-start-backup-agent/>`_
-and `configure
-<http://mms.mongodb.com/help/backup/tutorial/configure-backup-agent/>`_.
-It is also straightforward to `activate backups for replica sets
-<http://mms.mongodb.com/help/backup/tutorial/enable-backup-for-replica-set/>`_
-and to `activate backups for sharded clusters
-<http://mms.mongodb.com/help/backup/tutorial/enable-backup-for-sharded-cluster/>`_.
+MMS is easy to set up and use. The backup agent is :mms:`simple to install
+</backup/tutorial/install-and-start-backup-agent/>`
+and :mms:`configure
+</backup/tutorial/configure-backup-agent/>`.
+It is also straightforward to :mms:`activate backups for replica sets
+</backup/tutorial/enable-backup-for-replica-set/>`
+and to :mms:`activate backups for sharded clusters
+</backup/tutorial/enable-backup-for-sharded-cluster/>`.
 
 MMS replicates from secondaries, which puts a minimal load on the
 running deployment.
@@ -121,21 +118,22 @@ any point in time within the past 24 hours. Regular snapshots for
 replica sets and sharded clusters ensure your ability to restore to
 earlier states as well.
 
-To restore from an MMS backup, you can `download a .tar.gz file
-<http://mms.mongodb.com/help/backup/tutorial/restore-from-snapshot/>`_
+To restore from an MMS backup, you can :mms:`download a .tar.gz file
+<http://mms.mongodb.com/help/backup/tutorial/restore-from-snapshot/>`
 from the remote MMS servers, or have MMS push a restored set of
 ready-to-use data files onto a local directory on your server.
 
 Considerations
-~~~~~~~~~~~~~~
-
-[[XXX - words words words]]
-
-Filesystem Snapshots
-~~~~~~~~~~~~~~~~~~~~
-
-Implementation
 ``````````````
+
+MMS can only back up replica sets and sharded cluster config
+servers.
+
+Filesystem Volume Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Operation
+``````````
 
 Filesystem snapshots are third-party tools that most commonly use
 copy-on-write to create a point-in-time backup of a full filesystem.
@@ -145,8 +143,8 @@ MongoDB supports :doc:`snapshotting a replica set
 and :doc:`snapshotting a full sharded cluster
 </tutorial/backup-sharded-cluster-with-filesystem-snapshots>`.
 
-Advantages
-``````````
+Benefits
+````````
 
 Snapshots back up the state of the database at a known point in time.
 This supports restoring a deployment to a known state.
@@ -169,18 +167,18 @@ and block devices support snapshotting.
 Snapshots back up indexes and padding as well as data, which produce
 space-inefficient backups.
 
-``mongodump``
-~~~~~~~~~~~~~
+MongoDB Dump and Restore Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implementation
-``````````````
+Operation
+`````````
 
 MongoDB provides a versatile :program:`mongodump` tool that uses
 MongoDB's native query operations to dump collection data to an
 efficiently packed file.
 
-Advantages
-``````````
+Benefits
+````````
 
 :program:`mongodump` discards indexes and padding and stores only
 the data to be backed up.
@@ -220,11 +218,11 @@ default.
 standalone :program:`mongod` instance. Standalone instances lack
 an :term:`oplog`.
 
-Simple Backups
-~~~~~~~~~~~~~~
+Copy Data Files
+~~~~~~~~~~~~~~~
 
-Implementation
-``````````````
+Operation
+`````````
 
 MongoDB data files may be copied directly to a backup medium. For a
 single :program:`mongod` instance, you must disable application writes
@@ -234,8 +232,8 @@ For a :term:`replica set`, you may shut down a secondary member
 and copy the data files from its ``/data/db`` directory while still
 allowing application writes to the primary member.
 
-Advantages
-``````````
+Benefits
+````````
 
 Copying data files uses common tools available by default on any
 operating system.
