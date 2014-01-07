@@ -86,8 +86,6 @@ Every database includes the following database administration roles:
 
 .. authrole:: dbAdmin
 
-   .. todo: Provides administrators what overall function?
-
    Provides the following :ref:`actions <security-user-actions>` on the
    database's :data:`system.indexes <<database>.system.indexes>`,
    :data:`system.namespaces <<database>.system.namespaces>`, and
@@ -128,25 +126,20 @@ Every database includes the following database administration roles:
 
 .. authrole:: dbOwner
 
-   Combines the privileges granted by the :authrole:`readWrite`,
+   The database owner can perform any administrative action on the database.
+   This role combines the privileges granted by the :authrole:`readWrite`,
    :authrole:`dbAdmin` and :authrole:`userAdmin` roles.
-
-   .. todo: for what purpose?
 
 .. authrole:: userAdmin
 
    Provides the ability to create and modify roles and users on the current
-   database.
+   database. This role also indirectly provides :ref:`superuser <superuser>`
+   access to either the database or, if scoped to the ``admin`` database, the
+   cluster. The :authrole:`userAdmin` role allows users to grant any user any
+   privilege, including themselves.
 
-   The :authrole:`userAdmin` role does not restrict the permissions that a
-   user can grant, and as a result a :authrole:`userAdmin` user can grant
-   privileges to themselves or other users in excess of the
-   :authrole:`userAdmin` users' current privileges. A :authrole:`userAdmin`
-   can grant themselves *all privileges*, even though the role does not
-   explicitly authorize privileges beyond user administration.
-
-   The :authrole:`userAdmin` role provides the following :ref:`actions
-   <security-user-actions>`:
+   The :authrole:`userAdmin` role explicitly provides the following
+   :ref:`actions <security-user-actions>`:
 
    - :authaction:`changeCustomData`
    - :authaction:`changePassword`
@@ -403,20 +396,17 @@ single-database equivalents:
 .. authrole:: readAnyDatabase
 
    Provides the same read-only permissions as :authrole:`read`, except it
-   applies to *all* databases in the cluster.
-
-   Provides the following :ref:`action <security-user-actions>` on the cluster
-   as a whole:
+   applies to *all* databases in the cluster. The role also provides the
+   following :ref:`action <security-user-actions>` on the cluster as a whole:
 
    - :authaction:`listDatabases`
 
 .. authrole:: readWriteAnyDatabase
 
    Provides the same read and write permissions as :authrole:`readWrite`,
-   except it applies to *all* databases in the cluster.
-
-   Provides the following :ref:`action <security-user-actions>` on the cluster
-   as a whole:
+   except it applies to *all* databases in the cluster. The role also provides
+   the following :ref:`action <security-user-actions>` on the cluster as a
+   whole:
 
    - :authaction:`listDatabases`
 
@@ -424,24 +414,17 @@ single-database equivalents:
 
    Provides the same access to user administration operations as
    :authrole:`userAdmin`, except it applies to *all* databases in the cluster.
-
-   The :authrole:`userAdminAnyDatabase` role does not restrict the permissions
-   that a user can grant, and as a result a user with the role can grant
-   privileges to themselves or other users in excess of the user's current
-   privileges. This role is *effectively* a MongoDB system superuser, even
-   though the role does not explicitly authorize a user for any privileges
-   beyond user administration.
-
-   Provides the following :ref:`actions <security-user-actions>` on the
-   cluster as a whole:
+   The role also provides the following :ref:`actions <security-user-actions>`
+   on the cluster as a whole:
 
    - :authaction:`authSchemaUpgrade`
    - :authaction:`invalidateUserCache`
    - :authaction:`listDatabases`
 
-   Provides the following actions on the :data:`admin.system.users` and
-   :data:`admin.system.roles` collections on the ``admin`` database, and on
-   legacy ``system.users`` collections from versions of MongoDB prior to 2.6:
+   The role also provides the following actions on the
+   :data:`admin.system.users` and :data:`admin.system.roles` collections on
+   the ``admin`` database, and on legacy ``system.users`` collections from
+   versions of MongoDB prior to 2.6:
 
    - :authaction:`collStats`
    - :authaction:`dbHash`
@@ -450,6 +433,13 @@ single-database equivalents:
    - :authaction:`killCursors`
    - :authaction:`planCacheRead`
 
+   The :authrole:`userAdminAnyDatabase` role does not restrict the permissions
+   that a user can grant. As a result, :authrole:`userAdminAnyDatabase` users
+   can grant privileges themselves privileges in excess of their current
+   privileges and even can grant themselves *all privileges*, even though the
+   role does not explicitly authorize privileges beyond user administration.
+   This role is effectively a MongoDB system :ref:`superuser <superuser>`.
+
    .. todo: Also provides the above actions on system.new_users, system.backup_users,
             and system.version. Do we want to document these?
 
@@ -457,23 +447,35 @@ single-database equivalents:
 
    Provides the same access to database administration operations as
    :authrole:`dbAdmin`, except it applies to *all* databases in the cluster.
-
-   Provides the following :ref:`action <security-user-actions>` on the cluster
-   as a whole:
+   The role also provides the following :ref:`action <security-user-actions>`
+   on the cluster as a whole:
 
    - :authaction:`listDatabases`
 
 .. _superuser:
 
-Superuser Role
---------------
+Superuser Roles
+---------------
 
-The following role provides full privileges on all resources in the cluster:
+Several roles provide either indirect or direct system-wide superuser access.
+
+The following roles provide the ability to assign any user any privilege on
+any database, which means that users with one of these roles can assign
+*themselves* any privilege on any database:
+
+- :authrole:`dbOwner` role, when scoped to the ``admin`` database
+
+- :authrole:`userAdmin` role, when scoped to the ``admin`` database
+
+- :authrole:`userAdminAnyDatabase` role
+
+The following role provides full privileges on all resources:
 
 .. authrole:: root
 
    Provides access to all the operations and all the resources of *of all
-   other roles combined*. A user with this role is a superuser.
+   other roles combined*. The role provides full privileges on all resources
+   in the cluster.
 
 Internal Role
 -------------
