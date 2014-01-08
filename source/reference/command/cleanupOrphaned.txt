@@ -13,10 +13,13 @@ Definition
 
    :dbcommand:`cleanupOrphaned` is an admin command that incrementally
    deletes :term:`orphaned data <orphaned document>`, or those
-   documents on a shard that have shard key values that do not fall
-   within the ranges of the :term:`chunks <chunk>` owned by that
-   shard. The delete operations use a :term:`write concern` of ``w:
-   majority``.
+   documents on a shard that have shard key values that do not
+   fall within the ranges of the :term:`chunks <chunk>` owned by
+   that shard. Each delete operation uses a :term:`write concern`
+   of ``w: 1`` by default, or ``w: 2`` when ``secondaryThrottle`` is
+   ``true``. After all delete operations, :dbcommand:`cleanupOrphaned`
+   has a write concern of ``w: majority`` to ensure that deletes
+   propagate to all members of the replica set.
 
    :dbcommand:`cleanupOrphaned` has the following prototype form:
 
@@ -45,10 +48,10 @@ Behavior
 You do not need to disable the balancer before running
 :dbcommand:`cleanupOrphaned`.
 
-Do not run :dbcommand:`cleanupOrphaned` on a :program:`mongos`
-instance: instead, run :dbcommand:`cleanupOrphaned` on the
-:program:`mongod` that is the primary replica set member of the shard
-to be cleaned.
+Run :dbcommand:`cleanupOrphaned` on the ``admin`` database of the
+:program:`mongod` that is the primary replica set member of the
+shard to be cleaned. Do not run :dbcommand:`cleanupOrphaned` on a
+:program:`mongos` instance.
 
 Output
 ------
@@ -100,8 +103,8 @@ a subset of the following fields:
 Interpreting Log Files
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Read the :program:`mongod` log file to interpret how many orphaned documents
-:dbcommand:`cleanupOrphaned` deleted. Relevant lines resemble the following:
+The :dbcommand:`cleanupOrphaned` command prints the number of orphaned
+documents deleted. Relevant output lines resemble the following:
 
 .. code-block:: none
 
@@ -133,24 +136,26 @@ Run the following code in the :program:`mongo` shell:
 Specify a Different Initial Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From the ``admin`` database, to clean up a sharded ``info`` collection
-in the ``test`` database, consider a shard that has only a single
-chunk, and where :method:`sh.status` reports the following range for
-that chunk:
+For a sharded collection ``info`` in the ``test`` database, a shard
+owns a single chunk with the following range:
+
+.. code-block:: javascript
+   
+   { x : 1 } => { x: 10 }
+
+The shard also contains documents whose shard keys fall in two ranges
+*not* owned by the shard:
 
 .. code-block:: javascript
 
-   { x : 1 } => { x : 10 }
+   { x : MinKey } => { x: 1 } 
+   { x: 10 } => { x: MaxKey } 
 
-The shard has two ranges not owned by the chunk:
+From the ``admin`` database, run the :dbcommand:`cleanupOrphaned`
+command to clean up the orphaned documents.
 
-.. code-block:: javascript
-
-   { x : MinKey } => { x : 1 }
-
-   { x : 10 } => { x : MaxKey }
-
-Use one of the following commands to clean up the first range:
+To clean up the range ``{ x: MinKey } => { x : 1 }``, use one of
+the following commands:
 
 .. code-block:: javascript
 
@@ -169,14 +174,15 @@ Use one of the following commands to clean up the first range:
       "secondaryThrottle": true
    } )
 
-To clean the second range, use one of the following commands:
+To clean up the range ``{ x: 10 } => { x : MaxKey }``,  use one of the following
+commands:
 
 .. code-block:: javascript
 
    use admin
    db.runCommand( {
       "cleanupOrphaned": "test.info",
-      "startingAtKey": { x : 2 },
+      "startingAtKey": { x : 10 },
       "secondaryThrottle": true
    } )
 
