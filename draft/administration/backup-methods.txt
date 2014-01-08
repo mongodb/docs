@@ -1,0 +1,160 @@
+======================
+MongoDB Backup Methods
+======================
+
+When deploying MongoDB in production, you should have a strategy for
+capturing and restoring backups in the case of data loss events. There
+are a variety of different methods that you can use to back up
+MongoDB, depending on your requirements and configuration.
+
+Overview of Methods
+
+* Employ MongoDB Management Service (MMS)
+* Use mongodump and mongorestore tools
+* Copy the Underlying Data Files
+
+Backing up with MongoDB Management Service (MMS)
+------------------------------------------------
+
+MMS Backup (MMS) provides a fully managed backup solution for
+MongoDB. MMS continually backs up MongoDB replica sets and sharded
+systems by reading the oplog data from your MongoDB cluster.
+
+MMS Backup offers point in time recovery of MongoDB replica sets and a
+consistent snapshot of sharded systems.
+
+MMS achieves point in time recovery by storing oplog data so that it
+can recreate any moment in time within the last 24 hours for a
+particular replica set.
+
+For sharded systems, MMS can’t restore to any arbitrary moment in
+time, but it does provide periodic consistent snapshots of the entire
+sharded system, something that is difficult to achieve using any other
+method of backing up MongoDB.
+
+To restore your MongoDB cluster from an MMS Backup snapshot, you
+download a compressed archive of your MongoDB data files and move
+those files into position before restarting the mongod processes on
+the various MongoDB nodes.
+
+To get started with MMS Backup, see the MMS documentation.
+
+Backing up with mongodump
+-------------------------
+
+
+:program:`mongodump` is used in conjunction with
+:program:`mongorestore`. :program:`mongodump` creates backups by
+querying the data in each targeted collection and writing that data to
+a file. :program:`mongorestore` can take the output of
+:program:`mongodump` and write that data to a MongoDB deployment.
+
+:program:`mongodump` and :program:`mongorestore` can operate both
+online, against a running mongod process, and offline, by manipulating
+the underlying database files.
+
+:program:`mongodump` does not capture indexes and stores only the documents that
+it backs up. The resulting backup is space efficient, but indexes must
+be recreated after a restore.
+
+When connected to a running mongod, the :program:`mongodump` --oplog option
+creates a consistent point in time backup. Use the corresponding
+:program:`mongorestore` --oplogReplay options to restore these
+backups. 
+while :program:`mongodump` with the --oplog option runs simultaneously.
+
+To use the -oplog option to create a point-in-time backup, you must be
+running a replica set versus a standalone mongod instance because only
+a replica set produces the required oplog data. Even a single host can
+run as a replica set.
+
+:program:`mongodump` can adversely affect your database performance. When
+connected to a MongoDB instance, :program:`mongodump` uses standard query and
+write operations.  If your data is larger than memory, :program:`mongodump` can
+cause a large amount of IO and force your previous working set out
+memory.
+
+Because :program:`mongodump` can have an adverse effect on performance, it is
+advisable to run it on a secondary node of a replica set so that the
+primary node remains responsive.  Alternatively, you can bring a
+secondary node offline and use :program:`mongodump` in offline mode.  However, be
+sure that your dump can complete before your oplog turns over or the
+secondary node will need to perform a complete resynch from the
+primary.
+
+:program:`mongodump` does not back up the local database unless explicitly
+specified.
+
+To backup a sharded system using :program:`mongodump`, you must backup a replica
+set node on every shard. Obtaining a snapshot corresponding to an
+exact moment in time across a sharded system is difficult with
+:program:`mongodump`. You can approximate a moment in time snapshot by bringing a
+secondary node offline for each shard at approximately the same moment
+and then running :program:`mongodump` on each offline host.
+
+Despite the performance limitations of :program:`mongodump` and :program:`mongorestore`,
+they can be quite useful for backing up and restoring a collection to
+a running system.
+
+See Back Up and Restore with MongoDB Tools, Backup a Small Sharded
+Cluster with :program:`mongodump`, and Backup a Sharded Cluster with Database
+Dumps for more information.
+
+
+Copying the Underlying Data Files
+---------------------------------
+
+You can create a backup of MongoDB by copying the underlying data
+files that MongoDB uses to operate and restoring them as needed.
+
+If the volume where MongoDB stores data files supports point in time
+snapshots, you can use these snapshots to create backups of a MongoDB
+system at an exact moment in time. File systems snapshots are an
+operating system volume manager feature. not a feature specific to
+MongoDB.
+
+The mechanics of snapshots depend on the underlying volume management
+system. For example if you are using Amazon’s EBS storage system on
+EC2, it directly support snaphots. On Linux the LVM manager can create
+a snapshot.
+
+To get a correct snapshot of a running mongod process, you must have
+journaling enabled within MongoDB. Without journaling enabled, there
+is no guarantee that the snapshot will be consistent; there could be
+half-written data.
+
+The MongoDB journal file must reside on the same logical volume as the
+other MongoDB data files for the snapshot to be consistent.
+
+To get a consistent snapshot of a sharded system, you must snapshot a
+replica set node of every shard and a config server at approximately
+the same moment in time, while taking care to turn off the balancer
+during the backup process.
+
+File systems snapshots are efficient and do not impact performance
+significantly if the underlying snapshot facility is well
+implemented. They can also be space efficient if the snapshotting
+feature of the volume manager supports incremental snapshots and
+compression.
+
+The primary drawback of using file systems snapshots is that they
+don’t provide arbitrary point in time recovery for replica sets and
+can be somewhat complicated to configure and manage for large sharded
+systems.
+
+If your storage system does not support snapshots, you can copy the
+files directly.  Since, copying multiple files is not an atomic
+operation, you must stop the mongoDB process before starting to copy
+the files. Otherwise, you will copy the files in an inconsistent
+state.
+
+For more information, see the Backup and Restore with Filesystem
+Snapshots and Backup a Sharded Cluster with Filesystem Snapshots for
+complete instructions on using LVM to create snapshots. Also see Back
+up and Restore Processes for MongoDB on Amazon EC2.
+
+A drawback of simply copying and restoring files is that any
+underlying fragmentation within the MongoDB data files, due to
+documents being updated and deleted, will remain after you restore the
+files. :program:`mongodump` and :program:`mongorestore`, in contrast,
+have the effect of removing fragmentation.
