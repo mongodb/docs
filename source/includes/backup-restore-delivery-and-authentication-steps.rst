@@ -15,8 +15,7 @@ Select Destination for the Snapshot
 
      To grant access via SSH public key,
 
-     #. Go to the MMS "Settings" page, and select :guilabel:`Public Key
-        for SCP Restores`.
+     #. Go to the MMS "Settings" page, and select :guilabel:`Restore Settings`.
 
      #. Input a passphrase, and click on :guilabel:`Generate a New
         Public Key`. |backup| will generate and display a
@@ -33,6 +32,12 @@ Select Destination for the Snapshot
         For security reasons, you should remove this public key from
         the authorized hosts file once you have obtained your backup
         file.
+
+#. Select the file :guilabel:`Format`. Individual DB files will fill the target
+   directory with MongoDB files. Database files stream files directly from the
+   backup database, and are faster to construct, but require additional file space
+   on the destination server. Archive (tar.gz) delivers database files in a
+   single tar.gz that must be extracted before use.
 
 #. Click :guilabel:`Authenticate`.
 
