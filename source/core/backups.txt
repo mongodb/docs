@@ -6,6 +6,7 @@ Back up MongoDB Systems
 
 .. contents::
    :backlinks: none
+   :depth: 2
    :local:
 
 Production deployments of MongoDB should have a strategy for
@@ -26,7 +27,8 @@ MongoDB has multiple backup methods to support different deployments
 and disaster recovery requirements. The following table provides a
 high level outline of these methods and their properties:
 
-.. list-table::
+.. START-COMMENTED-LIST-TABLE
+
    :header-rows: 1
 
    * -
@@ -64,6 +66,8 @@ high level outline of these methods and their properties:
      - Difficult
      - Yes
 
+.. END-COMMENTED-LIST-TABLE
+
 MMS Backup
 ~~~~~~~~~~
 
@@ -79,7 +83,7 @@ Replica Sets
 
 MMS backups for replica sets uses a lightweight backup agent that runs
 within a deployment to copy data to the Backup service. Internally,
-MMS Backup operates like a secondary.
+MMS Backup operates like a secondary in a replica set.
 
 The agent first performs a process that resembles the
 :ref:`initial sync for new replica set members
@@ -127,37 +131,27 @@ See :mms:`Restore from a Stored Snapshot
 set from a Point in the Last 24 Hours
 </backup/tutorial/restore-from-point-in-time-snapshot/>`.
 
-Benefits
-````````
+Use
+```
 
 MMS simplifies the set up and configuration of a backup
 system. The Backup agent has no dependencies and minimal
-configuration. See the :mms:`Backup agent installation
+configuration. However, the Backup agent must be able to contact the
+MMS server. See the :mms:`Backup agent installation
 </backup/tutorial/install-and-start-backup-agent/>` and :mms:`Backup
 agent configuration </backup/tutorial/configure-backup-agent>`
 tutorials for a description of this process.
 
-MMS replicates from secondaries, which minimizes the load on the
-primary.
-
-For replica sets, oplog tracking ensures your ability to restore to
+Because MMS tracks oplog entries, MMS Backup can provide restores for
 any point in time within the past 24 hours. Regular snapshots for
 replica sets and sharded clusters ensure your ability to restore to
 specific earlier states as well.
-
-Considerations
-``````````````
-
-MMS can only back up replica sets and sharded cluster config
-servers.
-
-The Backup agent must be able to contact the MMS server.
 
 Filesystem Snapshots
 ~~~~~~~~~~~~~~~~~~~~
 
 Operation
-``````````
+`````````
 
 If the volume where MongoDB stores data files supports point in time
 snapshots, you can use these snapshots to create backups of a MongoDB
@@ -176,25 +170,19 @@ complete instructions on using LVM to create snapshots. Also see
 :ecosystem:`Back up and Restore Processes for MongoDB on Amazon EC2
 </tutorial/backup-and-restore-mongodb-on-amazon-ec2>`.
 
-Benefits
-````````
+Use
+```
 
 Snapshots capture the state of the database at a specific point in
-time. With journaling enabled, if the journal resides on the same
+time. With journaling, if the journal resides on the same
 volume as the data files, you can create a snapshot while maintaining
-write availability for the :program:`mongod` instance.
+write availability for the :program:`mongod` instance. If the journal
+is not on the same volume as the data files, you must stop all writes
+while creating the snapshot.
 
 For systems like LVM, snapshot creation completes quickly and has
 limited impact on system performance while migrating the data off of
 the system.
-
-Considerations
-``````````````
-
-To take file system snapshots, MongoDB's data files must reside on a
-volume manager that supports snapshots. Without journaling, or if the
-journal is not on the same volume as the data files, you must stop all
-writes while creating the snapshot.
 
 Because snapshots capture the data and indexes, snapshots are not
 space efficient backups.
@@ -219,8 +207,8 @@ See :doc:`/tutorial/backup-and-restore-with-binary-database-dumps`,
 and :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
 for more information.
 
-Benefits
-````````
+Use
+```
 
 :program:`mongodump` does not capture indexes and stores only the
 documents that it backs up. The resulting backup is space efficient.
@@ -234,31 +222,25 @@ to a MongoDB instance over a network to read or write data. With
 direct file access, :program:`mongodump` and :program:`mongorestore`
 read and write directly to the :program:`mongod` data files.
 
-When connected to a running :program:`mongod`, the
-:option:`mongodump --oplog` creates a consistent point in time
-backup. Use the corresponding :option:`mongorestore --oplogReplay`
-options to restore these backups. Applications may continue modifying
-data while running :program:`mongodump` with the :option:`--oplog
-<mongodump --oplog>` option.
-
-Considerations
-``````````````
-
 When connected to a MongoDB instance, :program:`mongodump` and
 :program:`mongorestore` use standard query and write operations. These
 operations affect the :term:`working set`. The performance of
 these operations depend on other operations and activity within the
 :program:`mongod` instance.
 
+:program:`mongodump` provides the option:`--oplog <mongodump --oplog>`
+option to create a consistent point in time backup. Use the
+corresponding :option:`mongorestore --oplogReplay` options to restore
+these backups. Applications may continue modifying data while running
+:program:`mongodump` with the :option:`--oplog <mongodump --oplog>`
+option. However, :program:`mongodump` cannot create a point-in-time
+backup of a standalone :program:`mongod` instance because standalone
+instances lack an :term:`oplog`.
+
 When using :program:`mongorestore`, the :program:`mongod` must build
-indexes in addition to restoring the data.
-
-:program:`mongodump` does not back up the :ref:`local database
-<replica-set-local-database>` unless explicitly specified.
-
-:program:`mongodump` cannot create a point-in-time backup of a
-standalone :program:`mongod` instance because standalone instances lack
-an :term:`oplog`.
+indexes in addition to restoring the data. :program:`mongodump` does
+not back up the :ref:`local database <replica-set-local-database>`
+unless explicitly specified.
 
 Deployment Considerations
 -------------------------
