@@ -36,7 +36,6 @@ generate-source-hosted:
 	@rm -rf $(hosted-source-dir)/backup.txt $(hosted-source-dir)/backup/
 	@rm -rf $(hosted-source-dir)/includes/toc/dfn-list-mms-landing-saas.rst $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
 	@rm -rf $(hosted-source-dir)/includes/toc/mms-landing-saas.* $(hosted-source-dir)/includes/toc/spec-mms-landing-saas.yaml
-	@rm -rf $(hosted-source-dir)/management/activity.txt
 	@echo [sphinx-prep]: updated source in $(hosted-source-dir)
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
