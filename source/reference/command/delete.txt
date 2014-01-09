@@ -9,25 +9,29 @@ Definition
 
 .. dbcommand:: delete
 
-   The :dbcommand:`delete` command deletes one or more documents and returns a
-   document containing the status of all deletes.
+   The :dbcommand:`delete` command removes documents from a collection.
+   A single :dbcommand:`delete` command can contain multiple delete
+   specifications. The command cannot operate on :doc:`capped
+   collections </core/capped-collections>`. The remove methods provided
+   by the MongoDB drivers use this command internally.
 
-   The command has the following syntax:
+   The :dbcommand:`delete` command has the following syntax:
 
    .. code-block:: javascript
 
       {
          delete: <collection>,
-         deletes: [ { q : <query>, limit : <integer> },
-                    { q : <query>, limit : <integer> },
-                    { q : <query>, limit : <integer> },
-                    ...
-                  ],
+         deletes: [ 
+            { q : <query>, limit : <integer> },
+            { q : <query>, limit : <integer> },
+            { q : <query>, limit : <integer> },
+            ...
+         ],
          ordered: <boolean>,
          writeConcern: { <write concern> }
       }
 
-   The :dbcommand:`delete` command takes the following fields:
+   The command takes the following fields:
 
    .. include:: delete-field.rst
 
@@ -35,106 +39,192 @@ Definition
 
    .. include:: delete-field-deletes.rst
 
-   The top-level ``writeConcern`` field specifies the write concern for
-   all deletes. See :doc:`/reference/write-concern` for an explanation
-   of write concern syntax.
+   :return:
+
+      A document that contains the status of the operation.
+      See :ref:`delete-command-output` for details.
+
+Behavior
+--------
+
+The total size of all the queries (i.e. the ``q`` field values) in the
+``deletes`` array must be less than or equal to the :limit:`maximum
+BSON document size <BSON Document Size>`.
+
+The total number of delete documents in the ``deletes`` array must be
+less than or equal to the :limit:`maximum bulk size
+<Bulk Operation Size>`.
+
+Examples
+--------
+
+Limit the Number of Documents Deleted
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes from the ``orders`` collection one
+document that has the ``status`` equal to ``D`` by specifying the
+``limit`` of ``1``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { status: "D" }, limit: 1 } ]
+      }
+   )
+
+The returned document shows that the command deleted ``1`` document.
+See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 1 }
+
+Delete All Documents That Match a Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes from the ``orders`` collection all
+documents that have the ``status`` equal to ``D`` by specifying the
+``limit`` of ``0``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { status: "D" }, limit: 0 } ]
+      }
+   )
+
+The returned document shows that the command found and deleted ``13``
+documents. See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 13 }
+
+Delete All Documents from a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Delete all documents in the ``orders`` collection by specifying an
+empty query condition *and* a ``limit`` of ``0``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { }, limit: 0 } ]
+      }
+   )
+
+The returned document shows that the command found and deleted ``35``
+documents in total. See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 35 }
+
+Bulk Delete
+~~~~~~~~~~~
+
+The following example performs multiple delete operations on the
+``orders`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [
+            { q: { status: "D" }, limit: 0 },
+            { q: { cust_num: 99999, item: "abc123", status: "A" }, limit: 1 }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+The returned document shows that the command found and deleted ``21``
+documents in total for the two delete statements. See
+:ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 21 }
+
+.. _delete-command-output:
 
 Output
 ------
-
-On success, :dbcommand:`delete` returns a document similar to the
-following:
-
-.. code-block:: javascript
-
-   { ok: 1, n: 1 }
-
-On failure, :dbcommand:`delete` returns a document similar to the
-following:
-
-.. code-block:: javascript
-
-   {
-      ok: 0,
-      n: 1,
-      code: 104,
-      errmsg: "Could not replicate operation within requested timeout"
-   }
 
 The returned document contains a subset of the following fields:
 
 .. data:: delete.ok
 
-   The return status of the command.
+   The status of the command.
 
 .. data:: delete.n
 
    The number of documents deleted.
 
-.. data:: delete.code
+.. data:: delete.writeErrors
 
-   An integer value identifying the cause of failure.
+   An array of documents that contains information regarding any error
+   encountered during the delete operation. The
+   :data:`~delete.writeErrors` array contains an error document for
+   each delete statement that errors.
 
-.. data:: delete.errInfo
+   Each error document contains the following information:
 
-   Structured data about the error, that is both human- and
-   machine-readable.
+   .. data:: delete.writeErrors.index
 
-.. data:: delete.errmsg
+      An integer that identifies the delete statement in the
+      ``deletes`` array, which uses a zero-based index.
 
-   A human-readable description of the cause of failure.
+   .. data:: delete.writeErrors.code
 
-Examples
---------
+      An integer value identifying the error.
 
-Single Delete
-~~~~~~~~~~~~~
+   .. data:: delete.writeErrors.errmsg
 
-.. example::
+      A description of the error.
 
-   Given a ``people`` collection, delete a person in the collection:
+.. data:: delete.writeConcernError
 
-   .. code-block:: javascript
+   Document that describe error related to write concern and contains
+   the field:
 
-      db.runCommand(
+   .. data:: delete.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: delete.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+The following is an example document returned for a successful
+:dbcommand:`delete` command:
+
+.. code-block:: javascript
+
+   { ok: 1, n: 1 }
+
+The following is an example document returned for a :dbcommand:`delete`
+command that encountered an error:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "n" : 0,
+      "writeErrors" : [
          {
-            delete: "people",
-            deletes: [ { q: { name: "Sam" }, limit: 1 } ],
-            ordered: false,
-            writeConcern: { w: 1 }
+            "index" : 0,
+            "code" : 10101,
+            "errmsg" : "can't remove from a capped collection: test.cappedLog"
          }
-      ) 
-
-   The returned document:
-
-   .. code-block:: javascript
-
-      { "ok" : 1, "n" : 0 }
-
-Bulk Delete
-~~~~~~~~~~~
-
-.. example::
-
-   Now bulk-delete three more people in the collection:
-
-   .. code-block:: javascript
-
-      db.runCommand(
-         {
-            delete: "people",
-            deletes: [ { q: { name: "Kay" }, limit: 1 },
-                       { q: { name: "Bob" }, limit: 1 },
-                       { q: { name: "Zack" }, limit: 1 }
-                     ],
-            ordered: false,
-            writeConcern: { w: 1 }
-         }
-      ) 
-
-   The returned document:
-
-   .. code-block:: javascript
-
-      { "ok" : 1, "n" : 3 }
+      ]
+   }
 

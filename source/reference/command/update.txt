@@ -9,25 +9,29 @@ Definition
 
 .. dbcommand:: update
 
-   The :dbcommand:`update` command updates one or more documents and returns a
-   document containing the status of all updates.
+   The :dbcommand:`update` command modifies documents in a collection.
+   A single :dbcommand:`update` command can contain multiple update
+   statements. The update methods provided by the MongoDB drivers use
+   this command internally.
 
-   The command has the following syntax:
+   The :dbcommand:`update` command has the following syntax:
 
    .. code-block:: javascript
 
       {
          update: <collection>,
-         updates: [ { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
-                    { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
-                    { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
-                    ...
-                  ],
+         updates:
+            [
+               { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean> },
+               { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean> },
+               { q: <query>, u: <update>, upsert: <boolean>, multi: <boolean> },
+               ...
+            ],
          ordered: <boolean>,
          writeConcern: { <write concern> }
       }
 
-   The :dbcommand:`update` command takes the following fields:
+   The command takes the following fields:
 
    .. include:: update-field.rst
 
@@ -35,35 +39,183 @@ Definition
 
    .. include:: update-field-updates.rst
 
-   The top-level writeConcern field specifies the write concern for all
-   inserts. See :doc:`/reference/write-concern` for an explanation of write concern
-   syntax.
+   :return:
 
-Output
-------
+      A document that contains the status of the operation.
+      See :ref:`update-command-output` for details.
 
-On success, :dbcommand:`update` returns a document similar to:
+.. _update-command-behaviors:
 
-.. code-block:: javascript
+Behaviors
+---------
 
-   { ok: 1, n: 1, upserted: 526acb2fe5a1ce044f13499c }
+The ``<update>`` document can contain either all :ref:`update operator
+<update-operators>` expressions or all ``field:value`` expressions.
 
-On failure, :dbcommand:`update` returns a document similar to:
+Update Operator Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` document contains all :ref:`update operator
+<update-operators>` expressions, as in:
 
 .. code-block:: javascript
 
    {
-      ok: 0,
-      n: 1,
-      code: 104,
-      errInfo: {
-                  writtenTo: [
-                                { _id: 0, host: "foo:27017", wtimeout: true },
-                                { _id: 1, host: "bar:27017", wtimeout: true }
-                             ]
-               },
-      errmsg: "Could not replicate operation within requested timeout"
+     $set: { status: "D" },
+     quantity: { $inc: 2 } 
    }
+
+Then, the :dbcommand:`update` command updates only the corresponding
+fields in the document.
+
+``Field: Value`` Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` document contains *only* ``field:value``
+expressions, as in:
+
+.. code-block:: javascript
+
+   {
+     status: "D",
+     quantity: 4
+   }
+
+Then the :dbcommand:`update` command *replaces* the matching document
+with the update document. The :dbcommand:`update` command can only
+replace a *single* matching document; i.e. the ``multi`` field cannot
+be ``true``. The :dbcommand:`update` command *does not* replace the
+``_id`` value.
+
+Limits
+~~~~~~
+
+For each update element in the ``updates`` array, the sum of the query
+and the update sizes (i.e. ``q`` and ``u`` ) must be less than or equal
+to the :limit:`maximum BSON document size <BSON Document Size>`.
+
+The total number of update statements in the ``updates`` array must be
+less than or equal to the :limit:`maximum bulk size 
+<Bulk Operation Size>`.
+
+Examples
+--------
+
+Update Specific Fields of One Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :ref:`update operators <update-operators>` to update only the
+specified fields of a document.
+
+For example, given a ``users`` collection, the following command uses
+the :update:`$set` and :update:`$inc` operators to modify the ``status``
+and the ``points`` fields respectively of a document where the ``user``
+equals ``"abc123"``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [ 
+            { 
+              q: { user: "abc123" }, u: { $set: { status: "A" }, $inc: { points: 1 } }
+            }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+Because ``<update>`` document does not specify the optional ``multi``
+field, the update only modifies one document, even if more than one
+document matches the ``q`` match condition.
+
+The returned document shows that the command found and updated a single
+document. See :ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "nDocsModified" : 1, "n" : 1 }
+
+Update Specific Fields of Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :ref:`update operators <update-operators>` to update only the
+specified fields of a document, and include the ``multi`` field set to
+``true`` in the update statement.
+
+For example, given a ``users`` collection, the following command uses
+the :update:`$set` and :update:`$inc` operators to modify the
+``status`` and the ``points`` fields respectively of all documents in
+the collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [
+            { q: { }, u: { $set: { status: "A" }, $inc: { points: 1 } }, multi: true }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+The update modifies all documents that match the query specified in the
+``q`` field, namely the empty query which matches all documents in the
+collection.
+
+The returned document shows that the command found and updated multiple
+documents. See :ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "nDocsModified" : 100, "n" : 100 }
+
+Bulk Update
+~~~~~~~~~~~
+
+The following example performs multiple update operations on the
+``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         update: "users",
+         updates: [
+            { q: { status: "P" }, u: { $set: { status: "D" } }, multi: true },
+            { q: { _id: 5 }, u: { _id: 5, name: "abc123", status: "A" }, upsert: true }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+The returned document shows that the command modified ``10`` documents
+and upserted a document with the ``_id`` value ``5``. See
+:ref:`update-command-output` for details.
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "nDocsModified" : 10,
+      "n" : 11,
+      "upserted" : [
+         {
+            "index" : 1,
+            "_id" : 5
+         }
+      ]
+   }
+
+.. _update-command-output:
+
+Output
+------
 
 The returned document contains a subset of the following fields:
 
@@ -73,82 +225,106 @@ The returned document contains a subset of the following fields:
 
 .. data:: update.n
 
-   The number of documents updated.
+   The number of documents selected for update. If the update operation
+   results in no change to the document, e.g. :update:`$set` expression
+   updates the value to the current value, :data:`~update.n` can be
+   greater than :data:`~update.nDocsModified`.
+
+.. data:: update.nDocsModified
+
+   The number of documents updated. If the update operation results in
+   no change to the document, such as setting the value of the field to
+   its current value, :data:`~update.nDocsModified` can be less than
+   :data:`~update.n`.
 
 .. data:: update.upserted
 
-   If the :dbcommand:`update` results in inserting a single document,
-   :data:`update.upserted` is the value of the new document's ``_id``
-   field.
+   An array of documents that contains information for each upserted
+   documents.
 
-   If the :dbcommand:`update` results in inserting more than one
-   document, :data:`update.upserted` is an array of ``_id`` fields
-   of all the new documents.
+   Each document contains the following information:
 
-.. data:: update.code
+   .. data:: update.upserted.index
 
-   An integer value identifying the cause of failure.
+      An integer that identifies the upsert statement in the
+      ``updates`` array, which uses a zero-based index.
 
-.. data:: update.errInfo
+   .. data:: update.upserted._id
 
-   Structured data about the error, that is both human- and
-   machine-readable.
+      The ``_id`` value of the upserted document.
 
-.. data:: update.errmsg
+.. data:: update.writeErrors
 
-   A human-readable description of the cause of failure.
+   An array of documents that contains information regarding any error
+   encountered during the update operation. The
+   :data:`~update.writeErrors` array contains an error document for
+   each update statement that errors.
 
-Examples
---------
+   Each error document contains the following fields:
 
-Single Update
-~~~~~~~~~~~~~
+   .. data:: update.writeErrors.index
 
-.. example::
+      An integer that identifies the update statement in the
+      ``updates`` array, which uses a zero-based index.
 
-   Given a ``people`` collection, update a person in the collection:
+   .. data:: update.writeErrors.code
 
-   .. code-block:: javascript
+      An integer value identifying the error.
 
-      db.runCommand(
+   .. data:: update.writeErrors.errmsg
+
+      A description of the error.
+
+.. data:: update.writeConcernError
+
+   Document that describe error related to write concern and contains
+   the field:
+
+   .. data:: update.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: update.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+The following is an example document returned for a successful
+:dbcommand:`update` command that performed an upsert:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "nDocsModified" : 0,
+      "n" : 1,
+      "upserted" : [
          {
-            update: "people",
-            updates: [ { q: { name: "Sam" }, u: { state: "active" }, limit: 1, upsert: true } ],
-            ordered: false,
-            writeConcern: { w: 1 }
+            "index" : 0,
+            "_id" : ObjectId("52ccb2118908ccd753d65882")
          }
-      )
+      ]
+   }
 
-   The returned document:
+The following is an example document returned for a bulk update
+involving three update statements, where one update statement was
+successful and two other update statements encountered errors:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      { "ok" : 1, "n" : 1, "upserted" : 0 }
-
-Bulk Update
-~~~~~~~~~~~
-
-.. example::
-
-   Now bulk-update three more people in the collection:
-
-   .. code-block:: javascript
-
-      db.runCommand(
+   {
+      "ok" : 1,
+      "nDocsModified" : 1,
+      "n" : 1,
+      "writeErrors" : [
          {
-            update: "people",
-            updates: [ { q: { name: "Kay" }, u: { state: "active" }, limit: 1, upsert: true },
-                       { q: { name: "Bob" }, u: { state: "active" }, limit: 1, upsert: true },
-                       { q: { name: "Zack" }, u: { state: "active" }, limit: 1, upsert: true }
-                     ],
-            ordered: false,
-            writeConcern: { w: 1 }
-         }
-      ) 
-
-   The returned document:
-
-   .. code-block:: javascript
-
-      { "ok" : 1, "n" : 3, "upserted" : 0 }
-
+            "index" : 1,
+            "code" : 16837,
+            "errmsg" : "The _id field cannot be changed from {_id: 1.0} to {_id: 5.0}."
+         },
+         {
+            "index" : 2,
+            "code" : 16837,
+            "errmsg" : "The _id field cannot be changed from {_id: 2.0} to {_id: 6.0}."
+         },
+      ]
+   }
