@@ -9,8 +9,9 @@ Definition
 
 .. dbcommand:: insert
 
-   The :dbcommand:`insert` command inserts one or more documents and returns a
-   document containing the status of all inserts.
+   The :dbcommand:`insert` command inserts one or more documents and
+   returns a document containing the status of all inserts. The insert
+   methods provided by the MongoDB drivers use this command internally.
 
    The command has the following syntax:
 
@@ -27,37 +28,76 @@ Definition
 
    .. include:: insert-field.rst
 
-   The top-level ``writeConcern`` field specifies the write concern for
-   all inserts. See :doc:`/reference/write-concern` for an explanation
-   of write concern syntax.
+   :return:
+
+      A document that contains the status of the operation.
+      See :ref:`insert-command-output` for details.
+
+Behavior
+--------
+
+The total size of all the ``documents`` array elements must be less
+than or equal to the :limit:`maximum BSON document size
+<BSON Document Size>`.
+
+The total number of documents in the ``documents`` array must be less
+than or equal to the :limit:`maximum bulk size <Bulk Operation Size>`.
+
+Examples
+--------
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Insert a document into the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         insert: "users",
+         documents: [ { _id: 1, user: "abc123", status: "A" } ]
+      }
+   )
+
+The returned document shows that the command successfully inserted a
+document. See :ref:`insert-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 1 }
+
+Bulk Insert
+~~~~~~~~~~~
+
+Insert three documents into the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         insert: "users",
+         documents: [ 
+            { _id: 2, user: "ijk123", status: "A" },
+            { _id: 3, user: "xyz123", status: "P" },
+            { _id: 4, user: "mop123", status: "P" }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+The returned document shows that the command successfully inserted the
+three documents. See :ref:`insert-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 3 }
+
+.. _insert-command-output:
 
 Output
 ------
-
-On success, :dbcommand:`insert` returns a document similar to the
-following:
-
-.. code-block:: javascript
-
-   { ok: 1, n: 1 }
-
-On failure, :dbcommand:`insert` returns a document similar to the
-following:
-
-.. code-block:: javascript
-
-   {
-      ok: 0,
-      n: 1,
-      code: 104,
-      errInfo: {
-                  writtenTo: [
-                                { _id: 0, host: "foo:27017" },
-                                { _id: 1, host: "bar:27017" }
-                             ]
-               },
-      errmsg: "Could not replicate operation within requested timeout"
-   }
 
 The returned document contains a subset of the following fields:
 
@@ -69,70 +109,62 @@ The returned document contains a subset of the following fields:
 
    The number of documents inserted.
 
-.. data:: insert.code
+.. data:: insert.writeErrors
 
-   An integer value identifying the cause of failure.
+   An array of documents that contains information regarding any error
+   encountered during the insert operation. The
+   :data:`~insert.writeErrors` array contains an error document for
+   each insert that errors.
 
-.. data:: insert.errInfo
+   Each error document contains the following fields:
 
-   Structured data about the error, that is both human- and
-   machine-readable.
+   .. data:: insert.writeErrors.index
 
-.. data:: insert.errmsg
+      An integer that identifies the document in the
+      ``documents`` array, which uses a zero-based index.
 
-   A human-readable description of the cause of failure.
+   .. data:: insert.writeErrors.code
 
-Examples
---------
+      An integer value identifying the error.
 
-Single Insert
-~~~~~~~~~~~~~
+   .. data:: insert.writeErrors.errmsg
 
-.. example::
+      A description of the error.
 
-   Given a ``people`` collection, insert another person into the collection:
+.. data:: insert.writeConcernError
 
-   .. code-block:: javascript
+   Document that describe error related to write concern and contains
+   the field:
 
-      db.runCommand(
+   .. data:: insert.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: insert.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+The following is an example document returned for a successful
+:dbcommand:`insert` of a single document:
+
+.. code-block:: javascript
+
+   { ok: 1, n: 1 }
+
+The following is an example document returned for an
+:dbcommand:`insert` of two documents that successfully inserted one
+document but encountered an error with the other document:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "n" : 1,
+      "writeErrors" : [
          {
-            insert: "people",
-            documents: [ { name: "Sam", state: "active" } ],
-            ordered: false,
-            writeConcern: { w: 1 }
+            "index" : 1,
+            "code" : 11000,
+            "errmsg" : "insertDocument :: caused by :: 11000 E11000 duplicate key error index: test.users.$_id_  dup key: { : 1.0 }"
          }
-      ) 
-
-   The returned document:
-
-   .. code-block:: javascript
-
-      { "ok" : 1, "n" : 1 }
-
-Bulk Insert
-~~~~~~~~~~~
-
-.. example::
-
-   Now bulk-insert three more people into the collection:
-
-   .. code-block:: javascript
-
-      db.runCommand(
-         {
-            insert: "people",
-            documents: [ { name: "Kay", state: "active" },
-                         { name: "Bob", state: "active" },
-                         { name: "Zack", state: "active" } ],
-            ordered: false,
-            writeConcern: { w: 1 }
-         }
-      ) 
-
-   The returned document:
-
-   .. code-block:: javascript
-
-      { "ok" : 1, "n" : 3 }
-
-
+      ]
+   }
