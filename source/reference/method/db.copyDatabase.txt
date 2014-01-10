@@ -7,22 +7,78 @@ db.copyDatabase()
 Definition
 ----------
 
-.. method:: db.copyDatabase(origin, destination, hostname)
+.. method:: db.copyDatabase(fromdb, todb, fromhost, username, password)
 
-   Copies a single logical :term:`database` from a remote MongoDB
-   instance to the local database. :method:`db.copyDatabase()` wraps
-   the :dbcommand:`copydb` database command, and takes the following
-   arguments: 
+   Copies a database from a remote host to the current host or copies a
+   database to another database within the current host.
+   :method:`db.copyDatabase()` wraps the :dbcommand:`copydb` command
+   and takes the following arguments:
 
    .. include:: /reference/method/db.copyDatabase-param.rst
 
-   :method:`db.copyDatabase()` implicitly creates the destination
-   databases if it does not exist. If you do not specify the
-   ``hostname`` argument, MongoDB assumes the origin and destination
-   databases are on the *local* instance.
+Behavior
+--------
 
-   The :dbcommand:`clone` database command provides related
-   functionality.
+.. |copydb| replace:: :method:`db.copyDatabase()`
+
+.. include:: /includes/fact-copydb-behavior.rst
+
+Required Access
+---------------
+
+.. versionchanged:: 2.5.5
+
+The :dbcommand:`copydb` command requires the following authorization on
+the target and source databases.
+
+Source Database (``fromdb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Source is non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/access-copydb.rst
+   :start-after: .. source-not-admin
+   :end-before: .. source-admin
+
+Source is ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/access-copydb.rst
+   :start-after: .. source-admin
+
+Source Database is on a Remote Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If copying from a remote server and the remote server has
+authentication enabled, you must authenticate to the remote host as a
+user with the proper authorization. See
+:ref:`copyDatabases-authentication`.
+
+Target Database (``todb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Copy from non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. include:: /includes/access-copydb.rst
+   :start-after: .. target-non-admin-source
+   :end-before: .. target-admin-source
+
+Copy from ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/access-copydb.rst
+   :start-after: .. target-admin-source
+   :end-before: .. source-not-admin
+
+.. _copyDatabases-authentication:
+
+Authentication
+--------------
+
+If copying from a remote server and the remote server has
+authentication enabled, then you must include the ``<username>`` and
+``<password>``. The method does not transmit the password in plaintext.
 
 Example
 -------
@@ -34,3 +90,5 @@ To copy a database named ``records`` into a database named
 .. code-block:: javascript
          
    db.copyDatabase('records', 'archive_records')
+
+.. seealso:: :dbcommand:`clone`
