@@ -1,7 +1,7 @@
 To backup all the databases in a cluster via :program:`mongodump`, a user
 should have the :authrole:`backup` role. The :authrole:`backup` role provides
 all the needed privileges for backing up all database. The role confers no
-additional access, in keeping with the policy of :ref:`least privilege`.
+additional access, in keeping with the policy of :term:`least privilege`.
 
 To backup a given database, a user must have read access on the database.
 Several roles provide this access, including the :authrole:`backup` role.
