@@ -14,9 +14,17 @@ archive produced by |backup|:
 
    ./seedSecondary.sh <port> <oplog-size>
 
-Replace <port> with the port of the restored :program:mongod instance. Specify
-a size in gigabytes for the new oplog in the <oplog-size> argument. See
-:ref:replica-set-oplog-sizing for more information on oplog sizing.
+Replace <port> with the port of the restored :program:`mongod` instance.
+Specify a size in gigabytes for the new oplog in the <oplog-size> argument. See
+:ref:replica-set-oplog-sizing for more information on oplog sizing. The primary
+instance will need enough oplog to catch up from the timestamp of the snapshot.
+
+Restart the result set and use rs.add() to define the primary :program:`mongod`
+instance, as described in the :manual:`rs.add reference entry
+</reference/method/rs.add/>` in the MongoDB documentation.
+
+To bring data files up as a standalone :program:`mongod` instance, :manual:`see
+the MongoDB Installation Guides </installation/#tutorials-installation>`.
 
 For more information about replica set restoration, the MongoDB
 :manual:`Restore Replica Set from Backup
