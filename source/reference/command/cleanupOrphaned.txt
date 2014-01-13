@@ -11,50 +11,98 @@ Definition
 
    .. versionadded:: 2.5.3
 
-   :dbcommand:`cleanupOrphaned` is an admin command that
-   incrementally deletes :term:`orphaned data <orphaned document>`,
-   or those documents on a shard that have shard key values that
-   do not fall within the ranges of the :term:`chunks <chunk>`
-   owned by that shard. By default, after each delete operation
-   :dbcommand:`cleanupOrphaned` does not wait for replication before
-   starting the next delete operation. When ``secondaryThrottle``
-   is ``true``, :dbcommand:`cleanupOrphaned` waits for each delete
-   to replicate to one secondary member before starting the next
-   delete operation. After the final delete operation, Regardless of
-   the value of ``secondaryThrottle``, :dbcommand:`cleanupOrphaned`
-   waits for all deletes to replicate to a majority of members.
+   Deletes from a shard the :term:`orphaned documents <orphaned
+   document>` whose shard key values fall into a single or a single
+   contiguous range that do not belong to the shard. For example, if
+   two continguous ranges do not belong to the shard, the
+   :dbcommand:`cleanupOrphaned` examines both ranges for orphaned
+   documents.
 
-   :dbcommand:`cleanupOrphaned` has the following prototype form:
+   :dbcommand:`cleanupOrphaned` has the following syntax:
 
    .. code-block:: javascript
 
       db.runCommand( {
          cleanupOrphaned: "<database>.<collection>",
-         "startingAtKey": <minimumShardKeyValue>,
-         "secondaryThrottle": <boolean>
+         startingAtKey: <minimumShardKeyValue>,
+         secondaryThrottle: <boolean>
       } )
 
    :dbcommand:`cleanupOrphaned` has the following fields:
 
    .. include:: /reference/command/cleanupOrphaned-field.rst
 
-Required Access
----------------
-
-On systems running with :setting:`auth`, you must have
-:authrole:`clusterAdmin` privileges to run
-:dbcommand:`cleanupOrphaned`.
-
 Behavior
 --------
+
+Run :dbcommand:`cleanupOrphaned` in the ``admin`` database directly on
+the :program:`mongod` instance that is the primary replica set member
+of the shard. Do not run :dbcommand:`cleanupOrphaned` on a
+:program:`mongos` instance.
 
 You do not need to disable the balancer before running
 :dbcommand:`cleanupOrphaned`.
 
-Run :dbcommand:`cleanupOrphaned` on the ``admin`` database of the
-:program:`mongod` that is the primary replica set member of the
-shard to be cleaned. Do not run :dbcommand:`cleanupOrphaned` on a
-:program:`mongos` instance.
+.. _cleanupOrphaned-determine-range:
+
+Determine Range
+~~~~~~~~~~~~~~~
+
+The :dbcommand:`cleanupOrphaned` command uses the ``startingAtKey``
+value, if specified, to determine the start of the range to examine for
+orphaned document:
+
+- If the ``startingAtKey`` value falls into a range for a chunk not
+  owned by the shard, :dbcommand:`cleanupOrphaned` begins examining at
+  the start of this range, which may not necessarily be the
+  ``startingAtKey``.
+  
+- If the ``startingAtKey`` value falls into a range for a chunk owned
+  by the shard, :dbcommand:`cleanupOrphaned` moves onto the next range
+  until it finds a range for a chunk not owned by the shard.
+
+The :dbcommand:`cleanupOrphaned` deletes orphaned documents from the
+start of the determined range and ends at the start of the chunk range
+that belongs to the shard.
+
+Consider the following key space with documents distributed across
+``Shard A`` and ``Shard B``.
+
+.. include:: /images/sharding-cleanup-orphaned.rst
+
+``Shard A`` owns:
+
+- ``Chunk 1`` with the range ``{ x: minKey } --> { x: -75 }``, 
+
+- ``Chunk 2`` with the range ``{ x: -75 } --> { x: 25 }``, and
+
+- ``Chunk 4`` with the range ``{ x: 175 } --> { x: 200 }``.
+
+``Shard B`` owns:
+ 
+- ``Chunk 3`` with the range ``{ x: 25 } --> { x: 175 }`` and
+  
+- ``Chunk 5`` with the range ``{ x: 200 } --> { x: maxKey }``.
+
+If on ``Shard A``, the :dbcommand:`cleanupOrphaned` command runs with
+``startingAtKey: { x: -70 }`` or any other value belonging to range for
+``Chunk 1`` or ``Chunk 2``, the :dbcommand:`cleanupOrphaned` command examines
+the ``Chunk 3`` range of ``{ x: 25 } --> { x: 175 }`` to delete
+orphaned data.
+
+If on ``Shard B``, the :dbcommand:`cleanupOrphaned` command runs with
+the ``startingAtKey: { x: -70 }`` or any other value belonging to range
+for ``Chunk 1``, the :dbcommand:`cleanupOrphaned` command examines the
+combined contiguous range for ``Chunk 1`` and ``Chunk 2``, namely ``{
+x: minKey } --> { x: 25 }`` to delete orphaned data.
+
+Required Access
+---------------
+
+On systems running with :setting:`auth`, you must have
+:authrole:`clusterAdmin` privileges to run :dbcommand:`cleanupOrphaned`.
+
+.. _cleanupOrphaned-output:
 
 Output
 ------
@@ -86,29 +134,30 @@ a subset of the following fields:
      hour timeout. In this case, replication does occur, but only
      after :dbcommand:`cleanupOrphaned` returns.
 
-.. data:: cleanupOrphaned.startingAtKey
-
-   :dbcommand:`cleanupOrphaned` examines documents from a single
-   contiguous range of shard keys that do not correspond to any chunks
-   on a given shard, and deletes all documents found within that range.
-
-   :dbcommand:`cleanupOrphaned` selects the next range containing
-   the :data:`~cleanupOrphaned.startingAtKey` that is not in the range
-   of any chunk on the shard. :data:`~cleanupOrphaned.startingAtKey`
-   defaults to ``MinKey``.
-
 .. data:: cleanupOrphaned.stoppedAtKey
 
-   The upper bound of the cleaned range of shard keys. Corresponds to
-   the lower bound of the next chunk on the shard. It does not indicate
-   that :dbcommand:`cleanupOrphaned` found or deleted any documents.
+   The upper bound of the cleanup range of shard keys. If present, the
+   value corresponds to the lower bound of the next chunk on the shard.
+   The absence of the field signifies that the cleanup range was the
+   uppermost range for the shard.
+
+   If a migration is ongoing during the :dbcommand:`cleanupOrphaned`
+   process, the :dbcommand:`cleanupOrphaned` process may not be able to
+   act upon the range on the destination shard. In this case, the
+   ``stoppedAtKey`` value will be the same as the passed-in
+   ``startingAtKey`` value. You can safely rerun
+   :dbcommand:`cleanupOrphaned`. The :dbcommand:`cleanupOrphaned`
+   command will also print a warning similar to:
+
+   .. code-block:: sh
+
+      "orphaned cleanup needs to be retried, collection metadata at shard version <version> changed during reload".
 
 Log Files
 ~~~~~~~~~
 
 The :dbcommand:`cleanupOrphaned` command prints the number of deleted
-documents to the :program:`mongod` log. Relevant output lines resemble
-the following:
+documents to the :program:`mongod` log. For example:
 
 .. code-block:: none
 
@@ -120,66 +169,22 @@ the following:
 Examples
 --------
 
-Remove Orphaned Ranges from a Shard
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following examples run the :dbcommand:`cleanupOrphaned` command
+directly on the primary of the shard.
 
-Use the output of the :dbcommand:`cleanupOrphaned` in a loop to
-remove orphaned documents from all sharded key index ranges on a shard:
-
-Run the following code in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   use admin
-   var nextKey = { };
-   while (
-            nextKey = db.runCommand( { cleanupOrphaned: "test.user",
-                                       startingFromKey: nextKey } ).stoppedAtKey
-         ) { printjson(nextKey); }
-
-Specify a Different Initial Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Remove Orphaned Documents for a Specific Range
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For a sharded collection ``info`` in the ``test`` database, a shard
-owns a single chunk with the following range:
+owns a single chunk with the range: ``{ x: MinKey } --> { x: 10 }``.
 
-.. code-block:: javascript
-   
-   { x: 1 } => { x: 10 }
+The shard also contains documents whose shard keys values fall in a
+range for a chunk *not* owned by the shard: ``{ x: 10 } --> { x: MaxKey
+}``.
 
-The shard also contains documents whose shard keys fall in two ranges
-*not* owned by the shard:
-
-.. code-block:: javascript
-
-   { x: MinKey } => { x: 1 } 
-   { x: 10 } => { x: MaxKey } 
-
-From the ``admin`` database, run the :dbcommand:`cleanupOrphaned`
-command to clean up the orphaned documents.
-
-To clean up the range ``{ x: MinKey } => { x: 1 }``, use one of
-the following commands:
-
-.. code-block:: javascript
-
-   use admin
-   db.runCommand( {
-      "cleanupOrphaned": "test.info",
-      "startingAtKey": { x: 0 },
-      "secondaryThrottle": true
-   } )
-
-.. code-block:: javascript
-
-   use admin
-   db.runCommand( {
-      "cleanupOrphaned": "test.info",
-      "secondaryThrottle": true
-   } )
-
-To clean up the range ``{ x: 10 } => { x: MaxKey }``,  use the following
-command:
+To remove orphaned documents within the ``{ x: 10 } => { x: MaxKey }``
+range, you can specify a ``startingAtKey`` with a value that falls into
+this range, as in the following example:
 
 .. code-block:: javascript
 
@@ -190,5 +195,42 @@ command:
       "secondaryThrottle": true
    } )
 
-.. admin-only
+Or you can specify a ``startingAtKey`` with a value that falls into the
+previous range, as in the following:
 
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( {
+      "cleanupOrphaned": "test.info",
+      "startingAtKey": { x: 2 },
+      "secondaryThrottle": true
+   } )
+
+Since ``{ x: 2 }`` falls into a range that belongs to a chunk owned by
+the shard, :dbcommand:`cleanupOrphaned` examines the next range to find
+a range not owned by the shard, in this case ``{ x: 10 } => { x: MaxKey
+}``.
+
+Remove All Orphaned Documents from a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`cleanupOrphaned` examines documents from a single
+contiguous range of shard keys. To remove all orphaned documents from
+the shard, you can run :dbcommand:`cleanupOrphaned` in a loop, using
+the returned ``stoppedAtKey`` as the next ``startingFromKey``, as in
+the following:
+
+.. code-block:: javascript
+
+   use admin
+   var nextKey = { };
+
+   while ( nextKey = db.runCommand( {
+                         cleanupOrphaned: "test.user", 
+                         startingFromKey: nextKey
+                     } ).stoppedAtKey ) {
+      printjson(nextKey);
+   }
+
+.. admin-only
