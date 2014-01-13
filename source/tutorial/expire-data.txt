@@ -27,29 +27,61 @@ TTL relies on a background thread in :program:`mongod` that reads the
 date-typed values in the index and removes expired :term:`documents
 <document>` from the collection.
 
-Enable TTL for a Collection
----------------------------
+Considerations
+--------------
+
+- The ``_id`` field does not support TTL indexes.
+
+- You cannot create a TTL index on a field that already has an index.
+
+- A document will not expire if the indexed field does not exist.
+
+- A document will not expire if the indexed field is not a date
+  :term:`BSON type <BSON types>` or an array of date :term:`BSON types
+  <BSON types>`.
+
+- The TTL index may not be compound (may not have multiple fields).
+
+- If the TTL field holds an array, and there are multiple date-typed
+  data in the index, the document will expire when the *lowest* (i.e.
+  earliest) date matches the expiration threshold.
+
+- You cannot create a TTL index on a capped collection, because
+  MongoDB cannot remove documents from a capped collection.
+
+- You cannot use :method:`~db.collection.ensureIndex()` to change the
+  value of ``expireAfterSeconds``. Instead use the
+  :dbcommand:`collMod` database command in conjunction with the
+  :collflag:`index` collection flag.
+
+When the TTL thread is active, you will see :doc:`delete
+</core/write-operations>` operations in the output of
+:method:`db.currentOp()` or in the data collected by the
+:ref:`database profiler <database-profiler>`.
+
+When using TTL indexes on :term:`replica sets <replica set>`, the
+TTL background thread *only* deletes documents on :term:`primary`
+members. However, the TTL background thread *does* run on secondaries.
+:term:`Secondary` members replicate deletion operations
+from the primary. 
+
+.. include:: /includes/fact-ttl-collection-background-timing.rst
+
+All collections with an index using the
+``expireAfterSeconds`` option have :collflag:`usePowerOf2Sizes`
+enabled. Users cannot modify this setting. As a result of enabling
+:collflag:`usePowerOf2Sizes`, MongoDB must allocate more disk space
+relative to data size. This approach helps mitigate the possibility
+of storage fragmentation caused by frequent delete operations and
+leads to more predictable storage use patterns.
+
+Procedures
+----------
 
 To enable TTL for a collection, use the
 :method:`~db.collection.ensureIndex()` method to create a TTL index,
 as shown in the examples below. MongoDB begins removing expired
 documents as soon as the index finishes building.
-
-.. note::
-
-   When the TTL thread is active, you will see :doc:`delete
-   </core/write-operations>` operations in the output of
-   :method:`db.currentOp()` or in the data collected by the
-   :ref:`database profiler <database-profiler>`.
-
-.. note::
-
-   When enabling TTL on :term:`replica sets <replica set>`, the
-   TTL background thread *only* deletes documents on :term:`primary`
-   members. :term:`Secondary` members replicate deletion operations
-   from the primary.
-
-.. include:: /includes/note-ttl-collection-background-timing.rst
 
 With the exception of the background thread, a TTL index supports
 queries in the same way normal indexes do. You can use TTL indexes to
@@ -62,8 +94,8 @@ expire documents in one of two ways, either:
 - specify an explicit expiration time. The index will support queries
   for the expiration-time of the document.
 
-Expire after a Certain Number of Seconds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Expire Documents after a Certain Number of Seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To expire data after a certain number of seconds, create a TTL index on
 a field that holds values of BSON date type or an array of BSON
@@ -104,8 +136,8 @@ specified in ``expireAfterSeconds``.
 
 .. seealso:: :update:`$currentDate` operator
 
-Expire at a Certain Clock Time
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Expire Documents at a Certain Clock Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To expire documents at a certain clock time, begin by creating a TTL
 index on a field that holds values of BSON date type or an array of
@@ -141,38 +173,3 @@ collection when the documents' ``expireAt`` value is older than the
 number of seconds specified in ``expireAfterSeconds``, i.e. ``0``
 seconds older in this case. As such, the data expires at the specified
 ``expireAt`` value.
-
-Constraints
------------
-
-- The ``_id`` field does not support TTL indexes.
-
-- You cannot create a TTL index on a field that already has an index.
-
-- A document will not expire if the indexed field does not exist.
-
-- A document will not expire if the indexed field is not a date
-  :term:`BSON type <BSON types>` or an array of date :term:`BSON types
-  <BSON types>`.
-
-- The TTL index may not be compound (may not have multiple fields).
-
-- If the TTL field holds an array, and there are multiple date-typed
-  data in the index, the document will expire when the *lowest* (i.e.
-  earliest) date matches the expiration threshold.
-
-- You cannot create a TTL index on a capped collection, because
-  MongoDB cannot remove documents from a capped collection.
-
-- You cannot use :method:`~db.collection.ensureIndex()` to change the
-  value of ``expireAfterSeconds``. Instead use the
-  :dbcommand:`collMod` database command in conjunction with the
-  :collflag:`index` collection flag.
-
-.. important:: All collections with an index using the
-   ``expireAfterSeconds`` option have :collflag:`usePowerOf2Sizes`
-   enabled. Users cannot modify this setting. As a result of enabling
-   :collflag:`usePowerOf2Sizes`, MongoDB must allocate more disk space
-   relative to data size. This approach helps mitigate the possibility
-   of storage fragmentation caused by frequent delete operations and
-   leads to more predictable storage use patterns.
