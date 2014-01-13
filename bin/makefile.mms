@@ -65,4 +65,3 @@ generate-source-saas:
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
 
 build-meta += -t mms $(build-type)
-
