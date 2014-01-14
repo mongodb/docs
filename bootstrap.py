@@ -11,13 +11,13 @@ master_conf = os.path.join(project_root, 'bin', 'docs_meta.yaml')
 with open(master_conf, 'r') as f:
     conf = yaml.safe_load(f)
 
+repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
+
 buildsystem = conf['build']['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
 def bootstrap_init():
-    repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
-
     if os.path.exists(buildsystem):
         import bootstrap_helper
 
