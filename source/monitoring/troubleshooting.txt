@@ -2,17 +2,34 @@
 Troubleshooting
 ===============
 
-The document provide troubleshooting advice for common issues
-encountered installing the |monitoring| agent.  For answers to other
-questions, see the:doc:`FAQ </monitoring/faq>`.
+The document provide troubleshooting advice for common issues encountered
+installing the |monitoring| agent. Begin by working through the checklist below
+to ensure a problem is not easily resolved. Questions and answers also are
+listed below for issues not caused by easily fixed installation or connectivity
+problems.
+
+For answers to other questions, see the :doc:`monitoring FAQ
+</monitoring/faq>`.
 
 .. _troubleshooting:
 
 .. index:: troubleshooting
    single: agent; troubleshooting
 
+.. contents::
+   :backlinks: none
+   :class: long-toc
+   :local:
+
+Getting Started Checklist
+-------------------------
+
+Most problems with MMS are the result of issues with installation,
+connectivity, and other problems easily resolved. To begin troubleshooting,
+ensure these tasks are completed.
+
 Install All Requirements
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Make sure that the system running the agent has ``pymongo``
 installed. If your system runs a 2.4.x series Python, verify the
@@ -25,12 +42,19 @@ in the Python interpreter:
 
    >>> import pymongo
 
-If this operation produces no error, PyMongo is installed.
+If this operation produces no error, PyMongo is installed. If PyMongo is not
+installed, see :doc:`Install PyMongo </monitoring/tutorial/install-pymongo/>`
+for details.
+
+For installation of monitoring agents on Windows, check PowerShell is installed
+with an administrative powershell instance active before installation. See
+:doc:`Install the MMS Monitoring Agent on Windows
+</monitoring/tutorial/install-the-mms-agent-on-windows/>` for more details.
 
 Ensure Connectivity Between Agent and Monitored Hosts
------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ensure that the system running the agent can resolve and connect to the
+Ensure the system running the agent can resolve and connect to the
 MongoDB instances. To confirm, log into the system where the agent
 is running and issue a command in the following form:
 
@@ -42,29 +66,211 @@ Replace ``[hostname]`` with the hostname and ``[port]`` with the
 port that the database is listening on.
 
 Ensure Connectivity Between Agent and MMS Server
-------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Verify that the Monitoring agent can connect on TCP port 443
 (outbound) to the MMS server (i.e. "``mms.mongodb.com``".)
 
 Allow Agent to Discover Hosts and Collect Initial Data
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Allow the agent to run for 5-10 minutes to allow host discovery and initial
 data collection.
 
 Provide Correct Authentication Credentials
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your MongoDB instances run with authentication enabled, ensure that the
-monitoring agent has these credentials. You can supply these credentials when
-adding a host by specifying credentials in the "Add Host Interface," for every
-host that has authentication enabled. You may also click on the "Edit" host
-button (i.e. the gear icon) on the Hosts page in the MMS console to provide
-credentials.
+If your MongoDB instances run with authentication enabled, ensure MMS has these
+credentials. For new hosts, click the :guilabel:`Add Host` button on the
+:guilabel:`Hosts` page then specify credentials for every host with
+authentication enabled. For hosts already listed in MMS, click the
+:guilabel:`gear icon` to the right of a host name on the :guilabel:`Host` page
+then select :guilabel:`Edit Host` to provide credentials.
 
 Check Agent Output or Log
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you continue to encounter problems, check the agent's output or
-logs for errors.
+If you continue to encounter problems, check the agent's output or logs for
+errors. **[Meghan/Angshuman: What are common error messages with links to resolve
+issues?]**
+
+Alerts
+------
+
+I Cannot Figure Out How to Set Up Alerts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MMS, click the :guilabel:`Activity` tab then :guilabel:`Alert Settings`.
+Click the :guilabel:`Add Alert` button to add an alert. On the
+:guilabel:`Create a New Alert` window, select the alert conditions, for which
+hosts, and where to send alerts.
+
+See :doc:`Activity: Alerts and Events </management/activity/>` for details.
+
+Hosts
+-----
+
+I Still Don't See Hosts
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Problems with the monitoring agent detecting hosts can be caused by a few
+factors.
+
+**Host not added to MMS**: In MMS, click the :guilabel:`Hosts` tab then click
+the :guilabel:`Add Host` button. In the :guilabel:`New Host` window, specify
+the host type, internal hostname, and port. If appropriate, add the database
+username and password and whether or not MMS should use SSL to connect with
+your monitoring agent. Note it is not necessary to restart your monitoring
+agent when adding (or removing) a host.
+
+**Accidental duplicate mongods** If you add the host after a crash and restart
+the monitoring agent, you might not see the hostname in the MMS
+:guilabel:`Mongos` page. MMS detects the host as a duplicate and suppresses its
+data. To reset, select :guilabel:`Settings` then :guilabel:`Group Settings`.
+Click the :guilabel:`Reset Duplicates` button.
+
+**Too many monitoring agents installed**: Only one monitoring agent is needed
+to monitor all hosts within a single network. You can use a single monitoring
+agent if your hosts exist across multiple data centers and can be discovered by
+a single agent. Check you have only one monitoring agent and remove old agents
+after upgrading the monitoring agent.
+
+A second monitoring agent can be set up for redundancy. However, the MMS
+monitoring agent is robust. MMS sends an *Agent Down* alert only when there are
+no available monitoring agents available. See :doc:`Monitoring FAQ
+</monitoring/faq>` and :doc:`Monitoring Architecture
+</monitoring/tutorial/monitor-hosts-with-mms>` for more information.
+
+
+I Cannot Delete a Host
+~~~~~~~~~~~~~~~~~~~~~~
+
+In MMS, click the :guilabel:`Hosts` tab and click the :guilabel:`gear icon` to
+the right of a hostname and select :guilabel:`Remove Host`.
+
+In rare cases, the :program:`mongod` is brought down and the replica set is
+reconfigured. The down host cannot be deleted and returns an error message,
+"This host cannot be deleted because it is enabled for backup." `Contact MMS
+Support <https://mms.mongodb.com/links/support>`_ for help in deleting these
+hosts.
+
+Installation
+------------
+
+Setup Exits with "command 'gcc' failed with exit status 1" Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This error usually indicates Python C extensions cannot be built due to missing
+dependencies. Type this command to determine your system's architecture:
+
+.. code-block:: sh
+
+   uname -a
+
+Debian and Ubuntu users should issue these commands to install any missing
+Python dependencies:
+
+.. code-block:: sh
+
+   sudo apt-get install python-setuptools
+   sudo apt-get install build-essential python-dev
+
+Red Hat, CentOS, and Fedora Users should issue these commands to install any
+missing Python dependencies:
+
+.. code-block:: sh
+
+   sudo yum install python-setuptools
+   sudo yum install gcc python-devel
+
+If you install MMS monitoring agents on Windows, see :doc:`Install the
+Monitoring Agent on Windows
+</monitoring/tutorial/install-the-mms-agent-on-windows/>`.
+
+Munin
+-----
+
+Monitoring MMS requires the ``munin-node`` daemon be installed and configured
+on the monitored MongoDB server(s). The MMS agent README file provides
+guidelines to install ``munin-node``. However, new versions of Linux,
+specifically Red Hat Linux (RHEL) 6, can generate error messages. See
+:doc:`Configure MMS Monitoring </monitoring/configuring/>` for details about
+monitoring hardware with ``munin-node``.
+
+"No package munin-node is available" Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To correct this error, install the most current version of the Linux repos.
+Type these commands:
+
+.. code-block:: sh
+
+   sudo yum install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+Then type this command to install ``munin-node`` and all dependencies:
+
+.. code-block:: sh
+
+   sudo yum install munin-node
+
+Non-localhost IP Addresses are Blocked
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, munin blocks incoming connections from non-localhost IP addresses
+such as MMS. The /var/log/munin-node/munin-node.log file will display a
+"Denying connection" error for your non-localhost IP address.
+
+To fix this error, open the ``munin-node.conf`` configuration file and comment
+out these two lines:
+
+.. code-block:: sh
+
+   allow ^127\.0\.0\.1$
+   allow ^::1$
+
+Then add this line to the ``munin-node.conf`` configuration file with a pattern
+that matches your subnet:
+
+.. code-block:: sh
+
+   cidr_allow 0.0.0.0/0
+
+Verifying iostat and Other Plugins/Services Returns "# Unknown service" Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first step is to confirm there is a problem. Open a telnet session and
+connect to ``iostat``, ``iostat_ios``, and ``cpu``:
+
+.. code-block:: sh
+
+   telnet HOSTNAME 4949 <default/required munin port>
+   fetch iostat
+   fetch iostat_ios
+   fetch cpu
+
+If any of these telnet ``fetch`` commands returns an "# Unknown Service" error,
+create a link to the plugin or service in /etc/munin/plugins/ by typing these
+commands:
+
+.. code-block:: sh
+
+   cd /etc/munin/plugins/
+   sudo ln -s /usr/share/munin/plugins/<service> <service>
+
+Replace ``<service>`` with the name of the service that generates the error.
+
+Notifications
+-------------
+
+Cannot Turn Off Email Notifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are at least two ways to turn off alert notifications:
+
+Remove the host from your MMS account. Click the :guilabel:`Hosts` tab then
+click the :guilabel:`gear icon` to the right of a host name and select
+:guilabel:`Remove Host`.
+
+Disable or delete the alert in MMS. Click the :guilabel:`Activity` tab then
+click :guilabel:`Alert Settings`. To the right of an alert, select the
+:guilabel:`gear icon` and select :guilabel:`Disable` or :guilabel:`Delete`.
