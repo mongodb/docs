@@ -11,13 +11,13 @@ master_conf = os.path.join(project_root, 'bin', 'docs_meta.yaml')
 with open(master_conf, 'r') as f:
     conf = yaml.safe_load(f)
 
+repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
+
 buildsystem = conf['build']['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
 def bootstrap_init():
-    repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
-
     if os.path.exists(buildsystem):
         import bootstrap_helper
 
@@ -36,11 +36,11 @@ def bootstrap_base():
         print('[bootstrap]: created buildsystem directory.')
 
     import bootstrap_helper
-        
+
     bootstrap_helper.init_fabric(buildsystem, master_conf)
     bootstrap_helper.bootstrap()
     print('[bootstrap]: initialized buildsystem.')
-    
+
     subprocess.call(['make', 'noop', '--silent', '-i'])
 
 def main():
@@ -56,10 +56,9 @@ def main():
             exit('[bootstrap]: Buildsystem not installed.')
     elif ui.op == 'safe':
         bootstrap_base()
-    else: 
+    else:
         bootstrap_init()
         bootstrap_base()
-
 
 if __name__ == '__main__':
     main()
