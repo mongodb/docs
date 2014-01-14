@@ -33,11 +33,13 @@ Select Destination for the Snapshot
         the authorized hosts file once you have obtained your backup
         file.
 
-#. Select the file :guilabel:`Format`. Individual DB files will fill the target
-   directory with MongoDB files. Database files stream files directly from the
-   backup database, and are faster to construct, but require additional file space
-   on the destination server. Archive (tar.gz) delivers database files in a
-   single tar.gz that must be extracted before use.
+#. Select the file :guilabel:`Format` option. The :guilabel:`Individual DB
+   Files` option will fill the target directory with MongoDB files streamed in
+   compressed form directly from the backup database. The individual database
+   files are faster to construct, but require additional file space on the
+   destination server. Selecting :guilabel:`Archive (tar.gz)` delivers database
+   files in a single ``tar.gz`` file that must be extracted before reconstructing
+   databases.
 
 #. Click :guilabel:`Authenticate`.
 
