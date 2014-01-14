@@ -15,7 +15,7 @@ buildsystem = conf['build']['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
-def bootstrap():
+def bootstrap_init():
     repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
 
     if os.path.exists(buildsystem):
@@ -26,25 +26,26 @@ def bootstrap():
         cmd.append(['git', 'pull', '--quiet', 'origin', 'master'])
 
         for c in cmd:
-            p = subprocess.Popen(c, cwd=buildsystem)
-            p.wait()
-        print('[bootstrap]: updated git repository.')
-    else:
-        p = subprocess.Popen([ 'git', 'clone', repo, buildsystem])
-        p.wait()
+            subprocess.call(c, cwd=buildsystem)
 
-        import bootstrap_helper
+        print('[bootstrap]: updated git repository.')
+
+def bootstrap_base():
+    if not os.path.exists(buildsystem):
+        subprocess.call([ 'git', 'clone', repo, buildsystem])
         print('[bootstrap]: created buildsystem directory.')
 
+    import bootstrap_helper
+        
     bootstrap_helper.init_fabric(buildsystem, master_conf)
     bootstrap_helper.bootstrap()
-
-    p = subprocess.Popen(['make', 'noop', '--silent', '-i'])
-    p.wait()
+    print('[bootstrap]: initialized buildsystem.')
+    
+    subprocess.call(['make', 'noop', '--silent', '-i'])
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('op', nargs='?', choices=['clean', 'setup'], default='setup')
+    parser.add_argument('op', nargs='?', choices=['clean', 'setup', 'safe'], default='setup')
     ui = parser.parse_args()
 
     if ui.op == 'clean':
@@ -53,8 +54,11 @@ def main():
             bootstrap_helper.clean_buildsystem(buildsystem, conf['build']['paths']['output'])
         except ImportError:
             exit('[bootstrap]: Buildsystem not installed.')
-    else:
-        bootstrap()
+    elif ui.op == 'safe':
+        bootstrap_base()
+    else: 
+        bootstrap_init()
+        bootstrap_base()
 
 
 if __name__ == '__main__':
