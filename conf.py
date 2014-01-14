@@ -17,9 +17,9 @@ from utils import ingest_yaml, ingest_yaml_list
 from docs_meta import get_conf, get_versions, get_manual_path, edition_setup
 
 conf = get_conf()
-conf.build.paths.projectroot = project_root
-pdfs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'pdfs.yaml'))
-intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'intersphinx.yaml'))
+conf.paths.projectroot = project_root
+pdfs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -157,6 +157,6 @@ latex_use_modindex = False
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {}
 for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.build.paths.projectroot,
-                                                              conf.build.paths.output,
+    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
+                                                              conf.paths.output,
                                                               i['path']))
