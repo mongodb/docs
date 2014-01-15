@@ -1,41 +1,56 @@
-======================================
-Create ``text`` Index to Cover Queries
-======================================
+========================================================================
+Create ``text`` Index to Satisfy the ``filter`` Component of Text Search
+========================================================================
 
 .. default-domain:: mongodb
 
-To create a ``text`` index that can :ref:`cover queries
-<indexes-covered-queries>`:
+To perform a :dbcommand:`text` search that also includes additional
+query conditions, the :dbcommand:`text` command provides a ``filter``
+option. A compound index can support the text search and the ``filter``
+condition, such that the operation does not need to scan any documents
+to satisfy the filter condition; i.e. the returned :data:`text.stats`
+contain ``0`` for the :data:`~text.stats.nscannedObjects` field.
+
+Procedure
+---------
+
+To create a ``text`` index that can fulfill the ``filter`` condition of
+a :dbcommand:`text` search:
 
 #. Append scalar index fields to a ``text`` index, as in the following
-   example which specifies an ascending index key on ``username``:
+   example which specifies an ascending index key on ``cited``:
 
    .. code-block:: javascript
-      :emphasize-lines: 2
+      :emphasize-lines: 4
 
-      db.collection.ensureIndex( { comments: "text",
-                                   username: 1 } )
+      db.quotes.ensureIndex(
+         {
+           comments: "text",
+           cited: 1
+         }
+      )
 
-   .. warning::
-
-      You cannot include :ref:`multi-key <index-type-multi-key>` index
-      field or :ref:`geospatial <index-feature-geospatial>` index field.
-
-#. Use the ``project`` option in the :dbcommand:`text` to return only
-   the fields in the index, as in the following:
+#. Use the ``filter`` option in the :dbcommand:`text` to specify an
+   condition on the ``cited`` field, as in the following:
 
    .. code-block:: javascript
-      :emphasize-lines: 2-4
+      :emphasize-lines: 3-4
 
-      db.quotes.runCommand( "text", { search: "tomorrow", 
-                                      project: { username: 1,
-                                                 _id: 0
-                                               } 
-                                    }
-                          )
+      db.quotes.runCommand( "text",
+         {
+           search: "tomorrow", 
+           filter: { cited: { $gt: 10 } } 
+         }
+      )
 
-.. note::
+Considerations
+--------------
 
-   By default, the ``_id`` field is included in the result set. Since
-   the example index did not include the ``_id`` field, you must
-   explicitly exclude the field in the ``project`` document.
+When creating a compound index with that includes the ``text`` index,
+you cannot include :ref:`multi-key <index-type-multi-key>` index field
+or :ref:`geospatial <index-feature-geospatial>` index field.
+
+With a compound index that includes the ``text`` index and an
+ascending/descending key or keys, sort operations do not use the
+ascending/descending key from this index; only the text score
+determines the sort order.
