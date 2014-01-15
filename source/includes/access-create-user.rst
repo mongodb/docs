@@ -1,4 +1,4 @@
-A user must have :authaction:`createUser` :ref:`action
+A user must have the :authaction:`createUser` :ref:`action
 <security-user-actions>` on a database to create a new user on that
 database.
 
