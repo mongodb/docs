@@ -4,80 +4,40 @@ Create a User Administrator
 
 .. default-domain:: mongodb
 
-In a MongoDB deployment, users with either the
-:authrole:`userAdmin` or :authrole:`userAdminAnyDatabase` roles are
-*effective* administrative "superusers". Users
-with either of these roles can create and modify any other users and can
-assign them any privileges. The user also can grant *itself* any
-privileges. In production deployments, this user should have *no other
-roles* and should only administer users and privileges.
+Overview
+--------
 
-This should be the first user created for a MongoDB deployment. This
-user can then create all other users in the system.
+The user administrator creates users and creates and assigns roles. The
+user administrator can grant any privilege in the database and can create
+new ones. In a MongoDB deployment, create the user administrator as the
+first user. Then let this user create all other users.
 
-.. important:: The :authrole:`userAdminAnyDatabase` user can grant
-   itself and any other user full access to the entire MongoDB
-   instance. The credentials to log in as this user should be
-   carefully controlled.
+To support creation of user administrators, MongoDB provides the
+:authrole:`userAdmin` and :authrole:`userAdminAnyDatabase` roles, both of
+which grant :ref:`actions <security-user-actions>` specific to user and
+role management and confer no additional privileges, in keeping with the
+policy of :term:`least privilege`.
 
-   Users with the :authrole:`userAdmin` and
-   :authrole:`userAdminAnyDatabase` privileges are not the same as the
-   UNIX ``root`` superuser in that this role confers **no additional
-   access** beyond user administration. These users cannot perform
-   administrative operations or read or write data without first
-   conferring themselves with additional permissions.
-
-   The :authrole:`userAdmin` allows a user the ability to gain
-   :authrole:`userAdminAnyDatabase`, and so for the ``admin`` database
-   **only** these roles are effectively the same.
-
-Create a User Administrator
----------------------------
-
-1. Connect to the :program:`mongod` or :program:`mongos` by either:
-
-   - Authenticating as an existing user with the :authrole:`userAdmin`
-     or :authrole:`userAdminAnyDatabase` role.
-
-   - Authenticating using the :ref:`localhost exception
-     <localhost-exception>`. When creating the first user in a
-     deployment, you must authenticate using the :ref:`localhost exception
-     <localhost-exception>`.
-
-#. Switch to the ``admin`` database:
-
-   .. code-block:: javascript
-
-      db = db.getSiblingDB('admin')
-
-#. Add the user with either the :authrole:`userAdmin` role or
-   :authrole:`userAdminAnyDatabase` role, and only that role, by issuing
-   a command similar to the following, where ``<username>`` is the
-   username and ``<password>`` is the password:
-
-   .. code-block:: javascript
-
-      db.addUser( { user: "<username>",
-                    pwd: "<password>",
-                    roles: [ "userAdminAnyDatabase" ] } )
-
-To authenticate as this user, you must authenticate against the
-``admin`` database.
+Carefully control these roles. A user with either of these roles can grant
+*itself* additional privileges. Specifically, a user with the
+:authrole:`userAdmin` role can grant itself any privilege in the database.
+A user assigned either the :authrole:`userAdmin` role on the ``admin``
+database or the :authrole:`userAdminAnyDatabase` can grant itself any
+privilege *in the system*.
 
 .. _localhost-exception:
 
-Authenticate with Full Administrative Access via Localhost
-----------------------------------------------------------
+Localhost Exception
+-------------------
 
-If there are no users for the ``admin`` database, you can connect with
-full administrative access via the localhost interface. This bypass
-exists to support bootstrapping new deployments. This approach is
-useful, for example, if you want to run :program:`mongod` or
-:program:`mongos` with authentication before creating your first user.
+The localhost exception lets you connect *with* administrative access to an
+authentication-enabled :program:`mongod` or :program:`mongos` prior to
+creating your first user on the ``admin`` database. The exception applies *if*
+there are no users on the ``admin`` database. The bypass exists to support
+bootstrapping new deployments.
 
-To authenticate via localhost, connect to the :program:`mongod` or
-:program:`mongos` from a client running on the same system. Your
-connection will have full administrative access.
+To use the exception, connect to the :program:`mongod` or :program:`mongos`
+from a client running on the same system.
 
 To disable the localhost bypass, set the
 :parameter:`enableLocalhostAuthBypass` parameter using
@@ -87,20 +47,16 @@ To disable the localhost bypass, set the
 
    mongod --setParameter enableLocalhostAuthBypass=0
 
-.. note::
+Prerequisites
+-------------
 
-   For versions of MongoDB 2.2 prior to 2.2.4, if :program:`mongos` is
-   running with :setting:`keyFile`, then all users connecting over the
-   localhost interface must authenticate, even if there aren't any users
-   in the ``admin`` database. Connections on localhost are not correctly
-   granted full access on sharded systems that run those versions.
+.. include:: /includes/access-create-user.rst
 
-   MongoDB 2.2.4 resolves this issue.
+A user with either the :authrole:`userAdmin` or
+:authrole:`userAdminAnyDatabase` role, or authenticated using the
+:ref:`localhost exception <localhost-exception>`, has those privileges.
 
-.. note::
+Procedure
+---------
 
-   In version 2.2, you cannot add the first user to a sharded cluster
-   using the ``localhost`` connection. If you are running a 2.2
-   sharded cluster and want to enable authentication, you must deploy
-   the cluster and add the first user to the ``admin`` database before
-   restarting the cluster to run with :setting:`keyFile`.
+.. include:: /includes/steps/add-user-administrator.rst
