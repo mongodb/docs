@@ -114,21 +114,35 @@ megabytes.
 .. index:: secondary throttle
 .. _sharded-cluster-config-secondary-throttle:
 
-Require Replication before Chunk Migration (Secondary Throttle)
----------------------------------------------------------------
+Change Replication Behavior for Chunk Migration (Secondary Throttle)
+--------------------------------------------------------------------
 
-``_secondaryThrottle`` affects the write concern of
-the balancer and the :dbcommand:`moveChunk` command. See
-:ref:`chunk-migration-write-concern` for a detailed explanation of
-write concern with and without ``_secondaryThrottle`` set to ``true``.
+The ``_secondaryThrottle`` parameter of the balancer and the
+:dbcommand:`moveChunk` command affects the replication behavior during
+:ref:`chunk migration <chunk-migration-replication>`. By default,
+``_secondaryThrottle`` is ``true``, which means each document move
+during chunk migration propagates to at least one secondary before the
+balancer proceeds with its next operation. For more information on the
+replication behavior during various steps of chunk migration, see
+:ref:`chunk-migration-replication`.
 
-Run the following operations from a :program:`mongo` shell that
-is connected to a :program:`mongos` instance to enable or disable
-``_secondaryThrottle`` directly in the :data:`~config.settings`
-collection of the :ref:`config database <config-database>`:
+To change the balancer's ``_secondaryThrottle`` value, connect to a
+:program:`mongos` instance and directly update the
+``_secondaryThrottle`` value in the :data:`~config.settings` collection
+of the :ref:`config database <config-database>`. For example, from a
+:program:`mongo` shell connected to a :program:`mongos`, issue the
+following command:
 
 .. code-block:: javascript
 
    use config
-   db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } } , { upsert : true } )
+   db.settings.update( 
+      { "_id" : "balancer" }, 
+      { $set : { "_secondaryThrottle" : true } },
+      { upsert : true }
+   )
 
+The effects of changing the ``_secondaryThrottle`` value may not be
+immediate. To ensure an immediate effect, stop the balancer and restart
+it with the selected value of ``_secondaryThrottle``. See
+:doc:`/tutorial/manage-sharded-cluster-balancer` for details.

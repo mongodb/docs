@@ -91,66 +91,37 @@ In some cases, the delete phases may persist longer. If multiple delete
 phases are queued but not yet complete, a crash of the replica set's
 primary can orphan data from multiple migrations.
 
-.. TODO will rename this reference to chunk-migration-replication
-   but need to make change in both 2.6 and 2.4 version of doc, so will
-   rename together afterwards.
-
-.. _chunk-migration-write-concern:
+.. _chunk-migration-replication:
 
 Chunk Migration and Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Internal operations like chunk migration don't fit exactly into the definitions
-of write concern established for user operations. The following explanations
-should be taken as approximations.
+By default, each document move during chunk migration propagates to at
+least one secondary before the balancer proceeds with its next
+operation.
 
-Write concern for chunk migration depends on whether the balancer or
-the :dbcommand:`moveChunk` command operate with ``_secondaryThrottle``
-set to ``true`` or ``false``.
+To override this behavior and allow the balancer to continue before
+replicating to a secondary, set the ``_secondaryThrottle`` parameter to
+``false``. See :ref:`sharded-cluster-config-secondary-throttle` to
+update the ``_secondaryThrottle`` parameter for the balancer.
 
-Before 2.2.1, chunk migration writes did not wait to replicate to
-secondaries before starting the next chunk migration (the equivalent
-of ``w: 1``). After all relevant chunks had been written to the
-destination shard, the balancer would wait for replication to
-a majority of members (the equivalent of ``w: majority``) before
-deleting the chunks from the source shard.
+Independent of the ``secondaryThrottle`` setting, certain operations of
+the chunk migration have the following replication policy:
 
-This had the effect of creating a replication bottleneck at the end
-of migration.
+- MongoDB briefly pauses all application writes to the source shard
+  before updating the config servers with the new location for the
+  chunk, and resumes the application writes after the update. The
+  chunk commit requires all writes to be durably replicated to a
+  majority of servers in order to proceed and finish.
 
-.. versionadded:: 2.2.1
-
-   ``_secondaryThrottle`` became an option to the balancer and to the
-   :dbcommand:`moveChunk` command. ``_secondaryThrottle`` requires the
-   balancer to have a ``{ w: 2 }`` write concern on each delete and
-   insert operation. This causes the balancer to wait for each chunk
-   migration to replicate to at least one secondary before initiating
-   a new chunk migration.
-
-   As in the case before 2.2.1, after all relevant chunks are written
-   to the destination shard, the balancer waits for replication to
-   a majority of members (the equivalent of ``w: majority``) before
-   deleting the chunks from the source shard.
+- When an outgoing chunk migration finishes and cleanup occurs, all
+  writes must be replicated to a majority of servers before further
+  cleanup (from other outgoing migrations) or new incoming migrations
+  can proceed.
 
 .. versionchanged:: 2.4
-   ``_secondaryThrottle`` became the default mode for all balancer and
-   :dbcommand:`moveChunk` operations. The balancer does not require
-   ``_secondaryThrottle`` to be ``true``. To revert to previous
-   behavior, set ``_secondaryThrottle`` to ``false``.
 
-.. BACKGROUND NOTES
-   Specifically, secondary throttle affects the first and fourth
-   phases (informal phases) of chunk migration. Migration can happen during
-   the second and third phases (the "steady state"):
-   1) copies the documents in the chunk from shardA to shardB
-   2) continues to copy over ongoing changes that occurred during the initial copy step,
-      as well as current changes to that chunk range
-   3) Stop writes, allow shardB to get final changes, commit migration to config server
-   4) cleanup now-inactive data on shardA in chunk range (once all cursors are done)
-
-When you :ref:`change the value
-<sharded-cluster-config-secondary-throttle>` of ``_secondaryThrottle``,
-the balancer may not immediately require the new write concern on
-delete and insert operations. To ensure that ``_secondaryThrottle``
-takes effect immediately, stop the balancer and restart it with the
-selected value of ``_secondaryThrottle``.
+   In previous versions, the balancer did not wait for the document
+   move to replicate to a secondary. For details, see :v2.2:`Secondary
+   Throttle in the v2.2 Manual
+   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
