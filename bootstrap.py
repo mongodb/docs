@@ -6,14 +6,14 @@ import sys
 
 project_root = os.path.abspath(os.path.dirname(__file__))
 
-master_conf = os.path.join(project_root, 'bin', 'docs_meta.yaml')
+master_conf = os.path.join(project_root, 'config', 'build_conf.yaml')
 
 with open(master_conf, 'r') as f:
     conf = yaml.safe_load(f)
 
 repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
 
-buildsystem = conf['build']['paths']['buildsystem']
+buildsystem = conf['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
@@ -37,8 +37,7 @@ def bootstrap_base():
 
     import bootstrap_helper
 
-    bootstrap_helper.init_fabric(buildsystem, master_conf)
-    bootstrap_helper.bootstrap()
+    bootstrap_helper.bootstrap(build_tools_path=buildsystem, conf_path=master_conf)
     print('[bootstrap]: initialized buildsystem.')
 
     subprocess.call(['make', 'noop', '--silent', '-i'])
