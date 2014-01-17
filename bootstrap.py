@@ -37,8 +37,7 @@ def bootstrap_base():
 
     import bootstrap_helper
 
-    bootstrap_helper.init_fabric(buildsystem, master_conf)
-    bootstrap_helper.bootstrap()
+    bootstrap_helper.bootstrap(build_tools_path=buildsystem, conf_path=master_conf)
     print('[bootstrap]: initialized buildsystem.')
 
     subprocess.call(['make', 'noop', '--silent', '-i'])
