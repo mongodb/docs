@@ -54,7 +54,6 @@ journal, and the log.
 * `MongoDB 2.4 with 2000 IOPS <https://aws.amazon.com/marketplace/pp/B00CO7GSTY/ref=sp_mpg_product_title?ie=UTF8&sr=0-3>`_ - data: 200 GB @ 2000 IOPS, journal: 25 GB @ 250 IOPS, log: 15 GB @ 150 IOPS
 * `MongoDB 2.4 with 4000 IOPS <https://aws.amazon.com/marketplace/pp/B00COAAEH8/ref=sp_mpg_product_title?ie=UTF8&sr=0-2>`_ - data: 400 GB @ 4000 IOPS, journal: 25 GB @ 250 IOPS, log: 20 GB @ 200 IOPS
 
-
 For specific information about how each instance was configured, refer to :ref:`deploy-mongodb-ec2`.
 
 .. _deploy-mongodb-ec2:
@@ -76,7 +75,13 @@ Before continuing be sure to have the following:
 * `Generate an EC2 key pair <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/generating-a-keypair.html>`_ for connecting to the instance via SSH
 * `Create a security group <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#creating-security-group>`_ that allows SSH connections
 
-Create the instance using the key pair and security group previously created and also include the :setting:`--ebs-optimized` flag and specify individual PIOPS EBS volumes (:file:`/dev/xdf` for data, :file:`/dev/xdg` for journal, :file:`/dev/xdh` for log). Refer to the documentation for `ec2-run-instances <http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_ for more information on devices and parameters.:
+Create the instance using the key pair and security group previously
+created and also include the :setting:`--ebs-optimized` flag and
+specify individual PIOPS EBS volumes (:file:`/dev/xdf` for data,
+:file:`/dev/xdg` for journal, :file:`/dev/xdh` for log). Refer to the
+documentation for `ec2-run-instances
+<http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_
+for more information on devices and parameters.:
 
 .. code-block:: sh
 
@@ -143,7 +148,10 @@ Optionally, if you don't want MongoDB to start at boot you can issue the followi
 
     $ sudo chkconfig mongod off
 
-By default Amazon Linux uses :program:`ulimit` settings that are not appropriate for MongoDB. To setup :program:`ulimit` to match the documented :manual:`ulimit settings </reference/ulimit>` use the following steps:
+By default Amazon Linux uses :program:`ulimit` settings that are not
+appropriate for MongoDB. To setup :program:`ulimit` to match the
+documented :manual:`ulimit settings </reference/ulimit>` use the
+following steps:
 
 .. code-block:: sh
 
@@ -157,7 +165,12 @@ By default Amazon Linux uses :program:`ulimit` settings that are not appropriate
     * soft nproc 32000
     * hard nproc 32000
 
-Additionally, default read ahead settings on EC2 are not optimized for MongoDB. As noted in the read-ahead settings from :manual:`Production Notes </administration/production-notes>`, the settings should be adjusted to read approximately 32 blocks (or 16 KB) of data. The following command will set the readahead appropriately (repeat for necessary volumes):
+Additionally, default read ahead settings on EC2 are not optimized for
+MongoDB. As noted in the read-ahead settings from :manual:`Production
+Notes </administration/production-notes>`, the settings should be
+adjusted to read approximately 32 blocks (or 16 KB) of data. The
+following command will set the readahead appropriately (repeat for
+necessary volumes):
 
 .. code-block:: sh
 
@@ -169,7 +182,9 @@ To make this change persistent across system boot you can issue the following co
 
     $ echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
 
-Once again, repeat the above command for all required volumes (note: the device we created was named :file:`/dev/xdf` but the name used by the system is :file:`/dev/xvdf`).
+Once again, repeat the above command for all required volumes (note:
+the device we created was named :file:`/dev/xdf` but the name used by
+the system is :file:`/dev/xvdf`).
 
 To startup MongoDB, issue the following command:
 
@@ -192,20 +207,33 @@ To have MongoDB startup automatically at boot issue the following command:
 
     $ sudo chkconfig mongod on
 
-For production deployments consider using :manual:`Replica Sets </replication/>` or :manual:`Sharding </sharding/>`.
+For production deployments consider using :manual:`Replica Sets
+</replication/>` or :manual:`Sharding </sharding/>`.
 
 MMS Monitoring Setup
 ~~~~~~~~~~~~~~~~~~~~
 
-The `MongoDB Management Service <http://mms.mongodb.com>`_ offers free hosted monitoring for your MongoDB deployments. If you're using the `AWS Marketplace <http://aws.amazon.com/marketplace>`_ instances (see :ref:`deploy-from-aws-marketplace`) then refer to the steps below to complete the agent setup. If you setup MongoDB on AWS manually, refer to `MMS Monitoring Service Tutorial <http://mms.mongodb.com/help/monitoring/tutorial/#install-the-monitoring-agent-on-unix-linux>`_.
+The `MongoDB Management Service <http://mms.mongodb.com>`_ offers free
+hosted monitoring for your MongoDB deployments. If you're using the
+`AWS Marketplace <http://aws.amazon.com/marketplace>`_ instances (see
+:ref:`deploy-from-aws-marketplace`) then refer to the steps below to
+complete the agent setup. If you setup MongoDB on AWS manually,
+refer to `MMS Monitoring Service Tutorial
+<http://mms.mongodb.com/help/monitoring/tutorial/#install-the-monitoring-agent-on-unix-linux>`_.
 
-To complete the MMS monitoring agent setup, first create an account with `MMS <http://mms.mongodb.com>`_. Once your account has been created, login and navigate to `Settings <https://mms.mongodb.com/settings>`_. From there, copy the **API Key** and **Secret Key**. Then connect to your instance launched from the Marketplace via SSH. Navigate to the :file:`mms-agent` directory within :file:`/usr/local`, edit :file:`settings.py` and paste in your keys:
+To complete the MMS monitoring agent setup, first create an account
+with `MMS <http://mms.mongodb.com>`_. Once your account has been
+created, login and navigate to `Settings
+<https://mms.mongodb.com/settings>`_. From there, copy the **API
+Key**. Then connect to your instance launched from the
+Marketplace via SSH. Navigate to the :file:`mms-agent` directory
+within :file:`/usr/local`, edit :file:`settings.py` and paste in your
+keys:
 
 .. code-block:: sh
 
     $ nano /usr/local/mms-agent/settings.py
     mms_key = "@API_KEY@"
-    secret_key = "@SECRET_KEY@"
 
 Finally, start the agent:
 
@@ -213,7 +241,9 @@ Finally, start the agent:
 
     $ python /usr/local/mms-agent/agent.py
 
-To deploy the agent into a production environment, refer to `Deploy MMS Monitoring in Production <http://mms.mongodb.com/help/monitoring/tutorial/deploy-mms-in-production/>`_.
+To deploy the agent into a production environment, refer to `Deploy
+MMS Monitoring in Production
+<http://mms.mongodb.com/help/monitoring/tutorial/deploy-mms-in-production/>`_.
 
 Backup, Restore, Verify
 -----------------------
@@ -231,7 +261,8 @@ Instance Types
 
 MongoDB works on most EC2 types including Linux and Windows.  We
 recommend you use a 64 bit instance as this is
-`required for all MongoDB databases of significant size <http://blog.mongodb.org/post/137788967/32-bit-limitations>`_.
+`required for all MongoDB databases of significant size
+<http://blog.mongodb.org/post/137788967/32-bit-limitations>`_.
 Additionally, we find that the larger instances tend to be on the
 freshest ec2 hardware.
 
@@ -344,7 +375,6 @@ For example one solution is following, on each server:
 
    sudo hostname server1
 
-
 * install "bind", it will serve as local resolver
 
 * add a zone for your domain, say "myorg.com", and add the CNAMEs for all your servers
@@ -353,7 +383,6 @@ For example one solution is following, on each server:
 
    server1          IN     CNAME   ec2-50-19-237-42.compute-1.amazonaws.com.
    server2          IN     CNAME   ec2-50-18-157-87.us-west-1.compute.amazonaws.com.
-
 
 * restart bind and modify /etc/resolv.conf to use the local bind
 
@@ -364,8 +393,12 @@ For example one solution is following, on each server:
 
 Then:
 
-* verify that you can properly resolve server1, server2, ... using a tool like dig.
+* verify that you can properly resolve server1, server2, ... using a
+  tool like dig.
 
-* when running mongod, :method:`db.serverStatus()` should show the correct hostname, e.g. "server1:27017".
+* when running mongod, :method:`db.serverStatus()` should show the
+  correct hostname, e.g. "server1:27017".
 
-* you can then set up replica sets or shards using the simple hostname. For example connect to server1 and run :samp:`rs.initiate()`, then :samp:`rs.add('server2:27017')`.
+* you can then set up replica sets or shards using the simple
+  hostname. For example connect to server1 and run
+  :samp:`rs.initiate()`, then :samp:`rs.add('server2:27017')`.
