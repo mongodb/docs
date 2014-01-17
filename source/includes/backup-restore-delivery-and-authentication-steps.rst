@@ -33,13 +33,17 @@ Select Destination for the Snapshot
         the authorized hosts file once you have obtained your backup
         file.
 
-#. Select the file :guilabel:`Format` option. The :guilabel:`Individual DB
-   Files` option will fill the target directory with MongoDB files compressed
-   during transit with an SSH connection directly from the backup database. The
-   individual database files are faster to construct, but require additional file
-   space on the destination server. Selecting :guilabel:`Archive (tar.gz)`
-   delivers database files in a single ``tar.gz`` file that must be extracted
-   before reconstructing databases.
+#. Select the file :guilabel:`Format` option.
+
+   Select :guilabel:`Individual DB Files` to transmit MongoDB data
+   files produced by MMS Backup directly to the target directory. The
+   individual database files are faster for |backup| to construct, but
+   require additional file space on the destination server. The data
+   *is* compressed during transmission.
+
+   Selecting :guilabel:`Archive (tar.gz)` delivers database files in a
+   single ``tar.gz`` file that you must extract before reconstructing
+   databases.
 
 #. Click :guilabel:`Authenticate`.
 
