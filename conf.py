@@ -13,8 +13,9 @@ from bootstrap import buildsystem
 sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
 sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
-from utils import ingest_yaml, ingest_yaml_list
-from docs_meta import get_conf, get_versions, get_manual_path, edition_setup
+from utils.serialization import ingest_yaml, ingest_yaml_list
+from utils.config import get_conf
+from utils.project import get_versions, get_manual_path, edition_setup
 
 conf = get_conf()
 conf.paths.projectroot = project_root
