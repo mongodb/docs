@@ -60,19 +60,26 @@ The ``shards._id`` field lists the name of each shard.
 Remove Chunks from the Shard
 ----------------------------
 
-Run the :dbcommand:`removeShard` command. This begins "draining" chunks
+From the ``admin`` database, run the :dbcommand:`removeShard` command.
+This begins "draining" chunks
 from the shard you are removing to other shards in the cluster. For
 example, for a shard named ``mongodb0``, run:
 
 .. code-block:: javascript
 
+   use admin
    db.runCommand( { removeShard: "mongodb0" } )
 
 This operation returns immediately, with the following response:
 
 .. code-block:: javascript
 
-   { msg : "draining started successfully" , state: "started" , shard :"mongodb0" , ok : 1 }
+   {
+       "msg" : "draining started successfully",
+       "state" : "started",
+       "shard" : "mongodb0",
+       "ok" : 1
+   }
 
 Depending on your network capacity and the amount of data, this
 operation can take from a few minutes to several days to complete.
@@ -83,24 +90,36 @@ Check the Status of the Migration
 ---------------------------------
 
 To check the progress of the migration at any stage in the process, run
-:dbcommand:`removeShard`. For example, for a shard named ``mongodb0``, run:
+:dbcommand:`removeShard` from the ``admin`` database again. For example,
+for a shard named ``mongodb0``, run:
 
 .. code-block:: javascript
 
+   use admin
    db.runCommand( { removeShard: "mongodb0" } )
 
 The command returns output similar to the following:
 
 .. code-block:: javascript
 
-   { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: NumberLong(42), dbs : NumberLong(1) }, ok: 1 }
+   {
+        "msg" : "draining ongoing",
+       "state" : "ongoing",
+       "remaining" : {
+           "chunks" : 42,
+           "dbs" : 1
+       },
+       "ok" : 1
+   }
 
 In the output, the ``remaining`` document displays the remaining number
 of chunks that MongoDB must migrate to other shards and the number of
 MongoDB databases that have "primary" status on this shard.
 
 Continue checking the status of the `removeShard` command until the
-number of chunks remaining is ``0``. Then proceed to the next step.
+number of chunks remaining is ``0``. Always run the command on the
+``admin`` database. If you are on a database other than ``admin``, you can
+use :method:`sh._adminCommand` to run the command on ``admin``.
 
 .. _remove-shard-move-unsharded-databases:
 
@@ -165,13 +184,19 @@ To clean up all metadata information and finalize the removal, run
 
 .. code-block:: javascript
 
+   use admin
    db.runCommand( { removeShard: "mongodb0" } )
 
 A success message appears at completion:
 
 .. code-block:: javascript
 
-   { msg: "remove shard completed successfully" , state: "completed", host: "mongodb0", ok : 1 }
+   {
+       "msg" : "removeshard completed successfully",
+       "state" : "completed",
+       "shard" : "mongodb0",
+       "ok" : 1
+   }
 
-Once the value of the ``stage`` field is "completed", you may safely
+Once the value of the ``state`` field is "completed", you may safely
 stop the processes comprising the ``mongodb0`` shard.
