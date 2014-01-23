@@ -16,6 +16,8 @@ endif
 saas-source-dir = build/$(current-branch)/source-saas
 hosted-source-dir = build/$(current-branch)/source-hosted
 
+generate-source:generate-source-hosted generate-source-saas
+
 generate-source-hosted:
 	@mkdir -p $(hosted-source-dir)
 	@rsync --recursive --times --delete source/ $(hosted-source-dir)/
