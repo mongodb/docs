@@ -26,7 +26,7 @@ hosted saas:setup
 	@$(MAKE) EDITION=$@ generate-source-$@ latex-$@ json-$@ html-$@ dirhtml-$@ singlehtml-$@ build/public/$@/.htaccess
 	@echo [build]: $@ edition complete
 
-build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
+build/public/saas/.htaccess:bin/htaccess-saas.yaml $(tools)/bin/htaccess.py
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py
+build/public/hosted/.htaccess:bin/htaccess-hosted.yaml $(tools)/bin/htaccess.py
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
