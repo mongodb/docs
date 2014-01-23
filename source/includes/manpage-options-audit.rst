@@ -15,7 +15,7 @@
 
       * - ``syslog``
 
-        - Output the audit log to syslog in JSON format. Not available on
+        - Output the audit events to syslog in JSON format. Not available on
           Windows. Audit messages have a syslog severity level of ``info``
           and a facility level of ``user``.
 
@@ -23,16 +23,16 @@
 
       * - ``console``
 
-        - Output the audit log to ``stdout`` in JSON format.
+        - Output the audit events to ``stdout`` in JSON format.
 
       * - ``jsonfile``
 
-        - Output the audit log in JSON format to the file specified in
+        - Output the audit events in JSON format to the file specified in
           :option:`--auditPath`.
 
       * - ``bsonfile``
 
-        - Output the audit log in BSON binary format to the file
+        - Output the audit events in BSON binary format to the file
           specified in :option:`--auditPath`.
 
 .. option:: --auditPath
@@ -49,8 +49,8 @@
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
    Specify the filter to limit the :ref:`types of operations
-   <audit-operations>` the audit system logs. The option takes a
-   document of the form:
+   <audit-action-details-results>` the audit system records. The option
+   takes a document of the form:
 
    .. code-block:: javascript
 

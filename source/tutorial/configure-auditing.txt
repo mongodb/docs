@@ -6,34 +6,31 @@ Configure System Events Auditing
 
 .. versionadded:: 2.5.3
 
-MongoDB Enterprise supports :ref:`auditing <auditing>` of
-:doc:`operations </reference/audit-operations>`. The audit facility can
-write the event log to the console, the :term:`syslog`, a JSON file, or
-a BSON file.
+MongoDB Enterprise supports :ref:`auditing <auditing>` of various
+operations. A complete auditing solution must involve all
+:program:`mongod` server and :program:`mongos` router processes.
 
-.. seealso:: :doc:`/core/auditing`
-
-.. note:: Auditing is available for :program:`mongos` and
-   :program:`mongod` instances.
+The audit facility can write audit events to the console, the
+:term:`syslog` (option is unavailable on Windows), a JSON file, or a
+BSON file. For details on the audited operations and the audit log
+formats, see :doc:`/reference/audit-message`.
 
 Enable and Configure Audit Output
 ---------------------------------
 
-Use the :option:`--auditLog <mongod --auditLog>` option to enable
-auditing and specify where to output the log.
+Use the :option:`--auditLog` option to enable
+auditing and specify where to output the audit events.
 
 Output to Syslog
 ~~~~~~~~~~~~~~~~
 
-To enable auditing and have the audit log print to the syslog in JSON
-format, specify ``syslog`` to the :option:`--auditLog <mongod
---auditLog>` setting. For example:
+To enable auditing and print audit events to the syslog (option
+is unavailable on Windows) in JSON format, specify ``syslog`` for the
+:option:`--auditLog` setting. For example:
 
 .. code-block:: sh
 
    mongod --dbpath data/db --auditLog syslog
-
-.. note:: Output to syslog is not available on Windows.
 
 .. warning::
 
@@ -50,9 +47,9 @@ You may also specify these options in the :doc:`configuration file
 Output to Console
 ~~~~~~~~~~~~~~~~~
 
-To enable auditing and have the audit log record output to standard
-output (i.e. ``stdout``), specify ``console`` to the
-:option:`--auditLog <mongod --auditLog>` setting. For example:
+To enable auditing and print the audit events to standard
+output (i.e. ``stdout``), specify ``console`` for the
+:option:`--auditLog` setting. For example:
 
 .. code-block:: sh
 
@@ -69,19 +66,19 @@ You may also specify these options in the :doc:`configuration file
 Output to JSON File
 ~~~~~~~~~~~~~~~~~~~
 
-To enable auditing and have the audit log print to a file in JSON
-format, specify ``jsonfile`` to the :option:`--auditLog <mongod --auditLog>`
-setting and specify the filename to the :option:`--auditPath
-<mongod --auditPath>`. The :option:`--auditPath <mongod --auditPath>`
-accepts either full path name or relative path name. For example, the
-following enables auditing events to a file with the relative
-path name of ``data/db/auditLog.json``.
+To enable auditing and print audit events to a file in JSON
+format, specify ``jsonfile`` for the :option:`--auditLog` setting and
+specify the filename for the :option:`--auditPath`. The
+:option:`--auditPath` option accepts either full path name or relative
+path name. For example, the following enables auditing and records
+audit events to a file with the relative path name of
+``data/db/auditLog.json``:
 
 .. code-block:: sh
 
    mongod --dbpath data/db --auditLog jsonfile --auditPath data/db/auditLog.json
 
-The audit file rotate at the same time as the server log file.
+The audit file rotates at the same time as the server log file.
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -95,19 +92,19 @@ You may also specify these options in the :doc:`configuration file
 Output to BSON File
 ~~~~~~~~~~~~~~~~~~~
 
-To enable auditing and have the audit log print to a file in BSON
-binary format, specify ``bsonfile`` to the :option:`--auditLog
-<mongod --auditLog>` setting and specify the filename to the
-:option:`--auditPath <mongod --auditPath>`. The :option:`--auditPath
-<mongod --auditPath>` accepts either full path name or relative path
-name. For example, the following enables auditing events to a BSON
-file with the relative path name of ``data/db/auditLog.bson``.
+To enable auditing and print audit events to a file in BSON binary
+format, specify ``bsonfile`` for the :option:`--auditLog` setting and
+specify the filename for the :option:`--auditPath`. The
+:option:`--auditPath` option accepts either full path name or relative
+path name. For example, the ffollowing enables auditing and records
+audit events to a BSON file with the relative path name of
+``data/db/auditLog.bson``:
 
 .. code-block:: sh
 
    mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/auditLog.bson
 
-The audit file rotate at the same time as the server log file.
+The audit file rotates at the same time as the server log file.
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -120,7 +117,7 @@ You may also specify these options in the :doc:`configuration file
 
 To view the contents of the file, pass the file to the MongoDB utility
 :program:`bsondump`. For example, the following converts the audit log
-into a human-readable form and output to standard output:
+into a human-readable form and output to the terminal:
 
 .. code-block:: sh
 
@@ -131,23 +128,23 @@ into a human-readable form and output to standard output:
 Filter Events
 -------------
 
-By default, the audit facility logs all :doc:`auditable operations
-</reference/audit-operations>`. The audit feature has an
-:option:`--auditFilter <mongod --auditFilter>` option to determine
-which events to log. The :option:`--auditFilter
-<mongod --auditFilter>` option takes a document of the form:
+By default, the audit facility records all :ref:`auditable operations
+<audit-action-details-results>`. The audit feature has an
+:option:`--auditFilter` option to determine which events to record. The
+:option:`--auditFilter` option takes a document of the form:
 
 .. code-block:: javascript
 
    { atype: <expression> }
 
 The ``<expression>`` is a :ref:`query condition expression
-<query-selectors>` to match on :ref:`audit-operations`.
+<query-selectors>` to match on :ref:`various actions
+<audit-action-details-results>` .
 
 Filter for a Single Operation Type
 ----------------------------------
 
-For example, to audit only the ``createCollection`` action, use the
+For example, to audit only the :authaction:`createCollection` action, use the
 filter ``{ atype: "createCollection" }``:
 
 .. tip::
@@ -224,5 +221,5 @@ You may also specify these options in the :doc:`configuration file
    auditPath=data/db/auditLog.json
    auditFilter={ atype: "authenticate", "param.db": "test" }
 
-To filter on all ``authenticate`` operations across databases, use the
-filter ``{ atype: "authenticate" }``.
+To filter on all :authaction:`authenticate` operations across
+databases, use the filter ``{ atype: "authenticate" }``.
