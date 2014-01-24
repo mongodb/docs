@@ -9,9 +9,10 @@ Definition
 
 .. dbcommand:: fsync
 
-   Forces the :program:`mongod` process to flush all pending writes from
-   the storage layer to disk. Optionally, you can lock the database and
-   block write operations while the flush occurs.
+   Forces the :program:`mongod` process to flush all pending writes
+   from the storage layer to disk. Optionally, you can use
+   :dbcommand:`fsync` to lock the :program:`mongod` instance and block
+   write operations for the purpose of capturing backups.
 
    As applications write data, MongoDB records the data in the storage
    layer and then writes the data to disk within the :setting:`syncdelay`
@@ -38,7 +39,12 @@ more information.
 
 If your :program:`mongod` has :term:`journaling <journal>` enabled,
 consider using :ref:`another method <backup-with-journaling>` to create a
-back up of your data.
+back up of the data set.
+
+Applications may continue to perform read operations on
+:program:`mongod` instance with an :dbcommand:`fsync`
+lock. However, after the first write operation all subsequent read
+operations wait until you unlock :program:`mongod` instance.
 
 .. include:: /includes/note-disable-profiling-fsynclock.rst
 
@@ -56,16 +62,16 @@ The :dbcommand:`fsync` operation is synchronous by default To run
 
    { fsync: 1, async: true }
 
-The connection will return immediately. To view the status of the
+The operation returns immediately. To view the status of the
 :dbcommand:`fsync` operation, check the output of
 :method:`db.currentOp()`.
 
-Lock the Database
-~~~~~~~~~~~~~~~~~
+Lock ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-The primary use of :dbcommand:`fsync` is to lock the database during
-backup operations. This will flush all data to the data storage layer and
-block all write operations until you unlock the database.
+The primary use of :dbcommand:`fsync` is to lock the :program:`mongod` instance during
+backup operations. The operation flushes all data to the storage layer and
+blocks all write operations until you unlock the :program:`mongod` instance.
 
 To lock the database, use the ``lock`` field set to ``true``:
 
@@ -73,15 +79,15 @@ To lock the database, use the ``lock`` field set to ``true``:
 
    { fsync: 1, lock: true }
 
-You may continue to perform read operations on a database that has a
+You may continue to perform read operations on a :program:`mongod` instance that has a
 :dbcommand:`fsync` lock. However, after the first write operation all
-subsequent read operations wait until you unlock the database.
+subsequent read operations wait until you unlock the :program:`mongod` instance.
 
 Check Lock Status
 ~~~~~~~~~~~~~~~~~
 
 To check the state of the fsync lock, use :method:`db.currentOp()`. Use
-the following JavaScript function in the shell to test if the database is
+the following JavaScript function in the shell to test if :program:`mongod` instance is
 currently locked:
 
 .. code-block:: javascript
@@ -94,8 +100,8 @@ currently locked:
                         return false;
                     }
 
-After loading this function into your :program:`mongo` shell session you
-can call it as follows:
+After loading this function into your :program:`mongo` shell session
+call it, with the following syntax:
 
 .. code-block:: javascript
 
@@ -110,11 +116,11 @@ following operation:
 
    db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
 
-Unlock the Database
-~~~~~~~~~~~~~~~~~~~
+Unlock ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To unlock the database, use :method:`db.fsyncUnlock()`:
+To unlock the :program:`mongod` instance, use :method:`db.fsyncUnlock()`:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.fsyncUnlock();
+   db.fsyncUnlock();
