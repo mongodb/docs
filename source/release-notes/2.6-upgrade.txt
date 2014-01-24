@@ -36,6 +36,8 @@ When upgrading, consider the following:
   *first*, and then follow the procedures to upgrade from MongoDB 2.4
   to 2.5.x.
 
+- .. include:: /includes/fact-2.6-downgrade-restrictions.rst
+
 - For all deployments using authentication, upgrade
   drivers (i.e. client libraries) **before**
   :program:`mongod` instances.
@@ -249,69 +251,80 @@ Upgrade from MongoDB 2.4 User Authorization Model to MongoDB 2.5.x Model
 
    .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
 
-.. admonition:: Recommended
+Considerations
+~~~~~~~~~~~~~~
 
-   .. include:: /includes/fact-auth-upgrade-recommendation.rst
+- **Recommended**
 
-.. tip::
+  .. include:: /includes/fact-auth-upgrade-recommendation.rst
 
-   To upgrade the authorization data for a replica set, it is only
-   necessary to run the upgrade process on the :term:`primary` as
-   the changes will automatically replicate to the secondaries.
+- For a replica set, it is only necessary to run the upgrade process on
+  the :term:`primary` as the changes will automatically replicate to
+  the secondaries.
+
+- For a sharded cluster, connect to a :program:`mongos` and run the
+  upgrade procedure to upgrade the the cluster's authorization data. By
+  default, the procedure will upgrade the authorization data of the
+  shards as well.
+ 
+  To override this behavior, run the upgrade command with the
+  additional parameter ``upgradeShards: false``. If you choose to
+  override, you must run the upgrade procedure on the :program:`mongos`
+  first, and then run the procedure on the :term:`primary` members of
+  each shard.
+
+- For a sharded cluster, do **not** run the upgrade process directly
+  against the :doc:`config servers
+  </core/sharded-cluster-config-servers>`.
+
+Procedure
+~~~~~~~~~
 
 #. Connect and authenticate to the :program:`mongod` instance for a
    single deployment or a :program:`mongos` for a sharded cluster as a
    user with the role :authrole:`userAdminAnyDatabase`.
 
-   .. important:: For a sharded cluster, you **must** upgrade the
-      cluster's authorization data first by connecting to
-      :program:`mongos` and running the upgrade procedure, and then the
-      authorization data of :term:`primary` members of each shard.
-
-   .. warning:: For a sharded cluster, do **not** run the upgrade
-      process directly against the :doc:`config servers
-      </core/sharded-cluster-config-servers>`.
-
-#. Use the :dbcommand:`authSchemaUpgradeStep` command in the ``admin``
-   database to update the user data. The
-   :dbcommand:`authSchemaUpgradeStep` returns a document that contains
-   the boolean field ``done``.
-
-   Run the :dbcommand:`authSchemaUpgradeStep` repeatedly until the ``done`` field
-   is ``true``, as in the following:
-
-   .. tip:: In case of an error with
-      :dbcommand:`authSchemaUpgradeStep`, you may safely re-run the
-      :dbcommand:`authSchemaUpgradeStep` command.
+#. Run the :dbcommand:`authSchemaUpgrade` command in the ``admin``
+   database to update the user data:
 
    .. code-block:: javascript
 
-      var res;
-      do {
-          res = db.getSiblingDB("admin").runCommand({authSchemaUpgradeStep: 1});
-      } while (res.ok && !res.done);
+      res = db.getSiblingDB("admin").runCommand({authSchemaUpgrade: 1 });
 
       print(tojson(res));
 
-For a sharded cluster, repeat the upgrade process by connecting to the
-:term:`primary` replica set member for each shard.
+   In case of error, you may safely rerun the
+   :dbcommand:`authSchemaUpgrade` command.
 
-.. note::
+For a sharded cluster, the procedure will upgrade the authorization
+data of the shards as well and the upgrade is complete. You can,
+however, override this behavior by including ``upgradeShards: false``
+in the command. If you override the behavior, after upgrading on
+:program:`mongos`, you will need to connect to the primary for each
+shard and repeat the upgrade process after upgrading on the
+:program:`mongos`.
 
-   The upgrade procedure copies the version 2.4 ``admin.system.users``
-   collection to ``admin.system.backup_users``.
+Result
+~~~~~~
 
-   The upgrade procedure leaves the version 2.4 ``<non-admin
-   database>.system.users`` collection(s) intact.
+The upgrade procedure copies the version 2.4 ``admin.system.users``
+collection to ``admin.system.backup_users``.
+
+The upgrade procedure leaves the version 2.4 ``<non-admin
+database>.system.users`` collection(s) intact.
 
 .. _2.6-downgrade-considerations:
 
 Downgrade Recommendations and Checklist
 ---------------------------------------
 
-If you have upgraded to the 2.5.x user authorization model, before
-downgrading MongoDB 2.5.x to 2.4, you must **first** downgrade the user
-authorization model to 2.4. See :ref:`downgrade-user-auth-model`.
+When downgrading, consider the following:
+
+- If you have upgraded to the 2.5.x user authorization model, before
+  downgrading MongoDB 2.5.x to 2.4, you must **first** downgrade the
+  user authorization model to 2.4. See :ref:`downgrade-user-auth-model`.
+
+- .. include:: /includes/fact-2.6-downgrade-restrictions.rst
 
 .. _downgrade-user-auth-model:
 
@@ -322,10 +335,27 @@ Downgrade from MongoDB 2.5.x User Authorization Model to MongoDB 2.4 Model
    model, you **must first** downgrade the user authorization model to
    2.4 **before** before downgrading MongoDB 2.5.x to 2.4.
 
-.. tip:: To downgrade the authorization data for a replica set, it is
-   only necessary to run the downgrade process on the
-   :term:`primary` as the changes will automatically replicate to the
-   secondaries.
+Considerations
+~~~~~~~~~~~~~~
+
+- For a replica set, it is only necessary to run the downgrade process
+  on the :term:`primary` as the changes will automatically replicate to
+  the secondaries.
+
+- For sharded clusters, although the procedure lists the downgrade of
+  the cluster's authorization data first, you may downgrade the
+  authorization data of the cluster or shards first.
+
+- You *must* have the ``admin.system.backup_users`` and
+  ``admin.system.new_users`` collections created during the upgrade
+  process.
+
+- **Important**. The downgrade process returns the user data to its
+  state prior to upgrading to 2.5.x authorization model. Any changes
+  made to the user/role data using the 2.5.x users model will be lost.
+
+Procedure
+~~~~~~~~~
 
 The following downgrade procedure requires ``<database>.system.users``
 collections used in version 2.4. to be intact for non-``admin``
@@ -333,43 +363,86 @@ databases:
 
 #. Connect and authenticate to the :program:`mongod` instance for a
    single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the role :authrole:`userAdminAnyDatabase`.
+   user with the following privileges:
 
-   .. note::
-      For sharded clusters, although the procedure lists the downgrade
-      of the cluster's authorization data first, you may downgrade the
-      authorization data of the cluster or shards first.
+   .. code-block:: javascript
 
-#. Copy the contents of ``admin.system.users`` to ``admin.system.new_users``.
+      { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] }
+      { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] }
+      { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
+      { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
 
+#. Copy content of ``admin.system.users`` to ``admin.system.new_users``.
+
+   .. code-block:: javascript
+
+      var bulkUpsert = db.getSiblingDB("admin").system.new_users.initializeOrderedBulkOp();
+
+      db.getSiblingDB("admin").system.users.find().forEach( 
+         function (userDoc) {
+            bulkUpsert.find( { _id: userDoc._id } ).upsert().replaceOne( userDoc );
+         }
+      );
+
+      var res = bulkUpsert.execute();
+      print(tojson(res));
+      
 #. Update the version document for the ``authSchema``:
 
    .. code-block:: javascript
 
-      db.getSiblingDB("admin").system.version.update(
-                                                      { _id: "authSchema" },
-                                                      { $set: { currentVersion: 2 } }
-                                                    )
+      db.getSiblingDB("admin").system.version.update(                                            
+         { _id: "authSchema" },
+         { $set: { currentVersion: 2 } }
+      )
 
-#. Remove all documents from ``admin.system.users``.
+#. Remove content from ``admin.system.users`` collection:
 
-#. Copy the contents of ``admin.system.backup_users``, created during
-   upgrade, to ``admin.system.users``.
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").system.users.remove( {} )
+
+#. Copy content from ``admin.system.backup_users``, created during the
+   2.6 upgrade, to ``admin.system.users``:
+
+   .. code-block:: javascript
+
+      var bulkInsert = db.getSiblingDB("admin").system.users.initializeOrderedBulkOp();
+
+      db.getSiblingDB("admin").system.backup_users.find().forEach( 
+         function (userDoc) {
+            bulkInsert.insert( userDoc );
+         }
+      );
+
+      res = bulkInsert.execute();
+      print(tojson(res));
 
 #. Update the version document for  the ``authSchema``:
 
    .. code-block:: javascript
 
       db.getSiblingDB("admin").system.version.update(
-                                                      { _id: "authSchema" },
-                                                      { $set: { currentVersion: 1 } }
-                                                    )
+         { _id: "authSchema" },
+         { $set: { currentVersion: 1 } }
+     )
 
 For a sharded cluster, repeat the downgrade process by connecting to
 the :term:`primary` replica set member for each shard.
 
+Result
+~~~~~~
+
+The downgrade process returns the user data to its state prior to
+upgrading to 2.5.x authorization model. Any changes made to the
+user/role data using the 2.5.x users model will be lost.
+
 Upgrade and Downgrade Procedures
 --------------------------------
+
+.. important::
+
+   .. include:: /includes/fact-2.6-downgrade-restrictions.rst
 
 Basic Downgrade and Upgrade
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
