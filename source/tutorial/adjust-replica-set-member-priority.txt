@@ -4,63 +4,45 @@ Adjust Priority for Replica Set Member
 
 .. default-domain:: mongodb
 
-To change the value of the
-:data:`~local.system.replset.members[n].priority` in the replica set
-configuration, use the following sequence of commands in the
-:program:`mongo` shell:
+Overview
+--------
 
-.. code-block:: javascript
+The priority settings of replica set members affect the outcomes
+of :doc:`elections </core/replica-set-elections>` for primary. Use this
+setting to ensure that some members are more likely to become primary and
+that others can never become primary.
 
-   cfg = rs.conf()
-   cfg.members[0].priority = 0.5
-   cfg.members[1].priority = 2
-   cfg.members[2].priority = 2
-   rs.reconfig(cfg)
+The value of the member's
+:data:`~local.system.replset.members[n].priority` setting determines the
+member's priority in elections. The higher the number, the higher the
+priority.
 
-The first operation uses :method:`rs.conf()` to set the local variable
-``cfg`` to the contents of the current replica set configuration, which
-is a :term:`document`. The next three operations change the
-:data:`~local.system.replset.members[n].priority` value in the ``cfg``
-document for the first three members configured in the :data:`members
-<local.system.replset.members>` array. The final operation calls
-:method:`rs.reconfig()` with the argument of ``cfg`` to initialize the
-new configuration.
+Considerations
+--------------
 
-.. include:: /includes/fact-rs-conf-array-index.rst
+To modify priorities, you update the :data:`~local.system.replset.members`
+array in the the replica configuration object. The array index begins with
+``0``. Do **not** confuse this index value with the value of the replica
+set member's :data:`~local.system.replset.members[n]._id` field in the
+array.
 
-If a member has :data:`~local.system.replset.members[n].priority` set
-to ``0``, it is ineligible to become :term:`primary` and will not seek
-election. :ref:`Hidden members <replica-set-hidden-members>`,
-:ref:`delayed members <replica-set-delayed-members>`, and
-:ref:`arbiters <replica-set-arbiters>` all have
+The value of :data:`~local.system.replset.members[n].priority` can be any
+floating point (i.e. decimal) number between ``0`` and ``1000``. The
+default value for the :data:`~local.system.replset.members[n].priority`
+field is ``1``.
+
+To block a member from seeking election as primary, assign it a priority
+of ``0``. :ref:`Hidden members <replica-set-hidden-members>`,
+:ref:`delayed members <replica-set-delayed-members>`, and :ref:`arbiters
+<replica-set-arbiters>` all have
 :data:`~local.system.replset.members[n].priority` set to ``0``.
 
-All members have a :data:`~local.system.replset.members[n].priority`
-equal to ``1`` by default.
+Adjust priority during a sheduled maintenance window. Reconfiguring
+priority can force the current primary to step down, leading to an
+election. Before an election the primary closes all open :term:`client`
+connections.
 
-The value of :data:`~local.system.replset.members[n].priority` can be
-any floating point (i.e. decimal) number between ``0`` and ``1000``.
-Priorities are only used to determine the preference in election. The
-priority value is used only in relation to other members. With the
-exception of members with a priority of ``0``, the absolute value of
-the :data:`~local.system.replset.members[n].priority` value is
-irrelevant.
+Procedure
+---------
 
-Replica sets will preferentially elect and maintain the primary status
-of the member with the highest
-:data:`~local.system.replset.members[n].priority` setting.
-
-.. warning::
-
-   Replica set reconfiguration can force the current primary to step
-   down, leading to an election for primary in the replica
-   set. Elections cause the current primary to close all open
-   :term:`client` connections.
-
-   Perform routine replica set reconfiguration during scheduled
-   maintenance windows.
-
-.. seealso:: The :ref:`Replica Reconfiguration Usage
-   <replica-set-reconfiguration-usage>` example revolves around
-   changing the priorities of the :data:`~local.system.replset.members`
-   of a replica set.
+.. include:: /includes/steps/adjust-replica-set-member-priority.rst
