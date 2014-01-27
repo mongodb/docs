@@ -9,19 +9,18 @@
    Install gcc and Python Packages
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-1
 
-      For Debian and Ubuntu environments, issue this command:
+   For Debian and Ubuntu environments, issue this command:
 
-      .. code-block:: sh
-      
-         sudo apt-get install build-essential python-dev
+   .. code-block:: sh
+   
+      sudo apt-get install build-essential python-dev
 
-      For Red Hat, CentOS, and Fedora environments, issue this command:
+   For Red Hat, CentOS, and Fedora environments, issue this command:
 
-      .. code-block:: sh
-      
-         sudo yum install gcc python-devel
+   .. code-block:: sh
+   
+      sudo yum install gcc python-devel
 
    .. raw:: html
    
@@ -38,12 +37,11 @@
    Install the pip Utility
    ~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-2
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      sudo easy_install pip
       
-         sudo easy_install pip
-         
 
    .. raw:: html
    
@@ -60,12 +58,11 @@
    Remove PyMongo
    ~~~~~~~~~~~~~~
 
-   .. class:: step-3
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      sudo pip uninstall pymongo
       
-         sudo pip uninstall pymongo
-         
 
    .. raw:: html
    
@@ -82,12 +79,11 @@
    Re-Install PyMongo
    ~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-4
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      sudo pip install pymongo
       
-         sudo pip install pymongo
-         
 
    .. raw:: html
    
@@ -104,17 +100,16 @@
    Restart Monitoring Agent
    ~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-5
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      cd mms-agent
+      nohup python agent.py > /LOG_DIRECTORY/agent.log 2>&1 &
       
-         cd mms-agent
-         nohup python agent.py > /LOG_DIRECTORY/agent.log 2>&1 &
-         
 
-      Replace ``LOG-DIRECTORY`` with the path to your MongoDB logs.  When you
-      restart your agent there is a 5 minute timeout before the agent will
-      begin sending data to MMS again.
+   Replace ``LOG-DIRECTORY`` with the path to your MongoDB logs.  When you
+   restart your agent there is a 5 minute timeout before the agent will
+   begin sending data to MMS again.
 
    .. raw:: html
    

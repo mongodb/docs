@@ -9,19 +9,18 @@
    Install gcc and Python Packages
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-1
 
-      For Debian and Ubuntu environments, issue this command:
+   For Debian and Ubuntu environments, issue this command:
 
-      .. code-block:: sh
-      
-         sudo apt-get install build-essential python-dev
+   .. code-block:: sh
+   
+      sudo apt-get install build-essential python-dev
 
-      For Red Hat, CentOS, and Fedora environments, issue this command:
+   For Red Hat, CentOS, and Fedora environments, issue this command:
 
-      .. code-block:: sh
-      
-         sudo yum install gcc python-devel
+   .. code-block:: sh
+   
+      sudo yum install gcc python-devel
 
    .. raw:: html
    
@@ -38,11 +37,10 @@
    Install PyMongo
    ~~~~~~~~~~~~~~~
 
-   .. class:: step-2
 
-      .. code-block:: sh
-      
-         curl http://pypi.python.org/packages/source/p/pymongo/pymongo-2.6.3.tar.gz > pymongo-2.6.3.tar.gz
+   .. code-block:: sh
+   
+      curl http://pypi.python.org/packages/source/p/pymongo/pymongo-2.6.3.tar.gz > pymongo-2.6.3.tar.gz
 
    .. raw:: html
    
@@ -59,11 +57,10 @@
    Extract the PyMongo Files
    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-3
 
-      .. code-block:: sh
-      
-         tar -zxvf pymongo-2.6.3.tar.gz
+   .. code-block:: sh
+   
+      tar -zxvf pymongo-2.6.3.tar.gz
 
    .. raw:: html
    
@@ -80,18 +77,17 @@
    Build the ``.egg`` File
    ~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-4
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      cd pymongo-2.6.3
+      python setup.py bdist_egg
       
-         cd pymongo-2.6.3
-         python setup.py bdist_egg
-         
 
-      Once built, you can find ``.egg`` file in the dist/ sub-directory. The
-      file name will resemble ``pymongo-2.6.3-py2.7-linux-x86_64.egg`` but may
-      have a different name depending on your platform and the version of
-      python you use to compile.
+   Once built, you can find ``.egg`` file in the dist/ sub-directory. The
+   file name will resemble ``pymongo-2.6.3-py2.7-linux-x86_64.egg`` but may
+   have a different name depending on your platform and the version of
+   python you use to compile.
 
    .. raw:: html
    
@@ -108,12 +104,11 @@
    Install the ``.egg`` File on Target System
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-5
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      sudo easy_install pymongo-2.6.2-py2.7-linux-x86_64.egg
       
-         sudo easy_install pymongo-2.6.2-py2.7-linux-x86_64.egg
-         
 
    .. raw:: html
    
@@ -130,18 +125,17 @@
    Install the Monitoring Agent
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. class:: step-6
 
-      Copy the ``.egg`` file to the target system and issue this command to
-      install the package:
+   Copy the ``.egg`` file to the target system and issue this command to
+   install the package:
 
-      .. code-block:: sh
+   .. code-block:: sh
+   
+      cd mms-agent
+      nohup python agent.py > /LOG_DIRECTORY/agent.log 2>&1 &
       
-         cd mms-agent
-         nohup python agent.py > /LOG_DIRECTORY/agent.log 2>&1 &
-         
 
-      Replace ``LOG-DIRECTORY`` with the path to your MongoDB logs.
+   Replace ``LOG-DIRECTORY`` with the path to your MongoDB logs.
 
    .. raw:: html
    

@@ -4,7 +4,7 @@
    
       <div class="sequence-block"><div class="bullet-block"><div class="sequence-step">1</div></div>
 
-   .. _step-1-monitoring-install-debian-ubuntu-monitoring-install-python:
+   .. _step-1-monitoring-install-centos-rhel-monitoring-install-python:
 
    Install Python Packages and Extensions
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,7 +15,7 @@
 
    .. code-block:: sh
    
-      sudo apt-get install python-setuptools
+      sudo yum install python-setuptools
       
 
    .. raw:: html
@@ -28,7 +28,7 @@
    
       <div class="sequence-block"><div class="bullet-block"><div class="sequence-step">2</div></div>
 
-   .. _step-2-monitoring-install-debian-ubuntu-monitoring-install-python-c:
+   .. _step-2-monitoring-install-centos-rhel-monitoring-install-python-c:
 
    Install Python C Extensions
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -41,7 +41,7 @@
 
    .. code-block:: sh
    
-      sudo apt-get install build-essential python-dev
+      sudo yum install gcc python-dev
       
 
    .. raw:: html
@@ -54,7 +54,7 @@
    
       <div class="sequence-block"><div class="bullet-block"><div class="sequence-step">3</div></div>
 
-   .. _step-3-monitoring-install-debian-ubuntu-monitoring-install-upgrade-pymongo:
+   .. _step-3-monitoring-install-centos-rhel-monitoring-install-upgrade-pymongo:
 
    Install and Upgrade PyMongo
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,7 +93,7 @@
    
       <div class="sequence-block"><div class="bullet-block"><div class="sequence-step">4</div></div>
 
-   .. _step-4-monitoring-install-debian-ubuntu-install-monitoring-agent:
+   .. _step-4-monitoring-install-centos-rhel-install-monitoring-agent:
 
    Install the MongoDB Monitoring Agent
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,7 +129,7 @@
    
    .. code-block:: sh
    
-      sudo apt-get install python-setuptools
+      sudo yum install python-setuptools
       
    
    
@@ -143,7 +143,7 @@
    
    .. code-block:: sh
    
-      sudo apt-get install build-essential python-dev
+      sudo yum install gcc python-dev
       
    
    
