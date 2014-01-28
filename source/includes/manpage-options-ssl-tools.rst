@@ -9,8 +9,6 @@
    advantage of the replace statement already in place in the
    individual program's file.
 
-.. include:: /includes/replace-pem-path-name.rst
-
 .. option:: --ssl
 
    .. versionadded:: 2.5.4
@@ -26,8 +24,9 @@
 
    .. include:: /includes/note-general-ssl-support.rst
 
-   Specifies the :file:`.pem` file that contains both the SSL
-   certificate and key. |pem-path-name|
+   Specifies the :file:`.pem` file that contains both the SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
 
    Required when using the :option:`--ssl` option to connect to
    :program:`mongod` or :program:`mongos` that have
@@ -57,7 +56,8 @@
    .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the :file:`.pem` file that contains the root certificate
-   chain from the Certificate Authority. |pem-path-name|
+   chain from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
 
 .. option:: --sslCRLFile <filename>
 
@@ -66,7 +66,8 @@
    .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the :file:`.pem` file that contains the Certificate
-   Revocation List. |pem-path-name|
+   Revocation List. Specify the file name of the :file:`.pem` file
+   using relative or absolute paths.
 
 .. option:: --sslFIPSMode
 
