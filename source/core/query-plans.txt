@@ -10,10 +10,11 @@ Query Plans
 .. TODO Consider moving this to the mechanics of the index section
 
 The MongoDB query optimizer processes queries and chooses the most
-efficient query plan for a query given the available indexes. The
-query system then uses this query plan each time the query runs. The
-query optimizer occasionally reevaluates query plans as the content of
-the collection changes to ensure optimal query plans.
+efficient query plan for a query given the available indexes. The query
+system then uses this query plan each time the query runs. The query
+optimizer occasionally reevaluates query plans as the content of the
+collection changes to ensure optimal query plans. You can also specify
+which indexes the optimizer evaluates with :ref:`index-filters`.
 
 You can use the :method:`~cursor.explain()` method to view statistics
 about the query plan for a given query. This information can help as you
@@ -83,3 +84,37 @@ plan and re-evaluates after any of the following events:
 - You add or drop an index.
 
 - The :program:`mongod` process restarts.
+
+.. _index-filters:
+
+Index Filters
+-------------
+
+.. versionadded:: 2.5.5
+
+Index filters determine which indexes the optimizer evaluates for a
+:term:`query shape`. Query shape consists of a combination of query,
+sort, and projection specifications. If an index filter exists for a
+given query shape, the optimizer only evaluates those indexes specified
+in the filter.
+
+.. |hint-object| replace:: :method:`~cursor.hint()`
+.. |explain-object| replace:: :method:`~cursor.explain()`
+.. |index-filter| replace:: index filter
+
+.. include:: /includes/fact-index-filter-hint-override.rst
+
+Index filters only affects which indexes the optimizer evaluates; the
+optimizer may still select the collection scan as the winning plan for
+a given query shape.
+
+Index filters exist for the duration of the server process and do not
+persist after shutdown. MongoDB also provides a command to manually remove
+filters.
+
+Because index filters overrides the expected behavior of the optimizer
+as well as the :method:`~cursor.hint()` and the
+:method:`~cursor.explain()` methods, use index filters sparingly.
+
+See :dbcommand:`planCacheListFilters`,
+:dbcommand:`planCacheClearFilters`, and :dbcommand:`planCacheSetFilter`.

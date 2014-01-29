@@ -1,0 +1,109 @@
+=====================
+planCacheClearFilters
+=====================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: planCacheClearFilters
+
+   .. versionadded:: 2.5.5
+
+   Removes :ref:`index filters <index-filters>` on a collection.
+   Although index filters only exist for the duration of the server
+   process and do not persist after shutdown, you can also clear
+   existing index filters with the :dbcommand:`planCacheClearFilters`
+   command.
+
+   Specify the :term:`query shape` to remove a specific index filter.
+   Omit the query shape to clear all index filters on a collection.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+            planCacheClearFilters: <collection>,
+            query: <query pattern>,
+            sort: <sort specification>,
+            projection: <projection specification>
+         }
+      )
+
+   The :dbcommand:`planCacheClearFilters` command has the following field:
+
+   .. include:: planCacheClearFilters.rst
+
+Required Access
+---------------
+
+A user must have access that includes the
+:authaction:`planCacheIndexFilter` action.
+
+Examples
+--------
+
+Clear Specific Index Filter on Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``orders`` collection contains the following two filters:
+
+.. code-block:: javascript
+
+   {
+     "query" : { "status" : "A" }, 
+     "sort" : { "ord_date" : -1 },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+   {
+     "query" : { "status" : "A" },
+     "sort" : { },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+The following command removes the second index filter only:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "A" }
+      }
+   )
+
+Because ``query`` is a prototype, the following command would also
+remove the second index filter:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "P" }
+      }
+   )
+
+Clear all Index Filters on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example clears all index filters on the ``orders``
+collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders"
+      }
+   )
+
+.. seealso::
+   :dbcommand:`planCacheListFilters`,
+   :dbcommand:`planCacheSetFilter`
