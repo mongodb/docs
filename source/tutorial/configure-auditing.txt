@@ -18,7 +18,7 @@ formats, see :doc:`/reference/audit-message`.
 Enable and Configure Audit Output
 ---------------------------------
 
-Use the :option:`--auditLog` option to enable
+Use the :option:`--auditDestination` option to enable
 auditing and specify where to output the audit events.
 
 Output to Syslog
@@ -26,11 +26,11 @@ Output to Syslog
 
 To enable auditing and print audit events to the syslog (option
 is unavailable on Windows) in JSON format, specify ``syslog`` for the
-:option:`--auditLog` setting. For example:
+:option:`--auditDestination` setting. For example:
 
 .. code-block:: sh
 
-   mongod --dbpath data/db --auditLog syslog
+   mongod --dbpath data/db --auditDestination syslog
 
 .. warning::
 
@@ -42,18 +42,18 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=syslog
+   auditDestination=syslog
 
 Output to Console
 ~~~~~~~~~~~~~~~~~
 
 To enable auditing and print the audit events to standard
 output (i.e. ``stdout``), specify ``console`` for the
-:option:`--auditLog` setting. For example:
+:option:`--auditDestination` setting. For example:
 
 .. code-block:: sh
 
-   mongod --dbpath data/db --auditLog console
+   mongod --dbpath data/db --auditDestination console
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -61,14 +61,15 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=console
+   auditDestination=console
 
 Output to JSON File
 ~~~~~~~~~~~~~~~~~~~
 
 To enable auditing and print audit events to a file in JSON
-format, specify ``jsonfile`` for the :option:`--auditLog` setting and
-specify the filename for the :option:`--auditPath`. The
+format, specify ``file`` for the :option:`--auditDestination` setting,
+``JSON`` for the :option:`--auditFormat` setting, and
+the output filename for the :option:`--auditPath`. The
 :option:`--auditPath` option accepts either full path name or relative
 path name. For example, the following enables auditing and records
 audit events to a file with the relative path name of
@@ -76,7 +77,7 @@ audit events to a file with the relative path name of
 
 .. code-block:: sh
 
-   mongod --dbpath data/db --auditLog jsonfile --auditPath data/db/auditLog.json
+   mongod --dbpath data/db --auditDestination file --auditFormat JSON --auditPath data/db/auditLog.json
 
 The audit file rotates at the same time as the server log file.
 
@@ -86,23 +87,24 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=jsonfile
+   auditDestination=file
+   auditFormat=JSON
    auditPath=data/db/auditLog.json
 
 Output to BSON File
 ~~~~~~~~~~~~~~~~~~~
 
 To enable auditing and print audit events to a file in BSON binary
-format, specify ``bsonfile`` for the :option:`--auditLog` setting and
-specify the filename for the :option:`--auditPath`. The
-:option:`--auditPath` option accepts either full path name or relative
-path name. For example, the ffollowing enables auditing and records
-audit events to a BSON file with the relative path name of
-``data/db/auditLog.bson``:
+format, specify ``file`` for the :option:`--auditDestination` setting,
+``BSON`` for the :option:`--auditFormat` setting, and the output
+filename for the :option:`--auditPath`. The :option:`--auditPath`
+option accepts either full path name or relative path name. For
+example, the following enables auditing and records audit events to a
+BSON file with the relative path name of ``data/db/auditLog.bson``:
 
 .. code-block:: sh
 
-   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/auditLog.bson
+   mongod --dbpath data/db --auditDestination file --auditFormat BSON --auditPath data/db/auditLog.bson
 
 The audit file rotates at the same time as the server log file.
 
@@ -112,7 +114,8 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=bsonfile
+   auditDestination=file
+   auditFormat=BSON
    auditPath=data/db/auditLog.bson
 
 To view the contents of the file, pass the file to the MongoDB utility
@@ -153,7 +156,7 @@ filter ``{ atype: "createCollection" }``:
 
 .. code-block:: javascript
 
-   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/audit1.bson --auditFilter '{ atype: "createCollection" }'
+   mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: "createCollection" }' --auditFormat JSON --auditPath data/db/auditLog.json 
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -161,8 +164,9 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=bsonfile
-   auditPath=data/db/audit1.bson
+   auditDestination=file
+   auditFormat=JSON
+   auditPath=data/db/auditLog.json
    auditFilter={ atype: "createCollection" }
 
 Filter for Multiple Operation Types
@@ -177,7 +181,7 @@ the ``<expression>`` as in the following:
 
 .. code-block:: javascript
 
-   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/audit2.bson --auditFilter '{ atype: { $in: [ "createCollection", "dropCollection" ] } }'
+   mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: { $in: [ "createCollection", "dropCollection" ] } }' --auditFormat JSON --auditPath data/db/auditLog.json
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -185,8 +189,9 @@ You may also specify these options in the :doc:`configuration file
 .. code-block:: none
 
    dbpath=data/db
-   auditLog=bsonfile
-   auditPath=data/db/audit2.bson
+   auditDestination=file
+   auditFormat=JSON
+   auditPath=data/db/auditLog.json
    auditFilter={ atype: { $in: [ "createCollection", "dropCollection" ] } }
 
 Filter on Authentication Operations on a Single Database
@@ -208,7 +213,7 @@ against the ``test`` database, use the filter ``{ atype:
 
 .. code-block:: javascript
 
-   mongod --dbpath data/db --auth --auditLog jsonfile --auditPath data/db/auditLog.json --auditFilter '{ atype: "authenticate", "param.db": "test" }'
+   mongod --dbpath data/db --auth --auditDestination file --auditFilter '{ atype: "authenticate", "param.db": "test" }' --auditFormat JSON --auditPath data/db/auditLog.json
 
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
@@ -217,7 +222,8 @@ You may also specify these options in the :doc:`configuration file
 
    dbpath=data/db
    auth=true
-   auditLog=jsonfile
+   auditDestination=file
+   auditFormat=JSON
    auditPath=data/db/auditLog.json
    auditFilter={ atype: "authenticate", "param.db": "test" }
 
