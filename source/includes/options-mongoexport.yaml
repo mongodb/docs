@@ -1,3 +1,140 @@
+# This file borrows content from /includes/options-shared.yaml, which uses
+# {role} to refer to the tool.
+#
+program: mongoexport
+name: authenticationDatabase
+inherit:
+  name: authenticationDatabase
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongoexport
+name: authenticationMechanism
+inherit:
+  name: authenticationMechanism
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongoexport
+name: collection
+aliases: -c
+directive: option
+args: <collection>
+description: |
+  Specifies the collection to export.
+optional: true
+---
+program: mongoexport
+name: csv
+directive: option
+args: null
+description: |
+  Changes the export format to a comma-separated-values (CSV)
+  format. By default :program:`mongoexport` writes data using one
+  :term:`JSON` document for every MongoDB document.
+
+  If you specify :option:`--csv`, then you must also use either
+  the :option:`--fields` or the :option:`--fieldFile` option to
+  declare the fields to export from the collection.
+optional: true
+---
+program: mongoexport
+name: db
+aliases: -d
+directive: option
+args:  <db>
+description: |
+  Specifies the name of the database to export.
+optional: true
+---
+program: mongoexport
+name: dbpath
+directive: option
+args: <path>
+description: |
+  Specifies the directory of the MongoDB data files. If used, the
+  ``--dbpath`` option enables :program:`mongoexport` to attach directly to
+  local data files and insert the data without the :program:`mongod`. To
+  run with ``--dbpath``, :program:`mongoexport` needs to lock access to
+  the data directory: as a result, no :program:`mongod` can access the
+  same path while the process runs.
+optional: true
+---
+program: mongoexport
+name: directoryperdb
+directive: option
+args: null
+description: |
+  When used in conjunction with the corresponding option in
+  :program:`mongod`, allows :program:`mongoexport` to export data from
+  MongoDB instances that save each database's files in discrete
+  directories on the disk. This option is only relevant when specifying
+  the :option:`--dbpath` option.
+optional: true
+---
+program: mongoexport
+name: fieldFile
+directive: option
+args: <file>
+description: |
+  As an alternative to :option:`--fields <mongoexport --fields>`, the
+  :option:`--fieldFile <mongoexport --fields>` option allows you to
+  specify in a file the field or fields to *include* in the export and is
+  **only valid** with the :option:`--csv <mongoexport --csv>` option. The
+  file must have only one field per line, and the line(s) must end with
+  the LF character (``0x0A``).
+
+  :program:`mongoexport` includes only the specified field(s). The
+  specified field(s) can be a field within a sub-document.
+optional: true
+---
+program: mongoexport
+name: fields
+aliases: -f
+directive: option
+args: <field1[,field2]>
+description: |
+  Specifies a field or fields to *include* in the export. Use a comma
+  separated list of fields to specify multiple fields.
+
+  For :option:`--csv <mongoexport --csv>` output formats,
+  :program:`mongoexport` includes only the specified field(s), and the
+  specified field(s) can be a field within a sub-document.
+
+  For :term:`JSON` output formats, :program:`mongoexport` includes
+  only the specified field(s) **and** the ``_id`` field, and if the
+  specified field(s) is a field within a sub-document, the
+  :program:`mongoexport` includes the sub-document with all
+  its fields, not just the specified field within the document.
+optional: true
+---
+program: mongoexport
+name: forceTableScan
+directive: option
+args: null
+description: |
+  .. versionadded:: 2.2
+
+  Forces :program:`mongoexport` to scan the data store directly:
+  typically, :program:`mongoexport` saves entries as they appear in the
+  index of the ``_id`` field. Use :option:`--forceTableScan` to skip
+  the index and scan the data directly. Typically there are two cases
+  where this behavior is preferable to the default:
+
+  1. If you have key sizes over 800 bytes that would not be present
+     in the ``_id`` index.
+
+  2. Your database uses a custom ``_id`` field.
+
+  When you run with :option:`--forceTableScan`, :program:`mongoexport`
+  does not use :operator:`$snapshot`. As a result, the export produced
+  by :program:`mongoexport` can reflect the state of the database at
+  many different points in time.
+
+  .. warning:: Use :option:`--forceTableScan` with extreme caution
+     and consideration.
+optional: true
+---
 program: mongoexport
 name: help
 inherit:
@@ -27,6 +164,28 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongoexport
+name: jsonArray
+directive: option
+args: null
+description: |
+  Modifies the output of :program:`mongoexport` to write the
+  entire contents of the export as a single :term:`JSON` array. By
+  default :program:`mongoexport` writes data using one JSON document
+  for every MongoDB document.
+optional: true
+---
+program: mongoexport
+name: out
+aliases: -o
+directive: option
+args: <file>
+description: |
+  Specifies a file to write the export to. If you do not specify a file
+  name, the :program:`mongoexport` writes data to standard output
+  (e.g. ``stdout``).
+optional: true
+---
+program: mongoexport
 name: password
 inherit:
   name: password
@@ -39,6 +198,57 @@ inherit:
   name: port
   program: _shared
   file: options-shared.yaml
+---
+program: mongoexport
+name: query
+aliases: -q
+directive: option
+args: <JSON>
+description: |
+  Provides a :term:`JSON document` as a query that optionally limits
+  the documents returned in the export.
+
+  For example, given a collection named ``records`` in the database
+  ``test`` with the following documents:
+
+  .. code:: json
+
+     { "_id" : ObjectId("51f0188846a64a1ed98fde7c"), "a" : 1 }
+     { "_id" : ObjectId("520e61b0c6646578e3661b59"), "a" : 1, "b" : 2 }
+     { "_id" : ObjectId("520e642bb7fa4ea22d6b1871"), "a" : 2, "b" : 3, "c" : 5 }
+     { "_id" : ObjectId("520e6431b7fa4ea22d6b1872"), "a" : 3, "b" : 3, "c" : 6 }
+     { "_id" : ObjectId("520e6445b7fa4ea22d6b1873"), "a" : 5, "b" : 6, "c" : 8 }
+
+  The following :program:`mongoexport` uses the :option:`-q` option to
+  export only the documents with the field ``a`` greater than or equal to
+  (:query:`$gte`) to ``3``:
+
+  .. code:: bash
+
+     mongoexport -d test -c records -q "{ a: { \$gte: 3 } } }" --out exportdir/myRecords.json
+
+  The resulting file contains the following documents:
+
+  .. code:: json
+
+     { "_id" : { "$oid" : "520e6431b7fa4ea22d6b1872" }, "a" : 3, "b" : 3, "c" : 6 }
+     { "_id" : { "$oid" : "520e6445b7fa4ea22d6b1873" }, "a" : 5, "b" : 6, "c" : 8 }
+optional: true
+---
+program: mongoexport
+name: slaveOk
+aliases: -k
+directive: option
+args: null
+description: |
+  Allows :program:`mongoexport` to read data from secondary or slave
+  nodes when using :program:`mongoexport` with a replica set. This
+  option is only available if connected to a :program:`mongod` or
+  :program:`mongos` and is not available when used with the
+  ":option:`mongoexport --dbpath`" option.
+
+  This is the default behavior.
+optional: true
 ---
 program: mongoexport
 name: ssl
