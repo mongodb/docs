@@ -32,7 +32,7 @@ Definition
 Behavior
 --------
 
-An :dbcommand:`fsync` lock is only possible on *individual* shards of a
+An :dbcommand:`fsync` lock is only possible on *individual* nodes within a
 sharded cluster, not on the entire cluster. To backup an entire sharded
 cluster, please see :doc:`/administration/backup-sharded-clusters` for
 more information.
@@ -41,10 +41,11 @@ If your :program:`mongod` has :term:`journaling <journal>` enabled,
 consider using :ref:`another method <backup-with-journaling>` to create a
 back up of the data set.
 
-Applications may continue to perform read operations on
-:program:`mongod` instance with an :dbcommand:`fsync`
-lock. However, after the first write operation all subsequent read
-operations wait until you unlock :program:`mongod` instance.
+After :dbcommand:`fsync` with lock has been run on a :program:`mongod`,
+all write operations will block until a subsequent unlock. Read opertions may also
+block as well, though this is not deterministic. For this reason, :dbcommand:`fsync`
+with lock should not be construed as a reliable mechanism for making
+a :program:`mongod` operate in a read-only mode.
 
 .. include:: /includes/note-disable-profiling-fsynclock.rst
 
@@ -69,8 +70,9 @@ The operation returns immediately. To view the status of the
 Lock ``mongod`` Instance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The primary use of :dbcommand:`fsync` is to lock the :program:`mongod` instance during
-backup operations. The operation flushes all data to the storage layer and
+The primary use of :dbcommand:`fsync` is to lock the :program:`mongod` 
+instance in order to back up the files withing :program:`mongod`'s dbpath.
+The operation flushes all data to the storage layer and
 blocks all write operations until you unlock the :program:`mongod` instance.
 
 To lock the database, use the ``lock`` field set to ``true``:
