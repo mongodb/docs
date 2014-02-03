@@ -50,13 +50,13 @@ wizard includes an option to select an installation directory.
 Run MongoDB Enterprise on Windows
 +++++++++++++++++++++++++++++++++
 
-.. include:: /tutorial/install-mongodb-on-windows.txt
+.. include:: /tutorial/install-mongodb-on-windows.rst
    :start-after: start-windows-operate-database
    :end-before: end-windows-operate-database
 
 Configure a Windows Service for MongoDB Enterprise
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-.. include:: /tutorial/install-mongodb-on-windows.txt
+.. include:: /tutorial/install-mongodb-on-windows.rst
    :start-after: start-configure-windows-service
    :end-before: end-configure-windows-service
