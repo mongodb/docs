@@ -100,7 +100,7 @@ Run MongoDB
    configuration file named ``mongod.conf``. This file is not a
    MongoDB configuration file.
 
-.. include:: /tutorial/install-mongodb-on-linux.txt
+.. include:: /tutorial/install-mongodb-on-linux.rst
    :start-after: start-include-for-enterprise-tutorial
    :end-before: end-include-for-enterprise-tutorial
 
