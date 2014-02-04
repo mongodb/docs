@@ -35,47 +35,52 @@ MongoDB provides two options for performing an initial sync:
 .. index:: replica set; resync
 .. _replica-set-auto-resync-stale-member:
 
+Procedures
+----------
+
 Automatically Sync a Member
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: During initial sync, :program:`mongod` will remove the
+   content of the :setting:`dbpath`.
 
 This procedure relies on MongoDB's regular process for :ref:`initial
 sync <replica-set-initial-sync>`. This will store the current data on
 the member. For an overview of MongoDB initial sync process, see the
 :ref:`replica-set-syncing` section.
 
-To sync or resync a member:
+If the instance has no data, you can simply follow the
+:doc:`/tutorial/expand-replica-set` or
+:doc:`/tutorial/replace-replica-set-member` procedure to add a
+new member to a replica set.
 
-1. If the member is an existing member, do the following:
+You can also force a :program:`mongod` that is already a member of the
+set to to perform an initial sync by restarting the instance without
+the content of the :setting:`dbpath` as follows:
 
-   a. Stop the member's :program:`mongod` instance.
-      To ensure a clean shutdown, use the :method:`db.shutdownServer()`
-      method from the :program:`mongo` shell or on Linux systems, the
-      :option:`mongod --shutdown` option.
+a. Stop the member's :program:`mongod` instance.
+   To ensure a clean shutdown, use the :method:`db.shutdownServer()`
+   method from the :program:`mongo` shell or on Linux systems, the
+   :option:`mongod --shutdown` option.
 
-   #. Delete all data and sub-directories from the member's data
-      directory. By removing the data :setting:`dbpath`, MongoDB will
-      perform a complete resync. Consider making a backup first.
+#. Delete all data and sub-directories from the member's data
+   directory. By removing the data :setting:`dbpath`, MongoDB will
+   perform a complete resync. Consider making a backup first.
 
-#. Start the :program:`mongod` instance on the member. For example:
+At this point, the :program:`mongod` will perform an initial
+sync. The length of the initial sync may process depends on the
+size of the database and network connection between members of the
+replica set.
 
-   .. code-block:: sh
-
-      mongod --dbpath /data/db/ --replSet rsProduction
-
-   At this point, the :program:`mongod` will perform an initial
-   sync. The length of the initial sync may process depends on the
-   size of the database and network connection between members of the
-   replica set.
-
-   Initial sync operations can impact the other members of the set and
-   create additional traffic to the primary and can only occur if
-   another member of the set is accessible and up to date.
+Initial sync operations can impact the other members of the set and
+create additional traffic to the primary and can only occur if
+another member of the set is accessible and up to date.
 
 .. index:: replica set; resync
 .. _replica-set-resync-by-copying:
 
 Sync by Copying Data Files from Another Member
-----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This approach "seeds" a new or stale member using the data files from
 an existing member of the replica set. The data files **must** be
@@ -84,7 +89,7 @@ sufficiently recent to allow the new member to catch up with the
 sync.
 
 Copy the Data Files
-~~~~~~~~~~~~~~~~~~~
+```````````````````
 
 You can capture the data files as either a snapshot or a direct copy.
 However, in most cases you cannot copy data files from a running
@@ -100,7 +105,7 @@ snapshot of a running :program:`mongod` instance, see the
 :doc:`/core/backups` documentation.
 
 Sync the Member
-~~~~~~~~~~~~~~~
+```````````````
 
 After you have copied the data files from the "seed" source, start the
 :program:`mongod` instance and allow it to apply all operations from
