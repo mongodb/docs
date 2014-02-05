@@ -3,6 +3,105 @@
 # {{program}} to refer to the tool.
 #
 program: mongod
+name: help
+inherit:
+  name: help
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: version
+inherit:
+  name: version
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: config
+aliases: -f
+directive: option
+args: <filename>
+description: |
+  Specifies a configuration file, that you can use to specify
+  runtime-configurations. While the options are equivalent and
+  accessible via the other command line arguments, the configuration
+  file is the preferred method for runtime configuration of
+  mongod. See the :doc:`/reference/configuration-options` document
+  for more information about these options.
+
+  Ensure the configuration file uses ASCII
+  encoding. {{program}} does not support configuration files
+  with non-ASCII encoding, including UTF-8.
+optional: true
+---
+program: mongod
+name: verbose
+inherit:
+  name: verbose
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: quiet
+inherit:
+  name: quiet
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: port
+description: |
+  By default :program:`mongod` listens for connections on port `27017`.
+inherit:
+  name: port
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: bind_ip
+directive: option
+args: <ip address>
+description: |
+  The IP address that the {{program}} process binds to and listens for
+  connections on. By default {{program}} listens for connections for all
+  interfaces. You may attach {{program}} to any interface. When attaching
+  {{program}} to a publicly accessible interface, ensure that you have
+  implemented proper authentication and firewall restrictions to protect
+  the integrity of your database.
+optional: true
+---
+program: mongod
+name: maxConns
+directive: option
+args: <number>
+description: |
+  Specifies the maximum number of simultaneous connections that
+  {{program}} will accept. This setting has no effect if it is
+  higher than your operating system's configured maximum connection
+  tracking threshold.
+
+  .. versionchanged:: 2.5.0
+     MongoDB removed the upward limit on the :setting:`maxConns` setting.
+optional: true
+---
+program: mongod
+name: objcheck
+directive: option
+args: null
+description: |
+  Forces the {{program}} to validate all requests from clients upon
+  receipt to ensure that clients never insert invalid documents into the
+  database. For objects with a high degree of sub-document nesting,
+  :option:`--objcheck` can have a small impact on performance. You can set
+  :option:`--noobjcheck` to disable object checking at run-time.
+
+  .. versionchanged:: 2.4
+     MongoDB enables :option:`--objcheck` by default, to prevent any
+     client from inserting malformed or invalid BSON into a MongoDB
+     database.
+optional: true
+---
+program: mongod
 name: noobjcheck
 directive: option
 args: null
@@ -12,9 +111,207 @@ description: |
   Disables the default document validation that MongoDB performs on all
   incoming BSON documents.
 optional: true
-#
-#
-#    This yaml file is in-progress
-#
-#
+---
+program: mongod
+name: logpath
+directive: option
+args: <path>
+description: |
+  Specify a path for the log file that will hold all diagnostic
+  logging information.
+
+  Unless specified, {{program}} will output all log information
+  to the standard output. Additionally, unless you also specify
+  :option:`--logappend`, the logfile will be overwritten when the
+  process restarts.
+
+  .. note::
+
+     The behavior of the logging system may change in the near
+     future in response to the :issue:`SERVER-4499` case.
+optional: true
+---
+program: mongod
+name: logappend
+directive: option
+args: null
+description: |
+  When specified, this option ensures that {{program}} appends
+  new entries to the end of the logfile rather than overwriting the
+  content of the log when the process restarts.
+optional: true
+---
+program: mongod
+name: syslog
+directive: option
+args: null
+description: |
+  Sends all logging output to the host's :term:`syslog` system rather
+  than to standard output or a log file as with :option:`--logpath`.
+
+  .. important:: You cannot use :option:`--syslog` with :option:`--logpath`.
+optional: true
+---
+program: mongod
+name: pidfilepath
+directive: option
+args: <path>
+description: |
+  Specify a file location to hold the ":term:`PID`" or process ID of the
+  {{program}} process. Useful for tracking the {{program}} process in
+  combination with the :option:`mongod --fork` option.
+
+  Without a specified :option:`--pidfilepath` option, :program:`mongos`
+  creates no PID file.
+optional: true
+---
+program: mongod
+name: ssl
+inherit:
+  name: ssl
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslCAFile
+inherit:
+  name: sslCAFile
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslPEMKeyFile
+inherit:
+  name: sslPEMKeyFile
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslPEMKeyPassword
+inherit:
+  name: sslPEMKeyPassword
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslCRLFile
+inherit:
+  name: sslCRLFile
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslAllowInvalidCertificates
+inherit:
+  name: sslAllowInvalidCertificates
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: sslFIPSMode
+inherit:
+  name: sslFIPSMode
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
+name: auditDestination
+directive: option
+args: null
+description: |
+  Enables auditing. The :option:`--auditDestination` option can have one of
+  the following values:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15 50
+
+     * - Value
+
+       - Description
+
+     * - ``syslog``
+
+       - Output the audit events to syslog in JSON format. Not available on
+         Windows. Audit messages have a syslog severity level of ``info``
+         and a facility level of ``user``.
+
+         .. include:: /includes/fact-audit-syslog-message-limit.rst
+
+     * - ``console``
+
+       - Output the audit events to ``stdout`` in JSON format.
+
+     * - ``file``
+
+       - Output the audit events to the file specified in
+         :option:`--auditPath` in the format specified in
+         :option:`-auditFormat`.
+
+  .. include:: /includes/note-audit-in-enterprise-only.rst
+optional: true
+---
+program: mongod
+name: auditFormat
+directive: option
+args: null
+description: |
+  Specify the format of the output file if
+  :option:`--auditDestination` is ``file``. The
+  :option:`--auditFormat` can have one of the following values:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15 50
+
+     * - Value
+
+       - Description
+
+     * - ``JSON``
+
+       - Output the audit events in JSON format to the file specified in
+         :option:`--auditPath`.
+
+     * - ``BSON``
+
+       - Output the audit events in BSON binary format to the file
+         specified in :option:`--auditPath`.
+  .. include:: /includes/note-audit-in-enterprise-only.rst
+optional: true
+---
+program: mongod
+name: auditPath
+directive: option
+args: null
+description: |
+  Specify the output file for auditing if :option:`--auditDestination`
+  has value of ``file``. The :option:`--auditPath` option can take
+  either a full path name or a relative path name.
+
+  .. include:: /includes/note-audit-in-enterprise-only.rst
+optional: true
+---
+program: mongod
+name: auditFilter
+aliases: 
+directive: option
+args: null
+description: |
+  Specify the filter to limit the :ref:`types of operations
+  <audit-action-details-results>` the audit system records. The option
+  takes a document of the form:
+
+  .. code-block:: javascript
+
+     { atype: <expression> }
+
+  For authentication operations, the option can also take a document of
+  the form:
+
+  .. code-block:: javascript
+
+    { atype: <expression>, "param.db": <database> }
+  .. include:: /includes/note-audit-in-enterprise-only.rst
+optional: true
 ...
