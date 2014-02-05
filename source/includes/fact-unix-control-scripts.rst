@@ -1,6 +1,6 @@
 The packages include various :term:`control scripts <control script>`,
-including the init script ``/etc/rc.d/init.d/mongod``. These packages
-configure MongoDB using the ``/etc/mongod.conf`` file in conjunction
+including the init script ``/etc/rc.d/init.d/mongodb``. These packages
+configure MongoDB using the ``/etc/mongodb.conf`` file in conjunction
 with the control scripts.
 
 As of version |release|, there are no control scripts for
