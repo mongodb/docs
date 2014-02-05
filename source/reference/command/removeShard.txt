@@ -10,21 +10,42 @@ removeShard
    :dbcommand:`removeShard`, MongoDB first moves the shard's chunks to
    other shards in the cluster. Then MongoDB removes the shard.
 
-   To run the command you must have administrative access. Either run
-   :dbcommand:`removeShard` from the admin database or run it with the
-   :method:`sh._adminCommand` command.
-
-   The command takes the following form:
-
-   .. code-block:: javascript
-
-      use admin
-      db.runCommand( { removeShard : "<shardName>" } )
-
 Behavior
 --------
 
-When you run :dbcommand:`removeShard`, the command returns immediately,
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+You *must* run :dbcommand:`removeShard` while connected to a
+:program:`mongos`. Issue the command against the ``admin`` database or
+use the :method:`sh._adminCommand()` helper.
+
+If you have :setting:`auth` enabled, you must have the
+:authrole:`clusterManager` role or any role that
+includes the :authaction:`removeShard` action.
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database in a sharded cluster has a primary shard. If the shard you
+want to remove is also the primary of one of the cluster's databases, then
+you must manually move the databases to a new shard after migrating
+all data from the shard. See the :dbcommand:`movePrimary` command and
+the :doc:`/tutorial/remove-shards-from-cluster` for more information.
+
+Example
+-------
+
+From the :program:`mongo` shell, the :dbcommand:`removeShard`
+operation resembles the following:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { removeShard : "bristol01" } )
+
+Replace ``bristol01`` with the name of the shard to remove. When you
+run :dbcommand:`removeShard`, the command returns immediately,
 with the following message:
 
 .. code-block:: javascript
@@ -36,11 +57,12 @@ with the following message:
        "ok" : 1
    }
 
-The balancer migrates chunks from shard ``bristol01``.
-This process happens slowly to avoid placing undue load on the overall
-cluster.
+The balancer begins migrating chunks from the shard named
+``bristol01`` to other shards in the cluster. These migrations happens
+slowly to avoid placing undue load on the overall cluster.
 
-If you run the command again, you'll see the following progress output:
+If you run the command again, :dbcommand:`removeShard` returns the
+following progress output:
 
 .. code-block:: javascript
 
@@ -56,15 +78,11 @@ If you run the command again, you'll see the following progress output:
 
 The ``remaining`` :term:`document` specifies how many chunks and databases
 remain on the shard. Use :method:`db.printShardingStatus()` to list the
-databases that you must move from the shard.
+databases that you must move from the shard. Use the
+:dbcommand:`movePrimary` to move databases.
 
-Each database in a sharded cluster has a primary shard. If the shard you
-want to remove is also the primary of one of the cluster's databases, then
-you must manually move the database to a new shard. This can be done only
-after the shard is empty. See the :dbcommand:`movePrimary` command for details.
-
-After removing all chunks and databases from the shard, if you issue the
-command again it returns:
+After removing all chunks and databases from the shard, you can issue
+:dbcommand:`removeShard` again see the following:
 
 .. code-block:: javascript
 
