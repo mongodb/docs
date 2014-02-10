@@ -54,13 +54,14 @@ Definition
       - If the ``search`` string includes phrases, the search performs
         an ``AND`` with any other terms in the search string; e.g.
         search for ``"\"twinkle twinkle\" little star"`` searches for
-        ``"twinkle twinkle"`` **and** (``"little"`` **or** ``"star"``).
+        ``"twinkle twinkle"`` **and** (``"little"`` **or** ``"star"`` **or** ``"twinkle"``).
 
       - :dbcommand:`text` adds all negations to the query with the
         logical ``AND`` operator.
 
-      - The :dbcommand:`text` command ignores stop words for the search
-        language, such as ``the`` and ``and`` in English.
+      - The :dbcommand:`text` command ignores language-specific stop
+        words, such as ``the`` and ``and`` in
+        English.
 
       - The :dbcommand:`text` command matches on the complete *stemmed*
         word. So if a document field contains the word ``blueberry``,
@@ -89,8 +90,8 @@ Prefixing a word with a hyphen sign (``-``) negates a word:
 - The negated word excludes documents that contain the
   negated word from the result set.
 
-- A search string that only contains negated words returns
-  **no** match.
+- When passed a search string that only contains negated words, text
+  search will not match any documents.
 
 - A hyphenated word, such as ``pre-market``, is not a
   negation. The text command treats the hyphen as a delimiter.
@@ -108,6 +109,8 @@ index on the field ``subject``:
 Search for a Single Word
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+The following command searches for the word ``coffee``:
+
 .. code-block:: javascript
 
    db.articles.runCommand( "text", { search: "coffee" } )
@@ -117,6 +120,10 @@ case-insensitive, in the indexed ``subject`` field.
 
 Search for Multiple Words
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the search string is a space-delimited text, :dbcommand:`text`
+command performs a logical ``OR`` search on each term and returns
+documents that contains any of the terms.
 
 The following command searches for ``bake`` or ``coffee`` or ``cake``:
 
@@ -130,6 +137,12 @@ This query returns documents that contain either ``bake`` **or**
 Search for a Phrase
 ~~~~~~~~~~~~~~~~~~~
 
+To match the exact phrase that includes a space(s) as a single term,
+escape the quotes.
+
+For example, the following command searches for the exact phrase
+``"bake coffee cake"``:
+
 .. code-block:: javascript
 
    db.articles.runCommand( "text", { search: "\"bake coffee cake\"" } )
@@ -140,23 +153,83 @@ coffee cake``.
 Exclude a Term from the Result Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the hyphen (``-``) as a prefix to exclude documents that
-contain a term. Search for documents that contain the words
-``bake`` or ``coffee`` but do **not** contain ``cake``:
+A *negated* term is a term that is prefixed by a minus sign ``-``. If
+you negate a term, the :dbcommand:`text` command will exclude the
+documents that contain those terms from the results.
+
+If the search text contains *only* negated terms, the :dbcommand:`text`
+command will not return any results.
+
+The following examples searches for documents that contain the words
+``bake`` or ``coffee`` but do **not** contain the word ``cake``:
 
 .. code-block:: javascript
 
    db.articles.runCommand( "text", { search: "bake coffee -cake" } )
+
+.. _text-command-limit:
+
+Limit the Number of Matching Documents in the Result Set
+--------------------------------------------------------
+
+.. note::
+
+   The result from the :dbcommand:`text` command must fit within the
+   maximum :limit:`BSON Document Size`.
+
+By default, the :dbcommand:`text` command will return up to 100
+matching documents, from highest to lowest scores. To override this
+default limit, use the ``limit`` option in the :dbcommand:`text`
+command, as in the following example:
+
+.. code-block:: javascript
+
+   db.articles.runCommand( "text", { search: "coffee", limit: 2 } )
+
+The :dbcommand:`text` command will return at most ``2`` of the
+*highest scoring* results.
+
+The ``limit`` can be any number as long as the result set fits within
+the maximum :limit:`BSON Document Size`.
+
+.. _text-command-project:
+
+Specify Which Fields to Return in the Result Set
+------------------------------------------------
+
+In the :dbcommand:`text` command, use the ``project`` option to specify
+the fields to include (``1``) or exclude (``0``) in the matching
+documents.
+
+.. note::
+
+   The ``_id`` field is always returned unless explicitly excluded with
+   a ``0`` in the ``project`` document.
+
+The following example returns only the ``_id`` field and the ``subject``
+field in the matching documents:
+
+.. code-block:: javascript
+
+   db.articles.runCommand(
+      "text",
+      {
+        search: "coffee",
+        project: { subject: 1 }
+      }
+   )
+
+.. _text-command-filter:
 
 Search with Additional Query Conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the ``filter`` option to include additional query conditions.
 
-Search for a single word ``coffee`` with an additional filter on
-the ``about`` field, but limit the results to 2 documents
-with the highest score and return only the ``subject`` field in
-the matching documents:
+The following example searches for a single word ``coffee`` with an
+additional filter on the ``about`` field, but limit the results to 2
+documents with the highest score and return only the ``subject`` field
+in the matching documents:
 
 .. code-block:: javascript
 
@@ -177,6 +250,8 @@ the matching documents:
   exclude (``0``) the ``_id`` field. Within the ``project``
   document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
   exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
+
+.. seealso:: :doc:`/tutorial/limit-number-of-items-scanned-for-text-search`
 
 Search a Different Language
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
