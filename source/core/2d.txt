@@ -4,8 +4,6 @@
 
 .. default-domain:: mongodb
 
-.. include:: /includes/fact-limitation-one-geo-index-per-collection.rst
-
 Use a ``2d`` index for data stored as points on a two-dimensional plane. The
 ``2d`` index is intended for legacy coordinate pairs used in MongoDB 2.2
 and earlier.
@@ -16,9 +14,26 @@ Use a ``2d`` index if:
 
 - you do not intend to store any location data as :term:`GeoJSON` objects.
 
+See the :doc:`/reference/operator/query-geospatial` for the query
+operators that support geospatial queries.
+
+Considerations
+--------------
+
+.. |first-geo-index| replace:: ``2d``
+.. |second-geo-index| replace:: :doc:`2dsphere </core/2dsphere>`
+.. include:: /includes/fact-limitation-one-geo-index-per-collection.rst
+
 Do not use a ``2d`` index if your location data includes GeoJSON objects. To
 index on both legacy coordinate pairs *and* GeoJSON objects, use a
 :doc:`2dsphere </core/2dsphere>` index.
+
+You cannot use a ``2d`` index as a shard key when sharding a
+collection. However, you can create and maintain a geospatial index on
+a sharded collection by using a different field as the shard key.
+
+Behavior
+--------
 
 The ``2d`` index supports calculations on a flat, Euclidean plane. The
 ``2d`` index also supports *distance-only* calculations on a sphere,
@@ -31,29 +46,21 @@ field. A ``2d`` compound index constructs queries that select first on
 the location field, and then filters those results by the additional
 criteria. A compound ``2d`` index can cover queries.
 
-.. |first-geo-index| replace:: ``2d``
-.. |second-geo-index| replace:: :doc:`2dsphere </core/2dsphere>` 
-
-.. note:: You cannot use a ``2d`` index as a shard key when
-   sharding a collection. However, you can create and maintain a
-   geospatial index on a sharded collection by using a different field
-   as the shard key.
-
 .. _geospatial-indexes-store-grid-coordinates:
 
-Store Points on a 2D Plane
---------------------------
+Points on a 2D Plane
+--------------------
 
 .. default-domain:: mongodb
 
-To store location data as legacy coordinate pairs, use either an array
-(preferred):
+To store location data as legacy coordinate pairs, use an array or an
+embedded document. When possible, use the array format:
 
 .. code-block:: javascript
 
    loc : [ <longitude> , <latitude> ]
 
-Or an embedded document:
+Consider the embedded document form:
 
 .. code-block:: javascript
 
@@ -62,6 +69,5 @@ Or an embedded document:
 Arrays are preferred as certain languages do not guarantee associative
 map ordering.
 
-Whether as an array or document, if you use longitude and latitude,
-store coordinates in this order: **longitude, latitude**.
-
+For all points, if you use longitude and latitude,
+store coordinates in **longitude, latitude** order.
