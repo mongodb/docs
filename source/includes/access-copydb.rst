@@ -8,8 +8,8 @@ target database. For example:
 
 .. code-block:: javascript
 
-  { resource: { db: "myTargetDB", collection: "" }, actions: [ "insert", "createIndex" ] }
-  { resource: { db: "myTargetDB", collection: "system.js" }, actions: [ "insert" ] }
+   { resource: { db: "myTargetDB", collection: "" }, actions: [ "insert", "createIndex" ] }
+   { resource: { db: "myTargetDB", collection: "system.js" }, actions: [ "insert" ] }
 
 .. target-admin-source
 
