@@ -1,113 +1,99 @@
 stepnum: 1
 ref: start-mongod-exe-without-kerberos-support
-title: Create a Kerberos User Principal
-action:
-   - pre: 'Start :program:`mongod.exe` without Kerberos support:'
-     language: sh
-     code: mongod.exe
-   - pre: |
-        To give a new Kerberos user ``reporting@EXAMPLE.NET`` read-only access
-        to the ``records`` database, use the :method:`db.addUser()` method
-        in the :program:`mongo.exe` shell, as follows:
-     language: javascript
-     code: |
-        use $external
-        db.runCommand({ createUser: "reporting@EXAMPLE.NET",
-           pwd: "<cleartext password>",
-           roles: [
-              { role: "read", db: "records" }
-           ],
-           writeConcern: { <write concern> }
-        })
+title: Start ``mongod.exe`` without Kerberos.
+pre: |
+   For the initial addition of Kerberos users, start :program:`mongod.exe`
+   without Kerberos support.
 post: |
-   The :data:`~admin.system.users.userSource` ``$external`` reference
-   allows :program:`mongod.exe` to consult an external source (i.e. Kerberos)
-   to authenticate this user.
-
-   .. seealso:: :dbcommand:`db.updateuser`,
-      :doc:`/reference/system-users-collection/`, and
-      :doc:`/reference/system-defined-roles`.
+   If a Kerberos user is already in MongoDB and has the
+   :ref:`privileges required to create a user
+   <createUser-required-access>`, you can start
+   :program:`mongod.exe` with Kerberos support.
 ---
 stepnum: 2
-ref: remove-user-privileges
-title: Remove User Privileges
+ref: connect-to-mongod
+title: Connect to ``mongod``.
 pre: |
-  To remove Kerberos privileges from a user, or to remove
-  the user entirely, use the MongoDB :doc:`user management
-  </reference/method/js-user-management>` methods.
-
-  .. seealso:: :doc:`/reference/privilege-documents` and
-     :doc:`/reference/user-privileges`.
+   Connect via the :program:`mongo.exe` shell to the :program:`mongod.exe`
+   instance. If :program:`mongod.exe` has :option:`--auth` enabled, ensure
+   you connect with the :ref:`privileges required to create a user
+   <createUser-required-access>`.
 ---
 stepnum: 3
+ref: add-kerberos-principals-windows
+title: Add Kerberos Principal(s) to MongoDB
+pre: |
+   Add a Kerberos principal, ``<username>@<KERBEROS REALM>``, to
+   MongoDB in the ``$external`` database. Specify the Kerberos realm in
+   all uppercase. The ``$external`` database allows
+   :program:`mongod.exe` to consult an external source (e.g. Kerberos)
+   to authenticate. To specify the user's privileges, assign
+   :doc:`roles </core/authorization>` to the user.
+action:
+   pre: |
+     The following example adds the Kerberos principal
+     ``reportingapp@EXAMPLE.NET`` with read-only access to the
+     ``records`` database:
+   language: javascript
+   code: |
+      use $external
+      db.createUser(
+         {
+           user: "reportingapp@EXAMPLE.NET",
+           roles: [ { role: "read", db: "records" } ]
+         }
+      ) 
+post: |
+   Add additional principals as needed. For every user you want to
+   authenticate using Kerberos, you must create a corresponding user in
+   MongoDB.
+   For more
+   information about creating and managing users, see
+   :doc:`/reference/command/nav-user-management`.
+---
+stepnum: 4
 ref: start-mongod-exe-with-kerberos-support
 title: Start ``mongod.exe`` with Kerberos Support
 pre: |
-   After creating a service principal, the service principal user may start
-   :program:`mongod.exe` with the ``authenticationMechanisms=GSSAPI``
-   setting to initialize Kerberos support:
+   You must start :program:`mongod.exe` as the :ref:`service principal
+   account <assign-service-principal-name>`.
 action:
-  language: sh
-  code: |
-     mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI --keyFile C:\<path>\mongod.keyfile
+  - pre: |
+       To start :program:`mongod.exe` with Kerberos support, set
+       the :program:`mongod.exe` parameter
+       :parameter:`authenticationMechanisms` to ``GSSAPI``:
+    language: sh
+    code: |
+       mongod.exe --setParameter authenticationMechanisms=GSSAPI <additional mongod.exe options>
+  - pre: |
+       For example, the following starts a standalone :program:`mongod.exe`
+       instance with Kerberos support:
+    language: sh
+    code: |
+       mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI
 post: |
-   Or :ref:`use x.509 member authentication
-   <x509-internal-authentication>` instead of authenticating with a keyfile.
-
-   If you encounter problems when trying to start
-   :program:`mongod.exe`, see the :ref:`troubleshooting section
-   <kerberos-troubleshooting>`.
----
-stepnum: 4
-ref: start-mongos-exe-with-kerberos-support
-title: Start ``mongos.exe`` with Kerberos Support
-pre: |
-   Once the user obtains appropriate privileges, the user may start
-   :program:`mongos.exe` with the ``authenticationMechanisms=GSSAPI``
-   setting to initialize Kerberos support:
-action:
-  language: sh
-  code: |
-     mongos.exe --auth --setParameter authenticationMechanisms=GSSAPI --keyFile C:\<path>\mongod.keyfile
-post: |
-   Or :ref:`use x.509 member authentication
-   <x509-internal-authentication>` instead of authenticating with a keyfile.
-
-   If you encounter problems when trying to start :program:`mongos.exe`,
-   see the :ref:`troubleshooting section <kerberos-troubleshooting>`.
+   Modify or include additional
+   :program:`mongod.exe` options as required for your configuration.
 ---
 stepnum: 5
-ref: authenticate-mongos-exe-from-command-line
-title: Authenticate a ``mongo.exe`` Shell from the Command Line
-pre: |
-   To authenticate the :program:`mongo.exe` program to the Kerberos principal
-   name ``reporting@EXAMPLE.NET``, use the following command:
-action:
-  language: sh
-  code: |
-     mongo.exe --authenticationMechanism=GSSAPI --authenticationDatabase='$external' --username reporting@EXAMPLE.NET
-post: |
-   .. note::
-
-    If you are not joined to the ``EXAMPLE.NET``
-    domain, use ``ksetup`` to map ``EXAMPLE.NET`` Kerberos Key Distribution
-    Center (KDC) before running the command. In this case, Kerberos
-    authentication also requires a password.
----
-stepnum: 6
 ref: authenticate-a-user-within-mongo-shell
-title: Authenticate a User within a Running ``mongo.exe`` Shell
+title: Connect ``mongo.exe`` Shell to ``mongod.exe`` and Authenticate
 pre: |
-   From a running :program:`mongo.exe` shell, use the :method:`db.auth()`
-   method to authenticate against the special ``$external`` database:
+   Connect the :program:`mongo.exe` shell client as the Kerberos
+   principal ``application@EXAMPLE.NET``.
 action:
-  language: javascript
-  code: |
-     use $external
-     db.auth( { mechanism: "GSSAPI", user: "reporting@EXAMPLE.NET" } )
-post: |
-  In the above example, if you are not joined to the ``EXAMPLE.NET``
-  domain, use ``ksetup`` with your Kerberos credentials to map
-  ``EXAMPLE.NET`` Kerberos Key Distribution Center (KDC) before
-  running the :dbcommand:`db.auth`.
+  - pre: You can connect and authenticate from the command line.
+    language: sh
+    code: |
+       mongo.exe --authenticationMechanism=GSSAPI --authenticationDatabase='$external' \
+       --username reportingapp@EXAMPLE.NET
+  - pre: |
+       Or, alternatively, you can first connect :program:`mongo.exe` to the
+       :program:`mongod.exe`, and then from the :program:`mongo.exe` shell, use
+       the :method:`db.auth()` method to authenticate in the
+       ``$external`` database.
+    language: javascript
+    code: |
+       use $external
+       db.auth( { mechanism: "GSSAPI", user: "reportingapp@EXAMPLE.NET" } )
 ...
