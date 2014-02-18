@@ -7,7 +7,7 @@ $push (aggregation)
 .. group:: $push
 
    Returns an array of all the values found in the selected field
-   among the documents in that group. *A value may appear more than
+   among the documents in that group. A value may appear *more than
    once* in the result set if more than one field in the grouped
    documents has that value.
 
@@ -73,7 +73,7 @@ contains an array of all the ``user`` values associated with that age:
 
 Push Documents Into the Returned Array Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
+
 The :group:`$push` operator can return an array of documents.
 
 To group by ``age`` and return all the ``user`` and associated
@@ -132,4 +132,50 @@ the ``score`` value associated with that age:
          }
       ],
       "ok" : 1
+   }
+
+.. _push-with-root:
+
+Push Current Document Into the Returned Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :group:`$push` operator can use the system variable
+:variable:`$$ROOT <ROOT>` to push the current document being processed
+into the array. The resulting documents must not exceed the
+:limit:`BSON Document Size` limit.
+
+To group by ``age`` and return the documents containing that age, use
+the :group:`$push` operator with :variable:`$$ROOT <ROOT>`,
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      {
+        $group:
+           {
+             _id: "$age",
+             users: { $push: "$$ROOT" }
+           }
+      }
+   )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 20, 
+     "users" : [ { "_id" : 3, "user" : "Ty", "age" : 20, "score" : 102 } ]
+   }
+   {
+     "_id" : 35,
+     "users" : [ { "_id" : 2, "user" : "Mel", "age" : 35, "score" : 70 } ]
+   }
+   { 
+     "_id" : 25,
+     "users" :
+        [
+          { "_id" : 1, "user" : "Jan", "age" : 25, "score" : 80 },
+          { "_id" : 4, "user" : "Lee", "age" : 25, "score" : 45 }
+        ]
    }

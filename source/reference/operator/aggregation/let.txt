@@ -9,28 +9,102 @@ Definition
 
 .. expression:: $let
 
-   :expression:`$let` binds variables for use in sub-expressions.
+   Binds :doc:`variables </reference/aggregation-variables>` for use in
+   subexpressions. To access the variable in the subexpressions, use a
+   string with the variable name prefixed with double dollar signs
+   (``$$``).
 
-   :expression:`$let` is available in the :pipeline:`$project`,
-   :pipeline:`$group`, and :pipeline:`$redact` pipeline stages.
+   The :expression:`$let` expression has the following syntax:
 
-Example
--------
+   .. code-block:: none
 
-Consider the following :pipeline:`$project` pipeline stage:
+      {
+        $let:
+           {
+             vars: { <var1>: <value1>, ... },
+             in: { <expression using "$$var1", ...> }
+           }
+      }
 
-.. code-block:: javascript
+   :returns: The value of the subexpression evaluated with the bound
+      variables.
 
-   { $project: { remaining: { $let: {
-                                      vars: { tally: 75, count: 50 },
-                                      in: { $subtract: [ "$$tally", "$$count" ] }
-                                     }
-                             }
-               }
+   See :doc:`/reference/aggregation-variables` for more information on
+   using variables in the aggregation pipeline.
+
+Behavior
+--------
+
+In the ``vars: { <var1>: <value1>, ... }`` assignment block, the order
+of the assignment does not matter, and using ``$$var`` to access a
+variable's value refers to the existing value, if any, of the variable.
+Even if the variable is being reassigned, ``$$var`` would refer to the
+current and not the reassigned value in the assignment block. 
+
+For example, the following :expression:`$let` expression is invalid
+since in the ``vars: { low: 1, high: "$$low" }`` assignment block,
+``"$$low"`` refers to the pre-assignment value of the variable ``low``,
+which is undefined:
+
+.. code-block:: none
+
+   {
+     $let:
+       {
+         vars: { low: 1, high: "$$low" },
+         in: { $gt: [ "$$low", "$$high" ] }
+       }
    }
 
-Would return a document with the following content:
+:expression:`$let` can access variables defined outside its expression
+block, including :ref:`system variables <agg-system-variables>`. If you
+modify the values of externally defined variables in the ``vars``
+block, the new values take effect only in the ``in`` subexpression, and
+the variables retain to their previous values outside the ``in``
+subexpression.
+
+Examples
+--------
+
+.. _let-in-project:
+
+Project Values Calculated Using Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``sales`` collection has the following documents:
 
 .. code-block:: javascript
 
-   { remaining: 25 }
+   { _id: 1, price: 10, tax: 0.50, applyDiscount: true }
+   { _id: 2, price: 10, tax: 0.25, applyDiscount: false }
+
+The following aggregation uses :expression:`$let` in the the
+:pipeline:`$project` pipeline stage to calculate and return the
+``finalTotal`` for each document:
+
+.. code-block:: none
+
+   db.sales.aggregate( [
+      {
+         $project: {
+            finalTotal: {
+               $let: {
+                  vars: {
+                     total: { $add: [ '$price', '$tax' ] },
+                     discounted: { $cond: { if: '$applyDiscount', then: 0.9, else: 1 } }
+                  },
+                  in: { $multiply: [ "$$total", "$$discounted" ] }
+               }
+            }
+         }
+      }
+   ] )
+
+The aggregation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "finalTotal" : 9.450000000000001 }
+   { "_id" : 2, "finalTotal" : 10.25 }
+
+.. seealso:: :expression:`$map`
