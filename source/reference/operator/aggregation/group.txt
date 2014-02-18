@@ -27,7 +27,7 @@ $group (aggregation)
 
    .. code-block:: javascript
 
-      { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } }
+      { $group: { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } } }
 
    Every :pipeline:`$group` expression **must** specify an ``_id``
    field. In addition to the ``_id`` field, :pipeline:`$group`
@@ -51,6 +51,18 @@ $group (aggregation)
    Use :pipeline:`$project` as needed to rename the grouped field
    after a :pipeline:`$group` operation.
 
+Variables
+---------
+
+.. versionchanged:: 2.5.3
+
+You can use variables in expressions for the :pipeline:`$group` phase.
+See :expression:`$let` and :expression:`$map`.
+
+The system variables :variable:`$$CURRENT <CURRENT>` and
+:variable:`$$ROOT <ROOT>` are also available directly. See
+:ref:`group-stage-pivot-using-ROOT` for an example.
+
 .. _group-memory-limit:
 
 ``$group`` Operator and Memory
@@ -59,9 +71,9 @@ $group (aggregation)
 The :pipeline:`$group` stage has a limit of 100 megabytes of RAM. By
 default, if the stage exceeds this limit, :pipeline:`$group` will
 produce an error. However, to allow for the handling of large datasets,
-set the ``allowDiskUsage`` option to ``true`` to enable
+set the ``allowDiskUse`` option to ``true`` to enable
 :pipeline:`$group` operations to write to temporary files. See the
-``allowDiskUsage`` option in :method:`db.collection.aggregate()` method
+``allowDiskUse`` option in :method:`db.collection.aggregate()` method
 and the :dbcommand:`aggregate` command for details.
 
 .. versionchanged:: 2.5.3
@@ -106,14 +118,19 @@ A collection ``books`` contains the following documents:
    { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }
    { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
 
+Group ``title`` by ``author``
+`````````````````````````````
+
 The following aggregation operation pivots the data in the ``books``
 collection to have titles grouped by authors.
 
 .. code-block:: javascript
 
-   db.books.aggregate( [
-                         { $group : { _id : "$author", books: { $push: "$title" } } }
-                     ] )
+   db.books.aggregate(
+      [
+        { $group : { _id : "$author", books: { $push: "$title" } } }
+      ]
+   )
 
 The operation returns the following documents:
 
@@ -121,3 +138,45 @@ The operation returns the following documents:
 
    { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
    { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+
+.. _group-stage-pivot-using-ROOT:
+
+Group Documents by ``author``
+`````````````````````````````
+
+The following aggregation operation uses the :variable:`$$ROOT <ROOT>`
+system variable to group the documents by authors. The resulting
+documents must not exceed the :limit:`BSON Document Size` limit.
+
+.. code-block:: javascript
+
+   db.books.aggregate(
+      [
+        { $group : { _id : "$author", books: { $push: "$$ROOT" } } }
+      ]
+   )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     "_id" : "Homer", 
+     "books" :
+        [
+          { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
+          { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+        ]
+   }
+
+   {
+     "_id" : "Dante", 
+     "books" :
+        [
+          { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+          { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+          { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+        ]
+   }
+
+.. seealso:: :ref:`push-with-root`
