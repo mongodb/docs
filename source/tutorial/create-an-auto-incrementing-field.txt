@@ -19,20 +19,26 @@ following:
 
 - :ref:`auto-increment-optimistic-loop`
 
-.. warning::
+Considerations
+--------------
 
-   Generally in MongoDB, you would not use an auto-increment pattern
-   for the ``_id`` field, or any field, because it does not scale for
-   databases with large numbers of documents. Typically the default
-   value :term:`ObjectId <objectid>` is more ideal for the ``_id``.
+Generally in MongoDB, you would not use an auto-increment pattern
+for the ``_id`` field, or any field, because it does not scale for
+databases with large numbers of documents. Typically the default
+value :term:`ObjectId <objectid>` is more ideal for the ``_id``.
 
+Procedures
+----------
 
 .. _auto-increment-counters-collection:
 
-A Counters Collection
-~~~~~~~~~~~~~~~~~~~~~
+Use Counters Collection
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Use a separate ``counters`` collection to track the *last* number sequence
+Counter Collection Implementation
+`````````````````````````````````
+U
+se a separate ``counters`` collection to track the *last* number sequence
 used. The ``_id`` field contains the sequence name and the ``seq`` field
 contains the last value of the sequence.
 
@@ -47,7 +53,7 @@ contains the last value of the sequence.
          }
       )
 
-#. Create a ``getNextSequence`` function that accepts a ``name`` of
+2. Create a ``getNextSequence`` function that accepts a ``name`` of
    the sequence. The function uses the
    :method:`~db.collection.findAndModify()` method to atomically
    increment the ``seq`` value and return this new value:
@@ -66,7 +72,7 @@ contains the last value of the sequence.
          return ret.seq;
       }
 
-#. Use this ``getNextSequence()`` function during
+3. Use this ``getNextSequence()`` function during
    :method:`~db.collection.insert()`.
 
    .. code-block:: javascript
@@ -104,53 +110,54 @@ contains the last value of the sequence.
         name : "Bob D."
       }
 
-.. note::
+``findAndModify`` Behavior
+``````````````````````````
 
-   When :method:`~db.collection.findAndModify()` includes the ``upsert:
-   true`` option **and** the query field(s) is not uniquely indexed, the
-   method could insert a document multiple times in certain
-   circumstances. For instance, if multiple clients each invoke the
-   method with the same query condition and these methods complete the
-   find phase before any of methods perform the modify phase, these
-   methods could insert the same document.
+When :method:`~db.collection.findAndModify()` includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+method could insert a document multiple times in certain
+circumstances. For instance, if multiple clients each invoke the
+method with the same query condition and these methods complete the
+find phase before any of methods perform the modify phase, these
+methods could insert the same document.
 
-   In the ``counters`` collection example, the query field is the
-   ``_id`` field, which always has a unique index. Consider that the
-   :method:`~db.collection.findAndModify()` includes the ``upsert:
-   true`` option, as in the following modified example:
+In the ``counters`` collection example, the query field is the
+``_id`` field, which always has a unique index. Consider that the
+:method:`~db.collection.findAndModify()` includes the ``upsert:
+true`` option, as in the following modified example:
 
-   .. code-block:: javascript
-      :emphasize-lines: 7
+.. code-block:: javascript
+   :emphasize-lines: 7
 
-      function getNextSequence(name) {
-         var ret = db.counters.findAndModify(
-                {
-                  query: { _id: name },
-                  update: { $inc: { seq: 1 } },
-                  new: true,
-                  upsert: true
-                }
-         );
+   function getNextSequence(name) {
+      var ret = db.counters.findAndModify(
+             {
+               query: { _id: name },
+               update: { $inc: { seq: 1 } },
+               new: true,
+               upsert: true
+             }
+      );
 
-         return ret.seq;
-      }
+      return ret.seq;
+   }
 
-   If multiple clients were to invoke the ``getNextSequence()`` method
-   with the same ``name`` parameter, then the methods would observe one
-   of the following behaviors:
+If multiple clients were to invoke the ``getNextSequence()`` method
+with the same ``name`` parameter, then the methods would observe one
+of the following behaviors:
 
-   - Exactly one :method:`~db.collection.findAndModify()` would
-     successfully insert a new document.
+- Exactly one :method:`~db.collection.findAndModify()` would
+  successfully insert a new document.
 
-   - Zero or more :method:`~db.collection.findAndModify()` methods
-     would update the newly inserted document.
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would update the newly inserted document.
 
-   - Zero or more :method:`~db.collection.findAndModify()` methods
-     would fail when they attempted to insert a duplicate.
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would fail when they attempted to insert a duplicate.
 
-   If the method fails due to a unique index constraint violation,
-   retry the method. Absent a delete of the document, the retry
-   should not fail.
+If the method fails due to a unique index constraint violation,
+retry the method. Absent a delete of the document, the retry
+should not fail.
 
 .. _auto-increment-optimistic-loop:
 
