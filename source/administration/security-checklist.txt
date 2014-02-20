@@ -4,70 +4,101 @@ Security Checklist
 
 .. default-domain:: mongodb
 
-Security is a process of reducing risk exposure and protect access to
-resources. MongoDB provides a collection of tools that allow
-administrators to actively reduce risk and protect a MongoDB
-deployment. This document outlines, from a high level
+This section provides a list of security measures you should take to
+protect your MongoDB installation.
 
 Require Authentication
 ----------------------
 
-If you set :setting:`auth` to ``true``, MongoDB will require all
-clients to successfully authenticate before allowing access to the
+Enable MongoDB authentication and specify the authentication mechanism.
+You can use the MongoDB authentication mechanism or an existing external
+framework. Authentication requires that all clients and servers provide
+valid credentials before they can connect to the system. In clustered
+deployments, enable authentication for each MongoDB server.
+
+See :doc:`/core/authentication`, :doc:`/tutorial/enable-authentication`,
+and :doc:`/tutorial/enable-authentication-in-sharded-cluster`.
+
+Configure Role-Based Access Control
+-----------------------------------
+
+Create roles that define the exact access a set of users needs. Follow a
+principle of least privilege. Then create users and assign them only the
+roles they need to perform their operations. A user can be a person or a
+client application.
+
+Create a user administrator first, then create additional users. Create a
+unique MongoDB user for each person and application that accesses the
 system.
 
-See :doc:`/core/authentication` and
-:doc:`/tutorial/enable-authentication` for more information.
-
-Implement a Policy of Least Privilege
--------------------------------------
-
-Ensure that all clients who authenticate to MongoDB have only the
-access needed to perform required operations. MongoDB
-provides a role-based privilege system that allows administrators to
-grant users very granular access to specific operations and
-resources.
-
-See :doc:`/core/authorization` for more information.
-
-Audit System Activity
----------------------
-
-MongoDB Enterprise includes a system auditing facility that can record
-any system event (e.g. user operations, connection events) on a
-MongoDB instance. These audit records permit forensic analysis and
-allow administrators to verify proper controls.
-
-See :doc:`/core/auditing` and :doc:`/tutorial/configure-auditing` for
-more information.
+See :doc:`/core/authorization`, :doc:`/tutorial/define-roles`,
+:doc:`/tutorial/add-user-administrator`, and
+:doc:`/tutorial/add-user-to-database`.
 
 Encrypt Communication
 ---------------------
 
-MongoDB provides SSL connections for all incoming and outgoing
+Configure MongoDB to use SSL for all incoming and outgoing
 connections. Use SSL to encrypt communication between
 :program:`mongod` and :program:`mongos` components of a MongoDB
 client, as well as between all applications and MongoDB.
 
-See :doc:`/tutorial/configure-ssl` for more information.
+See :doc:`/tutorial/configure-ssl`.
 
 Limit Network Exposure
 ----------------------
 
 Ensure that MongoDB runs in a trusted network environment and limit
-the interfaces that MongoDB instances listen for incoming
-connections. Only trusted clients should be able to access the network
+the interfaces on which MongoDB instances listen for incoming
+connections. Allow only trusted clients to access the network
 interfaces and ports on which MongoDB instances are available.
 
-See :setting:`bind_ip`, :doc:`configure-linux-iptables-firewall`, and
-:doc:`configure-windows-netsh-firewall` for more information.
+See the :setting:`bind_ip` and :setting:`maxConns` settings, and see
+:doc:`/tutorial/configure-linux-iptables-firewall` and
+:doc:`/tutorial/configure-windows-netsh-firewall`.
 
-Disable Unused Interfaces
--------------------------
+Audit System Activity
+---------------------
 
-MongoDB provides interfaces that may provide too much access to your
-MongoDB deployment. Unless you need these interfaces, disable them in
-production environments.
+Track access and changes to database configurations and data.
+`MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
+includes a system auditing facility that can record
+system events (e.g. user operations, connection events) on a
+MongoDB instance. These audit records permit forensic analysis and
+allow administrators to verify proper controls.
 
-Set :setting:`nohttpinterface` to ``true`` and do not enable
-:setting:`rest`.
+See :doc:`/core/auditing` and :doc:`/tutorial/configure-auditing`.
+
+Encrypt and Protect Data
+------------------------
+
+Encrypt MongoDB data on each host using file-system, device, or physical
+encryption. Protect MongoDB data using file-system permissions. MongoDB
+data includes data files, configuration files, auditing logs, and key
+files.
+
+Run MongoDB with a Dedicated User
+---------------------------------
+
+Run MongoDB processes with a dedicated operating system user account.
+Ensure that the account has permissions to access data but no unnecessary
+permissions.
+
+See :doc:`/installation` for more information on running MongoDB.
+
+Run MongoDB with Secure Configuration Options
+---------------------------------------------
+
+MongoDB supports the execution of JavaScript code for certain server-side
+operations: :dbcommand:`mapReduce`, :dbcommand:`group`, :dbcommand:`eval`,
+and :query:`$where`. If you do not use these operations, disable
+server-side scripting by setting :setting:`noscripting` to ``true``.
+
+Use only the MongoDB wire protocol on production deployments. Do **not**
+enable the following, all of which enable the web server interface:
+:setting:`httpinterface`, :setting:`jsonp`, and :setting:`rest`. Leave
+these *disabled*, unless required for backwards compatibility.
+
+Keep input validation enabled. MongoDB enables input validation by default
+through the :setting:`objcheck` setting. This ensures valid document
+structures in the :data:`admin.system.users` collection.
