@@ -120,8 +120,47 @@ instructions.
 
 .. seealso:: :ref:`ldap-mixed-mode-incompatibility`
 
+Authentication Options
+----------------------
+
+Clients can authenticate using the :ref:`Challenge Response <>`,
+:ref:`x.509 <>`, :ref:`LDAP Proxy <>` and :ref:`Kerberos <>` methods.
+
+MongoDB can use the :settings:`keyFile` and :ref:`x.509 <>` methods to
+authenticate members of a single MongoDB deployment to each other.
+
 Authentication Behavior
 -----------------------
+
+.. _localhost-exception:
+
+Localhost Exception
+~~~~~~~~~~~~~~~~~~~
+
+The localhost exception allows you to enable authentication before
+creating the first user in the system. When active, the localhost
+exception allows all connections from the localhost interface to have
+full access to that instance. The exception applies only when there
+are no user documents in the ``admin`` database of a MongoDB instance.
+
+If you use the localhost exception when deploying a new MongoDB
+system, the first user created must be an administrator who has
+privileges to create other users, such as a user with the
+:authrole:`userAdmin` or :authrole:`userAdminAnyDatabase` role. See
+:doc:`/tutorial/enable-authentication` and
+:doc:`/tutorial/add-user-administrator` for more information.
+
+In the case of a sharded cluster, the localhost exception applies to the
+cluster as a whole when no user exists in the cluster's ``admin``
+database, which exists on the config servers and clients access via
+:program:`mongos` instances. The localhost exception applies separately on
+each shard according to whether a user exists in the shard's ``admin``
+database.
+
+To prevent unauthorized access to a cluster's shards, you must either
+create an administrator on each shard or disable the localhost exception.
+To disable the localhost exception, use :setting:`setParameter` to set the
+:parameter:`enableLocalhostAuthBypass` parameter to ``0`` during startup.
 
 .. _client-authentication:
 
@@ -131,19 +170,20 @@ Client Authentication
 Each client connection should authenticate as exactly one user. If a
 client authenticates to a database as one user and later authenticates on
 the same database as a different user, the second authentication
-invalidates the first. A client can log into a *different* database as a
-different user and not invalidate the authentication on other databases,
-though this is not a recommended approach.
+invalidates the first. Clients may be authenticated to multiple databases
+at the same time.
 
-See :doc:`/tutorial/authenticate-as-client`
+MongoDB stores all user information, including credentials and
+:doc:`authorization </core/authorization>` information, for a MongoDB
+instance in the :data:`system.users <admin.system.users>` collection
+in the ``admin`` database.
+
+See :doc:`/tutorial/authenticate-as-client` for more information.
 
 .. _inter-process-auth-key-file:
 
 Authentication Between MongoDB Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-All MongoDB Deployments
-```````````````````````
 
 :term:`Replica sets <replica set>` and :term:`sharded clusters <sharded
 cluster>` require authentication between MongoDB instances. The default
@@ -176,22 +216,29 @@ Always ensure that:
 .. _sharding-security:
 
 Authentication on Sharded Clusters
-``````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In a sharded cluster, you can authenticate to the cluster as a whole, to a
 specific database on the cluster, or to a given shard. This section
 describes how to authenticate to each and where the credentials for
 authenticating to each are stored.
 
-To authenticate as an administrator of a **sharded cluster**, authenticate
-to the :program:`mongos` instance. The credentials for authenticating as an
-administrator of a cluster reside on the ``admin`` databases of the
-:ref:`config servers <sharding-config-server>`.
+To authenticate to a sharded cluster, connect and authenticate
+to the :program:`mongos` instance. The credentials all users of a
+sharded cluster reside on the ``admin`` databases of the :ref:`config
+servers <sharding-config-server>`.
 
-To authenticate to a given database in the sharded cluster, authenticate
-to the :program:`mongos` instance. The credentials for authenticating to a
-database on a cluster reside on the :program:`mongod` instance that is the
-:ref:`primary shard <primary-shard>` for that database.
+.. versionchanged:: 2.5.5
+   Previously, the credentials for authenticating to a
+   database on a cluster resided on the :program:`mongod` instance that is the
+   :ref:`primary shard <primary-shard>` for that database.
+
+To perform maintenance operations that require direct connections to
+specific shards in a sharded cluster,
+(e.g. :dbcommand:`cleanupOrphaned`, :dbcommand:`compact`,
+:method:`rs.reconfig()`) you must create *shard local*
+administrative users for each shard. The credentials for these users
+reside in the ``admin`` database of the shard.
 
 For additional information, see
 :doc:`/tutorial/enable-authentication-in-sharded-cluster`.
