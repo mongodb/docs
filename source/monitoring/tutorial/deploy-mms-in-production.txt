@@ -4,32 +4,23 @@ Deploy the Monitoring Agent in Production
 
 .. default-domain:: mongodb
 
-.. start-content
+Overview
+--------
 
 For production deployments of |monitoring|, you will want to daemonize
 the agent process and ensure that it restarts following a system restart.
 Your operating system likely has a preferred method for managing daemon
 processes.
 
-As a temporary measure, the following command will start the agent
-process detached from the current terminal session:
+Prerequisites
+-------------
 
-.. code-block:: sh
+If your datacenter requires that you route outbound
+https connections via a proxy, you  must use a version of Python greater than
+2.6.1.
 
-   nohup python agent.py > /[LOG-DIRECTORY]/agent.log 2>&1 &
-
-Replace "``[LOG-DIRECTORY]`` with the path to your MongoDB logs.
-
-This command allows the agent survive the current terminal session and
-writes all messages to the ``agent.log`` file. You may include this
-command in your MongoDB control script or use your system's
-``/etc/rc.local`` equivalent; however, avoid running the agent as
-root.
-
-.. end-content
-
-Configure Networking Rules
---------------------------
+Considerations
+--------------
 
 You must configure the networking rules of your deployment so that:
 
@@ -46,22 +37,30 @@ You must configure the networking rules of your deployment so that:
    - the Monitoring agent can connect to |monitoring| server on port 443
      (i.e. ``https``.)
 
-The |monitoring| server does not make *any* [#exception]_ outbound
-connections to the agents or to MongoDB instances.
+The |monitoring| server does not make *any* outbound connections to the agents
+or to MongoDB instances. If :ref:`Exposed DB Host Check is enabled,
+<exposed-db-host-check>` the |monitoring| server will attempt to connect to
+your servers occasionally as part of a vulnerability check.
 
-.. important:: Ensure that all :program:`mongod` and :program:`mongos`
-   are not accessible to hosts outside your deployment.
+Ensure all :program:`mongod` and :program:`mongos` instances are not
+accessible to hosts outside your deployment.
 
-.. [#exception] If :ref:`Exposed DB Host Check is enabled,
-   <exposed-db-host-check>` the |monitoring| server will attempt to
-   connect to your servers occasionally as part of a vulnerability
-   check.
+Procedure
+---------
 
-Control Scripts
----------------
+.. include:: /includes/steps/monitoring-deploy-production.rst
 
-If you need to create an initialization script to control the
-daemonized process, consider the following resources:
+Next Steps
+----------
+
+Once the agent is running and configured to your satisfaction, see
+:doc:`/monitoring/configuring`. Also see :doc:`/monitoring/usage`
+for more information about the |monitoring| interface.
+
+Additional Information
+----------------------
+
+The following resources provide documentation for creating control scripts:
 
 - `Ubuntu Boot Up How To <https://help.ubuntu.com/community/UbuntuBootupHowto>`_
 
@@ -69,82 +68,10 @@ daemonized process, consider the following resources:
 
 - `Arch Linux rc.d Scripts <https://wiki.archlinux.org/index.php/Writing_rc.d_scripts>`_
 
-- Debian and Ubuntu Systems have an example control script located at
-  ``/etc/init.d/skeleton`` that you can use as a template.
+Debian and Ubuntu Systems have an example control script located at
+``/etc/init.d/skeleton`` that you can use as a template. 
 
-- Red Hat Enterprise Linux and related distributions (e.g. Fedora,
-  CentOS, etc.) provide example control scripts in the
-  ``/usr/share/doc/initscripts-*/sysvinitfiles/`` directory.
+Red Hat Enterprise Linux and related distributions (e.g. Fedora,
+CentOS, etc.) provide example control scripts in
+the``/usr/share/doc/initscripts-*/sysvinitfiles/`` directory. 
 
-You may also examine the scripts in your system's ``/etc/init.d/`` or
-``/etc/rc.d/`` directory. Ensure that the agent does not run with root
-privileges.
-
-Use the ``update-rc.d`` utility on Debian and Ubuntu and the
-``chkconfig`` tool on Red Hat related systems to add these scripts to
-the initialization process. Be sure to test the control script
-configuration. It is essential that you be able to start, stop, and
-restart the agent following a system reboot.
-
-.. _automated-agent-installation:
-
-Automate Agent Deployments
---------------------------
-
-The agent you downloaded from the |mms| site is automatically
-configured with the credentials for your account. You can download a
-configured copy of the Monitoring agent by from the
-:guilabel:`Monitoring Agent` section of the :guilabel:`Settings` page
-by selecting :guilabel:`Download Monitoring Agent (zip)` or
-:guilabel:`Download Monitoring Agent (tar.gz)`. The URL for the
-configured agent will resemble the following:
-
-.. code-block:: none
-
-   https://mms.mongodb.com/settings/mmsAgent/<hash>/mms-monitoring-agent-<group-name>.zip
-
-Alternately, you may automate Monitoring agent deployments using an
-unconfigured agent and the API from the :guilabel:`API Settings` section of the
-:guilabel:`Settings` page. The unconfigured agent is available at the following
-URLs:
-
-.. code-block:: none
-
-   https://mms.mongodb.com/settings/mms-monitoring-agent.zip
-   https://mms.mongodb.com/settings/mms-monitoring-agent.tar.gz
-
-Extract this archive and edit the ``settings.py`` file, replacing the
-strings "``@API_KEY@``" with the "API" defined for your account.
-
-You may embed this process in your existing deployment scripts to
-automatically install or redeploy new agents.
-
-.. _troubleshooting-proxies:
-
-Working with Proxies
---------------------
-
-If your datacenter requires that you route outbound
-https connections via a proxy, you  must use a version of Python greater than
-2.6.1
-
-Additionally, you will need to export the "``https_proxy``"
-environment variable (or "``HTTPS_PROXY``" on Windows). To do so, issue the
-following command before running the Monitoring agent:
-
-.. code-block:: sh
-
-   export https_proxy='http://proxyserver.example.net:port"
-
-Replace "``http://proxyserver.example.net``" with the name or IP
-address of the proxy server and "``port`` with the TCP port that the
-proxy service runs on. You may choose to export this variable inside
-of your control script.
-
-Next Steps
-----------
-
-Once the agent is running and configured to your satisfaction, see
-:doc:`/monitoring/configuring` for documentation on configuring
-|monitoring| for your deployment. Also see :doc:`/monitoring/usage`
-for more information about the |monitoring| interface.

@@ -1,7 +1,7 @@
 Before you install the PyMongo C extensions, these software packages must be
 available or installed on the target system:
 
-- Python 2.6+ (recommended)
+- Python 2.6+
 - ``gcc`` or similar to install a C compiler
 - ``python-dev`` or ``python-devel`` to install Python C extensions
 - ``pip`` to install and uninstall PyMongo

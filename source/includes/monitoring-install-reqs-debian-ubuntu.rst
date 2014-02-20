@@ -1,7 +1,7 @@
 Before you install the monitoring agent, these software packages must be
 available or installed on the target system:
 
-- Python 2.6+ (recommended)
+- Python 2.6+
 - ``setuptools`` to install Python packages
 - ``python-dev`` to install Python C extensions
 - ``pip`` to install and uninstall PyMongo
