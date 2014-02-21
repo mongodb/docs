@@ -7,14 +7,18 @@ Enforce Unique Keys for Sharded Collections
 Overview
 --------
 
-The :method:`unique <db.collection.ensureIndex()>` constraint on indexes ensures
-that only one document can have a value for a field in a
-:term:`collection`. For :ref:`sharded collections these unique indexes
+The :method:`unique <db.collection.ensureIndex()>` constraint on
+indexes ensures that only one document can have a value for a field in
+a :term:`collection`. For :ref:`sharded collections these unique indexes
 cannot enforce uniqueness <limit-sharding-unique-indexes>` because
-insert and indexing operations are local to each shard. [#limitation]_
+insert and indexing operations are local to each shard. 
+
+MongoDB does not support creating unique new indexes in sharded clusters
+and will not allow you to shard collections with unique indexes on
+fields other than the ``_id`` field. 
 
 If you need to ensure that a field is always unique in all
-collections in a sharded environment, there are two options:
+collections in a sharded environment, there are three options:
 
 #. Enforce uniqueness of the :ref:`shard key <sharding-shard-key>`.
 
@@ -34,27 +38,25 @@ collections in a sharded environment, there are two options:
    collection, MongoDB will produce an error if you attempt to use a
    duplicate key.
 
-   .. note::
+   If you have a small data set, you may not need to shard this
+   collection and you can create multiple unique indexes. Otherwise
+   you can shard on a single unique key.
 
-      If you have a small data set, you may not need to shard this
-      collection and you can create multiple unique indexes. Otherwise
-      you can shard on a single unique key.
+#. Use guaranteed unique identifiers. 
+   
+   Universally unique identifiers (i.e. UUID) like the ``ObjectId`` are
+   guaranteed to be unique.
 
-Always use the default :ref:`acknowledged <write-concern-acknowledged>`
-:ref:`write concern <write-concern>` in conjunction with a
-:doc:`recent MongoDB driver </release-notes/drivers-write-concern>`.
-
-.. [#limitation] If you specify a unique index on a sharded
-   collection, MongoDB will be able to enforce uniqueness only among
-   the documents located on a single shard *at the time of creation*.
+Procedures
+----------
 
 Unique Constraints on the Shard Key
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _sharding-pattern-unique-procedure-shard-key:
 
 Process
-~~~~~~~
+```````
 
 To shard a collection using the ``unique`` constraint, specify the
 :dbcommand:`shardCollection` command in the following form:
@@ -73,15 +75,8 @@ use this as the shard key. To use the
 
    db.runCommand( { shardCollection : "test.users" } )
 
-.. warning::
-
-   In any sharded collection where you are *not* sharding by the
-   ``_id`` field, you must ensure uniqueness of the ``_id``
-   field. The best way to ensure ``_id`` is always unique is to use
-   ``ObjectId``, or another universally unique identifier (UUID.)
-
 Limitations
-~~~~~~~~~~~
+```````````
 
 - You can only enforce uniqueness on one single field in the collection
   using this method.
@@ -95,12 +90,11 @@ that permit :ref:`write scaling <sharding-shard-key-write-scaling>`
 and :ref:`query isolation <sharding-shard-key-query-isolation>`, as
 well as :ref:`high cardinality <sharding-shard-key-cardinality>`.
 These ideal shard keys are not often the same keys that require
-uniqueness and requires a different approach.
-
-.. In the last sentence above, is it compound keys that require a different approach? -bg
+uniqueness and enforcing unique values in these collections requires a
+different approach.
 
 Unique Constraints on Arbitrary Fields
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you cannot use a unique field as the shard key or if you need to
 enforce uniqueness over multiple fields, you must create another
@@ -114,7 +108,7 @@ otherwise, you can simply create multiple unique indexes on the
 collection.
 
 Process
-~~~~~~~
+```````
 
 Consider the following for the "proxy collection:"
 
@@ -180,7 +174,7 @@ collection.
    and :dbcommand:`shardCollection`.
 
 Considerations
-~~~~~~~~~~~~~~
+``````````````
 
 - Your application must catch errors when inserting documents into the
   "proxy" collection and must enforce consistency between the two
@@ -194,3 +188,15 @@ Considerations
   for which to enforce uniqueness. If you create multiple unique
   indexes on a single proxy collection, you will *not* be able to
   shard proxy collections.
+
+Use Guaranteed Unique Identifier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The best way to ensure a field has unique values is to generate
+universally unique identifiers (UUID,) such as MongoDB's '``ObjectId``
+values.
+
+This approach is particularly useful for the``_id`` field, which
+*must* be unique: for collections where you are *not* sharding by the
+``_id`` field the application is responsible for ensuring that the
+``_id`` field is unique.
