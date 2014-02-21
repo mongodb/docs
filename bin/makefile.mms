@@ -26,7 +26,8 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%\/monitoring/tutorial/install-monitoring-server%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%hosted%' $(hosted-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYJETTYHTTPS%\/monitoring/tutorial/configure-jetty-https%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
-	@sed $(SED_ARGS_FILE) 's%HOSTEDINCLUDE%:: %' $(hosted-source-dir)/monitoring/tutorial.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::%%' $(hosted-source-dir)/monitoring/tutorial.txt
+	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%%' $(saas-source-dir)/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%%' $(saas-source-dir)/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-hosted.rst%' $(hosted-source-dir)/index.txt
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table/mms-auth-roles-saas.rst%%' $(hosted-source-dir)/management/permissions.txt
@@ -51,6 +52,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt
 	@sed $(SED_ARGS_FILE) 's%THINGTHING%the |monitoring| Agent%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYJETTYHTTPS%%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
