@@ -1,0 +1,550 @@
+===============================
+Changes Affecting Compatibility
+===============================
+
+.. default-domain:: mongodb
+
+.. important:: The MongoDB 2.6.0-rc series, which will become MongoDB
+   2.6, is for testing and development **only**. All identifiers,
+   names, interfaces are subject to change. Do **not** use a MongoDB
+   2.6.0-rc release in production situations.
+
+The following 2.6 changes can affect the compatibility with older
+versions of MongoDB. See :doc:`/release-notes/2.6` for the full list of
+the 2.6 changes.
+
+Index Changes Affecting Compatibility
+-------------------------------------
+
+.. _2.6-index-key-length-incompatibility:
+
+Stricter Enforcement of Index Key Length Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 implements a stronger enforcement of the limit on
+   :limit:`index key length <Index Key>`.
+
+   Creating indexes will error if an index key in an existing document
+   exceeds the limit:
+
+   - :method:`db.collection.ensureIndex()`,
+     :method:`db.collection.reIndex()`, :dbcommand:`compact`, and
+     :dbcommand:`repairDatabase` will error and not create the index.
+     Previous versions of MongoDB would create the index but not index
+     such documents.
+
+   - Because :method:`db.collection.reIndex()`, :dbcommand:`compact`,
+     and :dbcommand:`repairDatabase` drop *all* the indexes from a
+     collection and then recreate them sequentially, the error from the
+     index key limit prevents these operations from rebuilding any
+     remaining indexes for the collection and, in the case of the
+     :dbcommand:`repairDatabase` command, from continuing with the
+     remainder of the process.
+
+   Inserts will error:
+
+   - :method:`db.collection.insert()` and other operations that perform
+     inserts (e.g. :method:`db.collection.save()` and
+     :method:`db.collection.update()` with ``upsert`` that result in
+     inserts) will fail to insert if the new document has an indexed
+     field value that exceeds the limit. Previous versions of MongoDB
+     would insert but not index such documents.
+
+   - :program:`mongorestore`, and :program:`mongoimport`) will fail to
+     insert if the new document has an indexed field value that exceeds
+     the limit.
+
+   Updates will error:
+
+   - :method:`db.collection.update()` and
+     :method:`db.collection.save()` operations on an indexed field will
+     error if the new value for the field exceeds the limit.
+
+   - If an existing document contains a value for the indexed field
+     that exceeds the limit, updates on other fields that result in the
+     relocation of a document on disk will error.
+
+   Chunk Migration will fail:
+
+   - Migrations will fail for a chunk that has a document with an
+     indexed field that exceeds the index key length limit.
+
+   - If left unfixed, the chunk will repeatedly fail migration,
+     effectively ceasing chunk balancing for that collection. Or, if
+     chunk splits occur in response to the migration failures, this
+     response would lead to unnecessarily large number of chunks and an
+     overly large config databases.
+
+   Secondary members of replica sets will warn:
+
+   - Secondaries will continue to replicate documents with an indexed
+     field value that exceeds the limit on initial sync but will print
+     warnings in the logs.
+
+   - Secondaries allow index build and rebuild operations on a
+     collection that contains an indexed field value that exceeds the
+     limit but with warnings in the logs.
+
+   - With *mixed version* replica sets where the secondaries are
+     version 2.6 and the primary is version 2.4, secondaries will
+     replicate documents inserted or updated on the 2.4 primary, but
+     will print error messages in the log if the documents contain
+     indexed field value that exceeds the limit.
+
+Solution
+   Run :method:`upgradeCheck()` to find current keys that violate this
+   limit and correct as appropriate. Preferably, run the test before
+   upgrading; i.e. connect the 2.6 :program:`mongo` shell to your
+   MongoDB 2.4 database and run the :method:`upgradeCheck`.
+
+``ensureIndex`` Errors When Options Differ
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :method:`db.collection.ensureIndex()` now errors if you try to create
+   an existing index with different options. Previous versions did
+   not create the index but did not error.
+
+Index Creation Fails with Invalid Field Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   In MongoDB 2.6, create and re-index operations fail when the index
+   key refers to an empty field, e.g. ``"a..b" : 1`` or the field name
+   starts with a dollar sign (``$``).
+
+   - :method:`db.collection.ensureIndex()` will not create a new index
+     with an invalid or empty key name.
+
+   - :method:`db.collection.reIndex()`, :dbcommand:`compact`, and
+     :dbcommand:`repairDatabase` will error if an index exists with an
+     invalid or empty key name.
+
+   Previous versions of MongoDB allows the index.
+
+Security Changes Affecting Compatibility
+----------------------------------------
+
+.. _authentication-incompatibility:
+
+Authentication and Authorization Incompatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 :ref:`authorization model <authorization>` changes how
+   MongoDB stores and manages user privilege information. MongoDB
+   versions using older models cannot create/modify users or create
+   user-defined roles.
+
+Solution
+   Upgrade first to MongoDB 2.6 and then upgrade the user privilege
+   model. See :doc:`/release-notes/2.6-upgrade`.
+
+   .. important::
+
+      .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
+
+.. seealso:: :ref:`2.6-relnotes-security`
+
+.. _ssl-hostname-validation:
+
+SSL Certificate Hostname Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   The SSL certificate validation now checks the Common Name (``CN``)
+   and the Subject Alternative Name (``SAN``) fields to ensure that
+   either the ``CN`` or one of the ``SAN`` entries matches the hostname
+   of the server. As a result, if you currently use SSL and *neither*
+   the ``CN`` nor any of the ``SAN`` entries of your current SSL
+   certificates match the hostnames, upgrading to version 2.6 will
+   cause the SSL connections to fail.
+
+Solution
+   To allow for the continued use of these certificates, MongoDB
+   provides the :setting:`sslAllowInvalidCertificates` setting. The
+   setting is available for:
+
+   - :program:`mongod` and :program:`mongos` to bypass the validation
+     of SSL certificates on other servers in the cluster.
+
+   - :program:`mongo` shell, :ref:`MongoDB tools that support SSL
+     <mongodb-tools-support-ssl>`, and the C++ driver to bypass the
+     validation of server certificates.
+
+   When using the :setting:`sslAllowInvalidCertificates` setting, MongoDB
+   logs as a warning the use of the invalid certificates.
+
+   .. warning:: The :setting:`sslAllowInvalidCertificates` setting
+      bypasses the other certificate validation, such as checks for
+      expiration and valid signatures.
+
+Package Configuration Changes
+-----------------------------
+
+.. _2.6-default-bindip-incompatibility:
+
+Default ``bind_ip`` for RPM and DEB Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   In the official MongoDB packages in RPM (Red Hat, CentOS, Fedora
+   Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives),
+   the default :setting:`bind_ip` value attaches MongoDB components to
+   the localhost interface *only*. These packages set this default in
+   the default configuration file (i.e. ``/etc/mongodb.conf``.)
+
+Solution
+   If you use one of these packages and have *not* modified the default
+   ``/etc/mongodb.conf`` file, you will need to set :setting:`bind_ip`
+   before or during the upgrade.
+
+There is no default ``bind_ip`` setting in any other official MongoDB
+packages.
+
+.. _2.6-snmp-iana-mib-incompatibility:
+
+SNMP Enterprise Identifier and MIB Field Name Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - The IANA enterprise identifier for MongoDB changed from
+     37601 to 34601.
+
+   - MongoDB changed the MIB field name ``globalopcounts`` to
+     ``globalOpcounts``.
+
+Solution
+   - Users of SNMP monitoring must modify their SNMP configuration
+     (i.e. MIB) from 37601 to 34601.
+
+   - Update references to ``globalopcounts`` to ``globalOpcounts``.
+
+Replica Set/Sharded Cluster Validation Changes
+----------------------------------------------
+
+.. _2.6-metadata-check-incompatibility:
+
+More Restrictive Checks on Metadata Refresh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   For sharded clusters, MongoDB 2.6 disallows a shard from refreshing
+   the metadata if the shard name has not been explicitly set.
+
+   For mixed sharded cluster deployments that contain both version 2.4
+   and version 2.6 shards, this change can cause errors when migrating
+   chunks **from** version 2.4 shards **to** version 2.6 shards if the
+   shard name is unknown to the version 2.6 shards. MongoDB does not
+   support migrations in mixed sharded cluster deployments.
+
+Solution
+   Upgrade all components of the cluster to 2.6. See
+   :doc:`/release-notes/2.6-upgrade`.
+
+.. _2.6-repl-set-vote-incompatibility:
+
+Replica Set Vote Configuration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB now deprecates giving any :term:`replica set` member more
+   than a single vote. During configuration,
+   :data:`local.system.replset.members[n].votes` should only have a
+   value of 1 for voting members and 0 for non-voting members. MongoDB
+   treats values other than 1 or 0 as a value of 1 and produces a
+   warning message.
+
+Solution
+   Update :data:`local.system.replset.members[n].votes` with values
+   other than 1 or 0 to 1 or 0 as appropriate.
+
+Remove Method Signature Change
+------------------------------
+
+``db.collection.remove()`` Method Require a Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :method:`db.collection.remove()` requires a query document as a
+   parameter. In previous versions, the method invocation without a
+   query document deleted all documents in a collection.
+
+Solution
+   For existing :method:`db.collection.remove()` invocations without a
+   query document, modify the invocations to include an empty document
+   ``:method:`db.collection.remove({})``.
+
+Update Operation Changes Affecting Compatibility
+------------------------------------------------
+
+.. _update-operations-incompatibility:
+
+Update Operations Enforce Field Name Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - Updates cannot use :doc:`update operators (e.g $set)
+     </reference/operator/update>` to target fields with empty field
+     names (i.e. ``""``).
+
+   - Updates no longer support saving field names that contain a dot
+     (``.``) or a field name that starts with a dollar sign (``$``).
+
+Solution
+   - For existing documents that currently have fields with empty names
+     ``""``, replace the whole document. See
+     :method:`db.collection.update()` and
+     :method:`db.collection.save()` for details on replacing an
+     existing document.
+
+   - :update:`Unset <$unset>` or :update:`rename <$rename>` existing
+     fields with names that contain a dot (``.``) or that start with a
+     dollar sign (``$``). Run :method:`upgradeCheck()` to find fields
+     whose names contain a dot or starts with a dollar sign.
+
+See :ref:`rel-notes-write-operations` for all changes to the write
+operations, including updates.
+
+Query and Sort Changes
+----------------------
+
+.. _2.6-sort-value-incompatibility:
+
+Sort Specification Values
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   The :method:`~cursor.sort()` method **only** accepts the following
+   values for the sort keys:
+
+   - ``1`` to specify ascending order for a field,
+
+   - ``-1`` to specify descending order for a field, or
+
+   - :projection:`$meta` expression to specify sort by the text search
+     score.
+
+   Any other value will result in an error.
+
+   Previous versions also accepted either ``true`` or ``false`` for
+   ascending.
+
+Solution
+   Update sort key values that use ``true`` or ``false`` to ``1``.
+
+.. _2.6-not-incompatibility:
+
+Negative Query Behavior Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - Queries with :query:`$not` expressions on an indexed field now match
+     those documents that are missing the indexed
+     field. Previous versions would not return these documents.
+
+   - The :query:`$not` now matches documents whose the field contains a
+     type that differs from that of the specified value, in addition to
+     matching documents that do not match the operator expression or
+     are missing the field.
+
+     Previous versions only matched those documents whose fields did
+     not match the operator expression or are missing the field.
+
+   - MongoDB 2.6 allows chaining of :query:`$not` expressions.
+
+.. _2.6-sparse-index-incompatibility:
+
+Sparse Index Not Used if Incomplete Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   If a :doc:`sparse index </core/index-sparse>` results in an
+   incomplete result set for queries and sort operations, MongoDB will
+   not use that index unless a :method:`~cursor.hint()` explicitly
+   specifies the index.
+
+Solution
+   To override the behavior to use the sparse index and return
+   incomplete results, explicitly specify the index with a
+   :method:`~cursor.hint()`.
+
+See :ref:`sparse-index-incomplete-results` for an example that details
+the new behavior.
+
+.. _2.6-explain-query-plan-incompatibility:
+
+``explain()`` Retains Query Plan Cache for Query Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :method:`~cursor.explain()` no longer clears the :doc:`query plans
+   </core/query-plans>` cached for that :term:`query shape`.
+
+   In previous versions, :method:`~cursor.explain()` would have the
+   side effect of clearing the query plan cache for that query shape.
+
+.. seealso:: :doc:`/reference/method/js-plan-cache`
+
+.. _2.6-where-incompatibility:
+
+``$where`` Must Be Top-Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   :query:`$where` expressions can now only be at top level and cannot be
+   nested within another expression, such as :query:`$elemMatch`.
+
+Solution
+   Update existing queries that nest :query:`$where`.
+
+.. _2.6-2dsphere-version-incompatibility:
+
+``2dsphere`` Index Version 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 introduces a version 2 of the :doc:`2dsphere index
+   </core/2dsphere>`. If a document lacks a ``2dsphere``
+   index field (or the field is ``null`` or an empty array), MongoDB
+   does not add an entry for the document to the ``2dsphere`` index.
+   For inserts, MongoDB inserts the document but does not add to the
+   ``2dsphere`` index.
+
+   Previous version would not insert documents where the ``2dsphere``
+   index field is a ``null`` or an empty array. For documents that lack
+   the ``2dsphere`` index field, previous versions would insert and
+   index the document.
+
+Solution
+   To revert to old behavior, create the ``2dsphere`` index with ``{
+   "2dsphereIndexVersion" : 1 }`` to create a version 1 index. However,
+   version 1 index cannot use the new GeoJSON geometries.
+
+.. seealso:: :ref:`2dsphere-v2`
+
+.. _2.6-geo-maxDistance-incompatibility:
+
+``$maxDistance`` Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - For :query:`$near` queries on GeoJSON data, if the queries specify
+     a :query:`$maxDistance`, :query:`$maxDistance` must be inside of
+     the :query:`$geometry` document.
+
+     In previous version, :query:`$maxDistance` could be inside either
+     the :query:`$near` document or the :query:`$geometry` document.
+
+   - :query:`$maxDistance` must be a positive value.
+
+Solution
+   - Update any existing :query:`$near` queries on GeoJSON data that
+     currently have :query:`$maxDistance` outside the
+     :query:`$geometry` document.
+
+   - Update any existing queries where :query:`$maxDistance` is a
+     negative value.
+
+.. _2.6-uniqueDocs-incompatibility:
+
+Deprecated ``$uniqueDocs``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 deprecates :query:`$uniqueDocs`, and geospatial queries
+   no longer return duplicated results when a document matches the
+   query multiple times.
+
+.. _2.6-geospatial-validation-incompatibility:
+
+Stronger Validation of Geospatial Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB 2.6 enforces a stronger validation of geospatial queries,
+   such as validating the options or GeoJSON specifications, and errors
+   if the geospatial query is invalid. Previous versions
+   allowed/ignored invalid options.
+
+.. _2.6-all-incompatibility:
+
+``$all`` Operator Behavior Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - The :query:`$all` operator is now equivalent to an :query:`$and`
+     operation of the specified values. This change in behavior can
+     allow for more matches than previous versions when passed an array
+     of a single nested array (e.g. ``[ [ "A" ] ]``). When passed an
+     array of a nested array, :query:`$all` can now match documents
+     where the field contains the nested array as an element (e.g.
+     ``field: [ [ "A" ], ... ]``), *or* the field equals the nested
+     array (e.g. ``field: [ "A", "B" ]``). Earlier version could only
+     match documents where the field contains the nested array.
+
+   - The :query:`$all` operator returns no match if the array field
+     contains nested arrays (e.g. ``field: [ "a", ["b"] ]``) and
+     :query:`$all` on the nested field is the element of the nested
+     array (e.g. ``"field.1": { $all: [ "b" ] }``). Previous versions
+     would return a match.
+
+.. _2.6-mod-operator-incompatibility:
+
+``$mod`` Query Operator Enforces Strict Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   The :query:`$mod` operator now only accepts an array with exactly
+   two elements, and errors when passed an array with fewer or more
+   elements. See :ref:`mod-not-enough-elements` and :ref:`mod-too-many-elements`
+   for details.
+
+   In previous versions, if passed an array with one element, the
+   :query:`$mod` operator uses ``0`` as the second element, and if
+   passed an array with more than two elements, the :query:`$mod`
+   ignores all but the first two elements. Previous versions do return
+   an error when passed an empty array.
+
+Solution
+   Ensure that the array passed to :query:`$mod` contains exactly two
+   elements:
+
+   - If the array contains the a single element, add ``0`` as the
+     second element.
+
+   - If the array contains more than two elements, remove the extra
+     elements.
+
+.. _2.6-min-max-key-equality-match-incompatibility:
+
+``MinKey`` and ``MaxKey`` Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   Queries that specify whether a field equals either ``MinKey`` or
+   ``MaxKey`` no longer match documents missing the field.
+
+``null`` Comparison Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   - :query:`$lt` and :query:`$gt` comparisons to null no
+     longer match documents that are missing the field.
+
+   - ``null`` equality conditions on array elements (e.g. ``"a.b":
+     null``) no longer match document missing the nested field ``a.b``
+     (e.g. ``a: [ 2, 3 ]``)
+      
+.. COMMENT will wait to doc the following in case the resolution
+   matches the 2.4 behavior. :query:`$elemMatch` against nested arrays
+   - SERVER-12496
+
+.. seealso::
+
+   - `All Backwards incompatible changes. <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.5.0%22%2C+%222.5.1%22%2C+%222.5.2%22%2C+%222.5.3%22%2C+%222.5.4%22%2C+%222.5.5%22%2C+%222.6.0-rc1%22%2C+%222.6.0-rc2%22%29+AND+%22Backward+Breaking%22+in+%28+Rarely+%2C+sometimes%2C+yes+%29+ORDER+BY+votes+DESC%2C+issuetype+DESC%2C+key+DESC>`_.
+
+   - :doc:`/release-notes/2.6` for the full list of the 2.6 changes.
+
+   - :doc:`/release-notes/2.6-upgrade` for the upgrade process.

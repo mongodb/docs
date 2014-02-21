@@ -1,24 +1,26 @@
 :orphan:
 
-========================================================
-Release Notes for MongoDB 2.6 (Development Series 2.5.x)
-========================================================
+=================================================
+Release Notes for MongoDB 2.6 (Release Candidate)
+=================================================
 
 .. default-domain:: mongodb
 
-MongoDB 2.6 is currently in development, as part of the 2.5
-development release series. While 2.5-series releases are currently
-available, these versions of MongoDB are for **testing only and
-not for production use**.
+.. COMMENT The following 4 paragraphs will go away with the actual
+   release.
+
+MongoDB 2.6 is currently in development. While 2.6-release-candidates
+are currently available, these versions of MongoDB are for **testing
+only and not for production use**.
 
 This document will eventually contain the full release notes for
-MongoDB 2.6; before its release this document covers the 2.5
-development series as a work-in-progress.
-
+MongoDB 2.6; before its release this document covers the 2.6
+release candidate series as a work-in-progress.
+ 
 Downloading
 -----------
 
-You can download the current 2.5 development release on the `downloads
+You can download the current 2.6 release candidate on the `downloads
 page`_ in the :guilabel:`Development Release (Unstable)`
 section. There are no distribution packages for development releases,
 but you can use the binaries provided for testing purposes. See
@@ -29,919 +31,297 @@ process.
 
 .. _`downloads page`: http://www.mongodb.org/downloads
 
-Compatibility Changes
----------------------
-
-.. important:: The MongoDB 2.5-series, which will become MongoDB 2.6,
-   is for testing and development **only**. All identifiers, names,
-   interfaces are subject to change. Do **not** use a MongoDB 2.5
-   release in production situations.
-
-SNMP Enterprise Identifier and MIB Field Name Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. DOCS-1696
-
-In 2.5.1, the IANA enterprise identifier for MongoDB changed from
-37601 to 34601. Users of SNMP monitoring must modify their SNMP
-configuration (i.e. MIB) accordingly.
-
-In 2.5.4, MongoDB changed the MIB field name ``globalopcounts`` to
-``globalOpcounts``.
-
-Default ``bind_ip`` for RPM and DEB Packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the official MongoDB packages in RPM (Red Hat, CentOS,
-Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and
-derivatives), the default :setting:`bind_ip` value attaches MongoDB
-components to the localhost interface *only*. These packages set this
-default in the default configuration file
-(i.e. ``/etc/mongodb.conf``.)
-
-If you use one of these packages and have *not* modified the default
-``/etc/mongodb.conf`` file, you will need to set :setting:`bind_ip`
-before or during the upgrade.
-
-There is no default ``bind_ip`` setting in any other 10gen distributions
-of MongoDB.
-
-``isMaster`` Command includes Wire Protocol Versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.0
-
-In order to support changes to the wire protocol both now and in the
-future, the output of :dbcommand:`isMaster` now contains two new
-fields that report the earliest version of the wire protocol that this
-:program:`mongod` instance supports and the highest version of the
-wire protocol that this :program:`mongo` instance supports. See
-:data:`~isMaster.minWireVersion` and :data:`~isMaster.maxWireVersion`
-for more information.
-
-Replica Set Vote Configuration Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.3
-
-MongoDB now deprecates giving any :term:`replica set` member more than
-a single vote. During configuration,
-:data:`local.system.replset.members[n].votes` should only have a value
-of 1 for voting members and 0 for non-voting members. MongoDB treats
-values other than 1 or 0 as a value of 1 and produces a warning message.
-
-More Restrictive Checks on Metadata Refresh
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.6
-
-For sharded clusters, MongoDB 2.6 disallows a shard from refreshing the
-metadata if the shard name has not been explicitly set.
-
-For mixed sharded cluster deployments that contain both version 2.4 and
-version 2.6 shards, this change can cause errors when migrating chunks
-**from** version 2.4 shards **to** version 2.6 shards if the shard name
-is unknown to the version 2.6 shards. MongoDB does not support
-migrations in mixed sharded cluster deployments. See
-:doc:`/release-notes/2.6-upgrade`.
-
-.. _agg-helper-incompatibility:
-
-Behavior of ``aggregate()`` Method in the ``mongo`` Shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.5.3
-
-.. the text of this message will improve and become more clear before
-   2.6 when we remove mention of 2.5-series releases.
-
-
-The :method:`db.collection.aggregate()` helper now :ref:`returns a
-cursor <rn-2.6-aggregation-cursor>`. As a result, you cannot use the
-:method:`~db.collection.aggregate()` method from a 2.5.3 (or later)
-version of the :program:`mongo` shell while connected to 2.4 (and
-earlier) versions of MongoDB.
-
-To perform aggregation on earlier versions of MongoDB, use either a
-previous version of the :program:`mongo` shell or if using the 2.5.3
-(or later) version of the :program:`mongo` shell, run the
-:dbcommand:`aggregate` command, not the
-:method:`db.collection.aggregate()` helper, without specifying the
-``cursor`` option.
-
-Stricter Enforcement of Index Key Length Limit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. |limit| replace:: :limit:`Maximum Index Key Length <Index Key>`
-
-.. include:: /includes/list-index-field-limit-behaviors.rst
-
-.. _authentication-incompatibility:
-
-Authentication and Authorization Incompatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.5.4 introduces :ref:`enhancements for managing user
-credentials and privileges <release-notes-user-defined-roles>`,
-including a change to the user privilege model. To upgrade from the
-version 2.4 :doc:`user privilege model
-</reference/privilege-documents>` to the :ref:`2.5.4 model
-<release-notes-user-defined-roles>`, you must convert existing users to
-the new user privilege model.
-
-.. important::
-
-   .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
-
-For details on upgrading MongoDB to 2.5.4 as well as then upgrading the
-user privilege model, see :doc:`/release-notes/2.6-upgrade`.
-
-Version 2.5.4 is for testing and development only.
-
-.. _ldap-mixed-mode-incompatibility:
-
-LDAP Authentication And Mixed Sharded Cluster Incompatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.6 introduces :ref:`LDAP Support for Authentication
-<relnotes-ldap-authentication>`. MongoDB does not support LDAP
-authentication in mixed sharded cluster deployments that contain both
-version 2.4 and version 2.6 shards. See
-:doc:`/release-notes/2.6-upgrade` for upgrade instructions.
-
-``$mod`` Query Operator Enforces Strict Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :query:`$mod` operator now only accepts an array with exactly two
-elements, and errors when passed an array with fewer or more elements.
-In previous versions, if passed an array with one element, the
-:query:`$mod` operator uses ``0`` as the second element, and if passed
-an array with more than two elements, the :query:`$mod` ignores all but
-the first two elements. Previous versions do return an error when
-passed an empty array.
-
-See :ref:`mod-not-enough-elements` and :ref:`mod-too-many-elements` for
-details.
-
-.. _update-operations-incompatibility:
-
-Update Operations Enforce Field Name Restrictions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Updates cannot use :doc:`update operators (e.g $set)
-</reference/operator/update>` to target fields with empty field names
-(i.e. ``""``). For existing documents that currently have fields with
-empty names ``""``, replace the whole document. See
-:method:`db.collection.update()` and :method:`db.collection.save()` for
-details on replacing an existing document.
-
-Starting in MongoDB version 2.5.4, update operations no longer supports
-saving field names that contain a dot (``.``) or a field name that
-starts with a dollar sign (``$``). To remove or rename existing fields
-with these attributes, use the :update:`$unset` operator or the
-:update:`$rename` operator.
-
-See :ref:`rel-notes-write-operations` for all changes to the write
-operations, including updates.
-
-``sort()`` Restricts Sort Specification Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :method:`~cursor.sort()` method **only** accepts the following
-values for the sort keys:
-
-- ``1`` to specify ascending order for a field,
-
-- ``-1`` to specify descending order for a field, or
-
-- :projection:`$meta` expression to specify sort by the text search
-  score.
-
-Any other value will result in an error.
-
-Previous versions also accepted either ``true`` or ``false`` for
-ascending.
-
-.. _text-query-mixed-mode-incompatibility:
-
-``$text`` Query and Mixed Sharded Cluster Incompatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.6 introduces a new :ref:`$text query operator
-<rel-notes-text-query-operator>`. MongoDB does not support the use of
-this operator in mixed sharded cluster deployments that contain both
-version 2.4 and version 2.6 shards.
-
-See :doc:`/release-notes/2.6-upgrade` for upgrade instructions.
-
-.. _ssl-hostname-validation:
-
-SSL Certificate Hostname Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.4
-
-The SSL certificate validation now checks the Common Name (``CN``) and
-the Subject Alternative Name (``SAN``) fields to ensure that either the
-``CN`` or one of the ``SAN`` entries matches the hostname of the
-server. As a result, if you currently use SSL and *neither* the ``CN``
-nor any of the ``SAN`` entries of your current SSL certificates match
-the hostnames, upgrading to version 2.5.4 will cause the SSL
-connections to fail.
-
-To allow for the continued use of these certificates, MongoDB provides
-the :setting:`sslAllowInvalidCertificates` setting. The setting is
-available for:
-
-- :program:`mongod` and :program:`mongos` to bypass the validation of
-  SSL certificates on other servers in the cluster.
-
-- :program:`mongo` shell, :ref:`MongoDB tools that support SSL
-  <mongodb-tools-support-ssl>`, and the C++ driver to bypass the
-  validation of server certificates.
-
-When using the :setting:`sslAllowInvalidCertificates` setting, MongoDB
-logs as a warning the use of the invalid certificates.
-
-.. warning:: The :setting:`sslAllowInvalidCertificates` setting
-   bypasses the other certificate validation, such as checks for
-   expiration and valid signatures.
-
-``$all`` Operator Behavior Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :query:`$all` operator is now equivalent to an :query:`$and`
-operation of the specified values. This change in behavior can allow
-for more matches than previous versions when passed an array of a
-single nested array (e.g. ``[ [ "A" ] ]``). When passed an array of a
-nested array, :query:`$all` can now match documents where the field
-contains the nested array as an element (e.g. ``field: [ [ "A" ], ...
-]``), *or* the field equals the nested array (e.g. ``field: [ "A", "B"
-]``). Earlier version could only match documents where the field
-contains the nested array.
-
-See :query:`$all` for details.
-
-Changes
--------
-
-.. important:: The MongoDB 2.5-series, which will become MongoDB 2.6,
-   is for testing and development **only**. All identifiers, names,
-   interfaces are subject to change. Do **not** use a MongoDB 2.5
-   release in production situations.
-
-.. _rel-notes-text-query-operator:
-
-Text Search Changes
-~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.6 enables text search by default, updates the :doc:`text
-index </core/index-text>`, and introduces the :query:`$text` query
-operator to incorporate text search into the query framework and the
-aggregation pipeline. See :doc:`/core/index-text` and :query:`$text`
-query operator for details.
-
-MongoDB 2.6 deprecates the :dbcommand:`text` command.
-
-.. seealso:: :ref:`text-query-mixed-mode-incompatibility`
-
-Aggregation Pipeline Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _aggregation-method-change:
-
-``db.collection.aggregate()`` Accepts Second Parameter
-````````````````````````````````````````````````````````
-
-In the 2.5.3 version of the :program:`mongo` shell, the
-:method:`db.collection.aggregate()` helper can now accept as a second
-parameter a document of options. See
-:method:`db.collection.aggregate()`.
-
-.. seealso:: :ref:`agg-helper-incompatibility`
-
-``$out`` Stage to Write Data to a Collection
-````````````````````````````````````````````
-
-.. versionadded:: 2.5.2
-
-The aggregation pipeline adds a new stage named :pipeline:`$out` that
-writes the result of the pipeline operation to an output collection and
-returns an empty result set. In version 2.5.3 of the :program:`mongo`
-shell, because the :method:`db.collection.aggregate()` method returns a
-cursor, specifying an :pipeline:`$out` stage returns an empty cursor.
-
-See the :doc:`$out documentation </reference/operator/aggregation/out>`
-for more information.
+.. important:: The MongoDB 2.6 release candidate series, which will
+   become MongoDB 2.6, is for testing and development **only**.
+   All identifiers, names, interfaces are subject to change. Do
+   **not** use a MongoDB 2.6 release candidate in production situations.
+
+Major New Features
+------------------
+
+The following changes in MongoDB affect both standard and Enterprise
+editions:
 
 .. _rn-2.6-aggregation-cursor:
 
-Aggregation Operations Now Return Cursors
-`````````````````````````````````````````
+Aggregation Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. There's a few other edits in the content below to make our statements stronger.
+- The :method:`db.collection.aggregate()` now returns a cursor, which
+  enables the aggregation pipeline to return result sets of any size.
+  The method can also accept a second parameter, which allows for
+  specification of option. See :method:`db.collection.aggregate()` for
+  details.
 
-.. DOCS-1835
+- New pipeline stages and new or modified operators:
 
-The :method:`db.collection.aggregate()` helper in the :program:`mongo`
-shell now returns a cursor. By returning a cursor, aggregation
-pipelines can return result sets of any size. In previous versions, the
-result of an aggregation operation could be no larger than 16
-megabytes. See :method:`db.collection.aggregate()`.
+  - :pipeline:`$out` stage to output to a collection
 
-The :dbcommand:`aggregate` command can return a document that contains
-results with which to instantiate a cursor object.  See :dbcommand:`aggregate`.
+  - :pipeline:`$redact` stage to allow additional control to accessing
+    the data
 
-``explain`` Option for the Aggregation Pipeline
-```````````````````````````````````````````````
+  - :doc:`set expression operators
+    </reference/operator/aggregation-set>`
 
-The new ``explain`` option for aggregation provides information about
-how :program:`mongod` processes the pipeline. See
-:method:`db.collection.aggregate()` and :dbcommand:`aggregate` for
-details.
+  - :expression:`$let` and :expression:`$map` operators to allow for
+    the use of variables
 
-Improved Sorting
-````````````````
+  - :expression:`$literal` operator and :expression:`$size` operator
 
-.. versionadded:: 2.5.2
+  - :expression:`$cond` expression can now accept either an object or
+    an array
 
-The :pipeline:`$sort` and :pipeline:`$group` stages now use a more
-efficient sorting system that provides improved performance.
+.. _rel-notes-text-query-operator:
 
-The new ``allowDiskUse`` option enables stages to write data to
-temporary files. See :method:`db.collection.aggregate()` and
-:dbcommand:`aggregate`.
+Text Search Integration
+~~~~~~~~~~~~~~~~~~~~~~~
 
-``$redact`` Stage to Provide Filtering for Field-Level Access Control
-`````````````````````````````````````````````````````````````````````
+- MongoDB 2.6 enables text search by default, provides an updated
+  version of the :doc:`text index </core/index-text>`, and introduces
+  the :query:`$text` query operator to incorporate text search into the
+  query framework and the aggregation pipeline. See
+  :doc:`/core/index-text` and :query:`$text` query operator for details.
+  
+  MongoDB does not support the use of the :query:`$text` query operator
+  in mixed sharded cluster deployments that contain both version 2.4
+  and version 2.6 shards. See :doc:`/release-notes/2.6-upgrade` for
+  upgrade instructions.
 
-.. versionadded:: 2.5.3
-
-The :pipeline:`$redact` stage restricts the content of a returned document
-on a per-field level. See :pipeline:`$redact`.
-
-Set Expression Operations in Aggregation Pipeline Stages
-````````````````````````````````````````````````````````
-
-In 2.5.2, the :pipeline:`$project` and :pipeline:`$redact` aggregation
-pipeline stages now support a collection of :doc:`set expression
-operators </reference/operator/aggregation-set>`.
-
-``$map`` and ``$let`` Expressions in Aggregation Pipeline Stages
-````````````````````````````````````````````````````````````````
-
-.. tip:: For :expression:`$let` and :expression:`$map`, the
-   aggregation framework introduces variables. To specify a variable,
-   use the name of the variable prefixed by **2** dollar signs
-   (i.e. ``$$``) as in: ``$$<name>``.
-
-The :expression:`$let` and :expression:`$map` make it possible to
-declare and manipulate variables within an aggregation pipeline
-stages, specifically the :pipeline:`$project`, :pipeline:`$group`, and
-:pipeline:`$redact` stages. See: :doc:`/reference/operator/aggregation/let` and
-:doc:`/reference/operator/aggregation/map` for more information.
-
-``$literal`` Expression for Aggregation Pipeline Stages
-```````````````````````````````````````````````````````
-
-The new :expression:`$literal` operator allows users to explicitly
-specify documents in aggregation operations that the pipeline stage
-would otherwise interpret directly. See
-:doc:`/reference/operator/aggregation/literal` for more information.
-
-``$cond`` Accepts Objects as Arguments
-``````````````````````````````````````
-
-.. versionadded:: 2.5.3
-
-The ternary :expression:`$cond` expression can now take either an object
-or an array. Previously :expression:`$cond` always took an array. See
-:doc:`/reference/operator/aggregation/cond` for more information.
-
-New ``$size`` Operator for the Aggregation Pipeline
-```````````````````````````````````````````````````
-
-.. versionadded:: 2.5.3
-
-The new :expression:`$size` operator for the :doc:`aggregation
-pipeline </core/aggregation-pipeline>` returns the size of a specified
-array. See :doc:`/reference/operator/aggregation/size` for more
-information.
+- MongoDB 2.6 deprecates the :dbcommand:`text` command.
 
 .. _rel-notes-write-operations:
 
 Write Operation Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-update-field-order.rst
-   :start-after: order-of-document-fields
-   :end-before: .. versionchanged
+- .. include:: /includes/fact-update-field-order.rst
+     :start-after: order-of-document-fields
+     :end-before: .. versionchanged
+
+- :program:`mongo` shell provides new methods to perform bulk write
+  operations. See :method:`Bulk()`.
+
+- New :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
+  commands for write operations. All officially supported MongoDB
+  drivers will support the new write commands before the official 2.6
+  release.
+
+- New or enhanced update operators:
+
+  - :update:`$mul` operator for multiplication.
+
+  - :update:`$bit` operator supports bitwise ``xor`` operation.
+
+  - :update:`$min` and :update:`$max` operators that perform
+    conditional update depending on the relative size of the specified
+    value and the current value of a field.
+
+  - :update:`$currentDate` operator to set the value of a field to the
+    current date.
+
+  - :update:`$push` operator has enhanced support for the
+    :update:`$sort`, :update:`$slice`, and :update:`$each` modifiers
+    and supports a new :update:`$position` modifier.
 
 .. seealso:: :ref:`update-operations-incompatibility`
 
-New Write Commands
-``````````````````
-
-.. versionchanged:: 2.5.5
-
-The :program:`mongo` shell provides methods to perform bulk write
-operations for a collection. See :method:`Bulk()` for documentation
-related to initializing, constructing, and executing bulk write
-operations for a collection.
-
-MongoDB now supports new :dbcommand:`insert`,
-:dbcommand:`update`, and :dbcommand:`delete` commands for all write
-operations. These commands allow you to specify a write concern for an
-entire bulk write operation as well as the continuation behavior in
-the event of a single failed write. See the documentation of these
-commands for more information:
-
-- :dbcommand:`insert`
-- :dbcommand:`update`
-- :dbcommand:`delete`
-
-The :program:`mongo` shell uses these new commands by default for *all*
-write operations when connected to a version 2.5.4 or above MongoDB
-instance. The :program:`mongo` shell will use legacy write operations
-when connected to earlier MongoDB instances.
-
-All officially supported MongoDB drivers will support the new write
-commands before the official 2.6 release. Please see your driver's
-release notes for more information.
-
-New Update Operators
-`````````````````````
-
-.. versionadded 2.5.3
-
-MongoDB also introduces new changes to the update language:
-
-``$mul`` Update Operator
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The new :update:`$mul` operator allows you to multiply the value of a
-field by the specified amount. See :update:`$mul` for details.
-
-``xor`` operation for ``$bit`` Operator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :update:`$bit` operator now supports bitwise updates using a logical
-``xor`` operation. See the documentation of :update:`$bit` for more
-information on bitwise updates. Consider the following operation:
-
-``$min`` Update Operator
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The new :update:`$min` operator updates the value of the field to a
-specified value *if* the specified value is **less than** the current
-value of the field. See :update:`$min` for details.
-
-``$max`` Update Operator
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The new :update:`$max` operator updates the value of the field to a
-specified value *if* the specified value is **greater than** the
-current value of the field. See :update:`$max` for details.
-
-``$currentDate`` Update Operator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :update:`$currentDate` operator sets the value of a field to the
-current date, either as a :ref:`Date <document-bson-type-date>` or a
-:ref:`timestamp <document-bson-type-timestamp>`. See
-:update:`$currentDate` for details.
-
-Enhanced Modifiers for ``$push`` Update Operator
-````````````````````````````````````````````````
-
-.. versionchanged:: 2.5.3
-
-The :update:`$push` operator has enhanced support for the
-:update:`$sort`, :update:`$slice`, and :update:`$each` modifiers
-to increase functionality and usability. MongoDB also provides a new
-:update:`$position` modifier for the :update:`$push` operator.
-
-``$each`` Modifier Changes
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When used in conjunction with the :update:`$sort`, the
-:update:`$slice`, and the :update:`$position` modifiers, the
-:update:`$each` modifier no longer needs to be the first modifier for
-the :update:`$push`.
-
-``$sort`` Modifier Enhancements
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :update:`$sort` modifier can sort the array elements as a whole.
-This change means that the :update:`$sort` modifier can now sort
-array elements that are not documents. Or, if the array elements are
-documents, the modifier can sort by the whole documents, and not just
-by the field in the documents. The :update:`$sort` no longer requires
-the :update:`$slice` modifier. See :update:`$sort` for details.
-
-``$slice`` Modifier Enhancements
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :update:`$slice` modifier can accept positive numbers to slice
-from the front of the array. See :update:`$slice` for details.
-
-``$position`` Modifier
-^^^^^^^^^^^^^^^^^^^^^^
-
-The :update:`$position` modifier specifies the insert position for
-the :update:`$push` operator. See :update:`$position`.
-
-Sharding Improvements
-~~~~~~~~~~~~~~~~~~~~~
-
-Support for Removing Orphan Data From Shards
-````````````````````````````````````````````
-
-.. versionadded:: 2.5.2
-
-The new :dbcommand:`cleanupOrphaned` command helps support sharded
-cluster maintenance, by providing a mechanism to removed orphaned data
-from a shard. Orphaned data are those documents in a collection that
-exist on shards that belong to another shard in the cluster. Orphaned
-data are the result of failed migrations or incomplete migration
-cleanup due to abnormal shutdown.
-
-Ability to Merge Co-located Contiguous Chunks
-`````````````````````````````````````````````
-
-.. versionadded:: 2.5.2
-
-The :dbcommand:`mergeChunks` provides the ability for users to combine
-contiguous chunks located on a single shard. This makes it possible to
-combine chunks in situations where document removal leaves a sharded
-collection with too many empty chunks.
-
-See :doc:`/reference/command/mergeChunks` for more information and
-:doc:`/tutorial/merge-chunks-in-sharded-cluster` for full
-documentation of this operation.
-
-Security Improvements
-~~~~~~~~~~~~~~~~~~~~~
-
-.. _release-notes-collection-level-access-control:
-
-Collection-Level Access Control
-```````````````````````````````
-
-MongoDB 2.5.3 provides the ability to specify user privileges at a
-collection-level granularity. See :ref:`user-defined-roles` for more
-information.
-
-.. _release-notes-user-defined-roles:
-
-User Defined Roles
-``````````````````
-
-.. important:: For authentication/authorization, to upgrade from
-   version 2.4 model for user credentials and privileges to the 2.5.4
-   model, see :ref:`authentication-incompatibility`.
-
-MongoDB provides the ability to create custom user roles in addition to
-the roles provided by MongoDB. In addition, MongoDB now provides global
-user management, storing all user and user-defined role data in the
-admin database and providing a new set of commands for managing users
-and roles.
-
-For more information on the new authorization model and user-defined
-roles, see :ref:`authorization`.
-
-SSL Improvements
-````````````````
-
-.. seealso:: :ref:`ssl-hostname-validation`
-
-Optionally Prompt for SSL Certificate Passphrases at Server Startup
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In MongoDB 2.5.4, a :program:`mongod` or :program:`mongos` can now
-interactively prompt the user at startup to enter the passphrase for
-an encrypted SSL private key. This provides an alternative to
-providing a cleartext passphrase on the command line or in a
-configuration file. See :ref:`ssl-certificate-password`.
-
-Tools Now Support SSL
-^^^^^^^^^^^^^^^^^^^^^
-
-.. versionadded:: 2.5.3
-
-MongoDB utility programs provide support for connecting to
-:program:`mongod` and :program:`mongos` instances using SSL connection.
-See :ref:`mongodb-tools-support-ssl` for more information.
-
-MongoDB Allows Only Strong SSL Ciphers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. DOCS-1921
-
-MongoDB's SSL encryption only allows use of strong SSL ciphers, with a minimum
-of 128-bit key length for all connections.
-
-The strong-cipher requirement prevents an old or malicious client from forcing
-use of a weak cipher.
-
-Support for SSL and non-SSL Connections on the Same Port
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To permit upgrades of MongoDB clusters to use SSL encrypted connections, the
-MongoDB server supports listening for both SSL encrypted and unencrypted
-connections on the same TCP port. See :doc:`/tutorial/upgrade-cluster-to-ssl`.
-
-.. _rn26-x509-authentication:
-
-x.509 Authentication
-^^^^^^^^^^^^^^^^^^^^
-
-MongoDB introduces :doc:`x.509 certificate authentication
-</tutorial/configure-x509>` for use with a secure :doc:`SSL connection
-</tutorial/configure-ssl>` for client authentication as well as for
-internal authentication of sharded and/or replica set cluster members.
-
-See :ref:`x509-client-authentication` and
-:ref:`x509-internal-authentication`.
-
-Disable HTTP Interface By Default
-`````````````````````````````````
-
-MongoDB disables the http interface by default, limiting :doc:`network
-exposure </core/security-network>`. To enable the interface, see
-:setting:`httpinterface`.
-
-Index Improvements
-~~~~~~~~~~~~~~~~~~
-
-Index Intersection
-``````````````````
-
-MongoDB can now use the intersection of indexes to fulfill queries. See
-:doc:`/core/index-intersection` for details.
-
-Background Index Builds Replicate to Secondaries
-````````````````````````````````````````````````
-
-Starting in MongoDB 2.5.0, if you initiate a :ref:`background index
-build <index-creation-background>` on a :term:`primary`, the
-secondaries will replicate the index build in the background.
-In previous versions of MongoDB, secondaries built all indexes in the
-foreground, even if the primary built an index in the background.
-
-For all index builds, secondaries will not begin building indexes
-until the primary has successfully completed the index build.
-
-``mongod`` Automatically Continues In-Progress Index Builds Following Restart
-`````````````````````````````````````````````````````````````````````````````
-
-If your :program:`mongod` instance was building an index when it
-shut down or terminated, :program:`mongod` will now restart building
-the index when the :program:`mongod` restarts. Previously, foreground index
-builds *had* to finish building before :program:`mongod` shutdown cleanly, and
-background index builds were simply aborted.
-
-To disable this behavior, the 2.5 series adds a new runtime option,
-:setting:`noIndexBuildRetry` (or ``--noIndexBuildRetry`` on the
-command line), for :program:`mongod`. :setting:`noIndexBuildRetry`
-prevents :program:`mongod` from continuing rebuilding indexes that did
-not finish building before the :program:`mongod` last shut down.
-
-Index Filters
-`````````````
-
-MongoDB introduces :ref:`index-filters` which limit which indexes can
-become the winning plan for a query. See :ref:`index-filters` for
-details.
-
-Query Plan Cache Interfaces
-```````````````````````````
-
-MongoDB introduces :doc:`/reference/method/js-plan-cache` to view and
-modify the :doc:`query plans </core/query-plans>` cached by the
-query optimizer.
-
-Tool Improvements
-~~~~~~~~~~~~~~~~~
-
-Global ``mongorc.js`` File
-``````````````````````````
-
-If the file :file:`mongorc.js` exists in the :file:`/etc` directory (or
-:file:`%ProgramData%\\MongoDB` directory on Windows), the
-:program:`mongo` shell evaluates the contents of this file on start-up.
-Then, the :program:`mongo` shell evaluates the user's
-:file:`.mongorc.js` file if the file exists in the user's :envvar:`HOME
-directory`.
-
-The :option:`--norc` option for :program:`mongo` suppresses only the
-user's :file:`.mongorc.js` file.
-
-.. important::
-   The :file:`mongorc.js` in :file:`/etc` directory must have read
-   permission for the user running the shell.
-
-Support for ``--quiet`` Option for all Tools
-````````````````````````````````````````````
-
-.. versionadded:: 2.5.0
-
-All MongoDB :doc:`executable files </reference/program>` now support
-the ``--quiet`` option. This option suppresses all logging output
-except for error messages.
-
-``mongoimport`` Uses Filename If Collection Name Is Not Specified
-`````````````````````````````````````````````````````````````````
-
-.. versionadded:: 2.5.3
-
-When invoked without the ``-c`` or ``--collection`` command-line argument,
-the :program:`mongoimport` tool uses the input filename as the name
-of the collection. MongoDB omits the extension of the file from the
-collection name if the input file has an extension.
-
-.. example::
-
-   The following command imports data from the ``contacts.csv`` file
-   into the ``contacts`` collection:
-
-   .. code-block:: none
-
-      mongoimport --db users --type csv --file /opt/backups/contacts.csv
-
-   To specify the collection to import, use the ``-c`` or
-   ``--collection`` option:
-
-   .. code-block:: none
-
-      mongoimport --db users --collection contacts --type csv --file /opt/backups/contacts.csv
-
-``mongostat`` Can Support ``--rowcount`` Option with ``--discover`` Option
-``````````````````````````````````````````````````````````````````````````
-
-.. versionadded:: 2.5.3
-
-The :program:`mongostat` program now produces the specified
-number of lines of output when using :option:`--rowcount` (:option:`-n`)
-with the :option:`--discover` option. In earlier versions of
-:program:`mongostat`, the :option:`--discover` option would override
-:option:`--rowcount`, and would continue to produce output until the
-user terminated the program.
-
-``mongoexport`` adds ``--skip`` ``--limit`` and ``--sort``
-``````````````````````````````````````````````````````````
-
-.. versionadded:: 2.5.5
-
-:program:`mongoexport` can now constrain export data using :option:`--skip`
-and :option:`--limit`. :program:`mongoexport` can also order the
-documents in an export using the :option:`--sort` option. Use these
-options to produce "paged" exports from MongoDB.
-
-New Default Allocation Strategy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.5.5
-
-By default all new collections will use the
-:collflag:`usePowerOf2Sizes` allocation strategy where each record has
-a size, in bytes rounded up to the power of 2.
-
-The new allocation strategy, which was available as an option in
-previous versions, uses more storage relative to total document size;
-however, it results in lower levels of storage fragmentation and more
-predictable storage capacity planning over time.
-
-You can continue to use the previous *exact fit allocation strategy* by
-setting :collflag:`usePowerOf2Sizes` to ``false`` with :dbcommand:`collMod` on a
-specific collection or setting
-:parameter:`newCollectionsUsePowerOf2Sizes` to ``false`` to disable
-:collflag:`usePowerOf2Sizes` for new collections on an entire
-:program:`mongod` instance.
-
-Limit for ``maxConns`` Removed
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 2.5.0, there is no longer any upward limit for the
-:setting:`maxConns`, or :program:`mongod --maxConns` and
-:program:`mongos --maxConns` options. Previous versions capped the
-maximum possible :setting:`maxConns` setting at ``20,000``
-connections.
-
-See :setting:`maxConns`.
-
-Additional Operation Termination Semantics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.4
-
-MongoDB adds the cursor method :method:`~cursor.maxTimeMS()` and
-corresponding option for commands. ``maxTimeMS`` allows operations to specify
-a time limit. MongoDB terminates operations
-that exceed their allotted time limit, using the same mechanism as
-:method:`db.killOp()`. MongoDB only terminates operations at
-designated *interrupt* points.
+Enhanced Sharding and Replication Administration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- New :dbcommand:`cleanupOrphaned` command to remove :term:`orphaned
+  document` from a shard.
+
+- New :dbcommand:`mergeChunks` command to combine contiguous chunks
+  located on a single shard. See :dbcommand:`mergeChunks` and
+  :doc:`/tutorial/merge-chunks-in-sharded-cluster`.
+
+- New :method:`rs.printReplicationInfo()` and
+  :method:`rs.printSlaveReplicationInfo()` methods to provide a
+  formatted report of the status of a replica set from the perspective
+  of the primary and the secondary, respectively.
 
 Geospatial Enhancements
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.2
+- Introduce version 2 of :ref:`2dsphere indexes
+  <2dsphere-v2>`.
 
-MongoDB added support for the following `GeoJSON
-<http://geojson.org/geojson-spec.html>`_ object types for use with
-:doc:`2dsphere indexes </core/2dsphere>`: :ref:`geojson-multipoint`,
-:ref:`geojson-multilinestring`, :ref:`geojson-multipolygon`, and
-:ref:`geojson-geometrycollection`.
+- Support for :ref:`geojson-multipoint`,
+  :ref:`geojson-multilinestring`, :ref:`geojson-multipolygon`, and
+  :ref:`geojson-geometrycollection`. 
 
-C++ Driver Enhancement
-~~~~~~~~~~~~~~~~~~~~~~
+- Support for geospatial query clauses in :query:`$or` expressions.
 
-.. versionadded:: 2.5.0
-
-The C++ driver now monitors :term:`replica set` health with the
-:dbcommand:`isMaster` command instead of :dbcommand:`replSetGetStatus`.
-This allows the C++ driver to support systems that have access control
-enabled.
+.. seealso::
+   :ref:`2.6-2dsphere-version-incompatibility`,
+   :ref:`2.6-geo-maxDistance-incompatibility`,
+   :ref:`2.6-uniqueDocs-incompatibility`,
+   :ref:`2.6-geospatial-validation-incompatibility`,
 
 MSI Package for MongoDB Available for Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.3
-
 MongoDB now distributes MSI packages for Microsoft Windows. This is the
 recommended method for MongoDB installation under Windows.
 
-New Replica Set Status Methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _2.6-relnotes-security:
 
-MongoDB provides two additional methods to provide information
-regarding the status of a :term:`replica set`:
-:method:`rs.printReplicationInfo()` and
-:method:`rs.printSlaveReplicationInfo()`.
+Security Improvements
+---------------------
 
-The :method:`rs.printReplicationInfo()` method provides a formatted
-report of the status of a :term:`replica set` from the perspective of
-the primary set member. The output is identical to that of the
-:method:`db.printReplicationInfo()` method.
+- New :ref:`authorization model <authorization>` which provides the
+  ability to create custom :ref:`user-defined-roles` and the ability to
+  specify user privileges at a collection-level granularity.
 
-The :method:`rs.printSlaveReplicationInfo()` method provides a
-formatted report of the status of a :term:`replica set` from the
-perspective of a secondary set member. The output is identical to that
-of the :method:`db.printSlaveReplicationInfo()` method.
+- A global user management, storing all user and
+  user-defined role data in the ``admin`` database and providing a new
+  set of commands for managing users and roles.
 
-``--diaglog`` option for ``mongod`` Deprecated
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Enhanced SSL Support:
 
-The :setting:`diaglog` and :option:`--diaglog` is deprecated. Using
-:setting:`diaglog` produces a startup warning.
+  - :doc:`x.509 certificate authentication </tutorial/configure-x509>`
+    for client authentication as well as for internal authentication of
+    sharded and/or replica set cluster members.
+
+  - :doc:`Support rolling upgrades of clusters
+    </tutorial/upgrade-cluster-to-ssl>` to use SSL.
+
+  - :ref:`mongodb-tools-support-ssl` support connections to
+    :program:`mongod` and :program:`mongos` instances using SSL
+    connection.
+
+  - :ref:`Can prompt for passphrase <ssl-certificate-password>`
+    by :program:`mongod` or :program:`mongos` at startup.
+
+  - Require the use of strong SSL ciphers, with a minimum 128-bit key
+    length for all connections. The strong-cipher requirement prevents
+    an old or malicious client from forcing use of a weak cipher.
+
+- MongoDB disables the http interface by default, limiting
+  :doc:`network exposure </core/security-network>`. To enable the
+  interface, see :setting:`httpinterface`.
+
+.. seealso:: :ref:`authentication-incompatibility`,
+   :ref:`ssl-hostname-validation`
+
+Query Engine Improvements
+-------------------------
+
+- :doc:`/core/index-intersection` to fulfill queries.
+
+- :ref:`index-filters` to limit which indexes can become the winning
+  plan for a query.
+
+- :doc:`/reference/method/js-plan-cache` methods to view and clear the
+  :doc:`query plans </core/query-plans>` cached by the query optimizer.
+
+Index Build Enhancements
+------------------------
+
+- :ref:`Background index build
+  <index-creation-building-indexes-on-secondaries>` allowed on
+  secondaries; i.e. if you initiate a background index build on a
+  :term:`primary`, the secondaries will replicate the index build in
+  the background.
+
+- Automatic rebuild of interrupted index builds after a restart.
+
+  - If a standalone or a primary instance terminates during an index
+    build *without a clean shutdown*, :program:`mongod` now restarts
+    the index build when the instance restarts. If the instance shut
+    down cleanly or if a user killed the index build, the interrupted
+    index builds do not automatically restart upon the restart of the
+    server.
+
+  - If a secondary instance terminates during an index build, the
+    :program:`mongod` instance will now restart the interrupted index
+    build when the instance restarts.
+
+  To disable this behavior, use the :option:`--noIndexBuildRetry`
+  command line option.
+
+.. seealso:: :ref:`2.6-index-key-length-incompatibility`
+
+Operational Changes
+-------------------
+
+- :collflag:`usePowerOf2Sizes` is the default allocation strategy for
+  all new collections. The new allocation strategy uses more storage
+  relative to total document size, but results in lower levels of
+  storage fragmentation and more predictable storage capacity planning
+  over time.
+
+  To use the previous *exact fit allocation strategy*:
+
+  - For a specific collection, use :dbcommand:`collMod` with
+    :collflag:`usePowerOf2Sizes` set to ``false``.
+
+  - For all new collections on an entire :program:`mongod` instance,
+    set :parameter:`newCollectionsUsePowerOf2Sizes` to ``false``.
+
+- Remove upward limit for the :setting:`maxConns` for :program:`mongod`
+  and :program:`mongos`. Previous versions capped the maximum possible
+  :setting:`maxConns` setting at ``20,000`` connections.
+
+- New :method:`cursor.maxTimeMS()` and corresponding ``maxTimeMS``
+  option for commands to specify a time limit.
+
+- The :setting:`diaglog` and :option:`--diaglog` is deprecated. Using
+  :setting:`diaglog` produces a startup warning.
+
+- The C++ driver now monitors :term:`replica set` health with the
+  :dbcommand:`isMaster` command instead of
+  :dbcommand:`replSetGetStatus`. This allows the C++ driver to support
+  systems that have access control enabled.
+
+- :dbcommand:`isMaster` contains two new fields,
+  :data:`~isMaster.minWireVersion` and :data:`~isMaster.maxWireVersion`
+  that report respectively the earliest and latest version of the wire
+  protocol that this :program:`mongod` or :program:`mongos` instance
+  supports.
+
+Tool Improvements
+-----------------
+
+- :program:`mongo` shell supports a global :ref:`/etc/mongorc.js
+  <mongo-global-mongorc-file>`.
+
+- All MongoDB :doc:`executable files </reference/program>` now support
+  the ``--quiet`` option to suppress all logging output except for
+  error messages.
+
+- :program:`mongoimport` uses the input filename, without the file
+  extension if any, as the collection name if run without the ``-c`` or
+  ``--collection`` specification.
+
+- :program:`mongoexport` can now constrain export data using
+  :option:`--skip` and :option:`--limit` as well as order the documents
+  in an export using the :option:`--sort` option.
+
+- :program:`mongostat` can support the use of :option:`--rowcount`
+  (:option:`-n`) with the :option:`--discover` option to produce the
+  specified number of output lines.
 
 MongoDB Enterprise Features
 ---------------------------
 
-Support for Auditing
-~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.3
-
-MongoDB Enterprise adds features to audit server and client activity
-for :program:`mongod` and :program:`mongos` instances. See
-:ref:`auditing` for details.
+The following changes are specific to MongoDB Enterprise Editions:
 
 MongoDB Enterprise for Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.3
-
-MongoDB Enterprise for Windows is now available. It includes advanced
-Kerberos security, SSL, and SNMP support.
+:doc:`MongoDB Enterprise for Windows
+</tutorial/install-mongodb-enterprise-on-windows>` is now available. It
+includes support for Kerberos, SSL, and SNMP.
 
 .. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
 
-SASL Library Change
-~~~~~~~~~~~~~~~~~~~
+Auditing
+~~~~~~~~
 
-MongoDB Enterprise uses Cyrus SASL instead of GNU SASL (``libgsasl``).
-This change has the following SASL2 and Cyrus SASL library and GSSAPI
-plugin dependencies:
-
-For Debian or Ubuntu, install the following:
-
-.. code-block:: sh
-
-   sudo apt-get install cyrus-sasl2-dbg cyrus-sasl2-mit-dbg libsasl2-2 libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit
-
-For CentOS, Red Hat Enterprise Linux, and Amazon AMI, install the
-following:
-
-.. code-block:: sh
-
-   sudo yum install cyrus-sasl cyrus-sasl-lib cyrus-sasl-devel cyrus-sasl-gssapi
-
-For SUSE, install the following:
-
-.. code-block:: sh
-
-   sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+MongoDB Enterprise adds :doc:`auditing </core/auditing>` capability for
+:program:`mongod` and :program:`mongos` instances. See :ref:`auditing`
+for details.
 
 .. _relnotes-ldap-authentication:
 
@@ -956,17 +336,18 @@ See :doc:`/tutorial/configure-ldap-sasl-authentication`.
 
 .. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
 
-.. seealso:: :ref:`ldap-mixed-mode-incompatibility`
+MongoDB does **not** support LDAP authentication in mixed sharded
+cluster deployments that contain both version 2.4 and version 2.6
+shards. See :doc:`/release-notes/2.6-upgrade` for upgrade instructions.
 
 Expanded SNMP Support
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.3
+MongoDB Enterprise has greatly expanded its SNMP support to provide
+SNMP access to nearly the full range of metrics provided by
+:method:`db.serverStatus()`.
 
-MongoDB Enterprise has greatly expanded its SNMP support. Enterprise
-clients who need fine-grained server statistics now have SNMP access to
-nearly the full range of metrics provided by
-:dbcommand:`db.serverStatus()`.
+.. seealso:: :ref:`2.6-snmp-iana-mib-incompatibility`
 
 Additional Information
 ----------------------
@@ -980,6 +361,25 @@ Upgrade Process
    /release-notes/2.6-upgrade
 
 See :doc:`/release-notes/2.6-upgrade` for full upgrade instructions.
+
+Changes Affecting Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Certain changes in 2.6 can affect compatibility and may require user
+actions. The 2.6 :program:`mongo` shell provides an
+:method:`upgradeCheck()` method to perform a check for upgrade
+preparedness for some of these changes. 
+
+To prepare for changes not covered by :method:`upgradeCheck()`, see
+:doc:`/release-notes/2.6-compatibility`.
+
+.. seealso::
+   `All Backwards incompatible changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.5.0%22%2C+%222.5.1%22%2C+%222.5.2%22%2C+%222.5.3%22%2C+%222.5.4%22%2C+%222.5.5%22%2C+%222.6.0-rc1%22%2C+%222.6.0-rc2%22%29+AND+%22Backward+Breaking%22+in+%28+Rarely+%2C+sometimes%2C+yes+%29+ORDER+BY+votes+DESC%2C+issuetype+DESC%2C+key+DESC>`_.
+
+.. toctree::
+   :hidden:
+
+   /release-notes/2.6-compatibility
 
 Other Resources
 ~~~~~~~~~~~~~~~
