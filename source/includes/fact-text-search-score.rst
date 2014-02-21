@@ -4,5 +4,5 @@ the relevance of a document to a given text search query. The score can
 be part of a |sort-object| specification as well as part of the
 projection expression. The ``{ $meta: "textScore" }`` expression
 provides information on the processing of the :query:`$text` operation.
-See |meta-object| operator for details on accessing the score for
+See |meta-object| for details on accessing the score for
 projection or sort.
