@@ -1,6 +1,6 @@
 .. begin-nondist-dns
 
-- Each member of the replica set resides on its own machine and all of 
+- Each member of the replica set resides on its own machine and all of
   the MongoDB processes bind to port ``27017`` (the
   standard MongoDB port).
 
@@ -12,14 +12,14 @@
   - ``mongodb2.example.net``
   - ``mongodbn.example.net``
 
-  You will need to *either* configure your DNS names appropriately, 
+  You will need to *either* configure your DNS names appropriately,
   *or* set up your systems' ``/etc/hosts`` file to reflect this configuration.
 
 .. end-nondist-dns
 
   For a geographically distributed replica set, you should ensure that
   one system (e.g. ``mongodb2.example.net``) resides in each secondary
-  site (e.g. Site B), while the remaining systems are in Site A. 
+  site (e.g. Site B), while the remaining systems are in Site A.
 
 .. begin-nondist-routing
 
@@ -44,7 +44,7 @@
   :doc:`configuration file </reference/configuration-options>` stored
   in ``/etc/mongodb.conf`` or a related location. *Do not* specify the
   set's configuration in the :program:`mongo` shell.
-  
+
   Use the following configuration for each of your MongoDB instances.
   You should set values that are appropriate for your systems, as needed:
 
@@ -64,9 +64,8 @@
   store data files. The :setting:`dbpath` must exist before you start
   :program:`mongod`. If it does not exist, create the directory and
   ensure :program:`mongod` has permission to read and write data to this
-  path. For more information on permissions, see the :ref:`security
-  operations documentation <security-operations>`.
-  
+  path.
+
   Modifying :setting:`bind_ip` ensures that :program:`mongod` will only
   listen for connections from applications on the configured address.
 
