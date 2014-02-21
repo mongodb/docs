@@ -1,1 +1,2 @@
-If you need to remove your company or group please contact support.
+To delete any group, `contact MMS Support
+<https://mms.mongodb.com/links/support>`_ with a list of group names.
