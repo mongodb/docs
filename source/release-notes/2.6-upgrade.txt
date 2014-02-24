@@ -330,6 +330,11 @@ When downgrading, consider the following:
   downgrading MongoDB 2.5.x to 2.4, you must **first** downgrade the
   user authorization model to 2.4. See :ref:`downgrade-user-auth-model`.
 
+- If you have rebuilt your existing :doc:`text indexes
+  </core/indexes-text>` as version 2 or have created new text indexes
+  in MongoDB 2.5.x, you must :ref:`remove or downgrade your text
+  indexes <downgrade-text-index>` before downgrading MongoDB 2.5.x.
+
 - .. include:: /includes/fact-2.6-downgrade-restrictions.rst
 
 .. _downgrade-user-auth-model:
@@ -430,6 +435,41 @@ Result
 The downgrade process returns the user data to its state prior to
 upgrading to 2.5.x authorization model. Any changes made to the
 user/role data using the 2.5.x users model will be lost.
+
+.. _downgrade-text-index:
+
+Text Index Version Check
+------------------------
+
+If you have version 2 text indexes (i.e. the default version for text
+indexes in MongoDB 2.5.x), drop the version 2 text indexes, downgrade
+MongoDB, enable text search, and recreate the text indexes.
+
+To determine the version of your ``text`` indexes, run
+:method:`db.collection.getIndexes()` to view index specifications. For
+text indexes, the method returns the version information in the field
+``textIndexVersion``. For example, the following shows that the
+``text`` index on the ``quotes`` collection is version 2.
+
+.. code-block:: javascript
+   :emphasize-lines: 15
+
+   {
+      "v" : 1,
+      "key" : {
+         "_fts" : "text",
+         "_ftsx" : 1
+      },
+      "name" : "quote_text_translation.quote_text",
+      "ns" : "test.quotes",
+      "weights" : {
+         "quote" : 1,
+         "translation.quote" : 1
+      },
+      "default_language" : "english",
+      "language_override" : "language",
+      "textIndexVersion" : 2
+   }
 
 Upgrade and Downgrade Procedures
 --------------------------------
