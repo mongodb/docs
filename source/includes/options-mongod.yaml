@@ -1,6 +1,7 @@
-# This file borrows content from other files, including
-# /includes/options-shared.yaml, which uses
-# {{program}} to refer to the tool.
+# This file borrows content from: /includes/options-shared.yaml
+# which uses {{program}} to refer to the tool.
+#
+# This file lends content to: /includes/options-mongos.yaml
 #
 program: mongod
 name: help
@@ -24,7 +25,7 @@ args: <filename>
 description: |
   Specifies a configuration file for runtime configuration options. The
   configuration file is the preferred method for runtime configuration of
-  :program:`mongod`. The options are equivalent to the command-line
+  {{program}}. The options are equivalent to the command-line
   configuration options. See :doc:`/reference/configuration-options` for
   more information.
 
@@ -48,8 +49,6 @@ inherit:
 ---
 program: mongod
 name: port
-description: |
-  By default :program:`mongod` listens for connections on port `27017`.
 inherit:
   name: port
   program: _shared
@@ -156,9 +155,9 @@ args: <path>
 description: |
   Specifies a file location to hold the ":term:`PID`" or process ID of the
   {{program}} process. Useful for tracking the {{program}} process in
-  combination with the :option:`mongod --fork` option.
+  combination with the :option:`--fork` option.
 
-  Without a specified :option:`--pidfilepath` option, :program:`mongos`
+  Without a specified :option:`--pidfilepath` option, {{program}}
   creates no PID file.
 optional: true
 ---
@@ -193,8 +192,8 @@ name: unixSocketPrefix
 directive: option
 args: <path>
 description: |
-  Specifies a path for the UNIX socket. Unless this option has a
-  value {{program}} creates a socket with ``/tmp`` as a prefix.
+  Specifies a path for the UNIX socket. If this option has no
+  value, {{program}} creates a socket with ``/tmp`` as a prefix.
 
   MongoDB will always create and listen on a UNIX socket, unless
   :option:`--nounixsocket` is set, :setting:`bind_ip` is not set,
@@ -207,7 +206,7 @@ directive: option
 args: null
 description: |
   Enables a :term:`daemon` mode for {{program}} that runs the
-  process to the background. This is the normal mode of operation in
+  process in the background. This is the normal mode of operation in
   production and production-like environments but may not be
   desirable for testing.
 optional: true
@@ -235,12 +234,12 @@ description: |
   .. versionadded:: 2.4.6
      Allows users to override the default :doc:`Kerberos
      </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
-     service name component of the :doc:`Kerberos
-     </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
+     service name component of the Kerberos
      principal name, on a per-instance basis. If unspecified, the
      default value is ``mongodb``.
 
-  Only available on MongoDB Enterprise.
+  Only available on :doc:`MongoDB Enterprise
+  </tutorial/install-mongodb-enterprise>`.
 
   Only settable during start-up. The :dbcommand:`setParameter` command
   does not change this setting.
@@ -386,7 +385,7 @@ description: |
   option. If the HTTP interface is disabled, the :option:`--jsonp` also
   enables the HTTP interface.
 
-  .. seealso:: :option:`--httpinterface` to enable the HTTP interface.
+  .. seealso:: :option:`--httpinterface`
 optional: true
 ---
 program: mongod
@@ -899,11 +898,44 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongod
-name: sslCAFile
-inherit:
-  name: sslCAFile
-  program: _shared
-  file: options-shared.yaml
+name: sslMode
+directive: option
+args: <mode>
+description: |
+   .. versionadded:: 2.5.3
+
+   Enables SSL or mixed SSL on a port. The argument to the
+   :option:`--sslMode` option can be one of the following:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Value
+
+        - Description
+
+      * - ``disabled``
+
+        - The server does not use SSL.
+
+      * - ``allowSSL``
+
+        - Connections between servers do not use SSL. For incoming
+          connections, the server accepts both SSL and non-SSL.
+
+      * - ``preferSSL``
+
+        - Connections between servers use SSL. For incoming
+          connections, the server accepts both SSL and non-SSL.
+
+      * - ``requireSSL``
+
+        - The server uses and accepts only SSL encrypted connections.
+
+  The default distribution of MongoDB does not contain support for SSL.
+  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+optional: true
 ---
 program: mongod
 name: sslPEMKeyFile
@@ -920,6 +952,49 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongod
+name: sslClusterFile
+directive: option
+args: <filename>
+description: |
+  .. versionadded:: 2.6
+
+  Specifies the :file:`.pem` file that contains the x.509 certificate-key
+  file for :ref:`membership authentication <x509-internal-authentication>`
+  for the cluster or replica set.
+
+  The default distribution of MongoDB does not contain support for SSL.
+  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+optional: true
+---
+program: mongod
+name: sslClusterPassword
+directive: option
+args: <value>
+description: |
+  .. versionadded:: 2.6
+
+  Specifies the password to de-crypt the x.509 certificate-key file
+  specified with :option:`--sslClusterFile`. Use
+  :option:`--sslClusterPassword` only if the certificate-key file is
+  encrypted. In all cases, {{program}} will redact the password from all
+  logging and reporting output.
+
+  .. versionchanged:: 2.6 If the x.509 key file is encrypted and you do
+     not specify :option:`--sslClusterPassword`, {{program}} will prompt
+     for a passphrase. See :ref:`ssl-certificate-password`.
+
+  The default distribution of MongoDB does not contain support for SSL.
+  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+optional: true
+---
+program: mongod
+name: sslCAFile
+inherit:
+  name: sslCAFile
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongod
 name: sslCRLFile
 inherit:
   name: sslCRLFile
@@ -932,6 +1007,32 @@ inherit:
   name: sslAllowInvalidCertificates
   program: _shared
   file: options-shared.yaml
+---
+program: mongod
+name: sslWeakCertificateValidation
+directive: option
+args: null
+description: |
+  .. versionadded:: 2.4
+
+  Disables the requirement for SSL certificate validation that
+  :option:`--sslCAFile` enables. With
+  :option:`--sslWeakCertificateValidation`, {{program}} will accept
+  connections when the client does not present a certificate when
+  establishing the connection.
+
+  If the client presents a certificate and {{program}} has
+  :option:`--sslWeakCertificateValidation` enabled, {{program}} will
+  validate the certificate using the root certificate chain specified by
+  :option:`--sslCAFile` and reject clients with invalid certificates.
+
+  Use :option:`--sslWeakCertificateValidation` if you have a mixed
+  deployment that includes clients that do not or cannot present
+  certificates to {{program}}.
+
+  The default distribution of MongoDB does not contain support for SSL.
+  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+optional: true
 ---
 program: mongod
 name: sslFIPSMode
