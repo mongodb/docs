@@ -378,21 +378,14 @@ databases:
       { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
       { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
 
-#. Copy content of ``admin.system.users`` to ``admin.system.new_users``.
+#. Copy content of ``admin.system.users`` to ``admin.system.new_users``:
 
    .. code-block:: javascript
 
-      var bulkUpsert = db.getSiblingDB("admin").system.new_users.initializeOrderedBulkOp();
+      db.getSiblingDB("admin").system.users.find().forEach( function(userDoc) {
+         db.getSiblingDB("admin").system.new_users.save( userDoc );
+      } )
 
-      db.getSiblingDB("admin").system.users.find().forEach( 
-         function (userDoc) {
-            bulkUpsert.find( { _id: userDoc._id } ).upsert().replaceOne( userDoc );
-         }
-      );
-
-      var res = bulkUpsert.execute();
-      print(tojson(res));
-      
 #. Update the version document for the ``authSchema``:
 
    .. code-block:: javascript
@@ -413,16 +406,11 @@ databases:
 
    .. code-block:: javascript
 
-      var bulkInsert = db.getSiblingDB("admin").system.users.initializeOrderedBulkOp();
-
       db.getSiblingDB("admin").system.backup_users.find().forEach( 
          function (userDoc) {
-            bulkInsert.insert( userDoc );
+            db.getSiblingDB("admin").system.users.insert( userDoc );
          }
       );
-
-      res = bulkInsert.execute();
-      print(tojson(res));
 
 #. Update the version document for  the ``authSchema``:
 
