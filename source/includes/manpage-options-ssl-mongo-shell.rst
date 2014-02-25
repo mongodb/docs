@@ -5,7 +5,7 @@
    Enable connection to a :program:`mongod` or
    :program:`mongos` that has SSL support enabled.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslPEMKeyFile <filename>
 
@@ -20,7 +20,7 @@
    :setting:`sslCAFile` enabled *without*
    :setting:`sslWeakCertificateValidation`.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslPEMKeyPassword <value>
 
@@ -37,7 +37,7 @@
       specify :option:`--sslPEMKeyPassword`, |binary-name| will prompt
       for a passphrase. See :ref:`ssl-certificate-password`.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslCAFile <filename>
 
@@ -47,7 +47,7 @@
    chain from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslCRLFile <filename>
 
@@ -57,7 +57,7 @@
    Revocation List. Specify the file name of the :file:`.pem` file
    using relative or absolute paths.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslFIPSMode
 
@@ -67,7 +67,7 @@
    installed OpenSSL library. Your system must have a FIPS compliant
    OpenSSL library to use :option:`--sslFIPSMode`.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
 
 .. option:: --sslAllowInvalidCertificates
 
@@ -78,4 +78,4 @@
    :setting:`sslAllowInvalidCertificates` setting, MongoDB logs as a
    warning the use of the invalid certificate.
 
-   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+   .. include:: /includes/fact-ssl-supported.rst
