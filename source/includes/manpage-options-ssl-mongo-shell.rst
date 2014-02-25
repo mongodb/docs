@@ -2,16 +2,14 @@
 
    .. versionadded:: 2.2
 
-   .. include:: /includes/note-general-ssl-support.rst
-
    Enable connection to a :program:`mongod` or
    :program:`mongos` that has SSL support enabled.
+
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
 
 .. option:: --sslPEMKeyFile <filename>
 
    .. versionadded:: 2.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the :file:`.pem` file that contains both the SSL
    certificate and key. Specify the file name of the :file:`.pem` file
@@ -22,11 +20,11 @@
    :setting:`sslCAFile` enabled *without*
    :setting:`sslWeakCertificateValidation`.
 
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+
 .. option:: --sslPEMKeyPassword <value>
 
    .. versionadded:: 2.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the password to de-crypt the certificate-key file
    (i.e. :option:`--sslPEMKeyFile`). Only use
@@ -39,43 +37,45 @@
       specify :option:`--sslPEMKeyPassword`, |binary-name| will prompt
       for a passphrase. See :ref:`ssl-certificate-password`.
 
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+
 .. option:: --sslCAFile <filename>
 
    .. versionadded:: 2.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the :file:`.pem` file that contains the root certificate
    chain from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
 
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+
 .. option:: --sslCRLFile <filename>
 
    .. versionadded:: 2.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    Specifies the :file:`.pem` file that contains the Certificate
    Revocation List. Specify the file name of the :file:`.pem` file
    using relative or absolute paths.
 
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+
 .. option:: --sslFIPSMode
 
    .. versionadded:: 2.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    When specified, |binary-name| will use the FIPS mode of the
    installed OpenSSL library. Your system must have a FIPS compliant
    OpenSSL library to use :option:`--sslFIPSMode`.
 
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
+
 .. option:: --sslAllowInvalidCertificates
 
    .. versionadded:: 2.5.4
-
-   .. include:: /includes/note-general-ssl-support.rst
 
    Bypasses the validation checks for server certificates and allows
    the use of invalid certificates. When using the
    :setting:`sslAllowInvalidCertificates` setting, MongoDB logs as a
    warning the use of the invalid certificate.
+
+   .. include:: /includes/ssl-supported-in-enterprise-only.rst
