@@ -161,14 +161,16 @@ html_sidebars = sconf.sidebars
 
 # -- Options for LaTeX output --------------------------------------------------
 
-if tags.has('latex'):
-    pdf_conf_path = os.path.join(conf.paths.builddata, 'pdfs.yaml')
-    if os.path.exists(pdf_conf_path):
-        pdfs = ingest_yaml_list(pdf_conf_path)
-    else:
-        raise SphinxError('[WARNING]: skipping pdf builds because of missing {0} file'.format(pdf_conf_path))
-else:
-    pdfs = []
+pdfs = []
+try:
+    if tags.has('latex'):
+        pdf_conf_path = os.path.join(conf.paths.builddata, 'pdfs.yaml')
+        if os.path.exists(pdf_conf_path):
+            pdfs = ingest_yaml_list(pdf_conf_path)
+        else:
+            raise SphinxError('[WARNING]: skipping pdf builds because of missing {0} file'.format(pdf_conf_path))
+except NameError:
+    pass
 
 latex_documents = []
 for pdf in pdfs:
@@ -197,15 +199,16 @@ latex_appendices = []
 
 # -- Options for manual page output --------------------------------------------
 
-if tags.has('man'):
-    man_page_conf_path = os.path.join(conf.paths.builddata, 'manpages.yaml')
-    if os.path.exists(man_page_conf_path):
-        man_page_definitions = ingest_yaml_list(man_page_conf_path)
-    else:
-        raise SphinxError('[WARNING]: skipping man builds because of missing {0} file'.format(man_page_conf_path))
-else:
-    man_page_definitions = []
-
+man_page_definitions = []
+try:
+    if tags.has('man'):
+        man_page_conf_path = os.path.join(conf.paths.builddata, 'manpages.yaml')
+        if os.path.exists(man_page_conf_path):
+            man_page_definitions = ingest_yaml_list(man_page_conf_path)
+        else:
+            raise SphinxError('[WARNING]: skipping man builds because of missing {0} file'.format(man_page_conf_path))
+except NameError:
+    pass
 man_pages = []
 for mp in man_page_definitions:
     man_pages.append((mp['file'], mp['name'], mp['title'], mp['authors'], mp['section']))
