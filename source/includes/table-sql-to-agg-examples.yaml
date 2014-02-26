@@ -32,11 +32,15 @@ sql1: |
          FROM orders
 mongo1: |
         .. code-block:: javascript
-           :emphasize-lines: 2-3
+           :emphasize-lines: 3-6
 
            db.orders.aggregate( [
-              { $group: { _id: null,
-                          count: { $sum: 1 } } }
+              {
+                $group: {
+                   _id: null,
+                   count: { $sum: 1 }
+                }
+              }
            ] )
 desc2: |
         Sum the ``price`` field
@@ -48,11 +52,15 @@ sql2: |
          FROM orders
 mongo2: |
         .. code-block:: javascript
-           :emphasize-lines: 2-3
+           :emphasize-lines: 3-6
 
            db.orders.aggregate( [
-              { $group: { _id: null,
-                          total: { $sum: "$price" } } }
+              {
+                $group: {
+                   _id: null,
+                   total: { $sum: "$price" }
+                }
+              }
            ] )
 desc3: |
         For each unique ``cust_id``,
@@ -66,11 +74,15 @@ sql3: |
          GROUP BY cust_id
 mongo3: |
         .. code-block:: javascript
-           :emphasize-lines: 2-3
+           :emphasize-lines: 3-6
 
            db.orders.aggregate( [
-              { $group: { _id: "$cust_id",
-                          total: { $sum: "$price" } } }
+              {
+                $group: {
+                   _id: "$cust_id",
+                   total: { $sum: "$price" }
+                }
+              }
            ] )
 desc4: |
         For each unique ``cust_id``,
@@ -86,11 +98,15 @@ sql4: |
          ORDER BY total
 mongo4: |
         .. code-block:: javascript
-           :emphasize-lines: 2-4
+           :emphasize-lines: 3-6,8
 
            db.orders.aggregate( [
-              { $group: { _id: "$cust_id",
-                          total: { $sum: "$price" } } },
+              {
+                $group: {
+                   _id: "$cust_id",
+                   total: { $sum: "$price" }
+                }
+              },
               { $sort: { total: 1 } }
            ] )
 desc5: |
@@ -104,15 +120,22 @@ sql5: |
                 ord_date,
                 SUM(price) AS total
          FROM orders
-         GROUP BY cust_id, ord_date
+         GROUP BY cust_id,
+                  ord_date
 mongo5: |
         .. code-block:: javascript
-           :emphasize-lines: 2-4
+           :emphasize-lines: 3-9
 
            db.orders.aggregate( [
-              { $group: { _id: { cust_id: "$cust_id",
-                                 ord_date: "$ord_date" },
-                          total: { $sum: "$price" } } }
+              {
+                $group: {
+                   _id: {
+                      cust_id: "$cust_id",
+                      ord_date: "$ord_date"
+                   },
+                   total: { $sum: "$price" }
+                }
+              }
            ] )
 desc6: |
         For ``cust_id`` with multiple records,
@@ -121,17 +144,22 @@ desc6: |
 sql6: |
       .. code-block:: sql
 
-         SELECT cust_id, count(*)
+         SELECT cust_id,
+                count(*)
          FROM orders
          GROUP BY cust_id
          HAVING count(*) > 1
 mongo6: |
         .. code-block:: javascript
-           :emphasize-lines: 2-4
+           :emphasize-lines: 3-6,8
 
            db.orders.aggregate( [
-              { $group: { _id: "$cust_id",
-                          count: { $sum: 1 } } },
+              {
+                $group: {
+                   _id: "$cust_id",
+                   count: { $sum: 1 }
+                }
+              },
               { $match: { count: { $gt: 1 } } }
            ] )
 desc7: |
@@ -146,16 +174,23 @@ sql7: |
                 ord_date,
                 SUM(price) AS total
          FROM orders
-         GROUP BY cust_id, ord_date
+         GROUP BY cust_id,
+                  ord_date
          HAVING total > 250
 mongo7: |
         .. code-block:: javascript
-           :emphasize-lines: 2-5
+           :emphasize-lines: 3-9,11
 
            db.orders.aggregate( [
-              { $group: { _id: { cust_id: "$cust_id",
-                                 ord_date: "$ord_date" },
-                          total: { $sum: "$price" } } },
+              {
+                $group: {
+                   _id: {
+                      cust_id: "$cust_id",
+                      ord_date: "$ord_date"
+                   },
+                   total: { $sum: "$price" }
+                }
+              },
               { $match: { total: { $gt: 250 } } }
            ] )
 desc8: |
@@ -172,12 +207,16 @@ sql8: |
          GROUP BY cust_id
 mongo8: |
         .. code-block:: javascript
-           :emphasize-lines: 2-4
+           :emphasize-lines: 2,4-7
 
            db.orders.aggregate( [
               { $match: { status: 'A' } },
-              { $group: { _id: "$cust_id",
-                          total: { $sum: "$price" } } }
+              {
+                $group: {
+                   _id: "$cust_id",
+                   total: { $sum: "$price" }
+                }
+              }
            ] )
 desc9: |
         For each unique ``cust_id``
@@ -196,12 +235,16 @@ sql9: |
          HAVING total > 250
 mongo9: |
         .. code-block:: javascript
-           :emphasize-lines: 2-5
+           :emphasize-lines: 2-9
 
            db.orders.aggregate( [
               { $match: { status: 'A' } },
-              { $group: { _id: "$cust_id",
-                          total: { $sum: "$price" } } },
+              {
+                $group: {
+                   _id: "$cust_id",
+                   total: { $sum: "$price" }
+                }
+              },
               { $match: { total: { $gt: 250 } } }
            ] )
 desc10: |
@@ -221,12 +264,16 @@ sql10: |
           GROUP BY cust_id
 mongo10: |
          .. code-block:: javascript
-            :emphasize-lines: 2-5
+            :emphasize-lines: 2-8
 
             db.orders.aggregate( [
                { $unwind: "$items" },
-               { $group: { _id: "$cust_id",
-                           qty: { $sum: "$items.qty" } } }
+               {
+                 $group: {
+                    _id: "$cust_id",
+                    qty: { $sum: "$items.qty" }
+                 }
+               }
             ] )
 desc11: |
         Count the number of distinct 
@@ -235,16 +282,30 @@ sql11: |
        .. code-block:: sql
 
           SELECT COUNT(*)
-          FROM (SELECT cust_id, ord_date 
+          FROM (SELECT cust_id,
+                       ord_date
                 FROM orders 
-                GROUP BY cust_id, ord_date) as DerivedTable
+                GROUP BY cust_id,
+                         ord_date)
+                as DerivedTable
 mongo11: |
          .. code-block:: javascript
-            :emphasize-lines: 2-4
+            :emphasize-lines: 2-15
 
             db.orders.aggregate( [
-               { $group: { _id: { cust_id: "$cust_id",
-                                  ord_date: "$ord_date" } } },
-               { $group: { _id: null, count: { $sum: 1 } } }
+               {
+                 $group: {
+                    _id: {
+                       cust_id: "$cust_id",
+                       ord_date: "$ord_date"
+                    }
+                 } 
+               },
+               {
+                 $group: {
+                    _id: null,
+                    count: { $sum: 1 } 
+                 }
+               }
             ] )
 ...
