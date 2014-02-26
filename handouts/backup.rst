@@ -26,12 +26,12 @@ backing up a MongoDB infrastructure.
 Engineered specifically for MongoDB, MMS Backup features scheduled
 snapshots and point in time recovery. It can take a consistent
 snapshot across multiple shards. Once the service is up and running,
-backup and restoration can be managed by the end user from an easy to
-use web interface. MMS Backup can be scaled horizontally to the
-desired level of availability and durability for the backups.
+MMS provides a web interface to support backup and restoration. MMS
+Backup support horizontal scaling, so that you can support required
+availability and durability for the backups.
 
-How it works
-------------
+How On-Prem Backup Works
+------------------------
 
 A lightweight agent runs within your infrastructure and connects to
 the configured MongoDB instances. Using the same mechanism as
@@ -41,14 +41,14 @@ agent will tail the primary of each shard and each config
 server. Instead of acting as another local secondary the agent ships
 initial sync and oplog data over HTTPS back to the MMS service.
 
-The MMS service will recreate every replica set being backed up and
-apply oplogs when they come in from the agents. This will result in
-the service having a standalone MongoDB database on disk for every
-replica set being backed up (referred to as the "heads"). Each “head”
-is consistent with the original primary up to the last oplog supplied
-by the agent. The original replica set, or sharded cluster, has no
-knowledge of this secondary. The initial sync and tailing of the oplog
-are all done using standard MongoDB queries.
+The MMS service recreates every replica set that you backup up and
+apply the oplog entries that the backup agents send. MMS then
+maintains a standalone MongoDB database on disk for each backed up
+replica set (i.e. a "head"). Each head is consistent with the original
+primary up to the last oplog supplied by the agent. The original
+replica set, or sharded cluster, has no knowledge of this
+secondary. The initial sync and tailing of the oplog are all done
+using standard MongoDB queries.
 
 The service will take scheduled snapshots of all heads and retain
 those snapshots based on a user-defined policy. Replica set snapshots
