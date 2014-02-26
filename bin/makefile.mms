@@ -45,6 +45,9 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/management/administration.txt
 	@rm -f $(saas-source-dir)/monitoring/tutorial/configure-jetty-https.txt
 	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
+	@rm -f $(saas-source-dir)/backup/on-prem.txt
+	@rm -f $(saas-source-dir)/backup/requirements.txt
+	@rm -f $(saas-source-dir)/backup/install-on-prem-backup-server.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt

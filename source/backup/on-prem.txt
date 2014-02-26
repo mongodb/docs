@@ -1,0 +1,141 @@
+=================
+|backup| Overview
+=================
+
+.. default-domain:: mongodb
+
+Summary
+-------
+
+A lightweight agent runs within your infrastructure and connects to
+the configured MongoDB instances. Using the same mechanism as
+replication the agent will perform an initial sync and then tail the
+oplog of a replica set’s primary. For a sharded cluster, the backup
+agent will tail the primary of each shard and each config
+server. Instead of acting as another local secondary the agent ships
+initial sync and oplog data over HTTPS back to the MMS service.
+
+The MMS service recreates every replica set that you backup up and
+apply the oplog entries that the backup agents send. MMS then
+maintains a standalone MongoDB database on disk for each backed up
+replica set (i.e. a "head"). Each head is consistent with the original
+primary up to the last oplog supplied by the agent. The original
+replica set, or sharded cluster, has no knowledge of this
+secondary. The initial sync and tailing of the oplog are all done
+using standard MongoDB queries.
+
+The service will take scheduled snapshots of all heads and retain
+those snapshots based on a user-defined policy. Replica set snapshots
+are triggered based on an observed a change in oplog time. Sharded
+clusters snapshots done by temporarily stopping the balancer via the
+mongos and inserting a marker token into all shards and config
+servers. MMS will take a snapshot when the marker tokens are seen.
+
+Snapshot data is compressed and block-level deduplication technology
+is applied, allowing only the differences between successive snapshots
+to be stored. This allows many snapshots to be stored with a fraction
+of the disk space required for full snapshots.
+
+Restores of specific snapshots and point in time restores are both
+available for replica sets (clusters must be restored to a snapshot
+time for consistency). A snapshot restore will be read directly from
+Snapshot Storage and can be delivered via an HTTPS download link
+(pull) or by the MMS service sending the files via SSH (push). A point
+in time restore is accomplished by first doing a local restore of a
+snapshot from the blockstore. After the MMS service has the snapshot
+locally it can apply stored oplogs until the desired point in
+time. The service can then deliver the point in time backup via the
+same HTTPS or SSH mechanisms. The amount of oplog to keep per backup
+is configurable and affects the time window available for point in
+time restores.
+
+Components
+----------
+
+MMS Package (Front-end)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The front-end package contains the UI that the end user interacts with
+and various HTTPS services used by the monitoring and backup agents to
+transmit data to and from MMS. All three of these components are
+started automatically when the front-end MMS package is started. These
+components themselves are stateless. Multiple instances of the
+front-end package can be running as long as they have the same
+configuration. Users and agents can interact with any instance.
+
+MMS HTTP Server
+```````````````
+
+The HTTP server runs on port ``8080`` by default.  This component contains
+the web interface for managing MMS users, monitoring of MongoDB
+servers, and managing those server’s backups. When you visit
+`mms.mongodb.com <https://mms.mongodb.com>`_ you are interacting with
+the cloud version of this component. Users can sign up, create new accounts/groups, and
+join an existing group. The MMS Web Server also contains endpoints
+used by the MMS Agent to report back information on monitored MongoDB
+instances.
+
+Backup HTTP Server
+``````````````````
+
+The HTTP server runs on port 8081 by default. The Backup HTTP Server
+contains a set of web services used by the backup agent. The agent
+retrieves its configuration from this service. The agent also sends
+back initial sync and oplog data through this interface. There is no
+user interaction with this service.
+
+Backup Alert Service
+````````````````````
+
+The Backup Alert Service watches the state of all agents, heads, and
+snapshots. It will send email alerts when problems are found.
+
+Backup Daemon Package (Back-end)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Daemon is the only component found in the Backup Daemon
+package. The Backup Daemon manages all heads and snapshots. The daemon
+does scheduled work based on data coming in to the Backup HTTP server
+from the backup agents. No client applications talk directly to the
+daemon. Its state and job queues come from the MMS Metadata Database.
+
+The deamon creates the heads on its local disk, in a configured
+path. If there are multiple servers running the daemon, new incoming
+backups will be assigned to an appropriate deamon and that backup's
+head will live with that deamon.
+
+The deamon will take scheduled snapshots and stores those snapshots in
+the Snapshot Storage (also known as the Blockstore). It will also act
+on restore requests by retrieving data from the Blockstore and
+delivering it to the requested destination.
+
+Multiple Backup Deamons can be run to scale MMS horizontally, but each
+replica will be bound to a particular deamon.
+
+Data Storage
+~~~~~~~~~~~~
+
+All data about the state of the MMS service, and the backup snapshot
+data, is persisted in MongoDB databases. These databases are not part
+of the MMS package installation. They must be set up separately and
+their location provided in the MMS configuration files.
+
+MMS Metadata Database
+`````````````````````
+
+This database will contain MMS users, groups, hosts, monitoring data,
+backup state, etc. All of this metadata should be relatively small in
+size (less than 1GB per monitored/backed up server) but will be
+updated frequently. It is highly recommended that this database be
+configured as a replica set to provide durability and automatic
+failover from the MMS service.
+
+Snapshot Storage (Blockstore Database)
+``````````````````````````````````````
+
+This database will contain all snapshots of databases being backed up
+and oplogs that are being retained for point in time restores. It is
+expected to be very large in disk size, but proportional to the size
+of the databases that are being backed up. The Blockstore should also
+be configured as a replica set to provide durability and automatic
+failover to the backup and restore components.
