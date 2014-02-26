@@ -7,16 +7,16 @@
 Summary
 -------
 
-A lightweight agent runs within your infrastructure and connects to
+A lightweight backup agent runs within your infrastructure and connects to
 the configured MongoDB instances. Using the same mechanism as
-replication the agent will perform an initial sync and then tail the
+replication, the agent performs an initial sync then tails the
 oplog of a replica set’s primary. For a sharded cluster, the backup
-agent will tail the primary of each shard and each config
-server. Instead of acting as another local secondary the agent ships
+agent tails the primary of each shard and each config
+server. Instead of acting as another local secondary, the agent ships
 initial sync and oplog data over HTTPS back to the MMS service.
 
-The MMS service recreates every replica set that you backup up and
-apply the oplog entries that the backup agents send. MMS then
+The MMS service recreates every replica set you back up and
+applies the oplog entries the backup agents send. MMS then
 maintains a standalone MongoDB database on disk for each backed up
 replica set (i.e. a "head"). Each head is consistent with the original
 primary up to the last oplog supplied by the agent. The original
@@ -24,28 +24,32 @@ replica set, or sharded cluster, has no knowledge of this
 secondary. The initial sync and tailing of the oplog are all done
 using standard MongoDB queries.
 
-The service will take scheduled snapshots of all heads and retain
+The service takes scheduled snapshots of all heads and retains
 those snapshots based on a user-defined policy. Replica set snapshots
-are triggered based on an observed a change in oplog time. Sharded
-clusters snapshots done by temporarily stopping the balancer via the
-mongos and inserting a marker token into all shards and config
-servers. MMS will take a snapshot when the marker tokens are seen.
+trigger based on an observed a change in oplog time. Sharded
+clusters snapshots temporarily stop the balancer via the
+``mongos`` and insert a marker token into all shards and config
+servers. MMS takes a snapshot when the marker tokens appear.
 
-Snapshot data is compressed and block-level deduplication technology
-is applied, allowing only the differences between successive snapshots
-to be stored. This allows many snapshots to be stored with a fraction
-of the disk space required for full snapshots.
+Compression and block-level deduplication technology reduces snapshot data
+size. The snapshot only stores the differences between successive snapshots.
+Snapshots use only a fraction of the disk space required for full snapshots.
 
 Restores of specific snapshots and point in time restores are both
-available for replica sets (clusters must be restored to a snapshot
-time for consistency). A snapshot restore will be read directly from
-Snapshot Storage and can be delivered via an HTTPS download link
-(pull) or by the MMS service sending the files via SSH (push). A point
-in time restore is accomplished by first doing a local restore of a
+available for replica sets. Clusters restore from a snapshot time for consistency.
+
+A snapshot restore reads directly from
+Snapshot Storage and transfers files via an HTTPS download link
+(pull) or by the MMS service sending files via SSH (push).
+
+A point
+in time restore first creates a local restore of a
 snapshot from the blockstore. After the MMS service has the snapshot
-locally it can apply stored oplogs until the desired point in
-time. The service can then deliver the point in time backup via the
-same HTTPS or SSH mechanisms. The amount of oplog to keep per backup
+locally it applies stored oplogs until the desired point in
+time. The service then delivers the point in time backup via the
+same HTTPS or SSH mechanisms.
+
+The amount of oplog to keep per backup
 is configurable and affects the time window available for point in
 time restores.
 
@@ -55,12 +59,12 @@ Components
 MMS Package (Front-end)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The front-end package contains the UI that the end user interacts with
-and various HTTPS services used by the monitoring and backup agents to
-transmit data to and from MMS. All three of these components are
-started automatically when the front-end MMS package is started. These
-components themselves are stateless. Multiple instances of the
-front-end package can be running as long as they have the same
+The front-end package contains the UI the end user interacts with, as well as 
+HTTPS services used by the monitoring agent and backup agent to
+transmit data to and from MMS. All three components 
+start automatically when the front-end MMS package starts. These
+components are stateless. Multiple instances of the
+front-end package can run as long as each instance has the same
 configuration. Users and agents can interact with any instance.
 
 MMS HTTP Server
@@ -88,54 +92,59 @@ Backup Alert Service
 ````````````````````
 
 The Backup Alert Service watches the state of all agents, heads, and
-snapshots. It will send email alerts when problems are found.
+snapshots. It sends email alerts as problems occur.
 
 Backup Daemon Package (Back-end)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Daemon is the only component found in the Backup Daemon
+The Backup Daemon is the only component in the Backup Daemon
 package. The Backup Daemon manages all heads and snapshots. The daemon
 does scheduled work based on data coming in to the Backup HTTP server
 from the backup agents. No client applications talk directly to the
 daemon. Its state and job queues come from the MMS Metadata Database.
 
-The deamon creates the heads on its local disk, in a configured
-path. If there are multiple servers running the daemon, new incoming
-backups will be assigned to an appropriate deamon and that backup's
-head will live with that deamon.
+The daemon creates the heads on its local disk in a configured
+path. If multiple servers run the daemon, an appropriate daemon picks up 
+a new incoming backup and that backups' head will live with that daemon.
 
 The deamon will take scheduled snapshots and stores those snapshots in
 the Snapshot Storage (also known as the Blockstore). It will also act
 on restore requests by retrieving data from the Blockstore and
 delivering it to the requested destination.
 
-Multiple Backup Deamons can be run to scale MMS horizontally, but each
-replica will be bound to a particular deamon.
+Multiple Backup Daemons can scale MMS horizontally with each
+replica bound to a particular Daemon.
 
 Data Storage
 ~~~~~~~~~~~~
 
 All data about the state of the MMS service, and the backup snapshot
-data, is persisted in MongoDB databases. These databases are not part
-of the MMS package installation. They must be set up separately and
-their location provided in the MMS configuration files.
+data, persists in MongoDB databases. These databases are not part
+of the MMS package installation. Set up these databases separately with their 
+location recorded in the MMS configuration files.
 
 MMS Metadata Database
 `````````````````````
 
 This database will contain MMS users, groups, hosts, monitoring data,
-backup state, etc. All of this metadata should be relatively small in
+backup state, etc. This metadata should be small in
 size (less than 1GB per monitored/backed up server) but will be
-updated frequently. It is highly recommended that this database be
+updated frequently. It is highly recommended this database be
 configured as a replica set to provide durability and automatic
 failover from the MMS service.
 
 Snapshot Storage (Blockstore Database)
 ``````````````````````````````````````
 
-This database will contain all snapshots of databases being backed up
-and oplogs that are being retained for point in time restores. It is
-expected to be very large in disk size, but proportional to the size
-of the databases that are being backed up. The Blockstore should also
-be configured as a replica set to provide durability and automatic
+This database contains all snapshots of databases backed up
+and oplogs retained for point in time restores. It is
+expected to be large in disk size, but proportional to the size
+of the backed up databases. Configure the Blockstore 
+as a replica set to provide durability and automatic
 failover to the backup and restore components.
+
+Further Reading
+---------------
+
+.. seealso:: :doc:`/backup`
+.. seealso:: :doc:`/backup/faq`
