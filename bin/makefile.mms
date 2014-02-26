@@ -21,10 +21,11 @@ generate-source:generate-source-hosted generate-source-saas
 generate-source-hosted:
 	@mkdir -p $(hosted-source-dir)
 	@rsync --recursive --times --delete source/ $(hosted-source-dir)/
-	@rm -rf $(hosted-source-dir)/includes/toc/dfn-list-mms-landing-saas.rst
-	@rm -rf $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
-	@rm -rf $(hosted-source-dir)/includes/toc/mms-landing-saas.*
-	@rm -rf $(hosted-source-dir)/includes/toc/spec-mms-landing-saas.yaml
+	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-mms-landing-saas.rst
+	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
+	@rm -f $(hosted-source-dir)/includes/toc/mms-landing-saas.*
+	@rm -f $(hosted-source-dir)/includes/toc/spec-mms-landing-saas.yaml
+	@cp $(hosted-source-dir)/includes/toc/dfn-list-spec-backup-landing.rst $(hosted-source-dir)/includes/toc/dfn-list-backup-landing.rst
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%\/monitoring/tutorial/install-monitoring-server%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYJETTYHTTPS%\/monitoring/tutorial/configure-jetty-https%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THINGTHING%|monitoring|%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
@@ -47,7 +48,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@rm -f $(saas-source-dir)/backup/on-prem.txt
 	@rm -f $(saas-source-dir)/backup/requirements.txt
-	@rm -f $(saas-source-dir)/backup/install-on-prem-backup-server.txt
+	@rm -f $(saas-source-dir)/backup/tutorial/install-on-prem-backup-server.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' $(saas-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt
