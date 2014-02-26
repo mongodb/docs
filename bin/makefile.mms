@@ -25,6 +25,7 @@ generate-source-hosted:
 	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
 	@rm -f $(hosted-source-dir)/includes/toc/mms-landing-saas.*
 	@rm -f $(hosted-source-dir)/includes/toc/spec-mms-landing-saas.yaml
+	@fab generate.toc
 	@cp $(hosted-source-dir)/includes/toc/dfn-list-spec-backup-landing.rst $(hosted-source-dir)/includes/toc/dfn-list-backup-landing.rst
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%\/monitoring/tutorial/install-monitoring-server%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYJETTYHTTPS%\/monitoring/tutorial/configure-jetty-https%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
