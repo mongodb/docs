@@ -20,3 +20,6 @@ Follow these steps for high availability:
 #. Edit the ``conf-mms.properties`` file on each MMS app server to deﬁne the
    replication hosts for the backing MongoDB.
 
+#. Synchronize the ``/etc/mongodb-mms/gen.key`` file across all application
+   servers. Starting with OnPrem 1.3, the application uses this file to encrypt
+   sensitive information before storing the data in a database.
