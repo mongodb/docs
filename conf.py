@@ -3,7 +3,9 @@
 # MongoDB documentation build configuration file, created by
 # sphinx-quickstart on Fri Sep 23 17:07:35 2011.
 
-import sys, os
+import sys
+import os
+import datetime
 
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(project_root)
@@ -39,7 +41,7 @@ templates_path = ['templates']
 source_suffix = '.txt'
 master_doc = 'index'
 
-copyright = u'2011-2013, MongoDB, Inc.'
+copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
 version = conf.version.branch
 release = "Upcoming"
@@ -58,6 +60,26 @@ extlinks = {
     'about': ('http://www.mongodb.org/about%s', '')
 }
 
+languages = [
+    ("ar", "Arabic"),
+    ("cn", "Chinese"),
+    ("cs", "Czech"),
+    ("de", "German"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("hu", "Hungarian"),
+    ("id", "Indonesian"),
+    ("it", "Italian"),
+    ("jp", "Japanese"),
+    ("ko", "Korean"),
+    ("lt", "Lithuanian"),
+    ("pl", "Polish"),
+    ("pt", "Portuguese"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
+    ("tr", "Turkish"),
+    ("uk", "Ukrainian")
+]
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -77,6 +99,7 @@ html_theme_options = {
     'google_analytics': 'UA-7301842-7',
     'stable': conf.version.stable,
     'project': conf.project.name,
+    'translations': languages,
 }
 
 hosted_latex_documents = []
