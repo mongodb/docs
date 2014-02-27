@@ -107,6 +107,7 @@ if tags.has('hosted'):
     rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
     html_theme_options['edition'] = 'hosted'
+    html_theme_options['sitename'] = 'MMS On-Prem Docs'
 
     if release == "Upcoming":
         rst_epilog.append(".. |release-string| replace:: \   ")
@@ -131,6 +132,7 @@ else:
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
     rst_epilog.append(".. |release-string| replace:: \   ")
     html_theme_options['edition'] = 'saas'
+    html_theme_options['sitename'] = 'MMS Docs'
 
 rst_epilog = '\n'.join(rst_epilog)
 
