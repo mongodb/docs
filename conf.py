@@ -156,6 +156,7 @@ html_theme_options = {
     'version_selector': get_versions(conf),
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
+    'nav_excluded': sconf.theme.nav_excluded,
 }
 
 html_sidebars = sconf.sidebars
