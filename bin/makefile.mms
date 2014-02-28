@@ -31,7 +31,6 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYJETTYHTTPS%\/monitoring/tutorial/configure-jetty-https%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THINGTHING%|monitoring|%' $(hosted-source-dir)/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-dfn-list%.. include:: /includes/toc/dfn-list-spec-management-landing-hosted.rst%' $(hosted-source-dir)/management.txt
-	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-toc%.. include:: /includes/toc/management-landing-permissions-hosted.rst%' $(hosted-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%hosted%' $(hosted-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::%%' $(hosted-source-dir)/monitoring/tutorial.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-hosted.rst%' $(hosted-source-dir)/index.txt
