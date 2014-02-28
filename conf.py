@@ -17,8 +17,9 @@ from bootstrap import buildsystem
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
 
-from utils import ingest_yaml, ingest_yaml_list
-from docs_meta import get_conf, get_versions, get_manual_path
+from utils.serialization import ingest_yaml, ingest_yaml_list
+from utils.config import get_conf
+from utils.project import get_versions, get_manual_path
 
 conf = get_conf()
 pdfs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'pdfs.yaml'))
