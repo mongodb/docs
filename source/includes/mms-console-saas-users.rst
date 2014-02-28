@@ -66,8 +66,7 @@ modal window where you can select the user's role.
 Remove Users
 ````````````
 
-You can remove users from groups from the :guilabel:`Users` tab by
-clicking on the ":guilabel:`garbage can`" icon in the last column.
+.. include:: /includes/fact-remove-user.rst
 
 Requests
 ~~~~~~~~
