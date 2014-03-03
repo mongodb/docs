@@ -1,6 +1,6 @@
-Users must have the :authaction:`changeOwnPassword` :ref:`action
-<security-user-actions>` on their databases to change their own passwords.
-
-A user with the :authaction:`changeAnyPassword` :ref:`action
-<security-user-actions>` on a database can modify the password of any user on
+You must have the :authaction:`changeAnyPassword` :ref:`action
+<security-user-actions>` on a database to modify the password of any user on
 that database.
+
+You must have the :authaction:`changeOwnPassword` :ref:`action
+<security-user-actions>` on your database to change your own password.
