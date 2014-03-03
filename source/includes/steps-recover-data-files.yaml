@@ -1,6 +1,6 @@
-ref: recover-data-files-run-mongodump-once-per-db
+ref: run-mongodump
 stepnum: 1
-title: Run ``mongodump`` once for each database to recover
+title: Run :program:`mongodump` for each database to recover.
 action:
    - pre: |
         If the database used the :option:`--directoryperdb` option, run the
@@ -14,34 +14,38 @@ action:
      code: |
         mongodump --journal --dbpath /data/db --repair -d users -o /data/recovery > /data/recovery/users.log
 ---
-ref: recover-data-files-verify-recovered-files-exist
+ref: verify
 stepnum: 2
-title: Verify the new files contain recovered documents
+title: Verify the new files contain recovered documents.
 pre: |
    Examine ``/data/recovery/users.log`` to determine how many documents
    :program:`mongodump` recovered.
 ---
-ref: recover-data-files-create-new-mongodb-node
+ref: create-new-mongodb-node
 stepnum: 3
-title: Create MongoDB node with ``mongorestore``
+title: Create a new MongoDB node.
 pre: |
-   In this example the new data directory is ``/data/db2``.
+    Use :program:`mongorestore` to create a new data directory. For
+    example, the following command restores data to the new data directory
+    ``/data/db2``.
 action:
    language: sh
    code: |
       mongorestore --dbpath /data/db2 /data/recovery
 ---
-ref: recover-data-files-test-data-files
+ref: test
 stepnum: 4
-title: Test the data files on a standalone ``mongod``
+title: Test the data files on a standalone ``mongod``.
 action:
-   - pre: 
+   - pre: |
+        Start the :program:`mongod` with with a ``dbpath`` pointing to the
+        recovered data. For example:
      language: sh
      code: |
         mongod --dbpath /data/recovery/
    - pre: |
         If the repair has removed data, the number of documents in the
-        collection will be lower than it had been previously.  From the
+        collection will be lower than it had been previously. From the
         :program:`mongo` shell, verify the number of documents in each collection:
      language: javascript
      code: |
@@ -50,17 +54,17 @@ action:
 post: |
    Perform other application-specific tests in a staging environment as
    needed. If the data files are correct, delete or archive the
-   ``/data/recovery`` directory, and *do not proceed with any further
+   ``/data/recovery`` directory and *do not proceed with any further
    recovery efforts*.
 ---
-ref: recover-data-files-use-repair-option-and-repairpath
+ref: repair
 stepnum: 5
-title: Use ``--repair`` and ``--repairpath``
+title: Repair the data.
 pre: |
    If :program:`mongodump` failed to recover the data files, use
    :program:`mongod` with the :option:`--repair <mongod --repair>` and
    :option:`--repairpath <mongod --repairpath>` options to create a new
-   data directory with a repaired set of data files.  Specify a new
+   data directory with a repaired set of data files. Specify a new
    directory to receive the repaired data files:
 action:
    language: sh
@@ -73,21 +77,21 @@ post: |
    .. warning::
 
       :option:`--repair <mongod --repair>` removes the invalid parts of
-      data files. *You can lose data as part of the recovery process.*
+      data files. You can lose data as part of the recovery process.
       Under some circumstances, :option:`--repair <mongod --repair>`
       may remove the majority of data in the data file. Without the
       :option:`--repairpath <mongod --repairpath>` option, the new
       data files permanently overwrite the old.
 ---
-ref: recover-data-files-test-data-files
+ref: test-data-files
 stepnum: 6
-title: Test the data files
+title: Test the data files.
 pre: |
    Test the data files using the procedure outlined above.
 ---
-ref: recover-data-files-use-files-normally
+ref: use-files-normally
 stepnum: 7
-title: Use the recovered files normally
+title: Use the recovered files normally.
 pre: |
    Start :program:`mongod` with :setting:`dbpath` pointing to the new directory:
 action:
@@ -95,4 +99,3 @@ action:
    code: |
       mongod --dbpath <newpath>
 ...
-   

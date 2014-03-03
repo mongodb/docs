@@ -11,54 +11,26 @@ Detect Invalid Data Files
 Overview
 --------
 
-Any deployment may suffer hardware failure, power failure, networking
-failure, or some other interruption that may damage data files. MongoDB
-provides a range of features, including :term:`replica sets <replica
-set>` and :term:`journaling <journal>`, to make recovery from those events
-quick and complete.
+If you have an interruption, such as a power failure, you must assume your
+data files are in an invalid state. This section describes how to check
+whether a :program:`mongod` instance shut down cleanly and how to test
+data integrity.
 
-If you are *not* running a replica set, it may not be possible to
-recover all the data stored in damaged data files. But even in this
-case it is possible to remove the damaged portions of your data files,
-and make them able to support application queries.
+To recover data that has been corrupted, see
+:doc:`/tutorial/recover-data`.
 
-If you are *not* running a replica set, and suspect that some of your
-data files might be invalid, use the procedures described here and
-in :doc:`/tutorial/recover-data` to help recover some of your data.
+.. note:: The best way to avoid data loss and ensure the most robust
+   deployments is to follow the recommendations in
+   :doc:`maintain-valid-data-files`.
 
-The best way to avoid data loss and ensure the most
-robust deployments is to follow the recommendations in
-:doc:`maintain-valid-data-files`.
+Procedures
+----------
 
-See also
-:doc:`/core/backups` and
-:doc:`/administration/backup` for more information on preventing data loss. Also see
-:doc:`/core/replication`,
-:doc:`/core/journaling`, and
-:doc:`/tutorial/manage-journaling`.
+Detect an Unclean Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Considerations
---------------
-
-Data recovery on a single unjournaled :program:`mongod` instance
-is more difficult than data recovery on a journaled replica set,
-and may recover less data.
-
-Procedure
----------
-
-Select the procedure that matches the :program:`mongod` configuration
-that used the data files you want to recover:
-
-With no Journal Enabled
-~~~~~~~~~~~~~~~~~~~~~~~
-
-When a :program:`mongod` instance does not run with journaling enabled
-and shuts down uncleanly, you must assume the data files are in an
-invalid state.
-
-To confirm that a :program:`mongod` instance shut down uncleanly, look for the
-following indicators:
+To detect whether a :program:`mongod` instance shutdown cleanly, look for
+the following indicators:
 
 - a ``mongod.lock`` non-zero-length file in the data directory.
 
@@ -68,16 +40,19 @@ following indicators:
 
      Unclean shutdown detected.
 
-With a Journal Enabled
-~~~~~~~~~~~~~~~~~~~~~~
+These indicate an unclean shutdown, in which case you must assume data
+files are invalid.
 
-When a :program:`mongod` instance runs with journaling enabled
-and shuts down uncleanly, or if you suspect invalid data
-files, test the integrity of any single collection with the
-:method:`db.collection.validate()` method.
+Test Data Integrity
+~~~~~~~~~~~~~~~~~~~
 
-Test the integrity of the ``people`` collection using the following
-command from the :program:`mongo` shell:
+This procedure applies only if the :program:`mongod` instance runs with
+:term:`journaling <journal>` enabled. To test data integrity, use either
+the :method:`db.collection.validate()` method or :dbcommand:`validate`
+command.
+
+For example, to test the integrity of the ``people`` collection, use the
+following command from the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -111,3 +86,15 @@ If the collection is invalid, the output of
       "ok" : 1
    }
 
+Related Documents
+-----------------
+
+- :doc:`maintain-valid-data-files`
+
+- :doc:`/tutorial/recover-data`
+
+- :doc:`/tutorial/manage-journaling`
+
+- :doc:`/core/backups`
+
+- :doc:`/administration/backup`
