@@ -7,36 +7,41 @@ Journaling Mechanics
 .. default-domain:: mongodb
 
 When running with journaling, MongoDB stores and applies :doc:`write
-operations </core/write-operations>` in memory and in the journal
-before the changes are in the data files. This document discusses the
-implementation and mechanics of Journaling in MongoDB systems, see
+operations </core/write-operations>` in memory and in the on-disk journal
+before the changes are present in the data files on disk. This document discusses the
+implementation and mechanics of journaling in MongoDB systems.  See
 :doc:`/tutorial/manage-journaling`
-for information on configuring, tuning and managing journaling.
+for information on configuring, tuning, and managing journaling.
 
 .. _journaling-journal-files:
 
 Journal Files
 -------------
 
-With journaling enabled, MongoDB creates a journal directory within
+With journaling enabled, MongoDB creates a journal subdirectory within
 the directory defined by :setting:`dbpath`, which is :file:`/data/db`
 by default. The journal directory holds journal files, which contain
 write-ahead redo logs. The directory also holds a last-sequence-number
 file. A clean shutdown removes all the files in the journal directory.
+A dirty shutdown (crash) leaves files in the journal directory; these are
+used to automatically recover the database to a consistent state when
+the mongod process is restarted.
 
 Journal files are append-only files and have file names prefixed with
 ``j._``. When a journal file holds 1 gigabyte of data, MongoDB creates
-a new journal file. Once MongoDB applies all the write operations in
-the journal files, it deletes these files. Unless you
-write *many* bytes of data per-second, the journal directory should
+a new journal file. Once MongoDB applies all the write operations in a
+particular journal file to the database data files, it deletes the file, as 
+it is no longer needed for recovery purposes. Unless you
+write *many* bytes of data per second, the journal directory should
 contain only two or three journal files.
 
-To limit the size of each journal file to 128 megabytes, use the
-:setting:`smallfiles` run time option when starting :program:`mongod`.
+You can use the
+:setting:`smallfiles` run time option when starting :program:`mongod` 
+to limit the size of each journal file to 128 megabytes, if you prefer.
 
 To speed the frequent sequential writes that occur to the current
 journal file, you can ensure that the journal directory is on a
-different filesystem.
+different filesystem from the database data files.
 
 .. important::
 
@@ -67,23 +72,24 @@ To avoid preallocation lag, see :ref:`journaling-avoid-preallocation-lag`.
 Storage Views used in Journaling
 --------------------------------
 
-Journaling adds three storage views to MongoDB.
+Journaling adds three internal storage views to MongoDB.
 
 The ``shared view`` stores modified data for upload to the MongoDB
 data files. The ``shared view`` is the only view with direct access
 to the MongoDB data files. When running with journaling, :program:`mongod`
 asks the operating system to map your existing on-disk data files to the
-``shared view`` memory view. The operating system maps the files but
-does not load them. MongoDB later loads data files to ``shared view`` as
+``shared view`` virtual memory view. The operating system maps the files but
+does not load them. MongoDB later loads data files into the ``shared view`` as
 needed.
 
-The ``private view`` stores data for use in :doc:`read operations
-</core/read-operations>`. MongoDB maps ``private view`` to the ``shared view``
-and is the first place MongoDB applies new :doc:`write operations
-</core/write-operations>`.
+The ``private view`` stores data for use with :doc:`read operations
+</core/read-operations>`.  The ``private view`` is the first place MongoDB applies new :doc:`write operations
+</core/write-operations>`. Upon a journal commit, MongoDB copies the changes made 
+in the ``private view`` to the ``shared view``, where they are then available for
+uploading to the database data files.
 
 The journal is an on-disk view that stores new write operations
-after MongoDB applies the operation to the ``private cache`` but
+after MongoDB applies the operation to the ``private view`` but
 before applying them to the data files. The journal provides durability.
 If the :program:`mongod` instance were to crash without having applied
 the writes to the data files, the journal could replay the writes to
@@ -95,22 +101,23 @@ How Journaling Records Write Operations
 ---------------------------------------
 
 MongoDB copies the write operations to the journal in batches called
-group commits. See :setting:`journalCommitInterval` for more
-information on the default commit interval. These "group commits" help
-minimize the performance impact of journaling.
+group commits. These "group commits" help
+minimize the performance impact of journaling, since a group commit must
+block all writers during the commit.  See :setting:`journalCommitInterval` for
+information on the default commit interval.
 
 Journaling stores raw operations that allow MongoDB to reconstruct the
 following:
 
 - document insertion/updates
 - index modifications
-- changes to the namespace files
+- metadata changes to the namespace files
+- creation and dropping of databases and their associated data files
 
 As :doc:`write operations </core/write-operations>` occur, MongoDB
 writes the data to the ``private view`` in RAM and then copies the write
 operations in batches to the journal. The journal stores the operations
-on disk to ensure durability. MongoDB adds the operations as entries on
-the journal's forward pointer. Each entry describes which bytes the
+on disk to ensure durability.  Each journal entry describes the bytes the
 write operation changed in the data files.
 
 MongoDB next applies the journal's write operations to the ``shared
@@ -119,14 +126,18 @@ data files.
 
 At default intervals of 60 seconds, MongoDB asks the operating system to
 flush the ``shared view`` to disk. This brings the data files up-to-date
-with the latest write operations.
+with the latest write operations.  The operating system may choose to
+flush the ``shared view`` to disk at a higher frequency than 60 seconds,
+particularly if the system is low on free memory.
 
-When MongoDB flushes write operations to the data files, MongoDB removes the
-write operations from the journal's behind pointer. The behind pointer
-is always far back from the advanced pointer.
+When MongoDB flushes write operations to the data files, MongoDB notes which
+journal writes have been flushed.  Once a journal file contains only flushed writes, 
+it is no longer needed for recovery, and MongoDB either deletes it or recycles it for a new journal file.
 
 As part of journaling, MongoDB routinely asks the operating system to
-remap the ``shared view`` to the ``private view``, for consistency.
+remap the ``shared view`` to the ``private view``, in order to save physical RAM.
+Upon a new remapping, the operating system knows that physical memory pages can be
+shared between the ``shared view`` and the ``private view`` mappings.
 
 .. note::
 
