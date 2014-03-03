@@ -1,6 +1,6 @@
 .. target-non-admin-source
 
-If the source database is not the ``admin`` database, the user must
+If the source database is not the ``admin`` database, you must
 have privileges that specify :authaction:`insert` and
 :authaction:`createIndex` actions on the target database, and
 :authaction:`insert` action on the ``system.js`` collection in the
@@ -13,7 +13,7 @@ target database. For example:
 
 .. target-admin-source
 
-If the source database is the ``admin`` database, the user must have
+If the source database is the ``admin`` database, you must have
 privileges that specify :authaction:`insert` and
 :authaction:`createIndex` actions on the target database, and
 :authaction:`insert` action on the ``system.js``, ``system.users``,
@@ -30,7 +30,7 @@ database. For example:
 
 .. source-not-admin
 
-If the source database is a non-``admin`` database, the user must have
+If the source database is a non-``admin`` database, you must have
 privileges that specify :authaction:`find` action on the source
 database, and :authaction:`find` action on the ``system.js`` collection
 in the source database. For example:
@@ -40,7 +40,7 @@ in the source database. For example:
    { resource: { db: "mySourceDB", collection: "" }, actions: [ "find" ] }
    { resource: { db: "mySourceDB", collection: "system.js" }, actions: [ "find" ] }
 
-If the source database is on a remote server, the user also needs the
+If the source database is on a remote server, you also need the
 :authaction:`find` action on the ``system.indexes`` and
 ``system.namespaces`` collections in the source database; e.g.
 
@@ -51,7 +51,7 @@ If the source database is on a remote server, the user also needs the
 
 .. source-admin
 
-If the source database is the ``admin`` database, the user must have
+If the source database is the ``admin`` database, you must have
 privileges that specify :authaction:`find` action on the ``admin``
 database, and :authaction:`find` action on the ``system.js``,
 ``system.users``, ``system.roles``, and ``system.version`` collections
@@ -65,7 +65,7 @@ in the ``admin`` database. For example:
    { resource: { db: "admin", collection: "system.roles" }, actions: [ "find" ] }
    { resource: { db: "admin", collection: "system.version" }, actions: [ "find" ] }
 
-If the source database is on a remote server, the user also needs the
+If the source database is on a remote server, the you also need the
 :authaction:`find` action on the ``system.indexes`` and
 ``system.namespaces`` collections in the ``admin`` database; e.g.
 
