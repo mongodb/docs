@@ -1,0 +1,142 @@
+=======
+Storage
+=======
+
+.. default-domain:: mongodb
+
+Data Model
+----------
+
+MongoDB stores data in the form of :term:`BSON` documents, which are
+rich mappings of keys, or field names, to values. BSON supports a rich
+collection of types, and fields in BSON documents may hold arrays of
+values or embedded documents. All documents in MongoDB must be less
+than 16MB, which is the :limit:`BSON document size <BSON Document Size>`.
+
+Every document in MongoDB is stored in a *record* which contains the
+document itself and extra space, or :term:`padding`, which allows the
+document to grow as the result of updates.
+
+All records are contiguously located on disk, and when a document
+becomes larger than the allocated record, MongoDB must allocate a new
+record. New allocations require MongoDB to move a document and update
+all indexes that refer to the document, which takes more time than
+in-place updates and leads to storage
+fragmentation.
+
+All records are part of a :term:`collection`, which is a logical
+grouping of documents in a MongoDB database. The documents in a
+collection share a set of indexes, and typically these documents share
+common fields and structure.
+
+In MongoDB the :term:`database` construct is a group of related
+collections. Each database has a distinct set of data files and can
+contain a large number of collections. Also, each database has one
+distinct write lock, that blocks operations to the database
+during write operations. A single MongoDB deployment may have many
+databases.
+
+Journal
+-------
+
+In order to ensure that all modifications to a MongoDB data set are
+durably written to disk, MongoDB records all modifications to a
+journal that it writes to disk more frequently than it writes the data
+files. The journal allows MongoDB to successfully recover
+data from data files after a :program:`mongod` instance exits without
+flushing all changes.
+
+See :doc:`/core/journaling` for more information about the journal in
+MongoDB.
+
+Record Allocation Strategies
+----------------------------
+
+MongoDB supports multiple record allocation strategies that determine
+how :program:`mongod` adds padding to a document when creating a
+:term:`record`. Because documents in MongoDB may grow after insertion
+and all records are contiguous on disk, the padding can reduce the
+need to relocate documents on disk following updates. Relocations are
+less efficient than in-place updates, and can lead to storage
+fragmentation. As a result, all padding strategies trade additional
+space for increased efficiency and decreased fragmentation.
+
+Different allocation strategies support different kinds of workloads:
+the :ref:`power of 2 allocations <power-of-2-allocation>` are more
+efficient for insert/update/delete workloads; while :ref:`exact fit
+allocations <exact-fit-allocation>` is ideal for collections *without*
+update and delete workloads.
+
+.. _power-of-2-allocation:
+
+Power of 2 Sized Allocations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+   For all new collections, :collflag:`usePowerOf2Sizes` became the
+   default allocation strategy. To change the default allocation strategy, use
+   the :parameter:`newCollectionsUsePowerOf2Sizes` parameter.
+
+:program:`mongod` uses an allocation strategy called
+:collflag:`usePowerOf2Sizes` where each record has a size in bytes
+that is a power of 2 (e.g. 32, 64, 128, 256, 512...16777216.) The
+smallest allocation for a document is 32 bytes. The power of 2 sizes
+allocation strategy has two key properties: 
+
+- there are a limited number of record allocation sizes, which makes
+  it easier for :program:`mongod` to reuse existing allocations, which
+  will reduce fragmentation in some cases.
+
+- in many cases, the record allocations are significantly larger than
+  the documents they hold. This allows documents to grow while
+  minimizing or eliminating the chance that the :program:`mongod` will
+  need to allocate a new record if the document grows.
+
+The :collflag:`usePowerOf2Sizes` strategy does not *eliminate* document
+reallocation as a result of document growth, but it minimizes its
+occurrence in many common operations.
+
+.. _exact-fit-allocation:
+
+Exact Fit Allocation
+~~~~~~~~~~~~~~~~~~~~
+
+The exact fit allocation strategy allocates record sizes based on the
+size of the document and an additional *padding factor*. Each
+collection has its own padding factor, which defaults to ``0`` when you
+insert the first document in a collection, and may grow incrementally
+to ``2`` as as documents grow as a result of updates.
+
+Multiply the size of a document by the padding factor to determine the
+total record size. That is:
+
+.. code-block:: none
+
+   record size = paddingFactor * <document size>.
+
+The size of each record in a collection reflects the size of the
+padding factor at the time of allocation. See the
+:data:`~collStats.paddingFactor` field in the output of
+:method:`db.collection.stats()` to see the current padding factor for
+a collection.
+
+On average, this exact fit allocation strategy uses less storage space
+than the :collflag:`usePowerOf2Sizes` strategy but will result in
+higher levels of storage fragmentation if documents grow beyond the
+size of their initial allocation.
+
+The :dbcommand:`compact` and :dbcommand:`repairDatabase` operations
+remove padding by default, as do the :program:`mongodump` and
+:program:`mongorestore`. :dbcommand:`compact` does allow you to
+specify a padding for records during compaction.
+
+Capped Collections
+------------------
+
+:term:`Capped collections <capped collection>` are fixed-size
+collections that support high-throughput operations that store records
+in insertion order. Capped collections work like circular buffers:
+once a collection fills its allocated space, it makes room for new
+documents by overwriting the oldest documents in the collection.
+
+See :doc:`/core/capped-collections` for more information.
