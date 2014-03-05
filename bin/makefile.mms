@@ -37,6 +37,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@rm -f $(saas-source-dir)/backup/on-prem.txt
 	@rm -f $(saas-source-dir)/backup/requirements.txt
+	@rm -f $(saas-source-dir)/installation.txt
 	@rm -f $(saas-source-dir)/backup/tutorial/install-on-prem-backup-server.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt
