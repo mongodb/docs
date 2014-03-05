@@ -14,7 +14,6 @@ publish-saas:$(publish-output) $(publish-dependency)
 endif
 
 generate-source-hosted:
-	@fab generate.toc
 	@rsync --recursive --times --delete source/ $(hosted-source-dir)
 	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-mms-landing-saas.rst
 	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
