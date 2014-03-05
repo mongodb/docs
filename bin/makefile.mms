@@ -39,6 +39,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/backup/requirements.txt
 	@rm -f $(saas-source-dir)/installation.txt
 	@rm -f $(saas-source-dir)/backup/tutorial/install-on-prem-backup-server.txt
+	@rm -f $(saas-source-dir)/source/management/tutorial/configure-high-avalibility.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-saas.rst%' $(saas-source-dir)/index.txt
