@@ -23,7 +23,7 @@ help:
 ########## MMS Specific Content ##########
 
 hosted saas:setup
-	@$(MAKE) EDITION=$@ generate-source-$@ latex-$@ json-$@ html-$@ dirhtml-$@ singlehtml-$@ build/public/$@/.htaccess
+	@$(MAKE) latex-$@ json-$@ html-$@ dirhtml-$@ singlehtml-$@ build/public/$@/.htaccess
 	@echo [build]: $@ edition complete
 
 build/public/saas/.htaccess:bin/htaccess-saas.yaml $(tools)/bin/htaccess.py
