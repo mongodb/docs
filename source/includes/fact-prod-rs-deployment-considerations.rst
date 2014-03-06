@@ -38,8 +38,6 @@
     (incoming and outgoing packets) on the default MongoDB port (e.g.
     ``27017``) from *within* your deployment is permitted.
 
-  For more information on security and firewalls, see :ref:`replica-set-security`.
-
 - You must specify the run time configuration on each system in a
   :doc:`configuration file </reference/configuration-options>` stored
   in ``/etc/mongodb.conf`` or a related location. *Do not* specify the

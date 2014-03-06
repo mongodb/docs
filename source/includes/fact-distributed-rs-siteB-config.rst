@@ -1,18 +1,18 @@
-a. Issue the following command to determine the
-   :data:`~local.system.replset.members` array position for the member:
+a. View the replica set configuration to determine the
+   :data:`~local.system.replset.members` array position for the member. Keep
+   in mind the array position is not the same as the ``_id``:
 
    .. code-block:: javascript
 
       rs.conf()
 
-#. In the :data:`~local.system.replset.members` array, save the
-   position of the member whose priority you wish to change. The example in
-   the next step assumes this value is ``2``, for the third item
-   in the list. You must record *array position*, not ``_id``, as these
-   ordinals will be different if you remove a member.
+b. Copy the replica set configuration object to a variable (to ``cfg`` in
+   the example below). Then, in the variable, set the correct priority for
+   the member. Then pass the variable to :method:`rs.reconfig()` to update
+   the replica set configuration.
 
-#. In the :program:`mongo` shell connected to the replica set's
-   primary, issue a command sequence similar to the following:
+   For example, to set priority for the third member in the array (i.e.,
+   the member at position 2), issue the following sequence of commands:
 
    .. code-block:: javascript
 
@@ -20,11 +20,8 @@ a. Issue the following command to determine the
       cfg.members[2].priority = 0
       rs.reconfig(cfg)
 
-   When the operations return, ``mongodb2.example.net`` has a priority
-   of 0. It cannot become primary.
-   
    .. note::
-   
+
       The :method:`rs.reconfig()` shell method can force the current
       primary to step down, causing an election. When the primary steps
       down, all clients will disconnect. This is the intended behavior.

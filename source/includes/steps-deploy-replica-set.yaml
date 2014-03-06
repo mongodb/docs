@@ -1,0 +1,104 @@
+title: Start a :program:`mongod` on each system to be part of the replica set.
+stepnum: 1
+ref: start-mongod
+pre: |
+  Specify the same replica set name on each instance.
+action:
+  - pre: |
+      .. include:: /includes/important-unique-replica-set-names.rst
+  - pre: |
+      To specify the replica set name from the command-line, start a
+      :program:`mongod` instance with the :option:`--replSet` option. For
+      additional replica-set options, see :ref:`cli-mongod-replica-set`.
+      The following example specifies a replica set named ``rs0``:
+    language: javascript
+    code: |
+      mongod --dbpath /srv/mongodb/ --port 27017 --replSet "rs0"
+  - pre: |
+      To instead use a configuration file, start each
+      :program:`mongod` instance with a command that resembles the
+      following. Change ``/etc/mongodb.conf`` to the location of your
+      configuration file:
+    language: javascript
+    code: |
+      mongod --config /etc/mongodb.conf
+post: |
+  In production deployments, you can configure a :term:`control script` to
+  manage this process. Control scripts are beyond the scope of this document.
+---
+title: Open a :program:`mongo` shell and connect to one of the hosts.
+stepnum: 2
+ref: open-shell
+action:
+  pre: |
+    For example, to connect to the :program:`mongod` running on the default
+    port ``27017`` on the localhost, simply issue:
+  language: javascript
+  code: |
+    mongo
+---
+title: Initiate the replica set.
+stepnum: 3
+ref: initiate-rs
+action:
+  pre: |
+    Use :method:`rs.initiate()` to initiate a replica set that consists of
+    the current member and that uses the default configuration:
+  language: javascript
+  code: |
+    rs.initiate()
+---
+title: Display the current replica set configuration.
+stepnum: 4
+ref: display-rsconf
+action:
+  - pre: |
+      To display the :doc:`replica configuration </reference/replica-configuration>`, issue:
+    language: javascript
+    code: |
+      rs.conf()
+  - pre: |
+      The replica set configuration object resembles the following:
+    language: javascript
+    code: |
+      {
+         "_id" : "rs0",
+         "version" : 1,
+         "members" : [
+            {
+               "_id" : 1,
+               "host" : "mongodb0.example.net:27017"
+            }
+         ]
+      }
+---
+title: Add the remaining members to the replica set.
+stepnum: 5
+ref: add-remaining-members
+action:
+  pre: |
+    In the :program:`mongo` shell connected to the :term:`primary`, add
+    the remaining members with the :method:`rs.add()` method. The
+    commands should resemble the following:
+  language: javascript
+  code: |
+      rs.add("mongodb1.example.net")
+      rs.add("mongodb2.example.net")
+post: |
+  When complete, you should have a fully functional replica set.
+  The new replica set will elect a :term:`primary`.
+---
+title: Check the status of the replica set.
+stepnum: 6
+ref: check-status
+action:
+  pre: |
+    Use the :method:`rs.status()` operation:
+  language: javascript
+  code: |
+    rs.status()
+post: |
+  For a detailed explanation of read and write semantics in MongoDB, refer
+  to :doc:`Replica Set Read and Write Semantics
+  </applications/replication>`.
+...
