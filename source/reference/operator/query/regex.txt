@@ -73,9 +73,17 @@ $regex
    ``collection`` that match the case insensitive regular expression
    ``acme.*corp`` that *don't* match ``acmeblahcorp``.
 
-   :query:`$regex` can only use an :term:`index <index>` efficiently
-   when the regular expression has an anchor for the beginning (i.e. ``^``)
-   of a string and is a case-sensitive match.  Additionally, while
+   If an index exists for the field, then the regex is matched against the values found in the index.
+   This by itself can already be faster than doing a full table scan. But rather than matching against 
+   *all* the values of the index, an optimization is to match only against a range of values. This
+   optimization is possible if the regex denotes a prefix -- in other words, if all potential matches
+   start with the same string. In this case, MongoDB will construct a range from the prefix and only
+   try to match against values that fall into this range. A regular expression denotes a prefix if it
+   starts with a caret (``^``) or left anchor (``\A``) followed by a string of simple symbols, and is
+   case-sensitive. For example, the regex ``/^abc.*/`` will be optimized by matching only against
+   values from the index that start with ``abc``.
+   
+   Additionally, while
    ``/^a/``, ``/^a.*/``, and ``/^a.*$/`` match equivalent strings, they
    have different performance characteristics. All of these expressions
    use an index if an appropriate index exists; however, ``/^a.*/``,
