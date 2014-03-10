@@ -19,5 +19,5 @@
        members but if no :term:`secondary` members are available,
        operations read from the :term:`primary`.
    * - :readmode:`nearest`
-     - Operations read from the *nearest* member of the :term:`replica
-       set`, irrespective of the member's type.
+     - Operations read from member of the :term:`replica
+       set` with the least network latency, irrespective of the member's type.
