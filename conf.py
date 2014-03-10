@@ -15,6 +15,7 @@ from bootstrap import buildsystem
 sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
 sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
+from utils.structures import BuildConfiguration
 from utils.serialization import ingest_yaml, ingest_yaml_list
 from utils.config import get_conf
 from utils.project import get_versions, get_manual_path, edition_setup
@@ -100,6 +101,7 @@ html_theme_options = {
     'stable': conf.version.stable,
     'project': conf.project.name,
     'translations': languages,
+    'nav_excluded': [ '/monitoring/tutorial/set-up-mms']
 }
 
 hosted_latex_documents = []
