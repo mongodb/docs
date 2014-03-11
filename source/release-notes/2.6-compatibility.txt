@@ -93,10 +93,10 @@ Description
      indexed field value that exceeds the limit.
 
 Solution
-   Run :method:`upgradeCheck()` to find current keys that violate this
+   Run :method:`db.upgradeCheckAllDbs()` to find current keys that violate this
    limit and correct as appropriate. Preferably, run the test before
    upgrading; i.e. connect the 2.6 :program:`mongo` shell to your
-   MongoDB 2.4 database and run the :method:`upgradeCheck`.
+   MongoDB 2.4 database and run the method.
 
 If you have an existing data set and want to disable the default index
 key length validation so that you can upgrade before resolving these
@@ -120,10 +120,10 @@ Description
    Previous versions of MongoDB allow the index.
 
 Solution
-   Run :method:`upgradeCheck()` to find current keys that violate this
+   Run :method:`db.upgradeCheckAllDbs()` to find current keys that violate this
    limit and correct as appropriate. Preferably, run the test before
    upgrading; i.e. connect the 2.6 :program:`mongo` shell to your
-   MongoDB 2.4 database and run the :method:`upgradeCheck`.
+   MongoDB 2.4 database and run the method.
 
 ``ensureIndex`` Errors When Options Differ
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -317,7 +317,7 @@ Solution
 
    - :update:`Unset <$unset>` or :update:`rename <$rename>` existing
      fields with names that contain a dot (``.``) or that start with a
-     dollar sign (``$``). Run :method:`upgradeCheck()` to find fields
+     dollar sign (``$``). Run :method:`db.upgradeCheckAllDbs()` to find fields
      whose names contain a dot or starts with a dollar sign.
 
 See :ref:`rel-notes-write-operations` for all changes to the write
@@ -345,7 +345,7 @@ Solution
 
    - :update:`Unset <$unset>` or :update:`rename <$rename>` existing
      fields with names that contain a dot (``.``) or that start with a
-     dollar sign (``$``). Run :method:`upgradeCheck()` to find fields
+     dollar sign (``$``). Run :method:`db.upgradeCheckAllDbs()` to find fields
      whose names contain a dot or starts with a dollar sign.
 
 .. _2.6-sort-value-incompatibility:
@@ -595,6 +595,48 @@ Description
 .. COMMENT will wait to doc the following in case the resolution
    matches the 2.4 behavior. :query:`$elemMatch` against nested arrays
    - SERVER-12496
+
+Log Messages
+------------
+
+Timestamp Format Change
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+  Each message now starts with the timestamp formatted in
+  ``iso8601-local``, i.e. ``YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>``. For
+  example, ``2014-03-04T20:13:38.944-0500``. Previous versions used
+  ``ctime`` format.
+
+Solution
+  MongoDB adds a new option :option:`--timeStampFormat` which supports
+  timestamp format in :option:`ctime <--timeStampFormat>`,
+  :option:`iso8601-utc <--timeStampFormat>`, and :option:`iso8601-local
+  <--timeStampFormat>` (new default).
+
+.. Commenting out the others for now -- they're just placeholders and notes for self
+.. Other
+   ~~~~~
+   - ``query`` log messages add new field ``planSummary`.
+   - ``getmore`` log messages now omit the ``query`` field.
+   - :program:`mongo` shell now calls :dbcommand:`isMaster` command
+     instead of the ``admin`` command :dbcommand:`replSetGetStatus`
+     during the construction of the shell prompt. Log messages change
+     accordingly, as in the following
+     .. code-block:: none
+        command: { isMaster: 1.0, forShell: 1.0 } keyUpdates:0 numYields:0  reslen:178 0ms
+   - In 2.6, remove operations use the new :dbcommand:`delete` command.
+     For a remove operation, MongoDB now logs a remove message and a
+     ``delete`` command message, as in the following example:
+     .. code-block:: none
+     2014-03-04T21:16:21.992-0500 [conn1] remove test.server12774 query: { a: { $lt: 3.0 } } ndeleted:2 keyUpdates:0 numYields:0 locks(micros) w:344 0ms
+     2014-03-04T21:16:21.993-0500 [conn1] command test.$cmd command: { delete: "myCollection", deletes: [ { q: { a: { $lt: 3.0 } }, limit: 0.0 } ], ordered: true } keyUpdates:0 numYields:0  reslen:40 0ms
+     in shell, no longer automatic getlasterror message
+   - Other write commands
+   - MongoDB removes the two blank lines preceding and following the:
+     ``***** SERVER RESTARTED *****`` message.
+   - ``writeback`` error message and ``FlushViewOfFile`` error message
+     removes the space between the duration time and ``ms``.
 
 .. _2.6-compatibility-other-resources:
 
