@@ -1,0 +1,116 @@
+title: Create the key file to be used by each member of the replica set.
+stepnum: 1
+source:
+  file: steps-generate-key-file.yaml
+  ref: generate
+---
+title: Copy the key file to each member of the replica set.
+stepnum: 2
+ref: copy-key-file
+---
+title: Start each member of the replica set with the appropriate options.
+stepnum: 3
+ref: start-mongod
+pre: |
+  For each member, start a :program:`mongod` and specify the key file and
+  the name of the replica set. Also specify other parameters as needed for
+  your deployment. For replication-specific parameters, see
+  :ref:`cli-mongod-replica-set` required by your deployment.
+action:
+  - pre: |
+      .. include:: /includes/important-unique-replica-set-names.rst
+  - pre: |
+      The following example specifies parameters through the :option:`--keyFile`
+      and :option:`--replSet` command-line options:
+    language: javascript
+    code: |
+      mongod --keyFile /mysecretdirectory/keyfile --replSet "rs0"
+  - pre: |
+      The following example specifies parameters through a configuration file:
+    language: javascript
+    code: |
+      mongod --config $HOME/.mongodb/config
+post: |
+  In production deployments, you can configure a :term:`control script` to
+  manage this process. Control scripts are beyond the scope of this document.
+---
+title: Connect to one of the replica set members.
+stepnum: 4
+pre: |
+  Connect through the :ref:`localhost exception <localhost-exception>`.
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: open-shell
+---
+stepnum: 5
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: initiate-rs
+---
+stepnum: 6
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: verify-rsconf
+---
+stepnum: 7
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: add-remaining-members
+---
+stepnum: 8
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: check-status
+---
+title: Connect to MongoDB with the privileges needed to create a user administrator.
+stepnum: 9
+source:
+  file: steps-connect-with-admin-privileges.yaml
+  ref: connect
+pre: |
+  Connect to the replica set :term:`primary`.
+---
+stepnum: 10
+source:
+  file: steps-connect-with-admin-privileges.yaml
+  ref: verify-privileges
+---
+stepnum: 11
+source:
+  file: steps-add-user-administrator.yaml
+  ref: create-user-admin
+---
+title: Create additional users to meet your operational needs.
+stepnum: 12
+ref: create-additional-users
+pre: |
+  You can use :doc:`built-in roles </reference/built-in-roles>` to create
+  common types of database users, such as the :authrole:`dbAdmin` role to
+  create a database administrator, the :authrole:`readWrite` role to
+  create a user who can update data, or the :authrole:`read` role to
+  create user who can search data but no more. <user-defined-roles>`. You
+  also can define :ref:`custom roles <user-defined-roles>`.
+action:
+  pre: |
+    For example, the following creates a database administrator for the
+    ``products`` database:
+  language: javascript
+  code: |
+    db.createUser(
+      {
+        user: "productsDBAdmin",
+        pwd: "password",
+        roles:
+        [
+          {
+            role: "dbAdmin",
+            db: "products"
+          }
+        ]
+      }
+    )
+post: |
+  For an overview of roles and privileges, see :ref:`authorization`. For
+  more information on adding users, see
+  :doc:`/tutorial/add-user-to-database`.
+...

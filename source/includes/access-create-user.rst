@@ -5,3 +5,7 @@ database.
 You must have the :authaction:`grantRole` :ref:`action
 <security-user-actions>` on a role's database to grant the role to another
 user.
+
+If you have the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
+role, or if you are authenticated using the :ref:`localhost exception
+<localhost-exception>`, you have those actions.
