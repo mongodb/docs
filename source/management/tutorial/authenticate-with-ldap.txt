@@ -5,16 +5,21 @@ LDAP Authentication
 Overview
 --------
 
-Authentication of users for the |mms| includes Lightweight Directory Access
-Protocol (LDAP) integration. Login occurs in the standard MMS interface. After
-successful LDAP authentication, MMS synchronizes the ``firstName``,
-``lastName``, and ``email`` attributes in a user LDAP record with their MMS
-user record.
+|mms| can use a Lightweight Directory Access Protocol (LDAP) service to
+authenticate. Login occurs in the standard MMS interface. After successful LDAP
+authentication, MMS synchronizes the ``firstName``, ``lastName``, and ``email``
+attributes in a LDAP user record with their MMS user record. Integration
+requires adding LDAP user record values in the MMS configuration file.
 
-Upon login, MMS searches for a matching LDAP user record with the attributes
-defined for the MMS ``baseDn`` and ``searchAttribute`` configuration values to
-match the username. With a match, a second LDAP search uses the LDAP ``dn``
-(Distinguished Name) attribute of the user and their password to authenticate.
+Upon submission of login form data, MMS authenticates in two steps:
+
+1. First, MMS searches the LDAP server for a matching LDAP user record with the
+   MMS ``mms.ldap.bindDn`` and ``mms.ldap.bindPassword`` configuration values to
+   match the username.
+
+#. With a match, MMS searches the LDAP server with the user record attribute
+   defined for the ``mms.ldap.user.searchAttribute`` parameter to authenticate for
+   MMS access.
 
 Upon successful login with LDAP, the first user completes a welcome form to
 create the initial MMS group.
@@ -25,7 +30,7 @@ Prerequisites
 - LDAP server installed, configured, and accessible to MMS.
 
 - An LDAP group name used to populate the ``mms.ldap.global.role.owner``
-  configuration value and match LDAP records with MMS data.
+  configuration value used to match LDAP records with MMS data.
 
 - MMS server installed and configured.
 
@@ -40,25 +45,24 @@ For successful integration, each user record sent by the LDAP server must
 contain the list of LDAP groups assigned to the user.
 
 The first user to login with LDAP authentication must have the LDAP Owner role
-assigned to their account. The MMS ``mms.ldap.global.role.owner`` property
-setting must match an LDAP owner group. For example, if LDAP has an ``admin``
-group for use by MMS admins, set the ``mms.ldap.global.role.owner`` property to
-``admin``.
+assigned to their account. The ``mms.ldap.global.role.owner`` property
+setting in the MMS configuration file must match an LDAP owner group.
 
+For example, if LDAP has an ``admin`` group for use by MMS admins, set the
+``mms.ldap.global.role.owner`` property to ``admin`` in the MMS configuration file.
 
 Procedure
 ---------
 
 1. Define LDAP record schema attributes and values.
 
-#. Update the LDAP user configuration values in the ``conf-mms.properties``
-   configuration file.
+#. Update the LDAP server configuration values in the MMS configuration file.
 
-#. Update the Global Role configuration values in the ``conf-mms.properties``
-   configuration file.
+#. Update the LDAP user configuration values in the MMS configuration file.
 
-Tables below define the configuration values in the ``conf-mms.properties``
-file.
+#. Update the Global Role configuration values in the MMS configuration file.
+
+The section below defines configuration values to update for each step.
 
 Configuration Files
 -------------------
@@ -66,10 +70,25 @@ Configuration Files
 Configuration parameters connect one or more LDAP groups to roles used in MMS,
 as well as retrieve user data to authenticate users.
 
+LDAP Server Configuration Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update this LDAP server property in the MMS :file:`conf-mms.properties`
+configuration file.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40, 60
+
+   * - **Property**
+     - **Value**
+   * - ``mms.userSvcClass``
+     - ``com.xgen.svc.mms.svc.user.UserSvcLdap``
+
 LDAP User Configuration Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Update these LDAP directory schema properties in the MMS ``conf-mms.properties``
+Update these LDAP directory schema properties in the MMS :file:`conf-mms.properties`
 configuration file:
 
 .. list-table::
@@ -92,7 +111,7 @@ configuration file:
      - ``c\=users,d\=identity``
      - The base dn used for searching for users
    * - mms.ldap.user.searchAttribute
-     - ``mail``
+     - ``uid``
      - The LDAP user record attribute MMS uses to search then authenticate
        users when a user types their username into the MMS login form.
    * - mms.ldap.user.firstName
@@ -115,10 +134,11 @@ Global Role Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Global parameters can be in any format for an LDAP group. They can be a ``cn``
-(Common Name) or a ``dn``. The format must match the property specified by the
-``mms.ldap.user.group`` configuration property defined in the table above.
+(Common Name) or a ``dn`` (Distinguished Name). The format must match the
+property specified by the ``mms.ldap.user.group`` configuration property
+defined in the table above.
 
-Update these LDAP directory schema properties in the MMS ``conf-mms.properties``
+Update these LDAP directory schema properties in the MMS :file:`conf-mms.properties`
 configuration file:
 
 .. list-table::
