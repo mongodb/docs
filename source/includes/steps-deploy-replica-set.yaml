@@ -1,38 +1,36 @@
-title: Start a :program:`mongod` on each system to be part of the replica set.
+title: Start each member of the replica set with the appropriate options.
 stepnum: 1
 ref: start-mongod
 pre: |
-  Specify the same replica set name on each instance.
+  For each member, start a :program:`mongod` and specify the replica set
+  name through the :setting:`replSet` option. Specify any other parameters
+  specific to your deployment. For replication-specific parameters, see
+  :ref:`cli-mongod-replica-set` required by your deployment.
 action:
   - pre: |
       .. include:: /includes/important-unique-replica-set-names.rst
   - pre: |
-      To specify the replica set name from the command-line, start a
-      :program:`mongod` instance with the :option:`--replSet` option. For
-      additional replica-set options, see :ref:`cli-mongod-replica-set`.
-      The following example specifies a replica set named ``rs0``:
+      The following example specifies the replica set name through the
+      :option:`--replSet` command-line option:
     language: javascript
     code: |
-      mongod --dbpath /srv/mongodb/ --port 27017 --replSet "rs0"
+      mongod --replSet "rs0"
   - pre: |
-      To instead use a configuration file, start each
-      :program:`mongod` instance with a command that resembles the
-      following. Change ``/etc/mongodb.conf`` to the location of your
-      configuration file:
+      The following example specifies the name through a configuration file:
     language: javascript
     code: |
-      mongod --config /etc/mongodb.conf
+      mongod --config $HOME/.mongodb/config
 post: |
   In production deployments, you can configure a :term:`control script` to
   manage this process. Control scripts are beyond the scope of this document.
 ---
-title: Open a :program:`mongo` shell and connect to one of the hosts.
+title: Open a :program:`mongo` shell and connect to one of the replica set members.
 stepnum: 2
 ref: open-shell
 action:
   pre: |
-    For example, to connect to the :program:`mongod` running on the default
-    port ``27017`` on the localhost, simply issue:
+    For example, to connect to a :program:`mongod` running on localhost on
+    the default port of ``27017``, simply issue:
   language: javascript
   code: |
     mongo
@@ -42,18 +40,21 @@ stepnum: 3
 ref: initiate-rs
 action:
   pre: |
-    Use :method:`rs.initiate()` to initiate a replica set that consists of
-    the current member and that uses the default configuration:
+    Use :method:`rs.initiate()`:
   language: javascript
   code: |
     rs.initiate()
+post: |
+  MongoDB initiates a set that consists of the current member and that
+  uses the default replica set configuration.
 ---
-title: Display the current replica set configuration.
+title: Verify the initial replica set configuration.
 stepnum: 4
-ref: display-rsconf
+ref: verify-rsconf
 action:
   - pre: |
-      To display the :doc:`replica configuration </reference/replica-configuration>`, issue:
+      Use :method:`rs.conf()` to display the :doc:`replica set configuration
+      object </reference/replica-configuration>`:
     language: javascript
     code: |
       rs.conf()
@@ -75,18 +76,18 @@ action:
 title: Add the remaining members to the replica set.
 stepnum: 5
 ref: add-remaining-members
+pre: |
+  Add the remaining members with the :method:`rs.add()` method.
 action:
   pre: |
-    In the :program:`mongo` shell connected to the :term:`primary`, add
-    the remaining members with the :method:`rs.add()` method. The
-    commands should resemble the following:
+    The following example adds two members:
   language: javascript
   code: |
       rs.add("mongodb1.example.net")
       rs.add("mongodb2.example.net")
 post: |
-  When complete, you should have a fully functional replica set.
-  The new replica set will elect a :term:`primary`.
+  When complete, you have a fully functional replica set. The new replica
+  set will elect a :term:`primary`.
 ---
 title: Check the status of the replica set.
 stepnum: 6
@@ -97,8 +98,4 @@ action:
   language: javascript
   code: |
     rs.status()
-post: |
-  For a detailed explanation of read and write semantics in MongoDB, refer
-  to :doc:`Replica Set Read and Write Semantics
-  </applications/replication>`.
 ...
