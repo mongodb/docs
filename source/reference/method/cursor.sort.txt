@@ -69,54 +69,167 @@ The specified metadata determines the sort order. For example, the
 ``"textScore"`` metadata sorts in descending order. See
 :projection:`$meta` for details.
 
+Limit Results
+~~~~~~~~~~~~~
+
+The sort operation requires that the entire sort be able to complete
+within 32 megabytes.
+
+When the sort operation consumes more than 32 megabytes, MongoDB
+returns an error. To avoid this error, either create an index to
+support the sort operation or use :method:`~cursor.sort()` in
+conjunction with :method:`~cursor.limit()`. The specified limit must
+result in a number of documents that fall within the 32 megabyte limit.
+
+For example, if the following sort operation ``stocks_quotes`` exceeds
+the 32 megabyte limit:
+
+.. code-block:: javascript
+
+   db.stocks.find().sort( { ticker: 1, date: -1 } )
+
+Either create an index to support the sort operation:
+
+.. code-block:: javascript
+
+   db.stocks.ensureIndex( { ticker: 1, date: -1 } )
+
+Or use :method:`~cursor.sort()` in conjunction with
+:method:`~cursor.limit()`:
+
+.. code-block:: javascript
+
+   db.stocks.find().sort( { ticker: 1, date: -1 } ).limit(100)
+
 Examples
 --------
 
-The following query returns all documents in ``collection`` sorted by
-the ``age`` field in descending order.
+A collection ``orders`` contain the following documents:
 
 .. code-block:: javascript
 
-   db.collection.find().sort( { age: -1 } );
+   { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 }
+   { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 }
+   { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 }
+   { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 }
+   { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 }
+   { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
+
+The following query, which returns all documents from the ``orders``
+collection, does not specify a sort order:
+
+.. code-block:: javascript
+
+   db.orders.find()
+
+The query returns the documents in indeterminate order:
+
+.. code-block:: none
+
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
+
+The following query specifies a sort on the ``amount`` field in
+descending order.
+
+.. code-block:: javascript
+
+   db.orders.find().sort( { amount: -1 } )
+
+The query returns the following documents, in descending order of
+``amount``:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
 
 The following query specifies the sort order using the fields from a
-sub-document ``name``. The query sorts first by the ``last`` field and
-then by the ``first`` field. The query sorts both fields in ascending
-order:
+sub-document ``item``. The query sorts first by the ``category`` field
+in ascending order, and then within each ``category``, by the ``type``
+field in ascending order. 
 
 .. code-block:: javascript
 
-   db.bios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+   db.orders.find().sort( { "item.category": 1, "item.type": 1 } )
 
-Limit Results
--------------
+The query returns the following documents, ordered first by the
+``category`` field, and within each category, by the ``type`` field:
 
-Unless you have an index for the specified key pattern, use
-:method:`~cursor.sort()` in conjunction with :method:`~cursor.limit()` to avoid
-requiring MongoDB to perform a large, in-memory
-sort. :method:`~cursor.limit()` increases the speed and reduces the amount
-of memory required to return this query by way of an optimized
-algorithm.
+.. code-block:: javascript
 
-.. warning::
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
 
-   The sort function requires that the entire sort be able to
-   complete within 32 megabytes. When the sort option consumes more
-   than 32 megabytes, MongoDB will return an error. Use
-   :method:`~cursor.limit()`, or create an index on the field that you're
-   sorting to avoid this error.
-
-Return Natural Order
---------------------
+Return in Storage Order
+-----------------------
 
 The :operator:`$natural` parameter returns items according to their
-order on disk. Consider the following query: 
+storage order within the collection level extents.
+
+Typically, the storage order reflects insertion order, *except* when
+documents relocate because of :ref:`document growth due to updates
+<data-model-document-growth>` or remove operations free up space which
+are then taken up by newly inserted documents.
+
+Consider the sequence of insert operations to the ``trees`` collection:
 
 .. code-block:: javascript
 
-   db.collection.find().sort( { $natural: -1 } )
+   db.trees.insert( { _id: 1, common_name: "oak", genus: "quercus" } )
+   db.trees.insert( { _id: 2, common_name: "chestnut", genus: "castanea" } )
+   db.trees.insert( { _id: 3, common_name: "maple", genus: "aceraceae" } )
+   db.trees.insert( { _id: 4, common_name: "birch", genus: "betula" } )
 
-This will return documents in the reverse of the order on
-disk. Typically, the order of documents on disks reflects insertion
-order, *except* when documents move internal because of document
-growth due to update operations.
+The following query returns the documents in the storage order:
+
+.. code-block:: javascript
+
+   db.trees.find().sort( { $natural: 1 } )
+
+The documents return in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "common_name" : "oak", "genus" : "quercus" }
+   { "_id" : 2, "common_name" : "chestnut", "genus" : "castanea" }
+   { "_id" : 3, "common_name" : "maple", "genus" : "aceraceae" }
+   { "_id" : 4, "common_name" : "birch", "genus" : "betula" }
+   
+Update a document such that the document outgrows its current allotted space:
+
+.. code-block:: javascript
+
+   db.trees.update( 
+      { _id: 1 }, 
+      { $set: { famous_oaks: [ "Emancipation Oak", "Goethe Oak" ] } }
+   )
+
+Rerun the query to returns the documents in the storage order:
+
+.. code-block:: javascript
+
+   db.trees.find().sort( { $natural: 1 } )
+
+The documents return in the following storage order:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "common_name" : "chestnut", "genus" : "castanea" }
+   { "_id" : 3, "common_name" : "maple", "genus" : "aceraceae" }
+   { "_id" : 4, "common_name" : "birch", "genus" : "betula" }
+   { "_id" : 1, "common_name" : "oak", "genus" : "quercus", "famous_oaks" : [ "Emancipation Oak", "Goethe Oak" ] }
+
+.. seealso:: :operator:`$natural`
