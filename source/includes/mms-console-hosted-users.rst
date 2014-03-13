@@ -1,5 +1,5 @@
-You can grant users access to your group in the "Users" section of
-the MMS console. Click on the ``+ ADD USER`` icon next 
+You can grant users access to your group in the :guilabel:`Users` section of
+the MMS console. Click on the :guilabel:`+ ADD USER` icon next 
 to your account name and enter their email in the dialogue.  
 If the console finds a
 connected account, MMS will automatically add the user to the MMS
@@ -15,3 +15,6 @@ console.
 
 Users can create accounts at any time using the account registration
 page of your MMS installation.
+
+See :ref:`assigning-roles-to-users` for details about roles and privileges, as
+well as adding users and assigning roles with LDAP integration.

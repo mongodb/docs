@@ -4,5 +4,6 @@ left of the MMS interface.
 
 .. include:: /includes/fact-remove-user.rst
 
-if you have problems, contact support.`contact MMS Support
-<https://mms.mongodb.com/links/support>`_
+if you have problems, `contact MMS support`_.
+
+.. _`contact MMS Support`: https://mms.mongodb.com/links/support
