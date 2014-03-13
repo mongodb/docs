@@ -4,6 +4,9 @@ Import and Export MongoDB Data
 
 .. default-domain:: mongodb
 
+.. TODO incorporate review/feedback from audit of page after 2.6 to do
+   a bit of rewrite on this page.
+
 This document provides an overview of the import and export programs
 included in the MongoDB distribution. These tools are useful when you
 want to backup or export a portion of your data without capturing the
@@ -26,109 +29,15 @@ database backup operation, use full :doc:`database instance backups
    supplant more frequently accessed data, causing a deterioration in
    performance for the database's regular workload.
 
-   :program:`mongoimport` and :program:`mongoexport` do not reliably
-   preserve all rich :term:`BSON` data types, because :term:`BSON` is
-   a superset of :term:`JSON`. Thus, :program:`mongoimport` and
-   :program:`mongoexport` cannot represent :term:`BSON` data
-   accurately in :term:`JSON`. As a result data exported or imported
-   with these tools may lose some measure of fidelity. See
-   :doc:`/reference/mongodb-extended-json` for more information about
-   MongoDB Extended JSON.
+.. seealso:: :doc:`/core/backups` or :mms:`MMS Backup Manual </backup>`
+   for more information on backing up MongoDB instances. Additionally,
+   consider the following references for the MongoDB import/export
+   tools:
 
-.. seealso:: See the :doc:`/core/backups` document or the :mms:`MMS
-   Backup Manual </backup>` for more information on backing up MongoDB
-   instances. Additionally, consider the following references for
-   commands addressed in this document:
-
+   - :doc:`/reference/program/mongoimport`
    - :doc:`/reference/program/mongoexport`
    - :doc:`/reference/program/mongorestore`
    - :doc:`/reference/program/mongodump`
-
-   If you want to transform and process data once you've imported it
-   in MongoDB consider the documents in the :doc:`/aggregation`
-   section, including:
-
-   - :doc:`/core/map-reduce` and
-   - :doc:`/core/aggregation`.
-
-.. _bson-json-type-conversion-fidelity:
-
-Data Type Fidelity
-------------------
-
-:term:`JSON` does not have the following data types that exist in
-:term:`BSON` documents: ``data_binary``, ``data_date``,
-``data_timestamp``, ``data_regex``, ``data_oid`` and ``data_ref``. As
-a result using any tool that decodes BSON :term:`documents <document>`
-into JSON will suffer some loss of fidelity.
-
-If maintaining type fidelity is important, consider writing a data
-import and export system that does not force BSON documents into JSON
-form as part of the process. The following list of types contain
-examples for how MongoDB will represent how BSON documents render in
-JSON.
-
-- ``data_binary``
-
-  .. code-block:: javascript
-
-     { "$binary" : "<bindata>", "$type" : "<t>" }
-
-  ``<bindata>`` is the base64 representation of a binary string. ``<t>``
-  is the hexadecimal representation of a single byte indicating the
-  data type.
-
-- ``data_date``
-
-  .. code-block:: javascript
-
-     Date( <date> )
-
-  ``<date>`` is the JSON representation of a 64-bit signed integer for
-  milliseconds since epoch.
-
-- ``data_timestamp``
-
-  .. code-block:: javascript
-
-     Timestamp( <t>, <i> )
-
-  ``<t>`` is the JSON representation of a 32-bit unsigned integer for
-  milliseconds since epoch. ``<i>`` is a 32-bit unsigned integer for
-  the increment.
-
-- ``data_regex``
-
-  .. code-block:: javascript
-
-     /<jRegex>/<jOptions>
-
-  ``<jRegex>`` is a string that may contain valid JSON characters and
-  unescaped double quote (i.e. ``"``) characters, but may not contain
-  unescaped forward slash (i.e. ``/``) characters. ``<jOptions>`` is a
-  string that may contain only the characters ``g``, ``i``,
-  ``m``, and ``s``.
-
-- ``data_oid``
-
-  .. code-block:: javascript
-
-     ObjectId( "<id>" )
-
-  ``<id>`` is a 24 character hexadecimal string. These representations
-  require that ``data_oid`` values have an associated field named
-  ":term:`_id`."
-
-- ``data_ref``
-
-  .. code-block:: javascript
-
-     DBRef( "<name>", "<id>" )
-
-  ``<name>`` is a string of valid JSON characters. ``<id>`` is a 24
-  character hexadecimal string.
-
-.. seealso:: :doc:`MongoDB Extended JSON </reference/mongodb-extended-json>`
 
 Data Import, Export, and Backup Operations
 ---------------------------------------------
@@ -142,14 +51,15 @@ the context of providing some kinds of backups.
 In contrast, use import and export tools to backup a small subset of
 your data or to move data to or from a third party system. These backups may
 capture a small crucial set of data or a frequently modified section of
-data for extra insurance, or for ease of access. No matter how you
-decide to import or export your data, consider the following guidelines:
+data for extra insurance, or for ease of access.
 
-- Label files so that you can identify what point in time the
-  export or backup reflects.
+.. include:: /includes/warning-type-fidelity-loss.rst
 
-- Labeling should describe the contents of the backup, and reflect the
-  subset of the data corpus, captured in the backup or export.
+No matter how you decide to import or export your data, consider the
+following guidelines:
+
+- Label files so that you can identify the contents of the export or
+  backup as well as the point in time the export/backup reflect.
 
 - Do not create or apply exports if the backup process itself will
   have an adverse effect on a production system.
@@ -164,26 +74,25 @@ decide to import or export your data, consider the following guidelines:
 Human Intelligible Import/Export Formats
 ----------------------------------------
 
-This section describes a process to import/export your database, or a
-portion thereof, to a file in a :term:`JSON` or :term:`CSV` format.
+This section describes a process to import/export a collection to a
+file in a :term:`JSON` or :term:`CSV` format.
 
-.. seealso:: The :doc:`/reference/program/mongoimport` and
-   :doc:`/reference/program/mongoexport` documents contain complete
-   documentation of these tools. If you have questions about the
-   function and parameters of these tools not covered here, please
-   refer to these documents.
+The examples in this section use the MongoDB tools
+:doc:`/reference/program/mongoimport` and
+:doc:`/reference/program/mongoexport`. These tools may also be useful
+for importing data into a MongoDB database from third party
+applications.
 
-   If you want to simply copy a database or collection from one
-   instance to another, consider using the :dbcommand:`copydb`,
-   :dbcommand:`clone`, or :dbcommand:`cloneCollection` commands, which
-   may be more suited to this task. The :program:`mongo` shell
-   provides the :method:`db.copyDatabase()` method.
-
-These tools may also be useful for importing data into a MongoDB database
-from third party applications.
+If you want to simply copy a database or collection from one instance
+to another, consider using the :dbcommand:`copydb`, :dbcommand:`clone`,
+or :dbcommand:`cloneCollection` commands, which may be more suited to
+this task. The :program:`mongo` shell provides the
+:method:`db.copyDatabase()` method.
 
 Collection Export with :program:`mongoexport`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/warning-type-fidelity-loss.rst
 
 With the :program:`mongoexport` utility you can create a backup
 file. In the most simple invocation, the command takes the following
@@ -246,6 +155,8 @@ password credentials as above.
 
 Collection Import with :program:`mongoimport`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/warning-type-fidelity-loss.rst
 
 To restore a backup taken with :program:`mongoexport`. Most of the
 arguments to :program:`mongoexport` also exist for

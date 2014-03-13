@@ -17,13 +17,14 @@ usage overview, and the :doc:`mongoimport` document for more
 information regarding the :program:`mongoimport` utility, which
 provides the inverse "importing" capability.
 
-.. note::
+Considerations
+--------------
 
-   Do not use :program:`mongoimport` and :program:`mongoexport` for
-   full-scale backups because they may not reliably capture data type
-   information. Use :program:`mongodump` and :program:`mongorestore` as
-   described in :doc:`/core/backups` for this kind of
-   functionality.
+Do not use :program:`mongoimport` and :program:`mongoexport` for
+full-scale production backups because they may not reliably capture
+data type information. Use :program:`mongodump` and
+:program:`mongorestore` as described in :doc:`/core/backups` for this
+kind of functionality.
 
 Options
 -------
@@ -103,6 +104,9 @@ Options
 Use
 ---
 
+Export in CSV Format
+~~~~~~~~~~~~~~~~~~~~
+
 In the following example, :program:`mongoexport` exports the
 collection ``contacts`` from the ``users`` database from the
 :program:`mongod` instance running on the localhost port number
@@ -115,6 +119,9 @@ export.
 
    mongoexport --db users --collection contacts --csv --fieldFile fields.txt --out /opt/backups/contacts.csv
 
+Export in JSON Format
+~~~~~~~~~~~~~~~~~~~~~
+
 The next example creates an export of the collection ``contacts``
 from the MongoDB instance running on the localhost port number ``27017``,
 with journaling explicitly enabled. This writes the export to the
@@ -123,6 +130,9 @@ with journaling explicitly enabled. This writes the export to the
 .. code-block:: sh
 
    mongoexport --db sales --collection contacts --out contacts.json --journal
+
+Export Collection Directly From Data Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example exports the collection ``contacts`` from the
 ``sales`` database located in the MongoDB data files located at
@@ -139,12 +149,52 @@ in :term:`JSON` format.
    connected to the data files located in the ``/srv/mongodb/``
    directory.
 
-The final example exports the collection ``contacts`` from the
+Export from Remote Host Running with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example exports the collection ``contacts`` from the
 database ``marketing`` . This data resides on the MongoDB instance
-located on the host ``mongodb1.example.net`` running on port
-``37017``, which requires the username ``user`` and the password
-``pass``.
+located on the host ``mongodb1.example.net`` running on port ``37017``,
+which requires the username ``user`` and the password ``pass``.
 
 .. code-block:: sh
 
    mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --out mdb1-examplenet.json
+
+.. _mongoexport-type-fidelity:
+
+Type Fidelity
+-------------
+
+.. include:: /includes/warning-type-fidelity-loss.rst
+
+JSON can only represent a subset of the types supported by BSON. To
+preserve type information, :program:`mongoexport` uses the :doc:`strict
+mode representation </reference/mongodb-extended-json>` for certain
+types.
+
+For example, the following insert operation in the :program:`mongo`
+shell uses the :doc:`mongoShell mode representation
+</reference/mongodb-extended-json>` for the BSON types
+:bsontype:`data_date` and :bsontype:`data_numberlong`:
+
+.. code-block:: javascript
+
+   use test
+   db.traffic.insert( { _id: 1, volume: NumberLong(2980000), date: new Date() } )
+
+Use :program:`mongoexport` to export the data:
+
+.. code-block:: none
+
+   mongoexport --db test --collection traffic --out traffic.json
+
+The exported data is in :doc:`strict mode representation
+</reference/mongodb-extended-json>` to preserve type information:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "volume" : { "$numberLong" : "2980000" }, "date" : { "$date" : "2014-03-13T13:47:42.483-0400" } }
+
+See :doc:`/reference/mongodb-extended-json` for a complete list of
+these types and the representations used.

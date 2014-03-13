@@ -4,36 +4,71 @@ MongoDB Extended JSON
 
 .. default-domain:: mongodb
 
-MongoDB :doc:`import and export utilities
-</core/import-export>` (i.e. :program:`mongoimport` and
-:program:`mongoexport`) and MongoDB :ecosystem:`REST Interfaces
-</tools/http-interfaces>` render an approximation of MongoDB :term:`BSON`
-documents in JSON format.
+:term:`JSON` can only represent a subset of the types supported by
+:term:`BSON`. To preserve type information, MongoDB adds the following
+extensions to the JSON format:
 
-The REST interface supports three different modes for document output:
+- *Strict mode*. Strict mode representations of BSON types conform to
+  the `JSON RFC <http://www.json.org>`_. Any JSON parser can parse
+  these strict mode representations as key/value pairs; however, only
+  the MongoDB's internal JSON parser also recognizes the type
+  information conveyed by the format.
 
-- *Strict* mode that produces output that conforms to the `JSON RFC
-  specifications <http://www.json.org>`_.
+- ``mongo`` *Shell mode*. The MongoDB's internal JSON parser and the
+  :program:`mongo` shell can parse this mode.
 
-- *JavaScript* mode that produces output that most JavaScript
-  interpreters can process (via the ``--jsonp`` option)
+The representation used for the various data types depends on the
+context in which the JSON is parsed.
 
-- :program:`mongo` *Shell* mode produces output that the
-  :program:`mongo` shell can process. This is "extended" JavaScript
-  format.
+Parsers and Supported Format
+----------------------------
 
-MongoDB can process these representations in REST input.
+Input in Strict Mode
+~~~~~~~~~~~~~~~~~~~~
 
-Special representations of :term:`BSON data <BSON types>` in JSON
-format make it possible to render information that have no obvious
-corresponding JSON. In some cases MongoDB supports multiple equivalent
-representations of the same type information.
+The following can parse representations in strict mode *with*
+recognition of the type information.
+
+- :ecosystem:`REST Interfaces </tools/http-interfaces>` 
+
+- :program:`mongoimport` 
+
+- ``--query`` option of various MongoDB tools
+
+Other JSON parsers, including :program:`mongo` shell and
+:method:`db.eval()`, can parse strict mode representations as key/value
+pairs, but *without* recognition of the type information.
+
+Input in ``mongo`` Shell Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following can parse representations in ``mongo`` shell mode *with*
+recognition of the type information.
+
+- :ecosystem:`REST Interfaces </tools/http-interfaces>` 
+
+- :program:`mongoimport` 
+
+- ``--query`` option of various MongoDB tools
+
+- :program:`mongo` shell
+
+Output in Strict mode
+~~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongoexport` and :ecosystem:`REST and HTTP Interfaces
+</tools/http-interfaces>` output data in *Strict mode*.
+
+Output in ``mongo`` Shell Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:program:`bsondump` outputs in ``mongo`` *Shell mode*.
 
 BSON Data Types and Associated Representations
 ----------------------------------------------
 
 The following presents the BSON data types and the associated
-representations in the three different modes.
+representations in *Strict mode* and ``mongo`` *Shell mode*.
 
 Binary
 ~~~~~~
@@ -42,27 +77,19 @@ Binary
 
    .. list-table::
       :header-rows: 1
-      :widths: 33 33 33
+      :widths: 50 5 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$binary": "<bindata>",
-               "$type": "<t>"
-             }
+             { "$binary": "<bindata>", "$type": "<t>" }
 
-        - .. code-block:: none
-
-             {
-               "$binary": "<bindata>",
-               "$type": "<t>"
-             }
+        -
 
         - .. code-block:: none
 
@@ -80,23 +107,19 @@ Date
 
    .. list-table::
       :header-rows: 1
-      :widths: 35 40 25
+      :widths: 40 20 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-            {
-              "$date": <date>
-            }
+             { "$date": <date> }
 
-        - .. code-block:: none
-
-             new Date( <date> )
+        -
 
         - .. code-block:: none
 
@@ -112,31 +135,19 @@ Timestamp
 
    .. list-table::
       :header-rows: 1
-      :widths: 35 35 30
+      :widths: 40 10 30
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$timestamp": {
-                   "t": <t>,
-                   "i": <i>
-               }
-             }
+             { "$timestamp": { "t": <t>, "i": <i> } }
 
-        - .. code-block:: none
-
-             {
-               "$timestamp": {
-                   "t": <t>,
-                   "i": <i>
-               }
-             }
+        -
 
         - .. code-block:: none
 
@@ -154,24 +165,19 @@ Regular Expression
 
    .. list-table::
       :header-rows: 1
-      :widths: 35 35 30
+      :widths: 50 5 30
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$regex": "<sRegex>",
-               "$options": "<sOptions>"
-             }
+             { "$regex": "<sRegex>", "$options": "<sOptions>" }
 
-        - .. code-block:: none
-
-             /<jRegex>/<jOptions>
+        -
 
         - .. code-block:: none
 
@@ -199,25 +205,19 @@ OID
 
    .. list-table::
       :header-rows: 1
-      :widths: 35 40 25
+      :widths: 40 20 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$oid": "<id>"
-             }
+             { "$oid": "<id>" }
 
-        - .. code-block:: none
-
-             {
-               "$oid": "<id>"
-             }
+        -
 
         - .. code-block:: none
 
@@ -232,27 +232,19 @@ DB Reference
 
    .. list-table::
       :header-rows: 1
-      :widths: 35 35 30
+      :widths: 50 5 30
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$ref": "<name>",
-               "$id": "<id>"
-             }
+             { "$ref": "<name>", "$id": "<id>" }
 
-        - .. code-block:: none
-
-             {
-               "$ref" : "<name>",
-               "$id" : "<id>"
-             }
+        -
 
         - .. code-block:: none
 
@@ -269,23 +261,19 @@ Undefined Type
 
    .. list-table::
       :header-rows: 1
-      :widths: 40 40 20
+      :widths: 40 20 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$undefined": true
-             }
+             { "$undefined": true }
 
-        - .. code-block:: none
-
-             undefined
+        -
 
         - .. code-block:: none
 
@@ -300,25 +288,19 @@ MinKey
 
    .. list-table::
       :header-rows: 1
-      :widths: 40 40 20
+      :widths: 40 20 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$minKey": 1
-             }
+             { "$minKey": 1 }
 
-        - .. code-block:: none
-
-             {
-               "$minKey": 1
-             }
+        -
 
         - .. code-block:: none
 
@@ -336,25 +318,19 @@ MaxKey
 
    .. list-table::
       :header-rows: 1
-      :widths: 40 40 20
+      :widths: 40 20 40
 
       * - Strict Mode
 
-        - JavaScript Mode (via JSONP)
+        -
 
         - mongo Shell Mode
 
       * - .. code-block:: none
 
-             {
-               "$maxKey": 1
-             }
+             { "$maxKey": 1 }
 
-        - .. code-block:: none
-
-             {
-               "$maxKey": 1
-             }
+        -
 
         - .. code-block:: none
 
@@ -364,3 +340,30 @@ MaxKey
    than all other types. See
    :ref:`faq-dev-compare-order-for-BSON-types` for more information on
    comparison order for BSON types.
+
+NumberLong
+~~~~~~~~~~
+
+.. versionadded:: 2.6
+
+.. bsontype:: data_numberlong
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 10 30
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$numberLong": "<number>" }
+
+        -
+
+        - .. code-block:: none
+
+             NumberLong( <number> )
