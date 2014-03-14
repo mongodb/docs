@@ -1,0 +1,138 @@
+=============
+createIndexes
+=============
+
+.. default-domain:: mongodb
+
+.. dbcommand:: createIndexes
+
+   Builds multiple indexes on a collection. MongoDB builds the indexes
+   serially.
+
+   The :dbcommand:`createIndexes` command takes the following form:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+        {
+          createIndexes: <collection>,
+          indexes: [
+              {
+                  key: { 
+                      <key-value_pair>,
+                      <key-value_pair>,
+                      ...
+                  },
+                  name: <index_name>,
+                  <option1>,
+                  <option2>,
+                  ...
+              },
+              { ... },
+              { ... }
+          ]
+        }
+      )
+
+   .. warning:: An index name, including the :term:`namespace`, cannot be
+      longer than the :ref:`Index Name Length <limit-index-name-length>` limit.
+
+   The :dbcommand:`createIndexes` command takes the following fields:
+
+   .. include:: /reference/command/createIndexes-field.rst
+
+   Each document in the ``indexes`` array can take the following fields:
+
+   .. include:: /reference/command/createIndexes-indexes-field.rst
+
+Behavior
+--------
+
+Non-background indexing operations block all other operations on a
+database.
+
+If you create an index with one set of options and then issue
+:dbcommand:`createIndexes` with the same index fields but different options,
+MongoDB will not change the options nor rebuild the index. To
+change index options, you must first :method:`drop
+<db.collection.dropIndex()>` the existing index before running
+:dbcommand:`createIndexes` with the new options.
+
+MongoDB will not create an index on a collection if the value of the index
+field in an existing document exceeds the :limit:`index key size limit
+<Index Key>`.
+
+Example
+-------
+
+The following command builds two indexes on the ``inventory`` collection of
+the ``products`` database:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("products").runCommand(
+     {
+       createIndexes: "inventory",
+       indexes: [
+           {
+               key: { 
+                   item: 1,
+                   manufacturer: 1,
+                   model: 1
+               },
+               name: "item_manufacturer_model",
+               unique: true
+           },
+           {
+               key: {
+                   item: 1,
+                   supplier: 1,
+                   model: 1
+               },
+               name: "item_supplier_model",
+               unique: true
+           }
+       ]
+     }
+   )
+
+When the indexes successfully finish building, MongoDB returns a results
+document that includes a status of ``"ok" : 1``.
+
+Output
+------
+
+The :dbcommand:`createIndexes` command returns a document that indicates
+the success of the operation. The document contains some but not all of
+the following fields, depending on outcome:
+
+.. data:: createdCollectionAutomatically
+
+   If ``true``, then the collection didn't exist and was created in the
+   process of creating the index.
+
+.. data:: numIndexesBefore
+
+   The number of indexes at the start of the command.
+
+.. data:: numIndexesAfter
+
+   The number of indexes at the end of the command.
+
+.. data:: ok
+
+   A value of ``1`` indicates the indexes are in place. A value of
+   ``0`` indicates an error.
+
+.. data:: note
+
+   This ``note`` is returned if an existing index or indexes already
+   exist. This indicates that the index was not created or changed.
+
+.. data:: errmsg
+
+   Returns information about any errors.
+
+.. data:: code
+
+   The error code representing the type of error.
