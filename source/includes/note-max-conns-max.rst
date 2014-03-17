@@ -1,5 +1,5 @@
 .. note:: 
 
-   .. versionchanged:: 2.5.0
+   .. versionchanged:: 2.6
       MongoDB removed the upward limit on the :setting:`maxConns`
       setting.

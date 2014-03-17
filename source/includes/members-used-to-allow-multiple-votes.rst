@@ -1,6 +1,6 @@
 .. note::
 
-   .. deprecated:: 2.5.3
+   .. deprecated:: 2.6
       :data:`~local.system.replset.members[n].votes` values greater
       than ``1``.
 

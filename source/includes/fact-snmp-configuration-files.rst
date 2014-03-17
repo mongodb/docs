@@ -1,4 +1,4 @@
-.. versionchanged:: 2.5.3
+.. versionchanged:: 2.6
 
 MongoDB Enterprise contains the following configuration files to
 support SNMP:

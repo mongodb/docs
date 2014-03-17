@@ -1,4 +1,4 @@
-.. versionchanged:: 2.5.4
+.. versionchanged:: 2.6
 
 To backup users and :ref:`user-defined roles <user-defined-roles>` for a
 given database, you must have access to the ``admin`` database. MongoDB
