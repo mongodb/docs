@@ -13,11 +13,14 @@ only and not for production use**.
 In the general case, the upgrade from MongoDB 2.4 to 2.6 is a
 binary-compatible "drop-in" upgrade: shut down the :program:`mongod`
 instances and replace them with :program:`mongod` instances running
-2.6. **However**, before you attempt any upgrade please familiarize
-yourself with the content of this document, particularly the procedure
-for :ref:`upgrading sharded clusters <2.6-upgrade-cluster>` and the
-considerations for :ref:`reverting to 2.4 after running 2.6
+2.6. **However**, before you attempt any upgrade, familiarize yourself
+with the content of this document, particularly the
+:ref:`2.6-upgrade-considerations`, the procedure for :ref:`upgrading
+sharded clusters <2.6-upgrade-cluster>`, and the considerations for
+:ref:`reverting to 2.4 after running 2.6
 <2.6-downgrade-considerations>`.
+
+.. _2.6-upgrade-considerations:
 
 Upgrade Recommendations and Checklist
 -------------------------------------
@@ -177,7 +180,7 @@ procedure. The upgrade process does not require downtime.
 .. note::
 
    The upgraded config database will require more storage space than
-   before, to make backup and working copies of the
+   before to make backup and working copies of the
    :data:`config.chunks` and :data:`config.collections` collections.
    As always, if storage requirements increase, the :program:`mongod`
    might need to pre-allocate additional data files. See
@@ -187,7 +190,7 @@ Upgrade Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
-   :term:`sharded cluster`, as described in
+   sharded cluster, as described in
    :ref:`sharding-balancing-disable-temporarily`.
 
 #. Start a single 2.6 :program:`mongos` instance with
@@ -255,7 +258,7 @@ sharded cluster in the following order:
   upgrading the primary of each shard.
 
 When this process is complete, :ref:`re-enable the
-balancer <sharding-balancing-disable-temporarily>`.
+balancer <sharding-balancing-enable>`.
 
 .. _2.6-upgrade-authorization-model:
 
@@ -335,221 +338,6 @@ collection to ``admin.system.backup_users``.
 The upgrade procedure leaves the version 2.4 ``<non-admin
 database>.system.users`` collection(s) intact.
 
-.. _2.6-downgrade-considerations:
+.. |action| replace:: Upgrade
 
-Downgrade Recommendations and Checklist
----------------------------------------
-
-When downgrading, consider the following:
-
-- If you have upgraded to the 2.6 user authorization model, before
-  downgrading MongoDB 2.6 to 2.4, you must **first** downgrade the
-  user authorization model to 2.4. See :ref:`downgrade-user-auth-model`.
-
-- If you have rebuilt your existing :doc:`text indexes
-  </core/index-text>` as version 2 or have created new text indexes
-  in MongoDB 2.6, you must :ref:`remove or downgrade your text
-  indexes <downgrade-text-index>` before downgrading MongoDB 2.6.
-
-- If you have rebuilt your existing :ref:`2dsphere indexes
-  <2dsphere-v2>` as version 2 or have created new ``2dsphere``
-  indexes in MongoDB 2.6, you must :ref:`remove or downgrade your
-  2dsphere indexes <downgrade-2dsphere-index>` before downgrading
-  MongoDB 2.6.
-
-- .. include:: /includes/fact-2.6-downgrade-restrictions.rst
-
-.. _downgrade-user-auth-model:
-
-Downgrade from MongoDB 2.6 User Authorization Model to MongoDB 2.4 Model
-------------------------------------------------------------------------
-
-.. important:: If you have upgraded to the 2.6 user authorization
-   model, you **must first** downgrade the user authorization model to
-   2.4 **before** before downgrading MongoDB 2.6 to 2.4.
-
-Considerations
-~~~~~~~~~~~~~~
-
-- For a replica set, it is only necessary to run the downgrade process
-  on the :term:`primary` as the changes will automatically replicate to
-  the secondaries.
-
-- For sharded clusters, although the procedure lists the downgrade of
-  the cluster's authorization data first, you may downgrade the
-  authorization data of the cluster or shards first.
-
-- You *must* have the ``admin.system.backup_users`` and
-  ``admin.system.new_users`` collections created during the upgrade
-  process.
-
-- **Important**. The downgrade process returns the user data to its
-  state prior to upgrading to 2.6 authorization model. Any changes
-  made to the user/role data using the 2.6 users model will be lost.
-
-Procedure
-~~~~~~~~~
-
-The following downgrade procedure requires ``<database>.system.users``
-collections used in version 2.4. to be intact for non-``admin``
-databases:
-
-#. Connect and authenticate to the :program:`mongod` instance for a
-   single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the following privileges:
-
-   .. code-block:: javascript
-
-      { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] }
-      { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] }
-      { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
-      { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
-
-#. Copy content of ``admin.system.users`` to ``admin.system.new_users``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.users.find().forEach( function(userDoc) {
-         db.getSiblingDB("admin").system.new_users.save( userDoc );
-      } )
-
-#. Update the version document for the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-         { _id: "authSchema" },
-         { $set: { currentVersion: 2 } }
-      )
-
-#. Remove content from ``admin.system.users`` collection:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.users.remove( {} )
-
-#. Copy content from ``admin.system.backup_users``, created during the
-   2.6 upgrade, to ``admin.system.users``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.backup_users.find().forEach(
-         function (userDoc) {
-            db.getSiblingDB("admin").system.users.insert( userDoc );
-         }
-      );
-
-#. Update the version document for  the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-         { _id: "authSchema" },
-         { $set: { currentVersion: 1 } }
-     )
-
-For a sharded cluster, repeat the downgrade process by connecting to
-the :term:`primary` replica set member for each shard.
-
-Result
-~~~~~~
-
-The downgrade process returns the user data to its state prior to
-upgrading to 2.6 authorization model. Any changes made to the
-user/role data using the 2.6 users model will be lost.
-
-.. _downgrade-text-index:
-
-Text Index Version Check
-------------------------
-
-If you have version 2 text indexes (i.e. the default version for text
-indexes in MongoDB 2.6), drop the version 2 text indexes, downgrade
-MongoDB, enable text search, and recreate the text indexes.
-
-To determine the version of your ``text`` indexes, run
-:method:`db.collection.getIndexes()` to view index specifications. For
-text indexes, the method returns the version information in the field
-``textIndexVersion``. For example, the following shows that the
-``text`` index on the ``quotes`` collection is version 2.
-
-.. code-block:: javascript
-   :emphasize-lines: 15
-
-   {
-      "v" : 1,
-      "key" : {
-         "_fts" : "text",
-         "_ftsx" : 1
-      },
-      "name" : "quote_text_translation.quote_text",
-      "ns" : "test.quotes",
-      "weights" : {
-         "quote" : 1,
-         "translation.quote" : 1
-      },
-      "default_language" : "english",
-      "language_override" : "language",
-      "textIndexVersion" : 2
-   }
-
-.. _downgrade-2dsphere-index:
-
-``2dsphere`` Index Version Check
---------------------------------
-
-If you have version 2 ``2dsphere`` indexes (i.e. the default version
-for ``2dsphere`` indexes in MongoDB 2.6), drop the version 2
-``2dsphere`` indexes, downgrade MongoDB and recreate the ``2dsphere``
-indexes.
-
-To determine the version of your ``2dsphere`` indexes, run
-:method:`db.collection.getIndexes()` to view index specifications. For
-``2dsphere`` indexes, the method returns the version information in the field
-``2dsphereIndexVersion``. For example, the following shows that the
-``2dsphere`` index on the ``locations`` collection is version 2.
-
-.. code-block:: javascript
-   :emphasize-lines: 15
-
-   {
-      "v" : 1,
-      "key" : {
-         "geo" : "2dsphere"
-      },
-      "name" : "geo_2dsphere",
-      "ns" : "test.locations",
-      "sparse" : true,
-      "2dsphereIndexVersion" : 2
-   }
-
-Upgrade and Downgrade Procedures
---------------------------------
-
-.. important::
-
-   .. include:: /includes/fact-2.6-downgrade-restrictions.rst
-
-Basic Downgrade and Upgrade
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Except** as described on this page, moving
-between 2.4 and 2.6 is a drop-in replacement:
-
-- stop the existing :program:`mongod`, using the :option:`--shutdown
-  <mongod --shutdown>` option as follows:
-
-  .. code-block:: sh
-
-     mongod --dbpath /var/mongod/data --shutdown
-
-  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
-
-- start the new :program:`mongod` instances with the same
-  :setting:`dbpath` setting, for example:
-
-  .. code-block:: sh
-
-     mongod --dbpath /var/mongod/data
-
-  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
+.. include:: /includes/2.4-2.6-upgrade-downgrade-procedure.rst
