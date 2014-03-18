@@ -22,8 +22,8 @@ from utils.config import get_conf
 from utils.project import get_versions, get_manual_path
 
 conf = get_conf()
-pdfs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'pdfs.yaml'))
-intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'intersphinx.yaml'))
+pdfs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -72,7 +72,9 @@ extlinks = {
 
 intersphinx_mapping = {}
 for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join('..', '..', i['path']))
+    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
+                                                              conf.paths.output,
+                                                              i['path']))
 
 languages = [
     ("ar", "Arabic"),
