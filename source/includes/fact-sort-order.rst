@@ -8,7 +8,7 @@ the following comparison order, from lowest to highest:
 #. Object
 #. Array
 #. BinData
-#. ObjectID
+#. ObjectId
 #. Boolean
 #. Date, Timestamp
 #. Regular Expression
