@@ -77,15 +77,15 @@ Before continuing be sure to have the following:
 
 Create the instance using the key pair and security group previously
 created and also include the :setting:`--ebs-optimized` flag and
-specify individual PIOPS EBS volumes (:file:`/dev/xdf` for data,
-:file:`/dev/xdg` for journal, :file:`/dev/xdh` for log). Refer to the
+specify individual PIOPS EBS volumes (:file:`/dev/xvdf` for data,
+:file:`/dev/xvdg` for journal, :file:`/dev/xvdh` for log). Refer to the
 documentation for `ec2-run-instances
 <http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_
 for more information on devices and parameters.:
 
 .. code-block:: sh
 
-    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xdf=:200:false:io1:1000" -b "/dev/xdg=:25:false:io1:250" -b "/dev/xdh=:10:false:io1:100" --ebs-optimized true
+    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xvdf=:200:false:io1:1000" -b "/dev/xvdg=:25:false:io1:250" -b "/dev/xvdh=:10:false:io1:100" --ebs-optimized true
 
 You can use the instance-id returned to ascertain the IP Address or DNS information for the instance:
 
@@ -119,13 +119,13 @@ Next, create/configure the mount points, mount each volume, set ownership (Mongo
 
     $ sudo mkdir /data /log /journal
 
-    $ sudo mkfs.ext4 /dev/xdf
-    $ sudo mkfs.ext4 /dev/xdg
-    $ sudo mkfs.ext4 /dev/xdh
+    $ sudo mkfs.ext4 /dev/xvdf
+    $ sudo mkfs.ext4 /dev/xvdg
+    $ sudo mkfs.ext4 /dev/xvdh
 
-    $ echo '/dev/xdf /data ext4 defaults,auto,noatime,noexec 0 0
-    /dev/xdg /journal ext4 defaults,auto,noatime,noexec 0 0
-    /dev/xdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+    $ echo '/dev/xvdf /data ext4 defaults,auto,noatime,noexec 0 0
+    /dev/xvdg /journal ext4 defaults,auto,noatime,noexec 0 0
+    /dev/xvdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
 
     $ sudo mount /data
     $ sudo mount /journal
@@ -174,7 +174,7 @@ necessary volumes):
 
 .. code-block:: sh
 
-    $ sudo blockdev --setra 32 /dev/xdf
+    $ sudo blockdev --setra 32 /dev/xvdf
 
 To make this change persistent across system boot you can issue the following command:
 
@@ -183,7 +183,7 @@ To make this change persistent across system boot you can issue the following co
     $ echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
 
 Once again, repeat the above command for all required volumes (note:
-the device we created was named :file:`/dev/xdf` but the name used by
+the device we created was named :file:`/dev/xvdf` but the name used by
 the system is :file:`/dev/xvdf`).
 
 To startup MongoDB, issue the following command:
