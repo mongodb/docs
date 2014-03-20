@@ -19,7 +19,9 @@ When downgrading, consider the following:
 Downgrade Path
 ~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-2.6-downgrade-restrictions.rst
+Once upgraded to MongoDB 2.6, you **cannot** downgrade to **any** version
+earlier than MongoDB 2.4. If you have ``text`` indexes, you can only
+downgrade to MongoDB 2.4.10 or later.
 
 Preparedness
 ~~~~~~~~~~~~
@@ -47,12 +49,12 @@ Follow the downgrade procedures:
 
 .. _downgrade-user-auth-model:
 
-Downgrade from MongoDB 2.6 User Authorization Model to 2.4 Model
-----------------------------------------------------------------
+Downgrade 2.6 User Authorization Model
+--------------------------------------
 
-.. important:: If you have upgraded to the 2.6 user authorization
-   model, you **must first** downgrade the user authorization model to
-   2.4 **before** before downgrading MongoDB 2.6 to 2.4.
+If you have upgraded to the 2.6 user authorization
+model, you **must first** downgrade the user authorization model to
+2.4 **before** before downgrading MongoDB 2.6 to 2.4.
 
 Considerations
 ~~~~~~~~~~~~~~
@@ -144,10 +146,13 @@ The downgrade process returns the user data to its state prior to
 upgrading to 2.6 authorization model. Any changes made to the
 user/role data using the 2.6 users model will be lost.
 
+Downgrade Updated Indexes
+-------------------------
+
 .. _downgrade-text-index:
 
 Text Index Version Check
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have *version 2* text indexes (i.e. the default version for text
 indexes in MongoDB 2.6), drop the *version 2* text indexes before
@@ -183,7 +188,7 @@ text indexes, the method returns the version information in the field
 .. _downgrade-2dsphere-index:
 
 ``2dsphere`` Index Version Check
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have *version 2* ``2dsphere`` indexes (i.e. the default version
 for ``2dsphere`` indexes in MongoDB 2.6), drop the *version 2*
@@ -210,17 +215,16 @@ To determine the version of your ``2dsphere`` indexes, run
       "2dsphereIndexVersion" : 2
    }
 
+Downgrade MongoDB Processes
+---------------------------
+
 .. _2.6-downgrade-standalone:
 
 Downgrade 2.6 Standalone ``mongod`` Instance
---------------------------------------------
-
-.. include:: /includes/fact-2.6-downgrade-restrictions.rst
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following steps outline the procedure to downgrade a standalone
-:program:`mongod` from version 2.6 to 2.4. 
-
-.. include:: /includes/fact-2.6-downgrade-restrictions.rst
+:program:`mongod` from version 2.6 to 2.4.
 
 #. Download binaries of the latest release in the 2.6 series from the
    `MongoDB Download Page`_. See :doc:`/installation` for more
@@ -235,9 +239,7 @@ The following steps outline the procedure to downgrade a standalone
 .. _2.6-downgrade-replica-set:
 
 Downgrade a 2.6 Replica Set
----------------------------
-
-.. include:: /includes/fact-2.6-downgrade-restrictions.rst
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following steps outline a "rolling" downgrade process for the
 replica set. The "rolling" downgrade process minimizes downtime by
@@ -250,7 +252,7 @@ available:
       restart.
 
    #. Wait for the member to recover to ``SECONDARY`` state
-      before upgrading the next secondary. 
+      before upgrading the next secondary.
 
       To check the member's state, issue :method:`rs.status()` in the
       :program:`mongo` shell.
@@ -277,37 +279,39 @@ available:
 .. _2.6-downgrade-cluster:
 
 Downgrade a 2.6 Sharded Cluster
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-2.6-downgrade-restrictions.rst
+Requirements
+````````````
 
-.. warning::
+While the downgrade is in progress, you cannot make changes to the
+collection meta-data. For example, during the downgrade, do
+**not** do any of the following:
 
-   While the downgrade is in progress, you cannot make changes to the
-   collection meta-data. For example, during the downgrade, do
-   **not** do any of the following:
+- :method:`sh.enableSharding()`
 
-   - :method:`sh.enableSharding()`
+- :method:`sh.shardCollection()`
 
-   - :method:`sh.shardCollection()`
+- :method:`sh.addShard()`
 
-   - :method:`sh.addShard()`
+- :method:`db.createCollection()`
 
-   - :method:`db.createCollection()`
+- :method:`db.collection.drop()`
 
-   - :method:`db.collection.drop()`
+- :method:`db.dropDatabase()`
 
-   - :method:`db.dropDatabase()`
+- any operation that creates a database
 
-   - any operation that creates a database
+- any other operation that modifies the cluster meta-data in any
+  way. See :doc:`/reference/sharding` for a complete list of
+  sharding commands. Note, however, that not all commands on the
+  :doc:`/reference/sharding` page modifies the cluster meta-data.
 
-   - any other operation that modifies the cluster meta-data in any
-     way. See :doc:`/reference/sharding` for a complete list of
-     sharding commands. Note, however, that not all commands on the
-     :doc:`/reference/sharding` page modifies the cluster meta-data.
+Procedure
+`````````
 
-The downgrade procedure for a sharded cluster is in reverse order of
-the upgrade.
+The downgrade procedure for a sharded cluster reverses the order of
+the upgrade procedure.
 
 #. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
    sharded cluster, as described in
