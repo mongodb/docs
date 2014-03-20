@@ -1,0 +1,67 @@
+title:
+  text: Disable the Balancer.
+  character: "'"
+stepnum: 1
+ref: disable-balancer
+content: |
+  Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+  sharded cluster, as described in
+  :ref:`sharding-balancing-disable-temporarily`.
+---
+title:
+  text: Perform ``mongos --upgrade`` routine.
+  character: "'"
+stepnum: 2
+ref: perform-mongos-upgrade
+pre: |
+  Start a single 2.6 :program:`mongos` instance with
+  :setting:`configdb` pointing to the sharded cluster's :ref:`config
+  servers <sharding-config-server>` and with the :option:`--upgrade
+  <mongos --upgrade>` option.  The upgrade process happens before the
+  instance becomes a daemon (i.e. before
+  :option:`--fork <mongos --fork>`.)
+
+  If you need to avoid reconfiguring a production :program:`mongos`
+  instance, you can upgrade an existing :program:`mongos` instance to
+  2.6 or start a new `mongos` instance that can reach all config
+  servers.
+action:
+  pre: |
+    Start :program:`mongos` instance:
+  language: sh
+  code: |
+    mongos --configdb <config servers> --upgrade
+  post: |
+    Invoking :program:`mongos` without the :option:`--upgrade <mongos --upgrade>`
+    option will fail to start until the 2.6 upgrade process is complete.
+post: |
+  The upgrade will prevent any chunk moves or splits from occurring
+  during the upgrade process. If the data files have many sharded
+  collections or if failed processes hold stale locks,
+  acquiring the locks for all collections can take
+  seconds or minutes. Watch the log for progress updates.
+---
+title:
+  text: Ensure ``mongos --upgrade`` completes.
+  character: "'"
+stepnum: 3
+ref: ensure-mongos-upgrade-complete
+content: |
+  When the :program:`mongos` instance starts successfully, the upgrade
+  of the :program:`mongos` instance is complete. If :program:`mongos`
+  fails to start, check the log for more information.
+
+  If the :program:`mongos` instance terminates or loses its connection to the
+  config servers during the upgrade, you may always safely retry the
+  upgrade.
+---
+title:
+  text: Upgrade remaining ``mongos`` instances.
+  character: "'"
+stepnum: 4
+ref: upgrade-remaining-mongos-instances
+content: |
+  Upgrade and restart other :program:`mongos` instances in the
+  sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
+  option. See :ref:`2.6-finalize-shard-cluster-upgrade` for more information.
+...
