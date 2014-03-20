@@ -1,0 +1,74 @@
+title:
+  text: Connect and authenticate to MongoDB instance.
+  character: "`"
+pre: |
+   Connect and authenticate to the :program:`mongod` instance for a
+   single deployment or a :program:`mongos` for a sharded cluster as a
+   user with the following privileges:
+action:
+  language: javascript
+  code: |
+    { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] }
+    { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] }
+    { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
+    { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
+---
+title:
+  text: Create backup of 2.6 ``admin.system.users`` collection.
+  character: "`"
+pre: |
+  Copy all documents in the  :data:`admin.system.users`` collection to
+  the ``admin.system.new_users`` collection:
+action:
+  language: javascript
+  code: |
+    db.getSiblingDB("admin").system.users.find().forEach( function(userDoc) {
+         db.getSiblingDB("admin").system.new_users.save( userDoc );
+      }
+    );
+---
+title:
+  text: Update the version document for the ``authSchema``:
+  character: "`"
+action:
+  language: javascript
+  code: |
+    db.getSiblingDB("admin").system.version.update(
+       { _id: "authSchema" },
+       { $set: { currentVersion: 2 } }
+    );
+---
+title:
+  text: "Remove existing documents from the ``admin.system.users`` collection"
+  character: "`"
+action:
+  language: javascript
+  code: |
+    db.getSiblingDB("admin").system.users.remove( {} )
+---
+title:
+  text: Copy documents from the ``admin.system.backup_users`` collection.
+  character: "`"
+pre: |
+  Copy all documents from the ``admin.system.backup_users``, created during the
+  2.6 upgrade, to ``admin.system.users``.
+action:
+  language: javascript
+  code: |
+   db.getSiblingDB("admin").system.backup_users.find().forEach(
+      function (userDoc) {
+         db.getSiblingDB("admin").system.users.insert( userDoc );
+      }
+   );
+---
+title:
+  text: Update the version document for the ``authSchema``:
+  character: "`"
+action:
+  language: javascript
+  code: |
+    db.getSiblingDB("admin").system.version.update(
+       { _id: "authSchema" },
+       { $set: { currentVersion: 1 } }
+    )
+...
