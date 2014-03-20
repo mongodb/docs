@@ -83,59 +83,7 @@ The following downgrade procedure requires ``<database>.system.users``
 collections used in version 2.4. to be intact for non-``admin``
 databases:
 
-#. Connect and authenticate to the :program:`mongod` instance for a
-   single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the following privileges:
-
-   .. code-block:: javascript
-
-      { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] }
-      { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] }
-      { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
-      { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
-
-#. Copy content of ``admin.system.users`` to ``admin.system.new_users``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.users.find().forEach( function(userDoc) {
-         db.getSiblingDB("admin").system.new_users.save( userDoc );
-      } )
-
-#. Update the version document for the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-         { _id: "authSchema" },
-         { $set: { currentVersion: 2 } }
-      )
-
-#. Remove content from ``admin.system.users`` collection:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.users.remove( {} )
-
-#. Copy content from ``admin.system.backup_users``, created during the
-   2.6 upgrade, to ``admin.system.users``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.backup_users.find().forEach(
-         function (userDoc) {
-            db.getSiblingDB("admin").system.users.insert( userDoc );
-         }
-      );
-
-#. Update the version document for  the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-         { _id: "authSchema" },
-         { $set: { currentVersion: 1 } }
-     )
+.. include:: /includes/steps/2.6-downgrade-authorization.rst
 
 For a sharded cluster, repeat the downgrade process by connecting to
 the :term:`primary` replica set member for each shard.
@@ -227,7 +175,7 @@ Downgrade 2.6 Standalone ``mongod`` Instance
 The following steps outline the procedure to downgrade a standalone
 :program:`mongod` from version 2.6 to 2.4.
 
-#. Download binaries of the latest release in the 2.6 series from the
+#. Download binaries of the latest release in the 2.4 series from the
    `MongoDB Download Page`_. See :doc:`/installation` for more
    information.
 
