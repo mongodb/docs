@@ -22,56 +22,69 @@ sharded clusters <2.6-upgrade-cluster>`, and the considerations for
 
 .. _2.6-upgrade-considerations:
 
-Upgrade Recommendations and Checklist
--------------------------------------
+Upgrade Recommendations and Checklists
+--------------------------------------
 
 When upgrading, consider the following:
 
-Upgrade/Downgrade Path
-~~~~~~~~~~~~~~~~~~~~~~
+Upgrade Requirements
+~~~~~~~~~~~~~~~~~~~~
 
-- MongoDB does not support upgrades from MongoDB 2.2 and earlier
-  versions directly to MongoDB 2.6. To upgrade from MongoDB 2.2 to
-  2.6, :doc:`upgrade to MongoDB 2.4 </release-notes/2.4-upgrade>`
-  *first*, and then follow the procedures to upgrade from MongoDB 2.4
-  to 2.6.
+To upgrade an existing MongoDB deployment to 2.6, you must be running
+2.4. If you're running a version of MongoDB before 2.4, you *must*
+upgrade to 2.4 before upgrading to 2.6. See
+:doc:`/release-notes/2.4-upgrade` for the procedure to upgrade from
+2.2 to 2.4.
 
-- .. include:: /includes/fact-2.6-downgrade-restrictions.rst
-
-- Users of the :mms:`MMS Backup Service </backup>` must run *at least*
-  version ``v20131216.1`` of the Backup agent before upgrading
-  MongoDB components.
-
-- Sharded clusters *must* follow the :ref:`upgrade procedure
-  <2.6-upgrade-cluster>`.
+If you use MMS Backup, ensure that you're running *at least* version
+``v20131216.1`` of the Backup agent before upgrading.
 
 Preparedness
 ~~~~~~~~~~~~
 
-- Connect the 2.6 :program:`mongo` shell to your MongoDB 2.4 database
-  and run the :method:`db.upgradeCheckAllDbs()` for a preliminary check
-  of your current data for compatibility.
+Before beginning the upgrade procedure, connect a 2.6 :program:`mongo` shell
+to your MongoDB 2.4
+:program:`mongos` or :program:`mongod`
+and run the :method:`db.upgradeCheckAllDbs()` to check your data set
+for compatibility. This is a preliminary automated check. Asses and
+resolve all issues identified by :method:`db.upgradeCheckAllDbs()`.
 
-- Additional 2.6 changes that affect compatibility require manual
-  checks and intervention. See :doc:`/release-notes/2.6-compatibility`
-  for details.
+Some changes in MongoDB 2.6 require manual checks and
+intervention. See :doc:`/release-notes/2.6-compatibility` for an
+explanation of these changes. Resolve all incompatibilities in your
+deployment before continuing.
 
 Authentication
 ~~~~~~~~~~~~~~
 
-For all deployments using authentication,
+MongoDB 2.6 includes significant changes to the authorization model,
+which requires changes to the way that MongoDB stores users'
+credentials. As a result, in addition to upgrading MongoDB processes,
+if your deployment uses authentication and authorization, after
+upgrading all MongoDB process to 2.6 you must also upgrade the
+authorization model.
 
-- Ensure that at least one user exists in the ``admin`` database before
-  upgrading to MongoDB 2.6.
+Before beginning the upgrade process for a deployment that uses
+authentication and authorization:
 
-- Upgrade the drivers (i.e. client libraries) **before**
+- Ensure that at least one user exists in the ``admin`` database.
+
+- Upgrade all drivers (i.e. client libraries) **before**
   :program:`mongod` instances.
 
-- .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
+- You must fully complete the upgrade procedure for *all* MongoDB
+  processes before upgrading the authorization model.
 
-- **Recommended**.
+See :ref:`2.6-upgrade-authorization-model` for a complete discussion
+of the upgrade procedure for the authorization model including
+additional requirements and procedures.
 
-  .. include:: /includes/fact-auth-upgrade-recommendation.rst
+Downgrade Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+Once upgraded to MongoDB 2.6, you **cannot** downgrade to **any** version
+earlier than MongoDB 2.4. If you have ``text`` indexes, you can only
+downgrade to MongoDB 2.4.10 or later.
 
 .. _2.6-upgrade-standalone:
 
@@ -268,6 +281,8 @@ Upgrade from MongoDB 2.4 User Authorization Model to MongoDB 2.6 Model
 .. important::
 
    .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
+
+.. include:: /includes/fact-auth-upgrade-recommendation.rst
 
 Considerations
 ~~~~~~~~~~~~~~
