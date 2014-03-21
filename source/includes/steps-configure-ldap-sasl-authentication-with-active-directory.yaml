@@ -1,0 +1,73 @@
+title: Specify the mechanism.
+stepnum: 1
+ref: specify-mechanism
+action:
+  - pre: |
+      On systems that configure ``saslauthd`` with the
+      ``/etc/sysconfig/saslauthd`` file, such as Red Hat Enterprise Linux,
+      Fedora, CentOS, and Amazon Linux AMI, set the mechanism ``MECH`` to
+      ``ldap``:
+    language: javascript
+    code: |
+      MECH=ldap
+  - pre: |
+      On systems that configure ``saslauthd`` with the
+      ``/etc/default/saslauthd`` file, set the ``MECHANISMS`` option to
+      ``ldap``:
+    language: javascript
+    code: |
+      MECHANISMS="ldap"
+---
+title: Set the caching behavior.
+stepnum: 2
+ref: caching-behavior
+pre: |
+  On certain Linux distributions, ``saslauthd`` starts with the caching
+  of authentication credentials *enabled*. Until restarted or until the
+  cache expires, ``saslauthd`` will not contact the LDAP server to
+  re-authenticate users in its authentication cache. This allows
+  ``saslauthd`` to successfully authenticate users in its cache, even in
+  the LDAP server is down or if the cached users' credentials are revoked.
+action:
+  pre: |
+    To set the expiration time (in seconds) for the authentication cache, see
+    the `-t option <http://www.linuxcommand.org/man_pages/saslauthd8.html>`_ of
+    ``saslauthd``.
+---
+title: Configure ``saslauthd`` LDAP options.
+stepnum: 3
+ref: ldap-options
+pre: |
+  If the ``saslauthd.conf`` file does not exist, create it.
+  The ``saslauthd.conf`` file usually resides in the ``/etc``
+  folder. If specifying a different file path, see the
+  `-O option <http://www.linuxcommand.org/man_pages/saslauthd8.html>`_ of
+  ``saslauthd``.
+action:
+  - heading: Configure for Use with ActiveDirectory
+    pre: |
+      To use with ActiveDirectory, start ``saslauthd`` with the following
+      configuration options set in the ``saslauthd.conf`` file:
+    language: javascript
+    code: |
+      ldap_servers: <ldap uri>
+      ldap_use_sasl: yes
+      ldap_mech: DIGEST-MD5
+      ldap_auth_method: fastbind
+    post: |
+      For the ``<ldap uri>``, specify the uri of the ldap server. For
+      example, ``ldap_servers: ldaps://ad.example.net``.
+  - heading: Configure for Use with OpenLDAP
+    pre: |
+      .. include:: /includes/steps-configure-openldap.rst
+---
+title: Test the ``saslauthd`` configuration.
+stepnum: 4
+ref: 
+action:
+  pre: |
+    Use ``testsaslauthd`` utility. For example:
+  language: javascript
+  code: |
+    testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
+...
