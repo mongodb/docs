@@ -155,6 +155,8 @@ else:
     rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
     rst_epilog.append(".. |backup| replace:: MMS Backup")
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
+    rst_epilog.append(".. |release-string| replace:: \ ")
+
     html_theme_options['edition'] = 'saas'
     html_theme_options['sitename'] = 'MMS Docs'
 
