@@ -18,7 +18,7 @@ action:
     code: |
       MECHANISMS="ldap"
 ---
-title: Set the caching behavior.
+title: Adjust caching behavior.
 stepnum: 2
 ref: caching-behavior
 pre: |
@@ -34,7 +34,7 @@ action:
     the `-t option <http://www.linuxcommand.org/man_pages/saslauthd8.html>`_ of
     ``saslauthd``.
 ---
-title: Configure ``saslauthd`` LDAP options.
+title: Configure with LDAP Options.
 stepnum: 3
 ref: ldap-options
 pre: |
@@ -48,7 +48,7 @@ action:
     pre: |
       To use with ActiveDirectory, start ``saslauthd`` with the following
       configuration options set in the ``saslauthd.conf`` file:
-    language: javascript
+    language: none
     code: |
       ldap_servers: <ldap uri>
       ldap_use_sasl: yes
@@ -59,15 +59,54 @@ action:
       example, ``ldap_servers: ldaps://ad.example.net``.
   - heading: Configure for Use with OpenLDAP
     pre: |
-      .. include:: /includes/steps-configure-openldap.rst
+      To connect to an OpenLDAP server, update the ``saslauthd.conf``
+      file with the following configuration options:
+    language: none
+    code: |
+      ldap_servers: <ldap uri>
+      ldap_search_base: <search base>
+      ldap_filter: <filter>
+    post: |
+      The ``ldap_servers`` specifies the uri of the LDAP server used
+      for authentication. In general, for OpenLDAP installed on the
+      local machine, you can specify the value ``ldap://localhost:389``
+      or if using LDAP over SSL, you can specify the value
+      ``ldaps://localhost:636``.
+
+      The ``ldap_search_base`` specifies distinguished name to which
+      the search is relative. The search includes the base or objects
+      below.
+
+      The ``ldap_filter`` specifies the search filter.
+
+      The values for these configuration options should correspond to the
+      values specific for your test. For example, to filter on email, specify
+      ``ldap_filter: (mail=%n)`` instead.
+  - heading: Example
+    pre: |
+       A sample ``saslauthd.conf`` file for OpenLDAP includes the following content:
+    language: none
+    code: |
+       ldap_servers: ldaps://ad.example.net
+       ldap_search_base: ou=Users,dc=example,dc=com
+       ldap_filter: (uid=%u)
+    post: |
+      To use this sample OpenLDAP configuration, create users with a ``uid``
+      attribute (login name) and place under the ``Users`` organizational
+      unit (``ou``) under the domain components (``dc``) ``example`` and
+      ``com``.
+
+      For more information on ``saslauthd`` configuration, see
+      `<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
 ---
 title: Test the ``saslauthd`` configuration.
 stepnum: 4
-ref: 
+ref: test-saslauthd-conf
+pre: |
+  Use ``testsaslauthd`` utility to test the ``saslauthd``
+  configuration. For example:
 action:
-  pre: |
-    Use ``testsaslauthd`` utility. For example:
-  language: javascript
+  language: sh
   code: |
     testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
 ...

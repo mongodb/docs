@@ -1,0 +1,109 @@
+title: Add user to MongoDB for authentication.
+stepnum: 1
+ref: add-ldap-sasl-auth-user
+pre: |
+  Add the user to the ``$external`` database in MongoDB. To specify the
+  user's privileges, assign :doc:`roles </core/authorization>` to the
+  user.
+action:
+   pre: |
+     For example, the following adds a user with read-only access to
+     the ``records`` database.
+   language: sh
+   code: |
+      db.getSiblingDB("$external").createUser(
+          {
+            user : <username>,
+            roles: [ { role: "read", db: "records" } ]
+          }
+      ) 
+post: |
+   Add additional principals as needed. For more
+   information about creating and managing users, see
+   :doc:`/reference/command/nav-user-management`.
+---
+title: Configure MongoDB server.
+stepnum: 2
+ref: ldap-sasl-configure-mongodb
+pre: |
+  To configure the MongoDB server to use the ``saslauthd`` instance for
+  proxy authentication, start the :program:`mongod` with the following
+  options:
+
+  - :option:`--auth`,
+
+  - :parameter:`authenticationMechanisms` parameter set to ``PLAIN``, and
+
+  - :parameter:`saslauthdPath` parameter set to the path to the Unix-domain Socket of the ``saslauthd`` instance.
+
+  Configure the MongoDB server using either the command line option
+  :doc:`--setParameter </reference/parameters>` or the
+  :doc:`configuration file </reference/configuration-options>`. Specify
+  additional configurations as appropriate for your configuration.
+action:
+  - heading: Use specific ``saslauthd`` socket path.
+    pre: |
+       For socket path of ``/<some>/<path>/saslauthd``, set the
+       :parameter:`saslauthdPath` to ``/<some>/<path>/saslauthd/mux``,
+       as in the following command line example:
+    language: none
+    code: |
+       mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN 
+  - heading: ""
+    pre: |
+       Or if using a :doc:`configuration file
+       </reference/configuration-options>`, specify the following
+       parameters in the file:
+    language: sh
+    code: |
+       auth=true
+       setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
+       setParameter=authenticationMechanisms=PLAIN
+  - heading: Use default Unix-domain socket path.
+    pre: |
+       To use the default Unix-domain socket path, set the
+       :parameter:`saslauthdPath` to the empty string ``""``, as in the
+       following command line example:
+    language: none
+    code: |
+       mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN    
+  - heading: ""
+    pre: |
+       Or if using a :doc:`configuration file
+       </reference/configuration-options>`, specify the following
+       parameters in the file:
+    language: sh
+    code: |
+       auth=true
+       setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
+       setParameter=authenticationMechanisms=PLAIN
+---
+title: Authenticate the user in the ``mongo`` shell.
+stepnum: 3
+ref: ldap-sasl-authenticate
+pre: |
+  To perform the authentication in the :program:`mongo` shell, use the
+  :method:`db.auth()` method in the ``$external`` database.
+action:
+  pre: |
+    Specify the value ``"PLAIN"`` in the ``mechanism`` field, the user and
+    password in the ``user`` and ``pwd`` fields respectively, and the
+    value ``false`` in the ``digestPassword`` field. You **must** specify
+    ``false`` for ``digestPassword`` since the server must receive an
+    undigested password to forward on to ``saslauthd``, as in the
+    following example:
+  language: javascript
+  code: |
+    db.getSiblingDB("$external").auth(
+       {
+         mechanism: "PLAIN",
+         user: <username>,
+         pwd:  <cleartext password>,
+         digestPassword: false
+       }
+    )
+post: |
+  The server forwards the password in plain text. In general, use only on
+  a trusted channel (VPN, SSL, trusted wired network). See
+  :ref:`ldap-password-in-plaintext`.
+...
