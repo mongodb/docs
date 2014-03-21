@@ -19,7 +19,6 @@ generate-source-hosted:
 	@rm -f $(hosted-source-dir)/includes/toc/dfn-list-spec-mms-landing-saas.rst
 	@rm -f $(hosted-source-dir)/includes/toc/mms-landing-saas.*
 	@rm -f $(hosted-source-dir)/includes/toc/spec-mms-landing-saas.yaml
-	@cp $(hosted-source-dir)/includes/toc/dfn-list-spec-backup-landing.rst $(hosted-source-dir)/includes/toc/dfn-list-backup-landing.rst
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-dfn-list%.. include:: /includes/toc/dfn-list-spec-management-landing-hosted.rst%' $(hosted-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%hosted%' $(hosted-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::%%' $(hosted-source-dir)/monitoring/tutorial.txt
