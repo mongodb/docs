@@ -146,7 +146,7 @@ replica sets.
 
 .. code-block:: javascript
 
-  out: { <action>: <collectionName>
+   out: { <action>: <collectionName>
            [, db: <dbName>]
            [, sharded: <boolean> ]
            [, nonAtomic: <boolean> ] }
@@ -178,15 +178,15 @@ following parameters:
 
 - ``db``:
 
- Optional.The name of the database that you want the
- map-reduce operation to write its output. By default
- this will be the same database as the input collection.
+  Optional.The name of the database that you want the map-reduce
+  operation to write its output. By default this will be the same
+  database as the input collection.
 
 - ``sharded``:
 
- Optional. If ``true`` *and* you have enabled sharding on
- output database, the map-reduce operation will shard the
- output collection using the ``_id`` field as the shard key.
+  Optional. If ``true`` *and* you have enabled sharding on output
+  database, the map-reduce operation will shard the output collection
+  using the ``_id`` field as the shard key.
 
 - ``nonAtomic``:
 
@@ -225,12 +225,12 @@ Requirements for the ``finalize`` Function
 
 The ``finalize`` function has the following prototype:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      function(key, reducedValue) {
-         ...
-         return modifiedObject;
-      }
+   function(key, reducedValue) {
+      ...
+      return modifiedObject;
+   }
 
 The ``finalize`` function receives as its arguments a ``key``
 value and the ``reducedValue`` from the ``reduce`` function. Be
