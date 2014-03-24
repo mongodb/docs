@@ -27,31 +27,37 @@ Definition
    :method:`db.collection.group()` method takes the ``keyf`` field and
    the ``reduce`` field whereas the :dbcommand:`group` command takes
    the ``$keyf`` field and the ``$reduce`` field.
-   
-   .. warning::
 
-      - The :method:`db.collection.group()` method does not work with
-        :term:`sharded clusters <sharded cluster>`. Use the
-        :term:`aggregation framework` or :term:`map-reduce` in
-        :term:`sharded environments <sharding>`.
+Behavior
+--------
 
-      - The result set must fit within the :ref:`maximum BSON document
-        size <limit-bson-document-size>`.
+Limits and Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~
 
-      - In version 2.2, the returned array can contain at most 20,000
-        elements; i.e. at most 20,000 unique groupings. For group by
-        operations that results in more than 20,000 unique groupings,
-        use :dbcommand:`mapReduce`. Previous versions had a limit of
-        10,000 elements.
+The :method:`db.collection.group()` method does not work with
+:term:`sharded clusters <sharded cluster>`. Use the :term:`aggregation
+framework` or :term:`map-reduce` in :term:`sharded environments
+<sharding>`.
 
-      - Prior to 2.4, the :method:`db.collection.group()` method took
-        the :program:`mongod` instance's JavaScript lock, which blocked
-        all other JavaScript execution.
+The result set must fit within the :ref:`maximum BSON document size
+<limit-bson-document-size>`.
 
-   .. note::
-      .. versionchanged:: 2.4
+In version 2.2, the returned array can contain at most 20,000 elements;
+i.e. at most 20,000 unique groupings. For group by operations that
+results in more than 20,000 unique groupings, use
+:dbcommand:`mapReduce`. Previous versions had a limit of 10,000
+elements.
 
-      .. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
+Prior to 2.4, the :method:`db.collection.group()` method took the
+:program:`mongod` instance's JavaScript lock, which blocked all other
+JavaScript execution.
+
+``mongo`` Shell JavaScript Functions/Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.4
+
+   .. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
 
 Examples
 --------
@@ -80,18 +86,21 @@ fields those documents that have ``ord_dt`` greater than
 
 .. code-block:: javascript
 
-   db.orders.group( {
-                      key: { ord_dt: 1, 'item.sku': 1 },
-                      cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
-                      reduce: function ( curr, result ) { },
-                      initial: { } 
-                   } )
+   db.orders.group(
+      {
+        key: { ord_dt: 1, 'item.sku': 1 },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+        reduce: function ( curr, result ) { },
+        initial: { }
+      }
+   )
 
 The result is an array of documents that contain the group by fields:
 
 .. code-block:: javascript
 
-   [ { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc123"},
+   [
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc123"},
      { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc456"},
      { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "bcd123"},
      { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "efg456"},
@@ -101,7 +110,8 @@ The result is an array of documents that contain the group by fields:
      { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc123"},
      { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc456"},
      { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc123"},
-     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc456"} ]
+     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc456"}
+   ]
 
 The method call is analogous to the SQL statement:
 
@@ -122,14 +132,16 @@ grouping:
 
 .. code-block:: javascript
 
-   db.orders.group( {
-                      key: { ord_dt: 1, 'item.sku': 1 },
-                      cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
-                      reduce: function ( curr, result ) {
-                                  result.total += curr.item.qty;
-                              },
-                      initial: { total : 0 } 
-                   } )
+   db.orders.group(
+      {
+        key: { ord_dt: 1, 'item.sku': 1 },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+        reduce: function( curr, result ) {
+                    result.total += curr.item.qty;
+                },
+        initial: { total : 0 } 
+      }
+   )
 
 The result is an array of documents that contain the group by fields
 and the calculated aggregation field:
@@ -168,34 +180,39 @@ grouping:
 
 .. code-block:: javascript
 
-   db.orders.group( {
-                      keyf: function(doc) { 
-                                return { day_of_week: doc.ord_dt.getDay() } ; },
-                      cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
-                      reduce: function ( curr, result ) {
-                                 result.total += curr.item.qty;
-                                 result.count++;
-                              },
-                      initial: { total : 0, count: 0 },
-                      finalize: function(result) {
-                                  var weekdays = [ "Sunday", "Monday", "Tuesday",
-                                                   "Wednesday", "Thursday",
-                                                   "Friday", "Saturday" ];
-                                  
-                                  result.day_of_week = weekdays[result.day_of_week];
-                                  result.avg = Math.round(result.total / result.count);
-                         
-                      }
-                   } )
+   db.orders.group(
+      {
+        keyf: function(doc) { 
+                  return { day_of_week: doc.ord_dt.getDay() }; 
+              },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+       reduce: function( curr, result ) {
+                   result.total += curr.item.qty;
+                   result.count++;
+               },
+       initial: { total : 0, count: 0 },
+       finalize: function(result) {
+                     var weekdays = [
+                          "Sunday", "Monday", "Tuesday",
+                          "Wednesday", "Thursday",
+                          "Friday", "Saturday"
+                         ];
+                     result.day_of_week = weekdays[result.day_of_week];
+                     result.avg = Math.round(result.total / result.count);
+                 }
+      }
+   )
 
 The result is an array of documents that contain the group by fields
 and the calculated aggregation field:
 
 .. code-block:: javascript
 
-   [ { "day_of_week" : "Sunday", "total" : 70, "count" : 4, "avg" : 18 },
+   [
+     { "day_of_week" : "Sunday", "total" : 70, "count" : 4, "avg" : 18 },
      { "day_of_week" : "Friday", "total" : 110, "count" : 6, "avg" : 18 },
-     { "day_of_week" : "Tuesday", "total" : 70, "count" : 3, "avg" : 23 } ]
+     { "day_of_week" : "Tuesday", "total" : 70, "count" : 3, "avg" : 23 }
+   ]
 
 .. seealso:: :doc:`/core/aggregation`
 
