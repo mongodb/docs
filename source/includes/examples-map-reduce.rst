@@ -30,7 +30,7 @@ Perform the map-reduce operation on the ``orders`` collection to group
 by the ``cust_id``, and calculate the sum of the ``price`` for each
 ``cust_id``:
 
-   .. map-reduce-map-function-begin
+.. map-reduce-map-function-begin
 
 #. Define the map function to process each input document:
 
