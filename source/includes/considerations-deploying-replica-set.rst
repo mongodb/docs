@@ -6,9 +6,9 @@ and if possible bind to the standard MongoDB port of ``27017``. Use the
 :setting:`bind_ip` option to ensure that MongoDB listens for connections
 from applications on the configured address.
 
-For a geographically distributed replica set, ensure that one system
-resides in each secondary site, while the remaining :program:`mongod`
-instances are in the primary site.
+For a geographically distributed replica set, ensure that one
+:program:`mongod` instance resides in each secondary site, while the
+:program:`mongod` instances are in the primary site.
 
 See :doc:`/core/replica-set-architectures` for more information.
 
@@ -23,7 +23,7 @@ following:
   routes all traffic between members within a single site over the local
   area network.
 
-- Configure authentication to prevent connections from unknown clients
+- Configure access control to prevent connections from unknown clients
   to the replica set.
 
 - Configure networking and firewall rules so that incoming and outgoing
