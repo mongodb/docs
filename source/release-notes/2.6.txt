@@ -36,8 +36,8 @@ process.
    All identifiers, names, interfaces are subject to change. Do
    **not** use a MongoDB 2.6 release candidate in production situations.
 
-Major New Features
-------------------
+Major Changes
+-------------
 
 The following changes in MongoDB affect both standard and Enterprise
 editions:
@@ -47,18 +47,28 @@ editions:
 Aggregation Enhancements
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+The aggregation pipeline adds the ability to return result sets of any
+size either by returning a cursor, or optionally writing the output to
+a collection. Additionally the aggregation pipeline supports
+variables, adds new operations to handle sets, and redact data.
+
 - The :method:`db.collection.aggregate()` now returns a cursor, which
   enables the aggregation pipeline to return result sets of any size.
-  The method can also accept a second parameter, which allows for the
-  specification of options, such as ``explain`` and ``allowDiskUse``.
-  See :method:`db.collection.aggregate()` for details.
 
-- New pipeline stages and new or modified operators:
+- Aggregation pipelines now support an ``explain`` operation to aid
+  analysis of aggregation operations.
+
+- Aggregation can now use a more efficient external-disk-based sorting
+  process.
+
+- New pipeline stages: 
 
   - :pipeline:`$out` stage to output to a collection
 
   - :pipeline:`$redact` stage to allow additional control to accessing
     the data
+
+- New or modified operators:
 
   - :doc:`set expression operators
     </reference/operator/aggregation-set>`
@@ -71,46 +81,33 @@ Aggregation Enhancements
   - :expression:`$cond` expression can now accept either an object or
     an array
 
-.. seealso:: :dbcommand:`aggregate` command
-
 .. _rel-notes-text-query-operator:
 
 Text Search Integration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- MongoDB 2.6 enables text search by default, provides an updated
-  version of the :doc:`text index </core/index-text>`, and introduces
-  the :query:`$text` query operator to incorporate text search into the
-  query framework and the aggregation pipeline. See
-  :doc:`/core/index-text` and :query:`$text` query operator for details.
+Text search is now enabled by default and the query system, including
+the aggregation pipeline :pipeline:`$match` stage, includes the
+:query:`$text` operator which resolves text-search queries.
 
-  MongoDB does not support the use of the :query:`$text` query operator
-  in mixed sharded cluster deployments that contain both version 2.4
-  and version 2.6 shards. See :doc:`/release-notes/2.6-upgrade` for
-  upgrade instructions.
+MongoDB 2.6 includes an updated :doc:`text index
+</core/index-text>` format and deprecates the :dbcommand:`text`
+command.
 
-- MongoDB 2.6 deprecates the :dbcommand:`text` command.
+.. _rel-notes-data-modification:
 
-.. _rel-notes-write-operations:
+Insert and Update Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Write Operation Improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Improvements to the update and insert systems include additional
+operations and improvements that increase consistency of modified
+data. 
 
 - .. include:: /includes/fact-update-field-order.rst
      :start-after: order-of-document-fields
      :end-before: .. versionchanged
 
-- :program:`mongo` shell provides new methods to perform bulk write
-  operations. See :method:`Bulk()`.
-
-- New :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
-  commands for write operations. All officially supported MongoDB
-  drivers will support the new write commands before the official 2.6
-  release.
-
 - New or enhanced update operators:
-
-  - :update:`$mul` operator for multiplication.
 
   - :update:`$bit` operator supports bitwise ``xor`` operation.
 
@@ -118,47 +115,38 @@ Write Operation Improvements
     conditional update depending on the relative size of the specified
     value and the current value of a field.
 
-  - :update:`$currentDate` operator to set the value of a field to the
-    current date.
-
   - :update:`$push` operator has enhanced support for the
     :update:`$sort`, :update:`$slice`, and :update:`$each` modifiers
     and supports a new :update:`$position` modifier.
+  
+  - :update:`$currentDate` operator to set the value of a field to the
+    current date.
+
+- The :update:`$mul` operator for multiplicative increments for insert
+  and update operations.
 
 .. seealso:: :ref:`update-operations-incompatibility`
 
-Enhanced Sharding and Replication Administration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _rel-notes-write-operations:
 
-- New :dbcommand:`cleanupOrphaned` command to remove :term:`orphaned
-  documents <orphaned document>` from a shard.
+New Write Operation Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- New :dbcommand:`mergeChunks` command to combine contiguous chunks
-  located on a single shard. See :dbcommand:`mergeChunks` and
-  :doc:`/tutorial/merge-chunks-in-sharded-cluster`.
+A new protocol for write operations integrates write operations with
+write concerns. The write protocol also provides improved
+support for bulk operations.
 
-- New :method:`rs.printReplicationInfo()` and
-  :method:`rs.printSlaveReplicationInfo()` methods to provide a
-  formatted report of the status of a replica set from the perspective
-  of the primary and the secondary, respectively.
+2.6 adds write commands, :dbcommand:`insert`, :dbcommand:`update`, and
+:dbcommand:`delete`, which provide the basis for these improvements
+affect the behavior of the :program:`mongo` shell. All officially
+supported MongoDB drivers will support the new write commands before
+the official 2.6 release.
 
-Geospatial Enhancements
-~~~~~~~~~~~~~~~~~~~~~~~
+As part of these changes, the :program:`mongo` shell now includes 
+methods to perform bulk write operations. See :method:`Bulk()` for
+more information.
 
-- Introduce version 2 of :ref:`2dsphere indexes
-  <2dsphere-v2>`.
-
-- Support for :ref:`geojson-multipoint`,
-  :ref:`geojson-multilinestring`, :ref:`geojson-multipolygon`, and
-  :ref:`geojson-geometrycollection`.
-
-- Support for geospatial query clauses in :query:`$or` expressions.
-
-.. seealso::
-   :ref:`2.6-2dsphere-version-incompatibility`,
-   :ref:`2.6-geo-maxDistance-incompatibility`,
-   :ref:`2.6-uniqueDocs-incompatibility`,
-   :ref:`2.6-geospatial-validation-incompatibility`,
+.. TODO add link to compatibility section once we publish.
 
 MSI Package for MongoDB Available for Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,6 +159,13 @@ recommended method for MongoDB installation under Windows.
 Security Improvements
 ---------------------
 
+MongoDB 2.6 enhances support for secure deployments by improved SSL
+support, x.509-based authentication, an improved authorization system
+with more granular controls, as well as centralized credential storage and
+improved user management tools.
+
+Specifically these changes include:
+
 - New :ref:`authorization model <authorization>` which provides the
   ability to create custom :ref:`user-defined-roles` and the ability to
   specify user privileges at a collection-level granularity.
@@ -179,11 +174,12 @@ Security Improvements
   user-defined role data in the ``admin`` database and providing a new
   set of commands for managing users and roles.
 
-- Enhanced SSL Support:
+- :doc:`x.509 certificate authentication </tutorial/configure-x509>`,
+  for client authentication as well as for internal authentication of
+  sharded and/or replica set cluster members. x.509 authentication is
+  only available for deployments using SSL.
 
-  - :doc:`x.509 certificate authentication </tutorial/configure-x509>`
-    for client authentication as well as for internal authentication of
-    sharded and/or replica set cluster members.
+- Enhanced SSL Support:
 
   - :doc:`Support rolling upgrades of clusters
     </tutorial/upgrade-cluster-to-ssl>` to use SSL.
@@ -204,12 +200,15 @@ Security Improvements
   interface, see :setting:`httpinterface`.
 
 .. seealso:: :ref:`authentication-incompatibility`,
-   :ref:`ssl-hostname-validation`
+   :ref:`ssl-hostname-validation`,
+   and :doc:`/administration/security-checklist`.
 
 Query Engine Improvements
 -------------------------
 
-- :doc:`/core/index-intersection` to fulfill queries.
+- MongoDB can now use :doc:`index intersection
+  </core/index-intersection>` to fulfill queries supported by more
+  than one index.
 
 - :ref:`index-filters` to limit which indexes can become the winning
   plan for a query.
@@ -217,8 +216,29 @@ Query Engine Improvements
 - :doc:`/reference/method/js-plan-cache` methods to view and clear the
   :doc:`query plans </core/query-plans>` cached by the query optimizer.
 
+Improvements
+------------
+
+Geospatial Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduce version 2 of :ref:`2dsphere indexes
+  <2dsphere-v2>`.
+
+- Support for :ref:`geojson-multipoint`,
+  :ref:`geojson-multilinestring`, :ref:`geojson-multipolygon`, and
+  :ref:`geojson-geometrycollection`.
+
+- Support for geospatial query clauses in :query:`$or` expressions.
+
+.. seealso::
+   :ref:`2.6-2dsphere-version-incompatibility`,
+   :ref:`2.6-geo-maxDistance-incompatibility`,
+   :ref:`2.6-uniqueDocs-incompatibility`,
+   :ref:`2.6-geospatial-validation-incompatibility`,
+
 Index Build Enhancements
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :ref:`Background index build
   <index-creation-building-indexes-on-secondaries>` allowed on
@@ -244,24 +264,47 @@ Index Build Enhancements
 
 .. seealso:: :ref:`2.6-index-key-length-incompatibility`
 
+Enhanced Sharding and Replication Administration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- New :dbcommand:`cleanupOrphaned` command to remove :term:`orphaned
+  documents <orphaned document>` from a shard.
+
+- New :dbcommand:`mergeChunks` command to combine contiguous chunks
+  located on a single shard. See :dbcommand:`mergeChunks` and
+  :doc:`/tutorial/merge-chunks-in-sharded-cluster`.
+
+- New :method:`rs.printReplicationInfo()` and
+  :method:`rs.printSlaveReplicationInfo()` methods to provide a
+  formatted report of the status of a replica set from the perspective
+  of the primary and the secondary, respectively.
+
 Operational Changes
 -------------------
 
-- :collflag:`usePowerOf2Sizes` is the default allocation strategy for
-  all new collections. The new allocation strategy uses more storage
-  relative to total document size, but results in lower levels of
-  storage fragmentation and more predictable storage capacity planning
-  over time.
+Storage
+~~~~~~~
 
-  To use the previous *exact fit allocation strategy*:
+:collflag:`usePowerOf2Sizes` is the default allocation strategy for
+all new collections. The new allocation strategy uses more storage
+relative to total document size, but results in lower levels of
+storage fragmentation and more predictable storage capacity planning
+over time.
 
-  - For a specific collection, use :dbcommand:`collMod` with
-    :collflag:`usePowerOf2Sizes` set to ``false``.
+To use the previous *exact fit allocation strategy*:
 
-  - For all new collections on an entire :program:`mongod` instance,
-    set :parameter:`newCollectionsUsePowerOf2Sizes` to ``false``.
+- For a specific collection, use :dbcommand:`collMod` with
+  :collflag:`usePowerOf2Sizes` set to ``false``.
 
-- Remove upward limit for the :setting:`maxConns` for :program:`mongod`
+- For all new collections on an entire :program:`mongod` instance,
+  set :parameter:`newCollectionsUsePowerOf2Sizes` to ``false``.
+
+See :doc:`/core/storage` for more information about MongoDB's storage system.
+
+Networking
+~~~~~~~~~~
+
+- Removed upward limit for the :setting:`maxConns` for :program:`mongod`
   and :program:`mongos`. Previous versions capped the maximum possible
   :setting:`maxConns` setting at ``20,000`` connections.
 
@@ -270,25 +313,16 @@ Operational Changes
   for high volume workloads and reduce resource consumption in
   sharded clusters.
 
-- New :method:`cursor.maxTimeMS()` and corresponding ``maxTimeMS``
-  option for commands to specify a time limit.
-
-- The :setting:`diaglog` and :option:`--diaglog` is deprecated. Using
-  :setting:`diaglog` produces a startup warning.
-
 - The C++ driver now monitors :term:`replica set` health with the
   :dbcommand:`isMaster` command instead of
   :dbcommand:`replSetGetStatus`. This allows the C++ driver to support
-  systems that have access control enabled.
+  systems that require authentication.
 
-- :dbcommand:`isMaster` contains two new fields,
-  :data:`~isMaster.minWireVersion` and :data:`~isMaster.maxWireVersion`
-  that report respectively the earliest and latest version of the wire
-  protocol that this :program:`mongod` or :program:`mongos` instance
-  supports.
+- New :method:`cursor.maxTimeMS()` and corresponding ``maxTimeMS``
+  option for commands to specify a time limit.
 
 Tool Improvements
------------------
+~~~~~~~~~~~~~~~~~
 
 - :program:`mongo` shell supports a global :ref:`/etc/mongorc.js
   <mongo-global-mongorc-file>`.
