@@ -44,7 +44,7 @@ source_suffix = '.txt'
 
 master_doc = 'contents'
 language = 'en'
-project = u'ecosystem'
+project = u'mongodb-ecosystem'
 copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
 version = '2.2.2'
@@ -117,6 +117,8 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
+manual_edition_path = '{0}/{1}/{2}.{3}'
+
 html_theme_options = {
     'branch': conf.git.branches.current,
     'translations': languages,
@@ -126,6 +128,12 @@ html_theme_options = {
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'project': 'ecosystem',
+    'epubpath': manual_edition_path.format(conf.project.url,
+                                           conf.project.basepath,
+                                           'mongodb-ecosystem', 'epub'),
+    'pdfpath': manual_edition_path.format(conf.project.url,
+                                           conf.project.basepath,
+                                           'MongoDB-Ecosystem-guide', 'pdf')
 }
 
 html_sidebars = {
@@ -160,7 +168,7 @@ latex_appendices = []
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'MongoDB'
+epub_title = u'MongoDB Ecosystem'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
 epub_copyright = copyright
