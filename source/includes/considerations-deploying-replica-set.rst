@@ -3,27 +3,28 @@ Architecture
 
 In a production, deploy each member of the replica set to its own machine
 and if possible bind to the standard MongoDB port of ``27017``. Use the
-:setting:`bind_ip` option to ensure that MongoDB listen for connections
+:setting:`bind_ip` option to ensure that MongoDB listens for connections
 from applications on the configured address.
 
 For a geographically distributed replica set, ensure that one system
-resides in each secondary site, while the remaining systems are in the
-primary site.
+resides in each secondary site, while the remaining :program:`mongod`
+instances are in the primary site.
 
 See :doc:`/core/replica-set-architectures` for more information.
 
 Connectivity
 ~~~~~~~~~~~~
 
-Ensure that network traffic can pass between all members in the network
-securely and efficiently. Consider the following:
+Ensure that network traffic can pass between all members of the set
+and all clients in the network securely and efficiently. Consider the
+following:
 
 - Establish a virtual private network. Ensure that your network topology
   routes all traffic between members within a single site over the local
   area network.
 
-- Configure authentication so that only servers and processes with
-  authentication can connect to the replica set.
+- Configure authentication to prevent connections from unknown clients
+  to the replica set.
 
 - Configure networking and firewall rules so that incoming and outgoing
   packets are permitted only on the default MongoDB port and only from
