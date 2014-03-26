@@ -7,7 +7,7 @@ and if possible bind to the standard MongoDB port of ``27017``. Use the
 from applications on the configured address.
 
 For a geographically distributed replica set, ensure that one
-:program:`mongod` instance resides in each secondary site, while the
+:program:`mongod` instance resides in each secondary site, while the remaining
 :program:`mongod` instances are in the primary site.
 
 See :doc:`/core/replica-set-architectures` for more information.
