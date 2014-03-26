@@ -14,9 +14,10 @@ You must configure the networking rules of your deployment so that:
      (i.e. ``https``.)
 
 The |monitoring| server does not make *any* outbound connections to the agents
-or to MongoDB instances. If :ref:`Exposed DB Host Check is enabled,
-<exposed-db-host-check>` the |monitoring| server will attempt to connect to
-your servers occasionally as part of a vulnerability check.
+or to MongoDB instances. Any alerts set to check if your host is exposed to the
+public internet will attempt to connect to your servers occasionally as part of
+a vulnerability check. See :doc:`/management/activity` to disable or create
+these alerts.
 
 Ensure all :program:`mongod` and :program:`mongos` are not accessible to hosts
 outside your deployment.
