@@ -1,0 +1,48 @@
+title: Remove the broken secondary from your replica set.
+stepnum: 1
+ref: remove-broken-secondary
+action:
+  language: sh
+  code: |
+    rs.remove("SECONDARYHOST:SECONDARYPORT")
+---
+title: Login in to the server on which you create the new secondary.
+stepnum: 2
+ref: login-to-server
+---
+title: Bring up new node as a standalone.
+stepnum: 3
+ref: bring-up-new-node
+action:
+  language: sh
+  code: |
+    tar -xvf backup-restore-file-name.tar.gz 
+    mv backup-restore-file-name data
+    mongod --port=ALTERNATEPORT --dbpath=data --logpath=data/mongodb.log
+  post: |
+    Where ``ALTERNATEPORT`` is not the usual port your secondary runs on.
+---
+title: Run seedSecondary.sh script to create oplog collection and seed with correct timestamp.
+stepnum: 4
+ref: run-seedsecondary-script
+---
+title: Shut down the new secondary on the alternate port.
+stepnum: 5
+ref: shut-down-new-secondary
+---
+title: Start up the new secondary.
+stepnum: 6
+ref: login-to-server
+action:
+  language: sh
+  code: |
+    mongod --port=SECONDARYPORT --dbpath=data --logpath=data/mongodb.log  --replSet REPLICASETNAME
+---
+title: Add the new secondary to the replica set on the primary host.
+stepnum: 7
+ref: add-new-secondary
+action:
+  language: sh
+  code: |
+    rs.add("SECONDARYHOST:SECONDARYPORT")
+...
