@@ -151,6 +151,58 @@ Description
 
    Previous versions did not create the index but did not error.
 
+.. _write-methods-incompatibility:
+
+Write Method Acknowledgements
+-----------------------------
+
+Description
+   The :program:`mongo` shell now defaults to use :doc:`safe writes
+   </core/write-concern>` for the :method:`db.collection.insert()`,
+   :method:`db.collection.update()`, and
+   :method:`db.collection.remove()` methods. This behavior is
+   consistent with the rest of the MongoDB drivers.
+
+   - Safe writes take longer than the previous behavior of
+     "fire-and-forget".
+
+   - The methods now integrates the :doc:`write concern
+     </core/write-concern>` directly into the method execution rather
+     than with a separate :dbcommand:`getLastError` command. As such,
+     the methods now return only after a desired level of write
+     acknowledgement and return a :method:`WriteResult` object that
+     contains the results of the operation, including any write errors
+     and write concern errors.
+
+Solution
+  Scripts that used these :program:`mongo` shell methods for bulk write
+  operations with "fire-and-forget" behavior should use
+  :method:`Bulk()` methods.
+
+  For example, instead of:
+
+  .. code-block:: javascript
+
+     for (var i = 1; i <= 1000000; i++) {
+         db.test.insert( { x : i } );
+     }
+
+  In MongoDB 2.6, replace with :method:`Bulk()` operation:
+
+  .. code-block:: javascript
+
+     var bulk = db.test.initializeUnorderedBulkOp();
+ 
+     for (var i = 1; i <= 1000000; i++) {
+         bulk.insert( { x : i} );
+     }
+
+     bulk.execute( { w: 1 } );
+
+  .. seealso:: :ref:`rel-notes-write-operations`, :method:`Bulk()`,
+     :method:`db.collection.initializeUnorderedBulkOp()`,
+     :method:`db.collection.initializeOrderedBulkOp()`
+
 Security Changes
 ----------------
 
@@ -214,6 +266,72 @@ Solution
       bypasses the other certificate validation, such as checks for
       expiration and valid signatures.
 
+.. _2.6-2dsphere-version-incompatibility:
+
+``2dsphere`` Index Version 2
+----------------------------
+
+Description
+   MongoDB 2.6 introduces a version 2 of the :doc:`2dsphere index
+   </core/2dsphere>`. If a document lacks a ``2dsphere``
+   index field (or the field is ``null`` or an empty array), MongoDB
+   does not add an entry for the document to the ``2dsphere`` index.
+   For inserts, MongoDB inserts the document but does not add to the
+   ``2dsphere`` index.
+
+   Previous version would not insert documents where the ``2dsphere``
+   index field is a ``null`` or an empty array. For documents that lack
+   the ``2dsphere`` index field, previous versions would insert and
+   index the document.
+
+Solution
+   To revert to old behavior, create the ``2dsphere`` index with ``{
+   "2dsphereIndexVersion" : 1 }`` to create a version 1 index. However,
+   version 1 index cannot use the new GeoJSON geometries.
+
+.. seealso:: :ref:`2dsphere-v2`
+
+Log Messages
+------------
+
+Timestamp Format Change
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+  Each message now starts with the timestamp formatted in
+  ``iso8601-local``, i.e. ``YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>``. For
+  example, ``2014-03-04T20:13:38.944-0500``. Previous versions used
+  ``ctime`` format.
+
+Solution
+  MongoDB adds a new option :option:`--timeStampFormat` which supports
+  timestamp format in :option:`ctime <--timeStampFormat>`,
+  :option:`iso8601-utc <--timeStampFormat>`, and :option:`iso8601-local
+  <--timeStampFormat>` (new default).
+
+.. Commenting out the others for now -- they're just placeholders and notes for self
+.. Other
+   ~~~~~
+   - ``query`` log messages add new field ``planSummary`.
+   - ``getmore`` log messages now omit the ``query`` field.
+   - :program:`mongo` shell now calls :dbcommand:`isMaster` command
+     instead of the ``admin`` command :dbcommand:`replSetGetStatus`
+     during the construction of the shell prompt. Log messages change
+     accordingly, as in the following
+     .. code-block:: none
+        command: { isMaster: 1.0, forShell: 1.0 } keyUpdates:0 numYields:0  reslen:178 0ms
+   - In 2.6, log messages for write methods consist of a message for
+     the method followed by a message for the associated write command.
+     Previously, the messages consisted of a message for the method
+     followed by a message for the ``getlasterror`` command. For example:
+     .. code-block:: none
+     2014-03-04T21:16:21.992-0500 [conn1] remove test.server12774 query: { a: { $lt: 3.0 } } ndeleted:2 keyUpdates:0 numYields:0 locks(micros) w:344 0ms
+     2014-03-04T21:16:21.993-0500 [conn1] command test.$cmd command: { delete: "myCollection", deletes: [ { q: { a: { $lt: 3.0 } }, limit: 0.0 } ], ordered: true } keyUpdates:0 numYields:0  reslen:40 0ms
+   - MongoDB removes the two blank lines preceding and following the:
+     ``***** SERVER RESTARTED *****`` message.
+   - ``writeback`` error message and ``FlushViewOfFile`` error message
+     removes the space between the duration time and ``ms``.
+
 Package Configuration Changes
 -----------------------------
 
@@ -255,50 +373,8 @@ Solution
 
    - Update references to ``globalopcounts`` to ``globalOpcounts``.
 
-Replica Set/Sharded Cluster Validation
---------------------------------------
-
-.. _2.6-metadata-check-incompatibility:
-
-Shard Name Checks on Metadata Refresh
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Description
-   For sharded clusters, MongoDB 2.6 disallows a shard from refreshing
-   the metadata if the shard name has not been explicitly set.
-
-   For mixed sharded cluster deployments that contain both version 2.4
-   and version 2.6 shards, this change can cause errors when migrating
-   chunks **from** version 2.4 shards **to** version 2.6 shards if the
-   shard name is unknown to the version 2.6 shards. MongoDB does not
-   support migrations in mixed sharded cluster deployments.
-
-Solution
-   Upgrade all components of the cluster to 2.6. See
-   :doc:`/release-notes/2.6-upgrade`.
-
-.. _2.6-repl-set-vote-incompatibility:
-
-Replica Set Vote Configuration Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Description
-   MongoDB now deprecates giving any :term:`replica set` member more
-   than a single vote. During configuration,
-   :data:`local.system.replset.members[n].votes` should only have a
-   value of 1 for voting members and 0 for non-voting members. MongoDB
-   treats values other than 1 or 0 as a value of 1 and produces a
-   warning message.
-
-Solution
-   Update :data:`local.system.replset.members[n].votes` with values
-   other than 1 or 0 to 1 or 0 as appropriate.
-
 Remove Method Signature Change
 ------------------------------
-
-``remove()`` Method Requires a Parameter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Description
    :method:`db.collection.remove()` requires a query document as a
@@ -310,13 +386,10 @@ Solution
    query document, modify the invocations to include an empty document
    :method:`db.collection.remove({})`.
 
-Update Operator Changes
------------------------
-
 .. _update-operations-incompatibility:
 
-Enforce Field Name Restrictions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Updates Enforce Field Name Restrictions
+---------------------------------------
 
 Description
    - Updates cannot use :doc:`update operators (e.g $set)
@@ -430,31 +503,6 @@ the new behavior.
 
 Geospatial Changes
 ~~~~~~~~~~~~~~~~~~
-
-.. _2.6-2dsphere-version-incompatibility:
-
-``2dsphere`` Index Version 2
-````````````````````````````
-
-Description
-   MongoDB 2.6 introduces a version 2 of the :doc:`2dsphere index
-   </core/2dsphere>`. If a document lacks a ``2dsphere``
-   index field (or the field is ``null`` or an empty array), MongoDB
-   does not add an entry for the document to the ``2dsphere`` index.
-   For inserts, MongoDB inserts the document but does not add to the
-   ``2dsphere`` index.
-
-   Previous version would not insert documents where the ``2dsphere``
-   index field is a ``null`` or an empty array. For documents that lack
-   the ``2dsphere`` index field, previous versions would insert and
-   index the document.
-
-Solution
-   To revert to old behavior, create the ``2dsphere`` index with ``{
-   "2dsphereIndexVersion" : 1 }`` to create a version 1 index. However,
-   version 1 index cannot use the new GeoJSON geometries.
-
-.. seealso:: :ref:`2dsphere-v2`
 
 .. _2.6-geo-maxDistance-incompatibility:
 
@@ -616,47 +664,44 @@ in mixed sharded cluster deployments that contain both version 2.4
 and version 2.6 shards. See :doc:`/release-notes/2.6-upgrade` for
 upgrade instructions.
 
-Log Messages
-------------
+Replica Set/Sharded Cluster Validation
+--------------------------------------
 
-Timestamp Format Change
-~~~~~~~~~~~~~~~~~~~~~~~
+.. _2.6-metadata-check-incompatibility:
+
+Shard Name Checks on Metadata Refresh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Description
-  Each message now starts with the timestamp formatted in
-  ``iso8601-local``, i.e. ``YYYY-MM-DDTHH:mm:ss.mmm<+/-Offset>``. For
-  example, ``2014-03-04T20:13:38.944-0500``. Previous versions used
-  ``ctime`` format.
+   For sharded clusters, MongoDB 2.6 disallows a shard from refreshing
+   the metadata if the shard name has not been explicitly set.
+
+   For mixed sharded cluster deployments that contain both version 2.4
+   and version 2.6 shards, this change can cause errors when migrating
+   chunks **from** version 2.4 shards **to** version 2.6 shards if the
+   shard name is unknown to the version 2.6 shards. MongoDB does not
+   support migrations in mixed sharded cluster deployments.
 
 Solution
-  MongoDB adds a new option :option:`--timeStampFormat` which supports
-  timestamp format in :option:`ctime <--timeStampFormat>`,
-  :option:`iso8601-utc <--timeStampFormat>`, and :option:`iso8601-local
-  <--timeStampFormat>` (new default).
+   Upgrade all components of the cluster to 2.6. See
+   :doc:`/release-notes/2.6-upgrade`.
 
-.. Commenting out the others for now -- they're just placeholders and notes for self
-.. Other
-   ~~~~~
-   - ``query`` log messages add new field ``planSummary`.
-   - ``getmore`` log messages now omit the ``query`` field.
-   - :program:`mongo` shell now calls :dbcommand:`isMaster` command
-     instead of the ``admin`` command :dbcommand:`replSetGetStatus`
-     during the construction of the shell prompt. Log messages change
-     accordingly, as in the following
-     .. code-block:: none
-        command: { isMaster: 1.0, forShell: 1.0 } keyUpdates:0 numYields:0  reslen:178 0ms
-   - In 2.6, remove operations use the new :dbcommand:`delete` command.
-     For a remove operation, MongoDB now logs a remove message and a
-     ``delete`` command message, as in the following example:
-     .. code-block:: none
-     2014-03-04T21:16:21.992-0500 [conn1] remove test.server12774 query: { a: { $lt: 3.0 } } ndeleted:2 keyUpdates:0 numYields:0 locks(micros) w:344 0ms
-     2014-03-04T21:16:21.993-0500 [conn1] command test.$cmd command: { delete: "myCollection", deletes: [ { q: { a: { $lt: 3.0 } }, limit: 0.0 } ], ordered: true } keyUpdates:0 numYields:0  reslen:40 0ms
-     in shell, no longer automatic getlasterror message
-   - Other write commands
-   - MongoDB removes the two blank lines preceding and following the:
-     ``***** SERVER RESTARTED *****`` message.
-   - ``writeback`` error message and ``FlushViewOfFile`` error message
-     removes the space between the duration time and ``ms``.
+.. _2.6-repl-set-vote-incompatibility:
+
+Replica Set Vote Configuration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   MongoDB now deprecates giving any :term:`replica set` member more
+   than a single vote. During configuration,
+   :data:`local.system.replset.members[n].votes` should only have a
+   value of 1 for voting members and 0 for non-voting members. MongoDB
+   treats values other than 1 or 0 as a value of 1 and produces a
+   warning message.
+
+Solution
+   Update :data:`local.system.replset.members[n].votes` with values
+   other than 1 or 0 to 1 or 0 as appropriate.
 
 .. _2.6-compatibility-other-resources:
 

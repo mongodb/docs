@@ -7,266 +7,124 @@ db.collection.insert()
 Definition
 ----------
 
-.. method:: db.collection.insert(document)
+.. method:: db.collection.insert()
 
-   Inserts a document or an array of documents into a collection.
+   Inserts a document or documents into a collection.
 
-   .. versionchanged:: 2.2
-      The :method:`~db.collection.insert()` method can accept
-      an array of documents to perform a bulk insert of the
-      documents into the collection.
+   The :method:`~db.collection.insert()` method has the following
+   syntax:
+
+   .. versionchanged:: 2.6
+
+   .. code-block:: none
+
+      db.collection.insert(
+         <document or array of documents>,
+         {
+           writeConcern: <document>,
+           ordered: <boolean>
+         }
+      )
 
    .. include:: /reference/method/db.collection.insert-param.rst
 
-   The :method:`~db.collection.insert()` method has the
-   following behaviors:
+   .. versionchanged:: 2.6
+      The :method:`~db.collection.insert()` returns an object that
+      contains the status of the operation.
 
-   - If the collection does not exist, then the
-     :method:`~db.collection.insert()` method will create the
-     collection.
+   :returns:
+      - A :ref:`writeresults-insert` object for single inserts.
 
-   - If the document does not specify an :term:`_id` field, then
-     MongoDB will add the ``_id`` field and assign a unique
-     :doc:`/reference/object-id` for the document before inserting.
-     Most drivers create an ObjectId and insert the ``_id`` field, but
-     the :program:`mongod` will create and populate the ``_id`` if the
-     driver or application does not.
+      - A :ref:`bulkwriteresults-insert` object for bulk inserts.
 
-   - If the document specifies a new field, then the
-     :method:`~db.collection.insert()` method inserts the document with
-     the new field. This requires no changes to the data model for the
-     collection or the existing documents.
+Behaviors
+---------
+
+.. _insert-safe-writes:
+
+Safe Writes
+~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+The :method:`~db.collection.insert()` method uses the
+:dbcommand:`insert` command, which uses the default write concern. To
+specify a different write concern, include the write concern in the
+options parameter.
+
+Create Collection
+~~~~~~~~~~~~~~~~~
+
+If the collection does not exist, then the
+:method:`~db.collection.insert()` method will create the collection.
+
+``_id`` Field
+~~~~~~~~~~~~~
+
+If the document does not specify an :term:`_id` field, then MongoDB
+will add the ``_id`` field and assign a unique
+:doc:`/reference/object-id` for the document before inserting. Most
+drivers create an ObjectId and insert the ``_id`` field, but the
+:program:`mongod` will create and populate the ``_id`` if the driver or
+application does not.
+
+If the document contains an ``_id`` field, the ``_id`` value must be
+unique within the collection to avoid duplicate key error.
 
 Examples
 --------
 
-The following examples show how to use the
-:method:`~db.collection.insert()` method to insert a document or an
-array of documents into either the ``products`` collection or the
-``bios`` collection. If the collections do not exist, the
-:method:`~db.collection.insert()` method creates the collections.
-[#show-collection]_
+The following examples insert documents into the ``products``
+collection. If the collection does not exist, the
+:method:`~db.collection.insert()` method creates the collection.
 
 Insert a Document without Specifying an ``_id`` Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the following examples, the document passed to the
+In the following example, the document passed to the
 :method:`~db.collection.insert()` method does not contain the ``_id``
-field. During the insert, :program:`mongod` will create the ``_id``
-field and assign it a unique :doc:`/reference/object-id` value.
-
-.. include:: /includes/fact-object-id-may-differ.rst
-
-``products`` Collection
-```````````````````````
-
-The following example inserts a document into the ``products``
-collection:
+field:
 
 .. code-block:: javascript
 
    db.products.insert( { item: "card", qty: 15 } )
 
-The inserted document includes an ``_id`` field with the generated
-``ObjectId`` value:
+During the insert, :program:`mongod` will create the ``_id`` field and
+assign it a unique :doc:`/reference/object-id` value, as verified by
+the inserted document:
 
 .. code-block:: javascript
 
    { "_id" : ObjectId("5063114bd386d8fadbd6b004"), "item" : "card", "qty" : 15 }
 
-``bios`` Collection
-```````````````````
-
-The following example inserts a document into the
-:doc:`/reference/bios-example-collection`:
-
-.. code-block:: javascript
-
-   db.bios.insert(
-      {
-        name: { first: 'John', last: 'McCarthy' },
-        birth: new Date('Sep 04, 1927'),
-        death: new Date('Dec 24, 2011'),
-        contribs: [ 'Lisp', 'Artificial Intelligence', 'ALGOL' ],
-        awards: [
-                  {
-                    award: 'Turing Award',
-                    year: 1971,
-                    by: 'ACM'
-                  },
-                  {
-                    award: 'Kyoto Prize',
-                    year: 1988,
-                    by: 'Inamori Foundation'
-                  },
-                  {
-                    award: 'National Medal of Science',
-                    year: 1990,
-                    by: 'National Science Foundation'
-                  }
-                ]
-      }
-   )
-
-To verify the inserted document, query the ``bios`` collection:
-
-.. code-block:: javascript
-
-   db.bios.find( { name: { first: 'John', last: 'McCarthy' } } )
-
-The returned document includes an ``_id`` field with the generated
-``ObjectId`` value:
-
-.. code-block:: javascript
-
-   {
-     "_id" : ObjectId("50a1880488d113a4ae94a94a"),
-     "name" : { "first" : "John", "last" : "McCarthy" },
-     "birth" : ISODate("1927-09-04T04:00:00Z"),
-     "death" : ISODate("2011-12-24T05:00:00Z"),
-     "contribs" : [ "Lisp", "Artificial Intelligence", "ALGOL" ],
-     "awards" : [
-                  {
-                    "award" : "Turing Award",
-                    "year" : 1971,
-                    "by" : "ACM"
-                  },
-                  {
-                    "award" : "Kyoto Prize",
-                    "year" :1988,s
-                    "by" : "Inamori Foundation"
-                  },
-                  {
-                    "award" : "National Medal of Science",
-                    "year" : 1990,
-                    "by" : "National Science Foundation"
-                  }
-                ]
-   }
-
-.. include:: /includes/note-insert-id-field.rst
+.. include:: /includes/fact-object-id-may-differ.rst
 
 Insert a Document Specifying an ``_id`` Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the following examples, the documents passed to the
+In the following example, the document passed to the
 :method:`~db.collection.insert()` method includes the ``_id`` field.
 The value of ``_id`` must be unique within the collection to avoid
 duplicate key error.
-
-``products`` Collection
-```````````````````````
-
-This example inserts into the ``products`` collection a document that
-includes an ``_id`` field. The ``_id`` value of ``10`` must be a unique
-value for the ``_id`` field in the ``products`` collection. If the
-value were not unique, the insert would fail:
 
 .. code-block:: javascript
 
    db.products.insert( { _id: 10, item: "box", qty: 20 } )
 
-The insert operation creates the following document in the ``products``
+The operation inserts the following document in the ``products``
 collection:
 
 .. code-block:: javascript
 
    { "_id" : 10, "item" : "box", "qty" : 20 }
 
-``bios`` Collection
-```````````````````
-
-This example inserts into the ``bios`` collection a document that
-includes an ``_id`` field. The ``_id`` value of ``1`` must be a unique
-value for the ``_id`` field in the ``bios`` collection. Otherwise, if
-the value were not unique, the insert would fail:
-
-.. code-block:: javascript
-
-   db.bios.insert(
-      {
-        _id: 1,
-        name: { first: 'John', last: 'Backus' },
-        birth: new Date('Dec 03, 1924'),
-        death: new Date('Mar 17, 2007'),
-        contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ],
-        awards: [
-                  {
-                    award: 'W.W. McDowell Award',
-                    year: 1967,
-                    by: 'IEEE Computer Society'
-                  },
-                  {
-                    award: 'National Medal of Science',
-                    year: 1975,
-                    by: 'National Science Foundation'
-                  },
-                  {
-                    award: 'Turing Award',
-                    year: 1977,
-                    by: 'ACM'
-                  },
-                  {
-                    award: 'Draper Prize',
-                    year: 1993,
-                    by: 'National Academy of Engineering'
-                  }
-                ]
-      }
-   )
-
-To confirm the insert, :doc:`query </core/read-operations>` the ``bios``
-collection:
-
-.. code-block:: javascript
-
-   db.bios.find( { _id: 1 } )
-
-The insert operation created the following document in the ``bios``
-collection:
-
-.. code-block:: javascript
-
-   {
-     "_id" : 1,
-     "name" : { "first" : "John", "last" : "Backus" },
-     "birth" : ISODate("1924-12-03T05:00:00Z"),
-     "death" : ISODate("2007-03-17T04:00:00Z"),
-     "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ],
-     "awards" : [
-                  {
-                    "award" : "W.W. McDowell Award",
-                    "year" : 1967,
-                    "by" : "IEEE Computer Society"
-                  },
-                  {
-                    "award" : "National Medal of Science",
-                    "year" : 1975,
-                    "by" : "National Science Foundation"
-                  },
-                  {
-                    "award" : "Turing Award",
-                    "year" : 1977,
-                    "by" : "ACM"
-                  },
-                  { "award" : "Draper Prize",
-                    "year" : 1993,
-                    "by" : "National Academy of Engineering"
-                  }
-                ]
-   }
-
 Insert Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following examples perform a bulk insert of multiple documents by
+The following example performs a bulk insert of three documents by
 passing an array of documents to the :method:`~db.collection.insert()`
 method.
 
-``products`` Collection
-```````````````````````
-
-This example inserts three documents into the ``products`` collection.
 The documents in the array do not need to have the same fields. For
 instance, the first document in the array has an ``_id`` field and a
 ``type`` field. Because the second and third documents do not contain
@@ -275,10 +133,13 @@ the second and third documents during the insert:
 
 .. code-block:: javascript
 
-   db.products.insert( [ { _id: 11, item: "pencil", qty: 50, type: "no.2" },
-                         {          item: "pen", qty: 20 },
-                         {          item: "eraser", qty: 25 }
-                       ] )
+   db.products.insert(
+      [
+        { _id: 11, item: "pencil", qty: 50, type: "no.2" },
+        { item: "pen", qty: 20 },
+        { item: "eraser", qty: 25 }
+      ] 
+   )
 
 The operation inserted the following three documents:
 
@@ -286,102 +147,104 @@ The operation inserted the following three documents:
 
    { "_id" : 11, "item" : "pencil", "qty" : 50, "type" : "no.2" }
    { "_id" : ObjectId("51e0373c6f35bd826f47e9a0"), "item" : "pen", "qty" : 20 }
-   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }.
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }
 
-``bios`` Collection
-```````````````````
+Perform an Ordered Insert
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This example inserts three documents in the ``bios`` collection. The
-documents in the array do not need to have the same fields. The
-document with ``_id: 3`` contains a field named ``title`` that does not
-appear in the other documents. MongoDB does not require the other
-documents to contain this field:
+The following example performs an *ordered* insert of four documents.
+Unlike *unordered* inserts which continue on error, *ordered* inserts
+return on error without processing the remaining documents in the array.
 
 .. code-block:: javascript
 
-   db.bios.insert(
+   db.products.insert(
       [
-        {
-          _id: 3,
-          name: { first: 'Grace', last: 'Hopper' },
-          title: 'Rear Admiral',
-          birth: new Date('Dec 09, 1906'),
-          death: new Date('Jan 01, 1992'),
-          contribs: [ 'UNIVAC', 'compiler', 'FLOW-MATIC', 'COBOL' ],
-          awards: [
-                    {
-                      award: 'Computer Sciences Man of the Year',
-                      year: 1969,
-                      by: 'Data Processing Management Association'
-                    },
-                    {
-                      award: 'Distinguished Fellow',
-                      year: 1973,
-                      by: ' British Computer Society'
-                    },
-                    {
-                      award: 'W. W. McDowell Award',
-                      year: 1976,
-                      by: 'IEEE Computer Society'
-                    },
-                    {
-                      award: 'National Medal of Technology',
-                      year: 1991,
-                      by: 'United States'
-                    }
-                  ]
-        },
-        {
-          _id: 4,
-          name: { first: 'Kristen', last: 'Nygaard' },
-          birth: new Date('Aug 27, 1926'),
-          death: new Date('Aug 10, 2002'),
-          contribs: [ 'OOP', 'Simula' ],
-          awards: [
-                    {
-                      award: 'Rosing Prize',
-                      year: 1999,
-                      by: 'Norwegian Data Association'
-                    },
-                    {
-                      award: 'Turing Award',
-                      year: 2001,
-                      by: 'ACM'
-                    },
-                    {
-                      award: 'IEEE John von Neumann Medal',
-                      year: 2001,
-                      by: 'IEEE'
-                    }
-                  ]
-        },
-        {
-          _id: 5,
-          name: { first: 'Ole-Johan', last: 'Dahl' },
-          birth: new Date('Oct 12, 1931'),
-          death: new Date('Jun 29, 2002'),
-          contribs: [ 'OOP', 'Simula' ],
-          awards: [
-                    {
-                      award: 'Rosing Prize',
-                      year: 1999,
-                      by: 'Norwegian Data Association'
-                    },
-                    {
-                      award: 'Turing Award',
-                      year: 2001,
-                      by: 'ACM'
-                    },
-                    {
-                      award: 'IEEE John von Neumann Medal',
-                      year: 2001,
-                      by: 'IEEE'
-                    }
-                  ]
-        }
-      ]
+        { _id: 20, item: "lamp", qty: 50, type: "desk" },
+        { _id: 21, item: "lamp", qty: 20, type: "floor" },
+        { _id: 22, item: "bulk", qty: 100 }
+      ],
+      { ordered: true }
    )
 
-.. [#show-collection] You can also view a list of the existing
-   collections in the database using the ``show collections``
-   operation in the :program:`mongo` shell.
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following insert operation to a replica set specifies a write
+concern of ``w: 2`` with a ``wtimeout`` of 5000 milliseconds such that
+the method returns only after the writes propagate to the primary and
+at least one secondary or the method times out after 5 seconds.
+
+.. code-block:: javascript
+
+   db.products.insert(
+       { item: "envelopes", qty : 100, type: "Clasp" },
+       { writeConcern: { w: "majority", wtimeout: 5000 } }
+   )
+
+.. _writeresults-insert:
+
+WriteResult
+-----------
+
+.. versionchanged:: 2.6
+
+When passed a single document, :method:`~db.collection.insert()`
+returns a ``WriteResult`` object.
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.insert()` returns a :method:`WriteResult`
+object that contains the status of the operation. Upon success, the
+:method:`WriteResult` object contains information on the number of
+documents inserted:
+
+.. code-block:: javascript
+
+   WriteResult({ "nInserted" : 1 })
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.insert()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 1,
+      "writeConcernError" : {
+         "code" : 64,
+         "errmsg" : "waiting for replication timed out at shard-a"
+      }
+   })
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.insert()` method encounters a non-write
+concern error, the results include the :data:`WriteResult.writeError`
+field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000,
+         "errmsg" : "insertDocument :: caused by :: 11000 E11000 duplicate key error index: test.foo.$_id_  dup key: { : 1.0 }"
+      }
+   })
+
+.. _bulkwriteresults-insert:
+
+BulkWriteResult
+---------------
+
+.. versionchanged:: 2.6
+
+When passed an array of documents, :method:`~db.collection.insert()`
+returns a :ref:`bulk-write-result`. See :ref:`bulk-write-result` for
+details.
