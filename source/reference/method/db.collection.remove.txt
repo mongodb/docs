@@ -7,17 +7,62 @@ db.collection.remove()
 Definition
 ----------
 
-.. method:: db.collection.remove(query, justOne)
+.. method:: db.collection.remove()
 
    Removes documents from a collection.
 
-   The :method:`~db.collection.remove()` method has the following
-   parameters:
+   The :method:`db.collection.remove()` method can have one of two
+   syntaxes. The :method:`~db.collection.remove()` method can take a
+   query document and an optional ``justOne`` boolean:
+
+   .. code-block:: javascript
+
+      db.collection.remove(
+         <query>,
+         <justOne>
+      )
+
+   Or the method can take a query document and an optional remove
+   options document:
+
+   .. versionadded:: 2.6
+
+   .. code-block:: javascript
+
+      db.collection.remove(
+         <query>,
+         {
+           justOne: <boolean>,
+           writeConcern: <document>
+         }
+      )
 
    .. include:: /reference/method/db.collection.remove-param.rst
 
+   .. versionchanged:: 2.6
+      The :method:`~db.collection.remove()` returns an object that
+      contains the status of the operation.
+
+   :returns: A :ref:`writeresults-remove` object that contains the
+      status of the operation.
+
 Behavior
 --------
+
+.. _remove-safe-writes:
+
+Safe Writes
+~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+The :method:`~db.collection.remove()` method uses the
+:dbcommand:`delete` command, which uses the default write concern. To
+specify a different write concern, include the write concern in the
+options parameter.
+
+Considerations
+~~~~~~~~~~~~~~
 
 By default, :method:`~db.collection.remove()` removes all documents
 that match the ``query`` expression. Specify the ``justOne`` option to
@@ -59,15 +104,6 @@ To remove the documents that match a deletion criteria, call the
 :method:`~db.collection.remove()` method with the ``<query>``
 parameter:
 
-The following operation deletes all documents from the :doc:`bios
-collection </reference/bios-example-collection>` where the
-subdocument ``name`` contains a field ``first`` whose value starts with
-``G``:
-
-.. code-block:: javascript
-
-   db.bios.remove( { 'name.first' : /^G/ } )
-
 The following operation removes all the documents from the collection
 ``products`` where ``qty`` is greater than ``20``:
 
@@ -75,20 +111,29 @@ The following operation removes all the documents from the collection
 
    db.products.remove( { qty: { $gt: 20 } } )
 
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set removes all the documents from
+the collection ``products`` where ``qty`` is greater than ``20`` and
+specifies a write concern of ``w: 2`` with a ``wtimeout`` of 5000
+milliseconds such that the method returns only after the writes
+propagate to the primary and at least one secondary or the method times
+out after 5 seconds.
+
+.. code-block:: javascript
+
+   db.products.remove(
+       { qty: { $gt: 20 } },
+       { writeConcern: { w: "majority", wtimeout: 5000 } }
+   )
+
 Remove a Single Document that Matches a Condition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To remove the first document that match a deletion criteria, call the
 :method:`remove <db.collection.remove()>` method with the ``query``
 criteria and the ``justOne`` parameter set to ``true`` or ``1``.
-
-The following operation deletes a single document from the :doc:`bios
-collection </reference/bios-example-collection>` where the ``turing``
-field equals ``true``:
-
-.. code-block:: javascript
-
-   db.bios.remove( { turing: true }, 1 )
 
 The following operation removes the first document from the collection
 ``products`` where ``qty`` is greater than ``20``:
@@ -111,8 +156,65 @@ during the delete. To isolate the query, include ``$isolated: 1`` in the
 
 .. code-block:: javascript
 
-   db.bios.remove( { turing: true, $isolated: 1 } )
+   db.products.remove( { qty: { $gt: 20 }, $isolated: 1 } )
+
+.. _writeresults-remove:
+
+WriteResult
+-----------
+
+.. versionchanged:: 2.6
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.remove()` returns a :method:`WriteResult`
+object that contains the status of the operation. Upon success, the
+:method:`WriteResult` object contains information on the number of
+documents removed:
 
 .. code-block:: javascript
 
-   db.products.remove( { qty: { $gt: 20 }, $isolated: 1 } )
+   WriteResult({ "nRemoved" : 4 })
+
+.. seealso:: :data:`WriteResult.nRemoved`
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.remove()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nRemoved" : 21,
+      "writeConcernError" : {
+         "code" : 64,
+         "errInfo" : {
+            "wtimeout" : true
+         },
+         "errmsg" : "waiting for replication timed out"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteConcernError()`
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.remove()` method encounters a non-write
+concern error, the results include :data:`WriteResult.writeError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nRemoved" : 0,
+      "writeError" : {
+         "code" : 2,
+         "errmsg" : "unknown top level operator: $invalidFieldName"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteError()`

@@ -12,39 +12,55 @@ Definition
    Modifies an existing document or documents in a collection. The
    method can modify specific fields of existing document or documents
    or replace an existing document entirely, depending on the
-   :ref:`update parameter <update-parameter>`.
+   :ref:`update parameter <update-parameter>`. 
 
    By default, the :method:`~db.collection.update()` method updates a
-   **single** document. If the ``multi`` option is set to ``true``, the
-   method updates all documents that match the query criteria.
+   **single** document. Set the :ref:`multi-parameter` to update all
+   documents that match the query criteria.
 
-   .. versionchanged:: 2.2
-      The :method:`~db.collection.update()` method has the following form:
+   The :method:`~db.collection.update()` method has the following form:
+
+   .. versionchanged:: 2.6
 
    .. code-block:: javascript
 
       db.collection.update(
          <query>,
          <update>,
-         { upsert: <boolean>, multi: <boolean> }
+         {
+           upsert: <boolean>,
+           multi: <boolean>,
+           writeConcern: <document>
+         }
       )
-
-   Prior to version 2.2, the :method:`~db.collection.update()` method
-   has the following form:
-
-   .. code-block:: javascript
-
-      db.collection.update( <query>, <update>, <upsert>, <multi> )
 
    The :method:`~db.collection.update()` method takes the following
    parameters:
 
    .. include:: /reference/method/db.collection.update-param.rst
 
-   To update fields in subdocuments, use :term:`dot notation`.
+   .. versionchanged:: 2.6
+      The :method:`~db.collection.update()` returns an object that
+      contains the status of the operation.
 
-   The :method:`~db.collection.update()` method can modify the
-   name of a ``field`` using the :update:`$rename` operator.
+   :returns: A :ref:`writeresults-update` object that contains the
+      status of the operation.
+
+Behavior
+--------
+
+.. _update-safe-writes:
+
+Safe Writes
+~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+The :method:`~db.collection.update()` method uses the
+:dbcommand:`update` command, which uses the default write concern. To
+specify a different write concern, include the ``writeConcern`` option
+in the options parameter. See :ref:`example-update-write-concern` for
+an example.
 
 .. _update-parameter:
 
@@ -88,17 +104,6 @@ expressions, then:
 Upsert Parameter
 ~~~~~~~~~~~~~~~~
 
-In MongoDB versions 2.2 and later, the *upsert* parameter has the
-following form:
-
-.. code-block:: javascript
-
-   upsert : true|false
-
-Prior to version 2.2, the ``upsert`` parameter is a positional boolean.
-To enable, specify ``true`` as the third parameter to
-:method:`~db.collection.update()`.
-
 Upsert Use
 ``````````
 
@@ -112,6 +117,9 @@ The *upsert* creates the new document with either:
   parameters. The *upsert* creates a document with data from both
   ``<query>`` and ``<update>`` if the ``<update>`` parameter contains
   *only* :ref:`update operator <update-operators>` expressions.
+
+If ``upsert`` is ``true`` and there are documents that match the query
+criteria, :method:`~db.collection.update()` performs an update.
 
 Use Unique Indexes
 ``````````````````
@@ -164,17 +172,6 @@ The remaining operations would either:
 Multi Parameter
 ~~~~~~~~~~~~~~~
 
-In MongoDB versions 2.2 and later, the ``multi`` parameter has the
-following form:
-
-.. code-block:: javascript
-
-   multi : true|false
-
-Prior to version 2.2, the ``multi`` parameter is a positional boolean.
-To enable the multiple updates, specify ``true`` as the fourth parameter
-to :method:`~db.collection.update()`.
-
 If ``multi`` is set to ``true``, the :method:`~db.collection.update()`
 method updates all documents that meet the ``<query>`` criteria. The
 ``multi`` update operation may interleave with other write operations.
@@ -191,24 +188,25 @@ For an example, see :ref:`example-update-multi`.
 Examples
 --------
 
-The following examples use the **MongoDB version 2.2 interface** to
-specify options in the document form.
-
 .. _example-update-specific-fields:
 
 Update Specific Fields
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To update specific fields in a document, use :ref:`update operators
-<update-operators>` in the ``<update>`` parameter. For example, given a
-``books`` collection with the following document:
+<update-operators>` in the ``<update>`` parameter. If the ``<update>``
+parameter refers to fields non-existent in the current document, the
+:method:`~db.collection.update()` method adds the fields to the
+document.
+
+For example, given a ``books`` collection with the following document:
 
 .. code-block:: javascript
 
    { "_id" : 11, "item" : "Divine Comedy", "stock" : 2 }
 
-The following operation uses the :update:`$set` and :update:`$inc`
-operators to add a ``price`` field and to increment ``stock`` by ``5``.
+The following operation adds a ``price`` field to the document and
+increments the ``stock`` field by ``5``.
 
 .. code-block:: javascript
 
@@ -226,48 +224,19 @@ The updated document is now the following:
 
    { "_id" : 11, "item" : "Divine Comedy", "price" : 18, "stock" : 7 }
 
-Update Specific Fields in Subdocuments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use :term:`dot notation` to update values in subdocuments. The following
-example, which uses the :doc:`bios collection
-</reference/bios-example-collection>`, queries for the document with
-``_id`` equal to ``1`` and updates the value of the field ``middle`` in
-the subdocument ``name``:
-
-.. code-block:: javascript
-
-   db.bios.update( { _id: 1 }, { $set: { "name.middle": "Warner" } } )
-
-Add New Fields
-~~~~~~~~~~~~~~
-
-If the ``<update>`` parameter contains fields not currently in the
-document, the :method:`~db.collection.update()` method adds the new
-fields to the document. The following operation adds two new fields:
-``mbranch`` and ``aka``. The operation adds ``aka`` in the subdocument
-``name``:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 3 },
-      { $set: {
-            mbranch: "Navy",
-            "name.aka": "Amazing Grace"
-         }
-      }
-   )
+.. seealso:: :update:`$set`, :update:`$inc`, :doc:`/reference/operator/update`
 
 Remove Fields
 ~~~~~~~~~~~~~
 
 The following operation uses the :update:`$unset` operator to remove
-the ``birth`` field from the document that has ``_id`` equal to ``3``:
+the ``stock`` field:
 
 .. code-block:: javascript
 
-   db.bios.update( { _id: 3 }, { $unset: { birth: 1 } } )
+   db.books.update( { _id: 11 }, { $unset: { stock: 1 } } )
+
+.. seealso:: :update:`$unset`, :update:`$rename`, :doc:`/reference/operator/update`
 
 .. _example-update-replace-fields:
 
@@ -313,52 +282,14 @@ the ``author`` field and changed the values of the ``price`` and
        "stock" : 3
    }
 
-In the next example, which uses the :doc:`bios collection
-</reference/bios-example-collection>`, the operation changes all values
-for the document *including the value used to locate the document*. The
-operation locates a document by querying for ``name`` set to ``{ first:
-"John", last: "McCarthy" }`` and then issues a replacement document that
-includes the ``name`` field set to ``{ first: "Ken", last: "Iverson"
-}``.
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { name: { first: "John", last: "McCarthy" } },
-      {
-         name: { first: "Ken", last: "Iverson" },
-         birth: new Date("Dec 17, 1941"),
-         died: new Date("Oct 19, 2004"),
-         contribs: [ "APL", "J" ],
-         awards: [
-            {
-               award: "Turing Award",
-               year: 1979,
-               by: "ACM"
-            },
-            {
-               award: "Harry H. Goode Memorial Award",
-               year: 1975,
-               by: "IEEE Computer Society"
-            },
-            {
-               award: "IBM Fellow",
-               year: 1970,
-               by: "IBM"
-            }
-         ]
-      }
-   )
-
 .. _example-update-upsert:
 
 Insert a New Document if No Match Exists (Upsert)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following command sets the *upsert* option to ``true``
-[#previous-versions-upsert]_ so that :method:`~db.collection.update()`
-creates a new document in the ``books`` collection if no document
-matches the ``<query>`` parameter:
+The following command sets the *upsert* option to ``true`` so that
+:method:`~db.collection.update()` creates a new document in the
+``books`` collection if no document matches the ``<query>`` parameter:
 
 .. code-block:: javascript
 
@@ -381,78 +312,44 @@ a new unique ``ObjectId`` for the ``_id`` field:
        "price" : 15
    }
 
-In the next example, the ``<update>`` parameter includes only
-:ref:`update operators <update-operators>`. If no document matches the
-``<query>`` parameter, the *upsert* inserts a document with the fields
-and values of the both the ``<query>`` and ``<update>`` parameters:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      {
-         _id: 7,
-         name: { first: "Ken", last: "Thompson" }
-      },
-      {
-         $set: {
-            birth: new Date("Feb 04, 1943"),
-            contribs: [ "UNIX", "C", "B", "UTF-8" ],
-            awards: [
-               {
-                  award: "Turing Award",
-                  year: 1983,
-                  by: "ACM"
-               },
-               {
-                  award: "IEEE Richard W. Hamming Medal",
-                  year: 1990,
-                  by: "IEEE"
-               },
-               {
-                  award: "National Medal of Technology",
-                  year: 1998,
-                  by: "United States"
-               },
-               {
-                  award: "Tsutomu Kanai Award",
-                  year: 1999,
-                  by: "IEEE"
-               },
-               {
-                  award: "Japan Prize",
-                  year: 2011,
-                  by: "The Japan Prize Foundation"
-               }
-            ]  // end of awards
-         } // end of $set
-      }, // end of update document
-      { upsert: true }
-   )
-
-.. [#previous-versions-upsert]
-   .. include:: /includes/fact-upsert-multi-options.rst
-
 .. _example-update-multi:
 
 Update Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To update multiple documents, set the ``multi`` option to ``true``
-[#previous-versions-multi]_. The following example queries the
-:doc:`bios collection </reference/bios-example-collection>` for all
-documents where ``awards.award`` is set to ``Turing``. The update sets
-the ``turing`` field to ``true``:
+To update multiple documents, set the ``multi`` option to ``true``. For
+example, the following operation updates all documents where ``stock``
+is less than ``5``:
 
 .. code-block:: javascript
 
-   db.bios.update(
-      { "awards.award": "Turing" },
-      { $set: { turing: true } },
+   db.books.update(
+      { stock: { $lt: 5 } },
+      { $set: { reorder: true } },
       { multi: true }
    )
 
-.. [#previous-versions-multi]
-   .. include:: /includes/fact-upsert-multi-options.rst
+.. _example-update-write-concern:
+
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set specifies a write concern of
+``w: 2`` with a ``wtimeout`` of 5000 milliseconds such that the method
+returns only after the writes propagate to the primary and at least one
+secondary or the method times out after 5 seconds.
+
+
+.. code-block:: javascript
+
+   db.books.update(
+      { stock: { $lt: 5 } },
+      { $set: { reorder: true } },
+      {
+        multi: true,
+        writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
 
 Combine the Upsert and Multi Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -461,34 +358,21 @@ Given a ``books`` collection that includes the following documents:
 
 .. code-block:: javascript
 
-   {
-       "_id" : 11,
-       "author" : "Dante",
-       "item" : "Divine Comedy",
-       "price" : 18 }
-   {
-       "_id" : 22,
-       "author" : "Dante",
-       "item" : "The Banquet",
-       "price" : 19 }
-   {
-       "_id" : 33,
-       "author" : "Dante",
-       "item" : "Monarchia",
-       "price" : 14
-   }
+   { _id: 11, author: "Dante", item: "Divine Comedy", price: 18 }
+   { _id: 22, author: "Dante", item: "The Banquet", price: 19 }
+   { _id: 33, author: "Dante", item: "Monarchia", price: 14 }
 
 The following command uses the ``multi`` parameter to update all
 documents where ``author`` is ``"Dante"`` and uses the *upsert*
-parameter to create a new document if no such documents are found
-[#previous-versions-upsert-multi]_:
+parameter to create a new document if no such documents are found:
 
 .. code-block:: javascript
 
-   db.books.update( { author: "Dante" },
-                    { $set: { born: "Florence", died: "Ravenna" } },
-                    { upsert: true, multi: true }
-                  )
+   db.books.update( 
+      { author: "Dante" },
+      { $set: { born: "Florence", died: "Ravenna" } },
+      { upsert: true, multi: true }
+   )
 
 The operation results in the following:
 
@@ -519,8 +403,9 @@ The operation results in the following:
        "price" : 14
    }
 
-.. [#previous-versions-upsert-multi]
-   .. include:: /includes/fact-upsert-multi-options.rst
+.. TODO need to just replace the below section with a little behavior
+   blurb or move it somewhere else instead of trying to give
+   examples for various array update use cases.
 
 Update Arrays
 ~~~~~~~~~~~~~
@@ -638,3 +523,68 @@ This :method:`~db.collection.update()` operation:
 - Adds an element to the field ``awards``, whose value is an array.
   Specifically, the :update:`$push` operator adds another document as
   element to the field ``awards``.
+
+.. _writeresults-update:
+
+WriteResult
+-----------
+
+.. versionchanged:: 2.6
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.update()` returns a :method:`WriteResult`
+object that contains the status of the operation. Upon success, the
+:method:`WriteResult` object contains information on the number of
+documents that matched the query condition, the number of documents
+inserted via an ``upsert``, and the number of documents modified:
+
+.. code-block:: javascript
+
+   WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+.. see:: :data:`WriteResult.nMatched`, :data:`WriteResult.nUpserted`,
+   :data:`WriteResult.nModified`
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.update()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nMatched" : 1,
+      "nUpserted" : 0,
+      "nModified" : 1,
+      "writeConcernError" : {
+         "code" : 64,
+         "errmsg" : "waiting for replication timed out at shard-a"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteConcernError()`
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.update()` method encounters a non-write
+concern error, the results include the :data:`WriteResult.writeError`
+field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nMatched" : 0,
+      "nUpserted" : 0,
+      "nModified" : 0,
+      "writeError" : {
+         "code" : 7,
+         "errmsg" : "could not contact primary for replica set shard-a"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteError()`
