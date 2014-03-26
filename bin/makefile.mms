@@ -37,6 +37,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/backup/on-prem.txt
 	@rm -f $(saas-source-dir)/backup/requirements.txt
 	@rm -f $(saas-source-dir)/installation.txt
+	@rm -f $(saas-source-dir)/management/tutorial/upgrade-on-prem.txt
 	@rm -f $(saas-source-dir)/backup/tutorial/install-on-prem-backup-server.txt
 	@rm -f $(saas-source-dir)/source/management/tutorial/configure-high-avalibility.txt
 	@rm -f $(saas-source-dir)/management/tutorial/authenticate-with-ldap.txt
