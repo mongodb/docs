@@ -1,0 +1,100 @@
+==========================
+Detect Invalid Data Files
+==========================
+
+.. default-domain:: mongodb
+
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
+If you have an interruption, such as a power failure, you must assume your
+data files are in an invalid state. This section describes how to check
+whether a :program:`mongod` instance shut down cleanly and how to test
+data integrity.
+
+To recover data that has been corrupted, see
+:doc:`/tutorial/recover-data`.
+
+.. note:: The best way to avoid data loss and ensure the most robust
+   deployments is to follow the recommendations in
+   :doc:`maintain-valid-data-files`.
+
+Procedures
+----------
+
+Detect an Unclean Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To detect whether a :program:`mongod` instance shutdown cleanly, look for
+the following indicators:
+
+- a ``mongod.lock`` non-zero-length file in the data directory.
+
+- the following line in the :program:`mongod` log output:
+
+  .. code-block:: none
+
+     Unclean shutdown detected.
+
+These indicate an unclean shutdown, in which case you must assume data
+files are invalid.
+
+Test Data Integrity
+~~~~~~~~~~~~~~~~~~~
+
+This procedure applies only if the :program:`mongod` instance runs with
+:term:`journaling <journal>` enabled. To test data integrity, use either
+the :method:`db.collection.validate()` method or :dbcommand:`validate`
+command.
+
+For example, to test the integrity of the ``people`` collection, use the
+following command from the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   db.test.validate(true)
+
+A portion of the output shows that the ``test`` collection is valid:
+
+.. code-block:: javascript
+
+   {
+   ...
+
+     "valid" : true,
+     "errors" : [ ],
+     "ok" : 1
+   }
+
+If the collection is invalid, the output of
+:method:`db.collection.validate()` shows that as well:
+
+.. code-block:: javascript
+
+   {
+   ...
+      "valid" : false,
+      "errors" : [
+         "invalid bson object detected (see logs for more info)",
+         "exception during validate"
+      ],
+      "advice" : "ns corrupt, requires repair",
+      "ok" : 1
+   }
+
+Related Documents
+-----------------
+
+- :doc:`maintain-valid-data-files`
+
+- :doc:`/tutorial/recover-data`
+
+- :doc:`/tutorial/manage-journaling`
+
+- :doc:`/core/backups`
+
+- :doc:`/administration/backup`
