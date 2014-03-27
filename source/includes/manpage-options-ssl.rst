@@ -38,6 +38,7 @@
    all logging and reporting output.
 
    .. versionchanged:: 2.4
+
       :option:`--sslPEMKeyPassword` is only needed when the private
       key is encrypted. In earlier versions |binary-name| would require
       :option:`--sslPEMKeyPassword` whenever using
