@@ -1,0 +1,382 @@
+============================
+MMS Quick Start Installation
+============================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+|mms| is a service to monitor and back up a MongoDB infrastructure. This
+tutorial describes the basic process to install and configure the service.
+
+At a high level, a basic installation will look like the following.
+The estimated setup time is less than an hour.
+
+#. Install a standalone local MongoDB server backed by a fast, large storage volume.
+
+#. Install an SMTP email server as appropriate for your environment.
+
+#. Install the MMS server RPM package.
+
+#. Configure the MMS server's URL and email addresses.
+
+#. Start up MMS server.
+
+Prerequisites
+-------------
+
+Contact a MongoDB representative to obtain the current stable |monitoring|
+release. MMS is available in DEB packages for Debian, Ubuntu, and related
+systems; RPM for Red Hat Enterprise Linux, CentOS, Fedora, and related
+systems; as well as ``tar.gz`` and ``zip`` packages.
+
+You can also download the latest On-Prem Monitoring releases from
+<http://www.mongodb.com/commercialsupport/downloads> as an RPM package.
+
+Confirm your environment meets the :doc:`/management/tutorial/hardware-software-requirements`.
+
+Procedure
+---------
+
+Prepare Server
+~~~~~~~~~~~~~~
+
+#. For AWS users, prepare MongoDB Storage:
+
+   *If you are not using AWS, skip this step and continue to the next
+   step.*
+
+   If using an AWS EBS volume for MongoDB storage, create and
+   attach the volume to your EC2 instance. Once the volume is
+   successfully attached, issue the following command to determine the
+   name of the new EBS volume: ::
+
+      sudo fdisk -l
+
+   Create a filesystem on this volume using the name you found in the
+   previous, command, using the following form: ::
+
+      sudo mkfs -t ext4 /dev/xvd<letter>
+
+   Replace ``<letter>`` with the identifier for the volume, as in the
+   following example: ::
+
+      sudo mkfs -t ext4 /dev/xvdf
+
+   You only need to create a filesystem the first time you initiate
+   the drive.
+
+   Create a directory to use as the mount point: ::
+
+      sudo mkdir /mnt/ebs-mount-dir
+
+   Mount the volume with a command that resembles the following: ::
+
+      sudo mount /dev/xvd<letter> /mnt/ebs-mount-dir
+
+   Replace ``<letter>`` with the identifier for the volume, as in the
+   following example: ::
+
+      sudo mount /dev/xvdf /mnt/ebs-mount-dir
+
+#. Set Linux Kernel parameters. All users must complete this step to
+   ensure optimal performance. Begin by using the following commands
+   to change the parameters of running instance: ::
+
+      sudo /sbin/sysctl -w net.core.netdev_max_backlog=30000
+      sudo /sbin/sysctl -w net.core.wmem_max=16777216
+      sudo /sbin/sysctl -w net.core.rmem_max=16777216
+
+   Edit the ``/etc/sysctl.conf`` file and append the lines below to
+   ensure that these parameters are always applied following a system
+   reboot: ::
+
+      net.core.netdev_max_backlog = 30000
+      net.core.wmem_max = 16777216
+      net.core.rmem_max = 16777216
+
+Install and Start MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section assumes you're installing MongoDB on an instance running
+Red Hat, CentOS, Fedora, or Amazon Linux: Use the `Install Mongodb on
+Red Hat, CentOS, or Fedora Linux
+<http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/>`_
+tutorial for more information.
+
+#. Add MongoDB repositories to the system's package management tool.
+
+   Create the ``/etc/yum.repos.d/mongodb.repo`` file and add the
+   following information about the repository:
+
+   .. code-block:: ini
+
+       [mongodb]
+       name=MongoDB Repository
+       baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
+       gpgcheck=0
+       enabled=1
+
+#. Install the MongoDB packages using the following operations:
+
+   .. code-block:: sh
+
+      sudo yum install mongo-10gen mongo-10gen-server
+
+#. Configure data and logging directories for MongoDB.
+
+   Create directories for MongoDB's log and data. This example assumes
+   that the path for all MongoDB data is beneath
+   ``/mnt/ebs-mnt-dir/mongo/``. Use the following commands:
+
+   .. code-block:: sh
+
+      sudo mkdir -p /mnt/ebs-mount-dir/mongo/data
+      sudo mkdir -p /mnt/ebs-mount-dir/mongo/logs
+
+   Issue the following command to ensure that the ``mongod`` process
+   owns all paths below the ``/mnt/ebs-mnt-dir/mongo/`` path:
+
+   .. code-block:: sh
+
+      sudo chown -R mongod:mongod /mnt/ebs-mount-dir/mongo
+
+   Edit the ``/etc/mongod.conf`` to include the following settings:
+
+   .. code-block:: ini
+
+      logpath=/mnt/ebs-mount-dir/mongo/logs/mongod.log
+      dbpath=/mnt/ebs-mount-dir/mongo/data
+
+   This will configure the paths for the log and data
+   directories. Adjust the paths as needed.
+
+#. Start MongoDB.
+
+   Issue the following command:
+
+   .. code-block:: sh
+
+      sudo /etc/init.d/mongod start
+
+   .. note::
+
+      If using EBS, starting MongoDB *may* take several minutes to
+      pre-allocate the journal files. This is normal behavior.
+
+Install the MMS Software Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+RPM Install
+```````````
+
+Install the RPM by issuing command in the following form:
+
+.. code-block:: sh
+
+   sudo rpm -ivh mongodb-mms-<version>.x86_64.rpm
+
+Replace ``<version>`` with the version of the ``.rpm`` you
+obtained. When installed, the base directory for the MMS software is
+``/opt/mongodb/mms/``. The RPM will also create a new system user
+``mongodb-mms`` under which the server will run.
+
+DEB Install
+```````````
+
+Install the DEB by issuing command in the following form:
+
+.. code-block:: sh
+
+   sudo dpkg --install mongodb-mms-<version>.x86_64.deb
+
+Replace ``<version>`` with the version of the ``.deb`` you
+obtained. When installed, the base directory for the MMS software is
+``/opt/mongodb/mms/``. The DEB package will also create a new system
+user ``mongodb-mms`` under which the server will run.
+
+``tar.gz`` and ``zip`` Install
+``````````````````````````````
+
+You can install |monitoring| from the provided ``tar.gz`` or ``zip``
+archive without making any changes to the underlying system
+(i.e. without creating users.)  To install, extract the package, as in
+the following command:
+
+.. code-block:: sh
+
+    tar -zxf mongodb-mms-<version>.x86_64.tar.gz
+
+Optionally create a symlink in ``/etc/init.d`` to the included control
+script for convenience, as in the following:
+
+.. code-block:: sh
+
+   sudo ln -s <install_dir>/bin/mongodb-mms /etc/init.d/
+
+Note, when the app is first started, it will create and store an encryption
+key in ``$HOME/.mongodb-mms`` for the app user.
+
+Configure On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Required Configuration
+``````````````````````
+
+.. note::
+
+   By default, |monitoring| will use a local SMTP server listening on port 25.
+
+Configure MMS properties, by editing the
+``<install_dir>/conf/conf-mms.properties`` file. Edit the following
+properties according to the needs of your deployment, as in the
+following example:
+
+.. code-block:: ini
+
+   mms.centralUrl=http://mms.example.com:8080
+
+   mms.fromEmailAddr=MMS Alerts <mms-alerts@example.com>
+   mms.replyToEmailAddr=mms-no-reply@example.com
+   mms.adminFromEmailAddr=MMS Admin <mms-admin@example.com>
+   mms.adminEmailAddr=mms-admin@example.com
+   mms.bounceEmailAddr=bounce@example.com
+
+These properties are blank initially, and you **must** define them
+before the |monitoring| instance will start.
+
+In addition, whether or not you enable backup, define these properties if
+you use authentication:
+
+.. code-block:: ini
+
+   mongo.mongoUri=<SetToValidUri>
+   mongo.replicaSet=<ValidRSIfUsed>
+
+Otherwise, MMS will fail while trying to connect to the default 127.0.0.1:27017
+URL.
+
+If you use the MMS :program:`<install_dir>/bin/credentialstool` to encrypt the
+password used in the ``mongo.mongoUri`` value, also add the
+``mongo.encryptedCredentials`` key to the
+``<install_dir>/conf/conf-mms.properties`` file and set the value for this
+property to true:
+
+.. code-block:: ini
+
+   mongo.encryptedCredentials=true
+
+Configure Email Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please refer to your SMTP provider's documentation for the appropriate
+settings or for how to configure a local SMTP server as a relay. You
+may configure authentication if you want to send mail using existing
+email infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or
+``Sendgrid`` .
+
+Set the following value in the
+``<install_dir>/conf/conf-mms.properties`` file:
+
+.. code-block:: ini
+
+   mms.emailDaoClass=com.xgen.svc.core.dao.email.JavaEmailDao
+
+Then, to the same file, set the following values as defined by your
+provider. Defaults specified inline:
+
+.. code-block:: ini
+
+   mms.mail.transport=<smtp/smtps> # (defaults to smtp)
+   mms.mail.hostname=<mail.example.com> # (defaults to localhost)
+   mms.mail.port=<number> # (defaults to 25)
+   mms.mail.tls=<true/false> # (defaults to false)
+
+The following two values are optional,
+and unless set default to disabled authentication:
+
+.. code-block:: ini
+
+   mms.mail.username=
+   mms.mail.password=
+
+Start the On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   If you installed from a ``tar.gz`` or ``zip`` archive, you must create
+   a symlink located at the path ``/etc/init.d/mongodb-mms`` that points
+   to the ``<install_dir>/bin/mongodb-mms``.
+
+After configuring your |monitoring| deployment, you can start the MMS
+server with the following command:
+
+.. code-block:: sh
+
+   sudo /etc/init.d/mongodb-mms start
+
+The On-Prem MMS server logs its output to a ``logs`` directory inside
+the installation directory. You can view this log information with the
+following command:
+
+.. code-block:: sh
+
+   sudo less <install_dir>/logs/mms0.log
+
+If the server starts successfully, you will see content in this file
+that resembles the following:
+
+.. code-block:: none
+
+   [main] INFO  ServerMain:202 - Starting mms...
+   [main] WARN  AbstractConnector:294 - Acceptors should be <=2*availableProcessors: SelectChannelConnector@0.0.0.0:0
+   [null] LoginService=HashLoginService identityService=org.eclipse.jetty.security.DefaultIdentityService@1eb3319f
+   [main] INFO  AppConfig:46 - Starting app for env: hosted
+   [main] INFO  MmsAppConfig:67 - Not loading backup components
+   [main] INFO  GraphiteSvcImpl:67 - Graphite service not configured, events will be ignored.
+   [main] INFO  TwilioSvcImpl:48 - Twilio service not configured, SMS events will be ignored.
+   [main] INFO  OpenDMKSnmpTrapAgentSvcImpl:91 - SNMP heartbeats hosts not configured, no heartbeat traps will be sent.
+   [main] INFO  ServerMain:266 - Started mms in: 24979 (ms)
+
+You can now use the |monitoring| instance by visiting the URL specified
+in the ``mms.centralUrl`` parameter (e.g. http://mms.example.com:8080)
+to continue configuration:
+
+Unlike the SaaS version of MMS, |monitoring| stores user accounts in the
+local MongoDB instance. When you sign
+into the |monitoring| instance for the first time, the system will
+prompt you to register and create a new "group" for your deployment.
+
+After completing the registration process, you will arrive at the "MMS
+Hosts," page.
+
+Because there are no Monitoring agents attached to your account, the
+first page you see in |monitoring| will provide instructions for
+downloading the Monitoring agent. Click the "download agent" link to
+download a pre-configured agent for your account. Continue reading this
+document for installation and configuration instructions for the MMS
+agent.
+
+Stop the On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Stopping the On-Prem MMS server is as follows:
+
+.. code-block:: sh
+
+   sudo /etc/init.d/mongodb-mms stop
+
+Further Information
+-------------------
+
+- To configure your |mms| deployment for high availability, see
+  :doc:`/management/tutorial/configure-high-availability`.
+
+- For more configuration options, see
+  :doc:`/management/tutorial/mms-authentication`,
+  :doc:`/management/tutorial/mms-configuration` and
+  :doc:`/management/tutorial/mms-optional-configuration`.
+
+
