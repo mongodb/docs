@@ -52,24 +52,24 @@ Storage Considerations
 
 GCE offers persistent disk storage to go along with your instances,
 either as a single root volume or with multiple disks attached to an
-instance. There are multiple storage configurations possible with GCE
+instance. GCE's persistent disks (PD) already stripe data across a
+very large number of volumes, shere is no need to do it yourself.
+MongoDB journal data is small and putting it on its own disk means
+either creating a small disk with insufficient performance or creating
+a large disk that goes mostly unused. Put your MongoDB journal files
+on the same disk as your data. Putting your MongoDB journal files on
+a small persistent disk will dramatically decrease performance of
+database writes.
+
+The most optimal and performant storage configuration is to use a
+single volume to hold MongoDB data, journal, and log files.
+To properly determine the right storage configuration for your
+deployment it is best to prototype and test your workload.
+
+There are multiple storage configurations possible with GCE
 persistent disks, each with it's own tradeoffs. To properly determine
 the right storage configuration you will need to prototype and test
 your workload.
-
-Configurations
-~~~~~~~~~~~~~~
-
-- Single root volume
-
-- Individual volumes, one for each of the following: data, log, and
-  journal.
-
-- Multiple volumes for data, striped with `LVM
-  <http://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_
-
-- Multiple volumes for data, configured with RAID0, RAID1, or RAID10
-  using `mdadm <http://en.wikipedia.org/wiki/Mdadm>`_
 
 Performance
 ~~~~~~~~~~~
@@ -117,18 +117,11 @@ for the instance using the ``gcutil`` command.
 
    gcutil adddisk mongodb-root --project=mongodb-project --size_gb=10 --zone=us-central1-b
 
-Next create the persistent disk that will hold MongoDB data.
+Next create the persistent disk that will hold MongoDB data, journal, and logs.
 
 .. code-block:: sh
 
-   gcutil adddisk mongodb-data --project=mongodb-project --size_gb=500 --zone=us-central1-b
-
-Now repeat that process to create additional persistent disks for the journal and log.
-
-.. code-block:: sh
-
-   gcutil adddisk mongodb-journal --project=mongodb-project --size_gb=25 --zone=us-central1-b
-   gcutil adddisk mongodb-log --project=mongodb-project --size_gb=25 --zone=us-central1-b
+   gcutil adddisk mongodb-storage --project=mongodb-project --size_gb=500 --zone=us-central1-b
 
 With the disks now created, the next step is to launch an instance
 with these volumes attached.
@@ -137,12 +130,11 @@ with these volumes attached.
 
     $ gcutil addinstance mongodb-instance --project=mongodb-project --zone=us-central1-b \
     --machine_type=n1-standard-2 --image=projects/centos-cloud/global/images/centos-6-v20131120 \
-    --disk=mongodb-root,mode=rw,boot --disk=mongodb-data,mode=rw \
-    --disk=mongodb-journal,mode=rw, --disk=mongodb-log,mode=rw
+    --disk=mongodb-root,mode=rw,boot --disk=mongodb-storage,mode=rw
 
 The above command will launch an `n1-standard-2` instance running
-CentOS in the `us-central1-b` zone with 4 disks attached (1 as
-instance boot volume and the others for MongoDB data, log, and
+CentOS in the `us-central1-b` zone with 2 disks attached (1 as
+instance boot volume and the other for MongoDB data, log, and
 journal).
 
 Once the instance is created (check status using the ``gcutil
@@ -170,8 +162,7 @@ Then install MongoDB:
 
    sudo yum install -y mongo-10gen-server
 
-Now locate the persistent disks previously attached to the instance so
-they can be used for storage.
+Now locate the persistent disks previously attached to the instance..
 
 .. code-block:: sh
 
@@ -180,44 +171,41 @@ they can be used for storage.
 .. code-block:: none
 
     # ...
-    lrwxrwxrwx. 1 root root  9 Mar  3 20:38 google-mongodb-data -> ../../sdb
-    lrwxrwxrwx. 1 root root  9 Mar  3 20:38 google-mongodb-journal -> ../../sdc
-    lrwxrwxrwx. 1 root root  9 Mar  3 20:38 google-mongodb-log -> ../../sdd
+    lrwxrwxrwx. 1 root root  9 Mar  3 20:38 google-mongodb-storage -> ../../sdb
     lrwxrwxrwx. 1 root root  9 Mar  3 20:38 google-mongodb-root -> ../../sda
 
-Next, format each disk (skip the root volume as it was formatted and
-attached at instance boot):
+
+Now create the mount point to hold MongoDB data, journal, and log files.
 
 .. code-block:: sh
 
-   sudo mkfs.ext4 /dev/sdb
-   sudo mkfs.ext4 /dev/sdc
-   sudo mkfs.ext4 /dev/sdd
+   sudo mkdir /data
 
-Now create mount points, mount, and set the appropriate ownership
+Next, format and mount the disk using the GCE :program:`safe_format_and_mount`
+tool (skip the root volume as it was formatted and attached at instance
+boot). This tool will only format the disk if it is unformatted and mount
+the disk. For more information see refer to the
+`Formatting Disks <https://developers.google.com/compute/docs/disks#formatting>`_
+documentation.
+
+.. code-block:: sh
+
+   sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F -o defaults,auto,noatime,noexec" /dev/sdb /data
+
+Finally set the appropriate ownership of the storage volume
 ("``owner:group``" should be ``mongod``:``mongod``).
 
 .. code-block:: sh
 
-   sudo mkdir /data /journal /log
+   sudo chown mongod:mongod /data
 
-   echo '/dev/sdb /data ext4 defaults,auto,noatime,noexec 0 0
-   /dev/sdc /journal ext4 defaults,auto,noatime,noexec 0 0
-   /dev/sdd /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+Optionally, to persist this storage mount you can either call
+:program:`safe_format_and_mount` (as invoked above) in a startup script or
+persist the mount information to :file:`/etc/fstab`:
 
-   sudo mount /data
-   sudo mount /journal
-   sudo mount /log
+.. code-block:: sh
 
-   sudo chown mongod:mongod /data /journal /log
-
-.. note::
-
-   To relocate the journal to the newly attached mount point, issue the following command
-
-   .. code-block:: sh
-
-      sudo ln -s /journal /data/journal
+  echo '/dev/sdb /data ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
 
 Storage setup is now complete. Now configure the following MongoDB
 parameters by editing the configuration file :file:`/etc/mongod.conf`:
@@ -225,7 +213,7 @@ parameters by editing the configuration file :file:`/etc/mongod.conf`:
 .. code-block:: ini
 
    dbpath = /data
-   logpath = /log/mongod.log
+   logpath = /data/mongod.log
 
 Optionally, if you don't want MongoDB to start at boot you can issue
 the following command:
@@ -271,16 +259,16 @@ readahead appropriately (repeat for necessary volumes):
    sudo blockdev --setra 32 /dev/sdb
 
 To make this change persistent across system boot you can issue the
-following command. Repeat this command for all required volumes
-(:file:`/dev/sdc` and :file:`/dev/sdd`).
+following command.
 
 .. code-block:: sh
 
    echo 'ACTION=="add", KERNEL=="sdb", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-mongod.rules
 
 The default TCP keep alive on Linux also needs to be changed for
-MongoDB deployments. The following commands will update the time to
-300 seconds and persist those settings across reboot:
+MongoDB deployments as the default is too long. The following
+commands will update the time to 300 seconds and persist those
+settings across reboot:
 
 .. code-block:: sh
 
@@ -299,7 +287,7 @@ shell. You will see the following output.
 .. code-block:: none
 
    $ mongo
-   MongoDB shell version: 2.4.8
+   MongoDB shell version: 2.4.9
    connecting to: test
    >
 
@@ -348,7 +336,7 @@ Now execute the snapshot command:
 
 .. code-block:: sh
 
-   gceutil addsnapshot mongodb-data-snapshot --project=mongodb-project --source_disk=mongodb-data
+   gceutil addsnapshot mongodb-storage-snapshot --project=mongodb-project --source_disk=mongodb-storage
 
 Once the snapshot has been completed, unlock :program:`mongod` via the
 :program:`mongo` shell:
@@ -361,20 +349,20 @@ To view snapshot details, use the following command:
 
 .. code-block:: sh
 
-   gcutil getsnapshot mongodb-data-snapshot
+   gcutil getsnapshot mongodb-storage-snapshot
 
 .. code-block:: none
 
-   +----------------------+------------------------------------+
-   | name                 | mongodb-data-snapshot              |
-   | description          |                                    |
-   | creation-time        | 2014-03-03T15:13:50.209-08:00      |
-   | status               | READY                              |
-   | disk-size-gb         | 500                                |
-   | storage-bytes        |                                    |
-   | storage-bytes-status |                                    |
-   | source-disk          | us-central1-b/disks/mongodb-data   |
-   +----------------------+------------------------------------+
+   +----------------------+-------------------------------------+
+   | name                 | mongodb-storage-snapshot            |
+   | description          |                                     |
+   | creation-time        | 2014-03-03T15:13:50.209-08:00       |
+   | status               | READY                               |
+   | disk-size-gb         | 500                                 |
+   | storage-bytes        |                                     |
+   | storage-bytes-status |                                     |
+   | source-disk          | us-central1-b/disks/mongodb-storage |
+   +----------------------+-------------------------------------+
 
 To restore MongoDB data from a GCE snapshot, use the following
 procedure. First, if :program:`mongod` is running, stop it.
@@ -388,8 +376,8 @@ attach it to a running instance.
 
 .. code-block:: sh
 
-   gcutil adddisk mongodb-data-2 --source_snapshot=mongodb-data-snapshot --project=mongodb-project --zone=us-central1-b
-   gcutil attachdisk mongodb-instance --disk=mongodb-data-2,mode=rw --project=mongodb-project
+   gcutil adddisk mongodb-storage-2 --source_snapshot=mongodb-storage-snapshot --project=mongodb-project --zone=us-central1-b
+   gcutil attachdisk mongodb-instance --disk=mongodb-storage-2,mode=rw --project=mongodb-project
 
 After the disk attaches, refer to the above instructions for mounting
 the disk to the :file:`/data` mount point, then restart
