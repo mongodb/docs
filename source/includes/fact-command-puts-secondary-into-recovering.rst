@@ -3,7 +3,7 @@
 - On secondaries, the |cmd-name| command forces
   the secondary to enter :replstate:`RECOVERING` state. Read
   operations issued to an instance in the :replstate:`RECOVERING`
-  state will fail to prevent clients from reading during the
+  state will fail.  This prevents clients from reading during the
   operation. When the operation completes, the secondary returns
   to:replstate:`SECONDARY` state.
 
