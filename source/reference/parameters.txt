@@ -303,6 +303,71 @@ Parameters
    :parameter:`releaseConnectionsAfterResponse` on each
    :program:`mongos` instance in the cluster.
 
+.. parameter:: connPoolMaxShardedConnectionsPerHost
+
+   .. versionadded:: 2.6
+
+   *Default*: 200
+
+   :program:`mongos` instances reuse connections to the shards to
+   service multiple requests. However, in some situations very active
+   :program:`mongos` instances may need to maintain a pool larger than
+   the default maximum of 200 connections.
+
+   The :parameter:`connPoolMaxShardedConnectionsPerHost` value
+   defines the size of the largest connection pool that
+   :program:`mongos` instances will maintain for communication to the
+   shards. The size of a pool does not prevent :program:`mongos`
+   instances from creating additional connections, but *does* prevent
+   the connection pools from retaining connections above this limit.
+
+   Increase the :parameter:`connPoolMaxShardedConnectionsPerHost`
+   value **only** if the number of connections in a connection pool
+   has a high level of churn, or if the total number of created
+   connections increase.
+
+   :parameter:`connPoolMaxShardedConnectionsPerHost` only applies for
+   :program:`mongos` instances. You can only set
+   :parameter:`connPoolMaxShardedConnectionsPerHost` during start up
+   in the config file or on the command line, as follows to increase
+   the size of the connection pool:
+
+   .. code-block:: sh
+
+      mongos --setParameter connPoolMaxShardedConnectionsPerHost=250
+
+.. parameter:: connPoolMaxConnectionsPerHost
+
+   .. versionadded:: 2.6
+
+   *Default*: 200
+
+   :program:`mongod` maintains connection pools for outgoing
+   connections to other :program:`mongod` instances to maximize
+   connection reuse.
+
+   The :parameter:`connPoolMaxConnectionsPerHost` value defines the
+   size of the largest connection pool that :program:`mongod`
+   instances will maintain for inter-process communication. The size
+   of a pool does not prevent a :program:`mongod` from creating
+   additional connections, but *does* prevent a connection pool
+   from retaining connections in excess of the value of
+   :parameter:`connPoolMaxConnectionsPerHost`.
+
+   **Only** adjust this setting if your driver does *not* pool
+   connections and you're using authentication in the
+   context of a sharded cluster.
+
+   :parameter:`connPoolMaxShardedConnectionsPerHost` applies to
+   :program:`mongod` instances only. You can only set
+   :parameter:`connPoolMaxShardedConnectionsPerHost` during start up
+   in the config file or on the command line, as follows to increase
+   the size of the connection pool:
+
+   .. code-block:: sh
+
+      mongos --setParameter connPoolMaxConnectionsPerHost=250
+
 .. parameter:: authenticationMechanisms
 
    .. versionchanged:: 2.6
@@ -420,7 +485,7 @@ Parameters
 .. parameter:: saslServiceName
 
    .. versionadded:: 2.4.6
-   
+
    Allows users to override the default :doc:`Kerberos
    </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
    service name component of the :doc:`Kerberos
