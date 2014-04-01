@@ -4,139 +4,41 @@ Install MongoDB on Red Hat Enterprise, CentOS, Fedora, or Amazon Linux
 
 .. default-domain:: mongodb
 
-This tutorial outlines the steps to install :term:`MongoDB` on
-Red Hat Enterprise Linux, CentOS Linux, Fedora Linux and related
-systems. The tutorial uses ``.rpm`` packages to install. While some of
-these distributions include their own MongoDB packages, the official
-MongoDB packages are generally more up to date.
-
-Packages
+Overview
 --------
 
-The MongoDB package repository contains five packages:
+Use this tutorial to install MongoDB on Red Hat Enterprise Linux, CentOS
+Linux, Fedora Linux, or a related system. The tutorial uses ``.rpm``
+packages to install. While some of these distributions include their own
+MongoDB packages, the official MongoDB packages are generally more up to
+date.
 
-- ``mongodb-org``
+.. The following include includes two h2 headers:
+.. Packages and Control Scripts
 
-  This package is a ``metapackage`` that will automatically install
-  the four component packages listed below.
-
-- ``mongodb-org-server``
-
-  This package contains the :program:`mongod` daemon and associated
-  configuration and init scripts.
-
-- ``mongodb-org-mongos``
-
-  This package contains the :program:`mongos` daemon.
-
-- ``mongodb-org-shell``
-
-  This package contains the :program:`mongo` shell.
-
-- ``mongodb-org-tools``
-
-  This package contains the following MongoDB tools: :program:`mongoimport`
-  :program:`bsondump`, :program:`mongodump`, :program:`mongoexport`,
-  :program:`mongofiles`, :program:`mongoimport`, :program:`mongooplog`,
-  :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
-  and :program:`mongotop`.
-
-Install MongoDB
----------------
-
-Configure Package Management System (YUM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create a ``/etc/yum.repos.d/mongodb.repo`` file to hold the
-following configuration information for the MongoDB repository:
-
-.. tip:: For production deployments, always run MongoDB on 64-bit
-   systems.
-
-If you are running a 64-bit system, use the following configuration:
-
-.. code-block:: cfg
-
-   [mongodb]
-   name=MongoDB Repository
-   baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
-   gpgcheck=0
-   enabled=1
-
-If you are running a 32-bit system, which is not recommended for
-production deployments, use the following configuration:
-
-.. code-block:: cfg
-
-   [mongodb]
-   name=MongoDB Repository
-   baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/i686/
-   gpgcheck=0
-   enabled=1
-
-Install Packages
-~~~~~~~~~~~~~~~~
-
-Issue the following command (as ``root`` or with ``sudo``) to install
-the latest stable version of MongoDB and associated tools:
-
-.. code-block:: sh
-
-   yum install mongodb-org
-
-When this command completes, you have successfully installed MongoDB!
-
-.. _install-rhel-version-pinning:
-
-Manage Installed Versions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use these packages to install specific releases of MongoDB.
-To install a specific release, you must specify the component packages
-individually and append the version number to the package names,
-as in the following example:
-
-.. code-block:: sh
-
-   yum install mongodb-org-2.6.1 mongodb-org-server-2.6.1 mongodb-org-shell-2.6.1 mongodb-org-mongos-2.6.1 mongodb-org-tools-2.6.1
-
-This will install the ``2.6.1`` release of MongoDB. You can specify
-any available version of MongoDB; however ``yum`` **will** upgrade the
-packages when a newer version becomes available. Use the following
-*pinning* procedure to prevent unintended upgrades.
-
-To pin a package, add the following line to your ``/etc/yum.conf``
-file:
-
-.. code-block:: ini
-
-   exclude=mongodb-org,mongodb-org-server,mongodb-org-shell,mongodb-org-mongos,mongodb-org-tools
-
-.. note::
-
-   Previous versions of :term:`MongoDB` packages use different naming
-   conventions. See the :v2.4:`2.4 version of documentation for more
-   information </tutorial/install-mongodb-on-linux>`.
-
-Control Scripts
----------------
+.. include:: /includes/list-mongodb-org-packages.rst
 
 .. warning::
 
-   With the introduction of ``systemd`` in Fedora 15, the control
-   scripts included in the packages available in the MongoDB downloads repository
+   With the introduction of ``systemd`` in Fedora 15, the control scripts
+   included in the packages available in the MongoDB downloads repository
    are not compatible with Fedora systems. A correction is
    forthcoming, see :issue:`SERVER-7285` for more information, and in
    the mean time use your own control scripts *or* install using the
    procedure outlined in :doc:`/tutorial/install-mongodb-on-linux`.
 
-.. include:: /includes/fact-unix-control-scripts.rst
+Install MongoDB
+---------------
+
+For production deployments, always run MongoDB on 64-bit systems.
+
+.. include:: /includes/steps/install-mongodb-on-red-hat-centos-or-fedora-linux.rst
 
 Run MongoDB
 -----------
 
-.. important:: You must configure SELinux to allow MongoDB to start on Fedora systems.
-   Administrators have two options:
+.. important:: You must configure SELinux to allow MongoDB to start on
+   Fedora systems. Administrators have two options:
 
    - enable access to the relevant ports (e.g. 27017) for SELinux. See
      :ref:`security-port-numbers` for more information on MongoDB's
@@ -145,49 +47,10 @@ Run MongoDB
    - disable SELinux entirely. This requires a system reboot and may have
      larger implications for your deployment.
 
-Start MongoDB
-~~~~~~~~~~~~~
+The MongoDB instance stores its data files in ``/var/lib/mongo``
+and its log files in ``/var/log/mongo``, and runs using the ``mongod``
+user account. If you change the user that runs the MongoDB process, you
+**must** modify the access control rights to the ``/var/lib/mongo`` and
+``/var/log/mongo`` directories.
 
-.. include:: /includes/fact-unix-data-and-log-dir.rst
-
-Start the :program:`mongod` process by issuing the following command
-(as root or with ``sudo``):
-
-.. code-block:: sh
-
-   service mongod start
-
-You can verify that the :program:`mongod` process has started
-successfully by checking the contents of the log file at
-``/var/log/mongo/mongod.log``.
-
-You may optionally ensure that MongoDB will start following a system
-reboot by issuing the following command (with root privileges:)
-
-.. code-block:: sh
-
-   chkconfig mongod on
-
-Stop MongoDB
-~~~~~~~~~~~~
-
-Stop the :program:`mongod` process by issuing the following command
-(as root or with ``sudo``):
-
-.. code-block:: sh
-
-   service mongod stop
-
-Restart MongoDB
-~~~~~~~~~~~~~~~
-
-You can restart the :program:`mongod` process by issuing the following
-command (as root or with ``sudo``):
-
-.. code-block:: sh
-
-   service mongod restart
-
-Follow the state of this process by watching the output in the
-``/var/log/mongo/mongod.log`` file to watch for errors or important
-messages from the server.
+.. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
