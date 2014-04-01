@@ -1,5 +1,39 @@
+title: Start one member of the replica set.
+stepnum: 1
+ref: start-first-replica-set-member
+content: |
+  This :program:`mongod`  should *not* enable :setting:`auth`.
+---
+title: Create administrative users.
+stepnum: 2
+ref: create-administrative-users
+pre: |
+  The following operations will create two users: a user administrator
+  that will be able to create and modify users (``siteUserAdmin``),
+  and a :authrole:`root` user (``siteRootAdmin``) that you will use to
+  complete the remainder of the tutorial:
+action:
+  language: javascript
+  code: |
+    use admin
+    db.createUser( {
+        user: "siteUserAdmin",
+        pwd: "<password>",
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+      });
+    db.createUser( {
+        user: "siteRootAdmin",
+        pwd: "<password>",
+        roles: [ { role: "root", db: "admin" } ]
+      });
+---
+title: Stop the ``mongod`` instance.
+stepnum: 3
+ref: stop-first-replica-set-member
+---
 title: Create the key file to be used by each member of the replica set.
 stepnum: 1
+ref: generate-keyfile
 source:
   file: steps-generate-key-file.yaml
   ref: generate
@@ -40,14 +74,18 @@ post: |
   In production deployments, you can configure a :term:`control script` to
   manage this process. Control scripts are beyond the scope of this document.
 ---
-title: Connect to one of the replica set members.
+title: "Connect to the member of the replica set where you created the administrative users."
 stepnum: 4
+ref: connect-and-auth
 pre: |
-  Connect to one of the instances using the :ref:`localhost exception
-  <localhost-exception>`.
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: open-shell
+  Connect to the replica set member you started and authenticate as
+  the ``siteRootAdmin`` user. From the :program:`mongo` shell, use the
+  following operation to authenticate:
+action:
+  language: javascript
+  code: |
+    use admin
+    db.auth("siteRootAdmin", "<password>");
 ---
 stepnum: 5
 source:
@@ -78,7 +116,7 @@ pre: |
   only that role.
 
   You must issue the following operation while connected to the
-  :term:`primary` using the :ref:`localhost exception <localhost-exception>`.
+  :term:`primary` as the ``siteRootAdmin`` user.
 ---
 title: Create additional users to address operational requirements.
 stepnum: 10
