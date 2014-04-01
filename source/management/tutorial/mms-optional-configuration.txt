@@ -8,72 +8,11 @@ Overview
 --------
 
 A number of optional services provide additional functionality to MMS, for
-example, SMS alerts, password management, and LDAP authentication. Each
+example, password management, and LDAP authentication. Each
 service requires its own configuration process.
 
-Prerequisites
--------------
-
-|monitoring| has the following *optional* dependencies which depend on
-which services you configure and add.
-
-- A Twilio API account for SMS alerting integration.
-- A Graphite hostname / port for charting the MMS server's internal health.
-- An SNMP trap receiver for periodic heartbeat traps about MMS
-  server's internal health.
-- An LDAP server to authenticate users who access MMS.
-
-Procedure
----------
-
-Twilio
-~~~~~~
-
-To receive alert notifications via SMS, signup for a Twilio account at
-`<http://www.twilio.com/docs/quickstart>`_ and enter your account ID, API
-token, and Twilio phone number into the following properties:
-
-.. code-block:: ini
-
-   twilio.account.sid=
-   twilio.auth.token=
-   twilio.from.num=
-
-
-SNMP
-~~~~
-
-.. versionadded:: 1.3.0
-
-The MIB file is available for download at:
-`<http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt>`_
-
-You can configure the On-Prem MMS Server to send a periodic heartbeat trap notification
-(v2c) that contain an internal health assessment of the MMS
-Server.
-
-The MMS Server can send traps to one or more endpoints on the standard
-SNMP UDP port 162.
-
-There are three configuration options that affect the heartbeat
-behavior:
-
-.. code-block:: ini
-
-   # Listening UDP port for SNMP. (Note: Setting to less than 1024 will require running MMS server with root privileges.)
-   snmp.listen.port=11611 #default
-
-   # Period in seconds between heartbeat notifications
-   snmp.default.heartbeat.interval=300 #default
-
-   # Optional comma-separated list of hosts where 'heartbeat' traps will be sent on standard UDP port 162.
-   # Leaving blank (the default) disables the SNMP heartbeat functionality
-   snmp.default.hosts=
-
 Password Manager
-~~~~~~~~~~~~~~~~
-
-.. versionadded:: 1.3.0
+----------------
 
 You can configure the password policy for MMS user accounts with the
 following properties:
@@ -94,9 +33,7 @@ following properties:
    mms.password.maxDaysBeforeChangeRequired=
 
 Session Management
-~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 1.3.0
+------------------
 
 You can configure the number of hours before a session on the MMS
 website expires with the following property:
@@ -106,8 +43,68 @@ website expires with the following property:
    mms.session.maxHours=
 
 LDAP
-~~~~
+----
 
 You can use an LDAP server to authenticate user access to MMS. See
 :doc:`/management/tutorial/authenticate-with-ldap` for details.
 
+Change Port Number
+------------------
+
+#. Edit ``<install_dir>/conf/conf-mms.properties``:
+
+   .. code-block:: ini
+
+      mms.centralUrl=http://mms.acmewidgets.com:<newport>
+
+#. Edit ``<install_dir>/conf/mms.conf``
+
+   .. code-block:: ini
+
+      BASE_PORT=<newport>
+
+#. Restart MMS server:
+
+   .. code-block:: sh
+
+      sudo <install_dir>/bin/mongodb-mms restart
+
+Run as Different User
+---------------------
+
+#. Edit ``<install_dir>/conf/mms.conf``:
+
+   .. code-block:: ini
+
+      MMS_USER=foo_user
+
+#. Change Ownership of ``<install_dir>`` for new user: ::
+
+    sudo chown -R foo_user:foo_group <install_dir>
+
+#. Restart MMS server:
+
+   .. code-block:: sh
+
+      sudo <install_dir>/bin/mongodb-mms restart
+
+Configure a Required reCaptcha for User Registration
+----------------------------------------------------
+
+To enable `reCaptcha anti-spam test
+<http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
+registration, `sign up for a reCaptcha account
+<https://www.google.com/recaptcha/admin/create>`_ and provide the API
+credentials in the following two properties:
+
+.. code-block:: ini
+
+   reCaptcha.public.key=
+   reCaptcha.private.key=
+
+Configure Jetty to use HTTPS Connections
+----------------------------------------
+
+You can configure the Jetty services that run the |mms| application to
+use HTTPS. See :doc:`/monitoring/tutorial/configure-jetty-https` for
+more information.
