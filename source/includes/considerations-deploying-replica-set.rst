@@ -4,11 +4,11 @@ Architecture
 In a production, deploy each member of the replica set to its own machine
 and if possible bind to the standard MongoDB port of ``27017``. Use the
 :setting:`bind_ip` option to ensure that MongoDB listens for connections
-from applications on the configured address.
+from applications on configured addresses.
 
-For a geographically distributed replica set, ensure that one
-:program:`mongod` instance resides in each secondary site, while the remaining
-:program:`mongod` instances are in the primary site.
+For a geographically distributed replica sets, ensure that the
+majority of the set's :program:`mongod` instances reside in the
+primary site.
 
 See :doc:`/core/replica-set-architectures` for more information.
 
