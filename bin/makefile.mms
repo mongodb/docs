@@ -35,6 +35,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/monitoring/tutorial/configure-jetty-https.txt
 	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@rm -f $(saas-source-dir)/backup/on-prem.txt
+	@rm -f $(saas-source-dir)/management/on-prem-configuration.txt
 	@rm -f $(saas-source-dir)/backup/requirements.txt
 	@rm -f $(saas-source-dir)/installation.txt
 	@rm -f $(saas-source-dir)/management/tutorial/upgrade-on-prem.txt
