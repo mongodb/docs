@@ -203,6 +203,73 @@ Solution
      :method:`db.collection.initializeUnorderedBulkOp()`,
      :method:`db.collection.initializeOrderedBulkOp()`
 
+``db.collection.aggregate()`` Change
+-----------------------------------
+
+Description
+  The :method:`db.collection.aggregate()` method in the
+  :program:`mongo` shell defaults to returning a cursor to the results
+  set. This change enables the aggregation pipeline to return result
+  sets of any size and requires cursor iteration to access the result
+  set. For example:
+
+  .. code-block:: javascript
+
+      var myCursor = db.orders.aggregate( [
+          {
+            $group: {
+               _id: "$cust_id",
+               total: { $sum: "$price" }
+            }
+          }
+      ] );
+
+      myCursor.forEach( function(x) { printjson (x); } );
+
+  Previous versions returned a single document with a field ``results``
+  that contained an array of the result set, subject to the :ref:`BSON
+  Document size <limit-bson-document-size>` limit. Accessing the result
+  set in the previous versions of MongoDB required accessing the
+  ``results`` field and iterating the array. For example:
+
+  .. code-block:: javascript
+
+     var returnedDoc = db.orders.aggregate( [
+         {
+           $group: {
+              _id: "$cust_id",
+              total: { $sum: "$price" }
+           }
+         }
+     ] );
+
+     var myArray = returnedDoc.result; // access the result field
+
+     myArray.forEach( function(x) { printjson (x); } );
+
+Solution
+  Update scripts that currently expect
+  :method:`db.collection.aggregate()` to return a document with a
+  ``results`` array to handle cursors instead.
+
+.. seealso:: :ref:`rn-2.6-aggregation-cursor`,
+   :method:`db.collection.aggregate()`,
+
+Write Concern Validation
+------------------------
+
+Description
+   Specifying a write concern that includes ``j:1`` to a
+   :program:`mongod` or :program:`mongos` instance running with
+   :option:`--nojournal` option now errors. Previous versions would
+   ignore the ``j:1``.
+
+Solution
+   Either remove the ``j:1`` specification from the write concern when
+   issued against a :program:`mongod` or :program:`mongos` instance
+   with :option:`--nojournal` or run :program:`mongod` or
+   :program:`mongos` with journaling.
+
 Security Changes
 ----------------
 
