@@ -433,6 +433,28 @@ Solution
    :method:`db.upgradeCheckAllDBs()` to find fields whose names start
    with a dollar sign.
 
+.. _2.6-sparse-index-incompatibility:
+
+Sparse Index and Incomplete Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+   If a :doc:`sparse index </core/index-sparse>` results in an
+   incomplete result set for queries and sort operations, MongoDB will
+   not use that index unless a :method:`~cursor.hint()` explicitly
+   specifies the index.
+
+   For example, the query ``{ x: { $exists: false } }`` will no longer
+   use a sparse index on the ``x`` field, unless explicitly hinted.
+
+Solution
+   To override the behavior to use the sparse index and return
+   incomplete results, explicitly specify the index with a
+   :method:`~cursor.hint()`.
+
+See :ref:`sparse-index-incomplete-results` for an example that details
+the new behavior.
+
 .. _2.6-sort-value-incompatibility:
 
 ``sort()`` Specification Values
@@ -481,25 +503,6 @@ Description
    side effect of clearing the query plan cache for that query shape.
 
 .. seealso:: :doc:`/reference/method/js-plan-cache`
-
-.. _2.6-sparse-index-incompatibility:
-
-Sparse Index and Incomplete Results
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Description
-   If a :doc:`sparse index </core/index-sparse>` results in an
-   incomplete result set for queries and sort operations, MongoDB will
-   not use that index unless a :method:`~cursor.hint()` explicitly
-   specifies the index.
-
-Solution
-   To override the behavior to use the sparse index and return
-   incomplete results, explicitly specify the index with a
-   :method:`~cursor.hint()`.
-
-See :ref:`sparse-index-incomplete-results` for an example that details
-the new behavior.
 
 Geospatial Changes
 ~~~~~~~~~~~~~~~~~~
@@ -557,19 +560,70 @@ Query Operator Changes
 ```````````````````````````````
 
 Description
-   - Queries with :query:`$not` expressions on an indexed field now match
-     those documents that are missing the indexed
-     field. Previous versions would not return these documents.
+   - Queries with :query:`$not` expressions on an indexed field now match:
 
-   - The :query:`$not` now matches documents whose the field contains a
-     type that differs from that of the specified value, in addition to
-     matching documents that do not match the operator expression or
-     are missing the field.
+     - Documents that are missing the indexed field. Previous versions
+       would not return these documents using the index.
 
-     Previous versions only matched those documents whose fields did
-     not match the operator expression or are missing the field.
+     - Documents whose indexed field value is a different type than
+       that of the specified value. Previous versions would not return
+       these documents using the index.
+
+     For example, if a collection ``orders`` contains the following
+     documents:
+
+     .. code-block:: javascript
+
+        { _id: 1, status: "A", cust_id: "123", price: 40 }
+        { _id: 2, status: "A", cust_id: "xyz", price: "N/A" }
+        { _id: 3, status: "D", cust_id: "xyz" }
+
+     If the collection has an index on the ``price`` field:
+
+     .. code-block:: javascript
+
+        db.orders.ensureIndex( { price: 1 } )
+
+     The following query uses the index to search for documents where
+     ``price`` is not greater than or equal to ``50``:
+
+     .. code-block:: javascript
+
+        db.orders.find( { price: { $not: { $gte: 50 } } } )
+
+     In 2.6, the query returns the following documents:
+
+     .. code-block:: javascript
+
+         { "_id" : 3, "status" : "D", "cust_id" : "xyz" }
+         { "_id" : 1, "status" : "A", "cust_id" : "123", "price" : 40 }
+         { "_id" : 2, "status" : "A", "cust_id" : "xyz", "price" : "N/A" }
+
+     In previous versions, indexed plans would only
+     return matching documents where the type of the field matches the
+     type of the query predicate:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "status" : "A", "cust_id" : "123", "price" : 40 }
+
+     If using a collection scan, previous versions would return the
+     same results as those in 2.6.
 
    - MongoDB 2.6 allows chaining of :query:`$not` expressions.
+
+.. _2.6-null-incompatibility:
+
+``null`` Comparison Queries
+````````````````````````````
+
+Description
+   - :query:`$lt` and :query:`$gt` comparisons to null no
+     longer match documents that are missing the field.
+
+   - ``null`` equality conditions on array elements (e.g. ``"a.b":
+     null``) no longer match document missing the nested field ``a.b``
+     (e.g. ``a: [ 2, 3 ]``)
 
 .. _2.6-all-incompatibility:
 
@@ -631,17 +685,6 @@ Description
 
 Solution
    Update existing queries that nest :query:`$where`.
-
-``null`` Comparison Queries
-````````````````````````````
-
-Description
-   - :query:`$lt` and :query:`$gt` comparisons to null no
-     longer match documents that are missing the field.
-
-   - ``null`` equality conditions on array elements (e.g. ``"a.b":
-     null``) no longer match document missing the nested field ``a.b``
-     (e.g. ``a: [ 2, 3 ]``)
 
 .. _2.6-min-max-key-equality-match-incompatibility:
 
