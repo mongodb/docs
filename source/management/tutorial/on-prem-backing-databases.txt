@@ -1,0 +1,118 @@
+=========================
+Preparing Backing MongDBs
+=========================
+
+.. default-domain:: mms
+
+Overview
+--------
+
+Backing databases store the |mms| application data needed for operations.
+At minimum, these databases are a two-node replica set. Details will
+depend on your deployment and operational needs.
+
+The backing replica sets store this application data:
+
+- Monitoring data collected from monitoring agents.
+
+- Meta data for MMS users, groups, hosts, monitoring data, and backup state.
+
+- Configuration data for the databases.
+
+- The Blockstore which contains backup snapshot data.
+
+While one replica set can store all application data, the Blockstore data
+size is large enough to store in a dedicated replica set. Larger scale
+deployments should consider dividing application data across more than two
+replica sets. As you design the backing MongoDBs for your application,
+resources with a ``mongoUri`` value in the
+``<install_dir>/conf/conf-mms.properties`` file are candidates for a
+replica set.
+
+Setup and Install Replica Sets
+------------------------------
+
+To create replica sets, start the :program:`mongod` instances for each
+member of a new replica set, configure the replica set, then add the
+:program:`mongod` instances to the replica set.
+
+The :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` guide
+has step by step details how to setup and deploy replica sets for use as
+backing MongoDBs for MMS.
+
+Prepare the Server
+------------------
+
+Before deploying backing MongoDBs, prepare the servers:
+
+#. For AWS users, prepare MongoDB Storage:
+
+   *If you are not using AWS, skip this step and continue to the next
+   step.*
+
+   If using an AWS EBS volume for MongoDB storage, create and
+   attach the volume to your EC2 instance. Once the volume is
+   successfully attached, issue the following command to determine the
+   name of the new EBS volume: ::
+
+      sudo fdisk -l
+
+   Create a filesystem on this volume using the name you found in the
+   previous, command, using the following form: ::
+
+      sudo mkfs -t ext4 /dev/xvd<letter>
+
+   Replace ``<letter>`` with the identifier for the volume, as in the
+   following example: ::
+
+      sudo mkfs -t ext4 /dev/xvdf
+
+   You only need to create a filesystem the first time you initiate
+   the drive.
+
+   Create a directory to use as the mount point: ::
+
+      sudo mkdir /mnt/ebs-mount-dir
+
+   Mount the volume with a command that resembles the following: ::
+
+      sudo mount /dev/xvd<letter> /mnt/ebs-mount-dir
+
+   Replace ``<letter>`` with the identifier for the volume, as in the
+   following example: ::
+
+      sudo mount /dev/xvdf /mnt/ebs-mount-dir
+
+#. Set Linux Kernel parameters. All users must complete this step to
+   ensure optimal performance. Begin by using the following commands
+   to change the parameters of running instance: ::
+
+      sudo /sbin/sysctl -w net.core.netdev_max_backlog=30000
+      sudo /sbin/sysctl -w net.core.wmem_max=16777216
+      sudo /sbin/sysctl -w net.core.rmem_max=16777216
+
+   Edit the ``/etc/sysctl.conf`` file and append the lines below to
+   ensure that these parameters are always applied following a system
+   reboot: ::
+
+      net.core.netdev_max_backlog = 30000
+      net.core.wmem_max = 16777216
+      net.core.rmem_max = 16777216
+
+Replication Configuration
+-------------------------
+
+The backing MongoDB store uses a connection string URI defined in the
+``<install_dir>/conf/conf-mms.properties`` directory.
+
+Edit conf-mms.properties to define the replication hosts. For example:
+
+.. code-block:: ini
+
+   mongo.mongoUri=mongodb://host1:40000,host2:40000,host3:40000/?maxPoolSize=100
+   mongo.replicaSet=mmsreplset
+
+See `Connection String URI Format
+<http://docs.mongodb.org/manual/reference/connection-string/>`_
+for more information.
+
