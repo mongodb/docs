@@ -1,0 +1,244 @@
+=================
+MMS Configuration
+=================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This section describes the required configuration for the On-Prem MMS
+Server application, authentication, email, and replication, as well as
+optional configuration steps to integrate Kerberos authentication.
+
+.. _configure-on-prem-application:
+
+Configure MMS Application
+-------------------------
+
+.. note::
+
+   By default, |monitoring| will use a local SMTP server listening on port 25.
+
+Configure MMS properties, by editing the
+``<install_dir>/conf/conf-mms.properties`` file. Edit the following
+properties according to the needs of your deployment, as in the
+following example:
+
+.. code-block:: ini
+
+   mms.centralUrl=http://mms.example.com:8080
+
+   mms.fromEmailAddr=MMS Alerts <mms-alerts@example.com>
+   mms.replyToEmailAddr=mms-no-reply@example.com
+   mms.adminFromEmailAddr=MMS Admin <mms-admin@example.com>
+   mms.adminEmailAddr=mms-admin@example.com
+   mms.bounceEmailAddr=bounce@example.com
+
+These properties are blank initially, and you **must** define them
+before the |monitoring| instance will start.
+
+In addition, whether or not you enable backup, define these properties if
+you use authentication:
+
+.. code-block:: ini
+
+   mongo.mongoUri=<SetToValidUri>
+   mongo.replicaSet=<ValidRSIfUsed>
+
+Otherwise, MMS will fail while trying to connect to the default 127.0.0.1:27017
+URL.
+
+If you use the MMS :program:`<install_dir>/bin/credentialstool` to encrypt the
+password used in the ``mongo.mongoUri`` value, also add the
+``mongo.encryptedCredentials`` key to the
+``<install_dir>/conf/conf-mms.properties`` file and set the value for this
+property to true:
+
+.. code-block:: ini
+
+   mongo.encryptedCredentials=true
+
+For more details, see
+:doc:`/management/tutorial/mms-optional-configuration` and
+:doc:`/management/tutorial/mms-authentication`.
+
+.. _configure-authentication:
+
+Configure Authentication
+------------------------
+
+For standalone MongoDB nodes running with user authentication, simply
+add the username and password credentials to the ``mongoUri``, and
+specify the database as admin. For example:
+
+.. code-block:: ini
+
+   mongo.mongoUri=mongodb://mongouser:mongopw@127.0.0.1:40000/admin?maxPoolSize=25
+   mongo.replicaSet=mmsreplset
+
+.. important:: You must modify *every* ``mongoUri`` connection string
+   in the ``conf-mms.properties`` file.
+
+This does require that you store credentials in plain
+text; however, following standard practice you may reduce the
+permissions of the configuration file:
+
+.. code-block:: sh
+
+   sudo chmod 600 <install_dir>/conf/conf-mms.properties
+
+If you do not want to store credentials in plain text, |monitoring|
+provides a tool to encrypt the MongoDB credentials. To encrypt
+authentication credentials:
+
+1. Navigate to the |monitoring| server installation directory.
+
+#. Issue the following command to create an encrypted credential pair,
+   replacing ``<username>`` with your username:
+
+   .. code-block:: sh
+
+      bin/credentialstool --username <username> --password
+
+   This will prompt you to enter the password and will output the
+   encrypted credential pair.
+
+#. Copy the encrypted credential pair into the ``MongoURI`` connection
+   strings of the ``conf/conf-mms.properties`` file where needed, and
+   add the ``encryptedCredentials = true`` configuration option to
+   indicate to MMS that the credentials are set as encrypted tokens.
+
+   The added line(s) should resemble the following:
+
+   .. code-block:: sh
+
+      mongo.encryptedCredentials=true
+
+.. important:: You must modify *every* ``mongoUri`` connection string
+   in the ``conf-mms.properties`` file.
+
+For more details, see
+:doc:`/management/tutorial/mms-optional-configuration` and
+:doc:`/management/tutorial/mms-authentication`.
+
+.. _configure-email-auth:
+
+Configure Email Authentication
+------------------------------
+
+Please refer to your SMTP provider's documentation for the appropriate
+settings or for how to configure a local SMTP server as a relay. You
+may configure authentication if you want to send mail using existing
+email infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or
+``Sendgrid`` .
+
+Set the following value in the
+``<install_dir>/conf/conf-mms.properties`` file:
+
+.. code-block:: ini
+
+   mms.emailDaoClass=com.xgen.svc.core.dao.email.JavaEmailDao
+
+Then, to the same file, set the following values as defined by your
+provider. Defaults specified inline:
+
+.. code-block:: ini
+
+   mms.mail.transport=<smtp/smtps> # (defaults to smtp)
+   mms.mail.hostname=<mail.example.com> # (defaults to localhost)
+   mms.mail.port=<number> # (defaults to 25)
+   mms.mail.tls=<true/false> # (defaults to false)
+
+The following two values are optional,
+and unless set default to disabled authentication:
+
+.. code-block:: ini
+
+   mms.mail.username=
+   mms.mail.password=
+
+.. _configure-replication:
+
+Configure Replication
+---------------------
+
+The backing MongoDB store uses a connection string URI defined in the
+``<install_dir>/conf/conf-mms.properties`` directory.
+
+Edit conf-mms.properties to define the replication hosts. For example:
+
+.. code-block:: ini
+
+   mongo.mongoUri=mongodb://host1:40000,host2:40000,host3:40000/?maxPoolSize=100
+   mongo.replicaSet=mmsreplset
+
+See `Connection String URI Format
+<http://docs.mongodb.org/manual/reference/connection-string/>`_
+for more information.
+
+.. _configure-kerberos-auth-module:
+
+Configure Kerberos Authentication Module
+----------------------------------------
+
+To enable Kerberos authentication between the MMS web server and its backup
+database, update values to these settings in the configuration file:
+
+.. code-block:: properties
+
+   jvm.java.security.krb5.kdc=
+   jvm.java.security.krb5.realm=
+   mms.kerberos.principal=
+   mms.kerberos.keyTab=
+   mms.kerberos.debug=
+
+These configuration settings and descriptions are as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50, 30, 400
+
+   * - **Setting**
+     - **Required**
+     - **Description**
+   * - ``jvm.java.security.krb5.kdc``
+     - Yes
+     - This should be the IP/FQDN of the KDC server. The value will be set to JVM's java.security.krb5.kdc.
+   * - ``jvm.java.security.krb5.realm``
+     - Yes
+     - This is the default REALM for Kerberos. It is being used for JVM's java.security.krb5.realm.
+   * - ``mms.kerberos.principal``
+     - Yes
+     - The principal we used to authenticate with MongoDB. This should be the exact same user on the mongoUri above.
+   * - ``mms.kerberos.keyTab``
+     - Yes
+     - The absolute path to the keytab file for the principal.
+   * - ``mms.kerberos.debug``
+     - No
+     - The debug flag to output more information on Kerberos authentication process.
+
+Kerberos authentication will not work if any values are missing for required settings.
+
+Here is one example of configuration setting values:
+
+.. code-block:: properties
+
+   jvm.java.security.krb5.kdc=kdc.example.com
+   jvm.java.security.krb5.realm=EXAMPLE.COM
+   mms.kerberos.principal=mms/mmsweb.example.com@EXAMPLE.COM
+   mms.kerberos.keyTab=/path/to/mms.keytab
+   mms.kerberos.debug=false
+
+In this example:
+
+- The KDC server FQDN is ``kdc.example.com``
+
+- The Kerberos default realm is ``EXAMPLE.COM``
+
+- The host running MMS app is ``mmsweb.example.com`` and the Kerberos principal
+  for MMS is ``mms/mmsweb.example.com@EXAMPLE.com``
+
+- The keytab file for ``mms/mmsweb.example.com@EXAMPLE.COM`` is at
+  ``/path/to/mms.keytab``.
+
