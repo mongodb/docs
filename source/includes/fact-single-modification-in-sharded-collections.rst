@@ -1,6 +1,3 @@
-.. |single-modification-operation-names| replace::
-
-
 All |single-modification-operation-names| operations for a sharded
 collection that specify the |single-modification-operation-option|
 option must include the
