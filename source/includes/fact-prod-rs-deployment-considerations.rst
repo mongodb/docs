@@ -58,8 +58,8 @@
 
      replSet = rs0
 
-  The :setting:`dbpath` indicates where you want :program:`mongod` to
-  store data files. The :setting:`dbpath` must exist before you start
+  The :setting:`~storage.dbPath` indicates where you want :program:`mongod` to
+  store data files. The :setting:`~storage.dbPath` must exist before you start
   :program:`mongod`. If it does not exist, create the directory and
   ensure :program:`mongod` has permission to read and write data to this
   path.
