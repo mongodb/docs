@@ -13,7 +13,7 @@ with the :update:`$each` modifier to add multiple elements to the
    db.inventory.update(
                        { _id: 2 },
                        { $addToSet: { tags: { $each: [ "camera",
-                                                       "electronics", 
+                                                       "electronics",
                                                        "accessories" ] } } }
                       )
 
@@ -22,6 +22,6 @@ The operation adds only ``"camera"`` and ``"accessories"`` to the
 
 .. code-block:: javascript
 
-   { _id: 2, 
-     item: "cable", 
+   { _id: 2,
+     item: "cable",
      tags: [  "electronics",  "supplies",  "camera",  "accessories" ] }

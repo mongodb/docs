@@ -4,7 +4,7 @@
 
 .. FYI -- 2.5.3 introduced the limit to $group and changed the limit for
    $sort from 10% to 100 MB.
-   
+
 .. versionchanged:: 2.6
 
 Pipeline stages have a limit of 100 megabytes of RAM. If a stage
