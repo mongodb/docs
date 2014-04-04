@@ -20,7 +20,7 @@ that contains documents of the following prototype:
    }
 
 .. map-reduce-document-prototype-end
-   
+
 Return the Total Price Per Customer Id
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -35,7 +35,7 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
 #. Define the map function to process each input document:
 
    - In the function, ``this`` refers to the document that the
-     map-reduce operation is processing. 
+     map-reduce operation is processing.
 
    - The function maps the ``price`` to the ``cust_id`` for each
      document and emits the ``cust_id`` and ``price`` pair.
@@ -69,10 +69,10 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
 
    .. code-block:: javascript
 
-      db.orders.mapReduce( 
+      db.orders.mapReduce(
                            mapFunction1,
                            reduceFunction1,
-                           { out: "map_reduce_example" }   
+                           { out: "map_reduce_example" }
                          )
 
    This operation outputs the results to a collection named
@@ -88,16 +88,16 @@ Calculate the Number of Orders, Total Quantity, and Average Quantity Per Item
 .. map-reduce-counts-begin
 
 In this example you will perform a map-reduce operation on the ``orders`` collection, for
-all documents that have an ``ord_date`` value 
+all documents that have an ``ord_date`` value
 greater than ``01/01/2012``. The operation groups by
 the ``item.sku`` field, and for each ``sku`` calculates the number of orders and the
 total quantity ordered. The operation concludes by calculating the average quantity per
-order for each ``sku`` value: 
+order for each ``sku`` value:
 
 #. Define the map function to process each input document:
 
    - In the function, ``this`` refers to the document that the
-     map-reduce operation is processing. 
+     map-reduce operation is processing.
 
    - For each item, the function associates the ``sku`` with a new
      object ``value`` that contains the ``count`` of ``1`` and the
@@ -109,8 +109,8 @@ order for each ``sku`` value:
                              for (var idx = 0; idx < this.items.length; idx++) {
                                  var key = this.items[idx].sku;
                                  var value = {
-                                               count: 1, 
-                                               qty: this.items[idx].qty 
+                                               count: 1,
+                                               qty: this.items[idx].qty
                                              };
                                  emit(key, value);
                              }
@@ -122,7 +122,7 @@ order for each ``sku`` value:
    - ``valuesCountObjects`` is an array whose elements are the objects
      mapped to the grouped ``keySKU`` values passed by map
      function to the reducer function.
-     
+
    - The function reduces the ``valuesCountObjects`` array to a single
      object ``reducedValue`` that also contains the ``count`` and the
      ``qty`` fields.
@@ -135,7 +135,7 @@ order for each ``sku`` value:
    .. code-block:: javascript
 
       var reduceFunction2 = function(keySKU, valuesCountObjects) {
-                                reducedValue = { count: 0, qty: 0 }; 
+                                reducedValue = { count: 0, qty: 0 };
 
                                 for (var idx = 0; idx < valuesCountObjects.length; idx++) {
                                     reducedValue.count += valuesCountObjects[idx].count;
@@ -161,15 +161,15 @@ order for each ``sku`` value:
 
 #. Perform the map-reduce operation on the ``orders`` collection using
    the ``mapFunction2``, ``reduceFunction2``, and
-   ``finalizeFunction2`` functions. 
+   ``finalizeFunction2`` functions.
 
    .. code-block:: javascript
 
       db.orders.mapReduce( mapFunction2,
                            reduceFunction2,
                            {
-                             out: { merge: "map_reduce_example" }, 
-                             query: { ord_date: { $gt: new Date('01/01/2012') } }, 
+                             out: { merge: "map_reduce_example" },
+                             query: { ord_date: { $gt: new Date('01/01/2012') } },
                              finalize: finalizeFunction2
                            }
                          )
@@ -182,4 +182,3 @@ order for each ``sku`` value:
    the results of this map-reduce operation:
 
 .. map-reduce-counts-end
-

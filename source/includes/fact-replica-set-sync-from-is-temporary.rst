@@ -1,7 +1,7 @@
 :dbcommand:`replSetSyncFrom` and :method:`rs.syncFrom()` provide a
-temporary override of default behavior. If: 
+temporary override of default behavior. If:
 
-- the :program:`mongod` instance restarts or 
+- the :program:`mongod` instance restarts or
 
 - the connection to the sync target closes;
 
