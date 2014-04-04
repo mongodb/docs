@@ -30,7 +30,7 @@
     topology routes all traffic between members within a single
     site over the local area network.
 
-  - Configure authentication using :setting:`auth` and
+  - Configure authentication using :setting:`~security.authentication` and
     :setting:`keyFile`, so that only servers and processes with
     authentication can connect to the replica set.
 
