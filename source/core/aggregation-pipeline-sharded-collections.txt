@@ -11,36 +11,31 @@ The aggregation pipeline supports operations on :term:`sharded
 specific to the :ref:`aggregation pipeline <aggregation-pipeline>` and
 sharded collections.
 
-Aggregation Operations in Sharded Clusters
-------------------------------------------
+Behavior
+--------
 
-When operating on a sharded collection, the aggregation pipeline
-is split into two parts. First, the aggregation pipeline pushes
-all of the operators up to the first :pipeline:`$group`
-or :pipeline:`$sort` operation to each shard [#match-sharding]_.
-Then, a second pipeline runs on the :program:`mongos`.
-This pipeline consists of the first :pipeline:`$group` or
-:pipeline:`$sort` and any remaining pipeline operators, and runs
-on the results received from the shards.
+.. versionchanged:: 2.6
 
-The :pipeline:`$group` operator brings in any "sub-totals" from
-the shards and combines them: in some cases these may be
-structures. For example, the :group:`$avg` expression
-maintains a total and count for each shard; :program:`mongos` combines
-these values and then divides.
+When operating on a sharded collection, the aggregation pipeline is
+split into two parts. The first pipeline runs on each shard, or if an
+early :pipeline:`$match` can exclude shards through the use of the
+shard key in the predicate, the pipeline runs on only the relevant
+shards.
 
-.. [#match-sharding] If an early :pipeline:`$match` can exclude
-   shards through the use of the shard key in the predicate, then
-   these operators are only pushed to the relevant shards.
+The second pipeline consists of the remaining pipeline stages and runs
+on the :ref:`primary shard <primary-shard>`. The primary shard merges
+the cursors from the other shards and runs the second pipeline on these
+results. The primary shard forwards
+the final results to the :program:`mongos`. In previous versions, the
+second pipeline would run on the :program:`mongos`.
+[#agg-pipeline-upgrade]_
 
-Impact of Aggregation Pipelines on ``mongos``
----------------------------------------------
+When splitting the aggregation pipeline into two parts, the pipeline is
+split to ensure that the shards perform as many stages as possible. To
+retrieve information on the division, use the :method:`explain
+<db.collection.aggregate()>` option for the
+:method:`db.collection.aggregate()` method.
 
-.. versionchanged:: 2.2
-
-Some :dbcommand:`aggregation pipeline <aggregate>` operations will
-cause :program:`mongos` instances to require more CPU resources
-than in previous versions. This modified performance profile may
-dictate alternate architectural decisions if you use the
-:ref:`aggregation pipeline <aggregation-pipeline>` extensively in
-a sharded environment.
+.. [#agg-pipeline-upgrade]
+   Until all shards upgrade to v2.6, the second pipeline runs on the
+   :program:`mongos` if any shards are still running v2.4.
