@@ -4,7 +4,7 @@ Be aware of the following properties of |copydb|:
   instance, i.e. the host receiving the copied data.
 
 - |copydb| creates the target database if it does not exist.
-   
+
 - |copydb| requires enough free disk space on the host
   instance for the copied database. Use the :method:`db.stats()`
   operation to check the size of the database on the source

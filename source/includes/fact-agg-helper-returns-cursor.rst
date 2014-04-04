@@ -1,4 +1,4 @@
-.. versionchanged:: 2.6 
+.. versionchanged:: 2.6
    The :method:`db.collection.aggregate()` method returns a
    cursor and can return result sets of any size. Previous
    versions returned all results in a single document, and the

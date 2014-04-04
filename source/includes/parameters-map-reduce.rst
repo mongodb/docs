@@ -81,7 +81,7 @@ The ``reduce`` function exhibits the following behaviors:
 
 - MongoDB will **not** call the ``reduce`` function for a key
   that has only a single value. The ``values`` argument is an array
-  whose elements are the ``value`` objects that are "mapped" to the 
+  whose elements are the ``value`` objects that are "mapped" to the
   ``key``.
 
 - MongoDB can invoke the ``reduce`` function more than once for the

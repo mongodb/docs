@@ -1,6 +1,6 @@
 .. warning::
 
-   .. \|object| defined in included parameters-eval .. 
+   .. \|object| defined in included parameters-eval ..
    .. \|nolockobject| defined in included parameters-eval ..
 
    - .. include:: /includes/fact-eval-lock.rst

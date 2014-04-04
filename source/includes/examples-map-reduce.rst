@@ -20,7 +20,7 @@ Consider the following map-reduce operations on a collection
    }
 
 .. map-reduce-document-prototype-end
-   
+
 Return the Total Price Per Customer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -35,7 +35,7 @@ by the ``cust_id``, and calculate the sum of the ``price`` for each
 #. Define the map function to process each input document:
 
    - In the function, ``this`` refers to the document that the
-     map-reduce operation is processing. 
+     map-reduce operation is processing.
 
    - The function maps the ``price`` to the ``cust_id`` for each
      document and emits the ``cust_id`` and ``price`` pair.
@@ -69,10 +69,10 @@ by the ``cust_id``, and calculate the sum of the ``price`` for each
 
    .. code-block:: javascript
 
-      db.orders.mapReduce( 
+      db.orders.mapReduce(
                            mapFunction1,
                            reduceFunction1,
-                           { out: "map_reduce_example" }   
+                           { out: "map_reduce_example" }
                          )
 
    This operation outputs the results to a collection named
@@ -97,7 +97,7 @@ calculating the average quantity per order for each ``sku`` value:
 #. Define the map function to process each input document:
 
    - In the function, ``this`` refers to the document that the
-     map-reduce operation is processing. 
+     map-reduce operation is processing.
 
    - For each item, the function associates the ``sku`` with a new
      object ``value`` that contains the ``count`` of ``1`` and the
@@ -109,8 +109,8 @@ calculating the average quantity per order for each ``sku`` value:
                              for (var idx = 0; idx < this.items.length; idx++) {
                                  var key = this.items[idx].sku;
                                  var value = {
-                                               count: 1, 
-                                               qty: this.items[idx].qty 
+                                               count: 1,
+                                               qty: this.items[idx].qty
                                              };
                                  emit(key, value);
                              }
@@ -122,7 +122,7 @@ calculating the average quantity per order for each ``sku`` value:
    - ``countObjVals`` is an array whose elements are the objects
      mapped to the grouped ``keySKU`` values passed by map
      function to the reducer function.
-     
+
    - The function reduces the ``countObjVals`` array to a single
      object ``reducedValue`` that contains the ``count`` and the
      ``qty`` fields.
@@ -135,7 +135,7 @@ calculating the average quantity per order for each ``sku`` value:
    .. code-block:: javascript
 
       var reduceFunction2 = function(keySKU, countObjVals) {
-                           reducedVal = { count: 0, qty: 0 }; 
+                           reducedVal = { count: 0, qty: 0 };
 
                            for (var idx = 0; idx < countObjVals.length; idx++) {
                                reducedVal.count += countObjVals[idx].count;
@@ -162,17 +162,17 @@ calculating the average quantity per order for each ``sku`` value:
 
 #. Perform the map-reduce operation on the ``orders`` collection using
    the ``mapFunction2``, ``reduceFunction2``, and
-   ``finalizeFunction2`` functions. 
+   ``finalizeFunction2`` functions.
 
    .. code-block:: javascript
 
       db.orders.mapReduce( mapFunction2,
                            reduceFunction2,
                            {
-                             out: { merge: "map_reduce_example" }, 
-                             query: { ord_date: 
-                                        { $gt: new Date('01/01/2012') } 
-                                    }, 
+                             out: { merge: "map_reduce_example" },
+                             query: { ord_date:
+                                        { $gt: new Date('01/01/2012') }
+                                    },
                              finalize: finalizeFunction2
                            }
                          )

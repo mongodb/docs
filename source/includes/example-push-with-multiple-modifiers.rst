@@ -45,6 +45,6 @@ The result of the operation is keep only the three highest scoring quizzes:
      "quizzes" : [
                    { "wk" : 1, "score" : 10 },
                    { "wk" : 2, "score" : 8 },
-                   { "wk" : 5, "score" : 8 } 
+                   { "wk" : 5, "score" : 8 }
                  ]
    }

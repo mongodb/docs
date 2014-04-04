@@ -2,7 +2,7 @@
 
 In the ``roles`` field, you can specify both
 :ref:`built-in roles <built-in-roles>` and :ref:`user-defined
-role <user-defined-roles>`. 
+role <user-defined-roles>`.
 
 To specify a role that exists in the same database where
 |local-cmd-name| runs, you can either specify the role with the name of
