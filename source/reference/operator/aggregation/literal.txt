@@ -10,25 +10,78 @@ Definition
 .. expression:: $literal
 
    Wraps an expression to prevent the aggregation pipeline from
-   interpreting an object directly.
+   evaluating the expression.
 
-   For example, use :expression:`$literal` with :pipeline:`$project`
-   statements to project fields with dollar signs (e.g.``$``) in
-   their values.
+Examples
+--------
 
-Example
--------
+Treat ``$`` as a Literal
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider the following example to use the aggregation framework to
-interact with a string that contains a dollar sign:
+In various aggregation expressions [#match-exception]_, the dollar sign
+``$`` evaluates to a field path; i.e. provides access to the field. For
+example, the :operator:`$eq` expression ``$eq: [ "$price", "$1" ]``
+performs an equality check between the value in the field named
+``price`` and the value in the field named ``1`` in the document.
+
+The following example uses a :expression:`$literal` expression to treat
+a string that contains a dollar sign ``"$1"`` as a constant value.
+
+A collection ``records`` has the following documents:
 
 .. code-block:: javascript
 
-   db.runCommand( { aggregate: "records",
-                    pipeline: [  { $project: { costsOneDollar:
-                                      { $eq: [ "$price", { $literal: "$1.00" } ] } }
-                                 } ] } )
+   { "_id" : 1, "item" : "abc123", price: "$2.50" }
+   { "_id" : 2, "item" : "xyz123", price: "1" }
+   { "_id" : 3, "item" : "ijk123", price: "$1" }
 
-This operation projects documents with a field named ``costsOneDollar``
-that holds a boolean value if the value of the field is the string
-``$1.00``.
+.. code-block:: javascript
+
+   db.records.aggregate( [
+      { $project: { costsOneDollar: { $eq: [ "$price", { $literal: "$1" } ] } } }
+   ] )
+
+This operation projects a field named ``costsOneDollar`` that holds a
+boolean value, indicating whether the value of the ``price`` field is
+equal to the string ``"$1"``:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "costsOneDollar" : false }
+   { "_id" : 2, "costsOneDollar" : false }
+   { "_id" : 3, "costsOneDollar" : true }
+
+.. [#match-exception] The :pipeline:`$match` expressions do not evaluate
+   ``$`` as the field path.
+
+Project a New Field with Value ``1``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$project` stage uses the expression ``<field>: 1`` to
+include the ``<field>`` in the output. The following example uses the
+:expression:`$literal` to return a new field set to the value of ``1``.
+
+A collection ``bids`` has the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc123", condition: "new" }
+   { "_id" : 2, "item" : "xyz123", condition: "new" }
+
+The following aggregation evaluates the expression ``item: 1`` to mean
+return the existing field ``item`` in the output, but uses the
+:expression:`{ $literal: 1 } <$literal>` expression to return a new
+field ``startAt`` set to the value ``1``:
+
+.. code-block:: javascript
+
+   db.bids.aggregate( [
+      { $project: { item: 1, startAt: { $literal: 1 } } }
+   ] )
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc123", "startAt" : 1 }
+   { "_id" : 2, "item" : "xyz123", "startAt" : 1 }
