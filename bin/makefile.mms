@@ -48,7 +48,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-debian.txt
 	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-rpm.txt
 	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-archive.txt
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-prepare-servers.txt
+	@rm -f $(eaas-source-dir)/management/tutorial/on-prem-prepare-servers.txt
 	@rm -f $(saas-source-dir)/management/tutorial/on-prem-start-stop.txt 
 
 
