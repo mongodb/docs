@@ -30,27 +30,31 @@ generate-source-hosted:
 
 generate-source-saas:
 	@rsync --recursive --times --delete source/ $(saas-source-dir)
-	@rm -f $(saas-source-dir)/monitoring/tutorial/install-monitoring-server.txt
-	@rm -f $(saas-source-dir)/management/administration.txt
-	@rm -f $(saas-source-dir)/monitoring/tutorial/configure-jetty-https.txt
-	@rm -f $(saas-source-dir)/tutorial/connect-to-hosts-with-kerberos-authentication.txt
+	@rm -f $(eaas-source-dir)/management/tutorial/prepare-servers.txt
 	@rm -f $(saas-source-dir)/backup/on-prem.txt
-	@rm -f $(saas-source-dir)/management/on-prem-configuration.txt
-	@rm -f $(saas-source-dir)/management/on-prem-requirements.txt
 	@rm -f $(saas-source-dir)/backup/requirements.txt
-	@rm -f $(saas-source-dir)/installation.txt
-	@rm -f $(saas-source-dir)/management/tutorial/upgrade-on-prem.txt
 	@rm -f $(saas-source-dir)/backup/tutorial/install-on-prem-backup-server.txt
-	@rm -f $(saas-source-dir)/source/management/tutorial/configure-high-avalibility.txt
+	@rm -f $(saas-source-dir)/installation.txt
+	@rm -f $(saas-source-dir)/management/administration.txt
+	@rm -f $(saas-source-dir)/management/changelog.txt
+	@rm -f $(saas-source-dir)/management/configuration.txt
+	@rm -f $(saas-source-dir)/management/ldap-authentication.txt
+	@rm -f $(saas-source-dir)/management/requirements.txt
 	@rm -f $(saas-source-dir)/management/tutorial/authenticate-with-ldap.txt
+	@rm -f $(saas-source-dir)/management/tutorial/configure-high-availability.txt
+	@rm -f $(saas-source-dir)/management/tutorial/configure-high-avalibility.txt
+	@rm -f $(saas-source-dir)/management/tutorial/install-from-archive.txt
+	@rm -f $(saas-source-dir)/management/tutorial/install-with-deb-packages.txt
+	@rm -f $(saas-source-dir)/management/tutorial/install-with-debian-packages.txt
+	@rm -f $(saas-source-dir)/management/tutorial/install-with-rpm-packages.txt
+	@rm -f $(saas-source-dir)/management/tutorial/prepare-backing-mongodb-instances.txt
+	@rm -f $(saas-source-dir)/management/tutorial/prepare-servers.txt
+	@rm -f $(saas-source-dir)/management/tutorial/start-and-stop-application.txt 
+	@rm -f $(saas-source-dir)/management/tutorial/upgrade-on-prem.txt
+	@rm -f $(saas-source-dir)/monitoring/tutorial/configure-jetty-https.txt
+	@rm -f $(saas-source-dir)/monitoring/tutorial/install-monitoring-server.txt
 
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-configuration.txt
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-debian.txt
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-rpm.txt
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-install-archive.txt
-	@rm -f $(eaas-source-dir)/management/tutorial/on-prem-prepare-servers.txt
-	@rm -f $(saas-source-dir)/management/tutorial/on-prem-start-stop.txt 
-
+	@rm -f $(saas-source-dir)/management/tutorial/on-prem-authentication.txt
 
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' $(saas-source-dir)/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYLINE::.*%%' $(saas-source-dir)/monitoring/tutorial.txt
