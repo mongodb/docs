@@ -31,7 +31,7 @@
     site over the local area network.
 
   - Configure authentication using :setting:`~security.authentication` and
-    :setting:`keyFile`, so that only servers and processes with
+    :setting:`~security.keyFile`, so that only servers and processes with
     authentication can connect to the replica set.
 
   - Configure networking and firewall rules so that only traffic
