@@ -22,9 +22,9 @@ a. Issue the following command to determine the
 
    When the operations return, ``mongodb2.example.net`` has a priority
    of 0. It cannot become primary.
-   
+
    .. note::
-   
+
       The :method:`rs.reconfig()` shell method can force the current
       primary to step down, causing an election. When the primary steps
       down, all clients will disconnect. This is the intended behavior.

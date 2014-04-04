@@ -54,5 +54,3 @@
    * - 10
      - :replstate:`SHUNNED`
      - Cannot vote. Was once in the replica set but has now been removed.
-
-
