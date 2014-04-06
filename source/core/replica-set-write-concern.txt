@@ -4,18 +4,10 @@ Write Concern for Replica Sets
 
 .. default-domain:: mongodb
 
-.. TODO: connect this to the actual write concern documentation and add an intro
-
-MongoDB's built-in :doc:`write concern </core/write-concern>` confirms
-the success of write operations to a :term:`replica set's <replica
-set>` :term:`primary`. Write concern uses the :dbcommand:`getLastError`
-command after write operations to return an object with error
-information or confirmation that there are no errors.
-
 From the perspective of a client application, whether a MongoDB
 instance is running as a single server (i.e. "standalone") or a
 :term:`replica set` is transparent. However, replica sets offer some
-configuration options for write and read operations. [#sharded-clusters]_
+configuration options for write. [#sharded-clusters]_
 
 .. [#sharded-clusters] :term:`Sharded clusters <sharded cluster>` where the
    shards are also replica sets provide the same configuration options
@@ -23,55 +15,64 @@ configuration options for write and read operations. [#sharded-clusters]_
 
 .. TODO: remove footnote
 
-Verify Write Operations
-~~~~~~~~~~~~~~~~~~~~~~~
+Verify Write Operations to Replica Sets
+---------------------------------------
 
-The default write concern confirms write operations only on the
-primary.  You can configure write concern to confirm write operations
-to additional replica set members as well by issuing the
-:dbcommand:`getLastError` command with the ``w`` option.
-
-.. TODO: provide an example of how to do this (i.e. write the code block)
-
-The ``w`` option confirms that write operations have replicated to the
-specified number of replica set members, including the primary. You can
-either specify a number or specify ``majority``, which ensures the write
-propagates to a majority of set members.
+For a replica set, the default :doc:`write concern
+</core/write-concern>` confirms write operations only on the primary.
+You can, however, override this default write concern, such as to
+confirm write operations on a specified number of the replica set
+members.
 
 .. include:: /images/crud-write-concern-w2.rst
 
-If you specify a ``w`` value greater than the number of members that
-hold a copy of the data (i.e., greater than the number of
-non-:term:`arbiter` members), the operation blocks until those members
-become available. This can cause the operation to block forever. To
-specify a timeout threshold for the :dbcommand:`getLastError` operation,
-use the ``wtimeout`` argument. A ``wtimeout`` value of ``0``
-means that the operation will never time out.
+To override the default write concern, specify a write concern with
+each write operation. For example, the following method includes a
+write concern that specifies that the method return only after the
+write propagates to the primary and at least one secondary or the
+method times out after 5 seconds.
 
-See :ref:`getLastError Examples <gle-examples>` for example
-invocations.
+.. code-block:: javascript
+
+   db.products.insert( 
+      { item: "envelopes", qty : 100, type: "Clasp" },
+      { writeConcern: { w: 2, wtimeout: 5000 } }
+   )
+
+You can include a timeout threshold for a write concern. This prevents
+write operations from blocking indefinitely if the write concern is
+unachievable. For example, if the write concern requires
+acknowledgement from 4 members of the replica set and the replica set
+has only available 3 members, the operation blocks until those members
+become available. See :ref:`wc-wtimeout`.
+
+.. seealso::
+   :ref:`write-methods-incompatibility`
+
+.. _repl-set-modify-default-write-concern:
 
 Modify Default Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
-You can configure your own "default" :dbcommand:`getLastError`
-behavior for a replica set. Use the
-:data:`~local.system.replset.settings.getLastErrorDefaults` setting in
-the :doc:`replica set configuration
-</reference/replica-configuration>`. The following sequence of
-commands creates a configuration that waits for the write operation to
-complete on a majority of the set members before returning:
+.. TODO need to remove most of this section and rewrite what's left.
+   Post 2.6 though.
+
+You can modify the default write concern for a replica set by setting
+the :data:`~local.system.replset.settings.getLastErrorDefaults` setting
+in the :doc:`replica set configuration
+</reference/replica-configuration>`. The following sequence of commands
+creates a configuration that waits for the write operation to complete
+on a majority of the set members before returning:
 
 .. code-block:: javascript
 
    cfg = rs.conf()
    cfg.settings = {}
-   cfg.settings.getLastErrorDefaults = {w: "majority"}
+   cfg.settings.getLastErrorDefaults = { w: "majority", wtimeout: 5000 }
    rs.reconfig(cfg)
 
-The :data:`~local.system.replset.settings.getLastErrorDefaults`
-setting affects only those :dbcommand:`getLastError` commands that
-have *no* other arguments.
+If you issue a write operation with a specific write concern, the write
+operation uses its own write concern instead of the default.
 
 .. note::
 
@@ -84,118 +85,9 @@ have *no* other arguments.
    :ref:`connections-write-concern`
 
 Custom Write Concerns
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
-You can use replica set tags to create custom write concerns using the
-:data:`~local.system.replset.settings.getLastErrorDefaults` and
-:data:`~local.system.replset.settings.getLastErrorModes` replica set
-settings.
-
-.. note::
-
-   Custom write concern modes specify the field name and a number of
-   *distinct* values for that field. By contrast, read preferences use
-   the value of fields in the tag document to direct read operations.
-
-   In some cases, you may be able to use the same tags for read
-   preferences and write concerns; however, you may need to create
-   additional tags for write concerns depending on the requirements of
-   your application.
-
-Single Tag Write Concerns
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider a five member replica set, where each member has one of the
-following tag sets:
-
-.. code-block:: javascript
-
-   { "use": "reporting" }
-   { "use": "backup" }
-   { "use": "application" }
-   { "use": "application" }
-   { "use": "application" }
-
-You could create a custom write concern mode that will ensure that
-applicable write operations will not return until members with two
-different values of the ``use`` tag have acknowledged the write
-operation. Create the mode with the following sequence of operations
-in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.settings = { getLastErrorModes: { use2: { "use": 2 } } }
-   rs.reconfig(cfg)
-
-.. these examples need to be better so that they avoid overwriting
-   getLastErrorModes upon repetition (i.e. they don't $push documents
-   to getLastErrorModes.)
-
-To use this mode pass the string ``use2`` to the ``w`` option of
-:dbcommand:`getLastError` as follows:
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: "use2" } )
-
-Specific Custom Write Concerns
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have a three member replica with the following tag sets:
-
-.. code-block:: javascript
-
-   { "disk": "ssd" }
-   { "disk": "san" }
-   { "disk": "spinning" }
-
-You cannot specify a custom
-:data:`~local.system.replset.settings.getLastErrorModes` value to
-ensure that the write propagates to the ``san`` before
-returning. However, you may implement this write concern policy by
-creating the following additional tags, so that the set resembles the
-following:
-
-.. code-block:: javascript
-
-   { "disk": "ssd" }
-   { "disk": "san", "disk.san": "san" }
-   { "disk": "spinning" }
-
-Then, create a custom
-:data:`~local.system.replset.settings.getLastErrorModes` value, as
-follows:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.settings = { getLastErrorModes: { san: { "disk.san": 1 } } }
-   rs.reconfig(cfg)
-
-.. these examples need to be better so that they avoid overwriting
-   getLastErrorModes upon repetition (i.e. they don't $push documents
-   to getLastErrorModes.)
-
-To use this mode pass the string ``san`` to the ``w`` option of
-:dbcommand:`getLastError` as follows:
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: "san" } )
-
-This operation will not return until a replica set member with the tag
-``disk.san`` returns.
-
-You may set a custom write concern mode as the default write concern
-mode using :data:`~local.system.replset.settings.getLastErrorDefaults`
-replica set as in the following setting:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.settings.getLastErrorDefaults = { ssd: 1 }
-   rs.reconfig(cfg)
-
-.. seealso:: :ref:`replica-set-configuration-tag-sets` for further
-   information about replica set reconfiguration and tag sets.
+You can :doc:`tag </tutorial/configure-replica-set-tag-sets>` the
+members of replica sets and use the tags to create custom write
+concerns. See :doc:`/tutorial/configure-replica-set-tag-sets` for
+information on configuring custom write concerns using tag sets.
