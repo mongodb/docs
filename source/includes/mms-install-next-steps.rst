@@ -9,7 +9,9 @@ Next Steps
 
 - For more configuration and authentication options, see
   :doc:`/management/tutorial/on-prem-authentication` and
-  :doc:`/management/tutorial/mms-optional-configuration`.
+  :doc:`/management/configuration`.
+
+- To optionally install your backup server, see :doc:`/backup/tutorial/install-on-prem-backup-server`.
 
 - To configure your |mms| deployment for high availability, see
   :doc:`/management/tutorial/configure-high-availability`.
