@@ -31,133 +31,15 @@ systems; as well as ``tar.gz`` and ``zip`` packages.
 You can also download the latest On-Prem Monitoring releases from
 <http://www.mongodb.com/commercialsupport/downloads> as an RPM package.
 
-Confirm your environment meets the :doc:`/management/tutorial/hardware-software-requirements`.
+Confirm your environment meets the :doc:`/management/requirements`.
 
 Procedure
 ---------
 
-Prepare Server
-~~~~~~~~~~~~~~
+Install and Start MongoDB System
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. For AWS users, prepare MongoDB Storage:
+See the :manual:`MongoDB Installation tutorials </installation>` for
+complete instructions on this procedure.
 
-   *If you are not using AWS, skip this step and continue to the next
-   step.*
 
-   If using an AWS EBS volume for MongoDB storage, create and
-   attach the volume to your EC2 instance. Once the volume is
-   successfully attached, issue the following command to determine the
-   name of the new EBS volume: ::
-
-      sudo fdisk -l
-
-   Create a filesystem on this volume using the name you found in the
-   previous, command, using the following form: ::
-
-      sudo mkfs -t ext4 /dev/xvd<letter>
-
-   Replace ``<letter>`` with the identifier for the volume, as in the
-   following example: ::
-
-      sudo mkfs -t ext4 /dev/xvdf
-
-   You only need to create a filesystem the first time you initiate
-   the drive.
-
-   Create a directory to use as the mount point: ::
-
-      sudo mkdir /mnt/ebs-mount-dir
-
-   Mount the volume with a command that resembles the following: ::
-
-      sudo mount /dev/xvd<letter> /mnt/ebs-mount-dir
-
-   Replace ``<letter>`` with the identifier for the volume, as in the
-   following example: ::
-
-      sudo mount /dev/xvdf /mnt/ebs-mount-dir
-
-#. Set Linux Kernel parameters. All users must complete this step to
-   ensure optimal performance. Begin by using the following commands
-   to change the parameters of running instance: ::
-
-      sudo /sbin/sysctl -w net.core.netdev_max_backlog=30000
-      sudo /sbin/sysctl -w net.core.wmem_max=16777216
-      sudo /sbin/sysctl -w net.core.rmem_max=16777216
-
-   Edit the ``/etc/sysctl.conf`` file and append the lines below to
-   ensure that these parameters are always applied following a system
-   reboot: ::
-
-      net.core.netdev_max_backlog = 30000
-      net.core.wmem_max = 16777216
-      net.core.rmem_max = 16777216
-
-Install and Start MongoDB
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This section assumes you're installing MongoDB on an instance running
-Red Hat, CentOS, Fedora, or Amazon Linux: Use the `Install Mongodb on
-Red Hat, CentOS, or Fedora Linux
-<http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/>`_
-tutorial for more information.
-
-#. Add MongoDB repositories to the system's package management tool.
-
-   Create the ``/etc/yum.repos.d/mongodb.repo`` file and add the
-   following information about the repository:
-
-   .. code-block:: ini
-
-       [mongodb]
-       name=MongoDB Repository
-       baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
-       gpgcheck=0
-       enabled=1
-
-#. Install the MongoDB packages using the following operations:
-
-   .. code-block:: sh
-
-      sudo yum install mongo-10gen mongo-10gen-server
-
-#. Configure data and logging directories for MongoDB.
-
-   Create directories for MongoDB's log and data. This example assumes
-   that the path for all MongoDB data is beneath
-   ``/mnt/ebs-mnt-dir/mongo/``. Use the following commands:
-
-   .. code-block:: sh
-
-      sudo mkdir -p /mnt/ebs-mount-dir/mongo/data
-      sudo mkdir -p /mnt/ebs-mount-dir/mongo/logs
-
-   Issue the following command to ensure that the ``mongod`` process
-   owns all paths below the ``/mnt/ebs-mnt-dir/mongo/`` path:
-
-   .. code-block:: sh
-
-      sudo chown -R mongod:mongod /mnt/ebs-mount-dir/mongo
-
-   Edit the ``/etc/mongod.conf`` to include the following settings:
-
-   .. code-block:: ini
-
-      logpath=/mnt/ebs-mount-dir/mongo/logs/mongod.log
-      dbpath=/mnt/ebs-mount-dir/mongo/data
-
-   This will configure the paths for the log and data
-   directories. Adjust the paths as needed.
-
-#. Start MongoDB.
-
-   Issue the following command:
-
-   .. code-block:: sh
-
-      sudo /etc/init.d/mongod start
-
-   .. note::
-
-      If using EBS, starting MongoDB *may* take several minutes to
-      pre-allocate the journal files. This is normal behavior.
