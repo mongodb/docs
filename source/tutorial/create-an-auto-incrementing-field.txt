@@ -175,6 +175,12 @@ is successful.
    :method:`~db.collection.insert()` method and takes a
    ``doc`` and a ``targetCollection`` arguments.
 
+   .. versionchanged:: 2.6
+      The :method:`db.collection.insert()` method now returns a
+      :doc:`/reference/WriteResults` object that contains the status of
+      the operation. Previous versions required an extra
+      :method:`db.getLastErrorObj()` method call.
+      
    .. code-block:: javascript
 
       function insertDocument(doc, targetCollection) {
@@ -187,15 +193,13 @@ is successful.
 
               doc._id = seq;
 
-              targetCollection.insert(doc);
+              var results = targetCollection.insert(doc);
 
-              var err = db.getLastErrorObj();
-
-              if( err && err.code ) {
-                  if( err.code == 11000 /* dup key */ )
+              if( results.hasWriteError() ) {
+                  if( results.writeError.code == 11000 /* dup key */ )
                       continue;
                   else
-                      print( "unexpected error inserting data: " + tojson( err ) );
+                      print( "unexpected error inserting data: " + tojson( results ) );
               }
 
               break;
