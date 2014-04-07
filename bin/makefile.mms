@@ -51,6 +51,7 @@ generate-source-saas:
 	@rm -f $(saas-source-dir)/management/tutorial/prepare-servers.txt
 	@rm -f $(saas-source-dir)/management/tutorial/start-and-stop-application.txt 
 	@rm -f $(saas-source-dir)/management/tutorial/upgrade-on-prem.txt
+	@rm -f $(saas-source-dir)/management/tutorial/configure-aws-hosts.txt
 	@rm -f $(saas-source-dir)/monitoring/tutorial/configure-jetty-https.txt
 	@rm -f $(saas-source-dir)/monitoring/tutorial/install-monitoring-server.txt
 
