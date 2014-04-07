@@ -10,9 +10,6 @@ Overview
 This document outlines the configuration for the On Prem MMS
 application.
 
-.. we should point out the default installation directory for MMS
-   rather than people will understand our notation.
-
 Required Configuration
 ----------------------
 
@@ -24,7 +21,7 @@ Email
    By default, On Prem MMS uses a local SMTP server listening on port ``25``.
 
 Configure MMS properties, by editing the
-``<install_dir>/conf/conf-mms.properties`` file. Edit the following
+``/opt/mongodb/mms/conf/conf-mms.properties`` file. Edit the following
 properties according to the needs of your deployment, as in the
 following example:
 
@@ -44,37 +41,12 @@ before the |monitoring| instance will start.
 MongoDB
 ~~~~~~~
 
-.. "even if you're not using backup'" doesn't quite make sense. these
-   settings seem like they're for all of MMS.
-
-In addition, whether or not you enable backup, define these properties if
-you use authentication:
+Define these properties:
 
 .. code-block:: ini
 
    mongo.mongoUri=<SetToValidUri>
    mongo.replicaSet=<ValidRSIfUsed>
-
-Otherwise, MMS will fail while trying to connect to a MongoDB instance
-on the ``127.0.0.1`` interface at port ``27017``.
-
-.. the above statement doesn't make a lot of sense. it won't fail if
-   there's a mongod or mongos there, for starters and
-
-Credential Encryption
-~~~~~~~~~~~~~~~~~~~~~
-
-If you use the MMS ``<install_dir>/bin/credentialstool`` to encrypt the
-password used in the ``mongo.mongoUri`` value, also add the
-``mongo.encryptedCredentials`` key to the
-``<install_dir>/conf/conf-mms.properties`` file and set the value for this
-property to true:
-
-.. code-block:: ini
-
-   mongo.encryptedCredentials=true
-
-.. _on-prem-authentication-configuration:
 
 Authentication Configuration
 ----------------------------
@@ -85,13 +57,10 @@ specify the database as admin. For example:
 
 .. code-block:: ini
 
-   mongo.mongoUri=mongodb://mongouser:mongopw@127.0.0.1:40000/admin?maxPoolSize=25
+   mongo.mongoUri=mongodb://<mongouser>:<mongopw>@<127.0.0.1>:<40000>/admin?maxPoolSize=<25>
    mongo.replicaSet=mmsreplset
-
-.. we shouldn't assume that people are actually using these values,
-   particularly mongouser:mongopw, so we should use angle brackets.
-
-.. important:: You must modify *every* ``mongoURI`` connection string
+   
+.. important:: You must modify *every* ``mongoUri`` connection string
    in the ``conf-mms.properties`` file.
 
 This does require that you store credentials in plain
@@ -143,13 +112,13 @@ Replication Configuration
 The backing MongoDB store uses a connection string URI defined in the
 ``<install_dir>/conf/conf-mms.properties`` directory.
 
-Edit conf-mms.properties to define the replication hosts. For example:
+Edit ``conf-mms.properties`` to define the replication hosts. For example:
 
 .. part of the above line needs to be in dobule backquotes.
 
 .. code-block:: ini
 
-   mongo.mongoUri=mongodb://host1:40000,host2:40000,host3:40000/?maxPoolSize=100
+   mongo.mongoUri=mongodb://<host1:40000>,<host2:40000>,<host3:40000>/?maxPoolSize=100
    mongo.replicaSet=mmsreplset
 
 .. angle brackets around hosts.
@@ -157,67 +126,3 @@ Edit conf-mms.properties to define the replication hosts. For example:
 See :manual:`Connection String URI Format </reference/connection-string/>`
 for more information.
 
-Configure Kerberos Authentication Module
-----------------------------------------
-
-.. this item should probably be in its own file.
-
-To enable Kerberos authentication between the MMS web server and its backup
-database, update values to these settings in the configuration file:
-
-.. code-block:: properties
-
-   jvm.java.security.krb5.kdc=
-   jvm.java.security.krb5.realm=
-   mms.kerberos.principal=
-   mms.kerberos.keyTab=
-   mms.kerberos.debug=
-
-These configuration settings and descriptions are as follows:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 50, 30, 400
-
-   * - **Setting**
-     - **Required**
-     - **Description**
-   * - ``jvm.java.security.krb5.kdc``
-     - Yes
-     - This should be the IP/FQDN of the KDC server. The value will be set to JVM's java.security.krb5.kdc.
-   * - ``jvm.java.security.krb5.realm``
-     - Yes
-     - This is the default REALM for Kerberos. It is being used for JVM's java.security.krb5.realm.
-   * - ``mms.kerberos.principal``
-     - Yes
-     - The principal we used to authenticate with MongoDB. This should be the exact same user on the mongoUri above.
-   * - ``mms.kerberos.keyTab``
-     - Yes
-     - The absolute path to the keytab file for the principal.
-   * - ``mms.kerberos.debug``
-     - No
-     - The debug flag to output more information on Kerberos authentication process.
-
-Kerberos authentication will not work if any values are missing for required settings.
-
-Here is one example of configuration setting values:
-
-.. code-block:: properties
-
-   jvm.java.security.krb5.kdc=kdc.example.com
-   jvm.java.security.krb5.realm=EXAMPLE.COM
-   mms.kerberos.principal=mms/mmsweb.example.com@EXAMPLE.COM
-   mms.kerberos.keyTab=/path/to/mms.keytab
-   mms.kerberos.debug=false
-
-In this example:
-
-- The KDC server FQDN is ``kdc.example.com``
-
-- The Kerberos default realm is ``EXAMPLE.COM``
-
-- The host running MMS app is ``mmsweb.example.com`` and the Kerberos principal
-  for MMS is ``mms/mmsweb.example.com@EXAMPLE.com``
-
-- The keytab file for ``mms/mmsweb.example.com@EXAMPLE.COM`` is at
-  ``/path/to/mms.keytab``.
