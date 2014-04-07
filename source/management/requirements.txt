@@ -10,12 +10,26 @@ Overview
 The MongoDB Management Service (MMS) is a service for monitoring and
 backing up a MongoDB infrastructure.
 
+MMS Monitoring
+~~~~~~~~~~~~~~
+
+MMS provides real-time reporting, visualization and alerting on key database and
+hardware indicators and presents the data in an intuitive web dashboard.
+
+A lightweight Monitoring Agent runs within your infrastructure and connects to the
+configured MongoDB instances.  The Monitoring Agent collect statistics from the nodes
+in your deployment and transmit it back  to MMS.  The MMS user interface allows the user
+to view the visualized data and set alerts.
+
+MMS Backup
+~~~~~~~~~~
+
 Engineered specifically for MongoDB, MMS Backup features scheduled
 snapshots and point in time recovery. Once the service is up and running,
 MMS provides a web interface to support backup and restoration. MMS
 Backup supports horizontal scaling.
 
-A lightweight agent runs within your infrastructure and connects to the
+A lightweight Backup Agent runs within your infrastructure and connects to the
 configured MongoDB instances. The agent performs an initial sync and then
 tail the oplog of a replica set’s primary. For a sharded cluster, the
 backup agent tails the primary of each shard and each config server. The
@@ -28,12 +42,13 @@ set. Each head is consistent with the original primary up to the last
 oplog supplied by the agent. The initial sync and tailing of the oplog are
 all done using standard MongoDB queries.
 
-Components
-----------
+Packages
+--------
 
-MMS Application Package (front end)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MMS Application Package
+~~~~~~~~~~~~~~~~~~~~~~~
 
+To install and use MMS Monitoring, **only** this package is required.
 The MMS application package includes these components:
 
 - **MMS HTTP Server:** This component contains the web interface to manage
@@ -49,13 +64,17 @@ The MMS application package includes these components:
 - **Backup Alert Service:** This alert service watches the state of all agents,
   heads, and snapshots. The service sends email alerts when problems occur.
 
-Backup Daemon Package (back end)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This package is installed on the MMS Application Server.
+
+Optional: Backup Daemon Package
+~~~~~~~~~~~~~~~~~~~~~
+
+This package is **optional**. It is only necessary to utilize the MMS Backup
+service.
 
 This package contains only the backup daemon. The daemon manages all heads
 and snapshots based on data coming into the Backup HTTP server from the
-backup agents. No client applications talk directly to the daemon. Its
-state and job queues come from the MMS Metadata database.
+backup agents. No client applications talk directly to the daemon.
 
 The daemon creates the heads on its local disk, in a configured path. If
 multiple servers run the daemon, new incoming backups will be assigned to
@@ -69,29 +88,7 @@ to the requested destination.
 Multiple backup daemons can run to scale MMS horizontally. However, each
 replica will bind to a specific daemon.
 
-MMS Metadata Database
-~~~~~~~~~~~~~~~~~~~~~
-
-This MongoDB database contains MMS users, groups, hosts, monitoring data,
-backup state, and related data. This metadata should be small in size
-(less than 1GB per monitored/backed up server) but updated frequently.
-Configure this database as a replica set to provide durability and
-automatic failover from the MMS service.
-
-This database is not part of the MMS package installation process. Setup this
-database separately and add its location in the MMS configuration files.
-
-Snapshot Storage / Blockstore Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This database contains all snapshots of databases backed up and oplogs
-retained for point in time restores. Disk size should be large but proportional
-to the size of the backed up databases. Configure the Blockstore database as a
-replica set to provide durability and automatic failover to the backup and
-restore components.
-
-This database is not part of the MMS package installation process. Setup this
-database separately and add its location in the MMS configuration files.
+This package is installed on the Backup Daemon Server.
 
 Hardware Requirements
 ---------------------
@@ -99,8 +96,8 @@ Hardware Requirements
 MMS Application Server
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To run the On-Prem Monitoring server, you must use a 64-bit server,
-with requirements according to the following table:
+The MMS Application Package is deployed on the MMS Application Server with
+requirements according to the following table.
 
 .. list-table::
    :header-rows: 1
@@ -109,36 +106,43 @@ with requirements according to the following table:
    * - **Number of Monitored Hosts**
      - **CPU Cores**
      - **RAM**
-     - **Storage Capacity**
-     - **Storage IOPS/s**
    * - Up to 400 monitored hosts
      - 4+
      - 15 GB
-     - 200 GB
-     - 500
    * - Up to 2000 monitored hosts
      - 8+
      - 15 GB
-     - 500 GB
-     - 10000+ (SSD)
    * - More than 2000 hosts
-     - Contact MMS
-     -
-     -
-     -
+     - Contact MongoDB Account manager
+     - Contact MongoDB Account manager
 
-For reference: an AWS EC2 Standard Extra Large (i.e. m1.xlarge) with a
-provisioned 500 IOP/s EBS volume supported the 400-host configuration
-above. An AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge)
-supported the 2000 host configuration above.
+These requirements support only the software components in the MMS Application Package.
+If you wish to install the MMS Application Database on the same physical server,
+you will additionally need to satisfy the storage requirements for the MMS Application
+Database [SAM_LINK_TO_DATABASE REQUIREMENTS]
 
-For the best results, On-Prem MMS instances require SSD-backed
-storage.
+Additionally, this server **must** have the ulimits configured as follows
+in /etc/security/limits.conf:
+
+mongodb-mms        soft   nofile           64000
+mongodb-mms        hard   nofile           64000
+mongodb-mms        soft   nproc            32000
+mongodb-mms        hard   nproc            32000
+
+Be sure to check for a /etc/security/limits.d/90-nproc.conf file that may override the configured limits.
+
+MMS Application Database Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please see Preparing Backup MongoDB Instances [SAM_LINK_TO] for requirements for the MMS
+Application Database Servers.
 
 .. _backup-hardware-requirements:
 
-Backup Daemon Package (back end)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Optional: MMS Backup Daemon Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This server is required only if you are installing and running MMS Backup.
 
 .. list-table::
    :header-rows: 1
@@ -152,8 +156,8 @@ Backup Daemon Package (back end)
    * - Up to 200 hosts
      - 4+ 2Ghz+
      - 15 GB
-     - x GB
-     - x
+     - Contact MongoDB Account manager
+     - Contact MongoDB Account manager
 
 A server running the Daemon package will act as a hidden secondary for every
 replica set assigned to it. 4 x 2ghz+ CPU cores and 16GB of RAM will be
@@ -179,98 +183,28 @@ restore of this cluster would required another 800GB of temporary space on the
 daemon during the restore. Snapshot restores do not require additional disk
 space.
 
-MMS Metadata Database
-~~~~~~~~~~~~~~~~~~~~~
+Before installing MMS Backup we recommend contacting your MongoDB Account
+Manager for assistance in estimating the storage requirements for your Backup
+Daemon server.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20, 12, 8, 15, 15
+Additionally, this server **must** have the ulimits configured as follows
+in /etc/security/limits.conf:
 
-   * - **Number of Hosts**
-     - **CPU Cores**
-     - **RAM**
-     - **Storage Capacity**
-     - **Storage IOPS/s**
-   * - Up to 200 hosts
-     - 4+ 2Ghz+
-     - 15 GB
-     - x GB
-     - x
+mongodb-mms        soft   nofile           64000
+mongodb-mms        hard   nofile           64000
+mongodb-mms        soft   nproc            32000
+mongodb-mms        hard   nproc            32000
 
-Because this data updates frequently, we recommend use of a high-end disk,
-preferably SSDs. If the system reaches the capacity of this server, upgrade
-memory or bring additional replica sets online and reconfigure the MMS
-application to split different types of MMS data between these replica sets.
+Be sure to check for a /etc/security/limits.d/90-nproc.conf file that may override the configured limits.
 
-Configure this database as a replica set to provide durability and automatic
-failover from the MMS service.
 
-Snapshot Storage / Blockstore Database
+MMS Backup Blockstore Database Servers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: Is a table helpful given the examples below? They're variable.
+These servers are required only if you are installing and running MMS Backup.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20, 12, 8, 15, 15
-
-   * - **Number of Hosts**
-     - **CPU Cores**
-     - **RAM**
-     - **Storage Capacity**
-     - **Storage IOPS/s**
-   * - Up to 200 hosts
-     - 4+ 2Ghz+
-     - 15 GB
-     - x GB
-     - x
-
-To calculate the amount of storage needed to store a replica set backup in the
-Blockstore database, look at the file size of the replica set to back up,
-gigabytes of oplog per hour generated by the replica set, compression ratio of
-the data, and the configured snapshot retention schedule.
-
-Using the four shard, 200GB per shard cluster example from above, also
-add 2GB/day of oplogs generated per shard or 8GB/day total across the
-cluster.
-
-If the longest stored snapshot has a one year retention
-period, the approximate amount of data in the blockstore will be
-800GB + (8GB * 365 days) or 3720GB. If the data gets a 4:1 compression
-ratio, which is an average seen in the hosted MMS, the blockstore
-space required will actually be 930GB.
-
-930GB is a conservative estimate because it assumes 8GB of
-oplog in one day changes 8GB of data on disk. The other extreme is
-that 8GB of oplog could all be ``$inc`` operations on the same
-document. In that case, 8GB of oplog could only change 4 bytes on
-disk.
-
-In practice the number will be somewhere in between depending on
-the replica sets insert/update/delete patterns.
-
-Based on looking at the MMS hosted service, a good rule of thumb is a replica
-set will take up 2x - 3x its size in the Blockstore.
-
-Medium grade HDDs will have enough I/O throughput to handle the load
-of the Blockstore. Each replica set member should have 4 x 2ghz+ CPU
-cores. We recommend 8GB of RAM for every 1TB disk of Blockstore to
-provide good snapshot and restore speed.
-
-Combining Components
-~~~~~~~~~~~~~~~~~~~~
-
-Each component does not require a dedicated server. Combine CPU and
-RAM requirements based on your environment. Each component should
-still have its own disk partition with the recommended amount of
-storage space and I/O throughput.
-
-One possible configuration used in the MMS hosted environment has multiple
-RAIDs attached to each high-end physical server. Each server may
-run a combination of a Blockstore primary/secondary, a Backup
-Daemon, and a MMS Metadata primary/secondary. The front-end package
-can run on a much smaller server as it only has modest CPU and RAM
-requirements.
+Please see Preparing Backup MongoDB Instances [SAM_LINK_TO] for requirements for the MMS
+Application Database Servers.
 
 Software Requirements
 ---------------------
@@ -294,7 +228,7 @@ MongoDB
 ~~~~~~~
 
 The MongoDB databases backing MMS best be MongoDB 2.4.6 or later. The
-MongoDB replica sets and sharded clusters tobe backed up must be running
+MongoDB replica sets and sharded clusters to be backed up must be running
 MongoDB 2.4.3 or later.
 
 Web Browsers
@@ -329,19 +263,3 @@ If your environment includes SNMP, you can configure an SMNP trap receiver
 with periodic heartbeat traps to monitor the internal health of MMS.
 
 For more details, see :ref:`Configure SNMP Heartbeat Support <on-prem-configure-snmp-heartbeat>`.
-
-Authentication
-~~~~~~~~~~~~~~
-
-|mms| includes authentication for the service. Optional
-authentication with third party services provides additional
-functionality:
-
-- Two factor authentication with a mobile phone number or Google
-  Authenticator.
-
-- A Graphite hostname and port can provide charting for the MMS server's
-  internal health.
-
-- SMS, a HipChat account, or a PagerDuty account can deliver alert
-  notifications.
