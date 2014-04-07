@@ -51,6 +51,12 @@ In this pattern, you will:
 Consider the following example in JavaScript which attempts to update
 the ``qty`` field of a document in the ``products`` collection:
 
+.. versionchanged:: 2.6
+   The :method:`db.collection.update()` method now returns a
+   :method:`WriteResult()` object that contains the status of
+   the operation. Previous versions required an extra
+   :method:`db.getLastErrorObj()` method call.
+
 .. code-block:: javascript
 
    var myCollection = db.products;
@@ -68,7 +74,7 @@ the ``qty`` field of a document in the ``products`` collection:
           myDocument.qty *= 2;
       }
 
-      myCollection.update(
+      var results = myCollection.update(
          {
            _id: myDocument._id,
            qty: oldQty
@@ -76,13 +82,11 @@ the ``qty`` field of a document in the ``products`` collection:
          {
            $set: { qty: myDocument.qty }
          }
-      )
+      );
 
-      var err = db.getLastErrorObj();
-
-      if ( err && err.code ) {
-          print("unexpected error updating document: " + tojson( err ));
-      } else if ( err.n == 0 ) {
+      if ( results.hasWriteError() ) {
+          print("unexpected error updating document: " + tojson( results ));
+      } else if ( results.nMatched == 0 ) {
           print("No update: no matching document for { _id: " + myDocument._id + ", qty: " + oldQty + " }")
       }
 
