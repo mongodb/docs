@@ -157,26 +157,41 @@ Write Method Acknowledgements
 -----------------------------
 
 Description
-   The :program:`mongo` shell now defaults to use :doc:`safe writes
-   </core/write-concern>` for the :method:`db.collection.insert()`,
-   :method:`db.collection.update()`, and
-   :method:`db.collection.remove()` methods. This behavior is
-   consistent with the rest of the MongoDB drivers.
+   The :program:`mongo` shell write methods
+   :method:`db.collection.insert()`, :method:`db.collection.update()`,
+   :method:`db.collection.save()` and :method:`db.collection.remove()`
+   now integrate the :doc:`write concern </core/write-concern>`
+   directly into the method rather than with a separate
+   :dbcommand:`getLastError` command to provide :ref:`safe writes
+   <write-concern-acknowledged>` whether run interactively in the
+   :program:`mongo` shell or non-interactively in a script. In previous
+   versions, these methods exhibited a "fire-and-forget" behavior.
+   [#mongo-shell-gle-interactive]_
 
-   - Safe writes take longer than the previous behavior of
-     "fire-and-forget".
+- Existing scripts for the :program:`mongo` shell that used these
+  methods will now observe safe writes which take **longer** than
+  the previous "fire-and-forget" behavior.
 
-   - The methods now integrates the :doc:`write concern
-     </core/write-concern>` directly into the method execution rather
-     than with a separate :dbcommand:`getLastError` command. As such,
-     the methods now return only after a desired level of write
-     acknowledgement and return a :method:`WriteResult` object that
-     contains the results of the operation, including any write errors
-     and write concern errors.
+- The write methods now return a :method:`WriteResult` object that
+  contains the results of the operation, including any write errors
+  and write concern errors, and obviates the need to call
+  :dbcommand:`getLastError` command to get the status of the results.
+  See :method:`db.collection.insert()`,
+  :method:`db.collection.update()`, :method:`db.collection.save()`
+  and :method:`db.collection.remove()` for details.
+
+.. [#mongo-shell-gle-interactive]
+   In previous versions, when using the :program:`mongo` shell
+   interactively, the :program:`mongo` shell automatically called the
+   :dbcommand:`getLastError` command after a write method to provide
+   "safe writes". Scripts, however, would observe "fire-and-forget"
+   behavior in previous versions unless the scripts included an
+   **explicit** call to the :dbcommand:`getLastError` command after a
+   write method.
 
 Solution
   Scripts that used these :program:`mongo` shell methods for bulk write
-  operations with "fire-and-forget" behavior should use
+  operations with "fire-and-forget" behavior should use the
   :method:`Bulk()` methods.
 
   For example, instead of:
@@ -199,7 +214,13 @@ Solution
 
      bulk.execute( { w: 1 } );
 
-  .. seealso:: :ref:`rel-notes-write-operations`, :method:`Bulk()`,
+  Bulk method returns a :ref:`bulk-write-result` object that contains
+  the result of the operation.
+
+  .. seealso::
+     :ref:`rel-notes-write-operations`,
+     :method:`Bulk()`,
+     :method:`Bulk.execute()`,
      :method:`db.collection.initializeUnorderedBulkOp()`,
      :method:`db.collection.initializeOrderedBulkOp()`
 
