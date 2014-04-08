@@ -324,7 +324,7 @@ MMS requires 64-bit Linux. MMS supports the following distributions:
 
 - Ubuntu 12.04 or later
 
-The MongoDB databases backing MMS best be MongoDB 2.4.6 or later.
+The MongoDB databases backing MMS must be MongoDB 2.4.9 or later.
 
 The MongoDB replica sets and sharded clusters tobe backed up must be
 running MongoDB 2.4.3 or later.
@@ -493,4 +493,4 @@ Upgrades
 Version 1.2.1
 ~~~~~~~~~~~~~
 
-The MMS service now requires MongoDB 2.4.6 or later.
+The MMS service now requires MongoDB 2.4.9 or later.
