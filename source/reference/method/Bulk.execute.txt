@@ -9,6 +9,8 @@ Description
 
 .. method:: Bulk.execute()
 
+   .. versionadded:: 2.6
+
    Executes the list of operations built by the :method:`Bulk()`
    operations builder.
 
@@ -16,11 +18,13 @@ Description
 
    .. include:: /reference/method/Bulk.execute-param.rst
 
-   :returns: :ref:`bulk-write-result`
+   :returns: A :method:`BulkWriteResult` object that contains the
+      status of the operation.
 
-   After execution, you must reinitialize the :method:`Bulk()`
-   operations builder. See :method:`db.collection.initializeUnorderedBulkOp()`
-   and :method:`db.collection.initializeOrderedBulkOp()`.
+   After execution, you cannot re-execute the :method:`Bulk()`
+   object without reinitializing. See
+   :method:`db.collection.initializeUnorderedBulkOp()` and
+   :method:`db.collection.initializeOrderedBulkOp()`.
 
 Example
 -------
@@ -32,112 +36,28 @@ the operations:
 .. code-block:: javascript
 
    var bulk = db.items.initializeOrderedBulkOp();
-   bulk.insert( { items: "abc123", status: "A", defaultQty: 500, points: 5 } );
-   bulk.insert( { items: "ijk123", status: "A", defaultQty: 100, points: 10 } );
+   bulk.insert( { item: "abc123", status: "A", defaultQty: 500, points: 5 } );
+   bulk.insert( { item: "ijk123", status: "A", defaultQty: 100, points: 10 } );
    bulk.find( { status: "D" } ).removeOne();
    bulk.find( { status: "D" } ).update( { $set: { points: 0 } } );
    bulk.execute();
 
+The operation returns the following :method:`BulkWriteResult()` object:
+
+.. code-block:: javascript
+
+   BulkWriteResult({
+      "writeErrors" : [ ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 2,
+      "nUpserted" : 0,
+      "nMatched" : 3,
+      "nModified" : 3,
+      "nRemoved" : 1,
+      "upserted" : [ ]
+   })
+
+For details on the return object, see :method:`BulkWriteResult()`.
+
 .. see:: :method:`Bulk()` for a listing of methods available for bulk
    operations.
-
-.. _bulk-write-result:
-
-BulkWriteResult
----------------
-
-The ``BulkWriteResult`` contains a document with the following fields:
-
-.. data:: BulkWriteResult.nInserted
-
-   The number of documents inserted using the :method:`Bulk.insert()`
-   method.
-
-.. data:: BulkWriteResult.nUpserted
-
-   The number of documents inserted through update or replacement
-   operations with the :method:`Bulk.find.upsert()` option.
-
-.. data:: BulkWriteResult.nMatched
-
-   The number of documents selected for update or replacement. If the
-   update/replacement operation results in no change to the document,
-   e.g. :update:`$set` expression updates the value to the current
-   value, :data:`~BulkWriteResult.nMatched` can be greater than
-   :data:`~BulkWriteResult.nModified`.
-
-.. data:: BulkWriteResult.nModified
-
-   The number of documents updated or replaced. If the
-   update/replacement operation results in no change to the document,
-   such as setting the value of the field to its current value,
-   :data:`~BulkWriteResult.nModified` can be less than
-   :data:`~BulkWriteResult.nMatched`.
-
-.. data:: BulkWriteResult.nRemoved
-
-   The number of documents removed.
-
-.. data:: BulkWriteResult.upserted
-
-   An array of documents that contains information for each upserted
-   documents.
-
-   Each document contains the following information:
-
-   .. data:: BulkWriteResult.upserted.index
-
-      An integer that identifies the operation in the
-      bulk operations list, which uses a zero-based index.
-
-   .. data:: BulkWriteResult.upserted._id
-
-      The ``_id`` value of the upserted document.
-
-.. data:: BulkWriteResult.writeErrors
-
-   An array of documents that contains information regarding any error,
-   unrelated to write concerns, encountered during the update
-   operation. The :data:`~BulkWriteResult.writeErrors` array contains
-   an error document for each write operation that errors.
-
-   Each error document contains the following fields:
-
-   .. data:: BulkWriteResult.writeErrors.index
-
-      An integer that identifies the write operation in the bulk
-      operations list, which uses a zero-based index.
-
-   .. data:: BulkWriteResult.writeErrors.code
-
-      An integer value identifying the error.
-
-   .. data:: BulkWriteResult.writeErrors.errmsg
-
-      A description of the error.
-
-   .. data:: BulkWriteResult.writeErrors.op
-
-      A document identifying the operation that failed. For instance,
-      an update/replace operation error will return a document
-      specifying the query, the update, the ``multi`` and the
-      ``upsert`` options; an insert operation will return the document
-      the operation tried to insert.
-
-.. data:: BulkWriteResult.writeConcernError
-
-   Document that describe error related to write concern and contains
-   the field:
-
-   .. data:: BulkWriteResult.writeConcernError.code
-
-      An integer value identifying the cause of the write concern error.
-
-   .. data:: BulkWriteResult.writeConcernError.errInfo
-
-      A document identifying the write concern setting related to the
-      error.
-
-   .. data:: BulkWriteResult.writeConcernError.errmsg
-
-      A description of the cause of the write concern error.
