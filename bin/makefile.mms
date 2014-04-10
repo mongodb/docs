@@ -15,15 +15,12 @@ endif
 
 generate-source-hosted:
 	@rsync --recursive --times --delete source/ $(hosted-source-dir)
-	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table/mms-auth-roles-saas.rst%%' $(hosted-source-dir)/management/permissions.txt
 	@echo [sphinx-prep]: updated source in $(hosted-source-dir)
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase. \($(hosted-source-dir)\)
 
 generate-source-saas:
 	@rsync --recursive --times --delete source/ $(saas-source-dir)
-	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table/mms-auth-roles-hosted.rst%%' $(saas-source-dir)/management/permissions.txt
-	@sed $(SED_ARGS_FILE) 's%:ref:`on-prem-authentication-configuration`%%' $(saas-source-dir)/management/permissions.txt
 	@echo [sphinx-prep]: updated source in $(saas-source-dir)
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase. \($(saas-source-dir)\)
