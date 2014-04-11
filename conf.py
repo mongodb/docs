@@ -120,7 +120,6 @@ html_sidebars = { '**': ['pagenav.html'] }
 if tags.has('hosted'):
     conf = edition_setup('hosted', conf)
     html_theme = 'mms-hosted'
-    html_sidebars['**'].append('searchbox.html')
 
     project = u'MongoDB Management Service (MMS) On-Prem'
     html_title = 'MMS On-Prem Manual'
