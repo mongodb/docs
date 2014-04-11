@@ -8,6 +8,9 @@ findAndModify
    modifications) to the method db.collection.findAndModify.txt and
    vice versa
 
+Definition
+----------
+
 .. dbcommand:: findAndModify
 
    The :dbcommand:`findAndModify` command atomically modifies and
@@ -34,387 +37,326 @@ findAndModify
    The :dbcommand:`findAndModify` command takes the following
    fields:
 
-   :field string findAndModify:
+   .. |operation| replace:: :dbcommand:`findAndModify`
 
-      Required. The collection against which to run the command.
+   .. include:: /reference/command/findAndModify-field.rst
 
-   :field document query:
+Output
+------
 
-      Optional. Specifies the selection criteria for the
-      modification. The ``query`` field employs the same :ref:`query
-      selectors <query-selectors>` as used in the
-      :method:`~db.collection.find()` method. Although the query may
-      match multiple documents, :dbcommand:`findAndModify` will only
-      select one document to modify.
+The return document contains the following fields:
 
-   :field document sort:
+- The ``lastErrorObject`` field that returns the details of the
+  command:
 
-      Optional. Determines which document the operation will modify if
-      the query selects multiple documents. :dbcommand:`findAndModify`
-      will modify the first document in the sort order specified by
-      this argument.
+  - The ``updatedExisting`` field **only** appears if the command is
+    either an ``update`` or an ``upsert``.
 
-   :field boolean remove:
+  - The ``upserted`` field **only** appears if the command is an
+    ``upsert``.
 
-      Must specify either the ``remove`` or the ``update`` field in the
-      :dbcommand:`findAndModify` command. When ``true``, removes the
-      selected document. The default is ``false``.
+- The ``value`` field that returns either:
 
-   :field document update:
+  - the original (i.e. pre-modification) document if ``new`` is
+    false, or
 
-      Must specify either the ``remove`` or the ``update`` field in the
-      :dbcommand:`findAndModify` command. The ``update`` field employs
-      the same :ref:`update operators <update-operators>` or ``field:
-      value`` specifications to modify the selected document.
+  - the modified or inserted document if ``new: true``.
 
-   :field boolean new:
+- The ``ok`` field that returns the status of the command.
 
-      Optional. When ``true``, returns the modified document rather
-      than the original. The :dbcommand:`findAndModify` method ignores
-      the ``new`` option for ``remove`` operations. The default is
-      ``false``.
+.. note::
 
-   :field document fields:
+   If the :dbcommand:`findAndModify` finds no matching document,
+   then:
 
-      Optional. A subset of fields to return. The ``fields`` document
-      specifies an inclusion of a field with ``1``, as in the
-      following:
+   - for ``update`` or ``remove`` operations, ``lastErrorObject``
+     does not appear in the return document and the ``value`` field
+     holds a ``null``.
 
-      .. code-block:: javascript
+     .. code-block:: javascript
 
-         fields: { <field1>: 1, <field2>: 1, ... }
+        { "value" : null, "ok" : 1 }
 
-      See :ref:`projection <read-operations-projection>`.
+   - for an ``upsert`` operation that performs an insert, when ``new``
+     is ``false``, **and** includes a ``sort`` option, the return
+     document has ``lastErrorObject``, ``value``, and ``ok``
+     fields, but the ``value`` field holds an empty document
+     ``{}``.
 
-   :field boolean upsert:
+   - for an ``upsert`` that performs an insert, when ``new`` is
+     ``false`` **without** a specified ``sort`` the return
+     document has ``lastErrorObject``, ``value``, and ``ok``
+     fields, but the ``value`` field holds a ``null``.
 
-      Optional. Used in conjunction with the ``update`` field. When
-      ``true``, the :dbcommand:`findAndModify` command creates a new
-      document if the ``query`` returns no documents. The default is
-      ``false``.
+Behavior
+--------
 
-   The :dbcommand:`findAndModify` command returns a document, similar
-   to the following:
+When the :dbcommand:`findAndModify` command includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+method could insert a document multiple times in certain circumstances.
+For instance, if multiple clients issue the :dbcommand:`findAndModify`
+command and these commands complete the ``find`` phase before any one
+starts the ``modify`` phase, these commands could insert the same
+document.
 
-   .. code-block:: javascript
+Consider an example where no document with the name ``Andy`` exists and
+multiple clients issue the following command:
 
+.. code-block:: javascript
+
+   db.runCommand(
       {
-         lastErrorObject: {
-                              updatedExisting: <boolean>,
-                              upserted: <boolean>,
-                              n: <num>,
-                              connectionId: <num>,
-                              err: <string>,
-                              ok: <num>
-         }
-         value: <document>,
-         ok: <num>
+        findAndModify: "people",
+        query: { name: "Andy" },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } },
+        upsert: true
       }
+    )
 
-   The return document contains the following fields:
+If all the commands finish the ``query`` phase before any command
+starts the ``modify`` phase, **and** there is no unique index on the
+``name`` field, the commands may all perform an upsert. To prevent
+this condition, create a :ref:`unique index <index-type-unique>` on
+the ``name`` field. With the unique index in place, then the multiple
+:dbcommand:`findAndModify` commands would observe one of the
+following behaviors:
 
-   - The ``lastErrorObject`` field that returns the details of the
-     command:
+- Exactly one :dbcommand:`findAndModify` would successfully insert a
+  new document.
 
-     - The ``updatedExisting`` field **only** appears if the command is
-       either an ``update`` or an ``upsert``.
+- Zero or more :dbcommand:`findAndModify` commands would update the
+  newly inserted document.
 
-     - The ``upserted`` field **only** appears if the command is an
-       ``upsert``.
+- Zero or more :dbcommand:`findAndModify` commands would fail when
+  they attempted to insert a duplicate. If the command fails due to
+  a unique index constraint violation, you can retry the command.
+  Absent a delete of the document, the retry should not fail.
 
-   - The ``value`` field that returns either:
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
 
-     - the original (i.e. pre-modification) document if ``new`` is
-       false, or
+When using :dbcommand:`findAndModify` in a :term:`sharded
+<sharding>` environment, the ``query`` must contain the
+:term:`shard key` for all operations against the shard
+cluster. :dbcommand:`findAndModify` operations issued against
+:program:`mongos` instances for non-sharded collections function
+normally.
 
-     - the modified or inserted document if ``new: true``.
+Concurrency
+~~~~~~~~~~~
 
-   - The ``ok`` field that returns the status of the command.
+This command obtains a write lock on the affected database and
+will block other operations until it has completed; however,
+typically the write lock is short lived and equivalent to other
+similar :method:`~db.collection.update()` operations.
 
-   .. note::
+Examples
+--------
 
-      If the :dbcommand:`findAndModify` finds no matching document,
-      then:
+Update and Return
+~~~~~~~~~~~~~~~~~
 
-      - for ``update`` or ``remove`` operations, ``lastErrorObject``
-        does not appear in the return document and the ``value`` field
-        holds a ``null``.
+The following command updates an existing document in the ``people``
+collection where the document matches the ``query`` criteria:
 
-        .. code-block:: javascript
+.. code-block:: javascript
 
-           { "value" : null, "ok" : 1 }
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } }
+      }
+   )
 
-      - for an ``upsert`` operation that performs an insert, when ``new``
-        is ``false``, **and** includes a ``sort`` option, the return
-        document has ``lastErrorObject``, ``value``, and ``ok``
-        fields, but the ``value`` field holds an empty document
-        ``{}``.
+This command performs the following actions:
 
-      - for an ``upsert`` that performs an insert, when ``new`` is
-        ``false`` **without** a specified ``sort`` the return
-        document has ``lastErrorObject``, ``value``, and ``ok``
-        fields, but the ``value`` field holds a ``null``.
+#. The ``query`` finds a document in the ``people`` collection where the
+   ``name`` field has the value ``Tom``, the ``state`` field has
+   the value ``active`` and the ``rating`` field has a value
+   :operator:`greater than <$gt>` 10.
 
-        .. versionchanged:: 2.2
-           Previously, the command returned an empty document (e.g.
-           ``{}``) in the ``value`` field. See :ref:`the 2.2 release
-           notes <2.2-findandmodify-returns-null>` for more information.
+#. The ``sort`` orders the results of the query in ascending order.
+   If multiple documents meet the ``query`` condition, the command will
+   select for modification the first document as ordered by this
+   ``sort``.
 
-   Consider the following examples:
+#. The ``update`` :operator:`increments <$inc>` the value of the
+   ``score`` field by 1.
 
-   - The following command updates an existing document in the
-     ``people`` collection where the document matches the ``query``
-     criteria:
+#. The command returns a document with the following fields:
 
-     .. code-block:: javascript
+   - The ``lastErrorObject`` field that contains the details of the
+     command, including the field ``updatedExisting`` which is
+     ``true``, and
 
-        db.runCommand(
-                        {
-                          findAndModify: "people",
-                          query: { name: "Tom", state: "active", rating: { $gt: 10 } },
-                          sort: { rating: 1 },
-                          update: { $inc: { score: 1 } }
-                        }
-                     )
-
-     This command performs the following actions:
-
-     #. The ``query`` finds a document in the ``people`` collection where the
-        ``name`` field has the value ``Tom``, the ``state`` field has
-        the value ``active`` and the ``rating`` field has a value
-        :operator:`greater than <$gt>` 10.
-
-     #. The ``sort`` orders the results of the query in ascending order.
-        If multiple documents meet the ``query`` condition, the command
-        will select for modification the first document as ordered by
-        this ``sort``.
-
-     #. The ``update`` :operator:`increments <$inc>` the value of the
-        ``score`` field by 1.
-
-     #. The command returns a document with the following fields:
-
-        - The ``lastErrorObject`` field that contains the details of
-          the command, including the field ``updatedExisting`` which is
-          ``true``, and
-
-        - The ``value`` field that contains the original (i.e.
-          pre-modification) document selected for this update:
-
-        .. code-block:: javascript
-
-           {
-             "lastErrorObject" : {
-                "updatedExisting" : true,
-                "n" : 1,
-                "connectionId" : 1,
-                "err" : null,
-                "ok" : 1
-             },
-             "value" : {
-                "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
-                "name" : "Tom",
-                "state" : "active",
-                "rating" : 100,
-                "score" : 5
-             },
-             "ok" : 1
-           }
-
-        To return the modified document in the ``value`` field, add the
-        ``new:true`` option to the command.
-
-        If no document match the ``query`` condition, the command
-        returns a document that contains ``null`` in the ``value``
-        field:
-
-        .. code-block:: javascript
-
-           { "value" : null, "ok" : 1 }
-
-     The :program:`mongo` shell and many :term:`drivers <driver>`
-     provide a :method:`~db.collection.findAndModify()` helper method.
-     Using the shell helper, this previous operation can take the
-     following form:
+   - The ``value`` field that contains the original (i.e.
+     pre-modification) document selected for this update:
 
      .. code-block:: javascript
-
-        db.people.findAndModify( {
-           query: { name: "Tom", state: "active", rating: { $gt: 10 } },
-           sort: { rating: 1 },
-           update: { $inc: { score: 1 } }
-        } );
-
-     However, the :method:`~db.collection.findAndModify()` shell helper
-     method returns just the unmodified document, or the modified
-     document when ``new`` is ``true``.
-
-     .. code-block:: javascript
-
-        {
-           "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
-           "name" : "Tom",
-           "state" : "active",
-           "rating" : 100,
-           "score" : 5
-        }
-
-   - The following :dbcommand:`findAndModify` command includes the
-     ``upsert: true`` option to insert a new document if no document
-     matches the ``query`` condition:
-
-     .. code-block:: javascript
-
-        db.runCommand(
-                       {
-                         findAndModify: "people",
-                         query: { name: "Gus", state: "active", rating: 100 },
-                         sort: { rating: 1 },
-                         update: { $inc: { score: 1 } },
-                         upsert: true
-                       }
-                     )
-
-     If the command does **not** find a matching document, the command
-     performs an upsert and returns a document with the following
-     fields:
-
-     - The ``lastErrorObject`` field that contains the details of the
-       command, including the field ``upserted`` that contains the
-       ``ObjectId`` of the newly inserted document, and
-
-     - The ``value`` field that contains an empty document ``{}`` as
-       the original document because the command included the ``sort``
-       option:
-
-     .. code-block:: sh
 
         {
           "lastErrorObject" : {
-             "updatedExisting" : false,
-             "upserted" : ObjectId("50f2329d0092b46dae1dc98e"),
+             "updatedExisting" : true,
              "n" : 1,
              "connectionId" : 1,
              "err" : null,
              "ok" : 1
           },
           "value" : {
-
+             "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
+             "name" : "Tom",
+             "state" : "active",
+             "rating" : 100,
+             "score" : 5
           },
           "ok" : 1
         }
 
-     If the command did **not** include the ``sort`` option, the ``value`` field
-     would contain ``null``:
+To return the modified document in the ``value`` field, add the
+``new:true`` option to the command.
 
-     .. code-block:: sh
+If no document match the ``query`` condition, the command
+returns a document that contains ``null`` in the ``value``
+field:
 
-        {
-          "value" : null,
-          "lastErrorObject" : {
-             "updatedExisting" : false,
-             "n" : 1,
-             "upserted" : ObjectId("5102f7540cb5c8be998c2e99")
-          },
-          "ok" : 1
-        }
+.. code-block:: javascript
 
-   - The following :dbcommand:`findAndModify` command includes both
-     ``upsert: true`` option and the ``new:true`` option to return the
-     newly inserted document in the ``value`` field if a document
-     matching the ``query`` is not found:
+  { "value" : null, "ok" : 1 }
 
-     .. code-block:: javascript
+The :program:`mongo` shell and many :term:`drivers <driver>`
+provide a :method:`~db.collection.findAndModify()` helper method.
+Using the shell helper, this previous operation can take the
+following form:
 
-        db.runCommand(
-                       {
-                         findAndModify: "people",
-                         query: { name: "Pascal", state: "active", rating: 25 },
-                         sort: { rating: 1 },
-                         update: { $inc: { score: 1 } },
-                         upsert: true,
-                         new: true
-                       }
-                     )
+.. code-block:: javascript
 
-     The command returns the newly inserted document in the ``value``
-     field:
+  db.people.findAndModify( {
+     query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+     sort: { rating: 1 },
+     update: { $inc: { score: 1 } }
+  } );
 
-     .. code-block:: sh
+However, the :method:`~db.collection.findAndModify()` shell helper
+method returns only the unmodified document, or if ``new`` is
+``true``, the modified document.
 
-        {
-          "lastErrorObject" : {
-             "updatedExisting" : false,
-             "upserted" : ObjectId("50f47909444c11ac2448a5ce"),
-             "n" : 1,
-             "connectionId" : 1,
-             "err" : null,
-             "ok" : 1
-          },
-          "value" : {
-             "_id" : ObjectId("50f47909444c11ac2448a5ce"),
-             "name" : "Pascal",
-             "rating" : 25,
-             "score" : 1,
-             "state" : "active"
-          },
-          "ok" : 1
-        }
+.. code-block:: javascript
 
-   When the :dbcommand:`findAndModify` command includes the ``upsert:
-   true`` option **and** the query field(s) is not uniquely indexed, the
-   method could insert a document multiple times in certain
-   circumstances. For instance, if multiple clients issue the
-   :dbcommand:`findAndModify` command and these commands complete the
-   ``find`` phase before any one starts the ``modify`` phase, these
-   commands could insert the same document.
+  {
+     "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
+     "name" : "Tom",
+     "state" : "active",
+     "rating" : 100,
+     "score" : 5
+  }
 
-   Consider an example where no document with the name ``Andy`` exists
-   and multiple clients issue the following command:
+Upsert
+~~~~~~
 
-   .. code-block:: javascript
+The following :dbcommand:`findAndModify` command includes the
+``upsert: true`` option to insert a new document if no document
+matches the ``query`` condition:
 
-      db.runCommand(
-                     {
-                       findAndModify: "people",
-                       query: { name: "Andy" },
-                       sort: { rating: 1 },
-                       update: { $inc: { score: 1 } },
-                       upsert: true
-                     }
-                   )
+.. code-block:: javascript
 
-   If all the commands finish the ``query`` phase before any command
-   starts the ``modify`` phase, **and** there is no unique index on the
-   ``name`` field, the commands may all perform an upsert. To prevent
-   this condition, create a :ref:`unique index <index-type-unique>` on
-   the ``name`` field. With the unique index in place, then the multiple
-   :dbcommand:`findAndModify` commands would observe one of the
-   following behaviors:
+  db.runCommand(
+                 {
+                   findAndModify: "people",
+                   query: { name: "Gus", state: "active", rating: 100 },
+                   sort: { rating: 1 },
+                   update: { $inc: { score: 1 } },
+                   upsert: true
+                 }
+               )
 
-   - Exactly one :dbcommand:`findAndModify` would successfully insert a
-     new document.
+If the command finds a matching document, the command performs an update.
 
-   - Zero or more :dbcommand:`findAndModify` commands would update the
-     newly inserted document.
+If the command does **not** find a matching document, the command
+performs an :term:`upsert` and returns a document with the following
+fields:
 
-   - Zero or more :dbcommand:`findAndModify` commands would fail when
-     they attempted to insert a duplicate. If the command fails due to
-     a unique index constraint violation, you can retry the command.
-     Absent a delete of the document, the retry should not fail.
+- The ``lastErrorObject`` field that contains the details of the
+  command, including the field ``upserted`` that contains the
+  ``ObjectId`` of the newly inserted document, and
 
-   .. warning::
+- The ``value`` field that contains an empty document ``{}`` as the
+  original document because the command included the ``sort`` option:
 
-      When using :dbcommand:`findAndModify` in a :term:`sharded
-      <sharding>` environment, the ``query`` must contain the
-      :term:`shard key` for all operations against the shard
-      cluster. :dbcommand:`findAndModify` operations issued against
-      :program:`mongos` instances for non-sharded collections function
-      normally.
+.. code-block:: sh
 
-   .. note::
+   {
+     "lastErrorObject" : {
+        "updatedExisting" : false,
+        "upserted" : ObjectId("50f2329d0092b46dae1dc98e"),
+        "n" : 1,
+        "connectionId" : 1,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
 
-      This command obtains a write lock on the affected database and
-      will block other operations until it has completed; however,
-      typically the write lock is short lived and equivalent to other
-      similar :method:`~db.collection.update()` operations.
+     },
+     "ok" : 1
+   }
+
+If the command did **not** include the ``sort`` option, the ``value`` field
+would contain ``null``:
+
+.. code-block:: sh
+
+   {
+     "value" : null,
+     "lastErrorObject" : {
+        "updatedExisting" : false,
+        "n" : 1,
+        "upserted" : ObjectId("5102f7540cb5c8be998c2e99")
+     },
+     "ok" : 1
+   }
+
+Return New Document
+~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`findAndModify` command includes both
+``upsert: true`` option and the ``new:true`` option to return the
+newly inserted document in the ``value`` field if a document
+matching the ``query`` is not found:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { name: "Pascal", state: "active", rating: 25 },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } },
+        upsert: true,
+        new: true
+      }
+   )
+
+The command returns the newly inserted document in the ``value`` field:
+
+.. code-block:: sh
+
+   {
+     "lastErrorObject" : {
+        "updatedExisting" : false,
+        "upserted" : ObjectId("50f47909444c11ac2448a5ce"),
+        "n" : 1,
+        "connectionId" : 1,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
+        "_id" : ObjectId("50f47909444c11ac2448a5ce"),
+        "name" : "Pascal",
+        "rating" : 25,
+        "score" : 1,
+        "state" : "active"
+     },
+     "ok" : 1
+   }
