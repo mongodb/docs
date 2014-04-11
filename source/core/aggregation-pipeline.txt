@@ -91,11 +91,9 @@ the following strategies to avoid scanning the entire collection.
 Pipeline Operators and Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$match`, :pipeline:`$sort`, :pipeline:`$limit`, and
-:pipeline:`$skip` pipeline operators can take advantage of an index
-when they occur at the **beginning** of the pipeline **before** any of
-the following aggregation operators: :pipeline:`$project`,
-:pipeline:`$unwind`, and :pipeline:`$group`.
+The :pipeline:`$match` and :pipeline:`$sort` pipeline operators can
+take advantage of an index when they occur at the **beginning** of the
+pipeline.
 
 .. versionadded:: 2.4
    The :pipeline:`$geoNear` pipeline operator takes advantage of a
@@ -103,29 +101,13 @@ the following aggregation operators: :pipeline:`$project`,
    :pipeline:`$geoNear` pipeline operation must appear as the first
    stage in an aggregation pipeline.
 
-For unsharded collections, when the aggregation pipeline only needs to
-access the indexed fields to fulfill its operations, an index can
-:ref:`cover <read-operations-covered-query>` the pipeline.
+Even when the pipeline uses an index, aggregation still requires access
+to the actual documents; i.e. indexes cannot fully cover an aggregation
+pipeline.
 
-.. example::
-
-   Consider the following index on the ``orders`` collection:
-
-   .. code-block:: javascript
-
-      { status: 1, amount: 1, cust_id: 1 }
-
-   This index can cover the following aggregation pipeline operation
-   because MongoDB does not need to inspect the data outside of the
-   index to fulfill the operation:
-
-   .. code-block:: javascript
-
-      db.orders.aggregate([
-                            { $match: { status: "A" } },
-                            { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-                            { $sort: { total: -1 } }
-                         ])
+.. versionchanged:: 2.6
+   In previous versions, for very select use cases, an index could
+   cover a pipeline.
 
 Early Filtering
 ~~~~~~~~~~~~~~~
