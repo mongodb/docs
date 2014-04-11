@@ -1,4 +1,4 @@
-.. versionadded:: 2.6
+.. versionchanged:: 2.6
    In :doc:`Master/Slave </core/master-slave>` deployments,
    MongoDB treats ``w: "majority"`` as equivalent to
    ``w: 1``. In earlier versions of MongoDB, ``w: "majority"`` produces an
