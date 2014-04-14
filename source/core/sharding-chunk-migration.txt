@@ -22,8 +22,8 @@ chunks of a sharded collection evenly among shards. Migrations may be
 either:
 
 - Manual. Only use manual migration in limited cases, such as
-  to distribute data during bulk inserts. See :ref:`Migrating Chunks
-  Manually <sharding-balancing-manual-migration>` for more details.
+  to distribute data during bulk inserts. See :doc:`Migrating Chunks
+  Manually </tutorial/migrate-chunks-in-sharded-cluster>` for more details.
 
 - Automatic. The :doc:`balancer </core/sharding-balancing>` process
   automatically migrates chunks when there is an uneven distribution of
@@ -55,13 +55,73 @@ All chunk migrations use the following procedure:
    and once there are no open cursors on the chunk, the source shard
    deletes its copy of the documents.
 
+   .. versionchanged:: 2.4
+
+      If the balancer needs to perform additional chunk migrations from
+      the source shard, the balancer can start the next chunk
+      migration without waiting for the current
+      migration process to finish this deletion step. See
+      :ref:`chunk-migration-queuing`.
+
 The migration process ensures consistency and maximizes the availability of
 chunks during balancing.
 
+.. _chunk-migration-queuing:
+
+Chunk Migration Queuing
+~~~~~~~~~~~~~~~~~~~~~~~
+
 .. versionchanged:: 2.4
 
-   While copying and deleting data during migrations, the balancer
-   waits for replication to secondaries. See :v2.2:`Secondary Throttle
-   in the v2.2 Manual
+To migrate multiple chunks from a shard, the balancer migrates the
+chunks one at a time. However, the balancer does not wait for the
+current migration's delete phase to complete before starting the next
+chunk migration. See :ref:`sharding-chunk-migration` for the chunk
+migration process and the delete phase.
+
+This queuing behavior allows shards to unload chunks more quickly in
+cases of heavily imbalanced cluster, such as when performing initial
+data loads without pre-splitting and when adding new shards.
+
+This behavior also affect the :dbcommand:`moveChunk` command, and
+migration scripts that use the :dbcommand:`moveChunk` command may
+proceed more quickly.
+
+In some cases, the delete phases may persist longer. If multiple delete
+phases are queued but not yet complete, a crash of the replica set's
+primary can orphan data from multiple migrations.
+
+.. _chunk-migration-replication:
+
+Chunk Migration and Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, each document move during chunk migration propagates to at
+least one secondary before the balancer proceeds with its next
+operation.
+
+To override this behavior and allow the balancer to continue before
+replicating to a secondary, set the ``_secondaryThrottle`` parameter to
+``false``. See :ref:`sharded-cluster-config-secondary-throttle` to
+update the ``_secondaryThrottle`` parameter for the balancer.
+
+Independent of the ``secondaryThrottle`` setting, certain operations of
+the chunk migration have the following replication policy:
+
+- MongoDB briefly pauses all application writes to the source shard
+  before updating the config servers with the new location for the
+  chunk, and resumes the application writes after the update. The
+  chunk commit requires all writes to be durably replicated to a
+  majority of servers in order to proceed and finish.
+
+- When an outgoing chunk migration finishes and cleanup occurs, all
+  writes must be replicated to a majority of servers before further
+  cleanup (from other outgoing migrations) or new incoming migrations
+  can proceed.
+
+.. versionchanged:: 2.4
+
+   In previous versions, the balancer did not wait for the document
+   move to replicate to a secondary. For details, see :v2.2:`Secondary
+   Throttle in the v2.2 Manual
    </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
-   for details.

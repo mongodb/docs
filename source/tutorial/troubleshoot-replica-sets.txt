@@ -5,7 +5,7 @@ Troubleshoot Replica Sets
 .. default-domain:: mongodb
 
 This section describes common strategies for troubleshooting
-:term:`replica sets <replica set>`.
+:term:`replica set` deployments.
 
 .. _replica-set-troubleshooting-check-replication-status:
 
@@ -33,13 +33,13 @@ and the application of that operation from the :term:`oplog` to the
 :term:`secondary`. Replication lag can be a significant issue and can
 seriously affect MongoDB :term:`replica set` deployments. Excessive
 replication lag makes "lagged" members ineligible to quickly become
-primary and increases the possibility that distributed
-read operations will be inconsistent.
+primary and increases the possibility that distributed read operations
+will be inconsistent.
 
 To check the current length of replication lag:
 
 - In a :program:`mongo` shell connected to the primary, call the
-  :method:`db.printSlaveReplicationInfo()` method.
+  :method:`rs.printSlaveReplicationInfo()` method.
 
   The returned document displays the ``syncedTo`` value for each member,
   which shows you when each member last read from the oplog, as shown in the following
@@ -63,8 +63,8 @@ To check the current length of replication lag:
   "replica" graph in the `MongoDB Management Service`_. For more
   information see the `documentation for MMS`_.
 
-.. _`MongoDB Management Service`: http://mms.10gen.com/
-.. _`documentation for MMS`: http://mms.10gen.com/help/
+.. _`MongoDB Management Service`: http://mms.mongodb.com/
+.. _`documentation for MMS`: http://mms.mongodb.com/help/
 
 Possible causes of replication lag include:
 
@@ -83,7 +83,7 @@ Possible causes of replication lag include:
   unable to flush data to disk as quickly as the primary, then
   the secondary will have difficulty keeping state. Disk-related
   issues are incredibly prevalent on multi-tenant systems, including
-  vitalized instances, and can be transient if the system accesses
+  virtualized instances, and can be transient if the system accesses
   disk devices over an IP network (as is the case with Amazon's
   EBS system.)
 
@@ -177,6 +177,30 @@ Consider the following example of a bidirectional test of networking:
    and firewall configuration and reconfigure your environment to
    allow these connections.
 
+Socket Exceptions when Rebooting More than One Secondary
+--------------------------------------------------------
+
+When you reboot members of a replica set, ensure that the set is able
+to elect a primary during the maintenance. This means ensuring that a majority of
+the set's ':data:`~local.system.replset.members[n].votes` are
+available.
+
+When a set's active members can no longer form a majority, the set's
+:term:`primary` steps down and becomes a :term:`secondary`. The former
+primary closes all open connections to client applications. Clients
+attempting to write to the former primary receive socket exceptions
+and *Connection reset* errors until the set can elect a primary.
+
+.. example:: Given a three-member replica set where every member has
+   one vote, the set can elect a primary only as long as two members
+   can connect to each other. If two you reboot the two secondaries
+   once, the primary steps down and becomes a secondary. Until the at
+   least one secondary becomes available, the set has no primary and
+   cannot elect a new primary.
+
+For more information on votes, see :doc:`/core/replica-set-elections`. For
+related information on connection errors, see :ref:`faq-keepalive`.
+
 .. _replica-set-troubleshooting-check-oplog-size:
 
 Check the Size of the Oplog
@@ -187,7 +211,7 @@ lag, and make the set more resilient.
 
 To check the size of the oplog for a given :term:`replica set` member,
 connect to the member in a :program:`mongo` shell and run the
-:method:`db.printReplicationInfo()` method.
+:method:`rs.printReplicationInfo()` method.
 
 The output displays the size of the oplog and the date ranges of the
 operations contained in the oplog. In the following example, the oplog
@@ -247,7 +271,7 @@ against the oplog collection:
 
 The first query returns the last document in the oplog, while the
 second returns the last document in the oplog where the ``ts`` value
-is a Timestamp. The :operator:`$type` operator allows you to select
+is a Timestamp. The :query:`$type` operator allows you to select
 :term:`BSON type <BSON types>` 17, is the Timestamp data type.
 
 If the queries don't return the same document, then the last document in
@@ -303,7 +327,7 @@ error itself will resemble the following.
 
 .. code-block:: none
 
-   exception 11000 E11000 duplicate key error index: local.slaves.$_id_  dup key: { : ObjectId('<object ID>') } 0ms
+   exception: E11000 duplicate key error index: local.slaves.$_id_  dup key: { : ObjectId('<object ID>') } 0ms
 
 This is a benign error and does not affect replication operations on
 the :term:`secondary` or :term:`slave`.

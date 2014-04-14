@@ -12,19 +12,36 @@ Definition
    Internal administrative command. Moves :term:`chunks <chunk>` between
    :term:`shards <shard>`. Issue the :dbcommand:`moveChunk` command via
    a :program:`mongos` instance while using the :term:`admin database`.
-   Use the following form:
+   Use the following forms:
 
    .. code-block:: javascript
-   
-      db.runCommand( { moveChunk : <namespace> ,
-                       find|bounds : <query|array> ,
-                       to : <string>,
-                       _secondaryThrottle : <Boolean> } )
 
+      db.runCommand( { moveChunk : <namespace> ,
+                       find : <query> ,
+                       to : <string>,
+                       _secondaryThrottle : <boolean>,
+                       _waitForDelete : <boolean> } )
+
+   Alternately:
+
+   .. code-block:: javascript
+
+      db.runCommand( { moveChunk : <namespace> ,
+                       bounds : <array> ,
+                       to : <string>,
+                       _secondaryThrottle : <boolean>,
+                       _waitForDelete : <boolean> } )
 
    The :dbcommand:`moveChunk` command has the following fields:
 
    .. include:: /reference/command/moveChunk-field.rst
+
+   The value of ``bounds`` takes the form:
+
+   .. code-block:: javascript
+
+      [ { hashedField : <minValue> } ,
+        { hashedField : <maxValue> } ]
 
    The :ref:`chunk migration <sharding-chunk-migration>` section
    describes how chunks move between shards on MongoDB.
@@ -35,8 +52,8 @@ Definition
 Return Messages
 ---------------
 
-:dbcommand:`moveChunk` returns the following message if another
-metadata operation is in progress :data:`~config.chunks` collection:
+:dbcommand:`moveChunk` returns the following error message if another
+metadata operation is in progress on the :data:`~config.chunks` collection:
 
 .. code-block:: none
 
@@ -45,7 +62,7 @@ metadata operation is in progress :data:`~config.chunks` collection:
 If another process, such as a balancer process, changes meta data
 while :dbcommand:`moveChunk` is running, you may see this
 error. You may retry the :dbcommand:`moveChunk` operation without
-side effects. 
+side effects.
 
 .. note::
 
@@ -55,6 +72,6 @@ side effects.
    In most cases allow the balancer to create and balance chunks
    in sharded clusters.
    See
-   :ref:`sharding-administration-create-chunks` for more information.
+   :doc:`/tutorial/create-chunks-in-sharded-cluster` for more information.
 
 .. admin-only

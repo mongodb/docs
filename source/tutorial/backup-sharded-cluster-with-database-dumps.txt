@@ -1,6 +1,6 @@
-======================================================
-Create Backup of a Sharded Cluster with Database Dumps
-======================================================
+============================================
+Backup a Sharded Cluster with Database Dumps
+============================================
 
 .. default-domain:: mongodb
 
@@ -13,13 +13,19 @@ uses :program:`mongodump` to create dumps of the :program:`mongod`
 instance. An alternate procedure uses file system snapshots to capture
 the backup data, and may be more efficient in some situations if your
 system configuration allows file system backups. See
-:doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`.
+:doc:`/administration/backup-sharded-clusters` for more
+information.
 
-See :ref:`sharded-cluster-backups` for a full higher level overview
-of backing up a sharded cluster as well as links to other tutorials that
-provide alternate procedures.
+See :doc:`/core/backups` and
+:doc:`/administration/backup-sharded-clusters` for complete
+information on backups in MongoDB and backups of sharded clusters
+in particular.
 
 .. include:: /includes/note-shard-cluster-backup.rst
+
+.. include:: /includes/access-mongodump-collections.rst
+
+.. include:: /includes/access-mongodump-users.rst
 
 Procedure
 ---------
@@ -40,7 +46,14 @@ shard.
 1. Disable the :term:`balancer` process that equalizes the
    distribution of data among the :term:`shards <shard>`. To disable
    the balancer, use the :method:`sh.stopBalancer()` method in the
-   :program:`mongo` shell, and see the
+   :program:`mongo` shell. For example:
+
+   .. code-block:: sh
+
+      use config
+      sh.setBalancerState(false)
+
+   For more information, see the
    :ref:`sharding-balancing-disable-temporarily` procedure.
 
    .. warning::
@@ -55,29 +68,29 @@ shard.
    approximation of a single moment in time. Lock these
    :program:`mongod` instances in as short of an interval as possible.
 
-   To lock or freeze a sharded cluster, you must:
-
-   - Shutdown one member of each replica set.
-
-     Ensure that the :term:`oplog` has sufficient capacity to allow
-     these secondaries to catch up to the state of the primaries after
-     finishing the backup procedure. See
-     :ref:`replica-set-oplog-sizing` for more information.
-
-   - Shutdown one of the :ref:`config servers <sharding-config-server>`, to
-     prevent all metadata changes during the backup process.
+   To lock or freeze a sharded cluster, you shut down one member of each
+   replica set. Ensure that the :term:`oplog` has sufficient capacity to
+   allow these secondaries to catch up to the state of the primaries after
+   finishing the backup procedure. See :ref:`replica-set-oplog-sizing` for
+   more information.
 
 #. Use :program:`mongodump` to backup one of the :ref:`config servers
    <sharding-config-server>`. This backs up the cluster's
    metadata. You only need to back up one config server, as they all
    hold the same data.
 
-   Issue this command against one of the config :program:`mongod`
-   instances or via the :program:`mongos`:
+   Use the :program:`mongodump` tool to capture the content of the
+   config :program:`mongod` instances.
+
+   Your config servers must run MongoDB 2.4 or later with the
+   :option:`--configsvr <mongod --configsvr>` option and the
+   :program:`mongodump` option must include the
+   :option:`--oplog <mongodump --oplog>` to capture a consistent copy
+   of the config database:
 
    .. code-block:: sh
 
-      mongodump --journal --db config
+      mongodump --oplog --db config
 
 #. Back up the replica set members of the shards that shut down using
    :program:`mongodump` and specifying the :option:`--dbpath <mongodump --dbpath>`

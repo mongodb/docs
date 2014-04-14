@@ -46,7 +46,7 @@ details, see :ref:`sharding-chunk-size`.
 Changing the default chunk size affects chunks that are processes during
 migrations and auto-splits but does not retroactively affect all chunks.
 
-To configure default chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
+To configure default chunk size, see :doc:`modify-chunk-size-in-sharded-cluster`.
 
 .. _sharded-cluster-config-max-shard-size:
 
@@ -56,7 +56,7 @@ Change the Maximum Storage Size for a Given Shard
 The ``maxSize`` field in the :data:`~config.shards` collection in the
 :ref:`config database <config-database>` sets the maximum size for a
 shard, allowing you to control whether the balancer will migrate chunks
-to a shard. If :data:`~dbStats.dataSize` is above a shard's
+to a shard. If :data:`~serverStatus.mem.mapped` size [#local-limitation]_ is above a shard's
 ``maxSize``, the balancer will not move chunks to the shard. Also, the
 balancer will not move chunks off an overloaded shard. This must happen
 manually. The ``maxSize`` value only affects the balancer's selection of
@@ -106,23 +106,43 @@ megabytes.
       use config
       db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 250 } } )
 
+.. [#local-limitation] This value includes the mapped size of all data
+   files including the``local`` and ``admin`` databases. Account for
+   this when setting ``maxSize``.
+
 .. index:: balancing; secondary throttle
 .. index:: secondary throttle
 .. _sharded-cluster-config-secondary-throttle:
 
-Require Replication before Chunk Migration (Secondary Throttle)
----------------------------------------------------------------
+Change Replication Behavior for Chunk Migration (Secondary Throttle)
+--------------------------------------------------------------------
 
-.. versionadded:: 2.2.1
-   ``_secondaryThrottle`` became an option to the balancer and to
-   :dbcommand:`moveChunk` in 2.2.1. ``_secondaryThrottle`` makes it
-   possible to require the balancer wait for replication to
-   secondaries during migrations.
+The ``_secondaryThrottle`` parameter of the balancer and the
+:dbcommand:`moveChunk` command affects the replication behavior during
+:ref:`chunk migration <chunk-migration-replication>`. By default,
+``_secondaryThrottle`` is ``true``, which means each document move
+during chunk migration propagates to at least one secondary before the
+balancer proceeds with its next operation. For more information on the
+replication behavior during various steps of chunk migration, see
+:ref:`chunk-migration-replication`.
 
-.. versionchanged:: 2.4
-   ``_secondaryThrottle`` became the default mode for all balancer and
-   :dbcommand:`moveChunk` operations.
+To change the balancer's ``_secondaryThrottle`` value, connect to a
+:program:`mongos` instance and directly update the
+``_secondaryThrottle`` value in the :data:`~config.settings` collection
+of the :ref:`config database <config-database>`. For example, from a
+:program:`mongo` shell connected to a :program:`mongos`, issue the
+following command:
 
-.. see:: :v2.2:`Secondary Throttle in the v2.2 Manual
-   </tutorial/configure-sharded-cluster-balancer>` for more
-   information on configuring ``_secondaryThrottle``.
+.. code-block:: javascript
+
+   use config
+   db.settings.update(
+      { "_id" : "balancer" },
+      { $set : { "_secondaryThrottle" : true } },
+      { upsert : true }
+   )
+
+The effects of changing the ``_secondaryThrottle`` value may not be
+immediate. To ensure an immediate effect, stop the balancer and restart
+it with the selected value of ``_secondaryThrottle``. See
+:doc:`/tutorial/manage-sharded-cluster-balancer` for details.

@@ -1,0 +1,100 @@
+==================
+$out (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.6
+
+Definition
+----------
+
+.. pipeline:: $out
+
+   Takes the documents returned by the aggregation pipeline and writes
+   them to a specified collection. The :pipeline:`$out` operator lets
+   the aggregation framework return result sets of any size. The
+   :pipeline:`$out` operator must be *the last stage* in the pipeline.
+
+   The command has the following syntax, where ``<output-collection>`` is
+   collection that will hold the output of the aggregation
+   operation. :pipeline:`$out` is only permissible at the end of the
+   pipeline:
+
+   .. code-block:: javascript
+
+      db.<collection>.aggregate( [
+           { <operation> },
+           { <operation> },
+           ...,
+           { $out : "<output-collection>" }
+      ] )
+
+   .. important::
+
+      - You cannot specify a sharded collection as the output collection.
+        The input collection for a pipeline can be sharded.
+
+      - The :pipeline:`$out` operator cannot write results to a
+        :doc:`capped collection </core/capped-collections>`.
+
+Behaviors
+---------
+
+Create New Collection
+~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$out` operation creates a new collection in the current
+database if one does not already exist. The collection is not visible
+until the aggregation completes. If the aggregation fails, MongoDB does
+not create the collection.
+
+Replace Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the collection specified by the :pipeline:`$out` operation already
+exists, then upon completion of the aggregation, the :pipeline:`$out`
+stage atomically replaces the existing collection with the new
+results collection. The :pipeline:`$out` operation does not change any
+indexes that existed on the previous collection. If the aggregation
+fails, the :pipeline:`$out` operation makes no changes to the pre-existing
+collection.
+
+Index Constraints
+~~~~~~~~~~~~~~~~~
+
+The pipeline will fail to complete if the documents produced by the
+pipeline would violate any unique indexes, including the index on the
+``_id`` field of the original output collection.
+
+Example
+-------
+
+A collection ``books`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 }
+   { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 }
+   { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+   { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }
+   { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+
+The following aggregation operation pivots the data in the ``books``
+collection to have titles grouped by authors and then writes
+the results to the ``authors`` collection.
+
+.. code-block:: javascript
+
+   db.books.aggregate( [
+                         { $group : { _id : "$author", books: { $push: "$title" } } },
+                         { $out : "authors" }
+                     ] )
+
+After the operation, the ``authors`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }

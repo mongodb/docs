@@ -6,18 +6,18 @@ import sys
 
 project_root = os.path.abspath(os.path.dirname(__file__))
 
-master_conf = os.path.join(project_root, 'bin', 'docs_meta.yaml')
+master_conf = os.path.join(project_root, 'config', 'build_conf.yaml')
 
 with open(master_conf, 'r') as f:
     conf = yaml.safe_load(f)
 
-buildsystem = conf['build']['paths']['buildsystem']
+repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
+
+buildsystem = conf['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
-def bootstrap():
-    repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
-
+def bootstrap_init():
     if os.path.exists(buildsystem):
         import bootstrap_helper
 
@@ -26,25 +26,25 @@ def bootstrap():
         cmd.append(['git', 'pull', '--quiet', 'origin', 'master'])
 
         for c in cmd:
-            p = subprocess.Popen(c, cwd=buildsystem)
-            p.wait()
-        print('[bootstrap]: updated git repository.')
-    else:
-        p = subprocess.Popen([ 'git', 'clone', repo, buildsystem])
-        p.wait()
+            subprocess.call(c, cwd=buildsystem)
 
-        import bootstrap_helper
+        print('[bootstrap]: updated git repository.')
+
+def bootstrap_base():
+    if not os.path.exists(buildsystem):
+        subprocess.call([ 'git', 'clone', repo, buildsystem])
         print('[bootstrap]: created buildsystem directory.')
 
-    bootstrap_helper.init_fabric(buildsystem, master_conf)
-    bootstrap_helper.bootstrap()
+    import bootstrap_helper
 
-    p = subprocess.Popen(['make', 'noop', '--silent', '-i'])
-    p.wait()
+    bootstrap_helper.bootstrap(build_tools_path=buildsystem, conf_path=master_conf)
+    print('[bootstrap]: initialized buildsystem.')
+
+    subprocess.call(['make', 'noop', '--silent', '-i'])
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('op', nargs='?', choices=['clean', 'setup'], default='setup')
+    parser.add_argument('op', nargs='?', choices=['clean', 'setup', 'safe'], default='setup')
     ui = parser.parse_args()
 
     if ui.op == 'clean':
@@ -53,9 +53,11 @@ def main():
             bootstrap_helper.clean_buildsystem(buildsystem, conf['build']['paths']['output'])
         except ImportError:
             exit('[bootstrap]: Buildsystem not installed.')
+    elif ui.op == 'safe':
+        bootstrap_base()
     else:
-        bootstrap()
-
+        bootstrap_init()
+        bootstrap_base()
 
 if __name__ == '__main__':
     main()

@@ -4,30 +4,366 @@ MongoDB Extended JSON
 
 .. default-domain:: mongodb
 
-MongoDB :doc:`import and export utilities
-</core/import-export>` (i.e. :program:`mongoimport` and
-:program:`mongoexport`) and MongoDB :ecosystem:`REST Interfaces
-</tools/http-interfaces>` render an approximation of MongoDB :term:`BSON`
-documents in JSON format.
+:term:`JSON` can only represent a subset of the types supported by
+:term:`BSON`. To preserve type information, MongoDB adds the following
+extensions to the JSON format:
 
-The REST interface supports three different modes for document output:
+- *Strict mode*. Strict mode representations of BSON types conform to
+  the `JSON RFC <http://www.json.org>`_. Any JSON parser can parse
+  these strict mode representations as key/value pairs; however, only
+  the MongoDB's internal JSON parser also recognizes the type
+  information conveyed by the format.
 
-- *Strict* mode that produces output that conforms to the `JSON RFC
-  specifications <http://www.json.org>`_.
+- ``mongo`` *Shell mode*. The MongoDB's internal JSON parser and the
+  :program:`mongo` shell can parse this mode.
 
-- *JavaScript* mode that produces output that most JavaScript
-  interpreters can process (via the ``--jsonp`` option)
+The representation used for the various data types depends on the
+context in which the JSON is parsed.
 
-- :program:`mongo` *Shell* mode produces output that the
-  :program:`mongo` shell can process. This is "extended" JavaScript
-  format.
+Parsers and Supported Format
+----------------------------
 
-MongoDB can process of these representations in REST input.
+Input in Strict Mode
+~~~~~~~~~~~~~~~~~~~~
 
-Special representations of :term:`BSON data <BSON types>` in JSON
-format make it possible to render information that have no obvious
-corresponding JSON. In some cases MongoDB supports multiple equivalent
-representations of the same type information. Consider the following
-table:
+The following can parse representations in strict mode *with*
+recognition of the type information.
 
-.. include:: /includes/table-mongodb-extended-json.rst
+- :ecosystem:`REST Interfaces </tools/http-interfaces>`
+
+- :program:`mongoimport`
+
+- ``--query`` option of various MongoDB tools
+
+Other JSON parsers, including :program:`mongo` shell and
+:method:`db.eval()`, can parse strict mode representations as key/value
+pairs, but *without* recognition of the type information.
+
+Input in ``mongo`` Shell Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following can parse representations in ``mongo`` shell mode *with*
+recognition of the type information.
+
+- :ecosystem:`REST Interfaces </tools/http-interfaces>`
+
+- :program:`mongoimport`
+
+- ``--query`` option of various MongoDB tools
+
+- :program:`mongo` shell
+
+Output in Strict mode
+~~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongoexport` and :ecosystem:`REST and HTTP Interfaces
+</tools/http-interfaces>` output data in *Strict mode*.
+
+Output in ``mongo`` Shell Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:program:`bsondump` outputs in ``mongo`` *Shell mode*.
+
+BSON Data Types and Associated Representations
+----------------------------------------------
+
+The following presents the BSON data types and the associated
+representations in *Strict mode* and ``mongo`` *Shell mode*.
+
+Binary
+~~~~~~
+
+.. bsontype:: data_binary
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 50 5 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$binary": "<bindata>", "$type": "<t>" }
+
+        -
+
+        - .. code-block:: none
+
+             BinData ( <t>, <bindata> )
+
+- ``<bindata>`` is the base64 representation of a binary string.
+
+- ``<t>`` is the hexadecimal representation of a single byte that
+  indicates the data type.
+
+Date
+~~~~
+
+.. bsontype:: data_date
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$date": <date> }
+
+        -
+
+        - .. code-block:: none
+
+             new Date ( <date> )
+
+   ``<date>`` is the JSON representation of a 64-bit signed integer for
+   milliseconds since epoch UTC (unsigned before version 1.9.1).
+
+Timestamp
+~~~~~~~~~
+
+.. bsontype:: data_timestamp
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 10 30
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$timestamp": { "t": <t>, "i": <i> } }
+
+        -
+
+        - .. code-block:: none
+
+             Timestamp( <t>, <i> )
+
+- ``<t>`` is the JSON representation of a 32-bit unsigned integer for
+  seconds since epoch.
+
+- ``<i>`` is a 32-bit unsigned integer for the increment.
+
+Regular Expression
+~~~~~~~~~~~~~~~~~~
+
+.. bsontype:: data_regex
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 50 5 30
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$regex": "<sRegex>", "$options": "<sOptions>" }
+
+        -
+
+        - .. code-block:: none
+
+             /<jRegex>/<jOptions>
+
+- ``<sRegex>`` is a string of valid JSON characters.
+
+- ``<jRegex>`` is a string that may contain valid JSON characters and
+  unescaped double quote (``"``) characters, but may not contain
+  unescaped forward slash (``/``) characters.
+
+- ``<sOptions>`` is a string containing the regex options represented
+  by the letters of the alphabet.
+
+- ``<jOptions>`` is a string that may contain only the characters 'g',
+  'i', 'm' and 's' (added in v1.9). Because the ``JavaScript`` and
+  ``mongo Shell`` representations support a limited range of options,
+  any nonconforming options will be dropped when converting to this
+  representation.
+
+OID
+~~~
+
+.. bsontype:: data_oid
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$oid": "<id>" }
+
+        -
+
+        - .. code-block:: none
+
+             ObjectId( "<id>" )
+
+   ``<id>`` is a 24-character hexadecimal string.
+
+DB Reference
+~~~~~~~~~~~~
+
+.. bsontype:: data_ref
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 50 5 30
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$ref": "<name>", "$id": "<id>" }
+
+        -
+
+        - .. code-block:: none
+
+             DBRef("<name>", "<id>")
+
+- ``<name>`` is a string of valid JSON characters.
+
+- ``<id>`` is any valid extended JSON type.
+
+Undefined Type
+~~~~~~~~~~~~~~
+
+.. bsontype:: data_undefined
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$undefined": true }
+
+        -
+
+        - .. code-block:: none
+
+             undefined
+
+   The representation for the JavaScript/BSON undefined type.
+
+MinKey
+~~~~~~
+
+.. bsontype:: data_minkey
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$minKey": 1 }
+
+        -
+
+        - .. code-block:: none
+
+             MinKey
+
+   The representation of the MinKey BSON data type that compares lower
+   than all other types. See
+   :ref:`faq-dev-compare-order-for-BSON-types` for more information on
+   comparison order for BSON types.
+
+MaxKey
+~~~~~~
+
+.. bsontype:: data_maxkey
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$maxKey": 1 }
+
+        -
+
+        - .. code-block:: none
+
+             MaxKey
+
+   The representation of the MaxKey BSON data type that compares higher
+   than all other types. See
+   :ref:`faq-dev-compare-order-for-BSON-types` for more information on
+   comparison order for BSON types.
+
+NumberLong
+~~~~~~~~~~
+
+.. versionadded:: 2.6
+
+.. bsontype:: data_numberlong
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 10 30
+
+      * - Strict Mode
+
+        -
+
+        - mongo Shell Mode
+
+      * - .. code-block:: none
+
+             { "$numberLong": "<number>" }
+
+        -
+
+        - .. code-block:: none
+
+             NumberLong( <number> )

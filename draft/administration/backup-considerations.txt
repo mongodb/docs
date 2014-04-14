@@ -1,0 +1,76 @@
+Deployment Considerations
+-------------------------
+
+All Deployments
+~~~~~~~~~~~~~~~
+
+To facilitate a robust backup strategy, all MongoDB deployments
+should:
+
+- use MMS Backups.
+
+- run all production deployments with journaling enabled. By default,
+  MongoDB enables journaling. The journal can facilitate snapshots and
+  provides robust durability for :program:`mongod` instances.
+
+Replica Sets
+~~~~~~~~~~~~
+
+For replica sets, create backups from secondary members to minimize
+the impact on the :doc:`primary </core/replica-set-primary>` with
+backup operations. Consider using a :doc:`hidden member
+</core/replica-set-hidden-member>` as a dedicated backup instance.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+Any approach to sharded cluster backups must ensure data consistency
+between shards. To create a backup of a sharded cluster you must
+:doc:`turn off the balancer
+</tutorial/schedule-backup-window-for-sharded-clusters>`.
+
+Additionally, your backup method must synchronize the snapshots of all
+shards. MMS uses a synchronization token, but you can accomplish the
+same effect by stopping all write operations while capturing backups.
+
+When backing up any sharded cluster, you must also :doc:`back up the
+config server metadata </tutorial/backup-sharded-cluster-metadata>`.
+
+Testing and Restoring Backups
+-----------------------------
+
+A backup system is only useful if it is possible to restore and
+recover data using the backup. *Always* test backups to ensure that
+restorations are viable, and include recovery testing as part of your
+larger backup strategy.
+
+Consider the following restoration tutorials:
+
+- :doc:`/tutorial/restore-replica-set-from-backup`
+- :doc:`/tutorial/restore-single-shard`
+- :doc:`/tutorial/restore-sharded-cluster`.
+
+Backup Considerations
+---------------------
+
+As you develop a backup strategy for your MongoDB deployment consider
+the following factors:
+
+- Geography. Ensure that you move some backups away from your
+  primary database infrastructure.
+
+- System errors. Ensure that your backups can survive situations where
+  hardware failures or disk errors impact the integrity or
+  availability of your backups.
+
+- Production constraints. Backup operations themselves sometimes require
+  substantial system resources. It is important to consider the time of
+  the backup schedule relative to peak usage and maintenance windows.
+
+- System capabilities. Some of the block-level snapshot tools require
+  special support on the operating-system or infrastructure level.
+
+- Database configuration. :term:`Replication` and :term:`sharding
+  <shard>` can affect the process and impact of the backup
+  implementation. See :ref:`sharded-cluster-backups` and
+  :ref:`replica-set-backups`.

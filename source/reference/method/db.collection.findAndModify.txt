@@ -25,18 +25,20 @@ Definition
 
    .. code-block:: none
 
-      db.collection.findAndModify( {
-                                     query: <document>,
-                                     sort: <document>,
-                                     remove: <boolean>,
-                                     update: <document>,
-                                     new: <boolean>,
-                                     fields: <document>,
-                                     upsert: <boolean>
-                                 } );
+      db.collection.findAndModify({
+          query: <document>,
+          sort: <document>,
+          remove: <boolean>,
+          update: <document>,
+          new: <boolean>,
+          fields: <document>,
+          upsert: <boolean>
+      });
 
    The :method:`db.collection.findAndModify()` method takes a document
    parameter with the following subdocument fields:
+
+   .. |operation| replace:: :method:`~db.collection.findAndModify()`
 
    .. include:: /reference/method/db.collection.findAndModify-param.rst
 
@@ -58,11 +60,6 @@ modified document.
      ``new`` is ``false``, **and** the ``sort`` option is **NOT**
      specified, the method returns ``null``.
 
-     .. versionchanged:: 2.2
-        Previously returned an empty document ``{}``. See :ref:`the
-        2.2 release notes <2.2-findandmodify-returns-null>` for more
-        information.
-
    - If the query finds no document for an ``upsert``,
      :method:`~db.collection.findAndModify()` performs an insert. If
      ``new`` is ``false``, **and** a ``sort`` option, the method
@@ -70,6 +67,8 @@ modified document.
 
 Behaviors
 ---------
+
+.. _upsert-and-unique-index:
 
 Upsert and Unique Index
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,12 +86,12 @@ and multiple clients issue the following command:
 
 .. code-block:: javascript
 
-   db.people.findAndModify( {
+   db.people.findAndModify({
        query: { name: "Andy" },
        sort: { rating: 1 },
        update: { $inc: { score: 1 } },
        upsert: true
-   } )
+   })
 
 Then, if these clients' :method:`~db.collection.findAndModify()`
 methods finish the ``query`` phase before any command starts the
@@ -127,19 +126,19 @@ instances for *non-sharded* collections function normally.
 Examples
 --------
 
-Update
-~~~~~~
+Update and Return
+~~~~~~~~~~~~~~~~~
 
-The following method updates an existing document in the people
-collection where the document matches the query criteria:
+The following method updates and returns an existing document in the
+people collection where the document matches the query criteria:
 
 .. code-block:: javascript
 
-   db.people.findAndModify( {
+   db.people.findAndModify({
        query: { name: "Tom", state: "active", rating: { $gt: 10 } },
        sort: { rating: 1 },
        update: { $inc: { score: 1 } }
-   } )
+   })
 
 This method performs the following actions:
 
@@ -179,8 +178,8 @@ This method performs the following actions:
 
       null
 
-Update and Insert
-~~~~~~~~~~~~~~~~~
+Upsert
+~~~~~~
 
 The following method includes the ``upsert: true`` option to
 insert a new document if no document matches the ``query``
@@ -188,12 +187,12 @@ condition:
 
 .. code-block:: javascript
 
-   db.people.findAndModify( {
+   db.people.findAndModify({
        query: { name: "Gus", state: "active", rating: 100 },
        sort: { rating: 1 },
        update: { $inc: { score: 1 } },
        upsert: true
-     } )
+   })
 
 If the method does **not** find a matching document, the method
 performs an upsert. Because the method included the ``sort``
@@ -211,8 +210,8 @@ If the method did **not** include a ``sort`` option, the method returns
 
    null
 
-Update, Insert and Return New Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return New Document
+~~~~~~~~~~~~~~~~~~~
 
 The following method includes both the ``upsert: true`` option and
 the ``new:true`` option to return the newly inserted document if a
@@ -220,13 +219,13 @@ document matching the ``query`` is not found:
 
 .. code-block:: none
 
-   db.people.findAndModify( {
+   db.people.findAndModify({
        query: { name: "Pascal", state: "active", rating: 25 },
        sort: { rating: 1 },
        update: { $inc: { score: 1 } },
        upsert: true,
        new: true
-   } )
+   })
 
 The method returns the newly inserted document:
 
@@ -238,4 +237,36 @@ The method returns the newly inserted document:
       "rating" : 25,
       "score" : 1,
       "state" : "active"
+   }
+
+.. _findAndModify-wrapper-sorted-remove:
+
+Sort and Remove
+~~~~~~~~~~~~~~~
+
+By including a ``sort`` specification on the ``rating`` field, the
+following example removes from the ``people`` collection a single
+document with the ``state`` value of ``active`` and the lowest
+``rating`` among the matching documents:
+
+.. code-block:: javascript
+
+   db.people.findAndModify(
+      {
+        query: { state: "active" },
+        sort: { rating: 1 },
+        remove: true
+      }
+   )
+
+The method returns the deleted document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("52fba867ab5fdca1299674ad"),
+      "name" : "XYZ123",
+      "score" : 1,
+      "state" : "active",
+      "rating" : 3
    }

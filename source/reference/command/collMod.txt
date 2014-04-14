@@ -4,6 +4,9 @@ collMod
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: collMod
 
    .. versionadded:: 2.2
@@ -21,111 +24,124 @@ collMod
    collection in the current database, and ``<flag>`` and ``<value>``
    with the flag and value you want to set.
 
-   Use the :data:`~collStats.userFlags` field in the in
+   Use the :data:`~collStats.userFlags` field in the
    :method:`db.collection.stats()` output to check enabled collection
    flags.
 
-   .. index:: document; space allocation
-   .. index:: usePowerOf2Sizes
-   .. _usePowerOf2Sizes:
-   .. collflag:: usePowerOf2Sizes
+.. Commenting out the following after DOCS-717, it does take
+   a lock but its to cover a very small metadata change.
 
-      The :collflag:`usePowerOf2Sizes` flag changes the method that
-      MongoDB uses to allocate space on disk for documents in this
-      collection. By setting :collflag:`usePowerOf2Sizes`, you ensure
-      that MongoDB will allocate space for documents in sizes that
-      are powers of 2 (e.g. 4, 8, 16, 32, 64, 128, 256, 512...8388608).
-      With :collflag:`usePowerOf2Sizes` MongoDB will be able to more
-      effectively reuse space.
+   This command obtains a write lock on the affected database
+   and will block other operations until it has completed.
 
-      .. note::
+Flags
+-----
 
-         With :collflag:`usePowerOf2Sizes` MongoDB, allocates
-         records that have power of 2 sizes, until record sizes
-         equal 4 megabytes. For records larger than 4 megabytes
-         with :collflag:`usePowerOf2Sizes` set, :program:`mongod`
-         will allocate records in full megabytes by rounding up to
-         the nearest megabyte.
+Powers of Two Record Allocation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      :collflag:`usePowerOf2Sizes` is useful for collections where you
-      will be inserting and deleting large numbers of documents to
-      ensure that MongoDB will effectively use space on disk.
+.. index:: document; space allocation
+.. index:: usePowerOf2Sizes
+.. _usePowerOf2Sizes:
+.. collflag:: usePowerOf2Sizes
 
-      .. example::
+   .. versionchanged:: 2.6
+      :collflag:`usePowerOf2Sizes` became the default allocation
+      strategy for all new collections. Use
+      :parameter:`newCollectionsUsePowerOf2Sizes` to use the *exact
+      fit allocation strategy*.
 
-         To enable :collflag:`usePowerOf2Sizes` on the collection
-         named ``products``, use the following operation:
+   The :collflag:`usePowerOf2Sizes` flag changes the method that
+   MongoDB uses to allocate space on disk for documents in this
+   collection. By setting :collflag:`usePowerOf2Sizes`, you ensure
+   that MongoDB will allocate space for documents in sizes that
+   are powers of 2 (e.g. 32, 64, 128, 256, 512...16777216.) The
+   smallest allocation for a document is 32 bytes.
 
-         .. code-block:: javascript
+   With :collflag:`usePowerOf2Sizes` MongoDB will be able to more
+   effectively reuse space.
 
-            db.runCommand( {collMod: "products", usePowerOf2Sizes : true })
+   With :collflag:`usePowerOf2Sizes` MongoDB, allocates
+   records that have power of 2 sizes, until record sizes
+   equal 4 megabytes. For records larger than 4 megabytes
+   with :collflag:`usePowerOf2Sizes` set, :program:`mongod`
+   will allocate records in full megabytes by rounding up to
+   the nearest megabyte.
 
-         To disable :collflag:`usePowerOf2Sizes` on the collection
-         ``products``, use the following operation:
+   Use :collflag:`usePowerOf2Sizes` for collections where applications
+   insert and delete large numbers of documents to avoid storage
+   fragmentation and ensure that MongoDB will effectively use space on
+   disk.
 
-         .. code-block:: javascript
+TTL Collection Expiration Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            db.runCommand( { collMod: "products", usePowerOf2Sizes: false })
+.. index:: expireAfterSeconds
+.. collflag:: index
 
+   The :collflag:`index` flag changes the expiration time of a
+   :doc:`TTL Collection </tutorial/expire-data>`.
 
-      .. warning::
-         .. versionchanged:: 2.2.1
-            :collflag:`usePowerOf2Sizes` now
-            supports documents larger than 8 megabytes. If you enable
-            :collflag:`usePowerOf2Sizes` you **must** use at least
-            version 2.2.1.
+   Specify the key and new expiration time with a document of the form:
 
-         :collflag:`usePowerOf2Sizes` only affects subsequent
-         allocations caused by document insertion or record relocation
-         as a result of document growth, and *does not* affect
-         existing allocations.
+   .. code-block:: javascript
 
-   .. index:: expireAfterSeconds
-   .. collflag:: index
+      {keyPattern: <index_spec>, expireAfterSeconds: <seconds> }
 
-      The :collflag:`index` flag changes the expiration time of a
-      :doc:`TTL Collection </tutorial/expire-data>`.
+   In this example, ``<index_spec>`` is an existing index in the
+   collection and ``seconds`` is the number of seconds to subtract
+   from the current time.
 
-      Specify the key and new expiration time with a document of the form:
+   On success :dbcommand:`collMod` returns a document with fields
+   ``expireAfterSeconds_old`` and ``expireAfterSeconds_new`` set to
+   their respective values.
 
-      .. code-block:: javascript
+   On failure, :dbcommand:`collMod` returns a document with ``no
+   expireAfterSeconds field to update`` if there is no existing
+   ``expireAfterSeconds`` field or ``cannot find index { **key**:
+   1.0 } for ns **namespace**`` if the specified ``keyPattern``
+   does not exist.
 
-         {keyPattern: <index_spec>, expireAfterSeconds: <seconds> }
+Examples
+--------
 
-      where ``<index_spec>`` is an existing index in the collection and
-      ``seconds`` is the number of seconds to subtract from the current
-      time.
+Enable Powers of Two Allocation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+To enable :collflag:`usePowerOf2Sizes` on the collection
+named ``products``, use the following operation:
 
-         To update the expiration value for a collection
-         named ``sessions`` indexed on a ``lastAccess`` field from 30
-         minutes to 60 minutes, use the following operation:
+.. code-block:: javascript
 
-         .. code-block:: javascript
+   db.runCommand( {collMod: "products", usePowerOf2Sizes : true })
 
-            db.runCommand({collMod: "sessions",
-                          index: {keyPattern: {lastAccess:1},
+To disable :collflag:`usePowerOf2Sizes` on the collection
+``products``, use the following operation:
+
+.. code-block:: javascript
+
+   db.runCommand( { collMod: "products", usePowerOf2Sizes: false })
+
+:collflag:`usePowerOf2Sizes` only affects subsequent
+allocations caused by document insertion or record relocation
+as a result of document growth, and *does not* affect
+existing allocations.
+
+Change Expiration Value for Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update the expiration value for a collection
+named ``sessions`` indexed on a ``lastAccess`` field from 30
+minutes to 60 minutes, use the following operation:
+
+.. code-block:: javascript
+
+   db.runCommand({collMod: "sessions",
+                  index: {keyPattern: {lastAccess:1},
                           expireAfterSeconds: 3600}})
 
-         Which will return the document:
+Which will return the document:
 
-         .. code-block:: javascript
+.. code-block:: javascript
 
-            { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
-
-      On success :dbcommand:`collMod` returns a document with fields
-      ``expireAfterSeconds_old`` and ``expireAfterSeconds_new`` set to
-      their respective values.
-
-      On failure, :dbcommand:`collMod` returns a document with ``no
-      expireAfterSeconds field to update`` if there is no existing
-      ``expireAfterSeconds`` field or ``cannot find index { **key**:
-      1.0 } for ns **namespace**`` if the specified ``keyPattern``
-      does not exist.
-
-         .. Commenting out the following after DOCS-717, it does take
-            a lock but its to cover a very small metadata change.
-
-            This command obtains a write lock on the affected database
-            and will block other operations until it has completed.
+   { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }

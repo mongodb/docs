@@ -1,0 +1,251 @@
+.. _authentication:
+
+==============
+Authentication
+==============
+
+.. default-domain:: mongodb
+
+Authentication is the process of verifying the identity of a
+client. When enabled, MongoDB requires all clients to provide
+credentials to access MongoDB databases. By default, MongoDB does not
+require authentication.
+
+MongoDB supports a number of authentication mechanisms, or methods
+clients can use to validate their identity. These mechanisms allow
+MongoDB to integrate into existing authentication systems that your
+environments may use. MongoDB's default authentication method is a
+challenge and response mechanism. MongoDB also supports x509
+certificate authentication, LDAP proxy authentication, and Kerberos
+authentication.
+
+With authentication, MongoDB requires authentication for all clients,
+including connections between all MongoDB components in a deployment.
+See :ref:`inter-process-auth-key-file` for more information.
+
+Authentication is distinct from :ref:`authorization <authorization>`,
+which determines the client's access to resources and operations.
+
+.. _security-authentication-mechanisms:
+
+Authentication Mechanisms and Credential Storage
+------------------------------------------------
+
+MongoDB supports multiple authentication mechanisms to fit into
+existing deployments and use existing authentication infrastructure.
+To declare a specific authentication mechanism use the
+:parameter:`authenticationMechanisms` parameter. For details, see
+:doc:`/tutorial/enable-authentication`.
+
+MongoDB represents authentication credentials differently depending on
+authentication mechanism. This section addresses all available methods
+and describes how each method stores user credentials.
+
+.. _replica-set-security:
+
+``MONGODB-CR`` Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``MONGODB-CR`` is a challenge-response mechanism that authenticates users
+through passwords. ``MONGODB-CR`` applies by default when you enable
+authentication in MongoDB without setting a mechanism in the
+:parameter:`authenticationMechanisms` parameter. You can also explicitly
+apply ``MONGODB-CR`` by setting it as the value of
+:parameter:`authenticationMechanisms`.
+
+When you enable ``MONGODB-CR`` authentication using the
+:setting:`~security.authorization` setting, MongoDB uses the credentials stored in the
+``admin`` database's :data:`system.users <admin.system.users>` collection.
+
+When you enable ``MONGODB-CR`` authentication using the :setting:`~security.keyFile`
+setting, you must store the key file on each :program:`mongod` or
+:program:`mongos` instance. MongoDB uses the key file as stored on each
+instance. See :doc:`/tutorial/generate-key-file` for instructions on
+generating a key file.
+
+.. _security-auth-x509:
+
+x.509 Certificate Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.6
+
+MongoDB supports x.509 certificate authentication for use with a secure
+:doc:`SSL connection </tutorial/configure-ssl>`.
+
+Instead of usernames and passwords, clients can use certificates to
+authenticate to servers.
+
+Instead of key files, MongoDB instances can use certificates to
+authenticate to sharded clusters and replica sets.
+
+When used to verify membership in a sharded cluster or replica set, an
+x.509 certificate must have certain properties, as described in
+:ref:`x509-internal-authentication`.
+
+For more information, see :doc:`/tutorial/configure-x509`.
+
+.. _security-auth-kerberos:
+
+Kerberos Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+`MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
+supports authentication using a Kerberos service. Kerberos is an industry
+standard authentication protocol for large client/server system.
+
+To use MongoDB with Kerberos, you must have a properly configured Kerberos
+deployment and the ability to generate valid *keytab* files.
+
+When you use MongoDB with Kerberos, you must store a *keytab* file on each
+:program:`mongod` and :program:`mongos` instance. Transmit keytab files
+only over secure channels.
+
+You must create corresponding user credentials in the :data:`system.users
+<admin.system.users>` collection on the ``admin`` database.
+
+For more information, see
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
+
+.. _security-auth-ldap:
+
+LDAP Proxy Authority Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
+supports proxy authentication through a Lightweight Directory Access
+Protocol (LDAP) service. See
+:doc:`/tutorial/configure-ldap-sasl-authentication`.
+
+.. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
+
+MongoDB does **not** support LDAP authentication in mixed sharded cluster
+deployments that contain both version 2.4 and version 2.6 shards. To
+upgrade to 2.6, see :doc:`/release-notes/2.6-upgrade` for upgrade
+instructions.
+
+Authentication Options
+----------------------
+
+Clients can authenticate using the Challenge Response,
+:ref:`x.509 <security-auth-x509>`, :ref:`LDAP Proxy
+<security-auth-ldap>` and :ref:`Kerberos
+<security-auth-kerberos>` methods.
+
+MongoDB can use the :setting:`~security.keyFile` and :ref:`x.509
+<security-auth-x509>` methods to authenticate members of a single
+MongoDB deployment to each other.
+
+Authentication Behavior
+-----------------------
+
+.. _localhost-exception:
+
+Localhost Exception
+~~~~~~~~~~~~~~~~~~~
+
+The localhost exception allows you to enable authentication before
+creating the first user in the system. When active, the localhost
+exception allows all connections from the localhost interface to have
+full access to that instance. The exception applies only when there
+are no user documents in the ``admin`` database of a MongoDB instance.
+
+If you use the localhost exception when deploying a new MongoDB
+system, the first user created must be an administrator who has
+privileges to create other users, such as a user with the
+:authrole:`userAdmin` or :authrole:`userAdminAnyDatabase` role. See
+:doc:`/tutorial/enable-authentication` and
+:doc:`/tutorial/add-user-administrator` for more information.
+
+In the case of a sharded cluster, the localhost exception applies to the
+cluster as a whole when no user exists in the cluster's ``admin``
+database, which exists on the config servers and clients access via
+:program:`mongos` instances. The localhost exception applies separately on
+each shard according to whether a user exists in the shard's ``admin``
+database.
+
+To prevent unauthorized access to a cluster's shards, you must either
+create an administrator on each shard or disable the localhost exception.
+To disable the localhost exception, use :setting:`setParameter` to set the
+:parameter:`enableLocalhostAuthBypass` parameter to ``0`` during startup.
+
+.. _client-authentication:
+
+Client Authentication
+~~~~~~~~~~~~~~~~~~~~~
+
+Each client connection should authenticate as exactly one user. If a
+client authenticates to a database as one user and later authenticates on
+the same database as a different user, the second authentication
+invalidates the first. Clients may be authenticated to multiple databases
+at the same time.
+
+MongoDB stores all user information, including credentials and
+:doc:`authorization </core/authorization>` information, for a MongoDB
+instance in the :data:`system.users <admin.system.users>` collection
+in the ``admin`` database.
+
+See :doc:`/tutorial/authenticate-as-client` for more information.
+
+.. _inter-process-auth-key-file:
+
+Authentication Between MongoDB Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Replica sets <replica set>` and :term:`sharded clusters <sharded
+cluster>` require authentication between MongoDB instances. The default
+mechanism for authentication between MongoDB instances is the
+:setting:`~security.keyFile` setting. The key file serves as a shared password. The
+content of the key file is arbitrary but must be the same on all
+:program:`mongod` and :program:`mongos` instances that connect to each
+other.
+
+Always run replica sets and sharded clusters in a trusted networking
+environment. Ensure that the network permits only trusted traffic to reach
+each :program:`mongod` and :program:`mongos` instance.
+
+Use your environment's firewall and network routing to ensure that traffic
+*only* from clients and other members can reach your :program:`mongod` and
+:program:`mongos` instances. If needed, use virtual private networks
+(VPNs) to ensure secure connections over wide area networks (WANs).
+
+Always ensure that:
+
+- Your network configuration will allow every member of the replica set or
+  sharded cluster to contact every other member.
+
+- If you use MongoDB's authentication system to limit access to your
+  infrastructure, ensure that you configure a :setting:`~security.keyFile` on all
+  members to permit authentication.
+
+.. index:: sharding; localhost
+.. _sharding-localhost:
+.. _sharding-security:
+
+Authentication on Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In a sharded cluster, you can authenticate to the cluster as a whole, to a
+specific database on the cluster, or to a given shard. This section
+describes how to authenticate to each and where the credentials for
+authenticating to each are stored.
+
+To authenticate to a sharded cluster, connect and authenticate
+to the :program:`mongos` instance. The credentials all users of a
+sharded cluster reside on the ``admin`` databases of the :ref:`config
+servers <sharding-config-server>`.
+
+.. versionchanged:: 2.6
+   Previously, the credentials for authenticating to a
+   database on a cluster resided on the :program:`mongod` instance that is the
+   :ref:`primary shard <primary-shard>` for that database.
+
+To perform maintenance operations that require direct connections to
+specific shards in a sharded cluster,
+(e.g. :dbcommand:`cleanupOrphaned`, :dbcommand:`compact`,
+:method:`rs.reconfig()`) you must create *shard local*
+administrative users for each shard. The credentials for these users
+reside in the ``admin`` database of the shard.
+
+For additional information, see
+:doc:`/tutorial/enable-authentication-in-sharded-cluster`.

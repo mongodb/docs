@@ -6,59 +6,200 @@ aggregate
 
 .. dbcommand:: aggregate
 
-   .. versionadded:: 2.1.0
+   .. versionadded:: 2.2
 
-   :dbcommand:`aggregate` implements the :term:`aggregation
-   framework`. Consider the following prototype form:
+   Performs aggregation operation using the :doc:`aggregation pipeline
+   </reference/operator/aggregation-pipeline>`. The pipeline allows
+   users to process data from a collection with a sequence of
+   stage-based manipulations.
 
-   .. code-block:: javascript
+   .. TODO will undergo a thorough rewrite during the agg doc rewrite
 
-      { aggregate: "[collection]", pipeline: [pipeline] }
+   .. versionchanged:: 2.6
 
-   Where ``[collection]`` specifies the name of the collection that
-   contains the data that you wish to aggregate. The ``pipeline``
-   argument holds an array that contains the specification for the
-   aggregation operation. Consider the following example from the
-   :doc:`aggregation documentation </core/aggregation>`.
+   - The :dbcommand:`aggregate` command adds support for returning a
+     cursor, supports the ``explain`` option, and enhances its sort
+     operations with an external sort facility.
 
-   .. code-block:: javascript
+   - :doc:`aggregation pipeline
+     </reference/operator/aggregation-pipeline>` introduces the
+     :pipeline:`$out` operator to allow :dbcommand:`aggregate`
+     command to store results to a collection.
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
-        { $project : {
-           author : 1,
-           tags : 1,
-        } },
-        { $unwind : "$tags" },
-        { $group : {
-           _id : "$tags",
-           authors : { $addToSet : "$author" }
-        } }
-       ] }
-      );
+   The command has following syntax:
 
-   More typically this operation would use the
-   :method:`~db.collection.aggregate()` helper in the :program:`mongo`
-   shell, and would resemble the following:
+   .. versionchanged:: 2.6
 
    .. code-block:: javascript
 
-      db.article.aggregate(
-        { $project : {
-           author : 1,
-           tags : 1,
-        } },
-        { $unwind : "$tags" },
-        { $group : {
-           _id : "$tags",
-           authors : { $addToSet : "$author" }
-        } }
-      );
+      {
+        aggregate: "<collection>",
+        pipeline: [ <stage>, <...> ],
+        explain: <boolean>,
+        allowDiskUse: <boolean>,
+        cursor: <document>
+      }
 
-   .. include:: /includes/fact-agg-helper-exception.rst
+   The :dbcommand:`aggregate` command takes the following fields as
+   arguments:
 
-   For more aggregation documentation, please see:
+   .. include:: /reference/command/aggregate-field.rst
 
-   - :doc:`/core/aggregation`
-   - :doc:`/reference/aggregation`
-   - :doc:`/tutorial/aggregation-examples`
+For more information about the aggregation pipeline
+:doc:`/core/aggregation-pipeline`, :doc:`/reference/aggregation`, and
+:doc:`/core/aggregation-pipeline-limits`.
+
+Example
+-------
+
+Aggregate Data with Multi-Stage Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``articles`` contains documents such as the following:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("52769ea0f3dc6ead47c9a1b2"),
+      author: "abc123",
+      title: "zzz",
+      tags: [ "programming", "database", "mongodb" ]
+   }
+
+The following example performs an :dbcommand:`aggregate` operation on
+the ``articles`` collection to calculate the count of each distinct
+element in the ``tags`` array that appears in the collection.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "articles",
+        pipeline: [
+                    { $project: { tags: 1 } },
+                    { $unwind: "$tags" },
+                    { $group: {
+                                _id: "$tags",
+                                count: { $sum : 1 }
+                              }
+                    }
+                  ]
+      }
+   )
+
+In the :program:`mongo` shell, this operation can use the
+:method:`~db.collection.aggregate()` helper as in the following:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+                          [
+                             { $project: { tags: 1 } },
+                             { $unwind: "$tags" },
+                             { $group: {
+                                         _id: "$tags",
+                                         count: { $sum : 1 }
+                                       }
+                             }
+                          ]
+   )
+
+.. note:: In 2.6 and later, the :method:`~db.collection.aggregate()`
+   helper always returns a cursor.
+
+.. include:: /includes/fact-agg-helper-exception.rst
+
+Return Information on the Aggregation Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation sets the optional field ``explain``
+to ``true`` to return information about the aggregation operation.
+
+.. code-block:: javascript
+
+   db.runCommand( { aggregate: "orders",
+                    pipeline: [
+                                { $match: { status: "A" } },
+                                { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                                { $sort: { total: -1 } }
+                              ],
+                    explain: true
+                 } )
+
+.. note:: The intended readers of the ``explain`` output document are humans, and
+   not machines, and the output format is subject to change between
+   releases.
+
+.. seealso:: :method:`db.collection.aggregate()` method
+
+Aggregate Data using External Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation pipeline stages have :ref:`maximum memory use limit
+<agg-memory-restrictions>`. To handle large datasets, set
+``allowDiskUse`` option to ``true`` to enable writing data to
+temporary files, as in the following example:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "stocks",
+        pipeline: [
+                    { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
+                    { $sort : { cusip : 1, date: 1 } }
+                  ],
+        allowDiskUse: true
+      }
+   )
+
+.. seealso:: :method:`db.collection.aggregate()`
+
+
+Aggregate Command Returns a Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+   Using the :dbcommand:`aggregate` command to return a cursor is a
+   low-level operation, intended for authors of drivers. Most users
+   should use the :method:`db.collection.aggregate()` helper provided
+   in the :program:`mongo` shell or in their driver. In 2.6 and
+   later, the :method:`~db.collection.aggregate()` helper always
+   returns a cursor.
+
+The following command returns a document that contains results with
+which to instantiate a cursor object.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project: { name: 1, email: 1, _id: 0 } },
+           { $sort: { name: 1 } }
+        ],
+        cursor: { }
+      }
+   )
+
+To specify an *initial* batch size, specify the ``batchSize`` in the
+``cursor`` field, as in the following example:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project: { name: 1, email: 1, _id: 0 } },
+           { $sort: { name: 1 } }
+        ],
+        cursor: { batchSize: 0 }
+      }
+   )
+
+The ``{batchSize: 0 }`` document specifies the size of the *initial*
+batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
+<wire-op-get-more>` operations as with other MongoDB cursors. A
+``batchSize`` of ``0`` means an empty first batch and is useful if you
+want to quickly get back a cursor or failure message, without doing
+significant server-side work.
+
+.. seealso:: :method:`db.collection.aggregate()`

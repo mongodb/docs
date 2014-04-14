@@ -6,44 +6,89 @@ removeShard
 
 .. dbcommand:: removeShard
 
-   Starts the process of removing a shard from a :term:`cluster
-   <sharded cluster>`. This
-   is a multi-stage process. Begin by issuing the following command:
+   Removes a shard from a :term:`sharded cluster`. When you run
+   :dbcommand:`removeShard`, MongoDB first moves the shard's chunks to
+   other shards in the cluster. Then MongoDB removes the shard.
 
-   .. code-block:: javascript
+Behavior
+--------
 
-      { removeShard : "[shardName]" }
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
 
-   The balancer will then migrate chunks from the shard specified by
-   ``[shardName]``. This process happens slowly to avoid placing
-   undue load on the overall cluster.
+You *must* run :dbcommand:`removeShard` while connected to a
+:program:`mongos`. Issue the command against the ``admin`` database or
+use the :method:`sh._adminCommand()` helper.
 
-   The command returns immediately, with the following message:
+If you have :setting:`~security.authorization` enabled, you must have the
+:authrole:`clusterManager` role or any role that
+includes the :authaction:`removeShard` action.
 
-   .. code-block:: javascript
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      { msg : "draining started successfully" , state: "started" , shard: "shardName" , ok : 1 }
+Each database in a sharded cluster has a primary shard. If the shard you
+want to remove is also the primary of one of the cluster's databases, then
+you must manually move the databases to a new shard after migrating
+all data from the shard. See the :dbcommand:`movePrimary` command and
+the :doc:`/tutorial/remove-shards-from-cluster` for more information.
 
-   If you run the command again, you'll see the following progress
-   output:
+Example
+-------
 
-   .. code-block:: javascript
+From the :program:`mongo` shell, the :dbcommand:`removeShard`
+operation resembles the following:
 
-      { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
+.. code-block:: javascript
 
-   The ``remaining`` :term:`document` specifies how many chunks and
-   databases remain on the shard. Use :method:`db.printShardingStatus()`
-   to list the databases that you must move from the shard.
+   use admin
+   db.runCommand( { removeShard : "bristol01" } )
 
-   Each database in a sharded cluster has a primary shard. If the
-   shard you want to remove is also the primary of one of the cluster's
-   databases, then you must manually move the database to a new
-   shard. This can be only after the shard is empty. See the
-   :dbcommand:`movePrimary` command for details.
+Replace ``bristol01`` with the name of the shard to remove. When you
+run :dbcommand:`removeShard`, the command returns immediately,
+with the following message:
 
-   After removing all chunks and databases from the shard, you
-   may issue the command again, to return:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   {
+       "msg" : "draining started successfully",
+       "state" : "started",
+       "shard" : "bristol01",
+       "ok" : 1
+   }
 
-      { msg: "remove shard completed successfully", state: "completed", host: "shardName", ok : 1 }
+The balancer begins migrating chunks from the shard named
+``bristol01`` to other shards in the cluster. These migrations happens
+slowly to avoid placing undue load on the overall cluster.
+
+If you run the command again, :dbcommand:`removeShard` returns the
+following progress output:
+
+.. code-block:: javascript
+
+   {
+       "msg" : "draining ongoing",
+       "state" : "ongoing",
+       "remaining" : {
+           "chunks" : 23,
+           "dbs" : 1
+       },
+       "ok" : 1
+   }
+
+The ``remaining`` :term:`document` specifies how many chunks and databases
+remain on the shard. Use :method:`db.printShardingStatus()` to list the
+databases that you must move from the shard. Use the
+:dbcommand:`movePrimary` to move databases.
+
+After removing all chunks and databases from the shard, you can issue
+:dbcommand:`removeShard` again see the following:
+
+.. code-block:: javascript
+
+   {
+       "msg" : "removeshard completed successfully",
+       "state" : "completed",
+       "shard" : "bristol01",
+       "ok" : 1
+   }

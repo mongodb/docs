@@ -1,0 +1,68 @@
+Replica Sets
+------------
+
+MMS backups for replica sets uses a lightweight backup agent that runs
+within a deployment to copy data to the Backup service. Internally,
+MMS Backup operates like a secondary in a replica set.
+
+The agent first performs a process that resembles the
+:ref:`initial sync for new replica set members
+<replica-set-initial-sync>`. The agent *always* collects :term:`oplog`
+entries and, just like :doc:`replication
+</core/replication-introduction>`, applies those operations to the
+backup snapshots. MMS Backup uses this oplog to build point-in-time
+snapshots of the replica set.
+
+If MMS cannot reach the backup agent, MMS automatically sends an
+alert. MMS also alerts if the MMS Backup service falls too far behind
+the deployment.
+
+See the :mms:`tutorial for enabling backup with MMS
+</backup/tutorial/enable-backup-for-replica-set/>` to begin using MMS
+Backup.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+Each shard in a production sharded cluster is a replica set. MMS
+Backup treats each shard like all other replica sets.
+
+To create a backup of a sharded cluster, MMS Backup temporarily
+disables all :ref:`balancing operations <sharding-balancing>`
+and inserts a synchronization token into the oplog of all shards. MMS
+Backup uses these tokens to produce snapshots of the cluster.
+
+MMS Backup produces these cluster wide backups on a regular schedule,
+and can restore the sharded cluster to one of these points in time.
+
+See the :mms:`tutorial for enabling backup for sharded clusters with MMS
+</backup/tutorial/enable-backup-for-sharded-cluster/>` to begin
+backing up a sharded cluster with MMS Backup.
+
+Restoration
+~~~~~~~~~~~
+
+MMS Backup provides restorations in the form of MongoDB data
+files. MMS can either provide from the remote MMS servers or push a
+set of MongoDB data files onto a local directory on a server.
+
+See :mms:`Restore from a Stored Snapshot
+</backup/tutorial/restore-from-snapshot/>` and :mms:`Restore a Replica
+set from a Point in the Last 24 Hours
+</backup/tutorial/restore-from-point-in-time-snapshot/>`.
+
+Use
+~~~
+
+MMS simplifies the set up and configuration of a backup
+system. The Backup agent has no dependencies and minimal
+configuration. However, the Backup agent must be able to contact the
+MMS server. See the :mms:`Backup agent installation
+</backup/tutorial/install-and-start-backup-agent/>` and :mms:`Backup
+agent configuration </backup/tutorial/configure-backup-agent>`
+tutorials for a description of this process.
+
+Because MMS tracks oplog entries, MMS Backup can provide restores for
+any point in time within the past 24 hours. Regular snapshots for
+replica sets and sharded clusters ensure your ability to restore to
+specific earlier states as well.

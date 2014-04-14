@@ -1,468 +1,439 @@
 :orphan:
 
-========================================================
-Release Notes for MongoDB 2.6 (Development Series 2.5.x)
-========================================================
+=============================
+Release Notes for MongoDB 2.6
+=============================
 
 .. default-domain:: mongodb
 
-MongoDB 2.6 is currently in development, as part of the 2.5
-development release series. While 2.5-series releases are currently
-available, these versions of MongoDB, including the 2.6 release
-candidate builds, are for **testing only and
-not for production use**.
+*April 8, 2014*
 
-This document will eventually contain the full release notes for
-MongoDB 2.6; before its release this document covers the 2.5
-development series as a work-in-progress.
+MongoDB 2.6 is now available. Key features include aggregation
+enhancements, text-search integration, query-engine improvements, a new
+write-operation protocol, and security enhancements.
 
-.. contents:: See the :doc:`full index of this page <2.6-changes>` for
-              a complete list of changes included in 2.6 (Development
-              Series 2.5.x).
-   :backlinks: none
-   :local:
-   :depth: 2
+MMS 1.4, which includes On-Prem Backup in addition to Monitoring, is
+now also available. See `MMS 1.4 documentation
+<https://mms.mongodb.com/help-hosted/v1.4/>`_ and the `MMS 1.4 release
+notes <https://mms.mongodb.com/help-hosted/v1.4/management/changelog/>`_
+for more information.
 
-Downloading
------------
+Major Changes
+-------------
 
-You can download the 2.6 release candidate on the `downloads page`_ in the
-:guilabel:`Development Release (Unstable)` section. There are no
-distribution packages for development releases, but you can use the
-binaries provided for testing purposes. See
-:doc:`/tutorial/install-mongodb-on-linux`,
-:doc:`/tutorial/install-mongodb-on-windows`, or
-:doc:`/tutorial/install-mongodb-on-os-x` for the basic installation
-process.
+The following changes in MongoDB affect both the standard and Enterprise
+editions:
 
-.. _`downloads page`: http://www.mongodb.org/downloads
+.. _rn-2.6-aggregation-cursor:
 
-Changes
--------
+Aggregation Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-SASL Library Change
-~~~~~~~~~~~~~~~~~~~
+The aggregation pipeline adds the ability to return result sets of any
+size, either by returning a cursor or writing the output to
+a collection. Additionally, the aggregation pipeline supports
+variables and adds new operations to handle sets and redact data.
 
-MongoDB Enterprise uses Cyrus SASL instead of GNU SASL (``libgsasl``).
-This change has the following SASL2 and Cyrus SASL library and GSSAPI
-plugin dependencies:
+- The :method:`db.collection.aggregate()` now returns a cursor, which
+  enables the aggregation pipeline to return result sets of any size.
 
-For Debian or Ubuntu, install the following:
+- Aggregation pipelines now support an ``explain`` operation to aid
+  analysis of aggregation operations.
 
-.. code-block:: sh
+- Aggregation can now use a more efficient external-disk-based sorting
+  process.
 
-   sudo apt-get install cyrus-sasl2-dbg cyrus-sasl2-mit-dbg libsasl2-2 libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit
+- New pipeline stages:
 
-For CentOS, Red Hat Enterprise Linux, and Amazon AMI, install the
-following:
+  - :pipeline:`$out` stage to output to a collection.
 
-.. code-block:: sh
+  - :pipeline:`$redact` stage to allow additional control to accessing
+    the data.
 
-   sudo yum install cyrus-sasl cyrus-sasl-lib cyrus-sasl-devel cyrus-sasl-gssapi
+- New or modified operators:
 
-For SUSE, install the following:
+  - :doc:`set expression operators
+    </reference/operator/aggregation-set>`.
 
-.. code-block:: sh
+  - :expression:`$let` and :expression:`$map` operators to allow for
+    the use of variables.
 
-   sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+  - :expression:`$literal` operator and :expression:`$size` operator.
+
+  - :expression:`$cond` expression now accepts either an object or
+    an array.
+
+.. _rel-notes-text-query-operator:
+
+Text Search Integration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Text search is now enabled by default, and the query system, including
+the aggregation pipeline :pipeline:`$match` stage, includes the
+:query:`$text` operator, which resolves text-search queries.
+
+MongoDB 2.6 includes an updated :doc:`text index
+</core/index-text>` format and deprecates the :dbcommand:`text`
+command.
+
+.. _rel-notes-data-modification:
+
+Insert and Update Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Improvements to the update and insert systems include additional
+operations and improvements that increase consistency of modified
+data.
+
+- .. include:: /includes/fact-update-field-order.rst
+     :start-after: order-of-document-fields
+     :end-before: .. versionchanged
+
+- New or enhanced update operators:
+
+  - :update:`$bit` operator supports bitwise ``xor`` operation.
+
+  - :update:`$min` and :update:`$max` operators that perform
+    conditional update depending on the relative size of the specified
+    value and the current value of a field.
+
+  - :update:`$push` operator has enhanced support for the
+    :update:`$sort`, :update:`$slice`, and :update:`$each` modifiers
+    and supports a new :update:`$position` modifier.
+
+  - :update:`$currentDate` operator to set the value of a field to the
+    current date.
+
+- The :update:`$mul` operator for multiplicative increments for insert
+  and update operations.
+
+.. seealso:: :ref:`update-operations-incompatibility`
+
+.. _rel-notes-write-operations:
+
+New Write Operation Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A new write protocol integrates write operations with
+write concerns. The protocol also provides improved
+support for bulk operations.
+
+MongoDB 2.6 adds the write commands :dbcommand:`insert`,
+:dbcommand:`update`, and :dbcommand:`delete`, which provide the basis
+for the improved bulk insert. All officially supported MongoDB drivers
+support the new write commands.
+
+The:program:`mongo` shell now includes
+methods to perform bulk-write operations. See :method:`Bulk()` for
+more information.
+
+.. seealso:: :ref:`write-methods-incompatibility`
+
+MSI Package for MongoDB Available for Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB now distributes MSI packages for Microsoft Windows. This is the
+recommended method for MongoDB installation under Windows.
+
+.. _2.6-relnotes-security:
+
+Security Improvements
+---------------------
+
+MongoDB 2.6 enhances support for secure deployments through improved SSL
+support, x.509-based authentication, an improved authorization system
+with more granular controls, as well as centralized credential storage, and
+improved user management tools.
+
+Specifically these changes include:
+
+- A new :ref:`authorization model <authorization>` that provides the
+  ability to create custom :ref:`user-defined-roles` and the ability to
+  specify user privileges at a collection-level granularity.
+
+- Global user management, which stores all user and
+  user-defined role data in the ``admin`` database and provides a new
+  set of commands for managing users and roles.
+
+- :doc:`x.509 certificate authentication </tutorial/configure-x509>`
+  for client authentication as well as for internal authentication of
+  sharded and/or replica set cluster members. x.509 authentication is
+  only available for deployments using SSL.
+
+- Enhanced SSL Support:
+
+  - :doc:`Rolling upgrades of clusters
+    </tutorial/upgrade-cluster-to-ssl>` to use SSL.
+
+  - :ref:`mongodb-tools-support-ssl` support connections to
+    :program:`mongod` and :program:`mongos` instances using SSL
+    connections.
+
+  - :ref:`Prompt for passphrase <ssl-certificate-password>`
+    by :program:`mongod` or :program:`mongos` at startup.
+
+  - Require the use of strong SSL ciphers, with a minimum 128-bit key
+    length for all connections. The strong-cipher requirement prevents
+    an old or malicious client from forcing use of a weak cipher.
+
+- MongoDB disables the http interface by default, limiting
+  :doc:`network exposure </core/security-network>`. To enable the
+  interface, see :setting:`httpinterface`.
+
+.. seealso:: :ref:`authentication-incompatibility`,
+   :ref:`ssl-hostname-validation`,
+   and :doc:`/administration/security-checklist`.
+
+Query Engine Improvements
+-------------------------
+
+- MongoDB can now use :doc:`index intersection
+  </core/index-intersection>` to fulfill queries supported by more
+  than one index.
+
+- :ref:`index-filters` to limit which indexes can become the winning
+  plan for a query.
+
+- :doc:`/reference/method/js-plan-cache` methods to view and clear the
+  :doc:`query plans </core/query-plans>` cached by the query optimizer.
+
+- MongoDB can now use :method:`~cursor.count()` with
+  :method:`~cursor.hint()`. See :method:`~cursor.count()` for details.
+
+Improvements
+------------
+
+Geospatial Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- :ref:`2dsphere indexes version 2
+  <2dsphere-v2>`.
+
+- Support for :ref:`geojson-multipoint`,
+  :ref:`geojson-multilinestring`, :ref:`geojson-multipolygon`, and
+  :ref:`geojson-geometrycollection`.
+
+- Support for geospatial query clauses in :query:`$or` expressions.
+
+.. seealso::
+   :ref:`2.6-2dsphere-version-incompatibility`,
+   :ref:`2.6-geo-maxDistance-incompatibility`,
+   :ref:`2.6-uniqueDocs-incompatibility`,
+   :ref:`2.6-geospatial-validation-incompatibility`
+
+Index Build Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :ref:`Background index build
+  <index-creation-building-indexes-on-secondaries>` allowed on
+  secondaries. If you initiate a background index build on a
+  :term:`primary`, the secondaries will replicate the index build in
+  the background.
+
+- Automatic rebuild of interrupted index builds after a restart.
+
+  - If a standalone or a primary instance terminates during an index
+    build *without a clean shutdown*, :program:`mongod` now restarts
+    the index build when the instance restarts. If the instance shuts
+    down cleanly or if a user kills the index build, the interrupted
+    index builds do not automatically restart upon the restart of the
+    server.
+
+  - If a secondary instance terminates during an index build, the
+    :program:`mongod` instance will now restart the interrupted index
+    build when the instance restarts.
+
+  To disable this behavior, use the :option:`--noIndexBuildRetry`
+  command-line option.
+
+- :method:`~db.collection.ensureIndex()` now wraps a new
+  :dbcommand:`createIndex` command.
+
+- The ``dropDups`` option to :method:`~db.collection.ensureIndex()`
+  and :dbcommand:`createIndex` is deprecated.
+
+.. seealso:: :ref:`2.6-index-key-length-incompatibility`
+
+Enhanced Sharding and Replication Administration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- New :dbcommand:`cleanupOrphaned` command to remove :term:`orphaned
+  documents <orphaned document>` from a shard.
+
+- New :dbcommand:`mergeChunks` command to combine contiguous chunks
+  located on a single shard. See :dbcommand:`mergeChunks` and
+  :doc:`/tutorial/merge-chunks-in-sharded-cluster`.
+
+- New :method:`rs.printReplicationInfo()` and
+  :method:`rs.printSlaveReplicationInfo()` methods to provide a
+  formatted report of the status of a replica set from the perspective
+  of the primary and the secondary, respectively.
+
+Operational Changes
+-------------------
+
+Storage
+~~~~~~~
+
+:collflag:`usePowerOf2Sizes` is now the default allocation strategy for
+all new collections. The new allocation strategy uses more storage
+relative to total document size but results in lower levels of
+storage fragmentation and more predictable storage capacity planning
+over time.
+
+To use the previous *exact-fit allocation strategy*:
+
+- For a specific collection, use :dbcommand:`collMod` with
+  :collflag:`usePowerOf2Sizes` set to ``false``.
+
+- For all new collections on an entire :program:`mongod` instance,
+  set :parameter:`newCollectionsUsePowerOf2Sizes` to ``false``.
+
+See :doc:`/core/storage` for more information about MongoDB's storage system.
+
+Networking
+~~~~~~~~~~
+
+- Removed upward limit for the :setting:`~net.maxIncomingConnections` for :program:`mongod`
+  and :program:`mongos`. Previous versions capped the maximum possible
+  :setting:`~net.maxIncomingConnections` setting at ``20,000`` connections.
+
+- Connection pools for a :program:`mongos` instance may be used by multiple
+  MongoDB servers. This can reduce the number of connections needed
+  for high-volume workloads and reduce resource consumption in
+  sharded clusters.
+
+- The C++ driver now monitors :term:`replica set` health with the
+  :dbcommand:`isMaster` command instead of
+  :dbcommand:`replSetGetStatus`. This allows the C++ driver to support
+  systems that require authentication.
+
+- New :method:`cursor.maxTimeMS()` and corresponding ``maxTimeMS``
+  option for commands to specify a time limit.
+
+Tool Improvements
+~~~~~~~~~~~~~~~~~
+
+- :program:`mongo` shell supports a global :ref:`/etc/mongorc.js
+  <mongo-global-mongorc-file>`.
+
+- All MongoDB :doc:`executable files </reference/program>` now support
+  the ``--quiet`` option to suppress all logging output except for
+  error messages.
+
+- :program:`mongoimport` uses the input filename, without the file
+  extension if any, as the collection name if run without the ``-c`` or
+  ``--collection`` specification.
+
+- :program:`mongoexport` can now constrain export data using
+  :option:`--skip` and :option:`--limit`, as well as order the documents
+  in an export using the :option:`--sort` option.
+
+- :program:`mongostat` can support the use of :option:`--rowcount`
+  (:option:`-n`) with the :option:`--discover` option to produce the
+  specified number of output lines.
+
+- Add strict mode representation for :bsontype:`data_numberlong` for
+  use by :program:`mongoexport` and :program:`mongoimport`.
+
+MongoDB Enterprise Features
+---------------------------
+
+The following changes are specific to MongoDB Enterprise Editions:
+
+MongoDB Enterprise for Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`MongoDB Enterprise for Windows
+</tutorial/install-mongodb-enterprise-on-windows>` is now available. It
+includes support for Kerberos, SSL, and SNMP.
+
+.. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
+
+MongoDB Enterprise for Windows includes OpenSSL version 1.0.1g.
+
+Auditing
+~~~~~~~~
+
+MongoDB Enterprise adds :doc:`auditing </core/auditing>` capability for
+:program:`mongod` and :program:`mongos` instances. See :ref:`auditing`
+for details.
+
+.. _relnotes-ldap-authentication:
 
 LDAP Support for Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB Enterprise provides support for proxy authentication of users.  This
-change allows administrators to configure a MongoDB cluster to authenticate
-users via Linux PAM or by proxying authentication requests to a specified LDAP
-service.
+MongoDB Enterprise provides support for proxy authentication of users.
+This allows administrators to configure a MongoDB cluster to
+authenticate users by proxying authentication requests
+to a specified Lightweight Directory Access Protocol (LDAP) service.
+See :doc:`/tutorial/configure-ldap-sasl-authentication` for details.
 
-.. warning::
+.. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
 
-   Because this change uses ``SASL PLAIN`` mechanism to transmit the
-   user password to the MongoDB server, you should, in general, use
-   only on a trusted channel (VPN, SSL, trusted wired network).
+MongoDB does **not** support LDAP authentication in mixed sharded
+cluster deployments that contain both version 2.4 and version 2.6
+shards. See :doc:`/release-notes/2.6-upgrade` for upgrade instructions.
 
-Configuration
-`````````````
+Expanded SNMP Support
+~~~~~~~~~~~~~~~~~~~~~
 
-LDAP support for user authentication requires proper configuration of
-the ``saslauthd`` daemon process as well as introduces a new server
-parameter, ``saslauthdPath``. ``saslauthdPath`` is the path to the Unix
-Domain Socket of the ``saslauthd`` instance to use for proxy
-authentication.
+MongoDB Enterprise has greatly expanded its SNMP support to provide
+SNMP access to nearly the full range of metrics provided by
+:method:`db.serverStatus()`.
 
-``saslauthd`` Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. seealso:: :ref:`2.6-snmp-iana-mib-incompatibility`
 
-On systems that configure ``saslauthd`` with a
-``/etc/sysconfig/saslauthd`` file, such as Red Hat Enterprise Linux,
-Fedora, CentOS, Amazon Linux AMI, set the mechanism ``MECH`` to
-``ldap``:
+Additional Information
+----------------------
 
-.. code-block:: none
+Changes Affecting Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   MECH=ldap
+.. class:: hidden
 
-On systems that configure ``saslauthd`` with a
-``/etc/default/saslauthd`` file, set the mechanisms option to
-``ldap``:
+   .. toctree::
 
-.. code-block:: none
+      /release-notes/2.6-compatibility
 
-   MECHANISMS="ldap"
+Some changes in 2.6 can affect :doc:`compatibility
+</release-notes/2.6-compatibility>` and may require user actions. The
+2.6 :program:`mongo` shell provides an
+:method:`db.upgradeCheckAllDBs()` method to perform a check for upgrade
+preparedness for some of these changes.
 
-To use with *ActiveDirectory*, start ``saslauthd`` with the following
-configuration options:
+See :doc:`/release-notes/2.6-compatibility` for a detailed list of
+compatibility changes.
 
-.. code-block:: none
+.. seealso::
+   `All Backwards incompatible changes (JIRA) <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.5.0%22%2C+%222.5.1%22%2C+%222.5.2%22%2C+%222.5.3%22%2C+%222.5.4%22%2C+%222.5.5%22%2C+%222.6.0-rc1%22%2C+%222.6.0-rc2%22%2C+%222.6.0-rc3%22%29+AND+%22Backward+Breaking%22+in+%28+Rarely+%2C+sometimes%2C+yes+%29+ORDER+BY+votes+DESC%2C+issuetype+DESC%2C+key+DESC>`_.
 
-   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
-   ldap_use_sasl: yes
-   ldap_mech: DIGEST-MD5
-   ldap_auth_method: fastbind
+Upgrade Process
+~~~~~~~~~~~~~~~
 
-To connect to an OpenLDAP server, use a test ``saslauthd.conf`` with
-the following content:
+.. class:: hidden
 
-.. code-block:: none
+   .. toctree::
 
-   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
-   ldap_search_base: ou=Users,dc=example,dc=com
-   ldap_filter: (uid=%u)
+      /release-notes/2.6-upgrade
+      /release-notes/2.6-upgrade-authorization
+      /release-notes/2.6-downgrade
 
-To use this sample OpenLDAP configuration, create users with a ``uid``
-attribute (login name) and place under the ``Users`` organizational
-unit (``ou``).
+See :doc:`/release-notes/2.6-upgrade` for full upgrade instructions.
 
-To test the ``saslauthd`` configuration, use ``testsaslauthd`` utility,
-as in the following example:
+Download
+~~~~~~~~
 
-.. code-block:: sh
+To download MongoDB 2.6, go to the `downloads page`_.
 
-   testsaslauthd -u testuser -p testpassword -s mongod -f /var/run/saslauthd/mux
+.. TODO Should we add link to the installation guides?
 
-For more information on ``saslauthd`` configuration, see
-`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
+.. _`downloads page`: http://www.mongodb.org/downloads
 
-MongoDB Server Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Other Resources
+~~~~~~~~~~~~~~~
 
-Configure the MongoDB server with the ``authenticationMechanisms``
-parameter and the ``saslauthdPath`` parameters using either the command
-line option :option:`--setParameter <mongod --setParameter>` or the
-:doc:`configuration file </reference/configuration-options>`:
+- `All JIRA issues resolved in 2.6 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.5.0%22%2C+%222.5.1%22%2C+%222.5.2%22%2C+%222.5.3%22%2C+%222.5.4%22%2C+%222.5.5%22%2C+%222.6.0-rc1%22%2C+%222.6.0-rc2%22%2C+%222.6.0-rc3%22%29>`_.
 
-- If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
-  set the ``saslauthdPath`` parameter to
-  ``/<some>/<path>/saslauthd/mux`` and the ``authenticationMechanisms``
-  parameter to ``PLAIN``, as in the following command line example:
-
-  .. code-block:: sh
-
-     mongod --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
-
-  Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
-
-  .. code-block:: sh
-
-     setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
-     setParameter=authenticationMechanisms=PLAIN
-
-- Otherwise, set the ``saslauthdPath`` to the empty string ``""`` to use
-  the library's default value and the ``authenticationMechanisms``
-  parameter to ``PLAIN``, as in the following command line example:
-
-  .. code-block:: sh
-
-     mongod --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
-
-  Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
-
-  .. code-block:: sh
-
-     setParameter=saslauthdPath=""
-     setParameter=authenticationMechanisms=PLAIN
-
-Authenticate in the ``mongo`` Shell
-```````````````````````````````````
-
-To use this authentication mechanism in the :program:`mongo` shell, you
-**must** pass ``digestPassword: false`` to :method:`db.auth()` when
-authenticating on the ``$external`` database, since the server must
-receive an undigested password to forward on to ``saslauthd``, as in
-the following example:
-
-.. code-block:: javascript
-
-   use $external
-   db.auth(
-            {
-              mechanism: "PLAIN",
-              user: "application/reporting@EXAMPLE.NET",
-              pwd: "some1nterestingPwd",
-              digestPassword: false
-            }
-          )
-
-x.509 Authentication
-~~~~~~~~~~~~~~~~~~~~
-
-MongoDB introduces x.509 certificate authentication for use with a
-secure :doc:`SSL connection </tutorial/configure-ssl>`.
-
-.. important:: To use SSL, you must either use MongoDB Enterprise or
-   build MongoDB locally using ``scons`` with the ``--ssl`` option.
-
-The x.509 authentication allows clients to authenticate to servers with
-certificates instead of with username and password.
-
-The x.509 authentication also allows sharded cluster members and
-replica set members to use x.509 certificates to verify their
-membership to the cluster or the replica set instead of using key
-files. The membership authentication is an internal process.
-
-.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
-.. _`MongoDB Enterprise`: http://www.10gen.com/products/mongodb-enterprise
-
-x.509 Certificate
-`````````````````
-
-The x.509 certificate for client authentication and the x.509
-certificate for internal authentication have different properties.
-
-The client certificate must have the following
-properties:
-
-- A single Certificate Authority (CA) must issue the certificates
-  for both the client and the server.
-
-- Client certificates must contain the following fields:
-
-  .. code-block:: none
-
-     keyUsage = digitalSignature
-     extendedKeyUsage = clientAuth
-
-The member certificate, used for internal authentication to verify
-membership to the sharded cluster or a replica set, must have the
-following properties:
-
-- A single Certificate Authority (CA) must issue all the x.509
-  certificates for the members of a sharded cluster or a replica set.
-
-- The member certificate's ``subject``, which contains the
-  Distinguished Name (``DN``), must match the ``subject`` of the
-  certificate on the server, *starting from and including* the
-  Organizational Unit (``OU``) of the certificate on the server.
-
-New Protocol and Parameters
-```````````````````````````
-
-The change for x.509 authentication introduces a new ``MONGODB-X509``
-protocol. For internal authentication for membership, the change also
-introduces the ``--clusterAuthMode``, ``--sslClusterFile`` and the
-``--sslClusterPassword`` options.
-
-Use the ``--clusterAuthMode`` option to enable internal x.509
-authentication for membership. The ``--clusterAuthMode`` option can
-have one of the following values:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 40
-
-   * - Value
-
-     - Description
-
-   * - ``keyfile``
-
-     - Default value. Use keyfile for authentication.
-
-   * - ``sendKeyfile``
-
-     - For rolling upgrade purposes. Send the keyfile for
-       authentication but can accept either keyfile or x.509
-       certificate.
-
-   * - ``sendX509``
-
-     - For rolling upgrade purposes. Send the x.509 certificate for
-       authentication but can accept either keyfile or x.509
-       certificate.
-
-   * - ``x509``
-
-     - Recommended. Send the x.509 certificate for authentication and
-       accept **only** x.509 certificate.
-
-For the ``--sslClusterFile`` option, specify the full path to the x.509
-certificate and key PEM file for the cluster or set member. If the key
-is encrypted, specify the password with the ``--sslClusterPassword``
-option.
-
-Configure MongoDB Server to Use x.509
-`````````````````````````````````````
-
-Configure the MongoDB server from the command line, as in the following
-[#additionalOptions]_:
-
-.. code-block:: sh
-
-   mongod --sslOnNormalPorts --sslPEMKeyFile <path to sslCertificate and key PEM file> --sslCAFile <path to root CA PEM file>
-
-You may also specify these options in the :doc:`configuration file
-</reference/configuration-options>`:
-
-.. code-block:: none
-
-   sslOnNormalPorts = true
-   sslPEMKeyFile = <path to sslCertificate and key PEM file>
-   sslCAFile = <path to the root CA PEM file>
-
-To specify the x.509 certificate for internal cluster member
-authentication, append the additional SSL options ``--clusterAuthMode``
-and ``--sslClusterFile``, as in the following example for a member of a
-replica set [#additionalOptions]_:
-
-.. code-block:: sh
-
-   mongod --replSet <name> --sslOnNormalPorts --sslPEMKeyFile <path to sslCertificate and key PEM file>  --sslCAFile <path to root CA PEM file>  --clusterAuthMode x509 --sslClusterFile <path to membership certificate and key PEM file>
-
-.. [#additionalOptions] Include any additional options, SSL
-   or otherwise, that are required for your specific configuration.
-
-Authenticate with a x.509 Certificate
-`````````````````````````````````````
-
-To authenticate with a client certificate, you must first add a MongoDB
-user that corresponds to the client certificate. See
-:ref:`addX509SubjectUser`.
-
-To authenticate, use the :method:`db.auth()` method in the
-``$external`` database. For the ``mechanism`` field, specify
-``"MONGODB-X509"``, and for the ``user`` field, specify the user, or
-the ``subject``, that corresponds to the client certificate.
-
-For example, if using the :program:`mongo` shell,
-
-1. Connect :program:`mongo` shell to the :program:`mongod` set up for
-   SSL:
-
-   .. code-block:: sh
-
-      mongo --ssl --sslPEMKeyFile <path to CA signed client PEM file>
-
-#. To perform the authentication, use the :method:`db.auth()` method in the
-   ``$external`` database.
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("$external").auth(
-                                         {
-                                           mechanism: "MONGODB-X509",
-                                           user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry"
-                                         }
-                                       )
-
-.. _addX509SubjectUser:
-
-Add x.509 Certificate ``subject`` as a User
-```````````````````````````````````````````
-
-To authenticate with a client certificate, you must first add the value
-of the ``subject`` from the client certificate as a MongoDB user.
-
-1. You can retrieve the ``subject`` from the client certificate with
-   the following command:
-
-   .. code-block:: sh
-
-      openssl x509 -in <pathToClient PEM> -inform PEM -subject -nameopt RFC2253
-
-   The command returns the ``subject`` string as well as certificate:
-
-   .. code-block:: sh
-
-      subject= CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry
-      -----BEGIN CERTIFICATE-----
-      # ...
-      -----END CERTIFICATE-----
-
-2. Add the value of the ``subject``, omitting the spaces, from the
-   certificate as a user. For example, in the :program:`mongo`
-   shell, to add the user to the ``test`` database:
-
-   .. code-block:: javascript
-
-      use test
-      db.addUser({
-                  user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry",
-                  userSource: '$external',
-                  roles: ['readAnyDatabase', 'readWriteAnyDatabase']
-                })
-
-See :doc:`/tutorial/add-user-to-database` for details on adding a user
-with roles using :doc:`privilege documents
-</reference/privilege-documents>`.
-
-Upgrade Clusters to x.509 Authentication
-````````````````````````````````````````
-
-To upgrade clusters that are currently using keyfile authentication to
-x.509 authentication, use a rolling upgrade process:
-
-1. For each node of a cluster, set ``--clusterAuthMode`` to
-   ``sendKeyFile``. With this setting, each node continues to use its
-   keyfile to authenticate itself as a member. However, each node can now
-   accept either a keyfile or the x.509 certificate from other members to
-   authenticate those members. Upgrade all nodes of the cluster to this
-   setting.
-
-2. Then, for each node of a cluster, set ``--clusterAuthMode`` to
-   ``sendX509`` and set ``--sslClusterFile`` to the appropriate path of
-   the node's certificate. [#encryptedKey]_ With this setting, each
-   node uses its x.509 certificate to authenticate itself as a member.
-   However, each node continues to accept either a keyfile or the x.509
-   certificate from other members to authenticate those members.
-   Upgrade all nodes of the cluster to this setting.
-
-3. Optional but recommended. Finally, for each node of the cluster, set
-   ``--clusterAuthMode`` to ``x509`` to only use the x.509 certificate
-   for authentication.
-
-.. [#encryptedKey] If the key is encrypted, set the
-   ``--sslClusterPassword`` to the password to decrypt the key.
-
-Background Index Builds Replicate to Secondaries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 2.5.0, if you initiate a :ref:`background index
-build <index-creation-background>` on a :term:`primary`, the
-secondaries will replicate the index build in the background.
-In previous versions of MongoDB, secondaries built all indexes in the
-foreground, even if the primary built an index in the background.
-
-For all index builds, secondaries will not begin building indexes
-until the primary has successfully completed the index build.
-
-``mongod`` Automatically Continues in Progress Index Builds Following Restart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If your :program:`mongod` instance was building an index when it
-shutdown or terminated, :program:`mongod` will now continue building
-the index when the :program:`mongod` restarts. Previously, the index
-build *had* to finish building before :program:`mongod` shutdown.
-
-To disable this behavior the 2.5 series adds a new run time option,
-:setting:`noIndexBuildRetry` (or via, ``--noIndexBuildRetry`` on the
-command line,) for :program:`mongod`. :setting:`noIndexBuildRetry`
-prevents :program:`mongod` from continuing rebuilding indexes that did
-not finished building when the :program:`mongod` last shut down.
-
-.. setting:: noIndexBuildRetry
-
-   By default, :program:`mongod` will attempt to rebuild indexes upon
-   start-up *if* :program:`mongod` shuts down or stops in the middle
-   of an index build. When enabled, this option prevents this
-   behavior.
+- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.6/distsrc/THIRD-PARTY-NOTICES>`_.

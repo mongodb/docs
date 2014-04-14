@@ -7,7 +7,7 @@ cursor.explain()
 Definition
 ----------
 
-.. method:: cursor.explain()
+.. method:: cursor.explain(verbose)
 
    Provides information on the
    query plan. The query plan is the plan the server uses to find the
@@ -29,56 +29,35 @@ Definition
    :ref:`explain-output-fields-sharded` and
    :ref:`explain-output-fields-core`.
 
-   The :method:`~cursor.explain()` method runs the actual query to
-   determine the result. Although there are some differences between
-   running the query with :method:`explain <cursor.explain()>` and
-   running without, generally, the performance will be similar between
-   the two. So, if the query is slow, the :method:`explain
-   <cursor.explain()>` operation is also slow.
+Behavior
+--------
 
-   Additionally, the :method:`explain <cursor.explain()>` operation reevaluates a set
-   of candidate query plans, which may cause the :method:`explain <cursor.explain()>`
-   operation to perform differently than a normal query. As a result,
-   these operations generally provide an accurate account of *how*
-   MongoDB would perform the query, but do not reflect the length of
-   these queries.
+The :method:`~cursor.explain()` method runs the actual query to
+determine the result. Although there are some differences between
+running the query with :method:`~cursor.explain()` and
+running without, generally, the performance will be similar between
+the two. So, if the query is slow, the :method:`~cursor.explain()` operation is also slow.
 
-   To determine the performance of a particular index, you can use
-   :method:`hint() <cursor.hint()>`  and in conjunction with
-   :method:`explain() <cursor.explain()>`, as in the following example:
+Additionally, the :method:`~cursor.explain()` operation reevaluates a set
+of candidate query plans, which may cause the :method:`~cursor.explain()`
+operation to perform differently than a normal query. As a result,
+these operations generally provide an accurate account of *how*
+MongoDB would perform the query, but do not reflect the length of
+these queries.
 
-   .. code-block:: javascript
+.. seealso::
 
-      db.products.find().hint( { type: 1 } ).explain()
+   - :operator:`$explain`
 
-   When you run :method:`explain <cursor.explain()>` with
-   :method:`hint() <cursor.hint()>`, the query optimizer does not
-   reevaluate the query plans.
+   - :doc:`/administration/optimization` page for information
+     regarding optimization strategies.
 
-   .. note::
+   - :doc:`/tutorial/manage-the-database-profiler` tutorial for
+     information regarding the database profile.
 
-      In some situations, the :method:`explain() <cursor.explain()>`
-      operation may differ from the actual query plan used by MongoDB
-      in a normal query.
-      The :method:`explain() <cursor.explain()>` operation evaluates
-      the set of query plans and reports on the winning plan for the
-      query. In normal operations the query optimizer caches winning
-      query plans and uses them for similar related queries in the
-      future.  As a result MongoDB may sometimes select query plans
-      from the cache that are different from the plan displayed using
-      :method:`explain <cursor.explain()>`.
+   - :doc:`Current Operation Reporting </reference/method/db.currentOp>`
 
-   .. seealso::
-
-      - :operator:`$explain`
-
-      - :doc:`/applications/optimization` page for information
-        regarding optimization strategies.
-
-      - :doc:`/tutorial/manage-the-database-profiler` tutorial for
-        information regarding the database profile.
-
-      - :doc:`Current Operation Reporting </reference/method/db.currentOp>`
+.. _explain-results:
 
 Explain Results
 ---------------
@@ -119,6 +98,7 @@ returns the following core information.
                    "indexBounds" : { <index bounds> }
                  }
      "server" : "<host:port>",
+     "filterSet" : <boolean>
    }
 
 For details on the fields, see :ref:`explain-output-fields-core`.
@@ -126,10 +106,10 @@ For details on the fields, see :ref:`explain-output-fields-core`.
 Explain on ``$or`` Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Queries with :operator:`$or` operator execute each clause of the
-:operator:`$or` expression in parallel and can use separate indexes on
+Queries with :query:`$or` operator execute each clause of the
+:query:`$or` expression in parallel and can use separate indexes on
 the individual clauses. If the query uses indexes on any or all of the
-query's clause, :method:`explain() <cursor.explain()>` contains
+query's clause, :method:`~cursor.explain()` contains
 :ref:`output <explain-output-fields-core>` for each clause as well as
 the cumulative data for the entire query:
 
@@ -233,6 +213,21 @@ sharded*. For queries on sharded collections, see
    - ``GeoSearchCursor`` indicates that the query used a geospatial
      index.
 
+   - ``Complex Plan`` indicates that MongoDB used :doc:`index
+     intersection </core/index-intersection>`.
+
+   For ``BtreeCursor`` cursors, MongoDB will append the name of the
+   index to the cursor string. Additionally, depending on how the
+   query uses an index, MongoDB may append one or both of the
+   following strings to the cursor string:
+
+   - ``reverse`` indicates that query transverses the index from the
+     highest values to the lowest values (e.g. "right to left".)
+
+   - ``multi`` indicates that the query performed multiple
+     look-ups. Otherwise, the query uses the index to determine a
+     range of possible matches.
+
 .. data:: explain.isMultiKey
 
    :data:`~explain.isMultiKey` is a boolean. When ``true``, the query uses a
@@ -284,10 +279,11 @@ sharded*. For queries on sharded collections, see
 
    :data:`~explain.scanAndOrder` is a boolean that is ``true`` when
    the query **cannot** use the order of documents in the index for
-   returning sorted results.
+   returning sorted results: MongoDB must sort the documents after it
+   receives the documents from a cursor.
 
-   When ``false``, MongoDB must sort the documents after it receives
-   the documents from a cursor.
+   If :data:`~explain.scanAndOrder` is ``false``, MongoDB *can* use
+   the order of the documents in an index to return sorted results.
 
 .. data:: explain.indexOnly
 
@@ -342,8 +338,7 @@ sharded*. For queries on sharded collections, see
 
    :data:`~explain.allPlans` is an array that holds the list of plans
    the query optimizer runs in order to select the index for the query.
-   Displays only when the ``<verbose>`` parameter to :method:`explain()
-   <cursor.explain()>` is ``true`` or ``1``.
+   Displays only when the ``<verbose>`` parameter to :method:`~cursor.explain()` is ``true`` or ``1``.
 
 .. data:: explain.oldPlan
 
@@ -351,14 +346,20 @@ sharded*. For queries on sharded collections, see
 
    :data:`~explain.oldPlan` is a document value that contains the previous plan
    selected by the query optimizer for the query. Displays only when
-   the ``<verbose>`` parameter to :method:`explain()
-   <cursor.explain()>` is ``true`` or ``1``.
+   the ``<verbose>`` parameter to :method:`~cursor.explain()` is ``true`` or ``1``.
 
 .. data:: explain.server
 
    .. versionadded:: 2.2
 
    :data:`~explain.server` is a string that reports the MongoDB server.
+
+.. data:: explain.filterSet
+
+   .. versionadded:: 2.6
+
+   :data:`~explain.filterSet` is a boolean that indicates whether
+   MongoDB applied an :ref:`index filter <index-filters>` for the query.
 
 .. _explain-output-field-or-clauses:
 
@@ -369,8 +370,8 @@ sharded*. For queries on sharded collections, see
 
    :data:`~explain.clauses` is an array that holds the
    :ref:`explain-output-fields-core` information for each clause of the
-   :operator:`$or` expression. :data:`~explain.clauses` is only included when
-   the clauses in the :operator:`$or` expression use indexes.
+   :query:`$or` expression. :data:`~explain.clauses` is only included when
+   the clauses in the :query:`$or` expression use indexes.
 
 .. _explain-output-fields-sharded-collection:
 

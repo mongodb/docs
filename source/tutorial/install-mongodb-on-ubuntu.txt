@@ -4,47 +4,23 @@ Install MongoDB on Ubuntu
 
 .. default-domain:: mongodb
 
-Synopsis
+Overview
 --------
 
-This tutorial outlines the basic installation process for installing
-:term:`MongoDB` on Ubuntu Linux systems. This tutorial uses
-``.deb`` packages as the basis of the installation. 10gen publishes
-packages of the MongoDB releases as ``.deb`` packages for easy
-installation and management for users of Ubuntu systems. Although Ubuntu does
-include MongoDB packages, the 10gen
-packages are generally more up to date.
-
-This tutorial includes: an overview of the available packages,
-instructions for configuring the package manager, the process for installing
-packages from the 10gen repository, and preliminary MongoDB
-configuration and operation.
+Use this tutorial to install MongoDB on Ubuntu Linux systems. The tutorial
+uses ``.deb`` packages to install. While Ubuntu includes its own MongoDB
+packages, the official MongoDB packages are generally more up-to-date.
 
 .. note::
 
-   If you use an older Ubuntu that does **not** use Upstart, (i.e. any
-   version before 9.10 "Karmic") please follow the instructions on the
+   If you use an older Ubuntu that does **not** use Upstart (i.e. any
+   version before 9.10 "Karmic"), please follow the instructions on the
    :doc:`install-mongodb-on-debian` tutorial.
 
-.. see:: Additional installation tutorials:
+.. The following include includes two h2 headers:
+.. Packages and Control Scripts
 
-   - :doc:`/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux`
-   - :doc:`/tutorial/install-mongodb-on-debian`
-   - :doc:`/tutorial/install-mongodb-on-linux`
-   - :doc:`/tutorial/install-mongodb-on-os-x`
-   - :doc:`/tutorial/install-mongodb-on-windows`
-
-   .. Documentation for getting started with MongoDB:
-
-   .. STUB - :doc:`/getting-started`
-   .. STUB - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
-
-Package Options
----------------
-
-The 10gen repository provides the ``mongodb-10gen`` package,
-which contains the latest **stable** release. Additionally you can 
-:ref:`install previous releases <install-ubuntu-version-pinning>` of MongoDB.
+.. include:: /includes/list-mongodb-org-packages.rst
 
 You cannot install this package concurrently with the ``mongodb``,
 ``mongodb-server``, or ``mongodb-clients`` packages provided by Ubuntu.
@@ -52,152 +28,15 @@ You cannot install this package concurrently with the ``mongodb``,
 Install MongoDB
 ---------------
 
-Configure Package Management System (APT)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/steps/install-mongodb-on-ubuntu.rst
 
-The Ubuntu package management tool (i.e. ``dpkg`` and ``apt``)
-ensure package consistency and authenticity by requiring that
-distributors sign packages with GPG keys. Issue the following command
-to import the `10gen public GPG Key <http://docs.mongodb.org/10gen-gpg-key.asc>`_:
+Run MongoDB
+-----------
 
-.. code-block:: sh
+The MongoDB instance stores its data files in ``/var/lib/mongo``
+and its log files in ``/var/log/mongo``, and runs using the ``mongod``
+user account. If you change the user that runs the MongoDB process, you
+**must** modify the access control rights to the ``/var/lib/mongo`` and
+``/var/log/mongo`` directories.
 
-   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-
-Create a ``/etc/apt/sources.list.d/10gen.list`` file using the
-following command.
-
-.. code-block:: sh
-
-   echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
-
-Now issue the following command to reload your repository:
-
-.. code-block:: sh
-
-   sudo apt-get update
-
-.. _install-ubuntu-version-pinning:
-
-Install Packages
-~~~~~~~~~~~~~~~~
-
-Issue the following command to install the latest stable version of
-MongoDB:
-
-.. code-block:: sh
-
-   sudo apt-get install mongodb-10gen
-
-When this command completes, you have successfully installed MongoDB!
-Continue for configuration and start-up suggestions.
-
-Manage Installed Versions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use the ``mongodb-10gen`` package to install previous versions
-of MongoDB. To install a specific release, append the version number
-to the package name, as in the following example:
-
-.. code-block:: sh
-
-   apt-get install mongodb-10gen=2.2.3
-
-This will install the ``2.2.3`` release of MongoDB. You can specify
-any available version of MongoDB; however ``apt-get`` **will** upgrade
-the ``mongodb-10gen`` package when a newer version becomes
-available. Use the following *pinning* procedure to prevent unintended
-upgrades.
-
-To pin a package, issue the following command at the system prompt to
-*pin* the version of MongoDB at the currently installed version:
-
-.. code-block:: sh
-
-   echo "mongodb-10gen hold" | sudo dpkg --set-selections
-
-Configure MongoDB
------------------
-
-These packages configure MongoDB using the ``/etc/mongodb.conf`` file
-in conjunction with the :term:`control script`.  You will find the
-control script is at ``/etc/init.d/mongodb``.
-
-This MongoDB instance will store its data files in the
-``/var/lib/mongodb`` and its log files in ``/var/log/mongodb``, and
-run using the ``mongodb`` user account.
-
-.. note::
-
-   If you change the user that runs the MongoDB process, you will need
-   to modify the access control rights to the ``/var/lib/mongodb`` and
-   ``/var/log/mongodb`` directories.
-
-Controlling MongoDB
--------------------
-
-Starting MongoDB
-~~~~~~~~~~~~~~~~
-
-You can start the :program:`mongod` process by issuing the following
-command:
-
-.. code-block:: sh
-
-   sudo service mongodb start
-
-You can verify that :program:`mongod` has started successfully by checking the
-contents of the log file at ``/var/log/mongodb/mongodb.log``.
-
-Stopping MongoDB
-~~~~~~~~~~~~~~~~
-
-As needed, you may stop the :program:`mongod` process by issuing the
-following command:
-
-.. code-block:: sh
-
-   sudo service mongodb stop
-
-Restarting MongoDB
-~~~~~~~~~~~~~~~~~~
-
-You may restart the :program:`mongod` process by issuing the
-following command:
-
-.. code-block:: sh
-
-   sudo service mongodb restart
-
-Controlling :program:`mongos`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-As of the current release, there are no :term:`control scripts
-<control script>` for :program:`mongos`. :program:`mongos` is only
-used in sharding deployments and typically do not run on the same
-systems where :program:`mongod` runs. You can use the ``mongodb``
-script referenced above to derive your own :program:`mongos` control
-script.
-
-Using MongoDB
--------------
-
-Among the tools included with the MongoDB package, is the
-:program:`mongo` shell. You can connect to your MongoDB instance by
-issuing the following command at the system prompt:
-
-.. code-block:: sh
-
-   mongo
-
-This will connect to the database running on the localhost interface
-by default. At the :program:`mongo` prompt, issue the following two
-commands to insert a record in the "test" :term:`collection` of the
-(default) "test" database.
-
-.. code-block:: javascript
-
-   db.test.save( { a: 1 } )
-   db.test.find()
-
-.. seealso:: ":program:`mongo`" and ":doc:`/reference/method`"
+.. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst

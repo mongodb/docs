@@ -1,6 +1,6 @@
 .. index:: shard key
    single: sharding; shard key
-   
+
 .. _sharding-shard-key:
 .. _shard-key:
 .. _sharding-internals-shard-keys:
@@ -28,6 +28,16 @@ When a chunk grows beyond the :ref:`chunk size <sharding-chunk-size>`,
 MongoDB :term:`splits <split>` the chunk into smaller chunks, always
 based on ranges in the shard key.
 
+Considerations
+--------------
+
+Shard keys are immutable and cannot be changed after
+insertion. See the :ref:`system limits for sharded cluster
+<limits-sharding>` for more information.
+
+The index on the shard key **cannot** be a :ref:`multikey index
+<index-type-multikey>`.
+
 .. _sharding-hashed-sharding:
 
 Hashed Shard Keys
@@ -54,6 +64,8 @@ by manually creating chunks on the empty collection using the
 To shard a collection using a hashed shard key, see
 :doc:`/tutorial/shard-collection-with-a-hashed-shard-key`.
 
+.. include:: /includes/tip-applications-do-not-need-to-compute-hashes.rst
+
 Impacts of Shard Keys on Cluster Operations
 -------------------------------------------
 
@@ -72,9 +84,9 @@ Write Scaling
 Some possible shard keys will allow your application to take advantage of
 the increased write capacity that the cluster can provide, while
 others do not. Consider the following example where you shard by the
-values of the default :term:`_id` field, which is :term:`ObjectID`.
+values of the default :term:`_id` field, which is :term:`ObjectId`.
 
-MongoDB generates ``ObjectID`` values upon document creation to
+MongoDB generates ``ObjectId`` values upon document creation to
 produce a unique identifier for the object. However, the most
 significant bits of data in this value represent a time stamp, which
 means that they increment in a regular and predictable pattern. Even
@@ -98,6 +110,11 @@ other content in the document, will allow the cluster to scale write
 operations. However, random shard keys do not typically provide
 :ref:`query isolation <sharding-shard-key-query-isolation>`, which is
 another important characteristic of shard keys.
+
+.. versionadded:: 2.4
+   MongoDB makes it possible to shard a collection on a hashed
+   index. This can greatly improve write scaling. See
+   :doc:`/tutorial/shard-collection-with-a-hashed-shard-key`.
 
 .. _sharding-internals-querying:
 
@@ -136,7 +153,7 @@ If your query includes the first component of a compound shard
 key [#shard-key-index]_, the :program:`mongos` can route the
 query directly to a single shard, or a small number of shards, which
 provides better performance. Even if you query values of the shard
-key reside in different chunks, the :program:`mongos` will route
+key that reside in different chunks, the :program:`mongos` will route
 queries directly to specific shards.
 
 To select a shard key for a collection:

@@ -1,0 +1,125 @@
+=============================================
+Troubleshoot Kerberos Authentication on Linux
+=============================================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+.. _kerberos-troubleshooting-checklist:
+
+Kerberos Configuration Checklist
+--------------------------------
+
+If you have difficulty starting :program:`mongod` or :program:`mongos`
+with :doc:`Kerberos </core/kerberos>` on Linux systems, ensure that:
+
+- The :program:`mongod` and the :program:`mongos` binaries are
+  from MongoDB Enterprise.
+
+- You are not using the :ecosystem:`HTTP Console
+  </tools/http-interface/#http-console>`. MongoDB Enterprise
+  does not support Kerberos authentication over the HTTP Console
+  interface.
+
+- Either the service principal name (SPN) in the :ref:`keytab file
+  <keytab-files>` matches the SPN for the :program:`mongod` or
+  :program:`mongos` instance, or the :program:`mongod` or the
+  :program:`mongos` instance use the :parameter:`--setParameter
+  saslHostName=\<host name\> <saslHostName>` to match the name in the
+  keytab file.
+
+- The canonical system hostname of the system that runs the
+  :program:`mongod` or :program:`mongos` instance is a resolvable,
+  fully qualified domain for this host. You can test the system
+  hostname resolution with the ``hostname -f`` command at the system
+  prompt.
+
+- Each host that runs a :program:`mongod` or :program:`mongos` instance
+  has both the ``A`` and ``PTR`` DNS records to provide forward and
+  reverse lookup. The records allow the host to resolve the components
+  of the Kerberos infrastructure.
+
+- Both the Kerberos Key Distribution Center (KDC) and the system
+  running :program:`mongod` instance or :program:`mongos` must be able
+  to resolve each other using DNS. By default, Kerberos attempts to
+  resolve hosts using the content of the ``/etc/kerb5.conf`` before
+  using DNS to resolve hosts.
+
+- The time synchronization of the systems running :program:`mongod` or
+  the :program:`mongos` instances and the Kerberos infrastructure are
+  within the maximum time skew (default is 5 minutes) of each other.
+  Time differences greater than the maximum time skew will prevent
+  successful authentication.
+
+Debug with More Verbose Logs
+----------------------------
+
+If you still encounter problems with Kerberos on Linux, you can start
+both :program:`mongod` and :program:`mongo` (or another client) with
+the environment variable ``KRB5_TRACE`` set to different files to
+produce more verbose logging of the Kerberos process to help further
+troubleshooting. For example, the following starts a standalone
+:program:`mongod` with ``KRB5_TRACE`` set:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
+       KRB5_TRACE=/opt/mongodb/log/mongodb-kerberos.log \
+       /opt/mongodb/bin/mongod --dbpath /opt/mongodb/data \
+       --fork --logpath /opt/mongodb/log/mongod.log \
+       --auth --setParameter authenticationMechanisms=GSSAPI
+
+Common Error Messages
+---------------------
+
+In some situations, MongoDB will return error messages from the GSSAPI
+interface if there is a problem with the Kerberos service. Some common
+error messages are:
+
+``GSSAPI error in client while negotiating security context.``
+  This error occurs on the client and reflects insufficient credentials
+  or a malicious attempt to authenticate.
+
+  If you receive this error, ensure that you are using the correct
+  credentials and the correct fully qualified domain name when
+  connecting to the host.
+
+``GSSAPI error acquiring credentials.``
+  This error occurs during the start of the :program:`mongod` or
+  :program:`mongos` and reflects improper configuration of the system
+  hostname or a missing or incorrectly configured keytab file.
+
+  If you encounter this problem, consider the items in the
+  :ref:`kerberos-troubleshooting-checklist`, in particular, whether the
+  SPN in the :ref:`keytab file <keytab-files>` matches the SPN for the
+  :program:`mongod` or :program:`mongos` instance.
+
+  To determine whether the SPNs match:
+
+  #. Examine the keytab file, with the following command:
+
+     .. code-block:: sh
+
+        klist -k <keytab>
+
+     Replace ``<keytab>`` with the path to your keytab file.
+
+  #. Check the configured hostname for your system, with the following
+     command:
+
+     .. code-block:: sh
+
+        hostname -f
+
+     Ensure that this name matches the name in the keytab file, or
+     start :program:`mongod` or :program:`mongos` with the
+     :parameter:`--setParameter saslHostName=\<hostname\> <saslHostName>`.
+
+.. seealso::
+
+   - :doc:`/core/kerberos`
+
+   - :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+
+   - :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`

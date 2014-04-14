@@ -1,0 +1,41 @@
+.. _aggregation-pipeline-sharded-collection:
+
+============================================
+Aggregation Pipeline and Sharded Collections
+============================================
+
+.. default-domain:: mongodb
+
+The aggregation pipeline supports operations on :term:`sharded
+<sharded cluster>` collections. This section describes behaviors
+specific to the :ref:`aggregation pipeline <aggregation-pipeline>` and
+sharded collections.
+
+Behavior
+--------
+
+.. versionchanged:: 2.6
+
+When operating on a sharded collection, the aggregation pipeline is
+split into two parts. The first pipeline runs on each shard, or if an
+early :pipeline:`$match` can exclude shards through the use of the
+shard key in the predicate, the pipeline runs on only the relevant
+shards.
+
+The second pipeline consists of the remaining pipeline stages and runs
+on the :ref:`primary shard <primary-shard>`. The primary shard merges
+the cursors from the other shards and runs the second pipeline on these
+results. The primary shard forwards
+the final results to the :program:`mongos`. In previous versions, the
+second pipeline would run on the :program:`mongos`.
+[#agg-pipeline-upgrade]_
+
+When splitting the aggregation pipeline into two parts, the pipeline is
+split to ensure that the shards perform as many stages as possible. To
+retrieve information on the division, use the :method:`explain
+<db.collection.aggregate()>` option for the
+:method:`db.collection.aggregate()` method.
+
+.. [#agg-pipeline-upgrade]
+   Until all shards upgrade to v2.6, the second pipeline runs on the
+   :program:`mongos` if any shards are still running v2.4.

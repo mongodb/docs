@@ -6,18 +6,7 @@ Deploy a Sharded Cluster
 
 .. default-domain:: mongodb
 
-To set up a sharded cluster, complete the following sequence of tasks
-in the order defined below:
-
-#. :ref:`sharding-setup-start-cfgsrvr`
-
-#. :ref:`sharding-setup-start-mongos`
-
-#. :ref:`sharding-setup-add-shards`
-
-#. :ref:`sharding-setup-enable-sharding`
-
-#. :ref:`sharding-setup-shard-collection`
+Use the following sequence of tasks to deploy a sharded cluster:
 
 .. include:: /includes/warning-sharding-hostnames.rst
 
@@ -36,9 +25,12 @@ instances, each running on different servers to assure good uptime and
 data safety. In test environments, you can run all three instances on a
 single server.
 
-Config server instances receive relatively little traffic and demand
-only a small portion of system resources. Therefore, you can run an
-instance on a system that runs other cluster components.
+.. important:: All members of a sharded cluster must be able to
+   connect to *all* other members of a sharded cluster, including all
+   shards and all config servers. Ensure that the network and
+   security systems including all interfaces and firewalls, allow
+   these connections.
+
 
 1. Create data directories for each of the three config server
    instances. By default, a config server stores its data files in the
@@ -82,11 +74,9 @@ server running a :program:`mongod` process. By default, a
 
 When you start the :program:`mongos` instance, specify the hostnames of
 the three config servers, either in the configuration file or as command
-line parameters. For operational flexibility, use DNS names for the
-config servers rather than explicit IP addresses. If you're not using
-resolvable hostname, you cannot change the config server names or IP
-addresses without a restarting *every* :program:`mongos` and
-:program:`mongod` instance.
+line parameters.
+
+.. include:: /includes/tip-hostnames.rst
 
 To start a :program:`mongos` instance, issue a command using the following syntax:
 
@@ -106,6 +96,15 @@ You would issue the following command:
 .. code-block:: sh
 
    mongos --configdb cfg0.example.net:27019,cfg1.example.net:27019,cfg2.example.net:27019
+
+Each :program:`mongos` in a sharded cluster must use the same
+:setting:`~sharding.configDB` string, with identical host names listed in
+identical order.
+
+If you start a :program:`mongos` instance with a string that *does
+not* exactly match the string used by the other :program:`mongos`
+instances in the cluster, the :program:`mongos` return a
+:ref:`config-database-string-error` error and refuse to start.
 
 .. _sharding-setup-add-shards:
 

@@ -1,0 +1,114 @@
+title: Start ``mongod`` without Kerberos.
+stepnum: 1
+ref: start-mongod-without-kerberos-support
+pre: |
+   For the initial addition of Kerberos users, start :program:`mongod`
+   without Kerberos support.
+post: |
+   If a Kerberos user is already in MongoDB and has the
+   :ref:`privileges required to create a user
+   <createUser-required-access>`, you can start
+   :program:`mongod` with Kerberos support.
+---
+title: Connect to ``mongod``.
+stepnum: 2
+ref: connect-to-mongod
+pre: |
+   Connect via the :program:`mongo` shell to the :program:`mongod`
+   instance. If :program:`mongod` has :option:`--auth` enabled, ensure
+   you connect with the :ref:`privileges required to create a user
+   <createUser-required-access>`.
+---
+title: Add Kerberos Principal(s) to MongoDB.
+stepnum: 3
+ref: add-kerberos-principals
+pre: |
+   Add a Kerberos principal, ``<username>@<KERBEROS REALM>`` or
+   ``<username>/<instance>@<KERBEROS REALM>``, to MongoDB in the
+   ``$external`` database. Specify the Kerberos realm in all uppercase.
+   The ``$external`` database allows :program:`mongod` to consult an
+   external source (e.g. Kerberos) to authenticate. To specify the
+   user's privileges, assign :doc:`roles </core/authorization>` to the
+   user.
+action:
+   pre: |
+     The following example adds the Kerberos principal
+     ``application/reporting@EXAMPLE.NET`` with read-only access to the
+     ``records`` database:
+   language: javascript
+   code: |
+      use $external
+      db.createUser(
+         {
+           user: "application/reporting@EXAMPLE.NET",
+           roles: [ { role: "read", db: "records" } ]
+         }
+      )
+post: |
+   Add additional principals as needed. For every user you want to
+   authenticate using Kerberos, you must create a corresponding user in
+   MongoDB.
+   For more
+   information about creating and managing users, see
+   :doc:`/reference/command/nav-user-management`.
+---
+title: Start ``mongod`` with Kerberos support.
+stepnum: 4
+ref: start-mongod-with-kerberos-support
+action:
+  - pre: |
+       To start :program:`mongod` with Kerberos support, set the
+       environmental variable ``KRB5_KTNAME`` to the path of the keytab
+       file and the :program:`mongod` parameter
+       :parameter:`authenticationMechanisms` to ``GSSAPI`` in the
+       following form:
+    language: sh
+    code: |
+       env KRB5_KTNAME=<path to keytab file> \
+       mongod \
+       --setParameter authenticationMechanisms=GSSAPI
+       <additional mongod options>
+  - pre: |
+       For example, the following starts a standalone :program:`mongod`
+       instance with Kerberos support:
+    language: sh
+    code: |
+       env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
+       /opt/mongodb/bin/mongod --auth \
+       --setParameter authenticationMechanisms=GSSAPI \
+       --dbpath /opt/mongodb/data
+post: |
+   The path to your :program:`mongod` as well as your :ref:`keytab file
+   <keytab-files>` may differ. Modify or include additional
+   :program:`mongod` options as required for your configuration. The
+   :ref:`keytab file <keytab-files>` must be only accessible to the
+   owner of the :program:`mongod` process.
+
+   With the official ``.deb`` or ``.rpm`` packages, you can set the
+   ``KRB5_KTNAME`` in a environment settings file. See
+   :ref:`setting-krb5_ktname` for details.
+---
+title: Connect ``mongo`` shell to ``mongod`` and authenticate.
+stepnum: 5
+ref: invoke-an-authenticated-mongo-shell
+pre: |
+   Connect the :program:`mongo` shell client as the Kerberos principal
+   ``application/reporting@EXAMPLE.NET``. Before connecting, you
+   must have used Kerberos's ``kinit`` program to get credentials for
+   ``application/reporting@EXAMPLE.NET``.
+action:
+  - pre: You can connect and authenticate from the command line.
+    language: sh
+    code: |
+       mongo --authenticationMechanism=GSSAPI --authenticationDatabase='$external' \
+       --username application/reporting@EXAMPLE.NET
+  - pre: |
+       Or, alternatively, you can first connect :program:`mongo` to the
+       :program:`mongod`, and then from the :program:`mongo` shell, use
+       the :method:`db.auth()` method to authenticate in the
+       ``$external`` database.
+    language: javascript
+    code: |
+       use $external
+       db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" } )
+...

@@ -1,0 +1,122 @@
+.. _read-operations-indexing:
+
+==================
+Query Optimization
+==================
+
+.. default-domain:: mongodb
+
+Indexes improve the efficiency of read operations by reducing the
+amount of data that query operations need to process. This simplifies
+the work associated with fulfilling queries within MongoDB.
+
+Create an Index to Support Read Operations
+------------------------------------------
+
+If your application queries a collection on a particular field or
+fields, then an index on the queried field or fields can prevent the
+query from scanning the whole collection to find and return the query
+results. For more information about indexes, see the :doc:`complete
+documentation of indexes in MongoDB</core/indexes>`.
+
+.. example:: An application queries the ``inventory`` collection on the
+   ``type`` field. The value of the ``type`` field is user-driven.
+
+   .. code-block:: javascript
+
+      var typeValue = <someUserInput>;
+      db.inventory.find( { type: typeValue } );
+
+   To improve the performance of this query, add an ascending, or a
+   descending, index to the ``inventory`` collection on the ``type``
+   field. [#ensureIndexOrder]_ In the :program:`mongo` shell, you can
+   create indexes using the :method:`db.collection.ensureIndex()`
+   method:
+
+   .. code-block:: javascript
+
+      db.inventory.ensureIndex( { type: 1 } )
+
+   This index can prevent the above query on ``type`` from scanning the
+   whole collection to return the results.
+
+To analyze the performance of the query with an index, see
+:doc:`/tutorial/analyze-query-plan`.
+
+In addition to optimizing read operations, indexes can support sort
+operations and allow for a more efficient storage utilization. See
+:method:`db.collection.ensureIndex()` and
+:doc:`/administration/indexes` for more information about index
+creation.
+
+.. [#ensureIndexOrder]
+   For single-field indexes, the selection between ascending and
+   descending order is immaterial. For compound indexes, the selection
+   is important. See :ref:`indexing order
+   <index-ascending-and-descending>` for more details.
+
+.. _read-operations-query-selectivity:
+
+Query Selectivity
+-----------------
+
+Some query operations are not selective. These operations cannot use
+indexes effectively or cannot use indexes at all.
+
+The inequality operators :query:`$nin` and :query:`$ne` are not
+very selective, as they often match a large portion of the index. As a
+result, in most cases, a :query:`$nin` or :query:`$ne` query with
+an index may perform no better than a :query:`$nin` or
+:query:`$ne` query that must scan all documents in a collection.
+
+Queries that specify regular expressions, with inline JavaScript
+regular expressions or :query:`$regex` operator expressions, cannot
+use an index with one exception. Queries that specify regular
+expression *with anchors* at the beginning of a string *can* use an
+index.
+
+.. _read-operations-covered-query:
+
+Covering a Query
+----------------
+
+An index :ref:`covers <indexes-covered-queries>` a query, a *covered
+query*, when:
+
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of that index, **and**
+
+- all the fields returned in the documents that match the query are in
+  the same index.
+
+For these queries, MongoDB does not need to inspect documents outside
+of the index. This is often more efficient than inspecting entire
+documents.
+
+.. example::
+
+   Given a collection ``inventory`` with the following index on the
+   ``type`` and ``item`` fields:
+
+   .. code-block:: sh
+
+      { type: 1, item: 1 }
+
+   This index will cover the following query on the ``type`` and ``item``
+   fields, which returns only the ``item`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1, _id: 0 } )
+
+   However, the index will **not** cover the following query, which
+   returns the ``item`` field **and** the ``_id`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1 } )
+
+See :ref:`indexes-covered-queries` for more information on the
+behavior and use of covered queries.

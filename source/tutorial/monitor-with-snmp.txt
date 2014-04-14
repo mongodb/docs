@@ -1,218 +1,61 @@
-=========================
-Monitor MongoDB with SNMP
-=========================
+==================================
+Monitor MongoDB With SNMP on Linux
+==================================
+
+.. default-domain:: mongodb
 
 .. versionadded:: 2.2
 
 .. admonition:: Enterprise Feature
 
-   This feature is only available in MongoDB Enterprise.
+   SNMP is only available in `MongoDB Enterprise
+   <http://www.mongodb.com/products/mongodb-enterprise>`_.
 
-This document outlines the use and operation of MongoDB's SNMP
-extension, which is only available in `MongoDB Enterprise`_.
+.. |mongod-program| replace:: :program:`mongod`
 
-Prerequisites
--------------
+Overview
+--------
 
-Install MongoDB Enterprise
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Enterprise can report system information into SNMP traps, to
+support centralized data collection and aggregation. This procedure
+explains the setup and configuration of a |mongod-program| instance
+as an SNMP subagent, as well as initializing and testing of SNMP
+support with MongoDB Enterprise.
 
-`MongoDB Enterprise`
+.. seealso:: :doc:`/tutorial/troubleshoot-snmp` and
+   :doc:`/tutorial/monitor-with-snmp-on-windows` for
+   complete instructions on using MongoDB with SNMP on Windows
+   systems.
 
-.. _`MongoDB Enterprise`: http://www.10gen.com/products/mongodb-enterprise
-
-Included Files
-~~~~~~~~~~~~~~
-
-The Enterprise packages contain the following files:
-
-- ``MONGO-MIB.txt``:
-
-  The ``MIB`` file that describes the data (i.e. schema) for MongoDB's
-  SNMP output
-
-- ``mongod.conf``:
-
-  The SNMP configuration file for reading the SNMP output of
-  MongoDB. The SNMP configures the community names, permissions,
-  access controls, etc.
-
-Required Packages
-~~~~~~~~~~~~~~~~~
-
-To use SNMP, you must install several prerequisites. The names of the
-packages vary by distribution and are as follows:
-
-- Ubuntu 11.04 requires ``libssl0.9.8``, ``snmp-mibs-downloader``,
-  ``snmp``, and ``snmpd``. Issue a command such as the
-  following to install these packages:
-
-  .. code-block:: sh
-
-     sudo apt-get install libssl0.9.8 snmp snmpd snmp-mibs-downloader
-
-- Red Hat Enterprise Linux 6.x series and Amazon Linux AMI require
-  ``libssl``, ``net-snmp``, ``net-snmp-libs``, and ``net-snmp-utils``.
-  Issue a command such as the following to install these packages:
-
-  .. code-block:: sh
-
-     sudo yum install libssl net-snmp net-snmp-libs net-snmp-utils
-
-- SUSE Enterprise Linux requires ``libopenssl0_9_8``, ``libsnmp15``,
-  ``slessp1-libsnmp15``, and ``snmp-mibs``. Issue a command such as the
-  following to install these packages:
-
-  .. code-block:: sh
-
-     sudo zypper install libopenssl0_9_8 libsnmp15 slessp1-libsnmp15 snmp-mibs
-
-Configure SNMP
+Considerations
 --------------
 
-Install MIB Configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Only :program:`mongod` instances provide SNMP
+support. :program:`mongos` and the other MongoDB binaries do not
+support SNMP.
 
-Ensure that the MIB directory ``/usr/share/snmp/mibs`` exists. If
-not, issue the following command:
+Configuration Files
+-------------------
 
-.. code-block:: sh
+.. include:: /includes/fact-snmp-configuration-files.rst
 
-   sudo mkdir -p /usr/share/snmp/mibs
+Procedure
+---------
 
-Use the following command to create a symbolic link:
+.. include:: /includes/steps/monitor-with-snmp.rst
 
-.. code-block:: sh
+Optional: Run MongoDB as SNMP Master
+------------------------------------
 
-   sudo ln -s <path>MONGO-MIB.txt /usr/share/snmp/mibs/
-
-Replace ``[/path/to/mongodb/distribution/]`` with the path to your
-``MONGO-MIB.txt`` configuration file.
-
-Copy the ``mongod.conf`` file into the ``/etc/snmp`` directory
-with the following command:
+.. include:: /includes/fact-snmp-run-mongodb-as-snmp-master.rst
 
 .. code-block:: sh
 
-   cp mongod.conf /etc/snmp/mongod.conf
+   cp mongod.conf.master /etc/snmp/mongod.conf
 
-Start Up
-~~~~~~~~
-
-You can control MongoDB Enterprise using default or custom control
-scripts, just as with any other :program:`mongod`:
-
-Use the following command to view all SNMP options available in your
-MongoDB:
+Additionally, start |mongod-program| with the :setting:`snmp-master`
+option, as in the following:
 
 .. code-block:: sh
 
-   mongod --help | grep snmp
-
-The above command should return the following output:
-
-.. code-block:: sh
-
-   Module snmp options:
-     --snmp-subagent       run snmp subagent
-     --snmp-master         run snmp as master
-
-Ensure that the following directories exist:
-
-- ``/data/db/`` (This is the path where MongoDB stores the data files.)
-
-- ``/var/log/mongodb/`` (This is the path where MongoDB writes the log
-  output.)
-
-If they do not, issue the following command:
-
-.. code-block:: sh
-
-   mkdir -p /var/log/mongodb/ /data/db/
-
-Start the :program:`mongod` instance with the following command:
-
-.. code-block:: sh
-
-   mongod --snmp-master --port 3001 --fork --dbpath /data/db/  --logpath /var/log/mongodb/1.log
-
-Optionally, you can set these options in a :doc:`configuration file
-</reference/configuration-options>`.
-
-To check if :program:`mongod` is running with SNMP support, issue the
-following command:
-
-.. code-block:: sh
-
-   ps -ef | grep 'mongod --snmp'
-
-The command should return output that includes the following
-line. This indicates that the proper :program:`mongod` instance is running:
-
-.. code-block:: sh
-
-   systemuser 31415 10260  0 Jul13 pts/16   00:00:00 mongod --snmp-master --port 3001 # [...]
-
-Test SNMP
-~~~~~~~~~
-
-Check for the snmp agent process listening on port ``1161`` with the
-following command:
-
-.. code-block:: sh
-
-   sudo lsof -i :1161
-
-which return the following output:
-
-.. code-block:: sh
-
-   COMMAND  PID     USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
-   mongod  9238 sysadmin   10u  IPv4  96469      0t0  UDP localhost:health-polling
-
-Similarly, this command:
-
-.. code-block:: sh
-
-   netstat -anp | grep 1161
-
-should return the following output:
-
-.. code-block:: none
-
-   udp      0      0 127.0.0.1:1161      0.0.0.0:*      9238/<path>/mongod
-
-Run ``snmpwalk`` Locally
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-``snmpwalk`` provides tools for retrieving and parsing the SNMP data
-according to the MIB. If you installed all of the required packages
-above, your system will have ``snmpwalk``.
-
-Issue the following command to collect data from :program:`mongod` using
-SNMP:
-
-.. code-block:: sh
-
-   snmpwalk -m MONGO-MIB -v 2c -c mongodb 127.0.0.1:1161 1.3.6.1.4.1.37601
-
-You may also choose to specify the path to the MIB file:
-
-.. code-block:: sh
-
-   snmpwalk -m /usr/share/snmp/mibs/MONGO-MIB -v 2c -c mongodb 127.0.0.1:1161 1.3.6.1.4.1.37601
-
-Use this command *only* to ensure that you can retrieve and validate
-SNMP data from MongoDB.
-
-Troubleshooting
----------------
-
-Always check the logs for errors if something does not run as expected;
-see the log at ``/var/log/mongodb/1.log``. The presence of the following
-line indicates that the :program:`mongod` cannot read the
-``/etc/snmp/mongod.conf`` file:
-
-.. code-block:: sh
-
-   [SNMPAgent] warning: error starting SNMPAgent as master err:1
+   mongod --snmp-master

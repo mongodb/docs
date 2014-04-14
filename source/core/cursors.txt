@@ -1,0 +1,125 @@
+.. _read-operations-cursors:
+
+=======
+Cursors
+=======
+
+.. default-domain:: mongodb
+
+In the :program:`mongo` shell, the primary method for the read
+operation is the :method:`db.collection.find()` method. This method
+queries a collection and returns a :term:`cursor` to the returning
+documents.
+
+To access the documents, you need to iterate the cursor. However, in
+the :program:`mongo` shell, if the returned cursor is not assigned to a
+variable using the ``var`` keyword, then the cursor is automatically
+iterated up to 20 times [#set-shell-batch-size]_ to print up to the
+first 20 documents in the results.
+
+For example, in the :program:`mongo` shell, the following read
+operation queries the ``inventory`` collection for documents that have
+``type`` equal to ``'food'`` and automatically print up to the first 20
+matching documents:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } );
+
+To manually iterate the cursor to access the documents, see
+:doc:`/tutorial/iterate-a-cursor`.
+
+.. include:: /includes/footnote-set-shell-batch-size.rst
+
+.. _cursor-behaviors:
+
+Cursor Behaviors
+----------------
+
+Closure of Inactive Cursors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the server will automatically close the cursor after 10
+minutes of inactivity or if client has exhausted the cursor. To
+override this behavior, you can specify the ``noTimeout``
+:meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in
+your query; however, you should either close the cursor manually or
+exhaust the cursor. In the :program:`mongo` shell, you can set the
+``noTimeout`` flag:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find().addOption(DBQuery.Option.noTimeout);
+
+See your :doc:`driver </applications/drivers>` documentation for
+information on setting the ``noTimeout`` flag. For the :program:`mongo`
+shell, see :method:`cursor.addOption()` for a complete list of
+available cursor flags.
+
+Cursor Isolation
+~~~~~~~~~~~~~~~~
+
+Because the cursor is not isolated during its lifetime, intervening
+write operations on a document may result in a cursor that returns a
+document more than once if that document has changed. To handle this
+situation, see the information on :ref:`snapshot mode
+<faq-developers-isolate-cursors>`.
+
+Cursor Batches
+~~~~~~~~~~~~~~
+
+The MongoDB server returns the query results in batches. Batch size
+will not exceed the :ref:`maximum BSON document size
+<limit-bson-document-size>`. For most queries, the *first* batch
+returns 101 documents or just enough documents to exceed 1 megabyte.
+Subsequent batch size is 4 megabytes. To override the default size of
+the batch, see :method:`~cursor.batchSize()` and
+:method:`~cursor.limit()`.
+
+For queries that include a sort operation *without* an index, the
+server must load all the documents in memory to perform the sort and
+will return all documents in the first batch.
+
+As you iterate through the cursor and reach the end of the returned
+batch, if there are more results, :method:`cursor.next()` will perform
+a :data:`getmore operation <currentOp.op>` to retrieve the next batch.
+To see how many documents remain in the batch as you iterate the
+cursor, you can use the :method:`~cursor.objsLeftInBatch()` method, as
+in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find();
+
+   var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   myCursor.objsLeftInBatch();
+
+Cursor Information
+------------------
+
+You can use the command :dbcommand:`cursorInfo` to retrieve the
+following information on cursors:
+
+- total number of open cursors
+
+- size of the client cursors in current use
+
+- number of timed out cursors since the last server restart
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.runCommand( { cursorInfo: 1 } )
+
+The result from the command returns the following document:
+
+.. code-block:: javascript
+
+   {
+     "totalOpen" : <number>,
+     "clientCursors_size" : <number>,
+     "timedOut" : <number>,
+     "ok" : 1
+   }

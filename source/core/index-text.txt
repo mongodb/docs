@@ -1,0 +1,137 @@
+.. _index-feature-text:
+
+============
+Text Indexes
+============
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+MongoDB provides ``text`` indexes to support text search of string
+content in documents of a collection.
+
+``text`` indexes can include any field whose value is a string or an
+array of string elements. To perform queries that access the ``text``
+index, use the :query:`$text` query operator.
+
+.. versionchanged:: 2.6
+
+   MongoDB enables the text search feature by
+   default. In MongoDB 2.4, you need to enable the text search
+   feature manually to create ``text`` indexes and perform :ref:`text search
+   <index-text-text-search>`.
+
+.. _create-text-index:
+
+Create Text Index
+-----------------
+
+To create a ``text`` index, use the
+:method:`db.collection.ensureIndex()` method. To index a field that
+contains a string or an array of string elements, include the field and
+specify the string literal ``"text"`` in the index document, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.reviews.ensureIndex( { comments: "text" } )
+
+.. include:: /includes/fact-text-index-limit-one.rst
+
+For examples of creating ``text`` indexes on multiple fields, see
+:doc:`/tutorial/create-text-index-on-multiple-fields`.
+
+Supported Languages and Stop Words
+----------------------------------
+
+MongoDB supports text search for various languages. ``text`` indexes
+drop language-specific stop words (e.g. in English, “the,” “an,” “a,”
+“and,” etc.) and uses simple language-specific suffix stemming. For a
+list of the supported languages, see :ref:`text-search-languages`.
+
+If the index language is English, ``text`` indexes are case-insensitive
+for non-diacritics; i.e. case insensitive for ``[A-z]``.
+
+To specify a language for the ``text`` index, see
+:doc:`/tutorial/specify-language-for-text-index`
+
+Restrictions
+------------
+
+Text Search and Hints
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-hint-text-query-restriction.rst
+
+Compound Index
+~~~~~~~~~~~~~~
+
+A :doc:`compound index </core/index-compound>` can include a ``text``
+index key in combination with ascending/descending index keys. However,
+these compound indexes have the following restrictions:
+
+.. include:: /includes/fact-compound-index-with-text-restrictions.rst
+
+See :doc:`/tutorial/limit-number-of-items-scanned-for-text-search`.
+
+.. _text-index-storage-requirements:
+
+Storage Requirements and Performance Costs
+------------------------------------------
+
+``text`` indexes have the following storage requirements and
+performance costs:
+
+- ``text`` indexes change the space allocation method for all future
+  record allocations in a collection to :collflag:`usePowerOf2Sizes`.
+
+- ``text`` indexes can be large. They contain one index entry for each
+  unique post-stemmed word in each indexed field for each document
+  inserted.
+
+- Building a ``text`` index is very similar to building a large
+  multi-key index and will take longer than building a simple ordered
+  (scalar) index on the same data.
+
+- When building a large ``text`` index on an existing collection,
+  ensure that you have a sufficiently high limit on open file
+  descriptors. See the :doc:`recommended settings </reference/ulimit>`.
+
+- ``text`` indexes will impact insertion throughput because MongoDB
+  must add an index entry for each unique post-stemmed word in each
+  indexed field of each new source document.
+
+- Additionally, ``text`` indexes do not store phrases or information
+  about the proximity of words in the documents. As a result, phrase
+  queries will run much more effectively when the entire collection
+  fits in RAM.
+
+.. _index-text-text-search:
+
+Text Search
+-----------
+
+Text search supports the search of string content in documents of a
+collection. MongoDB provides the :query:`$text` operator to perform
+text search in queries and in :doc:`aggregation pipelines
+</tutorial/text-search-in-aggregation>`.
+
+The text search process:
+
+- tokenizes and stems the search term(s) during both the index creation
+  and the text command execution.
+
+- assigns a score to each document that contains the search term in the
+  indexed fields. The score determines the relevance of a document to a
+  given search query.
+
+The :query:`$text` operator can search for words and phrases. The query
+matches on the complete stemmed words. For example, if a document field
+contains the word ``blueberry``, a search on the term ``blue`` will not
+match the document. However, a search on either ``blueberry`` or
+``blueberries`` will match.
+
+For information and examples on various text search patterns, see the
+:query:`$text` query operator. For examples of text search in
+aggregation pipeline, see :doc:`/tutorial/text-search-in-aggregation`.

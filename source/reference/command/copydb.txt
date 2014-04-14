@@ -4,65 +4,200 @@ copydb
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: copydb
 
-   The :dbcommand:`copydb` command copies a database from a remote
-   host to the current host. The command has the following syntax:
+   Copies a database from a remote host to the current host or copies a
+   database to another database within the current host. Run
+   :dbcommand:`copydb` in the ``admin`` database of the destination
+   server with the following syntax:
 
    .. code-block:: javascript
 
-      { copydb: 1:
+      { copydb: 1,
         fromhost: <hostname>,
-        fromdb: <db>,
-        todb: <db>,
+        fromdb: <database>,
+        todb: <database>,
         slaveOk: <bool>,
         username: <username>,
         nonce: <nonce>,
         key: <key> }
 
-   All of the following arguments are optional:
+   :dbcommand:`copydb` accepts the following options:
 
-   - slaveOk
-   - username
-   - nonce
-   - key
+   .. include:: /reference/command/copydb-fields.rst
 
-   You can omit the ``fromhost`` argument, to copy one database to
-   another database within a single MongoDB instance.
+   The :program:`mongo` shell provides the :method:`db.copyDatabase()`
+   wrapper for the :dbcommand:`copydb` command.
 
-   You must run this command on the destination, or the ``todb``
-   server.
+Behavior
+--------
 
-   Be aware of the following behaviors:
+.. |copydb| replace:: :dbcommand:`copydb`
 
-   - :dbcommand:`copydb` can run against a :term:`slave` or a
-     non-:term:`primary` member of a :term:`replica set`. In this case,
-     you must set the ``slaveOk`` option to ``true``.
+.. include:: /includes/fact-copydb-behavior.rst
 
-   - :dbcommand:`copydb` does not snapshot the database. If the state
-     of the database changes at any point during the operation, the
-     resulting database may be inconsistent.
+Required Access
+---------------
 
-   - You must run :dbcommand:`copydb` on the **destination server**.
+.. versionchanged:: 2.6
 
-   - The destination server is not locked for the duration of the
-     :dbcommand:`copydb` operation. This means that
-     :dbcommand:`copydb` will occasionally yield to allow other
-     operations to complete.
+On systems running with :setting:`~security.authorization`, the :dbcommand:`copydb`
+command requires the following authorization on the target and source
+databases.
 
-   - If the remote server has authentication enabled, then you must
-     include a username, nonce, and a key. The nonce is a one-time
-     password that you request from the remote server using the
-     :dbcommand:`copydbgetnonce` command. The ``key`` is a hash
-     generated as follows:
+Source Database (``fromdb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     .. code-block:: javascript
+Source is non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        hex_md5(nonce + username + hex_md5(username + ":mongo:" + pass))
+.. include:: /includes/access-copydb.rst
+   :start-after: .. source-not-admin
+   :end-before: .. source-admin
 
-     If you need to copy a database and authenticate, it's easiest to use the
-     shell helper:
+Source is ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-     .. code-block:: javascript
+.. include:: /includes/access-copydb.rst
+   :start-after: .. source-admin
 
-        db.copyDatabase(<remote_db_name>, <local_db_name>, <from_host_name>, <username>, <password>)
+Source Database is on a Remote Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If copying from a remote server and the remote server has
+authentication enabled, you must authenticate to the remote host as a
+user with the proper authorization. See
+:ref:`copydb-authentication`.
+
+Target Database (``todb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Copy from non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. include:: /includes/access-copydb.rst
+   :start-after: .. target-non-admin-source
+   :end-before: .. target-admin-source
+
+Copy from ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/access-copydb.rst
+   :start-after: .. target-admin-source
+   :end-before: .. source-not-admin
+
+.. _copydb-authentication:
+
+Authentication
+--------------
+
+If copying from a remote server and the remote server has
+authentication enabled, then you must include a ``username``,
+``nonce``, and ``key``.
+
+The ``nonce`` is a one-time password that you request from the remote
+server using the :dbcommand:`copydbgetnonce` command, as in the following:
+
+.. code-block:: javascript
+
+   use admin
+   mynonce = db.runCommand( { copydbgetnonce : 1, fromhost: <hostname> } ).nonce
+
+If running the :dbcommand:`copydbgetnonce` command directly on the
+remote host, you can omit the ``fromhost`` field in the
+:dbcommand:`copydbgetnonce` command.
+
+The ``key`` is a hash generated as follows:
+
+.. code-block:: javascript
+
+   hex_md5(mynonce + username + hex_md5(username + ":mongo:" + password))
+
+Replica Sets
+------------
+
+With :term:`read preference` configured to set the ``slaveOk`` option
+to ``true``, you may run :dbcommand:`copydb` on a :term:`secondary`
+member of a :term:`replica set`.
+
+Sharded Clusters
+----------------
+
+- Do not use :dbcommand:`copydb` from a :program:`mongos` instance.
+
+- Do not use :dbcommand:`copydb` to copy databases that contain sharded
+  collections.
+
+Examples
+--------
+
+Copy on the Same Host
+~~~~~~~~~~~~~~~~~~~~~
+
+To copy from the same host, omit the ``fromhost`` field.
+
+The following command copies the ``test`` database to a new ``records``
+database on the current :program:`mongod` instance:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand({
+      copydb: 1,
+      fromdb: "test",
+      todb: "records"
+   })
+
+Copy from a Remote Host to the Current Host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy from a remote host, include the ``fromhost`` field.
+
+The following command copies the ``test`` database from the remote host
+``example.net`` to a new ``records`` database on the current
+:program:`mongod` instance:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand({
+      copydb: 1,
+      fromdb: "test",
+      todb: "records",
+      fromhost: "example.net"
+   })
+
+Copy Databases from Remote ``mongod`` Instances that Enforce Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy from a remote host that enforces authentication, include the
+``fromhost``, ``username``, ``nonce`` and ``key`` fields.
+
+The following command copies the ``test`` database from a remote host
+``example.net`` that runs with :setting:`~security.authorization` to a new ``records``
+database on the local :program:`mongod` instance. Because the
+``example.net`` has :setting:`~security.authorization` enabled, the command includes the
+``username``, ``nonce`` and ``key`` fields:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand({
+      copydb: 1,
+      fromdb: "test",
+      todb: "records",
+      fromhost: "example.net",
+      username: "reportingAdmin",
+      nonce: "<nonce>",
+      key: "<passwordhash>"
+   })
+
+.. seealso::
+
+   - :method:`db.copyDatabase()`
+
+   - :dbcommand:`clone` and :method:`db.cloneDatabase()`
+
+   - :doc:`/core/backups` and :doc:`/core/import-export`

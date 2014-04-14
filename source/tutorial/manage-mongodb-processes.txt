@@ -27,8 +27,8 @@ instances.
    :doc:`/reference/program/mongod`, :doc:`/reference/program/mongos`, and
    :doc:`/reference/configuration-options`.
 
-Start ``mongod``
-----------------
+Start ``mongod`` Processes
+--------------------------
 
 By default, MongoDB stores data in the ``/data/db`` directory. On
 Windows, MongoDB stores data in ``C:\data\db``. On all platforms,
@@ -45,14 +45,14 @@ Specify a Data Directory
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want :program:`mongod` to store data files at a path *other
-than* ``/data/db`` you can specify a :setting:`dbpath`. The
-:setting:`dbpath` must exist before you start :program:`mongod`. If it
+than* ``/data/db`` you can specify a :setting:`~storage.dbPath`. The
+:setting:`~storage.dbPath` must exist before you start :program:`mongod`. If it
 does not exist, create the directory and the permissions so that
 :program:`mongod` can read and write data to this path. For more
 information on permissions, see the :ref:`security operations
 documentation <security-operations>`.
 
-To specify a :setting:`dbpath` for :program:`mongod` to use as a data
+To specify a :setting:`~storage.dbPath` for :program:`mongod` to use as a data
 directory, use the :option:`--dbpath <mongod --dbpath>` option. The
 following invocation will start a :program:`mongod` instance and store
 data in the ``/srv/mongodb`` path
@@ -83,7 +83,7 @@ Use the default port number when possible, to avoid confusion.
 Start ``mongod`` as a Daemon
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To run a :program:`mongod` process as a daemon (i.e. :setting:`fork`,)
+To run a :program:`mongod` process as a daemon (i.e. :setting:`fork`),
 *and* write its output to a log file, use the :option:`--fork
 <mongod --fork>` and :option:`--logpath <mongod --logpath>`
 options. You must create the log directory; however, :program:`mongod`
@@ -103,51 +103,85 @@ For an overview of common configurations and common configuration deployments.
 configurations for common use cases, see
 :doc:`/administration/configuration`.
 
-Stop ``mongod``
----------------
+.. _terminate-mongod-processes:
 
-To stop a :program:`mongod` instance not running as a daemon,
-press ``Control+C``. MongoDB stops when all ongoing operations are
-complete and does a clean exit, flushing and closing all data files.
+Stop ``mongod`` Processes
+-------------------------
 
-To stop a :program:`mongod` instance running in the background or
-foreground, issue the :method:`~db.shutdownServer()` helper in the
-:program:`mongo` shell. Use the following sequence:
+In a clean shutdown a :program:`mongod` completes all pending
+operations, flushes all data to data files, and closes all data
+files. Other shutdowns are *unclean* and can compromise the validity the
+data files.
 
-1. To open the :program:`mongo` shell for a :program:`mongod` instance
-   running on the default port of ``27017``, issue the following command:
+.. COMMENT add the following to the last sentence when the paragraph
+   when maintain-valid-data-files is published.
 
-   .. code-block:: sh
+   and may lead to corruption. See
+   :doc:`/tutorial/maintain-valid-data-files` for more information.
 
-      mongo
+To ensure a clean shutdown, always shutdown :program:`mongod`
+instances using one of the following methods:
 
-#. To switch to the ``admin`` database and shutdown the :program:`mongod`
-   instance, issue the following commands:
+Use ``shutdownServer()``
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+Shut down the :program:`mongod` from the :program:`mongo` shell using
+the :method:`db.shutdownServer()` method as follows:
 
-      use admin
-      db.shutdownServer()
+.. code-block:: javascript
 
-You may only use :method:`db.shutdownServer()` when connected to the
-:program:`mongod` when authenticated to the ``admin`` database or on
-systems without authentication connected via the localhost interface.
+   use admin
+   db.shutdownServer()
 
-Alternately, you can shut down the :program:`mongod` instance:
+Calling the same method from a control script accomplishes the same result.
 
-- using the :option:`--shutdown <mongod --shutdown>` option
+For systems with :setting:`~security.authorization` enabled, users may only issue
+:method:`db.shutdownServer()` when authenticated to the ``admin``
+database or via the localhost interface on systems without
+authentication enabled.
 
-- from a driver using the :dbcommand:`shutdown`. For details, see the
-  :doc:`drivers documentation </applications/drivers>` for your driver.
+Use ``--shutdown``
+~~~~~~~~~~~~~~~~~~
 
-``mongod`` Shutdown and Replica Sets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+From the Linux command line, shut down the :program:`mongod` using the
+:option:`--shutdown <mongod --shutdown>` option in the following command:
+
+.. code-block:: sh
+
+   mongod --shutdown
+
+Use ``CTRL-C``
+~~~~~~~~~~~~~~
+
+When running the :program:`mongod` instance in interactive mode
+(i.e. without :option:`--fork <mongod --fork>`), issue ``Control-C``
+to perform a clean shutdown.
+
+Use ``kill``
+~~~~~~~~~~~~
+
+From the Linux command line, shut down a specific :program:`mongod` instance
+using the following command:
+
+.. code-block:: none
+
+   kill <mongod process ID>
+
+.. warning::
+
+   Never use ``kill -9`` (i.e. ``SIGKILL``) to terminate a mongod instance.
+
+Stop a Replica Set
+------------------
+
+Procedure
+~~~~~~~~~
 
 If the :program:`mongod` is the :term:`primary` in a :term:`replica
 set`, the shutdown process for these :program:`mongod` instances has
 the following steps:
 
-1. Check how up-to-date the :term:`secondaries <secondary>` are.
+#. Check how up-to-date the :term:`secondaries <secondary>` are.
 
 #. If no secondary is within 10 seconds of the primary,
    :program:`mongod` will return a message that it will not shut down.
@@ -159,6 +193,9 @@ the following steps:
 
 #. After 60 seconds or once the secondary has caught up, the primary
    will shut down.
+
+Force Replica Set Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If there is no up-to-date secondary and you want the primary to shut
 down, issue the :dbcommand:`shutdown` command with the ``force``
@@ -183,24 +220,8 @@ set to ``5``:
    db.adminCommand({shutdown : 1, timeoutSecs : 5})
 
 Alternately you can use the ``timeoutSecs`` argument with the
-:method:`shutdownServer() <db.shutdownServer()>` method:
+:method:`db.shutdownServer()` method:
 
 .. code-block:: javascript
 
    db.shutdownServer({timeoutSecs : 5})
-
-Sending a UNIX INT or TERM Signal
----------------------------------
-
-You can cleanly stop :program:`mongod` using a ``SIGINT`` or ``SIGTERM``
-signal on UNIX-like systems. Either ``^C`` for a non-daemon
-:program:`mongod` instance, ``kill -2 <pid>``, or ``kill -15 <pid>`` will
-cleanly terminate the :program:`mongod` instance.
-
-Terminating a :program:`mongod` instance that is **not** running with
-:term:`journaling <journal>` with ``kill -9 <pid>`` (i.e. ``SIGKILL``)
-will probably cause data corruption.
-
-To recover data in situations where :program:`mongod` instances have
-not terminated cleanly *without* :term:`journaling <journal>` see
-:doc:`/tutorial/recover-data-following-unexpected-shutdown`.

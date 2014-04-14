@@ -38,7 +38,7 @@ example document reflects an update operation:
        "op" : "update",
        "ns" : "social.users",
        "query" : {
-           "name" : "jane"
+           "name" : "j.r."
        },
        "updateobj" : {
            "$set" : {
@@ -49,6 +49,7 @@ example document reflects an update operation:
            }
        },
        "nscanned" : 8,
+       "scanAndOrder" : true,
        "moved" : true,
        "nmoved" : 1,
        "nupdated" : 1,
@@ -101,9 +102,7 @@ operation.
 
 .. data:: system.profile.query
 
-   The query document used. See :ref:`documents-query-selectors` for
-   more information on these documents, and
-   :doc:`/reference/operator/query-modifier` for more information.
+   The :ref:`query document <read-operations-query-document>` used.
 
 .. data:: system.profile.command
 
@@ -111,8 +110,8 @@ operation.
 
 .. data:: system.profile.updateobj
 
-   The :ref:`update document <documents-update-actions>` passed in
-   during an :doc:`update </core/update>` operation.
+   The ``<update>`` document passed in
+   during an :doc:`update </core/write-operations>` operation.
 
 .. data:: system.profile.cursorid
 
@@ -133,14 +132,14 @@ operation.
 
    If the :data:`~system.profile.ntoreturn` value is ``0``, the command did not specify a
    number of documents to return, as would be the case with a simple
-   :method:`find() <db.collection.find()>` command with no limit
+   :method:`~db.collection.find()` command with no limit
    specified.
 
 .. data:: system.profile.ntoskip
 
    .. versionadded:: 2.2
 
-   The number of documents the :method:`skip() <cursor.skip()>` method
+   The number of documents the :method:`~cursor.skip()` method
    specified to skip.
 
 .. data:: system.profile.nscanned
@@ -152,13 +151,26 @@ operation.
    database is scanning many objects to find the target objects.
    Consider creating an index to improve this.
 
+.. data:: system.profile.scanAndOrder
+
+   :data:`~system.profile.scanAndOrder` is a boolean that is ``true`` when
+   a query **cannot** use the order of documents in the index for
+   returning sorted results: MongoDB must sort the documents after it
+   receives the documents from a cursor.
+
+   If :data:`~system.profile.scanAndOrder` is ``false``, MongoDB *can* use
+   the order of the documents in an index to return sorted results.
+
+   .. Based on informal tests, it looks like:data:`~system.profile.scanAndOrder`  is
+      only included in the profiler data when scanAndOrder is true.
+
 .. data:: system.profile.moved
 
-   If :data:`~system.profile.moved` has a value of ``true`` indicates that the update operation moved one or
-   more documents to a new location on disk. These operations take
-   more time than
-   in-place updates, and typically occur when documents grow as a
-   result of document growth.
+   This field appears with a value of ``true`` when an update operation
+   moved one or more documents to a new location on disk. If the operation
+   did not result in a move, this field does not appear. Operations that
+   result in a move take more time than in-place updates and typically
+   occur as a result of document growth.
 
    .. todo put a link to document growth in schema design/data
       modeling docs.
@@ -167,7 +179,9 @@ operation.
 
    .. versionadded:: 2.2
 
-   The number of documents moved on disk by the operation.
+   The number of documents the operation moved on disk. This field appears
+   only if the operation resulted in a move. The field's implicit value is
+   zero, and the field is present only when non-zero.
 
 .. data:: system.profile.nupdated
 
@@ -211,7 +225,7 @@ operation.
 
       The time in microseconds the operation held a specific lock. For
       operations that require more than one lock, like those
-      that lock the ``local`` database to update the :term:`oplog`, then
+      that lock the ``local`` database to update the :term:`oplog`,
       this value may be longer than the total length of the
       operation (i.e. :data:`~system.profile.millis`.)
 
@@ -236,10 +250,15 @@ operation.
    - :method:`The limit() method <cursor.limit()>`
    - :method:`The batchSize() method <cursor.batchSize()>`
 
+   .. note:: When MongoDB writes query profile information to the log,
+      the :data:`~system.profile.responseLength` value is in a field
+      named ``reslen``.
+
 .. data:: system.profile.millis
 
-   The time in milliseconds for the server to perform the operation.
-   This time does not include network time nor time to acquire the lock.
+   The time in milliseconds from the perspective of the
+   :program:`mongod` from the beginning of the operation to the end of
+   the operation.
 
 .. data:: system.profile.client
 

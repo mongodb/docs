@@ -4,17 +4,11 @@ MongoDB Limits and Thresholds
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
 This document provides a collection of hard and soft limitations of
 the MongoDB system.
 
-Limits
-------
-
 BSON Documents
-~~~~~~~~~~~~~~
+--------------
 
 .. _limit-bson-document-size:
 .. limit:: BSON Document Size
@@ -30,7 +24,7 @@ BSON Documents
    documents <document>`.
 
 Namespaces
-~~~~~~~~~~
+----------
 
 .. _limit-namespace-length:
 .. limit:: Namespace Length
@@ -47,7 +41,7 @@ Namespaces
    namespace file divided by 628.
 
    A 16 megabyte namespace file can support approximately 24,000
-   namespaces. Each index also counts as a namespace.
+   namespaces. Each collection and index is a namespace.
 
 .. _limit-size-of-namespace-file:
 .. limit:: Size of Namespace File
@@ -57,15 +51,24 @@ Namespaces
    By default namespace files are 16 megabytes. You can configure the
    size using the :setting:`nssize` option.
 
+.. _index-limitations:
+
 Indexes
-~~~~~~~
+-------
 
 .. _limit-index-size:
-.. limit:: Index Size
+.. limit:: Index Key
 
-   The total size of an indexed value must be *less than* 1024
-   bytes. MongoDB will not add that value to an index if it is longer
-   than 1024 bytes.
+   The *total size* of an index key entry, which can include structural
+   overhead depending on the BSON type, must be *less than* 1024 bytes.
+
+   .. COMMENT refer to src/mongo/db/structure/btree/key.cpp (KeyV1Owned::KeyV1Owned)
+
+   .. |limit| replace:: :limit:`index key limit <Index Key>`
+
+   .. versionchanged:: 2.6
+
+      .. include:: /includes/list-index-field-limit-behaviors.rst
 
 .. _limit-number-of-indexes-per-collection:
 .. limit:: Number of Indexes per Collection
@@ -76,7 +79,7 @@ Indexes
 .. limit:: Index Name Length
 
    The names of indexes, including their namespace (i.e database and
-   collection name) cannot be longer than 128 characters. The default
+   collection name), cannot be longer than 125 characters. The default
    index name is the concatenation of the field names and index
    directions.
 
@@ -84,23 +87,26 @@ Indexes
    :method:`~db.collection.ensureIndex()` helper if the default index
    name is too long.
 
-.. _limit-sharding-unique-indexes:
-.. limit:: Unique Indexes in Sharded Collections
-
-   MongoDB does not support unique indexes across shards, except when
-   the unique index contains the full shard key as a prefix of the
-   index. In these situations MongoDB will enforce uniqueness across
-   the full key, not a single field.
-
-   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
-      for an alternate approach.
+   .. The actual maximum length of an index is 128 characters,
+      however, there are three characters of required punctuation
+      hence the 125 figure.
 
 .. limit:: Number of Indexed Fields in a Compound Index
 
    There can be no more than 31 fields in a compound index.
 
-Capped Collections
-~~~~~~~~~~~~~~~~~~
+.. limit:: Queries cannot use both text and Geospatial Indexes
+
+   .. |operation| replace:: :dbcommand:`text` command
+
+   .. include:: /includes/fact-special-indexes-and-text.rst
+
+   .. TODO remove in the 2.6 version of the manual
+
+.. seealso:: The unique indexes limit in :ref:`limits-sharding-operations`.
+
+Data
+----
 
 .. limit:: Maximum Number of Documents in a Capped Collection
 
@@ -113,8 +119,37 @@ Capped Collections
    creating a capped collection, there is no limit on the number of
    documents.
 
+.. _limit-data-size:
+.. limit:: Data Size
+
+   A single :program:`mongod` instance cannot manage a data set that
+   exceeds maximum virtual memory address space provided by the
+   underlying operating system.
+
+   .. list-table:: Virtual Memory Limitations
+      :widths: 15 10 10
+      :header-rows: 1
+
+      * - Operating System
+        - Journaled
+        - Not Journaled
+      * - Linux
+        - 64 terabytes
+        - 128 terabytes
+      * - Windows
+        - 4 terabytes
+        - 8 terabytes
+
+.. limit:: Number of Collections in a Database
+
+   The maximum number of collections in a database is a function of
+   the size of the namespace file and the number of indexes of
+   collections in the database.
+
+   See :limit:`Number of Namespaces` for more information.
+
 Replica Sets
-~~~~~~~~~~~~
+------------
 
 .. limit:: Number of Members of a Replica Set
 
@@ -125,10 +160,27 @@ Replica Sets
    Only 7 members of a replica set can have votes at any given
    time. See can vote :ref:`replica-set-non-voting-members` for more information
 
-Sharded Clusters
-~~~~~~~~~~~~~~~~
+.. limit:: Maximum Size of Auto-Created Oplog
+           
+   .. versionchanged:: 2.6
 
-.. _limit-sharding-limitations:
+   If you do not explicitly specify an oplog size (i.e. with
+   :setting:`~replication.oplogSizeMB` or :option:`--oplogSize 
+   <mongod --oplogSize>`) MongoDB will create an oplog that is no
+   larger than 50 gigabytes.
+
+.. _limits-sharding:
+
+Sharded Clusters
+----------------
+
+Sharded clusters have the restrictions and thresholds described here.
+
+.. _limits-sharding-operations:
+
+Sharding Operational Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. limit:: Operations Unavailable in Sharded Environments
 
    The :dbcommand:`group` does not work with sharding. Use
@@ -138,35 +190,116 @@ Sharded Clusters
    use :method:`db.eval()` with un-sharded collections in a shard
    cluster.
 
-   :operator:`$where` does not permit references to the ``db`` object
-   from the :operator:`$where` function. This is uncommon in
+   :query:`$where` does not permit references to the ``db`` object
+   from the :query:`$where` function. This is uncommon in
    un-sharded collections.
 
-   The :operator:`$isolated` update modifier does not work in sharded
+   The :update:`$isolated` update modifier does not work in sharded
    environments.
 
    :operator:`$snapshot` queries do not work in sharded environments.
 
+   The :dbcommand:`geoSearch` command is not supported in sharded
+   environments.
+
+.. limit:: Covered Queries in Sharded Clusters
+
+   MongoDB does not support :ref:`covered queries <covered-queries>`
+   from sharded collections.
+
 .. limit:: Sharding Existing Collection Data Size
 
-   When enabling sharding on an existing collection, MongoDB imposes a
-   maximum size on those collections to ensure that its possible to
-   create chunks. The precise size of the limitation is a function of
-   the chunk size and the data size: *MongoDB supports sharding all
-   collections smaller than 256 gigabytes.* You may be able to enable
-   sharding for existing collections between 256 and 400 gigabytes in
-   size, depending on the distribution of document sizes.
+   For existing collections that hold documents, MongoDB supports
+   enabling sharding on *any* collections that contains less than 256
+   gigabytes of data. MongoDB *may* be able to shard collections with as
+   many as 400 gigabytes depending on the distribution of document
+   sizes. The precise size of the limitation is a function of the
+   chunk size and the data size.
 
-   .. note::
+   .. important:: Sharded collections may have *any* size, after
+      successfully enabling sharding.
 
-      This limitation *only* applies to sharding collections that have
-      existing data sets, and is *not* a limit on the size of a
-      sharded collection.
+.. limit:: Single Document Modification Operations in Sharded Collections
 
-.. seealso:: :limit:`Unique Indexes in Sharded Collections`
+   .. |single-modification-operation-names| replace:: :method:`~db.collection.update()` and :method:`~db.collection.remove()`
+   .. |single-modification-operation-option| replace:: ``justOne`` or ``multi: false``
+
+   .. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+.. _limit-sharding-unique-indexes:
+
+.. limit:: Unique Indexes in Sharded Collections
+
+   MongoDB does not support unique indexes across shards, except when
+   the unique index contains the full shard key as a prefix of the
+   index. In these situations MongoDB will enforce uniqueness across
+   the full key, not a single field.
+
+   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
+      for an alternate approach.
+
+.. _limits-shard-keys:
+
+Shard Key Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Shard Key Size
+
+   A shard key cannot exceed 512 bytes.
+
+.. limit:: Shard Key is Immutable
+
+   You cannot change a shard key after sharding the collection. If
+   you must change a shard key:
+
+   - Dump all data from MongoDB into an external format.
+
+   - Drop the original sharded collection.
+
+   - Configure sharding using the new shard key.
+
+   - :doc:`Pre-split </tutorial/create-chunks-in-sharded-cluster>` the shard
+     key range to ensure initial even distribution.
+
+   - Restore the dumped data into MongoDB.
+
+.. limit:: Shard Key Value in a Document is Immutable
+
+   After you insert a document into a sharded collection, you cannot
+   change the document's value for the field or fields that comprise
+   the shard key. The :method:`~db.collection.update()` operation will
+   not modify the value of a shard key in an existing document.
+
+.. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
+
+   For clusters with high insert volumes, a shard keys with
+   monotonically increasing and decreasing keys can affect insert
+   throughput. If your shard key is the ``_id`` field, be aware that
+   the default values of the ``_id`` fields are :term:`ObjectIds
+   <ObjectId>` which have generally increasing values.
+
+   When inserting documents with monotonically increasing shard keys, all
+   inserts belong to the same :term:`chunk` on a single
+   :term:`shard`. The system will eventually divide the
+   chunk range that receives all write operations
+   and migrate its contents to distribute data more evenly. However, at any
+   moment the cluster can direct insert operations only to a single
+   shard, which creates an insert throughput bottleneck.
+
+   If the operations on the cluster are predominately read operations
+   and updates, this limitation may not affect the cluster.
+
+   To avoid this constraint, use a :ref:`hashed shard key
+   <sharding-hashed-sharding>`  or select a field that does not
+   increase or decrease monotonically.
+
+   .. versionchanged:: 2.4
+      :ref:`Hashed shard keys <sharding-hashed-sharding>` and
+      :ref:`hashed indexes <index-type-hashed>` store hashes of keys
+      with ascending values.
 
 Operations
-~~~~~~~~~~
+----------
 
 .. _limit-sort:
 .. limit:: Sorted Documents
@@ -176,48 +309,63 @@ Operations
 
 .. _limit-agg-sort:
 
-.. limit:: Aggregation Sort Operation
+.. limit:: Aggregation Pipeline Operation
 
-   .. include:: /includes/fact-agg-sort-limit.rst
-      :start-after: agg-sort-in-memory-limit
+   .. include:: /includes/fact-agg-memory-limit.rst
 
 .. limit:: 2d Geospatial queries cannot use the $or operator
 
-   .. see:: :operator:`$or` and :doc:`/core/geospatial-indexes`.
+   .. see:: :query:`$or` and :doc:`/core/geospatial-indexes`.
 
 .. limit:: Spherical Polygons must fit within a hemisphere.
 
-   .. |geo-operator-method| replace:: :operator:`$geoIntersects` or :operator:`$geoWithin`
+   .. |geo-operator-method| replace:: :query:`$geoIntersects` or :query:`$geoWithin`
 
    .. include:: /includes/fact-geometry-hemisphere-limitation.rst
 
-.. _limit-multiple-in:
-.. limit:: Combination Limit with Multiple $in Expressions
+.. limit:: Bulk Operation Size
 
-   .. include:: /includes/fact-limits-multiple-in-expressions.rst
+   A bulk operation can have at most 1000 operations.
 
 Naming Restrictions
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
-.. limit:: Restrictions on Database Names
-
-   The dot (i.e. ``.``) character is not permissible in database
-   names.
+.. limit:: Database Name Case Sensitivity
 
    Database names are case sensitive even if the underlying file
-   system is case insensitive.
+   system is case insensitive. MongoDB does not permit database names
+   that differ only by the case of the characters.
+
+.. limit:: Restrictions on Database Names for Windows
 
    .. versionchanged:: 2.2
-      For MongoDB instances running on Windows.
+      :ref:`rn-2.2-database-name-restriction-windows`.
 
-      In 2.2 the following characters are not permissible in database names:
+   For MongoDB deployments running on Windows, MongoDB will not permit
+   database names that include any of the following characters:
 
-      .. code-block:: none
+   .. code-block:: none
 
          /\. "*<>:|?
 
-      See :ref:`rn-2.2-database-name-restriction-windows` for more
-      information on this change
+   Also, database names cannot contain the null character.
+
+.. limit:: Restrictions on Database Names for Unix and Linux Systems
+
+   For MongoDB deployments running on Unix and Linux systems, MongoDB
+   will not permit database names that include any of the following
+   characters:
+
+   .. code-block:: none
+
+      /\. "
+
+   Also, database names cannot contain the null character.
+
+.. limit:: Length of Database Names
+
+   Database names cannot be empty and must have fewer than 64
+   characters.
 
 .. limit:: Restriction on Collection Names
 
@@ -233,6 +381,10 @@ Naming Restrictions
    - contain the null character.
 
    - begin with the ``system.`` prefix. (Reserved for internal use.)
+
+   In the :program:`mongo` shell, use :method:`db.getCollection()` to
+   specify collection names that might interact with the shell or are
+   not valid JavaScript.
 
 .. _limit-restrictions-on-field-names:
 

@@ -9,22 +9,107 @@ Definition
 
 .. dbcommand:: getLastError
 
-   Returns the error status of
-   the last operation on the *current connection*.
-   Clients typically use :dbcommand:`getLastError` in
-   combination with write operations to ensure that the write
-   succeeds.
+   Returns the error status of the preceding operation on the *current
+   connection*. Clients typically use :dbcommand:`.getLastError` in
+   combination with write operations to ensure that the write succeeds.
 
-   .. include:: /reference/command/getLastError-field.rst
-
-   The following is the prototype form:
+   :dbcommand:`getLastError` uses the following prototype form:
 
    .. code-block:: javascript
 
       { getLastError: 1 }
 
-   .. seealso:: :doc:`Write Concern </core/write-concern>`
-      and :ref:`replica-set-write-concern`.
+   :dbcommand:`getLastError` uses the following fields:
+
+   .. include:: /reference/command/getLastError-fields.rst
+
+   .. seealso:: :doc:`Write Concern </core/write-concern>`,
+      :doc:`/reference/write-concern`, and :ref:`replica-set-write-concern`.
+
+Output
+------
+
+Each :dbcommand:`~db.collection.getLastError()` command returns a document containing a
+subset of the fields listed below.
+
+.. data:: getLastError.ok
+
+   :data:`~getLastError.ok` is ``true`` when the
+   :dbcommand:`getLastError` command completes successfully.
+
+   .. note:: A value of ``true`` does *not* indicate that the preceding
+      operation did not produce an error.
+
+.. data:: getLastError.err
+
+   :data:`~getLastError.err` is ``null`` unless an error occurs. When
+   there was an error with the preceding operation, ``err`` contains
+   a textual description of the error.
+
+.. data:: getLastError.code
+
+   :data:`~getLastError.code` reports the preceding operation's error
+   code.
+
+.. data:: getLastError.connectionId
+
+   The identifier of the connection.
+
+.. data:: getLastError.lastOp
+
+   When issued against a replica set member and the preceding
+   operation was a write or update, :data:`~getLastError.lastOp` is the
+   *optime* timestamp in the :term:`oplog`  of the change.
+
+.. data:: getLastError.n
+
+   :data:`~getLastError.n` reports the number of documents updated or
+   removed, if the preceding operation was an update or remove
+   operation.
+
+.. data:: getLastError.updatedExisting
+
+   :data:`~getLastError.updatedExisting` is ``true`` when an update
+   affects at least one document and does not result in an
+   :term:`upsert`.
+
+.. data:: getLastError.upserted
+
+   If the update results in an insert, :data:`~getLastError.upserted`
+   is the value of ``_id`` field of the document.
+
+   .. versionchanged:: 2.6
+      Earlier versions of MongoDB included
+      :data:`~getLastError.upserted` only if ``_id`` was an
+      :term:`ObjectId <objectid>`.
+
+.. data:: getLastError.wnote
+
+   If set, ``wnote`` indicates that the preceding operation's error
+   relates to using the ``w`` parameter to :dbcommand:`getLastError`.
+
+   .. see:: :doc:`/reference/write-concern` for more information about
+      ``w`` values.
+
+.. data:: getLastError.wtimeout
+
+   :data:`~getLastError.wtimeout` is ``true`` if the
+   :dbcommand:`getLastError` timed out because of the ``wtimeout``
+   setting to :dbcommand:`getLastError`.
+
+.. data:: getLastError.waited
+
+   If the preceding operation specified a timeout using the
+   ``wtimeout`` setting to :dbcommand:`getLastError`, then
+   :data:`~getLastError.waited` reports the number of milliseconds
+   :dbcommand:`getLastError` waited before timing out.
+
+.. data:: getLastError.wtime
+
+   :data:`getLastError.wtime` is the number of milliseconds spent
+   waiting for the preceding operation to complete. If
+   :dbcommand:`getLastError` timed out, :data:`~getLastError.wtime` and
+   :dbcommand:`getLastError.waited` are equal.
 
 .. _gle-examples:
 
@@ -51,6 +136,8 @@ majority of the configured members of the set.
 
    db.runCommand( { getLastError: 1, w: "majority" } )
 
+.. include:: /includes/fact-master-slave-majority.rst
+
 Set a Timeout for a ``getLastError`` Response
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -62,3 +149,6 @@ that resembles the following:
 .. code-block:: javascript
 
    db.runCommand( { getLastError: 1, w: 2, wtimeout:5000 } )
+
+When ``wtimeout`` is ``0``, the :dbcommand:`getLastError` operation
+will never time out.

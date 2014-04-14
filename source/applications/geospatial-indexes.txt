@@ -6,7 +6,8 @@ Geospatial Indexes and Queries
 
 MongoDB offers a number of indexes and query mechanisms to handle
 geospatial information. This section introduces MongoDB's geospatial
-features.
+features. For complete examples of geospatial queries in MongoDB, see
+:doc:`/administration/indexes-geo`.
 
 Surfaces
 --------
@@ -18,97 +19,133 @@ of your queries.
 
 MongoDB offers two surface types:
 
-- **Spherical**
+Spherical
+~~~~~~~~~
 
-  To calculate geometry over an Earth-like sphere, store your location
-  data on a spherical surface and use :doc:`2dsphere
-  </core/2dsphere>` index.
+To calculate geometry over an Earth-like sphere, store your
+location data on a spherical surface and use :doc:`2dsphere
+</core/2dsphere>` index.
 
-  Store your location data as GeoJSON objects with this coordinate-axis
-  order: **longitude, latitude**. The coordinate reference system for
-  GeoJSON uses the :term:`WGS84` datum.
+Store your location data as GeoJSON objects with this
+coordinate-axis order: **longitude, latitude**. The coordinate
+reference system for GeoJSON uses the :term:`WGS84` datum.
 
-- **Flat**
+Flat
+~~~~
 
-  To calculate distances on a Euclidean plane, store your location data
-  as legacy coordinate pairs and use a :doc:`2d </core/2d>` index.
+To calculate distances on a Euclidean plane, store your location data
+as legacy coordinate pairs and use a :doc:`2d </core/2d>` index.
 
 .. _geo-overview-location-data:
 
 Location Data
 -------------
 
-If you choose spherical surface calculations, you store location data as
+If you choose spherical surface calculations, you store location data
+as either:
 
-- :term:`GeoJSON` objects (preferred).
+GeoJSON Objects
+~~~~~~~~~~~~~~~
 
-  Queries on GeoJSON objects always calculate on a sphere. The default
-  coordinate reference system for GeoJSON uses the :term:`WGS84` datum.
+Queries on :term:`GeoJSON` objects always calculate on a sphere. The
+default coordinate reference system for GeoJSON uses the :term:`WGS84`
+datum.
 
-  .. versionadded:: 2.4 The storage and querying of GeoJSON objects
-     is new in version 2.4. Prior to version 2.4, all geospatial data was
-     stored as coordinate pairs.
+.. versionadded:: 2.4
+   Support for GeoJSON storage and queries is new in version
+   2.4. Prior to version 2.4, all geospatial data used coordinate
+   pairs.
 
-  MongoDB supports the following GeoJSON objects:
+MongoDB supports the following GeoJSON objects:
 
-  - Point
+- Point
 
-  - LineString
+- LineString
 
-  - Polygon
+- Polygon
 
-- :term:`Legacy coordinate pairs <legacy coordinate pairs>`
+Legacy Coordinate Pairs
+~~~~~~~~~~~~~~~~~~~~~~~
 
-  MongoDB supports spherical surface calculations on legacy coordinate
-  pairs by converting the data to the GeoJSON Point type.
+MongoDB supports spherical surface calculations on :term:`legacy
+coordinate pairs` using a ``2dsphere`` index by converting the data to
+the GeoJSON Point type.
 
-If you choose flat surface calculations, you can store data only as
-:term:`legacy coordinate pairs`.
+If you choose flat surface calculations, and use a ``2d`` index you
+can store data only as :term:`legacy coordinate pairs`.
 
 Query Operations
 ----------------
 
 MongoDB's geospatial query operators let you query for:
 
-- **Inclusion**. MongoDB can query for locations contained entirely
-  within a specified polygon. Inclusion queries use the
-  :operator:`$geoWithin` operator.
+Inclusion
+~~~~~~~~~
 
-- **Intersection**. MongoDB can query for locations that intersect with
-  a specified geometry. These queries apply only to data on a spherical
-  surface. These queries use the :operator:`$geoIntersects` operator.
+MongoDB can query for locations contained entirely within a
+specified polygon. Inclusion queries use the :query:`$geoWithin`
+operator.
 
-- **Proximity**. MongoDB can query for the points nearest to another
-  point. Proximity queries use the :operator:`$near` operator. The
-  :operator:`$near` operator requires a ``2d`` or ``2dsphere`` index.
+Both ``2d`` and ``2dsphere`` indexes can support inclusion
+queries. MongoDB does not require an index for inclusion queries after
+2.2.3; however, these indexes will improve query performance.
+
+Intersection
+~~~~~~~~~~~~
+
+MongoDB can query for locations that intersect with a specified
+geometry. These queries apply only to data on a spherical
+surface. These queries use the :query:`$geoIntersects` operator.
+
+Only ``2dsphere`` indexes support intersection.
+
+Proximity
+~~~~~~~~~
+
+MongoDB can query for the points nearest to another
+point. Proximity queries use the :query:`$near` operator. The
+:query:`$near` operator requires a ``2d`` or ``2dsphere`` index.
+
+.. _index-feature-geospatial:
 
 Geospatial Indexes
 ------------------
 
 MongoDB provides the following geospatial index types to support the
-geospatial queries:
+geospatial queries.
 
-- :doc:`2dsphere </core/2dsphere>`, which supports:
+``2dsphere``
+~~~~~~~~~~~~
 
-  - Calculations on a sphere
+:doc:`2dsphere </core/2dsphere>` indexes support:
 
-  - Both GeoJSON objects and legacy coordinate pairs
+- Calculations on a sphere
 
-  - A compound index with scalar index fields (i.e. ascending or
-    descending) as a prefix or suffix of the ``2dsphere`` index field
+- GeoJSON objects and include backwards compatibility for legacy
+  coordinate pairs.
 
-  .. versionadded:: 2.4
-     ``2dsphere`` indexes are not available before version 2.4.
+- A compound index with scalar index fields (i.e. ascending or
+  descending) as a prefix or suffix of the ``2dsphere`` index field
 
-- :doc:`2d </core/2d>`, which supports:
+.. versionadded:: 2.4
+   ``2dsphere`` indexes are not available before version 2.4.
 
-  - Calculations using flat geometry
+.. seealso:: :doc:`/tutorial/query-a-2dsphere-index`
 
-  - Legacy coordinate pairs (i.e., geospatial points on a flat
-    coordinate system)
+``2d``
+~~~~~~
 
-  - A compound index with only one additional field, as a suffix of the
-    ``2d`` index field
+:doc:`2d </core/2d>` indexes support:
+
+- Calculations using flat geometry
+
+- Legacy coordinate pairs (i.e., geospatial points on a flat
+  coordinate system)
+
+- A compound index with only one additional field, as a suffix of the
+  ``2d`` index field
+
+.. seealso:: :doc:`/tutorial/query-a-2d-index`
 
 Geospatial Indexes and Sharding
 -------------------------------
@@ -116,11 +153,11 @@ Geospatial Indexes and Sharding
 You *cannot* use a geospatial index as the :term:`shard key` index.
 
 You can create and maintain a geospatial index on
-a sharded collection if using different fields as the shard key.
+a sharded collection if using fields other than shard key.
 
-Queries using :operator:`$near` are not supported for sharded
+Queries using :query:`$near` are not supported for sharded
 collections. Use :dbcommand:`geoNear` instead. You also can query for
-geospatial data using :operator:`$geoWithin`.
+geospatial data using :query:`$geoWithin`.
 
 Additional Resources
 --------------------
@@ -128,13 +165,8 @@ Additional Resources
 The following pages provide complete documentation for geospatial
 indexes and queries:
 
-.. toctree::
-   :maxdepth: 1
+.. include:: /includes/toc/dfn-list-indexes-concepts-geo.rst
 
-   /core/2d
-   /core/2dsphere
-   /core/geohaystack
-   /tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes
-   /core/geospatial-indexes
+.. include:: /includes/toc/indexes-concepts-geo.rst
 
 .. seealso:: :ref:`geospatial-query-compatibility-chart`

@@ -5,6 +5,8 @@ names:
   value must be unique in the collection, is immutable, and may be of
   any type other than an array.
 
-- The field names **cannot** start with the ``$`` character.
+- The field names **cannot** start with the dollar sign (``$``) character.
 
-- The field names **cannot** contain the ``.`` character.
+- The field names **cannot** contain the dot (``.``) character.
+
+- The field names **cannot** contain the ``null`` character.

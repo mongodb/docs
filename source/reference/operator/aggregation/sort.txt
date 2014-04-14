@@ -1,0 +1,123 @@
+===================
+$sort (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. pipeline:: $sort
+
+   The :pipeline:`$sort` :term:`pipeline` operator sorts all input
+   documents and returns them to the pipeline in sorted order.
+
+   Consider the following prototype form:
+
+   .. code-block:: javascript
+
+      db.<collection-name>.aggregate(
+         [
+           { $sort : { <sort-key> } }
+         ]
+      )
+
+   This sorts the documents in the collection named
+   ``<collection-name>``, according to the key and specification in the
+   ``{ <sort-key> }`` document. The sort key has the following syntax:
+
+   .. code-block:: javascript
+
+      { field: value }
+
+   The ``{ <sort-key> }`` document can specify :ref:`ascending or
+   descending sort on existing fields <sort-pipeline-asc-desc>` or
+   :ref:`sort on computed metadata <sort-pipeline-metadata>`.
+
+Behaviors
+---------
+
+.. _sort-pipeline-asc-desc:
+
+Ascending/Descending Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify in the ``{ <sort-key> }`` document the field or fields to sort
+by and a value of ``1`` or ``-1`` to specify an ascending or descending
+sort respectively, as in the following example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $sort : { age : -1, posts: 1 } }
+      ]
+   )
+
+This operation sorts the documents in the ``users`` collection,
+in descending order according by the ``age`` field and then in
+ascending order according to the value in the ``posts`` field.
+
+.. include:: /includes/fact-sort-order.rst
+
+.. _sort-pipeline-metadata:
+
+Metadata Sort
+~~~~~~~~~~~~~
+
+Specify in the ``{ <sort-key> }`` document, a new field name for the
+computed metadata and specify the :expression:`$meta` expression as its
+value, as in the following example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $match: { $text: { $search: "operating" } } },
+        { $sort: { score: { $meta: "textScore" }, posts: -1 } }
+      ]
+   )
+
+This operation uses the :query:`$text` operator to match the documents,
+and then sorts first by the ``"textScore"`` metadata and then by
+descending order of the ``posts`` field. The specified metadata
+determines the sort order. For example, the ``"textScore"`` metadata
+sorts in descending order. See :expression:`$meta` for more information
+on metadata.
+
+.. _sort-and-memory:
+
+``$sort`` Operator and Memory
+-----------------------------
+
+.. _sort-limit-sequence:
+
+``$sort`` + ``$limit`` Memory Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-agg-sort-limit.rst
+
+.. _sort-memory-limit:
+
+``$sort`` and Memory Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$sort` stage has a limit of 100 megabytes of RAM. By
+default, if the stage exceeds this limit, :pipeline:`$sort` will
+produce an error. To allow for the handling of large datasets, set the
+``allowDiskUse`` option to ``true`` to enable :pipeline:`$sort`
+operations to write to temporary files. See the ``allowDiskUse``
+option in :method:`db.collection.aggregate()` method and the
+:dbcommand:`aggregate` command for details.
+
+.. versionchanged:: 2.6
+   The memory limit for :pipeline:`$sort` changed from 10
+   percent of RAM to 100 megabytes of RAM.
+
+``$sort`` Operator and Performance
+----------------------------------
+
+:pipeline:`$sort` operator can take advantage of an index when
+placed at the **beginning** of the pipeline or placed **before**
+the following aggregation operators: :pipeline:`$project`,
+:pipeline:`$unwind`, and :pipeline:`$group`.
+
+.. todo:: if a sort precedes the first $group in a sharded system,
+   all documents must go to the mongos for sorting.

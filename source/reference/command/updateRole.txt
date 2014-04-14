@@ -1,0 +1,101 @@
+==========
+updateRole
+==========
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: updateRole
+
+   Updates a :ref:`user-defined role <user-defined-roles>`. The
+   :dbcommand:`updateRole` command must run on the role's database.
+
+   An update to a field **completely replaces** the previous field's values.
+   To grant or remove roles or :ref:`privileges <privileges>` without
+   replacing all values, use one or more of the following commands:
+
+   - :dbcommand:`grantRolesToRole`
+   - :dbcommand:`grantPrivilegesToRole`
+   - :dbcommand:`revokeRolesFromRole`
+   - :dbcommand:`revokePrivilegesFromRole`
+
+   .. warning::
+
+      An update to the ``privileges`` or ``roles`` array
+      completely replaces the previous array's values.
+
+   The :dbcommand:`updateRole` command uses the following syntax. To
+   update a role, you must provide the ``privileges`` array, ``roles``
+   array, or both:
+
+   .. code-block:: javascript
+
+      {
+        updateRole: "<role>",
+        privileges:
+            [
+              { resource: { <resource> }, actions: [ "<action>", ... ] },
+              ...
+            ],
+        roles:
+            [
+              { role: "<role>", db: "<database>" } | "<role>",
+              ...
+            ],
+        writeConcern: <write concern document>
+      }
+
+   The :dbcommand:`updateRole` command has the following fields:
+
+   .. include:: /reference/command/updateRole-field.rst
+
+   .. |local-cmd-name| replace:: :dbcommand:`updateRole`
+   .. include:: /includes/fact-roles-array-contents.rst
+
+Behavior
+--------
+
+A role's privileges apply to the database where the role is created. The
+role can inherit privileges from other roles in its database. A role
+created on the ``admin`` database can include privileges that apply to all
+databases or to the :ref:`cluster <resource-cluster>` and can inherit
+privileges from roles in other databases.
+
+Required Access
+---------------
+
+.. include:: /includes/access-update-role.rst
+
+Example
+-------
+
+The following is an example of the :dbcommand:`updateRole` command that
+updates the ``myClusterwideAdmin`` role on the ``admin`` database.
+While the :data:`~admin.system.roles.privileges` and the
+:data:`~admin.system.roles.roles` arrays are both optional, at least
+one of the two is required:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand(
+      {
+        updateRole: "myClusterwideAdmin",
+        privileges:
+            [
+              {
+                resource: { db: "", collection: "" },
+                actions: [ "find" , "update", "insert", "remove" ]
+              }
+            ],
+        roles:
+            [
+              { role: "dbAdminAnyDatabase", db: "admin" }
+            ],
+        writeConcern: { w: "majority" }
+      }
+   )
+
+To view a role's privileges, use the :dbcommand:`rolesInfo` command.

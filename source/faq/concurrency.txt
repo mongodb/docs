@@ -4,20 +4,16 @@ FAQ: Concurrency
 
 .. default-domain:: mongodb
 
-.. contents:: Frequently Asked Questions:
-   :backlinks: none
-   :local:
-
 .. versionchanged:: 2.2
 
 MongoDB allows multiple clients to read and write a single corpus of
-data using a locking system to ensure that all clients receive a
-consistent view of the data *and* to prevent multiple applications
+data using a locking system to ensure that all clients receive the
+same view of the data *and* to prevent multiple applications
 from modifying the exact same pieces of data at the same time. Locks
 help guarantee that all writes to a single document occur either in
 full or not at all.
 
-.. seealso:: `Presentation on Concurrency and Internals in 2.2 <http://www.10gen.com/presentations/concurrency-internals-mongodb-2-2>`_
+.. seealso:: `Presentation on Concurrency and Internals in 2.2 <http://www.mongodb.com/presentations/concurrency-internals-mongodb-2-2>`_
 
 .. _faq-concurrency-locking:
 
@@ -66,7 +62,7 @@ following methods:
 - :method:`db.currentOp()`,
 - :doc:`mongotop </reference/program/mongotop>`,
 - :doc:`mongostat </reference/program/mongostat>`, and/or
-- the `MongoDB Management Service (MMS) <http://mms.10gen.com/>`_
+- the `MongoDB Management Service (MMS) <http://mms.mongodb.com/>`_
 
 Specifically, the :data:`~serverStatus.locks` document in the :doc:`output of
 serverStatus </reference/command/serverStatus>`, or the :data:`~currentOp.locks` field
@@ -81,20 +77,27 @@ To terminate an operation, use :method:`db.killOp()`.
 Does a read or write operation ever yield the lock?
 ---------------------------------------------------
 
+In some situations, read and write operations can yield their locks.
+
+Long running read and write operations, such as queries, updates, and
+deletes, yield under many conditions. In MongoDB 2.0, operations
+yielded based on time slices and the number of operations waiting for
+the actively held lock. After 2.2, more adaptive algorithms allow
+operations to yield based on predicted disk access (i.e. page faults).
+
 .. versionadded:: 2.0
+   Read and write operations will yield their locks if the
+   :program:`mongod` receives a :term:`page fault` *or* fetches data that
+   is unlikely to be in memory. Yielding allows other operations that
+   only need to access documents that are already in memory to complete
+   while :program:`mongod` loads documents into memory.
 
-Read and write operations will yield their locks if the
-:program:`mongod` receives a :term:`page fault` *or* fetches data that
-is unlikely to be in memory. Yielding allows other operations that
-only need to access documents that are already in memory to complete
-while :program:`mongod` loads documents into memory.
-
-Additionally, write operations that affect multiple documents
-(i.e. :method:`~db.collection.update()` with the ``multi``
-parameter,) will yield periodically to allow read operations during
-these long write operations. Similarly, long running read locks will
-yield periodically to ensure that write operations have the
-opportunity to complete.
+   Additionally, write operations that affect multiple documents
+   (i.e. :method:`~db.collection.update()` with the ``multi``
+   parameter) will yield periodically to allow read operations during
+   these long write operations. Similarly, long running read locks will
+   yield periodically to ensure that write operations have the
+   opportunity to complete.
 
 .. versionchanged:: 2.2
    The use of yielding expanded greatly in MongoDB 2.2. Including the
@@ -118,7 +121,7 @@ locks they use.
 .. todo In the table below (in the include), the issue of blocked
    JavaScript might no longer apply in version 2.4, which will use V8.
 
-.. include:: /includes/table-lock-behavior-per-operation.rst
+.. include:: /includes/table/lock-behavior-per-operation.rst
 
 Which administrative commands lock the database?
 ------------------------------------------------
@@ -150,7 +153,7 @@ the lock for a very short time:
 - :method:`db.collection.dropIndex()`,
 - :method:`db.getLastError()`,
 - :method:`db.isMaster()`,
-- :method:`rs.status()` (i.e. :dbcommand:`replSetGetStatus`,)
+- :method:`rs.status()` (i.e. :dbcommand:`replSetGetStatus`),
 - :method:`db.serverStatus()`,
 - :method:`db.auth()`, and
 - :method:`db.addUser()`.
@@ -169,13 +172,14 @@ The following MongoDB operations lock multiple databases:
   all databases for short intervals. All databases share a single
   journal.
 
-- :doc:`User authentication </core/access-control>` locks the
+- :doc:`User authentication </core/authentication>` locks the
   ``admin`` database as well as the database the user is accessing.
 
 - All writes to a replica set's :term:`primary` lock both the database
-  receiving the writes and the ``local`` database. The lock for the
-  ``local`` database allows the :program:`mongod` to write to the
-  primary's :term:`oplog`.
+  receiving the writes and then the ``local`` database for a short
+  time. The lock for the ``local`` database allows the
+  :program:`mongod` to write to the primary's :term:`oplog` and
+  accounts for a small portion of the total time of the operation.
 
 How does sharding affect concurrency?
 -------------------------------------
@@ -188,7 +192,7 @@ instances.
 
 Each :program:`mongod` instance is independent of the others in the
 shard cluster and uses the MongoDB :ref:`readers-writer lock
-<faq-concurrency-locking>`). The operations on one :program:`mongod`
+<faq-concurrency-locking>`. The operations on one :program:`mongod`
 instance do not block the operations on any others.
 
 .. _faq-concurrency-replication:
@@ -201,7 +205,7 @@ In :term:`replication`, when MongoDB writes to a collection on the
 which is a special collection in the ``local`` database.  Therefore,
 MongoDB must lock both the collection's database and the ``local``
 database. The :program:`mongod` must lock both databases at the same
-time keep both data consistent and ensure that write operations, even
+time to keep the database consistent and ensure that write operations, even
 with replication, are "all-or-nothing" operations.
 
 How does concurrency affect secondaries?

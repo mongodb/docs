@@ -1,0 +1,75 @@
+==========
+createRole
+==========
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: createRole
+
+   Creates a role and specifies its :ref:`privileges <privileges>`.
+   The role applies to the
+   database on which you run the command. The :dbcommand:`createRole`
+   command returns a *duplicate role* error if the role already exists in
+   the database.
+
+   The :dbcommand:`createRole` command uses the following syntax:
+
+   .. code-block:: javascript
+
+      { createRole: "<new role>",
+        privileges: [
+          { resource: { <resource> }, actions: [ "<action>", ... ] },
+          ...
+        ],
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        writeConcern: <write concern document>
+      }
+
+   The :dbcommand:`createRole` command has the following fields:
+
+   .. include:: /reference/command/createRole-field.rst
+
+   .. |local-cmd-name| replace:: :dbcommand:`createRole`
+   .. include:: /includes/fact-roles-array-contents.rst
+
+Behavior
+--------
+
+A role's privileges apply to the database where the role is created. The
+role can inherit privileges from other roles in its database. A role
+created on the ``admin`` database can include privileges that apply to all
+databases or to the :ref:`cluster <resource-cluster>` and can inherit
+privileges from roles in other databases.
+
+Required Access
+---------------
+
+.. include:: /includes/access-create-role.rst
+
+Example
+-------
+
+The following :dbcommand:`createRole` command creates the
+``myClusterwideAdmin`` role on the ``admin`` database:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand({ createRole: "myClusterwideAdmin",
+     privileges: [
+       { resource: { cluster: true }, actions: [ "addShard" ] },
+       { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+       { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+       { resource: { db: "", collection: "" }, actions: [ "find" ] }
+     ],
+     roles: [
+       { role: "read", db: "admin" }
+     ],
+     writeConcern: { w: "majority" , wtimeout: 5000 }
+   })

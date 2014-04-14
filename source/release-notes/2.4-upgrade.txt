@@ -13,11 +13,6 @@ for :ref:`upgrading sharded clusters <2.4-upgrade-cluster>` and the
 considerations for :ref:`reverting to 2.2 after running 2.4
 <2.4-downgrade>`.
 
-.. contents:: Content
-   :backlinks: none
-   :local:
-   :depth: 1
-
 Upgrade Recommendations and Checklist
 -------------------------------------
 
@@ -30,12 +25,12 @@ When upgrading, consider the following:
 - To upgrade to 2.4 sharded clusters *must* upgrade following the
   :ref:`meta-data upgrade procedure <2.4-upgrade-cluster>`.
 
-- If you're using 2.2.0 and running with :setting:`auth` enabled, you
+- If you're using 2.2.0 and running with :setting:`~security.authorization` enabled, you
   will need to upgrade first to 2.2.1 and then upgrade to 2.4. See
   :ref:`2.4-upgrade-auth-limitation`.
 
 - If you have :data:`system.users <<database>.system.users>` documents
-  (i.e. for :setting:`auth`) that you created before 2.4 you *must*
+  (i.e. for :setting:`~security.authorization`) that you created before 2.4 you *must*
   ensure that there are no duplicate values for the ``user`` field in
   the :data:`system.users <<database>.system.users>` collection in
   *any* database.  If you *do* have documents with duplicate user
@@ -103,6 +98,9 @@ Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
    of the cluster are currently running instances of 2.2. The only
    supported upgrade path for sharded clusters running 2.0 is via 2.2.
 
+Overview
+~~~~~~~~
+
 Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4
 (or 2.3) requires that you run a 2.4 :program:`mongos`
 with the :option:`--upgrade <mongos --upgrade>` option, described in
@@ -110,57 +108,75 @@ this procedure. The upgrade process does not require downtime.
 
 The upgrade to MongoDB 2.4 adds epochs to the meta-data for all
 collections and chunks in the existing cluster. MongoDB 2.2 processes
-are capable of handling epochs, even though 2.2 did not require them.
+are capable of handling epochs, even though 2.2 did not require
+them. This procedure applies only to upgrades from version 2.2. Earlier
+versions of MongoDB do not correctly handle epochs. See
+:ref:`2.4-sharded-cluster-meta-data-upgrade` for more information.
 
-This procedure applies only to upgrades from version 2.2. Earlier
-versions of MongoDB do not correctly handle epochs.
+After completing the meta-data upgrade you can fully upgrade the
+components of the cluster. With the balancer disabled:
 
-.. warning::
+- Upgrade all :program:`mongos` instances in the cluster.
 
-   - .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
+- Upgrade all 3 :program:`mongod` config server instances.
 
-   - While the upgrade is in progress, you cannot make changes to the
-     collection meta-data. For example, during the upgrade, do **not**
-     perform:
+- Upgrade the :program:`mongod` instances for each shard, one at a
+  time.
 
-     - :method:`sh.enableSharding()`,
+See :ref:`2.4-finalize-shard-cluster-upgrade` for more information.
 
-     - :method:`sh.shardCollection()`,
+.. _2.4-sharded-cluster-meta-data-upgrade:
 
-     - :method:`sh.addShard()`,
+Cluster Meta-data Upgrade
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     - :method:`db.createCollection()`,
+Considerations
+``````````````
 
-     - :method:`db.collection.drop()`,
+Beware of the following properties of the cluster upgrade process:
 
-     - :method:`db.dropDatabase()`,
+- .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
 
-     - any operation that creates a database, or
+- While the upgrade is in progress, you cannot make changes to the
+  collection meta-data. For example, during the upgrade, do **not**
+  perform:
 
-     - any other operation that modifies the cluster meta-data in any
-       way. See :doc:`/reference/sharding` for a complete list
-       of sharding commands. Note, however, that not all commands on
-       the :doc:`/reference/sharding` page modifies the
-       cluster meta-data.
+  - :method:`sh.enableSharding()`,
 
-   - Once you upgrade to 2.4 and complete the upgrade procedure **do
-     not** use 2.0 :program:`mongod` and :program:`mongos` processes in
-     your cluster. 2.0 process may re-introduce old meta-data formats
-     into cluster meta-data.
+  - :method:`sh.shardCollection()`,
 
-.. note::
+  - :method:`sh.addShard()`,
 
-   The upgraded config database will require more storage space than
-   before, to make backup and working copies of the
-   :data:`config.chunks` and :data:`config.collections` collections.
-   As always, if storage requirements increase, the :program:`mongod`
-   might need to pre-allocate additional data files. See
-   :ref:`faq-tools-for-measuring-storage-use` for more information.
+  - :method:`db.createCollection()`,
+
+  - :method:`db.collection.drop()`,
+
+  - :method:`db.dropDatabase()`,
+
+  - any operation that creates a database, or
+
+  - any other operation that modifies the cluster meta-data in any
+    way. See :doc:`/reference/sharding` for a complete list
+    of sharding commands. Note, however, that not all commands on
+    the :doc:`/reference/sharding` page modifies the
+    cluster meta-data.
+
+- Once you upgrade to 2.4 and complete the upgrade procedure **do
+  not** use 2.0 :program:`mongod` and :program:`mongos` processes in
+  your cluster. 2.0 process may re-introduce old meta-data formats
+  into cluster meta-data.
+
+The upgraded config database will require more storage space than
+before, to make backup and working copies of the
+:data:`config.chunks` and :data:`config.collections` collections.
+As always, if storage requirements increase, the :program:`mongod`
+might need to pre-allocate additional data files. See
+:ref:`faq-tools-for-measuring-storage-use` for more information.
 
 .. _2.4-upgrade-meta-data:
 
-Meta-Data Upgrade Procedure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Meta-data Upgrade Procedure
+```````````````````````````
 
 Changes to the meta-data format for sharded clusters, stored in the
 :doc:`config database </reference/config-database>`, require a special
@@ -202,7 +218,7 @@ operations.
    processes to confirm that none are still active.
 
 #. Start a single 2.4 :program:`mongos` process with
-   :setting:`configdb` pointing to the sharded cluster's :ref:`config
+   :setting:`~sharding.configDB` pointing to the sharded cluster's :ref:`config
    servers <sharding-config-server>` and with the :option:`--upgrade
    <mongos --upgrade>` option.  The upgrade process happens before the
    process becomes a daemon (i.e. before
@@ -280,7 +296,7 @@ operations.
    sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
    option.
 
-   See :ref:`2.4 finalize-shard-cluster-upgrade` for more information.
+   See :ref:`2.4-finalize-shard-cluster-upgrade` for more information.
 
 #. :ref:`Re-enable the balancer
    <sharding-balancing-disable-temporarily>`. You can now perform
@@ -295,7 +311,7 @@ incompatibilities in future versions of MongoDB.
 .. _upgrade-cluster-resync:
 
 Resync after an Interruption of the Critical Section
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````````````
 
 During the short critical section of the upgrade that applies changes
 to the meta-data, it is unlikely but possible that a network
@@ -323,7 +339,7 @@ To resync the config servers:
    have already disabled the balancer.
 
 #. Shut down two of the three config servers, preferably the last two listed
-   in the :setting:`configdb` string. For example, if your :setting:`configdb`
+   in the :setting:`~sharding.configDB` string. For example, if your :setting:`~sharding.configDB`
    string is ``configA:27019,configB:27019,configC:27019``, shut down
    ``configB`` and ``configC``. Shutting down the last two config servers
    ensures that most :program:`mongos` instances will have
@@ -377,10 +393,10 @@ To resync the config servers:
 #. Finally retry the upgrade process, as in
    :ref:`2.4-upgrade-cluster`.
 
-.. _2.4 finalize-shard-cluster-upgrade:
+.. _2.4-finalize-shard-cluster-upgrade:
 
-Complete Sharded Cluster Upgrade
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Upgrade Sharded Cluster Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you have successfully completed the meta-data upgrade process
 described in :ref:`2.4-upgrade-meta-data`, and the 2.4
@@ -482,10 +498,12 @@ procedure.
    :program:`mongod` or :program:`mongos` instances in the same
    cluster.
 
-   If you complete the meta-data upgrade, you can have a mixed cluster
-   that has both 2.2 and 2.4 :program:`mongod` and :program:`mongos`
-   instances, if needed. However, **do not** create ``2dsphere`` or
-   ``text`` indexes in a cluster that has 2.2 components.
+   If you complete the meta-data upgrade, you can safely downgrade
+   components in any order. When upgrade again, always
+   upgrade :program:`mongos` instances before :program:`mongod` instances.
+
+   **Do not** create ``2dsphere`` or ``text`` indexes in a cluster
+   that has 2.2 components.
 
 Considerations and Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -524,16 +542,16 @@ replacement:
 
      mongod --dbpath /var/mongod/data --shutdown
 
-  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`~storage.dbPath`.
 
 - start the new :program:`mongod` processes with the same
-  :setting:`dbpath` setting, for example:
+  :setting:`~storage.dbPath` setting, for example:
 
   .. code-block:: sh
 
      mongod --dbpath /var/mongod/data
 
-  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`~storage.dbPath`.
 
 .. _2.4-downgrade-pdfile:
 
