@@ -1,0 +1,91 @@
+====================
+On Prem MMS Overview
+====================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+The MongoDB Management Service (MMS) is a service for monitoring and
+backing up a MongoDB infrastructure.
+
+MMS Monitoring
+~~~~~~~~~~~~~~
+
+MMS provides real-time reporting, visualization and alerting on key database and
+hardware indicators and presents the data in an intuitive web dashboard.
+
+A lightweight Monitoring Agent runs within your infrastructure and connects to the
+configured MongoDB instances.  The Monitoring Agent collect statistics from the nodes
+in your deployment and transmit it back  to MMS.  The MMS user interface allows the user
+to view the visualized data and set alerts.
+
+MMS Backup
+~~~~~~~~~~
+
+Engineered specifically for MongoDB, MMS Backup features scheduled
+snapshots and point in time recovery. Once the service is up and running,
+MMS provides a web interface to support backup and restoration. MMS
+Backup supports horizontal scaling.
+
+A lightweight Backup Agent runs within your infrastructure and connects to the
+configured MongoDB instances. The agent performs an initial sync and then
+tail the oplog of a replica set’s primary. For a sharded cluster, the
+backup agent tails the primary of each shard and each config server. The
+agent ships initial sync and oplog data over HTTPS back to the MMS service.
+
+The MMS service recreates every replica set you backup and applies the
+oplog entries sent by the backup agents. MMS then maintains a standalone
+MongoDB database on disk, also called a *head*, for each backed up replica
+set. Each head is consistent with the original primary up to the last
+oplog supplied by the agent. The initial sync and tailing of the oplog are
+all done using standard MongoDB queries.
+
+Packages
+--------
+
+MMS Application Package
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To install and use MMS Monitoring, **only** this package is required.
+The MMS application package includes these components:
+
+- **MMS HTTP Service:** This component contains the web interface to manage
+  MMS users, monitor MongoDB servers, and manage those server's backups.
+  The http server runs on port 8081 by default.
+
+- **Backup HTTP Service:** This component contains the set of web services
+  used by the backup agent. The agent retrieves its configuration data
+  from this service. The agent also sends back initial sync and oplog data
+  through this interface. There is no user interaction with this service.
+  The backup server runs on port 8081 by default.
+
+- **Backup Alert Service:** This alert service watches the state of all agents,
+  heads, and snapshots. The service sends email alerts when problems occur.
+
+Install this package on the MMS Application Server.
+
+Optional: Backup Daemon Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This package is **optional**. It is only necessary to utilize the MMS Backup
+service.
+
+This package contains only the backup daemon. The daemon manages all heads
+and snapshots based on data coming into the Backup HTTP Service from the
+backup agents. No client applications connect directly to the daemon.
+
+The daemon creates the heads on its local disk, in a configured path. If
+multiple servers run the daemon, new incoming backups will be assigned to
+an appropriate daemon and that backup's head will live with that daemon.
+
+The daemon takes scheduled snapshots and stores those snapshots in the
+Snapshot Storage, also known as the Blockstore. It also will act on
+restore requests by retrieving data from the Blockstore and delivering it
+to the requested destination.
+
+Multiple backup daemons can run to scale MMS horizontally. However, each
+replica set will bind to a specific daemon.
+
+Install this package on the Backup Daemon Server.
