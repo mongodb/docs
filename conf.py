@@ -86,7 +86,7 @@ extlinks = {
     'mms-hosted': ('https://mms.mongodb.org/help-hosted%s', ''),
     'about': ('http://www.mongodb.org/about%s', '')
 }
-h
+
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
     extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
