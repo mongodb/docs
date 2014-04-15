@@ -9,7 +9,7 @@
 
 Pipeline stages have a limit of 100 megabytes of RAM. If a stage
 exceeds this limit, MongoDB will produce an error. To allow for the
-handling of large datasets, use the ``allowDiskUsage`` option to enable
+handling of large datasets, use the ``allowDiskUse`` option to enable
 aggregation pipeline stages to write data to temporary files.
 
 .. seealso:: :ref:`sort-memory-limit` and :ref:`group-memory-limit`.
