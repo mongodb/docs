@@ -99,6 +99,7 @@ html_theme_options = {
     'branch': conf.git.branches.current,
     'google_analytics': 'UA-7301842-7',
     'stable': conf.version.stable,
+    'manual_branch': conf.git.branches.manual,
     'project': conf.project.name,
     'translations': languages,
     'nav_excluded': [ '/monitoring/tutorial/set-up-mms']
