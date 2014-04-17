@@ -4,7 +4,7 @@ Next Steps
 - To configure the MMS application, authentication, email, replication,
   and optional Kerberos integration, see the
   :doc:`/reference/configuration` and
-  :doc:`/tutorial/configuration-on-prem-kerberos-authentication` pages.
+  :doc:`/tutorial/configure-on-prem-kerberos-authentication` pages.
 
 - To start (and stop) the MMS application, see :doc:`/tutorial/start-and-stop-application`.
 
