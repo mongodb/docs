@@ -5,20 +5,39 @@ Configuration
 .. default-domain:: mongodb
 
 .. TODO
+   - Does Backup also require email settings to be setup?
    - See whether the setting definitions are correct
      (esp the email settings + can the other email settings also take aliases)   
-   - See if ``/opt/mongodb/mms/conf/conf-mms.properties`` file same
-     as <install_dir> (went with more general <install_dir>)
-   - Are the settings for the backing MongoDB store correct?  
+   - Where/How to incorporate previously existing sentence:
+     The backing MongoDB store uses a connection string URI defined in the
+     ``<install_dir>/conf/conf-mms.properties`` directory.
+   - email dao -- other than AWS SES, all others use
+   ``com.xgen.svc.core.dao.email.JavaEmailDao``?
 
 Overview
 --------
 
-The ``<install_dir>/conf/conf-mms.properties`` file contains the
-settings to configure On Prem MMS application.
+The MMS Application Package and the MMS Backup Daemon Package include a
+``conf-mms.properties`` file. Located in the ``<install_dir>/conf/``
+directory, the ``conf-mms.properties`` files contain configuration
+settings for their respective services.
+
+To start either service, you must configure the
+:ref:`application-url-settings` and :ref:`email-address-settings` in
+the respective ``conf-mms.properties`` file.
+
+Since the configuration file may contain user credentials in plain
+text, follow standard practice and reduce the permissions on the
+configuration file:
+
+.. code-block:: sh
+
+   sudo chmod 600 <install_dir>/conf/conf-mms.properties
 
 Settings
 --------
+
+.. _application-url-settings:
 
 Application URL Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,8 +48,8 @@ The following two settings are mandatory.
 
    *Type*: string
 
-   Required. Fully qualified URL, including the port number, of the
-   Monitoring MMS application server. For example,
+   Required. Fully qualified URL, including the port number, of the MMS
+   Monitoring server. For example,
 
    .. code-block:: ini
 
@@ -52,12 +71,13 @@ The following two settings are mandatory.
 Email Settings
 ~~~~~~~~~~~~~~
 
-.. note::
+.. email-address-settings:
 
-   By default, On Prem MMS uses a local SMTP server listening on port ``25``.
+Email Address Settings
+``````````````````````
 
-The following email settings are mandatory. You **must** define them
-before the |monitoring| instance will start.
+The following email address settings are mandatory. You **must** define
+them before the |monitoring| instance will start.
 
 .. setting:: mms.fromEmailAddr
 
@@ -115,6 +135,143 @@ before the |monitoring| instance will start.
 
       mms.bounceEmailAddr=bounce@example.com
 
+Email Service Settings
+``````````````````````
+
+.. setting:: mms.emailDaoClass
+
+   *Type*: string
+
+   The email interface to use. For AWS Simple Email Service,
+   specify ``com.xgen.svc.core.dao.email.AwsEmailDao``, as in:
+
+   .. code-block:: ini
+
+      mms.emailDaoClass=com.xgen.svc.core.dao.email.AwsEmailDao
+
+   For AWS Simple Email Service, see also :setting:`aws.accesskey` and
+   :setting:`aws.secretkey`.
+
+   For all others, specify
+   ``com.xgen.svc.core.dao.email.JavaEmailDao``, as in:
+
+   .. code-block:: ini
+
+      mms.emailDaoClass=com.xgen.svc.core.dao.email.JavaEmailDao
+
+.. setting:: mms.mail.transport
+
+   *Type*: string
+   *Default*: smtp
+
+   Transfer protocol ``smtp`` or ``smtps`` as specified by your email
+   provider. For example:
+
+   .. code-block:: ini
+
+      mms.mail.transport=smtp
+
+.. setting:: mms.mail.hostname
+
+   *Type*: string
+   *Default*: localhost
+
+   Email hostname as specified by your email provider. For example:
+
+   .. code-block:: ini
+
+      mms.mail.hostname=mail.example.com
+
+.. setting:: mms.mail.hostname
+
+   *Type*: number
+   *Default*: 25
+
+   Port number for the transfer protocol as specified by your email
+   provider. For example:
+
+   .. code-block:: ini
+
+      mms.mail.port=25
+
+.. setting:: mms.mail.tls
+
+   *Type*: boolean
+   *Default*: false
+
+   Indicator of whether the transfer protocol runs on top of TLS. For
+   example:
+
+   .. code-block:: ini
+
+      mms.mail.tls=false
+
+.. setting:: mms.mail.username
+
+   *Type*: string
+
+   User name of the email account. If unset, defaults to disabled SMTP
+   authentication.
+
+   .. code-block:: ini
+
+       mms.mail.username=
+
+.. setting:: mms.mail.password
+
+   *Type*: string
+
+   Password for the email account. If unset, defaults to disabled SMTP
+   authentication.
+
+   .. code-block:: ini
+
+      mms.mail.password=emailPassword
+
+.. setting:: aws.accesskey
+
+   Required if using AWS Simple Email Service. The access key ID for AWS.
+
+   .. code-block:: ini
+
+      aws.accesskey=EXAMPLEAccessKeyID
+
+.. setting:: aws.secretkey
+
+   Required if using AWS Simple Email Service. The secret access key
+   for AWS.
+
+   .. code-block:: ini
+
+      aws.secretkey=eXampLe/aCcESs/KEY
+
+.. _twilio-sms-configure:
+
+Twilio SMS Alert Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To receive alert notifications via SMS, you must have a `Twilio
+<http://www.twilio.com/docs/quickstart>`_ account and specify your
+Twilio account information in the configuration file.
+
+.. setting:: twilio.account.sid
+
+   *Type*: string
+
+   Twilio account ID.
+
+.. setting:: twilio.auth.token
+
+   *Type*: string
+
+   Twilio API token.
+
+.. setting:: twilio.from.num
+
+   *Type*: string
+
+   Twilio phone number.
+
 MongoDB Settings
 ~~~~~~~~~~~~~~~~
 
@@ -169,9 +326,114 @@ MongoDB Settings
       mongo.encryptedCredentials=true
 
    The username and password must have been encrypted using the
-   |monitoring| tool ``credentialstool``. See
+   |monitoring| ``credentialstool``. See
    :ref:`on-prem-authentication-configuration` for more information on
    encrypting username and password.
+
+Session Management Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: mms.session.maxHours
+
+   *Type*: number
+
+   The number of hours before a session on the MMS website expires.
+
+Password Policy Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the password policy for MMS user accounts with the
+following settings:
+
+.. setting:: mms.password.minChangesBeforeReuse
+
+   *Type*: number
+
+   The number of previous passwords to remember. You cannot reuse a
+   remembered password as a new password.
+
+.. setting:: mms.password.maxFailedAttemptsBeforeAccountLock
+
+   *Type*: number
+   
+   The number of failed login attempts before an account becomes
+   locked. Only an an MMS Administrator can unlock a locked account.
+
+.. setting:: mms.password.maxDaysInactiveBeforeAccountLock
+
+   *Type*: number
+
+   The maximum number of days with no visits to the MMS website before
+   an account should be locked.
+
+.. setting:: mms.password.maxDaysBeforeChangeRequired
+
+   *Type*: number
+
+   The number of days a password is valid before the password expires.
+
+
+.. _snmp-heartbeat-configure:
+
+SNMP Heartbeat Settings
+-----------------------
+
+You can configure the On-Prem MMS Server to send a periodic heartbeat
+trap notification (v2c) that contain an internal health assessment of
+the MMS Server. The MMS Server can send traps to one or more endpoints
+on the standard SNMP UDP port 162.
+
+To configure the On-Prem MMS Server to send trap notifications,
+download the Management Information Base (MIB) file at
+`<http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt>`_
+and configure the following settings:
+
+.. setting:: snmp.default.hosts
+
+   *Type*: string
+   *Default*: blank
+
+   Comma-separated list of hosts where 'heartbeat' traps will be sent
+   on the standard UDP port 162.
+   You must set :setting:`snmp.default.hosts` to enable the SNMP
+   heartbeat functionality; otherwise, leaving the setting blank
+   disables the SNMP heartbeat functionality.
+
+.. setting:: snmp.listen.port
+
+   *Type*: number
+   *Default*: 11611
+
+   Listening UDP port for SNMP. Setting to a number less than 1024 will
+   require running MMS server with root privileges.
+
+.. setting:: snmp.default.heartbeat.interval
+
+   *Type*: number
+   *Default*: 300
+
+   Number of seconds between heartbeat notifications.
+
+reCaptcha Settings
+------------------
+
+To enable `reCaptcha anti-spam test
+<http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
+registration, you must have a `reCaptcha account
+<https://www.google.com/recaptcha/admin/create>`_ and specify the API
+information in the configuration file.
+
+.. setting:: reCaptcha.public.key
+
+   *Type*: string
+
+   The reCaptcha public key associated with your account.
+
+.. setting:: reCaptcha.private.key
+
+   *Type*: string
+
+   The reCaptcha private key associated with your account.
 
 .. _on-prem-authentication-configuration:
 
@@ -184,14 +446,6 @@ includes the MongoDB user credentials. For example:
 .. code-block:: ini
 
    mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/admin?maxPoolSize=100
-
-Since the configuration file contains the user credentials in plain
-text, follow standard practice and reduce the permissions on the
-configuration file:
-
-.. code-block:: sh
-
-   sudo chmod 600 <install_dir>/conf/conf-mms.properties
 
 Encrypt MongoDB User Credentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -213,11 +467,11 @@ authentication credentials:
 #. Use the encrypted credential pair in the :setting:`mongo.MongoURI`
    settings where needed, and add the
    :setting:`mongo.encryptedCredentials = true
-   <mongo.encryptedCredentials>`. For example:
+   <mongo.encryptedCredentials>` setting. For example:
 
    .. code-block:: sh
 
-      mongo.mongoUri=mongodb://encryptedUser:encryptedPassword@mydb1.example.net:40000/admin?maxPoolSize=100
+      mongo.mongoUri=mongodb://da83ex3s:a4fbcf3a1@mydb1.example.net:40000/admin?maxPoolSize=100
       mongo.encryptedCredentials=true
 
 .. important::
@@ -235,19 +489,3 @@ following roles: :authrole:`readWriteAnyDatabase`,
 :authrole:`clusterAdmin`, and :authrole:`dbAdminAnyDatabase`. 
 
 See :doc:`/reference/authentication` for more information.
-
-Backing Store Configuration
----------------------------
-
-The backing MongoDB store uses the connection string URI defined in the
-``<install_dir>/conf/conf-mms.properties`` directory. For example:
-
-.. code-block:: ini
-
-   mongo.mongoUri=mongodb://<host1>:40000,<host2>:40000,<host3>:40000/?maxPoolSize=100
-   mongo.replicaSet=mmsreplset
-
-.. angle brackets around hosts.
-
-See :manual:`Connection String URI Format </reference/connection-string/>`
-for more information.
