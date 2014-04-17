@@ -1,0 +1,253 @@
+=============
+Configuration
+=============
+
+.. default-domain:: mongodb
+
+.. TODO
+   - See whether the setting definitions are correct
+     (esp the email settings + can the other email settings also take aliases)   
+   - See if ``/opt/mongodb/mms/conf/conf-mms.properties`` file same
+     as <install_dir> (went with more general <install_dir>)
+   - Are the settings for the backing MongoDB store correct?  
+
+Overview
+--------
+
+The ``<install_dir>/conf/conf-mms.properties`` file contains the
+settings to configure On Prem MMS application.
+
+Settings
+--------
+
+Application URL Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following two settings are mandatory.
+
+.. setting:: mms.centralUrl
+
+   *Type*: string
+
+   Required. Fully qualified URL, including the port number, of the
+   Monitoring MMS application server. For example,
+
+   .. code-block:: ini
+
+      mms.centralUrl=http://mms.example.com:8080
+
+.. setting:: mms.backupCentralUrl
+
+   *Type*: string
+
+   Required. The hostname and port of MMS Backup server. For example,
+
+   .. code-block:: ini
+
+      mms.backupCentralUrl=http://mms.example.com:8081
+
+   You must set :setting:`mms.backupCentralUrl`, even if you are only
+   using MMS Monitoring and not MMS Backup.
+
+Email Settings
+~~~~~~~~~~~~~~
+
+.. note::
+
+   By default, On Prem MMS uses a local SMTP server listening on port ``25``.
+
+The following email settings are mandatory. You **must** define them
+before the |monitoring| instance will start.
+
+.. setting:: mms.fromEmailAddr
+
+   *Type*: string
+
+   Required. The email address used for sending the general emails,
+   such as MMS alerts. You can include an alias with the email address.
+   For example:
+
+   .. code-block:: ini
+
+      mms.fromEmailAddr=MMS Alerts <mms-alerts@example.com>
+
+.. setting:: mms.replyToEmailAddr
+
+   *Type*: string
+
+   Required. The email address to send replies to general emails. For
+   example:
+
+   .. code-block:: ini
+
+      mms.replyToEmailAddr=mms-no-reply@example.com
+
+.. setting:: mms.adminFromEmailAddr
+
+   *Type*: string
+
+   Required. The email address to send messages from the MMS admin. You
+   can include an alias with the email address. For example:
+
+   .. code-block:: ini
+
+      mms.adminFromEmailAddr=MMS Admin <mms-admin@example.com>
+
+.. setting:: mms.adminFromEmailAddr
+
+   *Type*: string
+
+   Required. The email address to send messages or replies to the MMS
+   admin. You can include an alias with the email address. For example:
+
+   .. code-block:: ini
+
+      mms.adminEmailAddr=mms-admin@example.com
+
+.. setting:: mms.bounceEmailAddr
+
+   *Type*: string
+   
+   Required. The email address to send bounce messages, i.e. messages
+   of non-delivery of alerts or messages from MMS admin. For example:
+
+   .. code-block:: ini
+
+      mms.bounceEmailAddr=bounce@example.com
+
+MongoDB Settings
+~~~~~~~~~~~~~~~~
+
+.. setting:: mongo.mongoUri
+
+   *Type*: string
+   
+   Required. The :manual:`connection string
+   </reference/connection-string/>` to the MongoDB server. For example,
+   the following specifies the URI for a replica set:
+
+   .. code-block:: ini
+
+      mongo.mongoUri=mongodb://db1.example.net:40000,db2.example.net:40000,db3.example.net:40000/?maxPoolSize=100
+
+   For a MongoDB server with access control, prefix the hostname with
+   the MongoDB username and password in the form
+   ``<username>:<password>@``, and append after the port the ``/admin``
+   database. For example:
+
+   .. code-block:: ini
+
+      mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/admin?maxPoolSize=100
+
+   For additional considerations when specifying user credentials, such
+   as encrypting user credentials, see
+   :ref:`on-prem-authentication-configuration`.
+   
+   See :manual:`Connection String URI Format
+   </reference/connection-string/>` for more information on the
+   connection string. 
+
+.. setting:: mongo.replicaSet
+
+   *Type*: string
+
+   Required if using a replica set. The name of the replica set. For example:
+
+   .. code-block:: ini
+
+      mongo.replicaSet=mmsreplset
+
+.. setting:: mongo.encryptedCredentials
+
+   *Type*: boolean
+
+   Optional. Set to ``true`` if :setting:`mongo.mongoUri` contains the
+   encrypted username and password.
+
+   .. code-block:: ini
+
+      mongo.encryptedCredentials=true
+
+   The username and password must have been encrypted using the
+   |monitoring| tool ``credentialstool``. See
+   :ref:`on-prem-authentication-configuration` for more information on
+   encrypting username and password.
+
+.. _on-prem-authentication-configuration:
+
+MongoDB Access Control Considerations
+-------------------------------------
+
+For a MongoDB server with access control, the :setting:`mongo.mongoUri`
+includes the MongoDB user credentials. For example:
+
+.. code-block:: ini
+
+   mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/admin?maxPoolSize=100
+
+Since the configuration file contains the user credentials in plain
+text, follow standard practice and reduce the permissions on the
+configuration file:
+
+.. code-block:: sh
+
+   sudo chmod 600 <install_dir>/conf/conf-mms.properties
+
+Encrypt MongoDB User Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do not want to store credentials in plain text, |monitoring|
+provides a tool to encrypt the MongoDB credentials. To encrypt
+authentication credentials:
+
+#. Issue the following command to create an encrypted credential pair,
+   replacing ``<username>`` with your username:
+
+   .. code-block:: sh
+
+      <install_dir>/bin/credentialstool --username <username> --password
+
+   This will prompt you to enter the password and will output the
+   encrypted credential pair.
+
+#. Use the encrypted credential pair in the :setting:`mongo.MongoURI`
+   settings where needed, and add the
+   :setting:`mongo.encryptedCredentials = true
+   <mongo.encryptedCredentials>`. For example:
+
+   .. code-block:: sh
+
+      mongo.mongoUri=mongodb://encryptedUser:encryptedPassword@mydb1.example.net:40000/admin?maxPoolSize=100
+      mongo.encryptedCredentials=true
+
+.. important::
+   The ``conf-mms.properties`` file can contain multiple
+   :setting:`mongo.MongoURI` settings. If
+   :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
+   all user credentials found in the various :setting:`mongo.MongoURI`
+   settings.
+
+MongoDB User Access
+~~~~~~~~~~~~~~~~~~~
+
+The MongoDB user *must* have the
+following roles: :authrole:`readWriteAnyDatabase`,
+:authrole:`clusterAdmin`, and :authrole:`dbAdminAnyDatabase`. 
+
+See :doc:`/reference/authentication` for more information.
+
+Backing Store Configuration
+---------------------------
+
+The backing MongoDB store uses the connection string URI defined in the
+``<install_dir>/conf/conf-mms.properties`` directory. For example:
+
+.. code-block:: ini
+
+   mongo.mongoUri=mongodb://<host1>:40000,<host2>:40000,<host3>:40000/?maxPoolSize=100
+   mongo.replicaSet=mmsreplset
+
+.. angle brackets around hosts.
+
+See :manual:`Connection String URI Format </reference/connection-string/>`
+for more information.
