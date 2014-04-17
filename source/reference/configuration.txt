@@ -4,16 +4,6 @@ Configuration
 
 .. default-domain:: mongodb
 
-.. TODO
-   - Does Backup also require email settings to be setup?
-   - See whether the setting definitions are correct
-     (esp the email settings + can the other email settings also take aliases)   
-   - Where/How to incorporate previously existing sentence:
-     The backing MongoDB store uses a connection string URI defined in the
-     ``<install_dir>/conf/conf-mms.properties`` directory.
-   - email dao -- other than AWS SES, all others use
-   ``com.xgen.svc.core.dao.email.JavaEmailDao``?
-
 Overview
 --------
 
@@ -71,7 +61,7 @@ The following two settings are mandatory.
 Email Settings
 ~~~~~~~~~~~~~~
 
-.. email-address-settings:
+.. _email-address-settings:
 
 Email Address Settings
 ``````````````````````
@@ -329,6 +319,13 @@ MongoDB Settings
    |monitoring| ``credentialstool``. See
    :ref:`on-prem-authentication-configuration` for more information on
    encrypting username and password.
+   
+   .. important::
+      The ``conf-mms.properties`` file can contain multiple
+      :setting:`mongo.MongoURI` settings. If
+      :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
+      all user credentials found in the various :setting:`mongo.MongoURI`
+      settings.
 
 Session Management Setting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -372,11 +369,10 @@ following settings:
 
    The number of days a password is valid before the password expires.
 
-
 .. _snmp-heartbeat-configure:
 
 SNMP Heartbeat Settings
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 You can configure the On-Prem MMS Server to send a periodic heartbeat
 trap notification (v2c) that contain an internal health assessment of
@@ -415,7 +411,7 @@ and configure the following settings:
    Number of seconds between heartbeat notifications.
 
 reCaptcha Settings
-------------------
+~~~~~~~~~~~~~~~~~~
 
 To enable `reCaptcha anti-spam test
 <http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
@@ -434,6 +430,187 @@ information in the configuration file.
    *Type*: string
 
    The reCaptcha private key associated with your account.
+
+LDAP Settings
+~~~~~~~~~~~~~
+
+LDAP Server Setting
+```````````````````
+
+.. setting:: mms.userSvcClass
+
+   *Type*: string
+
+   The LDAP service class ``com.xgen.svc.mms.svc.user.UserSvcLdap``; i.e.
+
+   .. code-block:: ini
+
+      mms.userSvcClass=com.xgen.svc.mms.svc.user.UserSvcLdap
+
+LDAP User Settings
+``````````````````
+
+Specify the LDAP directory schema properties in the following settings:
+
+.. setting:: mms.ldap.url
+
+   *Type*: string
+
+   The URI for the LDAP server. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.url=ldap://174.129.71.167:3890
+
+.. setting:: mms.ldap.bindDn
+
+   *Type*: string
+
+   The LDAP user used to execute searches for other users. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.url=_search_
+
+.. setting:: mms.ldap.bindPassword
+
+   *Type*: string
+
+   The credentials for the search user.  For example:
+
+   .. code-block:: ini
+
+      mms.ldap.bindPassword=dISDFFFnj7WMmc
+
+.. setting:: mms.ldap.user.baseDn
+
+   *Type*: string
+
+   The base Directory Name (DN) used for searching for users. Escape
+   the ``=`` sign with ``\``. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.baseDn=c\=users,d\=identity
+
+.. setting:: mms.ldap.user.searchAttribute
+
+   *Type*: string
+
+   The LDAP user record attribute that MMS uses to search and
+   authenticate users when a user types their username into the MMS
+   login form. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.searchAttribute=uid
+
+.. setting:: mms.ldap.user.firstName
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's first name. For
+   example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.firstName=givenName
+
+.. setting:: mms.ldap.user.lastName
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's last name. For
+   example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.lastName=sn
+
+.. setting:: mms.ldap.user.email
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's email address. For
+   example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.email=mail
+
+.. setting:: mms.ldap.user.group
+
+   *Type*: string
+
+   The LDAP user attribute that contains the list of groups that the
+   user belongs to.
+
+   .. code-block:: ini
+
+      mms.ldap.user.group=groups
+
+   These can be either Common Names (CN's) or
+   Distinguished Names (DN's) as long as they are consistent with those
+   provided in the MMS :ref:`global-role-settings`. For example:
+
+.. _global-role-settings:
+
+LDAP Global Role Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Global parameters can be in any format for an LDAP group. They can be a
+Common Name (i.e. ``cn``) or a Distinguished Name (i.e. ``dn``). The
+format must match the property specified by the
+:setting:`mms.ldap.user.group` setting.
+
+.. setting:: mms.ldap.global.role.read_only
+
+   *Type*: string
+
+   The LDAP group attribute name for users assigned the global
+   read-only role in MMS. This role can only view data in MMS. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.read_only=AcmeDbas
+
+.. setting:: mms.ldap.global.role.monitoring_admin
+
+   *Type*: string
+
+   The LDAP group attribute name for users assigned the global
+   monitoring administrative role in MMS. This role can view hosts,
+   charts, and other data, as well as monitor hosts, manage monitoring
+   settings, download the monitoring agent, and other tasks. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.monitoring_admin=AcmeDbas
+
+.. setting:: mms.ldap.global.role.backup_admin
+
+   *Type*: string
+
+   The LDAP group attribute name for users assigned the global backup
+   administrative role in MMS. This role can view backup status,
+   snapshot lists, and modify backup settings, as well as
+   start/stop/terminate backups, request restores, view/edit host
+   passwords, and other tasks.
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.backup_admin=AcmeDbas
+
+.. setting:: mms.ldap.global.role.owner
+
+   *Type*: string
+
+   The LDAP group attribute name for users assigned the global owner
+   role in MMS. This role can perform all administrative tasks in MMS.
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.backup_admin=AcmeDbas
 
 .. _on-prem-authentication-configuration:
 
