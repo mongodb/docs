@@ -1,0 +1,123 @@
+======================
+On Prem MMS Components
+======================
+
+.. default-domain:: mongodb
+
+MMS Application Package
+-----------------------
+
+The front-end package contains the UI the end user interacts with, as
+well as HTTPS services used by the monitoring agent and backup agent
+to transmit data to and from MMS. All three components start
+automatically when the front-end MMS package starts. These components
+are stateless. Multiple instances of the front-end package can run as
+long as each instance has the same configuration. Users and agents can
+interact with any instance.
+
+For MMS Monitoring, you **only** need to install the application
+package, which has the following components:
+
+..
+   MMS Monitoring Server:
+   8080 - web server, available from browsers and from monitoring agent machine
+
+   MMS Backup Ingest Server:
+   8081 - available from browsers for HTTP restores, and from backup agent machine
+   8091 - (optional) debug port, localhost only for internal diagnostics
+
+   MMS Backup Alerts:
+   8650 - localhost-only kill port that startup script uses to signal a shutdown
+   8092 - (optional) debug port, localhost only for internal diagnostics
+
+   MMS Backup Daemon:
+   8640 - localhost-only kill port that startup script uses to signal a shutdown
+   27500-27503 - ports on which daemon spins up localhost-only mongod "HEAD" processes for applying oplogs
+   8090 - (optional) debug port, localhost only for internal diagnostics
+   You can highlight that "MMS Monitoring Server", "MMS Backup Ingest Server", and "MMS Backup Alerts" are all part of the mms package install, so they'll be on the same machine, while the Backup daemon may be installed elsewhere.
+
+MMS HTTP Service
+~~~~~~~~~~~~~~~~
+
+The HTTP server runs on port ``8080`` by default.  This component
+contains the web interface for managing MMS users, monitoring of
+MongoDB servers, and managing those server’s backups. Users can sign
+up, create new accounts and groups, as well as join an existing
+group. The MMS Web Server also contains endpoints used by the MMS
+Agent to report back information on monitored MongoDB instances.
+
+Backup HTTP Service
+~~~~~~~~~~~~~~~~~~~
+
+The HTTP server runs on port 8081 by default. The Backup HTTP Service
+contains a set of web services used by the backup agent. The agent
+retrieves its configuration from this service. The agent also sends
+back initial sync and oplog data through this interface. There is no
+user interaction with this service. The Backup HTTP service runs on
+port ``8081`` by default.
+
+Backup Alert Service
+~~~~~~~~~~~~~~~~~~~~
+
+The Backup Alert Service watches the state of all agents, heads, and
+snapshots. It sends email alerts as problems occur.
+
+Backup Daemon Package
+~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Daemon is the only component in the Backup Daemon
+package. The Backup Daemon manages all heads and snapshots. The daemon
+does scheduled work based on data coming in to the Backup HTTP Service
+from the backup agents. No client applications talk directly to the
+daemon. Its state and job queues come from the MMS Metadata Database.
+
+The daemon creates the heads on its local disk in a configured
+path. If multiple servers run the daemon, an appropriate daemon picks up
+a new incoming backup and that backups' head will live with that daemon.
+
+The deamon will take scheduled snapshots and stores those snapshots in
+the Snapshot Storage (also known as the Blockstore). It will also act
+on restore requests by retrieving data from the Blockstore and
+delivering it to the requested destination.
+
+Multiple Backup Daemons can scale MMS horizontally with each
+replica bound to a particular Daemon.
+
+Data Storage
+~~~~~~~~~~~~
+
+All data about the state of the MMS service, and the backup snapshot
+data, persists in MongoDB databases. These databases are not part
+of the MMS package installation. Set up these databases separately with their
+location recorded in the MMS configuration files.
+
+MMS Application Database
+````````````````````````
+
+This database will contain MMS users, groups, hosts, monitoring data,
+backup state, etc. This metadata should be small in
+size (less than 1GB per monitored/backed up server) but will be
+updated frequently. It is highly recommended this database be
+configured as a replica set to provide durability and automatic
+failover from the MMS service.  See
+:doc:`/tutorial/prepare-backing-mongodb-instances`
+for more information.
+
+MMS Backup Blockstore Database
+``````````````````````````````
+
+This database contains all snapshots of databases backed up
+and oplogs retained for point in time restores. The snapshot database
+will require disk space proportional to the backed up databases.
+
+Configure the Blockstore as a replica set to provide durability and
+automatic failover to the backup and restore components. See
+:doc:`/tutorial/prepare-backing-mongodb-instances`
+for more information.
+
+Additional Information
+----------------------
+
+To learn more about |backup| requirements and |backup|, see
+:doc:`/faq/backup` and the main :doc:`main Backup documentation page
+</backup>`.

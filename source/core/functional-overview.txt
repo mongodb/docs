@@ -1,0 +1,90 @@
+=======================
+MMS Functional Overview
+=======================
+
+.. default-domain:: mongodb
+
+
+
+
+Overview
+--------
+
+The MongoDB Management Service (MMS) is a service for monitoring and
+backing up a MongoDB infrastructure.
+
+MMS Monitoring
+~~~~~~~~~~~~~~
+
+MMS provides real-time reporting, visualization and alerting on key database and
+hardware indicators and presents the data in an intuitive web dashboard.
+
+A lightweight Monitoring Agent runs within your infrastructure and
+connects to the configured MongoDB instances.  The Monitoring Agent
+collect statistics from the nodes in your deployment and transmit it
+back to MMS.  The MMS user interface allowsthe user to view the
+visualized data and set alerts.
+
+MMS Backup
+~~~~~~~~~~
+
+Engineered specifically for MongoDB, MMS Backup features scheduled
+snapshots and point in time recovery. Once the service is up and running,
+MMS provides a web interface to support backup and restoration. MMS
+Backup supports horizontal scaling.
+
+A lightweight Backup Agent runs within your infrastructure and connects to the
+configured MongoDB instances. The agent performs an initial sync and then
+tail the oplog of a replica set’s primary. For a sharded cluster, the
+backup agent tails the primary of each shard and each config server. The
+agent ships initial sync and oplog data over HTTPS back to the MMS service.
+
+The MMS service recreates every replica set you backup and applies the
+oplog entries sent by the backup agents. MMS then maintains a standalone
+MongoDB database on disk, also called a *head*, for each backed up replica
+set. Each head is consistent with the original primary up to the last
+oplog supplied by the agent. The initial sync and tailing of the oplog are
+all done using standard MongoDB queries.
+
+Operations
+~~~~~~~~~~
+
+The MMS Backup service recreates every replica set you back up and
+applies the oplog entries the backup agents send. MMS then
+maintains a standalone MongoDB database on disk for each backed up
+replica set (i.e. a "head"). Each head is consistent with the original
+primary up to the last oplog supplied by the agent. The original
+replica set, or sharded cluster, has no knowledge of this
+secondary. The initial sync and tailing of the oplog are all done
+using standard MongoDB queries.
+
+The service takes scheduled snapshots of all heads and retains
+those snapshots based on a user-defined policy. |backup| captures
+snapshots of replica sets on an interval based on an observed a change
+in oplogtime. Sharded clusters snapshots temporarily stop the balancer via the
+:program:`mongos` and insert a marker token into all shards and config
+servers. MMS takes a snapshot when the marker tokens appear.
+
+Compression and block-level deduplication technology reduces snapshot data
+size. The snapshot only stores the differences between successive snapshots.
+Snapshots use only a fraction of the disk space required for full snapshots.
+
+Restores
+~~~~~~~~
+
+Restores of specific snapshots and point in time restores are both
+available for replica sets. Clusters restore from a snapshot time for consistency.
+
+A snapshot restore reads directly from the Backup Blockstore Database and transfers
+files via an HTTPS download link (pull) or by the MMS service sending files via SSH
+(push).
+
+A point in time restore first creates a local restore of a
+snapshot from the blockstore. After the MMS service has the snapshot
+locally it applies stored oplogs until the desired point in
+time. The service then delivers the point in time backup via the
+same HTTPS or SSH mechanisms.
+
+The amount of oplog to keep per backup
+is configurable and affects the time window available for point in
+time restores.
