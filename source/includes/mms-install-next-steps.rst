@@ -7,8 +7,8 @@ Next Steps
 
 - To start (and stop) the MMS application, see :doc:`/tutorial/start-and-stop-application`.
 
-- To optionally install your backup server, see :doc:`/tutorial/install-on-prem-backup-server`.
+- To install the backup server you must also install, see :doc:`Backup
+  Server </tutorial/install-on-prem-backup-server>`.
 
 - To configure your |mms| deployment for high availability, see
   :doc:`/tutorial/configure-application-high-availability`.
-
