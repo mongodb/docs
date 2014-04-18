@@ -127,10 +127,10 @@ if tags.has('hosted'):
     html_short_title = 'MMS On-Prem Manual'
     latex_documents = hosted_latex_documents
     rst_epilog.append(".. |s| replace:: Suite")
-    rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service On-Prem")
-    rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
-    rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
-    rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
+    rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
+    rst_epilog.append(".. |mms| replace:: On-Prem MongoDB Management Service")
+    rst_epilog.append(".. |backup| replace:: On Prem MMS Backup ")
+    rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
     rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
     html_theme_options['edition'] = 'hosted'
     html_theme_options['sitename'] = 'MMS On-Prem Docs'
