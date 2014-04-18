@@ -33,7 +33,7 @@ Control Scripts
 ---------------
 
 The ``mongodb-org`` package includes various :term:`control scripts
-<control script>`, including the init script ``/etc/rc.d/init.d/mongod``.
+<control script>`, including the init script |init-script-path|.
 
 The package configures MongoDB using the ``/etc/mongod.conf`` file in
 conjunction with the control scripts.
