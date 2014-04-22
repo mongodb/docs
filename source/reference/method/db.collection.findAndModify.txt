@@ -55,15 +55,15 @@ modified document.
      operations, :method:`~db.collection.findAndModify()` returns
      ``null``.
 
-   - If the query finds no document for an ``upsert``, operation,
-     :method:`~db.collection.findAndModify()` performs an insert. If
-     ``new`` is ``false``, **and** the ``sort`` option is **NOT**
-     specified, the method returns ``null``.
+   - If the query finds no document for an ``update`` with an
+     ``upsert`` operation, :method:`~db.collection.findAndModify()`
+     creates a new document. If ``new`` is ``false``, **and** the
+     ``sort`` option is **NOT** specified, the method returns ``null``.
 
-   - If the query finds no document for an ``upsert``,
-     :method:`~db.collection.findAndModify()` performs an insert. If
-     ``new`` is ``false``, **and** a ``sort`` option, the method
-     returns an empty document ``{}``.
+   - If the query finds no document for an ``update`` with an
+     ``upsert`` operation, :method:`~db.collection.findAndModify()`
+     creates a new document. If ``new`` is ``false``, **and** a
+     ``sort`` option, the method returns an empty document ``{}``.
 
 Behaviors
 ---------
@@ -79,7 +79,7 @@ method could insert a document multiple times in certain circumstances.
 For instance, if multiple clients each invoke the method with the same
 ``query`` condition and these methods complete the ``find`` phase
 before any of methods perform the ``modify`` phase, these methods could
-insert the same document.
+result in the insertion of the same document.
 
 In the following example, no document with the name ``Andy`` exists,
 and multiple clients issue the following command:
@@ -181,9 +181,9 @@ This method performs the following actions:
 Upsert
 ~~~~~~
 
-The following method includes the ``upsert: true`` option to
-insert a new document if no document matches the ``query``
-condition:
+The following method includes the ``upsert: true`` option for the
+``update`` operation to either update a matching document or, if no
+matching document exists, create a new document:
 
 .. code-block:: javascript
 
@@ -194,10 +194,13 @@ condition:
        upsert: true
    })
 
-If the method does **not** find a matching document, the method
-performs an upsert. Because the method included the ``sort``
-option, it returns an empty document ``{ }`` as the original
-(pre-modification) document:
+
+If the method finds a matching document, the method performs an update.
+
+If the method does **not** find a matching document, the method creates
+a new document. Because the method included the ``sort`` option, it
+returns an empty document ``{ }`` as the original (pre-modification)
+document:
 
 .. code-block:: javascript
 
@@ -213,9 +216,14 @@ If the method did **not** include a ``sort`` option, the method returns
 Return New Document
 ~~~~~~~~~~~~~~~~~~~
 
-The following method includes both the ``upsert: true`` option and
-the ``new:true`` option to return the newly inserted document if a
-document matching the ``query`` is not found:
+The following method includes both the ``upsert: true`` option and the
+``new:true`` option. The method either updates a matching document and
+returns the updated document or, if no matching document exists,
+inserts a document and returns the newly inserted document in the
+``value`` field.
+
+In the following example, no document in the ``people`` collection
+matches the ``query`` condition:
 
 .. code-block:: none
 
