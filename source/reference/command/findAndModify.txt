@@ -49,11 +49,12 @@ The return document contains the following fields:
 - The ``lastErrorObject`` field that returns the details of the
   command:
 
-  - The ``updatedExisting`` field **only** appears if the command is
-    either an ``update`` or an ``upsert``.
+  - The ``updatedExisting`` field **only** appears if the command
+    specifies an ``update`` or an ``update`` with the ``upsert``
+    option; i.e. the field does not appear for a ``remove``.
 
-  - The ``upserted`` field **only** appears if the command is an
-    ``upsert``.
+  - The ``upserted`` field **only** appears if the ``update`` with the
+    ``upsert`` operation results in an insertion.
 
 - The ``value`` field that returns either:
 
@@ -69,31 +70,32 @@ The return document contains the following fields:
    If the :dbcommand:`findAndModify` finds no matching document,
    then:
 
-   - for ``update`` or ``remove`` operations, ``lastErrorObject``
-     does not appear in the return document and the ``value`` field
-     holds a ``null``.
+   - for ``update`` or ``remove`` operations, ``lastErrorObject`` does
+     not appear in the return document and the ``value`` field holds a
+     ``null``.
 
      .. code-block:: javascript
 
         { "value" : null, "ok" : 1 }
 
-   - for an ``upsert`` operation that performs an insert, when ``new``
-     is ``false``, **and** includes a ``sort`` option, the return
-     document has ``lastErrorObject``, ``value``, and ``ok``
-     fields, but the ``value`` field holds an empty document
-     ``{}``.
+   - for ``update`` with an ``upsert`` operation that results in an
+     insertion, if the command also specifies ``new`` is ``false``
+     **and** specifies a ``sort``, the return document has a
+     ``lastErrorObject``, ``value``, and ``ok`` fields, but the
+     ``value`` field holds an empty document ``{}``.
 
-   - for an ``upsert`` that performs an insert, when ``new`` is
-     ``false`` **without** a specified ``sort`` the return
-     document has ``lastErrorObject``, ``value``, and ``ok``
-     fields, but the ``value`` field holds a ``null``.
+   - for ``update`` with an ``upsert`` operation that results in an
+     insertion, if the command also specifies ``new`` is ``false`` but
+     does **not** specify a ``sort``, the return document has a
+     ``lastErrorObject``, ``value``, and ``ok`` fields, but the
+     ``value`` field holds a ``null``.
 
 Behavior
 --------
 
 When the :dbcommand:`findAndModify` command includes the ``upsert:
 true`` option **and** the query field(s) is not uniquely indexed, the
-method could insert a document multiple times in certain circumstances.
+command could insert a document multiple times in certain circumstances.
 For instance, if multiple clients issue the :dbcommand:`findAndModify`
 command and these commands complete the ``find`` phase before any one
 starts the ``modify`` phase, these commands could insert the same
@@ -256,9 +258,9 @@ method returns only the unmodified document, or if ``new`` is
 Upsert
 ~~~~~~
 
-The following :dbcommand:`findAndModify` command includes the
-``upsert: true`` option to insert a new document if no document
-matches the ``query`` condition:
+The following :dbcommand:`findAndModify` command includes the ``upsert:
+true`` option for the ``update`` operation to either update a matching
+document or, if no matching document exists, create a new document:
 
 .. code-block:: javascript
 
@@ -274,9 +276,9 @@ matches the ``query`` condition:
 
 If the command finds a matching document, the command performs an update.
 
-If the command does **not** find a matching document, the command
-performs an :term:`upsert` and returns a document with the following
-fields:
+If the command does **not** find a matching document, the ``update``
+with :term:`upsert` operation results in an insertion and returns a
+document with the following fields:
 
 - The ``lastErrorObject`` field that contains the details of the
   command, including the field ``upserted`` that contains the
@@ -321,9 +323,13 @@ Return New Document
 ~~~~~~~~~~~~~~~~~~~
 
 The following :dbcommand:`findAndModify` command includes both
-``upsert: true`` option and the ``new:true`` option to return the
-newly inserted document in the ``value`` field if a document
-matching the ``query`` is not found:
+``upsert: true`` option and the ``new:true`` option. The command either
+updates a matching document and returns the updated document or, if no
+matching document exists, inserts a document and returns the newly
+inserted document in the ``value`` field.
+
+In the following example, no document in the ``people`` collection
+matches the ``query`` condition:
 
 .. code-block:: javascript
 
