@@ -18,48 +18,63 @@ $and
    (e.g. ``<expression1>``) evaluates to ``false``, MongoDB will not
    evaluate the remaining expressions.
 
-   Consider the following example:
+   .. note::
 
-   .. code-block:: javascript
+      MongoDB provides an implicit ``AND`` operation when specifying a
+      comma separated list of expressions.  Using an explicit ``AND``
+      with the :query:`$and` operator is necessary when the same field
+      or operator has to be specified in multiple expressions.
 
-      db.inventory.find({ $and: [ { price: 1.99 }, { qty: { $lt: 20 } }, { sale: true } ] } )
+Examples
+--------
 
-   This query will select all documents in the ``inventory``
-   collection where:
+``AND`` Queries With Multiple Expressions Specifying the Same Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - ``price`` field value equals ``1.99`` **and**
-   - ``qty`` field value is less than ``20`` **and**
-   - ``sale`` field value is equal to ``true``.
+Consider the following example:
 
-   MongoDB provides an implicit ``AND`` operation when specifying a
-   comma separated list of expressions. For example, you may write the
-   above query as:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.inventory.find( { $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] } )
 
-      db.inventory.find( { price: 1.99, qty: { $lt: 20 } , sale: true } )
+This query will select all documents in the ``inventory``
+collection where:
 
-   If, however, a query requires an ``AND`` operation on the same field
-   such as ``{ price: { $ne: 1.99 } } AND { price: { $exists: true }
-   }``, then either use the :query:`$and` operator for the two
-   separate expressions or combine the operator expressions for the
-   field ``{ price: { $ne: 1.99, $exists: true } }``.
+- the ``price`` field value is not equal to ``1.99`` **and**
+- the ``price`` field exists.
 
-   Consider the following examples:
+This query can be also be constructed with an implicit ``AND``
+operation by combining the operator expressions for the ``price``
+field.  For example, this query can be written as:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.inventory.update( { $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] }, { $set: { qty: 15 } } )
+   db.inventory.find( { price: { $ne: 1.99, $exists: true } } )
 
-      db.inventory.update( { price: { $ne: 1.99, $exists: true } } , { $set: { qty: 15 } } )
+``AND`` Queries With Multiple Expressions Specifying the Same Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Both :method:`~db.collection.update()` operations will set
-   the value of the ``qty`` field in documents where:
+Consider the following example:
 
-   -  the ``price`` field value does not equal ``1.99`` **and**
-   -  the ``price`` field exists.
+.. code-block:: javascript
 
-   .. seealso::
+   db.inventory.find( {
+       $and : [
+           { $or : [ { price : 0.99 }, { price : 1.99 } ] },
+           { $or : [ { sale : true }, { qty : { $lt : 20 } } ] }
+       ]
+   } )
 
-      :method:`~db.collection.find()`, :method:`~db.collection.update()`, :query:`$ne`, :query:`$exists`,
-      :update:`$set`.
+This query will return all select all documents where:
+
+- the ``price`` field value equals ``0.99`` or ``1.99``, **and**
+- the ``sale`` field value is equal to ``true`` **or** the ``qty``
+  field value is less than ``20``.
+
+This query cannot be constructed using an implicit ``AND`` operation,
+because it uses the :query:`$or` operator more than once.
+
+.. seealso::
+
+   :method:`~db.collection.find()`, :method:`~db.collection.update()`,
+   :query:`$ne`, :query:`$exists`, :update:`$set`.
