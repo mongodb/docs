@@ -56,12 +56,12 @@ For most standalone servers, this is a sufficient base
 configuration. It makes several assumptions, but consider the
 following explanation:
 
-- :setting:`fork` is ``true``, which enables a
+- :setting:`~processManagement.fork` is ``true``, which enables a
   :term:`daemon` mode for :program:`mongod`, which detaches (i.e. "forks")
   the MongoDB from the current session and allows you to run the
   database as a conventional server.
 
-- :setting:`bind_ip` is ``127.0.0.1``, which forces the
+- :setting:`~net.bindIp` is ``127.0.0.1``, which forces the
   server to only listen for requests on the localhost IP. Only bind to
   secure interfaces that the application-level systems can access with
   access control provided by system network filtering
@@ -99,7 +99,7 @@ following explanation:
   this value, :program:`mongod` writes all output to standard output
   (e.g. ``stdout``.)
 
-- :setting:`logappend` is ``true``, which ensures that
+- :setting:`~systemLog.logAppend` is ``true``, which ensures that
   :program:`mongod` does not overwrite an existing log file
   following the server start operation.
 
@@ -124,12 +124,11 @@ following:
 .. code-block:: cfg
 
    bind_ip = 127.0.0.1,10.8.0.10,192.168.4.24
-   nounixsocket = true
    auth = true
 
 Consider the following explanation for these configuration decisions:
 
-- ":setting:`bind_ip`" has three values: ``127.0.0.1``, the localhost
+- ":setting:`~net.bindIp`" has three values: ``127.0.0.1``, the localhost
   interface; ``10.8.0.10``, a private IP address typically used for
   local networks and VPN interfaces; and ``192.168.4.24``, a private
   network interface typically used for local networks.
@@ -140,7 +139,7 @@ Consider the following explanation for these configuration decisions:
   servers. At the same time it's important to limit these interfaces
   to interfaces controlled and protected at the network layer.
 
-- ":setting:`nounixsocket`" to ``true`` disables the
+- ":setting:`~net.unixDomainSocket.enabled`" to ``false`` disables the
   UNIX Socket, which is otherwise enabled by default. This limits
   access on the local system. This is desirable when running MongoDB
   on systems with shared access, but in most situations has minimal impact.
@@ -229,9 +228,9 @@ This creates a config server running on the private IP address
 conflicts, and that your config server is accessible from all of your
 :program:`mongos` and :program:`mongod` instances.
 
-To set up shards, configure two or more :program:`mongod` instance
-using your :ref:`base configuration <base-config>`, adding the
-:setting:`shardsvr` setting:
+To set up shards, configure two or more :program:`mongod` instance using
+your :ref:`base configuration <base-config>`, with the ``shardsvr`` value
+for the :setting:`~sharding.clusterRole` setting:
 
 .. code-block:: cfg
 
@@ -278,7 +277,7 @@ instance, but consider the following configuration values:
 The :setting:`~storage.dbPath` value controls the location of the
 :program:`mongod` instance's data directory. Ensure that each database
 has a distinct and well labeled data directory. The
-:setting:`pidfilepath` controls where :program:`mongod` process
+:setting:`~processManagement.pidFilePath` controls where :program:`mongod` process
 places it's :term:`process id <pid>` file. As this tracks the specific
 :program:`mongod` file, it is crucial that file be unique and well
 labeled to make it easy to start and stop these processes.
@@ -306,7 +305,6 @@ values that tuned for general production purposes:
    profile = 3
    verbose = true
    objcheck = true
-   cpu = true
 
 Use the :ref:`base configuration <base-config>` and add these options
 if you are experiencing some unknown issue or performance problem as
@@ -318,24 +316,18 @@ needed:
   return useful results. See :doc:`/administration/optimization`
   for more information on optimizing operations in MongoDB.
 
-- :setting:`profile` sets the :term:`database profiler`
+- :setting:`~operationProfiling.mode` sets the :term:`database profiler`
   level. The profiler is not active by default because of the possible
   impact on the profiler itself on performance. Unless this setting
   has a value, queries are not profiled.
 
-- :setting:`verbose` controls the amount of logging output that
+- :setting:`~systemLog.verbosity` controls the amount of logging output that
   :program:`mongod` write to the log. Only use this option if you are
   experiencing an issue that is not reflected in the normal logging
   level.
 
-- :setting:`objcheck` forces :program:`mongod` to validate all
+- :setting:`~net.wireObjectCheck` forces :program:`mongod` to validate all
   requests from clients upon receipt. Use this option to ensure that
   invalid requests are not causing errors, particularly when running a
   database with untrusted clients. This option may affect database
   performance.
-
-- :setting:`cpu` forces :program:`mongod` to report the percentage of
-  the last interval spent in :term:`write lock`. The interval is
-  typically 4 seconds, and each output line in the log includes both
-  the actual interval since the last report and the percentage of
-  time spent in write lock.
