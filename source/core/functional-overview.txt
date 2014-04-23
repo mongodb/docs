@@ -4,9 +4,6 @@ MMS Functional Overview
 
 .. default-domain:: mongodb
 
-
-
-
 Overview
 --------
 
@@ -50,20 +47,18 @@ Operations
 ``````````
 
 The MMS Backup service recreates every replica set you back up and
-applies the oplog entries the backup agents send. MMS then
-maintains a standalone MongoDB database on disk for each backed up
-replica set (i.e. a "head"). Each head is consistent with the original
-primary up to the last oplog supplied by the agent. The original
-replica set, or sharded cluster, has no knowledge of this
-secondary. The initial sync and tailing of the oplog are all done
+applies the oplog entries the backup agents send. The production
+replica set, or sharded cluster, is not aware of the copy of the
+backup data. The initial sync and tailing of the oplog are all done
 using standard MongoDB queries.
 
 The service takes scheduled snapshots of all heads and retains
 those snapshots based on a user-defined policy. |backup| captures
-snapshots of replica sets on an interval based on an observed a change
-in oplogtime. Sharded clusters snapshots temporarily stop the balancer via the
-:program:`mongos` and insert a marker token into all shards and config
-servers. MMS takes a snapshot when the marker tokens appear.
+snapshots of replica sets interval based on an observed change
+in oplog time. Sharded clusters snapshots temporarily stop the
+balancer via the :program:`mongos` so that they can insert a marker
+token into all shards and config servers in the cluster. MMS takes a
+snapshot when the marker tokens appear in the backup data.
 
 Compression and block-level deduplication technology reduces snapshot data
 size. The snapshot only stores the differences between successive snapshots.
@@ -73,11 +68,12 @@ Restores
 ````````
 
 Restores of specific snapshots and point in time restores are both
-available for replica sets. Clusters restore from a snapshot time for consistency.
+available for replica sets. Clusters restore from a snapshot time for
+consistency.
 
-A snapshot restore reads directly from the Backup Blockstore Database and transfers
-files via an HTTPS download link (pull) or by the MMS service sending files via SSH
-(push).
+A snapshot restore reads directly from the Backup Blockstore Database
+and transfers files via an HTTPS download link (pull) or by the MMS
+service sending files via SSH (push).
 
 A point in time restore first creates a local restore of a
 snapshot from the blockstore. After the MMS service has the snapshot
