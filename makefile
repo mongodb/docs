@@ -23,10 +23,7 @@ help:
 ########## MMS Specific Content ##########
 
 hosted saas:setup
-	@$(MAKE) latex-$@ json-$@ html-$@ dirhtml-$@ singlehtml-$@ build/public/$@/.htaccess
+	@$(PYTHONBIN) $(tools)/bin/htaccess.py build/public/$@/.htaccess --data bin/htaccess-$@.yaml
+	@fab sphinx.target:latex-$@,json-$@,singlehtml-$@,dirhtml-$@,html-$@
 	@echo [build]: $@ edition complete
 
-build/public/saas/.htaccess:bin/htaccess-saas.yaml $(tools)/bin/htaccess.py
-	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-build/public/hosted/.htaccess:bin/htaccess-hosted.yaml $(tools)/bin/htaccess.py
-	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
