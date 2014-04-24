@@ -86,7 +86,7 @@ languages = [
 
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = None
-html_static_path = ['source/_static']
+html_static_path = ['source/_static', 'source/figures']
 html_use_smartypants = True
 html_use_index = True
 html_split_index = False
