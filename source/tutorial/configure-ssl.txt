@@ -1,23 +1,25 @@
-===========================
-Connect to MongoDB with SSL
-===========================
+===========================================
+Configure ``mongod`` and ``mongos`` for SSL
+===========================================
 
 .. default-domain:: mongodb
 
-This document outlines the use and operation of MongoDB's SSL
-support. SSL allows MongoDB clients to support encrypted connections
-to :program:`mongod` instances.
+This document helps you to configure MongoDB to support SSL. MongoDB
+clients can use SSL to encrypt connections to :program:`mongod` and
+:program:`mongos` instances.
 
 .. note:: The `default distribution of MongoDB`_ does **not** contain
    support for SSL. To use SSL, you must either build MongoDB locally
    passing the ``--ssl`` option to ``scons`` or use `MongoDB
    Enterprise`_.
 
-These instructions outline the process for getting started with SSL and
-assume that you have already installed a build of MongoDB that includes
-SSL support and that your client driver supports SSL. For instructions
-on upgrading a cluster currently not using SSL to using SSL, see
-:doc:`/tutorial/upgrade-cluster-to-ssl`.
+.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise
+
+These instructions assume that you have already installed a build of
+MongoDB that includes SSL support and that your client driver supports
+SSL. For instructions on upgrading a cluster currently not using SSL to
+using SSL, see :doc:`/tutorial/upgrade-cluster-to-ssl`.
 
 .. versionchanged:: 2.6
 
@@ -26,19 +28,25 @@ on upgrading a cluster currently not using SSL to using SSL, see
 
    - MongoDB Enterprise for Windows includes support for SSL.
 
-.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
-.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise
+.. seealso::
 
-Configure ``mongod`` and ``mongos`` for SSL
--------------------------------------------
+   :doc:`/tutorial/configure-ssl-clients` to learn about SSL support for
+   Python, Java, Ruby, and other clients.
 
 Combine SSL Certificate and Key File
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 Before you can use SSL, you must have a :file:`.pem` file that
-contains the public key certificate and private key. MongoDB can use
-any valid SSL certificate. To generate a self-signed certificate and
-private key, use a command that resembles the following:
+contains the public key certificate and private key.
+
+MongoDB can use any valid SSL certificate issued by a certificate
+authority or self-signed. While self-signed certificates work for testing,
+all production environments should use valid certificates issued by
+trusted certificate authorities.
+
+For example, for testing purposes you can generate a self-signed
+certificate and private key on a Unix system with a command that resembles
+the following:
 
 .. code-block:: sh
 
@@ -54,10 +62,12 @@ in the following example:
 
    cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
 
+.. seealso:: :doc:`/tutorial/configure-x509`
+
 .. _ssl-mongod-ssl-cert-key:
 
 Set Up ``mongod`` and ``mongos`` with SSL Certificate and Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------
 
 To use SSL in your MongoDB deployment, include the following run-time
 options with :program:`mongod` and :program:`mongos`:
@@ -112,7 +122,7 @@ connecting to :program:`mongod` and :program:`mongos` running with SSL.
 .. _ssl-mongod-ca-signed-ssl-cert-key:
 
 Set Up ``mongod`` and ``mongos`` with Certificate Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------
 
 To set up :program:`mongod` or :program:`mongos` for SSL encryption
 using an SSL certificate signed by a certificate authority, include the
@@ -171,7 +181,7 @@ See :ref:`ssl-clients` for more information on connecting to
 .. seealso:: :doc:`/tutorial/upgrade-cluster-to-ssl`
 
 Block Revoked Certificates for Clients
-``````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To prevent clients with revoked certificates from connecting, include
 the :setting:`sslCRLFile` to specify a :file:`.pem` file that contains
@@ -190,7 +200,7 @@ will not be able to connect to this :program:`mongod` instance.
 .. _ssl-mongod-weak-certification:
 
 Validate Only if a Client Presents a Certificate
-````````````````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In most cases it is important to ensure that clients present valid
 certificates. However, if you have clients that cannot present a
@@ -226,7 +236,7 @@ information on SSL connections for clients.
    certificates are encrypted using SSL.
 
 Run in FIPS Mode
-~~~~~~~~~~~~~~~~
+----------------
 
 `MongoDB Enterprise`_ supports running in FIPS mode.
 
@@ -247,7 +257,7 @@ for these platforms, issue the following command:
 .. _ssl-certificate-password:
 
 SSL Certificate Passphrase
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 The PEM files for :setting:`~net.ssl.PEMKeyfile` and
 :setting:`~net.ssl.ClusterFile` may be encrypted. With encrypted PEM files,
@@ -274,252 +284,3 @@ passphrase as necessary.
    run :program:`mongod` or :program:`mongos` in a non-interactive
    session (e.g. without a terminal or as a service on Windows),
    you cannot use the passphrase prompt option.
-
-.. _ssl-clients:
-
-SSL Configuration for Clients
------------------------------
-
-Clients must have support for SSL to work with a :program:`mongod` or a
-:program:`mongos` instance that has SSL support enabled. The current
-versions of the Python, Java, Ruby, Node.js, .NET, and C++ drivers have
-support for SSL, with full support coming in future releases of other
-drivers.
-
-.. _mongo-shell-ssl-connect:
-
-``mongo`` SSL Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For SSL connections, you must use the :program:`mongo` shell built with
-SSL support or distributed with MongoDB Enterprise. To support SSL,
-:program:`mongo` has the following settings:
-
-- :option:`--ssl`
-
-- :setting:`--sslPEMKeyFile <sslPEMKeyFile>` with the name of the
-  :file:`.pem` file that contains the SSL certificate and key.
-
-- :setting:`--sslCAFile <sslCAFile>` with the name of the :file:`.pem`
-  file that contains the certificate from the Certificate Authority.
-
-- :setting:`--sslPEMKeyPassword <sslPEMKeyPassword>` option if the
-  client certificate-key file is encrypted.
-
-Connect to MongoDB Instance with SSL Encryption
-```````````````````````````````````````````````
-
-To connect to a :program:`mongod` or :program:`mongos` instance that
-requires :ref:`only a SSL encryption mode <ssl-mongod-ssl-cert-key>`,
-start :program:`mongo` shell with :option:`--ssl <mongo --ssl>`, as in
-the following:
-
-.. code-block:: sh
-
-   mongo --ssl
-
-Connect to MongoDB Instance that Requires Client Certificates
-`````````````````````````````````````````````````````````````
-
-To connect to a :program:`mongod` or :program:`mongos` that requires
-:ref:`CA-signed client certificates
-<ssl-mongod-ca-signed-ssl-cert-key>`, start the :program:`mongo` shell with
-:option:`--ssl <mongo --ssl>` and the :setting:`--sslPEMKeyFile
-<sslPEMKeyFile>` option to specify the signed certificate-key file, as
-in the following:
-
-.. code-block:: sh
-
-   mongo --ssl --sslPEMKeyFile /etc/ssl/client.pem
-
-Connect to MongoDB Instance that Validates when Presented with a Certificate
-````````````````````````````````````````````````````````````````````````````
-
-To connect to a :program:`mongod` or :program:`mongos` instance that
-:ref:`only requires valid certificates when the client presents a certificate
-<ssl-mongod-weak-certification>`, start :program:`mongo` shell either
-with the :option:`--ssl <mongo --ssl>` ssl and **no** certificate or
-with the :option:`--ssl <mongo --ssl>` ssl and a **valid** signed
-certificate.
-
-For example, if :program:`mongod` is running with weak certificate
-validation, both of the following :program:`mongo` shell clients can
-connect to that :program:`mongod`:
-
-.. code-block:: sh
-
-   mongo --ssl
-   mongo --ssl --sslPEMKeyFile /etc/ssl/client.pem
-
-.. important:: If the client presents a certificate, the certificate
-   must be valid.
-
-MMS Monitoring Agent
-~~~~~~~~~~~~~~~~~~~~
-
-The Monitoring agent will also have to connect via SSL in order to gather its
-stats.  Because the agent already utilizes SSL for its communications
-to the MMS servers, this is just a matter of enabling SSL support in
-MMS itself on a per host basis.
-
-Use the "Edit" host button (i.e. the pencil) on the Hosts page in the
-MMS console to enable SSL.
-
-Please see the `MMS documentation <http://mms.mongodb.com/help>`_ for more
-information about MMS configuration.
-
-PyMongo
-~~~~~~~
-
-Add the "``ssl=True``" parameter to a PyMongo
-:py:class:`MongoClient <pymongo:pymongo.mongo_client.MongoClient>`
-to create a MongoDB connection to an SSL MongoDB instance:
-
-.. code-block:: python
-
-   from pymongo import MongoClient
-   c = MongoClient(host="mongodb.example.net", port=27017, ssl=True)
-
-To connect to a replica set, use the following operation:
-
-.. code-block:: python
-
-   from pymongo import MongoReplicaSetClient
-   c = MongoReplicaSetClient("mongodb.example.net:27017",
-                             replicaSet="mysetname", ssl=True)
-
-PyMongo also supports an "``ssl=true``" option for the MongoDB URI:
-
-.. code-block:: none
-
-   mongodb://mongodb.example.net:27017/?ssl=true
-
-Java
-~~~~
-
-Consider the following example "``SSLApp.java``" class file:
-
-.. code-block:: java
-
-    import com.mongodb.*;
-    import javax.net.ssl.SSLSocketFactory;
-
-    public class SSLApp {
-
-        public static void main(String args[])  throws Exception {
-
-            MongoClientOptions o = new MongoClientOptions.Builder()
-                    .socketFactory(SSLSocketFactory.getDefault())
-                    .build();
-
-            MongoClient m = new MongoClient("localhost", o);
-
-            DB db = m.getDB( "test" );
-            DBCollection c = db.getCollection( "foo" );
-
-            System.out.println( c.findOne() );
-        }
-    }
-
-Ruby
-~~~~
-
-The recent versions of the Ruby driver have support for connections
-to SSL servers. Install the latest version of the driver with the
-following command:
-
-.. code-block:: sh
-
-   gem install mongo
-
-Then connect to a standalone instance, using the following form:
-
-.. code-block:: javascript
-
-   require 'rubygems'
-   require 'mongo'
-
-   connection = MongoClient.new('localhost', 27017, :ssl => true)
-
-Replace ``connection`` with the following if you're connecting to a
-replica set:
-
-.. code-block:: ruby
-
-   connection = MongoReplicaSetClient.new(['localhost:27017'],
-                                          ['localhost:27018'],
-                                          :ssl => true)
-
-Here, :program:`mongod` instance run on "``localhost:27017``" and
-"``localhost:27018``".
-
-Node.JS (``node-mongodb-native``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the `node-mongodb-native`_ driver, use the following invocation to
-connect to a :program:`mongod` or :program:`mongos` instance via SSL:
-
-.. code-block:: javascript
-
-   var db1 = new Db(MONGODB, new Server("127.0.0.1", 27017,
-                                        { auto_reconnect: false, poolSize:4, ssl:true } );
-
-To connect to a replica set via SSL, use the following form:
-
-.. code-block:: javascript
-
-   var replSet = new ReplSetServers( [
-       new Server( RS.host, RS.ports[1], { auto_reconnect: true } ),
-       new Server( RS.host, RS.ports[0], { auto_reconnect: true } ),
-       ],
-     {rs_name:RS.name, ssl:true}
-   );
-
-.. _`node-mongodb-native`: https://github.com/mongodb/node-mongodb-native
-
-.NET
-~~~~
-
-As of release 1.6, the .NET driver supports SSL connections with
-:program:`mongod` and :program:`mongos` instances. To connect using
-SSL, you must add an option to the connection string, specifying
-``ssl=true`` as follows:
-
-.. code-block:: csharp
-
-    var connectionString = "mongodb://localhost/?ssl=true";
-    var server = MongoServer.Create(connectionString);
-
-The .NET driver will validate the certificate against the local
-trusted certificate store, in addition to providing encryption of the
-server. This behavior may produce issues during testing if the server
-uses a self-signed certificate. If you encounter this issue, add the
-``sslverifycertificate=false`` option to the connection string to
-prevent the .NET driver from validating the certificate, as follows:
-
-.. code-block:: csharp
-
-    var connectionString = "mongodb://localhost/?ssl=true&sslverifycertificate=false";
-    var server = MongoServer.Create(connectionString);
-
-.. _mongodb-tools-support-ssl:
-
-MongoDB Tools
-~~~~~~~~~~~~~
-
-.. versionchanged:: 2.6
-
-Various MongoDB utility programs supports SSL. These tools include:
-
-- :program:`mongodump`
-- :program:`mongoexport`
-- :program:`mongofiles`
-- :program:`mongoimport`
-- :program:`mongooplog`
-- :program:`mongorestore`
-- :program:`mongostat`
-- :program:`mongotop`
-
-.. tip:: To use SSL connections with these tools, use the same SSL
-   options as the :program:`mongo` shell. See
-   :ref:`mongo-shell-ssl-connect`.
