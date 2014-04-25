@@ -13,11 +13,10 @@ Definition
 
 .. dbcommand:: findAndModify
 
-   The :dbcommand:`findAndModify` command atomically modifies and
-   returns a single document. By default, the returned document does
-   not include the modifications made on the update. To return the
-   document with the modifications made on the update, use the ``new``
-   option.
+   The :dbcommand:`findAndModify` command modifies and returns a single
+   document. By default, the returned document does not include the
+   modifications made on the update. To return the document with the
+   modifications made on the update, use the ``new`` option.
 
    The command has the following syntax:
 
@@ -153,37 +152,40 @@ will block other operations until it has completed; however,
 typically the write lock is short lived and equivalent to other
 similar :method:`~db.collection.update()` operations.
 
-Differences with update Command
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Differences with ``update`` Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :dbcommand:`findAndModify` and :dbcommand:`update` commands operate
+Both :dbcommand:`findAndModify` and :method:`~db.collection.update()`
+atomically update a single document. See
+:doc:`/tutorial/isolate-sequence-of-operations` for more details about
+interactions and order of operations.
+
+The :dbcommand:`findAndModify` command and :method:`~db.collection.update()` method operate
 differently:
 
-- By default, both commands change content in one document. However, only
-  :dbcommand:`update` can make changes to more than one document, with the
-  ``multi`` field in an update query.
+- By default, both operations modify a single document. However, the
+  :method:`~db.collection.update()` method with its ``multi`` option can
+  modify more than one document.
 
-- The :dbcommand:`update` command returns the status of the write to a
-  document. The :dbcommand:`findAndModify` command returns the last
-  version of the modified document prior to the update.
-
-- While a :authaction:`find` action run after an :dbcommand:`update`
-  command will return the updated document, the document may have
-  modifications from other updates between your update and when the find
-  command runs.
-
-- An :dbcommand:`update` query that returns multiple documents will update
-  only the first document. The :dbcommand:`findAndModify` command includes
-  the ability to sort records prior to update, providing more precision
-  for an update.
-
-- Both commands provide atomic updates on the level of a single document.
-  In cases where the :dbcommand:`update` command modifies multiple
-  documents, one or more documents could update with another command prior
-  to completion of your update.
-
-See :doc:`/tutorial/isolate-sequence-of-operations` for more details
-about interactions and order of operations for commands.
+- If multiple documents match the update criteria, for
+  :dbcommand:`findAndModify`, you can specify a ``sort`` to provide some
+  measure of control on which document to update. 
+  
+  With the default behavior of the :method:`~db.collection.update()`
+  method, you cannot specify which single document to update when multiple documents match.
+ 
+- By default, the returned document from the :dbcommand:`findAndModify`
+  command is an object that contains the pre-modified version of the
+  document, as well as the status of the operation. To return the updated
+  document in a return object, use the ``new`` option.
+  
+  The :method:`~db.collection.update()` method returns a
+  :method:`WriteResult` object that contains the status of the operation.
+  To return the updated document, use the :method:`~db.collection.find()`
+  method. However, other updates may have modified the document between
+  your update and the document retrieval. Also, if the update modified
+  only a single document but multiple documents matched, you will need to
+  use additional logic to identify the updated document.
 
 Examples
 --------
