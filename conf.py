@@ -47,7 +47,7 @@ extensions = [
     'directives',
 ]
 
-locale_dirs = [ conf.paths.locale ]
+locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
 gettext_compact = False
 
 templates_path = ['.templates']
