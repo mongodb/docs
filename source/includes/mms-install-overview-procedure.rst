@@ -29,7 +29,8 @@ systems; RPM for Red Hat Enterprise Linux, CentOS, Fedora, and related
 systems; as well as ``tar.gz`` and ``zip`` packages.
 
 You can also download the latest On-Prem Monitoring releases from
-<http://www.mongodb.com/commercialsupport/downloads> as an RPM package.
+`the downloads page <http://www.mongodb.com/commercialsupport/downloads>`_
+as an RPM package.
 
 Confirm your environment meets the :doc:`/management/requirements`.
 
