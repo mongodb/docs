@@ -1,5 +1,5 @@
 MongoDB 2.6 implements a stronger enforcement of the limit on
-:limit:`index key length <Index Key>`:
+:limit:`index key <Index Key Limit>`:
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst
      :start-after: index-field-limit-ensureIndex
