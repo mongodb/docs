@@ -52,13 +52,30 @@ collections:
 Recommendations and Restrictions
 --------------------------------
 
-- You *can* update documents in a collection after inserting
-  them. *However,* these updates **cannot** cause the documents to
-  grow. If the update operation causes the document to grow beyond
-  their original size, the update operation will fail.
+- You can only make in-place updates of documents. If the update operation
+  causes the document to grow beyond their original size, the update
+  operation will fail.
 
   If you plan to update documents in a capped collection, create an
   index so that these update operations do not require a table scan.
+
+- If you update a document in a capped collection to a size smaller than
+  its original size, and then a secondary resyncs from the primary, the
+  secondary will replicate and allocate space based on the current smaller
+  document size. If the primary then receives an update which increases
+  the document back to its original size, the primary will accept
+  the update but the secondary will fail with a ``failing update: objects
+  in a capped ns cannot grow`` error message.
+
+  To prevent this error, create your secondary from a snapshot of one
+  of the other up-to-date members of the replica set. Follow :doc:`our
+  tutorial on filesystem snapshots
+  </tutorial/backup-with-filesystem-snapshots>` to seed your new secondary.
+
+  Seeding the secondary with a filesystem snapshot is the only way to
+  guarantee the primary and secondary binary files are compatible.
+  MMS Backup snapshots are insufficient in this situation since you
+  need more than the content of the secondary to match the primary.
 
 - You cannot delete documents from a capped collection. To remove all
   records from a capped collection, use the 'emptycapped' command. To
