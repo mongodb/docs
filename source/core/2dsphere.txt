@@ -10,20 +10,19 @@ A ``2dsphere`` index supports queries that calculate geometries on an
 earth-like sphere. The index supports data stored as both
 :term:`GeoJSON` objects and as legacy coordinate pairs. The index
 supports legacy coordinate pairs by converting the data to the GeoJSON
-``Point`` type.
+``Point`` type. The default datum for an earth-like sphere in MongoDB
+2.4 is :term:`WGS84`. Coordinate-axis order is **longitude, latitude**.
 
 The ``2dsphere`` index supports all MongoDB geospatial queries: queries
-for inclusion, intersection and proximity.
+for inclusion, intersection and proximity. See the
+:doc:`/reference/operator/query-geospatial` for the query operators
+that support geospatial queries.
 
-A :ref:`compound <index-type-compound>` ``2dsphere`` index can reference
-multiple location and non-location fields within a collection’s
-documents. You can arrange the fields in any order.
-
-The default datum for an earth-like sphere in MongoDB 2.4 is :term:`WGS84`.
-Coordinate-axis order is **longitude, latitude**.
-
-See the :doc:`/reference/operator/query-geospatial` for the query
-operators that support geospatial queries.
+To create a ``2dsphere`` index, use the
+:method:`db.collection.ensureIndex` method. A :ref:`compound
+<index-type-compound>` ``2dsphere`` index can reference multiple
+location and non-location fields within a collection’s documents. See
+:doc:`/tutorial/build-a-2dsphere-index` for more information.
 
 .. _2dsphere-v2:
 
@@ -37,17 +36,23 @@ is the default version of ``2dsphere`` indexes created in MongoDB 2.6.
 To create a ``2dsphere`` index as a version 1, include the option ``{
 "2dsphereIndexVersion": 1 }`` when creating the index.
 
+Additional GeoJSON Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Version 2 adds support for additional GeoJSON object:
 :ref:`geojson-multipoint`, :ref:`geojson-multilinestring`,
 :ref:`geojson-multipolygon`, and
 :ref:`geojson-geometrycollection`.
 
-Version 2 ``2dsphere`` indexes are sparse by default and ignores the
-:doc:`sparse: true </core/index-sparse>` option. If a document lacks a
-``2dsphere`` index field (or the field is a ``null`` or an empty
-array), MongoDB does not add an entry for the document to the
-``2dsphere`` index. For inserts, MongoDB inserts the document but does
-not add to the ``2dsphere`` index.
+``sparse`` Property
+~~~~~~~~~~~~~~~~~~~
+
+Version 2 ``2dsphere`` indexes are :doc:`sparse </core/index-sparse>`
+by default and ignores the :doc:`sparse: true </core/index-sparse>`
+option. If a document lacks a ``2dsphere`` index field (or the field is
+a ``null`` or an empty array), MongoDB does not add an entry for the
+document to the ``2dsphere`` index. For inserts, MongoDB inserts the
+document but does not add to the ``2dsphere`` index.
 
 Version 1 ``2dsphere`` indexes are not sparse by default and will
 reject documents with ``null`` location fields.
@@ -55,9 +60,15 @@ reject documents with ``null`` location fields.
 Considerations
 --------------
 
+``geoNear`` and ``$geoNear`` Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. |first-geo-index| replace:: ``2dsphere`` index
 .. |second-geo-index| replace:: :doc:`2d </core/2d>` index
 .. include:: /includes/fact-limitation-one-geo-index-per-collection.rst
+
+Shard Key Restrictions
+~~~~~~~~~~~~~~~~~~~~~~
 
 You cannot use a ``2dsphere`` index as a shard key when sharding a
 collection. However, you can create and maintain a geospatial index on
@@ -98,8 +109,7 @@ Use the following syntax:
 
 .. code-block:: javascript
 
-   { <location field> : { type : "<GeoJSON type>" ,
-                          coordinates : <coordinates> } }
+   { <location field>: { type: "<GeoJSON type>" , coordinates: <coordinates> } }
 
 .. _geojson-point:
 
@@ -112,8 +122,7 @@ The following example stores a GeoJSON :term:`Point`:
 
 .. code-block:: javascript
 
-   { loc : { type : "Point" ,
-             coordinates : [ 40, 5 ] } }
+   { loc: { type: "Point", coordinates: [ 40, 5 ] } }
 
 .. _geojson-linestring:
 
@@ -126,8 +135,7 @@ The following example stores a GeoJSON :term:`LineString`:
 
 .. code-block:: javascript
 
-   { loc : { type : "LineString" ,
-             coordinates : [ [ 40 , 5 ] , [ 41 , 6 ] ] } }
+   { loc: { type: "LineString", coordinates: [ [ 40, 5 ], [ 41, 6 ] ] } }
 
 .. _geojson-polygon:
 
@@ -147,9 +155,13 @@ coordinate pair with the ``[ 0 , 0 ]`` coordinate:
 
 .. code-block:: javascript
 
-   { loc :
-      { type : "Polygon" ,
-        coordinates : [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0  ] ] ] } }
+   {
+     loc :
+       {
+         type: "Polygon",
+         coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0  ] ] ]
+       }
+   }
 
 For Polygons with multiple rings:
 
@@ -167,10 +179,14 @@ GeoJSON:
 
 .. code-block:: javascript
 
-   { loc :
-      { type : "Polygon" ,
-        coordinates : [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ],
-                        [ [ 2 , 2 ] , [ 3 , 3 ] , [ 4 , 2 ] , [ 2 , 2 ] ] ] } }
+   { loc : {
+        type : "Polygon",
+        coordinates : [
+            [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ],
+            [ [ 2 , 2 ] , [ 3 , 3 ] , [ 4 , 2 ] , [ 2 , 2 ] ]
+        ]
+     }
+   }
 
 .. include:: /images/index-2dsphere-polygon-with-ring.rst
 
@@ -187,11 +203,16 @@ The following example stores coordinates of GeoJSON type `MultiPoint
 
 .. code-block:: javascript
 
-   { loc: { "type": "MultiPoint",
-            "coordinates": [ [ -73.9580, 40.8003 ],
-                             [ -73.9498, 40.7968 ],
-                             [ -73.9737, 40.7648 ],
-                             [ -73.9814, 40.7681 ] ] } }
+   { loc: {
+       type: "MultiPoint",
+       coordinates: [
+          [ -73.9580, 40.8003 ],
+          [ -73.9498, 40.7968 ],
+          [ -73.9737, 40.7648 ],
+          [ -73.9814, 40.7681 ]
+       ]
+     }
+   }
 
 .. _geojson-multilinestring:
 
@@ -206,11 +227,17 @@ The following example stores coordinates of GeoJSON type
 
 .. code-block:: javascript
 
-   { loc: { "type": "MultiLineString",
-            "coordinates": [ [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
-                             [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
-                             [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
-                             [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ] ] } }
+   { loc:
+       {
+         type: "MultiLineString",
+         coordinates: [
+            [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
+            [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
+            [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
+            [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
+         ]
+       }
+   }
 
 .. _geojson-multipolygon:
 
@@ -225,9 +252,15 @@ The following example stores coordinates of GeoJSON type `MultiPolygon
 
 .. code-block:: javascript
 
-   { loc: { "type": "MultiPolygon",
-            "coordinates": [ [ [ [  -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [ -73.9814, 40.7681 ], [  -73.958, 40.8003 ] ] ],
-                             [ [ [  -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [  -73.958, 40.8003 ] ] ] ] } }
+   { loc:
+       {
+         type: "MultiPolygon",
+         coordinates: [
+            [ [ [ -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [ -73.9814, 40.7681 ], [ -73.958, 40.8003 ] ] ],
+            [ [ [ -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [ -73.958, 40.8003 ] ] ]
+         ]
+       }
+   }
 
 .. _geojson-geometrycollection:
 
@@ -243,14 +276,28 @@ The following example stores coordinates of GeoJSON type
 
 .. code-block:: javascript
 
-   { loc: { "type": "GeometryCollection",
-            "geometries": [ { "type": "MultiPoint",
-                                      "coordinates": [ [ -73.9580, 40.8003 ],
-                                                       [ -73.9498, 40.7968 ],
-                                                       [ -73.9737, 40.7648 ],
-                                                       [ -73.9814, 40.7681 ] ] },
-                            { "type": "MultiLineString",
-                                      "coordinates": [ [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
-                                                       [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
-                                                       [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
-                                                       [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ] ] } ] } }
+   { loc:
+       {
+         type: "GeometryCollection",
+         geometries: [
+            {
+               type: "MultiPoint",
+               coordinates: [
+                  [ -73.9580, 40.8003 ],
+                  [ -73.9498, 40.7968 ],
+                  [ -73.9737, 40.7648 ],
+                  [ -73.9814, 40.7681 ]
+               ]
+            },
+            {
+               type: "MultiLineString",
+               coordinates: [
+                  [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
+                  [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
+                  [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
+                  [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
+               ]
+            }
+         ]
+       }
+   }
