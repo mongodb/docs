@@ -1,0 +1,176 @@
+Clusters
+--------
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code:: javascript
+
+
+  {
+    "id": "yyy",
+    "groupId": "xxx",
+    "typeName": "REPLICA_SET",
+    "clusterName": "Cluster 0",
+    "shardName": "shard001",
+    "replicaSetName": "rs1",
+    "lastHeartbeat": "2014-02-26T17:32:45Z",
+    "links": [ ... ]
+  }
+
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 10 10 80
+  :header-rows: 1
+
+  * - Name
+    - Type
+    - Description
+  * - id
+    - string
+    - Unique identifier.
+  * - groupId
+    - string
+    - ID of the group that owns this cluster.
+  * - typeName
+    - enum
+    - Specifies what kind of cluster this is. Possible values are:
+      ``MASTER_SLAVE REPLICA_SET SHARDED SHARDED_REPLICA_SET``
+  * - clusterName
+    - string
+    - Display name of the cluster. Only applies to sharded clusters. Note that
+      ``mongod`` itself doesn't allow you to name a cluster; this name is
+      supplied by (and editable within) MMS. For a replica set within a sharded
+      cluster, the cluster name is the name of its parent cluster.
+  * - shardName
+    - string
+    - Name of the shard. Only present for a cluster of type ``SHARDED`` or
+      ``REPLICA_SET`` that is part of a sharded cluster.
+  * - replicaSetName
+    - string
+    - Name of the replica set. Only present for a cluster of type
+      ``REPLICA_SET``.
+  * - lastHeartbeat
+    - date
+    - The approximate last time MMS processed a ping from this cluster.
+
+
+Links
+~~~~~
+
+.. list-table::
+  :widths: 10 90
+  :header-rows: 1
+
+  * - Relation
+    - Description
+  * - self
+    - Me
+  * - parentCluster
+    - The parent cluster. Only present if the type is ``SHARDED`` or
+      ``REPLICA_SET`` within a sharded cluster.
+  * - group
+    - The group that this cluster belongs to.
+  * - clusters
+    - The member shards that belong to this cluster. Only present if the type
+      is ``SHARDED_REPLICA_SET``.
+  * - hosts
+    - The member hosts that belong to this cluster. Present for all types
+      except ``SHARDED_REPLICA_SET``. Note: to get the hosts of a sharded
+      cluster, follow the ``clusters`` link and get the ``hosts`` for each
+      shard.
+
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID`` - Get a single
+  cluster by ID.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters`` - Get all clusters in a
+  group. Note that if MMS hasn't received a ping from a cluster in several days,
+  it will be considered inactive and will be filtered from this list. Use the
+  ``parentClusterId`` query parameter to get all clusters with the specified
+  parent cluster ID. The list of entities is sorted in ascending order by the
+  date that MMS discovered the cluster.
+
+- ``PATCH /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID`` - Update a
+  cluster by ID. The only property that you may modify is the ``clusterName``,
+  since all other properties of a cluster are discovered by MMS. Additionally,
+  this operation is only permitted on clusters of type ``SHARDED`` and
+  ``SHARDED_REPLICA_SET``.
+
+
+Examples
+~~~~~~~~
+
+Get a cluster: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/clusters/533d7d4730040be257defe88" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533d7d4730040be257defe88",
+    "typeName" : "SHARDED_REPLICA_SET",
+    "clusterName" : "Animals",
+    "lastHeartbeat" : "2014-04-03T15:26:58Z",
+    "links" : [ ... ]
+  }
+
+
+Get all clusters: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/clusters" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount" : 3,
+    "results" : [ {
+      "id" : "533d7d4730040be257defe88",
+      "typeName" : "SHARDED_REPLICA_SET",
+      "clusterName" : "Animals",
+      "lastHeartbeat" : "2014-04-03T15:26:58Z",
+      "links" : [ ... ]
+    }, {
+      "id" : "533d7d4630040be257defe85",
+      "typeName" : "REPLICA_SET",
+      "clusterName" : "Animals",
+      "shardName" : "cats",
+      "replicaSetName" : "cats",
+      "lastHeartbeat" : "2014-04-03T15:24:54Z",
+      "links" : [ ... ]
+    }, {
+      "id" : "533d7d4630040be257defe83",
+      "typeName" : "REPLICA_SET",
+      "clusterName" : "Animals",
+      "shardName" : "dogs",
+      "replicaSetName" : "dogs",
+      "lastHeartbeat" : "2014-04-03T15:26:30Z",
+      "links" : [ ... ]
+    } ],
+   "links" : [ ... ]
+  }
+
+
+Update a cluster: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/clusters/533d7d4730040be257defe88" --digest -i -H "Content-Type: application/json" -X PATCH --data @-
+  {
+    "clusterName": "Zoo"
+  }
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533d7d4730040be257defe88",
+    "typeName" : "SHARDED_REPLICA_SET",
+    "clusterName" : "Zoo",
+    "lastHeartbeat" : "2014-04-03T15:26:58Z",
+    "links" : [ ... ]
+  }

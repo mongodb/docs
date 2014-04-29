@@ -1,0 +1,262 @@
+Alerts
+------
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code:: javascript
+
+  {
+    "id": "yyy",
+    "groupId": "xxx",
+    "typeName": "HOST_METRIC",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "status": "OPEN",
+    "acknowledgedUntil": "2014-03-01T12:00:00Z",
+    "created": "2014-02-01T12:34:12Z",
+    "updated": "2014-02-02T01:23:45Z",
+    "resolved": null,
+    "lastNotified": "2014-02-04T02:43:13Z",
+    "currentValue": {
+      "number": 123.45,
+      "units": "MEGABYTES"
+    },
+    "links": [ ... ]
+  }
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 10 10 80
+  :header-rows: 1
+
+  * - Name
+    - Type
+    - Description
+  * - id
+    - string
+    - Unique identifier.
+  * - groupId
+    - string
+    - ID of the group that this alert was opened for.
+  * - typeName
+    - enum
+    - The type of alert. Possible values are: ``AGENT BACKUP HOST HOST_METRIC
+      REPLICA_SET``
+  * - eventTypeName
+    - enum
+    - The name of the event that triggered the alert. The possible values here
+      depend on the ``typeName``:
+
+      - **AGENT** - Possible values: ``MONITORING_AGENT_DOWN BACKUP_AGENT_DOWN``
+
+      - **HOST** - Possible values: ``HOST_DOWN HOST_RECOVERING VERSION_BEHIND
+        HOST_EXPOSED``
+
+      - **HOST_METRIC** - Possible values: ``OUTSIDE_METRIC_THRESHOLD``
+
+      - **BACKUP** - Possible values: ``OPLOG_BEHIND RESYNC_REQUIRED``
+  * - status
+    - enum
+    - The current state of the alert. Possible values are: ``OPEN CLOSED``
+  * - acknowledgedUntil
+    - date
+    - The date through which the alert has been acknowledged. Will not be
+      present if the alert has never been acknowledged.
+  * - created
+    - date
+    - When the alert was opened.
+  * - updated
+    - date
+    - When the alert was last updated.
+  * - resolved
+    - date
+    - When the alert was closed. Only present if the status is ``CLOSED``.
+  * - lastNotified
+    - date
+    - When the last notification was sent for this alert. Only present if
+      notifications have been sent.
+  * - metricName
+    - enum
+    - The name of the metric whose value went outside the threshold. Only
+      present for alerts of type ``HOST_METRIC``. Possible values are:
+      ``ASSERT_REGULAR ASSERT_WARNING ASSERT_MSG ASSERT_USER OPCOUNTER_CMD
+      OPCOUNTER_QUERY OPCOUNTER_UPDATE OPCOUNTER_DELETE OPCOUNTER_INSERT
+      OPCOUNTER_REPL_UPDATE OPCOUNTER_REPL_DELETE OPCOUNTER_REPL_INSERT
+      MEMORY_RESIDENT MEMORY_VIRTUAL MEMORY_MAPPED COMPUTED_MEMORY
+      INDEX_COUNTERS_BTREE_ACCESSES INDEX_COUNTERS_BTREE_HITS
+      INDEX_COUNTERS_BTREE_MISSES INDEX_COUNTERS_BTREE_MISS_RATIO
+      GLOBAL_LOCK_PERCENTAGE BACKGROUND_FLUSH_AVG CONNECTIONS CONNECTIONS_MAX
+      GLOBAL_LOCK_CURRENT_QUEUE_TOTAL GLOBAL_LOCK_CURRENT_QUEUE_READERS
+      GLOBAL_LOCK_CURRENT_QUEUE_WRITERS CURSORS_TOTAL_OPEN
+      CURSORS_TOTAL_TIMED_OUT CURSORS_TOTAL_CLIENT_CURSORS_SIZE NETWORK_BYTES_IN
+      NETWORK_BYTES_OUT NETWORK_NUM_REQUESTS OPLOG_MASTER_TIME
+      OPLOG_SLAVE_LAG_MASTER_TIME EXTRA_INFO_PAGE_FAULTS DB_STORAGE_TOTAL
+      JOURNALING_COMMITS_IN_WRITE_LOCK JOURNALING_MB
+      JOURNALING_WRITE_DATA_FILES_MB``
+  * - currentValue
+    - object
+    - The current value of the metric that triggered the alert. Only present for
+      alerts of type ``HOST_METRIC``.
+  * - currentValue.number
+    - float
+    - The value of the metric.
+  * - currentValue.units
+    - enum
+    - The units for the value. Depends on the type of metric. For example, a
+      metric that measures memory consumption would have a byte measurement,
+      while a metric that measures time would have a time unit. Possible values
+      are: ``BITS KILOBITS MEGABITS GIGABITS BYTES KILOBYTES MEGABYTES
+      GIGABYTES TERABYTES PETABYTES MILLISECONDS SECONDS MINUTES HOURS DAYS
+      RAW``
+
+
+Links
+~~~~~
+
+.. list-table::
+  :widths: 10 90
+  :header-rows: 1
+
+  * - Relation
+    - Description
+  * - self
+    - Me
+  * - group
+    - The group that this alert was triggered for.
+  * - alertConfigs
+    - The alert configuration(s) that triggered this alert.
+  * - host
+    - The host that triggered this alert. Only present for alerts of type
+      ``HOST``.
+
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/alerts`` - Gets all alerts with the
+  specified status. Use the ``status`` query parameter with one of these
+  possible values: ``OPEN CLOSED``
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID`` - Get a single alert
+  by ID.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID/alertConfigs`` - Get
+  the alert configuration(s) that triggered this alert.
+
+- ``PATCH /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID`` - Update an
+  existing alert. The only field you may modify is the ``acknowledgedUntil``
+  field.
+
+  - To acknowledge an alert "forever" set the date to 100 years in the future.
+
+  - To unacknowledge a previously acknowledged alert, set the date in the past.
+
+
+Examples
+~~~~~~~~
+
+Get an alert: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533cb4b8e4b0f1820cdabc7f",
+    "groupId" : "5196d3628d022db4cbc26d9e",
+    "typeName" : "BACKUP",
+    "eventTypeName" : "OPLOG_BEHIND",
+    "status" : "CLOSED",
+    "created" : "2014-04-03T01:09:12Z",
+    "updated" : "2014-04-03T01:14:12Z",
+    "resolved" : "2014-04-03T01:14:12Z",
+    "links" : [ ... ]
+  }
+
+
+Get open alerts: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts?status=OPEN" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount": 1,
+    "results": [ {
+      "id" : "533dc45ee4b00835ff81ec2a",
+      "groupId" : "5196d3628d022db4cbc26d9e",
+      "typeName" : "HOST_METRIC",
+      "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+      "status" : "OPEN",
+      "created" : "2014-04-03T20:28:14Z",
+      "updated" : "2014-04-03T20:28:14Z",
+      "lastNotified" : "2014-04-03T20:28:23Z",
+      "metricName": "ASSERTS_REGULAR",
+      "currentValue" : {
+        "number" : 0.0,
+        "units" : "RAW"
+      },
+      "links" : [ ... ]
+    } ],
+    "links" : [ ... ]
+  }
+
+
+Get alert configurations that triggered an alert: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f/alertConfigs" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount": 3,
+    "results": [ {
+      "id" : "5271259ee4b00ece6b4754ef",
+      "groupId" : "5196d3628d022db4cbc26d9e",
+      "typeName" : "BACKUP",
+      "eventTypeName" : "RESYNC_REQUIRED",
+      "created" : "2013-10-30T15:28:30Z",
+      "updated" : "2014-02-12T16:11:05Z",
+      "enabled" : true,
+      "matchers" : [ ],
+      "notifications" : [ {
+        "typeName" : "EMAIL",
+        "intervalMin" : 60,
+        "delayMin" : 0,
+        "emailAddress" : "somebody@somewhere.com"
+      } ],
+      "links" : [ ... ]
+    } ],
+    "links" : [ ... ]
+  }
+
+
+Acknowledge an alert: ::
+
+  curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533dc45ee4b00835ff81ec2a" --digest -i -X PATCH --data @-
+  {
+    "acknowledgedUntil": "2014-04-15T00:00:00-0400"
+  }
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533dc45ee4b00835ff81ec2a",
+    "groupId" : "5196d3628d022db4cbc26d9e",
+    "typeName" : "HOST_METRIC",
+    "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+    "status" : "OPEN",
+    "acknowledgedUntil" : "2014-04-15T04:00:00Z",
+    "created" : "2014-04-03T20:28:14Z",
+    "updated" : "2014-04-03T20:33:14Z",
+    "lastNotified" : "2014-04-03T20:33:23Z",
+    "metricName": "ASSERTS_REGULAR",
+    "currentValue" : {
+      "number" : 0.0,
+      "units" : "RAW"
+    },
+    "links" : [ ... ]
+  }

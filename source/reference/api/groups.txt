@@ -1,0 +1,322 @@
+Groups
+------
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code:: javascript
+
+  {
+    "id": "xxx",
+    "name": "My Group",
+    "hostCounts": {
+      "arbiter": 2,
+      "config": 1,
+      "primary": 4,
+      "secondary": 8,
+      "mongos": 2.
+      "master": 0,
+      "slave": 0
+    },
+    "lastActiveAgent": ISODate("2014-02-05T07:23:34Z"),
+    "activeAgentCount": 1,
+    "replicaSetCount": 3,
+    "shardCount": 2,
+    "publicApiEnabled": true,
+    "links": [ ... ]
+  }
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 10 10 80
+  :header-rows: 1
+
+  * - Name
+    - Type
+    - Description
+  * - id
+    - string
+    - Unique identifier.
+  * - name
+    - string
+    - Display name for the group.
+  * - hostCounts
+    - object
+    - The total number of hosts by type. The embedded fields should be
+      self-explanatory.
+  * - lastActiveAgent
+    - date
+    - Date that a ping was last received from one of the group's monitoring
+      agents.
+  * - activeAgentCount
+    - integer
+    - Number of monitoring agents sending regular pings to MMS.
+  * - replicaSetCount
+    - integer
+    - Total number of replica sets for this group.
+  * - shardCount
+    - integer
+    - Total number of shards for this group.
+  * - publicApiEnabled
+    - boolean
+    - Is the Public API enabled for this group? This is a read-only field that
+      will always be true for groups created with the API. Note that for
+      groups created in the MMS UI, the only way to set this flag to ``true``
+      is by enabling the Public API for the group in the **Settings** tab.
+
+
+Links
+~~~~~
+
+.. list-table::
+  :widths: 10 90
+  :header-rows: 1
+
+  * - Relation
+    - Description
+  * - self
+    - Me
+  * - hosts
+    - All hosts in the group.
+  * - users
+    - All users in the group.
+  * - clusters
+    - All clusters in the group.
+  * - alerts
+    - All open alerts for the group.
+  * - alertConfigs
+    - All alert configurations for the group.
+  * - backupConfigs
+    - All backup configurations for the group.
+
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID`` - Get a single group by ID.
+
+- ``GET /api/public/v1.0/groups`` - Get all groups for the current user.
+
+- ``POST /api/public/v1.0/groups/GROUP-ID`` - Create a new group. Only the
+  ``name`` field may be specified. The ``publicApiEnabled`` field will be set
+  to ``true`` for groups created with the API.
+
+- ``PATCH /api/public/v1.0/groups/GROUP-ID`` - Update an existing group. Only
+  the ``name`` field can be updated.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/users`` - Get all users in a group.
+
+- ``DELETE /api/public/v1.0/groups/GROUP-ID/users/USER-ID`` - Remove a user
+  from a group.
+
+- ``POST /api/public/v1.0/groups/GROUP-ID/users`` - Add existing user(s) to a
+  group.
+
+  - You must send an array of entities, even if you're only adding a single
+    user.
+
+  - For each user being added, specify the user ID and role(s) to be assigned.
+
+  - If a user is specified that is already part of the group, then their
+    existing role(s) will be overwritten.
+
+- ``DELETE /api/public/v1.0/groups/GROUP-ID`` - Delete a group. Once a group is
+  deleted, its name cannot be reclaimed. Thus, if you create a group named
+  **My Group** and then delete it, you will not be able to create another group
+  named **My Group**.
+
+
+Examples
+~~~~~~~~
+
+Get a group: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "5196d3628d022db4cbc26d9e",
+    "name" : "API Example",
+    "hostCounts" : {
+      "arbiter" : 0,
+      "config" : 1,
+      "primary" : 3,
+      "secondary" : 4,
+      "mongos" : 2,
+      "master" : 0,
+      "slave" : 0
+    },
+    "lastActiveAgent" : "2014-04-03T18:18:12Z",
+    "activeAgentCount" : 1,
+    "replicaSetCount" : 3,
+    "shardCount" : 2,
+    "links" : [ ... ]
+  }
+
+
+Get all groups for current user: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount" : 6,
+    "results" : [ {
+      "id" : "5196d3628d022db4cbc26d9e",
+      "name" : "API Example",
+      "hostCounts" : {
+        "arbiter" : 0,
+        "config" : 1,
+        "primary" : 3,
+        "secondary" : 4,
+        "mongos" : 2,
+        "master" : 0,
+        "slave" : 0
+      },
+      "lastActiveAgent" : "2014-04-03T18:18:12Z",
+      "activeAgentCount" : 1,
+      "replicaSetCount" : 3,
+      "shardCount" : 2,
+      "links" : [ ... ]
+    }, {
+      // etc.
+    } ],
+    "links" : [ ... ]
+  }
+
+
+Create a group: ::
+
+  curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/groups" --digest -i -X POST --data @-
+  {
+    "name": "API Example 2"
+  }
+
+  HTTP/1.1 201 Created
+  Location: https://mms.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696
+
+  {
+    "id" : "533daa30879bb2da07807696",
+    "name" : "API Example 2",
+    "activeAgentCount" : 0,
+    "replicaSetCount" : 0,
+    "shardCount" : 0,
+    "hostCounts" : {
+      "arbiter" : 0,
+      "config" : 0,
+      "primary" : 0,
+      "secondary" : 0,
+      "mongos" : 0,
+      "master" : 0,
+      "slave" : 0
+    },
+    "links" : [ ... ]
+  }
+
+
+Update a group: ::
+
+  curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696" --digest -i -X PATCH --data @-
+  {
+    "name": "API Example 2.1"
+  }
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533daa30879bb2da07807696",
+    "name" : "API Example 2.1",
+    "activeAgentCount" : 0,
+    "replicaSetCount" : 0,
+    "shardCount" : 0,
+    "hostCounts" : {
+      "arbiter" : 0,
+      "config" : 0,
+      "primary" : 0,
+      "secondary" : 0,
+      "mongos" : 0,
+      "master" : 0,
+      "slave" : 0
+    },
+    "links" : [ ... ]
+  }
+
+
+Add users to a group: ::
+
+  $ curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696/users" --digest -i -X POST --data @-
+  [
+    {
+      "id": "5329c8dfe4b0b07a83d67e7d",
+      "roles": [{
+        "roleName": "GROUP_READ_ONLY"
+      }]
+    },
+    {
+      "id": "5329c906e4b0b07a83d691ba",
+      "roles": [{
+        "roleName": "GROUP_MONITORING_ADMIN"
+      }, {
+        "roleName": "GROUP_BACKUP_ADMIN"
+      }]
+    }
+  ]
+
+  HTTP/1.1 200 OK
+
+
+Delete a group: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696" --digest -i -X DELETE
+
+  HTTP/1.1 200 OK
+
+
+Get users in a group: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount" : 2,
+    "results" : [ {
+      "id" : "5357e25a300490374243f425",
+      "username" : "user1@foo.com",
+      "emailAddress" : "user1@foo.com",
+      "firstName" : "User",
+      "lastName" : "One",
+      "roles" : [ {
+        "groupId" : "5356823bc0edc2788a835ed0",
+        "roleName" : "GROUP_USER_ADMIN"
+      } ],
+      "links" : [ ... ]
+    }, {
+      "id" : "5356823b3004dee37132bb7b",
+      "username" : "user2@foo.com",
+      "emailAddress" : "user2@foo.com",
+      "firstName" : "User",
+      "lastName" : "Deux",
+      "roles" : [ {
+        "groupId" : "5356823bc0edc2788a835ed0",
+        "roleName" : "GROUP_OWNER"
+      }, {
+        "groupId" : "5356823bc0edc2788a835ecd",
+        "roleName" : "GROUP_OWNER"
+      } ],
+      "links" : [ ... ]
+    } ],
+    "links" : [ ... ]
+  }
+
+
+Delete a user from a group: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425" --digest -i -X DELETE
+
+  HTTP/1.1 200 OK

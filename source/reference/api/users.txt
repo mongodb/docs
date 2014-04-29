@@ -1,0 +1,215 @@
+Users
+-----
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code:: javascript
+
+  {
+    "id": "xxx",
+    "username": "somebody@somewhere.com",
+    "password": "abc123",
+    "emailAddress": "somebody@somewhere-else.com",
+    "mobileNumber": "2125551234",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": [{
+      "groupId": "8491812938cbda83918c",
+      "roleName": "GROUP_OWNER"
+    }, {
+      "groupId": "4829cbda839cbdac3819",
+      "roleName": "GROUP_READ_ONLY"
+    }],
+    "links": [ ... ]
+  }
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 10 10 80
+  :header-rows: 1
+
+  * - Name
+    - Type
+    - Description
+  * - id
+    - string
+    - Unique identifier.
+  * - username
+    - string
+    - MMS username.
+  * - password
+    - string
+    - Password. This field is NOT included in the entity returned from the
+      server. It can only be sent in the entity body when creating a new user.
+  * - emailAddress
+    - string
+    - Email address.
+  * - mobileNumber
+    - string
+    - Mobile number. This field can only be set or edited using the MMS UI
+      because it is tied to two factor authentication.
+  * - firstName
+    - string
+    - First name.
+  * - lastName
+    - string
+    - Last name.
+  * - roles
+    - object array
+    - Role assignments.
+  * - roles.groupId
+    - string
+    - The groupId in which the user has the specified role. Note that for the
+      "global" roles (those whose name starts with ``GLOBAL_``) there is no
+      ``groupId`` since these roles are not tied to a group.
+  * - roles.roleName
+    - enum
+    - The name of the role. Possible values are: ``GLOBAL_AUTOMATION_ADMIN
+      GLOBAL_BACKUP_ADMIN GLOBAL_MONITORING_ADMIN GLOBAL_OWNER GLOBAL_READ_ONLY
+      GLOBAL_USER_ADMIN GROUP_AUTOMATION_ADMIN GROUP_BACKUP_ADMIN
+      GROUP_MONITORING_ADMIN GROUP_OWNER GROUP_READ_ONLY GROUP_USER_ADMIN``
+
+
+Links
+~~~~~
+
+.. list-table::
+  :widths: 10 90
+  :header-rows: 1
+
+  * - Relation
+    - Description
+  * - self
+    - Me
+  * - whitelist
+    - The user's whitelist.
+
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/users/USER-ID/xxx`` - Get a single user by ID. You can
+  only retrieve a user if you have at least one group in common.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/users`` - Get all users in a group.
+
+- ``POST /api/public/v1.0/users`` - Create a new user. All fields are required.
+
+- ``PATCH /api/public/v1.0/users/USER-ID`` - Update an existing user using the
+  fields provided. Unspecified fields will preserve their current values. You
+  cannot specify the password for security reasons.
+
+
+Examples
+~~~~~~~~
+
+Get a user: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/users/533dc19ce4b00835ff81e2eb" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533dc19ce4b00835ff81e2eb",
+    "username" : "jane.doe@mongodb.com",
+    "emailAddress" : "doh.jane@gmail.com",
+    "firstName" : "Jane",
+    "lastName" : "D'oh",
+    "roles" : [ {
+      "groupId" : "533daa30879bb2da07807696",
+      "roleName" : "GROUP_USER_ADMIN"
+    } ],
+    "links": [ ... ]
+  }
+
+
+Get all users in a group: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696/users" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount": 3,
+    "results": [ {
+      "id" : "5329c8dfe4b0b07a83d67e7d",
+      "username" : "john.doe@somewhere.com",
+      "emailAddress" : "john.doe@somewhere.com",
+      "firstName" : "John",
+      "lastName" : "Doe",
+      "roles" : [ {
+        "groupId" : "5329cb6e879bb2da07806511",
+        "roleName" : "GROUP_OWNER"
+      }, {
+        "groupId" : "5196d3628d022db4cbc26d9e",
+        "roleName" : "GROUP_READ_ONLY"
+      }, {
+        "groupId" : "533daa30879bb2da07807696",
+        "roleName" : "GROUP_READ_ONLY"
+      } ],
+      "links": [ ... ]
+    }, {
+      // etc.
+    } ],
+    "links": [ ... ]
+  }
+
+
+Create a user: ::
+
+  curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/users" --digest -i -X POST --data @-
+  {
+    "username": "jane.doe@mongodb.com",
+    "emailAddress": "jane.doe@mongodb.com",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "password": "M0ng0D8!:)",
+    "roles": [{
+      "groupId": "533daa30879bb2da07807696",
+      "roleName": "GROUP_USER_ADMIN"
+    }]
+  }
+
+  HTTP/1.1 201 Created
+  Location: https://mms.mongodb.com/api/public/v1.0/users/533dc19ce4b00835ff81e2eb
+
+  {
+    "id" : "533dc19ce4b00835ff81e2eb",
+    "username" : "jane.doe@mongodb.com",
+    "emailAddress" : "jane.doe@mongodb.com",
+    "firstName" : "Jane",
+    "lastName" : "Doe",
+    "roles" : [ {
+      "groupId" : "533daa30879bb2da07807696",
+      "roleName" : "GROUP_USER_ADMIN"
+    } ],
+    "links" : [ ... ]
+  }
+
+
+Update a user: ::
+
+  curl -u "username:apiKey" -H "Content-Type: application/json" "https://mms.mongodb.com/api/public/v1.0/users/533dc19ce4b00835ff81e2eb" --digest -i -X PATCH --data @-
+  {
+    "emailAddress": "doh.jane@gmail.com",
+    "lastName": "D'oh"
+  }
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "533dc19ce4b00835ff81e2eb",
+    "username" : "jane.doe@mongodb.com",
+    "emailAddress" : "doh.jane@gmail.com",
+    "firstName" : "Jane",
+    "lastName" : "D'oh",
+    "roles" : [ {
+      "groupId" : "533daa30879bb2da07807696",
+      "roleName" : "GROUP_USER_ADMIN"
+    } ],
+    "links" : [ ... ]
+  }
