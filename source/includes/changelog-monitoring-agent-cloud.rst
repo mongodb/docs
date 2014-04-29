@@ -13,8 +13,8 @@ Monitoring Agent ``2.1.2.43-1``
 
 *Released 2014-04-15*
 
-- Reduction in unnecessary log messages for unsupported operations on
-  monitored MongoDB 2.2 instances.
+Reduction in unnecessary log messages for unsupported operations on
+monitored MongoDB 2.2 instances.
 
 Monitoring Agent ``2.1.0``
 --------------------------
@@ -44,8 +44,8 @@ Monitoring Agent ``2.0.0``
 
 *Released 2014-03-11*
 
-- A new 2.x Monitoring Agent with no Python dependencies for deployments not
-  using Kerberos authentication or connecting to the internet via proxy.
+A new 2.x Monitoring Agent with no Python dependencies for deployments not
+using Kerberos authentication or connecting to the internet via proxy.
 
 Monitoring Agent ``1.6.8``
 --------------------------
@@ -120,36 +120,36 @@ Monitoring Agent ``1.6.0``
 
 *Released 2013-10-07*
 
-- For monitored instances on MongoDB 2.4.x series, fixed
-  a bug that reported monitored :program:`mongod` instances as down
-  during foreground index builds.
+For monitored instances on MongoDB 2.4.x series, fixed
+a bug that reported monitored :program:`mongod` instances as down
+during foreground index builds.
 
 Monitoring Agent ``1.5.9``
 --------------------------
 
 *Released 2013-08-12*
 
-- Agent now collects timestamps associated with hardware metrics, so
-  that MMS can display more accurate minute-level charts.
+Agent now collects timestamps associated with hardware metrics, so
+that MMS can display more accurate minute-level charts.
 
 Monitoring Agent ``1.5.8``
 --------------------------
 
 *Released 2013-07-15*
 
-- Increased collection of data on shard names.
+Increased collection of data on shard names.
 
 Monitoring Agent ``1.5.7``
 --------------------------
 
 *Released 2013-04-23*
 
-- Removed the ``writeBacksQueued`` queued call.
+Removed the ``writeBacksQueued`` queued call.
 
 Monitoring Agent ``1.5.6``
 --------------------------
 
 *Released 2013-03-20*
 
-- Removed an error from the log if the agent is unable to collect
-  profiling stats.
+Removed an error from the log if the agent is unable to collect
+profiling stats.

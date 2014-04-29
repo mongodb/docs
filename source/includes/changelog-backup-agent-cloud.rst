@@ -72,22 +72,22 @@ Backup Agent ``v20131118.0``
 Backup Agent ``v20130923.0``
 ----------------------------
 
-- When the agent sends the initial meta-data about the data to back up
-  (e.g. the list of databases, collections,and indexes,) to the MMS
-  API, the agent will not include any databases or collections in the
-  "excluded namespace" configuration.
+When the agent sends the initial meta-data about the data to back up
+(e.g. the list of databases, collections,and indexes,) to the MMS
+API, the agent will not include any databases or collections in the
+"excluded namespace" configuration.
 
 Backup Agent ``v20130826.0``
 ----------------------------
 
-- Adds support for managing excluded namespaces: Backup Agent will no
-  longer send data for excluded collections or databases.
+Adds support for managing excluded namespaces: Backup Agent will no
+longer send data for excluded collections or databases.
 
 Backup Agent ``v20130812.1``
 ----------------------------
 
 *Major stability update*
 
-- If the communication between the Backup Agent and the |backup| API
-  is interrupted, the Backup Agent can more reliably recover the
-  current state. This results in fewer "resync required" errors.
+If the communication between the Backup Agent and the |backup| API
+is interrupted, the Backup Agent can more reliably recover the
+current state. This results in fewer "resync required" errors.
