@@ -4,6 +4,9 @@ Replace a Config Server
 
 .. default-domain:: mongodb
 
+Overview
+--------
+
 This procedure replaces an inoperable
 :ref:`config server <sharding-config-server>` in a
 :doc:`sharded cluster </core/sharding>`. Use this procedure only
@@ -15,6 +18,19 @@ If you must change the hostname of the instance, use the procedure to
 :doc:`migrate a config server and use a new hostname
 <migrate-config-servers-with-different-hostnames>`.
 
+Considerations
+--------------
+
+In the course of this procedure *never* remove a config server from
+the :setting:`~sharding.configDB` parameter on any of the :program:`mongos`
+instances. If you need to change the name of a config server,
+always make sure that all :program:`mongos` instances have three
+config servers specified in the :setting:`~sharding.configDB` setting at all
+times.
+
+Procedure
+---------
+
 #. Disable the cluster balancer process temporarily. See
    :ref:`sharding-balancing-disable-temporarily` for more information.
 
@@ -25,20 +41,20 @@ If you must change the hostname of the instance, use the procedure to
    and hostname as the system it's replacing *or* you will need to
    modify the DNS records and wait for them to propagate.
 
-#. Shut down *one* (and only one) of the existing config servers. Copy
-   all of this host's :setting:`~storage.dbPath` file system tree from the current system
-   to the system that will provide the new config server. This
-   command, issued on the system with the data files, may resemble the
-   following:
+#. Shut down the *one* (and only one) config server that you are
+   replacing. Copy all of this host's :setting:`~storage.dbPath` file
+   system tree from the current system to the system that will provide
+   the new config server. This command, issued on the system with the
+   data files, may resemble the following:
 
    .. code-block:: sh
 
       rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
 
-#. Restart the config server process that you used in the previous
-   step to copy the data files to the new config server instance.
+#. Update DNS and/or networking so that new config server is
+   accessible by the sane name as the previous config server.
 
-#. Start the new config server instance. The default invocation is:
+#. Start the *new* config server. The default invocation is:
 
    .. code-block:: sh
 
@@ -48,12 +64,3 @@ If you must change the hostname of the instance, use the procedure to
    balancing operations. See the
    :ref:`sharding-balancing-disable-temporarily` section for more
    information on managing the balancer process.
-
-.. note::
-
-   In the course of this procedure *never* remove a config server from
-   the :setting:`~sharding.configDB` parameter on any of the :program:`mongos`
-   instances. If you need to change the name of a config server,
-   always make sure that all :program:`mongos` instances have three
-   config servers specified in the :setting:`~sharding.configDB` setting at all
-   times.
