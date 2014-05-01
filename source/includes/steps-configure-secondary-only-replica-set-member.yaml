@@ -1,0 +1,81 @@
+# This file is, at the moment, a copy of
+# /includes/steps-perform-maintenance-task-on-replica-set-members.yaml
+title: Stop a Secondary
+stepnum: 1
+ref: stop-a-secondary
+pre: |
+  In the :program:`mongo` shell, shut down the :program:`mongod` instance:
+action:
+  language: javascript
+  code: db.shutdownServer()
+---
+title: Restart the Secondary as a Standalone on a Different Port
+stepnum: 2
+ref: restart-the-secondary-as-a-standalone-on-a-different-port
+pre: |
+  At the operating system shell prompt, restart :program:`mongod`
+  as a standalone instance running on a different port and *without*
+  the :option:`--replSet <mongod --replSet>` parameter:
+action:
+  language: sh
+  code: mongod --port 37017 --dbpath /srv/mongodb
+---
+ref: perform-maintenance-operations-on-the-secondary
+stepnum: 3
+title: Perform Maintenance Operations on the Secondary
+pre: |
+  While the member is a standalone, use the :program:`mongo` shell to
+  perform maintenance:
+action:
+  language: sh
+  code: mongo --port 37017
+---
+title: Restart ``mongod`` as a Member of the Replica Set
+stepnum: 4
+ref: restart-mongod-as-a-member-of-the-replica-set
+pre: |
+  After performing all maintenance tasks, use the following procedure
+  to restart the :program:`mongod` as a member of the replica set
+  on its usual port.
+action:
+  - pre: |
+      From the :program:`mongo` shell, shut down the standalone
+      server after completing the maintenance:
+    language: javascript
+    code: db.shutdownServer()
+  - pre: |
+      Restart the :program:`mongod` instance as a member of
+      the replica set using its normal command-line arguments or
+      configuration file.
+
+      The secondary takes time to :doc:`catch up to the primary
+      </core/replica-set-sync>`. From the :program:`mongo` shell, use the
+      following command to verify that the member has caught up from the
+      :replstate:`RECOVERING` state to the :replstate:`SECONDARY` state.
+    language: javascript
+    code: rs.status()
+---
+title: Perform Maintenance on the Primary Last
+stepnum: 5
+ref: perform-maintenance-on-the-primary-last
+pre: |
+  To perform maintenance on the primary after completing maintenance
+  tasks on all secondaries, use :method:`rs.stepDown()` in the
+  :program:`mongo` shell to step down the primary and allow one of
+  the secondaries to be elected the new primary. Specify a 300 second
+  waiting period to prevent the member from being elected primary again
+  for five minutes:
+action:
+  language: javascript
+  code: rs.stepDown(300)
+post: |
+  After the primary steps down, the replica set will elect a new
+  primary. See :doc:`/core/replica-set-elections` for more
+  information about replica set elections.
+
+  Repeat steps
+  :ref:`step-2-perform-maintenance-task-on-replica-set-members-restart-the-secondary-as-a-standalone-on-a-different-port`,
+  :ref:`step-3-perform-maintenance-task-on-replica-set-members-perform-maintenance-operations-on-the-secondary`, and
+  :ref:`step-4-perform-maintenance-task-on-replica-set-members-restart-mongod-as-a-member-of-the-replica-set`
+  on the former primary.
+...
