@@ -47,7 +47,7 @@ extensions = [
     'directives',
 ]
 
-locale_dirs = [ conf.paths.locale ]
+locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
 gettext_compact = False
 
 templates_path = ['.templates']
@@ -58,16 +58,16 @@ source_suffix = '.txt'
 master_doc = sconf.master_doc
 language = 'en'
 project = sconf.project
-copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
+copyright = u'2011-{0}'.format(datetime.date.today().year)
 version = conf.version.branch
 release = conf.version.release
 
 rst_epilog = '\n'.join([
-    '.. |branch| replace:: ``' + conf.git.branches.current + '``',
+    '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |copy| unicode:: U+000A9',
-    '.. |year| replace:: ' + str(datetime.date.today().year),
+    '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: ' + conf.project.url + '/' + conf.git.branches.current
+    '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current)
 ])
 
 pygments_style = 'sphinx'

@@ -10,7 +10,7 @@ Definition
 .. method:: db.collection.update(query, update, options)
 
    Modifies an existing document or documents in a collection. The
-   method can modify specific fields of existing document or documents
+   method can modify specific fields of an existing document or documents
    or replace an existing document entirely, depending on the
    :ref:`update parameter <update-parameter>`.
 
@@ -40,7 +40,7 @@ Definition
    .. include:: /reference/method/db.collection.update-param.rst
 
    .. versionchanged:: 2.6
-      The :method:`~db.collection.update()` returns an object that
+      The :method:`~db.collection.update()` method returns an object that
       contains the status of the operation.
 
    :returns: A :ref:`writeresults-update` object that contains the
@@ -74,7 +74,7 @@ Update Specific Fields
 ``````````````````````
 
 If the ``<update>`` document contains :ref:`update operator
-<update-operators>` expressions, such those using the
+<update-operators>` expressions, such as those using the
 :update:`$set` operator, then:
 
 - The ``<update>`` document must contain *only* :ref:`update operator
@@ -113,7 +113,7 @@ The *upsert* creates the new document with either:
 
 - The fields and values of the ``<update>`` parameter, or
 
-- The fields and values of the both the ``<query>`` and ``<update>``
+- The fields and values of both the ``<query>`` and ``<update>``
   parameters. The *upsert* creates a document with data from both
   ``<query>`` and ``<update>`` if the ``<update>`` parameter contains
   *only* :ref:`update operator <update-operators>` expressions.
@@ -128,11 +128,10 @@ Use Unique Indexes
    only use ``upsert: true`` if the ``query`` field is uniquely
    indexed.
 
-Given a collection named ``people`` where no documents have a
-``name`` field that holds the value ``Andy``. Consider when multiple
-clients issue the following *update* operation at the same time. The
-following operation becomes an ``insert`` because the ``upsert``
-flag is ``true``.:
+Given a collection named ``people`` where no documents have a ``name``
+field that holds the value ``Andy``. Consider when multiple clients
+issue the following *update* with an ``upsert`` parameter at the same
+time:
 
 .. code-block:: javascript
 
@@ -147,14 +146,14 @@ flag is ``true``.:
    )
 
 If all :method:`~db.collection.update()` operations complete the
-``query`` portion before any client successfully inserts data,
-**and** there is no unique index on the ``name`` field, then each update
-operation may perform an insert.
+``query`` portion before any client successfully inserts data, **and**
+there is no unique index on the ``name`` field, then each update
+operation may result in an insert.
 
 To prevent MongoDB from inserting the same document more than once,
 create a :ref:`unique index <index-type-unique>` on the ``name``
 field. With a unique index, if an applications issues a group of upsert
-operations, *Exactly one* :method:`~db.collection.update()` would
+operations, *exactly one* :method:`~db.collection.update()` would
 successfully insert a new document.
 
 The remaining operations would either:
@@ -176,7 +175,7 @@ If ``multi`` is set to ``true``, the :method:`~db.collection.update()`
 method updates all documents that meet the ``<query>`` criteria. The
 ``multi`` update operation may interleave with other write operations.
 For unsharded collections, you can override this behavior with the
-:update:`$isolated` isolation operator, which isolates the update
+:update:`$isolated` operator, which isolates the update
 operation and blocks other write operations during the update.
 
 If the :ref:`\<update\> <update-parameter>` document contains *only*
@@ -194,6 +193,8 @@ Sharded Collections
 
 .. include:: /includes/fact-single-modification-in-sharded-collections.rst
 
+.. seealso:: :method:`~db.collection.findAndModify()`
+
 Examples
 --------
 
@@ -204,7 +205,7 @@ Update Specific Fields
 
 To update specific fields in a document, use :ref:`update operators
 <update-operators>` in the ``<update>`` parameter. If the ``<update>``
-parameter refers to fields non-existent in the current document, the
+parameter refers to non-existent fields in the current document, the
 :method:`~db.collection.update()` method adds the fields to the
 document.
 
@@ -343,7 +344,7 @@ is less than ``5``:
 Override Default Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following operation to a replica set specifies a :doc:`write
+The following operation on a replica set specifies a :doc:`write
 concern </reference/write-concern>` of ``"w: majority"`` with a
 ``wtimeout`` of 5000 milliseconds such that the method returns after
 the write propagates to a majority of the replica set members or the
@@ -428,7 +429,7 @@ perform the update using the position of the element and :term:`dot
 notation`. Arrays in MongoDB are zero-based.
 
 The following operation queries the :doc:`bios collection
-</reference/bios-example-collection>` for the first document with
+</reference/bios-example-collection>` for the first document with the
 ``_id`` field equal to ``1`` and updates the second element in the
 ``contribs`` array:
 
@@ -471,7 +472,7 @@ operator (i.e. :operator:`$`) and the :term:`dot notation`.
 
 The following operation queries the :doc:`bios collection
 </reference/bios-example-collection>` for the first document where the
-``_id`` field equals ``6`` and the ``awards`` array contains a
+``_id`` field equals ``4`` and the ``awards`` array contains a
 subdocument element with the ``by`` field equal to ``ACM``. If found,
 the :method:`~db.collection.update()` method updates the ``by`` field in
 the first matching subdocument:
@@ -479,7 +480,7 @@ the first matching subdocument:
 .. code-block:: javascript
 
    db.bios.update(
-      { _id: 6, "awards.by": "ACM"  } ,
+      { _id: 4, "awards.by": "ACM"  } ,
       { $set: { "awards.$.by": "Association for Computing Machinery" } }
    )
 
@@ -503,7 +504,7 @@ field:
 In the next example, the :update:`$set` operator uses :ref:`dot
 notation <document-dot-notation>` to access the ``middle`` field in the
 ``name`` subdocument. The :update:`$push`
-operator adds another document as element to the field ``awards``.
+operator adds another document as an element to the field ``awards``.
 
 Consider the following operation:
 
@@ -531,7 +532,7 @@ This :method:`~db.collection.update()` operation:
 
 - Adds an element to the field ``awards``, whose value is an array.
   Specifically, the :update:`$push` operator adds another document as
-  element to the field ``awards``.
+  an element to the field ``awards``.
 
 .. _writeresults-update:
 
@@ -543,9 +544,9 @@ WriteResult
 Successful Results
 ~~~~~~~~~~~~~~~~~~
 
-The :method:`~db.collection.update()` returns a :method:`WriteResult`
+The :method:`~db.collection.update()` method returns a :method:`WriteResult`
 object that contains the status of the operation. Upon success, the
-:method:`WriteResult` object contains information on the number of
+:method:`WriteResult` object contains the number of
 documents that matched the query condition, the number of documents
 inserted via an ``upsert``, and the number of documents modified:
 

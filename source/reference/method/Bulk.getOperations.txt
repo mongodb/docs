@@ -1,0 +1,126 @@
+====================
+Bulk.getOperations()
+====================
+
+.. default-domain:: mongodb
+
+.. method:: Bulk.getOperations()
+
+   .. versionadded:: 2.6
+
+   Returns an array of write operations executed through
+   :method:`Bulk.execute()`. Only use after a :method:`Bulk.execute()`.
+   Calling :method:`Bulk.getOperations()` before you execute will
+   result in an *incomplete* list.
+   
+Example
+-------
+
+The following initializes a :method:`Bulk()` operations builder on the
+``items`` collection, adds a series of write operations, executes the
+operations, and then calls :method:`~Bulk.getOperations()` on the
+``bulk`` builder object:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeOrderedBulkOp();
+   bulk.insert( { item: "abc123", status: "A", defaultQty: 500, points: 5 } );
+   bulk.insert( { item: "ijk123", status: "A", defaultQty: 100, points: 10 } );
+   bulk.find( { status: "D" } ).removeOne();
+   bulk.find( { status: "D" } ).update( { $set: { points: 0 } } );
+   bulk.execute();
+   bulk.getOperations();
+
+The :method:`~Bulk.getOperations()` returns the following array:
+
+.. code-block:: javascript
+
+   [
+      {
+         "originalZeroIndex" : 0,
+         "batchType" : 1,
+         "operations" : [
+            {
+               "_id" : ObjectId("5345aea9ac681b0cddcd0a87"),
+               "item" : "abc123",
+               "status" : "A",
+               "defaultQty" : 500,
+               "points" : 5
+            },
+            {
+               "_id" : ObjectId("5345aea9ac681b0cddcd0a88"),
+               "item" : "ijk123",
+               "status" : "A",
+               "defaultQty" : 100,
+               "points" : 10
+            }
+         ]
+      },
+      {
+         "originalZeroIndex" : 2,
+         "batchType" : 3,
+         "operations" : [
+            {
+               "q" : {
+                  "status" : "D"
+               },
+               "limit" : 1
+            }
+         ]
+      },
+      {
+         "originalZeroIndex" : 3,
+         "batchType" : 2,
+         "operations" : [
+            {
+               "q" : {
+                  "status" : "D"
+               },
+               "u" : {
+                  "$set" : {
+                     "points" : 0
+                  }
+               },
+               "multi" : true,
+               "upsert" : false
+            }
+         ]
+      }
+   ]
+
+Returned Fields
+---------------
+
+The array contains documents with the following fields:
+
+.. data:: originalZeroIndex 
+
+   Specifies the order in which the operation was added to the bulk
+   operations builder, based on a zero index; e.g. first operation
+   added to the bulk operations builder will have
+   :data:`originalZeroIndex` value of ``0``.
+
+.. data:: batchType
+
+   Specifies the write operations type.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - ``batchType``
+        - Operation
+
+      * - 1
+        - Insert
+
+      * - 2
+        - Update
+
+      * - 3
+        - Remove
+
+.. data:: operations
+
+   Array of documents that contain the details of the operation.
+
+.. seealso:: :method:`Bulk()` and :method:`Bulk.execute()`.

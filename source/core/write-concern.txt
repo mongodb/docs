@@ -10,11 +10,13 @@ Write Concern
 
 .. include:: /includes/introduction-write-concern.rst
 
-.. seealso:: :doc:`/reference/write-concern` for a reference of
-   specific write concern configuration. Also consider
-   :doc:`/core/write-operations` for a general overview of write
-   operations with MongoDB and :doc:`/core/replica-set-write-concern`
-   for considerations specific to replica sets.
+.. versionchanged:: 2.6
+   A new protocol for :ref:`write operations
+   <rel-notes-write-operations>` integrates write concern with the
+   write operations.
+
+For details on write concern configurations, see
+:doc:`/reference/write-concern`.
 
 Considerations
 --------------
@@ -22,12 +24,11 @@ Considerations
 Default Write Concern
 ~~~~~~~~~~~~~~~~~~~~~
 
-The :doc:`driver write concern </release-notes/drivers-write-concern>`
-change created a new connection class in all of the MongoDB
-drivers. The new class, called ``MongoClient`` changes the default
-write concern. See the :doc:`release notes
-</release-notes/drivers-write-concern>` for this change and the
-release notes for your driver.
+The :program:`mongo` shell and the MongoDB drivers use
+:ref:`write-concern-acknowledged` as the default write concern. 
+
+See :ref:`write-concern-acknowledged` for more information, including
+when this write concern became the default.
 
 Read Isolation
 ~~~~~~~~~~~~~~
@@ -37,8 +38,7 @@ Read Isolation
 Write Concern Levels
 --------------------
 
-Clients issue write operations with some level of :term:`write
-concern`.  MongoDB has the following levels of conceptual write
+MongoDB has the following levels of conceptual write
 concern, listed from weakest to strongest:
 
 .. _write-concern-unacknowledged:
@@ -47,13 +47,10 @@ Unacknowledged
 ~~~~~~~~~~~~~~
 
 With an *unacknowledged* write concern, MongoDB does not acknowledge
-the receipt of write operation. *Unacknowledged* is similar to *errors
-ignored*; however, drivers attempt to receive and handle network errors
-when possible. The driver's ability to detect network errors depends on
-the system's networking configuration.
-
-To set *unacknowledged* write concern, specify ``w`` values of ``0``
-to your driver.
+the receipt of write operations. *Unacknowledged* is similar to
+*errors ignored*; however, drivers will attempt to receive and handle
+network errors when possible. The driver's ability to detect network
+errors depends on the system's networking configuration.
 
 Before the releases outlined in :ref:`driver-write-concern-change`,
 this was the default write concern.
@@ -70,35 +67,28 @@ confirms the receipt of the write operation. *Acknowledged* write
 concern allows clients to catch network, duplicate key, and other
 errors.
 
-To set *acknowledged* write concern, specify ``w`` values of ``1``
-to your driver.
+MongoDB uses the *acknowledged* write concern by default starting in
+the driver releases outlined in :ref:`write-concern-change-releases`.
 
-MongoDB uses *acknowledged* write concern by default, after the
-releases outlined in :ref:`driver-write-concern-change`.
+.. versionchanged:: 2.6
+   The :program:`mongo` shell write methods now incorporates the
+   :doc:`write concern </core/write-concern>` in the write methods and
+   provide the default write concern whether run interactively or in a
+   script. See :ref:`write-methods-incompatibility` for details.
 
 .. include:: /images/crud-write-concern-ack.rst
-
-Internally, the default write concern calls :dbcommand:`getLastError`
-with no arguments. For replica sets, you can define the default write
-concern settings in the
-:data:`~local.system.replset.settings.getLastErrorDefaults`. When
-:data:`~local.system.replset.settings.getLastErrorDefaults` does not
-define a default write concern setting, :dbcommand:`getLastError`
-defaults to basic receipt acknowledgment.
 
 .. _write-concern-replica-journaled:
 
 Journaled
 ~~~~~~~~~
 
-With a *journaled* write concern, the :program:`mongod` acknowledges the
-write operation only after committing the data to the :term:`journal`.
-This write concern ensures that MongoDB can recover the data following
-a shutdown or power interruption.
+With a *journaled* write concern, the MongoDB acknowledges the write
+operation only after committing the data to the :term:`journal`. This
+write concern ensures that MongoDB can recover the data following a
+shutdown or power interruption.
 
-To set a *journaled* write concern, specify ``w`` values of ``1`` and
-set the ``journal`` or ``j`` option to ``true`` for your driver. You
-must have journaling enabled to use this write concern.
+You must have journaling enabled to use this write concern.
 
 With a *journaled* write concern, write operations must wait for the next
 journal commit. To reduce latency for these operations, MongoDB
@@ -115,19 +105,17 @@ also increases the frequency that it commits operations to the journal. See
 Replica Acknowledged
 ~~~~~~~~~~~~~~~~~~~~
 
-:term:`Replica sets <replica set>` add several considerations for
-write concern. Basic write concerns affect write operations on only
-one :program:`mongod` instance. The ``w`` argument to
-:dbcommand:`getLastError` provides *replica acknowledged* write
-concerns. With *replica acknowledged* you can guarantee that the write
-operation propagates to the members of a replica set. See
-:doc:`/reference/write-concern` document for the values for ``w`` and
-:doc:`Write Concern for Replica Sets <replica-set-write-concern>` for
-more information.
+:term:`Replica sets <replica set>` present additional considerations
+with regards to write concern.. The default write concern only requires
+acknowledgement from the primary.
 
-To set *replica acknowledged* write concern, specify ``w`` values
-greater than ``1`` to your driver.
+With *replica acknowledged* write concern, you can guarantee that the
+write operation propagates to additional members of the replica set.
+See :doc:`Write Concern for Replica Sets <replica-set-write-concern>`
+for more information.
 
 .. include:: /images/crud-write-concern-w2.rst
 
 .. include:: /includes/note-write-concern-journaled-replication.rst
+
+.. seealso:: :doc:`/reference/write-concern`
