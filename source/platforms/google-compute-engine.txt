@@ -1,5 +1,3 @@
-.. _google-compute-engine:
-
 =====================
 Google Compute Engine
 =====================
@@ -115,22 +113,30 @@ for the instance using the ``gcutil`` command.
 
 .. code-block:: sh
 
-   gcutil adddisk mongodb-root --project=mongodb-project --size_gb=10 --zone=us-central1-b
+   gcutil adddisk mongodb-root \
+          --project=mongodb-project \
+          --size_gb=10 \
+          --zone=us-central1-b
 
 Next create the persistent disk that will hold MongoDB data, journal, and logs.
 
 .. code-block:: sh
 
-   gcutil adddisk mongodb-storage --project=mongodb-project --size_gb=500 --zone=us-central1-b
+   gcutil adddisk mongodb-storage \
+          --project=mongodb-project \
+          --size_gb=500 \
+          --zone=us-central1-b
 
 With the disks now created, the next step is to launch an instance
 with these volumes attached.
 
 .. code-block:: sh
 
-    $ gcutil addinstance mongodb-instance --project=mongodb-project --zone=us-central1-b \
-    --machine_type=n1-standard-2 --image=projects/centos-cloud/global/images/centos-6-v20131120 \
-    --disk=mongodb-root,mode=rw,boot --disk=mongodb-storage,mode=rw
+   gcutil addinstance mongodb-instance \
+          --project=mongodb-project --zone=us-central1-b \
+          --machine_type=n1-standard-2 \
+          --image=projects/centos-cloud/global/images/centos-6-v20131120 \
+          --disk=mongodb-root,mode=rw,boot --disk=mongodb-storage,mode=rw
 
 The above command will launch an `n1-standard-2` instance running
 CentOS in the `us-central1-b` zone with 2 disks attached (1 as
@@ -190,7 +196,8 @@ documentation.
 
 .. code-block:: sh
 
-   sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F -o defaults,auto,noatime,noexec" /dev/sdb /data
+   sudo /usr/share/google/safe_format_and_mount \
+        -m "mkfs.ext4 -F -o defaults,auto,noatime,noexec" /dev/sdb /data
 
 Finally set the appropriate ownership of the storage volume
 ("``owner:group``" should be ``mongod``:``mongod``).
@@ -263,7 +270,8 @@ following command.
 
 .. code-block:: sh
 
-   echo 'ACTION=="add", KERNEL=="sdb", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-mongod.rules
+   echo 'ACTION=="add", KERNEL=="sdb", ATTR{bdi/read_ahead_kb}="16"' \
+    | sudo tee -a /etc/udev/rules.d/85-mongod.rules
 
 The default TCP keep alive on Linux also needs to be changed for
 MongoDB deployments as the default is too long. The following
@@ -336,7 +344,9 @@ Now execute the snapshot command:
 
 .. code-block:: sh
 
-   gceutil addsnapshot mongodb-storage-snapshot --project=mongodb-project --source_disk=mongodb-storage
+   gceutil addsnapshot mongodb-storage-snapshot \
+           --project=mongodb-project \
+           --source_disk=mongodb-storage
 
 Once the snapshot has been completed, unlock :program:`mongod` via the
 :program:`mongo` shell:
@@ -376,8 +386,13 @@ attach it to a running instance.
 
 .. code-block:: sh
 
-   gcutil adddisk mongodb-storage-2 --source_snapshot=mongodb-storage-snapshot --project=mongodb-project --zone=us-central1-b
-   gcutil attachdisk mongodb-instance --disk=mongodb-storage-2,mode=rw --project=mongodb-project
+   gcutil adddisk mongodb-storage-2 \
+          --source_snapshot=mongodb-storage-snapshot \
+          --project=mongodb-project \
+          --zone=us-central1-b
+   gcutil attachdisk mongodb-instance
+          --disk=mongodb-storage-2,mode=rw \
+          --project=mongodb-project
 
 After the disk attaches, refer to the above instructions for mounting
 the disk to the :file:`/data` mount point, then restart
