@@ -112,14 +112,28 @@ into a PKCS12-formatted keystore with the following command:
 ``openssl`` will prompt for the private key passphrase as well as a
 new passphrase for the PKCS12 keystore.
 
-Procedure
----------
+Procedures
+----------
+
+Create Java Truststore
+~~~~~~~~~~~~~~~~~~~~~~
+
+Import the PEM certificate into a Java truststore, so that the MMS server
+trusts its own ``mms.centralUrl`` when making HTTP requests:
+
+.. code-block:: sh
+
+   /opt/mongodb/mms/jdk/bin/keytool -import -keystore mms-truststore.jks -file mms-ssl-unified.crt 
+
+Replace ``/opt/mongodb/mms`` with the path of the installation directory
+for the MMS server. ``/opt/mongodb/mms`` is the default installation
+directory.
+
+``keytool`` will prompt you to specify a Java keystore passphrase, as well
+as a ``yes/no`` confirmation to import the certificate.
 
 Create Java Keystore
 ~~~~~~~~~~~~~~~~~~~~
-
-Generate Keystore
-`````````````````
 
 Convert the PKCS12 keystore into a Java Keystore, so that the MMS
 server can access the required SSL infrastructure:
@@ -141,18 +155,18 @@ for a passphrase for the new Java keystore. You can use the same
 passphrase for Java as for PKCS12 because you can delete the PKCS12 file
 (i.e. ``mms-ssl.pkcs12``) after generating the Java Key store.
 
-Set Keystore Location and Permission
-````````````````````````````````````
+Set Truststore and Keystore Location and Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Issue the following sequence of commands to move the Java keystore
-file to the ``/etc/mongodb-mms`` directory and set the appropriate
-permissions:
+and truststore files to the ``/etc/mongodb-mms`` directory and set the
+appropriate permissions:
 
 .. code-block:: sh
 
-     sudo cp -a mms-keystore.jks /etc/mongodb-mms/
-     sudo chown mongodb-mms:root /etc/mongodb-mms/mms-keystore.jks
-     sudo chmod 600 /etc/mongodb-mms/mms-keystore.jks
+   sudo mv mms-truststore.jks mms-keystore.jks /etc/mongodb-mms/
+   sudo chown mongodb-mms:root /etc/mongodb-mms/*.jks
+   sudo chmod 600 /etc/mongodb-mms/*.jks
 
 If the MMS application server runs as a different user, change
 ``mongodb-mms`` in the ``chown`` command as needed.
@@ -197,6 +211,45 @@ to reflect the new HTTPS information. For example:
 .. code-block:: ini
 
    mms.centralUrl=https://mms.example.net:8443
+
+Configure MMS Application to use SSL
+
+.. code-block:: ini
+
+   JAVA_MMS_SSL_OPTS="${JAVA_MMS_SSL_OPTS} -Dxgen.webServerSslTrustStorePath=/etc/mongodb-mms/mms-truststore.jks"
+   JAVA_MMS_SSL_OPTS="${JAVA_MMS_SSL_OPTS} -Dxgen.webServerSslTrustStoreEncryptedPassword=f6a5a6b19603c0c04f-97dbb68c2bb1"
+
+   JAVA_MMS_SSL_OPTS="${JAVA_MMS_SSL_OPTS} -Dxgen.webServerSslKeyStorePath=/etc/mongodb-mms/mms-keystore.jks"
+   JAVA_MMS_SSL_OPTS="${JAVA_MMS_SSL_OPTS} -Dxgen.webServerSslKeyStoreEncryptedPassword=f6a5a6b19603c0c04f-97dbb68c2bb1"
+
+Configure the Monitoring Agent to Trust the MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with On-Prem MMS 1.4, the monitoring agent validates the SSL
+certificate of the MMS server by default. This means the monitoring agent
+must be configured to trust the MMS server if not using a certificate
+signed by a trusted 3rd party.
+
+To specify a self-signed certificate of the MMS server that the monitoring
+agent should trust, first copy your PEM certificate to ``/etc/mongodb-mms/``
+
+.. code-block:: sh
+
+   sudo cp -a mms-ssl-unified.crt /etc/mongodb-mms/
+   sudo chown mongodb-mms-agent:mongodb-mms-agent /etc/mongodb-mms/mms-ssl-unified.crt
+   sudo chmod 600 /etc/mongodb-mms/mms-ssl-unified.crt
+
+Then edit the following parameter in ``/etc/mongodb-mms/monitoring-agent.config``:
+
+.. code-block:: ini
+
+   sslTrustedMMSServerCertificate=/etc/mongodb-mms/mms-ssl-unified.crt
+
+Restart your monitoring agent for the configuration update to take effect:
+
+.. code-block:: sh
+
+   sudo /etc/init.d/mongodb-mms-monitoring-agent restart
 
 Restart MMS Application Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
