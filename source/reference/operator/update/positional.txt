@@ -109,7 +109,7 @@ operator to access the fields in the embedded documents with the
    db.collection.update( { <query selector> }, { <update operator>: { "array.$.field" : value } } )
 
 Consider the following document in the ``students`` collection whose
-``grades`` field value is an array of embedded documents:
+``grades`` element value is an array of embedded documents:
 
 .. code-block:: javascript
 
@@ -124,8 +124,46 @@ Use the positional :operator:`$` operator to update the value of the
 
    db.students.update( { _id: 4, "grades.grade": 85 }, { $set: { "grades.$.std" : 6 } } )
 
+.. _multiple-point-matches:
+
+Update Embedded Documents Using Multiple Field Matches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :operator:`$` operator can update the first array element that matches
+multiple query criteria specified with the :query:`$elemMatch()` operator.
+
+Consider the following document in the ``students`` collection whose
+``grades`` field value is an array of embedded documents:
+
+.. code-block:: javascript
+
+   { "_id" : 4, "grades" : [ { grade: 80, mean: 75, std: 8 },
+                             { grade: 85, mean: 90, std: 5 },
+                             { grade: 90, mean: 85, std: 3 } ] }
+
+In the example below, the :operator:`$` operator updates the value of the
+``std`` field in the first embedded document that has ``grade`` field with
+a value less than or equal to ``90`` and a ``mean`` field with a value
+greater than ``80``:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { _id: 4, grades: { $elemMatch: { "grade" : { $lte: 90 }, "mean" : { $gt: 80 } } } },
+      { $set: { "grades.$.std" : 6 } }
+   )
+
+This operation updates the first embedded document that matches the
+criteria, namely the second embedded document in the array:
+
+.. code-block:: javascript
+
+   { "_id" : 4, "grades" : [ { grade: 80, mean: 75, std: 8 },
+                             { grade: 85, mean: 90, std: 6 },
+                             { grade: 90, mean: 85, std: 3 } ] }
+
 Further Reading
 ---------------
 
-:method:`~db.collection.update()`, :update:`$set` and
+:method:`~db.collection.update()`, :query:`$elemMatch()`, :update:`$set` and
 :update:`$unset`
