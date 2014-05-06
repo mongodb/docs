@@ -125,6 +125,12 @@ if tags.has('hosted'):
     project = u'MongoDB Management Service (MMS) On-Prem'
     html_title = 'MMS On-Prem Manual'
     html_short_title = 'MMS On-Prem Manual'
+
+    html_theme_options['pdfpath'] = '/'.join([conf.project.url,
+                                              conf.project.basepath,
+                                              conf.git.branches.current
+                                              'mms-manual.pdf'])
+
     latex_documents = hosted_latex_documents
     rst_epilog.append(".. |s| replace:: Suite")
     rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
@@ -146,6 +152,10 @@ if tags.has('hosted'):
 else:
     conf = edition_setup('saas', conf)
     html_theme = 'mms-saas'
+
+    html_theme_options['pdfpath'] = '/'.join([conf.project.url,
+                                              conf.project.basepath,
+                                              'mms-manual.pdf'])
 
     project = u'MongoDB Management Service (MMS)'
     html_title = 'MMS Manual'
