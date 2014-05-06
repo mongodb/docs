@@ -128,7 +128,7 @@ if tags.has('hosted'):
 
     html_theme_options['pdfpath'] = '/'.join([conf.project.url,
                                               conf.project.basepath,
-                                              conf.git.branches.current
+                                              conf.git.branches.current,
                                               'mms-manual.pdf'])
 
     latex_documents = hosted_latex_documents
