@@ -135,7 +135,8 @@ if tags.has('hosted'):
     rst_epilog.append(".. |s| replace:: Suite")
     rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
     rst_epilog.append(".. |mms| replace:: On-Prem MongoDB Management Service")
-    rst_epilog.append(".. |backup| replace:: On Prem MMS Backup ")
+    rst_epilog.append(".. |backup| replace:: On Prem MMS Backup")
+    rst_epilog.append(".. |automation| replace:: On Prem MMS Automation")
     rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
     rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
     html_theme_options['edition'] = 'hosted'
@@ -164,6 +165,7 @@ else:
     rst_epilog.append(".. |s| replace:: Service")
     rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
     rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+    rst_epilog.append(".. |automation| replace:: MMS Automation")
     rst_epilog.append(".. |backup| replace:: MMS Backup")
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
     rst_epilog.append(".. |release-string| replace:: \ ")
