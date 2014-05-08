@@ -4,6 +4,9 @@ $near
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. query:: $near
 
    .. versionchanged:: 2.4
@@ -11,15 +14,6 @@ $near
    Specifies a point for which a :term:`geospatial` query returns the
    closest documents first. The query sorts the documents from nearest
    to farthest.
-
-   .. note::
-
-   The :dbcommand:`geoNear` always returns the documents sorted by distance.
-   Any other sort order requires to sort the documents in memory, which can
-   be inefficient. If another sort order is desired, use the 
-   :operator:`$geoWithin` operator in combination with :method:`sort()` 
-   instead.  
-
 
    The :query:`$near` operator can query for a :term:`GeoJSON`
    point or for a point defined by legacy coordinate pairs.
@@ -30,89 +24,100 @@ $near
    point, specify :query:`$maxDistance` in meters. If you query for
    legacy coordinate pairs, specify :query:`$maxDistance` in radians.
 
-   The :query:`$near` operator requires a geospatial index: a
-   ``2dsphere`` index for GeoJSON points; a ``2d`` index for legacy
-   coordinate pairs. By default, queries that use a ``2d`` index
-   return a limit of 100 documents; however you may use
-   :method:`~cursor.limit()` to change the number of results.
-
    .. TODO remove the following "include" statement in 2.6
 
-   .. note::
+Considerations
+--------------
 
-      You cannot combine the :query:`$near` operator, which
-      requires a special :ref:`geospatial index
-      <index-feature-geospatial>`, with a query operator or command
-      that uses a different type of special index. For example you
-      cannot combine :query:`$near` with the :dbcommand:`text`
-      command.
+The :query:`$near` operator requires a geospatial index: a
+``2dsphere`` index for GeoJSON points; a ``2d`` index for legacy
+coordinate pairs. By default, queries that use a ``2d`` index
+return a limit of 100 documents; however you may use
+:method:`~cursor.limit()` to change the number of results.
 
-   For queries on GeoJSON data, use the following syntax:
+You cannot combine the :query:`$near` operator, which
+requires a special :ref:`geospatial index
+<index-feature-geospatial>`, with a query operator or command
+that uses a different type of special index. For example you
+cannot combine :query:`$near` with the :dbcommand:`text`
+command.
 
-   .. code-block:: javascript
+Behavior
+--------
 
-      db.<collection>.find(
-         { <location field> :
-             { $near :
-                {
-                  $geometry : {
-                     type : "Point" ,
-                     coordinates : [ <longitude> , <latitude> ] },
-                  $maxDistance : <distance in meters>
-                }
+.. |geo-operation| replace:: :dbcommand:`geoNear`
+
+.. include:: /includes/fact-geo-near-returns-sorted-results.rst
+
+Examples
+--------
+
+For queries on GeoJSON data, use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find(
+      { <location field> :
+          { $near :
+             {
+               $geometry : {
+                  type : "Point" ,
+                  coordinates : [ <longitude> , <latitude> ] },
+               $maxDistance : <distance in meters>
              }
           }
-      )
+       }
+   )
 
-   .. important:: Specify coordinates in this order: **"longitude, latitude."**
+.. important:: Specify coordinates in this order: **"longitude, latitude."**
 
-   The following example selects the documents with coordinates
-   nearest to ``[ 40 , 5 ]`` and limits the maximum distance to 500
-   meters from the specified GeoJSON point:
+The following example selects the documents with coordinates
+nearest to ``[ 40 , 5 ]`` and limits the maximum distance to 500
+meters from the specified GeoJSON point:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.places.find(
-         {
-           loc:
-             { $near :
-                {
-                  $geometry : { type : "Point" , coordinates: [ 40 , 5 ] },
-                  $maxDistance : 500
-                }
+   db.places.find(
+      {
+        loc:
+          { $near :
+             {
+               $geometry : { type : "Point" , coordinates: [ 40 , 5 ] },
+               $maxDistance : 500
              }
-         }
-      )
+          }
+      }
+   )
 
-   For queries on legacy coordinate pairs, use the following syntax:
+For queries on legacy coordinate pairs, use the following syntax:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.<collection>.find( { <location field> :
-                               { $near : [ <x> , <y> ] ,
-                                 $maxDistance: <distance>
-                          } } )
+   db.<collection>.find( { <location field> :
+                            { $near : [ <x> , <y> ] ,
+                              $maxDistance: <distance>
+                       } } )
 
-   .. important:: If you use longitude and latitude, specify **longitude first**.
+.. important:: If you use longitude and latitude, specify **longitude first**.
 
-   The following example query returns documents with location values
-   that are 10 or fewer units from the point ``[ 40 , 5 ]``.
+The following example query returns documents with location values
+that are 10 or fewer units from the point ``[ 40 , 5 ]``.
 
-   For GeoJSON point object, specify the $maxDistance in meters, not radians.
+For GeoJSON point object, specify the $maxDistance in meters, not radians.
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.places.find( { loc :
-                         { $near : [ 40 , 5 ] ,
-                           $maxDistance : 10
-                      } } )
+   db.places.find( { loc :
+                      { $near : [ 40 , 5 ] ,
+                        $maxDistance : 10
+                   } } )
 
-   .. note::
+.. note::
 
-      You can further limit the number of results using
-      :method:`cursor.limit()`.
+   You can further limit the number of results using
+   :method:`cursor.limit()`.
 
-      Specifying a batch size (i.e. :method:`batchSize()
-      <cursor.batchSize()>`) in conjunction with queries that use the
-      :query:`$near` is not defined. See :issue:`SERVER-5236` for
-      more information.
+   Specifying a batch size (i.e. :method:`batchSize()
+   <cursor.batchSize()>`) in conjunction with queries that use the
+   :query:`$near` is not defined. See :issue:`SERVER-5236` for
+   more information.
