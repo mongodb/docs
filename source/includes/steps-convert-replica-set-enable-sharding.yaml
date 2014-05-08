@@ -1,0 +1,149 @@
+title: 
+  text: Enabling sharding on the database level.
+  character: "`"
+stepnum: 1
+ref: enable-sharding-db-level
+action:
+  - pre: |
+      Type the :dbcommand:`enableSharding` command to enable sharding on 
+      the ``test`` database:
+    language: sh
+    code: |
+      db.runCommand( { enableSharding : "test" } )
+  - pre: |
+      This command returns the following output:
+    language: sh
+    code: |
+      { "ok" : 1 }
+---
+title: 
+  text: Create an index on the shard key.
+  character: "`"
+stepnum: 2
+ref: enable-sharding-create-index
+pre: |
+    MongoDB uses the shard key to distribute documents between shards. Once
+    selected, you cannot change the shard key. Good shard keys:
+
+    - have values that are evenly distributed among all documents,
+
+    - group documents that are often accessed at the same time into contiguous chunks, and
+
+    - allow for effective distribution of activity among shards.
+
+    To learn more, see the :ref:`Shard Key Overview <sharding-shard-key>` and
+    :ref:`Shard Key <sharding-internals-shard-keys>` sections.
+
+    Create the index with the following command:
+action:
+  language: sh
+  code: |
+    use test
+    db.test_collection.ensureIndex( { number : 1 } )
+---
+title: 
+  text: Shard the collection.
+  character: "`"
+stepnum: 3
+ref: enable-sharding-collection
+action:
+  - pre: |
+       Type these commands:
+    language: sh
+    code: |
+      use admin
+      db.runCommand( { shardCollection : "test.test_collection", key : { "number" : 1 } } )
+  - pre: |
+      These commands return this output:
+    language: sh
+    code: |
+      { "collectionsharded" : "test.test_collection", "ok" : 1 }
+post: |
+   The :doc:`balancer </core/sharding-balancing>` will redistribute
+   chunks of documents when it next runs. As clients insert additional
+   documents into this collection, the :program:`mongos` will distribute the
+   documents between the shards.
+---
+title: 
+  text: Confirm the shard is balancing.
+  character: "`"
+stepnum: 4
+ref: enable-sharding-confirm
+action:
+  - pre: |
+       You can confirm balancing activity by switching to the ``test`` database
+       and running :method:`db.stats()` or :method:`db.printShardingStatus()`.
+
+       In the :program:`mongo` shell, issue the following commands to return
+       statistics for each cluster:
+    language: sh
+    code: |
+      use test
+      db.stats()
+      db.printShardingStatus()
+  - pre: |
+      Example output of the :method:`db.stats()` command:
+    language: sh
+    code: |
+      {
+           "raw" : {
+                   "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" : {
+                           "db" : "test",
+                           "collections" : 3,
+                           "objects" : 973887,
+                           "avgObjSize" : 100.33173458522396,
+                           "dataSize" : 97711772,
+                           "storageSize" : 141258752,
+                           "numExtents" : 15,
+                           "indexes" : 2,
+                           "indexSize" : 56978544,
+                           "fileSize" : 1006632960,
+                           "nsSizeMB" : 16,
+                           "ok" : 1
+                   },
+                   "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" : {
+                           "db" : "test",
+                           "collections" : 3,
+                           "objects" : 26125,
+                           "avgObjSize" : 100.33286124401914,
+                           "dataSize" : 2621196,
+                           "storageSize" : 11194368,
+                           "numExtents" : 8,
+                           "indexes" : 2,
+                           "indexSize" : 2093056,
+                           "fileSize" : 201326592,
+                           "nsSizeMB" : 16,
+                           "ok" : 1
+                   }
+           },
+           "objects" : 1000012,
+           "avgObjSize" : 100.33176401883178,
+           "dataSize" : 100332968,
+           "storageSize" : 152453120,
+           "numExtents" : 23,
+           "indexes" : 4,
+           "indexSize" : 59071600,
+           "fileSize" : 1207959552,
+           "ok" : 1
+      }
+  - pre: |
+      Example output of the :method:`db.printShardingStatus()` command:
+    language: sh
+    code: |
+      --- Sharding Status ---
+      sharding version: { "_id" : 1, "version" : 3 }
+      shards:
+             {  "_id" : "rs0",  "host" : "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" }
+             {  "_id" : "rs1",  "host" : "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" }
+      databases:
+             {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+             {  "_id" : "test",  "partitioned" : true,  "primary" : "rs0" }
+                        test.test_collection chunks:
+                                                     rs1	5
+                                                     rs0	186
+
+      [...]
+post: |
+   Run these commands for a second time to demonstrate that :term:`chunks
+   <chunk>` are migrating from ``rs0`` to ``rs1``.
+...
