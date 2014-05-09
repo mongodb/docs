@@ -8,6 +8,16 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.1.4.51-1``
+-------------------------------
+
+*Released 2014-05-09*
+
+- Reduce log spam when a :program:`mongod` connection attempt fails, or
+  the when connecting to a 2.0 :program:`mongod`.
+
+- Prevent high CPU use when monitoring unreachable :program:`mongod`.
+
 Monitoring Agent ``2.1.2.43-1``
 -------------------------------
 

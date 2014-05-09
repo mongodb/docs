@@ -6,6 +6,14 @@ Backup Agent Chagelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``1.6.0.55-1``
+---------------------------
+
+*Released 2014-05-09*
+
+The agent now sends oplog slices to MMS in batches to increase
+throughout and stability.
+
 Backup Agent ``1.4.6.43-1``
 ---------------------------
 
