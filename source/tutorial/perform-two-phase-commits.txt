@@ -181,16 +181,25 @@ following:
 Apply Transaction to Both Accounts
 ``````````````````````````````````
 
-Continue by applying the transaction to both accounts. The
-:method:`~db.collection.update()` query will prevent you from
-applying the transaction *if* the transaction is *not* already
-marked as pending. Use the following :method:`~db.collection.update()`
-operation:
+Continue by applying the transaction to both accounts using the
+:method:`~db.collection.update()` method.
+
+In the query for the :method:`~db.collection.update()`, the condition
+``pendingTransactions: {$ne: t._id}`` prevents the update from applying
+the transaction ``t`` to an account if the ``pendingTransactions``
+field for the account contains the ``_id`` of the transaction ``t``:
 
 .. code-block:: javascript
 
-   db.accounts.update({name: t.source, pendingTransactions: {$ne: t._id}}, {$inc: {balance: -t.value}, $push: {pendingTransactions: t._id}})
-   db.accounts.update({name: t.destination, pendingTransactions: {$ne: t._id}}, {$inc: {balance: t.value}, $push: {pendingTransactions: t._id}})
+   db.accounts.update(
+      { name: t.source, pendingTransactions: { $ne: t._id } },
+      { $inc: { balance: -t.value }, $push: { pendingTransactions: t._id } }
+   )
+   db.accounts.update(
+      { name: t.destination, pendingTransactions: { $ne: t._id } },
+      { $inc: { balance: t.value }, $push: { pendingTransactions: t._id } }
+   )
+
    db.accounts.find()
 
 The :method:`~db.collection.find()` operation will return the
