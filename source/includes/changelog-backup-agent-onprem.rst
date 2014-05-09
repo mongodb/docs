@@ -1,6 +1,6 @@
-==============================
-On Prem Backup Agent Changelog
-==============================
+======================
+Backup Agent Changelog
+======================
 
 .. default-domain:: mongodb
 

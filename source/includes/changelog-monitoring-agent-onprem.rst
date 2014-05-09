@@ -1,6 +1,6 @@
-==================================
-On Prem Monitoring Agent Changelog
-==================================
+==========================
+Monitoring Agent Changelog
+==========================
 
 .. default-domain:: mongodb
 
