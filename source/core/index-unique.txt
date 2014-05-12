@@ -8,9 +8,12 @@ Unique Indexes
 .. default-domain:: mongodb
 
 A unique index causes MongoDB to reject all documents that contain a
-duplicate value for the indexed field. To create a unique index on the
-``user_id`` field of the ``members`` collection, use the following
-operation in the :program:`mongo` shell:
+duplicate value for the indexed field. 
+
+To create a unique index, use the :method:`db.collection.ensureIndex()`
+method with the ``unique`` option set to ``true``. For example, to
+create a unique index on the ``user_id`` field of the ``members``
+collection, use the following operation in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -20,8 +23,39 @@ By default, ``unique`` is ``false`` on MongoDB indexes.
 
 If you use the unique constraint on a :ref:`compound index
 <index-type-compound>`, then MongoDB will enforce uniqueness on the
-*combination* of values rather than the individual value for any or
-all values of the key.
+*combination* of values rather than the individual value for any or all
+values of the key.
+
+Behavior
+--------
+
+Unique Constraint Across Separate Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The unique constraint applies to separate documents in the collection.
+That is, the unique index prevents *separate* documents from having the
+same value for the indexed key, but the index does not prevent a
+document from having multiple elements or embedded documents in an
+indexed array from having the same value. In the case of a single
+document with repeating values, the repeated value is inserted into the
+index only once.
+
+For example, a collection has a unique index on ``a.b``:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { "a.b": 1 }, { unique: true } )
+
+The unique index permits the insertion of the following document into
+the collection if no other document in the collection has the ``a.b``
+value of ``5``:
+
+.. code-block:: javascript
+
+   db.collection.insert( { a: [ { b: 5 }, { b: 5 } ] } )
+
+Unique Index and Missing Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If a document does not have a value for the indexed field in a unique
 index, the index will store a null value for this document. Because of
@@ -34,5 +68,10 @@ You can combine the unique constraint with the :ref:`sparse index
 <index-type-sparse>` to filter these null values from the unique index
 and avoid the error.
 
+Restrictions
+~~~~~~~~~~~~
+
 You may not specify a unique constraint on a :ref:`hashed
 index <index-type-hashed>`.
+
+.. seealso:: :doc:`/tutorial/create-a-unique-index`
