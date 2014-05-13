@@ -11,7 +11,7 @@ Add Users
 `````````
 
 You can add a user from any tab of the :guilabel:`Users` page: simply select
-``+ Add/Invite User`` at the top of the screen next to the group name. This
+``Add/Invite User`` at the top of the screen next to the group name. This
 will open a modal window where you will input the new user's email address, and
 can select their role. See :ref:`assigning-roles-to-users` for details about
 roles and privileges.
@@ -53,7 +53,7 @@ Invitations
 ~~~~~~~~~~~
 
 :guilabel:`Invitations` lists pending invitations to your group. When
-you invite a user, as when you click on the :guilabel:`+Add/Invite
+you invite a user, as when you click on the :guilabel:`Add/Invite
 User` button at the top of the console and complete the form. MMS then
 sends an email to the prospective new user and lists the invitation
 until the user accepts.
