@@ -18,7 +18,7 @@ sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 from utils.structures import BuildConfiguration
 from utils.serialization import ingest_yaml, ingest_yaml_list
 from utils.config import get_conf
-from utils.project import get_versions, get_manual_path, edition_setup
+from utils.project import get_current_path, get_versions, get_manual_path, edition_setup
 
 conf = get_conf()
 conf.paths.projectroot = project_root
@@ -181,6 +181,7 @@ rst_epilog = '\n'.join(rst_epilog)
 html_theme_options['manual_path'] = get_manual_path(conf)
 html_theme_options['saas_base'] = saas_conf.project.tag
 html_theme_options['version_selector'] = get_versions(hosted_conf)
+html_theme_options['basepath'] = get_current_path(conf)
 
 # -- Options for LaTeX output --------------------------------------------------
 
