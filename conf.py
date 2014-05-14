@@ -118,8 +118,10 @@ for pdf in pdfs:
 rst_epilog = []
 html_sidebars = { '**': ['pagenav.html'] }
 
+hosted_conf = edition_setup('hosted', conf)
+saas_conf = edition_setup('saas', conf)
 if tags.has('hosted'):
-    conf = edition_setup('hosted', conf)
+    conf = hosted_conf
     html_theme = 'mms-hosted'
 
     project = u'MongoDB Management Service (MMS) On-Prem'
@@ -151,7 +153,7 @@ if tags.has('hosted'):
     for i in conf.git.branches.published:
         extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
 else:
-    conf = edition_setup('saas', conf)
+    conf = saas_conf
     html_theme = 'mms-saas'
 
     html_theme_options['pdfpath'] = '/'.join([conf.project.url,
@@ -177,7 +179,8 @@ else:
 rst_epilog = '\n'.join(rst_epilog)
 
 html_theme_options['manual_path'] = get_manual_path(conf)
-html_theme_options['version_selector'] = get_versions(conf)
+html_theme_options['saas_base'] = saas_conf.project.tag
+html_theme_options['version_selector'] = get_versions(hosted_conf)
 
 # -- Options for LaTeX output --------------------------------------------------
 
