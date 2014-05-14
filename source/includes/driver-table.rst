@@ -63,7 +63,7 @@
      - `Current Haskell Driver API <http://api.mongodb.org/haskell/>`_
 
    * - :doc:`Erlang </drivers/erlang>`
-     - `Erlang Driver Releases <https://github.com/mongodb/mongodb-erlang/releases>`_
+     - `Erlang Driver Releases <httpsgc ://github.com/mongodb/mongodb-erlang/releases>`_
      - `Current Erlang Driver API <http://api.mongodb.org/erlang/>`_
 
 :doc:`mgo </drivers/go>` is not officially supported.
