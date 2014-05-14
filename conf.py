@@ -136,7 +136,8 @@ html_theme_options = {
                                            'mongodb-ecosystem', 'epub'),
     'pdfpath': manual_edition_path.format(conf.project.url,
                                           conf.project.basepath,
-                                          'MongoDB-Ecosystem-guide', 'pdf')
+                                          'MongoDB-Ecosystem-guide', 'pdf'),
+    'nav_excluded': sconf.theme.nav_excluded,
 }
 
 html_sidebars = sconf.sidebars
