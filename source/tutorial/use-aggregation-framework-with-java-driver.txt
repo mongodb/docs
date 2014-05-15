@@ -15,6 +15,11 @@ without the need for complex map-reduce operations. The aggregation
 framework is both multithreaded and written in C++, thus it executes
 natively across nodes.
 
+.. note::
+  The following code snippets come from the :file:`AggregationExample.java`
+  example code that can be found with the
+  `driver source <https://github.com/mongodb/mongo-java-driver/tree/master/src/examples/example>`_.
+
 Aggregation tasks are built around the concept of the aggregation
 pipeline. Just as UNIX-like shells use the pipe operator ``|`` to
 connect a series of command-line operations together, the aggregation
@@ -38,6 +43,36 @@ document:
       "type" : "airfare"
    }
 
+First add some sample data:
+
+.. code-block:: java
+
+    DBCollection coll = db.getCollection("aggregationExample");
+    coll.insert(new BasicDBObjectBuilder()
+           .add("employee", 1)
+           .add("department", "Sales")
+           .add("amount", 71)
+           .add("type", "airfare")
+           .get());
+    coll.insert(new BasicDBObjectBuilder()
+           .add("employee", 2)
+           .add("department", "Engineering")
+           .add("amount", 15)
+           .add("type", "airfare")
+           .get());
+    coll.insert(new BasicDBObjectBuilder()
+           .add("employee", 4)
+           .add("department", "Human Resources")
+           .add("amount", 5)
+           .add("type", "airfare")
+           .get());
+    coll.insert(new BasicDBObjectBuilder()
+           .add("employee", 42)
+           .add("department", "Sales")
+           .add("amount", 77)
+           .add("type", "airfare")
+           .get());
+
 I am auditing three departments: Sales, Engineering and Human
 Resources. I want to calculate each department’s average spend on
 airfare. I’d like to use the Aggregation Framework for the audit, so I
@@ -52,6 +87,8 @@ think of the operation in terms of a pipeline:
    through the pipeline; then pipe into
 
 #. Operation: Average the expense ``amount``, grouped by ``department``.
+
+#. Operation: Sort the ``deparments`` by ``amount``.
 
 I will use the aggregation operators ``$match``, ``$project`` and
 ``$group`` to perform each operation. Individual aggregation operations
@@ -71,7 +108,7 @@ as:
 
    .. code-block:: javascript
 
-      $project: { department: 1, amount: 1 } 
+      $project: { department: 1, amount: 1 }
 
 #. Piped into:
 
@@ -80,16 +117,22 @@ as:
       $group: { _id: "$department",
                 average: { $avg: "$amount" } }
 
+#. Piped into:
+
+   .. code-block:: javascript
+
+      $sort: { "$amount": -1 }
+
+
 I use the Java Driver’s aggregation helper to build out this pipeline
 in my application. Let’s take a look at the ``aggregate()`` method
 signature.
 
 .. code-block:: java
 
-   public AggregationOutput aggregate( DBObject firstOp, DBObject ... additionalOps)
+    public AggregationOutput aggregate(final List<DBObject> pipeline)
 
-The ``aggregate()`` method uses Java ``varargs`` and accepts arbitrary
-number of ``DBObjects`` as parameters. These ``DBObjects`` represent
+The ``aggregate()`` method takes a list of ``DBObjects`` representing the
 aggregation operations, which will be chained together by the helper
 method to form the aggregation pipeline. Callers of the ``aggregate()``
 method must pass at least one aggregation operation. Here’s the Java
@@ -97,50 +140,71 @@ code we’ll use to perform the aggregation task:
 
 .. code-block:: java
 
-   // create our pipeline operations, first with the $match
-   DBObject match = new BasicDBObject("$match", new BasicDBObject("type", "airfare") );
+    // create our pipeline operations, first with the $match
+    DBObject match = new BasicDBObject("$match", new BasicDBObject("type", "airfare"));
 
-   // build the $projection operation
-   DBObject fields = new BasicDBObject("department", 1);
-   fields.put("amount", 1);
-   fields.put("_id", 0);
-   DBObject project = new BasicDBObject("$project", fields );
+    // build the $projection operation
+    DBObject fields = new BasicDBObject("department", 1);
+    fields.put("amount", 1);
+    fields.put("_id", 0);
+    DBObject project = new BasicDBObject("$project", fields );
 
-   // Now the $group operation
-   DBObject groupFields = new BasicDBObject( "_id", "$department");
-   groupFields.put("average", new BasicDBObject( "$avg", "$amount"));
-   DBObject group = new BasicDBObject("$group", groupFields);
+    // Now the $group operation
+    DBObject groupFields = new BasicDBObject( "_id", "$department");
+    groupFields.put("average", new BasicDBObject( "$avg", "$amount"));
+    DBObject group = new BasicDBObject("$group", groupFields);
 
-   // run aggregation
-   AggregationOutput output = collection.aggregate( match, project, group );
+    // Finally the $sort operation
+    DBObject sort = new BasicDBObject("$sort", new BasicDBObject("amount", -1));
 
-Aggregations are executed as database commands in MongoDB. These
-commands embed the results of the aggregation task in an object that
-also contains additional information about how the command was
-executed. The return value of ``aggregate()`` is an instance of the
-``AggregationOutput`` class, which provides assessors to this
-information.
-
-.. code-block:: java
-
-   public Iterable<DBObject> results()
-   public CommandResult getCommandResult
-   public DBObject getCommand()
+    // run aggregation
+    List<DBObject> pipeline = Arrays.asList(match, project, group, sort);
+    AggregationOutput output = coll.aggregate(pipeline);
 
 Let’s take a look at the results of my audit:
 
 .. code-block:: java
 
-   System.out.println(output);
+    for (DBObject result : output.results()) {
+        System.out.println(result);
+    }
 
 .. code-block:: sh
 
-   { 
-      "serverUsed" : "/127.0.0.1:27017" , 
-      "result" : [
-         {"_id" : "Human Resources" , "average" : 74.91735537190083} , 
-         {"_id" : "Sales" , "average" : 72.30275229357798} ,
-         {"_id" : "Engineering" , "average" : 74.1}
-      ] ,
-      "ok" : 1.0
-   }
+    { "_id" : "Sales" , "average" : 74.0}
+    { "_id" : "Engineering" , "average" : 15.0}
+    { "_id" : "Human Resources" , "average" : 5.0}
+
+
+Aggregation cursors
+-------------------
+
+MongoDB 2.6 adds the ability to return a cursor from the aggregation framework.
+To do that simply use ``AggregationOptions`` with the aggregation command:
+
+.. code-block:: java
+
+    AggregationOptions aggregationOptions = AggregationOptions.builder()
+            .batchSize(100)
+            .outputMode(AggregationOptions.OutputMode.CURSOR)
+            .allowDiskUse(true)
+            .build();
+
+    Cursor cursor = coll.aggregate(pipeline, aggregationOptions);
+
+You can iterate the results of the aggregation as a normal cursor.
+
+.. code-block:: java
+
+    while (cursor.hasNext()) {
+        System.out.println(cursor.next());
+    }
+
+.. versionadded:: 2.12.0
+  Aggregation Cursors are available in the 2.12.0 Java driver and work with
+  MongoDB 2.6.0 and above.
+
+To learn more about aggregation see the `aggregation tutorial
+<http://docs.mongodb.org/manual/applications/aggregation>`_ and the
+`aggregation reference <http://docs.mongodb.org/manual/aggregation>`_
+documentation.
