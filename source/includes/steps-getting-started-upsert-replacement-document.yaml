@@ -1,0 +1,129 @@
+title:
+  text: Specify an update that does not match any document.
+  character: "`"
+stepnum: 1
+pre: |
+  If no document matches the update condition, the default behavior of
+  the :method:`~db.collection.method()` method is to modify no document.
+
+  For example, the following update, which attempts to replace an
+  existing document, matches no document.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+       { cust_id: "opq090" }, 
+       { cust_id: "opq090", 
+         ord_date: new Date( "Apr 18, 2014" ),
+         status: "P",
+         items: [ { "sku" : "yyy", "qty" : 10, "price" : 10 } ],
+         "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" }
+       }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation.
+action:
+  language: javascript
+  code: |
+     WriteResult({ "nMatched" : 0, "nUpserted" : 0, "nModified" : 0 })
+post: |
+  The :data:`~WriteResult.nMatched` field specifies the number of
+  existing documents matched for the update, and
+  :data:`~WriteResult.nModified` specifies the number of
+  existing documents modified. Both are ``0`` in this case.
+ 
+  If the operation encounters an error, the :method:`WriteResult`
+  object will contain the error information.
+---
+title:
+  text: Specify an ``upsert`` for the update operation.
+  character: "`"
+ref: ""
+stepnum: 3
+pre: |
+  Rerun the previous :method:`~db.collection.update()` method which has
+  no matching document, but specify the ``upsert`` option in the method.
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+       { cust_id: "opq090" }, 
+       { cust_id: "opq090", 
+         ord_date: new Date( "Apr 18, 2014" ),
+         status: "P",
+         items: [ { "sku" : "yyy", "qty" : 10, "price" : 10 } ],
+         "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" }
+       },
+       { upsert: true }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 4
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation.
+action:
+  language: javascript
+  code: |
+     WriteResult({
+        "nMatched" : 0,
+        "nUpserted" : 1,
+        "nModified" : 0,
+        "_id" : ObjectId("53755bc0f97a92f985e36d75")
+     })
+post: |
+  The :data:`~WriteResult.nMatched` field shows that the operation
+  matched ``0`` documents.
+
+  The :data:`~WriteResult.nModified` of ``0`` specifies that no
+  existing documents were updated.
+
+  The :data:`~WriteResult.nUpserted` of ``1`` shows that operation
+  inserted a document through an ``upsert``.
+
+  The ``_id`` field shows the generated ``_id`` field for the added
+  document.
+---
+title:
+  text: Verify the update with ``upsert``  operation.
+  character: "`"
+ref: ""
+stepnum: 5
+pre: |
+  To verify the ``upsert``, query the ``orders`` collection using
+  ``_id`` field as the query condition.
+action:
+  language: javascript
+  code: |
+     db.orders.find( { _id: ObjectId("53755bc0f97a92f985e36d75") } )
+---
+title:
+  text: Review the document.
+  character: "`"
+ref: ""
+stepnum: 6
+pre: |
+   The matching document shows that the fields in the upserted document
+   are directly taken from the replacement document.
+action:
+   language: javascript
+   code: |
+      { "_id" : ObjectId("53755bc0f97a92f985e36d75"), "cust_id" : "opq090", "ord_date" : ISODate("2014-04-18T04:00:00Z"), "status" : "P", "items" : [ { "sku" : "yyy", "qty" : 10, "price" : 10 } ], "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" } }
+...

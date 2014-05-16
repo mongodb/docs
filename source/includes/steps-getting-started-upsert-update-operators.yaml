@@ -1,0 +1,109 @@
+title:
+  text: Specify an update that does not match any document.
+  character: "`"
+stepnum: 1
+pre: |
+  The following update, which uses update operators to modify an
+  existing document, matches no document.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+       {
+         cust_id: "lmn123",
+         shipping: { location: "Warehouse1", mode: "airfreight" }
+       }, 
+       {
+         $set: { status: "P" },
+         $push: { items: { "sku" : "yyy", "qty" : 10, "price" : 10 } }
+       }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object that shows that
+  ``0`` documents matched and ``0`` documents were modified.
+---
+title:
+  text: Specify an ``upsert`` for the update operation.
+  character: "`"
+ref: ""
+stepnum: 2
+pre: |
+  Rerun the previous :method:`~db.collection.update()` method which has
+  no matching document, but specify the ``upsert`` option in the method.
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+       {
+         cust_id: "lmn123",
+         shipping: { location: "Warehouse1", mode: "airfreight" }
+       }, 
+       {
+         $set: { status: "P" },
+         $push: { items: { "sku" : "yyy", "qty" : 10, "price" : 10 } }
+       },
+       { upsert: true }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 3
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation.
+action:
+  language: javascript
+  code: |
+   WriteResult({
+      "nMatched" : 0,
+      "nUpserted" : 1,
+      "nModified" : 0,
+      "_id" : ObjectId("53755fd9f97a92f985e36d76")
+   })
+post: |
+
+  The :data:`~WriteResult.nMatched` field shows that the operation
+  matched ``0`` documents.
+
+  The :data:`~WriteResult.nModified` of ``0`` specifies that no
+  existing documents were updated.
+
+  The :data:`~WriteResult.nUpserted` of ``1`` shows that operation
+  inserted a document through an ``upsert``.
+
+  The ``_id`` field shows the generated ``_id`` value for the added
+  document.
+---
+title:
+  text: Verify the ``upsert``  operation.
+  character: "`"
+ref: ""
+stepnum: 4
+pre: |
+  To verify the ``upsert``, query the ``orders`` collection using
+  the ``_id`` field as the query condition.
+action:
+  language: javascript
+  code: |
+     db.orders.find( { _id: ObjectId("53755fd9f97a92f985e36d76") } )
+---
+title:
+  text: Review the document.
+  character: "`"
+ref: ""
+stepnum: 5
+pre: |
+   The matching document shows that the fields in the upserted document
+   are directly taken from the update condition document and the update
+   operator expressions.
+action:
+   language: javascript
+   code: |
+      { "_id" : ObjectId("53755fd9f97a92f985e36d76"), "cust_id" : "lmn123", "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" }, "status" : "P", "items" : [ { "sku" : "yyy", "qty" : 10, "price" : 10 } ] }
+...

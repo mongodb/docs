@@ -1,0 +1,168 @@
+title:
+  text: "``$set`` multiple fields in a document."
+  character: "`"
+stepnum: 1
+pre: |
+  An update operator can modify multiple fields. The following example
+  uses :update:`$set` to update two fields in a document.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+        { cust_id: "xyz321" },
+        {
+          $set: { "shipping.location": "Warehouse2", status: "P" }
+        }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation. A successful update of the
+  document returns the following object:
+action:
+  language: javascript
+  code: |
+     WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+post: |
+  The :data:`~WriteResult.nMatched` field specifies the number of
+  existing documents matched for the update, and
+  :data:`~WriteResult.nModified` specifies the number of
+  existing documents modified.
+ 
+  If the operation encounters an error, the :method:`WriteResult`
+  object will contain the error information.
+---
+title:
+  text: Verify the update operation.
+  character: "`"
+ref: ""
+stepnum: 3
+pre: |
+  To verify the update, query the ``orders``
+  collection using ``{ cust_id: "xyz321" }`` as the query condition.
+action:
+  language: javascript
+  code: |
+     db.orders.find( { cust_id: "xyz321" } )
+post: |
+  The query will match all documents that have ``cust_id`` equal to ``"xyz321"``.
+---
+title:
+  text: Review the documents.
+  character: "`"
+ref: ""
+stepnum: 4
+pre: |
+   Of the multiple documents that match the query condition, only one
+   document has a ``status`` field equal to ``"P"``.
+action:
+   language: javascript
+   code: |
+     { "_id" : ObjectId("5373bf8bc9f811cde82d54d8"), "cust_id" : "xyz321", "ord_date" : ISODate("2014-04-15T04:00:00Z"), "status" : "P", "items" : [ { "sku" : "qqq", "qty" : 10, "price" : 10 } ], "shipping" : { "location" : "Warehouse2", "mode" : "airfreight" } }
+     { "_id" : ObjectId("5373bf8bc9f811cde82d54d9"), "cust_id" : "xyz321", "ord_date" : ISODate("2014-04-15T04:00:00Z"), "status" : "A", "items" : [ { "sku" : "yyy", "qty" : 10, "price" : 10 } ], "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" } }
+     { "_id" : ObjectId("5373bf8bc9f811cde82d54da"), "cust_id" : "xyz321", "ord_date" : ISODate("2014-04-15T04:00:00Z"), "status" : "A", "items" : [ { "sku" : "zzz", "qty" : 10, "price" : 10 } ], "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" } }
+---
+title:
+  text: "``$set`` multiple fields in all matching documents."
+  character: "`"
+stepnum: 5
+pre: |
+  Run the previous update but specify ``multi`` to ``true`` to update
+  all matching documents.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+        { cust_id: "xyz321" },
+        {
+          $set: { "shipping.location": "Warehouse2", status: "P" }
+        },
+        { multi: true }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 6
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation. A successful update of the
+  document returns the following object:
+action:
+  language: javascript
+  code: |
+     WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 2 })
+post: |
+  The :data:`~WriteResult.nMatched` field specifies the number of
+  existing documents matched for the update, and
+  :data:`~WriteResult.nModified` specifies the number of
+  documents modified.
+
+  The result shows that although the update condition matched ``3``
+  documents, the :data:`~WriteResult.nModified` shows only ``2``. This
+  is because one of the matching documents already had
+  ``"shipping.location"`` of ``"Warehouse2`` and a ``status`` of
+  ``"P"``, and so, the update operation did not result in a
+  change to that document.
+
+  If the operation encounters an error, the :method:`WriteResult`
+  object will contain the error information.
+
+  You can verify the update by querying the ``orders`` collection for
+  documents with ``cust_id`` equal to ``"xyz321"``. All
+  matching document should have the updated values for the fields
+  ``"shipping.location"`` of ``"Warehouse2"`` and ``status`` of ``"P"``.
+---
+title:
+  text: Perform various update operations on a document.
+  character: "`"
+stepnum: 7
+pre: |
+  You can specify multiple update operations on a document in a single
+  :method:`~db.collection.update()` method.
+
+  To perform different update operations on a document, separate the
+  update operator expressions with a comma ``,`` in the update document.
+
+  The following uses the :query:`$set` operator to change the value of
+  the ``shipping.location`` field and creates a new field ``filled``
+  and the :update:`$rename:` operator to rename the field
+  ``"ord_date"`` to ``"order_date"``.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update(
+        { cust_id: "xyz321" },
+        {
+          $set: { "shipping.location": "Warehouse3", filled: true },
+          $rename: { "ord_date": "order_date" },
+        }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+
+  Upon successful update, the :method:`WriteResult` object should
+  contain :data:`~WriteResult.nMatched` value of ``1`` and
+  :data:`~WriteResult.nModified` value of ``1``.
+
+  You can verify the update by querying the ``orders`` collection for
+  documents with ``cust_id`` equal to ``"xyz321"``. Only one of the
+  matching document should have the updated field name of
+  ``order_date`` and the updated ``location`` value of ``"Warehouse3"``.
+...
