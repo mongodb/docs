@@ -51,7 +51,7 @@ In earlier versions of MongoDB, all write operations contended for a
 single readers-writer lock on the MongoDB instance. As of version 2.2,
 each database has a readers-writer lock that allows concurrent reads
 access to a database, but gives exclusive access to a single write
-operation per database. See the :manual:`Concurrency </faq/concurrency/>`
+operation per database. See the :doc:`Concurrency </faq/concurrency/>`
 page for more information.
 
 .. In future, Concurrency should perhaps go with a section detailing bulk
@@ -62,12 +62,12 @@ Journaling
 
 MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
 guarantee that MongoDB is able to quickly recover the
-:manual:`write operations </core/write-operations>`
+:doc:`write operations </core/write-operations>`
 following a crash or other serious failure.
 
 In order to ensure that :program:`mongod` will be able to recover its
 data files and keep the data files in a valid state following a crash,
-leave journaling enabled. See :manual:`Journaling </core/journaling/>` for
+leave journaling enabled. See :doc:`Journaling </core/journaling/>` for
 more information.
 
 Networking
@@ -86,14 +86,14 @@ components.
 .. note::
    By default, :setting:`~security.authorization` is not enabled and
    :program:`mongod` assumes a trusted environment. You can enable
-   :manual:`security/auth </core/security>` mode if you need it.
+   :doc:`security/auth </core/security>` mode if you need it.
 
-See documents in the :manual:`Security Section </security>` for additional
+See documents in the :doc:`Security Section </security>` for additional
 information, specifically:
 
 - :ref:`security-port-numbers`
 - :ref:`security-firewalls`
-- :manual:`Network Security Tutorials </administration/security-network>`
+- :doc:`Network Security Tutorials </administration/security-network>`
 
 For Windows users, consider the `Windows Server Technet Article on TCP
 Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
@@ -266,14 +266,14 @@ Write Concern
 
 .. include:: /includes/introduction-write-concern.rst
 
-See the :manual:`Write Concern </core/write-concern>` document for more
+See the :doc:`Write Concern </core/write-concern>` document for more
 information about choosing an appropriate write concern level for your
 deployment.
 
 Replica Sets
 ~~~~~~~~~~~~
 
-See the :manual:`Replica Set Architectures </core/replica-set-architectures>`
+See the :doc:`Replica Set Architectures </core/replica-set-architectures>`
 document for an overview of architectural considerations for replica
 set deployments.
 
@@ -281,7 +281,7 @@ Sharded Clusters
 ~~~~~~~~~~~~~~~~
 
 See the
-:manual:`Sharded Cluster Production Architecture </core/sharded-cluster-architectures-production>`
+:doc:`Sharded Cluster Production Architecture </core/sharded-cluster-architectures-production>`
 document for an overview of recommended sharded cluster architectures for production
 deployments.
 
@@ -328,7 +328,7 @@ Recommended Configuration
 
 - Set the file descriptor limit, ``-n``, and the user process limit
   (ulimit), ``-u``, above 20,000, according to the suggestions in the
-  :manual:`ulimit </reference/ulimit>` document. A low ulimit will affect
+  :doc:`ulimit </reference/ulimit>` document. A low ulimit will affect
   MongoDB when under heavy use and can produce errors and lead to
   failed connections to MongoDB processes and loss of service.
 
@@ -432,4 +432,4 @@ Backups
 -------
 
 To make backups of your MongoDB database, please refer to
-:manual:`MongoDB Backup Methods Overview </core/backups>`.
+:doc:`MongoDB Backup Methods Overview </core/backups>`.
