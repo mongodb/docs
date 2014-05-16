@@ -32,6 +32,11 @@
      - `Java Driver Source Code <https://github.com/mongodb/mongo-java-driver>`_
      - `Current Java Driver API <http://api.mongodb.org/java/current>`_
 
+   * - :doc:`Node.js </drivers/node-js>`
+     - `Node.js Driver Releases <https://github.com/mongodb/node-mongodb-native/releases>`_
+     - `Node.js Driver Source Code <https://github.com/mongodb/node-mongodb-native>`_
+     - `Node.js Driver API <http://mongodb.github.io/node-mongodb-native>`_
+
    * - :doc:`Perl </drivers/perl>`
      - `Perl Driver Releases <http://search.cpan.org/dist/MongoDB/>`_
      - `Perl Driver Source Code <https://github.com/mongodb/mongo-perl-driver>`_
