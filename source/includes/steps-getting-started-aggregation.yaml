@@ -1,0 +1,179 @@
+title: Count number of orders grouped by the ``ord_date``. 
+stepnum: 1
+ref: ""
+pre: |
+  To group by a field, use the :pipeline:`$group` stage operator. In
+  the :pipeline:`$group` expression, specify the field to group by, or
+  more precisely the field path to group by, in the ``_id`` field.
+
+  To specify a field path, prefix the field name by a dollar sign ``$``
+  and enclose in quotes.
+
+  Use the :group:`$sum` operator, which is one of the
+  :manual:`accumulator operators for $group
+  </meta/aggregation-quick-reference/#group-operators>`, to count the
+  documents per group and assign to a field. In this case, the example
+  uses the field named ``count``.
+action:
+  language: javascript
+  code: |
+     db.orders.aggregate(
+        [
+          { $group: { _id: "$ord_date", count: { $sum: 1 } } }
+        ]
+     )
+post: |
+  The operation returns a cursor to the result set.
+---
+title: Review displayed results.
+stepnum: 2
+ref: ""
+pre: |
+  Although the :method:`~db.collection.aggregate()` method returns a
+  cursor, the :program:`mongo` shell automatically iterates the cursor
+  up to 20 times to print the result set.
+action:
+  language: javascript
+  code: |
+      { "_id" : ISODate("2014-04-08T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-27T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-15T04:00:00Z"), "count" : 11 }
+      { "_id" : ISODate("2014-04-22T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-01T04:00:00Z"), "count" : 1 }
+---
+title: Count orders grouped by ``ord_date`` and sort by ``ord_date``.
+stepnum: 3
+ref: ""
+pre: |
+  Add a :pipeline:`$sort` stage to the pipeline to sort documents from
+  the previous stage.
+
+  In the :pipeline:`$sort` expression, specify in a document the field
+  or fields to sort by and the corresponding direction, i.e. ``1`` for
+  ascending and ``-1`` for descending. Enclose the field name in quotes.
+
+  The fields in the documents passed into the :pipeline:`$sort` stage
+  from the previous stage may not correspond to the fields in the
+  collection. For example, the following :pipeline:`$sort` stage sorts
+  by the ``_id`` field in the documents passed in from the
+  :pipeline:`$group` stage. This ``_id`` field holds values that
+  correspond to the ``ord_date`` value.
+action:
+  language: javascript
+  code: |
+     db.orders.aggregate(
+        [
+          { $group: { _id: "$ord_date", count: { $sum: 1 } } },
+          { $sort: { "_id": 1 } }
+        ]
+     )
+post: |
+  The operation returns a cursor to the result set.
+---
+title: Review displayed results.
+stepnum: 4
+ref: ""
+pre: |
+  The displayed documents show the results sorted by the ``_id`` field,
+  which contains the order date.
+action:
+   language: javascript
+   code: |
+      { "_id" : ISODate("2014-04-01T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-08T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-15T04:00:00Z"), "count" : 11 }
+      { "_id" : ISODate("2014-04-22T04:00:00Z"), "count" : 1 }
+      { "_id" : ISODate("2014-04-27T04:00:00Z"), "count" : 1 }
+---
+title: Rename the group by field.
+stepnum: 5
+ref: ""
+pre: |
+  The :pipeline:`$project` stage takes the input document and
+  determines which fields to include in its output documents. To
+  specify that an input field be part of the :pipeline:`$project`
+  stage's output, include the field with a ``1`` in the
+  :pipeline:`$project` expression.
+
+  With the :pipeline:`$project` stage, you can also calculate new
+  fields from values of the input fields. For example, to rename an
+  input field, assign to a new field the value of an existing field. To
+  refer to the value of the input field, you must use the field path,
+  i.e. prefix with ``$`` and enclose in quotes.
+
+  Add the :pipeline:`$project` stage after the
+  :pipeline:`$group` stage to rename the ``_id`` field from the
+  :pipeline:`$group` stage to ``ord_date``. Then, use the
+  :pipeline:`$sort` stage to sort by this newly renamed field.
+action:
+  language: javascript
+  code: |
+     db.orders.aggregate(
+        [
+          { $group: { _id: "$ord_date", count: { $sum: 1 } } },
+          { $project: { ord_date: "$_id", count: 1, _id: 0 } },
+          { $sort: { "ord_date": 1 } }
+        ]
+     )
+post: |
+  The :pipeline:`$project` expression also specifies an inclusion of
+  the ``count`` field and a suppression of the ``_id`` field. Except
+  for the ``_id`` field, an input field not included in the
+  :pipeline:`$project` expression is suppressed from the output of
+  :pipeline:`$project`.
+---
+title: Review displayed results.
+stepnum: 6
+ref: ""
+pre: |
+  The displayed documents show the results sorted by the ``"ord_date"``
+  field.
+action:
+   language: javascript
+   code: |
+      { "count" : 1, "ord_date" : ISODate("2014-04-01T04:00:00Z") }
+      { "count" : 1, "ord_date" : ISODate("2014-04-08T04:00:00Z") }
+      { "count" : 11, "ord_date" : ISODate("2014-04-15T04:00:00Z") }
+      { "count" : 1, "ord_date" : ISODate("2014-04-22T04:00:00Z") }
+      { "count" : 1, "ord_date" : ISODate("2014-04-27T04:00:00Z") }
+---
+title: Group by multiple fields.
+stepnum: 7
+ref: ""
+pre: |
+  To group by multiple fields, use the :pipeline:`$group` stage
+  operator. In the :pipeline:`$group` expression, specify the fields to
+  group by, or more precisely the field path to group by, in a document
+  and assign to the ``_id`` field.
+
+  The following example groups by ``ord_date`` field and ``cust_id``
+  field, and count the number of orders for each grouping.
+action:
+  language: javascript
+  code: |
+     db.orders.aggregate(
+        [
+          { $group: { _id: { ord_date: "$ord_date", cust_id: "$cust_id" }, count: { $sum: 1 } } }
+        ]
+     )
+post: |
+  The operation returns a cursor to the result set.
+---
+title: Review displayed results.
+stepnum: 8
+ref: ""
+pre: |
+  Although the :method:`~db.collection.aggregate()` method returns a
+  cursor, the :program:`mongo` shell automatically iterates the cursor
+  up to 20 times to print the result set.
+action:
+  language: javascript
+  code: |
+     { "_id" : { "ord_date" : ISODate("2014-04-15T04:00:00Z"), "cust_id" : "xyz321" }, "count" : 3 }
+     { "_id" : { "ord_date" : ISODate("2014-04-08T04:00:00Z"), "cust_id" : "abc123" }, "count" : 1 }
+     { "_id" : { "ord_date" : ISODate("2014-04-27T04:00:00Z"), "cust_id" : "ijk021" }, "count" : 1 }
+     { "_id" : { "ord_date" : ISODate("2014-04-15T04:00:00Z"), "cust_id" : "ijk021" }, "count" : 4 }
+     { "_id" : { "ord_date" : ISODate("2014-04-22T04:00:00Z"), "cust_id" : "stu523" }, "count" : 1 }
+     { "_id" : { "ord_date" : ISODate("2014-04-15T04:00:00Z"), "cust_id" : "abc123" }, "count" : 4 }
+     { "_id" : { "ord_date" : ISODate("2014-04-01T04:00:00Z"), "cust_id" : "abc123" }, "count" : 1 }
+...
