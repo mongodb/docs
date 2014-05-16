@@ -6,12 +6,6 @@ $or
 
 .. query:: $or
 
-   .. versionadded:: 1.6
-
-   .. versionchanged:: 2.0
-      You may nest :query:`$or` operations; however, these
-      expressions are not as efficiently optimized as top-level.
-
    The :query:`$or` operator performs a logical ``OR`` operation on an
    array of *two or more* ``<expressions>`` and selects the documents
    that satisfy *at least* one of the ``<expressions>``. The
@@ -25,17 +19,26 @@ $or
 
    .. code-block:: javascript
 
-      db.inventory.find( { $or: [ { qty: { $lt: 20 } }, { sale: true } ] } )
+      db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
 
    This query will select all documents in the ``inventory`` collection
-   where either the ``qty`` field value is less than ``20`` **or** the
-   ``sale`` field value is ``true``.
+   where either the ``quantity`` field value is less than ``20`` **or** the
+   ``price`` field value equals ``10``.
 
 Behaviors
 ---------
 
+.. _or-clauses-index:
+
 ``$or`` Clauses and Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When evaluating the clauses in the :query:`$or` expression, MongoDB
+either performs a collection scan or, if all the clauses are supported
+by indexes, MongoDB performs index scans. That is, for MongoDB to use
+indexes to evaluate an :query:`$or` expression, all the clauses in the
+:query:`$or` expression must be supported by indexes. Otherwise,
+MongoDB will perform a collection scan.
 
 When using indexes with :query:`$or` queries, each clause of an
 :query:`$or` will execute in parallel. These clauses can each use their
@@ -43,36 +46,34 @@ own index. Consider the following query:
 
 .. code-block:: javascript
 
-   db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } )
+   db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
 
 To support this query, rather than a compound index, you would create
-one index on ``price`` and another index on ``sale``:
+one index on ``quantity`` and another index on ``price``:
 
 .. code-block:: javascript
 
+   db.inventory.ensureIndex( { quantity: 1 } )
    db.inventory.ensureIndex( { price: 1 } )
-   db.inventory.ensureIndex( { sale: 1 } )
 
-``$or`` and Sort Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB can use all but the :doc:`geoHaystack </core/geohaystack>`
+index to support :query:`$or` clauses.
 
-When using the :query:`$or` operator with the :method:`~cursor.sort()`
-method, the query will **not** use the indexes on the :query:`$or`
-fields. Consider the following query which adds a
-:method:`~cursor.sort()` method to the above query:
-
-.. code-block:: javascript
-
-   db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } ).sort( { item:1 } )
-
-This modified query will not use the index on ``price`` nor the index
-on ``sale``.
+.. _or-and-text-queries:
 
 ``$or`` and ``text`` Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 2.6
+
 If :query:`$or` includes a :query:`$text` query, all clauses in the
-:query:`$or` array must be indexed.
+:query:`$or` array must be supported by an index. This is because a
+:query:`$text` query *must* use an index, and :query:`$or` can only use
+indexes if all its clauses are supported by indexes. If the
+:query:`$text` query cannot use an index, MongoDB will error.
+
+As each clause of an :query:`$or` will execute in parallel, each
+clause can have a separate index.
 
 ``$or`` and GeoSpatial Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,6 +86,15 @@ for the near clause (near clause includes :query:`$nearSphere` and
 :query:`$near`). :operator:`$or` cannot contain a near clause with any
 other clause.
 
+``$or`` and Sort Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+When executing :query:`$or` queries with a :method:`~cursor.sort()`,
+MongoDB can now use indexes that support the :query:`$or` clauses.
+Previous versions did not use the indexes.
+
 ``$or`` versus ``$in``
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -93,12 +103,17 @@ for the value of the same field, use the :query:`$in` operator instead
 of the :query:`$or` operator.
 
 For example, to select all documents in the ``inventory`` collection
-where the ``qty`` field value equals either ``20`` *or* ``50``, use the
+where the ``quantity`` field value equals either ``20`` *or* ``50``, use the
 :query:`$in` operator:
 
 .. code-block:: javascript
 
-   db.inventory.find ( { qty: { $in: [20, 50] } } )
+   db.inventory.find ( { quantity: { $in: [20, 50] } } )
+
+Nested ``$or`` Clauses
+~~~~~~~~~~~~~~~~~~~~~~
+
+You may nest :query:`$or` operations.
 
 .. seealso:: :query:`$and`, :method:`~db.collection.find()`,
    :method:`~cursor.sort()`, :query:`$in`
