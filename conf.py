@@ -40,11 +40,11 @@ sconf = BuildConfiguration(os.path.join(conf.paths.builddata, 'sphinx-local.yaml
 needs_sphinx = '1.0'
 
 extensions = [
-    'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
     'sphinx.ext.todo',
     'mongodb',
     'directives',
+    'intermanual',
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
