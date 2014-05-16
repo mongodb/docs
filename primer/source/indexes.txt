@@ -4,47 +4,125 @@ Indexes
 
 .. default-domain:: mongodb
 
-Overview
---------
+Background
+----------
 
 .. include:: /includes/introduction-indexes.rst
 
 .. include:: /includes/excerpt-indexes-optimization.rst
 
+See the :ref:`indexing strategy overview <primer-indexing-strategy>`
+as you think about how to build indexes to support your queries.
+
 Operations
 ----------
+
+MongoDB provides several different index types, to support different
+kinds of queries and data sets. See the :manual:`Index Types Overview
+</core/index-types>` for a complete discussion of these types.
+
+The Primer *only* address scalar indexes, which are the most common
+indexes. Scalar indexes store all indexed items in order by value and
+support exact matches and efficient range queries.
 
 Create Indexes
 ~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-
-   db.records.ensureIndex( { 'name': 1 } )
-
-.. code-block:: javascript
-
-   db.records.ensureIndex( { 'name': -1 } )
+To create an index, on the ``name`` field on the ``records`` database,
+use the :method:`~db.collection.ensureIndex()` method. By default, all
+indexing operations block until the MongoDB finishes building the
+index.
 
 .. code-block:: javascript
 
-   db.records.ensureIndex( { 'name': 1, "active": 1 } )
+   db.records.ensureIndex( { 'name': 1 } );
+
+The value of ``1`` in the index specification document, indicates that
+the index is in ascending order. In an ascending, you could envision
+that values increase as you traverse the index from right to
+left. MongoDB can traverse indexes in either direction, so
+functionally the ``{ "name": 1 }`` index is equivalent to the ``{
+'name': -1 }`` index created in the following example:
 
 .. code-block:: javascript
 
-   db.records.ensureIndex( { 'name': 1, "active": -1 } )
+   db.records.ensureIndex( { 'name': -1 } );
 
-See :method:`~db.collection.ensureIndex()` for more information.
+See :method:`~db.collection.ensureIndex()` for more information and
+the :manual:`Create an Index </tutorial/create-an-index>` tutorial for
+additional examples.
+
+Create Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB also supports indexes that contain multiple fields. These are
+:ref:`compound indexes <index-type-compound>`, and you can use these
+indexes to support more complex queries, or to increase the
+selectivity of an index:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { 'name': 1, "active": 1 } );
+
+You can also specify indexes that have fields ordered with opposite
+orders, to support different.
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { 'name': 1, "active": -1 } );
+
+See :method:`~db.collection.ensureIndex()` for more information and
+the :manual:`Create Compound Indexes
+</tutorial/create-a-compound-index>` tutorial for additional examples.
+
+Create Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB's index support a *unique constraint*, which ensures that
+every value in the index are unique. You can create a unique index
+with the following operation:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { "name": 1 }, { "unique": true } );
+
+After the index values, if you attempt to insert documents with a
+duplicate value for the ``name`` field, MongoDB will return an error
+to the client and refuse to insert these documents.
+
+You can create a compound unique index, using the following operation:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { "name": 1, "active": -1 }, { "unique": true } );
+
+However, the unique constraint holds for the *combination* of the fields
+not each field individually.
+
+By default every collection has a unique index on the ``_id`` field.
+
+See :method:`~db.collection.ensureIndex()` for more information and
+the :manual:`Create a Unique Index </tutorial/create-a-unique-index>`
+tutorial for additional examples.
 
 List all Indexes on a Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The :method:`~db.collection.getIndexes()` method returns a list of all
+indexes on a collection. The following operation returns a list of the
+indexes on the ``records`` collection:
+
 .. code-block:: javascript
 
-   db.records.getIndexes()
+   db.records.getIndexes();
+
+You can query the :data:`system.indexes` collection, as in the
+following operation, to return index specifications for all indexes on
+the current database.
 
 .. code-block:: javascript
 
-   db.system.indexes.find()
+   db.system.indexes.find();
 
 See :method:`~db.collection.getIndexes()` and :data:`system.indexes`
 for more information.
@@ -52,20 +130,27 @@ for more information.
 Remove an Index
 ~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-
-   db.records.removeIndex( { 'name': 1, "active": -1 } )
-
-See :method:`~db.collection.removeIndex()` for more information.
-
-Rebuild All Indexes
-~~~~~~~~~~~~~~~~~~~
+The :method:`~db.collection.dropIndex()` method will remove a single
+index from a collection. The following operation removes a specific
+index from the ``records`` collection.
 
 .. code-block:: javascript
 
-   db.records.reIndex()
+   db.records.removeIndex( { 'name': 1, "active": -1 } );
 
-See :method:`~db.collection.reIndex()` for more information.
+The :method:`~db.collection.dropIndexes()` method removes *all*
+indexes on a single collection, except for the default index on the
+``_id`` field. The following operation removes all indexes on the
+``records`` collection:
+
+.. code-block:: javascript
+
+   db.collection.dropIndexes();
+
+See :method:`~db.collection.dropIndex()` and
+:method:`~db.collection.dropIndexes()` for more information and the
+:manual:`Remove Indexes </tutorial/remove-indexes>` tutorial for
+additional examples.
 
 Analyze Index Use with ``explain()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,6 +178,61 @@ Test Queries and Indexes with ``hint()``
    db.records.find( { name: "Mark" } ).hint( { "$natural": 1 } ).explain()
 
 See :method:`~cursor.hint()` for more information.
+
+.. _primer-indexing-strategy:
+
+Strategy
+--------
+
+When building indexes to support your queries, consider the following
+strategies.
+
+Always Avoid Unindexed Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a query cannot use an index, MongoDB must inspect *every* document
+in the collection. If the collection is larger than RAM, then every
+query must wait, at least in part, for the disk system to read data
+into memory, which is very inefficient.
+
+Even if all documents fit into RAM, inspecting every document is less
+efficient than using an index to narrow the possible result set before
+examining individual documents.
+
+Always Use Indexes to Support Sorted Result Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because indexes store documents in order, MongoDB can use the index to
+return results in order. If a query cannot use the order of documents
+in an index to return ordered results, MongoDB must collect all
+responses and then sort them before returning any results to the user,
+which is inefficient.
+
+Prefer More Selective Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When choosing between different possible fields to index to support a
+query or group of queries, you should prefer indexes on fields:
+
+- that have a large number of possible values for a field. This
+  :term:`cardinality`, means that for many queries MongoDB will be
+  able to inspect fewer documents for each query.
+
+- where the documents in the collection are likely to have an even
+  distribution of values over the range of possible values.
+
+For example, an indexes on telephone numbers or postal codes have
+higher potential cardinality than indexes on fields that have boolean
+values. At the same time, these same high-cardinality fields may be unevenly
+distributed in a collection of data that's focused on a specific
+geographical region.
+
+Remove Unused Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+Indexes incur a small cost when you insert and update documents. While
+the these costs are offset by the efficiency gains provided to queries
+and updates, it's important to remove indexes that you aren't using.
 
 Additional Information
 ----------------------
