@@ -47,31 +47,31 @@ First add some sample data:
 
 .. code-block:: java
 
-    DBCollection coll = db.getCollection("aggregationExample");
-    coll.insert(new BasicDBObjectBuilder()
-           .add("employee", 1)
-           .add("department", "Sales")
-           .add("amount", 71)
-           .add("type", "airfare")
-           .get());
-    coll.insert(new BasicDBObjectBuilder()
-           .add("employee", 2)
-           .add("department", "Engineering")
-           .add("amount", 15)
-           .add("type", "airfare")
-           .get());
-    coll.insert(new BasicDBObjectBuilder()
-           .add("employee", 4)
-           .add("department", "Human Resources")
-           .add("amount", 5)
-           .add("type", "airfare")
-           .get());
-    coll.insert(new BasicDBObjectBuilder()
-           .add("employee", 42)
-           .add("department", "Sales")
-           .add("amount", 77)
-           .add("type", "airfare")
-           .get());
+   DBCollection coll = db.getCollection("aggregationExample");
+   coll.insert(new BasicDBObjectBuilder()
+          .add("employee", 1)
+          .add("department", "Sales")
+          .add("amount", 71)
+          .add("type", "airfare")
+          .get());
+   coll.insert(new BasicDBObjectBuilder()
+          .add("employee", 2)
+          .add("department", "Engineering")
+          .add("amount", 15)
+          .add("type", "airfare")
+          .get());
+   coll.insert(new BasicDBObjectBuilder()
+          .add("employee", 4)
+          .add("department", "Human Resources")
+          .add("amount", 5)
+          .add("type", "airfare")
+          .get());
+   coll.insert(new BasicDBObjectBuilder()
+          .add("employee", 42)
+          .add("department", "Sales")
+          .add("amount", 77)
+          .add("type", "airfare")
+          .get());
 
 I am auditing three departments: Sales, Engineering and Human
 Resources. I want to calculate each department’s average spend on
@@ -123,14 +123,13 @@ as:
 
       $sort: { "$amount": -1 }
 
-
 I use the Java Driver’s aggregation helper to build out this pipeline
 in my application. Let’s take a look at the ``aggregate()`` method
 signature.
 
 .. code-block:: java
 
-    public AggregationOutput aggregate(final List<DBObject> pipeline)
+   public AggregationOutput aggregate(final List<DBObject> pipeline)
 
 The ``aggregate()`` method takes a list of ``DBObjects`` representing the
 aggregation operations, which will be chained together by the helper
@@ -140,40 +139,40 @@ code we’ll use to perform the aggregation task:
 
 .. code-block:: java
 
-    // create our pipeline operations, first with the $match
-    DBObject match = new BasicDBObject("$match", new BasicDBObject("type", "airfare"));
+   // create our pipeline operations, first with the $match
+   DBObject match = new BasicDBObject("$match", new BasicDBObject("type", "airfare"));
 
-    // build the $projection operation
-    DBObject fields = new BasicDBObject("department", 1);
-    fields.put("amount", 1);
-    fields.put("_id", 0);
-    DBObject project = new BasicDBObject("$project", fields );
+   // build the $projection operation
+   DBObject fields = new BasicDBObject("department", 1);
+   fields.put("amount", 1);
+   fields.put("_id", 0);
+   DBObject project = new BasicDBObject("$project", fields );
 
-    // Now the $group operation
-    DBObject groupFields = new BasicDBObject( "_id", "$department");
-    groupFields.put("average", new BasicDBObject( "$avg", "$amount"));
-    DBObject group = new BasicDBObject("$group", groupFields);
+   // Now the $group operation
+   DBObject groupFields = new BasicDBObject( "_id", "$department");
+   groupFields.put("average", new BasicDBObject( "$avg", "$amount"));
+   DBObject group = new BasicDBObject("$group", groupFields);
 
-    // Finally the $sort operation
-    DBObject sort = new BasicDBObject("$sort", new BasicDBObject("amount", -1));
+   // Finally the $sort operation
+   DBObject sort = new BasicDBObject("$sort", new BasicDBObject("amount", -1));
 
-    // run aggregation
-    List<DBObject> pipeline = Arrays.asList(match, project, group, sort);
-    AggregationOutput output = coll.aggregate(pipeline);
+   // run aggregation
+   List<DBObject> pipeline = Arrays.asList(match, project, group, sort);
+   AggregationOutput output = coll.aggregate(pipeline);
 
 Let’s take a look at the results of my audit:
 
 .. code-block:: java
 
-    for (DBObject result : output.results()) {
-        System.out.println(result);
-    }
+   for (DBObject result : output.results()) {
+       System.out.println(result);
+   }
 
 .. code-block:: sh
 
-    { "_id" : "Sales" , "average" : 74.0}
-    { "_id" : "Engineering" , "average" : 15.0}
-    { "_id" : "Human Resources" , "average" : 5.0}
+   { "_id" : "Sales" , "average" : 74.0}
+   { "_id" : "Engineering" , "average" : 15.0}
+   { "_id" : "Human Resources" , "average" : 5.0}
 
 
 Aggregation cursors
@@ -184,27 +183,26 @@ To do that simply use ``AggregationOptions`` with the aggregation command:
 
 .. code-block:: java
 
-    AggregationOptions aggregationOptions = AggregationOptions.builder()
-            .batchSize(100)
-            .outputMode(AggregationOptions.OutputMode.CURSOR)
-            .allowDiskUse(true)
-            .build();
+   AggregationOptions aggregationOptions = AggregationOptions.builder()
+           .batchSize(100)
+           .outputMode(AggregationOptions.OutputMode.CURSOR)
+           .allowDiskUse(true)
+           .build();
 
-    Cursor cursor = coll.aggregate(pipeline, aggregationOptions);
+   Cursor cursor = coll.aggregate(pipeline, aggregationOptions);
 
 You can iterate the results of the aggregation as a normal cursor.
 
 .. code-block:: java
 
-    while (cursor.hasNext()) {
-        System.out.println(cursor.next());
-    }
+   while (cursor.hasNext()) {
+       System.out.println(cursor.next());
+   }
 
 .. versionadded:: 2.12.0
-  Aggregation Cursors are available in the 2.12.0 Java driver and work with
-  MongoDB 2.6.0 and above.
+   Aggregation Cursors are available in the 2.12.0 Java driver and work with
+   MongoDB 2.6.0 and above.
 
-To learn more about aggregation see the `aggregation tutorial
-<http://docs.mongodb.org/manual/applications/aggregation>`_ and the
-`aggregation reference <http://docs.mongodb.org/manual/aggregation>`_
-documentation.
+To learn more about aggregation see the :manual:`aggregation tutorial
+</applications/aggregation>` and the :manual:`aggregation reference
+</aggregation>` documentation.
