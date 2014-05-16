@@ -1,0 +1,109 @@
+title:
+  text: Query the document before replacement.
+  character: "`"
+stepnum: 1
+ref: ""
+pre: |
+  Query the ``orders`` collection for documents with ``cust_id`` equal
+  to ``"abc123"`` and ``ord_date`` equal to ``"ord_date" :
+  ISODate("2014-04-08T04:00:00Z")``.
+action:
+  language: javascript
+  code: |
+    db.orders.find( { cust_id: "abc123", ord_date: ISODate("2014-04-08T04:00:00Z") } )
+post: |
+  The query should match one document in the collection.
+---
+title:
+  text: Review displayed result.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  The query matched a single document.
+action:
+  language: javascript
+  code: |
+   { "_id" : ObjectId("5373befbc9f811cde82d54d4"), "cust_id" : "abc123", "ord_date" : ISODate("2014-04-08T04:00:00Z"), "status" : "A", "items" : [ { "sku" : "yyy", "qty" : 25, "price" : 30 } ], "shipping" : { "location" : "Warehouse3", "mode" : "airfreight" } }
+---
+title:
+  text: Use ``update`` to replace the document.
+  character: "`"
+stepnum: 3
+pre: |
+  Pass the replacement document as the second parameter to the
+  :method:`~db.collection.update()` method. 
+
+  The replacement document does not include the ``_id`` field since the
+  ``_id`` field is immutable. If you do include the ``_id`` field, it
+  must be the same value as the existing value.
+
+  The replacement document can have different fields from the original
+  document.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.update( 
+        { cust_id: "abc123", ord_date: ISODate("2014-04-08T04:00:00Z") },
+        { 
+          cust_id: "efg555",
+          order_date: new Date( "Apr 18, 2014" ),
+          status: "P",
+          items: [ { "sku" : "vvv", "qty" : 5, "price" : 30 } ],
+          shipping: { "location" : "Warehouse4", "mode" : "truck" },
+          filled: true
+        } 
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 4
+ref: ""
+pre: |
+  The update operation returns a :method:`WriteResult` object which
+  contains the status of the operation. A successful update of the
+  document returns the following object:
+action:
+  language: javascript
+  code: |
+     WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+post: |
+  The :data:`~WriteResult.nMatched` field specifies the number of
+  existing documents matched for the update, and
+  :data:`~WriteResult.nModified` specifies the number of
+  existing documents modified.
+ 
+  If the operation encounters an error, the :method:`WriteResult`
+  object will contain the error information.
+---
+title:
+  text: Verify the update operation.
+  character: "`"
+ref: ""
+stepnum: 5
+pre: |
+  To verify the update, query for the replacement document.
+action:
+  language: javascript
+  code: |
+     db.orders.find( { cust_id: "efg555" } )
+---
+title:
+  text: Review displayed result.
+  character: "`"
+stepnum: 6
+ref: ""
+pre: |
+  The query matched the replacement document.
+action:
+  language: javascript
+  code: |
+     { "_id" : ObjectId("5373befbc9f811cde82d54d4"), "cust_id" : "efg555", "order_date" : ISODate("2014-04-18T04:00:00Z"), "status" : "P", "items" : [ { "sku" : "vvv", "qty" : 5, "price" : 30 } ], "shipping" : { "location" : "Warehouse4", "mode" : "truck" }, "filled" : true }
+post: |
+  The ``_id`` field has remained the same. 
+...
