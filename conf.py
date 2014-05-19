@@ -35,8 +35,8 @@ extensions = [
     'sphinx.ext.extlinks',
     'intermanual',
     'directives',
-    'mongodb'
-    'sphinxcontrib.httpdomain'
+    'mongodb',
+    'sphinxcontrib.httpdomain',
 ]
 
 templates_path = ['templates']
