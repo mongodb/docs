@@ -1,0 +1,112 @@
+title:
+  text: Create a unique compound index.
+  character: "`"
+stepnum: 1
+pre: |
+  
+  Create a unique compound index on the ``cust_id`` field, the
+  ``ord_date`` field, and the ``items`` field. Specify ascending order
+  for ``cust_id``, descending order for ``ord_date`` field, and
+  ascending order for ``items`` field.
+  
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.ensureIndex(
+        { cust_id: 1, ord_date: -1, items: 1 }, 
+        { unique: true }
+     )
+post: |
+   For compound indexes, the index entry is a combination of the indexed
+   field, and the unique constraint holds for the *combination* of
+   of the fields, and not the fields individually.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  The method returns a document with the status of the operation.
+
+  The numbers include the indexes previously created through the
+  procedures for creating single field indexes and compound indexes as
+  well as the index on the ``_id`` field automatically created by
+  MongoDB. If you have skipped those sections, your numbers will differ.
+action:
+  language: javascript
+  code: |
+    {
+      "createdCollectionAutomatically" : false,
+      "numIndexesBefore" : 6,
+      "numIndexesAfter" : 7,
+      "ok" : 1
+    }
+post: |
+  The ``createdCollectionAutomatically`` indicates if the operation
+  created a collection. If a collection does not exist, MongoDB
+  creates the collection as part of the indexing
+  operation.
+
+  The ``numIndexesBefore`` indicates the number of indexes existing
+  before the method call. 
+
+  The ``numIndexesAfter`` indicates the number of indexes existing
+  after the method call. If the index has been successfully created,
+  this number should be one greater than ``numIndexesBefore``.
+
+  The ``ok`` indicates that the method did not encounter any errors.
+---
+title:
+  text: Verify the unique constraint.
+  character: "`"
+stepnum: 3
+pre: |
+   Once the collection is uniquely indexed, if you attempt to insert
+   documents that would cause a duplicate index entry, MongoDB will
+   return an error to the client and refuse to insert these documents.
+
+   Attempt to insert a document whose combination of ``cust_id``,
+   ``ord_date``, and ``items`` field values is a duplicate of an
+   existing document.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.insert(
+        {
+          "cust_id" : "abc123",
+          "ord_date" : ISODate("2014-04-01T04:00:00Z"),
+          "items" : [ { "sku" : "xxx", "qty" : 25, "price" : 1 }, { "sku" : "yyy", "qty" : 25, "price" : 1 } ],
+          "status" : "P",
+          "shipping" : { "location" : "Warehouse1", "mode" : "airfreight" }
+        }
+     )
+post: |
+  The operation returns a :method:`WriteResult` object with the status
+  of the operation.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 4
+ref: ""
+pre: |
+  The :method:`WriteResult` object which contains the status of the
+  operation shows that a ``duplicate key`` error occurred:
+action:
+  language: javascript
+  code: |
+      WriteResult({
+         "nInserted" : 0,
+         "writeError" : {
+            "code" : 11000,
+            "errmsg" : "insertDocument :: caused by :: 11000 E11000 duplicate key error index: test.orders.$cust_id_1_ord_date_-1_items_1  dup key: { : \"abc123\", : new Date(1396324800000), : { sku: \"xxx\", qty: 25.0, price: 1.0 } }"
+         }
+      })
+post: |
+  The :data:`~WriteResult.nInserted` field specifies that ``0`` documents
+  were inserted.
+  The :data:`~WriteResult.writeError` contains information on the error.
+...

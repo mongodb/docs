@@ -1,0 +1,145 @@
+title:
+  text: Analyze a query.
+  character: "`"
+stepnum: 1
+pre: |
+   Run :method:`~cursor.explain()` on the following query on the
+   ``orders`` collection:
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.find( { "items.sku": "zzz", status: "A" } ).explain()
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  Instead of a cursor to the matching document, the operation returns
+  a document with information on the query plan.
+action:
+  language: javascript
+  code: |
+     {
+         "cursor" : "BasicCursor",
+         "isMultiKey" : false,
+         "n" : 4,
+         "nscannedObjects" : 15,
+         "nscanned" : 15,
+         "nscannedObjectsAllPlans" : 15,
+         "nscannedAllPlans" : 15,
+         "scanAndOrder" : false,
+         "indexOnly" : false,
+         "nYields" : 0,
+         "nChunkSkips" : 0,
+         "millis" : 0,
+         "server" : "bartleby.local:27017",
+         "filterSet" : false
+     }
+post: |
+   The ``cursor`` value of ``"BasicCursor"`` indicates that to fulfill
+   the query, the server had to perform a :term:`collection scan`.
+
+   The ``n`` value indicates the number of matching documents.
+
+   The ``nscannedObjects`` indicate the number of objects read from the
+   ``cursor``, which in this case indicates the number of documents
+   read from the collection since MongoDB performed a collection scan.
+
+   The ``nscanned`` indicates the number of documents scanned from the
+   collection.
+
+   In this example, the query plan indicates that ``15`` documents were
+   read to return ``4`` matching documents.
+
+   For more information on the fields in the returned document, see the
+   :ref:`Explain Output Reference <explain-output>`.
+---
+title:
+  text: Create an index to support the previous query.
+  character: "`"
+stepnum: 3
+pre: |
+   Create a compound index on the ``items.sku`` and ``status`` fields.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.ensureIndex( { "items.sku": 1, status: 1 } )
+post: |
+  See :doc:`/tutorial/create-indexes` for more information on creating
+  indexes.
+---
+title:
+  text: Rerun the query with ``explain()``.
+  character: "`"
+stepnum: 4
+pre: |
+   Rerun :method:`~cursor.explain()` on the previous query:
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.find( { "items.sku": "zzz", status: "A" } ).explain()
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 5
+ref: ""
+pre: |
+  Compare the results with the previous query plan.
+action:
+  language: javascript
+  code: |
+   {
+      "cursor" : "BtreeCursor items.sku_1_status_1",
+      "isMultiKey" : true,
+      "n" : 4,
+      "nscannedObjects" : 4,
+      "nscanned" : 4,
+      "nscannedObjectsAllPlans" : 4,
+      "nscannedAllPlans" : 4,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "indexBounds" : {
+         "items.sku" : [
+            [
+               "zzz",
+               "zzz"
+            ]
+         ],
+         "status" : [
+            [
+               "A",
+               "A"
+            ]
+         ]
+      },
+      "server" : "bartleby.local:27017",
+      "filterSet" : false
+   }
+post: |
+   The ``cursor`` value of ``"BtreeCursor items.sku_1_status_1"``
+   indicates that to fulfill the query, the server used an index,
+   specifically an index named ``items.sku_1_status_1``.
+
+   The ``n`` value indicates the number of matching documents.
+
+   The ``nscannedObjects`` indicate the number of objects read from the
+   ``cursor``, which in this case indicates the number of index entries
+   read.
+
+   The ``nscanned`` indicates the number of documents scanned from the
+   collection.
+
+   In this example, the query plan indicates that the server read ``4``
+   index entries and the associated ``4`` documents from the collection
+   to return ``4`` matching documents. With the index, the server needs
+   to scan fewer documents to fulfill the query.
+...
