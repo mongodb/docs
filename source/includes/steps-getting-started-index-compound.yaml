@@ -1,0 +1,111 @@
+title:
+  text: Create a compound index.
+  character: "`"
+stepnum: 1
+pre: |
+  Create compound index on the ``cust_id`` field and the ``ord_date``
+  field. Specify ascending order for ``cust_id`` and descending order
+  for ``ord_date`` field.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.ensureIndex( { cust_id: 1, ord_date: -1 } )
+post: |  
+  This compound index can support queries on the ``cust_id`` field as
+  well as queries on that include both the ``cust_id`` and the
+  ``ord_date`` fields. However, this index does not support queries just
+  on the ``ord_date`` field.
+---
+title:
+  text: Review the returned object.
+  character: "`"
+stepnum: 2
+ref: ""
+pre: |
+  The method returns a document with the status of the operation.
+
+  The numbers include the indexes previously created through the
+  procedure for creating single field indexes and the index on the
+  ``_id`` field automatically created by MongoDB. If you have skipped
+  that section, your numbers will differ.
+action:
+  language: javascript
+  code: |
+      {
+         "createdCollectionAutomatically" : false,
+         "numIndexesBefore" : 3,
+         "numIndexesAfter" : 4,
+         "ok" : 1
+      }
+post: |
+  The ``createdCollectionAutomatically`` indicates if the operation
+  created a collection. If a collection does not exist, MongoDB
+  creates the collection as part of the indexing
+  operation.
+
+  The ``numIndexesBefore`` indicates the number of indexes existing
+  before the method call. 
+
+  The ``numIndexesAfter`` indicates the number of indexes existing
+  after the method call. If the index has been successfully created,
+  this number should be one greater than ``numIndexesBefore``.
+
+  The ``ok`` indicates that the method did not encounter any errors.
+---
+title:
+  text: Create another compound index with the same fields.
+  character: "`"
+stepnum: 3
+pre: |
+  The order in which the field appears in the index specification as
+  well as the sort order of the field matter for compound indexes.
+
+  The following compound index on the ``ord_date`` field and the
+  ``cust_id`` field is distinct from the previous compound index since
+  the index entries are the combination of the ``ord_date`` field and
+  the ``cust_id`` field, stored in the index sorted first by
+  ``ord_date`` and then by ``cust_id``.
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.ensureIndex( { ord_date: -1, cust_id: 1 } )
+post: |
+  Upon successful creation of the index, the returned status document
+  should have the value of ``numIndexesAfter`` greater than the value
+  of ``numIndexesBefore`` by one.
+
+  This compound index can support queries on the ``ord_date`` field as
+  well as queries on that include both the ``ord_date`` and the
+  ``cust_id`` fields. However, this index does not support queries just
+  on the ``cust_id`` field.
+---
+title:
+  text: Create a compound index that includes a field in an embedded document.
+  character: "`"
+stepnum: 4
+pre: |
+  To create an index on a field within an embedded document, use the
+  :term:`dot notation`. Dot notation requires quotes around the dotted
+  field name.
+
+  The following example creates a compound index on the ``cust_id`` field,
+  the ``location`` field in the ``shipping`` embedded document, and
+  the ``sku`` field in the embedded documents in the ``items`` array.
+
+  This compound index can support queries on the ``cust_id`` field,
+  queries that include both the ``cust_id`` and the
+  ``"shipping.location"`` fields, and queries that include all three
+  fields.
+
+ref: ""
+action:
+  language: javascript
+  code: |
+     db.orders.ensureIndex( { cust_id: 1, "shipping.location": 1, "items.sku": 1 } )
+post: |
+  Upon successful creation of the index, the returned status document
+  should have the value of ``numIndexesAfter`` greater than the value
+  of ``numIndexesBefore`` by one.
+...
