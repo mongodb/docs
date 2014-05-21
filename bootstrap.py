@@ -13,7 +13,7 @@ with open(master_conf, 'r') as f:
 
 repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
 
-buildsystem = conf['build']['paths']['buildsystem']
+buildsystem = conf['paths']['buildsystem']
 
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
