@@ -172,24 +172,48 @@ following properties:
 - A single Certificate Authority (CA) must issue all the x.509
   certificates for the members of a sharded cluster or a replica set.
 
-- The member certificate's ``subject``, which contains the
-  Distinguished Name (``DN``), must match the ``subject`` of the
-  certificate on the other servers in the cluster, *starting from and
-  including* the Organizational Unit (``OU``) of the certificate on the
-  server.
+- The Distinguished Name (``DN``), found in the member certificate's
+  ``subject``, must specify a non-empty value for *at least one* of the
+  following attributes: Organization (``O``), the Organizational Unit
+  (``OU``) or the Domain Component (``DC``).
+
+- The Organization attributes (``O``\'s), the Organizational Unit
+  attributes (``OU``\'s), and the Domain Components (``DC``\'s) must match
+  those from the certificates for the other cluster members. To match,
+  the certificate must match all specifications of these attributes, or
+  even the non-specification of these attributes. The order of the
+  attributes does not matter.
+
+  In the following example, the two ``DN``\'s contain matching
+  specifications for ``O``, ``OU`` as well as the non-specification of
+  the ``DC`` attribute.
+
+  .. code-block:: none
+
+     CN=host1,OU=Dept1,O=MongoDB,ST=NY,C=US
+     C=US, ST=CA, O=MongoDB, OU=Dept1, CN=host2
+
+  However, the following two ``DN``\'s contain a mismatch for the
+  ``OU`` attribute since one contains two ``OU`` specifications and
+  the other, only one specification.
+
+  .. code-block:: none
+
+     CN=host1,OU=Dept1,OU=Sales,O=MongoDB
+     CN=host2,OU=Dept1,O=MongoDB
 
 - Either the Common Name (``CN``) or one of the Subject Alternative
   Name (``SAN``) entries must match the hostname of the server, used by
   the other members of the cluster.
 
-For example, the certificates for a cluster could have the following
-subjects:
+  For example, the certificates for a cluster could have the following
+  subjects:
 
-.. code-block:: sh
+  .. code-block:: sh
 
-   subject= CN=<myhostname1>,OU=Dept1,O=MongoDB,ST=NY,C=US
-   subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
-   subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
+     subject= CN=<myhostname1>,OU=Dept1,O=MongoDB,ST=NY,C=US
+     subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
+     subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
 
 Configure Clusters
 ~~~~~~~~~~~~~~~~~~
