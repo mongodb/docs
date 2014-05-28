@@ -1,0 +1,134 @@
+title: Shut down the primary.
+stepnum: 1
+ref: shutdown
+action:
+  pre: |
+    Connect to the primary and issue the following:
+  language: javascript
+  code: |
+    use admin
+    db.shutdownServer()
+---
+title: Restore the snapshot to the primary.
+stepnum: 2
+ref: copy
+pre: |
+  Extract the data files to the location where the :program:`mongod`
+  instance will access them. This is the location you will specify as the
+  :setting:`dbpath` when running :program:`mongod`.
+action:
+  - pre: |
+      For example, the following commands extract the data files and move
+      them to a data directory:
+    language: sh
+    code: |
+      tar -xvf <backup-restore-name>.tar.gz 
+      mv <backup-restore-name> /data
+  - pre: |
+      You can **optionally** leave the data file in their download location
+      after extraction and create a symbolic link to the location in the
+      data directory. The following example command creates a symbolic
+      link:
+    language: sh
+    code: |
+      ln -s <backup-restore-name>/ <dbpath>
+---
+title: "Restart the primary as a standalone, without the ``--replSet`` option."
+stepnum: 3
+ref: standalone
+action:
+  pre: |
+    The following example restarts the primary on an alternate port using
+    the new data:
+  language: sh
+  code: |
+    mongod --port <alternate-port> --dbpath /data
+---
+title: Login to the primary and drop the :term:`oplog` collection.
+stepnum: 4
+ref: drop-oplog
+action:
+  language: javascript
+  code: |
+    mongo --port <alternate-port>
+    use local
+    db.oplog.rs.drop()
+---
+title: "Run the seedSecondary.sh script on the primary's server."
+stepnum: 5
+ref: seed
+pre: |
+  The seedSecondary.sh script re-creates the oplog collection and seeds it
+  with correct timestamp. The file is included in the backup restore file,
+  :ref:`except in certain circumstances <seed-secondary-considerations>`.
+action:
+  pre: |
+    To run the script, issue the following on the server:
+  language: sh
+  code: |
+    ./seedSecondary.sh <primary-port> <oplog-size-in-gigabytes>
+---
+title: Shut down the primary on the alternate port.
+stepnum: 6
+ref: shutdown
+action:
+  pre: |
+    On the primary, issue the following:
+  language: javascript
+  code: |
+    use admin
+    db.shutdownServer()
+---
+title: Restart the primary on its regular port and as part of a replica set.
+stepnum: 7
+ref: restart
+action:
+  pre: |
+    For example:
+  language: sh
+  code: |
+    mongod --port <port> --dbpath /data --replSet <replica set name>
+---
+title: Connect to the primary and initiate the replica set.
+stepnum: 8
+ref: initiate
+action:
+  pre: |
+    Use :manual:`rs.initiate() </reference/method/rs.initiate>` to initiate
+    the replica set. For example:
+  language: sh
+  code: |
+    mongo --port <port>
+    rs.initiate()
+---
+title: Add the other members to the replica set.
+stepnum: 9
+ref: add
+pre: |
+  To add each member, run the :manual:`rs.add()
+  </reference/method/rs.add>` method from the primary. The method requires
+  the hostame of the server to add. If necessary, first issue the
+  ``hostname`` command on the server to determine the hostname.
+action:
+  pre: |
+    The following command run on the primary adds a member running on the
+    host identified by ``<hostname>``:
+  language: sh
+  code: |
+    rs.add("<hostname>:27017")
+---
+title: Verify the replica set configuration.
+stepnum: 10
+ref: verify
+action:
+  pre: |
+    To verify the configuration, issue the :manual:`rs.status()
+    </reference/method/rs.status>` method:
+  language: sh
+  code: |
+    rs.status()
+  post:
+    Verify that the ``members`` array lists the replica set's members. For
+    a description of the status output, see :manual:`replSetGetStatus
+    </reference/command/replSetGetStatus>`.
+...

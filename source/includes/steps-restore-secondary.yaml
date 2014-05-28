@@ -1,0 +1,93 @@
+title: Login to the server on which to create the new secondary.
+stepnum: 1
+ref: login
+---
+title: Restore the snapshot to the secondary.
+stepnum: 2
+ref: copy
+pre: |
+  Extract the data files to the location where the :program:`mongod`
+  instance will access them. This is the location you will specify as the
+  :setting:`dbpath` when running :program:`mongod`.
+action:
+  pre: |
+    For example, the following commands extract the data files and move
+    them to a data directory:
+  language: sh
+  code: |
+    tar -xvf <backup restore name>.tar.gz 
+    mv <backup restore name> /data
+---
+title: "Restart the secondary as a standalone, without the ``--replSet`` option."
+stepnum: 3
+ref: standalone
+action:
+  pre: |
+    The following example restarts the secondary as a standalone using the
+    new data. The example uses a different port that the secondary usually
+    runs on:
+  language: sh
+  code: |
+    mongod --port <alternate port> --dbpath /data
+---
+# todo: QUESTION: Do they have to drop the oplog on the secondary, too?
+# I'm assuming they do and have put this in.
+#
+title: Login to the secondary and drop the :term:`oplog` collection.
+stepnum: 4
+ref: drop-oplog
+action:
+  language: javascript
+  code: |
+    mongo --port <alternate port>
+    use local
+    db.oplog.rs.drop()
+---
+title: "Run the seedSecondary.sh script on the secondary's server."
+stepnum: 5
+ref: seed
+pre: |
+  The seedSecondary.sh script re-creates the oplog collection and seeds it
+  with correct timestamp. The file is included in the backup restore file,
+  :ref:`except in certain circumstances <seed-secondary-considerations>`.
+action:
+  pre: |
+    To run the script, issue the following on the server:
+  language: sh
+  code: |
+    ./seedSecondary.sh <secondary port> <oplog size in gigabytes>
+---
+title: Shut down the secondary on the alternate port.
+stepnum: 6
+ref: shutdown
+action:
+  pre: |
+    On the secondary, issue the following:
+  language: javascript
+  code: |
+    use admin
+    db.shutdownServer()
+---
+title: Restart the secondary on its regular port and as part of the replica set.
+stepnum: 7
+ref: restart
+action:
+  pre: |
+    For example:
+  language: sh
+  code: |
+    mongod --port <port> --dbpath /data --replSet <replica set name>
+---
+# todo: QUESTION: If the RS already exists, is this necessary?
+title: Connect to the primary and add the secondary to the replica set.
+stepnum: 8
+ref: add
+action:
+  pre: |
+    Connect to the primary and use :manual:`rs.add()
+    </reference/method/rs.add>` to add the secondary.
+  language: sh
+  code: |
+    mongo --port <primary port>
+    rs.add("<secondary host>:<secondary port>")
+...

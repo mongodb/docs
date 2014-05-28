@@ -1,0 +1,58 @@
+title: Restore the snapshot to the config server.
+stepnum: 1
+ref: data
+pre: |
+  Extract the data files to the location where the config server's
+  :program:`mongod` instance will access them. This is the location you
+  will specify as the :setting:`dbpath` when running :program:`mongod` for
+  the config server.
+action:
+  language: sh
+  code: |
+      tar -xvf <backup-restore-name>.tar.gz 
+      mv <backup-restore-name> /data
+---
+title: Start the config server.
+stepnum: 2
+ref: start
+action:
+  pre: |
+    The following example starts the config server using the new data:
+  language: sh
+  code: |
+    mongod --configsvr --port <config-server-port> --dbpath /data
+---
+title: Update the shard metadata.
+stepnum: 3
+ref: metadata
+pre: |
+  If your new shards do not have the same hostname-port combinations as
+  the original cluster, you must update the shard metadata. To do this,
+  connect to each config server and update the data.
+action:
+  - pre: |
+      First connect to the config server. For example:
+    language: sh 
+    code: |
+      mongo --port <config-server-port>
+  - pre: |
+      Then access the ``shards`` collection in the :manual:`config
+      </reference/config-database>` database. For example:
+    language: javascript 
+    code: |
+      use config
+      db.shards.find().pretty()
+  - pre: |
+      The ``find()`` method returns the documents in the ``shards``
+      collection. The collection contains a document for each shard in the
+      cluster. The ``host`` field for a shard displays the name of the
+      shard's replica set and then the hostname and port of the shard. For
+      example:
+    language: javascript 
+    code: |
+      { "_id" : "shard0000", "host" : "shard1/localhost:30000" }
+  - pre: |
+      To changed a shard's hostname and port, use the MongoDB
+      :manual:`update </reference/command/update>` command to modify the
+      documents in the ``shards`` collection.
+...

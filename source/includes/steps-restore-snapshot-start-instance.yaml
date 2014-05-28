@@ -1,31 +1,74 @@
-title: Extract the files from the .tar.gz archive created by the backup service.
+title: "Select the :guilabel:`Backups` tab, and then select either :guilabel:`Sharded Cluster Status` or :guilabel:`Replica Set Status`."
 stepnum: 1
+ref: backups-tab
+---
+title: Click the name of the sharded cluster or replica set to restore.
+stepnum: 2
+ref: select-name
+pre: |
+  MMS displays your selection's stored snapshots.
+---
+stepnum: 3
+source:
+  file: steps-download-snapshot-replica-set.yaml
+  ref: select-snapshot
+---
+stepnum: 4
+source:
+  file: steps-download-snapshot-replica-set.yaml
+  ref: select-http
+---
+stepnum: 5
+source:
+  file: steps-download-snapshot-replica-set.yaml
+  ref: finalize
+---
+title: Retrieve the snapshot.
+stepnum: 6
+ref: retrieve
+content: |
+  To download the snapshot, select the MMS :guilabel:`Backup` tab and then
+  select :guilabel:`Restore Jobs`. When the restore job completes, select
+  the :guilabel:`download` link next to the snapshot. 
+
+  For a sharded clusters, MMS provides several :guilabel:`download` links
+  for the several ``.tar.gz`` files.
+---
+title: Extract the data files from the .tar.gz archive created by the backup service.
+stepnum: 7
 ref: extract-files
 action:
     language: sh
     code: |
       tar -zxvf <tarball-name>.tar.gz
 ---
-title: Create a dbpath for MongoDB data files.
-stepnum: 2
+title: Select the location where the mongod will access the data files.
+stepnum: 8
 ref: create-dbpath
+pre: |
+  The directory you choose will become the mongod's data directory. You
+  can either create a new directory or use the existing location of the
+  extracted data files.
 action:
   - pre: |
-      You may either create a symbolic link pointing to the database files, or create the database path and migrate the data files.
+      If you create a new directory, move the files to that directory.
   - pre: |
-      Use a command in the following form to create a symbolic link at /data/db pointing to the backup files.
+      If you use the existing location of the extracted data files, you
+      can optionally create a symbolic link to the location using the
+      following command, where ``<hash>-<rsname>-<time>`` is the name of
+      the snapshot and ``<dbpath>`` is the data directory:
     language: sh
     code: |
-      ln -s <hash>-<rsname>-<time>/ /data/db
-  - pre: |
-      Replace ``<hash>-<rsname>-<time>`` with the name of your snapshot file and ``/data/db`` with your data directory's address.
+      ln -s <hash>-<rsname>-<time>/ <dbpath>
 ---
-title: Start a mongod using your new data directory as the dbpath.
-stepnum: 3
+title: Start the mongod with the new data directory as the dbpath.
+stepnum: 9
 ref: start-mongod-dbpath
 action:
   - pre: |
-      Replace ``/data/db`` with the path to data directory that holds the data files from the |backup| snapshot.
+      In the mongod configuration, set the ``dbpath`` option to the path
+      of the data directory that holds the data files from the |backup|
+      snapshot.
     language: sh
     code: |
       mongod --dbpath /data/db
