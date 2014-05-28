@@ -4,36 +4,139 @@ Backup Agent Configuration
 
 .. default-domain:: mongodb
 
-Settings
---------
+.. _connection-settings:
 
-.. _kerberos-settings:
+Connection Settings (Required)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For the Backup Agent comminication with the MMS Servers
 
-Kerberos Settings
-~~~~~~~~~~~~~~~~~
-
-For authentication with Kerberos, the following two settings are mandatory
-
-.. setting:: mms.centralUrl
+.. setting:: mmsApiKey
 
    *Type*: string
 
-   Required. Fully qualified URL, including the port number, of the MMS
-   Monitoring server. For example,
+   The MMS agent API key for a MMS group. The API Key can be found in the MMS
+   UI under Settings -> Agent API Settings. For example,
 
    .. code-block:: ini
 
-      mms.centralUrl=http://mms.example.com:8080
+      mmsApiKey=abc123
 
-.. setting:: mms.backupCentralUrl
+.. setting:: mothership
 
    *Type*: string
 
-   Required. The hostname and port of MMS Backup server. For example,
+   The hostname of the MMS Backup Web Server.
+
+.. setting:: https
+
+   *Type*: boolean
+
+   Communicate with the MMS Backup web server over HTTPS.
+
+.. _mongodb-ssl-settings:
+
+MongoDB SSL Settings
+~~~~~~~~~~~~~~~~~~~~
+For when the Backup Agent is connecting to MongoDB instances using SSL.
+
+.. setting:: sslTrustedServerCertificates
+
+   *Type*: string
+
+   The path on disk that contains the trusted certificate authority certificates
+   in PEM format. The certificates will be used to verify the server certificate
+   returned from any MongoDBs running with SSL. For example,
 
    .. code-block:: ini
 
-      mms.backupCentralUrl=http://mms.example.com:8081
+      sslTrustedServerCertificates=/etc/mongodb-mms/mongodb-certs.pem
 
-   You must set :setting:`mms.backupCentralUrl`, even if you are only
-   using MMS Monitoring and not MMS Backup.
+.. setting:: sslRequireValidServerCertificates
+
+   *Type*: boolean
+
+   Certificate verification can be turned off by changing this setting to false.
+   That configuration is only recommended for testing purposes as it makes
+   connections susceptible to MITM attacks.
+
+.. _mongodb-kerberos-settings:
+
+MongoDB Kerberos Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+For when the Backup Agent is connection to MongoDB instances using Kerberos
+authentication.
+
+1. You must set both of the following parameters to enable Kerberos authentication
+
+2. Each backup that is to authenticate using Kerberos must be edited in MMS to
+select GSSAPI as the Auth Mechanism.
+
+3. The backup agent depends on 'kinit' to do the Kerberos authentication and
+looks for the executable at /usr/bin/kinit. Please ensure kinit is available at
+this location.
+
+4. The KDC for this principal must grant tickets that are valid for at least 4
+hours. The Backup Agent takes care of periodically renewing the ticket.
+
+.. setting:: krb5Principal
+
+   *Type*: string
+
+   The Kerberos principal used by the agent. For example,
+
+   .. code-block:: ini
+
+      krb5Principal=mmsagent/myhost@EXAMPLE.COM
+
+.. setting:: krb5Keytab
+
+   *Type*: string
+
+   The ABSOLUTE path to kerberos principal's keytab file. For example,
+
+   .. code-block:: ini
+
+      krb5Keytab=/etc/mongodb-mms/backup-agent.keytab
+
+.. _server-ssl-settings:
+
+MMS Server SSL Settings
+~~~~~~~~~~~~~~~~~~~~~~~
+.. only:: hosted
+
+   Advanced SSL settings used by the Backup Agent when communicating to the
+   MMS Backup Web Server.
+
+.. only:: saas
+
+   Advanced SSL settings used by the Backup Agent when communicating to the
+   MongoDB Inc Backup Servers.
+
+.. setting:: sslTrustedMMSBackupServerCertificate
+
+   By default the Backup Agent will use the trusted root CAs installed on the
+   system. If the trusted root CAs can not be found they can be configured
+   manually.
+
+   .. only:: hosted
+   If the MMS Backup Server is using a self-signed SSL certificate this setting
+   is required.
+
+   The path on disk that contains the trusted certificate authority certificates
+   in PEM format. The certificate will be used to verify the agent is
+   communicating with the designated MMS Backup Server. For example,
+
+   .. code-block:: ini
+
+      sslTrustedMMSBackupServerCertificate=/etc/mongodb-mms/mms-certs.pem
+
+.. only:: hosted
+
+   .. setting:: sslRequireValidMMSBackupServerCertificate
+
+   *Type*: boolean
+
+   Certificate verification can be turned off by changing this setting to
+   false. That configuration is only recommended for testing purposes as it makes
+   connections susceptible to MITM attacks.
+
