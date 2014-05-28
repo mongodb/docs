@@ -6,6 +6,16 @@ Backup Agent Chagelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.0.0.90-1``
+---------------------------
+
+*Released 2014-05-28*
+
+- Optional support for running multiple primary Backup Agents.
+
+- Created a new session on failure to insert periodic oplog token - fix for
+  environments with unstable network.
+
 Backup Agent ``1.6.0.55-1``
 ---------------------------
 
