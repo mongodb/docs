@@ -8,6 +8,14 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.2.0.70-1``
+-------------------------------
+
+*Released 2014-05-28*
+
+Improved logging for MongoDB 2.6 config servers when connecting with a user
+that has the built-in :authrole:`clusterMonitor` role.
+
 Monitoring Agent ``2.1.4.51-1``
 -------------------------------
 
