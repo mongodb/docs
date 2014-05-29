@@ -9,8 +9,7 @@ Monitoring Agent ``2.1.4.51-1``
 
 *Released with MMS OnPrem 1.4.2*
 
-Fix for race condition which can cause high CPU load when connecting
-to a replica set member which is unreachable.
+Prevent high CPU use when monitoring unreachable :program:`mongod`.
 
 Monitoring Agent ``2.1.3.48-1``
 -------------------------------

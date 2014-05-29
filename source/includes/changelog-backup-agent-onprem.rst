@@ -9,9 +9,11 @@ Backup Agent ``1.5.1.83-1``
 
 *Released with MMS OnPrem 1.4.2*
 
-Critical bug fix for backing up MongoDB 2.6 deployments that include
-user definitions. The system.version and system.role collections from
-the admin database are now included in the initial data sync.
+Critical update for users running the MongoDB 2.6 series that use
+authorization.
+
+The Backup Agent now includes :data:`system.version` and :data:`system.role`
+collections from the admin database in the initial sync.
 
 Backup Agent ``1.5.0.57-1``
 ---------------------------
