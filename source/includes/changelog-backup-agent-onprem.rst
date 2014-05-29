@@ -4,6 +4,15 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``1.5.1.83-1``
+---------------------------
+
+*Released with MMS OnPrem 1.4.2*
+
+Critical bug fix for backing up MongoDB 2.6 deployments that include
+user definitions. The system.version and system.role collections from
+the admin database are now included in the initial data sync.
+
 Backup Agent ``1.5.0.57-1``
 ---------------------------
 
