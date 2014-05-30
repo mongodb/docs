@@ -15,27 +15,15 @@ contrast, non-sparse indexes contain all documents in a collection,
 storing null values for those documents that do not contain the indexed
 field.
 
-The following example in the :program:`mongo` shell creates a sparse
-index on the ``xmpp_id`` field of the ``addresses`` collection:
+To create a ``sparse`` index, use the
+:method:`db.collection.ensureIndex()` method with the ``sparse`` option
+set to ``true``. For example, the following operation in the
+:program:`mongo` shell creates a sparse index on the ``xmpp_id`` field
+of the ``addresses`` collection:
 
 .. code-block:: javascript
 
    db.addresses.ensureIndex( { "xmpp_id": 1 }, { sparse: true } )
-
-By default, ``sparse`` is ``false`` on MongoDB indexes.
-
-.. versionchanged:: 2.6
-
-   If a sparse index results in an incomplete result set for queries
-   and sort operations, MongoDB will not use that index unless a
-   :method:`~cursor.hint()` explicitly specifies the index. For
-   example, the query ``{ x: { $exists: false } }`` will not use a
-   sparse index on the ``x`` field unless explicitly hinted. See
-   :ref:`sparse-index-incomplete-results` for an example that details
-   the behavior.
-
-   For :ref:`2dsphere indexes (version 2) <2dsphere-v2>`, MongoDB
-   ignores the ``sparse`` flag.
 
 .. note::
 
@@ -45,12 +33,55 @@ By default, ``sparse`` is ``false`` on MongoDB indexes.
 
    .. _`block-level`: http://en.wikipedia.org/wiki/Database_index#Sparse_index
 
-.. tip::
+Behavior
+--------
 
-   You can specify a *sparse* and :ref:`unique index
-   <index-type-unique>`, that rejects documents that have duplicate
-   values for a field, but allows multiple documents that omit that
-   key.
+``sparse`` Index and Incomplete Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+If a sparse index would result in an incomplete result set for queries
+and sort operations, MongoDB will not use that index unless a
+:method:`~cursor.hint()` explicitly specifies the index.
+
+For example, the query ``{ x: { $exists: false } }`` will not use a
+sparse index on the ``x`` field unless explicitly hinted. See
+:ref:`sparse-index-incomplete-results` for an example that details the
+behavior.
+
+Indexes that are ``sparse`` by Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`2dsphere (version 2) <2dsphere-v2>`, :doc:`2d </core/2d>`,
+:doc:`geoHaystack </core/geohaystack>`, and :doc:`text
+</core/index-text>` indexes are always ``sparse``.
+
+``sparse`` Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sparse :doc:`compound indexes </core/index-compound>` that only contain
+ascending/descending index keys will index a document as long as the
+document contains at least one of the keys.
+
+For sparse compound indexes that contain a geospatial key (i.e.
+:doc:`2dsphere </core/2dsphere>`, :doc:`2d </core/2d>`, or
+:doc:`geoHaystack </core/geohaystack>` index keys) along with
+ascending/descending index key(s), only the existence of the geospatial
+field(s) in a document determine whether the index references the
+document.
+
+For sparse compound indexes that contain :doc:`text </core/index-text>`
+index keys along with ascending/descending index keys, only the
+existence of the ``text`` index field(s) determine whether the index
+references a document.
+
+``sparse`` and ``unique`` Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An index that is both ``sparse`` and :ref:`unique <index-type-unique>`
+prevents collection from having documents with duplicate values for a
+field but allows multiple documents that omit the key.
 
 Examples
 --------
