@@ -103,7 +103,7 @@ html_theme_options = {
     'manual_branch': conf.git.branches.manual,
     'project': conf.project.name,
     'translations': languages,
-    'nav_excluded': [ '/monitoring/tutorial/set-up-mms']
+    'nav_excluded': [ '/tutorial/nav/monitoring-getting-started' ]
 }
 
 hosted_latex_documents = []
