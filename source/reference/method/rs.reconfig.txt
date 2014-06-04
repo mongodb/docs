@@ -9,51 +9,119 @@ Definition
 
 .. method:: rs.reconfig(configuration, force)
 
-   Initializes a new :term:`replica set` configuration. Disconnects the
-   shell briefly and forces a reconnection as the replica set
-   renegotiates which member will be :term:`primary`. As a result, the
-   shell will display an error even if this command succeeds.
+   Reconfigures an existing replica set, overwriting the existing
+   replica set configuration. To run the method, you must connect to
+   the :term:`primary` of the replica set.
 
    .. include:: /reference/method/rs.reconfig-param.rst
 
-   :method:`rs.reconfig()` overwrites the existing replica set
-   configuration. Retrieve the current configuration object with
-   :method:`rs.conf()`, modify the configuration as needed and then
-   use :method:`rs.reconfig()` to submit the modified configuration
-   object.
+   When used to reconfigure an existing replica set, first retrieve the
+   current configuration with :method:`rs.conf()`, modify the
+   configuration document as needed, and then pass the modified
+   document to :method:`rs.reconfig()`.
 
    :method:`rs.reconfig()` provides a wrapper around the
-   ":dbcommand:`replSetReconfig`" :term:`database command`.
+   :dbcommand:`replSetReconfig` :term:`database command`.
+
+Behavior
+--------
+
+The method disconnects the :program:`mongo` shell and forces a
+reconnection as the replica set renegotiates which member will be
+:term:`primary`. As a result, the shell will display an error even if
+this command succeeds.
+
+The :method:`rs.reconfig()` shell method can force the current primary
+to step down and triggers an election in some situations. When the
+primary steps down, the primary closes all client connections. This is
+by design. Since this typically takes 10-20 seconds, attempt to make
+such changes during scheduled maintenance periods.
+
+.. warning::
+
+   Using :method:`rs.reconfig()` with ``{ force: true }`` can lead to
+   :term:`rollback` situations and other difficult-to-recover-from
+   situations. Exercise caution when using this option.
+
+.. _replica-set-reconfiguration-usage:
 
 Examples
 --------
 
-To reconfigure a replica set, use the following sequence of operations:
+A replica set named ``rs0`` has the following configuration:
 
 .. code-block:: javascript
 
-   conf = rs.conf()
+   {
+       "_id" : "rs0",
+       "version" : 1,
+       "members" : [
+            {
+               "_id" : 0,
+               "host" : "mongodb0.example.net:27017"
+            },
+            {
+               "_id" : 1,
+               "host" : "mongodb1.example.net:27017"
+            },
+            {
+               "_id" : 2,
+               "host" : "mongodb2.example.net:27017"
+            }
+        ]
+   }
 
-   // modify conf to change configuration
-
-   rs.reconfig(conf)
-
-If you want to force the reconfiguration if a majority of the set is not
-connected to the current member, or you are issuing the command against a
-secondary, use the following form:
+The following sequence of operations updates the
+:data:`~local.system.replset.members[n].priority` of the second member.
+The operations are issued through a :program:`mongo` shell connected to
+the primary.
 
 .. code-block:: javascript
 
-   conf = rs.conf()
+   cfg = rs.conf();
+   cfg.members[1].priority = 2;
+   rs.reconfig(cfg);
 
-   // modify conf to change configuration
+#. The first statement uses the :method:`rs.conf()` method to retrieve
+   a document containing the current :doc:`configuration
+   </reference/replica-configuration>` for the replica set and sets the
+   document to the local variable ``cfg``.
 
-   rs.reconfig(conf, { force: true } )
+#. The second statement sets a
+   :data:`~local.system.replset.members[n].priority` value to the
+   second document in the :data:`~local.system.replset.members` array.
+   For additional settings, see :ref:`replica set configuration settings
+   <replica-set-configuration-settings>`.
 
-.. warning::
+   To access the member configuration document in the array, the
+   statement uses the array index and **not** the replica set member's
+   :data:`~local.system.replset.members[n]._id` field.
 
-   Forcing a :method:`rs.reconfig()` can lead to :term:`rollback`
-   situations and other difficult to recover from situations. Exercise
-   caution when using this option.
+#. The last statement calls the :method:`rs.reconfig()` method with the
+   modified ``cfg`` to initialize this new configuration. Upon
+   successful reconfiguration, the replica set configuration will
+   resemble the following:
+
+.. code-block:: javascript
+
+   {
+       "_id" : "rs0",
+       "version" : 2,
+       "members" : [
+            {
+               "_id" : 0,
+               "host" : "mongodb0.example.net:27017"
+            },
+            {
+               "_id" : 1,
+               "host" : "mongodb1.example.net:27017",
+               "priority" : 2
+            },
+            {
+               "_id" : 2,
+               "host" : "mongodb2.example.net:27017"
+            }
+        ]
+   }
 
 .. seealso:: :doc:`/reference/replica-configuration` and :doc:`/administration/replica-sets`.
