@@ -9,10 +9,18 @@ Bulk.getOperations()
    .. versionadded:: 2.6
 
    Returns an array of write operations executed through
-   :method:`Bulk.execute()`. Only use after a :method:`Bulk.execute()`.
-   Calling :method:`Bulk.getOperations()` before you execute will
-   result in an *incomplete* list.
-   
+   :method:`Bulk.execute()`. The returned write operations are in
+   groups as determined by MongoDB for execution. For information on
+   how MongoDB groups the list of bulk write operations, see
+   :ref:`Bulk.execute() Behavior <bulk-execute-behavior>`.
+
+   Only use :method:`Bulk.getOperations()` after a
+   :method:`Bulk.execute()`. Calling :method:`Bulk.getOperations()`
+   before you call :method:`Bulk.execute()` will result in an
+   *incomplete* list.
+
+.. _bulk-getOperations-example:
+
 Example
 -------
 
@@ -23,15 +31,23 @@ operations, and then calls :method:`~Bulk.getOperations()` on the
 
 .. code-block:: javascript
 
-   var bulk = db.items.initializeOrderedBulkOp();
-   bulk.insert( { item: "abc123", status: "A", defaultQty: 500, points: 5 } );
-   bulk.insert( { item: "ijk123", status: "A", defaultQty: 100, points: 10 } );
-   bulk.find( { status: "D" } ).removeOne();
-   bulk.find( { status: "D" } ).update( { $set: { points: 0 } } );
+   var bulk = db.items.initializeUnorderedBulkOp();
+
+   for (var i = 1; i <= 1500; i++) {
+       bulk.insert( { x: i } );
+   }
+
    bulk.execute();
    bulk.getOperations();
 
-The :method:`~Bulk.getOperations()` returns the following array:
+The :method:`~Bulk.getOperations()` method returns an array with the
+operations executed. The output shows that MongoDB divided the
+operations into 2 groups, one with 1000 operations and one with 500.
+For information on how MongoDB groups the list of bulk write
+operations, see :ref:`Bulk.execute() Behavior <bulk-execute-behavior>`
+
+Although the method returns all 1500 operations in the returned array,
+this page omits some of the results for brevity.
 
 .. code-block:: javascript
 
@@ -40,50 +56,22 @@ The :method:`~Bulk.getOperations()` returns the following array:
          "originalZeroIndex" : 0,
          "batchType" : 1,
          "operations" : [
-            {
-               "_id" : ObjectId("5345aea9ac681b0cddcd0a87"),
-               "item" : "abc123",
-               "status" : "A",
-               "defaultQty" : 500,
-               "points" : 5
-            },
-            {
-               "_id" : ObjectId("5345aea9ac681b0cddcd0a88"),
-               "item" : "ijk123",
-               "status" : "A",
-               "defaultQty" : 100,
-               "points" : 10
-            }
+            { "_id" : ObjectId("53a8959f1990ca24d01c6165"), "x" : 1 },
+
+            ... // Content omitted for brevity
+
+            { "_id" : ObjectId("53a8959f1990ca24d01c654c"), "x" : 1000 }
          ]
       },
       {
-         "originalZeroIndex" : 2,
-         "batchType" : 3,
+         "originalZeroIndex" : 1000,
+         "batchType" : 1,
          "operations" : [
-            {
-               "q" : {
-                  "status" : "D"
-               },
-               "limit" : 1
-            }
-         ]
-      },
-      {
-         "originalZeroIndex" : 3,
-         "batchType" : 2,
-         "operations" : [
-            {
-               "q" : {
-                  "status" : "D"
-               },
-               "u" : {
-                  "$set" : {
-                     "points" : 0
-                  }
-               },
-               "multi" : true,
-               "upsert" : false
-            }
+            { "_id" : ObjectId("53a8959f1990ca24d01c654d"), "x" : 1001 },
+
+            ... // Content omitted for brevity
+
+            { "_id" : ObjectId("53a8959f1990ca24d01c6740"), "x" : 1500 }
          ]
       }
    ]
