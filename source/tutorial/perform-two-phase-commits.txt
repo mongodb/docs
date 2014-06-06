@@ -165,7 +165,7 @@ Use :method:`~db.collection.update()` to change the value of
 
 .. code-block:: javascript
 
-   db.transactions.update({_id: t._id}, {$set: {state: "pending"}})
+   db.transactions.update({_id: t._id, state: "initial"}, {$set: {state: "pending"}})
    db.transactions.find()
 
 The :method:`~db.collection.find()` operation will return the
@@ -290,23 +290,23 @@ failures and provide methods to recover from these kinds of events.
 
 There are two classes of failures:
 
-- all failures that occur after the first step (i.e. :ref:`setting
-  the transaction set to initial <2-phase-commits-step-1>`) but
-  before the third step (i.e. :ref:`applying the transaction to both
-  accounts <2-phase-commits-step-3>`.)
+- all failures that occur after the second step (i.e. :ref:`setting
+  the transaction state to pending <2-phase-commits-step-2>`) but
+  before completing the fourth step (i.e. :ref:`setting the transaction 
+  state to committed <2-phase-commits-step-4>`.)
 
   To recover, applications should get a list of transactions in the
-  ``pending`` state and resume from the second step
-  (i.e. :ref:`switching the transaction state to pending
-  <2-phase-commits-step-2>`.)
+  ``pending`` state and resume from the third step
+  (i.e. :ref:`apllying the transaction to both accounts 
+  <2-phase-commits-step-3>`.)
 
-- all failures that occur after the third step (i.e. :ref:`applying
-  the transaction to both accounts <2-phase-commits-step-3>`) but
-  before the fifth step (i.e. :ref:`setting the transaction state to
-  done <2-phase-commits-step-5>`.)
+- all failures that occur after the fourth step (i.e. :ref:`setting the 
+  transaction state to committed <2-phase-commits-step-4>`) but
+  before the sixth step (i.e. :ref:`setting the transaction state to
+  done <2-phase-commits-step-6>`.)
 
   To recover, application should get a list of transactions in the
-  ``committed`` state and resume from the fourth step
+  ``committed`` state and resume from the fifth step
   (i.e. :ref:`remove the pending transaction
   <2-phase-commits-step-5>`.)
 
@@ -331,16 +331,16 @@ stops existing during the transaction.
 
 There are two possible rollback operations:
 
-#. After you :ref:`apply the transaction <2-phase-commits-step-3>`
-   (i.e. the third step), you have fully committed the transaction and
+#. After you :ref:`set the transaction state to done <2-phase-commits-step-4>`
+   (i.e. the fourth step), you have fully committed the transaction and
    you should not roll back the transaction. Instead, create a new
    transaction and switch the values in the source and destination
    fields.
 
-#. After you :ref:`create the transaction <2-phase-commits-step-1>`
-   (i.e. the first step), but before you :ref:`apply the transaction
-   <2-phase-commits-step-3>` (i.e the third step), use the following
-   process:
+#. After you :ref:`set the transaction state to pending <2-phase-commits-step-2>`
+   (i.e. the second step), but before you :ref:`set the transaction
+   state to committed <2-phase-commits-step-4>` (i.e the fourth step), use 
+   the following process:
 
 .. _2-phase-commits-rollback-step-1:
 
@@ -352,7 +352,7 @@ following :method:`~db.collection.update()` operation:
 
 .. code-block:: javascript
 
-   db.transactions.update({_id: t._id}, {$set: {state: "canceling"}})
+   db.transactions.update({_id: t._id, state: "pending"}, {$set: {state: "canceling"}})
 
 .. _2-phase-commits-rollback-step-2:
 
@@ -396,34 +396,23 @@ Multiple Applications
 
 Transactions exist, in part, so that several applications can create
 and run operations concurrently without causing data inconsistency or
-conflicts. As a result, it is crucial that only one 1 application can
+conflicts. As a result, it is crucial that only one application can
 handle a given transaction at any point in time.
 
-Consider the following example, with a single transaction
-(i.e. ``T1``) and two applications (i.e. ``A1`` and ``A2``). If both
-applications begin processing the transaction which is still in the
-``initial`` state (i.e. :ref:`step 1 <2-phase-commits-step-1>`), then:
-
-- ``A1`` can apply the entire whole transaction before ``A2`` starts.
-
-- ``A2`` will then apply ``T1`` for the second time, because the
-  transaction does not appear as pending in the ``accounts``
-  documents.
-
-To handle multiple applications, create a marker in the transaction
-document itself to identify the application that is handling the
-transaction. Use :method:`~db.collection.findAndModify()`
-method to modify the transaction:
+To handle multiple applications, in addition to always making updates
+conditional on the state of the transaction being what you expect, you
+can also create a marker in the transaction document itself to identify 
+the application that is handling the transaction. Use :method:`~db.collection.findAndModify()`
+method to modify the transaction and get it back in one step:
 
 .. code-block:: javascript
 
-   t = db.transactions.findAndModify({query: {state: "initial", application: {$exists: 0}},
+   t = db.transactions.findAndModify({query: {state: "initial", application: {$exists: false}},
                                       update: {$set: {state: "pending", application: "A1"}},
                                       new: true})
 
-When you modify and reassign the local shell variable ``t``, the
-:program:`mongo` shell will return the ``t`` object, which should
-resemble the following:
+When you run this command, its return object will be assigned to the 
+local shell variable ``t``, which will resemble the following:
 
 .. code-block:: javascript
 
@@ -465,29 +454,13 @@ Using Two-Phase Commits in Production Applications
 The example transaction above is intentionally simple. For example, it
 assumes that:
 
-- it is always possible to roll back operations an account.
+- it is always possible to roll back operations to an account.
 
 - account balances can hold negative values.
 
 Production implementations would likely be more complex. Typically
 accounts need information about current balance, pending credits,
-pending debits. Then:
-
-- when your application :ref:`switches the transaction state to
-  pending <2-phase-commits-step-2>` (i.e. step 2) it would also make
-  sure that the account has sufficient funds for the
-  transaction. During this update operation, the application would
-  also modify the values of the credits and debits as well as adding
-  the transaction as pending.
-
-- when your application :ref:`removes the pending transaction
-  <2-phase-commits-step-4>` (i.e. step 4) the application would apply
-  the transaction on balance, modify the credits and debits as well as
-  removing the transaction from the ``pending`` field., all in one update.
-
-Because all of the changes in the above two operations occur within a
-single :method:`~db.collection.update()` operation, these
-changes are all atomic.
+pending debits. 
 
 Additionally, for most important transactions, ensure that:
 
