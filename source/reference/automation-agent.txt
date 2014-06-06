@@ -1,0 +1,493 @@
+==============================
+Automation Agent Configuration
+==============================
+
+.. default-domain:: mongodb
+
+.. This is not a user-facing config file. Most users access this
+   information via the MMS interface, not via this file.
+
+Overview
+--------
+
+The Automation Agent uses a configuration file to determine the desired
+state of a MongoDB deployment and to affect changes as needed. The MMS web
+interface constructs and populates the file. If you are using the
+Automation Agent with MMS you will never need to manipulate this structure
+directly.
+
+If you are using the Automation Agent without MMS, you can construct and
+distribute the configuration file manually.
+
+Settings
+--------
+
+The following sections describe the settings in the Automation Agent
+configuration file. For an overview of the file's structure, see
+:doc:`/reference/automation-agent-structure`:
+
+Configuration File Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: version
+
+   *Type*: integer
+
+   Required. The version of the configuration file.
+
+Agents
+~~~~~~
+
+The agent settings define the versions of the agents to run on each
+machine.
+
+.. data:: agentVersion
+
+   *Type*: document
+
+   The version of the Automation Agent to run. If the running version does
+   not match this setting, the Automation Agent downloads the specified
+   version, shuts itself down, and starts the new version.
+
+   .. data:: agentVersion.name
+
+      *Type*: string
+
+      The desired version of the Automation Agent (e.g. "1.4.0").
+
+   .. data:: agentVersion.directoryUrl
+
+      *Type*: string
+
+      The URL from which to download Automation Agent.
+
+.. data:: monitoringVersions
+
+   *Type*: array
+
+   Documents that define version information for each Monitoring Agent.
+
+   .. data:: monitoringVersions.hostname
+
+      *Type*: string
+
+      The hostname of the machine that runs the Monitoring Agent. If the
+      Monitoring Agent is not running on the machine, MMS installs the
+      agent from the location specified in the
+      :data:`~monitoringVersions.directoryUrl` field.
+
+   .. data:: monitoringVersions.directoryUrl
+
+      *Type*: string
+
+      The URL from which to download the Monitoring Agent.
+
+   .. data:: monitoringVersions.name
+
+      *Type*: string
+
+      The desired version of the Monitoring Agent (e.g. "2.1.4.51-1").
+
+.. data:: backupVersions
+
+   *Type*: array
+
+   Documents that define version information for each Backup Agent.
+
+   .. data:: backupVersions.hostname
+
+      *Type*: string
+
+      The hostname of the machine that runs the Backup Agent. If the
+      Backup Agent is not running on the machine, MMS installs the agent
+      from the location specified in the
+      :data:`~backupVersions.directoryUrl` field.
+
+   .. data:: backupVersions.directoryUrl
+
+      *Type*: string
+
+      The URL from which to download the Backup Agent.
+
+   .. data:: backupVersions.name
+
+      *Type*: string
+
+      The desired version of the Backup Agent (e.g. "1.5.1.83-1").
+
+MongoDB Instances
+~~~~~~~~~~~~~~~~~
+
+.. data:: processes
+
+   *Type*: array
+
+   Required. The :data:`processes` array contains documents that define
+   the :program:`mongos` and :program:`mongod` instances that MMS
+   monitors. Each document defines a different instance.
+
+   .. data:: processes.name
+
+      *Type*: string
+
+      A unique name to identify the instance.
+
+   .. data:: processes.processType
+
+      *Type*: string
+
+      Either ``mongod`` or ``mongos``.
+
+   .. data:: processes.version
+
+      *Type*: string
+
+      The name of the :data:`mongoDbVersions` specification used with this
+      instance.
+
+   .. data:: processes.<args>
+
+      *Type*: document
+
+      This field is named ``args2_6`` or ``args2_4``, depending on the
+      version of the MongoDB instance, and contains a document with the
+      instance's configuration. The document uses the same fields as used
+      in the :manual:`configuration file options
+      </reference/configuration-options>` specific to the MongoDB version.
+      The 2.6 and 2.4 versions of MongoDB use different formats for
+      configuration options.
+
+   .. data:: processes.disabled
+
+      *Type*: Boolean
+
+      Set to ``true`` to shut down the process.
+
+   .. data:: processes.hostname
+
+      *Type*: string
+
+      The name of the host this process should run on. This defaults to ``localhost``.
+
+   .. data:: processes.cluster
+
+      *Type*: string
+
+      Required for a :program:`mongos`. The name of the cluster. This must
+      correspond with the :data:`sharding.name` field in the
+      :data:`sharding` array for the :program:`mongos`.
+
+   .. data:: processes.numCores
+
+      *Type*: integer
+
+      The number of cores the process should be bound to. The Automation
+      Agent will spread processes out across the cores as evenly as
+      possible.
+
+Replica Sets
+~~~~~~~~~~~~
+
+.. data:: replicaSets
+
+   *Type*: array
+
+   Documents that define the configuration of each :term:`replica set` in
+   the cluster. The Automation Agent uses the values in the
+   :data:`replicaSets` array to create valid :manual:`replica set
+   configuration documents </reference/replica-configuration>`. The agent
+   regularly checks that replica sets are configured correctly, and if a
+   problem is found, the agent reconfigures the replica set according to
+   its configuration document.
+
+   The :data:`replicaSets` array can contain the following fields from a
+   :manual:`replica set configuration document
+   </reference/replica-configuration>`:
+
+   - ``_id`` field
+
+   - ``version`` field
+
+   - ``members`` array. When designating a ``host``, the ``members`` array
+     uses the host's name as listed in the :data:`processes` array's
+     :data:`processes.name` field. The Automation Agent expands the
+     ``host`` field to create a valid replica set configuration document.
+
+Sharding
+~~~~~~~~
+
+.. data:: sharding
+
+   *Type*: array
+
+   Documents that define the configuration of each :term:`sharded
+   cluster`. Each document in the array contains the specifications for
+   one cluster. The Automation Agent regularly checks each cluster's state
+   against the specifications. If the specification and cluster don't
+   match, the agent will change the configuration of the cluster, which
+   might cause the balancer to migrate chunks.
+
+   .. data:: sharding.name
+
+      *Type*: string
+
+      The name of the cluster. This must correspond with the
+      :data:`processes.cluster` field in the :data:`processes` document
+      for a :program:`mongos`.
+
+   .. data:: sharding.configServer
+
+      *Type*: array
+
+      String values that provide the names of each :term:`config server's
+      <config server>` hosts. The host names are the same names as are
+      used in each host's :data:`processes.name` field.
+
+   .. data:: sharding.collections
+
+      *Type*: array
+
+      Documents that define the sharded :term:`collections <collection>`
+      and their :term:`shard keys <shard key>`.
+
+      .. data:: sharding.collections._id
+
+         *Type*: string
+
+         The :term:`namespace` of the sharded collection. The namespace is
+         the combination of the database name and the name of the
+         collection. For example, ``testdb.testcoll``.
+
+      .. data:: sharding.collections.key
+
+         *Type*: array
+
+         The collection's :term:`shard keys <shard key>`. This "array of
+         arrays" contains a single array if there is a single shard key
+         and contains multiple arrays if there is a compound shard key.
+
+   .. data:: sharding.shards
+
+      *Type*: array
+
+      Documents that define the cluster's :term:`shards <shard>`.
+
+      .. data:: sharding.shards._id
+
+         *Type*: string
+
+         The name of the shard.
+
+      .. data:: sharding.shards.rs
+
+         *Type*: string
+
+         The name of the shard's replica set, as specified in the
+         :data:`replicaSets._id` field.
+
+Authentication
+~~~~~~~~~~~~~~
+
+.. data:: auth
+
+   *Type*: document
+
+   Defines :manual:`authentication </core/authentication>`-related
+   settings.
+
+   .. data:: auth.key
+
+      *Type*: string
+
+      The contents of the key file that On-Prem MMS uses to authenticate
+      to the MongoDB processes.
+
+   .. data:: auth.keyfile
+
+      *Type*: string
+
+      The path and name of the key file that On-Prem MMS uses to
+      authenticate to the MongoDB processes.
+
+   .. data:: auth.usersDeleted
+
+      *Type*: array
+
+      Documents that define the authenticated users to be deleted from
+      specified databases or from all databases. This array should contain
+      only two fields: the :data:`~auth.usersDeleted.user` field and
+      then either the :data:`~auth.usersDeleted.dbs` or the
+      :data:`~auth.usersDeleted.allDbs` field.
+
+      .. data:: auth.usersDeleted.user
+
+         *Type*: string
+
+         The user's name.
+
+      .. data:: auth.usersDeleted.dbs
+
+         *Type*: array
+
+         String values that list the names of the databases from which the
+         authenticated user is to be deleted.
+
+      .. data:: auth.usersDeleted.allDbs
+
+         *Type*: Boolean
+
+         If set to ``true``, the authenticated user is deleted from all
+         databases.
+
+   .. data:: auth.usersWanted
+
+      *Type*: array
+
+      Contains documents that define authenticated users to add to
+      specified databases.
+
+      .. data:: auth.usersWanted.db
+
+         *Type*: string
+
+         The database to which to add the user.
+
+      .. data:: auth.usersWanted.user
+
+         *Type*: string
+
+         The name of the user.
+
+      .. data:: auth.usersWanted.roles
+
+         *Type*: array
+
+         String values that list the :term:`roles <role>` to be assigned
+         the user from the user's database, which is specified in the
+         :data:`~auth.usersWanted.db` field.
+
+      .. data:: auth.usersWanted.otherDBRoles
+
+         *Type*: document
+
+         If the :data:`~auth.usersWanted.db` field specifies ``admin`` as
+         the user's database, then this document can assign to the user
+         roles from other databases as well. The document contains
+         key-value pairs where the key is the name of the database and the
+         value is an array of string values that list the roles be
+         assigned from that database.
+
+      .. data:: auth.usersWanted.pwd
+
+         *Type*: 32-character hex string
+
+         The password assigned to the user.
+
+      .. data:: auth.usersWanted.initPwd
+
+         *Type*: string
+
+         An initial password assigned to the user.
+
+      .. data:: auth.usersWanted.userSource
+
+         *Type*: string
+
+Audit
+~~~~~
+
+.. data:: audit
+
+   *Type*: document
+
+   Enables auditing. The :data:`audit` document contains the same fields
+   as the ``auditLog`` option in the :manual:`Configuration File Options
+   </reference/configuration-options>` and uses the same syntax for the
+   values of each field, with the exception of the ``path`` field, which
+   is appended with -*ProcessName*.*lowercase(Format)*.
+
+Roles
+~~~~~
+
+.. data:: roles
+
+   *Type*: array
+
+   The :data:`roles` array contains documents that describe the cluster's
+   user-defined roles. Each document describes a different user-defined
+   role. Documents in this array contain the same fields as documents in
+   the :manual:` system roles collection
+   </reference/system-roles-collection>`, except for the ``_id`` field,
+   which is not included here.
+
+MongoDB Versions
+~~~~~~~~~~~~~~~~
+
+The :data:`mongoDbVersions` array defines specification documents for the
+MongoDB instances found in the :data:`processes` array. Each MongoDB
+instance in the :data:`processes` array must have a specification document
+in this array.
+
+.. data:: mongoDbVersions
+
+   *Type*: array
+
+   Required. The specification documents used with the MongoDB instances
+   defined in the :data:`processes` array.
+
+   .. data:: mongoDbVersions.name
+
+      *Type*: string
+
+      The name of the specification document. The specification document
+      is attached to a MongoDB instance through the instance's
+      :data:`processes.version` field in this configuration file.
+
+   .. data:: mongoDbVersions.builds
+
+      *Type*: array
+
+      Documents that define the builds for this MongoDB instance.
+
+      .. data:: mongoDbVersions.builds.platform
+
+         *Type*: string
+
+         The platform for this MongoDB instance.
+
+      .. data:: mongoDbVersions.builds.url
+
+         *Type*: string
+
+         The URL from which to download MongoDB for this instance.
+
+      .. data:: mongoDbVersions.builds.gitVersion
+
+         *Type*: string
+
+         The commit identifier that identifies the state of the code used
+         to build the MongoDB process. The MongoDB :manual:`buildInfo
+         </reference/command/buildInfo>` command returns the gitVersion
+         identifier.
+
+      .. data:: mongoDbVersions.builds.bits
+
+         *Type*: integer
+
+         The processor's bus width. Specify either ``64`` or ``32``.
+
+Download Directory
+~~~~~~~~~~~~~~~~~~
+
+.. data:: options
+
+   *Type*: document
+
+   Required.
+
+   .. data:: options.downloadBase
+
+      *Type*: string
+
+      The path to the directory where automatic version downloads are
+      targeted and scripts for starting processes are created.
