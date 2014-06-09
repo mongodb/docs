@@ -57,6 +57,8 @@ extlinks = {
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
     'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'v2.2': ('http://docs.mongodb.org/v2.2%s', ''),
+    'v2.4': ('http://docs.mongodb.org/v2.4%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
     'about': ('http://www.mongodb.org/about%s', '')
