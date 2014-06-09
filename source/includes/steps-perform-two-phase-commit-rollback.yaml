@@ -1,0 +1,99 @@
+title:
+  text: Update transaction state to canceling.
+  character: "`"
+stepnum: 1
+ref: "2-phase-commits-rollback-step-1"
+pre: |
+  Update the transaction ``state`` from ``pending`` to ``canceling``.
+action:
+  language: javascript
+  code: |
+    db.transactions.update(
+       { _id: t._id, state: "pending" },
+       {
+         $set: { state: "canceling" },
+         $currentDate: { lastModified: true }
+       }
+    )
+post: |
+  Upon successful update, the method returns a :method:`WriteResult()`
+  object with :data:`~WriteResult.nMatched` and
+  :data:`~WriteResult.nModified` set to ``1``.
+---
+title:
+  text: Undo the transaction on both accounts.
+  character: "`"
+stepnum: 2
+ref: "2-phase-commits-rollback-step-2"
+pre: |
+  To undo the transaction on both accounts, reverse the transaction
+  ``t`` if the transaction has been applied. In the update condition,
+  include the condition ``pendingTransactions: t._id`` in order to
+  update the account only if the pending transaction has been applied.
+action:
+  - pre: |
+      Update the destination account, subtracting from its ``balance`` the
+      transaction ``value`` and removing the transaction ``_id``
+      from the ``pendingTransactions`` array.
+    language: javascript
+    code: |
+       db.accounts.update(
+          { _id: t.destination, pendingTransactions: t._id },
+          {
+            $inc: { balance: -t.value }, 
+            $pull: { pendingTransactions: t._id }
+          }
+       )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+      If the pending transaction has not been previously applied to
+      this account, no document will match the update condition and
+      :data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified`
+      will be ``0``.
+  - pre: |
+      Update the source account, adding to its ``balance`` the
+      transaction ``value`` and removing the transaction ``_id``
+      from the ``pendingTransactions`` array.
+    language: javascript
+    code: |
+      db.accounts.update(
+         { _id: t.source, pendingTransactions: t._id },
+         {
+           $inc: { balance: t.value}, 
+           $pull: { pendingTransactions: t._id }
+         }
+      )
+    post: |
+      Upon successful update, the method returns a
+      :method:`WriteResult()` object with :data:`~WriteResult.nMatched`
+      and :data:`~WriteResult.nModified` set to ``1``.
+      If the pending transaction has not been previously applied to
+      this account, no document will match the update condition and
+      :data:`~WriteResult.nMatched` and :data:`~WriteResult.nModified`
+      will be ``0``.
+---
+title:
+  text: Update transaction state to canceled.
+  character: "`"
+stepnum: 3
+ref: "2-phase-commits-rollback-step-3"
+pre: |
+  To finish the rollback, update the transaction ``state`` from
+  ``canceling`` to ``cancelled``.
+action:
+  language: javascript
+  code: |
+    db.transactions.update(
+       { _id: t._id, state: "canceling" },
+       {
+         $set: { state: "cancelled" },
+         $currentDate: { lastModified: true }
+       }
+    )
+post: |
+  Upon successful update, the method returns a :method:`WriteResult()`
+  object with :data:`~WriteResult.nMatched` and
+  :data:`~WriteResult.nModified` set to ``1``.
+...
