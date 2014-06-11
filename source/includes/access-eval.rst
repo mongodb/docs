@@ -1,6 +1,6 @@
 .. per DOCS-2493 & SERVER-7489
 
-If authentication is enabled, you must have access to all actions
+If authorization is enabled, you must have access to all actions
 on all resources in order to run
 |eval-object|. Providing such access is not recommended, but if your
 organization requires a user to run |eval-object|, create a role that
