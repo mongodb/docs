@@ -368,50 +368,38 @@ Given a ``books`` collection that includes the following documents:
 
 .. code-block:: javascript
 
-   { _id: 11, author: "Dante", item: "Divine Comedy", price: 18 }
-   { _id: 22, author: "Dante", item: "The Banquet", price: 19 }
-   { _id: 33, author: "Dante", item: "Monarchia", price: 14 }
+   { _id: 11, author: "Dante", item: "Divine Comedy", price: 18, translatedBy: "abc123" }
+   { _id: 12, author: "Dante", item: "Divine Comedy", price: 21, translatedBy: "jkl123" }
+   { _id: 13, author: "Dante", item: "Divine Comedy", price: 15, translatedBy: "xyz123" }
 
-The following command uses the ``multi`` parameter to update all
-documents where ``author`` is ``"Dante"`` and uses the *upsert*
-parameter to create a new document if no such documents are found:
+The following command specifies the ``multi`` parameter to update all
+documents where ``item`` is ``"Divine Comedy"`` and the ``author`` is
+``"Dante"`` and specifies the ``upsert`` parameter to create a new
+document if no matching documents are found:
 
 .. code-block:: javascript
 
    db.books.update(
-      { author: "Dante" },
-      { $set: { born: "Florence", died: "Ravenna" } },
+      { item: "Divine Comedy", author: "Dante" },
+      { $set: { reorder: false, price: 10 } },
       { upsert: true, multi: true }
    )
 
-The operation results in the following:
+The operation updates all three matching documents and results in the
+following:
 
 .. code-block:: javascript
 
-   {
-       "_id" : 11,
-       "author" : "Dante",
-       "born" : "Florence",
-       "died" : "Ravenna",
-       "item" : "Divine Comedy",
-       "price" : 18
-   }
-   {
-       "_id" : 22,
-       "author" : "Dante",
-       "born" : "Florence",
-       "died" : "Ravenna",
-       "item" : "The Banquet",
-       "price" : 19
-   }
-   {
-       "_id" : 33,
-       "author" : "Dante",
-       "born" : "Florence",
-       "died" : "Ravenna",
-       "item" : "Monarchia",
-       "price" : 14
-   }
+   { _id: 11, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "abc123", reorder: false }
+   { _id: 12, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "jkl123", reorder: false }
+   { _id: 13, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "xyz123", reorder: false }
+
+If the collection had *no* matching document, the operation would
+result in the insertion of a document:
+
+.. code-block:: javascript
+
+   { _id: ObjectId("536aa66422363a21bc16bfd7"), author: "Dante", item: "Divine Comedy", reorder: false, price: 10 }
 
 .. TODO need to just replace the below section with a little behavior
    blurb or move it somewhere else instead of trying to give

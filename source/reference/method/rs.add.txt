@@ -7,40 +7,38 @@ rs.add()
 Definition
 ----------
 
-.. method:: rs.add(host, arbiterOnly)
+.. method:: rs.add()
 
-   Adds a member to a :term:`replica set`.
+   Adds a member to a :term:`replica set`. To run the method, you must
+   connect to the :term:`primary` of the replica set.
 
    .. include:: /reference/method/rs.add-param.rst
 
-   You may specify new hosts in one of two ways:
-
-   #. as a "hostname" with an optional port number to use the default
-      configuration as in the :ref:`replica-set-add-member` example.
-
-   #. as a configuration :term:`document`, as in the
-      :ref:`replica-set-add-member-alternate-procedure` example.
-
    :method:`rs.add()` provides a wrapper around some of the
-   functionality of the ":dbcommand:`replSetReconfig`" :term:`database
-   command` and the corresponding shell helper
-   :method:`rs.reconfig()`. See the :doc:`/reference/replica-configuration`
-   document for full documentation of all replica set configuration
-   options.
+   functionality of the :dbcommand:`replSetReconfig` :term:`database
+   command` and the corresponding :program:`mongo` shell helper
+   :method:`rs.reconfig()`. See the
+   :doc:`/reference/replica-configuration` document for full
+   documentation of all replica set configuration options.
 
 Behavior
 --------
 
-:method:`rs.add()` can in some cases force an election for primary
-which will disconnect the shell. In such cases, the shell displays
-an error even if the operation succeeds.
+:method:`rs.add()` can, in some cases, force an election for primary
+which will disconnect the shell. In such cases, the :program:`mongo`
+shell displays an error even if the operation succeeds.
 
 Example
 -------
 
-To add a :program:`mongod` accessible on the default port
-``27017`` running on the host ``mongodb3.example.net``, use the
-following :method:`rs.add()` invocation:
+.. _rs-add-hostname:
+
+Pass a Hostname String to ``rs.add()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation adds a :program:`mongod` instance, running on
+the host ``mongodb3.example.net`` and accessible on the default port
+``27017``:
 
 .. code-block:: javascript
 
@@ -52,18 +50,30 @@ If ``mongodb3.example.net`` is an arbiter, use the following form:
 
    rs.add('mongodb3.example.net:27017', true)
 
-To add ``mongodb3.example.net`` as a :ref:`secondary-only
-<replica-set-secondary-only-members>` member of set, use the
-following form of :method:`rs.add()`:
+.. _rs-add-member-configuration-document:
+
+Pass a Member Configuration Document to ``rs.add()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation adds a :program:`mongod` instance, running on
+the host ``mongodb4.example.net`` and accessible on the default port
+``27017``, as a :doc:`priority 0 </core/replica-set-priority-0-member>`
+secondary member:
 
 .. code-block:: javascript
 
-   rs.add( { "_id": 3, "host": "mongodbd3.example.net:27017", "priority": 0 } )
+   rs.add( { _id: 4, host: "mongodbd4.example.net:27017", priority: 0 } )
 
-Replace, ``3`` with the next unused ``_id`` value in the replica
-set. See :method:`rs.conf()` to see the existing ``_id`` values
-in the replica set configuration document.
+You must specify :data:`~local.system.replset.members[n]._id` and the
+:data:`~local.system.replset.members[n].host` fields in the member
+configuration document.
 
-See the :doc:`/reference/replica-configuration` and
-:doc:`/administration/replica-sets` documents for more
+The ``_id`` value must be unique. Use :method:`rs.conf()` to see the
+existing ``_id`` values in the replica set configuration document, and
+set ``_id`` to the next unused ``_id`` value in the replica set.
+
+See the :doc:`/reference/replica-configuration` for the available
+replica set member configuration settings.
+
+See :doc:`/administration/replica-sets` for more examples and
 information.

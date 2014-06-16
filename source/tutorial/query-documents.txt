@@ -139,51 +139,55 @@ than (:query:`$lt`) ``9.95``:
                                                { price: { $lt: 9.95 } } ]
                       } )
 
+.. TODO should do a more thorough copy-edits to the page, especially
+   starting from here.
+
 .. _read-operations-subdocuments:
 
-Subdocuments
-------------
+Embedded Documents
+------------------
 
-When the field holds an embedded document (i.e. subdocument), you can
-either specify the entire subdocument as the value of a field, or
-"reach into" the subdocument using :term:`dot notation`, to specify
-values for individual fields in the subdocument:
+When the field holds an embedded document, a query can either specify
+an exact match on the embedded document or specify a match by
+individual fields in the embedded document using the :term:`dot
+notation`.
 
-Exact Match on Subdocument
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Exact Match on the Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To specify an equality match on the whole subdocument, use the query
-document ``{ <field>: <value> }`` where ``<value>`` is the subdocument
-to match. Equality matches on a subdocument require that the
-subdocument field match *exactly* the specified ``<value>``, including
-the field order.
+To specify an equality match on the whole embedded document, use the
+query document ``{ <field>: <value> }`` where ``<value>`` is the
+document to match. Equality matches on an embedded document require an
+*exact* match of the specified ``<value>``, including the field order.
 
-In the following example, the query matches all documents where
-the value of the field ``producer`` is a subdocument that contains
+In the following example, the query matches all documents where the
+value of the field ``producer`` is an embedded document that contains
 *only* the field ``company`` with the value ``'ABC123'`` and the field
 ``address`` with the value ``'123 Street'``, in the exact order:
 
 .. code-block:: javascript
 
    db.inventory.find(
-                      {
-                        producer: {
-                                    company: 'ABC123',
-                                    address: '123 Street'
-                                  }
-                      }
-                    )
+       {
+         producer: {
+                     company: 'ABC123',
+                     address: '123 Street'
+                   }
+       }
+   )
 
-Equality Match on Fields within Subdocument
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Equality Match on Fields within an Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Equality matches for specific fields within subdocuments select the
-documents in the collection when the field in the subdocument contains
-a field that matches the specified value.
+Use the :term:`dot notation` to match by specific fields in an embedded
+document. Equality matches for specific fields in an embedded document
+will select documents in the collection where the embedded document
+contains the specified fields with the specified values. The embedded
+document can contain additional fields.
 
 In the following example, the query uses the :term:`dot notation` to
-match all documents where the value of the field ``producer`` is a
-subdocument that contains a field ``company`` with the value
+match all documents where the value of the field ``producer`` is an
+embedded document that contains a field ``company`` with the value
 ``'ABC123'`` and may contain other fields:
 
 .. code-block:: javascript
@@ -196,9 +200,9 @@ Arrays
 ------
 
 When the field holds an array, you can query for an exact array match
-or for specific values in the array. If the array holds sub-documents,
-you can query for specific fields within the sub-documents using
-:term:`dot notation`:
+or for specific values in the array. If the array holds embedded
+documents, you can query for specific fields in the embedded documents
+using :term:`dot notation`.
 
 Exact Match on an Array
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,7 +239,8 @@ Match a Specific Element of an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Equality matches can specify equality matches for an element at a
-particular index or position of the array.
+particular index or position of the array using the :term:`dot
+notation`.
 
 In the following example, the query uses the :term:`dot notation` to
 match all documents where the value of the ``tags`` field is an array
@@ -245,71 +250,169 @@ whose first element equals ``'fruit'``:
 
    db.inventory.find( { 'tags.0' : 'fruit' } )
 
-Array of Subdocuments
-~~~~~~~~~~~~~~~~~~~~~
+Array of Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Match a Field in the Subdocument Using the Array Index
-``````````````````````````````````````````````````````
+Consider that the ``inventory`` collection includes the following
+documents:
 
-If you know the array index of the subdocument, you can specify the
-document using the subdocument's position.
+.. code-block:: javascript
+
+   {
+     _id: 100,
+     type: "food",
+     item: "xyz",
+     qty: 25,
+     price: 2.5,
+     memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
+
+   {
+     _id: 101,
+     type: "fruit",
+     item: "jkl",
+     qty: 10,
+     price: 4.25,
+     memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
+   }
+
+Match a Field in the Embedded Document Using the Array Index
+````````````````````````````````````````````````````````````
+
+If you know the array index of the embedded document, you can specify
+the document using the subdocument's position using the :term:`dot
+notation`.
 
 The following example selects all documents where the ``memos``
 contains an array whose first element (i.e. index is ``0``) is a
-subdocument with the field ``by`` with the value ``'shipping'``:
+document that contains the field ``by`` whose value is ``'shipping'``:
 
 .. code-block:: javascript
 
    db.inventory.find( { 'memos.0.by': 'shipping' } )
 
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      _id: 100,
+      type: "food",
+      item: "xyz",
+      qty: 25,
+      price: 2.5, 
+      memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
+
 Match a Field Without Specifying Array Index
 ````````````````````````````````````````````
 
-If you do not know the index position of the subdocument, concatenate
-the name of the field that contains the array, with a dot (``.``) and
-the name of the field in the subdocument.
+If you do not know the index position of the document in the array,
+concatenate the name of the field that contains the array, with a dot
+(``.``) and the name of the field in the subdocument.
 
 The following example selects all documents where the ``memos`` field
-contains an array that contains at least one subdocument with the field
-``by`` with the value ``'shipping'``:
+contains an array that contains at least one embedded document that
+contains the field ``by`` with the value ``'shipping'``:
 
 .. code-block:: javascript
 
    db.inventory.find( { 'memos.by': 'shipping' } )
 
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     _id: 100,
+     type: "food",
+     item: "xyz",
+     qty: 25,
+     price: 2.5,
+     memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
+   {
+     _id: 101,
+     type: "fruit",
+     item: "jkl",
+     qty: 10,
+     price: 4.25,
+     memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
+   }
+
+.. This section needs extensive copy-editing.
+
 Match Multiple Fields
 `````````````````````
 
-To match by multiple fields in the subdocument, you can use either dot
-notation or the :query:`$elemMatch` operator:
+To match by multiple fields in the embedded document, you can use
+either dot notation or the :query:`$elemMatch` operator:
 
-The following example uses dot notation to query for documents where
-the value of the ``memos`` field is an array that has at least one
-subdocument that contains the field ``memo`` equal to ``'on time'`` and
-the field ``by`` equal to ``'shipping'``:
+The following example uses dot notation to find documents where whose
+``memos`` field is an array that contains at least one document that
+contains the field ``memo`` equal to ``'on time'`` and at least one
+document that contains the field ``by`` equal to ``'shipping'``.
 
 .. code-block:: javascript
 
    db.inventory.find(
-                      {
-                        'memos.memo': 'on time',
-                        'memos.by': 'shipping'
-                      }
-                    )
+     {
+       'memos.memo': 'on time',
+       'memos.by': 'shipping'
+     }
+   )
 
-The following example uses :query:`$elemMatch` to query for
-documents where the value of the ``memos`` field is an array that has
-at least one subdocument that contains the field ``memo`` equal to
-``'on time'`` and the field ``by`` equal to ``'shipping'``:
+The embedded documents that satisfy the two conditions can be either
+the same document or separate documents; i.e. a single embedded
+document can, but does not need to, satisfy both conditions. The query
+returns the following documents:
 
 .. code-block:: javascript
 
-   db.inventory.find( {
-                        memos: {
-                                   $elemMatch: {
-                                                 memo : 'on time',
-                                                 by: 'shipping'
-                                               }
-                               }
-                      }
-                    )
+   {
+     _id: 100,
+     type: "food",
+     item: "xyz",
+     qty: 25,
+     price: 2.5,
+     memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
+   {
+     _id: 101,
+     type: "fruit",
+     item: "jkl",
+     qty: 10,
+     price: 4.25,
+     memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
+   }
+
+The following example uses :query:`$elemMatch` to query for documents
+where ``memos`` field is an array that has at least one embedded
+document that contains both the field ``memo`` equal to ``'on time'``
+and the field ``by`` equal to ``'shipping'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( 
+      {
+         memos: {
+                    $elemMatch: {
+                                  memo : 'on time',
+                                  by: 'shipping'
+                                }
+                }
+       }
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      _id: 100,
+      type: "food",
+      item: "xyz",
+      qty: 25,
+      price: 2.5, 
+      memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
