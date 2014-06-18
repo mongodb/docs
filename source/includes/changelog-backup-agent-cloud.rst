@@ -6,6 +6,12 @@ Backup Agent Chagelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.1.0.106-1``
+---------------------------
+
+- Support for new API which allows oplogs to be ingested before
+  the entire payload has reached the MMS servers.
+
 Backup Agent ``2.0.0.90-1``
 ---------------------------
 
