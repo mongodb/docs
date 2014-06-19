@@ -7,7 +7,7 @@ Backup Agent Chagelog
 .. default-domain:: mongodb
 
 Backup Agent ``2.1.0.106-1``
----------------------------
+----------------------------
 
 *Released 2014-06-17*
 
