@@ -9,8 +9,10 @@ Backup Agent Chagelog
 Backup Agent ``2.1.0.106-1``
 ---------------------------
 
-- Support for new API which allows oplogs to be ingested before
-  the entire payload has reached the MMS servers.
+*Released 2014-06-17*
+
+Support for a new API t hat allows MMS to ingest oplog entries before
+the entire payload has reached the MMS servers.
 
 Backup Agent ``2.0.0.90-1``
 ---------------------------
