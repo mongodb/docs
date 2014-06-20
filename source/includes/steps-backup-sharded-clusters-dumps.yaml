@@ -1,0 +1,101 @@
+title: Disable the balancer process.
+stepnum: 1
+ref: disable-balancer
+pre: |
+   Disable the :term:`balancer` process that equalizes the distribution of
+   data among the :term:`shards <shard>`. To disable the balancer, use the
+   :method:`sh.stopBalancer()` method in the :program:`mongo` shell. For
+   example:
+action:
+   language: javascript
+   code: |
+      use config
+      sh.setBalancerState(false)
+post: |
+   For more information, see the
+   :ref:`sharding-balancing-disable-temporarily` procedure.
+
+   .. warning::
+
+      If you do not stop the balancer, the backup could have duplicate
+      data or omit data as :term:`chunks <chunk>` migrate while recording
+      backups.
+---
+title: Lock replica set members.
+stepnum: 2
+ref: lock-replica-set-members
+pre: |
+   Lock one member of each replica set in each shard so that your backups
+   reflect the state of your database at the nearest possible
+   approximation of a single moment in time. Lock these :program:`mongod`
+   instances in as short of an interval as possible.
+
+   To lock or freeze a sharded cluster, you shut down one member of each
+   replica set. Ensure that the :term:`oplog` has sufficient capacity to
+   allow these secondaries to catch up to the state of the primaries after
+   finishing the backup procedure. See :ref:`replica-set-oplog-sizing` for
+   more information.
+---
+title: Backup one config server.
+stepnum: 3
+ref: backup-config-server
+pre: |
+   Use :program:`mongodump` to backup one of the :ref:`config servers
+   <sharding-config-server>`. This backs up the cluster's metadata. You
+   only need to back up one config server, as they all hold the same data.
+
+   Use the :program:`mongodump` tool to capture the content of the config
+   :program:`mongod` instances.
+
+   Your config servers must run MongoDB 2.4 or later with the
+   :option:`--configsvr <mongod --configsvr>` option and the
+   :program:`mongodump` option must include the :option:`--oplog
+   <mongodump --oplog>` to capture a consistent copy of the config
+   database:
+action:
+   language: sh
+   code: |
+      mongodump --oplog --db config
+---
+title: Backup replica set members.
+stepnum: 4
+ref: backup-replica-set-members
+pre: |
+   Back up the replica set members of the shards that shut down using
+   :program:`mongodump` and specifying the
+   :option:`--dbpath <mongodump --dbpath>` option. You may back up the
+   shards in parallel. Consider the following invocation:
+action:
+   language: sh
+   code: |
+      mongodump --journal --dbpath /data/db/ --out /data/backup/
+post: |
+   You must run :program:`mongodump` on the same system where the
+   :program:`mongod` ran. This operation will create a dump of all the
+   data managed by the :program:`mongod` instances that used the
+   :setting:`~storage.dbPath` ``/data/db/``.  :program:`mongodump`
+   writes the output of this dump to the ``/data/backup/``
+   directory.
+---
+title: Restart replica set members.
+stepnum: 5
+ref: restart-replica-set-members
+pre: |
+   Restart all stopped replica set members of each shard as normal and
+   allow them to catch up with the state of the primary.
+---
+title: Re-enable the balancer process.
+stepnum: 6
+ref: reenable-balancer-process
+pre: |
+   Re-enable the balancer with the :method:`sh.setBalancerState()`
+   method.
+
+   Use the following command sequence when connected to the
+   :program:`mongos` with the :program:`mongo` shell:
+action:
+   language: sh
+   code: |
+      use config
+      sh.setBalancerState(true)
+...
