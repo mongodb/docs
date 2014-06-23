@@ -28,8 +28,8 @@ When a read lock exists, many read operations may use this lock. However, when
 a write lock exists, a single write operation holds the lock
 exclusively, and no other read *or* write operations may share the lock.
 
-Locks are "writer greedy," which means writes have preference over
-reads. When both a read and write are waiting for a lock, MongoDB
+Locks are "writer greedy," which means write locks have preference
+over reads. When both a read and write are waiting for a lock, MongoDB
 grants the lock to the write.
 
 .. [#multi-reader-lock-names] You may be familiar with a
@@ -80,33 +80,24 @@ Does a read or write operation ever yield the lock?
 In some situations, read and write operations can yield their locks.
 
 Long running read and write operations, such as queries, updates, and
-deletes, yield under many conditions. In MongoDB 2.0, operations
-yielded based on time slices and the number of operations waiting for
-the actively held lock. After 2.2, more adaptive algorithms allow
-operations to yield based on predicted disk access (i.e. page faults).
+deletes, yield under many conditions. MongoDB uses an adaptive
+algorithms to allow operations to yield locks based on predicted disk
+access patterns (i.e. page faults.)
 
-.. versionadded:: 2.0
-   Read and write operations will yield their locks if the
-   :program:`mongod` receives a :term:`page fault` *or* fetches data that
-   is unlikely to be in memory. Yielding allows other operations that
-   only need to access documents that are already in memory to complete
-   while :program:`mongod` loads documents into memory.
+MongoDB operations can also yield locks between individual document
+modification in write operations that affect multiple documents like
+:method:`~db.collection.update()` with the ``multi`` parameter.
 
-   Additionally, write operations that affect multiple documents
-   (i.e. :method:`~db.collection.update()` with the ``multi``
-   parameter) will yield periodically to allow read operations during
-   these long write operations. Similarly, long running read locks will
-   yield periodically to ensure that write operations have the
-   opportunity to complete.
+MongoDB uses heuristics based on its access pattern to predict whether
+data is likely in physical memory before performing a read. If MongoDB
+*predicts* that the data is not in physical memory an operation will
+yield its lock while MongoDB loads the data to memory. Once data is
+available in memory, the operation will reacquire the lock to complete
+the operation.
 
-.. versionchanged:: 2.2
-   The use of yielding expanded greatly in MongoDB 2.2. Including the
-   "yield for page fault." MongoDB tracks the contents of memory and
-   predicts whether data is available before performing a read. If
-   MongoDB predicts that the data is not in memory a read operation
-   yields its lock while MongoDB loads the data to memory. Once data
-   is available in memory, the read will reacquire the lock to
-   complete the operation.
+.. versionchanged:: 2.6
+   MongoDB does not yield locks when scanning an index even if it
+   predicts that the index is not in memory.
 
 .. _faq-concurrency-operations-locks:
 
