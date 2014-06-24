@@ -8,10 +8,10 @@ C# Driver Tutorial
 
 .. default-domain:: mongodb
 
-C# Driver version v1.8.x
+C# Driver version v1.9.x
 ------------------------
 
-This tutorial is for v1.8.x of the C# Driver. Api documentation can be
+This tutorial is for v1.9.x of the C# Driver. Api documentation can be
 found here: `<http://api.mongodb.org/csharp/current>`_.
 
 Introduction
@@ -1605,6 +1605,7 @@ very frequently and are not exposed as properties:
 - ``SetHint``
 - ``SetMax``
 - ``SetMaxScan``
+- ``SetMaxTime``
 - ``SetMin``
 - ``SetShowDiskLoc``
 - ``SetSnapshot``
@@ -1635,3 +1636,101 @@ a ``GetLastError`` command so the driver can verify that the operation
 succeeded. In addition, when using replica sets it is possible to
 verify that the information has been replicated to some minimum number
 of secondary servers.
+
+``MaxTime``
+-----------
+
+MongoDB 2.6 introduced the ability to timeout individual queries:
+
+.. code-block:: csharp
+
+   coll.FindAll().SetMaxTime(TimeSpan.FromSeconds(1));
+
+In the example above the maxTimeMS is set to one second and the query will be
+aborted after the full second is up.
+
+.. versionadded:: 1.9.0
+   Added to MongoDB in 2.6
+
+Bulk operations
+~~~~~~~~~~~~~~~
+
+Under the covers MongoDB is moving away from the combination of a write
+operation followed by get last error (GLE) and towards a write commands API. These new
+commands allow for the execution of bulk insert/update/remove operations.
+There are two types of bulk operations:
+
+1. Ordered bulk operations.
+    Executes all the operations in order and error out on the
+    first write error.
+2. Unordered bulk operations.
+    Executes all the operations in parallel and aggregates 
+    all the errors. Unordered bulk operations do not guarantee order of execution.
+
+Let's look at two simple examples using ordered and unordered operations:
+
+.. code-block:: csharp
+
+   // 1. Ordered bulk operation
+   var bulk = coll.InitializeOrderedBulkOperation();
+   bulk.Insert(new BsonDocument("_id", 1));
+   bulk.Insert(new BsonDocument("_id", 2));
+   bulk.Insert(new BsonDocument("_id", 3));
+
+   bulk.Find(Query.EQ("_id", 1)).UpdateOne(Update.Set("x", 2)));
+   bulk.Find(Query.EQ("_id", 2)).RemoveOne();
+   bulk.Find(Query.EQ("_id", 3)).ReplaceOne(Update.Replace(new BsonDocument("_id", 3).Add("x", 4)));
+
+   BulkWriteResult result = bulk.Execute();
+
+   // 2. Unordered bulk operation - no guarantee of order of operation
+   bulk = coll.InitializeUnorderedBulkOperation();
+   bulk.Find(Query.EQ("_id", 1)).RemoveOne();
+   bulk.Find(Query.EQ("_id", 2)).RemoveOne();
+
+   result = bulk.Execute();
+
+.. note::
+   For servers older than 2.6 the API will down-convert the operations. To
+   support the correct semantics for BulkWriteResult and BulkWriteException, the
+   operations have to be done one at a time. It's not possible to down convert
+   100% so there might be slight edge cases where it cannot correctly report
+   the right numbers.
+
+.. versionadded:: 1.9.0
+
+ParallelScan
+~~~~~~~~~~~~
+
+MongoDB 2.6 added the ``parallelCollectionScan`` command that allows reading 
+an entire collection using multiple cursors.
+
+.. code-block:: csharp
+
+   var args = new ParallelScanArgs<BsonDocument>
+   {
+      NumberOfCursors = 3,
+      BatchSize = 300
+   };
+
+   var cursors = coll.ParallelScan(args);
+   for (var cursor in cursors) 
+   {
+       using(cursor) // need to close the cursor when we are done
+       {
+         while (cursor.MoveNext()) 
+         {
+             Console.WriteLine(cursor.Current);
+         }
+       }
+    }
+
+.. note::
+   In practice, one thread per cursor would be used such that each cursor 
+   is enumerated in parallel.
+
+.. note::
+   ParallelScan does not work via mongos.
+
+.. versionadded:: 1.9.0
+   Added to MongoDB in 2.6
