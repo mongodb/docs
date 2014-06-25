@@ -36,7 +36,9 @@ The ``mongodb-org`` package includes various :term:`control scripts
 <control script>`, including the init script |init-script-path|.
 
 The package configures MongoDB using the ``/etc/mongod.conf`` file in
-conjunction with the control scripts.
+conjunction with the control scripts. See
+:doc:`/reference/configuration-options` for documentation of the
+configuration file.
 
 As of version |release|, there are no control scripts for
 :program:`mongos`. The :program:`mongos` process is used only in
