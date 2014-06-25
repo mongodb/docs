@@ -1,8 +1,11 @@
 MongoDB Requirements
 ++++++++++++++++++++
 
-MMS can only back up sharded clusters that running version 2.4 or later. However,
-MMS can back up MongoDB 2.0 replica sets or later.
+MMS only supports backup for sharded clusters that run MongoDB 2.4 or
+later.
+
+MMS only supports backup for replica sets that run MongoDB 2.0 or
+later.
 
 Agent Architecture
 ++++++++++++++++++
