@@ -47,7 +47,7 @@ connects to the MongoDB instance on the local system
 database backup named ``dump/`` in the current directory.
 
 To backup data from a :program:`mongod` or :program:`mongos` instance
-running on the same machine and on the default port of ``27017``
+running on the same machine and on the default port of ``27017``,
 use the following command:
 
 .. code-block:: sh
@@ -56,16 +56,9 @@ use the following command:
 
 .. include:: /includes/warning-mongodump-compatibility-2.2.rst
 
-You can use :option:`--dbpath <mongodump --dbpath>` and 
-:option:`--out <mongodump --out>` as options to the :program:`mongodump`
-command to specify the input and output directories:
-
-.. code-block:: sh
-
-   mongodump --dbpath /data/db/ --out /data/backup/
-
-You can also use :option:`--host <mongodump --host>` and 
-:option:`--port <mongodump --port>`:
+You can also specify the :option:`--host <mongodump --host>` and
+:option:`--port <mongodump --port>` of the MongoDB instance that the
+:program:`mongodump` should connect to. For example:
 
 .. code-block:: sh
 
@@ -73,20 +66,32 @@ You can also use :option:`--host <mongodump --host>` and
 
 :program:`mongodump` will write :term:`BSON` files that hold a copy of
 data accessible via the :program:`mongod` listening on port ``27017`` of
-the ``mongodb.example.net`` host.
+the ``mongodb.example.net`` host. See :ref:`backup-from-non-local` for more
+information.
 
-To limit the amount of data included in the database dump, you can
-specify :option:`--db <mongodump --db>` and
-:option:`--collection <mongodump --collection>` as options to the
-:program:`mongodump` command. For example:
+To use :program:`mongodump` without a running MongoDB instance, specify
+the :option:`--dbpath <mongodump --dbpath>` option to read directly
+from MongoDB data files. See :ref:`backup-from-data-files` for details.
+
+To specify a different output directory, you can use the :option:`--out
+or -o <mongodump --out>` option:
 
 .. code-block:: sh
 
-   mongodump --collection collection --db test
+   mongodump --out /data/backup/
 
-This command creates a dump of the collection named ``collection``
-from the database ``test`` in a :file:`dump/` subdirectory of the current
-working directory.
+To limit the amount of data included in the database dump, you can
+specify :option:`--db <mongodump --db>` and
+:option:`--collection <mongodump --collection>` as options to
+:program:`mongodump`. For example:
+
+.. code-block:: none
+
+   mongodump --collection myCollection --db test
+
+This operation creates a dump of the collection named ``myCollection``
+from the database ``test`` in a :file:`dump/` subdirectory of the
+current working directory.
 
 Point in Time Operation Using Oplogs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -103,6 +108,8 @@ allows you to restore a backup that reflects the specific
 moment in time that corresponds to when :program:`mongodump` completed
 creating the dump file.
 
+.. _backup-from-data-files:
+
 Create Backups Without a Running ``mongod`` Instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -115,23 +122,23 @@ locks the data directory to prevent conflicting writes. The
 data files when you run :program:`mongodump` in this
 configuration. Consider the following example:
 
-.. example:: Backup a MongoDB Instance Without a Running ``mongod``
+Given a MongoDB instance that contains the ``customers``,
+``products``, and ``suppliers`` databases, the following
+:program:`mongodump` operation backs up the databases using the
+:option:`--dbpath <mongodump --dbpath>` option, which specifies the
+location of the database files on the host:
 
-   Given a MongoDB instance that contains the ``customers``,
-   ``products``, and ``suppliers`` databases, the following
-   :program:`mongodump` operation backs up the databases using the
-   :option:`--dbpath <mongodump --dbpath>` option, which specifies the
-   location of the database files on the host:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   mongodump --dbpath /data -o dataout
 
-      mongodump --dbpath /data -o dataout
+The :option:`--out or -o <mongodump --out>` option allows you to
+specify the directory where :program:`mongodump` will save the backup.
+:program:`mongodump` creates a separate backup directory for each of
+the backed up databases: :file:`dataout/customers`,
+:file:`dataout/products`, and :file:`dataout/suppliers`.
 
-   The :option:`--out <mongodump --out>` option allows you to specify the directory where
-   :program:`mongodump` will save the backup. :program:`mongodump` creates
-   a separate backup directory for each of the backed up databases:
-   :file:`dataout/customers`, :file:`dataout/products`, and
-   :file:`dataout/suppliers`.
+.. _backup-from-non-local:
 
 Create Backups from Non-Local ``mongod`` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
