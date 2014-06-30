@@ -1,7 +1,9 @@
 Packages
 --------
 
-The MongoDB Enterprise package repository contains five packages:
+MongoDB provides packages of the officially supported MongoDB
+Enterprise builds in it's own repository. This repository provides the
+MongoDB Enterprise distribution in the following packages:
 
 - ``mongodb-enterprise``
 
@@ -11,7 +13,7 @@ The MongoDB Enterprise package repository contains five packages:
 - ``mongodb-enterprise-server``
 
   This package contains the :program:`mongod` daemon and associated
-  configuration and init scripts. 
+  configuration and init scripts.
 
 - ``mongodb-enterprise-mongos``
 

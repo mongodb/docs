@@ -1,7 +1,9 @@
 Packages
 --------
 
-The MongoDB package repository contains five packages:
+MongoDB provides packages of the officially supported MongoDB builds in
+it's own repository. This repository provides the MongoDB distribution
+in the following packages:
 
 - ``mongodb-org``
 
