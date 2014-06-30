@@ -7,87 +7,132 @@ Model Monetary Data
 Overview
 --------
 
-While applications that handle monetary data must conform to regulatory or
-other requirements for arithmetic performed on monetary values, the binary
-floating point arithmetic used in modern hardware and in MongoDB does not
-conform to regulations for monetary arithmetic.
+MongoDB stores numeric data as either IEEE 754 standard 64-bit floating
+point numbers or as 32-bit or 64-bit signed integers. Applications that
+handle monetary data often require capturing fractional units of currency.
+However, arithmetic on floating point numbers, as implemented in modern
+hardware, often does not conform to requirements for monetary
+arithmetic. In addition, some fractional numeric quantities, such as
+one third and one tenth, have no exact representation in binary
+floating point numbers.
 
-Fractional numeric quantities common to monetary problems have no exact
-representation in binary floating point numbers. MongoDB has no built-in
-support for storing numeric data except as IEEE 754 standard 64-bit
-floating point numbers, and as 32-bit and 64-bit signed integers.
-   
-This document describes two ways to handle monetary data in MongoDB:
+.. note::
 
-- Create two fields, one to store the exact monetary value and a
-  second field to store monetary data as a floating point approximation.
+   Arithmetic mentioned on this page refers to server-side
+   arithmetic performed by :program:`mongod` or :program:`mongos`, and
+   not to client-side arithmetic.
 
-- Multiply the monetary value by a power of 10 then store the value in a
-  single field.
+This document describes two ways to model monetary data in MongoDB:
 
-Pattern
--------
+- :ref:`monetary-value-exact-precision` which multiplies the monetary
+  value by a power of 10.
 
-Model monetary data based on whether or not arbitrary precision is
-acceptable, for example, if there is no need to perform mathematical
-manipulations of monetary data.
+- :ref:`monetary-value-arbitrary-precision` which uses two fields for
+  the value: one field to store the exact monetary value as a
+  non-numeric and another field to store a floating point approximation
+  of the value.
 
-Arbitrary Precision
-~~~~~~~~~~~~~~~~~~~
+.. _exact-precision-model-use-case:
 
-If arbitrary precision is acceptable, store monetary data as an embedded
-MongoDB document with two fields: 
+Use Cases for Exact Precision Model
+-----------------------------------
 
-1. In one field, encode the exact monetary value as a non-numeric data
-   type, for example, ``BinData`` or a ``string``.
+If you regularly need to perform server-side arithmetic on monetary
+data, the exact precision model may be appropriate. For instance:
 
-#. In the second field, store a double-precision floating point
-   approximation of the exact value. Use data from this field for server-side
-   range and sort queries.
+- If you need to query the database for exact, mathematically valid
+  matches, use :ref:`monetary-value-exact-precision`.
 
-The following is an example document using two fields to store the amount
-``$9.99``:
+- If you need to be able to do server-side arithmetic, e.g.,
+  :update:`$inc`, :update:`$mul`, and :doc:`aggregation framework
+  arithmetic </reference/operator/aggregation-arithmetic>`, use 
+  :ref:`monetary-value-exact-precision`.
 
-.. code-block:: sh
+.. _arbitrary-precision-model-use-case:
 
-   { display_price : "9.99", approx_price : 9.9900000000000002 }
+Use Cases for Arbitrary Precision Model
+---------------------------------------
 
-The second field allows an application to retrieve and sort data based on
-the monetary value. Careful range and sort queries to access documents
-also are possible.
+If there is no need to perform server-side arithmetic on monetary data,
+modeling monetary data using the arbitrary precision model may be
+suitable. For instance:
 
-However, applications will need to perform client-side post-processing of documents
-retrieved based on the decoding of the opaque representation of the exact
-monetary value.
-     
-Because the exact monetary value is stored as an additional object, it may
-be difficult to perform calculations on these values without first
-manipulating the data. If you do not expect to regularly perform
-calculations on the data, then this method provides the most descriptive
-resolution.
+- If you need to handle arbitrary or unforeseen number of precision, see
+  :ref:`monetary-value-arbitrary-precision`.
+
+- If server-side approximations are sufficient, possibly with
+  client-side post-processing, see
+  :ref:`monetary-value-arbitrary-precision`.
+
+.. _monetary-value-exact-precision:
 
 Exact Precision
-~~~~~~~~~~~~~~~
+---------------
 
-If your use case cannot support arbitrary precision, or you need to
-regularly perform calculations on monetary data, store these data as a
-single value in a MongoDB document.
+To model monetary data using the exact precision model:
 
-1. Determine the maximum precision needed, for example, to the tenth of
-   one cent.
+1. Determine the maximum precision needed for the monetary value. For
+   example, your application may require precision down to the tenth of
+   one cent for monetary values in ``USD`` currency.
 
-#. Multiply the monetary value to an integer by scaling to a power of 10.
-   For one tenth of one cent, for example, multiply the monetary value by
-   1000.
+#. Convert the monetary value into an integer by multiplying the value
+   by a power of 10 that ensures the maximum precision needed becomes the
+   least significant digit of the integer. For example, if the required
+   maximum precision is the tenth of one cent, multiply the monetary value
+   by 1000.
 
-#. Assign this value to a field.
+#. Store the converted monetary value.
 
-The power of 10 must be large enough for the smallest unit of monetary
-relevance to become the least significant digit in the integral value.
-
-The following is an example document using a single field with the amount
-of ``$9.99`` scaled to a power of 10:
+For example, the following scales ``9.99 USD`` by 1000 to preserve
+precision up to one tenth of a cent.
 
 .. code-block:: sh
 
-   { price : 9990 }
+   { price: 9990, currency: "USD" }
+
+The model assumes that for a given currency value:
+
+- The scale factor is consistent for a currency; i.e. same scaling
+  factor for a given currency.
+
+- The scale factor is a constant and known property of the currency;
+  i.e applications can determine the scale factor from the currency.
+
+When using this model, applications must be consistent in performing
+the appropriate scaling of the values.
+
+For use cases of this model, see :ref:`exact-precision-model-use-case`.
+
+.. _monetary-value-arbitrary-precision:
+
+Arbitrary Precision
+-------------------
+
+To model monetary data using the arbitrary precision model, store the
+value in two fields:
+
+1. In one field, encode the exact monetary value as a non-numeric data
+   type; e.g., ``BinData`` or a ``string``.
+
+#. In the second field, store a double-precision floating point
+   approximation of the exact value.
+
+The following example uses the arbitrary precision model to store
+``9.99 USD`` for the price and ``0.25 USD`` for the fee:
+
+.. code-block:: sh
+
+   {
+     price: { display: "9.99", approx: 9.9900000000000002, currency: "USD" },
+     fee: { display: "0.25", approx: 0.2499999999999999, currency: "USD" }
+   }
+
+With some care, applications can perform range and sort queries on the
+field with the numeric approximation. However, the use of the approximation
+field for the query and sort operations requires that applications
+perform client-side post-processing to decode the non-numeric
+representation of the exact value and then filter out the returned
+documents based on the exact monetary value.
+
+For use cases of this model, see
+:ref:`arbitrary-precision-model-use-case`.
