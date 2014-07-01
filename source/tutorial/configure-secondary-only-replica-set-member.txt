@@ -4,76 +4,42 @@ Prevent Secondary from Becoming Primary
 
 .. default-domain:: mongodb
 
-To prevent a :term:`secondary` member from ever becoming a
-:term:`primary` in a :term:`failover`, assign the secondary a priority
-of ``0``, as described here. You can set this "secondary-only mode" for
-any member of the :term:`replica set`, except the current primary. For a
-detailed description of secondary-only members and their purposes, see
-:doc:`/core/replica-set-priority-0-member`.
+Overview
+--------
 
-To configure a member as secondary-only, set its
-:data:`~local.system.replset.members[n].priority` value to ``0`` in
-the :data:`~local.system.replset.members` document in its replica set
-configuration. Any member with a
-:data:`~local.system.replset.members[n].priority` equal to ``0`` will
-never seek :ref:`election <replica-set-elections>` and cannot become
-primary in any situation.
+In a replica set, by default all :term:`secondary` members are eligible to
+become primary through the election process. You can use the
+:data:`priority <local.system.replset.members[n].priority>` to effect the
+outcome of these elections by making some members more likely to become
+primary and other members less likely or unable to become primary.
 
-.. code-block:: javascript
-   :emphasize-lines: 4
+Secondaries that cannot become primary are also unable to trigger
+elections. In all other respects these secondaries are identical to other
+secondaries.
 
-   {
-      "_id" : <num>,
-      "host" : <hostname:port>,
-      "priority" : 0
-   }
+To prevent a :term:`secondary` member from ever becoming a :term:`primary`
+in a :term:`failover`, assign the secondary a priority of ``0``, as
+described here. For a detailed description of secondary-only members and their purposes,
+see :doc:`/core/replica-set-priority-0-member`.
 
-MongoDB does not permit the current :term:`primary` to have a priority
-of ``0``. To prevent the current primary from again becoming a primary,
-you must first step down the current primary using
-:method:`rs.stepDown()`, and then you must :ref:`reconfigure the replica
-set <replica-set-reconfiguration-usage>` with :method:`rs.conf()` and
-:method:`rs.reconfig()`.
-
-Example
--------
-
-As an example of modifying member priorities, assume a four-member
-replica set. Use the following sequence of operations to modify member
-priorities in the :program:`mongo` shell connected to the primary.
-Identify each member by its array index in the
-:data:`~local.system.replset.members` array:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[0].priority = 2
-   cfg.members[1].priority = 1
-   cfg.members[2].priority = 0.5
-   cfg.members[3].priority = 0
-   rs.reconfig(cfg)
-
-The sequence of operations reconfigures the set with the following
-priority settings:
-
-- Member at ``0`` has a priority of ``2`` so that it becomes primary under
-  most circumstances.
-
-- Member at ``1`` has a priority of ``1``, which is the default value.
-  Member ``1`` becomes primary if no member with a *higher* priority is
-  eligible.
-
-- Member at ``2`` has a priority of ``0.5``, which makes it less likely to
-  become primary than other members but doesn't prohibit the
-  possibility.
-
-- Member at ``3`` has a priority of ``0``.
-  Member at ``3`` **cannot** become the :term:`primary` member under any
-  circumstances.
+Considerations
+--------------
 
 .. include:: /includes/fact-rs-conf-array-index.rst
 
+.. note::
+
+   MongoDB does not permit the current :term:`primary` to have a priority
+   of ``0``. To prevent the current primary from again becoming a primary,
+   you must first step down the current primary using
+   :method:`rs.stepDown()`.
+
+Procedure
+---------
+
 .. include:: /includes/warning-rs-reconfig.rst
+
+.. include:: /includes/steps/configure-secondary-only-rs-member.rst
 
 Related Documents
 -----------------
