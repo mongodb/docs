@@ -15,7 +15,7 @@ deployment:
 
    This tutorial will guide you through the steps necessary
    to install or update |monitoring| on your system. You must install
-   the On-Prem Monitoring server itself before installing the
+   the On Prem Monitoring server itself before installing the
    monitoring agent.
 
 .. only:: saas
