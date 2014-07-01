@@ -3,17 +3,11 @@ title:
   character: "`"
 stepnum: 1
 ref: connect-and-authenticate
-pre: |
+content: |
    Connect and authenticate to the :program:`mongod` instance for a
-   single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the following privileges:
-action:
-  language: javascript
-  code: |
-    { resource: { db: "admin", collection: "system.new_users" }, actions: [ "find", "insert", "update" ] }
-    { resource: { db: "admin", collection: "system.backup_users" }, actions: [  "find" ] }
-    { resource: { db: "admin", collection: "system.users" }, actions: [ "find", "remove", "insert"] }
-    { resource: { db: "admin", collection: "system.version" }, actions: [ "find", "update" ] }
+   single deployment or a :program:`mongos` for a sharded cluster with
+   the appropriate privileges. See :ref:`downgrade-auth-model-prerequisite`
+   for details.
 ---
 title:
   text: Create backup of 2.6 ``admin.system.users`` collection.
@@ -21,13 +15,16 @@ title:
 stepnum: 2
 ref: create-backup-of-new-users
 pre: |
-  Copy all documents in the  :data:`admin.system.users`` collection to
+  Copy all documents in the :data:`admin.system.users` collection to
   the ``admin.system.new_users`` collection:
 action:
   language: javascript
   code: |
     db.getSiblingDB("admin").system.users.find().forEach( function(userDoc) {
-         db.getSiblingDB("admin").system.new_users.save( userDoc );
+        status = db.getSiblingDB("admin").system.new_users.save( userDoc );
+        if (status.hasWriteError()) {
+            print(status.writeError);
+        }
       }
     );
 ---
@@ -43,6 +40,11 @@ action:
        { _id: "authSchema" },
        { $set: { currentVersion: 2 } }
     );
+post: |
+  The method returns a :method:`WriteResult` object with the status
+  of the operation.
+  Upon successful update, the :method:`WriteResult` object should
+  have ``"nModified"`` equal to ``1``.
 ---
 title:
   text: "Remove existing documents from the ``admin.system.users`` collection."
@@ -53,6 +55,9 @@ action:
   language: javascript
   code: |
     db.getSiblingDB("admin").system.users.remove( {} )
+post: |
+  The method returns a :method:`WriteResult` object with the number of
+  documents removed in the ``"nRemoved"`` field.
 ---
 title:
   text: Copy documents from the ``admin.system.backup_users`` collection.
@@ -67,7 +72,10 @@ action:
   code: |
    db.getSiblingDB("admin").system.backup_users.find().forEach(
       function (userDoc) {
-         db.getSiblingDB("admin").system.users.insert( userDoc );
+         status = db.getSiblingDB("admin").system.users.insert( userDoc );
+         if (status.hasWriteError()) {
+             print(status.writeError);
+         }
       }
    );
 ---
