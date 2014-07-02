@@ -15,9 +15,6 @@ $pull
                             { $pull: { <arrayField>: <query2> } }
                           )
 
-   To specify the query to remove values from the array, use
-   :doc:`query operators </reference/operator>`.
-
 Examples
 --------
 
@@ -42,48 +39,13 @@ array:
                       { multi: true }
                     )
 
-After the operation, the documents no longer have ``"msr"`` values:
+After the operation, the documents no longer contain any ``"msr"``
+values in the ``flags`` array:
 
 .. code-block:: javascript
 
    { _id: 1, flags: [  "vme",  "de",  "tsc",  "pse" ] }
    { _id: 2, flags: [  "pse",  "tsc" ] }
-
-Remove All Items Equaling Something Inside an Array of Objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Given the following documents in the ``tvShows`` collection:
-
-.. code-block:: javascript
-
-   { _id: 1, shows: [
-      { name: "Spongebob",       time: "8:00PM"  },
-      { name: "CatDog",          time: "6:00AM"  },
-      { name: "Powerpuff Girls": time: "12:00PM" } ] }
-   { _id: 2, shows: [
-      { name: "Dexter's Lab",    time: "6:00AM"  },
-      { name: "Power Rangers"    time: "8:00PM"  } ] }
-
-The following operation removes any entry whose ``time`` property equals ``"8:00PM"`` in the ``shows`` array:
-
-.. code-block:: javascript
-
-   db.tvShows.update(
-                      { "shows.time": "8:00PM" },
-                      { $pull: { shows: { time: "8:00PM" } } },
-                      { multi: true }
-                    )
-
-After the operation, no documents contain shows with an ``"8:00PM"`` ``time``:
-
-.. code-block:: javascript
-
-   { _id: 1, shows: [
-      { name: "CatDog",          time: "6:00AM" },
-      { name: "Powerpuff Girls": time: "12:00PM" } ] }
-   { _id: 2, shows: [
-      { name: "Dexter's Lab",    time: "6:00AM"  } ] }
-
 
 Remove All Items Greater Than a Specified Value
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,7 +57,7 @@ Given the following document in the ``profiles`` collection:
    { _id: 1, votes: [ 3, 5, 6, 7, 7, 8 ] }
 
 The following operation will remove all items from the ``votes`` array
-that are greater than or equal (:query:`$gte`) ``6``:
+that are greater than or equal to (:query:`$gte`) ``6``:
 
 .. code-block:: javascript
 
@@ -107,37 +69,34 @@ After the update operation, the document only has values less than 6:
 
    { _id: 1, votes: [  3,  5 ] }
 
+Remove Items from an Array of Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Remove All Items Greater Than a Specified Value Inside an Array of Objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Given the following documents in the ``tvShows`` collection:
-
-.. code-block:: javascript
-
-   { _id: 1, shows: [
-      { name: "Spongebob",       time: 8  },
-      { name: "CatDog",          time: 6  },
-      { name: "Powerpuff Girls": time: 12 } ] }
-   { _id: 2, shows: [
-      { name: "Dexter's Lab",    time: 6  },
-      { name: "Power Rangers"    time: 8  } ] }
-
-The following operation removes any entry whose ``time`` property is greater than ``8``:
+Given the following documents in the ``survey`` collection:
 
 .. code-block:: javascript
 
-   db.tvShows.update(
-                      { "shows.time": "8:00PM" },
-                      { $pull: { shows: { time: { $gte: 8 } } } },
-                      { multi: true }
-                    )
+   { _id: 1, results: [ { product: "abc", score: 10 }, { product: "xyz", score: 5 } ] }
+   { _id: 2, results: [ { product: "ijk", score: 7 }, { product: "xyz", score: 7 } ] }
+   { _id: 3, results: [ { product: "ijk", score: 7 }, { product: "eft", score: 10 } ] }
 
-After the operation, no documents contain shows starting at or after 8:
+The following operation will remove from the ``results`` array all
+elements that contain a ``score`` field whose value is greater than or
+equal to (:query:`$gte`) ``8``:
 
 .. code-block:: javascript
 
-   { _id: 1, shows: [
-      { name: "CatDog",          time: 6  } ] }
-   { _id: 2, shows: [
-      { name: "Dexter's Lab",    time: 6  } ] }
+   db.survey.update(
+     { "results.score": { $gte: 8 } },
+     { $pull: { results: { score: { $gte: 8 } } } },
+     { multi: true }
+   )
+ 
+After the operation, the ``results`` array contains no documents with
+``score`` greater than or equal to ``8``:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "results" : [ { "product" : "xyz", "score" : 5 } ] }
+   { "_id" : 2, "results" : [ { "product" : "ijk", "score" : 7 }, { "product" : "xyz", "score" : 7 } ] }
+   { "_id" : 3, "results" : [ { "product" : "ijk", "score" : 7 } ] }
