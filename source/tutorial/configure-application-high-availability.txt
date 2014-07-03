@@ -2,26 +2,74 @@
 Configure a Highly Available MMS Application Server
 ===================================================
 
+.. default-domain:: mongodb
+
 Overview
 --------
 
-The On Prem MMS app server is horizontally scalable. To take advantage of this
-capability, configure each of the MMS server's ``conf-mms.properties`` file to
-point their ``mms.centralUrl`` property to a load balancer. Then configure the
-load balancer to balance between the pool of MMS app servers.
+The On-Prem MMS Application Server provides high availability through
+horizontal scaling and through use of a :term:`replica sets <replica set>`
+for the :doc:`backing MongoDB instance
+</tutorial/prepare-backing-mongodb-instances>` that hosts the :ref:`MMS
+Application Database <mms-application-database>`.
 
-Considerations
---------------
+Horizontal Scaling
+~~~~~~~~~~~~~~~~~~
 
-The MMS app servers are stateless between requests. Any app server can handle
-requests as long as they read from the same :doc:`backing MongoDB replica
-set </tutorial/prepare-backing-mongodb-instances>`. Where
-multiple MMS app servers are present for high availability, deploy a
-replica set as the backing MongoDB (rather than a stand-alone).
+The MMS Application Servers are stateless between requests. Any server can
+handle requests as long as all the servers read from the same backing
+MongoDB instance. If one Application Server becomes unavailable, another
+fills requests.
+
+To take advantage of this for high availability, configure a load balancer
+to balance between the pool of MMS Application Servers. Use the load
+balancer of your choice. Configure each Application Server’s
+``conf-mms.properties`` file to point its ``mms.centralUrl`` property to
+the load balancer. The load balancer then manages the :ref:`MMS HTTP
+Service <mms-http-service>` and :ref:`Backup HTTP Service
+<backup-http-service>` that runs on each Application Server.
+
+Replica Set for the Backing Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Deploy a :term:`replica set` rather than a standalone as the :doc:`backing
+MongoDB instance </tutorial/prepare-backing-mongodb-instances>` for
+monitoring. If the :term:`primary` of a backing instance cannot be
+accessed, replica set :manual:`failover
+</core/replica-set-high-availability>` elects a new primary.
+
+When deploying a replica set with members in multiple facilities, ensure
+that a single facility has enough votes to elect a :term:`primary` if
+needed. Choose the facility that hosts the core application systems. Place
+a majority of voting members and all the members that can become primary
+in this facility. Otherwise, network partitions could prevent the set from
+being able to form a majority. For details on how replica sets elect
+primaries, see :manual:`Replica Set Elections
+</core/replica-set-elections>`.
+
+You can optionally back up the replica set using :manual:`file system
+snapshots </tutorial/backup-with-filesystem-snapshots>`. File system
+snapshots use system-level tools to create copies of the device that holds
+replica set's data files. Setting this up requires system configuration
+outside of MongoDB or |mms|.
+
+Prerequisites
+-------------
+
+Deploy a replica set for the :doc:`backing instance
+</tutorial/prepare-backing-mongodb-instances>` for the :ref:`MMS
+Application Database <mms-application-database>`. To deploy a replica set,
+see :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>`.
 
 Procedure
 ---------
 
-To configure a highly available MMS deployment:
+To configure multiple Application Servers with load balancing:
 
-.. include:: /includes/steps/mms-high-availability.rst
+.. include:: /includes/steps/configure-application-high-availability.rst
+
+Additional Information
+----------------------
+
+For information on making MMS Backup highly available, see
+:doc:`/tutorial/configure-backup-high-availability`.

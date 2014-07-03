@@ -1,0 +1,73 @@
+==============================================
+Configure a Highly Available MMS Backup Server
+==============================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+The :ref:`Backup Daemon <backup-daemon>` replicates your databases and
+creates snapshots for use in restoring data. The server running the Backup
+Daemon must therefore have adequate disk space and write capacity to store
+the databases the daemon backs up.
+
+The daemon replicates a :program:`mongod` for each :term:`replica set`
+assigned to it. For each :term:`sharded cluster` assigned, the daemon
+replicates every :manual:`shard </core/sharded-cluster-shards>` and each
+of the three :manual:`config servers
+</core/sharded-cluster-config-servers>`.
+
+Multiple Backup Daemons
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To increase your storage and to scale horizontally, you can run Backup
+Daemons on multiple servers. When you do, MMS binds each backed-up replica
+set or shard to a particular Backup Daemon. For example, if you run two
+Backup Daemons for a cluster that has three shards, and if MMS binds two
+shards to the first daemon, then that daemon's server replicates only the
+data of those two shards. The server running the second daemon replicates
+the data of the remaining shard.
+
+Multiple daemons allow for **manual** failover should a daemon's server
+fail. You can instruct MMS to transfer the daemon's backup
+responsibilities to another Backup Daemon. MMS reconstructs the data on
+the new daemon's server and binds the associated replica sets or shards to
+the new daemon.
+
+MMS reconstructs the data using a snapshot and the oplog from the
+:ref:`Backup Blockstore Database <mms-backup-blockstore-database>`. For
+more information, see :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
+
+To deploy Backup Daemons, see
+:doc:`/tutorial/nav/backup-server-installation`.
+
+Replica Set for the Backing Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Deploy a :term:`replica set` rather than a standalone as the :doc:`backing
+MongoDB instance </tutorial/prepare-backing-mongodb-instances>` for
+backup. If the :term:`primary` of a backing instance cannot be
+accessed, replica set :manual:`failover
+</core/replica-set-high-availability>` elects a new primary.
+
+When deploying a replica set with members in multiple facilities, ensure
+that a single facility has enough votes to elect a :term:`primary` if
+needed. Choose the facility that hosts the core application systems. Place
+a majority of voting members and all the members that can become primary
+in this facility. Otherwise, network partitions could prevent the set from
+being able to form a majority. For details on how replica sets elect
+primaries, see :manual:`Replica Set Elections
+</core/replica-set-elections>`.
+
+To deploy a replica set, see :manual:`Deploy a Replica Set
+</tutorial/deploy-replica-set>`.
+
+Related Document
+----------------
+
+To move jobs from a lost Backup server to another Backup server, see
+:doc:`/tutorial/move-jobs-to-new-backup-daemon`.
+
+For information on making the MMS Application Server highly available, see
+:doc:`/tutorial/configure-application-high-availability`.
