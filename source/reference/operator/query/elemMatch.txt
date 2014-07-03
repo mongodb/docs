@@ -2,30 +2,47 @@
 $elemMatch (query)
 ==================
 
-
 .. default-domain:: mongodb
+
+.. seealso::
+
+   :doc:`/reference/operator/projection/elemMatch`
 
 Definition
 ----------
 
 .. query:: $elemMatch
 
-   .. versionadded:: 1.4
-
    The :query:`$elemMatch` operator matches documents in a collection that
-   contain an array field with at least one embedded document or value
-   that matches all the specified criteria.
+   contain an array field with at least one element that matches all the
+   specified query criteria.
+
+   .. code-block:: javascript
+
+      { <field>: { $elemMatch: { <query1>, <query2>, ... } } }
 
 Behavior
 --------
 
-.. versionchanged:: 2.6
+Element Matching
+~~~~~~~~~~~~~~~~
 
-The :query:`$where` query operator will not work inside an
-:query:`$elemMatch` query applied to nested documents.
+Matching arrays must have at least one element that matches all specified
+criteria.
+
+Nested Arrays
+~~~~~~~~~~~~~
+
+.. versionadded:: 2.6
+
+The :query:`$elemMatch` operator does not reach recursively into nested
+arrays to match documents.
 
 Examples
 --------
+
+Element Matching
+~~~~~~~~~~~~~~~~
 
 Consider the following query:
 
@@ -56,7 +73,42 @@ embedded document meets the specified criteria:
 
    { records: [ { student: "Jane", grade: 78 }, { student: "Bob", grade: 90 } ] }
 
-Related Information
--------------------
+Nested Arrays
+~~~~~~~~~~~~~
 
-:doc:`/reference/operator/projection/elemMatch`
+Consider these three documents in the ``grades`` collection:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [ 81, 90 ] }
+   { "_id" : 2, "scores" : [ [ 81 ], [ 90 ] ] }
+   { "_id" : 3, "scores" : [ [ 81, 90 ] ] }
+
+The following query searches for an element with a value greater than 80:
+
+.. code-block:: javascript
+
+   db.grades.find( { scores: { $elemMatch: { $gt: 80 } } } )
+
+Of the three documents, only the following document matches the query:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [ 81, 90 ] }
+
+The other two documents do not match the query because their ``scores``
+fields have a value greater than ``80`` within a nested array.
+
+To match values within a nested array, specify the operand value in an
+array (e.g. ``[80]`` for the :query:`$gt` operator):
+
+.. code-block:: javascript
+
+   db.grades.find( { scores: { $elemMatch: { $gt: [80] } } } )
+
+The following documents match the query:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "scores" : [ [ 81 ], [ 90 ] ] }
+   { "_id" : 3, "scores" : [ [ 81, 90 ] ] }
