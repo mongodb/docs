@@ -114,12 +114,10 @@ less than (:query:`$lt`) ``9.95``:
 .. code-block:: javascript
 
    db.inventory.find(
-                      { $or: [
-                               { qty: { $gt: 100 } },
-                               { price: { $lt: 9.95 } }
-                             ]
-                      }
-                    )
+      {
+        $or: [ { qty: { $gt: 100 } }, { price: { $lt: 9.95 } } ]
+      }
+   )
 
 Specify ``AND`` as well as ``OR`` Conditions
 --------------------------------------------
@@ -135,9 +133,12 @@ than (:query:`$lt`) ``9.95``:
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food', $or: [ { qty: { $gt: 100 } },
-                                               { price: { $lt: 9.95 } } ]
-                      } )
+   db.inventory.find(
+      {
+        type: 'food',
+        $or: [ { qty: { $gt: 100 } }, { price: { $lt: 9.95 } } ]
+      }
+   )
 
 .. TODO should do a more thorough copy-edits to the page, especially
    starting from here.
@@ -169,10 +170,11 @@ value of the field ``producer`` is an embedded document that contains
 
    db.inventory.find(
        {
-         producer: {
-                     company: 'ABC123',
-                     address: '123 Street'
-                   }
+         producer:
+           {
+             company: 'ABC123',
+             address: '123 Street'
+           }
        }
    )
 
@@ -204,6 +206,28 @@ or for specific values in the array. If the array holds embedded
 documents, you can query for specific fields in the embedded documents
 using :term:`dot notation`.
 
+If you specify multiple conditions using the :query:`$elemMatch`
+operator, the array must contain at least one element that satisfies
+all the conditions. See :ref:`single-element-statisfies-criteria`.
+
+If you specify multiple conditions without using the
+:query:`$elemMatch` operator, then some combination of the array
+elements, not necessarily a single element, must satisfy all the
+conditions; i.e. different elements in the array can satisfy different
+parts of the conditions. See
+:ref:`combination-of-elements-statisfies-criteria`.
+
+Consider an ``inventory`` collection that contains the following
+documents:
+
+.. code-block:: javascript
+
+   { _id: 5, type: "food", item: "aaa", ratings: [ 5, 8, 9 ] }
+   { _id: 6, type: "food", item: "bbb", ratings: [ 5, 9 ] }
+   { _id: 7, type: "food", item: "ccc", ratings: [ 9, 5, 8 ] }
+
+.. _array-match-exact:
+
 Exact Match on an Array
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -212,13 +236,21 @@ To specify equality match on an array, use the query document ``{
 matches on the array require that the array field match *exactly* the
 specified ``<value>``, including the element order.
 
-In the following example, the query matches all documents where the
-value of the field ``tags`` is an array that holds exactly three
-elements, ``'fruit'``, ``'food'``, and ``'citrus'``, in this order:
+The following example queries for all documents where the field
+``ratings`` is an array that holds exactly three elements, ``5``,
+``8``, and ``9``, in this order:
 
 .. code-block:: javascript
 
-   db.inventory.find( { tags: [ 'fruit', 'food', 'citrus' ] } )
+   db.inventory.find( { ratings: [ 5, 8, 9 ] } )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+
+.. _array-match-single-element:
 
 Match an Array Element
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -227,13 +259,20 @@ Equality matches can specify a single element in the array to match.
 These specifications match if the array contains at least *one* element
 with the specified value.
 
-In the following example, the query matches all documents where the
-value of the field ``tags`` is an array that contains ``'fruit'`` as
-one of its elements:
+The following example queries for all documents where ``ratings`` is an
+array that contains ``5`` as one of its elements:
 
 .. code-block:: javascript
 
-   db.inventory.find( { tags: 'fruit' } )
+   db.inventory.find( { ratings: 5 } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+   { "_id" : 6, "type" : "food", "item" : "bbb", "ratings" : [ 5, 9 ] }
+   { "_id" : 7, "type" : "food", "item" : "ccc", "ratings" : [ 9, 5, 8 ] }
 
 Match a Specific Element of an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -243,12 +282,78 @@ particular index or position of the array using the :term:`dot
 notation`.
 
 In the following example, the query uses the :term:`dot notation` to
-match all documents where the value of the ``tags`` field is an array
-whose first element equals ``'fruit'``:
+match all documents where the ``ratings`` array contains ``5`` as the
+first element:
 
 .. code-block:: javascript
 
-   db.inventory.find( { 'tags.0' : 'fruit' } )
+   db.inventory.find( { 'ratings.0': 5 } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+   { "_id" : 6, "type" : "food", "item" : "bbb", "ratings" : [ 5, 9 ] }
+
+.. _specify-multiple-criteria-for-array-elements:
+
+Specify Multiple Criteria for Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _single-element-statisfies-criteria:
+
+Single Element Satisfies the Criteria
+`````````````````````````````````````
+
+Use :query:`$elemMatch` operator to specify multiple criteria on the
+elements of an array such that at least one array element satisfies all
+the specified criteria.
+
+The following example queries for documents where the ``ratings`` array
+contains at least one element that is greater than (:query:`$gt`) ``5``
+and less than (:query:`$lt`) ``9``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { ratings: { $elemMatch: { $gt: 5, $lt: 9 } } } )
+
+The operation returns the following documents, whose ``ratings`` array
+contains the element ``8`` which meets the criteria:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+   { "_id" : 7, "type" : "food", "item" : "ccc", "ratings" : [ 9, 5, 8 ] }
+
+.. _combination-of-elements-statisfies-criteria:
+
+Combination of Elements Satisfies the Criteria
+``````````````````````````````````````````````
+
+The following example queries for documents where the ``ratings`` array
+contains elements that in some combination satisfy the query
+conditions; e.g., one element can satisfy the greater than ``5``
+condition and another element can satisfy the less than ``9``
+condition, or a single element can satisfy both:
+
+.. code-block:: javascript
+
+   db.inventory.find( { ratings: { $gt: 5, $lt: 9 } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+   { "_id" : 6, "type" : "food", "item" : "bbb", "ratings" : [ 5, 9 ] }
+   { "_id" : 7, "type" : "food", "item" : "ccc", "ratings" : [ 9, 5, 8 ] }
+
+The document with the ``"ratings" : [ 5, 9 ]`` matches the query since
+the element ``9`` is greater than ``5`` (the first condition) and the
+element ``5`` is less than ``9`` (the second condition).
+
+.. _array-match-embedded-documents:
 
 Array of Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,6 +369,7 @@ documents:
      item: "xyz",
      qty: 25,
      price: 2.5,
+     ratings: [ 5, 8, 9 ],
      memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
    }
 
@@ -273,6 +379,7 @@ documents:
      item: "jkl",
      qty: 10,
      price: 4.25,
+     ratings: [ 5, 9 ],
      memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
    }
 
@@ -300,7 +407,8 @@ The operation returns the following document:
       type: "food",
       item: "xyz",
       qty: 25,
-      price: 2.5, 
+      price: 2.5,
+      ratings: [ 5, 8, 9 ],
       memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
    }
 
@@ -329,6 +437,7 @@ The operation returns the following documents:
      item: "xyz",
      qty: 25,
      price: 2.5,
+     ratings: [ 5, 8, 9 ],
      memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
    }
    {
@@ -337,70 +446,41 @@ The operation returns the following documents:
      item: "jkl",
      qty: 10,
      price: 4.25,
+     ratings: [ 5, 9 ],
      memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
    }
 
+.. _array-match-multiple-fields:
+
 .. This section needs extensive copy-editing.
 
-Match Multiple Fields
-`````````````````````
+Specify Multiple Criteria for Array of Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To match by multiple fields in the embedded document, you can use
-either dot notation or the :query:`$elemMatch` operator:
+Single Element Satisfies the Criteria
+`````````````````````````````````````
 
-The following example uses dot notation to find documents where whose
-``memos`` field is an array that contains at least one document that
-contains the field ``memo`` equal to ``'on time'`` and at least one
-document that contains the field ``by`` equal to ``'shipping'``.
+Use :query:`$elemMatch` operator to specify multiple criteria on an
+array of embedded documents such that at least one embedded document
+satisfies all the specified criteria.
+
+The following example queries for documents where the ``memos`` array
+has at least one embedded document that contains both the field
+``memo`` equal to ``'on time'`` and the field ``by`` equal to
+``'shipping'``:
 
 .. code-block:: javascript
 
    db.inventory.find(
-     {
-       'memos.memo': 'on time',
-       'memos.by': 'shipping'
-     }
-   )
-
-The embedded documents that satisfy the two conditions can be either
-the same document or separate documents; i.e. a single embedded
-document can, but does not need to, satisfy both conditions. The query
-returns the following documents:
-
-.. code-block:: javascript
-
-   {
-     _id: 100,
-     type: "food",
-     item: "xyz",
-     qty: 25,
-     price: 2.5,
-     memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
-   }
-   {
-     _id: 101,
-     type: "fruit",
-     item: "jkl",
-     qty: 10,
-     price: 4.25,
-     memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
-   }
-
-The following example uses :query:`$elemMatch` to query for documents
-where ``memos`` field is an array that has at least one embedded
-document that contains both the field ``memo`` equal to ``'on time'``
-and the field ``by`` equal to ``'shipping'``:
-
-.. code-block:: javascript
-
-   db.inventory.find( 
       {
-         memos: {
-                    $elemMatch: {
-                                  memo : 'on time',
-                                  by: 'shipping'
-                                }
-                }
+        memos:
+          {
+             $elemMatch:
+               {
+                  memo: 'on time',
+                  by: 'shipping'
+               }
+          }
        }
    )
 
@@ -414,5 +494,50 @@ The operation returns the following document:
       item: "xyz",
       qty: 25,
       price: 2.5, 
+      ratings: [ 5, 8, 9 ],
       memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
    }
+
+Combination of Elements Satisfies the Criteria
+``````````````````````````````````````````````
+
+The following example queries for documents where the ``memos`` array
+contains elements that in some combination satisfy the query
+conditions; e.g. one element satisfies the field ``memo`` equal to
+``'on time'`` condition and another element satisfies the field ``by``
+equal to ``'shipping'`` condition, or a single element can satisfy both
+criteria:
+
+.. code-block:: javascript
+
+   db.inventory.find(
+     {
+       'memos.memo': 'on time',
+       'memos.by': 'shipping'
+     }
+   )
+
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     _id: 100,
+     type: "food",
+     item: "xyz",
+     qty: 25,
+     price: 2.5,
+     ratings: [ 5, 8, 9 ],
+     memos: [ { memo: "on time", by: "shipping" }, { memo: "approved", by: "billing" } ]
+   }
+   {
+     _id: 101,
+     type: "fruit",
+     item: "jkl",
+     qty: 10,
+     price: 4.25,
+     ratings: [ 5, 9 ],
+     memos: [ { memo: "on time", by: "payment" }, { memo: "delayed", by: "shipping" } ]
+
+   }
+
