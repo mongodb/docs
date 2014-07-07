@@ -74,8 +74,8 @@ Update Specific Fields
 ``````````````````````
 
 If the ``<update>`` document contains :ref:`update operator
-<update-operators>` expressions, such as those using the
-:update:`$set` operator, then:
+<update-operators>` modifiers, such as those using the
+:update:`$set` modifier, then:
 
 - The ``<update>`` document must contain *only* :ref:`update operator
   <update-operators>` expressions.
@@ -84,8 +84,8 @@ If the ``<update>`` document contains :ref:`update operator
   corresponding fields in the document. For an example, see
   :ref:`example-update-specific-fields`.
 
-Replace Document Entirely
-`````````````````````````
+Replace a Document Entirely
+```````````````````````````
 
 If the ``<update>`` document contains *only* ``field:value``
 expressions, then:
@@ -104,19 +104,20 @@ expressions, then:
 Upsert Parameter
 ~~~~~~~~~~~~~~~~
 
-Upsert Use
-``````````
+Upsert Behavior
+```````````````
 
-If ``upsert`` is ``true`` and if no document matches the query
+If ``upsert`` is ``true`` and no document matches the query
 criteria, :method:`~db.collection.update()` inserts a *single* document.
-The *upsert* creates the new document with either:
+The update creates the new document with either:
 
 - The fields and values of the ``<update>`` parameter, or
 
 - The fields and values of both the ``<query>`` and ``<update>``
-  parameters. The *upsert* creates a document with data from both
-  ``<query>`` and ``<update>`` if the ``<update>`` parameter contains
-  *only* :ref:`update operator <update-operators>` expressions.
+  parameters if the ``<update>`` parameter contains *only* :ref:`update
+  operator <update-operators>` expressions. The update creates a base
+  document from the equality clauses in the ``<query>`` parameter, and
+  then applies the update expressions from the ``<update>`` parameter.
 
 If ``upsert`` is ``true`` and there are documents that match the query
 criteria, :method:`~db.collection.update()` performs an update.
@@ -173,12 +174,13 @@ Multi Parameter
 
 If ``multi`` is set to ``true``, the :method:`~db.collection.update()`
 method updates all documents that meet the ``<query>`` criteria. The
-``multi`` update operation may interleave with other write operations.
-For unsharded collections, you can override this behavior with the
-:update:`$isolated` operator, which isolates the update
-operation and disallows yielding during the operation. This isolates 
-the update so that no client can see the updated documents until they
-are all processed, or an error stops the update operation.
+``multi`` update operation may interleave with other operations, both
+read and/or write operations. For unsharded collections, you can
+override this behavior with the :update:`$isolated` operator, which
+isolates the update operation and disallows yielding during the
+operation. This isolates the update so that no client can see the
+updated documents until they are all processed, or an error stops the
+update operation.
 
 If the :ref:`\<update\> <update-parameter>` document contains *only*
 ``field:value`` expressions, then :method:`~db.collection.update()`
@@ -237,6 +239,29 @@ The updated document is now the following:
    { "_id" : 11, "item" : "Divine Comedy", "price" : 18, "stock" : 7 }
 
 .. seealso:: :update:`$set`, :update:`$inc`, :doc:`/reference/operator/update`
+
+
+Update Specific Fields in Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :term:`dot notation` to update specific fields in embedded
+documents.
+
+For example, given a ``books`` collection with the following document:
+
+.. code-block:: javascript
+
+   { _id: 50, item: "TDB", stock: 0, isbn: { group: 11, publisher: 1111, title: 11, digit: 1 } }
+
+The following example updates the ``publisher`` field and the ``digit``
+field in the ``isbn`` embedded document:
+
+.. code-block:: javascript
+
+   db.books.update(
+      { _id: 50 },
+      { $set: { "isbn.publisher": 2222, "isbn.digit": 0 } }
+   )
 
 Remove Fields
 ~~~~~~~~~~~~~
@@ -311,9 +336,9 @@ The following command sets the *upsert* option to ``true`` so that
       { upsert: true }
    )
 
-If no document matches the ``<query>`` parameter, the *upsert* inserts
-a document with the fields and values of the ``<update>`` parameter and
-a new unique ``ObjectId`` for the ``_id`` field:
+If no document matches the ``<query>`` parameter, the update operation
+inserts a document with the fields and values of the ``<update>``
+parameter and a new unique ``ObjectId`` for the ``_id`` field:
 
 .. code-block:: javascript
 
@@ -456,16 +481,16 @@ element in the array to ``A compiler`` in the document:
 Update a Document Element
 `````````````````````````
 
-The :method:`~db.collection.update()` method can perform the
-update of an array that contains subdocuments by using the positional
+The :method:`~db.collection.update()` method can perform the update of
+an array that contains embedded documents by using the positional
 operator (i.e. :operator:`$`) and the :term:`dot notation`.
 
-The following operation queries the :doc:`bios collection
+The following example queries the :doc:`bios collection
 </reference/bios-example-collection>` for the first document where the
-``_id`` field equals ``4`` and the ``awards`` array contains a
-subdocument element with the ``by`` field equal to ``ACM``. If found,
-the :method:`~db.collection.update()` method updates the ``by`` field in
-the first matching subdocument:
+``_id`` field equals ``4`` and the ``awards`` array contains an
+embedded document where the ``by`` field equals ``ACM``. If found, the
+:method:`~db.collection.update()` method updates the ``by`` field in
+the first matching embeddocument:
 
 .. code-block:: javascript
 
@@ -493,8 +518,8 @@ field:
 
 In the next example, the :update:`$set` operator uses :ref:`dot
 notation <document-dot-notation>` to access the ``middle`` field in the
-``name`` subdocument. The :update:`$push`
-operator adds another document as an element to the field ``awards``.
+``name`` embedded document. The :update:`$push` operator adds an
+embedded document to the ``awards`` array.
 
 Consider the following operation:
 
@@ -517,8 +542,8 @@ This :method:`~db.collection.update()` operation:
 
 - Modifies the field ``name`` whose value is another document.
   Specifically, the :update:`$set` operator updates the ``middle``
-  field in the ``name`` subdocument. The document uses :ref:`dot
-  notation <document-dot-notation>` to access a field in a subdocument.
+  field in the ``name`` document. The document uses :ref:`dot notation
+  <document-dot-notation>` to access a field in an embedded document.
 
 - Adds an element to the field ``awards``, whose value is an array.
   Specifically, the :update:`$push` operator adds another document as
