@@ -1,11 +1,28 @@
 MongoDB Requirements
 ++++++++++++++++++++
 
-MMS only supports backup for sharded clusters that run MongoDB 2.4 or
-later.
+MMS only supports backing up replica sets and sharded cluster, and
+does *not* support backing up standalone instances.
 
 MMS only supports backup for replica sets that run MongoDB 2.0 or
 later.
+
+MMS only supports backup for sharded clusters that run MongoDB 2.4 or
+later.
+
+.. only:: saas
+
+   All backed up replica sets and config servers should maintain oplog
+   entries for at least an hour on average over the last 24 hour
+   period.
+
+.. only:: hosted
+
+   All backed up replica sets and config servers must be able to
+   maintain oplog entries, by default, for at least 3 hours over the
+   last 24 hour period. This window is configurable with the
+   :setting:`brs.minimumReplicationOplogWindowHr` setting in the
+   ``conf-mms.properties`` file for the MMS Application server.
 
 Agent Architecture
 ++++++++++++++++++
