@@ -6,6 +6,19 @@ Backup Agent Chagelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.2.1.122``
+--------------------------
+
+*Released 2014-07-08*
+
+- Fixes issues with connecting to replica set members that use auth
+  with an updated Go client library.
+
+- Agent is now able to send a stack trace of its current state to
+  MMS.
+
+- Fixed regression in the Agent's rollback handling.
+
 Backup Agent ``2.1.0.106-1``
 ----------------------------
 
