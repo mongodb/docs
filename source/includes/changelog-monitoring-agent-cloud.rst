@@ -8,6 +8,19 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.3.1.89-1``
+-------------------------------
+
+*Released 2014-07-08*
+
+- Fixes issues with connecting to replica set members that use auth
+  with an updated Go client library.
+
+- Added support for HTTP proxy configuration in the agent
+  configuration file.
+
+- Agent includes support for an Offline data collection mode.
+
 Monitoring Agent ``2.2.0.70-1``
 -------------------------------
 
