@@ -1,0 +1,212 @@
+Snapshots
+---------
+
+This resource allows you to view snapshot metadata and remove existing
+snapshots. A snapshot is a complete copy of the data in a ``mongod`` 
+instance at a point in time. In order to delete a resource, the request
+must originate from an IP address on the API user's whitelist.
+
+Note that this resource is only meant to provide snapshot metadata. In
+order to retrieve the snapshot data (in order to perform a restore,
+for example), you must create a Restore Job.
+
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+  {
+    "id": "5875f665da588548965b",
+    "groupId": "2847387cd717dabc348a",
+    "clusterId": "348938fbdbca74718cba",
+    "created": {
+      "date": "2014-02-01T12:34:12Z",
+      "increment": 54
+    },
+    "expires": "2014-08-01T12:34:12Z",
+    "complete": true,
+    "parts": [
+      {
+        "typeName": "REPLICA_SET",
+        "clusterId": "2383294dbcafa82928ad",
+        "replicaSetName": "rs0",
+        "mongodVersion": "2.4.8",
+        "dataSizeBytes": 489283492,
+        "storageSizeBytes": 489746352,
+        "fileSizeBytes": 518263456
+      }, {
+        "typeName": "REPLICA_SET",
+        "clusterId": "2383294dbcafa82928b3",
+        "replicaSetName": "rs1",
+        "mongodVersion": "2.4.8",
+        "dataSizeBytes": 489283492,
+        "storageSizeBytes": 489746352,
+        "fileSizeBytes": 518263456
+      }, {
+        "typeName": "CONFIG_SERVER",
+        "mongodVersion": "2.4.6",
+        "dataSizeBytes": 48928,
+        "storageSizeBytes": 48974,
+        "fileSizeBytes": 51826
+      }
+    ]
+  }
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+   * - groupId
+     - string
+     - ID of the group that owns the snapshot.
+   * - clusterId
+     - string
+     - ID of the cluster represented by the snapshot.
+   * - created
+     - BSON timestamp
+     - The exact point-in-time at which the snapshot was taken.
+   * - expires
+     - timestamp
+     - The date after which this snapshot is eligible for deletion.
+   * - complete
+     - boolean
+     - Is this snapshot complete? This will be false if the snapshot creation
+       job is still in progress.
+   * - parts
+     - array of parts
+     - The individual parts that comprise the complete snapshot. For a replica
+       set, this array will contain a single element. For a sharded cluster,
+       there will be one element for each shard plus one element for the config
+       server.
+   * - parts.typeName
+     - enum
+     - The type of server represented by the part. Possible values are:
+       ``REPLICA_SET CONFIG_SERVER``
+   * - parts.clusterId
+     - string
+     - ID of the replica set. Not present for a config server.
+   * - parts.replicaSetName
+     - string
+     - Name of the replica set. Not present for a config server.
+   * - parts.mongodVersion
+     - string
+     - The version of ``mongod`` that was running when the snapshot was created.
+   * - parts.dataSizeBytes
+     - integer
+     - The total size of the data in the snapshot.
+   * - parts.storageSizeBytes
+     - integer
+     - The total size of space allocated for document storage.
+   * - parts.fileSizeBytes
+     - integer
+     - The total size of the data files.
+
+Links
+~~~~~
+
+.. list-table::
+   :widths: 10 90
+   :header-rows: 1
+
+   * - Relation
+     - Description
+   * - self
+     - Me
+   * - cluster
+     - The cluster that this snapshot belongs to.
+   * - group
+     - The group that owns this snapshot.
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/snapshots`` -
+  Get all snapshots for a cluster. ``CLUSTER-ID`` must be the ID of
+  either a replica set or a sharded cluster.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/snapshots/SNAPSHOT-ID`` -
+  Get a single snapshot.
+
+- ``DELETE /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/snapshots/SNAPSHOT-ID`` -
+  Remove a single snapshot. Note that while the two above methods return metadata
+  about the snapshot, this will actually remove the underlying backed-up data.
+
+
+Examples
+~~~~~~~~
+
+Get all snapshots: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/snapshots"
+
+  HTTP/1.1 200 OK
+  
+  {
+    "totalCount" : 3,
+    "results" : [ {
+      "id" : "53bd5fb5e4b0774946a16fad",
+      "groupId" : "525ec8394f5e625c80c7404a",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "created" : {
+        "date" : "2014-07-09T15:24:37Z",
+        "increment" : 1
+      },
+      "expires" : "2014-07-11T15:24:37Z",
+      "complete" : true,
+      "parts" : [ {
+        "typeName" : "REPLICA_SET",
+        "clusterId" : "53bc556ce4b049c88baec825",
+        "replicaSetName" : "rs0",
+        "mongodVersion" : "2.6.3",
+        "dataSizeBytes" : 17344,
+        "storageSizeBytes" : 10502144,
+        "fileSizeBytes" : 67108864
+      } ],
+      "links" : [ ... ]
+    }, {
+      ...
+    } ],
+    "links": [ ... ]
+  }
+
+Get one snapshot: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/snapshots/53bd5fb5e4b0774946a16fad"
+
+  HTTP/1.1 200 OK
+  
+  {
+    "id" : "53bd5fb5e4b0774946a16fad",
+    "groupId" : "525ec8394f5e625c80c7404a",
+    "clusterId" : "53bc556ce4b049c88baec825",
+    "created" : {
+      "date" : "2014-07-09T15:24:37Z",
+      "increment" : 1
+    },
+    "expires" : "2014-07-11T15:24:37Z",
+    "complete" : true,
+    "parts" : [ {
+      "typeName" : "REPLICA_SET",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "replicaSetName" : "rs0",
+      "mongodVersion" : "2.6.3",
+      "dataSizeBytes" : 17344,
+      "storageSizeBytes" : 10502144,
+      "fileSizeBytes" : 67108864
+    } ],
+    "links" : [ ... ]
+  }
+
+Remove a snapshot: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/snapshots/53bd5fb5e4b0774946a16fad" -X DELETE
+  
+  HTTP/1.1 200 OK

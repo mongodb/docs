@@ -1,0 +1,272 @@
+Restore Jobs
+------------
+
+This resource allows you to manage restore jobs. A restore job is essentially a
+request to retrieve one of your existing snapshots, or a snapshot for a recent
+specific point-in-time, in order to restore a ``mongod`` to a previous state.
+In order to initiate a restore job, the request must originate from an IP
+address on the API user's whitelist.
+
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+  {
+    "id" : "53bd7f13e4b0a7304e226998",
+    "groupId" : "525ec8394f5e625c80c7404a",
+    "clusterId" : "53bc556ce4b049c88baec825",
+    "snapshotId" : "53bd439ae4b0774946a16490",
+    "created" : "2014-07-09T17:42:43Z",
+    "timestamp" : {
+      "date" : "2014-07-09T09:24:37Z",
+      "increment" : 1
+    },
+    "statusName" : "FINISHED",
+    "pointInTime" : false,
+    "delivery" : {
+      "methodName" : "HTTP",
+      "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
+      "expires" : "2014-07-09T18:42:43Z",
+      "statusName" : "READY"
+    },
+    "links" : [ ... ]
+  }
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+   * - groupId
+     - string
+     - ID of the group that owns the restore job.
+   * - clusterId
+     - string
+     - ID of the cluster represented by the restore job.
+   * - snapshotId
+     - string
+     - ID of the snapshot to be restored.
+   * - batchId
+     - string
+     - ID of the batch to which this restore job belongs. Only present for
+       a restore of a sharded cluster.
+   * - created
+     - timestamp
+     - When the restore job was requested.
+   * - timestamp
+     - BSON timestamp
+     - Timestamp of the latest oplog entry in the restored snapshot.
+   * - statusName
+     - enum
+     - Current status of the job. Possible values are: ``FINISHED IN_PROGRESS
+       BROKEN KILLED``
+   * - pointInTime
+     - boolean
+     - Is this job for a point-in-time restore?
+   * - delivery
+     - object
+     - Additional details about how the restored snapshot data will be
+       delivered.
+   * - delivery.methodName
+     - enum
+     - How the data will be delivered. Possible values are: ``HTTP``
+   * - delivery.url
+     - string
+     - The URL from which the restored snapshot data can be downloaded. Only
+       present if ``methodName`` is ``HTTP``.
+   * - delivery.expires
+     - timestamp
+     - Date after which the URL will no longer be available. Only present if
+       ``methodName`` is ``HTTP``.
+   * - delivery.statusName
+     - enum
+     - Current status of the downloadable file. Possible values are: ``READY
+       EXPIRED MAX_DOWNLOADS_EXCEEDED``. Only present if ``methodName`` is
+       ``HTTP``.
+
+Links
+~~~~~
+
+.. list-table::
+   :widths: 10 90
+   :header-rows: 1
+
+   * - Relation
+     - Description
+   * - self
+     - Me
+   * - cluster
+     - The cluster that is to be restored.
+   * - snapshot
+     - The snapshot that is to be restored.
+   * - group
+     - The group that owns the cluster.
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
+  Get all restore jobs for a cluster. ``CLUSTER-ID`` must be the ID of
+  either a replica set or a sharded cluster.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs?batchId=BATCH-ID`` -
+  Get all restore jobs in the specified batch. When creating a restore job for a
+  sharded cluster, a separate job will be created for each shard, plus another
+  for the config server. Each of those jobs will be part of a batch. A restore job
+  for a replica set, however, will not be part of a batch.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs/JOB-ID`` -
+  Get a single restore job.
+
+- ``POST /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
+  Create a restore job for the specified ``CLUSTER-ID``. You can create a restore
+  job for either an existing snapshot or for a specific recent point-in-time. (The
+  recency depends on the size of your "point-in-time window.") See below for
+  examples of each. The response body includes an array of restore jobs. When
+  requesting a restore of a replica set, the array will contain a single element.
+  For a sharded cluster, the array will contain one element for each shard, plus
+  one for the config server. Each element will also include the ``batchId``
+  representing the batch to which the jobs belong.
+
+Examples
+~~~~~~~~
+
+Get all restore jobs: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/restoreJobs"
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount" : 2,
+    "results" : [ {
+      "id" : "53bd7f38e4b0a7304e226b3f",
+      "groupId" : "525ec8394f5e625c80c7404a",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "snapshotId" : "53bd4356e4b0774946a16455",
+      "created" : "2014-07-09T17:43:20Z",
+      "timestamp" : {
+        "date" : "2014-07-08T21:24:37Z",
+        "increment" : 1
+      },
+      "statusName" : "FINISHED",
+      "pointInTime" : false,
+      "delivery" : {
+        "methodName" : "HTTP",
+        "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f38e4b0a7304e226b3f/8924913772648127956/525ec8394f5e625c80c7404a-rs0-1404854677.tar.gz",
+        "expires" : "2014-07-09T18:43:21Z",
+        "statusName" : "READY"
+      },
+      "links" : [ ... ]
+    }, {
+      "id" : "53bd7f13e4b0a7304e226998",
+      "groupId" : "525ec8394f5e625c80c7404a",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "snapshotId" : "53bd439ae4b0774946a16490",
+      "created" : "2014-07-09T17:42:43Z",
+      "timestamp" : {
+        "date" : "2014-07-09T09:24:37Z",
+        "increment" : 1
+      },
+      "statusName" : "FINISHED",
+      "pointInTime" : false,
+      "delivery" : {
+        "methodName" : "HTTP",
+        "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
+        "expires" : "2014-07-09T18:42:43Z",
+        "statusName" : "READY"
+      },
+      "links" : [ ... ]
+    } ],
+    "links": [ ... ]
+  }
+
+Get a single restore job: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/restoreJobs/53bd7f13e4b0a7304e226998"
+
+  HTTP/1.1 200 OK
+
+  {
+    "id" : "53bd7f13e4b0a7304e226998",
+    "groupId" : "525ec8394f5e625c80c7404a",
+    "clusterId" : "53bc556ce4b049c88baec825",
+    "snapshotId" : "53bd439ae4b0774946a16490",
+    "created" : "2014-07-09T17:42:43Z",
+    "timestamp" : {
+      "date" : "2014-07-09T09:24:37Z",
+      "increment" : 1
+    },
+    "statusName" : "FINISHED",
+    "pointInTime" : false,
+    "delivery" : {
+      "methodName" : "HTTP",
+      "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
+      "expires" : "2014-07-09T18:42:43Z",
+      "statusName" : "READY"
+    },
+    "links" : [ ... ]
+  }
+
+Create a restore job for an existing snapshot: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/restoreJobs" -X POST -H "Content-Type: application/json" --data @-
+  {
+    "snapshotId": "53bd439ae4b0774946a16490"
+  }
+
+  HTTP/1.1 200 OK
+  
+  {
+    "totalCount" : 1,
+    "results" : [ {
+      "id" : "53bd9f9be4b0a7304e23a8c6",
+      "groupId" : "525ec8394f5e625c80c7404a",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "snapshotId" : "53bd439ae4b0774946a16490",
+      "created" : "2014-07-09T20:01:31Z",
+      "timestamp" : {
+        "date" : "2014-07-09T09:24:37Z",
+        "increment" : 1
+      },
+      "statusName" : "IN_PROGRESS",
+      "pointInTime" : false,
+      "links" : [ ... ]
+    } ]
+  }
+
+Create a point-in-time restore job: ::
+
+  curl -i -u "username:apiKey" --digest "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/restoreJobs" -X POST -H "Content-Type: application/json" --data @-
+  {
+    "timestamp": {
+      "date": "2014-07-09T09:20:00Z",
+      "increment": 0
+    }
+  }
+  
+  HTTP/1.1 200 OK
+  
+  {
+    "totalCount" : 1,
+    "results" : [ {
+      "id" : "53bda0dfe4b0a7304e23b54a",
+      "groupId" : "525ec8394f5e625c80c7404a",
+      "clusterId" : "53bc556ce4b049c88baec825",
+      "created" : "2014-07-09T20:06:55Z",
+      "timestamp" : {
+        "date" : "2014-07-09T09:20:00Z",
+        "increment" : 0
+      },
+      "statusName" : "IN_PROGRESS",
+      "pointInTime" : true,
+      "links" : [ ... ]
+    } ]
+  }

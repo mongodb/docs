@@ -12,13 +12,15 @@ Sample Entity
 .. code-block:: javascript
 
    {
-     "clusterId": "yyy",
      "groupId": "xxx",
+     "clusterId": "yyy",
      "statusName": "STARTED",
+     "authMechanismName": "MONGODB_CR",
      "username": "johnny5",
      "password": "guess!",
      "sslEnabled": false,
      "syncSource": "PRIMARY",
+     "provisioned": true,
      "excludedNamespaces:" [ "a", "b", "c.d" ]
    }
 
@@ -33,16 +35,21 @@ Entity Fields
    * - Name
      - Type
      - Description
+   * - groupId
+     - string
+     - ID of the group that owns this backup configuration.
    * - clusterId
      - string
      - ID of the cluster that this backup configuration is for.
-   * - groupId
-     - string
-     - ID of the group that owns this host.
    * - statusName
      - enum
      - The current (or desired) status of the backup configuration. Possible
        values are: ``INACTIVE PROVISIONING STARTED STOPPED TERMINATING``
+   * - authMechanismName
+     - enum
+     - The name of the authentication mechanism to use when connecting to the
+       sync cource database. Only present when using authentication. Possible
+       values are: ``MONGODB_CR GSSAPI``
    * - username
      - string
      - The username to use to connect to the sync source database. Only present
@@ -56,6 +63,12 @@ Entity Fields
    * - sslEnabled
      - boolean
      - Is SSL enabled for the sync source database?
+   * - provisioned
+     - boolean
+     - Have the resources needed to store your backup data been provisioned? This
+       field is only present when the amount of data to be backed up exceeds a
+       certain threshold; further, this attribute is never present for an
+       On-Premise MMS installation.
    * - syncSource
      - string
      - The database to use to get data to be backed up. Possible values are
@@ -83,6 +96,8 @@ Links
      - The cluster that this backup configuration is for.
    * - group
      - The group that owns this backup configuration.
+   * - snapshotSchedule
+     - The snapshot schedule for this backup configuration.
 
 Operations
 ~~~~~~~~~~
@@ -94,12 +109,13 @@ Operations
 - ``GET /api/public/v1.0/groups/GROUP-ID/backupConfigs`` - Get all backup
   configurations for a group.
 
-- ``PATCH /api/public/v1.0/groups/GROUP-ID/xxx/XXX-ID`` - Request a state change
-  to an existing backup configuration. Note that these changes are generally
-  asynchronous and will result in a response status code of 202 (Accepted).
-  Additionally, if you issue a ``GET`` request for a backup configuration after
-  a successful ``PATCH``, the returned entity may not immediately reflect the
-  update given the asynchronous nature of these state transitions.
+- ``PATCH /api/public/v1.0/groups/GROUP-ID/backupConfigs/CLUSTER-ID`` -
+  Request a state change to an existing backup configuration. Note that
+  these changes are generally asynchronous and will result in a response
+  status code of 202 (Accepted). Additionally, if you issue a ``GET``
+  request for a backup configuration after a successful ``PATCH``, the
+  returned entity may not immediately reflect the update given the asynchronous
+  nature of these state transitions.
 
   When modifying the ``statusName`` property, these are the acceptable
   transitions:
