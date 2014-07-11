@@ -272,7 +272,7 @@ MongoDB Settings
    Required. The :manual:`connection string
    </reference/connection-string/>` to the MongoDB server for
    MMS, i.e. the MMS Application Database. For example, the
-   following specifies the URI for a replica set:
+   following specifies the URI for a :term:`replica set`:
 
    .. code-block:: ini
 
@@ -357,7 +357,7 @@ MongoDB Settings
 MMS Backup Daemon Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These settings in the ``conf-daemon.properties`` file, are only
+These settings in the ``conf-daemon.properties`` file, are
 necessary only if you are using MMS Backup.
 
 .. setting:: rootDirectory
@@ -365,12 +365,16 @@ necessary only if you are using MMS Backup.
    *Type*: string
 
    The disk partition used by the Backup Daemon to dynamically create and
-   maintain the replica set HEAD directories. This directory must be writable
+   maintain the :term:`replica set` HEAD directories. For more information
+   on HEADs, see the :ref:`MMS Backup functional overview
+   <mms-backup-functional-overview>`.
+
+   This directory must be writable
    by the mongodb-mms user and must end in a trailing slash.  It is critical
    that this partition is sized appropriately.
 
    .. important::
-      Data in this directory is dynamically created, maintained and destroyed the
+      Data in this directory is dynamically created, maintained and destroyed by the
       MMS Backup Daemon. This partition should not be used for any other purpose.
       This partition should *not* overlap with the partition used for the Backup
       Blockstore Database.
@@ -379,22 +383,33 @@ necessary only if you are using MMS Backup.
 
    *Type*: string
 
-   The backup daemon requires using a mongod that matches
-   the version of any replica set that is being backed
-   up. The mongodb.release.directory should point to a path
-   that contains every MongoDB release that will be needed
-   by the backup daemon. The folders within this path should have
-   names that resemble ``mongodb-linux-x86_64-2.4.8`` and
-   ``mongodb-linux-x86_64-2.6.0``.
+   Specifies the full path to the directory that contains every MongoDB
+   release needed by the Backup Daemon. When backing up a replica set, The
+   Backup Daemon must use a :program:`mongod` that matches the version of
+   the replica set being backed up.
 
-   The backup daemon includes a utility named mongodb-fetch in the
-   ``/opt/mongodb/backup-daemon/bin`` directory that will download
-   all of the latest releases directly from ``mongodb.org``. The
-   :setting:`mongodb.release.autoDownload` setting will automatically
-   run this utility when the service starts. If automatic
-   downloading is a security concern this setting can be set
-   to false. You must then place the needed mongodb releases
-   in the mongodb.release.directory manually.
+   If you update versions manually, name the folders within this full
+   directory path using the following form:
+
+   .. code-block:: none
+
+      mongodb-<platform>-<architecture>-<version>
+
+   For example:
+
+   .. code-block:: none
+
+      mongodb-linux-x86_64-2.4.8
+      mongodb-linux-x86_64-2.4.9
+      mongodb-linux-x86_64-2.4.10
+      mongodb-linux-x86_64-2.6.0
+
+   The Backup Daemon includes the ``mongodb-fetch`` utility that will
+   download the latest releases directly from
+   `mongodb..org/downloads <http://www.mongodb.org/downloads>`_.
+   The :setting:`mongodb.release.autoDownload` setting automatically runs
+   this utility every hour once the service starts. For details, including
+   the option to download manually, see :setting:`mongodb.release.autoDownload`.
 
    .. important::
       If you are backing up MongoDB custom builds, you must manually
@@ -405,9 +420,25 @@ necessary only if you are using MMS Backup.
 
    *Type*: boolean
 
-   If automatic downloading is a security concern, this setting can be set to false.
-   You must then place the needed mongodb releases in the mongodb.release.directory
-   manually.
+   Specify ``true`` to enable automatic downloads; ``false`` to disable.
+
+   If this setting is enabled, Backup automatically downloads the latest
+   release of MongoDB from
+   `mongodb..org/downloads <http://www.mongodb.org/downloads>`_
+   and stores it in the directory specified by the
+   :setting:`mongodb.release.directory` setting. The Backup Daemon
+   includes the ``mongodb-fetch`` utility, located in the
+   ``/opt/mongodb/backup-daemon/bin`` directory, which runs once an hour
+   to perform the downloads.
+
+   If you set :setting:`mongodb.release.autoDownload` ``false``, then you
+   must manually download and install the needed MongoDB releases in the
+   :setting:`mongodb.release.directory`. If you backup deployments that
+   use different MongoDB versions, you must download and install each
+   version.
+
+   Download MongoDB from `mongodb..org/downloads
+   <http://www.mongodb.org/downloads>`_ and extract them.
 
 Session Management Setting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
