@@ -6,6 +6,14 @@ Backup Agent Chagelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.2.2.125``
+--------------------------
+
+*Released 2014-07-09*
+
+Fixes issue with agent on Windows using the ``MONGODB-CR``
+authentication mechanism.
+
 Backup Agent ``2.2.1.122``
 --------------------------
 
@@ -17,7 +25,7 @@ Backup Agent ``2.2.1.122``
 - Agent is now able to send a stack trace of its current state to
   MMS.
 
-- Fixed regression in the Agent's rollback handling.
+- Fixes regression in the Agent's rollback handling.
 
 Backup Agent ``2.1.0.106-1``
 ----------------------------
