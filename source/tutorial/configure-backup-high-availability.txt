@@ -1,45 +1,45 @@
-==============================================
-Configure a Highly Available MMS Backup Server
-==============================================
+===============================================
+Configure a Highly Available MMS Backup Service
+===============================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-The :ref:`Backup Daemon <backup-daemon>` replicates your databases and
-creates snapshots for use in restoring data. The server running the Backup
-Daemon must therefore have adequate disk space and write capacity to store
-the databases the daemon backs up.
+The :ref:`Backup Daemon <backup-daemon>` maintains copies of the data
+from your backed up :program:`mongod` instances, and creates snapshots
+used for restoring data. The file system that the Backup Daemon uses
+must have sufficient disk space and write capacity to store the backed
+up instances.
 
-The daemon replicates a :program:`mongod` for each :term:`replica set`
-assigned to it. For each :term:`sharded cluster` assigned, the daemon
-replicates every :manual:`shard </core/sharded-cluster-shards>` and each
-of the three :manual:`config servers
-</core/sharded-cluster-config-servers>`.
+For replica sets, the local copy is equivalent to an additional
+secondary replica set member. For sharded clusters the daemon
+maintains a local copy of each shard as well as a copy of the
+:term:`config database`.
 
 Multiple Backup Daemons
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To increase your storage and to scale horizontally, you can run Backup
-Daemons on multiple servers. When you do, MMS binds each backed-up replica
-set or shard to a particular Backup Daemon. For example, if you run two
-Backup Daemons for a cluster that has three shards, and if MMS binds two
-shards to the first daemon, then that daemon's server replicates only the
-data of those two shards. The server running the second daemon replicates
-the data of the remaining shard.
+To increase your storage and to scale horizontally, you can run
+multiple instances of the Backup Daemon. With multiple daemons,, MMS
+binds each backed up replica set or shard to a particular Backup
+Daemon. For example, if you run two Backup Daemons for a cluster that
+has three shards, and if MMS binds two shards to the first daemon,
+then that daemon's server replicates only the data of those two
+shards. The server running the second daemon replicates the data of
+the remaining shard.
 
-Multiple daemons allow for **manual** failover should a daemon's server
-fail. You can instruct MMS to transfer the daemon's backup
+Multiple daemons allow for **manual** failover should the daemon
+become unavailable. You can instruct MMS to transfer the daemon's backup
 responsibilities to another Backup Daemon. MMS reconstructs the data on
 the new daemon's server and binds the associated replica sets or shards to
-the new daemon.
+the new daemon. See :doc:`/tutorial/move-jobs-to-new-backup-daemon`
+for a description of this process.
 
 MMS reconstructs the data using a snapshot and the oplog from the
-:ref:`Backup Blockstore Database <mms-backup-blockstore-database>`. For
-more information, see :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
-
-To deploy Backup Daemons, see
+:ref:`Backup Blockstore Database <mms-backup-blockstore-database>`. To
+deploy Backup Daemons, see
 :doc:`/tutorial/nav/backup-server-installation`.
 
 Replica Set for the Backing Instance
@@ -47,9 +47,9 @@ Replica Set for the Backing Instance
 
 Deploy a :term:`replica set` rather than a standalone as the :doc:`backing
 MongoDB instance </tutorial/prepare-backing-mongodb-instances>` for
-backup. If the :term:`primary` of a backing instance cannot be
-accessed, replica set :manual:`failover
-</core/replica-set-high-availability>` elects a new primary.
+backup. Replica sets have automatic :manual:`failover
+</core/replica-set-high-availability>` if the :term:`primary` becomes
+unavailable.
 
 When deploying a replica set with members in multiple facilities, ensure
 that a single facility has enough votes to elect a :term:`primary` if
@@ -63,8 +63,8 @@ primaries, see :manual:`Replica Set Elections
 To deploy a replica set, see :manual:`Deploy a Replica Set
 </tutorial/deploy-replica-set>`.
 
-Related Document
-----------------
+Additional Information
+----------------------
 
 To move jobs from a lost Backup server to another Backup server, see
 :doc:`/tutorial/move-jobs-to-new-backup-daemon`.

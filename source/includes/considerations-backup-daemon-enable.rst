@@ -2,8 +2,10 @@ Excluded Namespaces
 +++++++++++++++++++
 
 Excluded namespaces are databases or collections that MMS will not
-back up. This can be useful for namespaces containing log files or
-caches, for instance, as well as reduce backup time and costs.
+back up. Exclude name spaces to prevent backing up collections that
+contain logging data, caches, or other ephemeral data. By excluding
+these kinds of databases and collections will allow you to reduce
+backup time and costs.
 
 Snapshot Frequency and Retention Policy
 +++++++++++++++++++++++++++++++++++++++
