@@ -6,62 +6,38 @@ $group (aggregation)
 
 .. pipeline:: $group
 
-   Groups documents together for the purpose of calculating aggregate
-   values based on a collection of documents. In practice,
-   :pipeline:`$group` often supports tasks such as average page views
-   for each page in a website on a daily basis.
+   Groups documents by some specified expression and outputs to the
+   next stage a document for each distinct grouping. The output
+   documents contain an ``_id`` field which contains the distinct group
+   by key. The output documents can also contain computed fields that
+   hold the values of some accumulator expression grouped by the
+   :pipeline:`$group`\'s ``_id`` field. :pipeline:`$group` does *not*
+   order its output documents.
 
-   .. important:: The output of :pipeline:`$group` is not ordered.
-
-   The output of :pipeline:`$group` depends on how you define groups.
-   Begin by specifying an identifier (i.e. an ``_id`` field) for the
-   group you're creating with this pipeline. For this ``_id`` field,
-   you can specify various expressions, including a single field from
-   the documents in the pipeline, a computed value from a previous
-   stage, a document that consists of multiple fields, and other valid
-   expressions, such as constant or subdocument fields. You can use
-   :pipeline:`$project` operators in expressions for the ``_id`` field.
-
-   The following example of an ``_id`` field specifies a document that
-   consists of multiple fields:
+   The :pipeline:`$group` stage has the following prototype form:
 
    .. code-block:: javascript
 
-      { $group: { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } } }
+      { $group: { _id: <expression>, <field1>: { <accumulator1> : <expression1> }, ... } }
 
-   Every :pipeline:`$group` expression **must** specify an ``_id``
-   field. In addition to the ``_id`` field, :pipeline:`$group`
-   expression can include computed fields. These other fields must use
-   one of the following :term:`accumulators <accumulator>`:
+   The ``_id`` field is *mandatory*; however, you can specify an
+   ``_id`` value of null to calculate accumulated values for all the
+   input documents as a whole.
 
-   - :group:`$addToSet`
-   - :group:`$first`
-   - :group:`$last`
-   - :group:`$max`
-   - :group:`$min`
-   - :group:`$avg`
-   - :group:`$push`
-   - :group:`$sum`
+   The remaining computed fields are *optional* and computed using the
+   ``<accumulator>`` operators.
 
-   With the exception of the ``_id`` field, :pipeline:`$group` cannot
-   output nested documents.
+   The ``_id`` and the ``<accumulator>`` expressions can accept any
+   valid :ref:`expression <aggregation-expressions>`. For more
+   information on expressions, see :ref:`aggregation-expressions`.
 
-.. tip::
+Accumulator Operator
+--------------------
 
-   Use :pipeline:`$project` as needed to rename the grouped field
-   after a :pipeline:`$group` operation.
+The ``<accumulator>`` operator must be one of the following accumulator
+operators:
 
-Variables
----------
-
-.. versionchanged:: 2.6
-
-You can use variables in expressions for the :pipeline:`$group` phase.
-See :expression:`$let` and :expression:`$map`.
-
-The system variables :variable:`$$CURRENT <CURRENT>` and
-:variable:`$$ROOT <ROOT>` are also available directly. See
-:ref:`group-stage-pivot-using-ROOT` for an example.
+.. include:: /includes/toc/table-aggregation-group.rst
 
 .. _group-memory-limit:
 
@@ -71,41 +47,123 @@ The system variables :variable:`$$CURRENT <CURRENT>` and
 The :pipeline:`$group` stage has a limit of 100 megabytes of RAM. By
 default, if the stage exceeds this limit, :pipeline:`$group` will
 produce an error. However, to allow for the handling of large datasets,
-set the ``allowDiskUse`` option to ``true`` to enable
-:pipeline:`$group` operations to write to temporary files. See the
-``allowDiskUse`` option in :method:`db.collection.aggregate()` method
-and the :dbcommand:`aggregate` command for details.
+set the :method:`allowDiskUse <db.collection.aggregate()>` option to
+``true`` to enable :pipeline:`$group` operations to write to temporary
+files. See :method:`db.collection.aggregate()` method and the
+:dbcommand:`aggregate` command for details.
 
 .. versionchanged:: 2.6
    MongoDB introduces a limit of 100 megabytes of RAM for the
-   :pipeline:`$group` stage.
+   :pipeline:`$group` stage as well as the :method:`allowDiskUse
+   <db.collection.aggregate()>` option to handle operations for large
+   datasets.
 
 Examples
 --------
 
 .. _aggregation-group-count:
 
-Calculate Count and Sum
-~~~~~~~~~~~~~~~~~~~~~~~
+Calculate Count, Sum, and Average
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider the following example:
+Given a collection ``sales`` with the following documents:
 
 .. code-block:: javascript
 
-   db.article.aggregate(
-       { $group : {
-           _id : "$author",
-           docsPerAuthor : { $sum : 1 },
-           viewsPerAuthor : { $sum : "$pageViews" }
-       }}
-   );
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-03-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-03-01T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-03-15T09:00:00Z") }
+   { "_id" : 4, "item" : "xyz", "price" : 5, "quantity" : 20, "date" : ISODate("2014-04-04T11:21:39.736Z") }
+   { "_id" : 5, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-04-04T21:23:13.331Z") }
 
-This aggregation pipeline groups by the ``author`` field and computes
-two fields, ``docsPerAuthor`` and ``viewsPerAuthor``, per each group.
-The ``docsPerAuthor`` field is a counter field that uses the
-:group:`$sum` operator to add ``1`` for each document with a given
-author. The ``viewsPerAuthor`` field is the sum of the values in the
-``pageViews`` field for each group.
+Group by Month, Day, and Year
+`````````````````````````````
+
+The following aggregation operation uses the :pipeline:`$group` stage
+to group the documents by the month, day, and year and calculates the
+total price and the average quantity as well as counts the documents
+per each group:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+         {
+           $group : {
+              _id : { month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
+              totalPrice: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+              averageQuantity: { $avg: "$quantity" },
+              count: { $sum: 1 }
+           }
+         }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : { "month" : 3, "day" : 15, "year" : 2014 }, "totalPrice" : 50, "averageQuantity" : 10, "count" : 1 }
+   { "_id" : { "month" : 4, "day" : 4, "year" : 2014 }, "totalPrice" : 200, "averageQuantity" : 15, "count" : 2 }
+   { "_id" : { "month" : 3, "day" : 1, "year" : 2014 }, "totalPrice" : 40, "averageQuantity" : 1.5, "count" : 2 }
+
+Group by ``null``
+`````````````````
+
+The following aggregation operation specifies a group ``_id`` of
+``null``, calculating the total price and the average quantity as well
+as counts for all documents in the collection:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+         {
+           $group : {
+              _id : null,
+              totalPrice: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+              averageQuantity: { $avg: "$quantity" },
+              count: { $sum: 1 }
+           }
+         }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   
+   { "_id" : null, "totalPrice" : 290, "averageQuantity" : 8.6, "count" : 5 }
+
+.. _aggregation-group-distinct-values:
+
+Retrieve Distinct Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a collection ``sales`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-03-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-03-01T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-03-15T09:00:00Z") }
+   { "_id" : 4, "item" : "xyz", "price" : 5, "quantity" : 20, "date" : ISODate("2014-04-04T11:21:39.736Z") }
+   { "_id" : 5, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-04-04T21:23:13.331Z") }
+
+The following aggregation operation uses the :pipeline:`$group` stage
+to group the documents by the item to retrieve the distinct item values:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $group : { _id : "$item" } } ] )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+  { "_id" : "xyz" }
+  { "_id" : "jkl" }
+  { "_id" : "abc" }
 
 .. _aggregation-pivot-data:
 
@@ -182,5 +240,3 @@ The operation returns the following documents:
           { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
         ]
    }
-
-.. seealso:: :ref:`push-with-root`

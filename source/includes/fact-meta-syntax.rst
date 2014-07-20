@@ -4,7 +4,7 @@ A |meta-object| expression has the following syntax:
 
 .. code-block:: javascript
 
-   { <projectedFieldName>: { $meta: <metaDataKeyword> } }
+   { $meta: <metaDataKeyword> }
 
 The |meta-object| expression can specify the following keyword
 as the ``<metaDataKeyword>``:
@@ -22,9 +22,9 @@ as the ``<metaDataKeyword>``:
    * - ``"textScore"``
 
      - Returns the score associated with the corresponding
-       query:`$text` query for each matching document. The
+       :query:`$text` query for each matching document. The
        text score signifies how well the document matched the
        stemmed term or terms. If not used in conjunction with a
-       query:`$text` query, returns a score of ``0.0``
+       :query:`$text` query, returns a score of |empty-value|.
 
      - Descending

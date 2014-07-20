@@ -6,17 +6,66 @@ $strcasecmp (aggregation)
 
 .. expression:: $strcasecmp
 
-   Takes in two strings. Returns a number. :expression:`$strcasecmp`
-   is positive if the first string is "greater than" the second and
-   negative if the first string is "less than" the
-   second. :expression:`$strcasecmp` returns 0 if the strings are
-   identical.
+   Performs case-insensitive comparison of two strings. Returns
 
-   .. note::
+   - 1 if first string is "greater than" the second string.
 
-      :expression:`$strcasecmp` may not make sense when applied to
-      glyphs outside the Roman alphabet.
+   - 0 if the two strings are equal.
 
-      :expression:`$strcasecmp` internally capitalizes strings before
-      comparing them to provide a case-*insensitive* comparison.
-      Use :expression:`$cmp` for a case sensitive comparison.
+   - -1 if the first string is "less than" the second string.
+
+   :expression:`$strcasecmp` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $strcasecmp: [ <expression1>, <expression2> ] }
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they resolve to strings. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |exp-has| replace:: :expression:`$strcasecmp` only has
+
+.. include:: /includes/intro-aggregation-string.rst
+
+For a case sensitive comparison, see :expression:`$cmp`.
+
+Example
+-------
+
+Consider a ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", quarter: "13Q1", "description" : "product 1" }
+   { "_id" : 2, "item" : "ABC2", quarter: "13Q4", "description" : "product 2" }
+   { "_id" : 3, "item" : "XYZ1", quarter: "14Q2", "description" : null }
+
+The following operation uses the :expression:`$strcasecmp` operator to
+perform case-insensitive comparison of the ``quarter`` field value to
+the string ``"13q3"``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               item: 1,
+               comparisonResult: { $strcasecmp: [ "$quarter", "13q3" ] }
+             }
+         }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "comparisonResult" : -1 }
+   { "_id" : 2, "item" : "ABC2", "comparisonResult" : 0 }
+   { "_id" : 3, "item" : "XYZ1", "comparisonResult" : 1 }

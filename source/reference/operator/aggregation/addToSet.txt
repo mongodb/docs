@@ -6,63 +6,69 @@ $addToSet (aggregation)
 
 .. group:: $addToSet
 
-   Returns an array of all the values found in the selected field
-   among the documents in that group. *Every unique value only
-   appears once* in the result set. There is no ordering guarantee
-   for the output documents.
+   Returns an array of all *unique* values that results from applying
+   an expression to each document in a group of documents that share
+   the same group by key. Order of the elements in the output array is
+   unspecified.
+
+   .. |accumulator| replace:: :group:`$addToSet`
+   .. include:: /includes/fact-aggregation-accumulator.rst
+
+   :expression:`$addToSet` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $addToSet: <expression> }
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the value of the expression is an array, :group:`$addToSet` appends
+the whole array as a *single* element.
+
+If the value of the expression is a document, MongoDB determines that
+the document is a duplicate if another document in the array matches
+the to-be-added document exactly; i.e. the existing document has the
+exact same fields and values in the exact same order.
 
 Example
 -------
 
-In the :program:`mongo` shell, insert documents into a collection
-named ``products`` using the following operation:
+Consider a ``sales`` collection with the following documents:
 
 .. code-block:: javascript
 
-   db.products.insert( [
-      { "type" : "phone", "price" : 389.99, "stocked" : 270000 },
-      { "type" : "phone", "price" : 376.99 , "stocked" : 97000},
-      { "type" : "phone", "price" : 389.99 , "stocked" : 97000},
-      { "type" : "chair", "price" : 59.99, "stocked" : 108 }
-   ] )
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-01-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-03T09:05:00Z") }
+   { "_id" : 4, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-02-15T08:00:00Z") }
+   { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:12:00Z") }
 
-Use the following :method:`db.collection.aggregate()` operation in the
-:program:`mongo` shell with the :group:`$addToSet` operator:
+Grouping the documents by the day and the year of the ``date`` field,
+the following operation uses the :group:`$addToSet` accumulator to
+compute the list of unique items sold for each group:
 
 .. code-block:: javascript
 
-   db.products.aggregate( {
-        $group : {
-                  _id : "$type",
-                  price: { $addToSet: "$price" },
-                  stocked: { $addToSet: "$stocked" },
-      } }
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: { day: { $dayOfYear: "$date"}, year: { $year: "$date" } },
+              itemsSold: { $addToSet: "$item" }
+            }
+        }
+      ]
    )
 
-This aggregation pipeline returns documents grouped on the value of
-the ``type`` field, with *sets* constructed from the unique values of
-the ``price`` and ``stocked`` fields in the input documents. Consider
-the following aggregation results:
+The operation returns the following results:
 
 .. code-block:: javascript
 
-   {
-           "_id" : "chair",
-           "price" : [
-                   59.99
-           ],
-           "stocked" : [
-                   108
-           ]
-   },
-   {
-           "_id" : "phone",
-           "price" : [
-                   376.99,
-                   389.99
-           ],
-           "stocked" : [
-                   97000,
-                   270000,
-           ]
-   }
+   { "_id" : { "day" : 46, "year" : 2014 }, "itemsSold" : [ "xyz", "abc" ] }
+   { "_id" : { "day" : 34, "year" : 2014 }, "itemsSold" : [ "xyz", "jkl" ] }
+   { "_id" : { "day" : 1, "year" : 2014 }, "itemsSold" : [ "abc" ] }

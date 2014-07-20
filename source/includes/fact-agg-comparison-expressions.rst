@@ -1,0 +1,3 @@
+The |comparison-expression| compares both value and type, using the
+:ref:`specified BSON comparison order <bson-types-comparison-order>`
+for values of different types.

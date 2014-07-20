@@ -1,5 +1,12 @@
 .. including files define |set-operator-name|
 
-.. important:: |set-operator-name| takes arrays as arguments and treats
-   these arrays as sets. |set-operator-name| ignores duplicate entries in
-   input arrays and produce arrays that contain unique entries.
+|set-operator-name| performs set operation on arrays, treating arrays
+as sets. If an array contains duplicate entries, |set-operator-name|
+ignores the duplicate entries. |set-operator-name| ignores the order of
+the elements.
+
+.. set-output
+
+|set-operator-name| filters out duplicates in its result to output an
+array that contain only unique entries. The order of the elements in
+the output array is unspecified.

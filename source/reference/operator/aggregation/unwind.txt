@@ -4,86 +4,64 @@ $unwind (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. pipeline:: $unwind
 
-   Peels off the elements of an array individually, and returns a
-   stream of documents. :pipeline:`$unwind` returns one document for
-   every member of the unwound array within every source
-   document. Take the following aggregation command:
+   Deconstructs an array field from the input documents to output a
+   document for *each* element. Each output document is the input
+   document with the value of the array field replaced by the element.
+
+   The :pipeline:`$unwind` stage has the following prototype form:
 
    .. code-block:: javascript
 
-      db.article.aggregate(
-          { $project : {
-              author : 1 ,
-              title : 1 ,
-              tags : 1
-          }},
-          { $unwind : "$tags" }
-      );
+      { $unwind: <field path> }
 
-   .. note::
+   To specify a field path, prefix the field name with a dollar sign
+   ``$`` and enclose in quotes.
 
-      The dollar sign (i.e. ``$``) must precede the field
-      specification handed to the :pipeline:`$unwind` operator.
+Behaviors
+---------
 
-   In the above aggregation :pipeline:`$project` selects
-   (inclusively) the ``author``, ``title``, and ``tags`` fields, as
-   well as the ``_id`` field implicitly. Then the pipeline passes the
-   results of the projection to the :pipeline:`$unwind` operator,
-   which will unwind the ``tags`` field. This operation may return
-   a sequence of documents that resemble the following for a
-   collection that contains one document holding a ``tags`` field
-   with an array of 3 items.
+:pipeline:`$unwind` has the following behaviors:
 
-   .. code-block:: javascript
+- If you specify a path for a field that does not exist in an input
+  document, the pipeline ignores the input document and will not output
+  documents for that input document.
 
-      {
-           "result" : [
-                   {
-                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
-                           "title" : "this is my title",
-                           "author" : "bob",
-                           "tags" : "fun"
-                   },
-                   {
-                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
-                           "title" : "this is my title",
-                           "author" : "bob",
-                           "tags" : "good"
-                   },
-                   {
-                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
-                           "title" : "this is my title",
-                           "author" : "bob",
-                           "tags" : "fun"
-                   }
-           ],
-           "OK" : 1
-      }
+- If a value in the field specified by the field path is *not* an
+  array, :method:`db.collection.aggregate()` generates an error.
 
-   A single document becomes 3 documents: each document is identical
-   except for the value of the ``tags`` field. Each value of ``tags``
-   is one of the values in the original "tags" array.
+- If the array holds an empty array (``[]``) in an input document, the
+  pipeline ignores the input document and will not generate any result
+  documents.
 
-   .. note::
+Examples
+--------
 
-      :pipeline:`$unwind` has the following behaviors:
+Consider an ``inventory`` with the following document:
 
-      - :pipeline:`$unwind` is most useful in combination
-        with :pipeline:`$group`.
+.. code-block:: javascript
 
-      - You may undo the effects of unwind operation with the
-        :pipeline:`$group` pipeline operator.
+   { "_id" : 1, "item" : "ABC1", sizes: [ "S", "M", "L"] }
 
-      - If you specify a target field for :pipeline:`$unwind` that
-        does not exist in an input document, the pipeline ignores the
-        input document, and will generate no result documents.
+The following aggregation uses the :pipeline:`$unwind` stage to output
+a document for each element in the ``sizes`` array:
 
-      - If you specify a target field for :pipeline:`$unwind` that is
-        not an array, :method:`db.collection.aggregate()` generates an error.
+.. code-block:: javascript
 
-      - If you specify a target field for :pipeline:`$unwind` that
-        holds an empty array (``[]``) in an input document, the
-        pipeline ignores the input document, and will not generate any
-        result documents.
+   db.inventory.aggregate( [ { $unwind : "$sizes" } ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC1", "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC1", "sizes" : "L" }
+
+Each document is identical to the input document except for the value
+of the ``sizes`` field which now holds a value from the original
+``sizes`` array.

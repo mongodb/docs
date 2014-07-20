@@ -28,3 +28,11 @@ when comparing a field whose value is a single-element array (e.g. ``[
 1 ]``) with non-array fields (e.g. ``2``), the comparison is between
 ``1`` and ``2``. A comparison of an empty array (e.g. ``[ ]``) treats
 the empty array as less than ``null`` or a missing field.
+
+MongoDB sorts ``BinData`` in the following order:
+
+#. First, the length or size of the data.
+
+#. Then, by the BSON one-byte subtype.
+
+#. Finally, by the data, performing a byte-by-byte comparison.

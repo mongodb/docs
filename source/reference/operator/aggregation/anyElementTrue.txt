@@ -8,6 +8,106 @@ $anyElementTrue (aggregation)
 
    .. versionadded:: 2.6
 
-   Takes a single expression that returns an array and returns ``true``
-   if any of its values are ``true`` and ``false`` otherwise. An empty
-   array returns ``false``.
+   Evaluates an array as a set and returns ``true`` if any of the
+   elements are ``true`` and ``false`` otherwise. An empty array
+   returns ``false``.
+
+   :expression:`$anyElementTrue` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $anyElementTrue: [ <expression> ] }
+
+   The ``<expression>`` itself must resolve to an array, separate from
+   the outer array that denotes the argument list. For more information
+   on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |exp| replace:: :expression:`$anyElementTrue`
+
+.. include:: /includes/fact-agg-top-level-expressions.rst
+
+.. |boolean-exp| replace:: :expression:`$anyElementTrue`
+
+.. include:: /includes/fact-agg-boolean.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70, 15, 15
+
+   * - Example
+
+     -
+
+     - Result
+
+   * - ``{ $anyElementTrue: [ [ true, false ] ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $anyElementTrue: [ [ [ false ] ] ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $anyElementTrue: [ [ null, false, 0 ] ] }``
+
+     -
+
+     - ``false``
+
+   * - ``{ $anyElementTrue: [ [ ] ] }``
+
+     -
+
+     - ``false``
+
+Example
+-------
+
+Consider an ``survey`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "responses" : [ true ] }
+   { "_id" : 2, "responses" : [ true, false ] }
+   { "_id" : 3, "responses" : [ ] }
+   { "_id" : 4, "responses" : [ 1, true, "seven" ] }
+   { "_id" : 5, "responses" : [ 0 ] }
+   { "_id" : 6, "responses" : [ [ ] ] }
+   { "_id" : 7, "responses" : [ [ 0 ] ] }
+   { "_id" : 8, "responses" : [ [ false ] ] }
+   { "_id" : 9, "responses" : [ null ] }
+   { "_id" : 10, "responses" : [ undefined ] }
+
+The following operation uses the :expression:`$anyElementTrue` operator
+to determine if the ``responses`` array contains any value that
+evaluates to ``true``:
+
+.. code-block:: javascript
+
+   db.survey.aggregate(
+      [
+        { $project: { responses: 1, isAnyTrue: { $anyElementTrue: [ "$responses" ] }, _id: 0 } }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "responses" : [ true ], "isAnyTrue" : true }
+   { "responses" : [ true, false ], "isAnyTrue" : true }
+   { "responses" : [ ], "isAnyTrue" : false }
+   { "responses" : [ 1, true, "seven" ], "isAnyTrue" : true }
+   { "responses" : [ 0 ], "isAnyTrue" : false }
+   { "responses" : [ [ ] ], "isAnyTrue" : true }
+   { "responses" : [ [ 0 ] ], "isAnyTrue" : true }
+   { "responses" : [ [ false ] ], "isAnyTrue" : true }
+   { "responses" : [ null ], "isAnyTrue" : false }
+   { "responses" : [ null ], "isAnyTrue" : false }
