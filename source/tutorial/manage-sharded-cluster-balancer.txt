@@ -259,3 +259,83 @@ is active:
 
 When the backup procedure is complete you can reactivate
 the balancer process.
+
+Disable Balancing on a Collection
+---------------------------------
+
+You can disable balancing for a specific collection with the
+:method:`sh.disableBalancing()` method. You may want to disable the
+balancer for a specific collection to support maintenance operations or
+atypical workloads, for example, during data ingestions or data exports.
+
+When you disable balancing on a collection, MongoDB will not interrupt in
+progress migrations.
+
+To disable balancing on a collection, issue the following from the
+:program:`mongo` shell with the full namespace:
+
+.. code-block:: javascript
+
+   sh.disableBalancing(<namespace>)
+
+For example:
+
+.. code-block:: javascript
+
+   sh.disableBalancing("students.grades")
+
+Enable Balancing on a Collection
+--------------------------------
+
+You can enable balancing for a specific collection with the
+:method:`sh.enableBalancing()` method.
+
+When you enable balancing for a collection, MongoDB will not *immediately*
+begin balancing data. However, if the data in your sharded collection is
+not balanced, MongoDB will be able to begin distributing the data more
+evenly.
+
+To enable balancing on a collection, issue the following from the
+:program:`mongo` shell with the full namespace:
+
+.. code-block:: javascript
+
+   sh.enableBalancing(<namespace>)
+
+For example:
+
+.. code-block:: javascript
+
+   sh.enableBalancing("students.grades")
+
+Confirm Balancing is Enabled or Disabled
+----------------------------------------
+
+To confirm balancing for a collection is enabled or disabled, type this
+command on a :program:`mongos` to check the status of your collection
+``<namespace>`` in the ``collections`` collection in the
+``config`` database:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("config").collections.findOne({_id : <namespace>}).noBalance;
+
+For example:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("config").collections.findOne({_id : "students.grades"}).noBalance;
+
+This command will return a null error, true, false, or no output:
+
+- A null error indicates the collection name is incorrect.
+
+- If the result is true, balancing is disabled.
+
+- If the result is false, balancing is enabled currently but has been
+  disabled in the past for the collection. Balancing of this collection
+  will begin the next time the balancer runs.
+
+- If this command returns no output, balancing is enabled currently and
+  has never been disabled in the past for this collection. Balancing of
+  this collection will begin the next time the balancer runs.
