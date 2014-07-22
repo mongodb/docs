@@ -4,6 +4,23 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.3.1.89-1``
+-------------------------------
+
+*Released with OnPrem 1.4.3*
+
+- Improved logging for MongoDB 2.6 config servers when connecting with
+  a user that has the built-in clusterMonitor role.
+
+- Fixes issues with connecting to replica set members that use auth
+  with an updated Go client library.
+
+- Added support for HTTP proxy configuration in the agent
+  configuration file.
+
+- Agent includes support for an Offline data collection mode.
+
+
 Monitoring Agent ``2.1.4.51-1``
 -------------------------------
 
