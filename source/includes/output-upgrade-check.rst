@@ -41,3 +41,15 @@ Missing ``_id`` Index
    Collection Error: lack of _id index on collection: <collectionName>
 
 To resolve, create a unique index on ``_id``.
+
+Warning Output
+--------------
+
+.. code-block:: none
+
+    Warning: upgradeCheck only supports V1 indexes. Skipping index: <indexSpec>
+
+To resolve, remove the invalid index and recreate the index omitting
+the version specification, or reindex the collection. Reindex operation
+may be expensive for collections that have a large amount of data
+and/or a large number of indexes.

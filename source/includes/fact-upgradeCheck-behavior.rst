@@ -8,3 +8,6 @@ mitigate the performance impact:
 
 |method| can miss new data during the check when run on a live system with
 active write operations.
+
+For index validation, |method| only supports the check of version ``1``
+indexes and skips the check of version ``0`` indexes.
