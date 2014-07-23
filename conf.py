@@ -7,7 +7,11 @@ import sys
 import os
 import datetime
 
-project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+try:
+    project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+except NameError:
+    project_root = os.path.abspath(os.getcwd())
+
 sys.path.append(project_root)
 
 from bootstrap import buildsystem
@@ -38,6 +42,10 @@ extensions = [
     'mongodb',
     'sphinxcontrib.httpdomain',
 ]
+
+locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-hosted'),
+                os.path.join(conf.paths.projectroot, conf.paths.locale + '-saas')]
+gettext_compact = False
 
 templates_path = ['templates']
 source_suffix = '.txt'
@@ -124,61 +132,56 @@ html_sidebars = { '**': ['pagenav.html'] }
 
 hosted_conf = edition_setup('hosted', conf)
 saas_conf = edition_setup('saas', conf)
-if tags.has('hosted'):
-    conf = hosted_conf
-    html_theme = 'mms-hosted'
-
-    project = u'MongoDB Management Service (MMS) On-Prem'
-    html_title = 'MMS On-Prem Manual'
-    html_short_title = 'MMS On-Prem Manual'
-
-    html_theme_options['pdfpath'] = '/'.join([conf.project.url,
-                                              conf.project.basepath,
-                                              conf.git.branches.current,
-                                              'mms-manual.pdf'])
-
-    latex_documents = hosted_latex_documents
-    rst_epilog.append(".. |s| replace:: Suite")
-    rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
-    rst_epilog.append(".. |mms| replace:: On-Prem MongoDB Management Service")
-    rst_epilog.append(".. |backup| replace:: On Prem MMS Backup")
-    rst_epilog.append(".. |automation| replace:: On Prem MMS Automation")
-    rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
-    rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
-    html_theme_options['edition'] = 'hosted'
-    html_theme_options['sitename'] = 'MMS On-Prem Docs'
-
-    if release == "Upcoming":
-        rst_epilog.append(".. |release-string| replace:: \   ")
+try:
+    if tags.has('hosted'):
+        conf = hosted_conf
+        html_theme = 'mms-hosted'
+        project = u'MongoDB Management Service (MMS) On-Prem'
+        html_title = 'MMS On-Prem Manual'
+        html_short_title = 'MMS On-Prem Manual'
+        html_theme_options['pdfpath'] = '/'.join([conf.project.url,
+                                                  conf.project.basepath,
+                                                  conf.git.branches.current,
+                                                  'mms-manual.pdf'])
+        latex_documents = hosted_latex_documents
+        rst_epilog.append(".. |s| replace:: Suite")
+        rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
+        rst_epilog.append(".. |mms| replace:: On-Prem MongoDB Management Service")
+        rst_epilog.append(".. |backup| replace:: On Prem MMS Backup")
+        rst_epilog.append(".. |automation| replace:: On Prem MMS Automation")
+        rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
+        rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
+        html_theme_options['edition'] = 'hosted'
+        html_theme_options['sitename'] = 'MMS On-Prem Docs'
+        if release == "Upcoming":
+            rst_epilog.append(".. |release-string| replace:: \   ")
+        else:
+            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+        ## add `extlinks` for each published version.
+        for i in conf.git.branches.published:
+            extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     else:
-        rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
-
-    ## add `extlinks` for each published version.
-    for i in conf.git.branches.published:
-        extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
-else:
-    conf = saas_conf
-    html_theme = 'mms-saas'
-
-    html_theme_options['pdfpath'] = '/'.join([conf.project.url,
-                                              conf.project.basepath,
-                                              'mms-manual.pdf'])
-
-    project = u'MongoDB Management Service (MMS)'
-    html_title = 'MMS Manual'
-    html_short_title = 'MMS Manual'
-    latex_documents = saas_latex_documents
-    rst_epilog.append(".. |s| replace:: Service")
-    rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-    rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
-    rst_epilog.append(".. |automation| replace:: MMS Automation")
-    rst_epilog.append(".. |backup| replace:: MMS Backup")
-    rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-    rst_epilog.append(".. |release-string| replace:: \ ")
-    rst_epilog.append(".. |admin-title-string| replace:: MMS")
-
-    html_theme_options['edition'] = 'saas'
-    html_theme_options['sitename'] = 'MMS Docs'
+        conf = saas_conf
+        html_theme = 'mms-saas'
+        html_theme_options['pdfpath'] = '/'.join([conf.project.url,
+                                                  conf.project.basepath,
+                                                  'mms-manual.pdf'])
+        project = u'MongoDB Management Service (MMS)'
+        html_title = 'MMS Manual'
+        html_short_title = 'MMS Manual'
+        latex_documents = saas_latex_documents
+        rst_epilog.append(".. |s| replace:: Service")
+        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
+        rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+        rst_epilog.append(".. |automation| replace:: MMS Automation")
+        rst_epilog.append(".. |backup| replace:: MMS Backup")
+        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
+        rst_epilog.append(".. |release-string| replace:: \ ")
+        rst_epilog.append(".. |admin-title-string| replace:: MMS")
+        html_theme_options['edition'] = 'saas'
+        html_theme_options['sitename'] = 'MMS Docs'
+except NameError:
+    pass
 
 rst_epilog = '\n'.join(rst_epilog)
 
