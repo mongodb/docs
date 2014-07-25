@@ -29,7 +29,9 @@ Each document in the ``zipcode`` collection has the following form:
 
 The ``_id`` field holds the zip code as a string.
 
-The ``city`` field holds the city.
+The ``city`` field holds the city name. A city can have multiple zip codes
+associated with it as different sections of the city can have different
+zip codes.
 
 The ``state`` field holds the two letter state abbreviation.
 
@@ -110,12 +112,10 @@ following aggregation operation:
 
 .. code-block:: javascript
 
-   db.zipcodes.aggregate( { $group :
-                            { _id : { state : "$state", city : "$city" },
-                              pop : { $sum : "$pop" } } },
-                          { $group :
-                          { _id : "$_id.state",
-                            avgCityPop : { $avg : "$pop" } } } )
+   db.zipcodes.aggregate( [
+      { $group : { _id : { state : "$state", city : "$city" }, pop : { $sum : "$pop" } } },
+      { $group : { _id : "$_id.state", avgCityPop : { $avg : "$pop" } } }
+   ] )
 
 Aggregations operations using the :method:`aggregate()
 <db.collection.aggregate()>` helper process all documents in the
@@ -127,9 +127,11 @@ process.
 In this example, the pipeline passes all documents in the
 ``zipcodes`` collection through the following steps:
 
-- the :pipeline:`$group` operator collects all documents and
-  creates new documents for every combination of the ``city`` and
-  ``state`` fields in the source document.
+- the :pipeline:`$group` operator collects all documents and creates
+  new documents for every combination of the ``city`` and ``state``
+  fields in the source document. A city can have multiple zip codes
+  associated with it as different sections of the city can have
+  different zip codes.
 
   After this stage in the pipeline, the documents resemble the
   following:
