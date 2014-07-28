@@ -96,23 +96,24 @@ primary can orphan data from multiple migrations.
 Chunk Migration and Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, each document move during chunk migration propagates to at
-least one secondary before the balancer proceeds with its next
-operation.
+By default, each document operation during chunk migration propagates to at
+least one secondary before the balancer proceeds with the next
+document.
 
-To override this behavior and allow the balancer to continue before
-replicating to a secondary, set the ``_secondaryThrottle`` parameter to
-``false``. See :ref:`sharded-cluster-config-secondary-throttle` to
+To override this behavior and allow the balancer to continue without
+waiting for replication to a secondary, set the ``_secondaryThrottle`` parameter
+to ``false``. See :ref:`sharded-cluster-config-secondary-throttle` to
 update the ``_secondaryThrottle`` parameter for the balancer.
 
-Independent of the ``secondaryThrottle`` setting, certain operations of
+Independent of the ``secondaryThrottle`` setting, certain phases of
 the chunk migration have the following replication policy:
 
 - MongoDB briefly pauses all application writes to the source shard
   before updating the config servers with the new location for the
   chunk, and resumes the application writes after the update. The
-  chunk commit requires all writes to be durably replicated to a
-  majority of servers in order to proceed and finish.
+  chunk move requires all writes to be acknowledged by majority of
+  the members of the replica set both before and after commiting
+  the chunk move to config servers.
 
 - When an outgoing chunk migration finishes and cleanup occurs, all
   writes must be replicated to a majority of servers before further
