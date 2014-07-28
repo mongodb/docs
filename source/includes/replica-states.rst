@@ -52,5 +52,5 @@
      - Can vote. Performs a :doc:`rollback </core/replica-set-rollbacks>`.
 
    * - 10
-     - :replstate:`SHUNNED`
+     - :replstate:`REMOVED`
      - Cannot vote. Was once in the replica set but has now been removed.
