@@ -1,8 +1,8 @@
 .. put cloud-only versions of the release notes in this file
 
-=====================
-Backup Agent Chagelog
-=====================
+======================
+Backup Agent Changelog
+======================
 
 .. default-domain:: mongodb
 
