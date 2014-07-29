@@ -9,105 +9,136 @@ Definition
 
 .. method:: db.currentOp()
 
-   :returns: A :term:`document` that reports in-progress operations for
-             the database instance.
+   Returns a :term:`document` that contains information on in-progress
+   operations for the database instance.
 
-   The :method:`db.currentOp()` method can take no arguments or take the
-   ``true`` argument, which returns a more verbose output, including
-   idle connections and system operations. The following example uses
-   the ``true`` argument:
+   :method:`db.currentOp()` method has the following form:
 
    .. code-block:: javascript
 
-      db.currentOp(true)
+      db.currentOp(<operations>)
 
-   :method:`db.currentOp()` is available only for users with
-   administrative privileges.
+   The :method:`db.currentOp()` method can take the following *optional*
+   argument:
 
-   You can use :method:`db.killOp()` in conjunction with the
-   :data:`~currentOp.opid` field to terminate a currently running
-   operation. The following JavaScript operations for the
-   :program:`mongo` shell filter the output of specific types of
-   operations:
+   .. include:: /reference/method/db.currentOp-param.rst
 
-   .. include:: /includes/example-filter-current-op.rst
+.. _currentOp-behavior:
 
-   .. include:: /includes/warning-terminating-operations.rst
+Behavior
+--------
 
-Example
--------
+If you pass in ``true`` to :method:`db.currentOp()`, the method returns
+information on all operations, including operations on idle
+connections and system operations.
 
-The following is an example of :method:`db.currentOp()` output. If you
-specify the ``true`` argument, :method:`db.currentOp()` returns
-more verbose output.
+.. code-block:: javascript
+
+   db.currentOp(true)
+
+Passing in ``true`` is equivalent to passing in a query document of ``{
+'$all': true }``.
+
+If you pass a query document to :method:`db.currentOp()`, the output
+returns information only for the current operations that match the
+query. You can query on the :ref:`currentOp-output-fields`. See
+:ref:`currentOp-examples`.
+
+You can also specify ``{ '$all': true }`` query document to return
+information on all in-progress operations, including operations on idle
+connections and system operations. If you specify in the query document
+other conditions as well as ``'$all': true``, only the ``'$all': true``
+applies.
+
+Access Control
+--------------
+
+On systems running with :setting:`~security.authorization`, a user must
+have access that includes the :authaction:`inprog` action.
+
+.. _currentOp-examples:
+
+Examples
+--------
+
+The following examples use the :method:`db.currentOp()` method with
+various query documents to filter the output.
+
+.. include:: /includes/example-filter-current-op.rst
+
+Output Example
+--------------
+
+The following is an example of :method:`db.currentOp()` output. 
 
 .. code-block:: javascript
 
    {
      "inprog": [
-                {
-                  "opid" : 3434473,
-                  "active" : <boolean>,
-                  "secs_running" : 0,
-                  "op" : "<operation>",
-                  "ns" : "<database>.<collection>",
-                  "query" : {
-                  },
-                  "client" : "<host>:<outgoing>",
-                  "desc" : "conn57683",
-                  "threadId" : "0x7f04a637b700",
-                  "connectionId" : 57683,
-                  "locks" : {
-                      "^" : "w",
-                      "^local" : "W",
-                      "^<database>" : "W"
-                  },
-                  "waitingForLock" : false,
-                  "msg": "<string>"
-                  "numYields" : 0,
-                  "progress" : {
-                      "done" : <number>,
-                      "total" : <number>
-                  }
-                  "lockStats" : {
-                      "timeLockedMicros" : {
-                          "R" : NumberLong(),
-                          "W" : NumberLong(),
-                          "r" : NumberLong(),
-                          "w" : NumberLong()
-                          },
-                          "timeAcquiringMicros" : {
-                          "R" : NumberLong(),
-                          "W" : NumberLong(),
-                          "r" : NumberLong(),
-                          "w" : NumberLong()
-                      }
-                  }
+          {
+            "opid" : <number>,
+            "active" : <boolean>,
+            "secs_running" : <NumberLong()>,
+            "microsecs_running" : <number>,
+            "op" : <string>,
+            "ns" : <string>,
+            "query" : <document>,
+            "insert" : <document>,
+            "planSummary": <string>,
+            "client" : <string>,
+            "desc" : <string>,
+            "threadId" : <string>,
+            "connectionId" : <number>,
+            "locks" : {
+                "^" : <string>,
+                "^local" : <string>,
+                "^<database>" : <string>
+            },
+            "waitingForLock" : <boolean>,
+            "msg": <string>,
+            "progress" : {
+                "done" : <number>,
+                "total" : <number>
+            },
+            "killPending" : <boolean>,
+            "numYields" : <number>,
+            "lockStats" : {
+                "timeLockedMicros" : {
+                    "R" : <NumberLong()>,
+                    "W" : <NumberLong()>,
+                    "r" : <NumberLong()>,
+                    "w" : <NumberLong()>
                 },
-               ]
+                "timeAcquiringMicros" : {
+                    "R" : <NumberLong()>,
+                    "W" : <NumberLong()>,
+                    "r" : <NumberLong()>,
+                    "w" : <NumberLong()>
+                }
+            }
+          },
+          ...
+      ]
    }
 
+.. _currentOp-output-fields:
 
-Output
-------
-
-.. versionchanged:: 2.2
-
-The :method:`db.currentOp()` returns a document with an array named
-``inprog``. The ``inprog`` array contains a document for each
-in-progress operation. The fields that appear for a given operation
-depend on the kind of operation and its state.
+Output Fields
+-------------
 
 .. data:: currentOp.opid
 
-   Holds an identifier for the operation. You can pass this value to
+   The identifier for the operation. You can pass this value to
    :method:`db.killOp()` in the :program:`mongo` shell to terminate the
    operation.
 
+   .. include:: /includes/warning-terminating-operations.rst
+
 .. data:: currentOp.active
 
-   A boolean value, that is ``true`` if the operation has started
-   or ``false`` if the operation is queued and waiting for a lock to run.
+   A boolean value specifying whether the operation has started. Value
+   is ``true`` if the operation has started or ``false`` if the
+   operation is queued and waiting for a lock to run.
    :data:`~currentOp.active` may be ``true`` even if the operation has
    yielded to another operation.
 
@@ -117,33 +148,99 @@ depend on the kind of operation and its state.
    value by subtracting the current time from the start time of the
    operation.
 
-   If the operation is not running, (i.e. if :data:`~currentOp.active` is
-   ``false``), this field may not appear in the output of
-   :method:`db.currentOp()`.
+   Only appears if the operation is running, (i.e. if
+   :data:`~currentOp.active` is ``true``).
+
+.. data:: currentOp.microsecs_running
+
+   .. versionadded:: 2.6
+
+   The duration of the operation in microseconds. MongoDB calculates this
+   value by subtracting the current time from the start time of the
+   operation.
+
+   Only appears if the operation is running, (i.e. if
+   :data:`~currentOp.active` is ``true``).
 
 .. data:: currentOp.op
 
    A string that identifies the type of operation. The possible values
    are:
 
-   - ``insert``
-   - ``query``
-   - ``update``
-   - ``remove``
-   - ``getmore``
-   - ``command``
+   - ``"none"``
+   - ``"update"``
+   - ``"insert"``
+   - ``"query"``
+   - ``"getmore"``
+   - ``"remove"``
+   - ``"killcursors"``
+
+   The ``"query"`` type includes operations that use the
+   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
+   commands. Write operations that do not use the aforementioned write
+   commands will show with the appropriate ``"insert"``, ``"update"``,
+   or ``"remove"`` value.
 
 .. data:: currentOp.ns
 
-   The :term:`namespace` the operation targets. MongoDB forms
-   namespaces using the name of the :term:`database` and the name of
-   the :term:`collection`.
+   The :term:`namespace` the operation targets. A namespace consists of
+   the :term:`database` name and the :term:`collection` name
+   concatenated with a dot (``.``); i.e., ``"<database>.<collection>"``.
+
+.. data:: currentOp.insert
+
+   Contains the document to be inserted for operations with
+   :data:`~currentOp.op` value of ``"insert"``. Only appears for
+   operations with :data:`~currentOp.op` value ``"insert"``.
+
+   Insert operations such as :method:`db.collection.insert()` that use
+   the :dbcommand:`insert` command will have :data:`~currentOp.op` value
+   of ``"query"``.
 
 .. data:: currentOp.query
 
-   A document containing the current operation's query. The document
-   is empty for operations that do not have queries: ``getmore``,
-   ``insert``, and ``command``.
+   A document containing information on current operation if
+   :data:`~currentOp.op` value is *not* ``"insert"``.
+   :data:`~currentOp.query` does not appear for :data:`~currentOp.op`
+   of type ``"insert"``.
+
+   Write operations that use the :dbcommand:`insert`,
+   :dbcommand:`update`, and :dbcommand:`delete` commands have
+   :data:`~currentOp.op` value of ``"query"`` and the corresponding
+   :data:`~currentOp.query` contains information on these operations.
+
+   For example, the following :data:`~currentOp.query` field contains
+   information for an update operation:
+
+   .. code-block:: javascript
+
+      "query" : {
+                  "update" : "grades",
+                  "updates" : [
+                     {
+                        "q" : {
+                           "x" : {
+                              "$gt" : 70
+                           }
+                        },
+                        "u" : {
+                           "$set" : {
+                              "y" : 1
+                           }
+                        },
+                        "multi" : true,
+                        "upsert" : false
+                     }
+                  ],
+                  "ordered" : true
+               }
+
+   The document can be empty for :data:`~currentOp.op` types such as
+   ``"getmore"``.
+
+.. data:: currentOp.planSummary
+
+   A string that contains the query plan to help debug slow queries.
 
 .. data:: currentOp.client
 
@@ -228,10 +325,11 @@ depend on the kind of operation and its state.
 
       Reports the total number.
 
-.. data:: currentOp.killed
+.. data:: currentOp.killPending
 
-   Returns ``true`` if :program:`mongod` instance is in the process of
-   killing the operation.
+   Returns ``true`` if the operation is currently flagged for
+   termination.  When the operation encounters its next safe termination point, the
+   operation will terminate.
 
 .. data:: currentOp.numYields
 
