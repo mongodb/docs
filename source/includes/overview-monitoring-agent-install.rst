@@ -1,4 +1,4 @@
-.. This is the Overview content for all the monitoring agent install tutorials.
+.. This is the Overview content for all the Monitoring Agent install tutorials.
 
 The MMS Monitoring Agent is a lightweight component that runs within your
 infrastructure, connects to your MongoDB processes, collects data about the
@@ -16,11 +16,11 @@ deployment:
    This tutorial will guide you through the steps necessary
    to install or update |monitoring| on your system. You must install
    the On Prem Monitoring server itself before installing the
-   monitoring agent.
+   Monitoring Agent.
 
 .. only:: saas
 
    This tutorial will guide you through the steps necessary
-   to install or update the Monitoring agent on your system.
+   to install or update the Monitoring Agent on your system.
 
 See the :doc:`/faq/monitoring` page for additional information.

@@ -121,8 +121,8 @@ points-in-time, in between scheduled snapshots, that MMS can use to
 create restores. Configure checkpoints using the *Edit Snapshot
 Schedule* link and interface.
 
-This version marks a change in the numbering scheme of backup agents
-to support improved packaging options for the backup agent.
+This version marks a change in the numbering scheme of Backup Agents
+to support improved packaging options for the Backup Agent.
 
 Backup Agent ``v20131216.1``
 ----------------------------

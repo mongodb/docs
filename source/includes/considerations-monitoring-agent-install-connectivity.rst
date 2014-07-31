@@ -8,12 +8,12 @@ You must configure the networking rules of your deployment so that:
 
 .. only:: saas
 
-   - the Monitoring agent can connect to ``mms.mongodb.com`` on port 443
+   - the Monitoring Agent can connect to ``mms.mongodb.com`` on port 443
      (i.e. ``https``.)
 
 .. only:: hosted
 
-   - the Monitoring agent can connect to |monitoring| server on port 443
+   - the Monitoring Agent can connect to |monitoring| server on port 443
      (i.e. ``https``.)
 
 The |monitoring| server does not make *any* outbound connections to the agents

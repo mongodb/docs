@@ -7,7 +7,7 @@ Backup Agent
 ~~~~~~~~~~~~
 
 :guilabel:`Backup Agent` provides links for downloading the
-pre-configured Backup agent in both ``.zip`` and ``.tar.gz``
+pre-configured Backup Agent in both ``.zip`` and ``.tar.gz``
 formats, on a variety of platforms. :doc:`/backup`
 requires this agent.
 

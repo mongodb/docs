@@ -70,7 +70,7 @@ Monitoring Agent ``2.1.0``
 
 *Released 2014-03-26*
 
-- Added Kerberos support for the new 2.x monitoring agent.
+- Added Kerberos support for the new 2.x Monitoring Agent.
 
 - Windows click to install MSI agent installer.
 
@@ -84,9 +84,9 @@ Monitoring Agent ``2.0.1``
 - Enhanced ability to stay connected when network connections become unstable
   due to firewalls and other factors.
 
-- Included HTTP network proxy support for new 2.x monitoring agent with same
+- Included HTTP network proxy support for new 2.x Monitoring Agent with same
   environment variable mechanism available to the Python version of the
-  monitoring agent.
+  Monitoring Agent.
 
 Monitoring Agent ``2.0.0``
 --------------------------
@@ -138,7 +138,7 @@ Monitoring Agent ``1.6.4``
 - Added support for the agent to connect to MongoDB deployments that
   use Kerberos.
 
-- Allowed the monitoring agent to send data to the MMS server after
+- Allowed the Monitoring Agent to send data to the MMS server after
   detecting changes, such as adding a new host.
 
 Monitoring Agent ``1.6.3``
