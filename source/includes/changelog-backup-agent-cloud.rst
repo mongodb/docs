@@ -6,6 +6,22 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.3.0.149``
+--------------------------
+
+*Released 2014-07-29*
+
+- Upgraded agent to use to Go 1.3
+
+- Added support for ``version`` and ``-version.``
+
+- Added support for connecting to hosts using LDAP authentication. 
+
+- Agent now provides additional logging information when the Backup
+  Agent manipulates the balancer.
+
+- Agent now supports configuring HTTP with the config file.
+
 Backup Agent ``2.2.2.125``
 --------------------------
 

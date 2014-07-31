@@ -8,6 +8,24 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.4.0.101``
+-------------------------------
+
+*Released 2014-07-29*
+
+- Upgraded agent to use Go 1.3.
+
+- Updated ``mgo`` driver, which includes fix for :issue:`MGO-34`. All
+  DNS lookups should now timeout appropriately. 
+
+- Added support for connecting to hosts using LDAP authentication. 
+
+- Added support for ``version`` and ``-version``.
+
+ Agent now displays git commit hash of Monitoring Agent in the log file.
+
+- Updates to the configuration file format.
+
 Monitoring Agent ``2.3.1.89-1``
 -------------------------------
 
