@@ -4,12 +4,12 @@ title:
 stepnum: 1
 pre: |
    Run :method:`~cursor.explain()` on the following query on the
-   ``orders`` collection:
+   ``inventory`` collection:
 ref: ""
 action:
   language: javascript
   code: |
-     db.orders.find( { "items.sku": "zzz", status: "A" } ).explain()
+     db.inventory.find( { "item": "MNO2" } ).explain()
 ---
 title:
   text: Review the returned object.
@@ -23,124 +23,40 @@ action:
   language: javascript
   code: |
      {
-         "cursor" : "BasicCursor",
-         "isMultiKey" : false,
-         "n" : 4,
-         "nscannedObjects" : 15,
-         "nscanned" : 15,
-         "nscannedObjectsAllPlans" : 15,
-         "nscannedAllPlans" : 15,
-         "scanAndOrder" : false,
-         "indexOnly" : false,
-         "nYields" : 0,
-         "nChunkSkips" : 0,
-         "millis" : 0,
-         "server" : "bartleby.local:27017",
-         "filterSet" : false
+        "cursor" : "BtreeCursor item_1",
+        "isMultiKey" : false,
+        "n" : 1,
+        "nscannedObjects" : 1,
+        "nscanned" : 1,
+        "nscannedObjectsAllPlans" : 1,
+        "nscannedAllPlans" : 1,
+        "scanAndOrder" : false,
+        "indexOnly" : false,
+        "nYields" : 0,
+        "nChunkSkips" : 0,
+        "millis" : 4,
+        "indexBounds" : {
+            "item" : [
+                 [
+                    "MNO2",
+                    "MNO2"
+                 ]
+            ]
+        },
+        "server" : "someserver.local:27017",
+        "filterSet" : false
      }
 post: |
-   The :data:`~explain.cursor` value of ``"BasicCursor"`` indicates
-   that the server had to perform a :term:`collection scan`.
+   The :data:`~explain.cursor` value of ``"BtreeCursor item_1"`` indicates
+   that the server used an index named ``item_1``.
 
-   The :data:`~explain.n` indicates that ``4`` documents that match the
-   query.
+   The :data:`~explain.n` indicates MongoDB found and returned ``1``
+   document that matched the query condition.
 
-   Because MongoDB performed a collection scan, the
-   :data:`~explain.nscannedObjects` value indicates the number of
-   documents read from the collection.
-
-   The :data:`~explain.nscanned` indicates the number of documents
-   scanned from the collection.
-
-   So, without an index to support the query, the query plan indicates
-   that ``15`` documents were read to return ``4`` matching documents.
+   The :data:`~explain.nscannedObjects` value indicates the number of
+   index entries read from the collection.
 
    For more information on the fields in the returned document, see the
    :manual:`Explain Output Reference
    </reference/method/cursor.explain/#explain-output-fields>`.
----
-title:
-  text: Create an index to support the previous query.
-  character: "`"
-stepnum: 3
-pre: |
-   Create a compound index on the ``items.sku`` and ``status`` fields.
-ref: ""
-action:
-  language: javascript
-  code: |
-     db.orders.ensureIndex( { "items.sku": 1, status: 1 } )
-post: |
-  See :doc:`/tutorial/nav/create-indexes` for more information on creating
-  indexes.
----
-title:
-  text: Rerun the query with ``explain()``.
-  character: "`"
-stepnum: 4
-pre: |
-   Rerun :method:`~cursor.explain()` on the previous query:
-ref: ""
-action:
-  language: javascript
-  code: |
-     db.orders.find( { "items.sku": "zzz", status: "A" } ).explain()
----
-title:
-  text: Review the returned object.
-  character: "`"
-stepnum: 5
-ref: ""
-pre: |
-  Compare the results with the previous query plan.
-action:
-  language: javascript
-  code: |
-   {
-      "cursor" : "BtreeCursor items.sku_1_status_1",
-      "isMultiKey" : true,
-      "n" : 4,
-      "nscannedObjects" : 4,
-      "nscanned" : 4,
-      "nscannedObjectsAllPlans" : 4,
-      "nscannedAllPlans" : 4,
-      "scanAndOrder" : false,
-      "indexOnly" : false,
-      "nYields" : 0,
-      "nChunkSkips" : 0,
-      "millis" : 0,
-      "indexBounds" : {
-         "items.sku" : [
-            [
-               "zzz",
-               "zzz"
-            ]
-         ],
-         "status" : [
-            [
-               "A",
-               "A"
-            ]
-         ]
-      },
-      "server" : "bartleby.local:27017",
-      "filterSet" : false
-   }
-post: |
-   The :data:`~explain.cursor` value of ``"BtreeCursor
-   items.sku_1_status_1"`` indicates that to fulfill the query, the
-   server used an index, specifically an index named
-   ``items.sku_1_status_1``.
-
-   Because MongoDB used an index, the :data:`~explain.nscannedObjects`
-   indicate the number of index entries read.
-
-   As before, :data:`~explain.n` indicates that number of documents
-   that match the query, and :data:`~explain.nscanned` indicates the
-   number of documents scanned from the collection.
-
-   This query plan indicates that the server read ``4``
-   index entries and the associated ``4`` documents from the collection
-   to return ``4`` matching documents. With the index, the server needs
-   to scan fewer documents to fulfill the query.
 ...
