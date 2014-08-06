@@ -18,13 +18,9 @@ Definition
 
    The :pipeline:`$geoNear` operator accepts a :term:`document` that
    contains the following fields. Specify all distances in the same
-   units as the document coordinate system:
+   units as those of the processed documents' coordinate system:
 
    .. include:: /reference/operator/aggregation/geoNear-field.rst
-
-.. note::
-
-
 
 Behavior
 --------
@@ -61,7 +57,7 @@ Example
 
 Consider a collection ``places`` that has a ``2dsphere`` index. The following
 aggregation finds at most ``5`` unique documents with a location at
-most .010 from the center ``[40.723, -73.99]`` and have ``type`` equal
+most 2 units from the center ``[ -73.99279 , 40.719296 ]`` and have ``type`` equal
 to ``public``:
 
 .. code-block:: javascript
@@ -69,9 +65,9 @@ to ``public``:
    db.places.aggregate([
        {
          $geoNear: {
-            near : { type : "Point", coordinates : [40.723, -73.99] },
+            near : { type : "Point", coordinates : [ -73.99279 , 40.719296 ] },
             distanceField: "dist.calculated",
-            maxDistance: 0.010,
+            maxDistance: 2,
             query: { type: "public" },
             includeLocs: "dist.location",
             uniqueDocs: true,
@@ -86,28 +82,28 @@ The aggregation returns the following:
 .. code-block:: javascript
 
    {
-      "result": [
+      "result" : [
          {
            "_id" : 8,
            "name" : "Sara D. Roosevelt Park",
            "type" : "public",
-           "location" : { 
-              "type" : "Polygon",
-              "coordinates": [ [ [ 40.715, -73.994 ], [ 40.723, -73.991 ], [ 40.723, -73.99 ], [ 40.715, -73.994 ] ] ]
-           },
-           "dist" : {
-              "calculated" : 0,
-              "location" : {
-                 "type" : "Polygon",
-                 "coordinates" : [ [ [ 40.715, -73.994 ], [ 40.723, -73.991 ], [ 40.723, -73.99 ], [ 40.715, -73.994 ] ] ]
-              } 
-           }
+           "location" : {
+               "type" : "Point",
+               "coordinates" : [ -73.9928, 40.7193 ]
+            },
+            "dist" : {
+               "calculated" : 0.9546646278778689,
+               "location" : { 
+                  "type": "Point",
+                  "coordinates" : [ -73.9928, 40.7193 ]
+               } 
+            }
          }
       ],
       "ok" : 1
    }
 
-The matching document in the ``result`` field contains two new fields:
+The document in the ``result`` array contains two new fields:
 
 - ``dist.calculated`` field that contains the calculated distance, and
 
