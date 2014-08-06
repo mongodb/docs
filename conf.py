@@ -111,11 +111,19 @@ extlinks = {
 for i in conf.git.branches.published:
     extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
 
-intersphinx_mapping = {}
-for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i['path']))
+
+try:
+    intersphinx_mapping = {}
+    for i in intersphinx_libs:
+        intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
+                                                                  conf.paths.output,
+                                                                  i.path))
+except AttributeError:
+    intersphinx_mapping = {}
+    for i in intersphinx_libs:
+        intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
+                                                                  conf.paths.output,
+                                                                  i['path']))
 
 languages = [
     ("ar", "Arabic"),
