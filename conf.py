@@ -241,8 +241,9 @@ try:
     man_pages = []
     if 'manpages' in conf.system.files.data:
         for mp in conf.system.files.data.manpages:
-            man_pages.apend((mp.file, mp.name, mp.title, mp.authors, mp.section))
-except AttributeError:
+            man_pages.append((mp.file, mp.name, mp.title, mp.authors, mp.section))
+except AttributeError as e:
+    print(e)
     # we have an old-style config object, do the old
     if tags.has('man'):
         man_page_conf_path = os.path.join(conf.paths.builddata, 'manpages.yaml')
