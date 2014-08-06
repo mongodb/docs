@@ -44,7 +44,16 @@ except ImportError:
 
     conf.paths.projectroot = project_root
     intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'intersphinx.yaml'))
-    sconf = BuildConfiguration(os.path.join(conf.paths.builddata, 'sphinx-local.yaml'))
+    sconf = BuildConfiguration(os.path.join(conf.paths.builddata, 'sphinx_local.yaml'))
+
+try:
+    tags
+except NameError:
+    class Tags(object):
+        def has(self, *args):
+            return False
+
+    tags = Tags()
 
 # -- General configuration ----------------------------------------------------
 
@@ -188,6 +197,8 @@ except AttributeError:
             pdfs = ingest_yaml_list(pdf_conf_path)
         else:
             raise SphinxError('[WARNING]: skipping pdf builds because of missing {0} file'.format(pdf_conf_path))
+    else:
+        pdfs = []
 
     for pdf in pdfs:
         _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
@@ -230,6 +241,8 @@ except AttributeError:
             man_page_definitions = ingest_yaml_list(man_page_conf_path)
         else:
             raise SphinxError('[WARNING]: skipping man builds because of missing {0} file'.format(man_page_conf_path))
+    else:
+        man_page_definitions = []
 
     man_pages = []
     for mp in man_page_definitions:
