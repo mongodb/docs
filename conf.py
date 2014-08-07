@@ -13,7 +13,7 @@ from sphinx.errors import SphinxError
 
 try:
     from giza.config.runtime import RuntimeStateConfig
-    from giza.config.helper import fetch_config, get_versions, get_manual_path, get_path
+    from giza.config.helper import fetch_config, get_versions, get_manual_path
     from giza.strings import dot_concat
 
     conf = fetch_config(RuntimeStateConfig())
@@ -242,7 +242,6 @@ try:
         for mp in conf.system.files.data.manpages:
             man_pages.append((mp.file, mp.name, mp.title, mp.authors, mp.section))
 except AttributeError as e:
-    print(e)
     # we have an old-style config object, do the old
     if tags.has('man'):
         man_page_conf_path = os.path.join(conf.paths.builddata, 'manpages.yaml')
