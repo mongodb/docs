@@ -8,14 +8,15 @@ $setOnInsert
 
    .. versionadded:: 2.4
 
-   If an :term:`upsert` results in an insert of a document, then
-   :update:`$setOnInsert` assigns the specified values to the fields in
-   the document. You can specify an upsert by specifying the
-   :term:`upsert` option for either the
+   If an update operation with :ref:`upsert: true <upsert-parameter>`
+   results in an insert of a document, then :update:`$setOnInsert`
+   assigns the specified values to the fields in the document. If the
+   update operation does not result in an insert,
+   :update:`$setOnInsert` is ignored.
+
+   You can specify the ``upsert`` option for either the
    :method:`db.collection.update()` or
-   :method:`db.collection.findAndModify()` methods. If the upsert
-   results in an :doc:`update </core/write-operations>`,
-   :update:`$setOnInsert` has no effect.
+   :method:`db.collection.findAndModify()` methods.
 
    .. code-block:: javascript
 
@@ -25,69 +26,36 @@ $setOnInsert
          { upsert: true }
       )
 
-Examples
+Example
 --------
-
-Upsert Results in an Insert
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A collection named ``products`` contains no documents.
 
-Then, the following :method:`upsert <db.collection.update()>`
-operation performs an insert and applies the
-:update:`$setOnInsert` to set the field ``defaultQty`` to
-``100``:
-
-.. code-block:: javascript
-
-   db.products.update(
-     { _id: 1 },
-     { $setOnInsert: { defaultQty: 100 } },
-     { upsert: true }
-   )
-
-The ``products`` collection contains the newly-inserted document:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "defaultQty" : 100 }
-
-
-Upsert Results in an Update
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If the :method:`db.collection.update()` or the
-:method:`db.collection.findAndModify()` method has the ``upsert`` flag
-and performs an update and not an insert, :update:`$setOnInsert` has no
-effect.
-
-A collection named ``products`` has the following document:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "defaultQty" : 100 }
-
-The following :method:`~db.collection.update()` with the
-*upsert* flag operation performs an update:
+Then, the following :method:`db.collection.update()` with :ref:`upsert:
+true <upsert-parameter>` inserts a new document.
 
 .. code-block:: javascript
 
    db.products.update(
      { _id: 1 },
      {
-       $setOnInsert: { defaultQty: 500, inStock: true },
-       $set: { item: "apple" }
+        $set: { item: "apple" },
+        $setOnInsert: { defaultQty: 100 }
      },
      { upsert: true }
    )
 
-Because the :method:`~db.collection.update()` with *upsert* only
-performs an update, MongoDB ignores the :update:`$setOnInsert`
-operation and only applies the :update:`$set` operation.
+The new document is created with ``_id`` equal to ``1`` from the
+``<query>`` condition, and the :update:`$set` and
+:update:`$setOnInsert` operations are applied to this document.
 
-The ``products`` collection now contains the following modified
-document:
+The ``products`` collection contains the newly-inserted document:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "defaultQty" : 100, "item" : "apple" }
+   { "_id" : 1, "item" : "apple", "defaultQty" : 100 }
+
+If the :method:`db.collection.update()` with :ref:`upsert: true
+<upsert-parameter>` had found a matching document, then MongoDB
+performs an update, applying the :update:`$set` operation but ignoring
+the :update:`$setOnInsert` operation.

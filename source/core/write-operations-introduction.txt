@@ -12,11 +12,12 @@ MongoDB instance. In MongoDB, write operations target a single
 :term:`collection`. All write operations in MongoDB are atomic on the
 level of a single :term:`document`.
 
-There are three classes of write operations in MongoDB: insert, update,
-and remove. Insert operations add new data to a collection. Update
-operations modify existing data, and remove operations delete data
-from a collection. No insert, update, or remove can affect more than
-one document atomically.
+There are three classes of write operations in MongoDB: :ref:`insert
+<write-op-insert>`, :ref:`update <write-op-update>`, and :ref:`remove
+<write-op-remove>`. Insert operations add new data to a collection.
+Update operations modify existing data, and remove operations delete
+data from a collection. No insert, update, or remove can affect more
+than one document atomically.
 
 For the update and remove operations, you can specify criteria, or
 conditions, that identify the documents to update or remove. These
@@ -27,12 +28,13 @@ MongoDB allows applications to determine the acceptable level of
 acknowledgement required of write operations. See
 :doc:`/core/write-concern` for more information.
 
-Create
+.. _write-op-insert:
+
+Insert
 ------
 
-Create operations add new :term:`documents <document>` to a collection.
-In MongoDB, the :method:`db.collection.insert()` method perform create
-operations.
+In MongoDB, the :method:`db.collection.insert()` method adds new
+:term:`documents <document>` to a collection.
 
 The following diagram highlights the components of a MongoDB insert
 operation:
@@ -60,26 +62,7 @@ The following diagram shows the same query in SQL:
          }
       )
 
-For more information, see :method:`db.collection.insert()` and
-:doc:`/tutorial/insert-documents`.
-
-Some updates also create records. If an update operation specifies the
-:term:`upsert` flag *and* there are no documents that match the query
-portion of the update operation, then the update operation creates a
-new document. If there are matching documents, then an update operation
-with the :term:`upsert` flag modifies the matching document or
-documents.
-
-With an :term:`upsert`, applications can decide between
-performing an update or an insert operation using just a
-single call. Both the :method:`~db.collection.update()` method
-and the :method:`~db.collection.save()` method can perform
-an :term:`upsert`. See :method:`~db.collection.update()` and
-:method:`~db.collection.save()` for details on performing an
-:term:`upsert` with these methods.
-
-.. see:: :doc:`/reference/sql-comparison` for additional examples of
-   MongoDB write operations and the corresponding SQL statements.
+For more information and examples, see :method:`db.collection.insert()`.
 
 Insert Behavior
 ~~~~~~~~~~~~~~~
@@ -93,16 +76,26 @@ collection. For operations with :ref:`write concern <write-concern>`,
 if you try to create a document with a duplicate ``_id`` value,
 :program:`mongod` returns a duplicate key exception.
 
+Other Methods to Add Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also add new documents to a collection using methods that have
+an :ref:`upsert <write-operations-upsert-behavior>` option. If the option
+is set to ``true``, these methods will either modify existing documents
+or add a new document when no matching documents exist for the query.
+For more information, see :ref:`write-operations-upsert-behavior`.
+
+.. _write-op-update:
+
 Update
 ------
 
-Update operations modify existing :term:`documents <document>` in a
-:term:`collection`. In MongoDB, :method:`db.collection.update()` and
-the :method:`db.collection.save()` methods perform update operations.
-The :method:`db.collection.update()` method can accept query criteria
-to determine which documents to update as well as an option to update
-multiple rows. The method can also accept options that affect its
-behavior such as the ``multi`` option to update multiple documents.
+In MongoDB, the :method:`db.collection.update()` method modifies
+existing :term:`documents <document>` in a :term:`collection`. The
+:method:`db.collection.update()` method can accept query criteria to
+determine which documents to update as well as an options document that
+affects its behavior, such as the ``multi`` option to update multiple
+documents.
 
 The following diagram highlights the components of a MongoDB update
 operation:
@@ -128,13 +121,12 @@ The following diagram shows the same query in SQL:
    of ``age`` greater than ``18``.
 
 For more information, see :method:`db.collection.update()` and
-:method:`db.collection.save()`, and :doc:`/tutorial/modify-documents`
-for examples.
+:ref:`update() Examples <update-method-examples>`.
 
 .. _update-multiple-documents:
 
-Update Behavior
-~~~~~~~~~~~~~~~
+Default Update Behavior
+~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, the :method:`db.collection.update()` method updates a
 **single** document. However, with the ``multi`` option,
@@ -143,21 +135,42 @@ collection that match a query.
 
 The :method:`db.collection.update()` method either updates specific
 fields in the existing document or replaces the document. See
-:method:`db.collection.update()` for details.
+:method:`db.collection.update()` for details as well as examples.
 
 .. include:: /includes/fact-update-field-order.rst
 
-The :method:`db.collection.save()` method replaces a document and can
-only update a single document. See :method:`db.collection.save()` and
-:doc:`/tutorial/insert-documents` for more information
+.. _write-operations-upsert-behavior:
 
-Delete
+Update Behavior with the ``upsert`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.update()` method includes :ref:`upsert:
+true <upsert-parameter>` *and* no documents match the query portion of
+the update operation, then the update operation creates a new document.
+If there are matching documents, then the update operation with the
+:ref:`upsert: true <upsert-parameter>` modifies the matching document
+or documents.
+
+By specifying :term:`upsert: true`, applications can indicate, in a
+*single* operation, that an insert should be performed if no matching
+documents are found for the update. See
+:method:`~db.collection.update()` for details on performing an
+:ref:`upsert <upsert-parameter>`.
+
+.. versionchanged:: 2.6
+
+   In 2.6, the new :method:`Bulk()` methods and the underlying
+   :dbcommand:`update` command allow you to perform many updates with
+   ``upsert: true`` operations in a single call.
+
+.. _write-op-remove:
+
+Remove
 ------
 
-Delete operations remove documents from a collection. In MongoDB,
-:method:`db.collection.remove()` method performs delete operations. The
-:method:`db.collection.remove()` method accepts a query criteria to
-determine which documents to remove.
+In MongoDB, the :method:`db.collection.remove()` method deletes
+documents from a collection. The :method:`db.collection.remove()`
+method accepts a query criteria to determine which documents to remove.
 
 The following diagram highlights the components of a MongoDB remove
 operation:
@@ -206,3 +219,14 @@ write operation that affects multiple documents using the
 
 To isolate a sequence of write operations from other read and write
 operations, see :doc:`/tutorial/perform-two-phase-commits`.
+
+Additional Methods
+------------------
+
+The :method:`db.collection.save()` method can either update an existing
+document or an insert a document if the document cannot be found by the
+``_id`` field. See :method:`db.collection.save()` for more information
+and examples.
+
+MongoDB also provides methods to perform write operations in bulk. See
+:method:`Bulk()` for more information.

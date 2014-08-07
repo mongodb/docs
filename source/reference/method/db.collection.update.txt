@@ -101,8 +101,8 @@ expressions, then:
 
 .. _upsert-parameter:
 
-Upsert Parameter
-~~~~~~~~~~~~~~~~
+Upsert Option
+~~~~~~~~~~~~~
 
 Upsert Behavior
 ```````````````
@@ -122,6 +122,8 @@ The update creates the new document with either:
 If ``upsert`` is ``true`` and there are documents that match the query
 criteria, :method:`~db.collection.update()` performs an update.
 
+.. seealso:: :update:`$setOnInsert`
+
 Use Unique Indexes
 ``````````````````
 
@@ -131,7 +133,7 @@ Use Unique Indexes
 
 Given a collection named ``people`` where no documents have a ``name``
 field that holds the value ``Andy``. Consider when multiple clients
-issue the following *update* with an ``upsert`` parameter at the same
+issue the following *update* with ``upsert: true`` at the same
 time:
 
 .. code-block:: javascript
@@ -152,10 +154,11 @@ there is no unique index on the ``name`` field, then each update
 operation may result in an insert.
 
 To prevent MongoDB from inserting the same document more than once,
-create a :ref:`unique index <index-type-unique>` on the ``name``
-field. With a unique index, if an applications issues a group of upsert
-operations, *exactly one* :method:`~db.collection.update()` would
-successfully insert a new document.
+create a :ref:`unique index <index-type-unique>` on the ``name`` field.
+With a unique index, if multiple applications issue the same update
+with ``upsert: true``, *exactly one*
+:method:`~db.collection.update()` would successfully insert a new
+document.
 
 The remaining operations would either:
 
@@ -198,6 +201,8 @@ Sharded Collections
 .. include:: /includes/fact-single-modification-in-sharded-collections.rst
 
 .. seealso:: :method:`~db.collection.findAndModify()`
+
+.. _update-method-examples:
 
 Examples
 --------
@@ -321,12 +326,14 @@ the ``author`` field and changed the values of the ``price`` and
 
 .. _example-update-upsert:
 
-Insert a New Document if No Match Exists (Upsert)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Insert a New Document if No Match Exists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following command sets the *upsert* option to ``true`` so that
-:method:`~db.collection.update()` creates a new document in the
-``books`` collection if no document matches the ``<query>`` parameter:
+
+The following update sets the :ref:`upsert <upsert-parameter>` option
+to ``true`` so that :method:`~db.collection.update()` creates a new
+document in the ``books`` collection if no document matches the
+``<query>`` parameter:
 
 .. code-block:: javascript
 
@@ -388,8 +395,8 @@ method times out after 5 seconds.
       }
    )
 
-Combine the Upsert and Multi Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Combine the ``upsert`` and ``multi`` Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Given a ``books`` collection that includes the following documents:
 
@@ -401,7 +408,7 @@ Given a ``books`` collection that includes the following documents:
 
 The following command specifies the ``multi`` parameter to update all
 documents where ``item`` is ``"Divine Comedy"`` and the ``author`` is
-``"Dante"`` and specifies the ``upsert`` parameter to create a new
+``"Dante"`` and specifies ``upsert: true`` to create a new
 document if no matching documents are found:
 
 .. code-block:: javascript
@@ -559,11 +566,11 @@ WriteResult
 Successful Results
 ~~~~~~~~~~~~~~~~~~
 
-The :method:`~db.collection.update()` method returns a :method:`WriteResult`
-object that contains the status of the operation. Upon success, the
-:method:`WriteResult` object contains the number of
+The :method:`~db.collection.update()` method returns a
+:method:`WriteResult` object that contains the status of the operation.
+Upon success, the :method:`WriteResult` object contains the number of
 documents that matched the query condition, the number of documents
-inserted via an ``upsert``, and the number of documents modified:
+inserted by the update, and the number of documents modified:
 
 .. code-block:: javascript
 
