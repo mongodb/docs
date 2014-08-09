@@ -94,7 +94,6 @@ languages = [
 ]
 
 # -- Options for HTML output ---------------------------------------------------
-
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = None
 html_static_path = ['source/_static', 'source/figures']
