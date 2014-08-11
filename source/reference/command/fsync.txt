@@ -48,6 +48,21 @@ block. As a result, :dbcommand:`fsync`,
 with lock, is not a reliable mechanism for making
 a :program:`mongod` instance operate in a read-only mode.
 
+.. important::
+
+   Blocked read operations prevent verification of authentication.
+   Such reads are necessary to establish new connections
+   to a :program:`mongod` that enforces authorization checks.
+
+.. warning::
+
+   When calling :dbcommand:`fsync` with lock, ensure that the connection remains
+   open to allow a subsequent call to :method:`db.fsyncUnlock()`.
+
+   Closing the connection may make it difficult to release the lock.
+
+
+=======
 Examples
 --------
 
@@ -84,6 +99,16 @@ You may continue to perform read operations on a :program:`mongod` instance that
 :dbcommand:`fsync` lock. However, after the first write operation all
 subsequent read operations wait until you unlock the :program:`mongod` instance.
 
+Unlock ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To unlock the :program:`mongod`, use :method:`db.fsyncUnlock()`:
+
+.. code-block:: javascript
+
+   db.fsyncUnlock();
+
+
 Check Lock Status
 ~~~~~~~~~~~~~~~~~
 
@@ -109,19 +134,4 @@ call it, with the following syntax:
    serverIsLocked()
 
 This function will return ``true`` if the :program:`mongod` instance is
-currently locked and ``false`` if the :program:`mongod` is not locked. To
-unlock the :program:`mongod`, make a request for an unlock using the
-following operation:
-
-.. code-block:: javascript
-
-   db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
-
-Unlock ``mongod`` Instance
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To unlock the :program:`mongod` instance, use :method:`db.fsyncUnlock()`:
-
-.. code-block:: javascript
-
-   db.fsyncUnlock();
+currently locked and ``false`` if the :program:`mongod` is not locked. 
