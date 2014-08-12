@@ -9,117 +9,106 @@ Definition
 
 .. query:: $near
 
-   .. versionchanged:: 2.4
-
    Specifies a point for which a :term:`geospatial` query returns the
-   closest documents first. The query sorts the documents from nearest
-   to farthest.
+   documents from nearest to farthest. The :query:`$near` operator can
+   specify either a :term:`GeoJSON` point or legacy coordinate point.
 
-   The :query:`$near` operator can query for a :term:`GeoJSON`
-   point or for a point defined by legacy coordinate pairs.
+   To specify a :term:`GeoJSON` point, :query:`$near` operator requires a
+   :doc:`2dsphere </core/2dsphere>` index and has the following syntax:
 
-   The optional :query:`$maxDistance` operator limits a
-   :query:`$near` query to return only those documents that fall
-   within a maximum distance of a point. If you query for a GeoJSON
-   point, specify :query:`$maxDistance` in meters. If you query for
-   legacy coordinate pairs, specify :query:`$maxDistance` in radians.
+   .. code-block:: javascript
 
-   .. TODO remove the following "include" statement in 2.6
+      {
+        $near: {
+           $geometry: {
+              type: "Point" ,
+              coordinates: [ <longitude> , <latitude> ]
+           },
+           $maxDistance: <distance in meters>,
+           $minDistance: <distance in meters>
+        }
+      }
+
+   When specifying a :term:`GeoJSON` point, you can use the *optional*
+   :query:`$minDistance` and :query:`$maxDistance` specifications to limit
+   the :query:`$near` results by distance in *meters*:
+
+   - :query:`$minDistance` limits the results to those documents that
+     are *at least* the specified distance from the center point.
+     :query:`$minDistance` is only available for use with
+     :doc:`2dsphere </core/2dsphere>` index.
+
+     .. versionadded:: 2.6
+
+   - :query:`$maxDistance` limits the results to those documents that
+     are *at most* the specified distance from the center point.
+
+   To specify a point using legacy coordinates, :query:`$near` requires
+   a :doc:`2d </core/2d>` index and has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+        $near: [ <x>, <y> ], 
+        $maxDistance: <distance in radians>
+      }
+
+   If you use longitude and latitude for legacy coordinates, specify
+   the longitude first, then latitude.
+
+   When specifying a legacy coordinate, you can use the *optional*
+   :query:`$maxDistance` specification to limit the :query:`$near` results
+   by distance in *radians*. :query:`$maxDistance` limits the results to
+   those documents that are *at most* the specified distance from the
+   center point.
 
 Considerations
 --------------
 
-The :query:`$near` operator requires a geospatial index: a
-``2dsphere`` index for GeoJSON points; a ``2d`` index for legacy
-coordinate pairs. By default, queries that use a ``2d`` index
-return a limit of 100 documents; however you may use
-:method:`~cursor.limit()` to change the number of results.
+- :query:`$near` queries that use a :doc:`2d </core/2d>` index return a
+  limit of 100 documents.
+   
+- You cannot combine the :query:`$near` operator, which requires a
+  special :ref:`geospatial index <index-feature-geospatial>`, with a
+  query operator or command that uses a different type of special
+  index. For example you cannot combine :query:`$near` with the
+  :query:`$text` query.
 
-You cannot combine the :query:`$near` operator, which
-requires a special :ref:`geospatial index
-<index-feature-geospatial>`, with a query operator or command
-that uses a different type of special index. For example you
-cannot combine :query:`$near` with the :dbcommand:`text`
-command.
+- If using a ``2d`` index for :query:`$near`, specifying a batch size
+  (i.e. :method:`~cursor.batchSize()`) in conjunction with
+  :query:`$near` queries that use a :doc:`2d </core/2d>` index is
+  undefined. See :issue:`SERVER-5236` for more information.
 
-.. include:: /includes/fact-near-sharded-cluster.rst
+- .. include:: /includes/fact-near-sharded-cluster.rst
 
-Behavior
---------
+- .. include:: /includes/fact-geo-near-returns-sorted-results.rst
 
 .. |geo-operation| replace:: :dbcommand:`geoNear`
-
-.. include:: /includes/fact-geo-near-returns-sorted-results.rst
 
 Examples
 --------
 
-For queries on GeoJSON data, use the following syntax:
+Query on GeoJSON Data
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-near-minDistance.rst
+
+Query on Legacy Coordinates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+   Specify coordinates in this order: **"longitude, latitude."**
+
+Consider a collection ``legacy2d`` that has a ``2d`` index.
+
+The following example returns documents that are at most ``0.10``
+radians from the specified legacy coordinate pair, sorted from nearest
+to farthest:
 
 .. code-block:: javascript
 
-   db.<collection>.find(
-      { <location field> :
-          { $near :
-             {
-               $geometry : {
-                  type : "Point" ,
-                  coordinates : [ <longitude> , <latitude> ] },
-               $maxDistance : <distance in meters>
-             }
-          }
-       }
+   db.legacy2d.find(
+      { location : { $near : [ -73.9667, 40.78 ], $maxDistance: 0.10 } }
    )
 
-.. important:: Specify coordinates in this order: **"longitude, latitude."**
-
-The following example selects the documents with coordinates
-nearest to ``[ 40 , 5 ]`` and limits the maximum distance to 500
-meters from the specified GeoJSON point:
-
-.. code-block:: javascript
-
-   db.places.find(
-      {
-        loc:
-          { $near :
-             {
-               $geometry : { type : "Point" , coordinates: [ 40 , 5 ] },
-               $maxDistance : 500
-             }
-          }
-      }
-   )
-
-For queries on legacy coordinate pairs, use the following syntax:
-
-.. code-block:: javascript
-
-   db.<collection>.find( { <location field> :
-                            { $near : [ <x> , <y> ] ,
-                              $maxDistance: <distance>
-                       } } )
-
-.. important:: If you use longitude and latitude, specify **longitude first**.
-
-The following example query returns documents with location values
-that are 10 or fewer units from the point ``[ 40 , 5 ]``.
-
-For GeoJSON point object, specify the $maxDistance in meters, not radians.
-
-.. code-block:: javascript
-
-   db.places.find( { loc :
-                      { $near : [ 40 , 5 ] ,
-                        $maxDistance : 10
-                   } } )
-
-.. note::
-
-   You can further limit the number of results using
-   :method:`cursor.limit()`.
-
-   Specifying a batch size (i.e. :method:`batchSize()
-   <cursor.batchSize()>`) in conjunction with queries that use the
-   :query:`$near` is not defined. See :issue:`SERVER-5236` for
-   more information.
+The result set contains at most 100 documents.

@@ -43,6 +43,10 @@ Behavior
 
 .. include:: /includes/fact-geo-near-returns-sorted-results.rst
 
+Because :dbcommand:`geoNear` orders the documents from nearest to
+farthest, the ``minDistance`` field effectively skips over the first
+*n* documents where *n* is determined by the distance requirement.
+
 Command Format
 --------------
 
@@ -54,12 +58,14 @@ following syntax:
 
 .. code-block:: javascript
 
-   db.runCommand( { geoNear : <collection> ,
-                    near : { type : "Point" ,
-                             coordinates: [ <coordinates> ] } ,
-                    spherical : true } )
+   db.runCommand( {
+      geoNear: <collection> ,
+      near: { type: "Point" , coordinates: [ <coordinates> ] } ,
+      spherical: true,
+      ...
+   } )
 
-You must include ``spherical: true`` option.
+You must include ``spherical: true``.
 
 ``2d`` Index
 ~~~~~~~~~~~~
@@ -68,68 +74,127 @@ To query a :doc:`2d </core/2d>` index, use:
 
 .. code-block:: javascript
 
-   { geoNear : <collection> , near : [ <coordinates> ] }
+   db.runCommand( { 
+      geoNear: <collection>,
+      near : [ <coordinates> ],
+      ... 
+   } )
 
 .. read-lock, slave-ok
 
-Example
--------
+Examples
+--------
 
-The following example runs the :dbcommand:`geoNear` command on the
-collection ``places`` that has a ``2dsphere`` index:
+The following examples run the :dbcommand:`geoNear` command on the
+collection ``places`` that has a ``2dsphere`` index.
+
+Specify a Query Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`geoNear` command queries for documents whose
+``category`` equals ``"public"`` and returns the matching documents in
+order of nearest to farthest to the specified point:
 
 .. code-block:: javascript
 
-   db.runCommand( { geoNear : "places", 
-                    near : { type : "Point", 
-                             coordinates : [ -74.00, 40.00 ] },
-                    spherical : true } )
+   db.runCommand(
+      {
+        geoNear: "places",
+        near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+        spherical: true,
+        query: { category: "public" }
+      }
+   )
+
+The operation returns the following output, the documents in the ``results``  from
+nearest to farthest:
+
+.. code-block:: javascript
+
+   {
+     "results" : [ 
+        {
+          "dis" : 0,
+          "obj" : {
+             "_id" : 2,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9667, 40.78 ] },
+             "name" : "Central Park",
+             "category" : "public"
+          }
+        },
+        {
+          "dis" : 3245.988787957091,
+          "obj" : {
+             "_id" : 3,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9836, 40.7538 ] },
+             "name" : "Bryant Park",
+             "category" : "public"
+          }
+        },
+        {
+          "dis" : 7106.506152782733,
+          "obj" : {
+             "_id" : 4,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9928, 40.7193 ] },
+             "name" : "Sara D. Roosevelt Park",
+             "category" : "public"
+          }
+        },
+
+     ],
+     "stats" : {
+        "nscanned" : NumberLong(47),
+        "objectsLoaded" : NumberLong(47),
+        "avgDistance" : 3450.8316469132747,
+        "maxDistance" : 7106.506152782733,
+        "time" : 4
+     },
+     "ok" : 1
+   }
+
+Specify a ``minDistance`` and ``maxDistance``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a ``minDistance`` of ``3000`` meters
+and ``maxDistance`` of ``7000`` meters:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        geoNear: "places",
+        near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+        spherical: true,
+        query: { category: "public" },
+        minDistance: 3000,
+        maxDistance: 7000
+      }
+   )
 
 The operation returns the following output:
 
 .. code-block:: javascript
 
    {
-       "results" : [
-           {
-               "dis" : 85753.24625705236,
-               "obj" : {
-                   "_id" : ObjectId("536943463d2edb9288571e55"),
-                   "loc" : {
-                       "type" : "Point",
-                       "coordinates" : [
-                           -73.97,
-                           40.77
-                       ]
-                   },
-                   "name" : "Central Park",
-                   "category" : "Parks"
-               }
-           },
-           {
-               "dis" : 87422.73772813451,
-               "obj" : {
-                   "_id" : ObjectId("536943603d2edb9288571e56"),
-                   "loc" : {
-                       "type" : "Point",
-                       "coordinates" : [
-                           -73.88,
-                           40.78
-                       ]
-                   },
-                   "name" : "La Guardia Airport",
-                   "category" : "Airport"
-               }
-           }
-       ],
-       "stats" : {
-           "nscanned" : NumberLong(32),
-           "objectsLoaded" : NumberLong(32),
-           "avgDistance" : 86587.99199259344,
-           "maxDistance" : 87422.73772813451,
-           "time" : 2
-       },
-       "ok" : 1
+     "results" : [
+        {
+          "dis" : 3245.988787957091,
+          "obj" : {
+             "_id" : 3,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9836, 40.7538 ] },
+             "name" : "Bryant Park",
+             "category" : "public"
+          }
+        }
+     ],
+     "stats" : {
+         "nscanned" : NumberLong(11),
+         "objectsLoaded" : NumberLong(11),
+         "avgDistance" : 3245.988787957091,
+         "maxDistance" : 3245.988787957091,
+         "time" : 0
+     },
+     "ok" : 1
    }
 
 Output
