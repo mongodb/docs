@@ -14,7 +14,7 @@ bootstrap fabfile build/docs-tools:
 help:
 	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
 	@echo "See 'http://docs.mongodb.org/manual/meta' for more information. For MMS specific targets:"
-	@echo "	 publish        to stage the all mms documents. (default.)"
+	@echo "	 publish	to stage the all mms documents. (default.)"
 	@echo "	 hosted		to stage the mms-hosted documents."
 	@echo "	 saas		to stage the mms saas version documents."
 
@@ -27,3 +27,5 @@ hosted saas:setup
 	@fab sphinx.target:latex-$@,json-$@,singlehtml-$@,dirhtml-$@,html-$@
 	@echo [build]: $@ edition complete
 
+giza-push:
+	@giza push --deploy push-saas --builder latex json html dirhtml singlehtml --serial_sphinx --edition saas hosted
