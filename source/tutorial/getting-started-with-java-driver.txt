@@ -106,24 +106,21 @@ Authentication (Optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB can be run in a `secure mode`_ where access to databases is
-controlled through name and password authentication. When run in this
-mode, any client application must provide a name and password before
-doing any operations. In the Java driver, you simply do the following
-with a ``MongoClient`` instance:
+controlled via authentication. When run in this mode, any client application
+must provide a list of credentials which will be used to authenticate against.
+In the Java driver, you simply provide the credentials when creating a
+``MongoClient`` instance:
 
 .. code-block:: java
 
-   MongoClient mongoClient = new MongoClient();
-   DB db = mongoClient.getDB("test");
-   boolean auth = db.authenticate(myUserName, myPassword);
+   MongoCredential credential = MongoCredential.createMongoCRCredential(userName, database, password);
+   MongoClient mongoClient = new MongoClient(new ServerAddress(), Arrays.asList(credential));
 
-If the name and password are valid for the database, ``auth`` will be
-``true``. Otherwise, it will be ``false``. You should look at the
-MongoDB log for further information if available.
-
-Most users run MongoDB without authentication in a trusted environment.
+MongoDB supports various different authentication mechanisms see the
+`access control tutorials`_ for more information.
 
 .. _`secure mode`: http://www.mongodb.org/display/DOCS/Security+and+Authentication
+.. _`access control tutorials`: http://docs.mongodb.org/manual/administration/security-access-control
 
 Getting a List Of Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -403,7 +400,7 @@ We could also get a range, say ``20 < i <= 30``:
 .. code-block:: java
 
    query = new BasicDBObject("i", new BasicDBObject("$gt", 20).append("$lte", 30));
-   cursor = testCollection.find(query);
+   cursor = coll.find(query);
 
    try {
        while (cursor.hasNext()) {
@@ -492,7 +489,8 @@ an entire collection using multiple cursors.
    for (Cursor pCursor: cursors) {
        while (pCursor.hasNext()) {
            System.out.println((pCursor.next()));
-       }Ï    }
+       }
+   }
 
 This optimizes the IO throughput from a collection.
 
@@ -580,8 +578,8 @@ You can drop a collection by using the `drop()` method:
 
 .. code-block:: java
 
-   DBCollection testCollection = db.getCollection("testCollection");
-   testCollection.drop();
+   DBCollection coll = db.getCollection("testCollection");
+   coll.drop();
    System.out.println(db.getCollectionNames());
 
 And you should notice that `testCollection` has been dropped.
