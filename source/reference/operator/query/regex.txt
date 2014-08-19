@@ -7,12 +7,12 @@ $regex
 .. query:: $regex
 
    The :query:`$regex` operator provides regular expression
-   capabilities for pattern matching *strings* in queries. MongoDB uses Perl compatible regular
-   expressions (i.e. "PCRE.")
+   capabilities for pattern matching *strings* in queries. MongoDB uses
+   Perl compatible regular expressions (i.e. "PCRE.")
 
-   You can specify regular expressions using regular expression
-   objects or using the :query:`$regex` operator. The following
-   examples are equivalent:
+   You can specify regular expressions using regular expression objects
+   (i.e. ``/pattern/`` ) or using the :query:`$regex` operator. The
+   following examples are equivalent:
 
    .. code-block:: javascript
 
@@ -22,9 +22,6 @@ $regex
    These expressions match all documents in ``collection`` where the
    value of ``field`` matches the case-insensitive regular expression
    ``acme.*corp``.
-
-   :query:`$regex` uses "Perl Compatible Regular Expressions" (PCRE) as the
-   matching engine.
 
    .. operator:: $options
 
@@ -52,15 +49,13 @@ $regex
        The ``x`` option does not affect the handling of the VT character
        (i.e. code 11.)
 
-     .. versionadded:: 1.9.0
-
      - ``s`` allows the dot (e.g. ``.``) character to match all
        characters *including* newline characters.
 
-     :query:`$regex` only provides the ``i`` and ``m`` options for
-     the native JavaScript regular expression objects (e.g. ``/acme.*corp/i``). To use ``x``
-     and ``s`` you must use the ":query:`$regex`" operator with the
-     ":operator:`$options`" syntax.
+     Only the ``i`` and ``m`` options are available for the native
+     JavaScript regular expression objects (e.g. ``/acme.*corp/i``). To
+     use ``x`` and ``s`` options, you must use the ":query:`$regex`"
+     operator with the ":operator:`$options`" syntax.
 
    To combine a regular expression match with other operators, you
    need to use the ":query:`$regex`" operator. For example:
@@ -73,21 +68,41 @@ $regex
    ``collection`` that match the case insensitive regular expression
    ``acme.*corp`` that *don't* match ``acmeblahcorp``.
 
-   If an index exists for the field, then MongoDB matches the regular
-   expression against the values in the index, which can be faster than
-   a collection scan. Further optimization can occur if the regular
-   expression is a "prefix expression", which means that all potential
-   matches start with the same string. This allows MongoDB to construct
-   a "range" from that prefix and only match against those values from
-   the index that fall within that range.
+Behavior
+--------
 
-   A regular expression is a "prefix expression" if it starts with a caret
-   (``^``) or a left anchor (``\A``), followed by a string of simple
-   symbols. For example, the regex ``/^abc.*/`` will be optimized by
-   matching only against the values from the index that start with ``abc``.
+PCRE Matching Engine
+~~~~~~~~~~~~~~~~~~~~
 
-   Additionally, while ``/^a/``, ``/^a.*/``, and ``/^a.*$/`` match
-   equivalent strings, they have different performance characteristics.
-   All of these expressions use an index if an appropriate index
-   exists; however, ``/^a.*/``, and ``/^a.*$/`` are slower. ``/^a/``
-   can stop scanning after matching the prefix.
+:query:`$regex` uses "Perl Compatible Regular Expressions" (PCRE) as
+the matching engine.
+
+``$in`` Expressions
+~~~~~~~~~~~~~~~~~~~
+
+To include a regular expression in an ``$in`` query expression, you can
+only use JavaScript regular expression objects (i.e. ``/pattern/``
+). You *cannot* use the :query:`$regex` operator expressions inside an
+:query:`$in`.
+
+Index Use
+~~~~~~~~~~
+
+If an index exists for the field, then MongoDB matches the regular
+expression against the values in the index, which can be faster than
+a collection scan. Further optimization can occur if the regular
+expression is a "prefix expression", which means that all potential
+matches start with the same string. This allows MongoDB to construct
+a "range" from that prefix and only match against those values from
+the index that fall within that range.
+
+A regular expression is a "prefix expression" if it starts with a caret
+(``^``) or a left anchor (``\A``), followed by a string of simple
+symbols. For example, the regex ``/^abc.*/`` will be optimized by
+matching only against the values from the index that start with ``abc``.
+
+Additionally, while ``/^a/``, ``/^a.*/``, and ``/^a.*$/`` match
+equivalent strings, they have different performance characteristics.
+All of these expressions use an index if an appropriate index
+exists; however, ``/^a.*/``, and ``/^a.*$/`` are slower. ``/^a/``
+can stop scanning after matching the prefix.
