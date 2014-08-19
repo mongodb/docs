@@ -1,0 +1,110 @@
+collection: "inventory"
+options:
+  show_title: False
+  show_collection: False
+content:
+  - '{ "item" : "ABC1", "details" : { "model" : "14Q3", "manufacturer" : "XYZ Company" }, "stock" : [ { "size" : "S", "qty" : 25 }, { "size" : "M", "qty" : 50 } ], "category" : "clothing" }'
+  - '{ "item" : "ABC2", "details" : { "model" : "14Q3", "manufacturer" : "M1 Corporation" }, "stock" : [ { "size" : "M", "qty" : 50 } ], "category" : "clothing" }'
+  - '{ "item" : "MNO2", "details" : { "model" : "14Q3", "manufacturer" : "ABC Company" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 }, { "size" : "L", "qty" : 1 } ], "category" : "clothing" }'
+  - '{ "item" : "IJK2", "details" : { "model" : "14Q2", "manufacturer" : "M5 Corporation" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ], "category" : "houseware" }'
+  - '{ "item" : "BE10", "details" : { "model" : "14Q2", "manufacturer" : "XYZ Company" }, "stock" : [ { "size" : "L", "qty" : 5 } ], "category" : "clothing" }'
+  - '{ "item" : "ZYT1", "details" : { "model" : "14Q1", "manufacturer" : "ABC Company" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 } ], "category" : "houseware" }'
+---
+title: Group Documents by a Field and Calculate Count
+ref: 1
+pre: |
+  Use the :pipeline:`$group` stage to group by a specified key. In the
+  :pipeline:`$group` stage, specify the group by key in the ``_id``
+  field. :pipeline:`$group` accesses fields by the field path, which is
+  the field name prefixed by a dollar sign ``$``. The
+  :pipeline:`$group` stage can use :manual:`accumulators
+  </meta/aggregation-quick-reference/#group-operators>` to perform
+  calculations for each group.
+operation:
+  - pre: |
+      The following example groups the documents in the ``inventory``
+      collection by the ``category`` field and uses the :group:`$sum`
+      accumulator to count the documents for each group.
+    language: javascript
+    code: |
+      db.inventory.aggregate(
+         [
+           { $group: { "_id": "$category", "count": { $sum: 1 } } }
+         ]
+      )
+post: |
+  The result set consists of the following documents:
+results:
+  - '{ "_id" : "houseware", "count" : 2 }'
+  - '{ "_id" : "clothing", "count" : 4 }'
+---
+title: Filter and Group Documents
+ref: 2
+pre: |
+  Use the :pipeline:`$match` stage to filter documents.
+  :pipeline:`$match` conditions use the MongoDB :doc:`query syntax
+  </query>`.
+operation:
+  - pre: |
+      The following pipeline uses :pipeline:`$match` to query the
+      ``inventory`` documents for documents with ``category`` equal to
+      ``"clothing"``.
+      Then the :pipeline:`$group` stage groups the matching documents
+      by the ``details.manufacturer`` field and calculates the count.
+    language: javascript
+    code: |
+      db.inventory.aggregate(
+         [
+           { $match: { category: "clothing" } },
+           { $group: { _id: "$details.manufacturer" , count: { $sum: 1 } } }
+         ]
+      )
+post: |
+  The result set consists of the following documents:
+results:
+  - '{ "_id" : "ABC Company", "count" : 1 }'
+  - '{ "_id" : "M1 Corporation", "count" : 1 }'
+  - '{ "_id" : "XYZ Company", "count" : 2 }'
+---
+title: Unwind an Array and Project.
+ref: 3
+pre: |
+  Use the :pipeline:`$unwind` stage to deconstruct the array element
+  and output to the next stage a document for each element in the
+  array. Each output document is the input document with the value of
+  the array field replaced by the element.
+  :pipeline:`$unwind` stage takes a field path, which is the field name
+  prefixed by a dollar sign ``$``.
+
+  :pipeline:`$project` stage reshapes the output documents, such as by
+  adding new fields or removing existing fields. Specify the inclusion
+  of a field in the output with ``<field>: 1``. The output documents
+  include the ``_id`` field by default.
+
+operation:
+  - pre: |
+      The following example first unwinds the ``stock`` array, and then
+      projects or returns just the ``stock`` field and the ``_id``
+      field in the output documents.
+    language: javascript
+    code: |
+      db.inventory.aggregate(
+         [
+           { $unwind: "$stock" },
+           { $project: { "stock": 1 } }
+         ]
+      )
+post: "The result set consists of the following documents:"
+results:
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a91"), "stock" : { "size" : "S", "qty" : 25 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a91"), "stock" : { "size" : "M", "qty" : 50 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a92"), "stock" : { "size" : "M", "qty" : 50 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a93"), "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a93"), "stock" : { "size" : "M", "qty" : 5 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a93"), "stock" : { "size" : "L", "qty" : 1 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a94"), "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a94"), "stock" : { "size" : "L", "qty" : 1 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a95"), "stock" : { "size" : "L", "qty" : 5 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a96"), "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "_id" : ObjectId("53f123df5f6a8d1388cd4a96"), "stock" : { "size" : "M", "qty" : 5 } }'
+...
