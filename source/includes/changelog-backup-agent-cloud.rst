@@ -6,6 +6,18 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+
+
+Backup Agent ``2.4.0.156``
+--------------------------
+
+*Released 2014-08-19*
+
+The Backup Agent will now capture a checkpoint even if it is unable to
+stop the balancer. These checkpoints are *not* guaranteed to be
+consistent, because of in-progress chunk migrations.  The user
+interface identifies these checkpoints.
+
 Backup Agent ``2.3.0.149``
 --------------------------
 
@@ -15,7 +27,7 @@ Backup Agent ``2.3.0.149``
 
 - Added support for ``version`` and ``-version.``
 
-- Added support for connecting to hosts using LDAP authentication. 
+- Added support for connecting to hosts using LDAP authentication.
 
 - Agent now provides additional logging information when the Backup
   Agent manipulates the balancer.
