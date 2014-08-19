@@ -24,7 +24,7 @@ from utils.project import get_versions, get_manual_path
 
 conf = get_conf()
 pdfs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'pdfs.yaml'))
-sconf = BuildConfiguration(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'sphinx-local.yaml'))
+sconf = BuildConfiguration(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'sphinx_local.yaml'))
 intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration ----------------------------------------------------
