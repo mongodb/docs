@@ -19,15 +19,29 @@ from bootstrap import buildsystem
 sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
 sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
-from utils.structures import BuildConfiguration
-from utils.serialization import ingest_yaml, ingest_yaml_list
-from utils.config import get_conf
-from utils.project import get_current_path, get_versions, get_manual_path, edition_setup
+try:
+    from utils.structures import BuildConfiguration
+    from utils.serialization import ingest_yaml, ingest_yaml_list
+    from utils.config import get_conf
+    from utils.project import get_current_path, get_versions, get_manual_path, edition_setup
 
-conf = get_conf()
-conf.paths.projectroot = project_root
-pdfs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'pdfs.yaml'))
-intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'intersphinx.yaml'))
+    conf = get_conf()
+    conf.paths.projectroot = project_root
+    pdfs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'pdfs.yaml'))
+    intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.builddata, 'intersphinx.yaml'))
+
+    hosted_conf = edition_setup('hosted', conf)
+    saas_conf = edition_setup('saas', conf)
+except:
+    from giza.config.runtime import RuntimeStateConfig
+    from giza.config.helper import fetch_config, get_versions, get_manual_path
+    from giza.tools.strings import dot_concat
+
+    conf = fetch_config(RuntimeStateConfig())
+    intersphinx_libs = conf.system.files.data.intersphinx
+    pdfs = conf.system.files.data.pdfs
+
+    sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -118,22 +132,47 @@ html_theme_options = {
 
 hosted_latex_documents = []
 saas_latex_documents = []
-for pdf in pdfs:
-    _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
-    if pdf['edition'] == 'hosted':
-        hosted_latex_documents.append( _latex_document )
-    elif pdf['edition'] == 'saas':
-        saas_latex_documents.append( _latex_document )
+
+try:
+    latex_documents = []
+    if 'pdfs' in conf.system.files.data:
+        for pdf in conf.system.files.data.pdfs:
+            if pdf.edition == 'hosted':
+                hosted_latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
+            elif pdf.edition == 'saas':
+                saas_latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
+except AttributeError:
+    # we have an old-style config object, do the old
+    latex_documents = []
+
+    if tags.has('latex'):
+        pdf_conf_path = os.path.join(conf.paths.builddata, 'pdfs.yaml')
+        if os.path.exists(pdf_conf_path):
+            pdfs = ingest_yaml_list(pdf_conf_path)
+        else:
+            raise SphinxError('[WARNING]: skipping pdf builds because of missing {0} file'.format(pdf_conf_path))
+    else:
+        pdfs = []
+
+
+    for pdf in pdfs:
+        _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
+        if pdf['edition'] == 'hosted':
+            hosted_latex_documents.append( _latex_document )
+        elif pdf['edition'] == 'saas':
+            saas_latex_documents.append( _latex_document )
 
 # -- Conditional Output --------------------------------------------------------
 rst_epilog = []
 html_sidebars = { '**': ['pagenav.html'] }
 
-hosted_conf = edition_setup('hosted', conf)
-saas_conf = edition_setup('saas', conf)
 try:
     if tags.has('hosted'):
-        conf = hosted_conf
+        try:
+            conf = hosted_conf
+        except NameError:
+            conf.runstate.edition = 'hosted'
+
         html_theme = 'mms-hosted'
         project = u'MongoDB Management Service (MMS) On-Prem'
         html_title = 'MMS On-Prem Manual'
@@ -160,7 +199,11 @@ try:
         for i in conf.git.branches.published:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     else:
-        conf = saas_conf
+        try:
+            conf = saas_conf
+        except NameError:
+            conf.runstate.edition = 'saas'
+
         html_theme = 'mms-saas'
         html_theme_options['pdfpath'] = '/'.join([conf.project.url,
                                                   conf.project.basepath,
@@ -185,8 +228,20 @@ except NameError:
 rst_epilog = '\n'.join(rst_epilog)
 
 html_theme_options['manual_path'] = get_manual_path(conf)
-html_theme_options['saas_base'] = saas_conf.project.tag
-html_theme_options['version_selector'] = get_versions(hosted_conf)
+
+try:
+    html_theme_options['saas_base'] = saas_conf.project.tag
+    html_theme_options['version_selector'] = get_versions(hosted_conf)
+except NameError:
+    existing = conf.runstate.edition
+    conf.runstate.edition = 'saas'
+    html_theme_options['saas_base'] = conf.project.tag
+    conf.runstate.edition = 'hosted'
+    html_theme_options['version_selector'] = get_versions(conf)
+    conf.runstate.edition = existing
+
+
+
 html_theme_options['basepath'] = get_current_path(conf)
 
 # -- Options for LaTeX output --------------------------------------------------
