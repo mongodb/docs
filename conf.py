@@ -14,18 +14,30 @@ sys.path.append(project_root)
 
 from bootstrap import buildsystem
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+try: 
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+    
+    from utils.serialization import ingest_yaml, ingest_yaml_list
+    from utils.structures import BuildConfiguration
+    from utils.config import get_conf
+    from utils.project import get_versions, get_manual_path
 
-from utils.serialization import ingest_yaml, ingest_yaml_list
-from utils.structures import BuildConfiguration
-from utils.config import get_conf
-from utils.project import get_versions, get_manual_path
+    conf = get_conf()
+    pdfs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'pdfs.yaml'))
+    sconf = BuildConfiguration(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'sphinx_local.yaml'))
+    intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'intersphinx.yaml'))
+except: 
+    from giza.config.runtime import RuntimeStateConfig
+    from giza.config.helper import fetch_config, get_versions, get_manual_path
+    from giza.tools.strings import dot_concat
 
-conf = get_conf()
-pdfs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'pdfs.yaml'))
-sconf = BuildConfiguration(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'sphinx_local.yaml'))
-intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'intersphinx.yaml'))
+    conf = fetch_config(RuntimeStateConfig())
+    intersphinx_libs = conf.system.files.data.intersphinx
+    pdfs = conf.system.files.data.pdfs
+    sconf = conf.system.files.data.sphinx_local
+
+    sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -74,10 +86,18 @@ extlinks = {
 }
 
 intersphinx_mapping = {}
-for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
+
+try:
+    for i in intersphinx_libs:
+        intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
                                                               conf.paths.output,
                                                               i['path']))
+except: 
+    for i in intersphinx_libs:
+        intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
+                                                              conf.paths.output,
+                                                              i.path))
+
 
 languages = [
     ("ar", "Arabic"),
@@ -146,9 +166,14 @@ html_sidebars = sconf.sidebars
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_documents = []
-for pdf in pdfs:
-    _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
-    latex_documents.append( _latex_document )
+try: 
+    for pdf in pdfs:
+        _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
+        latex_documents.append( _latex_document )
+except:
+    for pdf in pdfs:
+        _latex_document = (pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class)
+        latex_documents.append( _latex_document )
 
 latex_elements = {
     'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
