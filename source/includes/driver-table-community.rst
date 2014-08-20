@@ -13,5 +13,6 @@
      - `Go Driver API <http://godoc.org/labix.org/v2/mgo>`_
 
    * - :doc:`Erlang </drivers/erlang>`
-     - `Erlang Driver Releases <httpsgc ://github.com/mongodb/mongodb-erlang/releases>`_
+     - `Erlang Driver Releases <https://github.com/comtihon/mongodb-erlang/releases>`_
+     - `Erlang Driver Source Code <https://github.com/comtihon/mongodb-erlang>'_
      - `Current Erlang Driver API <http://api.mongodb.org/erlang/>`_
