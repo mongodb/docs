@@ -7,7 +7,7 @@ You must have the :authaction:`grantRole` :ref:`action
 user.
 
 If you have the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
-role you have those actions.
+role, you have those actions.
 
 .. note::
 
