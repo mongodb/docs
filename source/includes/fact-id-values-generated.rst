@@ -3,6 +3,6 @@
 
 .. Also, will use in the Modify Data page
 
-The value of the ``_id`` field for your documents will differ from the
-values displayed on this page, because MongoDB generates ``_id``
-values on insert if you do not specify an ``_id`` value.
+Because MongoDB generates ``_id`` values on insert if you do not
+specify an ``_id`` value, the ``_id`` values for your documents will
+differ from those displayed on this page.
