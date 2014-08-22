@@ -3,32 +3,29 @@ options:
   show_title: False
   show_collection: False
 content:
-  - '{ "item" : "ABC1", "details" : { "model" : "14Q3", "manufacturer" : "XYZ Company" }, "stock" : [ { "size" : "S", "qty" : 25 }, { "size" : "M", "qty" : 50 } ], "category" : "clothing" }'
-  - '{ "item" : "ABC2", "details" : { "model" : "14Q3", "manufacturer" : "M1 Corporation" }, "stock" : [ { "size" : "M", "qty" : 50 } ], "category" : "clothing" }'
-  - '{ "item" : "MNO2", "details" : { "model" : "14Q3", "manufacturer" : "ABC Company" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 }, { "size" : "L", "qty" : 1 } ], "category" : "clothing" }'
-  - '{ "item" : "IJK2", "details" : { "model" : "14Q2", "manufacturer" : "M5 Corporation" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ], "category" : "houseware" }'
-  - '{ "item" : "BE10", "details" : { "model" : "14Q2", "manufacturer" : "XYZ Company" }, "stock" : [ { "size" : "L", "qty" : 5 } ], "category" : "clothing" }'
-  - '{ "item" : "ZYT1", "details" : { "model" : "14Q1", "manufacturer" : "ABC Company" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 } ], "category" : "houseware" }'
+  source:
+    file: example/example-gs-query-all.yaml
+    ref: 0
 ---
 title:
   text: Update Top-Level Fields
-  level: 4
+  level: 3
 ref: 1
 pre: |
-  For the document with ``item`` equal to ``"MNO2"``, use the
-  :update:`$set` operator to update the ``category`` field and the
-  ``details`` field to the specified values and the
-  :update:`$currentDate` operator to update the field ``lastModified``
-  with the current date.
+  The following operation updates the first document with ``item``
+  equal to ``"ABC"``, using the :update:`$set` operator to update the
+  ``item`` and the ``details`` fields to the
+  specified values and the :update:`$currentDate` operator to update
+  the ``lastModified`` field with the current date.
 operation:
     language: javascript
     code: |
       db.inventory.update(
-          { "item": "MNO2" },
+          { "item": "ABC" },
           {
             $set: {
-              "category": "apparel",
-              "details": { "model": "14Q3", "manufacturer": "XYZ Company" }
+              "item": "ABC1",
+              "details": { "model": "14Q3", "color": "mocha" }
             },
             $currentDate: { "lastModified": true }
           }
@@ -42,7 +39,7 @@ results:
 ---
 title:
   text: Update an Embedded Field
-  level: 4
+  level: 3
 ref: 2
 pre: |
   To update a field within an embedded document, use the :term:`dot
@@ -55,7 +52,7 @@ operation:
     language: javascript
     code: |
       db.inventory.update(
-        { item: "ABC1" },
+        { item: "DEF" },
         { $set: { "details.model": "14Q2" } }
       )
 post: |
@@ -67,7 +64,7 @@ results:
 ---
 title: 
   text: Update Multiple Documents
-  level: 4
+  level: 3
 ref: 3
 pre: |
   By default, the :method:`~db.collection.update()` method updates a
@@ -75,15 +72,16 @@ pre: |
   option in the :method:`~db.collection.update()` method.
 operation:
   - pre: |
-      Update the ``category`` field to ``"apparel"`` and update the
-      ``lastModified`` field to the current date for *all* documents
-      that have ``category`` field equal to ``"clothing"``.
+      The following operation updates *all* documents that have
+      ``category`` field equal to ``"hat"``, setting the ``category``
+      field to ``"hats"`` and the ``lastModified`` field to the current
+      date.
     language: javascript
     code: |
       db.inventory.update( 
-         { "category": "clothing" },
+         { "category": "hat" },
          {
-           $set: { "category": "apparel" },
+           $set: { "category": "hats" },
            $currentDate: { "lastModified": true }
          },
          { multi: true }
@@ -93,5 +91,5 @@ post: |
   contains the status of the operation. A successful update of the
   document returns the following object:
 results:
-  - 'WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })'
+  - 'WriteResult({ "nMatched" : 2, "nUpserted" : 0, "nModified" : 2 })'
 ...
