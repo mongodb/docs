@@ -6,8 +6,8 @@
    :term:`JSON`. Consider using :method:`~db.cloneCollection()`
    to maintain type fidelity.
 
-   The :method:`db.collection.copyTo()` command uses the :dbcommand:`eval`
+   The :method:`db.collection.copyTo()` method uses the :dbcommand:`eval`
    command internally. As a result, the :method:`db.collection.copyTo()`
-   command takes a global lock that blocks all other read and write
-   operations until the :method:`db.collection.copyTo()` command completes.
+   operation takes a global lock that blocks all other read and write
+   operations until the :method:`db.collection.copyTo()` completes.
 
