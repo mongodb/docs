@@ -4,7 +4,7 @@ options:
   show_collection: False
 content:
   source:
-    file: example/example-gs-insert.yaml
+    file: example/example-gs-query-all.yaml
     ref: 0
 ---
 title: 
@@ -34,8 +34,11 @@ operation:
 post: |
   The result set consists of the following documents:
 results:
-  - '{ "_id" : "houseware", "count" : 2 }'
-  - '{ "_id" : "clothing", "count" : 4 }'
+  - '{ "_id" : "hat", "count" : 2 }'
+  - '{ "_id" : "gloves", "count" : 3 }'
+final: |
+  The ``_id`` field contains the distinct ``category`` value, i.e., the
+  group by key value.
 ---
 title:
   text: Filter and Group Documents
@@ -49,10 +52,10 @@ operation:
   - pre: |
       The following pipeline uses :pipeline:`$match` to query the
       ``inventory`` collection for documents with ``category`` equal to
-      ``"clothing"``.
+      ``"gloves"``.
 
       Then the :pipeline:`$group` stage groups the matching documents
-      by the ``details.manufacturer`` field and uses the :group:`$sum`
+      by the ``details.model`` field and uses the :group:`$sum`
       accumulator to calculate the count. :pipeline:`$group` accesses
       fields by the field path, which is the field name prefixed by a
       dollar sign ``$``.
@@ -60,16 +63,15 @@ operation:
     code: |
       db.inventory.aggregate(
          [
-           { $match: { "category": "clothing" } },
-           { $group: { "_id": "$details.manufacturer" , "count": { $sum: 1 } } }
+           { $match: { "category": "gloves" } },
+           { $group: { "_id": "$details.model" , "count": { $sum: 1 } } }
          ]
       )
 post: |
   The result set consists of the following documents:
 results:
-  - '{ "_id" : "ABC Company", "count" : 1 }'
-  - '{ "_id" : "M1 Corporation", "count" : 1 }'
-  - '{ "_id" : "XYZ Company", "count" : 2 }'
+  - '{ "_id" : "14Q2", "count" : 1 }'
+  - '{ "_id" : "14Q3", "count" : 2 }'
 ---
 title:
   text: Unwind an Array and Project.
@@ -104,15 +106,14 @@ operation:
       )
 post: "The result set consists of the following documents:"
 results:
-  - '{ "item" : "ABC1", "stock" : { "size" : "S", "qty" : 25 } }'
-  - '{ "item" : "ABC1", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "ABC2", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "MNO2", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "MNO2", "stock" : { "size" : "M", "qty" : 5 } }'
-  - '{ "item" : "MNO2", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "IJK2", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "IJK2", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "BE10", "stock" : { "size" : "L", "qty" : 5 } }'
-  - '{ "item" : "ZYT1", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "ZYT1", "stock" : { "size" : "M", "qty" : 5 } }'
+  - '{ "item" : "ABC", "stock" : { "size" : "S", "qty" : 25 } }'
+  - '{ "item" : "ABC", "stock" : { "size" : "M", "qty" : 50 } }'
+  - '{ "item" : "DEF", "stock" : { "size" : "M", "qty" : 50 } }'
+  - '{ "item" : "IJK", "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "item" : "IJK", "stock" : { "size" : "M", "qty" : 5 } }'
+  - '{ "item" : "IJK", "stock" : { "size" : "L", "qty" : 1 } }'
+  - '{ "item" : "LMN", "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "item" : "LMN", "stock" : { "size" : "L", "qty" : 1 } }'
+  - '{ "item" : "PQR", "stock" : { "size" : "S", "qty" : 5 } }'
+  - '{ "item" : "PQR", "stock" : { "size" : "L", "qty" : 1 } }'
 ...
