@@ -77,6 +77,14 @@ following properties:
      subject= CN=<myhostname2>,OU=Dept1,O=MongoDB,ST=NY,C=US
      subject= CN=<myhostname3>,OU=Dept1,O=MongoDB,ST=NY,C=US
 
+It is possible to use a single x509 certificate for both member
+authentication and :doc:`x.509 client authentication </tutorial/configure-x509-client-authentication>`.
+To do so, obtain a certificate with both ``clientAuth`` and ``serverAuth``
+(i.e. "TLS Web Client Authentication" and "TLS Web Server Authentication")
+specified as Extended Key Usage (EKU) values, or simply do not specify any EKU
+values. Provide this file as the the :option:`--sslPEMKeyFile
+<mongod --sslPEMKeyFile>` and omit the :option:`--sslClusterFile
+<mongod --sslClusterFile>` option described below.
 
 Configure Replica Set/Sharded Cluster
 -------------------------------------
@@ -99,6 +107,18 @@ encrypted, set the :option:`--sslClusterPassword` to the passphrase to
 decrypt the key or have MongoDB prompt for the passphrase. See
 :ref:`ssl-certificate-password` for details.
 
+.. warning::
+
+   For security reasons, if the :setting:`--sslCAFile` option and its target
+   file are not specified, x.509 member authentication will not function. Any
+   :program:`mongod` or :program:`mongos` without this option set
+   will not be able to verify any other server process' certificate against the
+   trusted certificate authority (CA) that issued it, breaking the
+   certificate chain.
+
+   As of version 2.6.4, :program:`mongod` and :program:`mongos` will not
+   start with x.509 authentication enabled if the CA file is not specified.
+
 Use Configuration File
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -109,7 +129,7 @@ YAML Formatted Configuration File
 `````````````````````````````````
 
 Starting in MongoDB 2.6, you can specify the configuration for MongoDB
-in a :doc:`YAML format </reference/configuration-options>`, as in the
+in :doc:`YAML format </reference/configuration-options>`, as in the
 following example:
 
 .. code-block:: yaml
