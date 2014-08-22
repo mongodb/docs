@@ -2,7 +2,7 @@
 
    If the :option:`--sslCAFile <mongod --sslCAFile>` option and its target
    file are not specified, x.509 client and member authentication will not
-   function. :program:`mongod`, and :program:`mongos` in sharded system,
+   function. :program:`mongod`, and :program:`mongos` in sharded systems,
    will not be able to verify the certificates of processes connecting to it
    against the trusted certificate authority (CA) that issued them, breaking
    the certificate chain.
