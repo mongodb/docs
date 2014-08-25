@@ -7,5 +7,4 @@ You must have the :authaction:`grantRole` :ref:`action
 user.
 
 If you have the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
-role, or if you are authenticated using the :ref:`localhost exception
-<localhost-exception>`, you have those actions.
+role, you have those actions.
