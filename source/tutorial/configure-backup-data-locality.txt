@@ -1,0 +1,301 @@
+=======================================================
+Configure Multiple Blockstores in Multiple Data Centers
+=======================================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+The :ref:`Backup Blockstore Databases <mms-backup-blockstore-database>`
+maintains a copy of the data from your backed-up :program:`mongod`
+instances. If needed, you can deploy multiple blockstores in multiple data
+centers, each backing up different :program:`mongod` instances.
+
+The following are situations to use multiple blockstores: 
+
+- The existing blockstore is too full.
+
+- There are two sets of data that that cannot touch each other for
+  regulatory reasons.
+
+- You have multiple data centers and want to reduce impact on network
+  bandwidth by keeping each blockstore in the data center it backs up.
+
+This tutorial describes how to set up two blockstores in two separate data
+centers.
+
+Considerations
+--------------
+
+Each blockstore requires a separate instance of the :ref:`MMS Application
+<mms-application-package>` and the :ref:`Backup Daemon <backup-daemon>`.
+The MMS Application requires a dedicated :ref:`MMS Application Database
+<mms-application-database>`.
+
+You can pin a particular |MMS| Group to a particular MMS Application
+instance.
+
+To provide :manual:`failover </core/replica-set-high-availability>` for
+the Backup Blockstore Database and the Application Database, deploy a
+:term:`replica set` as the backing MongoDB instance for each. Each backing
+MongoDB instance is dedicated to the database it hosts and does not store
+any other data.
+
+Procedures
+----------
+
+The following procedures set up two blockstores in two data centers.
+
+Provision Servers in Each Data Center
++++++++++++++++++++++++++++++++++++++
+
+Each data center should the following servers:
+
+- A server to run the :ref:`MMS Application <mms-application-package>`
+  and to run two members of the replica set that stores the :ref:`MMS
+  Application Database <mms-application-database>`. For specifications for
+  the database, see the :ref:`Application Database requirements
+  <mms-application-database-specifications>`.
+
+- A server to run the third member of the replica set for the Application
+  Database.
+
+- A server to run the :ref:`Backup Daemon <backup-daemon>` and two
+  members of the replica set that stores the :ref:`Backup Blockstore
+  Database <mms-backup-blockstore-database>`.
+
+- A server to run the third member of the replica set that stores the
+  Backup Blockstore Database.
+
+- Optionally, for high availability, **two** more servers to run a second
+  :ref:`Backup Daemon <backup-daemon>` and replica set that stores a
+  second :ref:`Backup Blockstore Database
+  <mms-backup-blockstore-database>`. For more information on multiple
+  Backup Daemons for high availability, see
+  :ref:`multiple-backup-daemons`.
+
+Install MongoDB and Deploy Replica Sets
++++++++++++++++++++++++++++++++++++++++
+
+On the :ref:`MMS Application <mms-application-package>` servers in each
+data center and on the :ref:`Backup Daemon <backup-daemon>` servers in
+each data center:
+
+1. Install the MongoDB software package. See the :manual:`MongoDB
+   Installation tutorials </installation>` to find the correct install
+   procedure for your operating system. Perform only the installation
+   procedure and *not* the start procedure.
+
+2. Create the necessary data directories.
+
+   On the first MMS Application or Backup Daemon server in each data
+   center, issue the following commands:
+
+   .. code-block:: sh
+
+      mkdir /data/db
+      mkdir /data/arb
+
+   On the second MMS Application or Backup Daemon server in each data
+   center, issue the following command:
+
+   .. code-block:: sh
+
+      mkdir /data/db
+
+3. Set ulimits. Set the maximum number of open file descriptors and
+   maximum number of processes available to a single user to 64000:
+
+   .. code-block:: sh
+
+      ulimit -n 64000 -u 64000
+
+4. Deploy a :term:`replica set` to host the database. Issue the following
+   commands.
+
+   On the first MMS Application or Backup Daemon server in each data
+   center, issue the following commands to deploy the first two members of
+   the replica set:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --fork --logpath /tmp/mongo.log --replSet rs
+      mongod --dbpath /data/arb -fork --logpath /tmp/arb.log --replSet rs --port 27018 
+      mongo
+      rs.initiate()
+
+   On the second MMS Application or Backup Daemon server in each data
+   center, issue the following command:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --fork --logpath /tmp/mongo.log --replSet rs
+
+   On the first MMS Application or Backup Daemon server in each data
+   center, issue the following to enter the mongo shell, add the deployed
+   members to the replica set, and then verify that the members were
+   added:
+
+   .. code-block:: sh
+
+      mongo
+
+   .. code-block:: javascript
+
+      rs.add("<hostname-of-second-server>:port")
+      rs.addArb("<hostname-of-first-server>:port")
+      rs.status()
+
+   Issue the following to exit the mongo shell:
+
+   .. code-block:: javascript
+
+      quit()
+
+At this point, you have replica sets running for all the backing
+databases.
+
+Install the MMS Application
++++++++++++++++++++++++++++
+
+On the first MMS Application server in each data center, install the
+:ref:`MMS Application <mms-application-package>` using the procedure
+appropriate to the operating system. Open the :doc:`list of install
+procedures </tutorial/nav/install-on-prem>` and go to the page specific to
+your OS. Perform the procedure to install the service but *do not* perform
+the step to *start* the service.
+
+In the step for configuring the ``conf-mms.properties`` file, set the
+following fields as follows:
+
+.. code-block:: sh
+
+   mms.centralUrl = <hostname-of-first-MMS-Application-server>:8080
+
+   mms.centralBackupUrl = <hostname-of-first-MMS-Application-server>:8081
+
+   mongo.mongoUri=mongodb://<hostname-of-first-MMS-Application-server>:27017,<hostname-of-second-MMS-Application-server>:27017
+
+   mongo.replicaSet=rs
+
+Install the Backup Daemon
++++++++++++++++++++++++++
+
+On the first Backup Daemon server in each data center, install the Backup
+Daemon using the procedure appropriate to the operating system. Open the
+:doc:`/tutorial/nav/backup-server-installation` and go to the page
+specific to your OS. Perform the procedure for installing the *Backup
+Component*, including the step to start the service.
+
+In the step for configuring the ``conf-daemon.properties`` file, set the
+following fields as follows:
+
+.. The assumption in the code-block below is that every Backup Daemon in
+   every data center has the exact same settings.
+
+.. QUESTION: All the port numbers below are 27017. Is that correct?
+
+.. code-block:: sh
+
+   mongo.mongoUri=<hostname-of-first-MMS-Application-server-in-Data-Center-1>:27017,
+                  <hostname-of-first-MMS-Application-server-in-Data-Center-2>:27017,
+                  <hostname-of-first-MMS-Application-server-in-Data-Center-X>:27017
+
+   mongo.replicaSet=rs
+
+   mongo.backupdb.mongoUri=mongodb://<hostname-of-first-backup-daemon-in-Data-Center-1>:27017
+
+   mongo.backupdb.replicaSet=rs
+
+Copy the ``gen.key``
+++++++++++++++++++++
+
+The ``/etc/mongodb-mms/gen.key`` from the first MMS Application Server in
+**Data Center 1** will be the ``gen.key`` for all servers in both data
+centers.
+
+1. Copy the ``/etc/mongodb-mms/gen.key`` from the first MMS Application
+   Server in Data Center 1 to the ``/etc/mongodb-mms`` directory on the
+   first MMS Application Server in Data Center 2.
+
+2. Copy this ``gen.key`` to the ``/etc/mongodb-mms`` directory of each
+   Backup Daemon server.
+
+Start the MMS Application Service
++++++++++++++++++++++++++++++++++
+
+1. On the first MMS Application server in Data Center 1, issue the following:
+
+   .. code-block:: sh
+
+      service mongodb-mms start 
+
+2. On the first MMS Application server in Data Center 2, issue the following:
+
+   .. code-block:: sh
+
+      service mongodb-mms start 
+
+Bind Groups to Daemons
+++++++++++++++++++++++
+
+1. In a web browser, go to the URL for the MMS Application in Data Center 1:
+
+   .. code-block:: sh
+
+      <hostname-of-first-MMS-Application-server>:8080
+
+2. Register a new account, with the group set to a particular data center.
+
+   To test this, go to the URL for the MMS Application Server in Data
+   Center **2** and try to log in with the new account. It should succeed.
+
+3. Once logged into |MMS|, select the :guilabel:`Users` tab. Create new
+   group for other data center.
+
+   You should now have one group for each data center.
+
+4. In |MMS|, select the :guilabel:`Admin` and then select
+   :guilabel:`Backup`. Do the following:
+
+   - Select :guilabel:`Daemons` and ensure there are two daemons listed.
+
+   .. QUESTION: Should the next three bullets be "... with the hostname
+      and port of the blockstore for Data Center 2 ..." ???
+
+   - Select :guilabel:`Blockstores`. Add a blockstore with the hostname
+     and port for Data Center 2 and click :guilabel:`Save`.
+
+   - Select :guilabel:`Sync Stores`. Add a sync store with the hostname
+     and port for Data Center 2 and click :guilabel:`Save`.
+
+   - Select :guilabel:`Oplog Stores`. Add an oplog store with the hostname
+     and port for Data Center 2 and click :guilabel:`Save`.
+
+5. Select the :guilabel:`General` tab, then select :guilabel:`Groups`,
+   then select ``Data Center 1``, and then select the :guilabel:`View`
+   link for the :guilabel:`Backup Configuration`.
+
+6. For each of the following, click the drop-down box and select the local option for the group:
+
+   - :guilabel:`Backup Daemons`
+
+   - :guilabel:`Sync Stores`
+
+   - :guilabel:`Oplog Stores`
+
+   - :guilabel:`Block Stores`
+
+7. Repeat the above steps for the Data Center 2 group.
+
+8. For all users in Data Center 1, download the Monitoring and Backup
+   agents from the group assigned to Data Center 1. For all users in Data
+   Center 2, download the Monitoring and Backup agents from the group
+   assigned to Data Center 2.
+
+   See the following pages for the procedures for installing the agents:
+
+   - :doc:`/tutorial/nav/monitoring-getting-started`
+
+   - :doc:`/tutorial/nav/backup-getting-started`
