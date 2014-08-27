@@ -8,9 +8,11 @@ Overview
 --------
 
 The :ref:`Backup Blockstore Databases <mms-backup-blockstore-database>`
-maintains a copy of the data from your backed-up :program:`mongod`
+maintain a copy of the data from your backed-up :program:`mongod`
 instances. If needed, you can deploy multiple blockstores in multiple data
 centers, each backing up different :program:`mongod` instances.
+You can pin a particular MMS Group to a particular MMS application
+instance and blockstore.
 
 The following are situations to use multiple blockstores: 
 
@@ -25,23 +27,6 @@ The following are situations to use multiple blockstores:
 This tutorial describes how to set up two blockstores in two separate data
 centers.
 
-Considerations
---------------
-
-Each blockstore requires a separate instance of the :ref:`MMS Application
-<mms-application-package>` and the :ref:`Backup Daemon <backup-daemon>`.
-The MMS Application requires a dedicated :ref:`MMS Application Database
-<mms-application-database>`.
-
-You can pin a particular |MMS| Group to a particular MMS Application
-instance.
-
-To provide :manual:`failover </core/replica-set-high-availability>` for
-the Backup Blockstore Database and the Application Database, deploy a
-:term:`replica set` as the backing MongoDB instance for each. Each backing
-MongoDB instance is dedicated to the database it hosts and does not store
-any other data.
-
 Procedures
 ----------
 
@@ -50,30 +35,46 @@ The following procedures set up two blockstores in two data centers.
 Provision Servers in Each Data Center
 +++++++++++++++++++++++++++++++++++++
 
-Each data center should the following servers:
+Each blockstore requires a separate instance of the :ref:`MMS Application
+<mms-application-package>` and the :ref:`Backup Daemon <backup-daemon>`.
+The MMS Application requires a dedicated :ref:`MMS Application Database
+<mms-application-database>`.
 
-- A server to run the :ref:`MMS Application <mms-application-package>`
-  and to run two members of the replica set that stores the :ref:`MMS
-  Application Database <mms-application-database>`. For specifications for
-  the database, see the :ref:`Application Database requirements
-  <mms-application-database-specifications>`.
+To provide :manual:`failover </core/replica-set-high-availability>` for
+the Backup Blockstore Database and the Application Database, deploy a
+:term:`replica set` as the backing MongoDB instance for each. Each backing
+MongoDB instance is dedicated to the database it hosts and does not store
+any other data.
 
-- A server to run the third member of the replica set for the Application
-  Database.
+Each data center should have the following servers:
 
-- A server to run the :ref:`Backup Daemon <backup-daemon>` and two
-  members of the replica set that stores the :ref:`Backup Blockstore
-  Database <mms-backup-blockstore-database>`.
+- A server to run:
 
-- A server to run the third member of the replica set that stores the
+  - the :ref:`MMS Application <mms-application-package>`, and
+
+  - a member and an arbiter for the :term:`replica set` that stores the
+    :ref:`MMS Application Database <mms-application-database>`. For
+    specifications for the database, see the :ref:`Application Database
+    requirements <mms-application-database-specifications>`.
+
+- A server to run the second member of the replica set that stores the
+  Application Database.
+
+- A server to run:
+
+  - the :ref:`Backup Daemon <backup-daemon>`, and
+
+  - a member and an arbiter for the replica set that stores the
+    :ref:`Backup Blockstore Database <mms-backup-blockstore-database>`.
+
+- A server to run the second member of the replica set that stores the
   Backup Blockstore Database.
 
-- Optionally, for high availability, **two** more servers to run a second
-  :ref:`Backup Daemon <backup-daemon>` and replica set that stores a
-  second :ref:`Backup Blockstore Database
-  <mms-backup-blockstore-database>`. For more information on multiple
-  Backup Daemons for high availability, see
-  :ref:`multiple-backup-daemons`.
+Optionally, for high availability, a data center can have additional
+servers to run additional :ref:`Backup Daemons <backup-daemon>` and
+:ref:`Backup Blockstore Databases <mms-backup-blockstore-database>`. For
+more information on using multiple Backup Daemons for high availability,
+see :ref:`multiple-backup-daemons`.
 
 Install MongoDB and Deploy Replica Sets
 +++++++++++++++++++++++++++++++++++++++
@@ -199,8 +200,7 @@ following fields as follows:
 .. code-block:: sh
 
    mongo.mongoUri=<hostname-of-first-MMS-Application-server-in-Data-Center-1>:27017,
-                  <hostname-of-first-MMS-Application-server-in-Data-Center-2>:27017,
-                  <hostname-of-first-MMS-Application-server-in-Data-Center-X>:27017
+                  <hostname-of-first-MMS-Application-server-in-Data-Center-2>:27017
 
    mongo.replicaSet=rs
 
