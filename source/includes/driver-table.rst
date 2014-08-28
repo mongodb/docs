@@ -22,11 +22,6 @@
      - `C# Driver Source Code <https://github.com/mongodb/mongo-csharp-driver>`_
      - `Current C# Driver API <http://api.mongodb.org/csharp/current/>`_
 
-   * - :ecosystem:`Go </drivers/go>` (mgo)
-     - `Go Driver Releases <http://labix.org/mgo>`_
-     - `Go Driver Source Code <https://launchpad.net/mgo>`_
-     - `Go Driver API <http://godoc.org/labix.org/v2/mgo>`_
-
    * - :ecosystem:`Java </drivers/java>`
      - `Java Driver Releases <https://github.com/mongodb/mongo-java-driver/releases>`_
      - `Java Driver Source Code <https://github.com/mongodb/mongo-java-driver>`_
@@ -66,9 +61,3 @@
    * - :ecosystem:`Haskell </drivers/haskell>`
      - `Haskell Driver Releases <https://github.com/mongodb/mongodb-haskell/releases>`_
      - `Current Haskell Driver API <http://api.mongodb.org/haskell/>`_
-
-   * - :ecosystem:`Erlang </drivers/erlang>`
-     - `Erlang Driver Releases <httpsgc ://github.com/mongodb/mongodb-erlang/releases>`_
-     - `Current Erlang Driver API <http://api.mongodb.org/erlang/>`_
-
-:ecosystem:`mgo </drivers/go>` is not officially supported.
