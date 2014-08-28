@@ -8,6 +8,17 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.4.1.108``
+------------------------------
+
+*Released 2014-08-25*
+
+The default value for :msetting:`sslTrustedServerCertificates` is now
+``true``.  Users upgrading from 2.4.0 and using SSL will 
+need to set the value of :msetting:`sslTrustedServerCertificates` in their
+configuration file.  See :msetting:`sslTrustedServerCertificates` for
+more information.
+
 Monitoring Agent ``2.4.0.101``
 -------------------------------
 
