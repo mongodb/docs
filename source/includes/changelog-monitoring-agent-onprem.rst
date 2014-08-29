@@ -4,6 +4,24 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.4.2.113``
+------------------------------
+
+*Released with OnPrem 1.5.0*
+
+- Upgraded agent to use Go 1.3.
+
+- Updated mgo driver, which includes fix for :issue:`MGO-34`. All DNS
+  lookups should now timeout appropriately.
+
+- Added support for connecting to hosts using LDAP authentication.
+
+- Added support for ``version`` and ``-version`` command line options.
+
+- Agent now displays git commit hash of Monitoring Agent in the log file.
+
+- Updates to the configuration file format.
+
 Monitoring Agent ``2.3.1.89-1``
 -------------------------------
 
@@ -19,7 +37,6 @@ Monitoring Agent ``2.3.1.89-1``
   configuration file.
 
 - Agent includes support for an Offline data collection mode.
-
 
 Monitoring Agent ``2.1.4.51-1``
 -------------------------------

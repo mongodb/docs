@@ -4,6 +4,29 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.3.1.160``
+--------------------------
+
+*Released with MMS OnPrem 1.5.0*
+
+- Backup Agent now sends oplog slices in batches.
+
+- Improved stability around oplog tokens for environments with unstable networks.
+
+- Support for a new API that allows MMS to ingest oplog entries before the entire
+  payload has reached the MMS servers.
+
+- Upgraded agent to use to Go 1.3.
+
+- Added support for ``version`` and ``-version`` command line options.
+
+- Added support for connecting to hosts using LDAP authentication.
+
+- Agent now provides additional logging information when the Backup
+  Agent manipulates the balancer.
+
+- Agent now supports configuring HTTP proxies with the config file.
+
 Backup Agent ``1.5.1.83-1``
 ---------------------------
 
