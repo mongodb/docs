@@ -1,0 +1,222 @@
+Metrics
+-------
+
+Requests to this resource are subject to rate limiting. Currently, MMS imposes
+a limit of 100 requests per minute.
+
+Sample Entity
+~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+  {
+    "hostId": "680ab316473d6b28f966364b947134fc",
+    "groupId": "2847387cd717dabc348a",
+    "metricName" : "OPCOUNTERS_UPDATE",
+    "units" : "RAW",
+    "granularity" : "MINUTE",
+    "dataPoints" : [ {
+      "timestamp" : "2014-08-26T16:42:00Z",
+      "value" : 10.3911
+    }, {
+      "timestamp" : "2014-08-26T16:43:00Z",
+      "value" : 14.938
+    }, {
+      "timestamp" : "2014-08-26T16:44:00Z",
+      "value" : 12.8882
+    },
+    ...
+    ],
+    "links" : [ ... ]
+  }
+
+
+Entity Fields
+~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+   * - hostId
+     - string
+     - ID of the host to which this metric pertains.
+   * - groupId
+     - string
+     - ID of the group that owns this host.
+   * - metricName
+     - enum
+     - The name of the metric. Possible values are: ``ASSERT_MSG ASSERT_REGULAR
+       ASSERT_USER ASSERT_WARNING BACKGROUND_FLUSH_AVG COMPUTED_MEMORY
+       CONNECTIONS CONNECTIONS_MAX CURSORS_TOTAL_CLIENT_CURSORS_SIZE
+       CURSORS_TOTAL_OPEN CURSORS_TOTAL_TIMED_OUT DB_DATA_SIZE_TOTAL
+       DB_LOCK_PERCENTAGE DB_ACCESSES_NOT_IN_MEMORY DB_PAGE_FAULT_EXCEPTIONS_THROWN
+       DB_STORAGE_TOTAL EFFECTIVE_LOCK_PERCENTAGE EXTRA_INFO_PAGE_FAULTS
+       GLOBAL_ACCESSES_NOT_IN_MEMORY GLOBAL_LOCK_CURRENT_QUEUE_READERS
+       GLOBAL_LOCK_CURRENT_QUEUE_TOTAL GLOBAL_LOCK_CURRENT_QUEUE_WRITERS
+       GLOBAL_PAGE_FAULT_EXCEPTIONS_THROWN INDEX_COUNTERS_BTREE_ACCESSES
+       INDEX_COUNTERS_BTREE_HITS INDEX_COUNTERS_BTREE_MISSES
+       INDEX_COUNTERS_BTREE_MISS_RATIO JOURNALING_COMMITS_IN_WRITE_LOCK
+       JOURNALING_MB JOURNALING_WRITE_DATA_FILES_MB MEMORY_MAPPED
+       MEMORY_RESIDENT MEMORY_VIRTUAL MUNIN_CPU_IOWAIT MUNIN_CPU_IRQ
+       MUNIN_CPU_NICE MUNIN_CPU_SOFTIRQ MUNIN_CPU_STEAL MUNIN_CPU_SYSTEM
+       MUNIN_CPU_USER MUNIN_IOSTAT_OP_READ MUNIN_IOSTAT_OP_WRITE
+       MUNIN_IOSTAT_TIME_READ MUNIN_IOSTAT_TIME_WRITE
+       NETWORK_BYTES_IN NETWORK_BYTES_OUT NETWORK_NUM_REQUESTS
+       OPCOUNTER_CMD OPCOUNTER_DELETE OPCOUNTER_GETMORE OPCOUNTER_INSERT
+       OPCOUNTER_QUERY OPCOUNTER_REPL_CMD OPCOUNTER_REPL_DELETE
+       OPCOUNTER_REPL_INSERT OPCOUNTER_REPL_UPDATE OPCOUNTER_UPDATE
+       OPLOG_MASTER_LAG_TIME_DIFF OPLOG_MASTER_TIME OPLOG_RATE_GB_PER_HOUR
+       OPLOG_SLAVE_LAG_MASTER_TIME``
+   * - units
+     - enum
+     - The units in which the metric values are expressed. Possible values are:
+       ``RAW BITS KILOBITS MEGABITS GIGABITS BYTES KILOBYTES MEGABYTES
+       GIGABYTES TERABYTES PETABYTES MILLISECONDS SECONDS MINUTES HOURS DAYS``
+   * - granularity
+     - enum
+     - The size of the epoch covered by each data point. Possible values are:
+       ``MINUTE HOUR DAY``
+   * - deviceName
+     - string
+     - The name of the device. Only present for hardware (ie, Munin) metrics.
+   * - databaseName
+     - string
+     - The name of the database. Only present for database-level metrics.
+   * - dataPoints
+     - object array
+     - An array of objects, where each object represents a single metric data point.
+       When there is no data point available for a particular epoch, then it will
+       simply be missing from the array. For example, if you request minute-level
+       data points for 1:30PM through 2:00PM, but MMS does not have a 1:31PM sample,
+       then:
+       dataPoints[0].timestamp = '...T13:30:00Z';
+       dataPoints[1].timestamp = '...T13:32:00Z';
+       dataPoints[2].timestamp = '...T13:33:00Z';
+       etc.
+   * - dataPoints.$.timestamp
+     - date
+     - The timestamp of the beginning of the epoch represented by this data point.
+   * - dataPoints.$.value
+     - float
+     - The value of the data point.
+
+
+Links
+~~~~~
+
+.. list-table::
+   :widths: 10 90
+   :header-rows: 1
+
+   * - Relation
+     - Description
+   * - self
+     - Me
+   * - group
+     - The group that the host belongs to.
+   * - host
+     - The host to which the metric pertains.
+
+
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/metrics`` - Get a list
+  of all available metrics for the host. Each entity in the list will be a
+  partial metric entity. No actual data points are returned, but each entity
+  contains a ``self`` link which you may follow to retrieve the full metric
+  entity.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/metrics/METRIC-NAME`` -
+  Get the data points for the specified host and metric. If no additional query
+  parameters are given, then the minute-level data for the past hour is
+  returned. The ``METRIC-NAME`` may be any of the supported values listed for
+  the ``metricName`` field, above. Note that if the provided metric is either a
+  database-level metric (ie, its name begins with ``DB_``) or a hardware metric
+  for a specific device (ie, its name begins with ``MUNIN_IOSTAT``), then the
+  response entity will contain a list of links to all available database (or
+  hardware device) metrics. You may also provide additional query parameters:
+
+  - ``granularity`` - The size of the epoch. Acceptable values are:
+  ``MINUTE HOUR DAY``
+
+  - ``period`` - The ISO-8601 formatted time period that specifies how far back
+  in the past to query. For example, to request the last 36 hours of hour-level
+  data, you must specify: ``granularity=HOUR&period=P1DT12H``
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/metrics/DB-METRIC-NAME/DB-NAME`` -
+  Get the data points for the specified host, database metric, and database name.
+  The database metrics include the supported values for the ``metricName`` field
+  that begin with ``DB_``. The same query parameters described above are also
+  supported.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/metrics/HW-METRIC-NAME/DEVICE-NAME`` -
+  Get the data points for the specified host, hardware metric, and device name.
+  The device-specific hardware metrics include the supported values for the
+  ``metricName`` field that begin with ``MUNIN_IOSTAT_``. The same query
+  parameters described above are also supported.
+
+
+Examples
+~~~~~~~~
+
+Get all available metrics: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/51b9361d5ae9048f0aab01f4/hosts/04cf770dc43c9ff21747ecf71ff9ee78/metrics" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "totalCount" : 53,
+    "results" : [ {
+      "hostId" : "04cf770dc43c9ff21747ecf71ff9ee78",
+      "groupId" : "51b9361d5ae9048f0aab01f4",
+      "metricName" : "ASSERT_REGULAR",
+      "units" : "RAW",
+      "links" : [ {
+        "rel" : "self",
+        "href" : "https://mms.mongodb.com/api/public/v1.0/groups/51b9361d5ae9048f0aab01f4/hosts/04cf770dc43c9ff21747ecf71ff9ee78/metrics/ASSERT_REGULAR"
+      } ]
+    }, {
+      "hostId" : "04cf770dc43c9ff21747ecf71ff9ee78",
+      "groupId" : "51b9361d5ae9048f0aab01f4",
+      "metricName" : "ASSERT_WARNING",
+      "units" : "RAW"
+      "links" : [ {
+        "rel" : "self",
+        "href" : "https://mms.mongodb.com/api/public/v1.0/groups/51b9361d5ae9048f0aab01f4/hosts/04cf770dc43c9ff21747ecf71ff9ee78/metrics/ASSERT_WARNING"
+      } ]
+    }, ...  ],
+    "links" : [ ... ]
+  }
+
+
+Get a single metric, hour-level data for the past 12 hours: ::
+
+  curl -u "username:apiKey" "https://mms.mongodb.com/api/public/v1.0/groups/51b9361d5ae9048f0aab01f4/hosts/04cf770dc43c9ff21747ecf71ff9ee78/metrics/OPCOUNTERS_QUERY?granularity=HOUR&period=PT12H" --digest -i
+
+  HTTP/1.1 200 OK
+
+  {
+    "groupId" : "51b9361d5ae9048f0aab01f4",
+    "hostId" : "04cf770dc43c9ff21747ecf71ff9ee78",
+    "metricName" : "OPCOUNTERS_QUERY",
+    "units" : "RAW",
+    "granularity" : "MINUTE",
+    "dataPoints" : [ {
+      "timestamp" : "2014-08-29T14:00:00Z",
+      "value" : 381.2
+    }, {
+      "timestamp" : "2014-08-29T15:00:00Z",
+      "value" : 407.23
+    }, {
+      "timestamp" : "2014-08-29T16:00:00Z",
+      "value" : 365.3124
+    }, ... ],
+    "links" : [ ... ]
+  }
+ 
