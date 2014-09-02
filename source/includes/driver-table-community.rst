@@ -14,5 +14,5 @@
 
    * - :doc:`Erlang </drivers/erlang>`
      - `Erlang Driver Releases <https://github.com/comtihon/mongodb-erlang/releases>`_
-     - `Erlang Driver Source Code <https://github.com/comtihon/mongodb-erlang>'_
+     - `Erlang Driver Source Code <https://github.com/comtihon/mongodb-erlang>`_
      - `Current Erlang Driver API <http://api.mongodb.org/erlang/>`_
