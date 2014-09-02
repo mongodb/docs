@@ -29,3 +29,5 @@ hosted saas:setup
 
 giza-push:
 	@giza push --deploy push-saas push-hosted --builder latex json html dirhtml singlehtml --serial_sphinx --edition saas hosted
+giza-stage:
+	@giza push --deploy stage-saas stage-hosted --builder latex json html dirhtml singlehtml --serial_sphinx --edition saas hosted
