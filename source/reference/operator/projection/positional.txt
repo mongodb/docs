@@ -9,55 +9,70 @@ Definition
 
 .. projection:: $
 
-   The positional :projection:`$` operator limits the contents of the
-   ``<array>`` field that is included in the query results to contain
-   the **first** matching element. To specify an array element to
-   update, see the :doc:`positional $ operator for updates
+   The positional :projection:`$` operator limits the contents of an
+   ``<array>`` from the query results to contain only the **first** element
+   matching the query document. To specify an array element to update, see the
+   :doc:`positional $ operator for updates
    </reference/operator/update/positional>`.
 
-   Used in the :term:`projection` document of the
+   Use :projection:`$` in the :term:`projection` document of the
    :method:`~db.collection.find()` method or the
-   :method:`~db.collection.findOne()` method:
+   :method:`~db.collection.findOne()` method when you only need one particular
+   array element in selected documents.
 
-   - The :projection:`$` projection operator limits the content of the
-     ``<array>`` field to the **first** element that matches the
-     :ref:`query document <read-operations-query-argument>`.
+Usage Considerations
+--------------------
 
-   - The ``<array>`` field **must** appear in the :ref:`query document
-     <read-operations-query-argument>`
-
-     .. code-block:: javascript
-
-        db.collection.find( { <array>: <value> ... },
-                            { "<array>.$": 1 } )
-        db.collection.find( { <array.field>: <value> ...},
-                            { "<array>.$": 1 } )
-
-     The ``<value>`` can be documents that contains :ref:`query operator
-     expressions <query-selectors-comparison>`.
-
-   - Only **one** positional :projection:`$` operator can appear in the
-     projection document.
-
-   - Only **one** array field can appear in the :ref:`query document
-     <read-operations-query-argument>`; i.e. the following query is
-     **incorrect**:
-
-     .. code-block:: javascript
-
-        db.collection.find( { <array>: <value>, <someOtherArray>: <value2> },
-                            { "<array>.$": 1 } )
+.. include:: /includes/fact-positional-projection-vs-elemmatch.rst
 
 Behavior
 --------
 
-Array Field Limitation
-~~~~~~~~~~~~~~~~~~~~~~
+Usage Requirements
+~~~~~~~~~~~~~~~~~~
 
-Since only **one** array field can appear in the query document,
-if the array contains documents, to specify criteria on multiple
-fields of these documents, use the
-:query:`$elemMatch` operator. For example:
+Given the form:
+
+.. code-block:: javascript
+
+   db.collection.find( { <array>: <value> ... },
+                       { "<array>.$": 1 } )
+   db.collection.find( { <array.field>: <value> ...},
+                       { "<array>.$": 1 } )
+
+The ``<array>`` field being limited **must** appear in the :ref:`query document
+<read-operations-query-argument>`, and the ``<value>`` can be documents
+that contain :ref:`query operator expressions <query-selectors-comparison>`.
+
+.. _array-field-limitation:
+
+Array Field Limitations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB requires the following when dealing with projection over arrays:
+
+- Only one positional :projection:`$` operator may appear in the projection
+  document.
+
+- Only one array field may appear in the
+  :ref:`query document <read-operations-query-argument>`.
+
+- The :ref:`query document <read-operations-query-argument>` should only
+  contain a single condition on the array field being projected. Multiple
+  conditions may override each other internally and lead to undefined
+  behavior.
+
+Under these requirements, the following query is **incorrect**:
+
+.. code-block:: javascript
+
+   db.collection.find( { <array>: <value>, <someOtherArray>: <value2> },
+                       { "<array>.$": 1 } )
+
+To specify criteria on multiple fields of documents inside that array, use the
+:query:`$elemMatch` query operator. The following query will return any
+subdocuments inside a ``grades`` array that have a ``mean`` of greater than 70
+and a ``grade`` of greater than 90.
 
 .. code-block:: javascript
 
@@ -66,6 +81,9 @@ fields of these documents, use the
                                                grade: { $gt:90 }
                                              } } },
                      { "grades.$": 1 } )
+
+You must use the :projection:`$elemMatch` operator if you need separate conditions
+for selecting documents and for choosing fields within those documents.
 
 Sorts and the Positional Operator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
