@@ -47,11 +47,10 @@ Each blockstore requires a separate instance of the :ref:`MMS Application
 The MMS Application requires a dedicated :ref:`MMS Application Database
 <mms-application-database>`.
 
-To provide :manual:`failover </core/replica-set-high-availability>` for
-the Backup Blockstore Database and the Application Database, deploy a
-:term:`replica set` as the backing MongoDB instance for each. Each backing
-MongoDB instance is dedicated to the database it hosts and does not store
-any other data.
+To support automatic :manual:`failover
+</core/replica-set-high-availability>` for the Backup Blockstore and
+MMS Application Database, deploy one :term:`replica set` as the
+*backing MongoDB instance* for each database.
 
 Each data center should have the following servers:
 
@@ -77,10 +76,10 @@ Each data center should have the following servers:
 - A server to run the second member of the replica set that stores the
   Backup Blockstore Database.
 
-Optionally, for high availability, a data center can have additional
+Optionally, to increase resilience and capacity, a data center may
 servers to run additional :ref:`Backup Daemons <backup-daemon>` and
 :ref:`Backup Blockstore Databases <mms-backup-blockstore-database>`. For
-more information on using multiple Backup Daemons for high availability,
+more information on using multiple Backup Daemons and high availability,
 see :ref:`multiple-backup-daemons`.
 
 Install MongoDB and Deploy Replica Sets
@@ -107,15 +106,15 @@ each data center:
 
    .. code-block:: sh
 
-      mkdir /data/db
-      mkdir /data/arb
+      mkdir /data/db0
+      mkdir /data/db1
 
    On the second MMS Application or Backup Daemon server in each data
    center, issue the following command:
 
    .. code-block:: sh
 
-      mkdir /data/db
+      mkdir /data/db0
 
 3. Set ulimits. Set the maximum number of open file descriptors and
    maximum number of processes available to a single user to 64000:
@@ -133,8 +132,8 @@ each data center:
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db --fork --logpath /tmp/mongo.log --replSet rs
-      mongod --dbpath /data/arb -fork --logpath /tmp/arb.log --replSet rs --port 27018
+      mongod --dbpath /data/db0 --fork --logpath /tmp/mongo.log --replSet rs
+      mongod --dbpath /data/db1 -fork --logpath /tmp/arb.log --replSet rs --port 27018
 
    Then, start a :program:`mongo` shell connected to the first
    instance:
@@ -154,7 +153,7 @@ each data center:
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db --fork --logpath /tmp/mongo.log --replSet rs
+      mongod --dbpath /data/db0 --fork --logpath /tmp/mongo.log --replSet rs
 
    On the first MMS Application or Backup Daemon server in each data
    center, issue the following to enter the :program:`mongo` shell, add the deployed
