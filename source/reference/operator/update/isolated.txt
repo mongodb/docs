@@ -6,8 +6,14 @@ $isolated
 
 .. update:: $isolated
 
-   :update:`$isolated` isolation operator **isolates** a write
-   operation that affects multiple documents from other write operations.
+   Prevents a write operation that affects multiple documents from
+   yielding to other reads or writes once the first document is
+   written. By using the :update:`$isolated` option, you can ensure
+   that no client sees the changes until the operation completes or
+   errors out.
+
+   This behavior can significantly affect the concurrency of the system
+   as the operation holds the write lock much longer than normal.
 
    .. note::
 
@@ -18,21 +24,23 @@ $isolated
 
    .. code-block:: javascript
 
-      db.foo.update( { field1 : 1 , $isolated : 1 }, { $inc : { field2 : 1 } } , { multi: true } )
+      db.foo.update(
+          { status : "A" , $isolated : 1 },
+          { $inc : { count : 1 } },
+          { multi: true }
+      )
 
-   Without the :update:`$isolated` operator, multi-updates will allow
-   other operations to interleave with these updates. If these
-   interleaved operations contain writes, the update operation may
-   produce unexpected results. By specifying :update:`$isolated` you
-   can guarantee isolation for the entire multi-update.
+   Without the :update:`$isolated` operator, the ``multi``-update
+   operation will allow other operations to interleave with its update
+   of the matched documents.
 
    .. warning::
 
       :update:`$isolated` does not work with :term:`sharded clusters
       <sharded cluster>`.
 
-   .. seealso:: See :method:`db.collection.update()` for more information about the
-      :method:`db.collection.update()` method.
+   .. seealso:: 
+      :method:`db.collection.update()` and :method:`db.collection.remove()`
 
 .. update:: $atomic
 

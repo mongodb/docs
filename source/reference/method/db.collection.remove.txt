@@ -19,11 +19,27 @@ Definition
 Behavior
 --------
 
+Query Considerations
+~~~~~~~~~~~~~~~~~~~~
+
 By default, :method:`~db.collection.remove()` removes all documents
 that match the ``query`` expression. Specify the ``justOne`` option to
 limit the operation to removing a single document. To delete a single
 document sorted by a specified order, use the :ref:`findAndModify()
 <findAndModify-wrapper-sorted-remove>` method.
+
+When removing multiple documents, the remove operation may interleave
+with other read and/or write operations to the collection. For
+*unsharded* collections, you can override this behavior with the
+:update:`$isolated` operator, which "isolates" the remove operation and
+disallows yielding during the operation. This ensures that no client
+can see the affected documents until they are all processed or an error
+stops the remove operation.
+
+See :ref:`isolate-remove-operations` for an example.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-remove-capped-collection-restriction.rst
 
@@ -97,21 +113,13 @@ The following operation removes the first document from the collection
 
    db.products.remove( { qty: { $gt: 20 } }, true )
 
-Isolate Removal Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _isolate-remove-operations:
 
-If the ``<query>`` argument to the :method:`~db.collection.remove()`
-method matches multiple documents in the collection, the delete
-operation may interleave with other write operations to that collection.
-For an unsharded collection, you have the option to override this
-behavior with the :update:`$isolated` isolation operator, effectively
-isolating the delete operation and blocking other write operations
-during the delete. To isolate the query, include ``$isolated: 1`` in the
+Isolate Remove Operation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To isolate the query, include ``$isolated: 1`` in the
 ``<query>`` parameter as in the following examples:
-
-.. code-block:: javascript
-
-   db.bios.remove( { turing: true, $isolated: 1 } )
 
 .. code-block:: javascript
 
