@@ -1,0 +1,138 @@
+title: Stop all MongoDB processes.
+stepnum: 1
+ref: stop-processes
+pre: |
+  Stop **all** :program:`mongos` and :program:`mongod` processes. For
+  :program:`mongod` processes, this includes the :program:`mongod`
+  instance for each :term:`replica set` member in each :term:`shard` and
+  includes all the :program:`mongod` processes running as :term:`config
+  servers <config server>`.
+action: |
+  pre: |
+    To stop a process, you can connect to the process through the
+    :program:`mongo` shell and issue :method:`db.shutdownServer()`:
+  language: javascript
+  code: |
+    mongo
+    use admin
+    db.shutdownServer()
+---
+title: "Copy the restore files to the data directory of each :program:`mongod` server."
+stepnum: 2
+ref: restore
+content: |
+  The restore files are the data files for a given point in time for each
+  shard and for the config servers. Depending on how you backed up the
+  cluster, the files might be tarred or zipped.
+
+  Copy the restore files for a given shard to all the replica set members
+  on that shard. Copy the restore files for the config servers to each
+  config server.
+
+  Copy the restore files to the location where the :program:`mongod`
+  instance will access them. This is the location you will specify as the
+  :setting:`dbpath` when running the :program:`mongod`. If the restore
+  files are zipped or tarred, unzip or untar them.
+---
+title: Restart the config servers.
+stepnum: 3
+ref: restart-config-servers
+action:
+  pre: |
+    For example, for a config server that runs on port ``27019`` and that
+    stores data in ``/data/configdb``, issue:
+  language: sh
+  code: |
+    mongod --configsvr --port 27019 --dbpath /data/configdb
+---
+title: "If the hostnames or ports for shards have changed, update cluster's shard metadata."
+stepnum: 4
+ref: metadata
+action:
+  - pre: |
+      Start one :program:`mongos` instance, using the updated
+      configuration string in the :option:`configdb <mongos --configdb>`
+      option. For example
+    language: sh 
+    code: |
+      mongos --configdb <new hostnames and ports for config servers>
+  - pre: |
+      Connect to the :program:`mongos`, go to the :doc:`config
+      </reference/config-database>` database, and query the ``shards``
+      collection to display shard metadata. For example:
+    language: sh
+    code: |
+      mongo --port <mongos port number>
+      use config
+      db.shards.find().pretty()
+  - pre: |
+      For a given shard, the ``host`` field displays the shard's replica
+      set, hostname, and port. For example:
+    language: javascript 
+    code: |
+      { "_id" : "shard0000", "host" : "rs1/localhost:30000" }
+  - pre: |
+      Use the :method:`db.collection.update()` method to update each
+      shard's data to the correct hostname and port. For example, if the
+      above port has changed to 40000, issue:
+    language: javascript 
+    code: |
+      db.people.update(
+          { "_id": "shard0000" },
+          {
+              "_id": "shard0000",
+              "host": "rs1/localhost:40000"
+          }
+      )
+  - pre: |
+      Stop the :program:`mongos`. For example:
+    language: javascript
+    code: |
+      db.shutdownServer()
+# TODO: Before starting the primaries, do they have to drop the oplog and re-seed?
+---
+title: "Restart each primary as part of its replica set."
+stepnum: 5
+ref: restart-each-primary
+action:
+  pre: |
+    For example, the following command issued from a system shell starts a
+    primary and specifies the port number, data directory, and replica set.
+  language: sh
+  code: |
+    mongod --port 27017 --dbpath /data --replSet rsa
+# TODO: Do they have to initiate the replica set?
+---
+title: Restart each secondary as part of its replica set.
+stepnum: 6
+ref: restart-each-secondary
+action:
+  pre: |
+    For example, the following command issued from a system shell starts a
+    secondary and specifies the port number, data directory, and replica set.
+  language: sh
+  code: |
+    mongod --port 27017 --dbpath /data --replSet rsa
+# TODO: Do they have to add members to the replica set?
+---
+title: "Restart the :program:`mongos` instances."
+stepnum: 7
+ref: restart-mongos-instances
+content: |
+  Restart the :program:`mongos` instances. If hostnames or ports have
+  changed for the config servers, making sure to use the updated
+  information in the :option:`--configdb` option.
+---
+title: "Connect to a :program:`mongos` instance and view shard status."
+stepnum: 8
+ref: connect
+action:
+  pre: |
+    Connect to a :program:`mongos` instance from a :program:`mongo` shell
+    and use the :method:`db.printShardingStatus()` method to ensure that
+    the cluster is operational, as follows:
+  language: sh
+  code: |
+    db.printShardingStatus()
+    show collections
+...

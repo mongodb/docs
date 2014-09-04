@@ -1,0 +1,59 @@
+stepnum: 1
+source:
+  file: steps-backup-sharded-clusters-dumps.yaml
+  ref: disable-balancer
+---
+stepnum: 2
+source:
+  file: steps-backup-sharded-clusters-dumps.yaml
+  ref: lock-replica-set-members
+---
+title: "Back up one of the :ref:`config servers <sharding-config-server>`."
+stepnum: 3
+ref: backup-config-server
+pre: |
+  Backing up a config server backs up the sharded cluster's metadata. You
+  need back up only one config server, as they all hold the same data
+
+  Do one of the following to back up one of the config servers:
+
+  **Create a file-system snapshot of the config server.** Use the procedure in
+  :doc:`/tutorial/backup-with-filesystem-snapshots`.
+
+  .. important:: This is only available if the config server has :term:`journaling <journal>` enabled. *Never* use  :method:`db.fsyncLock()` on config databases.
+
+  **Use mongodump to backup the config server.**
+  Issue :program:`mongodump` against one of the config :program:`mongod`
+  instances or via the :program:`mongos`.
+
+  Your config servers must run MongoDB 2.4 or later with the
+  :option:`--configsvr <mongod --configsvr>` option and the
+  :program:`mongodump` option must include the :option:`--oplog
+  <mongodump --oplog>` option to ensure that the dump includes a partial
+  oplog containing operations from the duration of the mongodump
+  operation. For example:
+action:
+   language: sh
+   code: |
+      mongodump --oplog --db config
+---
+title: Backup the replica set members of the shards that you locked.
+stepnum: 4
+ref: backup-replica-set-members
+pre: |
+   You may back up the shards in parallel. For each shard, create a
+   snapshot. Use the procedure in
+   :doc:`/tutorial/backup-with-filesystem-snapshots`.
+---
+title: Unlock the locked replica set members.
+stepnum: 5
+ref: restart-replica-set-members
+content: |
+  Unlock all locked replica set members of each shard using the
+  :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
+---
+stepnum: 6
+source:
+  file: steps-backup-sharded-clusters-dumps.yaml
+  ref: reenable-balancer-process
+...
