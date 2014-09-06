@@ -27,7 +27,7 @@ in the following packages:
 
   This package contains the following MongoDB tools: :program:`mongoimport`
   :program:`bsondump`, :program:`mongodump`, :program:`mongoexport`,
-  :program:`mongofiles`, :program:`mongoimport`, :program:`mongooplog`,
+  :program:`mongofiles`, :program:`mongooplog`,
   :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
   and :program:`mongotop`.
 
