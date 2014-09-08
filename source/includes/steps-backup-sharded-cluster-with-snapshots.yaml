@@ -1,0 +1,86 @@
+title: Disable the balancer.
+stepnum: 1
+ref: disable-balancer
+action:
+  pre: |
+    Disable the :term:`balancer` process that equalizes the distribution
+    of data among the :term:`shards <shard>`. To disable the balancer, use
+    the :method:`sh.stopBalancer()` method in the :program:`mongo` shell.
+    For example:
+  language: sh
+  code: |
+    use config
+    sh.stopBalancer()
+post: |
+  For more information, see the
+  :ref:`sharding-balancing-disable-temporarily` procedure.
+---
+title: Lock one secondary member of each replica set in each shard.
+stepnum: 2
+ref: lock
+content: |
+  Lock one secondary member of each replica set in each shard so that your
+  backups reflect the state of your database at the nearest possible
+  approximation of a single moment in time. Lock these :program:`mongod`
+  instances in as short of an interval as possible.
+
+  To lock a secondary, connect through the :program:`mongo` shell to the
+  secondary member's :program:`mongod` instance and issue the
+  :method:`db.fsyncLock()` method.
+---
+title: Back up one of the config servers.
+stepnum: 3
+ref: backup-config-server
+pre: |
+  Backing up a :ref:`config server <sharding-config-server>` backs up the
+  sharded cluster's metadata. You need back up only one config server, as
+  they all hold the same data. Do one of the following to back up one of
+  the config servers:
+action:
+  - heading: "Create a file-system snapshot of the config server."
+    pre: |
+      Do this **only if** the config server has :term:`journaling
+      <journal>` enabled. Use the procedure in
+      :doc:`/tutorial/backup-with-filesystem-snapshots`. **Never** use
+      :method:`db.fsyncLock()` on config databases.
+  - heading: "Create a database dump to backup the config server."
+    pre: |
+      Issue :program:`mongodump` against one of the config
+      :program:`mongod` instances or via the :program:`mongos`. If you are
+      running MongoDB 2.4 or later with the :option:`--configsvr <mongod
+      --configsvr>` option, then include the :option:`--oplog <mongod
+      --oplog>` option to ensure that the dump includes a partial oplog
+      containing operations from the duration of the mongodump operation.
+      For example:
+    language: sh
+    code: |
+      mongodump --oplog --db config
+---
+title: Back up the replica set members of the shards that you locked.
+stepnum: 4
+ref: backup-locked-shards
+content: |
+  You may back up the shards in parallel. For each shard, create a
+  snapshot. Use the procedure in
+  :doc:`/tutorial/backup-with-filesystem-snapshots`.
+---
+title: Unlock locked replica set members.
+stepnum: 5
+ref: unlock
+content: |
+  Unlock all locked replica set members of each shard using the
+  :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
+---
+title: Enable the balancer.
+stepnum: 6
+ref: enable-balancer
+action:
+  pre: |
+    Re-enable the balancer with the :method:`sh.setBalancerState()`
+    method. Use the following command sequence when connected to the
+    :program:`mongos` with the :program:`mongo` shell:
+  language: javascript
+  code: |
+    use config
+    sh.setBalancerState(true)
+...
