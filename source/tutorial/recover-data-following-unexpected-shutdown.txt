@@ -9,8 +9,8 @@ representation of the data files will likely reflect an inconsistent
 state which could lead to data corruption. [#validation]_
 
 To prevent data inconsistency and corruption, always shut down the
-database cleanly and use the :ref:`durability journaling
-<setting-journal>`. MongoDB writes data to the journal, by default,
+database cleanly and use the :term:`durability journaling
+<journal>`. MongoDB writes data to the journal, by default,
 every 100 milliseconds, such that MongoDB can always recover to a
 consistent state even in the case of an unclean shutdown due to power
 loss or other system failure.
@@ -91,22 +91,22 @@ Overview
 There are two processes to repair data files that result from an
 unexpected shutdown:
 
-#. Use the :option:`--repair <mongod --repair>` option in
-   conjunction with the :option:`--repairpath <mongod --repairpath>`
-   option. :program:`mongod` will read the existing data files, and
-   write the existing data to new data files. This does not modify or
-   alter the existing data files.
+- Use the :option:`--repair <mongod --repair>` option in
+  conjunction with the :option:`--repairpath <mongod --repairpath>`
+  option. :program:`mongod` will read the existing data files, and
+  write the existing data to new data files. This does not modify or
+  alter the existing data files.
 
-   You do not need to remove the ``mongod.lock`` file before using
-   this procedure.
+  You do not need to remove the ``mongod.lock`` file before using
+  this procedure.
 
-#. Use the :option:`--repair <mongod --repair>` option.
-   :program:`mongod` will read the existing data files, write the
-   existing data to new files and replace the existing, possibly
-   corrupt, files with new files.
+- Use the :option:`--repair <mongod --repair>` option.
+  :program:`mongod` will read the existing data files, write the
+  existing data to new files and replace the existing, possibly
+  corrupt, files with new files.
 
-   You must remove the ``mongod.lock`` file before using this
-   procedure.
+  You must remove the ``mongod.lock`` file before using this
+  procedure.
 
 .. note::
 
@@ -122,66 +122,28 @@ Procedures
 .. important:: Always Run :program:`mongod` as the same user to avoid
    changing the permissions of the MongoDB data files.
 
+Repair Data Files and Preserve Original Files
++++++++++++++++++++++++++++++++++++++++++++++
+
 To repair your data files using the :option:`--repairpath <mongod --repairpath>`
 option to preserve the original data files unmodified.
 
-#. Start :program:`mongod` using :option:`--repair <mongod --repair>`
-   to read the existing data files.
+.. include:: /includes/steps/recover-data-with-repairpath.rst
 
-   .. code-block:: sh
-
-      mongod --dbpath /data/db --repair --repairpath /data/db0
-
-   When this completes, the new repaired data files will be in the
-   ``/data/db0`` directory.
-
-#. Start :program:`mongod` using the following invocation to point the
-   :setting:`~storage.dbPath` at ``/data/db0``:
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db0
-
-   Once you confirm that the data files are operational you may delete
-   or archive the old data files in the ``/data/db`` directory. You may
-   also wish to move the repaired files to the old database location
-   or update the :setting:`~storage.dbPath` to indicate the new location.
+Repair Data Files without Preserving Original Files
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To repair your data files without preserving the original files, do
 not use the :option:`--repairpath <mongod --repairpath>` option, as in
 the following procedure:
 
-#. Remove the stale lock file:
+.. warning::
 
-   .. code-block:: sh
+   After you remove the ``mongod.lock`` file you *must* run the
+   :option:`--repair <mongod --repair>` process before using your
+   database.
 
-      rm /data/db/mongod.lock
-
-   Replace ``/data/db`` with your :setting:`~storage.dbPath` where your MongoDB
-   instance's data files reside.
-
-   .. warning::
-
-      After you remove the ``mongod.lock`` file you *must* run the
-      :option:`--repair <mongod --repair>` process before using your
-      database.
-
-#. Start :program:`mongod` using :option:`--repair <mongod --repair>`
-   to read the existing data files.
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db --repair
-
-   When this completes, the repaired data files will replace the
-   original data files in the ``/data/db`` directory.
-
-#. Start :program:`mongod` using the following invocation to point the
-   :setting:`~storage.dbPath` at ``/data/db``:
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db
+.. include:: /includes/steps/recover-data-without-repairpath.rst
 
 ``mongod.lock``
 ---------------
