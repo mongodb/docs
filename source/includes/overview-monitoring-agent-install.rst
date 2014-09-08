@@ -23,4 +23,4 @@ deployment:
    This tutorial will guide you through the steps necessary
    to install or update the Monitoring Agent on your system.
 
-See the :doc:`/faq/monitoring` page for additional information.
+See :ref:`faq-monitoring` for additional information.
