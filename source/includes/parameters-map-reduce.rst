@@ -88,6 +88,11 @@ The ``reduce`` function exhibits the following behaviors:
 - The ``reduce`` function can access the variables defined
   in the ``scope`` parameter.
 
+- The inputs to ``reduce`` must not be larger than half of MongoDB's
+  :ref:`maximum BSON document size <limit-bson-document-size>`. This
+  requirement may be violated when large documents are returned and then
+  joined together in subsequent ``reduce`` steps.
+
 Because it is possible to invoke the ``reduce`` function
 more than once for the same key, the following
 properties need to be true:
