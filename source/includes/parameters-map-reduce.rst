@@ -3,7 +3,9 @@
 Requirements for the ``map`` Function
 -------------------------------------
 
-The ``map`` function has the following prototype:
+The ``map`` function is responsible for transforming each input document into
+zero or more documents. It can access the variables defined in the ``scope``
+parameter, and has the following prototype:
 
 .. code-block:: javascript
 
@@ -12,7 +14,7 @@ The ``map`` function has the following prototype:
       emit(key, value);
    }
 
-The ``map`` function exhibits the following behaviors:
+The ``map`` function has the following requirements:
 
 - In the ``map`` function, reference the current document as ``this``
   within the function.
@@ -22,38 +24,32 @@ The ``map`` function exhibits the following behaviors:
 - The ``map`` function should be pure, or have *no* impact outside of
   the function (i.e. side effects.)
 
-- The ``emit(key,value)`` function associates the ``key`` with a
-  ``value``.
+- A single emit can only hold half of MongoDB's :ref:`maximum BSON
+  document size <limit-bson-document-size>`.
 
-  - A single emit can only hold half of MongoDB's :ref:`maximum BSON
-    document size <limit-bson-document-size>`.
+- The ``map`` function may optionally call ``emit(key,value)`` any number of
+  times to create an output document associating ``key`` with ``value``.
 
-  - The ``map`` function can call ``emit(key,value)`` any number of
-    times, including 0, per each input document.
+The following ``map`` function will call ``emit(key,value)`` either
+0 or 1 times depending on the value of the input document's
+``status`` field:
 
-    The following ``map`` function may call ``emit(key,value)`` either
-    0 or 1 times depending on the value of the input document's
-    ``status`` field:
+.. code-block:: javascript
 
-    .. code-block:: javascript
+   function() {
+       if (this.status == 'A')
+           emit(this.cust_id, 1);
+   }
 
-       function() {
-           if (this.status == 'A')
-               emit(this.cust_id, 1);
-       }
+The following ``map`` function may call ``emit(key,value)``
+multiple times depending on the number of elements in the input
+document's ``items`` field:
 
-    The following ``map`` function may call ``emit(key,value)``
-    multiple times depending on the number of elements in the input
-    document's ``items`` field:
+.. code-block:: javascript
 
-    .. code-block:: javascript
-
-       function() {
-           this.items.forEach(function(item){ emit(item.sku, 1); });
-       }
-
-- The ``map`` function can access the variables defined in the
-  ``scope`` parameter.
+   function() {
+       this.items.forEach(function(item){ emit(item.sku, 1); });
+   }
 
 .. end-map
 
@@ -98,7 +94,9 @@ properties need to be true:
 
 - the *type* of the return object must be **identical**
   to the type of the ``value`` emitted by the ``map``
-  function to ensure that the following operations is
+  function.
+
+- the ``reduce`` function must be *associative*. The following statement must be
   true:
 
   .. code-block:: javascript
@@ -112,10 +110,9 @@ properties need to be true:
 
      reduce( key, [ reduce(key, valuesArray) ] ) == reduce( key, valuesArray )
 
-- the order of the elements in the
-  ``valuesArray`` should not affect the output of the
-  ``reduce`` function, so that the following statement is
-  true:
+- the ``reduce`` function should be *commutative*: that is, the order of the
+  elements in the ``valuesArray`` should not affect the output of the
+  ``reduce`` function, so that the following statement is true:
 
   .. code-block:: javascript
 
@@ -133,6 +130,9 @@ You can specify the following options for the ``out`` parameter:
 Output to a Collection
 ~~~~~~~~~~~~~~~~~~~~~~
 
+This option outputs to a new collection, and is not available on secondary
+members of replica sets.
+
 .. code-block:: javascript
 
    out: <collectionName>
@@ -141,8 +141,7 @@ Output to a Collection with an Action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This option is only available when passing ``out`` a collection that
-already exists. This option is not available on secondary members of
-replica sets.
+already exists. It is not available on secondary members of replica sets.
 
 .. code-block:: javascript
 
