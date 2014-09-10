@@ -8,6 +8,14 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.5.0``
+--------------------------
+
+*Released 2014-09-10*
+
+Added support for authentication using MongoDB 2.4 style client
+certificates.
+
 Monitoring Agent ``2.4.1.108``
 ------------------------------
 

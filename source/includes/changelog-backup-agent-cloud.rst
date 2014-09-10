@@ -6,7 +6,13 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.5.0``
+----------------------
 
+*Released 2014-09-10*
+
+Added support for authentication using MongoDB 2.4 style client
+certificates.
 
 Backup Agent ``2.4.0.156``
 --------------------------
