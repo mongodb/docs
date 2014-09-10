@@ -23,8 +23,8 @@ Overview
 Encryption
 ~~~~~~~~~~
 
-|MMS| uses SSL for encrypting communications for the following
-Monitoring Agent and Backup Agent connections:
+|MMS| uses :ref:`security-ssl` for encrypting communications for the
+following Monitoring Agent and Backup Agent connections:
 
 - Connections to MongoDB instances
 
@@ -34,21 +34,32 @@ See :doc:`/core/ssl` for more information about SSL in |mms|, and
 :manual:`Configure SSL with MongoDB </tutorial/configure-ssl>` for
 documentation SSL and MongoDB.
 
-Authentication
-~~~~~~~~~~~~~~
+Access Control and Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication verifies an agent's identity to a MongoDB
-deployment. |MMS| supports multiple :manual:`authentication mechanisms
-</core/authentication>`, including ``LDAP`` and ``MONGODB-CR``, the
-MongoDB default mechanism.
+MongoDB uses Role-Based Access Control (RBAC) to determine access to a
+MongoDB system. If a MongoDB deployment runs with access control, |MMS|
+agents must authenticate to the deployment as a MongoDB user with
+appropriate MongoDB user roles:
 
-Authorization
-~~~~~~~~~~~~~
+- :doc:`/reference/required-access-monitoring-agent`
+- :doc:`/reference/required-access-backup-agent`
 
+<<<<<<< HEAD
 |mms| provides roles to control access to resources and operations. Roles
 determine an agent's or user's access to |mms| resources and operations.
 See :ref:`assigning-roles-to-users` and
 :doc:`/reference/authentication`.
+=======
+|MMS| supports the following authentication mechanisms:
+:ref:`security-mongodb-cr`, :ref:`security-ldap`, and
+:ref:`security-kerberos`.
+
+MongoDB user roles are separate from |MMS| :doc:`user roles
+</reference/user-roles>`.
+
+.. _security-ssl:
+>>>>>>> mms-nav-reorg: security top level links
 
 SSL
 ---
@@ -65,14 +76,60 @@ communications are readable only by the intended parties.
 
 .. only:: hosted
 
-   Both the Monitoring Agent and the Backup Agent can use SSL. You can
-   apply SSL to their communications with the MongoDB deployment and,
-   separately, to their communications with the |MMS| servers.
+   Agents can use SSL when communicating with the |MMS| servers and
+   when communicating with the MongoDB deployment. 
 
-To implement SSL on your agent connections, please see :doc:`/core/ssl`.
+   To ensure that the agents use SSL when connecting to the |MMS|
+   servers, use an HTTPS proxy in front of |MMS|.
 
-LDAP Authentication
--------------------
+   You can optionally configure a Jetty instance to use HTTPS for
+   connections between the |mms| application and agents. To do so, see
+   :doc:`/tutorial/configure-jetty-https`.
+
+If the MongoDB deployment uses SSL, you must configure the |mms| agents
+as well as specify the host's :guilabel:`Use SSL` settings.
+
+To configure the agent, see
+:doc:`/tutorial/configure-monitoring-agent-for-ssl` and
+:doc:`/tutorial/configure-backup-agent-for-ssl`.
+
+You can specify the host's SSL settings when :doc:`adding
+</tutorial/add-hosts-to-monitoring>` the host or you can :doc:`edit the
+SSL setting </tutorial/edit-host-ssl-use>` for an exiting host.
+
+.. _security-mongodb-cr:
+
+``MONGODB-CR``
+--------------
+
+.. only:: saas
+
+   |MMS| can use the MongoDB Challenge-Response, i.e. ``MONGODB-CR``,
+   authentication mechanism to authenticate to a MongoDB deployment.
+
+.. only:: hosted
+
+   The |mms| Application can use MongoDB Challenge-Response,
+   ``MONGODB-CR``, to authenticate to the backing MongoDB instances.
+   See :setting:`mongo.mongoUri` for more information.
+
+If your MongoDB deployment uses ``MONGODB-CR`` for authentication, you
+must create a MongoDB user for the |mms| agents as well as specify the
+host's authentication settings.
+
+To create a MongoDB user, see
+:doc:`/tutorial/configure-monitoring-agent-for-cr` and
+:doc:`/tutorial/configure-backup-agent-for-cr`.
+
+You can specify the host's authentication settings when :doc:`adding
+</tutorial/add-hosts-to-monitoring>` the host, or you can :doc:`edit
+the settings </tutorial/edit-host-authentication-credentials>` for an
+existing host.
+
+.. _security-ldap:
+
+LDAP
+----
 
 .. only:: saas
 
@@ -87,29 +144,23 @@ LDAP Authentication
    MongoDB instances.
 
    To configure LDAP authentication between the |mms| application and
-   the backing MongoDB instances see
+   the backing MongoDB instances, see
    :doc:`/tutorial/configure-for-ldap-authentication`.
 
-To configure LDAP authentication between the Agents the MongoDB
-deployment see:
-:doc:`/tutorial/connect-to-hosts-with-ldap-authentication` and
-:doc:`/tutorial/backup-deployments-with-auth`.
+If your MongoDB deployment uses LDAP for authentication, you must
+create a MongoDB user for the |mms| agents as well as specify the
+host's authentication settings.
 
-MONGODB-CR
-----------
+To create a MongoDB user for the agents, see
+:doc:`/tutorial/configure-monitoring-agent-for-ldap` and
+:doc:`/tutorial/configure-backup-agent-for-ldap`.
 
-.. only:: saas
+You can specify the host's authentication settings when :doc:`adding
+</tutorial/add-hosts-to-monitoring>` the host, or you can :doc:`edit
+the settings </tutorial/edit-host-authentication-credentials>` for an
+existing host.
 
-   |MMS| can use the ``MONGODB-CR`` authentication mechanism to
-   authenticate to a MongoDB deployment. See
-   :doc:`/tutorial/backup-deployments-with-auth` and
-   :doc:`/reference/authentication` for more information.
-
-.. only:: hosted
-
-   The |mms| Application can also use ``MONGODB-CR`` to authenticate
-   to the backing MongoDB instances. See :setting:`mongo.mongoUri` for
-   more information.
+.. _security-kerberos:
 
 Kerberos
 --------
@@ -117,12 +168,24 @@ Kerberos
 |mms| agents can use the Kerberos authentication mechanism to
 authenticate to MongoDB deployments.
 
-To activate Kerberos authentication, you must select an authentication
-mechanism and provide the credentials. You select the Kerberos
-authentication mechanism when you add a host or activate backup, or at
-any time after monitoring and backup are active.
+If your MongoDB deployment uses Kerberos for authentication, you must
+create the Kerberos Principal for the agents, create a MongoDB user for
+that Kerberos Principal, edit the agent's configuration file, and
+specify the host's authentication settings.
 
-See :doc:`/tutorial/connect-to-hosts-with-kerberos-authentication`
+If you are running both the Monitoring Agent and the Backup Agent on
+the same server, then both agents must connect as the same Kerberos
+Principal.
+
+To create a Kerberos Principal and the associated MongoDB user as well
+as edit the configuration file, see
+:doc:`/tutorial/configure-monitoring-agent-for-kerberos` and
+:doc:`/tutorial/configure-backup-agent-for-kerberos`.
+
+You can specify the host's authentication settings when :doc:`adding
+</tutorial/add-hosts-to-monitoring>` the host, or you can :doc:`edit
+the settings </tutorial/edit-host-authentication-credentials>` for an
+existing host.
 
 Two-Factor Authentication
 -------------------------
