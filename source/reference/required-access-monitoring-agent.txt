@@ -1,0 +1,145 @@
+====================================
+Required Access for Monitoring Agent
+====================================
+
+.. default-domain:: mongodb
+
+If your MongoDB deployment enforces access control, the MMS Monitoring
+Agent must authenticate to MongoDB as a user with the proper access.
+
+.. _access-control-monitoring-agent-2.6:
+
+MongoDB 2.6
+-----------
+
+To monitor MongoDB 2.6 instances, including :dbcommand:`dbStats`
+[#dbStats]_ and :ref:`database profiling <database-profiler>`
+information [#profiling]_, the monitoring agent must authenticate to
+the database as a user with the following access:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Required Role
+     - 
+   * - :authrole:`clusterMonitor` role on the ``admin`` database
+     - 
+
+For *mixed* MongoDB versions, the specified access is inadequate to
+monitor deployments of since the user cannot access the ``local``
+database needed for mixed deployments. Monitoring a mixed deployment as
+a user with the specified access will produce an authorization error
+that will appear in the :program:`mongod` logs.
+
+The monitoring agent can recover from this error, and you may safely
+ignore these messages in the :program:`mongod` log.
+
+MongoDB 2.4
+-----------
+
+.. _access-control-2.4-no-profiling:
+
+Monitor without Database Profiling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To monitor MongoDB 2.4 instances, including :dbcommand:`dbStats`
+operations, the agent must authenticate as a user with the following
+access:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Required Roles
+     -
+
+   * - :authrole:`clusterAdmin` role on the ``admin`` database
+     -
+   
+   * - :authrole:`readAnyDatabase` role on the ``admin`` database
+     - 
+
+However, a user with the specified access *cannot* monitor with
+profiling. If this user tries to monitor with profiling, the
+:program:`mongod` log file may report the following message at the
+default logging level:
+
+.. code-block:: none
+
+   command denied: { profile: -1 }
+
+You can ignore this message if you do not want MMS to collect profile
+data. If you want to collect profile data, configure MMS monitoring as
+specified in :ref:`access-control-2.4-with-profiling`.
+
+.. _access-control-2.4-with-profiling:
+
+Monitor with Database Profiling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To monitor MongoDB 2.4 databases with database profiling [#profiling]_,
+the agent must authenticate as a user with the following access:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Required Roles
+     - 
+
+   * - :authrole:`clusterAdmin` role on the ``admin`` database
+     -
+
+   * - :authrole:`readAnyDatabase` role on the ``admin`` database
+     -
+
+   * - :authrole:`dbAdminAnyDatabase` roles in the ``admin`` database
+     -
+
+.. _access-control-2.4-no-dbStats:
+
+Monitor without ``dbStats``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To monitor MongoDB 2.4 databases *without* :dbcommand:`dbStats`
+[#dbStats]_, the agent must authenticate as a user with the following
+access:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Required Role
+     - 
+
+   * - :authrole:`clusterAdmin` role on the ``admin`` database
+
+     -
+
+Authentication Mechanisms
+-------------------------
+
+To authenticate, create the user in MongoDB with the appropriate
+access. The authentication method that the MongoDB deployment uses
+determines how to create the user as well as determine any additional
+agent configuration:
+
+- For MONGODB-CR (MongoDB Challenge-Response) authentication, see
+  :doc:`/tutorial/configure-monitoring-agent-for-cr`.
+
+- For LDAP authentication, see
+  :doc:`/tutorial/configure-monitoring-agent-for-ldap`.
+
+  .. only:: saas
+
+     .. include:: /includes/fact-auth-backup-requirements.rst
+
+- For Kerberos authentication, see
+  :doc:`/tutorial/configure-monitoring-agent-for-kerberos`.
+
+.. [#dbStats]
+   Monitoring without :dbcommand:`dbStats` excludes database
+   storage, records, indexes, and other statistics.
+
+.. [#profiling]
+   :ref:`Profiling <database-profiler>` captures in-progress read and write
+   operations, cursor operations, and database command information about the
+   database.

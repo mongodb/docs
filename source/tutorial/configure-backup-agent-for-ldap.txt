@@ -1,0 +1,76 @@
+==============================================
+Configure Backup Agent for LDAP Authentication
+==============================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+If your MongoDB deployment enforces access control, the Backup Agent
+must authenticate to MongoDB as a user with the proper access.
+
+Starting in version 2.6, MongoDB Enterprise provides an *LDAP (plain)*
+authentication mechanism that allows clients to authenticate to MongoDB
+deployments using LDAP. Backup Agents support authenticating to MongoDB
+instances using LDAP.
+
+If your MongoDB deployment uses LDAP to authenticate users, to
+authenticate the Backup Agent, create a user in the ``$external``
+database with the appropriate roles in MongoDB.
+
+Considerations
+--------------
+
+You must configure LDAP authentication separately for the Backup
+Agent and for the Monitoring Agent.
+
+You can configure LDAP authentication when activating backup or later
+by editing the backup configuration.
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-auth-backup-requirements.rst
+
+Create User in MongoDB
+----------------------
+
+To monitor MongoDB 2.6 instances that are using LDAP authentication,
+add a user to the ``$external`` database in MongoDB with the
+appropriate roles. The ``$external`` database allows :program:`mongod`
+to consult an external source (e.g. LDAP) to authenticate.
+
+MongoDB 2.6.4 or later
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("$external").createUser(
+       {
+         user : "<username>",
+         roles: [ { role: "backup", db: "admin" } ]
+       }
+   )
+
+MongoDB 2.6.0 or 2.6.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.getSiblingDB("$external").createUser(
+      {
+        user: "<username>",
+        roles: [ 
+           "clusterAdmin",
+           "readAnyDatabase",
+           "userAdminAnyDatabase",
+           { role: "readWrite", db: "admin" },
+           { role: "readWrite", db: "local" },
+        ]
+      }
+   )
+
+See :ref:`Access Control for MongoDB 2.6
+<access-control-monitoring-agent-2.6>` for more information on the
+required access.
