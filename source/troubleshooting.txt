@@ -6,12 +6,9 @@ Troubleshooting Guide
 
 .. default-domain:: mongodb
 
-This document provides troubleshooting advice for common issues. The
-:ref:`getting-started-checklist` checks for easily fixed installation and
-connectivity problems. Remaining troubleshooting solutions are organized
-into :ref:`installation <installation-troubleshooting>`, :ref:`monitoring
-<monitoring-troubleshooting>`, and :ref:`backup <backup-troubleshooting>`
-sections.
+This document provides advice for troubleshooting problems with MMS. Begin
+your troubleshooting using the :ref:`getting-started-checklist` to check
+for common, easily fixed problems.
 
 For answers to questions not covered here, see :doc:`FAQ documentation
 </faq>`.
@@ -25,9 +22,8 @@ For answers to questions not covered here, see :doc:`FAQ documentation
 Getting Started Checklist
 -------------------------
 
-Most problems with MMS are the result of issues with installation,
-connectivity, and other problems easily resolved. To begin troubleshooting,
-complete these tasks:
+To begin troubleshooting, complete these tasks to check for common, easily
+fixed problems:
 
 #. :ref:`troubleshooting-auth-creds`
 #. :ref:`troubleshooting-check-logs`
@@ -62,28 +58,21 @@ errors.
 
 .. _troubleshooting-one-agent:
 
-Confirm Only One Agent is Active and Running
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Confirm Only One Agent is Actively Monitoring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo:: Something needs to be ironed out here. The header talks about
-          confirming one active agent, but the second para below talks about
-          finding which agent is primary, indicating multiple
-          agents.
+If you :ref:`run multiple Monitoring Agents
+<monitoring-agent-redundancy>`, make sure they are all the same version
+and that only one if actively monitoring. When you upgrade a Monitoring
+Agent, do not forget to delete any old standby agents.
 
-          Standby agents poll MMS periodically to get the
-          configuration, but do not send data to MMS unless they are
-          active.
+When you run multiple agents, one runs as the primary agent and the others
+as standby agents. Standby agents poll MMS periodically to get the
+configuration but do not send data.
 
-If :ref:`running multiple Monitoring Agents
-<monitoring-agent-redundancy>`, then to determine which agent is the
-primary agent look at the Last Ping value on the
-:guilabel:`Monitoring Agents` page. If there is
-no Last Ping value for a listed agent, the agent is a standby agent.
-
-When you upgrade a Monitoring Agent, do not forget to kill the old hot standby agent.
-
-If you run a primary agent and a hot standby agent, confirm both agents are
-the same version.
+To determine which agent is the primary agent, look at the :guilabel:`Last
+Ping` value on the :guilabel:`Monitoring Agents` page. If there is no
+:guilabel:`Last Ping` value for a listed agent, the agent is a standby agent.
 
 See :ref:`faq-monitoring` and
 :doc:`/tutorial/add-hosts-to-monitoring` for more information.
@@ -120,30 +109,56 @@ Allow Agent to Discover Hosts and Collect Initial Data
 Allow the agent to run for 5-10 minutes to allow host discovery and initial
 data collection.
 
-.. _installation-troubleshooting:
+.. only:: hosted
 
-Installation Troubleshooting
-----------------------------
+   Installation
+   ------------
 
-.. no content yet
+   Why doesn't the monitoring server startup successfully?
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _monitoring-troubleshooting:
+   Confirm the URI or IP address for the MMS On Prem service is stored
+   correctly in this property in the
+   ``<install_dir>/conf/conf-mms.properties`` file:
 
-Monitoring Troubleshooting
---------------------------
+   .. code-block:: ini
+
+      mongo.mongoUri=<SetToValidUri>
+      mongo.replicaSet=<ValidRSIfUsed>
+
+   If you don't set this property, MMS will fail while trying to connect
+   to the default 127.0.0.1:27017 URL.
+
+   If the URI or IP address of your service changes, you must update the
+   property with the new address. For example, update the address if you
+   deploy on a system without a static IP address, or if you deploy on EC2
+   without a fixed IP and then restart the EC2 instance.
+
+   If the URI or IP address changes, then each user who access the service
+   must also update the address in the URL used to connect and in the
+   client-side ``monitoring-agent.config`` files.
+
+   If you use the MMS :program:`<install_dir>/bin/credentialstool` to encrypt
+   the password used in the ``mongo.mongoUri`` value, also add the
+   ``mongo.encryptedCredentials`` key to the
+   ``<install_dir>/conf/conf-mms.properties`` file and set the value for this
+   property to true:
+
+   .. code-block:: ini
+
+      mongo.encryptedCredentials=true
+
+   For more details, see :ref:`on-prem-authentication-configuration`.
+
+Monitoring
+----------
 
 Alerts
 ~~~~~~
 
-How to Set Up Alerts
-++++++++++++++++++++
-
-In MMS, click the :guilabel:`Activity` tab then :guilabel:`Alert Settings`.
-Click the :guilabel:`Add Alert` button to add an alert. On the
-:guilabel:`Create a New Alert` window, select the alert conditions, for which
-hosts, and where to send alerts.
-
-See :doc:`Activity: Alerts and Events </tutorial/manage-alerts-and-events>` for details.
+For information on creating and managing alerts, see
+:doc:`/tutorial/create-alert` and
+:doc:`/tutorial/manage-alerts-and-events`.
 
 Cannot Turn Off Email Notifications
 +++++++++++++++++++++++++++++++++++
@@ -245,6 +260,9 @@ For more information on deleted hosts, see :ref:`removing-hosts`.
 
 Groups
 ~~~~~~
+
+For information on creating and managing groups, see :ref:`create-group`
+and :doc:`/core/user-management`.
 
 Cannot Delete a Group
 +++++++++++++++++++++
@@ -399,6 +417,9 @@ Munin's iostat plugin.
 
 .. _`a documented fix`: https://bugs.launchpad.net/ubuntu/+source/munin/+bug/493982
 
+Authentication
+--------------
+
 Two-Factor Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -443,6 +464,19 @@ How to Delete or Reset Two-Factor Authentication
 LDAP
 ~~~~
 
+Cannot Enable LDAP
+~~~~~~~~~~~~~~~~~~
+
+You must enable LDAP **before** you sign up the first user through the MMS
+interface, as required in :ref:`Authentication Requirements
+<authentication-requirements>`. If you cannot enable LDAP because you have
+created a user through MMS, you must reinstall MMS, being sure to enable
+LDAP before creating users and hosts. Please see :ref:`Authentication
+Requirements <authentication-requirements>`.
+
+Forgot to Change MONGODB-CR Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If your MongoDB deployment uses LDAP for authentication, and you find
 the following error message:
 
@@ -455,10 +489,59 @@ Then make sure that you specified the ``LDAP (PLAIN)`` as is the
 authentication mechanism for both the Monitoring Agent and the Backup
 Agent. See :ref:`security-ldap`.
 
-..
-   .. _backup-troubleshooting:
+.. only:: hosted
 
-   Backup Troubleshooting
-   ----------------------
+   Backup
+   ------
 
-   .. no content yet
+   Logs Display MongodVersionException
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The ``MongodVersionException`` can occur if the :ref:`Backup Daemon
+   <backup-daemon>` cannot access the internet. The Backup Daemon
+   automatically downloads the versions of MongoDB required for the local
+   copies of the backed-up databases. If you have installed the Daemon
+   without access to the internet, you must manually download the required
+   MongoDB versions.
+
+   You must download the versions to the following directory:
+
+   .. dir ???
+
+   The folder structure for MongoDB releases must have the following
+   format:
+
+   .. more to come, see https://jira.mongodb.org/browse/CS-14657
+
+.. only:: hosted
+
+   System
+   ------
+
+   Logs Display OutOfMemoryError
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   If your logs display ``OutOfMemoryError``, ensure you are running with
+   sufficient ulimits and RAM.
+
+   Increase Ulimits
+   ++++++++++++++++
+
+   MMS infers the host's ``ulimit`` setting using the total number of
+   available and current connections. See the :manual:`UNIX ulimit
+   Settings </reference/ulimit/>` reference page.
+
+   Ensure Sufficient RAM for All Components
+   ++++++++++++++++++++++++++++++++++++++++
+
+   - Ensure that each server has enough RAM for the components it runs. If
+     a server runs multiple components, its RAM must be at least the sum
+     of the required amount of RAM for **each** component.
+
+     For the RAM requirements for the MMS Application Server and,
+     separately, for the MMS Backup Daemon Server, see
+     :doc:`/core/requirements`.
+
+     For the RAM requirements for the MMS Application Database and,
+     separately, for the MMS Backup Blockstore Database, see
+     :doc:`/tutorial/prepare-backing-mongodb-instances`.
