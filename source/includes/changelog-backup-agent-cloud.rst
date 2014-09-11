@@ -146,7 +146,7 @@ Backup Agent ``v20131216.1``
 ----------------------------
 
 - Added support for connecting to MongoDB instances running SSL. See
-  the :ref:`Backup Agent Configuration <backup-ssl>` documentation for
+  the :doc:`/tutorial/configure-backup-agent-for-ssl` documentation for
   more information.
 
 - The agent will try to use additional MongoS instances to take a

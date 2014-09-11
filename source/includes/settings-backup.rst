@@ -7,14 +7,14 @@ Backup Agent
 ~~~~~~~~~~~~
 
 :guilabel:`Backup Agent` provides links for downloading the
-pre-configured Backup Agent in both ``.zip`` and ``.tar.gz``
-formats, on a variety of platforms. :doc:`/backup`
+pre-configured Backup Agent in both ``.zip`` and ``.tar.gz`` formats,
+on a variety of platforms. :doc:`Backup </tutorial/nav/backup-agent>`
 requires this agent.
 
 Public Key for SCP Restores
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :guilabel:`Public Key for SCP Restores`, or ":guilabel:`MMS Backup
-Public Key`" enables users who have signed up for :doc:`/backup` to
-generate a new public key that MMS will use to connect via SSH and
-transmit a snapshot of your data.
+Public Key`" enables users who have signed up for doc:`Backup
+</tutorial/nav/backup-agent>` to generate a new public key that MMS
+will use to connect via SSH and transmit a snapshot of your data.
