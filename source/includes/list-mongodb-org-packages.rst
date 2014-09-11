@@ -35,7 +35,8 @@ Control Scripts
 ---------------
 
 The ``mongodb-org`` package includes various :term:`control scripts
-<control script>`, including the init script |init-script-path|.
+<control script>`, including the init script |init-script-path|. These scripts
+are used to stop, start, and restart daemon processes.
 
 The package configures MongoDB using the ``/etc/mongod.conf`` file in
 conjunction with the control scripts. See
@@ -45,4 +46,5 @@ configuration file.
 As of version |release|, there are no control scripts for
 :program:`mongos`. The :program:`mongos` process is used only in
 :doc:`sharding </core/sharding>`. You can use the ``mongod`` init script
-to derive your own :program:`mongos` control script.
+to derive your own :program:`mongos` control script for use in such
+environments. See the :program:`mongos` reference for configuration details.
