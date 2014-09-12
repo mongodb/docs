@@ -454,59 +454,79 @@ for additional information.
 How do I query for fields that have null values?
 ------------------------------------------------
 
-Fields in a document may store ``null`` values, as in a notional
-collection, ``test``, with the following documents:
+Consider the collection ``test`` with the following documents:
 
 .. code-block:: javascript
 
    { _id: 1, cancelDate: null }
    { _id: 2 }
 
-Different query operators treat ``null`` values differently:
+Different query operators treat ``null`` values differently when they operate
+on this collection.
 
-- The ``{ cancelDate : null }`` query matches documents that either
-  contains the ``cancelDate`` field whose value is ``null`` *or* that
-  do not contain the ``cancelDate`` field:
+.. _faq-comparison-with-null:
 
-  .. code-block:: javascript
+Comparison with Null
+~~~~~~~~~~~~~~~~~~~~
 
-     db.test.find( { cancelDate: null } )
+The ``{ cancelDate : null }`` query matches documents that either
+contain the ``cancelDate`` field whose value is ``null`` *or* that
+do not contain the ``cancelDate`` field. If the queried index is
+:ref:`sparse <index-type-sparse>`, however, then the query will only match
+``null`` values, not missing fields.
 
-  The query returns both documents:
+.. versionchanged:: 2.6
+   If using the sparse index results in an incomplete result, MongoDB will not
+   use the index unless a :method:`~cursor.hint()` explicitly specifies the
+   index. See :ref:`index-type-sparse` for more information.
 
-  .. code-block:: javascript
+Given the following query:
 
-     { "_id" : 1, "cancelDate" : null }
-     { "_id" : 2 }
+.. code-block:: javascript
 
-- The ``{ cancelDate : { $type: 10 } }`` query matches documents that
-  contains the ``cancelDate`` field whose value is ``null`` *only*;
-  i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
-  (i.e. ``10``) :
+   db.test.find( { cancelDate: null } )
 
-  .. code-block:: javascript
+The query returns both documents:
 
-     db.test.find( { cancelDate : { $type: 10 } } )
+.. code-block:: javascript
 
-  The query returns only the document that contains the ``null`` value:
+   { "_id" : 1, "cancelDate" : null }
+   { "_id" : 2 }
 
-  .. code-block:: javascript
+Type Check
+~~~~~~~~~~
 
-     { "_id" : 1, "cancelDate" : null }
+The ``{ cancelDate : { $type: 10 } }`` query matches documents that
+contains the ``cancelDate`` field whose value is ``null`` *only*;
+i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
+(i.e. ``10``) :
 
-- The ``{ cancelDate : { $exists: false } }`` query matches documents
-  that do not contain the ``cancelDate`` field:
+.. code-block:: javascript
 
-  .. code-block:: javascript
+   db.test.find( { cancelDate : { $type: 10 } } )
 
-     db.test.find( { cancelDate : { $exists: false } } )
+The query returns only the document that contains the ``null`` value:
 
-  The query returns only the document that does *not* contain the
-  ``cancelDate`` field:
+.. code-block:: javascript
 
-  .. code-block:: javascript
+   { "_id" : 1, "cancelDate" : null }
 
-     { "_id" : 2 }
+Existence Check
+~~~~~~~~~~~~~~~
+
+The ``{ cancelDate : { $exists: false } }`` query matches documents
+that do not contain the ``cancelDate`` field:
+
+.. code-block:: javascript
+
+   db.test.find( { cancelDate : { $exists: false } } )
+
+The query returns only the document that does *not* contain the
+``cancelDate`` field:
+
+.. code-block:: javascript
+
+   { "_id" : 2 }
 
 .. seealso:: The reference documentation for the :query:`$type` and
    :query:`$exists` operators.
