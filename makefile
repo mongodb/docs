@@ -28,6 +28,6 @@ hosted saas:setup
 	@echo [build]: $@ edition complete
 
 giza-push:
-	@giza push --deploy push-saas push-hosted --builder latex json html dirhtml singlehtml --serial_sphinx --edition saas hosted
+	@giza push --deploy push-saas push-hosted --builder publish --serial_sphinx --edition saas hosted
 giza-stage:
-	@giza push --deploy stage-saas stage-hosted --builder latex json html dirhtml singlehtml --serial_sphinx --edition saas hosted
+	@giza push --deploy stage-saas stage-hosted --builder publish --serial_sphinx --edition saas hosted
