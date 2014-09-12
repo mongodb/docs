@@ -41,14 +41,48 @@ If you run :method:`rs.syncFrom()` during initial sync, MongoDB
 produces no error messages, but the sync target will not change until
 after the initial sync operation.
 
-.. note::
+Persistence
+~~~~~~~~~~~
 
-   .. include:: /includes/fact-replica-set-sync-from-is-temporary.rst
+:dbcommand:`replSetSyncFrom` and :method:`rs.syncFrom()` provide a
+temporary override of default behavior. :program:`mongod` will revert
+to the default sync behavior in the following situations:
 
-The Sync Target
-~~~~~~~~~~~~~~~
+- The :program:`mongod` instance restarts.
 
-.. include:: /includes/fact-replSetSyncFrom-target-member.rst
+- The connection between the :program:`mongod` and the sync target
+  closes.
+
+.. versionchanged:: 2.4
+   The sync target falls more than 30 seconds behind another member of
+   the replica set; the :program:`mongod` will revert to the default
+   sync target.
+
+Target
+~~~~~~
+
+The member to sync from must be a valid source for data in the set.
+To sync from a member, the member must:
+
+- Have data. It cannot be an arbiter, in startup or recovering mode, and
+  must be able to answer data queries.
+
+- Be accessible.
+
+- Be a member of the same set in the replica set configuration.
+
+- Build indexes with the
+  :data:`~local.system.replset.members[n].buildIndexes` setting.
+
+- A different member of the set, to prevent syncing from itself.
+
+If you attempt to replicate from a member that is more than 10 seconds
+behind the current member, :program:`mongod` will log a warning but will
+still replicate from the lagging member.
+
+If you run :dbcommand:`replSetSyncFrom` during initial sync, MongoDB
+produces no error messages, but the sync target will not change until
+after the initial sync operation.
 
 Procedure
 ---------
@@ -57,12 +91,10 @@ To use the :dbcommand:`replSetSyncFrom` command in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
-   db.adminCommand( { replSetSyncFrom: "hostname<:port>" } )
+   db.adminCommand( { replSetSyncFrom: "hostname<:port>" } );
 
 To use the :method:`rs.syncFrom()` helper in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
-   rs.syncFrom("hostname<:port>")
-
-.. slave-ok, admin-only
+   rs.syncFrom("hostname<:port>");
