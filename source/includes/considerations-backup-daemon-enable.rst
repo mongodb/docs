@@ -19,7 +19,7 @@ for use in point-in-time restores. Also by default, MMS retains daily
 snapshots for a week, weekly snapshots for a month, and monthly snapshots
 for a year.
 
-.. only:: hosted
+.. only:: onprem
 
    You can set point-in-time restores going back 1, 2, 3, or 4 days.
 

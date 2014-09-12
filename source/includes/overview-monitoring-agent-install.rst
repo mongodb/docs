@@ -11,14 +11,14 @@ deployment:
 
 .. include:: /images/mms-deployment.rst
 
-.. only:: hosted
+.. only:: onprem
 
    This tutorial will guide you through the steps necessary
    to install or update |monitoring| on your system. You must install
    the On Prem Monitoring server itself before installing the
    Monitoring Agent.
 
-.. only:: saas
+.. only:: classic or cloud
 
    This tutorial will guide you through the steps necessary
    to install or update the Monitoring Agent on your system.
