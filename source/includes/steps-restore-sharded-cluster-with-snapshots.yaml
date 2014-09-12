@@ -1,0 +1,79 @@
+title: Shut down the entire cluster.
+stepnum: 1
+ref: shutdown-cluster
+pre: |
+  Stop all :program:`mongos` and :program:`mongod` processes, including
+  all shards *and* all config servers.
+action:
+  pre: |
+    Connect to each member and issue the following:
+  language: javascript
+  code: |
+    use admin
+    db.shutdownServer()
+  post: |
+    For version 2.4 or earlier, use ``db.shutdownServer({force:true})``.
+---
+title: Restore the data files.
+stepnum: 2
+ref: restore
+pre: |
+  One each server, extract the data files to the location where the
+  :program:`mongod` instance will access them. Restore the following:
+action:
+  - heading: "Data files for each server in each shard."
+    pre: |
+      Because replica sets provide each production :term:`shard`, restore
+      all the members of the replica set or use the other standard
+      approaches for restoring a replica set from backup. See the
+      :ref:`backup-restore-snapshot` and :ref:`backup-restore-dump`
+      sections for details on these procedures.
+  - heading: "Data files for each config server."
+---
+title: Restart the config servers.
+stepnum: 3
+ref: restart-config-servers
+action:
+  pre: |
+    Restart each :ref:`config server <sharding-config-server>`
+    :program:`mongod` instance by issuing a command similar to the
+    following for each, using values appropriate to your configuration:
+  language: sh
+  code: |
+    mongod --configsvr --dbpath /data/configdb --port 27019
+---
+title: "If shard hostnames have changed, update the config string and config database."
+stepnum: 4
+ref: shard-hostname
+content: |
+  If shard hostnames **have changed**, start **one** :program:`mongos`
+  instance using the updated config string with the new ``configdb``
+  hostnames and ports.
+
+  Then update the ``shards`` collection in the :ref:`config-database` to
+  reflect the new hostnames. Then stop the :program:`mongos` instance.
+---
+title: "Restart all the shard :program:`mongod` instances."
+stepnum: 5
+ref: restart-shards
+---
+title: "Restart all the :program:`mongos` instances."
+stepnum: 6
+ref: restart-mongos-instances
+content: |
+  If shard hostnames **have changed**, make sure to use the updated config
+  string.
+---
+title: "Connect to a :program:`mongos` to ensure the cluster is operational."
+stepnum: 7
+ref: ensure
+action:
+  pre: |
+    Connect to a :program:`mongos` instance from a :program:`mongo` shell
+    and use the :method:`db.printShardingStatus()` method to ensure that
+    the cluster is operational, as follows:
+  language: javascript
+  code: |
+    db.printShardingStatus()
+    show collections
+...
