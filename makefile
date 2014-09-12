@@ -22,12 +22,7 @@ help:
 
 ########## MMS Specific Content ##########
 
-hosted saas:setup
-	-@$(PYTHONBIN) $(tools)/bin/htaccess.py build/public/$@/.htaccess --data bin/htaccess-$@.yaml
-	@fab sphinx.target:latex-$@,json-$@,singlehtml-$@,dirhtml-$@,html-$@
-	@echo [build]: $@ edition complete
-
 giza-push:
-	@giza push --deploy push-saas push-hosted --builder publish --serial_sphinx --edition saas hosted
+	@giza push --deploy push-cloud push-classic push-onprem	--builder publish --serial_sphinx --edition cloud classic onprem
 giza-stage:
-	@giza push --deploy stage-saas stage-hosted --builder publish --serial_sphinx --edition saas hosted
+	@giza push --deploy stage-cloud stage-classic stage-onprem --builder publish --serial_sphinx --edition cloud classic onprem
