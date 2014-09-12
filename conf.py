@@ -9,6 +9,7 @@ import datetime
 
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
+from giza.config.project import get_current_path
 from giza.tools.strings import dot_concat
 
 conf = fetch_config(RuntimeStateConfig())
@@ -234,6 +235,6 @@ latex_use_modindex = False
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {}
 for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i['path']))
+    intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                        conf.paths.output,
+                                                        i.path))
