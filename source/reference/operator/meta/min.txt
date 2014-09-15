@@ -4,76 +4,90 @@ $min
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. operator:: $min
 
    Specify a :operator:`$min` value to specify the *inclusive* lower
    bound for a specific index in order to constrain the results of
-   :method:`~db.collection.find()`. The :program:`mongo` shell
-   provides the :method:`~cursor.min()` wrapper method:
+   :method:`~db.collection.find()`.
 
-   .. code-block:: javascript
+Shell Method
+------------
 
-      db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
+The :program:`mongo` shell provides the :method:`~cursor.min()`
+wrapper method:
 
-   You can also specify the option with either of the two forms:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
 
-      db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
-      db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
+You can also specify the option with either of the two forms:
 
-   The :operator:`$min` specifies the lower bound for *all* keys of a
-   specific index *in order*.
+.. code-block:: javascript
 
-   Consider the following operations on a collection named
-   ``collection`` that has an index ``{ age: 1 }``:
+   db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
+   db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
 
-   .. code-block:: javascript
+The :operator:`$min` specifies the lower bound for *all* keys of a
+specific index *in order*.
 
-      db.collection.find().min( { age: 20 } )
+Consider the following operations on a collection named
+``collection`` that has an index ``{ age: 1 }``:
 
-   These operations limit the query to those documents where the field
-   ``age`` is at least ``20`` using the index ``{ age: 1 }``.
+.. code-block:: javascript
 
-   You can explicitly specify the corresponding index with
-   :method:`~cursor.hint()`. Otherwise, MongoDB selects the index using
-   the fields in the ``indexBounds``; however, if multiple indexes
-   exist on same fields with different sort orders, the selection of
-   the index may be ambiguous.
+   db.collection.find().min( { age: 20 } )
 
-   Consider a collection named ``collection`` that has the following
-   two indexes:
+This operation limits the query to those documents where the
+field ``age`` is more than ``20`` and forces a query plan which scans the
+``{ age: 1 }`` index from 20 to :bsontype:`MaxKey <data_maxkey>`.
 
-   .. code-block:: javascript
+You can explicitly specify the corresponding index with
+:method:`~cursor.hint()`. Otherwise, MongoDB selects the index using
+the fields in the :operator:`$max` and :operator:`$min` bounds; however, if
+multiple indexes exist on same fields with different sort orders, the selection
+of the index may be ambiguous.
 
-      { age: 1, type: -1 }
-      { age: 1, type: 1 }
+Consider a collection named ``collection`` that has the following
+two indexes:
 
-   Without explicitly using :method:`~cursor.hint()`, it is unclear
-   which index the following operation will select:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   { age: 1, type: -1 }
+   { age: 1, type: 1 }
 
-      db.collection.find().min( { age: 20, type: 'C' } )
+Without explicitly using :method:`~cursor.hint()`, it is unclear
+which index the following operation will select:
 
-   You can use :operator:`$min` in conjunction with :operator:`$max` to
-   limit results to a specific range for the *same* index, as in the
+.. code-block:: javascript
+
+   db.collection.find().min( { age: 20, type: 'C' } )
+
+You can use :operator:`$min` in conjunction with :operator:`$max` to
+limit results to a specific range for the *same* index, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.collection.find().min( { age: 20 } ).max( { age: 25 } )
+
+.. note::
+
+   Because :method:`~cursor.min()` requires an index on a field, and
+   forces the query to use this index, you may prefer the
+   :query:`$gte` operator for the query if possible. Consider the
    following example:
 
    .. code-block:: javascript
 
-      db.collection.find().min( { age: 20 } ).max( { age: 25 } )
+      db.collection.find( { _id: 7 } ).min( { age: 25 } )
 
-   .. note::
+   The query will use the index on the ``age`` field, even if the
+   index on ``_id`` may be better.
 
-      Because :method:`~cursor.min()` requires an index on a field, and
-      forces the query to use this index, you may prefer the
-      :query:`$gte` operator for the query if possible. Consider the
-      following example:
+Behavior
+--------
 
-      .. code-block:: javascript
-
-         db.collection.find( { _id: 7 } ).min( { age: 25 } )
-
-      The query will use the index on the ``age`` field, even if the
-      index on ``_id`` may be better.
+.. include:: /includes/fact-query-min-max.rst
