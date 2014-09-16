@@ -54,9 +54,9 @@ When you run multiple agents, one runs as the primary agent and the others
 as standby agents. Standby agents poll MMS periodically to get the
 configuration but do not send data.
 
-To determine which agent is the primary agent, look at the :guilabel:`Last
-Ping` value on the :guilabel:`Monitoring Agents` page. If there is no
-:guilabel:`Last Ping` value for a listed agent, the agent is a standby agent.
+To determine which agent is the primary agent, look at the :guilabel:`Status`
+value on the :guilabel:`Administration` tab's :guilabel:`Agents` page. If there
+is no last ping value for a listed agent, the agent is a standby agent.
 
 See :ref:`faq-monitoring` and
 :doc:`/tutorial/add-hosts-to-monitoring` for more information.
