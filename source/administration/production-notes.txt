@@ -362,6 +362,64 @@ Recommended Configuration
 
 .. TODO update with updated readahead documentation when DOCS-164 closes
 
+MongoDB Enterprise and SSL Libraries
+````````````````````````````````````
+On Linux platforms, you may observe statements in the log such as:
+
+.. code-block:: sh
+
+   <path to SSL libs>/libssl.so.<version>: no version information available (required by /usr/bin/mongod)
+
+and/or
+
+.. code-block:: sh
+
+   <path to SSL libs>/libcrypto.so.<version>: no version information available (required by /usr/bin/mongod)
+
+These warnings arise when :program:`mongod` is compiled against a different version of the SSL libraries than the ones on your host, and are typically benign. You can investigate what symbol versions are expected by :program:`mongod` by running:
+
+.. code-block:: sh
+
+   objdump -T <path to mongod>/mongod | grep " SSL_"
+
+and
+
+.. code-block:: sh
+
+   objdump -T <path to mongod>/mongod | grep " CRYPTO_"
+
+which will return values such as:
+
+.. code-block:: sh
+
+   0000000000000000      DF *UND*	0000000000000000  libssl.so.10 SSL_write
+
+or 
+
+.. code-block:: sh
+
+   0000000000000000      DF *UND*	0000000000000000  OPENSSL_1.0.0 SSL_write
+
+
+The last two strings are the symbol version and symbol name, respectively.
+Compare these values with the values returned from:
+
+.. code-block:: sh
+
+   objdump -T <path to SSL libs>/libssl.so.1*
+
+and 
+
+.. code-block:: sh
+
+   objdump -T <path to SSL libs>/libcrypto.so.1*
+
+for details of symbol version mismatches.
+
+This procedure is neither exact nor exhaustive; in particular, many symbols
+used by :program:`mongod` from the ``libcrypto`` library do not begin with
+``CRYPTO_``. However, it should provide straightforward indications about
+symbol version mismatches. 
 
 .. _production-virtualization:
 
