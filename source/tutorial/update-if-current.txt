@@ -1,0 +1,106 @@
+==========================
+Update Document if Current
+==========================
+
+.. default-domain:: mongodb
+
+Overview
+------------
+
+To isolate a group of document modifications on a set of documents, always
+attempt to use a combination of unique indexes and a single
+:method:`db.collection.update()` operation. Because all modifications are atomic
+within a single document, a well-designed data model allows applications to
+group related operations together.
+
+Nevertheless there are cases where a logical data modification operation requires
+application-based logic. Because MongoDB cannot isolate application-based
+update logic, your code must ensure that its multi-stage update operations
+are logically valid and not affected by other concurrent operations in your
+system.
+
+.. _tutorial-atomic-update-if-current:
+
+Update if Current Pattern
+-------------------------
+
+Overview
+~~~~~~~~
+
+In the :ref:`Update if Current
+<tutorial-atomic-update-if-current>` pattern, you will:
+
+- query for a document,
+
+- modify the fields in that document,
+
+- and update the fields of a document *only if* the fields have not
+  changed in the collection since the query.
+
+Example
+~~~~~~~
+
+Consider the following example in the MongoDB shell which attempts to update
+the ``qty`` field of a document in the ``products`` collection:
+
+.. versionchanged:: 2.6
+   The :method:`db.collection.update()` method now returns a
+   :method:`WriteResult()` object that contains the status of
+   the operation. Previous versions required an extra
+   :method:`db.getLastErrorObj()` method call.
+
+.. code-block:: javascript
+
+   // Update a document only if it is safe to do so
+   function updateIfCurrent( collection, query, modifyFunc ) {
+      var myDocument = collection.findOne( query );
+
+      if ( myDocument ) {
+         var newField = modifyFunc( myDocument );
+         var updateDoc = { $set: newField }
+
+         // This will fail to match any documents if the underlying document
+         // has some field different from myDocument.
+         var results = collection.update( myDocument, updateDoc );
+
+         if ( results.hasWriteError() ) {
+            print( "unexpected error updating document: " + tojson( results ) );
+         } else if ( results.nMatched === 0 ) {
+            print( "No update: no matching document for " + tojson( query ) );
+         }
+      }
+   }
+
+   // Apply an update function to a db.products document, or fail.
+   updateIfCurrent( db.products, { sky: "abc123" }, function( doc ) {
+      var qty = doc.qty
+
+      if ( qty < 10 ) {
+         qty *= 4;
+      } else if ( qty < 20 ) {
+         qty *= 3;
+      } else {
+         qty *= 2;
+      }
+
+      return { qty: qty };
+   } );
+
+Additional Information
+----------------------
+
+A different approach is to add a ``version`` field to the document that
+applications increment upon each update operation to the documents. Use this
+version variable in the query expression. You must be able to ensure that
+*all* clients that connect to your database obey this constraint.
+
+If you need to associate increasing numbers with documents in a collection,
+you can use one of the methods described in
+:doc:`/tutorial/create-an-auto-incrementing-field`.
+
+Use :update:`$set` in the update expression to modify only your fields and
+prevent overriding other fields.
+
+:doc:`Two Phase Commit </tutorial/perform-two-phase-commits>` is a general
+protocol for multi-document transactions that you may implement in your
+application logic.
