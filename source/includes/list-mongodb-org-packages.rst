@@ -40,8 +40,8 @@ are used to stop, start, and restart daemon processes.
 
 The package configures MongoDB using the ``/etc/mongod.conf`` file in
 conjunction with the control scripts. See
-:doc:`/reference/configuration-options` for documentation of the
-configuration file.
+the :doc:`Configuration File </reference/configuration-options>`
+reference for documentation of settings available in the configuration file.
 
 As of version |release|, there are no control scripts for
 :program:`mongos`. The :program:`mongos` process is used only in
