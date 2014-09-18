@@ -146,7 +146,7 @@ try:
         rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
         rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
         html_theme_options['edition'] = 'hosted'
-        html_theme_options['sitename'] = 'MMS On-Prem Docs'
+        html_theme_options['sitename'] = 'On Prem MMS Docs'
         if release == "Upcoming":
             rst_epilog.append(".. |release-string| replace:: \   ")
         else:
@@ -205,13 +205,13 @@ rst_epilog = '\n'.join(rst_epilog)
 
 html_theme_options['manual_path'] = get_manual_path(conf)
 
+
 existing = conf.runstate.edition
 conf.runstate.edition = 'saas'
 html_theme_options['saas_base'] = conf.project.tag
 conf.runstate.edition = 'onprem'
 html_theme_options['version_selector'] = get_versions(conf)
 conf.runstate.edition = existing
-
 html_theme_options['basepath'] = get_current_path(conf)
 
 # -- Options for LaTeX output --------------------------------------------------
