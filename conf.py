@@ -28,8 +28,7 @@ extensions = [
     'sphinx.ext.extlinks',
     'intermanual',
     'directives',
-    'mongodb',
-    'sphinxcontrib.httpdomain',
+    'mongodb'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
@@ -44,8 +43,8 @@ master_doc = 'index'
 
 copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
-version = conf.version.branch
-release = conf.version.release
+version = '1.1'
+release = '1.1'
 pygments_style = 'sphinx'
 
 extlinks = {
@@ -85,9 +84,11 @@ languages = [
 ]
 
 # -- Options for HTML output ---------------------------------------------------
+
 html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
+
 html_logo = None
-html_static_path = ['source/_static', 'source/figures']
+html_static_path = ['source/_static']
 html_use_smartypants = True
 html_use_index = True
 html_split_index = False
@@ -103,8 +104,6 @@ html_theme_options = {
     'manual_branch': conf.git.branches.manual,
     'project': conf.project.name,
     'translations': languages,
-    'nav_excluded': [ '/tutorial/nav/monitoring-getting-started',
-                      '/tutorial/nav/backup-getting-started' ]
 }
 
 onprem_latex_documents = []
@@ -165,7 +164,7 @@ try:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
         html_short_title = 'MMS Manual'
-        latex_documents = cloud_latex_documents
+        latex_documents = classic_latex_documents
         rst_epilog.append(".. |s| replace:: Service")
         rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
