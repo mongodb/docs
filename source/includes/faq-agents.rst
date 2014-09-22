@@ -40,7 +40,7 @@ Where should I run the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++
 
 The amount of resources the Monitoring Agent requires varies depending on
-infrastructure size, the number of nodes and the databases it's monitoring. Run
+infrastructure size, the number of servers and the databases it's monitoring. Run
 the agent on an existing machine with additional capacity that *does not* run a
 :program:`mongod` instance. You may also run the Monitoring Agent
 on a smaller dedicated instance.
@@ -50,11 +50,11 @@ The Monitoring Agent load scales with the number of monitored ``mongod`` plus
 
 .. include:: /includes/fact-host-for-monitoring-agent.rst
 
-Can I run the Monitoring Agent on an AWS micro instances?
+Can I run the Monitoring Agent on an AWS micro server?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If you monitor five or fewer ``mongod`` instances, you can use
-a AWS micro instance.
+a AWS micro server.
 
 Why can't the Monitoring Agent connect to my host?
 ++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -70,7 +70,7 @@ To test the connection, login to the server running the agent and run:
 will not be able to connect.
 
 In addition, |monitoring| supports monitoring for
-Kerberos-enabled nodes.
+Kerberos-enabled instances.
 
 Why does the Monitoring Agent connect with hostnames instead of IP addresses?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
