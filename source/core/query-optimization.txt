@@ -75,6 +75,8 @@ use an index with one exception. Queries that specify regular
 expression *with anchors* at the beginning of a string *can* use an
 index.
 
+.. _covered-queries:
+.. _indexes-covered-queries:
 .. _read-operations-covered-query:
 
 Covering a Query
@@ -84,41 +86,30 @@ An index :ref:`covers <indexes-covered-queries>` a query when both of the
 following apply:
 
 - all the fields in the :ref:`query <read-operations-query-document>`
-  are part of an index.
+  are part of an index, **and**
 
 - all the fields returned in the results are in the same index.
 
-For example, consider a collection ``users`` with documents of the following
-form:
+For example, a collection ``inventory`` has the following index on the
+``type`` and ``item`` fields:
 
 .. code-block:: javascript
 
-   { _id: 1, user: { login: "tester" } }
+  db.inventory.ensureIndex( { type: 1, item: 1 } )
 
-The collection has the following indexes:
+This index will cover the following operation which queries on the
+``type`` and ``item`` fields and returns only the ``item`` field:
 
-.. code-block:: none
+.. code-block:: javascript
 
-   { user: 1 }
+   db.inventory.find(
+      { type: "food", item:/^c/ },
+      { item: 1, _id: 0 }
+   )
 
-   { "user.login": 1 }
-
-The ``{ user: 1 }`` index covers the following query:
-
-.. code-block:: none
-
-   db.users.find( { user: { login: "tester" } }, { user: 1, _id: 0 } )
-
-However, the ``{ "user.login": 1 }`` index does **not** cover the
-following query:
-
-.. code-block:: none
-
-   db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
-
-The query does still use the ``{ "user.login": 1 }`` index to find matching
-documents.
-
+For the specified index to cover the query, the projection document
+must explicitly specify ``_id: 0`` to exclude the ``_id`` field from
+the result since the index does not include the ``_id`` field.
 
 Performance
 ~~~~~~~~~~~
@@ -132,24 +123,6 @@ outside of the index. Index keys are typically smaller than the
 documents they catalog, and indexes are typically available in RAM or
 located sequentially on disk.
 
-Given a collection ``inventory`` with the following index on the
-``type`` and ``item`` fields:
-
-.. code-block:: javascript
-
-  db.users.ensureIndex( { type: 1, item: 1 } )
-
-This index will cover the following query on the ``type`` and ``item``
-fields, returning only the ``item`` field:
-
-.. code-block:: javascript
-
-  db.inventory.find( { type: "food", item:/^c/ },
-                     { item: 1, _id: 0 } )
-
-For the index to cover the query, the projection document must explicitly
-specify ``_id: 0`` to exclude the unindexed ``_id`` field from the result.
-
 Limitations
 ~~~~~~~~~~~
 
@@ -160,11 +133,35 @@ An index **cannot** cover a query if:
   a :ref:`multi-key index <index-type-multikey>` index and cannot
   support a covered query.
 
-- any of the indexed fields are fields in subdocuments. To index fields
-  in subdocuments, use :term:`dot notation`.
+- any of the returned indexed fields are fields in subdocuments.
+  [#index-embedded-document-fields]_ For example, consider a collection
+  ``users`` with documents of the following form:
 
-- The query is against a :term:`primary` on a :term:`sharded <shard>`
-  collection.
+  .. code-block:: javascript
+
+     { _id: 1, user: { login: "tester" } }
+
+  The collection has the following index:
+
+  .. code-block:: none
+
+     { "user.login": 1 }
+
+  The ``{ "user.login": 1 }`` index does **not** cover the
+  following query:
+
+  .. code-block:: none
+
+     db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
+
+  However, the query can use the ``{ "user.login": 1 }`` index to find
+  matching documents.
+
+- the query is on a :term:`sharded <shard>` collection and run
+  against a :term:`primary`.
+
+``indexOnly``
+~~~~~~~~~~~~~
 
 To determine whether a query is a covered query, use the
 :method:`~cursor.explain()` method. If the :method:`~cursor.explain()`
@@ -173,3 +170,6 @@ index covers the query, and MongoDB queries only that index to
 match the query **and** return the results.
 
 For more information see :ref:`indexes-measuring-use`.
+
+.. [#index-embedded-document-fields] To index fields
+   in subdocuments, use :term:`dot notation`.
