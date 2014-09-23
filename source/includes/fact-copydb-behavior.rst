@@ -3,6 +3,10 @@ Be aware of the following properties of |copydb|:
 - |copydb| runs on the destination :program:`mongod`
   instance, i.e. the host receiving the copied data.
 
+- If the destination :program:`mongod` has authorization enforcement enabled,
+  |copydb| *must* be executed with the credentials of a user present in the *source*
+  database who has the privileges outlined in :ref:`copyDatabases-requiredAccess`.
+
 - |copydb| creates the target database if it does not exist.
 
 - |copydb| requires enough free disk space on the host
