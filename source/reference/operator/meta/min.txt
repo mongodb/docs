@@ -11,27 +11,60 @@ Definition
 
    Specify a :operator:`$min` value to specify the *inclusive* lower
    bound for a specific index in order to constrain the results of
-   :method:`~db.collection.find()`.
+   :method:`~db.collection.find()`. The :operator:`$min` specifies the
+   lower bound for *all* keys of a specific index *in order*.
 
-Shell Method
-------------
+   The :program:`mongo` shell provides the :method:`~cursor.min()`
+   wrapper method:
 
-The :program:`mongo` shell provides the :method:`~cursor.min()`
-wrapper method:
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
+
+   You can also specify the option with either of the two forms:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
+      db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
+
+Behavior
+--------
+
+Interaction with Index Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because :method:`~cursor.min()` requires an index on a field, and
+forces the query to use this index, you may prefer the
+:query:`$gte` operator for the query if possible. Consider the
+following example:
 
 .. code-block:: javascript
 
-   db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
+   db.collection.find( { _id: 7 } ).min( { age: 25 } )
 
-You can also specify the option with either of the two forms:
+The query will use the index on the ``age`` field, even if the
+index on ``_id`` may be better.
 
-.. code-block:: javascript
+Index Bounds
+~~~~~~~~~~~~
 
-   db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
-   db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
+If you use :operator:`$max` with :operator:`$min` to specify a range,
+the index bounds specified in :operator:`$min` and :operator:`$max`
+must both refer to the keys of the same index.
 
-The :operator:`$min` specifies the lower bound for *all* keys of a
-specific index *in order*.
+``$min`` without ``$max``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-query-min-max.rst
+
+Examples
+--------
+
+The following examples use the :program:`mongo` shell wrappers.
+
+Specify Inclusive Lower Bound
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following operations on a collection named
 ``collection`` that has an index ``{ age: 1 }``:
@@ -41,8 +74,11 @@ Consider the following operations on a collection named
    db.collection.find().min( { age: 20 } )
 
 This operation limits the query to those documents where the
-field ``age`` is more than ``20`` and forces a query plan which scans the
+field ``age`` is at least ``20`` and forces a query plan which scans the
 ``{ age: 1 }`` index from 20 to :bsontype:`MaxKey <data_maxkey>`.
+
+Index Selection
+~~~~~~~~~~~~~~~
 
 You can explicitly specify the corresponding index with
 :method:`~cursor.hint()`. Otherwise, MongoDB selects the index using
@@ -65,6 +101,9 @@ which index the following operation will select:
 
    db.collection.find().min( { age: 20, type: 'C' } )
 
+Use with ``$max``
+~~~~~~~~~~~~~~~~~
+
 You can use :operator:`$min` in conjunction with :operator:`$max` to
 limit results to a specific range for the *same* index, as in the
 following example:
@@ -72,22 +111,3 @@ following example:
 .. code-block:: javascript
 
    db.collection.find().min( { age: 20 } ).max( { age: 25 } )
-
-.. note::
-
-   Because :method:`~cursor.min()` requires an index on a field, and
-   forces the query to use this index, you may prefer the
-   :query:`$gte` operator for the query if possible. Consider the
-   following example:
-
-   .. code-block:: javascript
-
-      db.collection.find( { _id: 7 } ).min( { age: 25 } )
-
-   The query will use the index on the ``age`` field, even if the
-   index on ``_id`` may be better.
-
-Behavior
---------
-
-.. include:: /includes/fact-query-min-max.rst
