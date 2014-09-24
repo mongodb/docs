@@ -102,8 +102,9 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'mms': ('https://mms.mongodb.com/help%s', ''),
-    'mms-hosted': ('https://mms.mongodb.org/help-hosted%s', ''),
+    'mms': ('https://docs.mms.mongodb.com%s', ''),
+    'mms-hosted': ('https://mms.mongodb.com/help-hosted%s', ''),
+    'mms-home': ('https://mms.mongodb.com%s', ''),
     'about': ('http://www.mongodb.org/about%s', '')
 }
 
