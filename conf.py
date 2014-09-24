@@ -178,7 +178,6 @@ html_theme_options = {
     'language': language,
     'repo_name': sconf.theme.repo,
     'jira_project': sconf.theme.jira,
-    'google_analytics': sconf.theme.google_analytics,
     'project': sconf.theme.project,
     'version': version,
     'version_selector': get_versions(conf),
