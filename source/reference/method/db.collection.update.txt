@@ -81,8 +81,12 @@ If the ``<update>`` document contains :ref:`update operator
   <update-operators>` expressions.
 
 - The :method:`~db.collection.update()` method updates only the
-  corresponding fields in the document. For an example, see
-  :ref:`example-update-specific-fields`.
+  corresponding fields in the document.
+
+To update an embedded document or an array as a whole, specify the
+replacement value for the field. To update particular fields in an
+embedded document or in an array, use :ref:`dot notation
+<document-dot-notation>` to specify the field.
 
 Replace a Document Entirely
 ```````````````````````````
@@ -111,10 +115,11 @@ If ``upsert`` is ``true`` and no document matches the query
 criteria, :method:`~db.collection.update()` inserts a *single* document.
 The update creates the new document with either:
 
-- The fields and values of the ``<update>`` parameter, or
+- The fields and values of the ``<update>`` parameter if the
+  ``<update>`` parameter contains only field and value pairs, or
 
 - The fields and values of both the ``<query>`` and ``<update>``
-  parameters if the ``<update>`` parameter contains *only* :ref:`update
+  parameters if the ``<update>`` parameter contains :ref:`update
   operator <update-operators>` expressions. The update creates a base
   document from the equality clauses in the ``<query>`` parameter, and
   then applies the update expressions from the ``<update>`` parameter.
@@ -213,70 +218,72 @@ Update Specific Fields
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To update specific fields in a document, use :ref:`update operators
-<update-operators>` in the ``<update>`` parameter. If the ``<update>``
-parameter refers to non-existent fields in the current document, the
-:method:`~db.collection.update()` method adds the fields to the
-document.
+<update-operators>` in the ``<update>`` parameter.
 
 For example, given a ``books`` collection with the following document:
 
 .. code-block:: javascript
 
-   { "_id" : 11, "item" : "Divine Comedy", "stock" : 2 }
+   {
+     _id: 1,
+     item: "TBD",
+     stock: 0,
+     info: { publisher: "1111", pages: 430 },
+     tags: [ "technology", "computer" ],
+     ratings: [ { by: "ijk", rating: 4 }, { by: "lmn", rating: 5 } ],
+     reorder: false
+   }
 
-The following operation adds a ``price`` field to the document and
-increments the ``stock`` field by ``5``.
+The following operation uses:
+
+- the :update:`$inc` operator to increment the ``stock`` field; and
+
+- the :update:`$set` operator to replace the value of the ``item``
+  field, the ``publisher`` field in the ``info`` embedded document, the
+  ``tags`` field, and the second element in the ``ratings`` array.
 
 .. code-block:: javascript
 
    db.books.update(
-      { item: "Divine Comedy" },
+      { _id: 1 },
       {
-         $set: { price: 18 },
-         $inc: { stock: 5 }
+        $inc: { stock: 5 },
+        $set: {
+          item: "ABC123",
+          "info.publisher": "2222",
+          tags: [ "software" ],
+          "ratings.1": { by: "xyz", rating: 3 }
+        }
       }
    )
 
-The updated document is now the following:
+The updated document is the following:
 
 .. code-block:: javascript
 
-   { "_id" : 11, "item" : "Divine Comedy", "price" : 18, "stock" : 7 }
+   {
+     "_id" : 1,
+     "item" : "ABC123",
+     "stock" : 5,
+     "info" : { "publisher" : "2222", "pages" : 430 },
+     "tags" : [ "software" ],
+     "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "xyz", "rating" : 3 } ],
+     "reorder" : false
+   }
 
-.. seealso:: :update:`$set`, :update:`$inc`, :doc:`/reference/operator/update`
-
-
-Update Specific Fields in Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use :term:`dot notation` to update specific fields in embedded
-documents.
-
-For example, given a ``books`` collection with the following document:
-
-.. code-block:: javascript
-
-   { _id: 50, item: "TDB", stock: 0, isbn: { group: 11, publisher: 1111, title: 11, digit: 1 } }
-
-The following example updates the ``publisher`` field and the ``digit``
-field in the ``isbn`` embedded document:
-
-.. code-block:: javascript
-
-   db.books.update(
-      { _id: 50 },
-      { $set: { "isbn.publisher": 2222, "isbn.digit": 0 } }
-   )
+.. seealso:: :update:`$set`, :update:`$inc`,
+   :doc:`/reference/operator/update`,
+   :ref:`dot notation <document-dot-notation>`
 
 Remove Fields
 ~~~~~~~~~~~~~
 
 The following operation uses the :update:`$unset` operator to remove
-the ``stock`` field:
+the ``tags`` field:
 
 .. code-block:: javascript
 
-   db.books.update( { _id: 11 }, { $unset: { stock: 1 } } )
+   db.books.update( { _id: 1 }, { $unset: { tags: 1 } } )
 
 .. seealso:: :update:`$unset`, :update:`$rename`, :doc:`/reference/operator/update`
 
@@ -290,38 +297,44 @@ Given the following document in the ``books`` collection:
 .. code-block:: javascript
 
    {
-       "_id" : 22,
-       "item" : "The Banquet",
-       "author" : "Dante",
-       "price" : 20,
-       "stock" : 4
+     _id: 2,
+     item: "XYZ123",
+     stock: 15,
+     info: { publisher: "5555", pages: 150 },
+     tags: [ ],
+     ratings: [ { by: "xyz", rating: 5, comment: "ratings and reorder will go away after update"} ],
+     reorder: false
    }
 
 The following operation passes an ``<update>`` document that contains
-only field and value pairs, which means the document replaces all the
-fields in the original document. The operation *does not* replace the
-``_id`` value. The operation contains the same value for the ``item``
-field in both the ``<query>`` and ``<update>`` documents, which means
-the field does not change:
+only field and value pairs. The ``<update>`` document completely
+replaces the original document except for the ``_id`` field.
 
 .. code-block:: javascript
 
    db.books.update(
-      { item: "The Banquet" },
-      { item: "The Banquet", price: 19 , stock: 3 }
+      { item: "XYZ123" },
+      {
+        item: "XYZ123",
+        stock: 10,
+        info: { publisher: "2255", pages: 150 },
+        tags: [ "baking", "cooking" ]
+      }
    )
 
-The operation creates the following new document. The operation removed
-the ``author`` field and changed the values of the ``price`` and
-``stock`` fields:
+The updated document contains *only* the fields from the replacement
+document and the ``_id`` field. That is, the fields ``ratings`` and
+``reorder`` no longer exist in the updated document since the fields
+were not in the replacement document.
 
 .. code-block:: javascript
 
    {
-       "_id" : 22,
-       "item" : "The Banquet",
-       "price" : 19,
-       "stock" : 3
+      "_id" : 2,
+      "item" : "XYZ123",
+      "stock" : 10,
+      "info" : { "publisher" : "2255", "pages" : 150 }, 
+      "tags" : [ "baking", "cooking" ]
    }
 
 .. _example-update-upsert:
@@ -338,23 +351,31 @@ document in the ``books`` collection if no document matches the
 .. code-block:: javascript
 
    db.books.update(
-      { item: "The New Life" },
-      { item: "The New Life", author: "Dante", price: 15 },
+      { item: "ZZZ135" },
+      {
+        item: "ZZZ135",
+        stock: 5,
+        tags: [ "database" ]
+      },
       { upsert: true }
    )
 
 If no document matches the ``<query>`` parameter, the update operation
-inserts a document with the fields and values of the ``<update>``
-parameter and a new unique ``ObjectId`` for the ``_id`` field:
+inserts a document with *only* the fields and values of the
+``<update>`` document and a new unique ``ObjectId`` for the ``_id``
+field:
 
 .. code-block:: javascript
 
    {
-       "_id" : ObjectId("51e5990c95098ed69d4a89f2"),
-       "author" : "Dante",
-       "item" : "The New Life",
-       "price" : 15
+     "_id" : ObjectId("542310906694ce357ad2a1a9"),
+     "item" : "ZZZ135",
+     "stock" : 5,
+     "tags" : [ "database" ]
    }
+
+For more information on ``upsert`` option and the inserted document,
+:ref:`upsert-parameter`.
 
 .. _example-update-multi:
 
@@ -363,15 +384,19 @@ Update Multiple Documents
 
 To update multiple documents, set the ``multi`` option to ``true``. For
 example, the following operation updates all documents where ``stock``
-is less than ``5``:
+is less than or equal to ``10``:
 
 .. code-block:: javascript
 
    db.books.update(
-      { stock: { $lt: 5 } },
+      { stock: { $lte: 10 } },
       { $set: { reorder: true } },
       { multi: true }
    )
+
+If the ``reorder`` field does not exist in the matching document(s),
+the :update:`$set` operator will add the field with the specified
+value. See :update:`$set` for more information.
 
 .. _example-update-write-concern:
 
@@ -387,7 +412,7 @@ method times out after 5 seconds.
 .. code-block:: javascript
 
    db.books.update(
-      { stock: { $lt: 5 } },
+      { stock: { $lte: 10 } },
       { $set: { reorder: true } },
       {
         multi: true,
@@ -402,159 +427,71 @@ Given a ``books`` collection that includes the following documents:
 
 .. code-block:: javascript
 
-   { _id: 11, author: "Dante", item: "Divine Comedy", price: 18, translatedBy: "abc123" }
-   { _id: 12, author: "Dante", item: "Divine Comedy", price: 21, translatedBy: "jkl123" }
-   { _id: 13, author: "Dante", item: "Divine Comedy", price: 15, translatedBy: "xyz123" }
+   {
+     _id: 5,
+     item: "EFG222",
+     stock: 18,
+     info: { publisher: "0000", pages: 70 },
+     reorder: true
+   }
+   {
+     _id: 6,
+     item: "EFG222",
+     stock: 15,
+     info: { publisher: "1111", pages: 72 },
+     reorder: true
+   }
 
-The following command specifies the ``multi`` parameter to update all
-documents where ``item`` is ``"Divine Comedy"`` and the ``author`` is
-``"Dante"`` and specifies ``upsert: true`` to create a new
-document if no matching documents are found:
+The following operation specifies both the ``multi`` option and the
+``upsert`` option. If matching documents exist, the operation updates
+all matching documents. If no matching documents exist, the operation
+inserts a new document.
 
 .. code-block:: javascript
 
    db.books.update(
-      { item: "Divine Comedy", author: "Dante" },
-      { $set: { reorder: false, price: 10 } },
+      { item: "EFG222" },
+      { $set: { reorder: false, tags: [ "literature", "translated" ] } },
       { upsert: true, multi: true }
    )
 
-The operation updates all three matching documents and results in the
+The operation updates all matching documents and results in the
 following:
 
 .. code-block:: javascript
 
-   { _id: 11, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "abc123", reorder: false }
-   { _id: 12, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "jkl123", reorder: false }
-   { _id: 13, author: "Dante", item: "Divine Comedy", price: 10, translatedBy: "xyz123", reorder: false }
+   {
+      "_id" : 5,
+      "item" : "EFG222",
+      "stock" : 18,
+      "info" : { "publisher" : "0000", "pages" : 70 },
+      "reorder" : false,
+      "tags" : [ "literature", "translated" ]
+   }
+   {
+      "_id" : 6,
+      "item" : "EFG222",
+      "stock" : 15,
+      "info" : { "publisher" : "1111", "pages" : 72 },
+      "reorder" : false,
+      "tags" : [ "literature", "translated" ]
+   }
 
 If the collection had *no* matching document, the operation would
-result in the insertion of a document:
+result in the insertion of a document using the fields from both the
+``<query>`` and the ``<update>`` specifications:
 
 .. code-block:: javascript
 
-   { _id: ObjectId("536aa66422363a21bc16bfd7"), author: "Dante", item: "Divine Comedy", reorder: false, price: 10 }
-
-.. TODO need to just replace the below section with a little behavior
-   blurb or move it somewhere else instead of trying to give
-   examples for various array update use cases.
-
-Update Arrays
-~~~~~~~~~~~~~
-
-Update an Element by Position
-`````````````````````````````
-
-If the update operation requires an update of an element in an array
-field, the :method:`~db.collection.update()` method can
-perform the update using the position of the element and :term:`dot
-notation`. Arrays in MongoDB are zero-based.
-
-The following operation queries the :doc:`bios collection
-</reference/bios-example-collection>` for the first document with the
-``_id`` field equal to ``1`` and updates the second element in the
-``contribs`` array:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 1 },
-      { $set: { "contribs.1": "ALGOL 58" } }
-   )
-
-Update an Element if Position is Unknown
-````````````````````````````````````````
-
-If the position in the array is not known, the
-:method:`~db.collection.update()` method can perform the update using
-the :operator:`$` positional operator. The array field must appear in
-the ``<query>`` parameter in order to determine which array element to
-update.
-
-The following operation queries the :doc:`bios collection
-</reference/bios-example-collection>` for the first document where the
-``_id`` field equals ``3`` and the ``contribs`` array contains an
-element equal to ``compiler``. If found, the
-:method:`~db.collection.update()` method updates the first matching
-element in the array to ``A compiler`` in the document:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 3, "contribs": "compiler" },
-      { $set: { "contribs.$": "A compiler" } }
-   )
-
-Update a Document Element
-`````````````````````````
-
-The :method:`~db.collection.update()` method can perform the update of
-an array that contains embedded documents by using the positional
-operator (i.e. :operator:`$`) and the :term:`dot notation`.
-
-The following example queries the :doc:`bios collection
-</reference/bios-example-collection>` for the first document where the
-``_id`` field equals ``4`` and the ``awards`` array contains an
-embedded document where the ``by`` field equals ``ACM``. If found, the
-:method:`~db.collection.update()` method updates the ``by`` field in
-the first matching embedded document:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 4, "awards.by": "ACM"  } ,
-      { $set: { "awards.$.by": "Association for Computing Machinery" } }
-   )
-
-Add an Element
-``````````````
-
-The following operation queries the :doc:`bios collection
-</reference/bios-example-collection>` for the first document that has an
-``_id`` field equal to ``1`` and adds a new element to the ``awards``
-field:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 1 },
-      {
-        $push: { awards: { award: "IBM Fellow", year: 1963, by: "IBM" } }
-      }
-   )
-
-In the next example, the :update:`$set` operator uses :ref:`dot
-notation <document-dot-notation>` to access the ``middle`` field in the
-``name`` embedded document. The :update:`$push` operator adds an
-embedded document to the ``awards`` array.
-
-Consider the following operation:
-
-.. code-block:: javascript
-
-   db.bios.update(
-      { _id: 1 },
-      {
-         $set: { "name.middle": "Warner" },
-         $push: { awards: {
-            award: "IBM Fellow",
-               year: "1963",
-               by: "IBM"
-            }
-         }
-      }
-   )
-
-This :method:`~db.collection.update()` operation:
-
-- Modifies the field ``name`` whose value is another document.
-  Specifically, the :update:`$set` operator updates the ``middle``
-  field in the ``name`` document. The document uses :ref:`dot notation
-  <document-dot-notation>` to access a field in an embedded document.
-
-- Adds an element to the field ``awards``, whose value is an array.
-  Specifically, the :update:`$push` operator adds another document as
-  an element to the field ``awards``.
+   {
+      "_id" : ObjectId("5423200e6694ce357ad2a1ac"),
+      "item" : "EFG222",
+      "reorder" : false,
+      "tags" : [ "literature", "translated" ]
+   }
+   
+For more information on ``upsert`` option and the inserted document,
+:ref:`upsert-parameter`.
 
 .. _writeresults-update:
 

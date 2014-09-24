@@ -14,69 +14,79 @@ Definition
    array, :update:`$addToSet` does not modify the
    array.
 
-   .. code-block:: javascript
-
-      db.collection.update( <query>, { $addToSet: { <field>: <value> } } );
-
-   For example, if a collection ``inventory`` has the following document:
+   The :update:`$addToSet` operator has the form:
 
    .. code-block:: javascript
 
-      { _id: 1, item: "filter", tags: [ "electronics", "camera" ] }
+      { $addToSet: { <field1>: <value1>, ... } }
 
-   The following operation adds the element ``"accessories"`` to the ``tags``
-   array since ``"accessories"`` does not exist in the array:
-
-   .. code-block:: javascript
-
-      db.inventory.update(
-                           { _id: 1 },
-                           { $addToSet: { tags: "accessories"  } }
-                         )
-
-
-   However, the following operation has no effect as ``"camera"`` is already
-   an element of the ``tags`` array:
-
-   .. code-block:: javascript
-
-      db.inventory.update(
-                           { _id: 1 },
-                           { $addToSet: { tags: "camera"  } }
-                         )
+   .. include:: /includes/use-dot-notation.rst
 
 Behavior
 --------
 
-- :update:`$addToSet` only ensures that there are no duplicate
-  items *added* to the set and does not affect existing duplicate
-  elements. :update:`$addToSet` does not guarantee a particular
-  ordering of elements in the modified set.
+:update:`$addToSet` only ensures that there are no duplicate items
+*added* to the set and does not affect existing duplicate elements.
+:update:`$addToSet` does not guarantee a particular ordering of
+elements in the modified set.
 
-- If the field is absent in the document to update,
-  :update:`$addToSet` adds the array field with the value as
-  its element.
+If the field is absent in the document to update, :update:`$addToSet`
+creates the array field with the specified value as its element.
 
-- If the field is **not** an array, the operation will fail.
+If the field is **not** an array, the operation will fail.
 
-- If the value is an array, :update:`$addToSet` appends the whole array
-  as a *single* element. To add each element of the value separately,
-  use :update:`$addToSet` with the :update:`$each` modifier. See
-  :ref:`addToSet-modifiers` for details.
+If the value is an array, :update:`$addToSet` appends the whole array
+as a *single* element. To add each element of the value separately, use
+the :update:`$each` modifier with :update:`$addToSet`. See
+:ref:`addToSet-modifiers` for details.
 
-- If the value is a document, MongoDB determines that the document is a
-  duplicate if an existing document in the array matches the
-  to-be-added document exactly; i.e. the existing document has the
-  exact same field and values *and* the fields are in the same order.
+If the value is a document, MongoDB determines that the document is a
+duplicate if an existing document in the array matches the to-be-added
+document exactly; i.e. the existing document has the exact same fields
+and values *and* the fields are in the same order. As such, field order
+matters and you cannot specify that MongoDB compare only a subset of
+the fields in the document to determine whether the document is a
+duplicate of an existing array element.
 
-  As such, field order matters and you cannot specify that MongoDB
-  compare only a subset of the fields in the document to determine
-  whether the document is a duplicate of an existing array element.
+Examples
+--------
+
+Consider a collection ``inventory`` with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, item: "filter", tags: [ "electronics", "camera" ] }
+
+Add to Array
+~~~~~~~~~~~~
+
+The following operation adds the element ``"accessories"`` to the
+``tags`` array since ``"accessories"`` does not exist in the array:
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { _id: 1 },
+      { $addToSet: { tags: "accessories" } }
+   )
+
+Value Already Exists
+~~~~~~~~~~~~~~~~~~~~
+
+The following :update:`$addToSet` operation has no effect as
+``"camera"`` is already an element of the ``tags`` array:
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { _id: 1 },
+      { $addToSet: { tags: "camera"  } }
+   )
 
 .. _addToSet-modifiers:
 
-Modifiers
----------
+``$each`` Modifier
+~~~~~~~~~~~~~~~~~~
 
 You can use the :update:`$addToSet` operator with the
 :update:`$each` modifier. The :update:`$each` modifier allows to
@@ -85,4 +95,5 @@ field.
 
 .. include:: /includes/example-addToSet-each.rst
 
-.. seealso:: :update:`$push`
+.. seealso:: :method:`db.collection.update()`,
+   :method:`db.collection.findAndModify()`, :update:`$push`

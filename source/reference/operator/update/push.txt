@@ -4,45 +4,39 @@ $push
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. update:: $push
 
    The :update:`$push` operator appends a specified value to an array.
 
-   .. code-block:: javascript
-
-      db.collection.update( <query>,
-                            { $push: { <field>: <value> } }
-                         )
-
-   The following example appends ``89`` to the ``scores`` array for the
-   first document where the ``_id`` field equals ``1``:
+   The :update:`$push` operator has the form:
 
    .. code-block:: javascript
 
-      db.students.update(
-                          { _id: 1 },
-                          { $push: { scores: 89 } }
-                        )
+      { $push: { <field1>: <value1>, ... }
 
-   .. note::
+   .. include:: /includes/use-dot-notation.rst
 
-      - If the field is absent in the document to update,
-        :update:`$push` adds the array field with the value as its
-        element.
+Behavior
+---------
 
-      - If the field is **not** an array, the operation will fail.
+If the field is absent in the document to update, :update:`$push` adds
+the array field with the value as its element.
 
-      - If the value is an array, :update:`$push` appends the whole
-        array as a *single* element. To add each element of the value
-        separately, use :update:`$push` with the :update:`$each`
-        modifier.
+If the field is **not** an array, the operation will fail.
 
-        .. versionchanged:: 2.4
-           MongoDB adds support for the :update:`$each` modifier to
-           the :update:`$push` operator. Before 2.4, use
-           :update:`$pushAll` for similar functionality.
+If the value is an array, :update:`$push` appends the whole array as a
+*single* element. To add each element of the value separately, use the
+:update:`$each` modifier with :update:`$push`. For an example, see
+:ref:`example-push-each`. For a list of modifiers available for
+:update:`$push`, see :ref:`push-modifiers`.
 
-        .. include:: /includes/example-push-each.rst
+.. versionchanged:: 2.4
+   MongoDB adds support for the :update:`$each` modifier to the
+   :update:`$push` operator. Before 2.4, use :update:`$pushAll` for
+   similar functionality.
 
 .. _push-modifiers:
 
@@ -53,30 +47,50 @@ Modifiers
 
 You can use the :update:`$push` operator with the following modifiers:
 
-- :update:`$each` appends multiple values to the array field,
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
 
-  .. versionchanged:: 2.6
+   * - Modifier
+     - Description
 
-     When used in conjunction with the other modifiers, the
-     :update:`$each` modifier no longer needs to be first.
+   * - :update:`$each`
 
-- :update:`$slice`, which is only available when used with
-  :update:`$each`, limits the number of array elements,
+     - Appends multiple values to the array field.
 
-- :update:`$sort`, which is only available when used with
-  :update:`$each`, orders elements of the array, and
+       .. versionchanged:: 2.6
 
-  .. versionchanged:: 2.6
+          When used in conjunction with the other modifiers, the
+          :update:`$each` modifier no longer needs to be first.
 
-     In previous versions, :update:`$sort` is only available
-     when used with both :update:`$each` and :update:`$slice`.
+   * - :update:`$slice`
 
-- :update:`$position`, which is only available when used with
-  :update:`$each`, specifies the location in the array at which to
-  insert the new elements. Without the :update:`$position` modifier,
-  the :update:`$push` appends the elements to the end of the array.
+     - Limits the number of array elements. Requires the use of the
+       :update:`$each` modifier.
 
-  .. versionadded:: 2.6
+   * - :update:`$sort`
+
+     - Orders elements of the array. Requires the use of the
+       :update:`$each` modifier.
+
+       .. versionchanged:: 2.6
+          In previous versions, :update:`$sort` is only available when
+          used with both :update:`$each` and :update:`$slice`.
+
+   * - :update:`$position`
+
+     - Specifies the location in the array at which to insert the new
+       elements. Requires the use of the :update:`$each` modifier.
+       Without the :update:`$position` modifier, the :update:`$push`
+       appends the elements to the end of the array.
+
+       .. versionadded:: 2.6
+
+When used with modifiers, the :update:`$push` operator has the form:
+
+.. code-block:: javascript
+
+   { $push: { <field1>: { <modifier1>: <value1>, ... }, ... } }
 
 The processing of the :update:`push` operation with modifiers occur
 in the following order, regardless of the order in which the modifiers
@@ -93,7 +107,32 @@ appear:
 Examples
 --------
 
+Append a Value to an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example appends ``89`` to the ``scores`` array:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { _id: 1 },
+      { $push: { scores: 89 } }
+   )
+
+.. _example-push-each:
+
+Append Multiple Values to an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :update:`$push` with the :update:`$each` modifier to append
+multiple values to the array field.
+
+.. include:: /includes/example-push-each.rst
+
 Use ``$push`` Operator with Multiple Modifiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/example-push-with-multiple-modifiers.rst
+
+.. seealso:: :method:`db.collection.update()`,
+   :method:`db.collection.findAndModify()`

@@ -4,21 +4,39 @@ $currentDate
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. update:: $currentDate
 
    The :update:`$currentDate` operator sets the value of a field to
    the current date, either as a :ref:`Date <document-bson-type-date>`
    or a :ref:`timestamp <document-bson-type-timestamp>`. The default
-   type is :ref:`date <document-bson-type-date>`.
+   type is :ref:`Date <document-bson-type-date>`.
 
-   The :update:`$currentDate` operator can take as its operand either
+   The :update:`$currentDate` operator has the form:
 
-   - a boolean ``true`` which creates a Date, or
+   .. code-block:: javascript
 
-   - a document which explicitly specifies the type, i.e. ``{ $type:
-     "timestamp" }`` or ``{ $type: "date" }``. The operator is
+      { $currentDate: { <field1>: <typeSpecification1>, ... } }
+
+   ``<typeSpecification>`` can be either:
+
+   - a boolean ``true`` to set the field value to the current date as a
+     Date, or
+
+   - a document ``{ $type: "timestamp" }`` or ``{ $type: "date" }``
+     which explicitly specifies the type. The operator is
      *case-sensitive* and accepts only the lowercase ``"timestamp"`` or
      the lowercase ``"date"``.
+
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+If the field does not exist, :update:`$currentDate` adds the field to a
+document.
 
 Example
 -------
@@ -31,29 +49,40 @@ Consider the following document in the ``users`` collection:
 
    { _id: 1, status: "a", lastModified: ISODate("2013-10-02T01:11:18.965Z") }
 
-The following updates the ``lastModified`` field to the current
-date and the ``lastModifiedTS`` field to the current timestamp as
-well as setting the ``status`` field to ``"D"``.
+The following operation updates the ``lastModified`` field to the
+current date, the``"cancellation.date"`` field to the current timestamp
+as well as updating the ``status`` field to ``"D"`` and the
+``"cancellation.reason"`` to ``"user request"``.
 
 .. code-block:: javascript
 
-   db.users.update( { _id: 1 },
-                    {
-                      $currentDate: {
-                                      lastModified: true,
-                                      lastModifiedTS: { $type: "timestamp" }
-                                    },
-                      $set: { status: "D" }
-                    }
-                  )
+   db.users.update(
+      { _id: 1 },
+      {
+        $currentDate: {
+           lastModified: true,
+           "cancellation.date": { $type: "timestamp" }
+        },
+        $set: {
+           status: "D", 
+           "cancellation.reason": "user request"
+        }
+      }
+   )
 
-Following this operation, the updated document would resemble:
+The updated document would resemble:
 
 .. code-block:: javascript
 
    {
-     _id: 1,
-     status: "D",
-     lastModified: ISODate("2013-10-02T01:11:53.976Z"),
-     lastModifiedTS: Timestamp(1380676313, 1)
+      "_id" : 1,
+      "status" : "D",
+      "lastModified" : ISODate("2014-09-17T23:25:56.314Z"),
+      "cancellation" : {
+         "date" : Timestamp(1410996356, 1),
+         "reason" : "user request"
+      }
    }
+
+.. seealso:: :method:`db.collection.update()`,
+   :method:`db.collection.findAndModify()`

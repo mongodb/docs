@@ -5,6 +5,6 @@ equals ``joe``:
 .. code-block:: javascript
 
   db.students.update(
-                      { name: "joe" },
-                      { $push: { scores: { $each: [ 90, 92, 85 ] } } }
-                    )
+     { name: "joe" },
+     { $push: { scores: { $each: [ 90, 92, 85 ] } } }
+  )
