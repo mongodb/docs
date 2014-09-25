@@ -43,8 +43,8 @@ master_doc = 'index'
 
 copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
-version = '1.1'
-release = '1.1'
+version = conf.version.branch
+release = conf.version.release
 pygments_style = 'sphinx'
 
 extlinks = {
