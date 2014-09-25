@@ -1,81 +1,71 @@
 =================
-Manage Journaling
+   管理日志
 =================
 
 .. default-domain:: mongodb
 
-MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee :doc:`write operation </core/write-operations>` durability
-and to provide crash resiliency. Before applying a change to the data
-files, MongoDB writes the change operation to the journal. If MongoDB
-should terminate or encounter an error before it can write the changes
-from the journal to the data files, MongoDB can re-apply the write
-operation and maintain a consistent state.
+MongoDB使用*预写日志*记录到磁盘. :term:`日志`用来
+保证 :doc:`写操作 </core/write-operations>` 的持久性
+和灾后恢复能力.在更改数据文件前 ,MongoDB将更改的操作写入到日志中. 
+如果MongoDB终止或遇到错误.然后才能写入到从数据文件日志的变化, 
+MongoDB可以重新申请写操作并保持一致的状态.
 
-*Without* a journal, if :program:`mongod` exits unexpectedly, you must
-assume your data is in an inconsistent state, and you must run either
-:doc:`repair </tutorial/recover-data-following-unexpected-shutdown>`
-or, preferably, :doc:`resync </tutorial/resync-replica-set-member>`
-from a clean member of the replica set.
+*无* 日志记录, 如果 :program:`mongod` 意外退出,会发生数据不一直的状态,
+你必须运行:doc:`修复 </tutorial/recover-data-following-unexpected-shutdown>`
+或者, 最好, 清理复制集并:doc:`重新同步 </tutorial/resync-replica-set-member>`
 
-With journaling enabled, if :program:`mongod` stops unexpectedly,
-the program can recover everything written to the journal, and the
-data remains in a consistent state. By default, the greatest extent of lost
-writes, i.e., those not made to the journal, are those made in the last
-100 milliseconds. See :setting:`~storage.journal.commitIntervalMs` for more
-information on the default.
+启用了日志记录, 如果 :program:`mongod` 意外停止,
+程序可以恢复所有写入日志的数据, 和数据保持一致的状态. 
+默认情况, 对最大程度上失去了写操作, 将保存最近100毫秒的数据.
+请参考 :setting:`~storage.journal.commitIntervalMs` 上更多的默认信息.
 
-With journaling, if you want a data set to reside entirely in RAM, you
-need enough RAM to hold the data set plus the "write working set." The
-"write working set" is the amount of unique data you expect to see
-written between re-mappings of the private view. For information on
-views, see :ref:`journaling-storage-views`.
+开启了日志,如果想要把数据集合全部放在内存,你需要足够的内存来保存
+数据集合加上"工作的数据集".这个"工作的数据集".是唯一的数据,
+你想看写之间映射的视图.请参阅:ref:`journaling-storage-views`.
 
 .. important::
 
    .. versionchanged:: 2.0
-      For 64-bit builds of :program:`mongod`, journaling is enabled by
-      default.  For other platforms, see :setting:`storage.journal.enabled`.
+      64位构建的 :program:`mongod`, 日志是默认开启的.  
+      其它平台, 请参阅 :setting:`storage.journal.enabled`.
 
-Procedures
+程序
 ----------
 
-Enable Journaling
+启用日志记录
 ~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 2.0
-   For 64-bit builds of :program:`mongod`, journaling is enabled by default.
+    :program:`mongod`, 默认情况下启用日志.
 
-To enable journaling, start :program:`mongod` with the
-:option:`--journal <mongod --journal>` command line option.
+要启用日志记录, 启动 :program:`mongod` 命令行的时候加上参数
+:option:`--journal <mongod --journal>` .
 
-If no journal files exist, when :program:`mongod` starts, it must
-preallocate new journal files. During this operation, the
-:program:`mongod` is not listening for connections until preallocation
-completes: for some systems this may take a several minutes. During
-this period your applications and the :program:`mongo` shell are not
-available.
+如果没有日志文件存在,当:program:`mongod` 启动,必须预分配新的日志文件.
+在此操作期间,:program:`mongod`不会监听预分配的连接.
+完成:对于某些系统中，这可能需要几分钟的时间.这期间你的应用程序和
+:program:`mongo` 都无法使用.
 
-Disable Journaling
+禁用日志
 ~~~~~~~~~~~~~~~~~~
 
-.. warning::
+.. 警告::
 
-   Do not disable journaling on production systems. If your
-   :program:`mongod` instance stops without shutting down cleanly
-   unexpectedly for any reason, (e.g. power failure) and you are
-   not running with journaling, then you must recover from an
-   unaffected :term:`replica set` member or backup, as described in
-   :doc:`repair  </tutorial/recover-data-following-unexpected-shutdown>`.
+   不要在生产系统上禁用日志. 如果
+   不担心:program:`mongod` 意外停止, (比如：停电) 
+   你可以不用开启日志, 如果发生意外.
+   那么你必须从一个未受影响的副本集成员或备份中恢复.
+   参考资料：:doc:`repair  </tutorial/recover-data-following-unexpected-shutdown>`.
+   
 
-To disable journaling, start :program:`mongod` with the
-:option:`--nojournal <mongod --nojournal>` command line option.
+要禁用日志记录, 启动 :program:`mongod` 命令行的时候加上参数
+:option:`--nojournal <mongod --nojournal>`.
 
 Get Commit Acknowledgment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can get commit acknowledgment with the
-:ref:`write-concern` and the ``j`` option. For details, see
+:ref:`write-concern` 和 ``j`` 选项. 有关详细信息, 请参阅
 :ref:`write-concern-operation`.
 
 .. _journaling-avoid-preallocation-lag:
