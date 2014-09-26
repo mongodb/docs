@@ -45,18 +45,6 @@ these operations generally provide an accurate account of *how*
 MongoDB would perform the query, but do not reflect the length of
 these queries.
 
-.. seealso::
-
-   - :operator:`$explain`
-
-   - :doc:`/administration/optimization` page for information
-     regarding optimization strategies.
-
-   - :doc:`/tutorial/manage-the-database-profiler` tutorial for
-     information regarding the database profile.
-
-   - :doc:`Current Operation Reporting </reference/method/db.currentOp>`
-
 .. _explain-results:
 
 Explain Results
@@ -231,49 +219,37 @@ sharded*. For queries on sharded collections, see
 
 .. data:: explain.isMultiKey
 
-   :data:`~explain.isMultiKey` is a boolean. When ``true``, the query uses a
-   :ref:`multikey index <index-type-multikey>`, where one of the
+   :data:`~explain.isMultiKey` is a boolean. When ``true``, the query
+   uses a :ref:`multikey index <index-type-multikey>`, where one of the
    fields in the index holds an array.
 
 .. data:: explain.n
 
    :data:`~explain.n` is the number of documents that match the query
    selection criteria.
-   
-   For more information on :data:`~explain.n` and query optimization, see
-   :doc:`/tutorial/analyze-query-plan` and
-   :doc:`/administration/optimization`.
+
+.. data:: explain.nscanned
+
+   :data:`~explain.nscanned` is the total number of index entries
+   scanned (or documents for a collection scan).
+
+   :data:`~explain.nscanned` can be greater than
+   :data:`~explain.nscannedObjects`, which is the total number of
+   documents scanned during the query. For examples, see
+   :ref:`explain-example-covered-query`,
+   :ref:`explain-example-multikey`, and
+   :ref:`analyze-compare-performance`.
 
 .. data:: explain.nscannedObjects
 
    :data:`~explain.nscannedObjects` is the total number of documents
-   scanned during the query.
-   
-   The :data:`~explain.nscannedObjects` value may be lower than
-   :data:`~explain.nscanned`, if the number of documents or index entries
-   scanned. :data:`~explain.nscannedObjects` will be 0 if there is a
-   covered query, a query where all the query fields are part of an
-   index and all fields returned are in the same index. For information
-   about covered queries, see :data:`~explain.indexOnly`, which indicates
-   if the query is covered by the index, and :ref:`Create Indexes that
-   Support Covered Queries <indexes-covered-queries>`.
-   
-   A multikey index on an array field with duplicate documents also
-   results in an :data:`~explain.nscannedObjects` value lower than
-   :data:`~explain.nscanned`.
-   
-   For more information on :data:`~explain.nscannedOjects` and query
-   optimization, see :doc:`/tutorial/analyze-query-plan` and
-   :doc:`/administration/optimization`.
+   scanned. 
 
-.. data:: explain.nscanned
-
-   :data:`~explain.nscanned` is the total number of documents or index
-   entries scanned during the database operation.
-   
-   For more information on :data:`~explain.nscanned` and query
-   optimization, see :doc:`/tutorial/analyze-query-plan` and
-   :doc:`/administration/optimization`.
+   :data:`~explain.nscannedObjects` can be lower than
+   :data:`~explain.nscanned`. For examples, see
+   :ref:`explain-example-covered-query`,
+   :ref:`explain-example-multikey`, and
+   :ref:`analyze-compare-performance`.
 
 .. data:: explain.nscannedObjectsAllPlans
 
@@ -354,15 +330,17 @@ sharded*. For queries on sharded collections, see
 
    :data:`~explain.allPlans` is an array that holds the list of plans
    the query optimizer runs in order to select the index for the query.
-   Displays only when the ``<verbose>`` parameter to :method:`~cursor.explain()` is ``true`` or ``1``.
+   Displays only when the ``<verbose>`` parameter to
+   :method:`~cursor.explain()` is ``true`` or ``1``.
 
 .. data:: explain.oldPlan
 
    .. versionadded:: 2.2
 
-   :data:`~explain.oldPlan` is a document value that contains the previous plan
-   selected by the query optimizer for the query. Displays only when
-   the ``<verbose>`` parameter to :method:`~cursor.explain()` is ``true`` or ``1``.
+   :data:`~explain.oldPlan` is a document value that contains the
+   previous plan selected by the query optimizer for the query.
+   Displays only when the ``<verbose>`` parameter to
+   :method:`~cursor.explain()` is ``true`` or ``1``.
 
 .. data:: explain.server
 
@@ -428,3 +406,254 @@ Sharded Collections Output Fields
 
    :data:`~explain.numShards` is a number that reports the total number of
    shards queried.
+
+Examples
+--------
+
+Consider a collection ``survey`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "xyz", "ratings" : [ 8, 9, 10 ] }
+   { "_id" : 2, "item" : "abc", "ratings" : [ 7 ] }
+   { "_id" : 3, "item" : "ijk", "ratings" : [ 6, 5 ] }
+   { "_id" : 4, "item" : "lmn", "ratings" : [ 8 ] }
+
+Collection Scan
+~~~~~~~~~~~~~~~
+
+Consider the query:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "abc" } )
+
+If no index supports the query, MongoDB must perform a collection scan.
+To view the query plan used, use :method:`~cursor.explain()`:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "abc" } ).explain()
+
+:method:`~cursor.explain()` returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BasicCursor",
+      "isMultiKey" : false,
+      "n" : 1,
+      "nscannedObjects" : 4,
+      "nscanned" : 4,
+      "nscannedObjectsAllPlans" : 4,
+      "nscannedAllPlans" : 4,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
+   }
+
+- :data:`~explain.cursor` displays ``BasicCursor`` to indicate a
+  collection scan.
+
+- :data:`~explain.n` displays ``1`` to indicate that the query matches
+  and returns one document.
+
+- However, :data:`~explain.nscanned` and
+  :data:`~explain.nscannedObjects` display ``4`` to indicate that
+  MongoDB had to scan four documents (i.e. all the documents in the
+  collection) to find the one document that matched.
+
+Index Use
+~~~~~~~~~
+
+Consider the following index on the ``item`` field on the ``survey``
+collection:
+
+.. code-block:: javascript
+
+   db.survey.ensureIndex( { item: 1 } )
+
+To view how MongoDB uses the index for the following query on the
+``item`` field, use :method:`~cursor.explain()`:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "abc" } ).explain()
+
+:method:`~cursor.explain()` returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BtreeCursor item_1",
+      "isMultiKey" : false,
+      "n" : 1,
+      "nscannedObjects" : 1,
+      "nscanned" : 1,
+      "nscannedObjectsAllPlans" : 1,
+      "nscannedAllPlans" : 1,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "indexBounds" : { "item" : [ [ "abc", "abc" ] ] },
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
+   }
+
+- :data:`~explain.cursor` displays ``BtreeCursor item_1`` to indicate
+  index use and the name of the index.
+
+- :data:`~explain.n` displays ``1`` to indicate that the query matches
+  and returns one document.
+
+- :data:`~explain.nscanned` displays ``1`` to indicate that MongoDB
+  scanned one index entry.
+
+- :data:`~explain.nscannedObjects` displays ``1`` to indicate that
+  MongoDB scanned one document.
+
+.. _explain-example-covered-query:
+
+Covered Query Explain Output
+````````````````````````````
+
+With :ref:`covered queries <read-operations-covered-query>`, MongoDB
+can use the index to match and return the results; i.e. MongoDB does
+not need access the documents. If an index :ref:`covers a query
+<read-operations-covered-query>`, :data:`~explain.nscannedObjects` will
+be ``0``.
+
+Consider the following query, which specify a query predicate on the
+indexed ``item`` field *and* returns only the indexed ``item`` field:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "abc" }, { item: 1, _id: 0 } )
+
+To view how MongoDB uses the index for the query, use
+:method:`~cursor.explain()`:
+
+.. code-block:: javascript
+
+   db.survey.find( { item: "abc" }, { item: 1, _id: 0 } ).explain()
+
+:method:`~cursor.explain()` returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BtreeCursor item_1",
+      "isMultiKey" : false,
+      "n" : 1,
+      "nscannedObjects" : 0,
+      "nscanned" : 1,
+      "nscannedObjectsAllPlans" : 0,
+      "nscannedAllPlans" : 1,
+      "scanAndOrder" : false,
+      "indexOnly" : true,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "indexBounds" : { "item" : [ [ "abc", "abc" ] ] },
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
+   }
+
+- :data:`~explain.cursor` displays ``BtreeCursor item_1`` to indicate
+  index use and the name of the index.
+
+- :data:`~explain.n` displays ``1`` to indicate that one document
+  matches the query.
+
+- :data:`~explain.nscanned` displays ``1`` to indicate that MongoDB
+  scanned one index entry.
+
+- However, :data:`~explain.nscannedObjects` displays ``0`` to indicate
+  that MongoDB did not need to scan any document. MongoDB used just the
+  index, as verified by :data:`~explain.indexOnly`.
+
+- :data:`~explain.indexOnly` displays ``true`` to indicate that MongoDB
+  used only the index to match and return the result of the query.
+
+.. _explain-example-multikey:
+
+Multikey Index Explain Output
+`````````````````````````````
+
+With a :doc:`multikey index </core/index-multikey>` on an array field,
+MongoDB adds an index entry for each item in the array.
+
+Consider following multi-key index on the ``ratings`` array on the
+``survey`` collection:
+
+.. code-block:: javascript
+
+   db.survey.ensureIndex( { ratings: 1 } )
+
+And consider the following query:
+
+.. code-block:: javascript
+
+   db.survey.find( { ratings: { $gte: 9 } } )
+
+The query matches a single document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "xyz", "ratings" : [ 8, 9, 10 ] }
+
+To view how MongoDB uses the index for the query, use
+:method:`~cursor.explain()`:
+
+.. code-block:: javascript
+
+   db.survey.find( { ratings: { $gte: 9 } } ).explain()
+
+:method:`~cursor.explain()` returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BtreeCursor ratings_1",
+      "isMultiKey" : true,
+      "n" : 1,
+      "nscannedObjects" : 1,
+      "nscanned" : 2,
+      "nscannedObjectsAllPlans" : 1,
+      "nscannedAllPlans" : 2,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "ratings" : [ [ 9, Infinity ] ]
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
+   }
+
+
+- :data:`~explain.cursor` displays ``BtreeCursor ratings_1`` to
+  indicate index use and the name of the index.
+
+- :data:`~explain.isMultiKey` displays ``true`` to indicate that the
+  index is multi-key.
+
+- :data:`~explain.n` displays ``1`` to indicate that one document
+  matches the query.
+
+- :data:`~explain.nscanned` displays ``2`` to indicate that MongoDB
+  scanned two index entries.
+
+- However, :data:`~explain.nscannedObjects` displays ``1`` since both
+  keys refer to the same document and MongoDB de-duplicates.
+
+.. TODO link to Andrew's multi-key index bounds
+
+.. seealso:: :doc:`/tutorial/analyze-query-plan`, :doc:`/core/query-optimization`,
+   :doc:`/core/indexes-introduction`, :doc:`/core/query-plans`

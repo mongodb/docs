@@ -4,251 +4,236 @@ Analyze Query Performance
 
 .. default-domain:: mongodb
 
-The MongoDB query optimizer processes queries and chooses the most optimal
-:doc:`query plan </core/query-plans>` for a query given the available
-indexes. Sometimes you can optimize a query or index based on their
-impact on database performance.
-
 The :method:`~cursor.explain()` cursor method provides statistics about
 the performance of a query. This data output can be useful in measuring
-how optimally a query uses indexes, document lookups, and other database
-functionality to retrieve information.
-
-The :method:`~cursor.explain()` method output does not reflect an accurate
-timing of query performance.
-
-See :doc:`/core/query-optimization`,
-:doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`,
-and :doc:`/applications/indexes` for more information about building
-optimal database queries.
+if and how a query uses an index. [#timing-caveat]_
 
 Evaluate the Performance of a Query
 -----------------------------------
 
-You can use the :method:`~cursor.explain()` method to understand and
-evaluate the performance characteristics of different query and index
-combinations.
-
-For the following examples, consider a collection with these six documents with fields
-for ``id``, ``section``, and ``status``:
+Consider a collection ``inventory`` with the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "section" : 1, "status" : 1 }
-   { "_id" : 2, "section" : 2, "status" : 1 }
-   { "_id" : 3, "section" : 1, "status" : 1 }
-   { "_id" : 4, "section" : 3, "status" : 1 }
-   { "_id" : 5, "section" : 4, "status" : 0 }
-   { "_id" : 6, "section" : 4, "status" : 0 }
+   { "_id" : 1, "item" : "f1", type: "food", quantity: 500 }
+   { "_id" : 2, "item" : "f2", type: "food", quantity: 100 }
+   { "_id" : 3, "item" : "p1", type: "paper", quantity: 200 }
+   { "_id" : 4, "item" : "p2", type: "paper", quantity: 150 }
+   { "_id" : 5, "item" : "f3", type: "food", quantity: 300 }
+   { "_id" : 6, "item" : "t1", type: "toys", quantity: 500 }
+   { "_id" : 7, "item" : "a1", type: "apparel", quantity: 250 }
+   { "_id" : 8, "item" : "a2", type: "apparel", quantity: 400 }
+   { "_id" : 9, "item" : "t2", type: "toys", quantity: 50 }
+   { "_id" : 10, "item" : "f4", type: "food", quantity: 75 }
 
-Range Query with No Index
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _analyze-no-index:
 
-The following range query retrieves documents where the ``section``
-field has a value between ``2`` and ``4``:
+Query with No Index
+~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-
-   db.posts.find( { section: { $gte: 2, $lte: 4 } } )
-
-The query returns these four documents:
-
-.. code-block:: javascript
-
-   { "_id" : 2, "section" : 2, "status" : 1 }
-   { "_id" : 4, "section" : 3, "status" : 1 }
-   { "_id" : 5, "section" : 4, "status" : 0 }
-   { "_id" : 6, "section" : 4, "status" : 0 }
-
-The following range query with the :method:`~cursor.explain()` method
-generates statistics about the database impact of this query:
+The following query retrieves documents where the ``quantity`` field
+has a value between ``100`` and ``200``, inclusive:
 
 .. code-block:: javascript
 
-   db.posts.find( { section: { $gte: 2, $lte: 4 } } ).explain()
+   db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } )
+
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
+   { "_id" : 3, "item" : "p1", "type" : "paper", "quantity" : 200 }
+   { "_id" : 4, "item" : "p2", "type" : "paper", "quantity" : 150 }
+
+To view the query plan selected, use the :method:`~cursor.explain()`
+method:
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } ).explain()
 
 The :method:`~cursor.explain()` method returns this output:
 
 .. code-block:: javascript
 
    {
-       "cursor" : "BasicCursor",
-       "isMultiKey" : false,
-       "n" : 4,
-       "nscannedObjects" : 6,
-       "nscanned" : 6,
-       "nscannedObjectsAllPlans" : 6,
-       "nscannedAllPlans" : 6,
-       "scanAndOrder" : false,
-       "indexOnly" : false,
-       "nYields" : 0,
-       "nChunkSkips" : 0,
-       "millis" : 0,
-       "server" : "machine.local:27017",
-       "filterSet" : false
+      "cursor" : "BasicCursor",
+      "isMultiKey" : false,
+      "n" : 3,
+      "nscannedObjects" : 10,
+      "nscanned" : 10,
+      "nscannedObjectsAllPlans" : 10,
+      "nscannedAllPlans" : 10,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
    }
 
-This query returned 4 documents, as indicated by the :data:`~explain.n`
-field.
+- :data:`~explain.cursor` displays ``BasicCursor`` to indicate a
+  collection scan.
 
-The :data:`~explain.n` field indicates the query returned 4 documents. The
-``BasicCursor`` value of the :data:`~explain.cursor` field indicates the
-query did not use an index. See :ref:`explain-output` for descriptions of
-the other fields in this output.
+- :data:`~explain.n` displays ``3`` to indicate that the query matches
+  and returns three document.
 
-The differences between 4 returned documents, 6 documents scanned from the
-index, and 6 documents read as a result of the query suggests this might
-not be an optimal query. The database scanned and read 2 documents more
-than it returned.
+- :data:`~explain.nscanned` and :data:`~explain.nscannedObjects`
+  display ``10`` to indicate that MongoDB had to scan ten documents
+  (i.e. all documents in the collection) to find the three matching
+  documents.
 
-A Query with an Index on One Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The difference between the number of matching documents and the number
+documents scanned may suggest that, to improve efficiency, the query
+might benefit from the use of an index.
 
-Add an index on the ``section`` field with the
-:method:`~db.collection.ensureIndex` method, then run the following range
-query for documents with ``section`` fields with values between ``2`` and
-``4`` with the :method:`~cursor.explain()` method:
+.. _analyze-index:
+
+Query with Index
+~~~~~~~~~~~~~~~~
+
+To support the query on the ``quantity`` field, add an index on the
+``quantity`` field:
 
 .. code-block:: javascript
 
-   db.posts.find( { section: { $gte: 2, $lte: 4 } } ).explain()
+   db.inventory.ensureIndex( { quantity: 1 } )
+
+To view the query plan statistics, use the :method:`~cursor.explain()`
+method:
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } ).explain()
 
 The :method:`~cursor.explain()` method returns this output:
 
 .. code-block:: javascript
 
    {
-       "cursor" : "BtreeCursor section_1",
-       "isMultiKey" : false,
-       "n" : 4,
-       "nscannedObjects" : 4,
-       "nscanned" : 4,
-       "nscannedObjectsAllPlans" : 4,
-       "nscannedAllPlans" : 4,
-       "scanAndOrder" : false,
-       "indexOnly" : false,
-       "nYields" : 0,
-       "nChunkSkips" : 0,
-       "millis" : 0,
-       "indexBounds" : {
-              "section" : [
-                     [
-                            2,
-                            4
-                     ]
-              ]
-       },
-       "server" : "machine.local:27017",
-       "filterSet" : false
+      "cursor" : "BtreeCursor quantity_1",
+      "isMultiKey" : false,
+      "n" : 3,
+      "nscannedObjects" : 3,
+      "nscanned" : 3,
+      "nscannedObjectsAllPlans" : 3,
+      "nscannedAllPlans" : 3,
+      "scanAndOrder" : false,
+      "indexOnly" : false,
+      "nYields" : 0,
+      "nChunkSkips" : 0,
+      "millis" : 0,
+      "indexBounds" : { "quantity" : [ [ 100, 200 ] ] },
+      "server" : "myMongoDB.local:27017",
+      "filterSet" : false
    }
 
-This query returned 4 documents, as indicated by the :data:`~explain.n`
-field.
+- :data:`~explain.cursor` displays ``BtreeCursor quantity_1`` to
+  indicate index use and the name of the index.
 
-To return these 4 documents, the :data:`~explain.nscanned` field indicates
-the query scanned 4 documents from the index and the
-:data:`~explain.nscannedObjects` field indicates the query read 4 full
-documents from the collection.
+- :data:`~explain.n` displays ``3`` to indicate that the query
+  matches and returns three document.
 
-The ``BtreeCursor section_1`` value of the :data:`~explain.cursor` field
-indicates the query used an index on the ``section`` field. See
-:ref:`explain-output` for descriptions of the other fields in this output.
+- :data:`~explain.nscanned` displays ``3`` to indicate that MongoDB
+  scanned three index entries.
 
-The numeric equality between 4 returned documents, 4 documents scanned
-from the index, and 4 documents read as a result of the query suggests
-this might be an optimal query.
+- :data:`~explain.nscannedObjects` displays ``3`` to indicate that
+  MongoDB scanned three documents.
 
-A Query with a Compound Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When run with an index, the query scanned ``3`` index entries and ``3``
+documents to return ``3`` matching documents. Without the index, to
+return the ``3`` matching documents, the query had to scan the whole
+collection, scanning ``10`` documents.
 
-Add a compound index on the ``section`` and ``status`` fields, in that
-order, with the :method:`~db.collection.ensureIndex()` method:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { section: 1, status: 1 } )
-
-Then run the following query with the :method:`~cursor.explain()` method
-to evaluate the database impact of this query request:
-
-.. code-block:: javascript
-
-   db.posts.find( { section: { $gte: 2, $lte: 4 }, status: 1 } ).explain()
-
-The :method:`~cursor.explain()` method returns this output:
-
-.. code-block:: javascript
-
-   {
-       "cursor" : "BtreeCursor section_1_status_1",
-       "isMultiKey" : false,
-       "n" : 2,
-       "nscannedObjects" : 2,
-       "nscanned" : 3,
-       "nscannedObjectsAllPlans" : 2,
-       "nscannedAllPlans" : 3,
-       "scanAndOrder" : false,
-       "indexOnly" : false,
-       "nYields" : 0,
-       "nChunkSkips" : 0,
-       "millis" : 0,
-       "indexBounds" : {
-           "section" : [
-               [
-                   2,
-                   4
-               ]
-           ],
-           "status" : [
-               [
-                   1,
-                   1
-               ]
-           ]
-       },
-       "server" : "machine.local:27017",
-       "filterSet" : false
-   }
-
-This query returned 2 documents, as indicated by the :data:`~explain.n`
-field.
-
-To return these 2 documents, the :data:`~explain.nscanned` field indicates
-the query scanned 3 documents from the index and the
-:data:`~explain.nscannedObjects` field indicates the query read 2 full
-documents from the collection.
-
-The ``BtreeCursor section_1_status_1`` value of the
-:data:`~explain.cursor` field indicates the query used a compound index on
-the ``section`` field and ``status`` field. See :ref:`explain-output` for
-descriptions of the other fields in this output.
-
-The differences between 2 returned documents, 3 documents scanned from the
-index, and 2 documents read as a result of the query suggests a query with
-the compound index might be optimal.
+.. _analyze-compare-performance:
 
 Compare Performance of Indexes
 ------------------------------
 
 To manually compare the performance of a query using more than one
-index, you can use the :method:`~cursor.hint()` and
-:method:`~cursor.explain()` methods in conjunction.
+index, you can use the :method:`~cursor.hint()` method in conjunction
+with the :method:`~cursor.explain()` method.
 
-.. example:: Evaluate a query using different indexes:
+Consider the following query:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.inventory.find( { type: 'food' } ).hint( { type: 1 } ).explain()
-      db.inventory.find( { type: 'food' } ).hint( { type: 1, name: 1 } ).explain()
+   db.inventory.find( { quantity: { $gte: 100, $lte: 300 }, type: "food" } )
 
-   These return the statistics regarding the execution of the query
-   using the respective index.
+The query returns the following documents:
 
-.. note::
+.. code-block:: javascript
 
-   If you run :method:`explain() <cursor.explain()>` without including
-   :method:`hint() <cursor.hint()>`, the query optimizer reevaluates
-   the query and runs against multiple indexes before returning the
-   query statistics.
+   { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
+   { "_id" : 5, "item" : "f3", "type" : "food", "quantity" : 300 }
 
-For more detail on the explain output, see :ref:`explain-results`.
+To support the query, add a :doc:`compound index
+</core/index-compound>`. With :doc:`compound indexes
+</core/index-compound>`, the order of the fields matter.
+
+For example, add the following two compound indexes. The first index
+orders by ``quantity`` field first, and then the ``type`` field. The
+second index orders by ``type`` first, and then the ``quantity`` field.
+
+.. code-block:: javascript
+
+   db.inventory.ensureIndex( { quantity: 1, type: 1 } )
+   db.inventory.ensureIndex( { type: 1, quantity: 1 } )
+
+Evaluate the effect of the first index on the query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $gte: 100, $lte: 300 }, type: "food" } ).hint({ quantity: 1, type: 1 }).explain()
+
+The :method:`~cursor.explain()` method returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BtreeCursor quantity_1_type_1",
+      "isMultiKey" : false,
+      "n" : 2,
+      "nscannedObjects" : 2,
+      "nscanned" : 5,
+      ...
+   }
+
+MongoDB scanned ``5`` index keys (:data:`~explain.nscanned`) to return
+``2`` matching documents (:data:`~explain.n`).
+
+Evaluate the effect of the second index on the query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $gte: 100, $lte: 300 }, type: "food" } ).hint({ type: 1, quantity: 1 }).explain()
+
+The :method:`~cursor.explain()` method returns the following output:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : "BtreeCursor type_1_quantity_1",
+      "isMultiKey" : false,
+      "n" : 2,
+      "nscannedObjects" : 2,
+      "nscanned" : 2,
+      ...
+   }
+
+MongoDB scanned ``2`` index keys (:data:`~explain.nscanned`) to return
+``2`` matching documents (:data:`~explain.n`).
+
+For this example query, the compound index ``{ type: 1, quantity: 1 }``
+is more efficient than the compound index ``{ quantity: 1, type: 1 }``.
+
+.. seealso:: :doc:`/core/query-optimization`, :doc:`/core/query-plans`
+   :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`,
+   :doc:`/applications/indexes`
+
+.. [#timing-caveat] Because :method:`~cursor.explain()` attempts
+   multiple query plans, the :method:`~cursor.explain()` method does not
+   reflect an accurate timing of query performance. For more information on
+   its behavior, see :method:`~cursor.explain()`.
