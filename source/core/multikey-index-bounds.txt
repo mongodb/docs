@@ -1,0 +1,206 @@
+=====================
+Multikey Index Bounds
+=====================
+
+.. default-domain:: mongodb
+
+
+When executing a query with a :ref:`multikey index <index-type-multikey>`
+scan, understanding how MongoDB computes index bounds can help you design
+more efficient queries.
+
+The bounds of an index scan define the area of an index to search during
+a query. When multiple sets of bounds exist, as is the case when querying
+against a :ref:`multikey index <index-type-multikey>`, MongoDB will attempt
+to combine them either via *intersection* or *compounding* in order to produce
+a smaller scan area.
+
+.. _multikey-index-bounds-intersecting:
+
+Intersecting Bounds
+-------------------
+
+MongoDB can intersect the index bounds of a query either if the queried field
+has at most one value, *or* if an :query:`$elemMatch` joins the predicates over
+that field.
+
+Consider the following query:
+
+.. code-block:: javascript
+
+   db.test.find( { a : { $gte: 3, $lte: 6 } } )
+
+The bounds of this query are ``[ 3, Infinity ]`` and ``[ -Infinity, 6 ]``. A
+different query satisfying the intersection requirements would allow
+reducing these bounds to ``[ 3, 6 ]``, which could shrink the number of index
+entries scanned during execution.
+
+For example, this query could have its index bounds intersected:
+
+.. code-block:: javascript
+
+   db.test.find( { a: { $elemMatch: { $gte: 3, $lte: 6 } } } )
+
+This is because the :query:`$elemMatch` term requests a *single* value of the
+multikey field ``a`` to satisfy the two predicates it joins together.
+
+In contrast, the following query cannot have its bounds intersected because
+multiple values may satisfy it:
+
+.. code-block:: javascript
+
+   db.test.find( { $and: [ { a: { $gte: 3 } }, { a: { $lte: 6 } } ] } )
+
+Compounding Bounds
+------------------
+
+*Compounding* bounds allows a query to use multiple fields in a
+:ref:`compound index <index-type-compound>`. For example, consider the following
+query:
+
+.. code-block:: javascript
+
+   db.test.ensureIndes( { x: 1, y: 1 } )
+   db.test.find( { x: 3, y: 4} )
+
+This query can execute using bounds over both fields in the compound index:
+``{ x: [3, 3], y: [4, 4] }``.
+
+Compounding multikey index bounds usually occurs in the same way as with
+single-key compound indexes, but with the following exceptions:
+
+Shared Path Prefix Exception
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the compound multikey index contains fields sharing a *path prefix*,
+then compounding bounds is not possible except when
+:ref:`joined with $elemMatch <elem-match-exception>`.
+
+Path
+````
+
+A *path* is a string representing a route through a JSON structure, delimited
+by the ``.`` character. For example, the following string is a path:
+
+.. code-block:: javascript
+
+   people.address.number
+
+You can use a path to specify an index field, meaning that you could build an
+index with this path. In the same way that paths specify index fields, each
+predicate over a query has an associated path.
+
+A *path prefix* is a prefix of the path string for a predicate or index field.
+For example, ``people.address`` is a prefix in the previous path.
+
+Exception
+`````````
+
+The case where fields in the compound multikey index share a path prefix, as in
+``{ 'a.b': 1, 'a.c': 1 }``, prevents compounding because predicates over these
+fields may refer to subdocuments within the same array field. As seen
+previously in :ref:`multikey-index-bounds-intersecting`, it is not possible to
+combine bounds when they constrain the same array field.
+
+The following MongoDB shell commands illustrate this case:
+
+.. code-block:: javascript
+
+   db.test.ensureIndex( { 'a.b': 1, 'a.c': 1, 'd.e': 1, 'd.f': 1 } )
+   db.test.find( { 'a.b': 1, 'a.c': 1,
+                   'd.e': 1, 'd.f': 1 } )
+
+This will result in the following index bounds:
+
+.. code-block:: javascript
+
+   { 'a.b': [ 1, 1 ],
+     'a.c': [ MinKey, MaxKey ],
+     'd.e': [ 1, 1 ],
+     'd.f': [ MinKey, MaxKey ] }
+
+Here it is not possible to compound the bounds for ``a.b`` and ``a.c`` because of
+the shared path prefix ``a``. Similarly, it is also not possible to compound the
+bounds for ``d.e`` and ``d.f`` because of the shared path prefix ``d``.
+
+However, the bounds on ``a.b` and ``d.e`` are compoundable.
+
+.. _elem-match-exception:
+
+``$elemMatch`` Exception
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an :query:`$elemMatch` joins the predicates on a path prefix, then compounding
+the bounds on the fields sharing that prefix is possible.
+
+For example, given the following query:
+
+.. code-block:: javascript
+
+   db.test.ensureIndex( { 'a.b.c': 1, 'a.e.f': 1, 'a.b.d': 1, 'a.e.g': 1 } )
+   db.test.find( { 'a.b': { $elemMatch: { c: 1, d: 1 } },
+                   'a.e': { $elemMatch: { f: 1, g: 1} } } )
+
+This will result in the following index bounds:
+
+.. code-block:: javascript
+
+   Index bounds: { 'a.b.c': [ 1, 1 ],
+                   'a.e.f': [ MinKey, MaxKey ],
+                   'a.b.d': [ 1, 1 ],
+                   'a.e.g': [ MinKey, MaxKey ] }
+
+The bounds for ``a.b.c`` and ``a.b.c`` are possible to compound because the
+corresponding predicates are appropriately joined by an $elemMatch on the
+shared prefix ``a.b``.
+
+It is not possible to compound the bounds for ``a.e.f`` and ``a.e.g`` because an
+:query:`$elemMatch` joins their shared path prefix.
+
+``$elemMatch`` Not on Entire Path Prefix
+````````````````````````````````````````
+
+The following query demonstrates case where compounding index bounds is impossible
+despite use of :query:`$elemMatch`, because of shared path prefixes.
+
+.. code-block:: javascript
+
+   db.test.ensureIndex( { 'a.b.c': 1, 'a.b.d': 1 } )
+   db.test.find( { a: { $elemMatch: { 'b.c': 1, 'b.d': 1 } } } )
+
+This will result in the following index bounds:
+
+.. code-block:: javascript
+
+   Index bounds: { 'a.b.c': [ 1, 1 ], 'a.b.d': [ MinKey, MaxKey ] }
+
+The bounds cannot be compounded despite the :query:`$elemMatch`.
+
+In order to make compounding bounds possible, the :query:`$elemMatch` must operate
+on the full shared path prefix. However, here the paths ``a.b.c`` and ``a.b.d``
+share ``a.b`` as a prefix, so the predicates can only be compounded if the
+:query:`$elemMatch` operated on ``a.b``.
+
+Predicates Not Joined by ``$elemMatch``
+```````````````````````````````````````
+
+The following query demonstrates a case where compounding bounds is not possible
+because there are predicates not joined by a :query:`$elemMatch`.
+
+.. code-block:: javascript
+
+   db.test.ensureIndex( { 'a.b': 1, 'a.c': 1 } )
+   db.test.find( { 'a.b': 1, a: { $elemMatch: { c: 1 } } } )
+
+This will result in the following index bounds:
+
+.. code-block:: javascript
+
+   Index bounds: { 'a.b': [ 1, 1 ], 'a.c': [ MinKey, MaxKey ] }
+
+The bounds cannot be compounded despite the :query:`$elemMatch`. In order for the
+predicates to be compoundable, an :query:`$elemMatch` operator must join them.
+
+In contrast, this query has one predicate outside the scope of the
+:query:`$elemMatch` and one predicate inside the scope of the
+:query:`$elemMatch`.
