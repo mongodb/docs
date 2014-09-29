@@ -174,7 +174,7 @@ try:
         rst_epilog.append(".. |release-string| replace:: \ ")
         rst_epilog.append(".. |admin-title-string| replace:: MMS")
         html_theme_options['edition'] = 'saas'
-        html_theme_options['sitename'] = 'MMS Cloud Docs'
+        html_theme_options['sitename'] = 'MMS Classic Docs'
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
