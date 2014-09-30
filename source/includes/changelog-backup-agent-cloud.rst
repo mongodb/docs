@@ -6,6 +6,14 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup agent ``2.6.0.176``
+--------------------------
+
+*Released 2014-09-30*
+
+Minor logging change, clarifying when stopping the balancer if there
+is no balancer settings document. 
+
 Backup Agent ``2.5.0``
 ----------------------
 

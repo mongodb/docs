@@ -8,6 +8,13 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.6.0.123``
+------------------------------
+
+*Released 2014-09-30*
+
+Now uses the :dbcommand:`listDatabases` to retrieve a list of databases.
+
 Monitoring Agent ``2.5.0``
 --------------------------
 
@@ -22,7 +29,7 @@ Monitoring Agent ``2.4.1.108``
 *Released 2014-08-25*
 
 The default value for :msetting:`sslTrustedServerCertificates` is now
-``true``.  Users upgrading from 2.4.0 and using SSL will 
+``true``.  Users upgrading from 2.4.0 and using SSL will
 need to set the value of :msetting:`sslTrustedServerCertificates` in their
 configuration file.  See :msetting:`sslTrustedServerCertificates` for
 more information.
@@ -35,9 +42,9 @@ Monitoring Agent ``2.4.0.101``
 - Upgraded agent to use Go 1.3.
 
 - Updated ``mgo`` driver, which includes fix for :issue:`MGO-34`. All
-  DNS lookups should now timeout appropriately. 
+  DNS lookups should now timeout appropriately.
 
-- Added support for connecting to hosts using LDAP authentication. 
+- Added support for connecting to hosts using LDAP authentication.
 
 - Added support for ``version`` and ``-version``.
 
