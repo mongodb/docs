@@ -81,44 +81,31 @@ value.
 
 .. note::
 
-   The BSON Timestamp type is for *internal* MongoDB use. For most
+   The BSON timestamp type is for *internal* MongoDB use. For most
    cases, in application development, you will want to use the BSON
    date type. See :ref:`document-bson-type-date` for more
    information.
 
-If you create a BSON Timestamp using the empty constructor (e.g. ``new
-Timestamp()``), MongoDB will only generate a timestamp *if* you use
-the constructor in the first field of the document. [#id_exception]_
-Otherwise, MongoDB will generate an empty timestamp value
-(i.e. ``Timestamp(0, 0)``.)
+If you insert a document containing an empty BSON timestamp in a top-level
+field, the MongoDB server will replace that empty timestamp with the current
+timestamp value. For example,
 
-.. versionchanged:: 2.1
-   :program:`mongo` shell displays the Timestamp value with the wrapper:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   > var a = new Timestamp(); a;
+   Timestamp(0, 0)
 
-      Timestamp(<time_t>, <ordinal>)
+   > db.test.insert( { ts: a } );
+   > db.test.find();
+   { "_id" : ObjectId("542c2b97bac0595474108b48"), "ts" : Timestamp(1412180887, 1) }
 
-   Prior to version 2.1, the :program:`mongo` shell display the
-   Timestamp value as a document:
+If ``ts`` were a field in an embedded document, the server would have left it as an
+empty timestamp value.
 
-   .. code-block:: javascript
-
-      { t : <time_t>, i : <ordinal> }
-
-.. [#id_exception] If the first field in the document is ``_id``, then
-   you can generate a timestamp in the *second* field
-   of a document.
-
-   .. only:: html or dirhtml or singlehtml or epub or gettext
-
-      In the following example, MongoDB will generate a Timestamp
-      value, even though the ``Timestamp()`` constructor is *not* in
-      the first field in the document:
-
-      .. code-block:: javascript
-
-         db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
+.. versionchanged:: 2.6
+   Previously, the server would only replace empty timestamp values in the first
+   two fields, including ``_id``, of an inserted document. Now MongoDB will
+   replace any top-level field.
 
 .. _document-bson-type-date:
 
