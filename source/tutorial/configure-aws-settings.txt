@@ -12,73 +12,86 @@ deploy EC2 servers to that account directly from the MMS interface. MMS
 integrates with AWS to deploy EC2 instances that come with Automation
 Agents pre-installed.
 
+Considerations
+--------------
+
+If you attempt to provision larger AWS instances, be aware that Amazon
+often has a limited number of larger instances in any given region, which
+may prevent provisioning.
+
+AWS accounts have restrictions that limit the number of instances you can
+deploy. If you reach this limit, you must contact AWS support to raise
+this limit.
+
+.. LOCATION NO LONGER VALID: If you reach this limit MMS will
+   provide an error message in the :guilabel:`Provision Machines
+   Table`, which is located in the :guilabel:`Automation` tab's
+   :guilabel:`Provisioning` page.
+
 .. _aws-checklist:
 
 Prerequisites
 -------------
 
-The AWS account must satisfy the following conditions.
+The AWS account must satisfy the following conditions, and you must have
+the following information about the account.
+
+Access Keys
+~~~~~~~~~~~
+
+You must provide the following keys when configuring AWS settings:
+
+- The AWS account's Access Key ID and Secret Access Key. To access the
+  keys, click your username in the top right corner of AWS and select
+  *Security Credentials*. You will provide MMS with these keys.
+
+- An SSH public key for the computer that accesses MMS. When you
+  :doc:`provision a server </tutorial/provision-aws-servers>`, AWS uses
+  this key to create a shared private key, allowing you to connect to the
+  server through SSH.
+
+User Permissions
+~~~~~~~~~~~~~~~~
+
+The AWS user associated with the access keys must have the AWS permissions
+described in :doc:`/reference/required-permissions-aws-user`. Without
+adequate permissions, the user cannot provision AWS servers from MMS.
 
 .. _security-group:
 
 Security Group
 ~~~~~~~~~~~~~~
 
-- The account must have at least one security group configured.
+The AWS account must have at least one security group configured. At
+minimum, the security group must have the following inbound rules:
 
-- The security group must allow inbound traffic on all MongoDB ports
-  within the security group and allow SSH access from all IPs.
+- A custom TCP rule on all MongoDB ports that allows traffic from any
+  member of the security group.
 
-- You must have access to the AWS account's Access Key ID and Secret
-  Access Key. To access the keys, click your username in the top right
-  corner of AWS and select *Security Credentials*. You will provide MMS
-  with these keys.
+- An SSH rule on the SSH port, usually 22, and that allows traffic from
+  all IPs.
 
-- You must have an SSH public key to provide to the AWS account. When you
-  :doc:`provision a server </tutorial/provision-aws-servers>`, AWS uses
-  this key to create a shared private key, allowing you to to connect to
-  the server through SSH.
-
-To complete this tutorial, you will copy the contents of
-the public key in the :guilabel:`AWS Settings.`
+Optionally, add additional rules to your security group as needed. For
+example, to grant access to MongoDB from hosts in another security group,
+add a custom TCP rule that specifies the MongoDB ports and the other
+security group. To grant access from a specific IP address, such as the IP
+address for a specific office, add a custom TCP rule that specifies the
+MongoDB ports and the specific IP address.
 
 VPC
 ~~~
 
-- If you are deploying into a Virtual Private Cloud (VPC), the VPC
-  must exist before provisioning.
+If you are deploying into a Virtual Private Cloud (VPC), the VPC must
+exist before provisioning. If you are using a VPC that you created and not
+a default AWS VPC, make sure that:
 
-- If you are using a VPC that you created and not a default AWS VPC,
-  make sure that:
+- The VPC property ``DNS hostname`` is ``yes``, which
+  guarantees that each instance provisioned in the VPC receives a
+  hostname.
 
-  - The VPC property ``DNS hostname`` is ``yes``, which
-    guarantees that each instance provisioned in the VPC receives a
-    hostname.
-
-  - For all subnets created, that after clicking the ``Modify
-    auto-assigned public IP`` button in the console, that the ``Enable
-    auto-assign Public IP`` box is checked.
-
-Limits
-~~~~~~
-
-- If you attempt to provision larger instances, be aware that Amazon
-  often has a limited number of these instances in any given region
-  which may prevent provisioning.
-
-  .. LOCATION NO LONGER VALID: If you reach this limit MMS will
-     provide an error message in the :guilabel:`Provision Machines
-     Table`, which is located in the :guilabel:`Automation` tab's
-     :guilabel:`Provisioning` page.
-
-- AWS accounts have restrictions that limit the number of
-  instances you can deploy. If you reach this limit, you must contact
-  AWS support to raise this limit.
-
-  .. LOCATION NO LONGER VALID: If you reach this limit MMS will
-     provide an error message in the :guilabel:`Provision Machines
-     Table`, which is located in the :guilabel:`Automation` tab's
-     :guilabel:`Provisioning` page.
+- For all subnets created, that after clicking the ``Modify
+  auto-assigned public IP`` button in the console, that the ``Enable
+  auto-assign Public IP`` box is checked.
 
 Procedure
 ---------
