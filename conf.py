@@ -157,9 +157,7 @@ try:
         conf.runstate.edition = 'classic'
 
         html_theme = 'mms-saas'
-        html_theme_options['pdfpath'] = '/'.join([conf.project.url,
-                                                  conf.project.basepath,
-                                                  'mms-manual.pdf'])
+        html_theme_options['pdfpath'] = '/'.join([conf.project.basepath, 'mms-manual.pdf'])
 
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
@@ -179,9 +177,7 @@ try:
         conf.runstate.edition = 'cloud'
 
         html_theme = 'mms-saas'
-        html_theme_options['pdfpath'] = '/'.join([conf.project.url,
-                                                  conf.project.basepath,
-                                                  'mms-manual.pdf'])
+        html_theme_options['pdfpath'] = '/' + 'mms-manual.pdf'
 
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
@@ -203,7 +199,6 @@ except NameError:
 rst_epilog = '\n'.join(rst_epilog)
 
 html_theme_options['manual_path'] = get_manual_path(conf)
-
 
 existing = conf.runstate.edition
 conf.runstate.edition = 'saas'
