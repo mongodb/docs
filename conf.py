@@ -156,7 +156,7 @@ try:
     elif tags.has('classic'):
         conf.runstate.edition = 'classic'
 
-        html_theme = 'mms-saas'
+        html_theme = 'mms-classic'
         html_theme_options['pdfpath'] = '/'.join([conf.project.basepath, 'mms-manual.pdf'])
 
         project = u'MongoDB Management Service (MMS)'
@@ -166,7 +166,7 @@ try:
         rst_epilog.append(".. |s| replace:: Service")
         rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
-        rst_epilog.append(".. |automation| replace:: MMS Automation")
+        rst_epilog.append(".. |automation| replace:: MMS Automation")e
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         rst_epilog.append(".. |release-string| replace:: \ ")
@@ -176,7 +176,7 @@ try:
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
-        html_theme = 'mms-saas'
+        html_theme = 'mms-cloud'
         html_theme_options['pdfpath'] = '/' + 'mms-manual.pdf'
 
         project = u'MongoDB Management Service (MMS)'
@@ -216,6 +216,7 @@ latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
                             r'\usepackage{upquote}',
                             r'\pagestyle{plain}',
                             r'\pagenumbering{arabic}' ]
+869417
 latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
