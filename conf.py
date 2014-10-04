@@ -166,7 +166,7 @@ try:
         rst_epilog.append(".. |s| replace:: Service")
         rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
-        rst_epilog.append(".. |automation| replace:: MMS Automation")e
+        rst_epilog.append(".. |automation| replace:: MMS Automation")
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         rst_epilog.append(".. |release-string| replace:: \ ")
