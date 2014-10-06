@@ -14,12 +14,13 @@ from sphinx.errors import SphinxError
 try:
     from giza.config.runtime import RuntimeStateConfig
     from giza.config.helper import fetch_config, get_versions, get_manual_path
-    from giza.strings import dot_concat
+    from giza.tools.strings import dot_concat
 
     conf = fetch_config(RuntimeStateConfig())
     intersphinx_libs = conf.system.files.data.intersphinx
     sconf = conf.system.files.data.sphinx_local
 
+    print os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext')
     sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 except ImportError:
     try:
