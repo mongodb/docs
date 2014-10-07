@@ -10,7 +10,7 @@ Overview
 Sharded clusters use a group of three config servers to store cluster
 meta data, and all three config servers must be available to support
 cluster metadata changes that include chunk splits and migrations. If
-one of the config servers is unavailable or inoperable you must
+one of the config servers is unavailable or inoperable, you must
 replace it as soon as possible.
 
 This procedure migrates a :ref:`config server <sharding-config-server>`
@@ -28,7 +28,7 @@ Changing a :ref:`config server's <sharding-config-server>` hostname
 **requires downtime** and requires restarting every process in the
 sharded cluster.
 
-While migrating config servers always make sure that
+While migrating config servers, always make sure that
 all :program:`mongos` instances have three config servers specified in
 the :setting:`~sharding.configDB` setting at all times. Also ensure that
 you specify the config servers in the same order for each
@@ -40,22 +40,19 @@ Procedure
 1. Disable the cluster balancer process temporarily. See
    :ref:`sharding-balancing-disable-temporarily` for more information.
 
-#. Shut down the config server.
+#. Shut down the config server to migrate.
 
    This renders all config data for the sharded cluster "read only."
 
 #. Copy the contents of :setting:`~storage.dbPath` from the old config server to
-   the new config server.
+   the new config server. For example, to copy the contents of
+   :setting:`~storage.dbPath` to a machine named
+   ``mongodb.config2.example.net``, use a command that resembles the
+   following:
 
-   .. example::
+   .. code-block:: sh
 
-      To copy the contents of :setting:`~storage.dbPath` to a machine
-      named ``mongodb.config2.example.net``,  use a command that
-      resembles the following:
-
-      .. code-block:: sh
-
-         rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
 
 #. Start the config server instance on the new system. The default
    invocation is:
@@ -66,19 +63,17 @@ Procedure
 
 #. Shut down all existing MongoDB processes. This includes:
 
-   - the :program:`mongod` instances or :term:`replica sets <replica set>`
-     that provide your shards.
+   - the :program:`mongod` instances for the shards.
 
-   - the :program:`mongod` instances that provide your existing
+   - the :program:`mongod` instances for the existing
      :ref:`config databases <config-database>`.
 
    - the :program:`mongos` instances.
 
-#. Restart all :program:`mongod` processes that provide the shard
-   servers.
+#. Restart all shard :program:`mongod` instances.
 
-#. Restart the :program:`mongod` processes that provide the original
-   two config servers.
+#. Restart the :program:`mongod` instances for the two existing non-migrated
+   config servers.
 
 #. Update the :setting:`~sharding.configDB` setting for each :program:`mongos`
    instances.
@@ -89,3 +84,6 @@ Procedure
    balancing operations. See the
    :ref:`sharding-balancing-disable-temporarily` section for more
    information on managing the balancer process.
+
+.. COMMENT per Randolph, we probably can remove the shutdown existing
+   config servers in step 5 and the restart of these config servers
