@@ -80,7 +80,7 @@ the agent cannot connect by resolving a hostname, you can force the Monitoring
 Agent to prefer an IP address over its corresponding hostname for a specific
 IP address.
 
-To create a preferred hostname, on the :guilabel:`Settings` page, click the
+To create a preferred hostname, select the :guilabel:`Administration` tab, then the
 :guilabel:`Group Settings` page, and then click the :guilabel:`Add` button for
 the :guilabel:`Preferred Hostnames` setting. If your IP addresses have a common
 prefix, create a preferred hostname with the :guilabel:`ends-with` button or
@@ -93,10 +93,10 @@ under different names in the MMS interface.
 How do I download the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++++
 
-You can download the Monitoring Agent from the "Monitoring Agent" section on the MMS
-`settings page`_.
+You can update the Monitoring Agent from the :guilabel:`Agents` page on the MMS
+`Administration tab`_.
 
-.. _`settings page`: https://mms.mongodb.com/settings
+.. _`Administration tab`: https://mms.mongodb.com/settings
 
 How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++
