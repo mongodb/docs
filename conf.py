@@ -128,7 +128,7 @@ try:
     if tags.has('onprem'):
         conf.runstate.edition = 'onprem'
 
-        html_theme = 'mms-hosted'
+        html_theme = 'mms-onprem'
         project = u'MongoDB Management Service (MMS) On-Prem'
         html_title = 'MMS On-Prem Manual'
         html_short_title = 'MMS On-Prem Manual'
