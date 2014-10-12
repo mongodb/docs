@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: MongoDB Manual\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-04-08 13:03-0400\n"
-"PO-Revision-Date: 2014-10-12 10:08+0800\n"
+"PO-Revision-Date: 2014-10-12 16:41+0800\n"
 "Last-Translator: tychoish <tychoish@gmail.com>\n"
 "Language-Team: Chinese (http://www.transifex.com/projects/p/mongodb-manual/"
 "language/zh/)\n"
@@ -35,6 +35,11 @@ msgid ""
 "without manual intervention. Elections are part of the :ref:`failover "
 "process <replica-set-failover-administration>`."
 msgstr ""
+" :term:`复制集 <replica set>` 通过选举来确定将哪个从节点升职为 :term:`主节点 "
+"<primary>` 。 选举在初始化一个复制集的时候发生，也在主节点不可用的时候发生。"
+"主节点是复制集中唯一能够接收写请求的节点。一旦主节点不可用了，通过选举我们可"
+"以不用手动介入就能继续提供服务。选举是 :ref:`故障切换 <replica-set-failover-"
+"administration>` 的一部分。"
 
 # 6397931f5da84a4c9932993cfea6e9b6
 #: ../source/core/replica-set-elections.txt:22
@@ -44,6 +49,9 @@ msgid ""
 "replica set has no primary and cannot accept writes. MongoDB avoids "
 "elections unless necessary."
 msgstr ""
+"对于复制集而言，选举是相对独立的操作，但是也需要时间来全部完成的。当选举开始"
+"的时候，复制集中没有主节点也不能接收处理写请求。除非遇到必要的情况，Mongodb是"
+"尽量不进行选举的。"
 
 # 364a0410ccc545adb86b563c482e5000
 #: ../source/core/replica-set-elections.txt:27
@@ -51,16 +59,18 @@ msgid ""
 "In the following three-member replica set, the primary is unavailable. The "
 "remaining secondaries hold an election to choose a new primary."
 msgstr ""
+"在下述这样由三个节点组成的复制集中，主节点不可用了。剩余的从节点将进行选举并"
+"推选出一个新的主节点。"
 
 # 69e6f7134f954b3f86d2361a8711730b
 #: ../source/core/replica-set-elections.txt:34
 msgid "Factors and Conditions that Affect Elections"
-msgstr ""
+msgstr "影响选举的因素"
 
 # bb7d0643c31845088cbdf1ecda4c4673
 #: ../source/core/replica-set-elections.txt:37
 msgid "Heartbeats"
-msgstr ""
+msgstr "心跳检测"
 
 # 868c5f50239244a980af81883d85f58b
 #: ../source/core/replica-set-elections.txt:39
@@ -69,11 +79,13 @@ msgid ""
 "If a heartbeat does not return within 10 seconds, the other members mark the "
 "delinquent member as inaccessible."
 msgstr ""
+"复制集成员每两秒向复制集中其他成员进行心跳检测。如果某个节点在10秒内没有返"
+"回，那么它将被标记为不可用。"
 
 # 9d0176782a254323b2d7411440f645ab
 #: ../source/core/replica-set-elections.txt:44
 msgid "Priority Comparisons"
-msgstr ""
+msgstr "优先级"
 
 # e295eb95e25f4089b371d1d091dd5ece
 #: ../source/core/replica-set-elections.txt:46
@@ -82,6 +94,8 @@ msgid ""
 "elections. Members will prefer to vote for members with the highest priority "
 "value."
 msgstr ""
+" :data:`~local.system.replset.members[n].priority` 的设定也影响着选举。复制集"
+"中的优先级最高的节点将最优先收到投票。"
 
 # 7a93cb609c8a481f90e90ec1abaa0652
 #: ../source/core/replica-set-elections.txt:50
@@ -89,11 +103,13 @@ msgid ""
 "Members with a priority value of ``0`` cannot become primary and do not seek "
 "election. For details, see :doc:`/core/replica-set-priority-0-member`."
 msgstr ""
+"优先级为0的节点将不能成为主节点，也不会发起选举。参见 :doc:`/core/replica-"
+"set-priority-0-member` 获得更多信息。"
 
 # 99c3130424a74f8baaeb433dcca04a14
 #: ../source/core/replica-set-elections.txt:62
 msgid "Optime"
-msgstr ""
+msgstr "Optime"
 
 # 759cd49c8d154efe9a2e522dc53d4f8c
 #: ../source/core/replica-set-elections.txt:64
@@ -103,11 +119,14 @@ msgid ""
 "cannot become primary unless it has the highest (i.e. most recent) :data:"
 "`~replSetGetStatus.members.optime` of any visible member in the set."
 msgstr ""
+" :data:`optime <replSetGetStatus.members.optime>` 是该节点最后一次接收到oplog"
+"的时间戳。在剩余可用节点中拥有最新的 :data:`~replSetGetStatus.members."
+"optime` 的节点才能升职为主节点。"
 
 # d2ef4e790def4bd1822f42456df623b3
 #: ../source/core/replica-set-elections.txt:71
 msgid "Connections"
-msgstr ""
+msgstr "连接"
 
 # 1ed18be64ae04c5483fe2a7db20b1934
 #: ../source/core/replica-set-elections.txt:73
@@ -117,6 +136,8 @@ msgid ""
 "majority refers to the total number of *votes*, rather than the total number "
 "of members."
 msgstr ""
+"如果复制集中的某个节点不能连接上其他多数节点，那么它将不能升职为主节点。在选"
+"举中，多数是指多数 *投票* 而不是多数节点个数。"
 
 # 06e5a24c1c9c4f50bc7dc779818e389b
 #: ../source/core/replica-set-elections.txt:78
@@ -128,11 +149,15 @@ msgid ""
 "the remaining member is a :term:`primary` and two members become "
 "unavailable, the primary steps down and becomes and secondary."
 msgstr ""
+"如果复制集是由三个节点组成的，且三个节点均可投票，只要其中两个节点能够互相沟"
+"通那么复制集就能选举出新的主节点。如果有两个节点不可用了，那么剩下的节点将"
+"为 :term:`从节点 <secondary>` ，因为它不能与复制集中多数节点进行沟通。 如果两"
+"个从节点不可用了，剩下的 :term:`主节点 <primary>` 将降职为从节点。"
 
 # a6f25d491e2d4e0090984f9d53f6e8f6
 #: ../source/core/replica-set-elections.txt:87
 msgid "Network Partitions"
-msgstr ""
+msgstr "网络隔离"
 
 # 8e4bebf8f715497b86711839bf192f1b
 #: ../source/core/replica-set-elections.txt:89
@@ -141,6 +166,9 @@ msgid ""
 "primary steps down and neither portion of the replica set has a majority the "
 "set will **not** elect a new primary. The replica set becomes read-only."
 msgstr ""
+"网络隔离影响了选举中多数选票的结构。如果主节点不可用了，且每个相互隔离的网络"
+"中都没有多数选票的出现，那么复制集将 **不会** 选举出新的主节点。复制集将变为"
+"只读的。"
 
 # 6a3f70821c9b4c128df9490289f92885
 #: ../source/core/replica-set-elections.txt:94
@@ -148,28 +176,30 @@ msgid ""
 "To avoid this situation, place a majority of instances in one data center "
 "and a minority of instances in any other data centers combined."
 msgstr ""
+"为了避免这种情况的出现，我们需要将多数节点置于主数据中心，少数节点放于其他数"
+"据中心。"
 
 # cf4319876c0c4456ba73b70274825e7d
 #: ../source/core/replica-set-elections.txt:98
 msgid "Election Mechanics"
-msgstr ""
+msgstr "选举步骤"
 
 # a0f630a36cf24d72bd1194dc762f399e
 #: ../source/core/replica-set-elections.txt:101
 msgid "Election Triggering Events"
-msgstr ""
+msgstr "触发选举的情况"
 
 # 2e59599a10b74856a0729f5a3495c631
 #: ../source/core/replica-set-elections.txt:103
 msgid ""
 "Replica sets hold an election any time there is no primary. Specifically, "
 "the following:"
-msgstr ""
+msgstr "当复制集中没有主节点可用的时候将触发选举，比如："
 
 # d67f0c3728e246af954a9f4383937c92
 #: ../source/core/replica-set-elections.txt:106
 msgid "the initiation of a new replica set."
-msgstr ""
+msgstr "新复制集的初始化。"
 
 # 4d1863e4ee624d78a9aac29013a14828
 #: ../source/core/replica-set-elections.txt:108
@@ -177,11 +207,13 @@ msgid ""
 "a secondary loses contact with a primary. Secondaries call for elections "
 "when they cannot see a primary."
 msgstr ""
+"一个从节点无法与主节点进行连接。当从节点们无法与主节点进行沟通的时候将会触发"
+"选举。"
 
 # 09985bd0d83e4bbc80d92ad61658f777
 #: ../source/core/replica-set-elections.txt:111
 msgid "a primary steps down."
-msgstr ""
+msgstr "主节点辞职了。"
 
 # 0787a46f40d54bc2a09d6566a065f65f
 #: ../source/core/replica-set-elections.txt:115
@@ -189,28 +221,30 @@ msgid ""
 ":doc:`Priority 0 members </core/replica-set-priority-0-member>`, do not "
 "trigger elections, even when they cannot connect to the primary."
 msgstr ""
+" :doc:`优先级为0的节点 </core/replica-set-priority-0-member>` 将不会触发选"
+"举，即使他们无法与主节点进行沟通了。"
 
 # a82fcfa4a0d249e09901a5c046a3a950
 #: ../source/core/replica-set-elections.txt:119
 msgid "A primary will step down:"
-msgstr ""
+msgstr "主节点将在以下几种情况下辞职："
 
 # 1d071a207622444b8911d7984ab3dcff
 #: ../source/core/replica-set-elections.txt:121
 msgid "after receiving the :dbcommand:`replSetStepDown` command."
-msgstr ""
+msgstr "在接收到 :dbcommand:`replSetStepDown` 命令后。"
 
 # 375572d75eca4f919477d87857fc3de8
 #: ../source/core/replica-set-elections.txt:124
 msgid ""
 "if one of the current secondaries is eligible for election *and* has a "
 "higher priority."
-msgstr ""
+msgstr "现有的某个从节点在选举中合格，且它又有更高的优先级。"
 
 # b8842a587bbf415db4298309de1e1741
 #: ../source/core/replica-set-elections.txt:127
 msgid "if primary cannot contact a majority of the members of the replica set."
-msgstr ""
+msgstr "当主节点无法与复制集中多数节点进行沟通的时候。"
 
 # 1469d3d5573d403aae0a2543af014f9d
 #: ../source/core/replica-set-elections.txt:130
@@ -218,6 +252,7 @@ msgid ""
 "In some cases, modifying a replica set's configuration will trigger an "
 "election by modifying the set so that the primary must step down."
 msgstr ""
+"有些情况下，在我们需要修改一些复制集配置的时候会触发选举，导致主节点辞职。"
 
 # a7020706ec184397af132536ba95adff
 #: ../source/core/replica-set-elections.txt:133
@@ -227,11 +262,13 @@ msgid ""
 "maintain an accurate view of the replica set and helps prevent :term:"
 "`rollbacks <rollback>`."
 msgstr ""
+"当主节点辞职后，它将关闭所有已经建立的连接来确保客户端不会在从节点中进行写操"
+"作。这将对客户端对复制集的架构获取与防止 :term:`回滚 <rollback>` 提供帮助。"
 
 # 71b97f67877347fe8f84e2b6b6ea371b
 #: ../source/core/replica-set-elections.txt:139
 msgid "Participation in Elections"
-msgstr ""
+msgstr "参与选举"
 
 # d76fa07e54dc450da3e90b353d81c8d7
 #: ../source/core/replica-set-elections.txt:141
@@ -243,6 +280,10 @@ msgid ""
 "priority of ``1`` and have an equal chance of becoming primary. In the "
 "default, all members also can trigger an election."
 msgstr ""
+"每个复制集的节点都有一个优先级来在选举中确认谁更适合做 :term:`主节点 "
+"<primary>` 。在选举中，复制集选举出一个合格的具有最高 :data:`~local.system."
+"replset.members[n].priority` 的节点作为新的主节点。所有节点默认的优先级都是 "
+"``1``,都有相同的机会来成为主节点。默认情况下，每个节点都可以触发选举。"
 
 # 9cb0ba0ee6ff4d8797702cd36567db64
 #: ../source/core/replica-set-elections.txt:149
