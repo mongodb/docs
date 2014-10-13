@@ -1,257 +1,113 @@
 .. _write-operations-bulk-insert:
 
-================================
-Bulk Write Operations in MongoDB
-================================
+=====================
+Bulk Write Operations
+=====================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-MongoDB provides an interface that allows clients to specify write
-operations in groups. A protocol also integrates write operations
-with write concerns to allow applications to determine the acceptable
-level of acknowledgement required of bulk operations.
+MongoDB provides clients the ability to perform write operations in
+bulk. Bulk write operations affect a *single* collection. MongoDB
+allows applications to determine the acceptable level of
+acknowledgement required for bulk write operations.
 
-Bulk Operations
-~~~~~~~~~~~~~~~
+New :method:`Bulk` methods provide the ability to perform bulk insert,
+update, and remove operations. MongoDB also supports bulk insert
+through passing an array of documents to the
+:method:`db.collection.insert()` method.
 
-The :method:`Bulk()` operations builder constructs a list of operations to
-perform in bulk for a single collection.
+.. versionchanged:: 2.6
 
-Bulk write operations are **ordered** or **unordered**:
+   Previous versions of MongoDB provided the ability for bulk inserts
+   only. With previous versions, clients could perform bulk inserts by
+   passing an array of documents to the :v2.4:`db.collection.insert()
+   </core/bulk-inserts>` method. To see the documentation for earlier
+   versions, see :v2.4:`Bulk Inserts </core/bulk-inserts>`.
 
-- Ordered bulk operations use the
-  :method:`db.collection.initializeOrderedBulkOp()` method to initialize a
-  list of write operations serially. If an error occurs during the
-  processing of one of the write operations, MongoDB will return without
-  processing any remaining write operations in the list.
+Ordered vs Unordered Operations
+-------------------------------
 
-- Unordered bulk operations use the
-  :method:`db.collection.initializeUnorderedBulkOp()` method to execute a
-  list of write operations in parallel or in nondeterministic order. If an
-  error occurs during the processing of one of the write operations,
-  MongoDB will continue to process remaining write operations in the list.
+Bulk write operations can be either *ordered* or *unordered*. With an
+ordered list of operations, MongoDB executes the operations serially.
+If an error occurs during the processing of one of the write
+operations, MongoDB will return without processing any remaining write
+operations in the list.
 
-The ordered or unordered type of bulk operations also affects the
-execution order. For example, if an ordered list has two insert operations
-followed by an update operation then another insert operation, MongoDB
-groups the operations into three separate groups: the first group contains
-the two insert operations, the second group contains the update operation,
-and the third group contains the last insert operation.
+With an unordered list of operations, MongoDB can execute the
+operations in parallel. If an error occurs during the processing of one
+of the write operations, MongoDB will continue to process remaining
+write operations in the list.
 
-With an unordered bulk operation, the operations in the list may be
-reordered by MongoDB to increase performance. As such, applications should
-not depend on the ordering when performing unordered bulk operations.
+Executing an ordered list of operations on a sharded collection will
+generally be slower than executing an unordered list since with an
+ordered list, each operation must wait for the previous operation to
+finish.
 
-See :method:`Bulk.execute()` for more information about bulk execution
-order.
+``Bulk`` Methods
+----------------
 
-Bulk Commands
-~~~~~~~~~~~~~
+To use the :method:`Bulk()` methods:
 
-MongoDB also provides the :dbcommand:`insert`, :dbcommand:`update`, and
-:dbcommand:`delete` commands, which provide the basis for the improved
-bulk operations functionality. All officially supported MongoDB drivers
-support these new commands.
+#. Initialize a list of operations using either
+   :method:`db.collection.initializeUnorderedBulkOp()` or
+   :method:`db.collection.initializeOrderedBulkOp()`.
 
-See :method:`Bulk()`, :doc:`/reference/method/js-bulk`,
-:doc:`/core/write-operations-introduction`, and
-:ref:`write-methods-incompatibility` for more information about new
-methods to perform bulk-write operations.
+#. Add write operations to the list using the following methods:
 
-.. TODO: section on general write operation considerations?
+   - :method:`Bulk.insert()` 
+   - :method:`Bulk.find()`
+   - :method:`Bulk.find.upsert()`
+   - :method:`Bulk.find.update()`
+   - :method:`Bulk.find.updateOne()`
+   - :method:`Bulk.find.replaceOne()`
+   - :method:`Bulk.find.remove()`
+   - :method:`Bulk.find.removeOne()`
 
-Limits
-~~~~~~
+#. To execute the list of operations, use the :method:`Bulk.execute()`
+   method. You can specify the write concern for the list in the
+   :method:`Bulk.execute()` method.
 
-.. include:: /includes/fact-bulk-operation-batches.rst
+   Once executed, you cannot re-execute the list without
+   reinitializing.
 
-Examples
---------
-
-Bulk Insert
-~~~~~~~~~~~
-
-The following initializes a :method:`Bulk()` operations builder for the
-``items`` collection, adds a series of insert operations to add
-multiple documents:
-
-.. code-block:: javascript
-
-   var bulk = db.items.initializeOrderedBulkOp();
-   bulk.insert( { _id: 1, item: "abc123", status: "A", soldQty: 5000 } );
-   bulk.insert( { _id: 2, item: "ijk123", status: "A", soldQty: 150 } );
-   bulk.insert( { _id: 3, item: "mop123", status: "U", soldQty: 0 } );
-   bulk.insert( { _id: 4, item: "qrs123", status: "U", soldQty: 70 } );
-   bulk.execute();
-
-The :method:`Bulk()` method returns a :method:`BulkWriteResult` object
-that contains the result of the operation:
-
-.. code-block:: javascript
-
-   BulkWriteResult({
-      "writeErrors" : [ ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 4,
-      "nUpserted" : 0,
-      "nMatched" : 0,
-      "nModified" : 0,
-      "nRemoved" : 0,
-      "upserted" : [ ]
-   })
-
-For details on the return object, see :method:`BulkWriteResult()`. For
-details on the batches executed, see :method:`Bulk.getOperations()`.
-
-The following inserts documents into the ``items`` collection with
-:method:`db.runCommand()`:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-         insert: "items",
-         documents: [
-            { _id: 1, item: "abc123", status: "A", soldQty: 5000 },
-            { _id: 2, item: "ijk123", status: "A", soldQty: 150 },
-            { _id: 3, item: "mop123", status: "U", soldQty: 0 },
-            { _id: 4, item: "qrs123", status: "U", soldQty: 70 }
-         ],
-         ordered: true,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
-
-The returned document shows the command successfully inserted the
-documents. See :ref:`insert-command-output` for details.
-
-.. code-block:: javascript
-
-   { "ok" : 1, "n" : 4 }
-
-Bulk Update
-~~~~~~~~~~~
-
-The following example initializes a :method:`Bulk()` operations builder
-for the ``items`` collection and adds two update operations. The update
-operations use the :method:`Bulk.find()` method to specify a condition
-for their respective actions:
+For example,
 
 .. code-block:: javascript
 
    var bulk = db.items.initializeUnorderedBulkOp();
-   bulk.find( { item: "qrs123" } ).update( { $set: { soldQty: 700 } } )
-   bulk.find( { soldQty: { $lte: 500 } } ).update( { $set: { status: "X" } } )
-   bulk.execute();
+   bulk.insert( { _id: 1, item: "abc123", status: "A", soldQty: 5000 } );
+   bulk.insert( { _id: 2, item: "abc456", status: "A", soldQty: 150 } );
+   bulk.insert( { _id: 3, item: "abc789", status: "P", soldQty: 0 } );
+   bulk.execute( { w: "majority", wtimeout: 5000 } );
 
-The :method:`Bulk()` method returns a :method:`BulkWriteResult` object
-that contains the result of the operation:
+For more examples, refer to the reference page for each
+:doc:`/reference/method/js-bulk` method. For information and examples
+on performing bulk insert using the :method:`db.collection.insert()`,
+see :method:`db.collection.insert()`.
 
-.. code-block:: javascript
+.. seealso:: :ref:`rel-notes-write-operations`
 
-   BulkWriteResult({
-      "writeErrors" : [ ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 0,
-      "nUpserted" : 0,
-      "nMatched" : 3,
-      "nModified" : 3,
-      "nRemoved" : 0,
-      "upserted" : [ ]
-   })
+``Bulk`` Execution Mechanics
+----------------------------
 
-The following example performs multiple update operations on the
-``items`` collection with :method:`db.runCommand()`:
+When executing an :method:`ordered
+<db.collection.initializeOrderedBulkOp()>` list of operations, MongoDB
+groups adjacent operations by the :data:`operation type <batchType>`.
+When executing an :method:`unordered
+<db.collection.initializeUnorderedBulkOp()>` list of operations,
+MongoDB groups and may also reorder the operations to increase
+performance. As such, when performing *unordered* bulk operations,
+applications should not depend on the ordering.
 
-.. code-block:: javascript
+.. include:: /includes/fact-bulk-operation-batches.rst
 
-   db.runCommand(
-      {
-         update: "items",
-         updates: [
-            { q: { item: "qrs123" }, u: { $set: { soldQty: 700 } }, multi: true },
-            { q: { soldQty: { $lte: 500 } }, u: { $set: { status: "X" } }, multi: true },
-         ],
-         ordered: true,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
+For more information, see :method:`Bulk.execute()`.
 
-The returned document shows the result of the operation. See
-:ref:`update-command-output` for details.
-
-.. code-block:: javascript
-
-   { "ok" : 1, "nModified" : 3, "n" : 3 }
-
-Bulk Delete
-~~~~~~~~~~~
-
-The :method:`Bulk.find.remove()` method removes all matching documents in
-a collection. To limit the remove to a single document, see
-:method:`Bulk.find.removeOne()`.
-
-The following operations initializes a :method:`Bulk()` operations builder
-for the ``items`` collection and adds a remove operation to the list of
-operations:
-
-.. code-block:: javascript
-
-   var bulk = db.items.initializeOrderedBulkOp();
-   bulk.find( { status: "X" } ).remove();
-   bulk.find( { soldQty: { $lte: 1000 } } ).remove();
-   bulk.execute();
-   bulk.getOperations();
-
-The :method:`Bulk()` method returns a :method:`BulkWriteResult` object
-that contains the result of the operation.
-
-.. code-block:: javascript
-
-   BulkWriteResult({
-      "writeErrors" : [ ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 0,
-      "nUpserted" : 0,
-      "nMatched" : 0,
-      "nModified" : 0,
-      "nRemoved" : 3,
-      "upserted" : [ ]
-   })
-
-The following operation deletes a group of documents from the ``items``
-collection with :method:`db.runCommand()`:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-         delete: "items",
-         deletes: [
-            { q: { status: "X" }, limit: 1 },
-            { q: { soldQty: { $lte: 1000 } }, limit: 1 },
-         ],
-         ordered: true,
-         writeConcern: { w: 1 }
-      }
-   )
-
-The returned document shows the result of the operation. See
-:ref:`delete-command-output` for details.
-
-.. code-block:: javascript
-
-   { "ok" : 1, "n" : 3 }
-
-Bulk Inserts on Sharded Clusters
---------------------------------
-
-While ``ContinueOnError`` is optional on unsharded clusters, all bulk
-operations to a :term:`sharded collection <sharded cluster>` do not run
-with ``ContinueOnError``, which cannot be disabled.
+Strategies for Bulk Inserts to a Sharded Collection
+---------------------------------------------------
 
 Large bulk insert operations, including initial data inserts or routine
 data import, can affect :term:`sharded cluster` performance. For
@@ -270,9 +126,10 @@ performance cost, you can pre-split the collection, as described in
 Insert to Multiple ``mongos``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To parallelize import processes, send insert operations to more than
-one :program:`mongos` instance. Pre-split empty collections first as
-described in :doc:`/tutorial/split-chunks-in-sharded-cluster`.
+To parallelize import processes, send bulk insert or insert operations
+to more than one :program:`mongos` instance. For *empty* collections,
+first pre-split the collection as described in
+:doc:`/tutorial/split-chunks-in-sharded-cluster`.
 
 Avoid Monotonic Throttling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
