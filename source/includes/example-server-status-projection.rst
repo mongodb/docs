@@ -1,5 +1,5 @@
 |operation-name| includes all fields by default, except
-:data:`~serverStatus.workingSet`, by default.
+:data:`~serverStatus.workingSet`.
 
 .. note::
 
