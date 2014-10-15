@@ -85,25 +85,6 @@ Review and Set Resource Limits
 ``ulimit``
 ~~~~~~~~~~
 
-.. note::
-
-   Both the "hard" and the "soft" ``ulimit`` affect MongoDB's
-   performance. The "hard" ``ulimit`` refers to the maximum number of
-   processes that a user can have active at any time. This is the
-   ceiling: no non-root process can increase the "hard" ``ulimit``. In
-   contrast, the "soft" ``ulimit`` is the limit that is actually
-   enforced for a session or process, but any process can increase it
-   up to "hard" ``ulimit`` maximum.
-
-   A low "soft" ``ulimit`` can cause ``can't create new thread,
-   closing connection`` errors if the number of connections
-   grows too high. For this reason, it is extremely important to set
-   *both* ``ulimit`` values to the recommended values.
-
-   ``ulimit`` will modify both "hard" and "soft" values unless the
-   :setting:`-H` or :setting:`-S` modifiers are specified when
-   modifying limit values.
-
 You can use the ``ulimit`` command at the system prompt to check
 system limits, as in the following example:
 
@@ -142,23 +123,49 @@ following form:
 
    ulimit -n <value>
 
+There are both "hard" and the "soft" ``ulimit``s that affect MongoDB's
+performance. The "hard" ``ulimit`` refers to the maximum number of
+processes that a user can have active at any time. This is the
+ceiling: no non-root process can increase the "hard" ``ulimit``. In
+contrast, the "soft" ``ulimit`` is the limit that is actually
+enforced for a session or process, but any process can increase it
+up to "hard" ``ulimit`` maximum.
+
+A low "soft" ``ulimit`` can cause ``can't create new thread,
+closing connection`` errors if the number of connections
+grows too high. For this reason, it is extremely important to set
+*both* ``ulimit`` values to the recommended values.
+
+``ulimit`` will modify both "hard" and "soft" values unless the
+:setting:`-H` or :setting:`-S` modifiers are specified when
+modifying limit values.
+
 For many distributions of Linux you can change values by substituting
 the ``-n`` option for any possible value in the output of ``ulimit
 -a``. On OS X, use the ``launchctl limit`` command.  See your
 operating system documentation for the precise procedure for changing
 system limits on running systems.
 
+After changing the ``ulimit`` settings, you *must* restart the
+process to take advantage of the modified settings. You can use the
+``/proc`` file system to see the current limitations on a running
+process.
+
+Depending on your system's configuration, and default settings, any
+change to system limits made using ``ulimit`` may revert following
+system a system restart. Check your distribution and operating
+system documentation for more information.
+
 .. note::
 
-   After changing the ``ulimit`` settings, you *must* restart the
-   process to take advantage of the modified settings. You can use the
-   ``/proc`` file system to see the current limitations on a running
-   process.
+   SUSE Linux Enterprise Server 11, and potentially other versions of SLES
+   and other SUSE distributions, ship with virtual memory address space limited
+   to 8GB by default. This *must* be adjusted in order to prevent virtual memory
+   allocation failures as the database grows.
 
-   Depending on your system's configuration, and default settings, any
-   change to system limits made using ``ulimit`` may revert following
-   system a system restart. Check your distribution and operating
-   system documentation for more information.
+   The SLES packages for MongoDB adjust these limits in the default scripts,
+   but you will need to make this change manually if you are using custom
+   scripts and/or the tarball release rather than the SLES packages.
 
 .. _recommended-ulimit-settings:
 
@@ -209,7 +216,6 @@ form:
 .. code-block:: sh
 
    restart <service name>
-
 
 Linux distributions using ``systemd``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
