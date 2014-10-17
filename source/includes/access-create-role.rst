@@ -1,12 +1,13 @@
-You must have the :authaction:`createRole` :ref:`action
-<security-user-actions>` on a database to create a role on that database.
+To create a role in a database, the user must have:
 
-You must have the :authaction:`grantRole` :ref:`action
-<security-user-actions>` on the database that a privilege targets in order
-to grant that privilege to a role. If the privilege targets multiple
-databases or the ``cluster`` resource , you must have the
-:authaction:`grantRole` action on the ``admin`` database.
+- the :authaction:`createRole` :ref:`action <security-user-actions>` on
+  that :ref:`database resource <resource-specific-db>`.
 
-You must have the :authaction:`grantRole` :ref:`action
-<security-user-actions>` on a role's database to grant the role to another
-role.
+- the :authaction:`grantRole` :ref:`action <security-user-actions>` on
+  that database to specify privileges for the new role as well as to
+  specify roles to inherit from.
+
+Built-in roles :authrole:`userAdmin` and
+:authrole:`userAdminAnyDatabase` provide :authaction:`createRole` and
+:authaction:`grantRole` actions on their respective :doc:`resources
+</reference/resource-document>`.
