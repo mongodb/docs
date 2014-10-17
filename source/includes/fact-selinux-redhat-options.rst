@@ -8,7 +8,7 @@ options:
 
   .. code-block:: sh
 
-     semanage port -a -t mongodb_port_t -p tcp 27017
+     semanage port -a -t mongod_port_t -p tcp 27017
 
 - set SELinux to ``permissive`` mode in ``/etc/selinux.conf``. The line
 
