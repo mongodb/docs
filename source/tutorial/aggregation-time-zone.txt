@@ -1,0 +1,74 @@
+===========================
+Time Zones with Aggregation
+===========================
+
+.. default-domain:: mongodb
+
+When aggregating over time data in MongoDB, you must apply time zone offsets
+in your aggregation pipeline if you need time zone-aware results.
+
+Data Model
+----------
+
+Consider a factory that tracks its product sales using MongoDB, and wishes to
+create year-end reports of total sales by month. To accomplish this, they model their
+time data within a ``sales`` collection as discussed in :ref:`model-time-data`.
+
+Each document in this collection has the following form:
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("54456e0f713543c11e4fb6b5"),
+     "time": ISODate("2014-10-21T18:46:01.537Z"),
+     "offset": 240,
+     "qty": 2
+   }
+
+The ``_id`` field is an automatically-generated ObjectId.
+
+The ``time`` field holds the date and time in which this sale occurred, in UTC.
+
+The ``offset`` field holds the offset from UTC in minutes in which this sale occurred.
+
+The ``qty`` field holds the number of products sold in this transaction.
+
+All of the following examples use the :method:`aggregate()
+<db.collection.aggregate()>` helper in the :program:`mongo`
+shell. :method:`aggregate() <db.collection.aggregate()>` provides a
+wrapper around the :dbcommand:`aggregate` database command. See the
+documentation for your :doc:`driver </applications/drivers>` for a
+more idiomatic interface for data aggregation operations.
+
+Year-End Report
+---------------
+
+To generate a summary of sales by month, use the following query:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+       [ { $project: { _id: 1,
+                       time: { $add : [ "$time",
+                                        { $multiply: [ -60000, "$offset" ] } ] } } },
+         { $group : { _id : { $month : "$time" }, count : { $sum : 1 } } } ] )
+
+This query's :pipeline:`projection <$project>` stage converts the ``offset``
+field into hours, and subtracts it from the ``time`` field. This handles the
+case where a customer makes a purchase after the month cutoff in UTC, but in
+the previous month within the customer's time zone.
+
+For example, in the following document, ``time`` represents a date in the month
+of November. However, after applying the offset, it becomes a date in October.
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("54456e0f713543c11e4fb6b5"),
+     "time": ISODate("2014-11-01T02:00:00.000Z"),
+     "offset": 240,
+     "qty": 2
+   }
+
+Without adjusting for time zone, a local business's report of monthly sales
+would have grouped this sale into the next month's transactions.
