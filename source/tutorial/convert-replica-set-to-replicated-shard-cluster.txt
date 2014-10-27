@@ -8,91 +8,107 @@ Overview
 --------
 
 This tutorial converts a single three-member replica set to a sharded
-cluster with two shards. Each shard is an independent three-member replica
-set.
+cluster with two shards. Each shard is an independent three-member
+replica set. The procedure is as follows:
 
-The procedure is as follows:
+#. Create the initial three-member replica set and insert data into a
+   collection. See :ref:`convert-setup-initial-set`.
 
-#. Create any three-member replica sets needed and insert data into a collection.
+#. Start the config databases and a :program:`mongos`. See
+   :ref:`convert-deploy-sharding-infrastructure`.
 
-#. Start the config databases and a :program:`mongos`.
+#. Add the initial replica set as a shard. See
+   :ref:`convert-add-initial-shard`.
 
-#. Create a sharded cluster then add the replica sets shards in the cluster.
+#. Create a second shard and add to the cluster. See
+   :ref:`convert-add-second-shard`.
 
-#. Enable sharding on the desired collection or collections.
+#. Shard the desired collection. See :ref:`convert-shard-collection`.
 
 Prerequisites
 -------------
 
-Three servers each for the first :term:`replica set`, second replica set,
-and config servers, for a total of nine servers. The :program:`mongos`
-will be installed on one of the config servers.
+This tutorial uses a total of ten servers: one server for the
+:program:`mongos` and three servers each for the first :term:`replica
+set`, the second replica set, and the :doc:`config servers
+</core/sharded-cluster-config-servers>`. 
 
-Install a :program:`mongod` on each server, according to the instructions in the
-:ref:`MongoDB Installation Tutorial <tutorials-installation>`. Each server
-must have a resolvable domain, hostname, or IP address within your
-system.
+Each server must have a resolvable domain, hostname, or IP address
+within your system.
 
-This tutorial assumes you will create ``/data/db`` folders for the default
-location for database files. See :doc:`/reference/configuration-options` for
-information about configuring alternate database directory paths.
+The tutorial uses the default data directories (e.g. ``/data/db`` and
+``/data/configdb``). Create the appropriate directories with
+appropriate permissions. To use different paths, see
+:doc:`/reference/configuration-options` .
+
+The tutorial uses the :doc:`default ports
+</reference/default-mongodb-port>` (e.g. ``27017`` and ``27019``). To
+use different ports, see :doc:`/reference/configuration-options`.
 
 Considerations
 --------------
 
-In production deployments, you must deploy exactly three server instances
-for each replica set and config servers to assure good uptime and data
-safety. In test environments, you can run all three instances on a single
-server for a total of three servers, one each for the first replica set,
-second replica set, and a single config server.
+In production deployments, use exactly **three** config servers. Each
+config server must be on a separate machine.
 
-.. note::
-
-   For development and testing environments, a single config database is
-   sufficient. In production environments, use three config
-   databases. Because config instances store only the *metadata* for the
-   sharded cluster, they have minimal resource requirements.
+In development and testing environments, you can deploy a cluster with
+a single config server.
 
 Procedures
 ----------
 
-Deploy Replica Sets
-~~~~~~~~~~~~~~~~~~~
+.. _convert-setup-initial-set:
 
-You will need at least two replica sets for this tutorial. Use this
-procedure to create any replica sets needed.
+Set Up Initial Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure creates the initial three-member replica set ``rs0``.
+The replica set members are on the following hosts:
+``mongodb0.example.net``, ``mongodb1.example.net``, and
+``mongodb2.example.net``.
 
 .. include:: /includes/steps/convert-replica-set-shard-deploy-test-data.rst
 
-.. _convert-replica-set-to-shard-cluster-deploy-sharding-infrastructure:
+For more information on deploying a replica set, see
+:doc:`/tutorial/deploy-replica-set`.
+
+.. _convert-deploy-sharding-infrastructure:
 
 Deploy Config Databases and ``mongos``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This procedure creates the three config databases that store the cluster's
-metadata, then configures a :program:`mongos` with the locations of these
-config servers.
-
-This tutorial runs the :program:`mongos` on one of the config servers.
+This procedure deploys the three config servers and the
+:program:`mongos`. The config servers use the following hosts:
+``mongodb7.example.net``, ``mongodb8.example.net``, and
+``mongodb9.example.net``; the :program:`mongos` uses
+``mongodb6.example.net``.
 
 .. include:: /includes/steps/convert-replica-set-shard-deploy-infrastructure.rst
 
-Add Shards
-~~~~~~~~~~~~~~~
+.. _convert-add-initial-shard:
 
-Use :program:`mongos` to add replica sets as shards. Use a terminal
-window on the server where the :program:`mongos` runs.
+Add Initial Replica Set as a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure adds the initial replica set ``rs0`` as a shard.
 
 .. include:: /includes/steps/convert-replica-set-add-shards.rst
 
-Enable Sharding
-~~~~~~~~~~~~~~~
+.. _convert-add-second-shard:
 
-MongoDB must have :term:`sharding` enabled on *both* the database and
-collection levels. Use a terminal window on the server where the
-:program:`mongos` runs.
+Add Second Shard
+~~~~~~~~~~~~~~~~
+
+The following procedure deploys a new replica set ``rs1`` for the
+second shard and adds it to the cluster. The replica set members are on
+the following hosts: ``mongodb3.example.net``,
+``mongodb4.example.net``, and ``mongodb5.example.net``.
+
+.. include:: /includes/steps/convert-replica-set-add-new-shard.rst
+
+.. _convert-shard-collection:
+
+Shard a Collection
+~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/steps/convert-replica-set-enable-sharding.rst
-
-When this procedure is complete, you will have converted a replica set
-into a cluster where each shard is itself a replica set.

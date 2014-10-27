@@ -1,29 +1,40 @@
-title: 
-  text: Enabling sharding on the database level.
-  character: "`"
 stepnum: 1
+source:
+  file: steps-convert-replica-set-add-shards.yaml
+  ref: connect-mongos
+---
+title:
+  text: Enable sharding for a database.
+  character: "`"
+stepnum: 2
 ref: enable-sharding-db-level
+pre: |
+  Before you can shard a collection, you must first enable sharding
+  for the collection's database. Enabling sharding for a database does not
+  redistribute data but makes it possible to shard the collections in
+  that database.
 action:
   - pre: |
-      Type the :dbcommand:`enableSharding` command to enable sharding on 
-      the ``test`` database:
+      The following operation enables
+      sharding on the ``test`` database:
     language: sh
     code: |
-      db.runCommand( { enableSharding : "test" } )
+      sh.enableSharding( "test" )
   - pre: |
-      This command returns the following output:
+      The operation returns the status of the operation:
     language: sh
     code: |
       { "ok" : 1 }
 ---
 title: 
-  text: Create an index on the shard key.
+  text: Determine the shard key.
   character: "`"
-stepnum: 2
-ref: enable-sharding-create-index
-pre: |
-    MongoDB uses the shard key to distribute documents between shards. Once
-    selected, you cannot change the shard key. Good shard keys:
+stepnum: 3
+ref: determine-shard-key
+content: |
+  For the collection to shard, determine the shard key. The :ref:`shard
+  key <sharding-shard-key>` determines how MongoDB distributes the
+  documents between shards. Good shard keys:
 
     - have values that are evenly distributed among all documents,
 
@@ -31,10 +42,22 @@ pre: |
 
     - allow for effective distribution of activity among shards.
 
-    To learn more, see the :ref:`Shard Key Overview <sharding-shard-key>` and
-    :ref:`Shard Key <sharding-internals-shard-keys>` sections.
-
-    Create the index with the following command:
+  Once you shard a collection with the specified shard key, you
+  **cannot** change the shard key. For more information on shard keys,
+  see :doc:`/core/sharding-shard-key` and
+  :doc:`/tutorial/choose-a-shard-key`.
+  
+  This procedure will use the ``number`` field as the shard key for
+  ``test_collection``.
+---
+title: 
+  text: Create an index on the shard key.
+  character: "`"
+stepnum: 4
+ref: enable-sharding-create-index
+pre: |
+    Before sharding a non-empty collection, create an :doc:`index on
+    the shard key </core/sharding-shard-key-indexes>`.
 action:
   language: sh
   code: |
@@ -44,105 +67,131 @@ action:
 title: 
   text: Shard the collection.
   character: "`"
-stepnum: 3
+stepnum: 5
 ref: enable-sharding-collection
 action:
   - pre: |
-       Type these commands:
+       In the ``test`` database, shard the ``test_collection``,
+       specifying ``number`` as the shard key.
     language: sh
     code: |
-      use admin
-      db.runCommand( { shardCollection : "test.test_collection", key : { "number" : 1 } } )
+      use test
+      sh.shardCollection( "test.test_collection", { "number" : 1 } )
   - pre: |
-      These commands return this output:
+      The method returns the status of the operation:
     language: sh
     code: |
       { "collectionsharded" : "test.test_collection", "ok" : 1 }
 post: |
    The :doc:`balancer </core/sharding-balancing>` will redistribute
    chunks of documents when it next runs. As clients insert additional
-   documents into this collection, the :program:`mongos` will distribute the
+   documents into this collection, the :program:`mongos` will route the
    documents between the shards.
 ---
 title: 
   text: Confirm the shard is balancing.
   character: "`"
-stepnum: 4
+stepnum: 6
 ref: enable-sharding-confirm
 action:
   - pre: |
-       You can confirm balancing activity by switching to the ``test`` database
-       and running :method:`db.stats()` or :method:`db.printShardingStatus()`.
-
-       In the :program:`mongo` shell, issue the following commands to return
-       statistics for each cluster:
+       To confirm balancing activity, run :method:`db.stats()` or
+       :method:`db.printShardingStatus()` in the ``test`` database.
     language: sh
     code: |
       use test
       db.stats()
       db.printShardingStatus()
   - pre: |
-      Example output of the :method:`db.stats()` command:
+      Example output of the :method:`db.stats()`:
     language: sh
     code: |
       {
-           "raw" : {
-                   "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" : {
-                           "db" : "test",
-                           "collections" : 3,
-                           "objects" : 973887,
-                           "avgObjSize" : 100.33173458522396,
-                           "dataSize" : 97711772,
-                           "storageSize" : 141258752,
-                           "numExtents" : 15,
-                           "indexes" : 2,
-                           "indexSize" : 56978544,
-                           "fileSize" : 1006632960,
-                           "nsSizeMB" : 16,
-                           "ok" : 1
-                   },
-                   "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" : {
-                           "db" : "test",
-                           "collections" : 3,
-                           "objects" : 26125,
-                           "avgObjSize" : 100.33286124401914,
-                           "dataSize" : 2621196,
-                           "storageSize" : 11194368,
-                           "numExtents" : 8,
-                           "indexes" : 2,
-                           "indexSize" : 2093056,
-                           "fileSize" : 201326592,
-                           "nsSizeMB" : 16,
-                           "ok" : 1
-                   }
-           },
-           "objects" : 1000012,
-           "avgObjSize" : 100.33176401883178,
-           "dataSize" : 100332968,
-           "storageSize" : 152453120,
-           "numExtents" : 23,
-           "indexes" : 4,
-           "indexSize" : 59071600,
-           "fileSize" : 1207959552,
-           "ok" : 1
+        "raw" : {
+            "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" : {
+               "db" : "test",
+               "collections" : 3,
+               "objects" : 989316,
+               "avgObjSize" : 111.99974123535857,
+               "dataSize" : 110803136,
+               "storageSize" : 174751744,
+               "numExtents" : 14,
+               "indexes" : 2,
+               "indexSize" : 57370992,
+               "fileSize" : 469762048,
+               "nsSizeMB" : 16,
+               "dataFileVersion" : {
+                  "major" : 4,
+                  "minor" : 5
+               },
+               "extentFreeList" : {
+                  "num" : 0,
+                  "totalSize" : 0
+               },
+               "ok" : 1
+            },
+            "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" : {
+               "db" : "test",
+               "collections" : 3,
+               "objects" : 14697,
+               "avgObjSize" : 111.98258147921345,
+               "dataSize" : 1645808,
+               "storageSize" : 2809856,
+               "numExtents" : 7,
+               "indexes" : 2,
+               "indexSize" : 1169168,
+               "fileSize" : 67108864,
+               "nsSizeMB" : 16,
+               "dataFileVersion" : {
+                  "major" : 4,
+                  "minor" : 5
+               },
+               "extentFreeList" : {
+                  "num" : 0,
+                  "totalSize" : 0
+               },
+               "ok" : 1
+            }
+        },
+        "objects" : 1004013,
+        "avgObjSize" : 111,
+        "dataSize" : 112448944,
+        "storageSize" : 177561600,
+        "numExtents" : 21,
+        "indexes" : 4,
+        "indexSize" : 58540160,
+        "fileSize" : 536870912,
+        "extentFreeList" : {
+            "num" : 0,
+            "totalSize" : 0
+        },
+        "ok" : 1
       }
   - pre: |
-      Example output of the :method:`db.printShardingStatus()` command:
+      Example output of the :method:`db.printShardingStatus()`:
     language: sh
     code: |
       --- Sharding Status ---
-      sharding version: { "_id" : 1, "version" : 3 }
+      sharding version: {
+         "_id" : 1,
+         "version" : 4,
+         "minCompatibleVersion" : 4,
+         "currentVersion" : 5,
+         "clusterId" : ObjectId("5446970c04ad5132c271597c")
+      }
       shards:
-             {  "_id" : "rs0",  "host" : "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" }
-             {  "_id" : "rs1",  "host" : "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" }
+         {  "_id" : "rs0",  "host" : "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" }
+         {  "_id" : "rs1",  "host" : "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" }
       databases:
-             {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
-             {  "_id" : "test",  "partitioned" : true,  "primary" : "rs0" }
-                        test.test_collection chunks:
-                                                     rs1	5
-                                                     rs0	186
+         {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+         {  "_id" : "test",  "partitioned" : true,  "primary" : "rs0" }
 
-      [...]
+      test.test_collection
+            shard key: { "number" : 1 }
+            chunks:
+               rs1    5
+               rs0    186
+            too many chunks to print, use verbose if you want to force print
 post: |
    Run these commands for a second time to demonstrate that :term:`chunks
    <chunk>` are migrating from ``rs0`` to ``rs1``.
