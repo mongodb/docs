@@ -6,7 +6,7 @@ stage require that a collection have *at most* only one
 multiple geospatial indexes. 
 
 The geospatial index restriction for the :dbcommand:`geoNear` command
-nor the :pipeline:`$geoNear` pipeline stage exists because neither the
+and the :pipeline:`$geoNear` pipeline stage exists because neither the
 :dbcommand:`geoNear` command nor the :pipeline:`$geoNear` pipeline
 stage syntax includes the location field. As such, index selection
 among multiple ``2d`` indexes or ``2dsphere`` indexes is ambiguous.
