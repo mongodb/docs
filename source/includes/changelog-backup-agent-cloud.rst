@@ -6,13 +6,25 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
-Backup agent ``2.6.0.176``
+Backup Agent ``2.7.0.193-1``
+----------------------------
+
+*Released 2014-10-29*
+
+- When tailing the oplog, the agent no longer pre-fetches the next batch
+  of oplog entries before exhausting the current batch.
+
+- Adds support for non-default Kerberos service names.
+
+- Adds support for RHEL7.
+
+Backup Agent ``2.6.0.176``
 --------------------------
 
 *Released 2014-09-30*
 
 Minor logging change, clarifying when stopping the balancer if there
-is no balancer settings document. 
+is no balancer settings document.
 
 Backup Agent ``2.5.0``
 ----------------------

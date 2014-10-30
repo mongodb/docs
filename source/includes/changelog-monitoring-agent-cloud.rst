@@ -8,6 +8,18 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.7.0.136``
+------------------------------
+
+*Released 2014-10-29*
+
+- Improve correctness of database statics collection by moving data
+  collection into separate internal thread.
+
+- Adds support for non-default Kerberos service names.
+
+- Adds support for RHEL7.
+
 Monitoring Agent ``2.6.0.123``
 ------------------------------
 
