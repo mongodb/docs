@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 20 28 26 24
+   :widths: 10 20 25 25 20
 
    * - Documentation
      - Downloads & Release Notes
