@@ -28,7 +28,7 @@ What happens if a Monitoring Agent becomes unavailable? How can I ensure my Mong
 
 You can run multiple Monitoring Agents. If one Monitoring Agent fails,
 another starts monitoring. As long as at least one Monitoring Agent is
-available, MMS will not trigger an *Monitoring Agent Down* alert. To run multiple
+available, MMS will not trigger a *Monitoring Agent Down* alert. To run multiple
 Monitoring Agents, see :ref:`monitoring-agent-redundancy`.
 
 You also can create an alert to notify you when an agent is down. In MMS,
