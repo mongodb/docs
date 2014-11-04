@@ -1,83 +1,207 @@
 :orphan:
 
 =========================================
-Development Release Notes for MongoDB 2.7
+Development Release Notes for MongoDB 2.8
 =========================================
 
 .. default-domain:: mongodb
 
-
-This document reflects the current development of MongoDB 2.7, which
-will become the next stable release of MongoDB 2.8. These notes are
-for development purposes only and do not necessarily reflect the
-features, interfaces, or behavior of MongoDB 2.8. 
-
+MongoDB 2.8 is currently in development. While 2.8-release-candidates
+are currently available, these versions of MongoDB are for **testing
+only and not for production use**.
 
 Major Changes
 -------------
 
-.. Document-Level Locking
-   ~~~~~~~~~~~~
+Document-Level Locking
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. Pluggable Storage Engine API
-   ~~~~~~~~~~~~
 
-.. Big Replica Sets
-   ~~~~~~~~~~~~
+Increased Number of Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Raised the maximum number of replica set members. The restriction
+on 7 voting members remain the same.
 
 Security Improvements
-------------
+---------------------
 
-.. New Authentication via SCRAM-SHA1
-   ~~~~~~~~~~~~~~~~~~
-   
-.. Localbost exception rule tightened 
-   ~~~~~~~~~~~~~~~~~~~
+New Authentication via SCRAM-SHA1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+New authentication mechanism ``SCRAM`` to support SCRAM-SHA1. ...
+
+.. important:: Additional info:
+
+   - Implications for User auth as well as replica set/sharded cluster
+     membership authentications.
+
+   - Implications for Upgrade/Downgrades should go in the appropriate docs.
+
+
+Localhost exception rule tightened 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using :ref:`localhost exception` to access MongoDB, limit
+privileges to allow for creation of a user in the ``admin`` database.
+
+.. important:: Additional Info
+
+   Will need to note something in the /core/authentication as well as various tutorials.
 
 Query Engine Improvements
-------------
+-------------------------
 
-.. Explain() 2.0
-   ~~~~~~~~~~~~~~~~~~
-   
-.. Covered queries now work in sharded clusters
-   ~~~~~~~~~~~~~~~~~~~
+``explain()`` Output Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The output to :method:`~cursor.explain()` now returns information
+categorized under ``queryPlanner``, ``executionStats``, and
+``serverInfo``. 
+
+.. important:: Todo
+
+   - highlight some key field name changes
+   - pop in a sample
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+For sharded collections, indexes can now cover queries run against the
+primary.
+
+.. important:: Todos
+
+   Will need to update where we say it can't; e.g. /core/query-optimization page
 
 
 General Improvements
-------------
+--------------------
 
-.. Initial Sync Parallelized
-   ~~~~~~~~~~~~~~~~~~
-   
-.. Ability to Query for "BigPolygons"
-   ~~~~~~~~~~~~~~~~~~~
+Replica Sets
+~~~~~~~~~~~~
 
-.. Logging enhancements and new log format
-   ~~~~~~~~~~~~~~~~~~~
+- Initial sync builds indexes more efficiently for each collection and
+  applies oplog entires in batches using threads.
 
-.. Windows Performance Improvements
-   ~~~~~~~~~~~~~~~~~~~
+- Definition of w:'majority' write concern changed to mean majority of
+  voting nodes.
 
-.. SecondaryThrottle parameter enhancements for chunk migrations
-   ~~~~~~~~~~~~~~~~~~~
+- Removed the ``local.slaves`` collection. The ``local.slaves``
+  collection was a mirror of the internal table keeping track of all
+  the slaves' replication progress. Instead, will be replaced by new
+  information in the 'repl' section of serverStatus.
 
-.. Parallel index builds with createIndexes cmd
-   ~~~~~~~~~~~~~~~~~~~
+- Cannot longer parse oplog entries without v:2; i.e. oplog entries
+  created by MongoDB 2.2 and prior. A 2.8 secondary will abort if it
+  encounters such oplog entries.
+  
+- Secondaries may abort if they replay an oplog from 2.4 or prior with
+  an index build operation that would normally fail on a 2.6 or later primary.
+
+- Stronger restrictions on :doc:`/reference/replica-configuration`. For
+  details, see :ref:`2.8-compatibility-repl-set-config`.
+
+.. important:: Do we need to document the following:
+
+   For pre-existing collections on secondary, no longer build missing ``_id``
+   indexes automatically.
+
+Geospatial Enhancement
+~~~~~~~~~~~~~~~~~~~~~~
+
+Add support for "Big Polygons"; i.e. polygons that represents an area
+larger than a hemisphere.
+
+Logging Improvements
+~~~~~~~~~~~~~~~~~~~~
+
+To improve usability of the log messages for diagnosis, MongoDB
+categorizes some log messages under specific components, or operations,
+and provides the ability to set the verbosity level for these
+components. The following parameters are available to specify the
+verbosity level for components:
+
+- ``systemLog.component.accessControl.verbosity``
+- ``systemLog.component.commands.verbosity``
+- ``systemLog.component.control.verbosity``
+- ``systemLog.component.geo.verbosity``
+- ``systemLog.component.indexing.verbosity``
+- ``systemLog.component.networking.verbosity``
+- ``systemLog.component.query.verbosity``
+- ``systemLog.component.replication.verbosity``
+- ``systemLog.component.sharding.verbosity``
+- ``systemLog.component.storage.verbosity``
+- ``systemLog.component.storage.journaling.verbosity``
+- ``systemLog.component.writes.verbosity``
+- ``systemLog.component.total.verbosity``
+- ``systemLog.component.defaul.verbosity``
+
+Log messages now include the severity level and the component for the
+message:
+
+.. code-block:: none
+
+   <Date> <Severity> <Component> <Message>
+
+For example:
+
+.. code-block:: sh
+
+   2014-11-03T18:28:32.300-0500 I JOURNAL  [initandlisten] journal dir=...
+   2014-11-03T18:28:32.301-0500 I JOURNAL  [initandlisten] recover : no journal files present, no recovery needed
+   2014-11-03T18:28:32.450-0500 I NETWORK  [initandlisten] waiting for connections on port 27017
+
+.. important:: todo
+   modify setParameters page
+   configuration file page 
+
+Windows Performance Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SecondaryThrottle parameter enhancements for chunk migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Parallel index builds with createIndexes cmd
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Operational Changes
-------------
+-------------------
 
-.. Mongo*tools are now written in GO
-   ~~~~~~~~~~~~~~~~~~
-   
+MongoDB Tool Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All MongoDB tools are now written in go.
+
+- Smaller binaries.
+
+- New options for parallelized :program:`mongodump`,
+  :program:`mongorestore`, :program:`mongoimport`.
+
+- New options ``-excludeCollection`` and
+  ``--excludeCollectionsWithPrefix`` for :program:`mongodump` to
+  exclude collections
+
+- Removed ``--dbpath`` and ``--filter`` options for
+  :program:`mongorestore`, :program:`mongoimport`,
+  :program:`mongoexport`, :program:`bsondump`.
+
+- Removed ``--locks`` option for :program:`mongotop`.
+
 MongoDB Enterprise Features
-------------
+---------------------------
 
-.. Auditing filter by role and CRUD
-   ~~~~~~~~~~~~~~~~~~
+Audit Enhancements
+~~~~~~~~~~~~~~~~~~
 
+:doc:`/core/auditing` in MongoDB Enterprise can filter on CRUD
+operations.
+
+.. important:: Todos
+
+   add a code sample
+   update /reference/audit-message 
+   
 
 Additional Information
 ----------------------
@@ -85,11 +209,90 @@ Additional Information
 Changes Affecting Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. warning:: This will probably be its own page
+
+.. _2.8-compatibility-repl-set-config:
+
+Replica Set Configuration Restrictions
+``````````````````````````````````````
+
+MongoDB now enforces stricter restrictions on
+:doc:`/reference/replica-configuration`:
+
+- Arbiters can no longer have 0 votes. Will fail to load. Must fix
+  on primary and restart node
+
+- Nodes can **only** have
+  :data:`~local.system.replset.members[n].votes` value of ``0`` or
+  ``1``. Will fail to load. Must fix on primary and restart node
+
+- :doc:`/reference/replica-configuration` must specify the same
+  ``_id`` name as that specified by ``--replSet`` or
+  ``replication.replSetName``;
+
+- Unrecognized configuration fields produce an invalid config and an
+  error. Previously, ignored these fields. For example, tokutek adds a
+  ``protocolVersion`` field, which will now result in error.
+  
+
+- Disallows ``getLastErrorDefaults: 0`` in a config.
+
+
+Deprecate Access to ``system.indexes`` and ``system.namespaces``
+````````````````````````````````````````````````````````````````
+
+Deprecate *direct* access to ``system.indexes`` and
+``system.namespaces``. Instead use :dbcommand:`createIndexes` and
+:dbcommand:`listIndexes`.
+
+Remove ``dropDups`` Option
+``````````````````````````
+
+``dropDups`` option is no longer available for
+:method:`~db.collection.ensureIndex()` and :dbcommand:`createIndex`.
+
+.. important:: todo
+
+   remove option from reference pages
+   also, the drop duplicates section in /tutorial/create-a-unique-index,
+   etc.
+
+Background Indexes
+``````````````````
+
+Background index builds will no longer automatically interrupt if
+:dbcommand:`dropDatabase`, :dbcommand:`dropIndexes`, :dbcommand:`drop`
+occur. The :dbcommand:`dropDatabase`, :dbcommand:`dropIndexes`,
+:dbcommand:`drop` commands will still fail with ``background job in
+progress``, as in 2.6
+
+Remove ``--releaseConnectionsAfterResponse`` Option
+````````````````````````````````````````````````````
+
+MongoDB now always releases connections after response.
+``--releaseConnectionsAfterResponse`` option is no longer available.
+
+``powerOf2Sizes``
+``````````````````
+
+Deprecate paddingFactor in mmapv1.
+
 Platform Support
-~~~~~~~~~~~~~~~	
+~~~~~~~~~~~~~~~~
+
+Drop commercial support for linux32 and win32; however, continue to
+build them.
 
 Upgrade Process
 ~~~~~~~~~~~~~~~
+
+.. class:: hidden
+
+   .. toctree::
+
+      /release-notes/2.8-upgrade
+
+See :doc:`/release-notes/2.8-upgrade` for full upgrade instructions.
 
 Download
 ~~~~~~~~
@@ -100,8 +303,5 @@ To download MongoDB 2.7, go to the `downloads page`_.
 
 Other Resources
 ~~~~~~~~~~~~~~~
-..
 
-   - `All JIRA issues resolved in 2.6 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.5.0%22%2C+%222.5.1%22%2C+%222.5.2%22%2C+%222.5.3%22%2C+%222.5.4%22%2C+%222.5.5%22%2C+%222.6.0-rc1%22%2C+%222.6.0-rc2%22%2C+%222.6.0-rc3%22%29>`_.
-
-   - `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.6/distsrc/THIRD-PARTY-NOTICES>`_.
+- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.8/distsrc/THIRD-PARTY-NOTICES>`_.
