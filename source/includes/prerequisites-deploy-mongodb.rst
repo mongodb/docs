@@ -6,4 +6,4 @@ To give MMS access to servers on your system, install the Automation Agent
 to each server.
 
 You can use MMS to provision new servers on AWS, as described in
-:doc:`/tutorial/add-server`.
+:doc:`/tutorial/add-servers`.

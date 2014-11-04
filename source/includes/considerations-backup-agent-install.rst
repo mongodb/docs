@@ -10,11 +10,14 @@ later.
 MMS only supports backup for sharded clusters that run MongoDB 2.4 or
 later.
 
-.. only:: classic or cloud
+.. only:: classic
 
    All backed up replica sets and config servers should maintain oplog
    entries for at least an hour on average over the last 24 hour
    period.
+
+.. **BUILD WARNINGS**:: This below is tagged correctly and "/reference/configuration"
+   exists in onprem, so can't figure out the error I'm getting here.
 
 .. only:: onprem
 
