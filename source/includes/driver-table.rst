@@ -47,7 +47,7 @@
    * - :doc:`PHP </drivers/php>`
      - `PHP Driver Releases <http://pecl.php.net/package/mongo>`_
      - `PHP Driver Source Code <https://github.com/mongodb/mongo-php-driver>`_
-     - `Current PHP Driver API <http://api.mongodb.org/php/current/>`_
+     - `Current PHP Driver API <http://php.net/mongo>`_
      - `PHP Driver JIRA Project <https://jira.mongodb.org/browse/PHP>`_
 
    * - :doc:`Python </drivers/python>`
