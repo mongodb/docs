@@ -40,7 +40,7 @@
    * - :ecosystem:`PHP </drivers/php>`
      - `PHP Driver Releases <http://pecl.php.net/package/mongo>`_
      - `PHP Driver Source Code <https://github.com/mongodb/mongo-php-driver>`_
-     - `Current PHP Driver API <http://api.mongodb.org/php/current/>`_
+     - `Current PHP Driver API <http://php.net/mongo>`_
 
    * - :ecosystem:`Python </drivers/python>`
      - `Python Driver Releases <https://pypi.python.org/pypi/pymongo/>`_
