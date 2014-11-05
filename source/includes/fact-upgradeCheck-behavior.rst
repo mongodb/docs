@@ -11,3 +11,7 @@ active write operations.
 
 For index validation, |method| only supports the check of version ``1``
 indexes and skips the check of version ``0`` indexes.
+
+The |method| checks all of the data stored in the :program:`mongod`
+instance: the time to run |method| depends on the quantity of data
+stored by :program:`mongod`.
