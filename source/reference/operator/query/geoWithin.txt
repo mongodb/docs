@@ -4,95 +4,101 @@ $geoWithin
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. query:: $geoWithin
 
    .. versionadded:: 2.4
       :query:`$geoWithin` replaces :query:`$within` which is
       deprecated.
 
-   The :query:`$geoWithin` operator is a geospatial query operator
-   that queries for a defined point, line or shape that exists entirely
-   within another defined shape. When determining inclusion, MongoDB
+   Selects documents with geospatial data that exists entirely
+   within a specified shape. When determining inclusion, MongoDB
    considers the border of a shape to be part of the shape, subject to
    the precision of floating point numbers.
 
-   The :query:`$geoWithin` operator queries for inclusion in a
-   :term:`GeoJSON` polygon or a shape defined by legacy coordinate
+   :query:`$geoWithin` does not require a geospatial index. However, a
+   geospatial index will improve query performance.
+   Both :doc:`2dsphere </core/2dsphere>` and :doc:`2d </core/2d>`
+   geospatial indexes support :query:`$geoWithin`.
+
+   The specified shape can be either a GeoJSON :ref:`geojson-polygon`
+   (either single-ringed or multi-ringed), a GeoJSON
+   :ref:`geojson-multipolygon`, or a shape defined by legacy coordinate
    pairs.
 
-   The :query:`$geoWithin` operator does not return sorted results.
-   As a result MongoDB can return :query:`$geoWithin` queries more
-   quickly than geospatial :query:`$near` or :query:`$nearSphere`
-   queries, which sort results.
-
-   The ``2dsphere`` and ``2d`` indexes both support the
-   :query:`$geoWithin` operator.
-
-   .. versionchanged:: 2.2.3
-      :query:`$geoWithin` does not require a geospatial
-      index. However, a geospatial index will improve query
-      performance.
-
-   If querying for geometries that exist within a GeoJSON
-   :term:`polygon <Polygon>` on a sphere, pass the polygon to
-   :query:`$geoWithin` using the :query:`$geometry` operator.
-
-   For a polygon with only an exterior ring use following syntax:
-
+   To specify a GeoJSON :ref:`geojson-polygon` (either single-ringed or
+   multi-ringed) or :ref:`geojson-multipolygon`, :query:`$geoWithin`
+   uses the :query:`$geometry` operator to specify the shape and has
+   the following form:
+   
    .. code-block:: javascript
 
-      db.<collection>.find( { <location field> :
-                               { $geoWithin :
-                                  { $geometry :
-                                     { type : "Polygon" ,
-                                       coordinates : [ [ [ <lng1>, <lat1> ] , [ <lng2>, <lat2> ] ... ] ]
-                            } } } } )
+      {
+         <location field>: { 
+            $geoWithin: {
+               $geometry: { 
+                  type: <"Polygon" or "MultiPolygon"> ,
+                  coordinates: [ <coordinates> ]
+               }
+            }
+         }
+      } 
 
-   .. important:: Specify coordinates in ``longitude, latitude``
-      order.
-
-   For a polygon with an exterior and interior ring use following syntax:
-
-   .. code-block:: javascript
-
-      db.<collection>.find( { <location field> :
-                               { $geoWithin :
-                                  { $geometry :
-                                     { type : "Polygon" ,
-                                       coordinates : [ [ [ <lng1>, <lat1> ] , [ <lng2>, <lat2> ] ... ]
-                                                       [ [ <lngA>, <latA> ] , [ <lngB>, <latB> ] ... ] ]
-                            } } } } )
-
-   The following example selects all indexed points and shapes that
-   exist entirely within a GeoJSON polygon:
-
-   .. code-block:: javascript
-
-      db.places.find( { loc :
-                        { $geoWithin :
-                          { $geometry :
-                            { type : "Polygon" ,
-                              coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
-                      } } } } )
+   .. important::
+      If you use longitude and latitude, specify coordinates in order
+      of ``longitude, latitude``.
 
    If querying for inclusion in a shape defined by legacy coordinate
    pairs on a plane, use the following syntax:
 
    .. code-block:: javascript
 
-      db.<collection>.find( { <location field> :
-                               { $geoWithin :
-                                  { <shape operator> : <coordinates>
-                            } } } )
+      {
+         <location field>: {
+            $geoWithin: { <shape operator>: <coordinates> }
+         }
+      }
 
-   For the syntax of shape operators, see: :query:`$box`,
-   :query:`$polygon`, :query:`$center` (defines a circle), and
-   :query:`$centerSphere` (defines a circle on a sphere).
+   The available shape operators are:
 
-   .. note::
+   - :query:`$box`,
+   - :query:`$polygon`,
+   - :query:`$center` (defines a circle), and
+   - :query:`$centerSphere` (defines a circle on a sphere).
 
-      .. |geo-operator-method| replace:: :query:`$geoWithin`
-      .. include:: /includes/fact-geometry-hemisphere-limitation.rst
+Behavior
+--------
+
+The :query:`$geoWithin` operator does not return sorted results. As
+such, MongoDB can return :query:`$geoWithin` queries more quickly than
+geospatial :query:`$near` or :query:`$nearSphere` queries, which sort
+results.
+
+.. |geo-operator-method| replace:: :query:`$geoWithin`
+.. include:: /includes/fact-geometry-hemisphere-limitation.rst
+
+Example
+-------
+
+The following example selects all ``loc`` data that exist entirely
+within a GeoJSON :ref:`geojson-polygon`:
+
+.. code-block:: javascript
+
+   db.places.find( 
+      {
+        loc: {
+          $geoWithin: {
+             $geometry: {
+                type : "Polygon" ,
+                coordinates: [ [ [ 0, 0 ], [ 3, 6 ], [ 6, 1 ], [ 0, 0 ] ] ]
+             }
+          }
+        }
+      }
+   )
 
 .. query:: $within
 

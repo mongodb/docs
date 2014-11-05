@@ -4,50 +4,72 @@ $geoIntersects
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. query:: $geoIntersects
 
    .. versionadded:: 2.4
 
-   The :query:`$geoIntersects` operator is a geospatial query
-   operator that selects all locations that intersect with a
-   :term:`GeoJSON` object. A location intersects a GeoJSON object if the
-   intersection is non-empty. This includes documents that have a shared
-   edge. The :query:`$geoIntersects` operator uses spherical
-   geometry.
+   Selects documents whose geospatial data intersects with a specified
+   :ref:`GeoJSON <geospatial-indexes-store-geojson>` object; i.e. where
+   the intersection of the data and the specified object is non-empty.
+   This includes cases where the data and the specified object share an
+   edge. :query:`$geoIntersects` uses spherical geometry.
 
-   The ``2dsphere`` geospatial index supports
+   :query:`$geoIntersects` does not require a geospatial index.
+   However, a geospatial index will improve query performance.
+   Only the :doc:`2dsphere </core/2dsphere>` geospatial index supports
    :query:`$geoIntersects`.
 
-   To query for intersection, pass the GeoJSON object to
-   :query:`$geoIntersects` through the :query:`$geometry`
-   operator. Use the following syntax:
+   The :query:`$geoIntersects` operator uses the :query:`$geometry`
+   operator to specify the :ref:`GeoJSON
+   <geospatial-indexes-store-geojson>` object and has the
+   following form:
 
    .. code-block:: javascript
 
-      db.<collection>.find( { <location field> :
-                               { $geoIntersects :
-                                  { $geometry :
-                                     { type : "<GeoJSON object type>" ,
-                                       coordinates : [ <coordinates> ]
-                            } } } } )
+      {
+         <location field>: {
+           $geoIntersects: {
+              $geometry: { 
+                type: "<GeoJSON object type>" ,
+                coordinates: [ <coordinates> ]
+              }
+           }
+         }
+      }
 
-   .. important:: Specify coordinates in this order: **"longitude, latitude."**
+   .. important::
+      If you use longitude and latitude, specify coordinates in order
+      of: **longitude, latitude.**
 
-   The following example uses :query:`$geoIntersects` to select all
-   indexed points and shapes that intersect with the polygon defined by
-   the ``coordinates`` array.
+Behavior
+--------
 
-   .. code-block:: javascript
+.. |geo-operator-method| replace:: :query:`$geoIntersects`
+.. include:: /includes/fact-geometry-hemisphere-limitation.rst
 
-      db.places.find( { loc :
-                        { $geoIntersects :
-                          { $geometry :
-                            { type : "Polygon" ,
-                              coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
-                      } } } } )
+Example
+-------
 
-   .. note::
+The following example uses :query:`$geoIntersects` to select all
+``loc`` data that intersect with the :ref:`geojson-polygon` defined by
+the ``coordinates`` array.
 
-      .. |geo-operator-method| replace:: :query:`$geoIntersects`
+.. code-block:: javascript
 
-      .. include:: /includes/fact-geometry-hemisphere-limitation.rst
+   db.places.find(
+      {
+        loc: {
+          $geoIntersects: {
+             $geometry: {
+                type: "Polygon" ,
+                coordinates: [
+                  [ [ 0, 0 ], [ 3, 6 ], [ 6, 1 ], [ 0, 0 ] ]
+                ]
+             }
+          }
+        }
+      }
+   )
