@@ -13,17 +13,74 @@ only and not for production use**.
 Major Changes
 -------------
 
-Document-Level Locking
-~~~~~~~~~~~~~~~~~~~~~~
+Storage Engines: Improved Concurrency and Document Level Locking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the Wired Tiger storage engine, MongoDB now provides
-document-level locking.
+MongoDB 2.8 includes support for two storage engines: ``MMAPv1``, the
+storage engine available in previous versions of MongoDB, and
+`WiredTiger <http://wiredtiger.com>`_. By
+default, in 2.8 MongoDB uses the ``MMAPv1`` engine
 
-Collection Level Locking
-~~~~~~~~~~~~~~~~~~~~~~~~
+In 2.8 ``MMAPv1`` adds support for collection-level locking by
+default.
 
-All MongoDB 2.8 instances provide collection level locking by
-default on all storage engines.
+With the WiredTiger storage engine, MongoDB now provides
+document-level locking. WiredTiger also provides compression for
+on-disk storage. To enable WiredTiger, start MongoDB with the following
+option:
+
+.. code-block:: sh
+
+   mongod --storageEngine wiredtiger
+
+WiredTiger has additional options that you can configure
+instance-wide at start up time. To configure the storage engine
+for a :program:`mongod` instance, use the following option:
+
+.. code-block:: sh
+
+   --wiredTigerDatabaseConfig "<option>=<setting>,<option>=<setting>"
+
+Specify a comma separated list of options in quotes on the command
+line. See the `WiredTiger storage engine options
+<http://source.wiredtiger.com/2.4.0/group__wt.html#ga9e6adae3fc6964ef837a62795c7840ed>`_.
+
+To change settings for all new collections, use the following option:
+
+.. code-block:: sh
+
+   --wiredTigerCollectionConfig "<option>=<setting>,<option>=<setting>"
+
+To change settings for all new indexes:
+
+.. code-block:: sh
+
+   --wiredTigerIndexConfig "<option>=<setting>,<option>=<setting>"
+
+Specify a comma separated list of options in quotes on the command
+line. See the `wired tiger index and collection-level options
+<http://source.wiredtiger.com/2.4.0/struct_w_t___s_e_s_s_i_o_n.html#a358ca4141d59c345f401c58501276bbb>`_.
+
+You can also set collection-level options on a
+per-collection basis, using the :method:`db.createCollection()`
+operation that resembles the following:
+
+.. code-block:: javascript
+
+   db.createCollection("<collectionName>", {storageEngine: {
+                                               wiredTiger: {configString: "<option>=<setting>,<option>=<setting>"}}});
+
+All existing database and collection reporting expose statistics from
+WiredTiger, including :method:`db.collection.validate()`,
+:method:`db.collection.stats()`, and
+:method:`db.stats()`. Additionally
+the ``wiredTger`` field of the :data:`serverStatus` document reports
+statistics from WiredTiger. You can access this data with the following
+operation:
+
+.. code-block:: javascript
+
+   db.serverStatus().wiredTiger
 
 Increased Number of Replica Set Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,10 +92,10 @@ members.
 Security Improvements
 ---------------------
 
-Authentication with ``SCRAM-SHA1`` Mechanism
+Adds ``SCRAM-SHA1`` Authentication Mechanism
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB 2.8 adds a new ``SCRAM-SHA1`` authentication mechanism.
+MongoDB 2.8 adds a new ``SCRAM-SHA1`` authentication mechanism .
 
 Changes to the Localhost Exception
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,23 +106,53 @@ access and can only create a user in the ``admin`` database.
 Query Engine Improvements
 -------------------------
 
-``explain()`` Output Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Query Introspection Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The output to :method:`~cursor.explain()` now returns information
-categorized under ``queryPlanner``, ``executionStats``, and
-``serverInfo``.
+MongoDB 2.8 includes a new query introspection system exposed in the
+:method:`~cursor.explain()` cursor method which is available on all
+MongoDB query operations. (e.g. :method:`db.collection.find()`,
+:method:`db.collection.remove()`, :method:`db.collection.update()`,
+:method:`db.collection.findAndModify()`,) operations.
+
+See the  ``queryPlanner``, ``executionStats``, and
+``serverInfo`` fields in the output of :method:`~cursor.explain()` for
+new information on query execution and workload.
 
 Covered Queries
 ~~~~~~~~~~~~~~~
 
-For sharded collections, indexes can now cover queries run against the
+For sharded collections, indexes can now cover queries that execute against the
 primary.
 
-Additional Improvements
------------------------
+..
+   Additional Improvements
+   -----------------------
 
 .. There's a mockup of other changes in the
    ``source/release-notes/2.8-general-improvements.rst`` file, that we
    will fill in with the full release notes for 2.8, in the mean time,
    this section should contain a bullet ed list of important changes.
+
+Upgrade Process
+---------------
+
+.. class:: hidden
+
+   .. toctree::
+
+      /release-notes/2.8-upgrade
+
+See :doc:`/release-notes/2.8-upgrade` for full upgrade instructions.
+
+Download
+--------
+
+To download MongoDB 2.8 release canidates, go to the `downloads page`_.
+
+.. _`downloads page`: http://www.mongodb.org/downloads
+
+Additional Resources
+~~~~~~~~~~~~~~~~~~~~
+
+- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.8/distsrc/THIRD-PARTY-NOTICES>`_.
