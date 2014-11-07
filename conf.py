@@ -10,7 +10,7 @@ import os
 import datetime
 
 from sphinx.errors import SphinxError
-from sphinx.ext.extlinks import make_link_role
+
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
 from giza.tools.strings import dot_concat
@@ -65,7 +65,9 @@ rst_epilog = '\n'.join([
 pygments_style = 'sphinx'
 
 extlinks = {
+    'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
+    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
@@ -79,7 +81,6 @@ extlinks = {
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
     extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
-
 
 intersphinx_mapping = {}
 for i in conf.system.files.data.intersphinx:
@@ -215,7 +216,4 @@ def setup(app):
         from docutils import nodes
         from sphinx.versioning import add_uids
         list(add_uids(doctree, nodes.TextElement))
-
-    app.add_role('hardlink', make_link_role(base_url="{0}/{1}/%s".format(conf.project.url, conf.git.branches.current),
-                                            prefix=''))
     app.connect('doctree-read', doctree_read)
