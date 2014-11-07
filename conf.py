@@ -65,6 +65,7 @@ rst_epilog = '\n'.join([
 pygments_style = 'sphinx'
 
 extlinks = {
+    'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('http://api.mongodb.org/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
@@ -78,7 +79,6 @@ extlinks = {
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
     extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
-
 
 intersphinx_mapping = {}
 for i in conf.system.files.data.intersphinx:
