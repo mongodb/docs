@@ -10,7 +10,7 @@ import os
 import datetime
 
 from sphinx.errors import SphinxError
-
+from sphinx.ext.extlinks import make_link_role
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
 from giza.tools.strings import dot_concat
@@ -57,22 +57,16 @@ version = conf.version.branch
 release = conf.version.release
 
 rst_epilog = '\n'.join([
-    '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
+    '.. include:: {0}/hash.rst'.format(conf.paths.includes[len(conf.paths.source):]),
     '.. |copy| unicode:: U+000A9',
-    '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current)
 ])
 
 pygments_style = 'sphinx'
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/{0}/%s'.format(conf.git.branches.current), ''),
-    'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
@@ -221,4 +215,7 @@ def setup(app):
         from docutils import nodes
         from sphinx.versioning import add_uids
         list(add_uids(doctree, nodes.TextElement))
+
+    app.add_role('hardlink', make_link_role(base_url="{0}/{1}/%s".format(conf.project.url, conf.git.branches.current),
+                                            prefix=''))
     app.connect('doctree-read', doctree_read)
