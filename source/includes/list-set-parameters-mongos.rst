@@ -8,5 +8,3 @@
 - :parameter:`syncdelay`
 - :parameter:`textSearchEnabled`
 - :parameter:`userCacheInvalidationIntervalSecs`
-
-.. - :parameter:`releaseConnectionsAfterResponse`
