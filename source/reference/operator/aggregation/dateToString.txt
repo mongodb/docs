@@ -1,0 +1,124 @@
+===========================
+$dateToString (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. expression:: $dateToString
+
+   .. versionadded:: 2.8
+
+   Converts a date object to a string according to a user-specified
+   format.
+
+   The :expression:`$dateToString` expression has the following syntax:
+
+   .. code-block:: javascript
+
+      { $dateToString: { format: <formatString>, date: <dateExpression> } }
+
+   The ``<formatString>`` can be any string literal, containing 0 or
+   more format specifiers. For a list of specifiers available, see
+   :ref:`format-specifiers`.
+
+   The ``<dateExpression>`` can be any :ref:`expression
+   <aggregation-expressions>` that evaluates to a date. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+.. _format-specifiers:
+
+Format Specifiers
+-----------------
+
+The following format specifiers are available for use in the
+``<formatString>``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 60 20
+   
+   * - Specifiers
+     - Description
+     - Possible Values
+
+   * - ``%Y``
+     - Year (4 digits, zero padded)
+     - ``0000``-``9999``
+
+   * - ``%m``
+     - Month (2 digits, zero padded)
+     - ``01``-``12``
+   
+   * - ``%d``
+     - Day of Month (2 digits, zero padded)
+     - ``01``-``31``
+
+   * - ``%H``
+     - Hour (2 digits, zero padded, 24-hour clock)
+     - ``00``-``23``
+
+   * - ``%M``
+     - Minute (2 digits, zero padded)
+     - ``00``-``59``
+
+   * - ``%S``
+     - Second (2 digits, zero padded)
+     - ``00``-``60``
+
+   * - ``%L``
+     - Millisecond (3 digits, zero padded)
+     - ``000``-``999``
+
+   * - ``%j``
+     - Day of year (3 digits, zero padded)
+     - ``001``-``366``
+   
+   * - ``%w``
+     - Day of week (1-Sunday, 7-Saturday)
+     - ``1``-``7``
+
+   * - ``%U``
+     - Week of year (2 digits, zero padded)
+     - ``00``-``53``
+
+   * - ``%%``
+     - Percent Character as a Literal
+     - ``%``
+
+Example
+-------
+
+Consider a ``sales`` collection with the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "item" : "abc",
+     "price" : 10,
+     "quantity" : 2,
+     "date" : ISODate("2014-01-01T08:15:39.736Z")
+   }
+
+The following aggregation uses the :expression:`$dateToString` to
+return the ``date`` field as formatted strings:
+
+.. code-block:: javascript
+   :emphasize-lines: 8
+
+   db.sales.aggregate(
+      [
+        {
+          $project: { 
+             yearMonthDay: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+             time: { $dateToString: { format: "%H:%M:%S:%L", date: "$date" } }
+          }
+        }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "yearMonthDay" : "2014-01-01", "time" : "08:15:39:736" }
