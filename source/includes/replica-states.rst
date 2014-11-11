@@ -21,7 +21,8 @@
 
    * - 3
      - :replstate:`RECOVERING`
-     - A member in this state is replicating the data store but does not yet have a consistent view of the data.  Data is not available for reads until the member transitions to state :doc:`secondary </core/replica-set-secondary>`.
+     - Can vote. Members either perform startup self-checks, or transition
+       from completing a :doc:`rollback </core/replica-set-rollbacks>` or :doc:`resync </tutorial/resync-replica-set-member>`.
 
    * - 5
      - :replstate:`STARTUP2`
