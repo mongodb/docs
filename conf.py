@@ -12,32 +12,16 @@ import datetime
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(project_root)
 
-from bootstrap import buildsystem
+from giza.config.runtime import RuntimeStateConfig
+from giza.config.helper import fetch_config, get_versions, get_manual_path
+from giza.tools.strings import dot_concat
 
-try: 
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
-    
-    from utils.serialization import ingest_yaml, ingest_yaml_list
-    from utils.structures import BuildConfiguration
-    from utils.config import get_conf
-    from utils.project import get_versions, get_manual_path
+conf = fetch_config(RuntimeStateConfig())
+intersphinx_libs = conf.system.files.data.intersphinx
+pdfs = conf.system.files.data.pdfs
+sconf = conf.system.files.data.sphinx_local
 
-    conf = get_conf()
-    pdfs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'pdfs.yaml'))
-    sconf = BuildConfiguration(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'sphinx_local.yaml'))
-    intersphinx_libs = ingest_yaml_list(os.path.join(conf.paths.projectroot, conf.paths.builddata, 'intersphinx.yaml'))
-except: 
-    from giza.config.runtime import RuntimeStateConfig
-    from giza.config.helper import fetch_config, get_versions, get_manual_path
-    from giza.tools.strings import dot_concat
-
-    conf = fetch_config(RuntimeStateConfig())
-    intersphinx_libs = conf.system.files.data.intersphinx
-    pdfs = conf.system.files.data.pdfs
-    sconf = conf.system.files.data.sphinx_local
-
-    sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -92,7 +76,7 @@ try:
         intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
                                                               conf.paths.output,
                                                               i['path']))
-except: 
+except:
     for i in intersphinx_libs:
         intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
                                                               conf.paths.output,
@@ -123,7 +107,7 @@ languages = [
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = sconf.theme.name
-html_theme_path = [ os.path.join(buildsystem, 'themes') ]
+html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
 html_title = conf.project.title
 htmlhelp_basename = 'MongoDBdoc'
 
@@ -166,7 +150,7 @@ html_sidebars = sconf.sidebars
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_documents = []
-try: 
+try:
     for pdf in pdfs:
         _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
         latex_documents.append( _latex_document )
