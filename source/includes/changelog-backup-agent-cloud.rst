@@ -6,7 +6,15 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
-Backup Agent ``2.7.0.193-1``
+Backup Agent ``2.8.0.204``
+--------------------------
+
+*Released 2014-11-12*
+
+The Backup Agent will now identify itself to the MMS servers using the
+fully qualified domain name (FQDN) of the server on which it is running.
+
+Backup Agent ``2.7.0.193``
 ----------------------------
 
 *Released 2014-10-29*

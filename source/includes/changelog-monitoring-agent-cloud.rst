@@ -8,6 +8,15 @@ Monitoring Agent Changelog
 
 .. default-domain:: mongodb
 
+Monitoring Agent ``2.8.0.143``
+------------------------------
+
+*Released 2014-11-12*
+
+- The Monitoring Agent will now identify itself to the MMS servers using the
+  fully qualified domain name (FQDN) of the server on which it is running.
+
+- Improved connection management for monitored MongoDB processes.
 Monitoring Agent ``2.7.0.136``
 ------------------------------
 
