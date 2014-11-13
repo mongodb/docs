@@ -1,5 +1,6 @@
 |operation-name| includes all fields by default, except
-:data:`~serverStatus.workingSet`.
+:data:`~serverStatus.workingSet` :data:`~serverStatus.rangeDeleter`,
+and some content in the :data:`~serverStatus.repl` document.
 
 .. note::
 

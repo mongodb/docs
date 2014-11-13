@@ -839,6 +839,11 @@ page.
 
 .. data:: serverStatus.repl.primary
 
+   .. versionadded:: 2.8.0
+
+   A string in the format of ``"[hostname]:[port]"`` listing the
+   current :term:`primary` member of the replica set.
+
 .. data:: serverStatus.repl.hosts
 
    :data:`~serverStatus.repl.hosts` is an array that lists the other
@@ -849,15 +854,56 @@ page.
 
 .. data:: serverStatus.repl.me
 
-.. data:: serverStatus.repl.rbid
+   .. versionadded:: 2.8.0
+
+   The ``[hostname]:[port]`` combination for the current member in the
+   replica set.
+
+.. data:: serverStatus.repl.rabid
+
+   .. versionadded:: 2.8.0
+
+   :term:`Rollback` identifier. Used to determine if a rollback has
+   happened for this :program:`mongod` instance.
 
 .. data:: serverStatus.repl.slaves
 
+   .. versionadded:: 2.8.0
+
+   An array with one document for every member of the replica set that
+   reports replication process to this member. Typically this is the
+   primary, or secondaries if using chained replication.
+
+   To include this output you must pass the``repl`` option to
+   the:dbcommand:`serverStatus`, as in the following:
+
+   .. code-block:: javascript
+
+      db.serverStatus({ "repl": 1 })
+      db.runCommand({ "serverStatus": 1, "repl": 1 })
+
+   The content of the :data:`~serverStatus.repl.slaves` section
+   depends on the source of each member's replication. This section
+   supports internal operation and is for internal and diagnostic use only.
+
 .. data:: serverStatus.repl.slaves[n].rid
+
+   An ID in the form of an ObjectId of the member's' of the replica
+   set. For internal use only.
+
+.. data:: serverStatus.repl.slaves[n].host
+
+   The name of the host in ``[hostname]:[port]`` format for the member
+   of the replica set.
 
 .. data:: serverStatus.repl.slaves[n].optime
 
+   Information regarding the last operation from the :term:`oplog` that
+   the member applied, as reported from this member.
+
 .. data:: serverStatus.repl.slaves[n].memberID
+
+   The integer identifier for this member of the replica set.
 
 .. _server-status-opcountersrepl:
 .. _server-status-opcounters-repl:
@@ -985,27 +1031,123 @@ section <server-status-example-opcounters>` of the
    of commands issued to the database since the :program:`mongod`
    instance last started.
 
+.. _server-status-range-deleter:
+
+rangeDeleter
+~~~~~~~~~~~~
+
+.. versionadded:: 2.8.0
+
+.. note:: The :data:`~serverStatus.rangeDeleter` data is only included in
+   the output of :dbcommand:`serverStatus` if explicitly enabled. To
+   return the :data:`~serverStatus.rangeDeleter`, use one of the
+   following commands:
+
+   .. code-block:: javascript
+
+      db.serverStatus( { rangeDeleter: 1 } )
+      db.runCommand( { serverStatus: 1, rangeDeleter: 1 } )
+
+.. data:: serverStatus.rangeDeleter
+
+   A document that reports on the work performed by the
+   :dbcommand:`cleanupOrphaned` command and the cleanup phase of the
+   :dbcommand:`moveChunk` command.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats
+
+   An array of documents that each report on the last operations of
+   migration cleanup operations. At most
+   :data:`~serverStatus.rangeDeleter.lastDeleteStats` will report data
+   for the last 10 operations.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].deletedDocs
+
+   A counter with the number of documents deleted by
+   migration cleanup operations.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].queueStart
+
+   A timestamp that reflects when operations began entering the queue
+   for the migration cleanup operation. Specifically, operations wait
+   in the queue while the :program:`mongod` waits for open cursors to
+   close on the namespace.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].queueEnd
+
+   A timestamp that reflects when the migration cleanup operation begins.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].deleteStart
+
+   A timestamp for the beginning of the delete process
+   that is part of the migration cleanup operation.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].deleteEnd
+
+   A timestamp for the end of the delete process
+   that is part of the migration cleanup operation.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].waitForReplStart
+
+   A timestamp that reflects when the migration cleanup
+   operation began waiting for replication to process the delete operation.
+
+.. data:: serverStatus.rangeDeleter.lastDeleteStats[n].waitForReplEnd
+
+   A timestamp that reflects when the migration cleanup
+   operation finished waiting for replication to process the delete operation.
+
 .. _server-status-security:
 
 security
 ~~~~~~~~
 
+.. versionadded:: 2.8.0
+
+For an example of the ``security`` output, see the :ref:`security section
+<server-status-example-security>` of the :doc:`/reference/server-status`
+page.
+
 .. data:: severStatus.security
+
+   A document reporting security configuration and details. Only
+   appears for :program:`mongod` instances compiled with support for SSL.
 
 .. data:: severStatus.security.SSLServerSubjectName
 
+   The subject name associated with the SSL certificate specified by
+   :setting:`net.ssl.PEMKeyPassword`.
+
 .. data:: severStatus.security.SSLServerHasCertificateAuthority
 
+   A boolean that is ``true`` when the SSL certificate specified by
+   :setting:`net.ssl.PEMKeyPassword` is associated with a certificate
+   authority. ``false`` when the SSL certificate is self-signed.
+
 .. data:: severStatus.security.SSLServerCertificateExpirationDate
+
+   A :ref:`date object <mongo-shell-date-type>` object that represents
+   the date when the SSL certificate specified by
+   :setting:`net.ssl.PEMKeyPassword` expires.
 
 .. _server-status-storage-engine:
 
 storageEngine
 -------------
 
-..data:: serverStatus.storageEngine
+.. versionadded:: 2.8.0
 
-..data:: serverStatus.storageEngine.name
+For an example of the ``storageEngine`` output, see the :ref:`storageEngine section
+<server-status-example-storage-engine>` of the :doc:`/reference/server-status`
+page.
+
+.. data:: serverStatus.storageEngine
+
+   A document with data about the current storage engine.
+
+.. data:: serverStatus.storageEngine.name
+
+   A string that represents the name of the current storage engine.
 
 .. _server-status-asserts:
 
@@ -1356,13 +1498,33 @@ For an example of the metrics output, see the :ref:`metrics section
 <server-status-example-metrics>` of the :doc:`/reference/server-status`
 page.
 
-.. versionadded:: 2.4
+.. versionadded:: 2.4.0
 
 .. data:: serverStatus.metrics
 
    The :data:`~serverStatus.metrics` document holds a number of
    statistics that reflect the current use and state of a running
    :program:`mongod` instance.
+
+.. data:: serverStatus.metrics.commands
+
+   .. versionadded:: 2.8.0
+
+   A document that reports on the use of :term:`database
+   commands`. The fields in :data:`~serverStatus.metrics.commands` are
+   the names of :doc:`database commands </reference/command>` and each
+   value is a document that reports the total number of commands
+   executed as well as the number of failed executions.
+
+.. data:: serverStatus.metrics.commands.<command>.failed
+
+   The number of times ``<command>`` failed on this
+   :program:`mongod`.
+
+.. data:: serverStatus.metrics.commands.<command>.total
+
+   The number of times ``<command>`` executed on this
+   :program:`mongod`.
 
 .. data:: serverStatus.metrics.document
 
