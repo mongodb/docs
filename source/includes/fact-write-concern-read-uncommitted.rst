@@ -21,13 +21,14 @@ When :program:`mongod` returns a successful *journaled write concern*,
 the data is fully committed to disk and will be available
 after :program:`mongod` restarts.
 
-For replica sets, write operations are durable only after a write
-replicates and commits to the journal of a majority of the voting members of
-the set. [#votes]_ MongoDB regularly commits data to the journal regardless of
-journaled write concern: use the :setting:`~storage.journal.commitIntervalMs`
+For replica sets, write operations are usually considered durable only after a
+write replicates and commits to the journal of a majority of the voting members
+of the set. [#votes]_ MongoDB regularly commits data to the journal regardless
+of journaled write concern: use the :setting:`~storage.journal.commitIntervalMs`
 to control how often a :program:`mongod` commits the journal.
 
-.. [#votes] For the purposes of write concern, *majority* refers to a
-   majority of the *votes* in the set. As a result, :term:`arbiters
-   <arbiter>` affect the definition of majority, in order to help
-   prevent rollback.
+.. [#votes] For the purposes of write concern, *``w:majority``* refers to a
+   majority of *all* the members in the set. As a result, :term:`arbiters
+   <arbiter>`, non-voting members, :term:`passive members <passive member>`,
+   :term:`hidden members <hidden member>` and :term:`delayed members <delayed
+   member>` are all included in the definition of majority write concern.
