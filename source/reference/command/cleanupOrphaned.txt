@@ -24,7 +24,7 @@ Definition
 
       db.runCommand( {
          cleanupOrphaned: "<database>.<collection>",
-         startingAtKey: <minimumShardKeyValue>,
+         startingFromKey: <minimumShardKeyValue>,
          secondaryThrottle: <boolean>
       } )
 
@@ -48,16 +48,16 @@ You do not need to disable the balancer before running
 Determine Range
 ~~~~~~~~~~~~~~~
 
-The :dbcommand:`cleanupOrphaned` command uses the ``startingAtKey``
+The :dbcommand:`cleanupOrphaned` command uses the ``startingFromKey``
 value, if specified, to determine the start of the range to examine for
 orphaned document:
 
-- If the ``startingAtKey`` value falls into a range for a chunk not
+- If the ``startingFromKey`` value falls into a range for a chunk not
   owned by the shard, :dbcommand:`cleanupOrphaned` begins examining at
   the start of this range, which may not necessarily be the
-  ``startingAtKey``.
+  ``startingFromKey``.
 
-- If the ``startingAtKey`` value falls into a range for a chunk owned
+- If the ``startingFromKey`` value falls into a range for a chunk owned
   by the shard, :dbcommand:`cleanupOrphaned` moves onto the next range
   until it finds a range for a chunk not owned by the shard.
 
@@ -85,13 +85,13 @@ Consider the following key space with documents distributed across
 - ``Chunk 5`` with the range ``{ x: 200 } --> { x: maxKey }``.
 
 If on ``Shard A``, the :dbcommand:`cleanupOrphaned` command runs with
-``startingAtKey: { x: -70 }`` or any other value belonging to range for
+``startingFromKey: { x: -70 }`` or any other value belonging to range for
 ``Chunk 1`` or ``Chunk 2``, the :dbcommand:`cleanupOrphaned` command examines
 the ``Chunk 3`` range of ``{ x: 25 } --> { x: 175 }`` to delete
 orphaned data.
 
 If on ``Shard B``, the :dbcommand:`cleanupOrphaned` command runs with
-the ``startingAtKey: { x: -70 }`` or any other value belonging to range
+the ``startingFromKey: { x: -70 }`` or any other value belonging to range
 for ``Chunk 1``, the :dbcommand:`cleanupOrphaned` command examines the
 combined contiguous range for ``Chunk 1`` and ``Chunk 2``, namely ``{
 x: minKey } --> { x: 25 }`` to delete orphaned data.
@@ -171,7 +171,7 @@ range for a chunk *not* owned by the shard: ``{ x: 10 } --> { x: MaxKey
 }``.
 
 To remove orphaned documents within the ``{ x: 10 } => { x: MaxKey }``
-range, you can specify a ``startingAtKey`` with a value that falls into
+range, you can specify a ``startingFromKey`` with a value that falls into
 this range, as in the following example:
 
 .. code-block:: javascript
@@ -179,11 +179,11 @@ this range, as in the following example:
    use admin
    db.runCommand( {
       "cleanupOrphaned": "test.info",
-      "startingAtKey": { x: 10 },
+      "startingFromKey": { x: 10 },
       "secondaryThrottle": true
    } )
 
-Or you can specify a ``startingAtKey`` with a value that falls into the
+Or you can specify a ``startingFromKey`` with a value that falls into the
 previous range, as in the following:
 
 .. code-block:: javascript
@@ -191,7 +191,7 @@ previous range, as in the following:
    use admin
    db.runCommand( {
       "cleanupOrphaned": "test.info",
-      "startingAtKey": { x: 2 },
+      "startingFromKey": { x: 2 },
       "secondaryThrottle": true
    } )
 
