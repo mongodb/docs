@@ -8,12 +8,12 @@ Log Messages
 
 Starting in MongoDB 2.8, MongoDB includes the :ref:`severity level
 <log-severity-levels>` and the :ref:`component
-<log-messages-named-components>` associated with each log message. The
+<log-message-components>` associated with each log message. The
 log messages have the form:
 
 .. code-block:: none
 
-   <timestamp> <severity> <component> <message>
+   <timestamp> <severity> <component> [<context>] <message>
 
 For example:
 
@@ -39,7 +39,7 @@ message:
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 80
+   :widths: 15 85
 
    * - Level
      - Description
@@ -48,18 +48,23 @@ message:
      - Fatal
 
    * - ``E``
-     - Warning
+     - Error
 
    * - ``W``
      - Warning
 
    * - ``I``
-     - Informational and Verbosity Level of 0
+     - Informational, for Verbosity Level of ``0``
 
    * - ``D``
-     - All Verbosity Levels > 0
+     - Debug, for All Verbosity Levels > ``0``
 
-.. _log-messages-components:
+You can specify the verbosity level of various components to determine
+the amount of Informational and Debug messages MongoDB outputs.
+
+To set verbosity levels, see :ref:`log-messages-configure-verbosity`.
+
+.. _log-message-components:
 
 Components
 ----------
@@ -69,106 +74,127 @@ categorization of the messages:
 
 .. data:: ACCESS
 
-   Components related to access control, such as authentication. To
+   Messages related to access control, such as authentication. To
    specify the log level for :data:`ACCESS` components, use the
    :setting:`systemLog.component.accessControl.verbosity` setting.
 
-.. data:: COMMANDS
+.. data:: COMMAND
 
-   Components related to :doc:`database commands </reference/command>`,
+   Messages related to :doc:`database commands </reference/command>`,
    such as :dbcommand:`count`. To specify the log level for
-   :data:`COMMANDS` components, use the
-   :setting:`systemLog.component.commands.verbosity` setting.
+   :data:`COMMAND` components, use the
+   :setting:`systemLog.component.command.verbosity` setting.
 
 .. data:: CONTROL
 
-   Components related to control activities, such as initialization. To
+   Messages related to control activities, such as initialization. To
    specify the log level for :data:`CONTROL` components, use the
    :setting:`systemLog.component.control.verbosity` setting.
 
 .. data:: GEO
 
-   Components related to the parsing of geospatial shapes, such as
+   Messages related to the parsing of geospatial shapes, such as
    verifying the GeoJSON shapes. To specify the log level for
    :data:`GEO` components, set the
    :setting:`systemLog.component.geo.verbosity` parameter.
 
-.. data:: INDEXING
+.. data:: INDEX
 
-   Components related to indexing operations, such as
+   Messages related to indexing operations, such as
    creating indexes. To specify the log level for
-   :data:`INDEXING` components, set the
-   :setting:`systemLog.component.indexing.verbosity` parameter.
+   :data:`INDEX` components, set the
+   :setting:`systemLog.component.index.verbosity` parameter.
 
 .. data:: NETWORK
 
-   Components related to network activities, such as accepting
+   Messages related to network activities, such as accepting
    connections. To specify the log level for :data:`NETWORK`
    components, set the
-   :setting:`systemLog.component.networking.verbosity` parameter.
+   :setting:`systemLog.component.network.verbosity` parameter.
 
 .. data:: QUERY
 
-   Components related to queries, including query planner activities.
+   Messages related to queries, including query planner activities.
    To specify the log level for :data:`QUERY` components, set the
    :setting:`systemLog.component.query.verbosity` parameter.
 
-.. data:: REPLSETS
+.. data:: REPL
 
-   Components related to replica sets, such as initial sync and
-   heartbeats. To specify the log level for :data:`REPLSETS`
+   Messages related to replica sets, such as initial sync and
+   heartbeats. To specify the log level for :data:`REPL`
    components, set the
    :setting:`systemLog.component.replication.verbosity` parameter.
 
 .. data:: SHARDING
 
-   Components related to sharding activities, such as the startup of
+   Messages related to sharding activities, such as the startup of
    the :program:`mongos`. To specify the log level for :data:`SHARDING`
    components, use the
    :setting:`systemLog.component.sharding.verbosity` setting.
 
 .. data:: STORAGE
 
-   Components related to storage activities, such as processes involved
+   Messages related to storage activities, such as processes involved
    in the :dbcommand:`fsync` command. To specify the log level for
    :data:`STORAGE` components, use the
    :setting:`systemLog.component.storage.verbosity` setting.
 
    MongoDB distinguishes :data:`JOURNAL` components from
-   :data:`STORAGE` components; however, MongoDB uses
-   :setting:`systemLog.component.storage.verbosity` for :data:`JOURNAL`
-   components if
-   :setting:`systemLog.component.storage.journaling.verbosity` setting
-   is unset.
+   :data:`STORAGE` components; however, :data:`STORAGE` is the parent
+   of :data:`JOURNAL`. As such, if
+   :setting:`systemLog.component.storage.journal.verbosity` setting
+   is unset, MongoDB uses the :data:`STORAGE` verbosity level for
+   :data:`JOURNAL` components
 
 .. data:: JOURNAL
 
-   Components related specifically to journaling activities. To specify
+   Messages related specifically to journaling activities. To specify
    the log level for :data:`JOURNAL` components, use the
-   :setting:`systemLog.component.storage.journaling.verbosity` setting.
+   :setting:`systemLog.component.storage.journal.verbosity` setting.
 
    MongoDB distinguishes :data:`JOURNAL` components from
-   :data:`STORAGE` components; however, if
-   :setting:`systemLog.component.storage.journaling.verbosity` is
-   unset, MongoDB uses :setting:`systemLog.component.storage.verbosity`
-   for :data:`JOURNAL` components as well.
+   :data:`STORAGE` components; however, :data:`STORAGE` is the parent
+   of :data:`JOURNAL`. As such, if
+   :setting:`systemLog.component.storage.journal.verbosity` is
+   unset, MongoDB uses the :data:`STORAGE` verbosity level for the
+   :data:`JOURNAL` components as well.
 
-.. data:: WRITES
+.. data:: WRITE
 
-   Components related to write operations, such as :dbcommand:`update`
-   commands. To specify the log level for :data:`WRITES` components,
-   use the :setting:`systemLog.component.writes.verbosity` setting.
+   Messages related to write operations, such as :dbcommand:`update`
+   commands. To specify the log level for :data:`WRITE` components,
+   use the :setting:`systemLog.component.write.verbosity` setting.
 
 .. data:: -
 
-   Components not associated with a named component. Unnamed components
+   Messages not associated with a named component. Unnamed components
    have the default log level specified in the
    :setting:`systemLog.verbosity` setting. The
    :setting:`systemLog.verbosity` setting is the default setting for
    both named and unnamed components.
 
+Verbosity Levels
+----------------
+
+View Current Log Verbosity Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the current verbosity levels, use the
+:method:`db.getLogComponents()` method.
+
+.. _log-messages-configure-verbosity:
+
 Configure Log Verbosity Levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the verbosity level using: the
+:setting:`systemLog.verbosity` and
+``systemLog.component.<name>.verbosity`` settings, the
+:parameter:`logComponentVerbosity` parameter; the
+:method:`db.setLogLevel()` method.
+
+``systemLog`` Verbosity Settings
+````````````````````````````````
 
 To configure the default log level for all components, use the
 :setting:`systemLog.verbosity` setting. To configure the level of
@@ -179,7 +205,7 @@ For example, the following configuration sets the
 :setting:`systemLog.verbosity` to ``1``, the
 :setting:`systemLog.component.query.verbosity` to ``2``, the
 :setting:`systemLog.component.storage.verbosity` to ``2``, and the
-:setting:`systemLog.component.storage.journaling.verbosity` to ``1``:
+:setting:`systemLog.component.storage.journal.verbosity` to ``1``:
 
 .. code-block:: javascript
 
@@ -190,8 +216,54 @@ For example, the following configuration sets the
             verbosity: 2
          storage:
             verbosity: 2
-            journaling:
+            journal:
                verbosity: 1
 
 All components not specified in the configuration have the
 :setting:`systemLog.verbosity` of ``1``.
+
+``logComponentVerbosity`` Parameter
+```````````````````````````````````
+
+To set the :parameter:`logComponentVerbosity` parameter, pass a
+document with the verbosity settings to change.
+
+For example, the following sets the :setting:`default verbosity level
+<systemLog.verbosity>` to ``1``, the :setting:`query
+<systemLog.component.query.verbosity>` to ``2``, the :setting:`storage
+<systemLog.component.storage.verbosity>` to ``2``, and the
+:setting:`storage.journal
+<systemLog.component.storage.journal.verbosity>` to ``1``.
+   
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( {
+      setParameter: 1,
+      logComponentVerbosity: { 
+         verbosity: 1,
+         query: {
+            verbosity: 2
+         },
+         storage: {
+            verbosity: 2,
+            journal: {
+               verbosity: 1
+            }
+         }
+      }
+   } )
+
+``db.setLogLevel()``
+````````````````````
+
+Use the :method:`db.setLogLevel()` method to update a single component
+log level. For a component, you can specify verbosity level of ``0`` to
+``5``, or you can specify ``-1`` to inherit the verbosity of the
+parent. For example, the following sets the
+:setting:`systemLog.component.query.verbosity` to its parent verbosity
+(i.e. default verbosity):
+
+.. code-block:: javascript
+
+   db.setLogLevel(-1, "query")
