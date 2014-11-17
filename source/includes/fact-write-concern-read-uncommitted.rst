@@ -27,7 +27,8 @@ the set. [#votes]_ MongoDB regularly commits data to the journal regardless of
 journaled write concern: use the :setting:`~storage.journal.commitIntervalMs`
 to control how often a :program:`mongod` commits the journal.
 
-.. [#votes] For the purposes of write concern, *majority* refers to a
-   majority of the *votes* in the set. As a result, :term:`arbiters
-   <arbiter>` affect the definition of majority, in order to help
-   prevent rollback.
+.. [#votes] For the purposes of write concern, ``w:majority`` refers to a
+   majority of *all* the members in the set. As a result, :term:`arbiters
+   <arbiter>`, non-voting members, :term:`passive members <passive member>`,
+   :term:`hidden members <hidden member>` and :term:`delayed members <delayed
+   member>` are all included in the definition of majority write concern.
