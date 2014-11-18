@@ -1,0 +1,232 @@
+=======================
+db.collection.explain()
+=======================
+
+.. default-domain:: mongodb
+
+Description
+-----------
+
+.. method:: db.collection.explain()
+
+   .. versionadded:: 2.8
+
+   Returns information on the execution of operations. Operations
+   supported by :method:`db.collection.explain()` are:
+   :method:`aggregate() <db.collection.aggregate()>`; :method:`count()
+   <db.collection.count()>`; :method:`find() <db.collection.find()>`;
+   :method:`group() <db.collection.group()>`; :method:`remove()
+   <db.collection.remove()>`; and :method:`update()
+   <db.collection.update()>` methods. For a list of methods available
+   for use with :method:`db.collection.explain()`, see
+   :ref:`db.collection.explain().help() <explain-method-help>`.
+
+   To use :method:`db.collection.explain()`, append to
+   :method:`db.collection.explain()` the method(s) available to explain:
+
+   .. code-block:: none
+
+      db.collection.explain().<method(...)>
+
+   For example,
+
+   .. code-block:: javascript
+
+      db.products.explain().remove( { category: "apparel" }, { justOne: true } )
+   
+   For more examples, see :ref:`explain-method-examples`.
+
+   The :method:`db.collection.explain()` method has the following
+   parameter:
+
+   .. include:: /reference/method/db.collection.explain-param.rst
+
+.. _explain-method-behavior:
+
+Behavior
+--------
+
+.. _explain-method-verbosity:
+
+Verbosity Modes
+~~~~~~~~~~~~~~~
+
+The behavior of :method:`db.collection.explain()` and the amount of
+information returned depend on the ``verbosity`` mode.
+
+.. |explain| replace:: :method:`db.collection.explain()`
+.. |operation| replace:: method
+
+.. _explain-method-queryPlanner:
+
+``"queryPlanner"`` Mode
+```````````````````````
+
+By default, :method:`db.collection.explain()` runs in
+``"queryPlanner"`` verbosity mode.
+
+.. include:: /includes/fact-explain-verbosity-queryPlanner.rst
+
+.. _explain-method-executionStats:
+
+``"executionStats"`` Mode
+`````````````````````````
+
+.. include:: /includes/fact-explain-verbosity-executionStats.rst
+
+.. _explain-method-allPlansExecution:
+
+``"allPlansExecution"`` Mode
+````````````````````````````
+
+.. include:: /includes/fact-explain-verbosity-allPlansExecution.rst
+
+.. _explain-method-mechanics:
+
+``explain()`` Mechanics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.explain()` method wraps the
+:dbcommand:`explain` command and is the preferred way to run
+:dbcommand:`explain`.
+
+:method:`db.collection.explain().find()` is similar to
+:method:`db.collection.find().explain() <cursor.explain()>` with the
+following key differences:
+
+- The :method:`db.collection.explain().find()` construct allows for the
+  additional chaining of query modifiers. For list of query modifiers,
+  see :ref:`db.collection.explain().find().help() <explain-method-help>`.
+
+- The :method:`db.collection.explain().find()` returns a cursor, which
+  requires a call to ``.next()`` (or its alias ``.finish()``) to return
+  the ``explain()`` results. If run interactively in the
+  :program:`mongo` shell, the :program:`mongo` shell automatically
+  calls ``.finish()`` to return the results. For scripts, however, you
+  must explicitly call ``.next()`` (or ``.finish()``) to
+  return the results. For list of cursor-related methods, see
+  :ref:`db.collection.explain().find().help() <explain-method-help>`.
+
+:method:`db.collection.explain().aggregate()` is equivalent to passing
+the :ref:`explain <example-aggregate-method-explain-option>` option to
+the :method:`db.collection.aggregate()` method.
+
+.. _explain-method-help:
+
+``help()``
+~~~~~~~~~~
+
+To see the list of operations supported by
+:method:`db.collection.explain()`, run:
+
+.. code-block:: javascript
+
+   db.collection.explain().help()
+
+:method:`db.collection.explain().find()` returns a cursor, which allows
+for the chaining of query modifiers. To see the list of query modifiers
+supported by :method:`db.collection.explain().find()
+<db.collection.explain()>` as well as cursor-related methods, run:
+
+.. code-block:: javascript
+
+   db.collection.explain().find().help()
+
+You can chain multiple modifiers to ``db.collection.explain().find()``.
+For an example, see :ref:`explain-find-modifiers`.
+
+.. _explain-method-examples:
+
+Examples
+--------
+
+``"queryPlanner"`` Mode
+~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :method:`db.collection.explain()` runs in
+``"queryPlanner"`` verbosity mode.
+
+The following example runs :method:`db.collection.explain()` in
+:ref:`"queryPlanner" <explain-method-queryPlanner>` verbosity mode to
+return the query planning information for the specified
+:method:`~db.collection.count()` operation:
+
+.. code-block:: javascript
+
+   db.products.explain().count( { quantity: { $gt: 50 } } )
+
+``"executionStats"``  Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs :method:`db.collection.explain()` in
+:ref:`"executionStats" <explain-method-executionStats>` verbosity mode
+to return the query planning and execution information for the
+specified :method:`~db.collection.find()` operation:
+
+.. code-block:: javascript
+
+   db.products.explain("executionStats").find(
+      { quantity: { $gt: 50 }, category: "apparel" }
+   )
+
+.. _ex-allPlansExecution:
+
+``"allPlansExecution"`` Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs :method:`db.collection.explain()` in
+:ref:`"allPlansExecution" <explain-method-allPlansExecution>` verbosity
+mode. The :method:`db.collection.explain()` returns the
+:data:`~explain.queryPlanner` and :data:`~explain.executionStats` for
+all considered plans for the specified
+:method:`~db.collection.update()` operation:
+
+.. note::
+
+   The execution of this explain will *not* modify data but runs the
+   query predicate of the update operation. For candidate plans,
+   MongoDB returns the execution information captured during the
+   :ref:`plan selection phase <query-plans-query-optimization>`.
+
+.. code-block:: javascript
+
+   db.products.explain("allPlansExecution").update(
+      { quantity: { $lt: 1000}, category: "apparel" },
+      { $set: { reorder: true } }
+   )
+
+.. _explain-find-modifiers:
+
+Explain ``find()`` with Modifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`db.collection.explain().find()` construct allows for the
+chaining of query modifiers. For example, the following operation
+provides information on the :method:`~db.collection.find()` method with
+:method:`~cursor.sort()` and :method:`~cursor.hint()` query modifiers.
+
+.. code-block:: javascript
+
+   db.products.explain("executionStats").find(
+      { quantity: { $gt: 50 }, category: "apparel" }
+   ).sort( { quantity: -1 } ).hint( { category: 1, quantity: -1 } )
+
+For a list of query modifiers available, run in the :program:`mongo`
+shell:
+
+.. code-block:: javascript
+
+   db.collection.explain().find().help()
+
+Iterate the ``explain().find()`` Return Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`db.collection.explain().find()` returns a cursor to the
+explain results. If run interactively in the :program:`mongo` shell,
+the :program:`mongo` shell automatically iterates the cursor using the
+``.next()`` method. For scripts, however, you must explicitly call
+``.next()`` (or its alias ``.finish()``) to return the results:
+
+.. code-block:: javascript
+
+   var explainResult = db.products.explain().find( { category: "apparel" } ).next();
