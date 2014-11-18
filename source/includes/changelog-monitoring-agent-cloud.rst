@@ -17,6 +17,7 @@ Monitoring Agent ``2.8.0.143``
   fully qualified domain name (FQDN) of the server on which it is running.
 
 - Improved connection management for monitored MongoDB processes.
+
 Monitoring Agent ``2.7.0.136``
 ------------------------------
 

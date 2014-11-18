@@ -4,6 +4,13 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.3.3.209-1``
+----------------------------
+
+*Released with OnPrem 1.5.2*
+
+Use no-timeout cursors to work around :issue:`MGO-53`.
+
 Backup Agent ``2.3.1.160``
 --------------------------
 
