@@ -6,205 +6,72 @@ Configure Users and Groups with LDAP for |mms|
 
 .. important::
 
-   There is no method to transition an existing MMS deployment with
-   independent user management to use LDAP for user management. You
-   will need to start with a fresh installation of the latest
-   version of MMS.
+   You must start with a fresh installation of the latest version of MMS.
+   There is no method for converting an existing MMS deployment to use LDAP
+   user management.
 
 Overview
 --------
 
-|mms| can use a Lightweight Directory Access Protocol (LDAP) service to
-store users and manage user authentication. Users continue to log in
-using the standard MMS interface. After successful LDAP
-authentication, MMS synchronizes the ``firstName``, ``lastName``, and ``email``
-attributes in a LDAP user record with their MMS user record. Integration
-requires adding LDAP user record values in the MMS configuration file.
+You can configure MMS to use a Lightweight Directory Access Protocol (LDAP)
+service to manage user authentication. Users log in using the standard MMS
+interface. MMS synchronizes user name and email addresses in MMS user records
+with the values in LDAP user records.
 
-Upon submission of login form data, MMS authenticates in two steps:
+User Authentication
+~~~~~~~~~~~~~~~~~~~
 
-1. First, MMS searches the LDAP server for a matching LDAP user record with the
-   MMS ``mms.ldap.bindDn`` and ``mms.ldap.bindPassword`` configuration values to
-   match the username.
+When a user logs in, MMS searches LDAP for a matching user. To perform the
+search, MMS logs into LDAP as the "search" user, using the credentials
+specified in the :setting:`mms.ldap.bindDn` and
+:setting:`mms.ldap.bindPassword` settings in the :doc:`MMS configuration file
+</reference/configuration>`.
 
-#. With a match, MMS searches the LDAP server with the user record attribute
-   defined for the ``mms.ldap.user.searchAttribute`` parameter to authenticate for
-   MMS access.
+MMS searches LDAP within the base distinguished name defined in the
+:setting:`mms.ldap.user.baseDn` setting of the MMS configuration file and
+matches the user according to the LDAP attribute defined in the
+:setting:`mms.ldap.user.searchAttribute` setting. If a matching user is found,
+MMS authenticates the supplied password against the LDAP password.
 
-Upon successful login with LDAP, the first user completes a welcome form to
-create the initial MMS group.
+Access Control
+~~~~~~~~~~~~~~
+
+LDAP groups let you control access to MMS. You map LDAP groups to MMS roles
+and assign the LDAP groups to the users who should have those roles.
+
+To use LDAP groups effectively, :doc:`create additional MMS groups
+</tutorial/create-group>` to control access to specific deployments in your
+organization. For example, create separate MMS groups for development
+environments and for production environments. Provide access to a deployment
+by mapping an LDAP group to a role in the MMS group.
+
+This tutorial describes how to map LDAP groups to global MMS roles and to
+group-level MMS roles. You do the former through the :doc:`MMS configuration
+file </reference/configuration>` and the latter through the MMS interface.
+
+Global Owner Access
+~~~~~~~~~~~~~~~~~~~
+
+Your LDAP installation must include a group that you can assign to the
+MMS :setting:`mms.ldap.global.role.owner` setting. The first user to log into MMS
+with LDAP authentication must belong to this LDAP group. This user will also create
+the initial MMS group.
+
+For example, if LDAP has an ``admin`` group for use by MMS administrators, set
+the :setting:`mms.ldap.global.role.owner` property to ``admin`` during the
+appropriate step in the procedure below.
 
 Prerequisites
 -------------
 
-- LDAP server installed, configured, and accessible to MMS.
+The :ref:`MMS Application server <mms-application-package>` must be installed
+and configured. You must either start with a new MMS installation or reset
+your installation to a clean state. For assistance, contact your MongoDB
+account manager.
 
-- An LDAP group name used to populate the ``mms.ldap.global.role.owner``
-  configuration value used to match LDAP records with MMS data.
-
-- MMS server installed and configured.
-
-It's also possible to create LDAP groups to assign to users with read only or
-other non-administrative roles, then update the global roles property settings
-as needed. In this case, create one or more additional LDAP groups.
-
-Considerations
---------------
-
-For successful integration, each user record sent by the LDAP server must
-contain the list of LDAP groups assigned to the user.
-
-The first user to login with LDAP authentication must have the LDAP Owner role
-assigned to their account. The ``mms.ldap.global.role.owner`` property
-setting in the MMS configuration file must match an LDAP owner group.
-
-For example, if LDAP has an ``admin`` group for use by MMS admins, set the
-``mms.ldap.global.role.owner`` property to ``admin`` in the MMS configuration file.
+The LDAP server must be installed, configured, and accessible to MMS.
 
 Procedure
 ---------
 
-To configure |mms| to authenticate to its backing MongoDB replica
-sets using LDAP:
-
-1. Define LDAP record schema attributes and values.
-
-#. Update the LDAP server configuration values in the MMS ``conf-mms.properties``
-   :doc:`configuration file </reference/configuration>`.
-
-#. Update the LDAP user configuration values in the MMS ``conf-mms.properties`` file.
-
-#. Update the Global Role configuration values in the MMS ``conf-mms.properties`` file.
-
-The sections below define configuration values to update for each step.
-
-Configuration Files
--------------------
-
-Configuration parameters connect one or more LDAP groups to roles used in MMS,
-as well as retrieve user data to authenticate users.
-
-LDAP Server Configuration Parameter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Update this LDAP server property in the MMS :file:`conf-mms.properties`
-:doc:`configuration file </reference/configuration>`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40, 60
-
-   * - **Property**
-     - **Value**
-   * - ``mms.userSvcClass``
-     - ``com.xgen.svc.mms.svc.user.UserSvcLdap``
-
-LDAP User Configuration Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Update these LDAP directory schema properties in the MMS :file:`conf-mms.properties`
-:doc:`configuration file </reference/configuration>`:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30, 30, 40
-
-   * - **Property**
-     - **Example**
-     - **Description**
-   * - :setting:`mms.ldap.url`
-     - ``ldap://acme-dc1.acme.example.net:389``
-     - The URI for the LDAP server
-   * - :setting:`mms.ldap.bindDn`
-     - ``authUser@acme.example.net``
-     - The LDAP user used to execute searches for other users
-   * - :setting:`mms.ldap.bindPassword`
-     - ``<user-password>``
-     - The credentials for the search user
-   * - :setting:`mms.ldap.user.baseDn`
-     - ``DC\=acme,DC\=example,DC\=net``
-     - The base dn used for searching for users
-   * - :setting:`mms.ldap.user.searchAttribute`
-     - ``mail``
-     - The LDAP user record attribute MMS uses to search then authenticate
-       users when a user types their username into the MMS login form.
-   * - :setting:`mms.ldap.user.firstName`
-     - ``givenName``
-     - The LDAP user attribute that contains the user's first name.
-   * - :setting:`mms.ldap.user.lastName`
-     - ``sn``
-     - The LDAP user attribute that contains the user's last name.
-   * - :setting:`mms.ldap.user.email`
-     - ``mail``
-     - The LDAP user attribute that contains the user's email address.
-   * - :setting:`mms.ldap.user.group`
-     - ``memberOf``
-     - The LDAP user attribute that contains the list of groups that the user
-       belongs to. These can be ``cn s`` or ``dn s``. It doesn't matter as long
-       as they are consistent with those provided in the MMS global role
-       configuration, explained below.
-
-Global Role Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Global parameters can be in any format for an LDAP group. They can be a ``cn``
-(Common Name) or a ``dn`` (Distinguished Name). The format must match the
-property specified by the ``mms.ldap.user.group`` configuration property
-defined in the table above.
-
-Update these LDAP directory schema properties in the MMS :file:`conf-mms.properties`
-:doc:`configuration file </reference/configuration>`:
-
-.. _default-ldap-separator:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40, 20, 40
-
-   * - **Property**
-     - **Example**
-     - **Description**
-   * - :setting:`mms.ldap.global.role.readOnly`
-     - ``CN\= MMS-ReadOnly,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global read-only
-       role in MMS. This role can only view data in MMS.
-   * - :setting:`mms.ldap.global.role.userAdmin`
-     - ``CN\=MMS-UserAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global user
-       administrative role in MMS. This role can manage users' group
-       memberships and update the billing email address.
-   * - :setting:`mms.ldap.global.role.monitoringAdmin`
-     - ``CN\=MMS-MonitoringAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global monitoring
-       administrative role in MMS. This role can view hosts, charts, and other
-       data, as well as monitor hosts, manage monitoring settings, download the
-       Monitoring Agent, and other tasks.
-   * - :setting:`mms.ldap.global.role.backupAdmin`
-     - ``CN\=MMS-BackupAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global backup administrative
-       role in MMS. This role can view backup status, snapshot lists, and
-       modify backup settings, as well as start/stop/terminate backups, request
-       restores, view/edit host passwords, and other tasks.
-   * - :setting:`mms.ldap.global.role.owner`
-     - ``CN\=MMSGlobalOwner,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global owner role in MMS.
-       This role can perform all administrative tasks in MMS.
-   * - :setting:`mms.ldap.group.separator`
-     - ``;``
-     - Each of the global role values may also take a delimited list of
-       groups; for example: ``"dbas,sysadmins"``. If any group value
-       contains the delimiter (``,`` in the above case), the delimiter must be
-       set to another value, *e.g.* ``;``. Otherwise, MMS will parse
-       ``"CN\=foo,DN\=bar"`` as two elements rather than as the description
-       for a single group.
-
-       The default delimiter for MMS 1.5 is ``;;``.
-
-.. START-COMMENT
-   * - :setting:`mms.ldap.global.role.automationAdmin`
-     - ``CN\=MMS-AutomationAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net``
-     - The LDAP group attribute name for users assigned the global automation
-       administrative role in MMS. This role can view all configurations,
-       machines, and other data, as well as provision machines, edit
-       configuration files, download the Automation Agent, and other tasks.
-.. END-COMMENT
+.. include:: /includes/steps/configure-ldap-authentication.rst

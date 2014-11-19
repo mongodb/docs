@@ -672,8 +672,16 @@ information in the configuration file.
 LDAP Settings
 ~~~~~~~~~~~~~
 
+To configure On Prem for LDAP, you must start with a new installation or reset
+your installation to a clean state. Your On Prem installation cannot have
+existing users, groups, or hosts. For assistance, contact your MongoDB account
+manager.
+
 LDAP Server Setting
 ```````````````````
+
+The following setting appears in the ``Hosted MMS configuration setting``
+section of the ``conf-mms.properties`` file:
 
 .. setting:: mms.userSvcClass
 
@@ -685,10 +693,15 @@ LDAP Server Setting
 
       mms.userSvcClass=com.xgen.svc.mms.svc.user.UserSvcLdap
 
+.. _ldap-user-settings:
+
 LDAP User Settings
 ``````````````````
 
-Specify the LDAP directory schema properties in the following settings:
+These settings configure MMS to use an LDAP server for authentication. If you
+use LDAP authentication, users must belong to an LDAP group to log into MMS.
+You must create LDAP groups for each :doc:`MMS user role
+</reference/user-roles>`.
 
 .. setting:: mms.ldap.url
 
@@ -698,7 +711,7 @@ Specify the LDAP directory schema properties in the following settings:
 
    .. code-block:: ini
 
-      mms.ldap.url=ldap://174.129.71.167:3890
+      mms.ldap.url=ldap://acme-dc1.acme.example.net:3890
 
 .. setting:: mms.ldap.bindDn
 
@@ -708,47 +721,86 @@ Specify the LDAP directory schema properties in the following settings:
 
    .. code-block:: ini
 
-      mms.ldap.url=_search_
+      mms.ldap.bindDn=authUser@acme.example.net
 
 .. setting:: mms.ldap.bindPassword
 
    *Type*: string
 
-   The credentials for the search user.  For example:
+   The credentials for the search user. For example:
 
    .. code-block:: ini
 
-      mms.ldap.bindPassword=dISDFFFnj7WMmc
+      mms.ldap.bindPassword=<user-password>
 
 .. setting:: mms.ldap.user.baseDn
 
    *Type*: string
 
-   The base Directory Name (DN) used for searching for users. Escape
+   The base Distinguished Name (DN) that MMS uses to search for users. Escape
    the ``=`` sign with ``\``. For example:
 
    .. code-block:: ini
 
-      mms.ldap.user.baseDn=c\=users,d\=identity
+      mms.ldap.user.baseDn=DC\=acme,DC\=example,DC\=net
 
 .. setting:: mms.ldap.user.searchAttribute
 
    *Type*: string
 
-   The LDAP user record attribute that MMS uses to search and
-   authenticate users when a user types their username into the MMS
-   login form. For example:
+   The LDAP field used for the LDAP search. This is typically a username
+   or email address.
+
+   The value of this field is also used as the MMS username.
+
+   Example:
 
    .. code-block:: ini
 
-      mms.ldap.user.searchAttribute=uid
+      mms.ldap.user.searchAttribute=mail
+
+.. setting:: mms.ldap.user.group
+
+   *Type*: string
+
+   The LDAP user attribute that contains the list of LDAP groups the user
+   belongs to. The LDAP attribute can use any format to list the groups,
+   including Common Name (``cn``) or Distinguished Name (``dn``). All MMS
+   settings in this configuration file that specify groups must match the
+   chosen format.
+
+   Example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.group=memberOf
+
+.. setting:: mms.ldap.global.role.owner
+
+   *Type*: string
+
+   The LDAP group that has full privileges for the MMS deployment, including
+   full access to all :doc:`MMS groups </tutorial/create-group>` and all
+   administrative permissions. Users in the specified LDAP group receive the
+   :ref:`global owner <global-owner-role>` role in MMS. Specify the group
+   using the format that is used by the LDAP attribute specified in the
+   :setting:`mms.ldap.user.group` setting.
+
+   Example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.owner=CN\=MMSGlobalOwner,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
 
 .. setting:: mms.ldap.user.firstName
 
    *Type*: string
 
-   The LDAP user attribute that contains the user's first name. For
-   example:
+   The LDAP user attribute that contains the user's first name. After
+   successful LDAP authentication, MMS synchronizes the specified LDAP
+   attribute with the first name from the MMS user record.
+
+   For example:
 
    .. code-block:: ini
 
@@ -758,8 +810,11 @@ Specify the LDAP directory schema properties in the following settings:
 
    *Type*: string
 
-   The LDAP user attribute that contains the user's last name. For
-   example:
+   The LDAP user attribute that contains the user's last name. After
+   successful LDAP authentication, MMS synchronizes the specified LDAP
+   attribute with the last name from the MMS user record.
+
+   For example:
 
    .. code-block:: ini
 
@@ -769,88 +824,100 @@ Specify the LDAP directory schema properties in the following settings:
 
    *Type*: string
 
-   The LDAP user attribute that contains the user's email address. For
-   example:
+   The LDAP user attribute that contains the user's email address. After
+   successful LDAP authentication, MMS synchronizes the specified LDAP
+   attribute with the email address from the MMS user record.
+
+   For example:
 
    .. code-block:: ini
 
       mms.ldap.user.email=mail
 
-.. setting:: mms.ldap.user.group
+.. _default-ldap-separator:
 
-   *Type*: string
-
-   The LDAP user attribute that contains the list of groups that the
-   user belongs to.
-
-   .. code-block:: ini
-
-      mms.ldap.user.group=groups
-
-   These can be either Common Names (CN's) or
-   Distinguished Names (DN's) as long as they are consistent with those
-   provided in the MMS :ref:`global-role-settings`. For example:
-
-.. _global-role-settings:
+.. _ldap-global-role-settings:
 
 LDAP Global Role Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````
 
-Global parameters can be in any format for an LDAP group. They can be a
-Common Name (i.e. ``cn``) or a Distinguished Name (i.e. ``dn``). The
-format must match the property specified by the
-:setting:`mms.ldap.user.group` setting.
+These settings assign :ref:`MMS global roles <global-roles>` to the members of
+the specified LDAP groups. Specify groups using the format used by the LDAP
+attribute specified in the :setting:`mms.ldap.user.group` setting. You can
+specify multiple groups using the ``;;`` delimiter. To change the default
+delimiter, use the :setting:`mms.ldap.group.separator` setting.
 
-.. setting:: mms.ldap.global.role.read_only
+Each MMS global role provides its level of access to all the :doc:`MMS groups
+</tutorial/create-group>` in the deployment. To provide access to specific
+groups, use :ref:`group-level roles <global-roles>`.
 
-   *Type*: string
-
-   The LDAP group attribute name for users assigned the global
-   read-only role in MMS. This role can only view data in MMS. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.read_only=AcmeDbas
-
-.. setting:: mms.ldap.global.role.monitoring_admin
+.. setting:: mms.ldap.global.role.automationAdmin
 
    *Type*: string
 
-   The LDAP group attribute name for users assigned the global
-   monitoring administrative role in MMS. This role can view hosts,
-   charts, and other data, as well as monitor hosts, manage monitoring
-   settings, download the Monitoring Agent, and other tasks. For example:
+   The LDAP group whose members have the :ref:`global automation admin
+   role <global-automation-admin-role>` in MMS. For example:
 
    .. code-block:: ini
 
-      mms.ldap.global.role.monitoring_admin=AcmeDbas
+      mms.ldap.global.role.automationAdmin=CN\=MMS-AutomationAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
 
-.. setting:: mms.ldap.global.role.backup_admin
+.. setting:: mms.ldap.global.role.backupAdmin
 
    *Type*: string
 
-   The LDAP group attribute name for users assigned the global backup
-   administrative role in MMS. This role can view backup status,
-   snapshot lists, and modify backup settings, as well as
-   start/stop/terminate backups, request restores, view/edit host
-   passwords, and other tasks.
+   The LDAP group whose members have the :ref:`global backup admin role
+   <global-backup-admin-role>` in MMS. For example:
 
    .. code-block:: ini
 
-      mms.ldap.global.role.backup_admin=AcmeDbas
+      mms.ldap.global.role.backupAdmin=CN\=MMS-BackupAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
 
-.. setting:: mms.ldap.global.role.owner
+.. setting:: mms.ldap.global.role.monitoringAdmin
 
    *Type*: string
 
-   The LDAP group attribute name for users assigned the global owner
-   role in MMS. This role can perform all administrative tasks in MMS.
+   The LDAP group whose members have the :ref:`global monitoring admin
+   role <global-monitoring-admin-role>` in MMS. For example:
 
    .. code-block:: ini
 
-      mms.ldap.global.role.backup_admin=AcmeDbas
+      mms.ldap.global.role.monitoringAdmin=CN\=MMS-MonitoringAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
 
-.. seealso:: :doc:`/reference/user-roles`
+.. setting:: mms.ldap.global.role.userAdmin
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global user admin role
+   <global-user-admin-role>` in MMS. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.userAdmin=CN\=MMS-UserAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.global.role.readOnly
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global read-only role
+   <global-read-only-role>` in MMS. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.readOnly=CN\=MMS-ReadOnly,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.group.separator
+
+   *Type*: string
+
+   Each of the global role values can take a delimited list of groups: for
+   example ``"dbas,sysadmins"``. If a group value contains the delimiter, the
+   delimiter must be set to another value, such as ``;;``. For example, if you
+   have the group value ``"CN\=foo,DN\=bar"`` and the delimiter is ``,`` then
+   MMS parses ``"CN\=foo,DN\=bar"`` as two elements rather than as the
+   description for a single group.
+
+   Starting with MMS 1.5, the default delimiter is ``;;``.
 
 .. _configuration-kerberos-settings:
 
