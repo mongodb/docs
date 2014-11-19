@@ -1,0 +1,112 @@
+title: Create a data directory for each replica set member.
+stepnum: 1
+ref: data-directories
+action:
+  pre: |
+    For each replica set member, create a data directory and set
+    ``mongod.mongod`` as the directory's owner. For example:
+  language: sh
+  code: |
+    sudo mkdir -p /data /data/blockstore
+    sudo chown mongod:mongod /data /data/blockstore
+---
+title: Start each MongoDB instance.
+stepnum: 2
+ref: start-mongod-instance
+pre: |
+  For each replica set member, start the :program:`mongod` daemon and specify
+  "``mongod``" as the user. Start each instance on its own dedicated port number
+  and with the data directory you created in the previous step. Use a
+  **different port number** from the port used for the MongoDB instance
+  hosting the MMS Application database. Specify the same replica set for all
+  three members.
+action:
+  pre: |
+    The following command starts a MongoDB instance as part of a
+    replica set named ``blockstore``, specifies the ``/data/blockstore``
+    data directory, and uses port ``27018``:
+  language: sh
+  code: |
+    sudo -u mongod mongod --port 27018 --dbpath /data/blockstore --replSet blockstore --logpath /data/blockstore/mongodb.log --fork
+post: |
+  After you complete this step, you should have new :program:`mongod` instances
+  running on **server1**, **server2**, and **server3**.
+---
+title: "Connect to the MongoDB instance that hosts the database's primary."
+stepnum: 3
+ref: connect
+pre: |
+  Connect to the MongoDB instance running on **server 2**, which is the server
+  that hosts the Backup Blockstore's primary. Make sure to **connect
+  on the correct port number** for the MongoDB instance that hosts the Backup
+  Blockstore.
+action:
+  pre: |
+    For example, the following command connects on port ``27018`` to a MongoDB
+    instance running on ``mongodb2.example.net``:
+  language: none
+  code: |
+    mongo --host mongodb2.example.net --port 27018
+post: |
+  Once you are connected, your command prompt changes to ``>``.
+---
+stepnum: 4
+source:
+  ref: initiate
+  file: steps-install-basic-application-database.yaml
+---
+title: Add the remaining members to the replica set.
+stepnum: 5
+ref: add-members
+action:
+  pre: |
+    Add the :program:`mongod` instances running on **server 3** and **server
+    1** as a secondary and an arbiter, respectively. Add the secondary first.
+    For example, the following two commands add MongoDB instances running on
+    ``mongodb3.example.net`` and on ``mongodb1.example.net``:
+  language: javascript
+  code: |
+    rs.add('mongodb3.example.net:27018')
+    rs.addArb('mongodb1.example.net:27018')
+---
+title: Verify the replica set configuration.
+stepnum: 6
+ref: verify
+action:
+  - pre: |
+      To verify that the configuration includes the three members, issue
+      :manual:`rs.conf() </reference/method/rs.conf>`:
+    language: javascript
+    code: |
+      rs.conf()
+  - pre: |
+      The method returns output similiar to the following.
+    language: javascript
+    code: |
+      {
+          "_id" : "blockstore",
+          "version" : 3,
+          "members" : [
+              {
+                  "_id" : 0,
+                  "host" : "mongodb2.example.net:27018"
+              },
+              {
+                  "_id" : 1,
+                  "host" : "mongodb3.example.net:27018"
+              },
+              {
+                  "_id" : 2,
+                  "host" : "mongodb1.example.net:27018",
+                  "arbiterOnly" : true
+              }
+          ]
+      }
+  - pre: |
+      Optionally, connect to the MongoDB instances running on port ``27018``
+      the other two servers and verify that **server 3** has the
+      ``SECONDARY>`` prompt and **server 1** has the ``ARBITER>`` prompt.
+post: |
+  For more information on deploying replica sets, see :manual:`Deploy a
+  Replica Set </tutorial/deploy-replica-set>` in the MongoDB manual.
+...

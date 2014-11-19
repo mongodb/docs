@@ -4,24 +4,47 @@ On Prem MMS Hardware and Software Requirements
 
 .. default-domain:: mongodb
 
-For an overview of the components of an On Prem MMS deployment, see
-:doc:`/core/system-overview` and :doc:`/core/deployments`. For a
-higher level view of MMS itself see :doc:`/application`.
+The :doc:`On Prem components </core/system-overview>` have the hardware and
+software requirements described on this page. If you install to AWS servers,
+you must set up at least one EC2 security group that meets the requirements
+described on this page.
+
+.. _hardware-requirements:
 
 Hardware Requirements
 ---------------------
 
-To install MMS you will need a server for the MMS application,
-which includes Monitoring, and a MongoDB instance (i.e. replica
-set). Backup is an optional component of MMS, and if you want support
-for Backup, you must deploy additional servers for the Backup Daemon
-and for blockstore storage.
+On Prem requires a server for the following components, which usually run on
+the same machine. The server must meet the sum of the requirements for both
+components:
 
-MMS Application Server
-~~~~~~~~~~~~~~~~~~~~~~
+- :ref:`MMS Application <mms-application-package>`
 
-Deploy the MMS Application Package on the MMS Application Server with
-requirements according to the following table.
+- :ref:`MMS Application database <mms-application-database>`
+
+If you run Backup, On Prem also requires servers for the following:
+
+- :ref:`MMS Backup Daemon <backup-daemon>`
+
+- :ref:`MMS Backup Blockstore database <mms-backup-blockstore-database>`
+
+For deployment diagrams, see :doc:`/core/deployments`.
+
+.. note::
+
+   The following requirements are specific to a given component. You must add
+   together the requirements for the components you will install. For example,
+   the requirements for the MMS Application do not cover the MMS Application
+   database.
+
+.. _application-hardware-requirements:
+
+MMS Application Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MMS Application requires the hardware listed here. The MMS
+Application database requires the **additional hardware** described in
+:ref:`mms-application-database-specifications`.
 
 .. list-table::
    :header-rows: 1
@@ -29,40 +52,47 @@ requirements according to the following table.
    * - **Number of Monitored Hosts**
      - **CPU Cores**
      - **RAM**
-     - **Disk**
    * - Up to 400 monitored hosts
      - 4+
      - 15 GB
-     - 200 GB, unless running Backup. If running Backup, contact your MongoDB account manager.
    * - Up to 2000 monitored hosts
      - 8+
      - 15 GB
-     - 500 GB, unless running Backup. If running Backup, contact your MongoDB account manager.
    * - More than 2000 hosts
      - Contact MongoDB account manager
      - Contact MongoDB account manager
-     - Contact MongoDB account manager
 
-These requirements support only the software components in the MMS
-Application Package.  If you wish to install the MMS Application
-Database on the same physical server, you will additionally need to
-satisfy the storage requirements for the :ref:`MMS Application
-Database <requirements-database>`.
+.. _mms-application-database-specifications:
 
-.. _requirements-database:
+MMS Application Database Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MMS Application Database Servers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Please see :doc:`/tutorial/prepare-backing-mongodb-instances`
-for requirements for the MMS Application Database Servers.
+.. include:: /includes/requirements-application-database.rst
 
 .. _backup-hardware-requirements:
 
-Optional: MMS Backup Daemon
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MMS Backup Daemon Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This server is required only if you are installing and running MMS Backup.
+The Backup Daemon cannot run without a running MMS Application. If you run the
+Backup Daemon, deploy servers that meet these requirements and,
+**in addition**, another server or servers meeting the requirements for the
+:ref:`MMS Backup Blockstore database hardware <mms-blockstore-database-specifications>`.
+
+If you wish to install the Backup Daemon on the same physical server as the
+MMS Application, the server must satisfy these requirements separately
+from the requirements in :ref:`application-hardware-requirements`.
+
+A server running the Backup Daemon acts as a hidden secondary for every
+replica set assigned to it. The system must have the disk space and write
+capacity to maintain the replica sets plus the space to store an additional
+copy of the data to support point-in-time restore. Typically, the Backup
+Daemon must be able to store 2 to 2.5 times the sum of the size on disk of all
+the backed-up replica sets.
+
+Before installing MMS Backup we recommend contacting your MongoDB Account
+Manager for assistance in estimating the storage requirements for your Backup
+Daemon server.
 
 .. list-table::
    :header-rows: 1
@@ -71,41 +101,27 @@ This server is required only if you are installing and running MMS Backup.
    * - **Number of Hosts**
      - **CPU Cores**
      - **RAM**
-     - **Storage Capacity**
+     - **Disk Space**
      - **Storage IOPS/s**
    * - Up to 200 hosts
      - 4+ 2Ghz+
-     - 15 GB
+     - 15 GB additional RAM
      - Contact MongoDB Account manager
      - Contact MongoDB Account manager
 
-A server running the Backup Daemon Package will act as a hidden secondary for every
-replica set assigned to it. Therefore this system must have the disk
-space and write capacity to maintain for all replica sets. To support
-point in time restore the disk must have capacity to store an
-additional copy of the data. Typically daemons must be able to store 2
-to 2.5 times the data size.
+.. _mms-blockstore-database-specifications:
 
-Before installing MMS Backup we recommend contacting your MongoDB Account
-Manager for assistance in estimating the storage requirements for your Backup
-Daemon server.
+MMS Backup Blockstore Database Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Optional: MMS Backup Blockstore Database Servers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/requirements-backup-blockstore-database.rst
 
-Blockstore servers store snapshots of MongoDB instances. Only
-provision Blockstore servers if you are deploying MMS Backup.
+.. _aws-security-groups:
 
-Blockstores must have the capacity to store 2 to 3 times the total
-backed up data size. Please contact your MongoDB Account
-Manager for assistance in estimating the storage requirements for your
-blockstore server.
+EC2 Security Groups
+-------------------
 
-Medium grade HDDs will have enough I/O throughput to handle the load
-of the Blockstore. Each replica set member should have 4 x 2ghz+ CPU
-cores. We recommend 8 GB of RAM for every 1 TB disk of Blockstore to
-provide good snapshot and restore speed. MMS defines 1 TB of Blockstore
-as 1024\ :sup:`4` bytes.
+.. include:: /includes/requirements-aws-security.rst
 
 Software Requirements
 ---------------------
@@ -115,28 +131,27 @@ Operating System
 
 MMS supports the following 64-bit Linux distributions:
 
-- CentOS 5 or later,
+- CentOS 5 or later
 
-- Red Hat Enterprise Linux 5, or later,
+- Red Hat Enterprise Linux 5, or later
 
-- SUSE 11 or Later,
+- SUSE 11 or Later
 
-- Amazon Linux AMI (latest version only,)
+- Amazon Linux AMI (latest version only)
 
-- Ubuntu 12.04 or later.
+- Ubuntu 12.04 or later
 
 Ulimits
 ~~~~~~~
 
 The MMS packages automatically raise the open file, max user processes, and
 virtual memory ulimits. On Red Hat, be sure to check for a
-``/etc/security/limits.d/90-nproc.conf`` file that may override the
-max user processes limit. If the
-``/etc/security/limits.d/90-nproc.conf`` file exists, remove it before
-continuing.
+``/etc/security/limits.d/90-nproc.conf`` file that may override the max user
+processes limit. If the ``/etc/security/limits.d/90-nproc.conf`` file exists,
+remove it before continuing.
 
-See :manual:`MongoDB ulimit Settings </reference/ulimit>` for
-recommended ultimit settings.
+See :manual:`MongoDB ulimit Settings </reference/ulimit>` for recommended
+ultimit settings.
 
 .. _authentication-requirements:
 
@@ -144,31 +159,31 @@ Authentication
 ~~~~~~~~~~~~~~
 
 If you will use LDAP for authentication, you must enable LDAP **before
-performing any setup of the MMS service**, beyond starting the service.
-You **cannot** enable LDAP once you have opened the interface and signed
-up a user. You can enable LDAP **only** on a completely blank, no-hosts,
-no-users installation.
+performing any setup of the MMS service**, beyond starting the service. You
+**cannot** enable LDAP once you have opened the interface and signed up a
+user. You can enable LDAP **only** on a completely blank, no-hosts, no-users
+installation.
 
 MongoDB
 ~~~~~~~
 
-The MongoDB databases backing MMS must be MongoDB 2.4.9 or later.
-To back up a Replica set with MMS, all members of the set must run at
-least MongoDB 2.2 or later. To back up a sharded cluster, all
-components of the sharded cluster must be MongoDB 2.4.3 or later.
+The MongoDB databases backing MMS must be MongoDB 2.4.9 or later. To back up a
+Replica set with MMS, all members of the set must run at least MongoDB 2.2 or
+later. To back up a sharded cluster, all components of the sharded cluster
+must be MongoDB 2.4.3 or later.
 
 Web Browsers
 ~~~~~~~~~~~~
 
-|mms| supports clients using the following browsers:
+On Prem supports clients using the following browsers:
 
-- Chrome 8 and greater.
+- Chrome 8 and greater
 
-- Firefox 12 and greater.
+- Firefox 12 and greater
 
-- IE 9 and greater.
+- IE 9 and greater
 
-- Safari 6 and greater.
+- Safari 6 and greater
 
 The MMS application will display a warning on non-supported browsers.
 
@@ -179,8 +194,8 @@ MMS requires email for fundamental server functionality such as
 password reset and alerts.
 
 Many Linux server-oriented distributions include a local SMTP server by
-default, for example, Postfix, Exim, or Sendmail. You also may configure
-MMS to send mail via third party providers, including Gmail and Sendgrid.
+default, for example, Postfix, Exim, or Sendmail. You also may configure MMS
+to send mail via third party providers, including Gmail and Sendgrid.
 
 SNMP
 ~~~~
@@ -188,5 +203,5 @@ SNMP
 If your environment includes SNMP, you can configure an SMNP trap receiver
 with periodic heartbeat traps to monitor the internal health of MMS.
 
-For more details, see :ref:`Configure SNMP Heartbeat Support
+For more information, see :ref:`Configure SNMP Heartbeat Support
 <snmp-heartbeat-configure>`.

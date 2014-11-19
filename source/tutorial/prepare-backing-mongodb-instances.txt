@@ -1,116 +1,57 @@
-
-===================================
-Preparing Backing MongoDB Instances
-===================================
+=================================
+Preparing Backing MongoDB Servers
+=================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-A backing MongoDB instance is a dedicated replica set that hosts a
-:ref:`backing database <backing-database>` where MMS stores data. Backing
-instances are dedicated to MMS operations and do not store any other data.
+Backing MongoDB servers run the databases that store MMS data and snapshots.
+MMS requires separate backing servers for the :ref:`MMS Application database
+<mms-application-database>` and the :ref:`MMS Backup Blockstore database
+<mms-backup-blockstore-database>`.
 
-MMS requires separate backing MongoDB instances for the :ref:`MMS
-Application Database <mms-application-database>` and for the :ref:`MMS
-Backup Blockstore Database <mms-backup-blockstore-database>`
+You provision backing MongoDB servers when you install MMS, but if you run out
+of capacity on the MMS Backup Blockstore database, you can add capacity by
+provisioning additional backing servers.
 
-Considerations
---------------
+The databases that run on the backing MongoDB servers:
 
-All backing MongoDB instances must be running MongoDB 2.4.9 or
-later.
+- Store data in support of On Prem operations and store no other data.
 
-A backing MongoDB instance **cannot** run the ``notablescan`` option.
+- Must be running MongoDB 2.4.9 or later.
 
-.. _mms-application-database-specifications:
+- Must have the MongoDB ``security.javascriptEnabled`` set to ``true``, which
+  is the default. The MMS Application uses the :query:`$where` query and
+  requires this setting be enabled on the MMS Application database.
+
+- Must **not** run the MongoDB ``notablescan`` option.
+
+Requirements and Specifications
+-------------------------------
+
+Read the :manual:`MongoDB Production Notes </administration/production-notes>`
+before installing MongoDB and other software on your servers.
 
 MMS Application Database Specifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MMS requires the :ref:`MMS Application Database
-<mms-application-database>` to hold monitoring information.
-
-Topology
-````````
-
-The backing MongoDB instance for the database should be a single
-three-member MongoDB replica set. If you cannot allocate space for three
-databases, you may deploy 2 :program:`mongod` instances that hold data and
-an arbiter.
-
-You may run the :ref:`MMS Application <mms-application-package>` on the same
-physical server as one member of the MMS Application Database replica set. A MongoDB
-standalone may also be used in place of a replica set, but this is not
-recommended for production deployments.
-
-Hardware Specifications
-```````````````````````
-
-For up to 400 monitored hosts, the MMS Application Database requires 200 GB of storage space.
-For up to 2000 monitored hosts, the MMS Application Database requires 500 GB of storage space.
-If you have more than 2000 monitored hosts, please contact your MongoDB Account Manager.
-
-The MMS Application software requires 15 GB of RAM. The MMS Application
-Database requires additional RAM for the monitored hosts, as follows:
-
-- Up to 400 monitored hosts, 8 GB additional RAM.
-
-- Up to 2000 monitored hosts, 15 GB additional RAM.
-
-For the best results use SSD-backed storage.
-
-.. _mms-blockstore-database-specifications:
+.. include:: /includes/requirements-application-database.rst
 
 MMS Backup Blockstore Database Specifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MMS Backup requires a separate, **dedicated** MongoDB replica set to hold
-the Backup Service's snapshot data. This **cannot** be a replica set used
-for purposes other than holding the snapshots. In particular, this cannot
-be a replica set that stores the data the snapshots back up.
+.. include:: /includes/requirements-backup-blockstore-database.rst
 
-The replica set must have at least 3 members **that hold data**. MMS uses
-``w:2`` :manual:`write concern </reference/write-concern>`, which reports
-a write operation as successful after acknowledgement from the primary and
-one secondary. If you use a replica set with fewer than 3 data-holding
-members, and if you lose one of the members, MongoDB blocks write operations.
+Procedure
+---------
 
-The replica set should have enough capacity to store 2 to 3 times the
-total backed-up data size.
+To create replica sets, start the :program:`mongod` instances for each member
+of a new replica set, configure the replica set, then add the
+:program:`mongod` instances to the replica set. For more information, see
+:manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the MongoDB
+manual.
 
-Prior to installing MMS Backup, consider contacting your MongoDB Account
-Manager to arrange a sizing consultation for the MMS Backup database.
-
-For testing *only* you may use a standalone :program:`mongod` instance
-in place of a replica set.
-
-Prerequisites
--------------
-
-Read the :manual:`MongoDB Production Notes
-</administration/production-notes>` before installing
-MongoDB and other software on your servers.
-
-The MMS Application requires :query:`$where`. As a result, you must
-ensure that :setting:`security.javaScriptEnabled` is ``true``, which
-is the default, for all backing :program:`mongod` instances.
-
-Procedures
-----------
-
-To create replica sets, start the :program:`mongod` instances for each
-member of a new replica set, configure the replica set, then add the
-:program:`mongod` instances to the replica set.
-
-The :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` guide
-has step by step details how to setup and deploy replica sets for use as
-backing MongoDBs for MMS.
-
-Each backing instance should be a single three-member MongoDB replica
-set. If you cannot allocate 3 data instances, you may deploy 2
-:program:`mongod` instances that hold data and one arbiter.
-
-For additional information on installing MongoDB, see :manual:`Install
-MongoDB </installation/>`.
+For information on installing MongoDB, see :manual:`Install MongoDB
+</installation/>`.

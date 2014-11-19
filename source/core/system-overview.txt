@@ -4,16 +4,17 @@ On Prem MMS Components
 
 .. default-domain:: mongodb
 
-An On Prem installation uses the :ref:`mms-application-package` and,
-optionally, the :ref:`backup-daemon-package`.
+An On Prem installation consists of the :ref:`mms-application-package` and,
+optionally, the :ref:`backup-daemon`. Each package also requires a MongoDB
+database to hold operational data.
 
-See :doc:`/core/deployments` for diagrams of potential deployment
-architectures and :doc:`/reference/on-prem` for system reference.
+For deployment diagrams, see :doc:`/reference/on-prem`. For default ports and
+health-check endpoints, see :doc:`/reference/on-prem`.
 
 .. _mms-application-package:
 
-MMS Application Package
------------------------
+MMS Application
+---------------
 
 The front-end package contains the UI the end user interacts with, as
 well as HTTPS services used by the Monitoring Agent and Backup Agent
@@ -26,11 +27,11 @@ interact with any instance.
 For MMS Monitoring, you **only** need to install the application
 package. The application package consists of the following components:
 
-- MMS Application and Monitoring Server
+- :ref:`MMS HTTP Service <mms-http-service>`
 
-- MMS Backup Ingestion Server
+- :ref:`Backup HTTP Service <backup-http-service>`
 
-- MMS Backup Alerts Service
+- :ref:`Backup Alert Service <backup-alert-service>`
 
 .. _mms-http-service:
 
@@ -56,12 +57,11 @@ back initial sync and oplog data through this interface. There is no
 user interaction with this service. The Backup HTTP service runs on
 port ``8081`` by default.
 
-The Backup HTTP Service exposes an endpoint that reports on the state
-of the service and the underlying database to support monitoring of
-the Backup service. This status also checks the connections from the
-service to the :ref:`MMS Application Database
-<mms-application-database>` and the :ref:`MMS Backup Blockstore
-Database <mms-backup-blockstore-database>`. See
+The Backup HTTP Service exposes an endpoint that reports on the state of the
+service and the underlying database to support monitoring of the Backup
+service. This status also checks the connections from the service to the
+:ref:`MMS Application database <mms-application-database>` and the :ref:`MMS
+Backup Blockstore database <mms-backup-blockstore-database>`. See
 :ref:`backup-http-service-endpoint`.
 
 .. _backup-alert-service:
@@ -74,23 +74,16 @@ of backed up databases, and snapshots. It sends email alerts as
 problems occur. The Backup Alert Service exposes a health-check endpoint.
 See :ref:`backup-alert-service-endpoint`.
 
-.. _backup-daemon-package:
-
-Backup Daemon Package
----------------------
-
 .. _backup-daemon:
 
 Backup Daemon
-~~~~~~~~~~~~~
+-------------
 
-The Backup Daemon is the only component in the Backup Daemon
-Package. The Backup Daemon manages all local copies of backed up
-database (i.e. HEADs) as well as backup snapshots. The daemon
-does scheduled work based on data coming in to the Backup HTTP Service
-from the Backup Agents. No client applications talk directly to the
-daemon. Its state and job queues come from the
-:ref:`MMS Application Database <mms-application-database>`.
+The Backup Daemon manages all local copies of backed up database (i.e. HEADs)
+as well as backup snapshots. The daemon does scheduled work based on data
+coming in to the Backup HTTP Service from the Backup Agents. No client
+applications talk directly to the daemon. Its state and job queues come from
+the :ref:`MMS Application database <mms-application-database>`.
 
 The daemon creates a local copy of the backed up database on in its
 local storage in the :setting:`rootDirectory` path. If you run
@@ -98,10 +91,9 @@ multiple Backup Daemons, when you add a new backup the system selects
 a daemon for that instance and the local copy of that instance resides
 with that Daemon.
 
-The daemon will take scheduled snapshots and store the snapshots in
-the Snapshot Storage (also known as the :ref:`Blockstore
-<mms-backup-blockstore-database>`). It will also act
-on restore requests by retrieving data from the Blockstore and
+The daemon will take scheduled snapshots and store the snapshots in the
+:ref:`Backup Blockstore database <mms-backup-blockstore-database>`. It will
+also act on restore requests by retrieving data from the Blockstore and
 delivering it to the requested destination.
 
 The server running the Backup Daemon acts as a :manual:`hidden secondary
@@ -114,23 +106,21 @@ storage by scaling horizontally and can provide **manual** failover.
 The Backup Daemon exposes a health-check endpoint. See
 :ref:`backup-daemon-endpoint`.
 
-.. _backing-database:
-
 Data Storage
 ------------
 
-MMS uses dedicated MongoDB databases to store the MMS Application's
-monitoring data and the Backup Service's snapshots. The "backing
-databases," run on separate dedicated replica sets, which are the
-:doc:`backing MongoDB instances </tutorial/prepare-backing-mongodb-instances>`.
+MMS uses dedicated MongoDB databases to store the MMS Application's monitoring
+data and the Backup Service's snapshots. The backing databases run on separate
+dedicated replica sets, which are the :doc:`backing MongoDB instances
+</tutorial/prepare-backing-mongodb-instances>`.
 
-You can only use backing MongoDB instances for than storing MMS
-data. MMS requires that you use separate replica sets for each backing
-database and that these instances *only* host MMS data.
+You can use backing MongoDB instances only for storing MMS data. MMS requires
+that you use separate replica sets for each database and that these instances
+*only* host MMS data.
 
-The backing databases are not part of the MMS package installation. Set
-them up separately and record their locations in the MMS configuration
-files.
+The databases are not part of the MMS package installations. Set them up
+separately and record their locations in the :doc:`MMS configuration files
+</reference/configuration>`.
 
 .. _mms-application-database:
 
@@ -138,7 +128,7 @@ MMS Application Database
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 This database contains application metadata that is used by the :ref:`MMS
-monitoring application <mms-application-package>`. The database stores:
+MMS Application <mms-application-package>`. The database stores:
 
 - Monitoring data collected from Monitoring Agents.
 
@@ -153,16 +143,15 @@ For topology and specifications, see
 MMS Backup Blockstore Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This database contains all snapshots of databases backed up
-and oplogs retained for point in time restores. The blockstore
-database
-will require disk space proportional to the backed up databases.
+This database contains all snapshots of databases backed up and oplogs
+retained for point in time restores. The Backup Blockstore database requires
+disk space proportional to the backed-up databases.
 
-Configure the Blockstore as a replica set to provide durability and
-automatic failover to the backup and restore components.
-The replica set must have at least three members that hold data.
+Configure the Blockstore as a replica set to provide durability and automatic
+failover to the backup and restore components. The replica set must have at
+least three members that hold data.
 
-You **cannot** backup the blockstore database with MMS Backup.
+You **cannot** backup the Blockstore database with MMS Backup.
 
 For additional specifications, see
 :ref:`mms-blockstore-database-specifications`.
