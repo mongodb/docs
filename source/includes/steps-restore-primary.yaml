@@ -18,8 +18,9 @@ pre: |
 action:
   pre: |
     Extract the data files to the location where the :program:`mongod`
-    instance will access them, as specified in the :setting:`dbpath`
-    setting. For example:
+    instance will access them through the :setting:`dbpath` setting. If you
+    are restoring to existing hardware, use a different data directory than
+    used previously. The following are example commands:
   language: sh
   code: |
     tar -xvf <backup-restore-name>.tar.gz
@@ -33,7 +34,7 @@ action:
     For example:
   language: sh
   code: |
-    mongod --dbpath /<path-to-data> --replSet <replica-set-name>
+    mongod --dbpath /<path-to-data> --replSet <replica-set-name> --logpath /<path-to-data>/mongodb.log --fork
 ---
 title: Connect to the primary and initiate the replica set.
 stepnum: 4
@@ -65,7 +66,7 @@ action:
       And then restart *as a standalone*:
     language: sh
     code: |
-      mongod --dbpath /<path-to-data>
+      mongod --dbpath /<path-to-data> --logpath /<path-to-data>/mongodb.log --fork
 ---
 title: "Connect to the primary and drop the :term:`oplog`."
 stepnum: 6
@@ -88,13 +89,15 @@ stepnum: 7
 ref: seed
 pre: |
   The seedSecondary.sh script re-creates the oplog collection and seeds it
-  with correct timestamp. The file is included in the backup restore file,
-  :ref:`except in certain circumstances <seed-secondary-considerations>`.
+  with the timestamp of the snapshot's creation. This will allow the secondary
+  to come back up to time without requiring a full initial sync. This script
+  is customized by MMS for this particular snapshot and is included in the
+  backup restore file.
 action:
   pre: |
     To run the script, issue the following command at the system prompt,
     where ``<mongod-port>`` is the port of the :program:`mongod` instance
-    and <oplog-size-in-gigabytes> is the size of the replica set's oplog:
+    and ``<oplog-size-in-gigabytes>`` is the size of the replica set's oplog:
   language: sh
   code: |
     ./seedSecondary.sh <mongod-port> <oplog-size-in-gigabytes>
