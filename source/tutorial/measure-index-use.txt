@@ -25,32 +25,61 @@ Operations
 Return Query Plan with ``explain()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Append the :method:`~cursor.explain()` method to any cursor
-(e.g. query) to return a document with statistics about the query
-process, including the index used, the number of documents scanned,
-and the time the query takes to process in milliseconds.
+Use the :method:`db.collection.explain()` or the
+:method:`cursor.explain()` method in :ref:`executionStats
+<explain-method-executionStats>` mode to return statistics about the
+query process, including the index used, the number of documents
+scanned, and the time the query takes to process in milliseconds.
+
+Run :method:`db.collection.explain()` or the :method:`cursor.explain()`
+method in :ref:`allPlansExecution <explain-method-allPlansExecution>`
+mode to view partial execution statistics collected during plan
+selection.
+
+.. include:: /includes/fact-explain-collection-method.rst
 
 Control Index Use with ``hint()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Append the :method:`~cursor.hint()` to any cursor (e.g.
-query) with the index as the argument to *force* MongoDB
-to use a specific index to fulfill the query. Consider the following
-example:
+To *force* MongoDB to use a particular index for a
+:method:`db.collection.find()` operation, specify the index with the
+:method:`~cursor.hint()` method. Append the :method:`~cursor.hint()`
+method to the :method:`~db.collection.find()` method. Consider the
+following example:
 
 .. code-block:: javascript
 
-   db.people.find( { name: "John Doe", zipcode: { $gt: "63000" } } ).hint( { zipcode: 1 } )
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } )
 
-You can use :method:`~cursor.hint()` and :method:`~cursor.explain()` in
-conjunction with each other to compare the effectiveness of a specific
-index. Specify the ``$natural`` operator to the
-:method:`~cursor.hint()` method to prevent MongoDB from using *any*
-index:
+To view the execution statistics for a specific index, append to the
+:method:`db.collection.find()` the :method:`~cursor.hint()` method
+followed by :method:`cursor.explain()`, e.g.:
 
 .. code-block:: javascript
 
-   db.people.find( { name: "John Doe", zipcode: { $gt: "63000" } } ).hint( { $natural: 1 } )
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } ).explain("executionStats")
+
+Or, append :method:`~cursor.hint()` method to
+:method:`db.collection.explain().find() <db.collection.explain()>`:
+
+.. code-block:: javascript
+
+   db.people.explain("executionStats").find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } )
+
+Specify the ``$natural`` operator to the :method:`~cursor.hint()`
+method to prevent MongoDB from using *any* index:
+
+.. code-block:: javascript
+
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { $natural: 1 } )
 
 Instance Index Use Reporting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

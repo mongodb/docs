@@ -1,0 +1,429 @@
+===============
+Explain Results
+===============
+
+.. default-domain:: mongodb
+
+.. versionchanged:: 2.8
+
+MongoDB provides the :method:`db.collection.explain()` method, the
+:method:`cursor.explain()` method, and the :dbcommand:`explain` command
+to return information on query plans and execution statistics of the
+query plans.
+
+The ``explain`` results present the query plans as a tree of stages.
+Each stage passes its results (i.e. documents or index keys) to the
+parent node. The leaf nodes access the collection or the indices. The
+internal nodes manipulate the documents or the index keys that result
+from the child nodes. The root node is the final stage from which
+MongoDB derives the result set.
+
+Stages are descriptive of the operation; e.g.
+
+- ``COLLSCAN`` for a collection scan
+
+- ``IXSCAN`` for scanning index keys
+
+- ``FETCH`` for retrieving documents
+
+- ``SHARD_MERGE`` for merging results from shards
+
+Explain Output
+--------------
+
+The following sections presents a list of some key fields returned by
+the ``explain`` operation.
+
+.. note::
+
+   - The list of fields is not meant to be exhaustive, but is meant to
+     highlight some key field changes from earlier versions of explain.
+
+   - The output format is subject to change between releases.
+
+.. _queryPlanner:
+
+``queryPlanner``
+~~~~~~~~~~~~~~~~
+
+:data:`~explain.queryPlanner` information details the plan selected by
+the :doc:`query optimizer </core/query-plans>`.
+
+For unsharded collections, ``explain`` returns the following
+information:
+
+.. code-block:: none
+
+   {
+      "queryPlanner" : {
+         "plannerVersion" : <int>,
+         "parsedQuery" : {
+            ...
+         },
+         "winningPlan" : {
+            "stage" : <STAGE1>,
+            ...
+            "inputStage" : {
+               "stage" : <STAGE2>,
+               ...
+               "inputStage" : {
+                  ...
+               }
+            }
+         },
+         "rejectedPlans" : [ 
+            <candidate plan 1>,
+            ...
+         ]
+      }
+
+.. data:: explain.queryPlanner
+
+   Contains information on the selection of the query plan by the
+   :doc:`query optimizer </core/query-plans>`.
+
+   .. data:: explain.winningPlan
+
+      A document that details the plan selected by the :doc:`query
+      optimizer </core/query-plans>`. MongoDB presents the plan as a
+      tree of stages; i.e. a stage can have an
+      :data:`~explain.winningPlan.inputStage` or
+      :data:`~explain.winningPlan.inputStages`.
+
+      .. data:: explain.winningPlan.stage
+
+         A string that denotes the name of the stage.
+
+         Each stage consists of information specific to the stage. For
+         instance, an ``IXSCAN`` stage will include the index bounds
+         along with other data specific to the index scan.
+
+      .. data:: explain.winningPlan.inputStage
+
+         A document that describes the child stage, which provides the
+         documents or index keys to its parent. The field is present
+         *if* the parent stage has only one child.
+
+      .. data:: explain.winningPlan.inputStages
+
+         An array of documents describing the child stages. Child
+         stages provide the documents or index keys to the parent
+         stage. The field is present *if* the parent stage has multiple
+         child nodes. For example, stages for :ref:`$or expressions
+         <explain-output-or-expression>` or :ref:`index intersection
+         <explain-output-index-intersection>` consume input from
+         multiple sources.
+
+   .. data:: explain.rejectedPlans
+
+      Array of candidate plans considered and rejected by the
+      query optimizer. The array can be empty if there were no other
+      candidate plans.
+
+For sharded collections, the winning plan includes the
+:data:`~explain.shards` array which contains the plan information for
+each accessed shard. For details, see :ref:`explain-sharded-collection`.
+
+.. _executionStats:
+
+``executionStats``
+~~~~~~~~~~~~~~~~~~
+
+The returned :data:`~explain.executionStats` information details the
+execution of the winning plan.
+
+You must run the explain in :ref:`executionStats
+<explain-method-executionStats>` or :ref:`allPlansExecution
+<explain-method-allPlansExecution>` verbosity mode in order for
+``executionStats`` to be present in the results.
+
+To include partial execution data captured during :ref:`plan selection
+<query-plans-query-optimization>`, you must run in
+``allPlansExecution`` mode.
+
+For unsharded collections, ``explain`` returns the following
+information:
+
+.. code-block:: none
+
+   "executionStats" : {
+      "executionSuccess" : <boolean>,
+      "nReturned" : <int>,
+      "executionTimeMillis" : <int>,
+      "totalKeysExamined" : <int>,
+      "totalDocsExamined" : <int>,
+      "executionStages" : {
+         "stage" : <STAGE1>
+         "nReturned" : <int>,
+         "executionTimeMillisEstimate" : <int>,
+         ...
+         "inputStage" : {
+            "stage" : <STAGE2>,
+            ...
+            "nReturned" : 0,
+            "executionTimeMillisEstimate" : 0,
+            ...
+            "inputStage" : {
+               ...
+            }
+         }
+      },
+      "allPlansExecution" : [
+         { <partial executionStats1> },
+         { <partial executionStats2> },
+         ...
+      ]
+   }
+
+.. data:: explain.executionStats
+
+   Contains statistics that describe the completed query execution for
+   the winning plan. For write operations, completed query execution
+   refers to the modifications that *would* be performed, but does
+   *not* apply the modifications to the database.
+      
+   .. data:: explain.nReturned
+
+      Number of documents that match the query condition.
+      :data:`~explain.nReturned` corresponds to the ``n`` field
+      returned by ``cursor.explain()`` in earlier versions of MongoDB.
+
+   .. data:: explain.executionTimeMillis
+
+      Total time in milliseconds required for query plan selection and
+      query execution. :data:`~explain.executionTimeMillis` corresponds
+      to the ``millis`` field returned by ``cursor.explain()`` in
+      earlier versions of MongoDB.
+
+   .. data:: explain.totalKeysExamined
+
+      Number of index entries scanned.
+      :data:`~explain.totalKeysExamined` corresponds to the
+      ``nscanned`` field returned by ``cursor.explain()`` in earlier
+      versions of MongoDB.
+
+   .. data:: explain.totalDocsExamined
+
+      Number of documents scanned. In earlier versions of MongoDB,
+      :data:`~explain.totalDocsExamined` corresponds to the
+      ``nscannedObjects`` field returned by ``cursor.explain()`` in
+      earlier versions of MongoDB.
+
+   .. data:: explain.executionStages
+
+      Details the completed execution of the winning plan as a tree of
+      stages; i.e. a stage can have an ``inputStage`` or multiple
+      ``inputStages``.
+
+      Each stage consists of execution information specific to the
+      stage.
+
+   .. data:: explain.executionStats.allPlansExecution
+
+      Contains *partial* execution information captured during the
+      :ref:`plan selection phase <query-plans-query-optimization>` for
+      both the winning and rejected plans. The field is present only if
+      ``explain`` runs in ``allPlansExecution`` verbosity mode.
+
+For sharded collections, ``explain`` also includes the execution
+statistics for each accessed shard. For details, see
+:ref:`explain-sharded-collection`.
+
+.. _serverInfo:
+
+``serverInfo``
+~~~~~~~~~~~~~~
+
+For unsharded collections, ``explain`` returns the following
+information for the MongoDB instance:
+
+.. code-block:: none
+
+   "serverInfo" : {
+      "host" : <string>,
+      "port" : <int>,
+      "version" : <string>,
+      "gitVersion" : <string>
+   }
+
+For sharded collections, ``explain`` returns the
+:data:`~explain.serverInfo` for each accessed shard. For details, see
+:ref:`explain-sharded-collection`.
+
+.. _explain-sharded-collection:
+
+Sharded Collection
+------------------
+
+For sharded collections, ``explain`` returns the core query planner and
+server information for each accessed shard in the ``shards`` field:
+
+.. code-block:: javascript
+
+   {
+      "queryPlanner" : {
+         ...
+         "winningPlan" : {
+            ...
+            "shards" : [
+               {
+                 "shardName" : <shard>,
+                 <queryPlanner information for shard>,
+                 <serverInfo for shard>
+               },
+               ...
+            ],
+         },
+      },
+      "executionStats" : {
+         ...
+         "executionStages" : {
+            ...
+            "shards" : [
+               {
+                  "shardName" : <shard>,
+                  <executionStats for shard>
+               },
+               ...
+            ]
+         },
+         "allPlansExecution" : [
+            {
+               "shardName" : <string>,
+               "allPlans" : [ ... ]
+            },
+            ...
+         ]
+      }
+   }
+
+.. data:: explain.winningPlan.shards
+
+   Array of documents that contain :data:`~explain.queryPlanner` and
+   :data:`~data.serverInfo` for each accessed shard.
+
+.. data:: explain.executionStages.shards
+
+   Array of documents that contain :data:`~explain.executionStats`
+   for each accessed shard.
+
+Compatibility Changes
+---------------------
+
+.. versionchanged:: 2.8
+
+The format and fields of the ``explain`` results have changed from
+previous versions. The following lists some key differences.
+
+.. _explain-output-collection-scan:
+ 
+Collection Scan vs. Index Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the query planner selects a collection scan, the explain result
+includes a ``COLLSCAN`` stage.
+
+If the query planner selects an index, the explain result includes a
+``IXSCAN`` stage. The stage includes information such as the index
+key pattern, direction of traversal, and index bounds.
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``cursor`` field with the value of:
+
+- ``BasicCursor`` for collection scans, and
+
+- ``BtreeCursor <index name> [<direction>]`` for index scans.
+
+For more information on execution statistics of collection scans versus
+index scans, see :doc:`/tutorial/analyze-query-plan`.
+
+.. _explain-output-covered-queries:
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+When an index covers a query, MongoDB can both match the query
+conditions **and** return the results using only the index keys; i.e.
+MongoDB does not need to examine documents from the collection to
+return the results.
+
+When an index covers a query, the explain result has an ``IXSCAN``
+stage that is **not** a descendent of a ``FETCH`` stage, and in the
+:ref:`executionStats`, the :data:`~explain.totalDocsExamined` is ``0``.
+
+In earlier versions of MongoDB, ``cursor.explain()`` returned the
+``indexOnly`` field to indicate whether the index covered a query.
+
+.. _explain-output-index-intersection:
+
+Index Intersection
+~~~~~~~~~~~~~~~~~~
+
+For an :doc:`index intersection plan </core/index-intersection>`, the
+result will include either an ``AND_SORTED`` stage or an ``AND_HASH``
+stage with an :data:`~explain.winningPlan.inputStages` array that
+details the indexes; e.g.:
+
+.. code-block:: javascript
+
+   { 
+      "stage" : "AND_SORTED",
+      "inputStages" : [
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         {
+            "stage" : "IXSCAN",
+            ...
+         }
+      ]
+   }
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``cursor`` field with the value of ``Complex Plan`` for index
+intersections.
+
+.. _explain-output-or-expression:
+
+``$or`` Expression
+~~~~~~~~~~~~~~~~~~
+
+If MongoDB uses indexes for an :query:`$or` expression, the result will
+include the ``OR`` stage with an
+:data:`~explain.winningPlan.inputStages` array that
+details the indexes; e.g.:
+
+.. code-block:: javascript
+
+   { 
+      "stage" : "OR",
+      "inputStages" : [
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         {
+            "stage" : "IXSCAN",
+            ...
+         },
+         ...
+      ]
+   }
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``clauses`` array that detailed the indexes.
+
+.. _explain-output-sort:
+
+Sort Stage
+``````````
+
+If MongoDB can use an index scan to obtain the requested sort order,
+the result will **not** include a ``SORT`` stage. Otherwise, if MongoDB
+cannot use the index to sort, the ``explain`` result will include a
+``SORT`` stage.
+
+In previous versions of MongoDB, ``cursor.explain()`` returned the
+``scanAndOrder`` field to specify whether MongoDB could use the index
+order to return sorted results.

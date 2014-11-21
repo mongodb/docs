@@ -9,7 +9,7 @@ ref: explain-query
 action:
   language: javascript
   code: |
-     db.inventory.find( { "item": "MNO2" } ).explain()
+     db.inventory.find( { "item": "MNO2" } ).explain("executionStats")
 ---
 title:
   text: Review the returned object.
@@ -23,40 +23,47 @@ action:
   language: javascript
   code: |
      {
-        "cursor" : "BtreeCursor item_1",
-        "isMultiKey" : false,
-        "n" : 1,
-        "nscannedObjects" : 1,
-        "nscanned" : 1,
-        "nscannedObjectsAllPlans" : 1,
-        "nscannedAllPlans" : 1,
-        "scanAndOrder" : false,
-        "indexOnly" : false,
-        "nYields" : 0,
-        "nChunkSkips" : 0,
-        "millis" : 4,
-        "indexBounds" : {
-            "item" : [
-                 [
-                    "MNO2",
-                    "MNO2"
-                 ]
-            ]
+        "queryPlanner" : {
+           "plannerVersion" : 1,
+           "parsedQuery" : { "item" : { "$eq" : "MNO2" } },
+           "winningPlan" : {
+              "stage" : "FETCH",
+              "inputStage" : {
+                 "stage" : "IXSCAN",
+                 "keyPattern" : { "item" : 1 },
+                 "isMultiKey" : false,
+                 "direction" : "forward",
+                 "indexBounds" : { "item" : [ "[\"MNO2\", \"MNO2\"]" ] }
+              }
+           },
+           "rejectedPlans" : [ ]
         },
-        "server" : "someserver.local:27017",
-        "filterSet" : false
+        "executionStats" : {
+           "executionSuccess" : true,
+           "nReturned" : 1,
+           "executionTimeMillis" : 0,
+           "totalKeysExamined" : 1,
+           "totalDocsExamined" : 1,
+           "executionStages" : {
+              "stage" : "FETCH",
+              "nReturned" : 1,
+              "executionTimeMillisEstimate" : 0,
+              ...
+              "inputStage" : {
+                 "stage" : "IXSCAN",
+                 "nReturned" : 1,
+                 "executionTimeMillisEstimate" : 0,
+                 ...
+              }
+           }
+        },
+        "serverInfo" : {
+           ...
+        },
+        "ok" : 1
      }
 post: |
-   The :data:`~explain.cursor` value of ``"BtreeCursor item_1"`` indicates
-   that the server used an index named ``item_1``.
-
-   The :data:`~explain.n` indicates MongoDB found and returned ``1``
-   document that matched the query condition.
-
-   The :data:`~explain.nscannedObjects` value indicates the number of
-   index entries read from the collection.
-
-   For more information on the fields in the returned document, see the
+   For information on the fields in the returned document, see the
    :manual:`Explain Output Reference
-   </reference/method/cursor.explain/#explain-output-fields>`.
+   </reference/explain-results>`.
 ...

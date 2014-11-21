@@ -1,19 +1,14 @@
 Specifies the verbosity mode for the explain output. The mode affects
 the behavior of ``explain()`` and determines the amount of information
-to return.
+to return. The possible modes are: ``"queryPlanner"``,
+``"executionStats"``, and ``"allPlansExecution"``.
 
-The possible modes are: :ref:`"queryPlanner"
-<explain-method-queryPlanner>`, :ref:`"executionStats"
-<explain-method-executionStats>`, and :ref:`"allPlansExecution"
-<explain-method-allPlansExecution>`.
+Default mode is ``"queryPlanner"``.
 
-For backwards compatibility with :method:`cursor.explain()`, MongoDB
-interprets ``true`` as :ref:`"allPlansExecution"
-<explain-allPlansExecution>` and ``false`` as :ref:`"queryPlanner"
-<explain-queryPlanner>`.
+.. COMMENT for docs team - 
+   unlike the explain command, for the shell helpers, queryPlanner is
+   the default.
 
-Default mode is :ref:`"queryPlanner" <explain-method-queryPlanner>`.
-
-For more information on the modes, see :ref:`explain-method-verbosity`.
-
-.. COMMENT unlike the explain command, for the methods, queryPlanner is the default.
+For backwards compatibility with earlier versions of
+:method:`cursor.explain()`, MongoDB interprets ``true`` as
+``"allPlansExecution"`` and ``false`` as ``"queryPlanner"``.

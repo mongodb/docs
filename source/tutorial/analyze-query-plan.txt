@@ -4,9 +4,13 @@ Analyze Query Performance
 
 .. default-domain:: mongodb
 
-The :method:`~cursor.explain()` cursor method provides statistics about
-the performance of a query. This data output can be useful in measuring
-if and how a query uses an index. [#timing-caveat]_
+The :method:`cursor.explain("executionStats") <cursor.explain()>` and
+the :method:`db.collection.explain("executionStats")
+<db.collection.explain()>` methods provide statistics about the
+performance of a query. This data output can be useful in measuring if
+and how a query uses an index.
+
+.. include:: /includes/fact-explain-collection-method.rst
 
 Evaluate the Performance of a Query
 -----------------------------------
@@ -46,48 +50,58 @@ The query returns the following documents:
    { "_id" : 3, "item" : "p1", "type" : "paper", "quantity" : 200 }
    { "_id" : 4, "item" : "p2", "type" : "paper", "quantity" : 150 }
 
-To view the query plan selected, use the :method:`~cursor.explain()`
-method:
+To view the query plan selected, use the
+:method:`~cursor.explain("executionStats")` method:
 
 .. code-block:: javascript
 
-   db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } ).explain()
+   db.inventory.find( 
+      { quantity: { $gte: 100, $lte: 200 } }
+   ).explain("executionStats")
 
-The :method:`~cursor.explain()` method returns this output:
+:method:`~cursor.explain()` returns the following results:
 
 .. code-block:: javascript
 
    {
-      "cursor" : "BasicCursor",
-      "isMultiKey" : false,
-      "n" : 3,
-      "nscannedObjects" : 10,
-      "nscanned" : 10,
-      "nscannedObjectsAllPlans" : 10,
-      "nscannedAllPlans" : 10,
-      "scanAndOrder" : false,
-      "indexOnly" : false,
-      "nYields" : 0,
-      "nChunkSkips" : 0,
-      "millis" : 0,
-      "server" : "myMongoDB.local:27017",
-      "filterSet" : false
+      "queryPlanner" : {
+            "plannerVersion" : 1,
+            ...
+            "winningPlan" : {
+               "stage" : "COLLSCAN",
+               ...
+            }
+      },
+      "executionStats" : {
+         "executionSuccess" : true,
+         "nReturned" : 3,
+         "executionTimeMillis" : 0,
+         "totalKeysExamined" : 0,
+         "totalDocsExamined" : 10,
+         "executionStages" : {
+            "stage" : "COLLSCAN",
+            ...
+         },
+         ...
+      },
+      ...
    }
 
-- :data:`~explain.cursor` displays ``BasicCursor`` to indicate a
-  collection scan.
+- :data:`winningPlan.stage <explain.winningPlan.stage>` displays
+  ``COLLSCAN`` to indicate a collection scan.
 
-- :data:`~explain.n` displays ``3`` to indicate that the query matches
-  and returns three documents.
-
-- :data:`~explain.nscanned` and :data:`~explain.nscannedObjects`
-  display ``10`` to indicate that MongoDB had to scan ten documents
-  (i.e. all documents in the collection) to find the three matching
+- :data:`executionStats.nReturned <explain.nReturned>`
+  displays ``3`` to indicate that the query matches and returns three
   documents.
 
+- :data:`executionStats.totalDocsExamined
+  <explain.totalDocsExamined>` display ``10`` to
+  indicate that MongoDB had to scan ten documents (i.e. all documents
+  in the collection) to find the three matching documents.
+
 The difference between the number of matching documents and the number
-documents scanned may suggest that, to improve efficiency, the query
-might benefit from the use of an index.
+of examined documents may suggest that, to improve efficiency, the
+query might benefit from the use of an index.
 
 .. _analyze-index:
 
@@ -101,46 +115,65 @@ To support the query on the ``quantity`` field, add an index on the
 
    db.inventory.ensureIndex( { quantity: 1 } )
 
-To view the query plan statistics, use the :method:`~cursor.explain()`
-method:
+To view the query plan statistics, use the
+:method:`~cursor.explain("executionStats")` method:
 
 .. code-block:: javascript
 
-   db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } ).explain()
+   db.inventory.find(
+      { quantity: { $gte: 100, $lte: 200 } }
+   ).explain("executionStats")
 
-The :method:`~cursor.explain()` method returns this output:
+The :method:`~cursor.explain()` method returns the following results:
 
 .. code-block:: javascript
 
    {
-      "cursor" : "BtreeCursor quantity_1",
-      "isMultiKey" : false,
-      "n" : 3,
-      "nscannedObjects" : 3,
-      "nscanned" : 3,
-      "nscannedObjectsAllPlans" : 3,
-      "nscannedAllPlans" : 3,
-      "scanAndOrder" : false,
-      "indexOnly" : false,
-      "nYields" : 0,
-      "nChunkSkips" : 0,
-      "millis" : 0,
-      "indexBounds" : { "quantity" : [ [ 100, 200 ] ] },
-      "server" : "myMongoDB.local:27017",
-      "filterSet" : false
+      "queryPlanner" : {
+         "plannerVersion" : 1,
+         ...
+         "winningPlan" : {
+            "stage" : "FETCH",
+            "inputStage" : {
+               "stage" : "IXSCAN",
+               "keyPattern" : {
+                  "quantity" : 1
+               },
+               ...
+               }
+            }
+         },
+         "rejectedPlans" : [ ]
+      },
+      "executionStats" : {
+         "executionSuccess" : true,
+         "nReturned" : 3,
+         "executionTimeMillis" : 0,
+         "totalKeysExamined" : 3,
+         "totalDocsExamined" : 3,
+         "executionStages" : {
+            ...
+         },
+         ...
+      },
+      ... 
    }
 
-- :data:`~explain.cursor` displays ``BtreeCursor quantity_1`` to
-  indicate index use and the name of the index.
+- :data:`winningPlan.stage.inputStage.stage
+  <explain.winningPlan.inputStage>` displays ``IXSCAN`` to indicate
+  index use.
 
-- :data:`~explain.n` displays ``3`` to indicate that the query
-  matches and returns three documents.
+- :data:`executionStats.nReturned <explain.nReturned>`
+  displays ``3`` to indicate that the query matches and returns three
+  documents.
 
-- :data:`~explain.nscanned` displays ``3`` to indicate that MongoDB
-  scanned three index entries.
+- :data:`executionStats.totalKeysExamined
+  <explain.totalKeysExamined>` display ``3`` to indicate
+  that MongoDB scanned three index entries.
 
-- :data:`~explain.nscannedObjects` displays ``3`` to indicate that
-  MongoDB scanned three documents.
+- :data:`executionStats.totalDocsExamined
+  <explain.totalDocsExamined>` display ``3` to indicate
+  that MongoDB scanned three documents.
 
 When run with an index, the query scanned ``3`` index entries and ``3``
 documents to return ``3`` matching documents. Without the index, to
@@ -186,54 +219,100 @@ Evaluate the effect of the first index on the query:
 
 .. code-block:: javascript
 
-   db.inventory.find( { quantity: { $gte: 100, $lte: 300 }, type: "food" } ).hint({ quantity: 1, type: 1 }).explain()
+   db.inventory.find(
+      { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+   ).hint({ quantity: 1, type: 1 }).explain("executionStats")
 
 The :method:`~cursor.explain()` method returns the following output:
 
 .. code-block:: javascript
 
    {
-      "cursor" : "BtreeCursor quantity_1_type_1",
-      "isMultiKey" : false,
-      "n" : 2,
-      "nscannedObjects" : 2,
-      "nscanned" : 5,
+      "queryPlanner" : {
+         ...
+         "winningPlan" : {
+            "stage" : "FETCH",
+            "inputStage" : {
+               "stage" : "IXSCAN",
+               "keyPattern" : {
+                  "quantity" : 1,
+                  "type" : 1
+               },
+               ...
+               }
+            }
+         },
+         "rejectedPlans" : [ ]
+      },
+      "executionStats" : {
+         "executionSuccess" : true,
+         "nReturned" : 2,
+         "executionTimeMillis" : 0,
+         "totalKeysExamined" : 5,
+         "totalDocsExamined" : 2,
+         "executionStages" : {
+         ...
+         }
+      },
       ...
    }
 
-MongoDB scanned ``5`` index keys (:data:`~explain.nscanned`) to return
-``2`` matching documents (:data:`~explain.n`).
+MongoDB scanned ``5`` index keys
+(:data:`executionStats.totalKeysExamined
+<explain.totalKeysExamined>`) to return ``2`` matching
+documents (:data:`executionStats.nReturned
+<explain.nReturned>`).
 
 Evaluate the effect of the second index on the query:
 
 .. code-block:: javascript
 
-   db.inventory.find( { quantity: { $gte: 100, $lte: 300 }, type: "food" } ).hint({ type: 1, quantity: 1 }).explain()
+   db.inventory.find(
+      { quantity: { $gte: 100, $lte: 300 }, type: "food" }
+   ).hint({ type: 1, quantity: 1 }).explain("executionStats")
 
 The :method:`~cursor.explain()` method returns the following output:
 
 .. code-block:: javascript
 
    {
-      "cursor" : "BtreeCursor type_1_quantity_1",
-      "isMultiKey" : false,
-      "n" : 2,
-      "nscannedObjects" : 2,
-      "nscanned" : 2,
+      "queryPlanner" : {
+         ...
+         "winningPlan" : {
+            "stage" : "FETCH",
+            "inputStage" : {
+               "stage" : "IXSCAN",
+               "keyPattern" : {
+                  "type" : 1,
+                  "quantity" : 1
+               },
+               ...
+            }
+         },
+         "rejectedPlans" : [ ]
+      },
+      "executionStats" : {
+         "executionSuccess" : true,
+         "nReturned" : 2,
+         "executionTimeMillis" : 0,
+         "totalKeysExamined" : 2,
+         "totalDocsExamined" : 2,
+         "executionStages" : {
+            ...
+         }
+      },
       ...
    }
 
-MongoDB scanned ``2`` index keys (:data:`~explain.nscanned`) to return
-``2`` matching documents (:data:`~explain.n`).
+MongoDB scanned ``2`` index keys
+(:data:`executionStats.totalKeysExamined
+<explain.totalKeysExamined>`) to return ``2`` matching
+documents (:data:`executionStats.nReturned
+<explain.nReturned>`).
 
 For this example query, the compound index ``{ type: 1, quantity: 1 }``
 is more efficient than the compound index ``{ quantity: 1, type: 1 }``.
 
-.. seealso:: :doc:`/core/query-optimization`, :doc:`/core/query-plans`
+.. seealso:: :doc:`/core/query-optimization`, :doc:`/core/query-plans`,
    :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`,
    :doc:`/applications/indexes`
-
-.. [#timing-caveat] Because :method:`~cursor.explain()` attempts
-   multiple query plans, the :method:`~cursor.explain()` method does not
-   reflect an accurate timing of query performance. For more information on
-   its behavior, see :method:`~cursor.explain()`.
