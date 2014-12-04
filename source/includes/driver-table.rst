@@ -56,6 +56,12 @@
      - `Python Driver API <http://api.mongodb.org/python/current>`_
      - `Python Driver JIRA Project <https://jira.mongodb.org/browse/PYTHON>`_
 
+   * - :doc:`Motor </drivers/python>`
+     - `Motor Releases <https://pypi.python.org/pypi/motor/>`_
+     - `Motor Source Code <https://github.com/mongodb/motor>`_
+     - `Motor API <http://motor.readthedocs.org/en/stable/api/index.html>`_
+     - `Motor JIRA Project <https://jira.mongodb.org/browse/MOTOR>`_
+
    * - :doc:`Ruby </drivers/ruby>`
      - `Ruby Driver Releases <https://rubygems.org/gems/mongo>`_
      - `Ruby Driver Source Code <https://github.com/mongodb/mongo-ruby-driver>`_
