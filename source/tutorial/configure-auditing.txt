@@ -144,24 +144,25 @@ into a human-readable form and output to the terminal:
 Filter Events
 -------------
 
-By default, the audit facility records all :ref:`auditable operations
-<audit-action-details-results>`. The audit feature has an
-:option:`--auditFilter` option to determine which events to record.
+By default, the audit facility records all auditable operations as
+detailed in :ref:`audit-action-details-results`. The audit feature has
+an :option:`--auditFilter` option to determine which events to record.
 
-The :option:`--auditFilter` option takes a document of the form:
+The :option:`--auditFilter` option takes a string representation of a
+query document of the form:
 
 .. code-block:: javascript
 
    { <field1>: <expression1>, ... }
 
-The ``<field>`` can be :doc:`any field in the audit message
-</reference/audit-message>`, including fields returned in the
-:ref:`param <audit-action-details-results>` document. The
-``<expression>`` is a :ref:`query condition expression
-<query-selectors>`.
+- The ``<field>`` can be :doc:`any field in the audit message
+  </reference/audit-message>`, including fields returned in the
+  :ref:`param <audit-action-details-results>` document.
+
+- The ``<expression>`` is a :ref:`query condition expression
+  <query-selectors>`.
 
 .. include:: /includes/fact-audit-filter-single-quotes.rst
-
 .. include:: /includes/fact-audit-filter-yaml-configuration.rst
 
 Filter for Multiple Operation Types
@@ -212,6 +213,8 @@ that occur against the ``test`` database.
 
    storage:
       dbPath: data/db
+   security:
+      authorization: enabled
    auditLog:
       destination: file
       format: JSON
@@ -227,7 +230,7 @@ Filter by Authorization Role
 The following example uses the filter ``{ roles: { role: "readWrite",
 db: "test" } }`` to only audit operations for users with
 :authrole:`readWrite` role on the ``test`` database. This includes
-users whose roles inherits from :authrole:`readWrite`.
+users with roles that inherit from :authrole:`readWrite`.
 
 .. include:: /includes/fact-audit-filter-single-quotes.rst
 
@@ -241,8 +244,47 @@ users whose roles inherits from :authrole:`readWrite`.
 
    storage:
       dbPath: data/db
+   security:
+      authorization: enabled
    auditLog:
       destination: file
       format: JSON
       path: data/db/auditLog.json
       filter: '{ roles: { role: "readWrite", db: "test" } }'
+
+Filter by ``insert`` and ``remove`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To capture :authaction:`read` and :authaction:`write` operations in the
+audit, you must also enable the audit system to log authorization
+successes using the :parameter:`auditAuthorizationSuccess` parameter.
+[#authorization-agnostic]_
+
+.. note:: 
+
+   .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst
+
+.. include:: /includes/fact-audit-filter-single-quotes.rst
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auth --setParameter auditAuthorizationSuccess=true --auditDestination file --auditFilter '{ atype: "authCheck", "param.command": { $in: [ "insert", "delete" ] } }' --auditFormat JSON --auditPath data/db/auditLog.json
+
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   security:
+      authorization: enabled
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
+      filter: '{ atype: "authCheck", "param.command": { $in: [ "insert", "delete" ] } }'
+   setParameter: { auditAuthorizationSuccess: true }
+
+.. [#authorization-agnostic] You can enable :parameter:`auditAuthorizationSuccess`
+   parameter without enabling ``--auth``; however, all operations will
+   return success for authorization checks.
