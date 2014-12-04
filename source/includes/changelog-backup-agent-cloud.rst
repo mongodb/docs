@@ -6,6 +6,14 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.9.0.223``
+--------------------------
+
+*Released 2014-12-04*
+
+Can now explicitly pass collections options for the WiredTiger storage
+engine from the backed up :program:`mongod` to |mms|.
+
 Backup Agent ``2.8.0.204``
 --------------------------
 
