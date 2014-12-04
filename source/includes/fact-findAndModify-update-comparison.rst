@@ -31,5 +31,5 @@ When updating a document, |operation| and the
 
 When modifying a *single* document, both |operation| and the
 :method:`~db.collection.update()` method *atomically* update the
-document. See :doc:`/tutorial/isolate-sequence-of-operations` for more
+document. See :doc:`/core/write-operations-atomicity` for more
 details about interactions and order of operations of these methods.
