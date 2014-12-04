@@ -41,10 +41,12 @@ is unavailable on Windows) in JSON format, specify ``syslog`` for the
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=syslog
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: syslog
 
 Output to Console
 ~~~~~~~~~~~~~~~~~
@@ -60,10 +62,12 @@ output (i.e. ``stdout``), specify ``console`` for the
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=console
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: console
 
 Output to JSON File
 ~~~~~~~~~~~~~~~~~~~
@@ -86,12 +90,14 @@ The audit file rotates at the same time as the server log file.
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=file
-   auditFormat=JSON
-   auditPath=data/db/auditLog.json
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
 
 .. note:: Printing audit events to a file in JSON format degrades
    server performance more than printing to a file in BSON format.
@@ -116,12 +122,14 @@ The audit file rotates at the same time as the server log file.
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=file
-   auditFormat=BSON
-   auditPath=data/db/auditLog.bson
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: BSON
+      path: data/db/auditLog.bson
 
 To view the contents of the file, pass the file to the MongoDB utility
 :program:`bsondump`. For example, the following converts the audit log
@@ -138,65 +146,103 @@ Filter Events
 
 By default, the audit facility records all :ref:`auditable operations
 <audit-action-details-results>`. The audit feature has an
-:option:`--auditFilter` option to determine which events to record. The
-:option:`--auditFilter` option takes a document of the form:
+:option:`--auditFilter` option to determine which events to record.
+
+The :option:`--auditFilter` option takes a document of the form:
 
 .. code-block:: javascript
 
-   { atype: <expression> }
+   { <field1>: <expression1>, ... }
 
-The ``<expression>`` is a :ref:`query condition expression
-<query-selectors>` to match on :ref:`various actions
-<audit-action-details-results>` .
+The ``<field>`` can be :doc:`any field in the audit message
+</reference/audit-message>`, including fields returned in the
+:ref:`param <audit-action-details-results>` document. The
+``<expression>`` is a :ref:`query condition expression
+<query-selectors>`.
 
-Filter for a Single Operation Type
-----------------------------------
+.. include:: /includes/fact-audit-filter-single-quotes.rst
 
-For example, to audit only the :authaction:`createCollection` action, use the
-filter ``{ atype: "createCollection" }``:
-
-.. tip::
-   To specify the filter as a command-line option, enclose the filter document
-   in single quotes to pass the document as a string.
-
-.. code-block:: javascript
-
-   mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: "createCollection" }' --auditFormat JSON --auditPath data/db/auditLog.json
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
 
 Filter for Multiple Operation Types
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To match on multiple operations, use the :operator:`$in` operator in
-the ``<expression>`` as in the following:
+The following example uses the filter ``{ atype: { $in: [
+"createCollection", "dropCollection" ] } }`` to audit only the
+:authaction:`createCollection` and :authaction:`dropCollection` actions.
 
-.. tip::
-   To specify the filter as a command-line option, enclose the filter document
-   in single quotes to pass the document as a string.
+.. include:: /includes/fact-audit-filter-single-quotes.rst
 
 .. code-block:: javascript
 
    mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: { $in: [ "createCollection", "dropCollection" ] } }' --auditFormat JSON --auditPath data/db/auditLog.json
 
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
+      filter: '{ atype: { $in: [ "createCollection", "dropCollection" ] } }'
+
 Filter on Authentication Operations on a Single Database
---------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For authentication operations, you can also specify a specific
-database with the ``param.db`` field:
+The ``<field>`` can include :doc:`any field in the audit message
+</reference/audit-message>`. For authentication operations, the audit
+messages include a ``db`` field in the ``param`` document.
 
-.. code-block:: javascript
+The following example uses the filter ``{ atype: "authenticate",
+"param.db": "test" }`` to audit only the ``authenticate`` operations
+that occur against the ``test`` database.
 
-   { atype: <expression>, "param.db": <database> }
-
-For example, to audit only ``authenticate`` operations that occur
-against the ``test`` database, use the filter ``{ atype:
-"authenticate", "param.db": "test" }``:
-
-.. tip:: To specify the filter as a command-line option, enclose the
-   filter document in single quotes to pass the document as a string.
+.. include:: /includes/fact-audit-filter-single-quotes.rst
 
 .. code-block:: javascript
 
    mongod --dbpath data/db --auth --auditDestination file --auditFilter '{ atype: "authenticate", "param.db": "test" }' --auditFormat JSON --auditPath data/db/auditLog.json
 
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
+      filter: '{ atype: "authenticate", "param.db": "test" }'
+
 To filter on all :authaction:`authenticate` operations across
 databases, use the filter ``{ atype: "authenticate" }``.
+
+Filter by Authorization Role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the filter ``{ roles: { role: "readWrite",
+db: "test" } }`` to only audit operations for users with
+:authrole:`readWrite` role on the ``test`` database. This includes
+users whose roles inherits from :authrole:`readWrite`.
+
+.. include:: /includes/fact-audit-filter-single-quotes.rst
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auth --auditDestination file --auditFilter '{ roles: { role: "readWrite", db: "test" } }' --auditFormat JSON --auditPath data/db/auditLog.json
+
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
+      filter: '{ roles: { role: "readWrite", db: "test" } }'
