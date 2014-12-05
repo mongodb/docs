@@ -1,6 +1,7 @@
 Hosts
 -----
 
+
 Sample Entity
 ~~~~~~~~~~~~~
 
@@ -36,6 +37,7 @@ Sample Entity
      "muninPort": 4949,
      "authMechanismName": "MONGODB_CR",
      "username": "mongo",
+     "aliases": [ "127.0.0.1:27017" ],
      "links": [ ... ]
    }
 
@@ -157,8 +159,29 @@ Entity Fields
        is ``MONGODB_CR``, then you must include this field when creating the
        host or updating its credentials. However, it will never be exposed when
        a host entity is returned.
+   * - aliases
+     - array of strings
+     - A list of alternate hostname:port combinations that MMS has discovered for
+       the host.
 
 .. _Replica Set Member States: http://docs.mongodb.org/manual/reference/replica-states/
+
+
+About Host Aliases
+~~~~~~~~~~~~~~~~~~
+
+A host can typically be identified by many different names. The set of names
+is determined by factors such as DNS records and entries in the ``/etc/hosts``
+file. MMS will automatically discover various hostname and port combinations
+for each monitored ``mongod`` / ``mongos`` process; of these, one will be chosen
+as the "primary" hostname, and the rest are considered to be "aliases." The
+primary hostname is determined by a simple heuristic that most prefers the name
+with greatest number of dots and least prefers the loopback address (127.0.0.1)
+and the name ``localhost``. Each time a ping from the monitoring agent is
+processed by MMS (typically once per minute), the algorithm for assigning a
+primary hostname will repeat. Note that as a result, *the primary hostname may
+change over time.*
+
 
 Links
 ~~~~~
@@ -189,6 +212,10 @@ Operations
 
 - ``GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID`` - Get a single host by
   ID.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/hosts/byName/HOSTNAME:PORT`` - Get a
+  single host by its hostname and port combination. You can specify either the
+  primary hostname or an alias.
 
 - ``POST /api/public/v1.0/groups/GROUP-ID/hosts`` - Create a new host in the
   group. Note that after a new host is created, MMS will not know much about
@@ -312,7 +339,7 @@ Get one host: ::
   {
     "id" : "56e9378f601dc49360a40949c8a6df6c",
     "groupId" : "533c5895b91030606f21033a",
-    "hostname" : "localhost",
+    "hostname" : "mymongo.test.com",
     "port" : 26000,
     "deactivated" : false,
     "hasStartupWarnings" : false,
@@ -328,6 +355,7 @@ Get one host: ::
     "lowUlimit" : false,
     "authMechanismName" : "MONGODB_CR",
     "username" : "mongo",
+    "aliases": [ "mymongo:26000", "12.34.56.78:26000" ]
     "links" : [ ... ]
   }
 
@@ -343,7 +371,7 @@ Get all hosts: ::
     "results" : [ {
       "id" : "56e9378f601dc49360a40949c8a6df6c",
       "groupId" : "533c5895b91030606f21033a",
-      "hostname" : "localhost",
+      "hostname" : "mymongo.test.com",
       "port" : 26000,
       "deactivated" : false,
       "hasStartupWarnings" : false,
@@ -359,6 +387,7 @@ Get all hosts: ::
       "lowUlimit" : false,
       "authMechanismName" : "MONGODB_CR",
       "username" : "mongo",
+      "aliases": [ "mymongo:26000", "12.34.56.78:26000" ]
       "links" : [ ... ]
     }, {
       ...
