@@ -37,8 +37,8 @@ how to use authentication.
 Check Agent Output or Log
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you continue to encounter problems, check the agent's output or logs for
-errors.
+If you continue to encounter problems, check the agent's output for errors.
+See :ref:`view-logs-single-agent`.
 
 .. _troubleshooting-one-agent:
 
