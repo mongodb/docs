@@ -25,20 +25,24 @@ Definition
 Behavior
 --------
 
-When specifying roles, use the syntax described here.
+Return Information for a Single Role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To specify a role from the current database, specify the role by its name:
 
 .. code-block:: javascript
 
-   rolesInfo: "<rolename>"
+   { rolesInfo: "<rolename>" }
 
 To specify a role from another database, specify the role by a document that
 specifies the role and database:
 
 .. code-block:: javascript
 
-   rolesInfo: { role: "<rolename>", db: "<database>" }
+   { rolesInfo: { role: "<rolename>", db: "<database>" } }
+
+Return Information for Multiple Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To specify multiple roles, use an array. Specify each role in the array as a
 document or string. Use a string only if the role exists on the database on
@@ -46,12 +50,16 @@ which the command runs:
 
 .. code-block:: javascript
 
-   rolesInfo:
-     [
-       "<rolename>",
-       { role: "<rolename>", db: "<database>" },
-         ...
+   {
+     rolesInfo: [
+        "<rolename>",
+        { role: "<rolename>", db: "<database>" },
+        ...
      ]
+   }
+
+Return Information for All Roles in the Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To specify all roles in the database on which the command runs, specify
 ``rolesInfo: 1``. By default MongoDB displays all the :ref:`user-defined roles
@@ -61,7 +69,7 @@ To specify all roles in the database on which the command runs, specify
 
 .. code-block:: javascript
 
-   rolesInfo: 1, showBuiltinRoles: true
+   { rolesInfo: 1, showBuiltinRoles: true }
 
 Required Access
 ---------------
@@ -83,14 +91,18 @@ Output
    roles <built-in-roles>`. A database might also have :ref:`user-defined
    roles <user-defined-roles>`.
 
+.. data:: rolesInfo.isBuiltin
+
+   A value of ``true`` indicates the role is a :ref:`built-in role
+   <built-in-roles>`. A value of ``false`` indicates the role is a
+   :ref:`user-defined role <user-defined-roles>`.
+
 .. data:: rolesInfo.roles
 
    The roles that directly provide privileges to this role and the databases
    on which the roles are defined.
 
-.. data:: rolesInfo.indirectRoles
-
-   .. todo:: change this to "inheritedRoles" when the software changes
+.. data:: rolesInfo.inheritedRoles
 
    All roles from which this role inherits privileges. This includes the roles
    in the :data:`rolesInfo.roles` array as well as the roles from which the
@@ -100,22 +112,27 @@ Output
 
 .. data:: rolesInfo.privileges
 
-   All the privileges granted by this role. By default the output does not
-   include this array. To include it, specify ``showPrivileges: true`` when
-   running the :dbcommand:`rolesInfo` command.
+   The privileges directly specified by this role; i.e. the array
+   excludes privileges inherited from other roles. By default the
+   output does not include the :data:`~rolesInfo.privileges` field. To
+   include the field, specify ``showPrivileges: true`` when running the
+   :dbcommand:`rolesInfo` command.
 
-   The array includes privileges defined directly in the role as well as
-   privileges inherited from other roles.
+   Each privilege document specifies the :ref:`resources
+   <resource-document>` and the :doc:`actions
+   </reference/privilege-actions>` allowed on the resources.
 
-   Each set of privileges in the array is contained in its own document. Each
-   document specifies the :ref:`resources <resource-document>` the privilege
-   accesses and the :doc:`actions </reference/privilege-actions>` allowed.
+.. data:: rolesInfo.inheritedPrivileges
 
-.. data:: rolesInfo.isBuiltin
+   All privileges granted by this role, including those inherited from
+   other roles. By default the output does not include the
+   :data:`~rolesInfo.inheritedPrivileges` field. To include the field,
+   specify ``showPrivileges: true`` when running the
+   :dbcommand:`rolesInfo` command.
 
-   A value of ``true`` indicates the role is a :ref:`built-in role
-   <built-in-roles>`. A value of ``false`` indicates the role is a
-   :ref:`user-defined role <user-defined-roles>`.
+   Each privilege document specifies the :ref:`resources
+   <resource-document>` and the :doc:`actions
+   </reference/privilege-actions>` allowed on the resources.
 
 Examples
 --------
@@ -152,9 +169,8 @@ for the role ``associate`` defined on the ``products`` database:
 
    db.runCommand(
        {
-         rolesInfo:
-           { role: "associate", db: "products" },
-           showPrivileges: true
+         rolesInfo: { role: "associate", db: "products" },
+         showPrivileges: true
        }
    )
 
@@ -168,11 +184,10 @@ databases:
 
    db.runCommand(
        {
-         rolesInfo:
-           [
-             { role: "associate", db: "products" },
-             { role: "manager", db: "resources" },
-           ]
+         rolesInfo: [
+            { role: "associate", db: "products" },
+            { role: "manager", db: "resources" }
+         ]
        }
    )
 
@@ -182,12 +197,11 @@ The following returns *both* the role inheritance and the privileges:
 
    db.runCommand(
        {
-         rolesInfo:
-           [
-             { role: "associate", db: "products" },
-             { role: "manager", db: "resources" },
-           ],
-           showPrivileges: true
+         rolesInfo: [
+            { role: "associate", db: "products" },
+            { role: "manager", db: "resources" }
+         ],
+         showPrivileges: true
        }
    )
 
