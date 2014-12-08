@@ -8,49 +8,41 @@
 
    * - 0
      - :replstate:`STARTUP`
-
-     - Cannot vote. All members start up in this state. The
+     - Not yet an active member of any set. All members start up in this state. The
        :program:`mongod` parses the :doc:`replica set configuration document </administration/replica-set-member-configuration>` while in :replstate:`STARTUP`.
 
    * - 1
      - :replstate:`PRIMARY`
-     - Can vote. The :doc:`primary </core/replica-set-primary>` is the only member to accept write operations.
+     - The member in state :doc:`primary </core/replica-set-primary>` is the only member that can accept write operations.
 
    * - 2
      - :replstate:`SECONDARY`
-     - Can vote. The :doc:`secondary </core/replica-set-secondary>` replicates the data store.
+     - A member in state :doc:`secondary </core/replica-set-secondary>` is replicating the data store.  Data is available for reads, although they may be stale.
 
    * - 3
      - :replstate:`RECOVERING`
-     - Can vote. Members either perform startup self-checks, or transition
-       from completing a :doc:`rollback </core/replica-set-rollbacks>` or :doc:`resync </tutorial/resync-replica-set-member>`.
-
-   * - 4
-     - :replstate:`FATAL`
-     - Cannot vote. Has encountered an unrecoverable error.
+     - A member in this state is replicating the data store but does not yet have a consistent view of the data.  Data is not available for reads until the member transitions to state :doc:`secondary </core/replica-set-secondary>`.
 
    * - 5
      - :replstate:`STARTUP2`
-     - Cannot vote. Forks replication and election threads before
-       becoming a secondary.
+     - The member has joined the set and is running an initial sync.
 
    * - 6
      - :replstate:`UNKNOWN`
-     - Cannot vote. Has never connected to the replica set.
+     - The member's state, as seen from another member of the set, is not yet known.
 
    * - 7
      - :replstate:`ARBITER`
-     - Can vote. :ref:`Arbiters <replica-set-arbiters>` do not replicate
-       data and exist solely to participate in elections.
+     - :ref:`Arbiters <replica-set-arbiters>` do not replicate data and exist solely to participate in elections.
 
    * - 8
      - :replstate:`DOWN`
-     - Cannot vote. Is not accessible to the set.
+     - The member, as seen from another member of the set, is unreachable.
 
    * - 9
      - :replstate:`ROLLBACK`
-     - Can vote. Performs a :doc:`rollback </core/replica-set-rollbacks>`.
+     - This member is actively performing a :doc:`rollback </core/replica-set-rollbacks>`.  Data is not available for reads.
 
    * - 10
      - :replstate:`REMOVED`
-     - Cannot vote. Was once in the replica set but has now been removed.
+     - This member was once in a replica set but was subsequently removed.
