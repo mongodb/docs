@@ -145,8 +145,9 @@ members of replica sets.
 Output to a Collection with an Action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This option is only available when passing ``out`` a collection that
-already exists. It is not available on secondary members of replica sets.
+This option is only available when passing a collection that
+already exists to ``out``. It is not available 
+on secondary members of replica sets.
 
 .. code-block:: javascript
 
@@ -182,7 +183,7 @@ following parameters:
 
 - ``db``:
 
-  Optional.The name of the database that you want the map-reduce
+  Optional. The name of the database that you want the map-reduce
   operation to write its output. By default this will be the same
   database as the input collection.
 
@@ -196,15 +197,16 @@ following parameters:
 
   .. versionadded:: 2.2
 
-  Optional. Specify output operation as non-atomic and is valid *only*
-  for ``merge`` and ``reduce`` output modes which may take minutes to
+  Optional. Specify output operation as non-atomic. This applies **only**
+  to the ``merge`` and ``reduce`` output modes, which may take minutes to
   execute.
 
-  If ``nonAtomic`` is ``true``, the post-processing step will prevent
-  MongoDB from locking the database; however, other clients will be
-  able to read intermediate states of the output collection. Otherwise
-  the map reduce operation must lock the database during
-  post-processing.
+  By default ``nonAtomic`` is ``false``, and the map-reduce
+  operation locks the database during post-processing.
+
+  If ``nonAtomic`` is ``true``, the post-processing step prevents
+  MongoDB from locking the database: during this time, other clients
+  will be able to read intermediate states of the output collection.
 
 Output Inline
 ~~~~~~~~~~~~~~
