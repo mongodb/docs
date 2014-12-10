@@ -65,8 +65,8 @@ modified document.
      creates a new document. If ``new`` is ``false``, **and** a
      ``sort`` option, the method returns an empty document ``{}``.
 
-Behaviors
----------
+Behavior
+--------
 
 .. _upsert-and-unique-index:
 
@@ -76,10 +76,6 @@ Upsert and Unique Index
 When :method:`~db.collection.findAndModify()` includes the ``upsert:
 true`` option **and** the query field(s) is not uniquely indexed, the
 method could insert a document multiple times in certain circumstances.
-For instance, if multiple clients each invoke the method with the same
-``query`` condition and these methods complete the ``find`` phase
-before any of methods perform the ``modify`` phase, these methods could
-result in the insertion of the same document.
 
 In the following example, no document with the name ``Andy`` exists,
 and multiple clients issue the following command:
@@ -96,19 +92,22 @@ and multiple clients issue the following command:
 Then, if these clients' :method:`~db.collection.findAndModify()`
 methods finish the ``query`` phase before any command starts the
 ``modify`` phase, **and** there is no unique index on the ``name``
-field, the commands may all perform an upsert. To prevent this
+field, the commands may all perform an upsert, creating
+multiple duplicate documents. 
+
+To prevent this
 condition, create a :ref:`unique index <index-type-unique>` on the
 ``name`` field. With the unique index in place, the multiple methods
-would observe one of the following behaviors:
+will exhibit one of the following behaviors:
 
-- Exactly one :method:`~db.collection.findAndModify()` would
-  successfully insert a new document.
-
-- Zero or more :method:`~db.collection.findAndModify()` methods
-  would update the newly inserted document.
+- Exactly one :method:`~db.collection.findAndModify()`
+  successfully inserts a new document.
 
 - Zero or more :method:`~db.collection.findAndModify()` methods
-  would fail when they attempted to insert a duplicate. If the
+  update the newly inserted document.
+
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  fail when they attempt to insert a duplicate. If the
   method fails due to a unique index constraint violation, you can
   retry the method. Absent a delete of the document, the retry
   should not fail.
