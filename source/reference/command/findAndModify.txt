@@ -20,10 +20,10 @@ Definition
 
    The command has the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: none
 
       {
-        findAndModify: <string>,
+        findAndModify: <collection-name>,
         query: <document>,
         sort: <document>,
         remove: <boolean>,
@@ -92,13 +92,12 @@ The return document contains the following fields:
 Behavior
 --------
 
+Upsert and Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
 When the :dbcommand:`findAndModify` command includes the ``upsert:
 true`` option **and** the query field(s) is not uniquely indexed, the
 command could insert a document multiple times in certain circumstances.
-For instance, if multiple clients issue the :dbcommand:`findAndModify`
-command and these commands complete the ``find`` phase before any one
-starts the ``modify`` phase, these commands could insert the same
-document.
 
 Consider an example where no document with the name ``Andy`` exists and
 multiple clients issue the following command:
@@ -117,19 +116,22 @@ multiple clients issue the following command:
 
 If all the commands finish the ``query`` phase before any command
 starts the ``modify`` phase, **and** there is no unique index on the
-``name`` field, the commands may all result in an insert. To prevent
+``name`` field, the commands may all perform an upsert, creating
+multiple duplicate documents.
+
+To prevent
 this condition, create a :ref:`unique index <index-type-unique>` on
 the ``name`` field. With the unique index in place, then the multiple
-:dbcommand:`findAndModify` commands would observe one of the
+:dbcommand:`findAndModify` commands will exhibit one of the
 following behaviors:
 
-- Exactly one :dbcommand:`findAndModify` would successfully insert a
+- Exactly one :dbcommand:`findAndModify` successfully inserts a
   new document.
 
-- Zero or more :dbcommand:`findAndModify` commands would update the
+- Zero or more :dbcommand:`findAndModify` commands update the
   newly inserted document.
 
-- Zero or more :dbcommand:`findAndModify` commands would fail when
+- Zero or more :dbcommand:`findAndModify` commands fail when
   they attempted to insert a duplicate. If the command fails due to
   a unique index constraint violation, you can retry the command.
   Absent a delete of the document, the retry should not fail.
