@@ -1,6 +1,7 @@
-For |geo-operator-method| queries, :term:`GeoJSON` geometries **must**
-have an area less than the area of a single hemisphere. For geometries
-larger than a single hemisphere, MongoDB queries for the smaller of the
-complementary geometries. For geometries equal to a single hemisphere,
-MongoDB makes no guarantees as to which geometry (the specified
-geometry or the complementary) it uses.
+For |geo-operator-method|, if you specify a single-ringed polygon that
+has an area greater than a single hemisphere, include :query:`the
+custom MongoDB coordinate reference system in the $geometry
+<$geometry>` expression; otherwise, |geo-operator-method| queries for
+the complementary geometry. For all other GeoJSON polygons with areas
+greater than a hemisphere, |geo-operator-method| queries for the
+complementary geometry.
