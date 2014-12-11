@@ -23,20 +23,28 @@ another member. A member uses initial sync when the member has no data,
 such as when the member is new, or when the member has data but is
 missing a history of the set's replication.
 
-When you perform an initial sync, MongoDB does the following:
+When you perform an initial sync, MongoDB:
 
 #. Clones all databases. To clone, the :program:`mongod` queries every
    collection in each source database and inserts all data into its
-   own copies of these collections.  At this time, _id indexes are also built.
+   own copies of these collections.  At this time, ``_id`` indexes are
+   also built. The clone process only copies valid data, omitting
+   invalid documents.
 
 #. Applies all changes to the data set. Using the oplog from the
    source, the :program:`mongod` updates its data set to reflect the
    current state of the replica set.
 
-#. Builds all indexes on all collections (except _id indexes, which were already completed).
+#. Builds all indexes on all collections (except _id indexes, which
+   were already completed).
 
    When the :program:`mongod` finishes building all index builds, the member
    can transition to a normal state, i.e. :term:`secondary`.
+
+.. versionchanged:: 2.8
+   When the clone process omits an invalid document from the sync,
+   MongoDB writes a message to the logs that begins with ``Cloner:
+   found corrupt document in <collection>``.
 
 To perform an initial sync, see
 :doc:`/tutorial/resync-replica-set-member`.
