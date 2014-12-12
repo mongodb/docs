@@ -28,7 +28,7 @@ authentication enabled. For hosts already listed in MMS, click the
 :guilabel:`gear icon` to the right of a host name on the :guilabel:`Deployment` page
 then select :guilabel:`Edit Host` to provide credentials.
 
-Please consult the :ref:` Authentication Requirements documentation
+Please consult the :ref:`Authentication Requirements documentation
 <security-access-control-authentication>` for details about
 how to use authentication.
 
