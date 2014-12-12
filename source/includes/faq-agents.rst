@@ -14,12 +14,14 @@ For redundancy, you may wish to run a second Monitoring Agent. See the
 Can I use two Monitoring Agents to connect MongoDBs in different data centers?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-No. The Monitoring Agent must connect to every server in your MongoDB
+No, not within the same group. The group's Monitoring Agent must connect to
+every server in the MongoDB
 deployment. Configure firewalls to allow the Monitoring Agent to connect across
 data centers and servers.
 
-Use multiple Monitoring Agents within a single MMS group *only* to
-provide redundancy. For each MMS group, the agent must be able to connect
+Use multiple Monitoring Agents within a single MMS group *only* :ref:`to
+provide redundancy <monitoring-agent-redundancy`>. For each MMS group, the
+agent must be able to connect
 to every monitored MongoDB. Unless you have multiple groups,
 complete your initial Monitoring Agent setup with a single agent.
 
