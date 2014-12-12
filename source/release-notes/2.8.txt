@@ -13,21 +13,26 @@ only and not for production use**.
 Major Changes
 -------------
 
-Storage Engines: Improved Concurrency, Document-Level Locking with Compression
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Storage Engines: Pluggable API, Improved Concurrency, Document-Level Locking with Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. RF: added the storage engine API first; makes it easier to introduce new
+.. storage engines
+
+MongoDB 2.8 includes a pluggable storage engine API that allows third
+parties to develop storage engines with MongoDB.
 
 MongoDB 2.8 includes support for two storage engines: MMAPv1, the
 storage engine available in previous versions of MongoDB, and
 `WiredTiger <http://wiredtiger.com>`_. By
 default, in 2.8 MongoDB uses the MMAPv1 engine.
 
-In 2.8 MMAPv1 adds support for collection-level locking by
-default. With the WiredTiger storage engine, MongoDB now provides
-document-level locking and compression. WiredTiger supports all
-MongoDB features and
-can interoperate with MMAPv1 in the same replica set or sharded cluster,
-but requires a change to the on-disk storage format. To convert an
-existing data set to WiredTiger, you can either:
+The 2.8 MMAPv1 storage engine adds support for collection-level locking by
+default. The 2.8 WiredTiger storage engine provides document-level locking
+and compression. WiredTiger supports all MongoDB features and can
+interoperate with MMAPv1 in the same replica set or sharded cluster, but
+requires a change to the on-disk storage format. To convert an existing
+data set to WiredTiger, you can either:
 
 - upgrade replica sets in a rolling manner. See
   :ref:`2.8-upgrade-replica-set` or :ref:`2.8-upgrade-cluster`, or
@@ -132,13 +137,56 @@ sets.
 Pymongo 3.0, the Ruby Driver 2.0, and the Node.JS Driver 2.0 are currently
 in development.
 
+.. Moving the new explain() to the 'Major Changes' section, as I think it's
+.. a "big deal": it allows queries to be explained before they're run, so
+.. it's easy to gather more information about very slow queries without
+.. waiting a long time for them to finish.
+
+New Query Introspection System
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.8 includes a new query introspection system via the
+:method:`db.collection.explain()` method. The new explain() has an improved
+output format that's easier to interpret, while providing a finer-grained
+introspection into both query optimization and query execution. There are
+three verbosity levels:
+
+.. All the explain() stuff below copied from the spec:
+.. https://docs.google.com/a/10gen.com/document/d/1x90mF-ahJb3Zxsb7L5a49SYW5so_vDErn1kaScLSpU8/edit
+
+- queryPlanner: Runs the query planner and chooses the winning plan, but
+  does not actually execute it. The use case for this verbosity level is
+  "Which plan will MongoDB choose to run my query?"
+
+- executionStats: Runs the query optimizer, and then runs the winning plan
+  to completion. In addition to the planner information, this makes
+  execution stats available. The use case for this verbosity level is "Is
+  my query performing well?"
+
+- allPlansExecution: Runs the query optimizer, and then runs the winning
+  plan to completion. In addition to the query planner information and the
+  execution stats collected from the winning plan, this verbosity level
+  makes execution stats available for all of the query plans. The use case
+  for this verbosity level is "I have a problem with this query, and I want
+  as much information as possible in order to diagnose why it might be
+  slow."
+
+Read operations will be planned but not executed at "queryPlanner"
+verbosity. At "executionStats" and "allPlansExecution" verbosities, read
+operations will be both planned and executed. Write operations will be
+planned but not executed at "queryPlanner" verbosity. At higher verbosity
+levels the "read part" of the operation will execute, but the "write part"
+will not execute. For example, an update at "executionStats" verbosity will
+retrieve the documents to modify, but will not actually alter them.
+
+
 Security Improvements
 ---------------------
 
-Adds ``SCRAM-SHA-1`` Authentication Mechanism
----------------------------------------------
+New ``SCRAM-SHA-1`` Password Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB 2.8 adds a new ``SCRAM-SHA-1`` authentication mechanism.
+MongoDB 2.8 adds a new ``SCRAM-SHA-1`` password authentication mechanism.
 
 Changes to the Localhost Exception
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
