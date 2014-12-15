@@ -13,4 +13,4 @@
 The verbosity mode (i.e. ``queryPlanner``, ``executionStats``,
 ``allPlansExecution``) determines whether the results include
 :ref:`executionStats` and whether :ref:`executionStats` includes data
-captured during :ref:`plan selection <query-plans-query-optimization>`
+captured during :ref:`plan selection <query-plans-query-optimization>`.
