@@ -1,83 +1,72 @@
-Removed Commands
-----------------
+Storage Engine
+--------------
 
-In 2.8, the following internal commands are no longer available:
-
-- ``closeAllDatabases``
-
-- ``getoptime``
-
-``db.addUser()`` Removed
-------------------------
-
-2.8 removes the legacy ``db.addUser()`` method. Use
-:method:`db.createUser()` and :method:`db.updateUser()` instead..
-
-Security: Localhost Exception Changed
--------------------------------------
-
-In 2.8, the localhost exception changed so that these connections *only*
-have access to create the first user on the ``admin``
-database. In previous versions, connections that gained access using
-the localhost exception had unrestricted access to the MongoDB
-instance.
-
-See :ref:`local-host-exception` for more information.
-
-Storage Engine Configuration File Options
------------------------------------------
+Configuration File Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With the introduction of additional storage engines in 2.8, some
-options moved in the configuration file schema. Consider the following
-changes:
+:doc:`configuration file options </reference/configuration-options>`
+have changed:
 
-- ``storagejournal.commitIntervalMs`` becomes :setting:`storage.mmapv1.journal.commitIntervalMs`
-- ``storagejournal.debugFlags`` becomes :setting:`storage.mmapv1.journal.debugFlags`
-- ``storagensSize`` becomes :setting:`storage.mmapv1.nsSize`
-- ``storagepreallocDataFiles`` becomes :setting:`storage.mmapv1.preallocDataFiles`
-- ``storagequota.enforced`` becomes :setting:`storage.mmapv1.quota.enforced`
-- ``storagequota.maxFilesPerDB`` becomes :setting:`storage.mmapv1.quota.maxFilesPerDB`
-- ``storagesmallFiles`` becomes :setting:`storage.mmapv1.smallFiles`
-- ``storagesyncPeriodSecs`` becomes :setting:`storage.mmapv1.syncPeriodSecs`
+.. list-table::
+   :header-rows: 1
+
+   * - Previous Setting
+     - New Setting
+
+   * - ``storage.journal.commitIntervalMs``
+     -  :setting:`storage.mmapv1.journal.commitIntervalMs`
+
+   * - ``storage.journal.debugFlags``
+     - :setting:`storage.mmapv1.journal.debugFlags`
+     
+   * - ``storage.nsSize``
+     - :setting:`storage.mmapv1.nsSize`
+     
+   * - ``storage.preallocDataFiles``
+     - :setting:`storage.mmapv1.preallocDataFiles`
+
+   * - ``storage.quota.enforced``
+     - :setting:`storage.mmapv1.quota.enforced`
+
+   * - ``storage.quota.maxFilesPerDB``
+     - :setting:`storage.mmapv1.quota.maxFilesPerDB`
+
+   * - ``storage.smallFiles``
+     - :setting:`storage.mmapv1.smallFiles`
+
+   * - ``storage.syncPeriodSecs``
+     - :setting:`storage.mmapv1.syncPeriodSecs`
 
 2.8 :program:`mongod` instances are backwards compatible with existing
 configuration files, but will issue warnings when if you attempt to
 use the old settings.
 
 Data Files Must Correspond to Configured Storage Engine
--------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The files in the :setting:`~storage.dbPath` directory must correspond
-to the configured storage engine (i.e. ``--storageEngine``). MongoDB
-will not support if you attempt to start :program:`mongod` with data
-files in :setting:`~storage.dbPath` produced by a different
+to the configured storage engine (i.e. ``--storageEngine``).
+:program:`mongod` will not start if :setting:`~storage.dbPath` contains
+data files created by a storage engine other than the one specified by
 ``--storageEngine``.
 
-``touch`` command returns an error for unsupported Storage Engines
-------------------------------------------------------------------
+Support for ``touch`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If a storage engine does not support the :dbcommand:`touch`, then
-the :dbcommand:`touch` command will return an error.
+If a storage engine does not support the :dbcommand:`touch`, then the
+:dbcommand:`touch` command will return an error:
 
-The ``wiredTiger`` storage engine *does not* support the
-:dbcommand:`touch`. ``mmapv1`` supports :dbcommand:`touch`.
+- The WiredTiger storage engine *does not* support the
+  :dbcommand:`touch`.
 
-SSL Configuration Option Changes
---------------------------------
+- The MMAPv1 storage engine supports :dbcommand:`touch`.
 
-MongoDB 2.8 introduced new :setting:`net.ssl.allowConnectionsWithoutCertificates`
-configuration file and ``--sslAllowConnectionsWithoutCertificates``
-command line option for :program:`mongod` and :program:`mongos`. These
-options replace previous :setting:`net.ssl.weakCertificateValidation` and
-``--sslWeakCertificateValidation`` options, which became
-aliases. Update your configuration to ensure future compatibility.
+Dynamic Record Allocation
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SSL Certificates Must be Valid
-------------------------------
-
-By default, MongoDB instances will *only* start if is certificate
-(i.e. :setting:`net.ssl.PemKeyFile`) is valid. You can disable this
-behavior with the :setting:`net.ssl.allowInvalidCertificates` setting.
+MongoDB 2.8 no longer supports dynamic record allocation and deprecates
+``paddingFactor``. For mroe information, see :ref:`2.8-mmapv1-padding`.
 
 Replication Changes
 -------------------
@@ -100,6 +89,12 @@ you must wait for new oplog entries to overwrite *all* old oplog
 entries generated by one of these versions before upgrading to 2.8.0
 or earlier.
 
+Secondaries may abort if they replay an oplog from 2.4 or prior with an
+index build operation that would normally fail on a 2.6 or later
+primary.
+
+.. _2.8-compatibility-repl-set-config:
+
 Replica Set Configuration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -108,53 +103,111 @@ configuration objects </reference/replica-configuration>`. Of
 particular note are the following alterations:
 
 - Arbiters may only have ``1`` vote. Previously arbiters could have
-  ``0`` votes, which is no longer supported.
+  ``0`` votes, which is no longer supported. You must fix on the
+  primary and restart node.
 
-Replica Set Step Down Behavior Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Nodes can **only** have
+  :data:`~local.system.replset.members[n].votes` value of ``0`` or
+  ``1``. Will fail to load. Must fix on primary and restart node
 
-The process that a :term:`primary` member of a :term:`replica set`
-uses to step down has the following changes:
+- :doc:`/reference/replica-configuration` must specify the same
+  ``_id`` name as that specified by ``--replSet`` or
+  ``replication.replSetName``;
 
-- Before stepping down, :dbcommand:`replSetStepDown` will attempt to
-  terminate long running user operations that would block the primary
-  from stepping down, such as an index build, a write operation or a
-  map-reduce job.
+- Unrecognized configuration fields produce an invalid config and an
+  error. Previously, ignored these fields. For example, tokutek adds a
+  ``protocolVersion`` field, which will now result in error.
 
-- The :dbcommand:`replSetStepDown` will wait for an electable
-  secondary to catch up to the state of the primary before stepping
-  down. Previously a primary would wait 10 seconds for a secondary to
-  catch up before stepping down. This change will help prevent
-  rollbacks.
+- Disallows ``getLastErrorDefaults: 0`` in a config.
 
-- :dbcommand:`replSetStepDown` now allows users to specify a
-  ``secondaryCatchUpPeriodSecs`` parameter to specify how long the
-  primary should wait for a secondary to catch up before stepping
-  down.
+Remove ``local.slaves`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Shell: Authentication Compatibility
------------------------------------
+MongoDB 2.8 removes the ``local.slaves`` collection that tracked the
+slaves' replication progress. To track slave's replication progress,
+refer to the :data:`serverStatus.repl` section of
+:dbcommand:`serverStatus`.
 
-Versions of the :program:`mongo` shell before 2.8, are *not*
-compatible with 2.8 deployments of MongoDB that enforce access
-control. If you have a 2.8 MongoDB deployment that requires
-authentication you must use 2.8 versions of the :program:`mongo`
-shell.
+MongoDB Tools Changes
+---------------------
 
-Shell: Collection and Index Listing with ``wiredTiger`` and Older Shells
-------------------------------------------------------------------------
+Require a Running MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the ``wiredTiger`` storage engine, and versions of
-the :program:`mongo` shell before ``2.8.0``, the
-:method:`db.getCollectionNames()` (along with ``show collections`` and
-``show tables``) and as well as :method:`db.collection.getIndexes()`
-return no output.
+The 2.8 versions of MongoDB tools, :program:`mongodump`,
+:program:`mongorestore`, :program:`mongoexport`,
+:program:`mongoimport`, :program:`mongofiles`, and
+:program:`mongooplog`, must connect to running MongoDB instances and
+*cannot* modify MongoDB data files as in previous versions.
 
-Use the :program:`mongo` shell from a 2.8 distribution when connecting
-to :program:`mongod` instances that use ``wiredTiger``.
+Removed Options
+~~~~~~~~~~~~~~~
+
+- Removed ``--dbpath`` and ``--filter`` options for
+  :program:`mongorestore`, :program:`mongoimport`,
+  :program:`mongoexport`, and :program:`bsondump`.
+
+- Removed ``--locks`` option for :program:`mongotop`.
+
+.. seealso:: :ref:`2.8-tools-enhancements`
+
+Sharded Cluster Setting
+-----------------------
+
+Remove ``releaseConnectionsAfterResponse`` Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB now always releases connections after response.
+``releaseConnectionsAfterResponse`` parameter is no longer available.
+
+Security Changes
+----------------
+
+Localhost Exception Changed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.8, the localhost exception changed so that these connections *only*
+have access to create the first user on the ``admin``
+database. In previous versions, connections that gained access using
+the localhost exception had unrestricted access to the MongoDB
+instance.
+
+See :ref:`local-host-exception` for more information.
+
+``db.addUser()`` Removed
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+2.8 removes the legacy ``db.addUser()`` method. Use
+:method:`db.createUser()` and :method:`db.updateUser()` instead.
+
+SSL Configuration Option Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.8 introduced new :setting:`net.ssl.allowConnectionsWithoutCertificates`
+configuration file and ``--sslAllowConnectionsWithoutCertificates``
+command line option for :program:`mongod` and :program:`mongos`. These
+options replace previous :setting:`net.ssl.weakCertificateValidation` and
+``--sslWeakCertificateValidation`` options, which became
+aliases. Update your configuration to ensure future compatibility.
+
+SSL Certificates Must be Valid
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, MongoDB instances will *only* start if is certificate
+(i.e. :setting:`net.ssl.PemKeyFile`) is valid. You can disable this
+behavior with the :setting:`net.ssl.allowInvalidCertificates` setting.
+
+Indexes
+-------
+
+Remove ``dropDups`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``dropDups`` option is no longer available for
+:method:`~db.collection.ensureIndex()` and :dbcommand:`createIndexes`.
 
 Changes to Restart Behavior during Background Indexing
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For 2.8 :program:`mongod` instances, if a background index build is in
 progress when the :program:`mongod` process terminates, when the
@@ -166,19 +219,10 @@ To start the :program:`mongod` after a failed index build, use the
 :setting:`storage.indexBuildRetry` or :option:`--noIndexBuildRetry
 <mongod --noIndexBuildRetry>` to skip the index build on start up.
 
-Tools: All Tools Must Connect to a Running MongoDB Instance
------------------------------------------------------------
-
-The 2.8 versions of MongoDB tools, :program:`mongodump`,
-:program:`mongorestore`, :program:`mongoexport`,
-:program:`mongoimport`, :program:`mongofiles`, and
-:program:`mongooplog`, must connect to running MongoDB instances and
-*cannot* modify MongoDB data files as in previous versions.
-
 .. _2.8-geo-near-compatibility:
 
 ``2d`` Indexes and Geospatial Near Queries
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For :query:`$near` queries that use a :doc:`2d </core/2d>` index:
 
@@ -190,9 +234,66 @@ For :query:`$near` queries that use a :doc:`2d </core/2d>` index:
 For :query:`$nearSphere` queries that use a :doc:`2d </core/2d>` index,
 MongoDB no longer uses a default limit of 100 documents.
 
-Collection Name Validation
---------------------------
 
-Mongo 2.8 more consistently enforces the :limit:`collection naming
+``mongo`` Shell Version Compatiblity
+------------------------------------
+
+Access Control Compatibility with Previous Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a 2.8 MongoDB deployment that requires authorization, you
+must use 2.8 versions of the :program:`mongo` shell. Previous versions
+of the :program:`mongo` shell are *not* compatible with 2.8 deployments
+of MongoDB that enforce access control.
+
+WiredTiger and Previous Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For 2.8 MongoDB deployments using the WiredTiger storage engine, the
+following operations return no output when issued in previous versions
+of the :program:`mongo` shell:
+
+- :method:`db.getCollectionNames()`
+- :method:`db.collection.getIndexes()`
+- ``show collections``
+- ``show tables``
+
+Use the 2.8 :program:`mongo` shell when connecting to 2.8
+:program:`mongod` instances that use WiredTiger.
+
+General Compatibility Changes
+-----------------------------
+
+Deprecate Access to ``system.indexes`` and ``system.namespaces``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.8 deprecates *direct* access to ``system.indexes`` and
+``system.namespaces`` collections. Use the :dbcommand:`createIndexes`
+and :dbcommand:`listIndexes` commands instead.
+
+Collection Name Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.8 more consistently enforces the :limit:`collection naming
 restrictions <Restriction on Collection Names>`. Ensure your application
 does not create or depend on invalid collection names.
+
+Platform Support
+~~~~~~~~~~~~~~~~
+
+No longer provides commercial support for MongoDB on Linux32 and Win32
+platforms; however, will continue to build the MongoDB distributions
+for the platforms.
+
+Removed/Deprecated Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following internal commands are no longer available in MongoDB 2.8:
+
+- ``closeAllDatabases``
+
+- ``getoptime``
+
+The following command is deprecated in MongoDB 2.8:
+
+- :dbcommand:`diagLogging`
