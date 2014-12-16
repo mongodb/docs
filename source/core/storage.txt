@@ -51,6 +51,29 @@ WiredTiger is a storage engine that is optionally available in MongoDB
 2.8. It excels at read and insert workloads as well as more complex
 update workloads.
 
+Journal
+~~~~~~~
+
+WiredTiger uses a write-ahead transaction log in combination with
+checkpoints to ensure data persistence. With
+WiredTiger, by default MongoDB will commit a checkpoint to disk every
+60 seconds, or when there are 2 gigabytes of data to write. The
+checkpoint thresholds are configurable. Between and during checkpoints
+the data files are *always* valid.
+
+The WiredTiger journal persists all data modifications between
+checkpoints. If MongoDB exits between checkpoints, it uses the journal
+to replay all data modified since the last checkpoint. By default the
+WiredTiger journal is compressed using the ``snappy`` algorithm.
+
+You can disable journaling by setting :setting:`storage.journal.enabled`
+to ``false``, which can reduce the overhead of maintaining the
+journal. For :term:`standalone` instances, not using the journal means
+that you will lose some data modifications when MongoDB exits
+unexpectedly between
+checkpoints. For members of :term:`replica sets`, the replication
+process may provide sufficient durability guarantees.
+
 MMAPv1 Storage Engine
 ---------------------
 
