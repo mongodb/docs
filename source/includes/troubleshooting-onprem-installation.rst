@@ -4,7 +4,7 @@ Installation
 Why doesn't the monitoring server startup successfully?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Confirm the URI or IP address for the |mms| On Prem service is stored
+Confirm the URI or IP address for the |mms| service is stored
 correctly in this property in the
 ``<install_dir>/conf/conf-mms.properties`` file:
 

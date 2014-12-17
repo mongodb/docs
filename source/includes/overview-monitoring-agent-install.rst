@@ -19,7 +19,7 @@ multiple MongoDB processes.
 
    This tutorial will guide you through the steps necessary
    to install or update |monitoring| on your system. You must install
-   the On Prem Monitoring server itself before installing the
+   the |onprem| Monitoring server itself before installing the
    Monitoring Agent.
 
 .. only:: classic or cloud

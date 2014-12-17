@@ -120,10 +120,10 @@ report for more than 24 hours, the agent no longer appears in MMS.
 
 For more details, see :doc:`/tutorial/delete-monitoring-agent`.
 
-Can I run the |mms| Monitoring Agent with |mms| Backup On Prem?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Can I run the MMS Monitoring Agent with |onprem| Backup?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Yes. Both the |mms| Monitoring Service and |mms| Backup On Prem can operate in
+Yes. Both the MMS Monitoring Service and |onprem| Backup can operate in
 the same environment. You will need to install and configure two separate
-Monitoring Agents: configure one agent for the On Prem environment and
-the other for the |mms| Service.
+Monitoring Agents: configure one agent for the |onprem| environment and
+the other for the MMS Service.
