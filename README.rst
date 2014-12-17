@@ -3,7 +3,7 @@ MongoDB Documentation
 =====================
 
 This repository contains a major revision of the MongoDB documentation,
-currently accessible at `http://docs.mongodb.org/manual/`_. You can
+currently accessible at http://docs.mongodb.org/manual/. You can
 download and build locally if you already have `Sphinx
 <http://sphinx.pocoo.org/>`_ and `PyYAML <http://pyyaml.org/>`_
 installed, with the following command::
