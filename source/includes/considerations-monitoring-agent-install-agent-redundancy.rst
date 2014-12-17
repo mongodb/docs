@@ -8,7 +8,7 @@ redundancy. If the primary agent fails, a standby agent starts monitoring.
 When you run multiple agents, only one Monitoring Agent per group or
 environment is the **primary agent**. The primary agent reports the
 cluster's status to MMS. The remaining agents are completely idle, except
-to log their status as standby agents and to periodically ask MMS whether
+to log their status as standby agents and to periodically ask |mms| whether
 they should become the primary.
 
 To install additional agents, simply repeat the installation process.

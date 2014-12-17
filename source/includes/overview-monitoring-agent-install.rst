@@ -1,6 +1,6 @@
 .. This is the Overview content for all the Monitoring Agent install tutorials.
 
-The MMS Monitoring Agent is a lightweight component that runs within your
+The |mms| Monitoring Agent is a lightweight component that runs within your
 infrastructure, connects to your MongoDB processes, collects data about the
 state of your deployment, and then sends the data to the |monitoring| service
 which processes and renders this data. The agent initiates all connections to

@@ -35,7 +35,7 @@ Monitoring Agent ``2.3.1.89-1``
 Monitoring Agent ``2.1.4.51-1``
 -------------------------------
 
-*Released with MMS OnPrem 1.4.2*
+*Released with |mms| OnPrem 1.4.2*
 
 Prevent high CPU use when monitoring unreachable :program:`mongod`.
 

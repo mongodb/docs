@@ -8,14 +8,14 @@ Use no-timeout cursors to work around :issue:`MGO-53`.
 Backup Agent ``2.3.1.160``
 --------------------------
 
-*Released with MMS OnPrem 1.5.0*
+*Released with |mms| OnPrem 1.5.0*
 
 - Backup Agent now sends oplog slices in batches.
 
 - Improved stability around oplog tokens for environments with unstable networks.
 
-- Support for a new API that allows MMS to ingest oplog entries before the entire
-  payload has reached the MMS servers.
+- Support for a new API that allows |mms| to ingest oplog entries before the entire
+  payload has reached the |mms| servers.
 
 - Upgraded agent to use to Go 1.3.
 
@@ -31,7 +31,7 @@ Backup Agent ``2.3.1.160``
 Backup Agent ``1.5.1.83-1``
 ---------------------------
 
-*Released with MMS OnPrem 1.4.2*
+*Released with |mms| OnPrem 1.4.2*
 
 Critical update for users running the MongoDB 2.6 series that use
 authorization.

@@ -14,13 +14,13 @@ factors.
 the :guilabel:`Deployment` page, and then click
 the :guilabel:`Add Host` button. In the :guilabel:`New Host` window, specify
 the host type, internal hostname, and port. If appropriate, add the database
-username and password and whether or not MMS should use SSL to connect with
+username and password and whether or not |mms| should use SSL to connect with
 your Monitoring Agent. Note it is not necessary to restart your Monitoring
 Agent when adding (or removing) a host.
 
 **Accidental duplicate mongods** If you add the host after a crash and restart
 the Monitoring Agent, you might not see the hostname on the MMS
-:guilabel:`Deployment` page. MMS detects the host as a duplicate and suppresses its
+:guilabel:`Deployment` page. |mms| detects the host as a duplicate and suppresses its
 data. To reset, select the :guilabel:`Administration` tab, then :guilabel:`Group Settings`,
 and then the :guilabel:`Reset Duplicates` button.
 
@@ -31,7 +31,7 @@ a single agent. Check you have only one Monitoring Agent and remove old agents
 after upgrading the Monitoring Agent.
 
 A second Monitoring Agent can be set up for redundancy. However, the MMS
-Monitoring Agent is robust. MMS sends an *Agent Down* alert only when there are
+Monitoring Agent is robust. |mms| sends an *Agent Down* alert only when there are
 no available Monitoring Agents available. See :ref:`Monitoring FAQ
 <faq-monitoring>` and :doc:`Monitoring Architecture
 </tutorial/add-hosts-to-monitoring>` for more information.

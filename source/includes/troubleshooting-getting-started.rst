@@ -21,7 +21,7 @@ fixed problems:
 Authentication Errors
 ~~~~~~~~~~~~~~~~~~~~~
 
-If your MongoDB instances run with authentication enabled, ensure MMS has these
+If your MongoDB instances run with authentication enabled, ensure |mms| has these
 credentials. For new hosts, click the :guilabel:`Add Host` button on the
 :guilabel:`Deployment` page then specify credentials for every host with
 authentication enabled. For hosts already listed in MMS, click the
@@ -51,7 +51,7 @@ and that only one if actively monitoring. When you upgrade a Monitoring
 Agent, do not forget to delete any old standby agents.
 
 When you run multiple agents, one runs as the primary agent and the others
-as standby agents. Standby agents poll MMS periodically to get the
+as standby agents. Standby agents poll |mms| periodically to get the
 configuration but do not send data.
 
 To determine which agent is the primary agent, look at the :guilabel:`Status`
@@ -79,11 +79,11 @@ port that the database is listening on.
 
 .. _troubleshooting-mms-connectivity:
 
-Ensure Connectivity Between Agent and MMS Server
+Ensure Connectivity Between Agent and |mms| Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Verify that the Monitoring Agent can connect on TCP port 443
-(outbound) to the MMS server (i.e. "``mms.mongodb.com``".)
+(outbound) to the |mms| server (i.e. "``mms.mongodb.com``".)
 
 .. _troubleshooting-discover-hosts:
 

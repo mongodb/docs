@@ -7,7 +7,7 @@ Monitoring Agent ``2.8.0.143``
 
 *Released 2014-11-12*
 
-- The Monitoring Agent will now identify itself to the MMS servers using the
+- The Monitoring Agent will now identify itself to the |mms| servers using the
   fully qualified domain name (FQDN) of the server on which it is running.
 
 - Improved connection management for monitored MongoDB processes.
@@ -180,7 +180,7 @@ Monitoring Agent ``1.6.4``
 - Added support for the agent to connect to MongoDB deployments that
   use Kerberos.
 
-- Allowed the Monitoring Agent to send data to the MMS server after
+- Allowed the Monitoring Agent to send data to the |mms| server after
   detecting changes, such as adding a new host.
 
 Monitoring Agent ``1.6.3``
@@ -221,7 +221,7 @@ Monitoring Agent ``1.5.9``
 *Released 2013-08-12*
 
 Agent now collects timestamps associated with hardware metrics, so
-that MMS can display more accurate minute-level charts.
+that |mms| can display more accurate minute-level charts.
 
 Monitoring Agent ``1.5.8``
 --------------------------

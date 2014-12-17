@@ -21,7 +21,7 @@ Backup Agent ``2.8.0.204``
 
 *Released 2014-11-12*
 
-The Backup Agent will now identify itself to the MMS servers using the
+The Backup Agent will now identify itself to the |mms| servers using the
 fully qualified domain name (FQDN) of the server on which it is running.
 
 Backup Agent ``2.7.1.206``
@@ -111,8 +111,8 @@ Backup Agent ``2.1.0.106-1``
 
 *Released 2014-06-17*
 
-Support for a new API t hat allows MMS to ingest oplog entries before
-the entire payload has reached the MMS servers.
+Support for a new API t hat allows |mms| to ingest oplog entries before
+the entire payload has reached the |mms| servers.
 
 Backup Agent ``2.0.0.90-1``
 ---------------------------
@@ -141,7 +141,7 @@ Backup Agent ``1.6.0.55-1``
 
 *Released 2014-05-09*
 
-The agent now sends oplog slices to MMS in batches to increase
+The agent now sends oplog slices to |mms| in batches to increase
 throughout and stability.
 
 Backup Agent ``1.4.6.43-1``
@@ -180,7 +180,7 @@ Backup Agent ``1.4.0.17``
 -------------------------
 
 Added support for sharded cluster checkpoints that add additional
-points-in-time, in between scheduled snapshots, that MMS can use to
+points-in-time, in between scheduled snapshots, that |mms| can use to
 create restores. Configure checkpoints using the *Edit Snapshot
 Schedule* link and interface.
 

@@ -4,7 +4,7 @@ Installation
 Why doesn't the monitoring server startup successfully?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Confirm the URI or IP address for the MMS On Prem service is stored
+Confirm the URI or IP address for the |mms| On Prem service is stored
 correctly in this property in the
 ``<install_dir>/conf/conf-mms.properties`` file:
 
@@ -13,7 +13,7 @@ correctly in this property in the
    mongo.mongoUri=<SetToValidUri>
    mongo.replicaSet=<ValidRSIfUsed>
 
-If you don't set this property, MMS will fail while trying to connect
+If you don't set this property, |mms| will fail while trying to connect
 to the default 127.0.0.1:27017 URL.
 
 If the URI or IP address of your service changes, you must update the
@@ -25,7 +25,7 @@ If the URI or IP address changes, then each user who access the service
 must also update the address in the URL used to connect and in the
 client-side ``monitoring-agent.config`` files.
 
-If you use the MMS :program:`<install_dir>/bin/credentialstool` to encrypt
+If you use the |mms| :program:`<install_dir>/bin/credentialstool` to encrypt
 the password used in the ``mongo.mongoUri`` value, also add the
 ``mongo.encryptedCredentials`` key to the
 ``<install_dir>/conf/conf-mms.properties`` file and set the value for this

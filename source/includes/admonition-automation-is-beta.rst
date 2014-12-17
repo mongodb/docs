@@ -1,6 +1,6 @@
-.. admonition:: MMS Automation is in Beta
+.. admonition:: |mms| Automation is in Beta
 
-   MMS Automation is currently in Beta with a limited initial user
+   |mms| Automation is currently in Beta with a limited initial user
    group. To get more information about Automation and sign up for the
-   beta program, see the `MMS Automation Beta
+   beta program, see the `|mms| Automation Beta
    <https://mms.mongodb.com/learn-more/automation>`_ page.

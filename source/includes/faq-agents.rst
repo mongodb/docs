@@ -5,7 +5,7 @@ Do I need a Monitoring Agent for every MongoDB Instance?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 No. A single Monitoring Agent can connect to all MongoDB databases
-in your MMS group. Unless you have multiple groups, complete your
+in your |mms| group. Unless you have multiple groups, complete your
 initial Monitoring Agent setup with a single agent.
 
 For redundancy, you may wish to run a second Monitoring Agent. See the
@@ -19,8 +19,8 @@ every server in the MongoDB
 deployment. Configure firewalls to allow the Monitoring Agent to connect across
 data centers and servers.
 
-Use multiple Monitoring Agents within a single MMS group *only* :ref:`to
-provide redundancy <monitoring-agent-redundancy`>. For each MMS group, the
+Use multiple Monitoring Agents within a single |mms| group *only* :ref:`to
+provide redundancy <monitoring-agent-redundancy`>. For each |mms| group, the
 agent must be able to connect
 to every monitored MongoDB. Unless you have multiple groups,
 complete your initial Monitoring Agent setup with a single agent.
@@ -30,7 +30,7 @@ What happens if a Monitoring Agent becomes unavailable? How can I ensure my Mong
 
 You can run multiple Monitoring Agents. If one Monitoring Agent fails,
 another starts monitoring. As long as at least one Monitoring Agent is
-available, MMS will not trigger a *Monitoring Agent Down* alert. To run multiple
+available, |mms| will not trigger a *Monitoring Agent Down* alert. To run multiple
 Monitoring Agents, see :ref:`monitoring-agent-redundancy`.
 
 You also can create an alert to notify you when an agent is down. In MMS,
@@ -90,7 +90,7 @@ click the :guilabel:`regexp` button to use a regular expression.
 
 Preferred hostnames also allow you to specify the hostname to use for servers
 with multiple aliases. This prevents servers from appearing multiple times
-under different names in the MMS interface.
+under different names in the |mms| interface.
 
 How do I download the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++++
@@ -120,10 +120,10 @@ report for more than 24 hours, the agent no longer appears in MMS.
 
 For more details, see :doc:`/tutorial/delete-monitoring-agent`.
 
-Can I run the MMS Monitoring Agent with MMS Backup On Prem?
+Can I run the |mms| Monitoring Agent with |mms| Backup On Prem?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Yes. Both the MMS Monitoring Service and MMS Backup On Prem can operate in
+Yes. Both the |mms| Monitoring Service and |mms| Backup On Prem can operate in
 the same environment. You will need to install and configure two separate
 Monitoring Agents: configure one agent for the On Prem environment and
-the other for the MMS Service.
+the other for the |mms| Service.
