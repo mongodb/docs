@@ -31,45 +31,29 @@ database. For example:
 .. source-not-admin
 
 If the source database is a non-``admin`` database, you must have
-privileges that specify :authaction:`find` action on the source
-database, and :authaction:`find` action on the ``system.js`` collection
-in the source database. For example:
+privileges that specify :authaction:`find`, :authaction:`listCollections`,
+and :authaction:`listIndexes` actions on the source database, and
+:authaction:`find` action on the ``system.js`` collection in the
+source database. For example:
 
 .. code-block:: javascript
 
-   { resource: { db: "mySourceDB", collection: "" }, actions: [ "find" ] }
+   { resource: { db: "mySourceDB", collection: "" }, actions: [ "find", "listCollections", "listIndexes" ] }
    { resource: { db: "mySourceDB", collection: "system.js" }, actions: [ "find" ] }
-
-If the source database is on a remote server, you also need the
-:authaction:`find` action on the ``system.indexes`` and
-``system.namespaces`` collections in the source database; e.g.
-
-.. code-block:: javascript
-
-   { resource: { db: "mySourceDB", collection: "system.indexes" }, actions: [ "find" ] }
-   { resource: { db: "mySourceDB", collection: "system.namespaces" }, actions: [ "find" ] }
 
 .. source-admin
 
 If the source database is the ``admin`` database, you must have
-privileges that specify :authaction:`find` action on the ``admin``
+privileges that specify :authaction:`find`, :authaction:`listCollections`,
+and :authaction:`listIndexes`  actions on the ``admin``
 database, and :authaction:`find` action on the ``system.js``,
 ``system.users``, ``system.roles``, and ``system.version`` collections
 in the ``admin`` database. For example:
 
 .. code-block:: javascript
 
-   { resource: { db: "admin", collection: "" }, actions: [ "find" ] }
+   { resource: { db: "admin", collection: "" }, actions: [ "find",  "listCollections", "listIndexes" ] }
    { resource: { db: "admin", collection: "system.js" }, actions: [ "find" ] }
    { resource: { db: "admin", collection: "system.users" }, actions: [ "find" ] }
    { resource: { db: "admin", collection: "system.roles" }, actions: [ "find" ] }
    { resource: { db: "admin", collection: "system.version" }, actions: [ "find" ] }
-
-If the source database is on a remote server, the you also need the
-:authaction:`find` action on the ``system.indexes`` and
-``system.namespaces`` collections in the ``admin`` database; e.g.
-
-.. code-block:: javascript
-
-   { resource: { db: "admin", collection: "system.indexes" }, actions: [ "find" ] }
-   { resource: { db: "admin", collection: "system.namespaces" }, actions: [ "find" ] }
