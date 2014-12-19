@@ -80,7 +80,7 @@ port that the database is listening on.
 .. _troubleshooting-mms-connectivity:
 
 Ensure Connectivity Between Agent and |mms| Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Verify that the Monitoring Agent can connect on TCP port 443
 (outbound) to the |mms| server (i.e. "``mms.mongodb.com``".)
