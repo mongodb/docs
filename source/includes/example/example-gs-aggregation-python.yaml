@@ -6,13 +6,13 @@ content:
   source:
     file: example/example-gs-query-all.yaml
     ref: 0
-edition: shell
+edition: python
 ---
 title: 
   text: Group Documents by a Field and Calculate Count
   level: 2
 ref: 1
-edition: shell
+edition: python
 pre: |
   Use the :pipeline:`$group` stage to group by a specified key. In the
   :pipeline:`$group` stage, specify the group by key in the ``_id``
@@ -26,18 +26,25 @@ operation:
       The following example groups the documents in the ``inventory``
       collection by the ``category`` field and uses the :group:`$sum`
       accumulator to count the documents for each group.
-    language: javascript
+    language: python
     code: |
-      db.inventory.aggregate(
+      cursor = db.inventory.aggregate(
          [
-           { $group: { "_id": "$category", "count": { $sum: 1 } } }
-         ]
+           { "$group": { "_id": "$category", "count": { "$sum": 1 } } }
+         ],
+         cursor={}
       )
+  - pre: |
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
 post: |
   The result set consists of the following documents:
 results:
-  - '{ "_id" : "hat", "count" : 2 }'
-  - '{ "_id" : "gloves", "count" : 3 }'
+  - "{u'count': 2, u'_id': u'hat'}"
+  - "{u'count': 3, u'_id': u'gloves'}"
 final: |
   The ``_id`` field contains the distinct ``category`` value, i.e., the
   group by key value.
@@ -46,7 +53,7 @@ title:
   text: Filter and Group Documents
   level: 2
 ref: 2
-edition: shell
+edition: python
 pre: |
   Use the :pipeline:`$match` stage to filter documents.
   :pipeline:`$match` uses the MongoDB :doc:`query syntax
@@ -62,25 +69,32 @@ operation:
       accumulator to calculate the count. :pipeline:`$group` accesses
       fields by the field path, which is the field name prefixed by a
       dollar sign ``$``.
-    language: javascript
+    language: python
     code: |
-      db.inventory.aggregate(
+      cursor = db.inventory.aggregate(
          [
-           { $match: { "category": "gloves" } },
-           { $group: { "_id": "$details.model" , "count": { $sum: 1 } } }
-         ]
+           { "$match": { "category": "gloves" } },
+           { "$group": { "_id": "$details.model" , "count": { "$sum": 1 } } }
+         ],
+         cursor={}
       )
+  - pre: |
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
 post: |
   The result set consists of the following documents:
 results:
-  - '{ "_id" : "14Q2", "count" : 1 }'
-  - '{ "_id" : "14Q3", "count" : 2 }'
+  - "{u'count': 2, u'_id': u'14Q3'}"
+  - "{u'count': 1, u'_id': u'14Q2'}"
 ---
 title:
   text: Unwind an Array and Project.
   level: 2
 ref: 3
-edition: shell
+edition: python
 pre: |
   Use the :pipeline:`$unwind` stage to deconstruct the array element
   and output to the next stage a document for *each* element in the
@@ -100,24 +114,31 @@ operation:
       The following example first unwinds the ``stock`` array in each
       document, and then projects or returns just the ``item`` and the
       ``stock`` field in the output documents.
-    language: javascript
+    language: python
     code: |
-      db.inventory.aggregate(
+      cursor = db.inventory.aggregate(
          [
-           { $unwind: "$stock" },
-           { $project: { "_id": 0, "stock": 1, "item": 1 } }
-         ]
+           { "$unwind": "$stock" },
+           { "$project": { "_id": 0, "stock": 1, "item": 1 } }
+         ],
+         cursor={}
       )
+  - pre: |
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
 post: "The result set consists of the following documents:"
 results:
-  - '{ "item" : "ABC", "stock" : { "size" : "S", "qty" : 25 } }'
-  - '{ "item" : "ABC", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "DEF", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "M", "qty" : 5 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "LMN", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "LMN", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "PQR", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "PQR", "stock" : { "size" : "L", "qty" : 1 } }'
+  - "{u'item': u'ABC', u'stock': {u'size': u'S', u'qty': 25}}"
+  - "{u'item': u'ABC', u'stock': {u'size': u'M', u'qty': 50}}"
+  - "{u'item': u'DEF', u'stock': {u'size': u'M', u'qty': 50}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'M', u'qty': 5}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'L', u'qty': 1}}"
+  - "{u'item': u'LMN', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'LMN', u'stock': {u'size': u'L', u'qty': 1}}"
+  - "{u'item': u'PQR', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'PQR', u'stock': {u'size': u'L', u'qty': 1}}"
 ...
