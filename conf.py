@@ -144,6 +144,8 @@ try:
         rst_epilog.append(".. |automation| replace:: On Prem MMS Automation")
         rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
         rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
+        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
+        rst_epilog.append(".. |mms-full| replace:: On-Prem MongoDB Management Service")
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'On Prem MMS Docs'
         if release == "Upcoming":
@@ -165,12 +167,14 @@ try:
         latex_documents = classic_latex_documents
         rst_epilog.append(".. |s| replace:: Service")
         rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-        rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+        rst_epilog.append(".. |mms| replace:: MMS")
         rst_epilog.append(".. |automation| replace:: MMS Automation")
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         rst_epilog.append(".. |release-string| replace:: \ ")
         rst_epilog.append(".. |admin-title-string| replace:: MMS")
+        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
+        rst_epilog.append(".. |mms-full| replace:: MongoDB Management Service (MMS)")
         html_theme_options['edition'] = 'saas'
         html_theme_options['sitename'] = 'MMS Classic Docs'
     elif tags.has('cloud'):
@@ -185,12 +189,14 @@ try:
         latex_documents = cloud_latex_documents
         rst_epilog.append(".. |s| replace:: Service")
         rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-        rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+        rst_epilog.append(".. |mms| replace:: MMS")
         rst_epilog.append(".. |automation| replace:: MMS Automation")
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         rst_epilog.append(".. |release-string| replace:: \ ")
         rst_epilog.append(".. |admin-title-string| replace:: MMS")
+        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
+        rst_epilog.append(".. |mms-full| replace:: MongoDB Management Service (MMS)")
         html_theme_options['edition'] = 'saas'
         html_theme_options['sitename'] = 'MMS Cloud Docs'
 except NameError:
