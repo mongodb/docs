@@ -11,9 +11,7 @@ are waiting for a lock:
         "waitingForLock" : true,
         $or: [
            { "op" : { "$in" : [ "insert", "update", "remove" ] } },
-           { "query.update": { $exists: true } },
-           { "query.insert": { $exists: true } },
-           { "query.remove": { $exists: true } }
+           { "query.findandmodify": { $exists: true } }
        ]  
       }
    )
@@ -46,7 +44,7 @@ database ``db1`` that have been running longer than 3 seconds:
      {
        "active" : true,
        "secs_running" : { "$gt" : 3 },
-       "ns" : /^db1./
+       "ns" : /^db1\./
      }
   )
 

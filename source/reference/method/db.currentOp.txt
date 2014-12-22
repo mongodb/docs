@@ -46,9 +46,9 @@ query. You can query on the :ref:`currentOp-output-fields`. See
 
 You can also specify ``{ '$all': true }`` query document to return
 information on all in-progress operations, including operations on idle
-connections and system operations. If you specify in the query document
-other conditions as well as ``'$all': true``, only the ``'$all': true``
-applies.
+connections and system operations. If the query document includes
+``'$all': true`` as well as other query conditions, only the ``'$all':
+true`` applies.
 
 Access Control
 --------------
@@ -70,13 +70,16 @@ various query documents to filter the output.
 Output Example
 --------------
 
-The following is an example of :method:`db.currentOp()` output. 
+The following is an prototype of :method:`db.currentOp()` output. 
 
 .. code-block:: javascript
 
    {
      "inprog": [
           {
+            "desc" : <string>,
+            "threadId" : <string>,
+            "connectionId" : <number>,
             "opid" : <number>,
             "active" : <boolean>,
             "secs_running" : <NumberLong()>,
@@ -87,15 +90,6 @@ The following is an example of :method:`db.currentOp()` output.
             "insert" : <document>,
             "planSummary": <string>,
             "client" : <string>,
-            "desc" : <string>,
-            "threadId" : <string>,
-            "connectionId" : <number>,
-            "locks" : {
-                "^" : <string>,
-                "^local" : <string>,
-                "^<database>" : <string>
-            },
-            "waitingForLock" : <boolean>,
             "msg": <string>,
             "progress" : {
                 "done" : <number>,
@@ -103,29 +97,42 @@ The following is an example of :method:`db.currentOp()` output.
             },
             "killPending" : <boolean>,
             "numYields" : <number>,
+            "locks" : {
+                "Global" : <string>,
+                "MMAPV1Journal" : <string>,
+                "Database" : <string>,
+                "Collection" : <string>,
+                "Metadata" : <string>,
+                "oplog" : <string>
+            },
+            "waitingForLock" : <boolean>,
             "lockStats" : {
-                "timeLockedMicros" : {
-                    "R" : <NumberLong()>,
-                    "W" : <NumberLong()>,
-                    "r" : <NumberLong()>,
-                    "w" : <NumberLong()>
-                },
-                "timeAcquiringMicros" : {
-                    "R" : <NumberLong()>,
-                    "W" : <NumberLong()>,
-                    "r" : <NumberLong()>,
-                    "w" : <NumberLong()>
-                }
             }
           },
           ...
-      ]
+      ],
+      "fsyncLock": <boolean>,
+      "info": <string>
    }
 
 .. _currentOp-output-fields:
 
 Output Fields
 -------------
+
+.. data:: currentOp.desc
+
+   A description of the client. This string includes the
+   :data:`~currentOp.connectionId`.
+
+.. data:: currentOp.threadId
+
+   An identifier for the thread that handles the operation and its
+   connection.
+
+.. data:: currentOp.connectionId
+
+   An identifier for the connection where the operation originated.
 
 .. data:: currentOp.opid
 
@@ -139,9 +146,15 @@ Output Fields
 
    A boolean value specifying whether the operation has started. Value
    is ``true`` if the operation has started or ``false`` if the
-   operation is queued and waiting for a lock to run.
-   :data:`~currentOp.active` may be ``true`` even if the operation has
-   yielded to another operation.
+   operation is idle, such as an idle connection or an internal thread
+   that is currently idle. An operation can be active even if the
+   operation has yielded to another operation.
+
+   .. versionchanged:: 2.8
+
+      For some inactive background threads, such as an inactive
+      ``signalProcessingThread``, MongoDB suppresses various empty
+      fields.
 
 .. data:: currentOp.secs_running
 
@@ -149,8 +162,8 @@ Output Fields
    value by subtracting the current time from the start time of the
    operation.
 
-   Only appears if the operation is running, (i.e. if
-   :data:`~currentOp.active` is ``true``).
+   Only appears if the operation is running; i.e. if
+   :data:`~currentOp.active` is ``true``.
 
 .. data:: currentOp.microsecs_running
 
@@ -160,8 +173,8 @@ Output Fields
    value by subtracting the current time from the start time of the
    operation.
 
-   Only appears if the operation is running, (i.e. if
-   :data:`~currentOp.active` is ``true``).
+   Only appears if the operation is running; i.e. if
+   :data:`~currentOp.active` is ``true``.
 
 .. data:: currentOp.op
 
@@ -176,17 +189,24 @@ Output Fields
    - ``"remove"``
    - ``"killcursors"``
 
-   The ``"query"`` type includes operations that use the
-   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
-   commands. Write operations that do not use the aforementioned write
-   commands will show with the appropriate ``"insert"``, ``"update"``,
-   or ``"remove"`` value.
+   ``"query"`` operations include read operations as well as most
+   commands such as the :dbcommand:`createIndexes` command and the
+   :dbcommand:`findandmodify` command. 
+
+   .. versionchanged:: 2.8
+
+      Write operations that use the :dbcommand:`insert`,
+      :dbcommand:`update`, and :dbcommand:`delete` commands
+      respectively display ``"insert"``, ``"update"``, and ``"delete"``
+      for :data:`~currentOp.op`. Previous versions include these write
+      commands under ``"query"`` operations.
 
 .. data:: currentOp.ns
 
    The :term:`namespace` the operation targets. A namespace consists of
    the :term:`database` name and the :term:`collection` name
-   concatenated with a dot (``.``); i.e., ``"<database>.<collection>"``.
+   concatenated with a dot (``.``); that is,
+   ``"<database>.<collection>"``.
 
 .. data:: currentOp.insert
 
@@ -200,44 +220,28 @@ Output Fields
 
 .. data:: currentOp.query
 
-   A document containing information on current operation if
+   A document containing information on operations whose
    :data:`~currentOp.op` value is *not* ``"insert"``.
    :data:`~currentOp.query` does not appear for :data:`~currentOp.op`
-   of type ``"insert"``.
+   of ``"insert"``, and the :data:`~currentOp.query` document can be
+   empty for :data:`~currentOp.op` types such as ``"getmore"``.
 
-   Write operations that use the :dbcommand:`insert`,
-   :dbcommand:`update`, and :dbcommand:`delete` commands have
-   :data:`~currentOp.op` value of ``"query"`` and the corresponding
-   :data:`~currentOp.query` contains information on these operations.
+   For :data:`"update" <currentOp.op>` or :data:`"remove"
+   <currentOp.op>` operations or for read operations categorized under
+   :data:`"query" <currentOp.op>`, the :data:`~currentOp.query`
+   document contains the query predicate for the operations.
+ 
+   For other commands categorized under :data:`"query" <currentOp.op>`,
+   :data:`~currentOp.query` document contains the specifics of the
+   command.
 
-   For example, the following :data:`~currentOp.query` field contains
-   information for an update operation:
+   .. versionchanged:: 2.8
 
-   .. code-block:: javascript
-
-      "query" : {
-                  "update" : "grades",
-                  "updates" : [
-                     {
-                        "q" : {
-                           "x" : {
-                              "$gt" : 70
-                           }
-                        },
-                        "u" : {
-                           "$set" : {
-                              "y" : 1
-                           }
-                        },
-                        "multi" : true,
-                        "upsert" : false
-                     }
-                  ],
-                  "ordered" : true
-               }
-
-   The document can be empty for :data:`~currentOp.op` types such as
-   ``"getmore"``.
+       Previous versions categorized operations that used write
+       commands under :data:`~currentOp.op` of ``"query"`` and returned
+       the write command information (e.g. query predicate, update
+       statement, and update options) in :data:`~currentOp.query`
+       document.
 
 .. data:: currentOp.planSummary
 
@@ -250,54 +254,37 @@ Output Fields
    array has operations from many different clients, use this string
    to relate operations to clients.
 
-   For some commands, including :dbcommand:`findAndModify` and
-   :method:`db.eval()`, the client will be ``0.0.0.0:0``, rather than
-   an actual client.
-
-.. data:: currentOp.desc
-
-   A description of the client. This string includes the
-   :data:`~currentOp.connectionId`.
-
-.. data:: currentOp.threadId
-
-   An identifier for the thread that services the operation and its
-   connection.
-
-.. data:: currentOp.connectionId
-
-   An identifier for the connection where the operation originated.
-
 .. data:: currentOp.locks
 
-   .. versionadded:: 2.2
+   .. versionchanged:: 2.8
 
-   
-   The :data:`~currentOp.locks` document reports by databases the types
-   of locks the operation currently holds. The possible lock types are:
+   The :data:`~currentOp.locks` document reports the type and mode of
+   locks the operation currently holds. The possible lock types are as
+   follows:
 
-   - ``R`` represents the global read lock,
-   - ``W`` represents the global write lock,
-   - ``r`` represents the database specific read lock, and
-   - ``w`` represents the database specific write lock.
-   
-   .. data:: currentOp.locks.^
+   - ``Global`` represents global lock.
 
-      :data:`~currentOp.locks.^` reports on the use of the global lock
-      for the :program:`mongod` instance. All operations must hold the
-      global lock for some phases of operation.
+   - ``MMAPV1Journal`` represents MMAPv1 storage engine specific lock
+     to synchronize journal writes; for non-MMAPv1 storage engines, the
+     mode for ``MMAPV1Journal`` is empty.
 
-   .. data:: currentOp.locks.^local
+   - ``Database`` represents database lock.
 
-      :data:`~currentOp.locks.^local` reports on the lock for the ``local``
-      database. MongoDB uses the ``local`` database for a number of
-      operations, but the most frequent use of the ``local`` database
-      is for the :term:`oplog` used in replication.
+   - ``Collection`` represents collection lock.
 
-   .. data:: currentOp.locks.^<database>
+   - ``Metadata`` represents metadata lock.
 
-      :data:`locks.^\<database\> <currentOp.locks.^<database>>` reports on the lock state for the
-      database that this operation targets.
+   - ``oplog`` represents lock on the :term:`oplog`.
+
+   The possible modes are as follows:
+
+   - ``R`` represents Shared (S) lock.
+
+   - ``W`` represents Exclusive (X) lock.
+
+   - ``r`` represents Intent Shared (IS) lock.
+
+   - ``w`` represents Intent Exclusive (IX) lock.
 
 .. data:: currentOp.waitingForLock
 
@@ -342,72 +329,21 @@ Output Fields
    other operations that have data in memory to complete quickly
    while MongoDB reads in data for the yielding operation.
 
+.. data:: currentOp.fsyncLock
+
+   Specifies if database is currently locked for :method:`fsync
+   write/snapshot <db.fsyncLock()>`.
+
+   Only appears if locked; i.e. if :data:`~currentOp.fsyncLock` is
+   ``true``.
+
+.. data:: currentOp.info
+
+   Information regarding how to unlock database from
+   :method:`db.fsyncLock()`. Only appears if
+   :data:`~currentOp.fsyncLock` is ``true``.
+
 .. data:: currentOp.lockStats
 
-   .. versionadded:: 2.2
-
-   The :data:`~currentOp.lockStats` document reflects the amount of time the
-   operation has spent both acquiring and holding
-   locks. :data:`~currentOp.lockStats` reports data on a per-lock type, with the
-   following possible lock types:
-
-   - ``R`` represents the global read lock,
-   - ``W`` represents the global write lock,
-   - ``r`` represents the database specific read lock, and
-   - ``w`` represents the database specific write lock.
-
-   .. data:: currentOp.timeLockedMicros
-
-      The :data:`~currentOp.timeLockedMicros` document reports the
-      amount of time the operation has spent holding a specific lock.
-
-      For operations that require more than one lock, like those that
-      lock the ``local`` database to update the :term:`oplog`, then the
-      values in this document can be longer than this value may be
-      longer than the total length of the operation (i.e.
-      :data:`~currentOp.secs_running`.)
-
-      .. data:: currentOp.timeLockedMicros.R
-
-         Reports the amount of time in microseconds the operation has
-         held the global read lock.
-
-      .. data:: currentOp.timeLockedMicros.W
-
-         Reports the amount of time in microseconds the operation has
-         held the global write lock.
-
-      .. data:: currentOp.timeLockedMicros.r
-
-         Reports the amount of time in microseconds the operation has
-         held the database specific read lock.
-
-      .. data:: currentOp.timeLockedMicros.w
-
-         Reports the amount of time in microseconds the operation has
-         held the database specific write lock.
-
-   .. data:: currentOp.timeAcquiringMicros
-
-      The :data:`~currentOp.timeAcquiringMicros` document reports the amount of time
-      the operation has spent *waiting* to acquire a specific lock.
-
-      .. data:: currentOp.timeAcquiringMicros.R
-
-         Reports the mount of time in microseconds the operation has waited for the
-         global read lock.
-
-      .. data:: currentOp.timeAcquiringMicros.W
-
-         Reports the mount of time in microseconds the operation has waited for the
-         global write lock.
-
-      .. data:: currentOp.timeAcquiringMicros.r
-
-         Reports the mount of time in microseconds the operation has waited for the
-         database specific read lock.
-
-      .. data:: currentOp.timeAcquiringMicros.w
-
-         Reports the mount of time in microseconds the operation has waited for the
-         database specific write lock.
+   The :data:`~currentOp.lockStats` document reflects the amount of
+   time the current operation has spent acquiring locks.
