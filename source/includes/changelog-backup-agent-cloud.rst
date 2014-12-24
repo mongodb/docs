@@ -6,6 +6,14 @@ Backup Agent Changelog
 
 .. default-domain:: mongodb
 
+Backup Agent ``2.9.1.235-1``
+----------------------------
+
+*Released 2014-12-17*
+
+Agent now encodes all collection meta-data. Avoids edge-case issues
+with unexpected characters in collection settings.
+
 Backup Agent ``2.9.0.223``
 --------------------------
 
