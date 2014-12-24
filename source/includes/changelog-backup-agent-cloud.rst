@@ -1,11 +1,5 @@
 .. put cloud-only versions of the release notes in this file
 
-======================
-Backup Agent Changelog
-======================
-
-.. default-domain:: mongodb
-
 Backup Agent ``2.9.1.235-1``
 ----------------------------
 

@@ -1,12 +1,6 @@
-==========================
-Monitoring Agent Changelog
-==========================
-
 .. NOTE TO WRITERS:
 
        All entries should be in the past tense.
-
-.. default-domain:: mongodb
 
 Monitoring Agent ``2.8.0.143``
 ------------------------------
@@ -70,7 +64,7 @@ Monitoring Agent ``2.4.0.101``
 
 - Added support for ``version`` and ``-version``.
 
- Agent now displays git commit hash of Monitoring Agent in the log file.
+- Agent now displays git commit hash of Monitoring Agent in the log file.
 
 - Updates to the configuration file format.
 

@@ -1,9 +1,3 @@
-==========================
-Monitoring Agent Changelog
-==========================
-
-.. default-domain:: mongodb
-
 Monitoring Agent ``2.4.2.113``
 ------------------------------
 

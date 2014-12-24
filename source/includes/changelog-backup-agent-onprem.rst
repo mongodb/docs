@@ -1,9 +1,3 @@
-======================
-Backup Agent Changelog
-======================
-
-.. default-domain:: mongodb
-
 Backup Agent ``2.3.3.209-1``
 ----------------------------
 
