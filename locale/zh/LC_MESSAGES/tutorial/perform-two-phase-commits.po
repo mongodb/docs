@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: mongodb-manual 2.6\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-09-03 15:39-0400\n"
-"PO-Revision-Date: 2014-12-19 10:59+0800\n"
+"PO-Revision-Date: 2014-12-25 15:50+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -521,7 +521,7 @@ msgstr "更新交易记录的 ``state`` 字段从 ``pending`` 变为 ``canceling
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:41
 msgid "Undo the transaction on both accounts."
-msgstr "从两个账户上撤销交易。"
+msgstr "撤销针对两个账户的交易。"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:44
 msgid ""
@@ -530,6 +530,9 @@ msgid ""
 "condition ``pendingTransactions: t._id`` in order to update the account only "
 "if the pending transaction has been applied."
 msgstr ""
+"若要撤消对这两个帐户的交易，如果该交易已经应用了（applied），则反向交易 "
+"``t`` 。在更新条件里，要包括条件 ``pendingTransactions: t._id`` ，这是为了仅"
+"仅当挂起的（pending）交易完成（applied）以后才更新这个账户。"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:50
 msgid ""
@@ -537,6 +540,8 @@ msgid ""
 "transaction ``value`` and removing the transaction ``_id`` from the "
 "``pendingTransactions`` array."
 msgstr ""
+"更新目标账户，从它的 ``balance`` 中减去交易 ``value`` 并且从 "
+"``pendingTransactions`` 数组中移除交易 ``_id`` 。"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:66
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:91
@@ -547,6 +552,10 @@ msgid ""
 "account, no document will match the update condition and :data:`~WriteResult."
 "nMatched` and :data:`~WriteResult.nModified` will be ``0``."
 msgstr ""
+"成功更新后，这个方法返回一个包含被置为1的 :data:`~WriteResult.nMatched` 和 :"
+"data:`~WriteResult.nModified` 的 :method:`WriteResult()` 对象。如果在这之前挂"
+"起的交易还没有应用到这个账户上，将没有文档匹配这些更新条件并且 :data:"
+"`~WriteResult.nMatched` 和 :data:`~WriteResult.nModified` 将被置为 ``0`` 。"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:75
 msgid ""
@@ -554,20 +563,23 @@ msgid ""
 "``value`` and removing the transaction ``_id`` from the "
 "``pendingTransactions`` array."
 msgstr ""
+"更新源账户，给它的 ``balance`` 增加交易 ``value`` 并且从 "
+"``pendingTransactions`` 数组中移除交易 ``_id`` 。"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:111
 msgid "Update transaction state to canceled."
-msgstr ""
+msgstr "更新交易状态为取消（canceled）"
 
 #: ../source/includes/steps/perform-two-phase-commit-rollback.rst:114
 msgid ""
 "To finish the rollback, update the transaction ``state`` from ``canceling`` "
 "to ``cancelled``."
 msgstr ""
+"要完成回滚，请把交易 ``state`` 从 ``canceling`` 更新为 ``cancelled`` 。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:226
 msgid "Multiple Applications"
-msgstr ""
+msgstr "多个应用"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:228
 msgid ""
@@ -577,6 +589,9 @@ msgid ""
 "conditions include a condition on the ``state`` field to prevent "
 "reapplication of the transaction by multiple applications."
 msgstr ""
+"存在部分交易，他们以便多个应用创建并且一致地运行操作，并且不会造成数据不一致"
+"或者冲突。在我们的过程中，想要更新或者检索交易文档，更新条件则包含一个关于 "
+"``state`` 字段的条件以避免被多个应用重复应用交易记录。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:235
 msgid ""
@@ -589,6 +604,12 @@ msgid ""
 "nModified` will be ``0``. This should signal to ``App2`` to go back to the "
 "first step to restart the procedure with a different transaction."
 msgstr ""
+"例如， ``App1`` 和 ``App2`` 都获取到了处于 ``initial`` 状态的同一交易记录。"
+"在 ``App2`` 之前 ``App1`` 完成了整个交易。当 ``App2`` 试图执行 \"`Update "
+"transaction state to pending.`_\" 步骤的时候，包含 ``state: \"initial\"`` 要"
+"求的的更新条件将不会匹配到任何文档，并且 :data:`~WriteResult.nMatched` 和 :"
+"data:`~WriteResult.nModified` 的值将是 ``0`` 。这是向 ``App2`` 发出一个信号："
+"返回到第一步对不同的交易记录重新开始这个过程。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:245
 msgid ""
@@ -600,12 +621,19 @@ msgid ""
 "`~db.collection.findAndModify()` method to modify the transaction and get it "
 "back in one step:"
 msgstr ""
+"当多个应用在运行的时候，在同一时间点仅仅一个应用可以处理某个给定的交易记录是"
+"非常重要的。因此，除了在更新条件里包含交易记录的期许状态之外，你还可以在交易"
+"记录文档自身中创建一个标记，它能够辨认正在操作这个交易记录文档的应用。使用 :"
+"method:`~db.collection.findAndModify()` 方法在一步内修改交易记录并且获取此记"
+"录。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:267
 msgid ""
 "Amend the transaction operations to ensure that only applications that match "
 "the identifier in the ``application`` field apply the transaction."
 msgstr ""
+"改进交易操作以保证仅仅与 ``application`` 字段中标识符相匹配的应用程序才能应用"
+"该交易记录。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:270
 msgid ""
@@ -615,10 +643,14 @@ msgid ""
 "transaction. For example to find and resume the pending job, use a query "
 "that resembles the following:"
 msgstr ""
+"如果在交易执行期间应用 ``App1`` 失败的话，你可以使用 :ref:`recovery "
+"procedures <2-phase-commits-recovery>` ，但是，应用程序应该保证在它们应用该交"
+"易之前 \"拥有\" 这个交易记录。例如查找并且继续挂起的工作，使用一个类似于下面"
+"的查询："
 
 #: ../source/tutorial/perform-two-phase-commits.txt:292
 msgid "Using Two-Phase Commits in Production Applications"
-msgstr ""
+msgstr "在生产应用中使用两阶段提交"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:294
 msgid ""
@@ -626,15 +658,20 @@ msgid ""
 "assumes that it is always possible to roll back operations to an account and "
 "that account balances can hold negative values."
 msgstr ""
+"上面的交易记录是有意的简单。例如，假设总是对一个账户进行回滚操作，账户余额有"
+"可能为负值。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:298
 msgid ""
 "Production implementations would likely be more complex. Typically, accounts "
 "need information about current balance, pending credits, and pending debits."
 msgstr ""
+"生产实现可能会更复杂。通常情况下，账户需要当前余额，待定积分（pending "
+"credit）和挂起的借方（pending debits）信息等。"
 
 #: ../source/tutorial/perform-two-phase-commits.txt:302
 msgid ""
 "For all transactions, ensure that you use a level of :term:`write concern` "
 "appropriate for your deployment."
 msgstr ""
+"对于所有的交易，确保为你的部署使用一个级别的合适的 :term:`write concern` 。"
