@@ -243,6 +243,7 @@ msgid ""
 "document operations, MongoDB does not provide any multi-document "
 "transactions or isolation."
 msgstr ""
+"在其他数据库里这就是所谓的 *脏读*。"
 
 #: ../source/includes/fact-write-concern-read-uncommitted.rst:20
 msgid ""
@@ -250,6 +251,8 @@ msgid ""
 "data is fully committed to disk and will be available after "
 ":program:`mongod` restarts."
 msgstr ""
+"在你使用了*journaled write concern* 的时候，如果 :program:`mongod` 成功确认写操作 "
+"那么数据就已经完全落盘，在mongod重新启动时候会保证数据的存在。"
 
 #: ../source/includes/fact-write-concern-read-uncommitted.rst:24
 msgid ""
@@ -259,11 +262,14 @@ msgid ""
 "concern: use the :setting:`~storage.journal.commitIntervalMs` to control how"
 " often a :program:`mongod` commits the journal."
 msgstr ""
+"对于复制集来说，一个写操作只有在复制集多数成员上写到日志才意味着真正的持久。 无论是否在安全写级别"
+"里面指定写日志(Journaled write），MongoDB会自动定时把日志进行刷盘。这个时间间隔可以有mongod的启动"
+"参数 :setting:`~storage.journal.commitIntervalMs` 来指定。"
 
 #: ../source/faq/fundamentals.txt:123
 msgid "Does MongoDB require a lot of RAM?"
 msgstr ""
-“MongoDB需要很多内存么？"
+"MongoDB需要很多内存么？"
 
 #: ../source/faq/fundamentals.txt:125
 msgid ""
@@ -279,6 +285,8 @@ msgid ""
 "usage is dynamic. If another process suddenly needs half the server's RAM, "
 "MongoDB will yield cached memory to the other process."
 msgstr ""
+"MongoDB 会使用系统所有可用内存作为它的缓存。 系统监控会显示MongoDB使用很多内存，但是这些内存的使用"
+"是动态的。如果另外一个进程突然需要服务器一半的内存，MongoDB会把内存让给其他进程。"
 
 #: ../source/faq/fundamentals.txt:133
 msgid ""
@@ -287,16 +295,20 @@ msgid ""
 " can, swapping to disk as needed. Deployments with enough memory to fit the "
 "application's working data set in RAM will achieve the best performance."
 msgstr ""
+"从技术上来说，操作系统的虚拟内存管理模块负责管理MongoDB的内存使用。这意味着MongoDB可以用到"
+"系统所有的可用内存，并在必要的时候会使用交换内存。部署的时候尽量要使用足够的内存来装下工作集数据(热数据）。"
+
 
 #: ../source/faq/fundamentals.txt:139
 msgid ""
 ":doc:`/faq/diagnostics` for answers to additional questions about MongoDB "
 "and Memory use."
 msgstr ""
+":doc:`/faq/diagnostics` 更多关于MongoDB内存使用的问题。"
 
 #: ../source/faq/fundamentals.txt:143
 msgid "How do I configure the cache size?"
-msgstr ""
+msgstr "我如何配置缓存大小"
 
 #: ../source/faq/fundamentals.txt:145
 msgid ""
@@ -304,11 +316,14 @@ msgid ""
 "system automatically by way of memory-mapped files. Operating systems use "
 "the same approach with their file system caches."
 msgstr ""
+"MongoDB 不支持配置缓存。MongoDB会通过内存映射的技术使用所有可用内存。这一点"
+"和操作系统处理文件系统缓存原理是一致的。"
 
 #: ../source/faq/fundamentals.txt:152
 msgid ""
 "Does MongoDB require a separate caching layer for application-level caching?"
 msgstr ""
+"在MongoDB里面是否需要为应用程序缓存单独加一个缓存层？"
 
 #: ../source/faq/fundamentals.txt:154
 msgid ""
@@ -318,6 +333,9 @@ msgid ""
 "persistent store and in the application cache. This eliminates the need for "
 "a separate caching layer in the application."
 msgstr ""
+"不需要。在MongoDB里面，一个文档的结构和其在应用程序内存里的结构是相似的。这意味着数据库"
+"里存储的已经是一种可以直接使用的格式。这样在应用程序端就不再需要一个单独的缓冲层。"
+""
 
 #: ../source/faq/fundamentals.txt:160
 msgid ""
@@ -328,10 +346,13 @@ msgid ""
 "objects require joins, this process increases the overhead related to using "
 "the database which increases the importance of the caching layer."
 msgstr ""
+"这点和关系型数据库不一样。关系型数据库缓存比较昂贵，它必须首先把数据转换成对象模式然后保存在"
+"一个单独的缓存器。如果从数据转换成对象的时候需要关联，那么这个过程就会有很多额外开销。"
+
 
 #: ../source/faq/fundamentals.txt:169
 msgid "Does MongoDB handle caching?"
-msgstr ""
+msgstr "MongoDB支持缓存吗？"
 
 #: ../source/faq/fundamentals.txt:171
 msgid ""
@@ -339,16 +360,19 @@ msgid ""
 "created indexes for your queries and your working data set fits in RAM, "
 "MongoDB serves all queries from memory."
 msgstr ""
+"是的。MongoDB会把最近所用的数据保持在内存里。如果你的索引数据和你的工作集数据小于内存的大小，"
+"那么MongoDB就可以从内存里直接处理你的查询。"
 
 #: ../source/faq/fundamentals.txt:175
 msgid ""
 "MongoDB does not implement a query cache: MongoDB serves all queries "
 "directly from the indexes and/or data files."
 msgstr ""
+"MongoDB 没有查询缓存。MongoDB会直接从索引和数据文件里读取数据来处理查询请求。"
 
 #: ../source/faq/fundamentals.txt:179
 msgid "Are writes written to disk immediately, or lazily?"
-msgstr ""
+msgstr "所有的写操作是立即刷盘还是滞后的？"
 
 #: ../source/faq/fundamentals.txt:181
 msgid ""
@@ -359,6 +383,9 @@ msgid ""
 ":setting:`~storage.journal.commitIntervalMs` for more information on the "
 "journal commit window."
 msgstr ""
+"默认情况下，所有写操作会在100ms之内写入到日志文件  :doc:`journal </core/journaling>` "
+"在这个时候写操作就是持久的了 - 假如你这个时候把电源拔掉，机器重启后数据还是会在的。 参见 "
+":setting:`~storage.journal.commitIntervalMs` 来了解更多关于日志落盘间隔的信息。"
 
 #: ../source/faq/fundamentals.txt:187
 msgid ""
@@ -368,10 +395,13 @@ msgid ""
 "enough information to ensure crash recovery. To change the interval for "
 "writing to the data files, see :setting:`~storage.syncPeriodSecs`."
 msgstr ""
+"虽然日志落盘几乎是实时的，但是MongoDB的数据落盘是异步的。MongoDB有可能会等到60秒才把数据"
+"写入数据文件。这个不影响数据持久性，因为日志里面有足够的信息用来做宕机时候的恢复动作。数据"
+"落盘间隔可以通过 :setting:`~storage.syncPeriodSecs` 设置来调整"
 
 #: ../source/faq/fundamentals.txt:194
 msgid "What language is MongoDB written in?"
-msgstr ""
+msgstr "MongoDB使用什么变成语言写的？"
 
 #: ../source/faq/fundamentals.txt:196
 msgid ""
@@ -379,10 +409,11 @@ msgid ""
 " are typically written in their respective languages, although some drivers "
 "use C extensions for better performance."
 msgstr ""
+"MongoDB是用C++写的。驱动程序和客户端一般会用各自的语言编写。有一些驱动程序用一些C模块来提高性能。"
 
 #: ../source/faq/fundamentals.txt:203
 msgid "What are the limitations of 32-bit versions of MongoDB?"
-msgstr ""
+msgstr "MongoDB 32位的限制是什么？"
 
 #: ../source/faq/fundamentals.txt:205
 msgid ""
@@ -391,6 +422,8 @@ msgid ""
 "server, including data and indexes, is 2 gigabytes. For this reason, do not "
 "deploy MongoDB to production on 32-bit machines."
 msgstr ""
+"MongoDB使用 :ref:`memory-mapped files <faq-storage-memory-mapped-files>` 技术。"
+"如果使用32位版本，那么总共的存储空间，包括数据和索引，是2个G。正因为这个原因，请不要在生产环境部署32位机。"
 
 #: ../source/faq/fundamentals.txt:211
 msgid ""
@@ -398,12 +431,15 @@ msgid ""
 "storage size. For production deployments, 64-bit builds and operating "
 "systems are strongly recommended."
 msgstr ""
+"假如你使用的是64位版本，那基本上对存储没有限制。我们强烈建议在生产环境中使用64位版本。"
 
 #: ../source/faq/fundamentals.txt:215
 msgid ""
 "\"`Blog Post: 32-bit Limitations <http://blog.mongodb.org/post/137788967/32"
 "-bit-limitations>`_\""
 msgstr ""
+"\"`博客: 32位版本的限制 <http://blog.mongodb.org/post/137788967/32"
+"-bit-limitations>`_\""
 
 #: ../source/faq/fundamentals.txt:219
 msgid ""
@@ -411,3 +447,4 @@ msgid ""
 "journaling further limits the maximum amount of data that the database can "
 "store."
 msgstr ""
+"32位系统默认禁止日志（journaling) 因为日志会进一步减小数据库可存储空间的容量。"
