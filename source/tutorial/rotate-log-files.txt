@@ -101,6 +101,8 @@ The following steps create and rotate a log file:
    file, renamed. ``server1.log`` is a new, empty file that receives
    all new log output.
 
+.. _syslog-log-rotation:
+
 Syslog Log Rotation
 -------------------
 
@@ -110,6 +112,37 @@ To configure mongod to send log data to syslog rather than writing log
 data to a file, use the following procedure.
 
 1. Start a :program:`mongod` with the :setting:`~systemLog.syslogFacility` option.
+
+#. If you are running on OS X, set up a configuration file the ASL (Apple
+   System Log) facility. OS X processes syslog messages via the ASL facility.
+
+   a. Create a configuration file in the ``/etc/asl`` directory. For
+      example, you could create a file called ``org.mongodb``:
+
+      .. code-block:: sh
+
+         sudo touch /etc/asl/org.mongodb
+
+   b. In the new configuration file, set up rules for syslog.
+
+      The following are example rules:
+
+      .. code-block:: sh
+
+         # Log all messages via syslog to a separate mongodb.log
+         ? [= Sender mongod.27017] claim only
+         * file /var/log/mongodb.log mode=0640 compress format=bsd rotate=seq file_max=5M all_max=20M
+
+      .. code-block:: sh
+
+         # Save all messages to system.log
+         ? [= Sender mongod.27017] file /var/log/system.log
+
+   c. After you configure the rules, send an ``HUP`` signal to ``syslogd``. For example:
+
+      .. code-block:: sh
+
+         ps -ef | grep -i '/usr/sbin/syslogd' | awk '{print $2}' | head -1 | xargs kill -HUP
 
 #. Store and rotate the log output using your system's default log
    rotation mechanism.
