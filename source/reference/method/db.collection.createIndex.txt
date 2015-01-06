@@ -13,10 +13,142 @@ Definition
 
    .. include:: /reference/method/db.collection.createIndex-param.rst
 
-   .. seealso:: :doc:`/indexes`,
-      :method:`db.collection.createIndex()`,
-      :method:`db.collection.dropIndex()`,
-      :method:`db.collection.dropIndexes()`,
-      :method:`db.collection.getIndexes()`,
-      :method:`db.collection.reIndex()`, and
-      :method:`db.collection.totalIndexSize()`
+.. _ensureIndex-options:
+.. _createIndex-options:
+
+Options
+-------
+
+The ``options`` document contains a set of options that controls the
+creation of the index. Different index types can have additional
+options specific for that type.
+
+Options for All Index Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following options are available for all index types unless
+otherwise specified:
+
+.. include:: /reference/method/db.collection.createIndex-options-param.rst
+
+Options for ``text`` Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following options are available for :doc:`text </core/index-text>`
+indexes only:
+
+.. include:: /reference/method/db.collection.createIndex-options-text.rst
+
+Options for ``2dsphere`` Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following option is available for :doc:`2dsphere </core/2dsphere>`
+indexes only:
+
+.. include:: /reference/method/db.collection.createIndex-options-2dsphere.rst
+
+Options for ``2d`` Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following options are available for :doc:`2d </core/2d>` indexes
+only:
+
+.. include:: /reference/method/db.collection.createIndex-options-2d.rst
+
+Options for ``geoHaystack`` Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following option is available for :doc:`geoHaystack </core/geohaystack>`
+indexes only:
+
+.. include:: /reference/method/db.collection.createIndex-options-geohaystack.rst
+
+Behaviors
+---------
+
+The :method:`~db.collection.createIndex()` method has the behaviors
+described here.
+
+- To add or change index options you must drop the index using the
+  :method:`~db.collection.dropIndex()` method and issue another
+  :method:`~db.collection.createIndex()` operation
+  with the new options.
+
+  If you create an index with one set of options, and then issue
+  the :method:`~db.collection.createIndex()` method
+  with the same index fields and different options without
+  first dropping the index,
+  :method:`~db.collection.createIndex()` will *not* rebuild the existing
+  index with the new options.
+
+- If you call multiple :method:`~db.collection.createIndex()`
+  methods with the same index specification at the same time, only
+  the first operation will succeed, all other operations will have
+  no effect.
+
+- Non-background indexing operations will block all other
+  operations on a database.
+
+-  .. include:: /includes/fact-index-key-length-operation-behaviors.rst
+      :start-after: index-field-limit-ensureIndex
+      :end-before: .. index-field-limit-reIndex
+
+   .. versionchanged:: 2.6
+
+   .. |limit| replace:: :limit:`Maximum Index Key Length <Index Key>`
+
+Examples
+--------
+
+Create an Ascending Index on a Single Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an ascending index on the field
+``orderDate``.
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { orderDate: 1 } )
+
+If the ``keys`` document specifies more than one field, then
+:method:`~db.collection.createIndex()` creates a :term:`compound
+index`.
+
+Create an Index on a Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a compound index on the
+``orderDate`` field (in ascending order) and the ``zipcode``
+field (in descending order.)
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { orderDate: 1, zipcode: -1 } )
+
+A compound index cannot include a :ref:`hashed index <index-type-hashed>`
+component.
+
+.. note::
+
+   The order of an index is important for supporting
+   :method:`~cursor.sort()` operations using the index.
+
+Additional Information
+----------------------
+
+- Use :method:`db.collection.createIndex()` rather than
+  :method:`db.collection.ensureIndex()` to create new indexes.
+
+- The :doc:`/indexes` section of this manual for full
+  documentation of indexes and indexing in MongoDB.
+
+- :method:`db.collection.getIndexes()` to view the specifications of
+  existing indexes for a collection.
+
+- :doc:`/core/index-text` for details on creating ``text``
+  indexes.
+
+- :ref:`index-feature-geospatial` and
+  :ref:`index-geohaystack-index` for geospatial queries.
+
+- :ref:`index-feature-ttl` for expiration of data.
