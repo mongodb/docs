@@ -2,15 +2,14 @@
 MongoDB Documentation
 =====================
 
-This repository contains a major revision of the MongoDB
-documentation, currently accessible at <http://docs.mongodb.org/manual/>.
-You can download and build locally if you already have `Sphinx
-<http://sphinx.pocoo.org/>`_ and other dependencies installed, with
-the following command::
+This repository contains a major revision of the MongoDB documentation,
+currently accessible at http://docs.mongodb.org/manual/. You can build
+the documentation locally if you have `giza
+<https://pypi.python.org/pypi/giza>`_ and Inkscape installed: ::
 
+     pip install giza
      git clone https://github.com/mongodb/docs.git
      cd docs/
-     python bootstrap.py
      make html
 
 Visit ``docs/mongodb/build/html/index.html`` to view the current state
