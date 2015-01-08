@@ -4,38 +4,95 @@
 
 The following diagrams show example |onprem| deployments:
 
-.. only::  print
+.. _on-prem-minimal-deployment-diagram:
 
-   See https://mms.mongodb.com/help-hosted/current/core/deployments/
-   for diagrams of example deployments.
+Testing Deployment
+------------------
 
-.. only:: not print
+.. include:: /images/mms-onprem-test.rst
+ 
+For a test deployment, you can deploy all of the |onprem|
+components to a single server. Ensure you :ref:`configure
+the appropriate ulimits <mms-config-ulimits>` for the deployment.
 
-   .. _on-prem-minimal-deployment-diagram:
+The ``HEAD DB`` databases are dynamically created and maintained
+by the Backup Daemon. They reside on the disk partition specified
+in the ``conf-daemon.properties`` file.
 
-   Testing Deployment
-   ------------------
+Basic Deployment
+----------------
 
-   .. image:: /figures/mms_onprem_small.png
-      :alt: "Diagram of an |onprem| deployment for testing"
-      :width: 500px
-      :align: center
-      :target: ../../_static/mms_onprem_small.png
+.. include:: /images/mms-onprem-medium.rst
 
-   Basic Deployment
-   ----------------
+**Server 1** must satisfy the combined hardware and software
+requirements for the |application| hardware and |application|
+database hardware.
 
-   .. image:: /figures/mms_onprem_basic.png
-      :alt: "Diagram of the basic |onprem| deployment"
-      :width: 500px
-      :align: center
-      :target: ../../_static/mms_onprem_basic.png
+**Server 2** must satisfy the combined hardware and software
+requirements for the Backup Daemon hardware and Backup Blockstore
+database hardware. The Backup Daemon automatically creates and
+maintains the``HEAD DB`` databases. These databases reside on the
+disk partition specified in the ``conf-daemon.properties`` file.
+Do not place the ``HEAD DB`` databases on the same disk partition
+as the Backup Blockstore database, as this will reduce |backup|'s
+performance.
 
-   Advanced Deployment
-   -------------------
+**Server 3** hosts replica set members for the Backup Blockstore and
+|application| databases. Replica sets provide data redundancy and
+are strongly recommended, but are not required for |onprem|.
+Server 3 must satisfy the combined hardware and software
+requirements for the |application| database hardware and Backup
+Blockstore database hardware.
 
-   .. image:: /figures/mms_onprem_large.png
-      :alt: "Diagram of an |onprem| deployment with high availability and data redundancy"
-      :width: 500px
-      :align: center
-      :target: ../../_static/mms_onprem_large.png
+See: :doc:`install-basic-deployment` for a complete guide to
+deploying a basic |onprem| installation.
+
+Advanced Deployment
+-------------------
+
+.. include:: /images/mms-onprem-large.rst
+
+An |onprem| deployment with high availability and data redundancy
+includes two servers that host the |application| and |application|
+databases, four servers that host two |backup| deployments, and an
+additional server to host the :term:`arbiters <arbiter>` for each
+replica set.
+
+Deploy an HTTP Load Balancer to balance the HTTP traffic for the
+|http-service| and Backup service. |on-prem| does not supply
+an HTTP Load Balancer: you must deploy and configure it yourself.
+
+All of the software services need to be able to communicate with
+the |application| databases, and the Backup Blockstore databases.
+Configure your firewalls to allow traffic between these servers
+on the :doc:`appropriate ports </reference/on-prem>`.
+
+- **Server 1** and **Server 2** must satisfy the combined hardware
+  and software requirements for the |application| hardware and
+  |application| database hardware.
+
+- **Server 3**, **Server 4**, **Server 5**, and **Server 6** must
+  satisfy the combined hardware and software requirements for the
+  Backup Daemon hardware and Backup Blockstore database hardware.
+
+  The Backup Daemon creates and maintains the ``HEAD DB``s. They
+  reside on the disk partition specified in the
+  ``conf-daemon.properties`` file. Only the Backup Daemon needs to
+  communicate with the ``HEAD DB`` databases. As such, their :option:`net.bindIp` value
+  is``127.0.0.1`` to prevent external communication.
+  :option:`net.bindIp` specifies the IP address that
+  :program:`mongod` and :program:`mongos` listens to for connections
+  coming from applications.
+
+  For best performance, each Backup server should have 2 partitions. One
+  for the Backup Blockstore database, and one for the ``HEAD DB``
+  databases.
+  
+- **Server 7** simply hosts the :term:`arbiters <arbiter>`. 
+  Arbiters have minimal resource requirements, but must be
+  able to communicate with the |application| and Backup
+  Blockstore replica set members. **Do not** deploy the arbiters
+  on the same system as a member of their replica set.
+
+See: :doc:`/tutorial/configure-application-high-availability` for
+a more about deploying |onprem| for high availability.
