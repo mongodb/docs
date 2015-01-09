@@ -147,6 +147,7 @@ try:
         rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
         rst_epilog.append(".. |mms-full| replace:: On-Prem MongoDB Management Service")
         rst_epilog.append(".. |application| replace:: MMS Application")
+        rst_epilog.append(".. |http-service| replace:: MMS HTTP Service")
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'On Prem MMS Docs'
         if release == "Upcoming":
