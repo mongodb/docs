@@ -1,6 +1,5 @@
-The :ref:`MMS Application database <mms-application-database>` holds the
-monitoring information for the :ref:`MMS Application
-<mms-application-package>`.
+The :ref:`mms-application-database` holds the
+monitoring information for the :ref:`mms-application-package`.
 
 The database runs as a three-member :term:`replica set`. If you cannot
 allocate space for three data-bearing members, the third member can be an
@@ -12,11 +11,11 @@ data-bearing members, MongoDB blocks write operations.
 
 Run the replica set on :doc:`backing MongoDB servers
 </tutorial/prepare-backing-mongodb-instances>`. You can optionally run one
-member of the replica set on the same physical server as the MMS Application.
+member of the replica set on the same physical server as the |application|.
 For a test deployment, you can use a MongoDB standalone in place of a replica
 set.
 
-Each backing MongoDB server that runs an MMS Application database requires
+Each backing MongoDB server that runs an |application| database requires
 the following:
 
 .. list-table::
@@ -26,10 +25,10 @@ the following:
      - **RAM**
      - **Disk Space**
    * - Up to 400 monitored hosts
-     - 8 GB additional RAM beyond the RAM required for the MMS Application
+     - 8 GB additional RAM beyond the RAM required for the |application|
      - 200 GB of storage space
    * - Up to 2000 monitored hosts
-     - 15 GB additional RAM beyond the RAM required for the MMS Application
+     - 15 GB additional RAM beyond the RAM required for the |application|
      - 500 GB of storage space
    * - More than 2000 hosts
      - Contact MongoDB account manager
