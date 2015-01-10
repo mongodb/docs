@@ -7,5 +7,5 @@ and :setting:`storage.dbPath` for additional information.
 
 If you change the user that runs the MongoDB process, you
 **must** modify the access control rights to the |mongod-datadir| and
-``/var/log/mongodb`` directories to give this users access to these
+``/var/log/mongodb`` directories to give this user access to these
 directories.
