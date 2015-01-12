@@ -3,7 +3,7 @@ monitoring information for the :ref:`mms-application-package`.
 
 The database runs as a three-member :term:`replica set`. If you cannot
 allocate space for three data-bearing members, the third member can be an
-arbiter, but keep in mind that MMS uses ``w:2`` :manual:`write concern
+arbiter, but keep in mind that |mms| uses ``w:2`` :manual:`write concern
 </reference/write-concern>`, which reports a write operation as successful
 after acknowledgement from the primary and one secondary. If you use a replica
 set with fewer than 3 data-bearing members, and if you lose one of the

@@ -4,7 +4,7 @@ There is no technical restriction that prevents the Backup Agent and
 the Monitoring Agent from running on a single system or host. However,
 both agents have resource requirements, and running both on a single
 system can affect the ability of these agents support your deployment
-in MMS.
+in |mms|.
 
 The resources required by the Backup Agent depend on rate and size
 of new oplog entries (i.e. total oplog gigabyte/per-hour produced.)

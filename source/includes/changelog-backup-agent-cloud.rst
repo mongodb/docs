@@ -102,7 +102,7 @@ Backup Agent ``2.2.1.122``
   with an updated Go client library.
 
 - Agent is now able to send a stack trace of its current state to
-  MMS.
+  |mms|.
 
 - Fixes regression in the Agent's rollback handling.
 
@@ -211,7 +211,7 @@ Backup Agent ``v20130923.0``
 ----------------------------
 
 When the agent sends the initial meta-data about the data to back up
-(e.g. the list of databases, collections,and indexes,) to the MMS
+(e.g. the list of databases, collections,and indexes,) to the |mms|
 API, the agent will not include any databases or collections in the
 "excluded namespace" configuration.
 

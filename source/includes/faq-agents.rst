@@ -33,7 +33,7 @@ another starts monitoring. As long as at least one Monitoring Agent is
 available, |mms| will not trigger a *Monitoring Agent Down* alert. To run multiple
 Monitoring Agents, see :ref:`monitoring-agent-redundancy`.
 
-You also can create an alert to notify you when an agent is down. In MMS,
+You also can create an alert to notify you when an agent is down. In |mms|,
 click the :guilabel:`Activity` tab and then :guilabel:`Alert Settings`. Click the
 :guilabel:`Add Alert` button then set the alert through the fields in the
 :guilabel:`Create a New Alert` window.
@@ -53,7 +53,7 @@ The Monitoring Agent load scales with the number of monitored ``mongod`` plus
 .. include:: /includes/fact-host-for-monitoring-agent.rst
 
 Can I run the Monitoring Agent on an AWS micro server?
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If you monitor five or fewer ``mongod`` instances, you can use
 a AWS micro server.
@@ -93,9 +93,9 @@ with multiple aliases. This prevents servers from appearing multiple times
 under different names in the |mms| interface.
 
 How do I download the Monitoring Agent?
-++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++
 
-You can update the Monitoring Agent from the :guilabel:`Agents` page on the MMS
+You can update the Monitoring Agent from the :guilabel:`Agents` page on the |mms|
 `Administration tab`_.
 
 .. _`Administration tab`: https://mms.mongodb.com/settings
@@ -112,18 +112,18 @@ See the ``README`` file included in the agent download.
 
    .. include:: /includes/faq-backup-and-monitoring-agent-on-one-server.rst
 
-How do I delete a Monitoring Agent from MMS?
-++++++++++++++++++++++++++++++++++++++++++++
+How do I delete a Monitoring Agent from |mms|?
+++++++++++++++++++++++++++++++++++++++++++++++
 
 Monitoring Agents report their status to the |mms|. When an agent does not
-report for more than 24 hours, the agent no longer appears in MMS.
+report for more than 24 hours, the agent no longer appears in |mms|.
 
 For more details, see :doc:`/tutorial/delete-monitoring-agent`.
 
-Can I run the MMS Monitoring Agent with |onprem| Backup?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Can I run the |mms| Monitoring Agent with |onprem| Backup?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Yes. Both the MMS Monitoring Service and |onprem| Backup can operate in
+Yes. Both the |mms| Monitoring Service and |onprem| Backup can operate in
 the same environment. You will need to install and configure two separate
 Monitoring Agents: configure one agent for the |onprem| environment and
-the other for the MMS Service.
+the other for the |mms| Service.

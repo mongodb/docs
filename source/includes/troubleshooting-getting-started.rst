@@ -24,7 +24,7 @@ Authentication Errors
 If your MongoDB instances run with authentication enabled, ensure |mms| has these
 credentials. For new hosts, click the :guilabel:`Add Host` button on the
 :guilabel:`Deployment` page then specify credentials for every host with
-authentication enabled. For hosts already listed in MMS, click the
+authentication enabled. For hosts already listed in |mms|, click the
 :guilabel:`gear icon` to the right of a host name on the :guilabel:`Deployment` page
 then select :guilabel:`Edit Host` to provide credentials.
 
