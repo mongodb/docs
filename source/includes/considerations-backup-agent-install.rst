@@ -25,7 +25,7 @@ later.
    maintain oplog entries, by default, for at least 3 hours over the
    last 24 hour period. This window is configurable with the
    :setting:`brs.minimumReplicationOplogWindowHr` setting in the
-   ``conf-mms.properties`` file for the |mms| Application server.
+   ``conf-mms.properties`` file for the |application|.
    See :doc:`/reference/configuration` for more information.
 
 Agent Architecture
