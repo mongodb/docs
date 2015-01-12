@@ -9,12 +9,9 @@ Definition
 
 .. dbcommand:: geoNear
 
-   Specifies a point for which a :term:`geospatial` query returns the
-   closest documents first. The query returns the documents from nearest
-   to farthest. The :dbcommand:`geoNear` command provides an alternative
-   to the :query:`$near` operator. In addition to the functionality
-   of :query:`$near`, :dbcommand:`geoNear` returns additional
-   diagnostic information.
+   Returns documents in order of proximity to a specified point, from
+   the nearest to farthest. :dbcommand:`geoNear` requires a geospatial
+   index.
 
    The :dbcommand:`geoNear` command accepts a :term:`document` that
    contains the following fields. Specify all distances in the same
@@ -25,15 +22,65 @@ Definition
 Considerations
 --------------
 
-The :dbcommand:`geoNear` command can use either a :term:`GeoJSON`
-point or :term:`legacy coordinate pairs`.
-
-The :dbcommand:`geoNear` command requires that a collection have *at
-most* only one :doc:`2d index </core/2d>` and/or only one
-:doc:`2dsphere </core/2dsphere>`.
+:dbcommand:`geoNear` requires a geospatial index. However, the
+:dbcommand:`geoNear` command requires that a collection have *at most*
+only one :doc:`2d index </core/2d>` and/or only one :doc:`2dsphere
+</core/2dsphere>`.
 
 .. |geoNear| replace:: :dbcommand:`geoNear` command
 .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+
+Command Syntax
+--------------
+
+``2dsphere`` Index
+~~~~~~~~~~~~~~~~~~
+
+If using a ``2dsphere`` index, you can specify either a ``GeoJSON``
+point or a legacy coordinate pair for the ``near`` value.
+
+You must include ``spherical: true`` in the syntax.
+
+With ``spherical: true``, if you specify a GeoJSON point, MongoDB uses
+meters as the unit of measurement:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      geoNear: <collection> ,
+      near: { type: "Point" , coordinates: [ <coordinates> ] } ,
+      spherical: true,
+      ...
+   } )
+
+With ``spherical: true``, if you specify a legacy coordinate pair,
+MongoDB uses radians as the unit of measurement:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      geoNear: <collection> ,
+      near: [ <coordinates> ],
+      spherical: true,
+      ...
+   } )
+
+``2d`` Index
+~~~~~~~~~~~~
+
+To query a :doc:`2d </core/2d>` index, use the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      geoNear: <collection>,
+      near : [ <coordinates> ],
+      ... 
+   } )
+
+If you specify ``spherical: true``, MongoDB uses spherical geometry to
+calculate distances in radians. Otherwise, MongoDB uses planar geometry
+to calculate distances between points.
 
 Behavior
 --------
@@ -46,38 +93,10 @@ Because :dbcommand:`geoNear` orders the documents from nearest to
 farthest, the ``minDistance`` field effectively skips over the first
 *n* documents where *n* is determined by the distance requirement.
 
-Command Format
---------------
-
-``2dsphere`` Index
-~~~~~~~~~~~~~~~~~~
-
-To query a :doc:`2dsphere </core/2dsphere>` index, use the
-following syntax:
-
-.. code-block:: javascript
-
-   db.runCommand( {
-      geoNear: <collection> ,
-      near: { type: "Point" , coordinates: [ <coordinates> ] } ,
-      spherical: true,
-      ...
-   } )
-
-You must include ``spherical: true``.
-
-``2d`` Index
-~~~~~~~~~~~~
-
-To query a :doc:`2d </core/2d>` index, use:
-
-.. code-block:: javascript
-
-   db.runCommand( { 
-      geoNear: <collection>,
-      near : [ <coordinates> ],
-      ... 
-   } )
+The :dbcommand:`geoNear` command provides an alternative to the
+:query:`$near` operator. In addition to the functionality of
+:query:`$near`, :dbcommand:`geoNear` returns additional diagnostic
+information.
 
 .. read-lock, slave-ok
 
