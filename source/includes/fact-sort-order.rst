@@ -18,6 +18,10 @@ the following comparison order, from lowest to highest:
 MongoDB treats some types as equivalent for comparison purposes. For
 instance, numeric types undergo conversion before comparison.
 
+.. versionchanged:: 2.8.0
+   Date objects sort before Timestamp objects. Previously Date and
+   Timestamp objects sorted together.
+
 The comparison treats a non-existent field as it would an empty BSON
 Object. As such, a sort on the ``a`` field in documents ``{ }`` and ``{
 a: null }`` would treat the documents as equivalent in sort order.
