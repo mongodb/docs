@@ -11,6 +11,7 @@ from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
 from giza.config.project import get_current_path
 from giza.tools.strings import dot_concat
+from giza.content.replacements import get_replacements
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
@@ -128,82 +129,55 @@ try:
     if tags.has('onprem'):
         conf.runstate.edition = 'onprem'
 
-        html_theme = 'mms-onprem'
         project = u'MongoDB Management Service (MMS) On-Prem'
+        latex_documents = onprem_latex_documents
+
         html_title = 'MMS On-Prem Manual'
         html_short_title = 'MMS On-Prem Manual'
+
+        html_theme = 'mms-onprem'
         html_theme_options['pdfpath'] = '/'.join([conf.project.url,
                                                   conf.project.basepath,
                                                   conf.git.branches.current,
                                                   'mms-manual.pdf'])
-        latex_documents = onprem_latex_documents
-        rst_epilog.append(".. |s| replace:: Suite")
-        rst_epilog.append(".. |index-page-title| replace:: On Prem MongoDB Management Service")
-        rst_epilog.append(".. |mms| replace:: On-Prem MongoDB Management Service")
-        rst_epilog.append(".. |backup| replace:: On Prem MMS Backup")
-        rst_epilog.append(".. |automation| replace:: On Prem MMS Automation")
-        rst_epilog.append(".. |monitoring| replace:: On Prem MMS Monitoring")
-        rst_epilog.append(".. |admin-title-string| replace:: On Prem MMS")
-        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
-        rst_epilog.append(".. |mms-full| replace:: On-Prem MongoDB Management Service")
-        rst_epilog.append(".. |application| replace:: MMS Application")
-        rst_epilog.append(".. |http-service| replace:: MMS HTTP Service")
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'On Prem MMS Docs'
-        if release == "Upcoming":
-            rst_epilog.append(".. |release-string| replace:: \   ")
-        else:
-            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+
         ## add `extlinks` for each published version.
         for i in conf.git.branches.published:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     elif tags.has('classic'):
         conf.runstate.edition = 'classic'
 
-        html_theme = 'mms-classic'
-        html_theme_options['pdfpath'] = '/'.join([conf.project.basepath, 'mms-manual.pdf'])
-
         project = u'MongoDB Management Service (MMS)'
+
+        latex_documents = classic_latex_documents
+
         html_title = 'MMS Manual'
         html_short_title = 'MMS Manual'
-        latex_documents = classic_latex_documents
-        rst_epilog.append(".. |s| replace:: Service")
-        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-        rst_epilog.append(".. |mms| replace:: MMS")
-        rst_epilog.append(".. |automation| replace:: MMS Automation")
-        rst_epilog.append(".. |backup| replace:: MMS Backup")
-        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-        rst_epilog.append(".. |release-string| replace:: \ ")
-        rst_epilog.append(".. |admin-title-string| replace:: MMS")
-        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
-        rst_epilog.append(".. |mms-full| replace:: MongoDB Management Service (MMS)")
+
+        html_theme = 'mms-classic'
+        html_theme_options['pdfpath'] = '/'.join([conf.project.basepath, 'mms-manual.pdf'])
         html_theme_options['edition'] = 'saas'
         html_theme_options['sitename'] = 'MMS Classic Docs'
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
-        html_theme = 'mms-cloud'
-        html_theme_options['pdfpath'] = '/' + 'mms-manual.pdf'
-
         project = u'MongoDB Management Service (MMS)'
-        html_title = 'MMS Manual'
-        html_short_title = 'MMS Manual'
+
         latex_documents = cloud_latex_documents
-        rst_epilog.append(".. |s| replace:: Service")
-        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-        rst_epilog.append(".. |mms| replace:: MMS")
-        rst_epilog.append(".. |automation| replace:: MMS Automation")
-        rst_epilog.append(".. |backup| replace:: MMS Backup")
-        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-        rst_epilog.append(".. |release-string| replace:: \ ")
-        rst_epilog.append(".. |admin-title-string| replace:: MMS")
-        rst_epilog.append(".. |onprem| replace:: On-Prem MongoDB Management Service")
-        rst_epilog.append(".. |mms-full| replace:: MongoDB Management Service (MMS)")
+
+        html_short_title = 'MMS Manual'
+        html_title = 'MMS Manual'
+
+        html_theme = 'mms-cloud'
         html_theme_options['edition'] = 'saas'
+        html_theme_options['pdfpath'] = '/' + 'mms-manual.pdf'
         html_theme_options['sitename'] = 'MMS Cloud Docs'
 except NameError:
     pass
 
+rst_epilog.extend(get_replacements(conf))
 rst_epilog = '\n'.join(rst_epilog)
 
 html_theme_options['manual_path'] = get_manual_path(conf)
