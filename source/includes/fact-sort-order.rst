@@ -10,7 +10,8 @@ the following comparison order, from lowest to highest:
 #. BinData
 #. ObjectId
 #. Boolean
-#. Date, Timestamp
+#. Date
+#. Timestamp
 #. Regular Expression
 #. MaxKey (internal type)
 
