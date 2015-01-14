@@ -1,0 +1,107 @@
+stepnum: 1
+source:
+  ref: download
+  file: steps-backup-install-backend-from-archive.yaml
+---
+title: Install the Backup Daemon.
+stepnum: 2
+ref: install-backup-windows
+content: |
+  Right-click on the ``mongodb-mms-backup-daemon-<version>.msi`` file and
+  select :guilabel:`Install`. Follow the instructions in the Setup Wizard.
+
+  During setup, the :guilabel:`Daemon Paths` screen prompts you to specify the
+  following folders. The installer will restrict access to these folders to
+  administrators only:
+
+  - :guilabel:`Configuration/Log Path`. The location of the Backup Daemon's configuration and log files.
+
+  - :guilabel:`Backup Data Root Path`. The path where the Backup Daemon stores the local copies of the backed-up databases. This location must have enough storage to hold a full copy of each database being backed up.
+
+  - :guilabel:`MongoDB Releases Path`. The location of the MongoDB software releases required to replicate the backed up databases. These releases will be downloaded from ``mongodb.org`` by default.
+# Note: Each bullet above must remain on one line to publish correctly.
+---
+title: Configure the Backup Daemon.
+stepnum: 3
+ref: configure-backup-daemon-windows
+action:
+  pre: |
+    In the folder you selected for storing configuration and log files,
+    navigate to ``\BackupDaemon\Config``. For example, if you chose
+    ``C:\MMSData``, navigate to ``C:\MMSData\BackupDaemon\Config``.
+
+    Open the ``conf-daemon.properties`` file and configure the
+    :setting:`mongo.mongoUri` property to point the Backup Daemon to the
+    servers and ports hosting the |application| database. For example:
+  language: cfg
+  code: |
+    mongo.mongoUri=mongodb://mongodb1.example.net:27017,mongodb2.example.net:27017,mongodb3.example.net:27017
+---
+title: "Copy the ``gen-key`` file from the |application| server to the Backup Daemon server."
+stepnum: 4
+ref: copy-genkey-windows
+content: |
+  **Important:** You must copy the file as a whole. Do not open the file and
+  copy its content.
+
+  Copy the ``gen.key`` file from the ``C:\MMSData\Secrets`` folder on the
+  |application| server to the empty ``C:\MMSData\Secrets`` folder on the
+  Backup Daemon server.
+---
+title: "If you have not already done so, start the Backup services on the |application| server."
+stepnum: 5
+ref: start-backup-services-windows
+content: |
+  On the |application| server, open ``Control Panel``, then ``System and
+  Security``, then ``Administrative Tools``, and then ``Services``.
+  Right-click on the following services and select ``Start``:
+
+  - ``MMS Backup HTTP Service``
+
+  - ``MMS Backup Alert Service``
+---
+title: Start the Backup Daemon.
+stepnum: 6
+ref: start-daemon-windows
+content: |
+  On the **Backup Daemon server**, open ``Control Panel``, then ``System and
+  Security``, then ``Administrative Tools``, and then ``Services``.
+  Right-click on the ``MMS Backup Daemon Service`` and select ``Start``.
+---
+title: "Open |onprem| and access the Backup configuration page."
+stepnum: 7
+ref: access-backup-config
+content: |
+  Open the |onprem| home page and log in as the user you registered when
+  installing the |application|. Then click the :guilabel:`Admin` link at the
+  top right of the page. Then click the :guilabel:`Backup` tab.
+---
+title: "Enter configuration information for the Backup database."
+stepnum: 8
+ref: configure-backup-database-uri
+content: |
+  Enter the configuration information described here, and then click
+  :guilabel:`Save`. |onprem| uses this information to create the
+  :manual:`connection string URI </reference/connection-string>` used to
+  connect to the database.
+
+  :guilabel:`<hostname>:<port>`: Enter a comma-separated list of the fully
+  qualified domain names and port numbers for all :term:`replica set` members
+  for the Backup database. For test deployments, you can use a
+  :term:`standalone` MongoDB instance for the database.
+
+  :guilabel:`MongoDD Auth Username` and :guilabel:`MongoDB Auth Password`:
+  Enter the user credentials if the database uses authentication.
+
+  :guilabel:`Encrypted Credentials`: Check this if the user credentials use
+  the |onprem| ``credentialstool``. For more information, see
+  :ref:`on-prem-authentication-configuration`.
+
+  :guilabel:`Use SSL`: Check this if the MongoDB database uses SSL. If you
+  select this, you must configure SSL settings for both the |application| and
+  Backup Daemon. See :doc:`/reference/configuration`.
+
+  :guilabel:`Connection Options`: To add additional connection options, enter
+  them using the MongoDB :manual:`Connection String URI Format
+  </reference/connection-string>`.
+...
