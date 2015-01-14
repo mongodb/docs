@@ -38,18 +38,49 @@ Vista, and Solaris platforms.
 
 .. include:: /includes/note-minimum-glibc.rst
 
-Concurrency
------------
+Concurrency and Storage
+-----------------------
 
-In earlier versions of MongoDB, all write operations contended for a
-single readers-writer lock on the MongoDB instance. As of version 2.2,
-each database has a readers-writer lock that allows concurrent reads
-access to a database, but gives exclusive access to a single write
-operation per database. See the :doc:`Concurrency </faq/concurrency/>`
-page for more information.
+.. versionadded:: 2.8.0
+   MongoDB includes support for two storage engines: MMAPv1, the
+   storage engine available in previous versions of MongoDB, and
+   `WiredTiger <http://wiredtiger.com>`_. In 2.8, by default MongoDB
+   uses the MMAPv1 engine.
 
-.. In future, Concurrency should perhaps go with a section detailing bulk
-   inserts & write throughput.
+MMAPv1
+~~~~~~
+
+Beginning with MongoDB 2.8 MMAPv1 provides *collection-level locking*:
+All collections have a unique readers-writer lock that allows multiple
+clients to modify documents in different collections at the same time.
+
+Between MongoDB 2.2 and 2.6, each database has a readers-writer lock
+that allows concurrent reads access to a database, but gives exclusive
+access to a single write operation per database. See the
+:doc:`Concurrency </faq/concurrency>` page for more information. In
+earlier versions of MongoDB, all write operations contended for a
+single readers-writer lock for the entire :program:`mongod` instance.
+
+WiredTiger
+~~~~~~~~~~~
+
+WiredTiger supports concurrent access by readers and writers to the
+documents in a collection. Clients can read documents while write
+operations are in progress, and two clients can modify different
+documents in a collection at the same time.
+
+In most respects, recommendations for managing production MongoDB
+systems that use the WiredTiger storage engine are the same as
+managing any other MongoDB instance. However, consider the following:
+
+- If you run :program:`mongod` in a container (e.g. ``lxc``,
+  ``cgroups``, Docker, etc.) that does *not* have access to all of the
+  RAM available in a system, you must set the
+  :setting:`wiredTiger.engineConfig.cacheSizeGB` to a value less than
+  the amount of RAM available in the container.
+
+- See :ref:`WiredTiger <storage-wiredtiger>` for more information
+  about WiredTiger in MongoDB.
 
 Journaling
 ----------
