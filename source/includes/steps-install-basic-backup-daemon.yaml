@@ -25,32 +25,17 @@ action:
   code: |
     sudo rpm --install mongodb-mms-backup-daemon-1.5.2.160-1.x86_64.rpm
 ---
-title: Configure the Backup Daemon.
+title: "Point the Backup Daemon to the |application| database."
 stepnum: 3
-ref: mms-backup-configure
+ref: point-to-app-db
 pre: |
   Open the ``/opt/mongodb/mms-backup-daemon/conf/conf-daemon.properties`` file
-  with root privileges and set values for the following options. For detailed
-  information on each option, see the :doc:`/reference/configuration` page.
+  with root privileges and set the :setting:`mongo.mongoUri` value to the
+  servers and ports hosting the |application| database. For example:
 action:
-  - pre: |
-      To point the Backup Daemon to the |application| database, set the
-      :setting:`mongo.mongoUri` option to the servers and ports hosting the
-      |application| database. Set the :setting:`mongo.replicaSet` option to
-      the name of the |application| database's replica set. For example:
-    language: cfg
-    code: |
-      mongo.mongoUri=mongodb://mongodb1.example.net:27017,mongodb2.example.net:27017,mongodb3.example.net:27017
-      mongo.replicaSet=monitoring
-  - pre: |
-      Set the the :setting:`mongo.backupdb.mongoUri` option to the servers and
-      ports hosting the Backup Blockstore database. Set the
-      :setting:`mongo.backupdb.replicaSet` option to the name of the Backup
-      Blockstore's replica set. For example:
-    language: cfg
-    code: |
-      mongo.backupdb.mongoUri=mongodb://mongodb1.example.net:27018,mongodb2.example.net:27018,mongodb3.example.net:27018
-      mongo.backupdb.replicaSet=blockstore
+  language: cfg
+  code: |
+    mongo.mongoUri=mongodb://mongodb1.example.net:27017,mongodb2.example.net:27017,mongodb3.example.net:27017
 ---
 title: "Use ``scp`` to copy the ``gen.key`` file from the |application| server, **server 1**."
 stepnum: 4
@@ -129,4 +114,43 @@ action:
   language: sh
   code: |
     sudo service mongodb-mms-backup-daemon start
+post: |
+  If you run into any problems, the log files are at ``<install_dir>/logs``.
+---
+title: "Open |onprem| and access the Backup configuration page."
+stepnum: 7
+ref: access-backup-config
+content: |
+  Open the |onprem| home page and log in as the user you registered when
+  installing the |application|. Then click the :guilabel:`Admin` link at the
+  top right of the page. Then click the :guilabel:`Backup` tab.
+---
+title: "Enter configuration information for the Backup database."
+stepnum: 8
+ref: configure-backup-database-uri
+content: |
+  Enter the configuration information described here, and then click
+  :guilabel:`Save`. |onprem| uses this information to create the
+  :manual:`connection string URI </reference/connection-string>` used to
+  connect to the database.
+
+  :guilabel:`<hostname>:<port>`: Enter a comma-separated list of the fully
+  qualified domain names and port numbers for all :term:`replica set` members
+  for the Backup database. For test deployments, you can use a
+  :term:`standalone` MongoDB instance for the database.
+
+  :guilabel:`MongoDD Auth Username` and :guilabel:`MongoDB Auth Password`:
+  Enter the user credentials if the database uses authentication.
+
+  :guilabel:`Encrypted Credentials`: Check this if the user credentials use
+  the |onprem| ``credentialstool``. For more information, see
+  :ref:`on-prem-authentication-configuration`.
+
+  :guilabel:`Use SSL`: Check this if the MongoDB database uses SSL. If you
+  select this, you must configure SSL settings for both the |application| and
+  Backup Daemon. See :doc:`/reference/configuration`.
+
+  :guilabel:`Connection Options`: To add additional connection options, enter
+  them using the MongoDB :manual:`Connection String URI Format
+  </reference/connection-string>`.
 ...
