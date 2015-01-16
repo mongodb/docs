@@ -1,3 +1,11 @@
+.. The following are NOT documented on this page. Should they be?
+.. increment.gle.freq
+.. increment.offer.time
+.. increment.queue.size
+.. increment.thread.count
+.. ping.queue.size
+.. ping.thread.count
+
 =============
 Configuration
 =============
@@ -32,8 +40,11 @@ in the ``conf-mms.properties`` file.
 Security
 ~~~~~~~~
 
-The ``conf-mms.properties`` file may contain user credentials in plain
-text. Follow standard practice and reduce the permissions on the
+For configuration settings that store credentials, you can either store the
+credentials in plaint text or use the |onprem| ``credentialstool`` to encrypt
+the credentials, as described in :ref:`encrypt-mongodb-user-credentials`.
+
+If you choose to store credentials in plain text, reduce the permissions on the
 configuration file. For example:
 
 .. code-block:: sh
@@ -74,6 +85,11 @@ The following two settings are mandatory for the |application|.
    You must set :setting:`mms.backupCentralUrl`, even if you are only
    using |mms| Monitoring and not |mms| Backup.
 
+Load Balancer
+~~~~~~~~~~~~~
+
+Set the following when using a load balancer with the |application|.
+
 .. setting:: mms.remoteIp.header
 
    *Type*: string
@@ -86,6 +102,35 @@ The following two settings are mandatory for the |application|.
 
    When you specify :setting:`mms.remoteIp.header`, do not allow
    clients to connect directly to any application server.
+
+.. _https-settings:
+
+|application| HTTPS Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the |application|'s application servers to use HTTPS to
+encrypt connections between the |application|, the agents, and the web
+interface.
+
+The default port for HTTPS access to the |application| is ``8443``, as set in
+``<install_dir>/conf/mms.conf`` file. If you change this default, change the
+ports specified in the :setting:`mms.centralUrl` and
+:setting:`mms.backupCentralUrl` settings.
+
+.. setting:: mms.https.PEMKeyFile
+
+   *Type*: string
+
+   Specify the PEM file that contains the application's valid certificate and
+   private key.
+
+.. setting:: mms.https.PEMKeyFilePassword
+
+   *Type*: string
+
+   Required if the PEM file contains an encrypted private key. Specify the
+   password for PEM file. You can encrypt the specified password using the
+   |onprem| ``credentialstool``. See :ref:`encrypt-mongodb-user-credentials`.
 
 Email Settings
 ~~~~~~~~~~~~~~
@@ -249,6 +294,8 @@ Email Service Settings
 
 .. setting:: aws.accesskey
 
+   *Type*: string
+
    Required if using AWS Simple Email Service. The access key ID for AWS.
 
    .. code-block:: ini
@@ -256,6 +303,8 @@ Email Service Settings
       aws.accesskey=EXAMPLEAccessKeyID
 
 .. setting:: aws.secretkey
+
+   *Type*: string
 
    Required if using AWS Simple Email Service. The secret access key
    for AWS.
@@ -295,79 +344,154 @@ Twilio account information in the configuration file.
 MongoDB Settings
 ~~~~~~~~~~~~~~~~
 
+The following settings configure the |onprem| connections to the backing
+MongoDB instances that host the :ref:`mms-application-database` and
+:ref:`mms-backup-blockstore-database`.
+
+Connection String
+`````````````````
+
 .. setting:: mongo.mongoUri
 
    *Type*: string
 
-   Required. The :manual:`connection string
-   </reference/connection-string/>` to the MongoDB server for
-   |mms|, i.e. the |application| database. For example, the
-   following specifies the URI for a :term:`replica set`:
+   Required. The :manual:`connection string </reference/connection-string/>`
+   used to access the backing MongoDB instance. The ``conf-mms.properties``
+   file can contain multiple :setting:`mongo.mongoUri` settings. The following
+   example specifies connection to a :term:`replica set`:
 
    .. code-block:: ini
 
       mongo.mongoUri=mongodb://db1.example.net:40000,db2.example.net:40000,db3.example.net:40000
 
-   If you omit the port number, |mms| will use the default ``27017``
-   port for all hosts.
+   If you omit the port number, |onprem| uses the default ``27017`` port for
+   all hosts.
 
-   For a MongoDB server with access control, prefix the hostname with
-   the MongoDB username and password in the form
-   ``<username>:<password>@``, and append after the port the ``/admin``
-   database. For example:
+   For a MongoDB instance with **access control**, the connection string must
+   include credentials and the authentication mechanism. For available
+   mechanisms, see :parameter:`authenticationMechanisms` in the MongoDB
+   manual. |onprem| must authenticate as a user that has the privileges
+   described in :ref:`security-access-control-authentication`.
+
+   The following examples show the format for different authentication
+   mechanisms.
+
+   For a MongoDB instance using the default challenge-response mechanism,
+   prefix the hostname with the MongoDB username and password in the form
+   ``<username>:<password>@`` and add ``/admin`` database after the port:
 
    .. code-block:: ini
 
       mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/admin
 
-   For a MongoDB server using LDAP as the authentication mechanism,
-   prefix the hostname with the MongoDB username and password in the
-   form ``<username>:<password>@``, and append the
-   ``authMechanism=PLAIN&authSource=$external`` options after the
-   port:
+   For a MongoDB instance using the ``MONGODB-X509`` authentication mechanism,
+   prefix the host with the name of the PEM file that contains the client SSL
+   certificate and key. This is the same PEM file you specify in the
+   :setting:`mongodb.ssl.PEMKeyFile` setting. Append
+   ``authMechanism=MONGODB-X509`` after the port:
+
+   .. code-block:: ini
+
+      mongo.mongoUri=mongodb://my.pem@mydb1.example.net:40000/?authMechanism=MONGODB-X509
+
+   For a MongoDB instance using LDAP, prefix the hostname with the MongoDB
+   username and password in the form ``<username>:<password>@``, and append
+   the ``authMechanism=PLAIN&authSource=$external`` options after the port:
 
    .. code-block:: ini
 
       mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/?authMechanism=PLAIN&authSource=$external
 
-   To connect to a MongoDB server using Kerberos, prefix the hostname
-   with the MongoDB username and password in the form
-   ``<username>:<password>@``, and append the ``authMechanism=GSSAPI``
-   option after the port:
+   For a MongoDB instance using Kerberos, prefix the hostname with the MongoDB
+   username and password in the form ``<username>:<password>@``, and append
+   the ``authMechanism=GSSAPI`` option after the port. To enable Kerberos
+   authentication between the |application| and the
+   :ref:`mms-backup-blockstore-database`, see
+   :ref:`configuration-kerberos-settings`. See also :data:`~uri.authMechanism`
+   and :data:`~uri.authSource`.
+
+   The following is an example of Kerberos authentication:
 
    .. code-block:: ini
 
       mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/?authMechanism=GSSAPI
 
-   For additional considerations when specifying user credentials, such
-   as encrypting user credentials or authenticating with Kerberos, see
-   :ref:`on-prem-authentication-configuration`.
+.. _mongodb-ssl-settings:
 
-   See :manual:`Connection String URI Format
-   </reference/connection-string/>` for more information on the
+MongoDB SSL Settings
+````````````````````
+
+The following settings in ``conf-mms.properties`` and
+``conf-daemon.propeties`` configure |onprem| to use SSL to encrypt connections
+to the backing MongoDB instances that host the :ref:`mms-application-database`
+and :ref:`mms-backup-blockstore-database`.
+
+.. setting:: mongo.ssl
+
+   *Type*: boolean
+
+   Enables SSL connection to the :ref:`mms-application-database` when set to
+   ``true``.
+
+.. setting:: mongo.backupdb.ssl
+
+   *Type*: boolean
+
+   Enables SSL connection to the :ref:`mms-backup-blockstore-database` when
+   set to ``true``.
+
+.. setting:: mongodb.ssl.CAFile
+
+   *Type*: string
+
+   The name of the PEM file that contains the root certificate chain from the
+   Certificate Authority that signed the MongoDB server certificate.
+
+.. setting:: mongodb.ssl.PEMKeyFile
+
+   *Type*: string
+
+   The name of the PEM file that contains the client SSL certificate and key.
+   Required if the MongoDB instance is running with the ``--sslCAFile``
+   option. For more information on the option, see :setting:`net.ssl.CAFile`
+   in the MongoDB manual.
+
+   If you authenticate using the ``MONGODB-X509`` authentication mechanism,
+   you also enter this as the name of the user in the :setting:`mongoUri`
    connection string.
+
+.. setting:: mongodb.ssl.PEMKeyFilePassword
+
+   *Type*: string
+
+   Required if the PEM file contains an encrypted private key. Specify the
+   password for PEM file. You can encrypt the specified password using the
+   |onprem| ``credentialstool``. See :ref:`encrypt-mongodb-user-credentials`.
+
+Encrypted Credentials
+`````````````````````
 
 .. setting:: mongo.encryptedCredentials
 
    *Type*: boolean
 
-   Optional. Set to ``true`` if :setting:`mongo.mongoUri` contains the
-   encrypted username and password.
+   Add this property and set it to ``true`` if :setting:`mongo.mongoUri`
+   contains the
+   encrypted username and password:
 
    .. code-block:: ini
 
       mongo.encryptedCredentials=true
 
-   The username and password must have been encrypted using the
-   |monitoring| ``credentialstool``. See
-   :ref:`on-prem-authentication-configuration` for more information on
-   encrypting username and password.
+   You must encrypt the username and password in :setting:`mongo.mongoUri`
+   using the |monitoring| ``credentialstool``. See
+   :ref:`encrypt-mongodb-user-credentials`.
 
    .. important::
       The ``conf-mms.properties`` file can contain multiple
-      :setting:`mongo.MongoURI` settings. If
+      :setting:`mongo.mongoUri` settings. If
       :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
-      all user credentials found in the various :setting:`mongo.MongoURI`
+      all user credentials found in the various :setting:`mongo.mongoUri`
       settings.
 
 |mms| Backup Daemon Settings
@@ -380,11 +504,15 @@ necessary only if you are using |mms| Backup.
 
    *Type*: string
 
+   .. is this still required for backup, as said below:
+
    Required for |backup|. The :manual:`connection string
    </reference/connection-string/>` to the Backup Blockstore database.
    This must be a separate MongoDB server than the |application|
-   database to isolate and application data and state from backup
-   data. For example:
+   database to isolate application data and state from backup
+   data.
+
+   Example:
 
    .. code-block:: ini
 
@@ -457,15 +585,12 @@ necessary only if you are using |mms| Backup.
 
    The will always versions greater than ``2.4.8``.
 
-   The Backup Daemon includes the ``mongodb-fetch`` utility that will
-   download the latest releases directly from
+   The Backup Daemon includes the ``mongodb-fetch`` utility, which
+   downloads the latest releases directly from
    `mongodb.org/downloads <http://www.mongodb.org/downloads>`_.
    The :setting:`mongodb.release.autoDownload` setting automatically runs
    this utility every hour once the service starts. For details, including
    the option to download manually, see :setting:`mongodb.release.autoDownload`.
-
-.. todo: In |onprem| the utility is named mongo-fetch. Should we create two
-         paragraphs or create replacement tex?
 
    .. important::
       If you are backing up MongoDB custom builds, you must manually
@@ -580,6 +705,40 @@ following settings:
    left blank, the ``issuer`` is the domain name of the |mms|
    installation.
 
+Public API
+~~~~~~~~~~
+
+You can modify certain default behaviors of the :doc:`public API </core/api>`.
+
+.. setting:: mms.publicApi.ignoreEnabledForGlobalRoles
+
+   *Type*: boolean
+
+   By default, a user with a :ref:`global role <global-roles>` can access any
+   |onprem| group through the :doc:`public API </core/api>`, whether or not
+   the group enables the public API.
+
+   To prevent access when a group's public API is disabled, add
+   :setting:`mms.publicApi.ignoreEnabledForGlobalRoles` to
+   ``conf-mms.properties`` and set its value to ``false``:
+
+   .. code-block:: ini
+
+      mms.publicApi.ignoreEnabledForGlobalRoles=false
+
+.. setting:: mms.publicApi.whitelistEnabled
+
+   *Type*: boolean
+
+   Certain API calls require requests to be made from a whitelisted IP
+   address. To turn off this requirement, add
+   :setting:`mms.publicApi.whitelistEnabled` to ``conf-mms.properties`` and
+   set its value to ``false``:
+
+   .. code-block:: ini
+
+      mms.publicApi.whitelistEnabled=false
+
 .. _snmp-heartbeat-configure:
 
 SNMP Heartbeat Settings
@@ -629,6 +788,14 @@ To enable `reCaptcha anti-spam test
 registration, you must have a `reCaptcha account
 <https://www.google.com/recaptcha/admin>`_ and specify the API
 information in the configuration file.
+
+.. setting:: reCaptcha.enabled
+
+   *Type*: boolean
+
+   Set to ``true`` to require `reCaptcha
+   <https://www.google.com/recaptcha/admin>`_ validation when a new user
+   registers.
 
 .. setting:: reCaptcha.public.key
 
@@ -883,11 +1050,15 @@ groups, use :ref:`group-level roles <global-roles>`.
    *Type*: string
 
    Each of the global role values can take a delimited list of groups: for
-   example ``"dbas,sysadmins"``. If a group value contains the delimiter, the
-   delimiter must be set to another value, such as ``;;``. For example, if you
+   example ``"dbas,sysadmins"``.
+
+   If a group value contains the delimiter, the
+   delimiter must be set to another value. For example, if you
    have the group value ``"CN\=foo,DN\=bar"`` and the delimiter is ``,`` then
    |mms| parses ``"CN\=foo,DN\=bar"`` as two elements rather than as the
-   description for a single group.
+   description for a single group. Change the delimiter by adding the
+   :setting:`mms.ldap.group.separator` setting to the configuration file
+   and specifying a different delimiter.
 
    Starting with |mms| 1.5, the default delimiter is ``;;``.
 
@@ -896,15 +1067,17 @@ groups, use :ref:`group-level roles <global-roles>`.
 Kerberos Settings
 ~~~~~~~~~~~~~~~~~
 
-To enable Kerberos authentication between the |application| and its
-:doc:`backing database </tutorial/prepare-backing-mongodb-instances>`,
+To enable Kerberos authentication between the |application| and the
+:ref:`mms-application-database`,
 configure the following settings. You must configure
 all required Kerberos settings to enable Kerberos authentication.
 
 .. setting:: jvm.java.security.krb5.kdc
 
-   Required. The IP/FQDN (Fully Qualified Domain Name) of the KDC
-   server. The value will be set to JVM's java.security.krb5.kdc.
+   *Type*: string
+
+   Required if using Kerberos. The IP/FQDN (Fully Qualified Domain Name) of
+   the KDC server. The value will be set to JVM's java.security.krb5.kdc.
 
    .. code-block:: properties
 
@@ -912,8 +1085,10 @@ all required Kerberos settings to enable Kerberos authentication.
 
 .. setting:: jvm.java.security.krb5.realm
 
-   Required. This is the default REALM for Kerberos. It is being used
-   for JVM's java.security.krb5.realm.
+   *Type*: string
+
+   Required if using Kerberos. This is the default REALM for Kerberos. It is
+   being used for JVM's java.security.krb5.realm.
 
    .. code-block:: properties
 
@@ -921,8 +1096,11 @@ all required Kerberos settings to enable Kerberos authentication.
 
 .. setting:: mms.kerberos.principal
 
-   Required. The principal we used to authenticate with MongoDB. This
-   should be the exact same user on the :setting:`mongo.mongoUri` above.
+   *Type*: string
+
+   Required if using Kerberos. The principal used to authenticate with
+   MongoDB. This should be the exact same user on the
+   :setting:`mongo.mongoUri` above.
 
    .. code-block:: properties
 
@@ -930,7 +1108,10 @@ all required Kerberos settings to enable Kerberos authentication.
 
 .. setting:: mms.kerberos.keyTab
 
-   Required. The absolute path to the keytab file for the principal.
+   *Type*: string
+
+   Required if using Kerberos. The absolute path to the keytab file for the
+   principal.
 
    .. code-block:: properties
 
@@ -938,7 +1119,9 @@ all required Kerberos settings to enable Kerberos authentication.
 
 .. setting:: mms.kerberos.debug
 
-   Optional. The debug flag to output more information on Kerberos
+   *Type*: boolean
+
+   The debug flag to output more information on Kerberos
    authentication process.
 
    .. code-block:: properties
@@ -956,6 +1139,8 @@ includes the MongoDB user credentials. For example:
 .. code-block:: ini
 
    mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/admin
+
+.. _encrypt-mongodb-user-credentials:
 
 Encrypt MongoDB User Credentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -978,7 +1163,7 @@ authentication credentials:
    installed with ``rpm`` or ``deb`` packages, because it modifies the
    ``/etc/mongodb-mms/gen.key`` file.
 
-#. Use the encrypted credential pair in the :setting:`mongo.MongoURI`
+#. Use the encrypted credential pair in the :setting:`mongo.mongoUri`
    settings where needed, and add the
    :setting:`mongo.encryptedCredentials = true
    <mongo.encryptedCredentials>` setting. For example:
@@ -990,9 +1175,9 @@ authentication credentials:
 
 .. important::
    The ``conf-mms.properties`` file can contain multiple
-   :setting:`mongo.MongoURI` settings. If
+   :setting:`mongo.mongoUri` settings. If
    :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
-   all user credentials found in the various :setting:`mongo.MongoURI`
+   all user credentials found in the various :setting:`mongo.mongoUri`
    settings.
 
 Authentication Mechanisms and Source
