@@ -11,7 +11,6 @@ correctly in this property in the
 .. code-block:: ini
 
    mongo.mongoUri=<SetToValidUri>
-   mongo.replicaSet=<ValidRSIfUsed>
 
 If you don't set this property, |mms| will fail while trying to connect
 to the default 127.0.0.1:27017 URL.
