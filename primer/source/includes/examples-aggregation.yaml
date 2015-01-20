@@ -3,104 +3,106 @@ options:
   show_title: False
   show_collection: False
 content:
-  source:
-    file: example-query-all.yaml
-    ref: 0
-edition: shell
+  - '{ "_id" : ObjectId("53f768b390a2eb8e072cc4dc"), "item" : "ABC", "category" : "gloves", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 25 }, { "size" : "M", "qty" : 50 } ] }'
+  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4dd"), "item" : "DEF", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "red" }, "stock" : [ { "size" : "M", "qty" : 50 } ] }'
+  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4de"), "item" : "IJK", "category" : "hat", "details" : { "model" : "14Q2", "color" : "blue" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
+  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4df"), "item" : "LMN", "category" : "hat", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
+  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4e0"), "item" : "PQR", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "black" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
+edition:
+  - shell
+  - python
+ref: example-collection
 ---
-title: 
-  text: Group Documents by a Field and Calculate Count
-  level: 2
-ref: 1
+source:
+  file: examples-aggregation-base.yaml
+  ref: _group-documents-by-a-field-and-calculate-count
+ref: group-documents-by-a-field-and-calculate-count
 edition: shell
-pre: |
-  Use the :pipeline:`$group` stage to group by a specified key. In the
-  :pipeline:`$group` stage, specify the group by key in the ``_id``
-  field. :pipeline:`$group` accesses fields by the field path, which is
-  the field name prefixed by a dollar sign ``$``. The
-  :pipeline:`$group` stage can use :manual:`accumulators
-  </meta/aggregation-quick-reference/#group-operators>` to perform
-  calculations for each group.
 operation:
-  - pre: |
-      The following example groups the documents in the ``inventory``
-      collection by the ``category`` field and uses the :group:`$sum`
-      accumulator to count the documents for each group.
-    language: javascript
+  - language: javascript
     code: |
       db.inventory.aggregate(
          [
            { $group: { "_id": "$category", "count": { $sum: 1 } } }
          ]
-      )
-post: |
-  The result set consists of the following documents:
+      );
 results:
   - '{ "_id" : "hat", "count" : 2 }'
   - '{ "_id" : "gloves", "count" : 3 }'
-final: |
-  The ``_id`` field contains the distinct ``category`` value, i.e., the
-  group by key value.
 ---
-title:
-  text: Filter and Group Documents
-  level: 2
-ref: 2
-edition: shell
-pre: |
-  Use the :pipeline:`$match` stage to filter documents.
-  :pipeline:`$match` uses the MongoDB :doc:`query syntax
-  </query>`.
+source:
+  file: examples-aggregation-base.yaml
+  ref: _group-documents-by-a-field-and-calculate-count
+ref: group-documents-by-a-field-and-calculate-count
+edition: python
 operation:
-  - pre: |
-      The following pipeline uses :pipeline:`$match` to query the
-      ``inventory`` collection for documents with ``category`` equal to
-      ``"gloves"``.
-
-      Then the :pipeline:`$group` stage groups the matching documents
-      by the ``details.model`` field and uses the :group:`$sum`
-      accumulator to calculate the count. :pipeline:`$group` accesses
-      fields by the field path, which is the field name prefixed by a
-      dollar sign ``$``.
-    language: javascript
+  - language: python
+    code: |
+      cursor = db.inventory.aggregate(
+         [
+           { "$group": { "_id": "$category", "count": { "$sum": 1 } } }
+         ],
+         cursor={}
+      )
+  - pre: "Iterate the cursor and print the matching documents."
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
+results:
+  - "{u'count': 2, u'_id': u'hat'}"
+  - "{u'count': 3, u'_id': u'gloves'}"
+---
+source:
+  file: examples-aggregation-base.yaml
+  ref: _filter-and-group-documents
+ref: filter-and-group-documents
+edition: shell
+operation:
+  - language: javascript
     code: |
       db.inventory.aggregate(
          [
            { $match: { "category": "gloves" } },
            { $group: { "_id": "$details.model" , "count": { $sum: 1 } } }
          ]
-      )
-post: |
-  The result set consists of the following documents:
+      );
 results:
   - '{ "_id" : "14Q2", "count" : 1 }'
   - '{ "_id" : "14Q3", "count" : 2 }'
 ---
-title:
-  text: Unwind an Array and Project.
-  level: 2
-ref: 3
-edition: shell
-pre: |
-  Use the :pipeline:`$unwind` stage to deconstruct the array element
-  and output to the next stage a document for *each* element in the
-  array. Each output document is the input document with the value of
-  the array field replaced by an element.
-  :pipeline:`$unwind` stage takes a field path, which is the field name
-  prefixed by a dollar sign ``$``.
-
-  :pipeline:`$project` stage reshapes the output documents, such as by
-  specifying which fields to include in the output documents. Specify
-  the inclusion of a field in the output with ``<field>: 1``. The
-  output documents include the ``_id`` field by default. To suppress
-  the ``_id`` field, include ``_id: 0`` in the :pipeline:`$project`
-  stage.
+source:
+  file: examples-aggregation-base.yaml
+  ref: _filter-and-group-documents
+ref: filter-and-group-documents
+edition: python
 operation:
+  - language: python
+    code: |
+      cursor = db.inventory.aggregate(
+         [
+           { "$match": { "category": "gloves" } },
+           { "$group": { "_id": "$details.model" , "count": { "$sum": 1 } } }
+         ],
+         cursor={}
+      )
   - pre: |
-      The following example first unwinds the ``stock`` array in each
-      document, and then projects or returns just the ``item`` and the
-      ``stock`` field in the output documents.
-    language: javascript
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
+results:
+  - "{u'count': 2, u'_id': u'14Q3'}"
+  - "{u'count': 1, u'_id': u'14Q2'}"
+---
+source:
+  file: examples-aggregation-base.yaml
+  ref:  _unwind-an-array-and-project
+ref: unwind-an-array-and-project
+edition: shell
+operation:
+  - language: javascript
     code: |
       db.inventory.aggregate(
          [
@@ -108,7 +110,6 @@ operation:
            { $project: { "_id": 0, "stock": 1, "item": 1 } }
          ]
       )
-post: "The result set consists of the following documents:"
 results:
   - '{ "item" : "ABC", "stock" : { "size" : "S", "qty" : 25 } }'
   - '{ "item" : "ABC", "stock" : { "size" : "M", "qty" : 50 } }'
@@ -120,4 +121,37 @@ results:
   - '{ "item" : "LMN", "stock" : { "size" : "L", "qty" : 1 } }'
   - '{ "item" : "PQR", "stock" : { "size" : "S", "qty" : 5 } }'
   - '{ "item" : "PQR", "stock" : { "size" : "L", "qty" : 1 } }'
+---
+source:
+  file: examples-aggregation-base.yaml
+  ref:  _unwind-an-array-and-project
+ref: unwind-an-array-and-project
+edition: python
+operation:
+  - language: python
+    code: |
+      cursor = db.inventory.aggregate(
+         [
+           { "$unwind": "$stock" },
+           { "$project": { "_id": 0, "stock": 1, "item": 1 } }
+         ],
+         cursor={}
+      )
+  - pre: |
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
+results:
+  - "{u'item': u'ABC', u'stock': {u'size': u'S', u'qty': 25}}"
+  - "{u'item': u'ABC', u'stock': {u'size': u'M', u'qty': 50}}"
+  - "{u'item': u'DEF', u'stock': {u'size': u'M', u'qty': 50}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'M', u'qty': 5}}"
+  - "{u'item': u'IJK', u'stock': {u'size': u'L', u'qty': 1}}"
+  - "{u'item': u'LMN', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'LMN', u'stock': {u'size': u'L', u'qty': 1}}"
+  - "{u'item': u'PQR', u'stock': {u'size': u'S', u'qty': 5}}"
+  - "{u'item': u'PQR', u'stock': {u'size': u'L', u'qty': 1}}"
 ...
