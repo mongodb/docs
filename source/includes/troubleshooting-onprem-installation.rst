@@ -5,7 +5,7 @@ Why doesn't the monitoring server startup successfully?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Confirm the URI or IP address for the |mms| service is stored
-correctly in this property in the
+correctly in the :setting:`mongo.mongoUri` property in the
 ``<install_dir>/conf/conf-mms.properties`` file:
 
 .. code-block:: ini
@@ -26,12 +26,10 @@ client-side ``monitoring-agent.config`` files.
 
 If you use the |mms| :program:`<install_dir>/bin/credentialstool` to encrypt
 the password used in the ``mongo.mongoUri`` value, also add the
-``mongo.encryptedCredentials`` key to the
+:setting:`mongo.encryptedCredentials` key to the
 ``<install_dir>/conf/conf-mms.properties`` file and set the value for this
 property to true:
 
 .. code-block:: ini
 
    mongo.encryptedCredentials=true
-
-For more details, see :ref:`on-prem-authentication-configuration`.
