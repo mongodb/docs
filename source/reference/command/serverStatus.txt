@@ -118,187 +118,45 @@ page.
 
 .. data:: serverStatus.locks
 
-   The :data:`~serverStatus.locks` document contains sub-documents that provides a
-   granular report on MongoDB database-level lock use. All values are
-   of the ``NumberLong()`` type.
+   .. versionchanged:: 2.8
 
-   Generally, fields named:
+   The :data:`~serverStatus.locks` document contains embedded documents
+   that provides a granular report for each lock type and mode.
+   The possible lock types are as follows:
 
-   - ``R`` refer to the global read lock,
-   - ``W`` refer to the global write lock,
-   - ``r`` refer to the database specific read lock, and
-   - ``w`` refer to the database specific write lock.
+   .. include:: /includes/fact-lock-types.rst
 
-   If a document does not have any fields, it means that no locks have
-   existed with this context since the last time the :program:`mongod`
-   started.
+   The possible modes are as follows:
 
-.. data:: serverStatus.locks..
+   .. include:: /includes/fact-lock-modes.rst
 
-   A field named ``.`` holds the first document in :data:`~serverStatus.locks`
-   that contains information about the global lock.
+   All values are of the ``NumberLong()`` type.
 
-.. data:: serverStatus.locks...timeLockedMicros
+   .. COMMENT 
+      these definitions are for the servers and not per operations;
+      as such, they differ from those in db.currentOp.txt
 
-   The :data:`~serverStatus.locks...timeLockedMicros` document reports the amount of
-   time in microseconds that a lock has existed in all databases in
-   this :program:`mongod` instance.
+   .. data:: serverStatus.locks.acquireCount
 
-.. data:: serverStatus.locks...timeLockedMicros.R
+      Number of times the lock was aquired in the specified mode.
 
-   The ``R`` field reports the amount of time in microseconds that any
-   database has held the global read lock.
+   .. data:: serverStatus.locks.acquireWaitCount
 
-.. data:: serverStatus.locks...timeLockedMicros.W
+      Number of times the :data:`~serverStatus.locks.acquireCount` lock
+      acquisitions encountered waits because the locks were held in a
+      conflicting mode.
 
-   The ``W`` field reports the amount of time in microseconds that any
-   database has held the global write lock.
+   .. data:: serverStatus.locks.timeAcquiringMicros
 
-.. data:: serverStatus.locks...timeLockedMicros.r
+      Cumulative wait time in microseconds for the lock acquisitions.
 
-   The ``r`` field reports the amount of time in microseconds that any
-   database has held the local read lock.
+      :data:`~serverStatus.locks.timeAcquiringMicros` divided by
+      :data:`~serverStatus.locks.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
 
-.. data:: serverStatus.locks...timeLockedMicros.w
+   .. data:: serverStatus.locks.deadlockCount
 
-   The ``w`` field reports the amount of time in microseconds that any
-   database has held the local write lock.
-
-.. data:: serverStatus.locks...timeAcquiringMicros
-
-   The :data:`~serverStatus.locks...timeAcquiringMicros` document reports the amount of
-   time in microseconds that operations have spent waiting to acquire
-   a lock in all databases in this :program:`mongod` instance.
-
-.. data:: serverStatus.locks...timeAcquiringMicros.R
-
-   The ``R`` field reports the amount of time in microseconds that any
-   database has spent waiting for the global read lock.
-
-.. data:: serverStatus.locks...timeAcquiringMicros.W
-
-   The ``W`` field reports the amount of time in microseconds that any
-   database has spent waiting for the global write lock.
-
-.. data:: serverStatus.locks.admin
-
-   The :data:`~serverStatus.locks.admin` document contains two sub-documents that
-   report data regarding lock use in the :term:`admin database`.
-
-.. data:: serverStatus.locks.admin.timeLockedMicros
-
-   The :data:`~serverStatus.locks.admin.timeLockedMicros` document reports the amount of
-   time in microseconds that locks have existed in the context of the
-   :term:`admin database`.
-
-.. data:: serverStatus.locks.admin.timeLockedMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that the
-   :term:`admin database` has held the read lock.
-
-.. data:: serverStatus.locks.admin.timeLockedMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that the
-   :term:`admin database` has held the write lock.
-
-.. data:: serverStatus.locks.admin.timeAcquiringMicros
-
-   The :data:`~serverStatus.locks.admin.timeAcquiringMicros` document reports on the
-   amount of field time in microseconds that operations have spent
-   waiting to acquire a lock for the :term:`admin database`.
-
-.. data:: serverStatus.locks.admin.timeAcquiringMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a read lock on the
-   :term:`admin database`.
-
-.. data:: serverStatus.locks.admin.timeAcquiringMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a write lock on the
-   :term:`admin database`.
-
-.. data:: serverStatus.locks.local
-
-   The :data:`~serverStatus.locks.local` document contains two sub-documents that
-   report data regarding lock use in the ``local`` database. The
-   local database contains a number of instance specific data,
-   including the :term:`oplog` for replication.
-
-.. data:: serverStatus.locks.local.timeLockedMicros
-
-   The :data:`~serverStatus.locks.local.timeLockedMicros` document reports on the amount
-   of time in microseconds that locks have existed in the context of
-   the ``local`` database.
-
-.. data:: serverStatus.locks.local.timeLockedMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that the
-   ``local`` database has held the read lock.
-
-.. data:: serverStatus.locks.local.timeLockedMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that the
-   ``local`` database has held the write lock.
-
-.. data:: serverStatus.locks.local.timeAcquiringMicros
-
-   The :data:`~serverStatus.locks.local.timeAcquiringMicros` document reports on the
-   amount of time in microseconds that operations have spent waiting
-   to acquire a lock for the ``local`` database.
-
-.. data:: serverStatus.locks.local.timeAcquiringMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a read lock on the ``local``
-   database.
-
-.. data:: serverStatus.locks.local.timeAcquiringMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a write lock on the ``local``
-   database.
-
-.. data:: serverStatus.locks.<database>
-
-   For each additional database :data:`~serverStatus.locks` includes a document
-   that reports on the lock use for this database. The names of these
-   documents reflect the database name itself.
-
-.. data:: serverStatus.locks.<database>.timeLockedMicros
-
-   The :data:`~serverStatus.locks.<database>.timeLockedMicros` document reports on the amount
-   of time in microseconds that locks have existed in the context of
-   the ``<database>`` database.
-
-.. data:: serverStatus.locks.<database>.timeLockedMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that the
-   ``<database>`` database has held the read lock.
-
-.. data:: serverStatus.locks.<database>.timeLockedMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that the
-   ``<database>`` database has held the write lock.
-
-.. data:: serverStatus.locks.<database>.timeAcquiringMicros
-
-   The :data:`~serverStatus.locks.<database>.timeAcquiringMicros` document reports on the
-   amount of time in microseconds that operations have spent waiting
-   to acquire a lock for the ``<database>`` database.
-
-.. data:: serverStatus.locks.<database>.timeAcquiringMicros.r
-
-   The ``r`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a read lock on the ``<database>``
-   database.
-
-.. data:: serverStatus.locks.<database>.timeAcquiringMicros.w
-
-   The ``w`` field reports the amount of time in microseconds that
-   operations have spent waiting to acquire a write lock on the ``<database>``
-   database.
+      Number of times the lock acquisitions encountered deadlocks.
 
 .. _globallock:
 .. _global-lock:

@@ -107,6 +107,39 @@ The following is an prototype of :method:`db.currentOp()` output.
             },
             "waitingForLock" : <boolean>,
             "lockStats" : {
+                "Global": {
+                   "acquireCount": {
+                      "r": <NumberLong>,
+                      "w": <NumberLong>,
+                      "R": <NumberLong>,
+                      "W": <NumberLong>
+                   },
+                   "acquireWaitCount": {
+                      "r": <NumberLong>,
+                      "w": <NumberLong>,
+                      "R": <NumberLong>,
+                      "W": <NumberLong>
+                   },
+                   "timeAcquiringMicros" : {
+                      "r" : NumberLong(0),
+                      "w" : NumberLong(0),
+                      "R" : NumberLong(0),
+                      "W" : NumberLong(0)
+                   },
+                   "deadlockCount" : {
+                      "r" : NumberLong(0),
+                      "w" : NumberLong(0),
+                      "R" : NumberLong(0),
+                      "W" : NumberLong(0)
+                   }
+                },
+                "MMAPV1Journal": {
+                   ...
+                },
+                "Database" : {
+                   ...
+                },
+                ...
             }
           },
           ...
@@ -262,29 +295,11 @@ Output Fields
    locks the operation currently holds. The possible lock types are as
    follows:
 
-   - ``Global`` represents global lock.
-
-   - ``MMAPV1Journal`` represents MMAPv1 storage engine specific lock
-     to synchronize journal writes; for non-MMAPv1 storage engines, the
-     mode for ``MMAPV1Journal`` is empty.
-
-   - ``Database`` represents database lock.
-
-   - ``Collection`` represents collection lock.
-
-   - ``Metadata`` represents metadata lock.
-
-   - ``oplog`` represents lock on the :term:`oplog`.
+   .. include:: /includes/fact-lock-types.rst
 
    The possible modes are as follows:
 
-   - ``R`` represents Shared (S) lock.
-
-   - ``W`` represents Exclusive (X) lock.
-
-   - ``r`` represents Intent Shared (IS) lock.
-
-   - ``w`` represents Intent Exclusive (IX) lock.
+   .. include:: /includes/fact-lock-modes.rst
 
 .. data:: currentOp.waitingForLock
 
@@ -345,5 +360,37 @@ Output Fields
 
 .. data:: currentOp.lockStats
 
-   The :data:`~currentOp.lockStats` document reflects the amount of
-   time the current operation has spent acquiring locks.
+   For each lock type and mode (see :data:`currentOp.locks` for
+   descriptions of lock types and modes), returns the following
+   information:
+
+   .. COMMENT 
+      these definitions are for per operations and not for server,
+      as such, they differ from those in serverStatus.txt
+
+   .. data:: currentOp.lockStats.acquireCount
+
+      Number of times the operation acquired the lock in the specified
+      mode.
+
+   .. data:: currentOp.lockStats.acquireWaitCount
+
+      Number of times the operation had to wait for the
+      :data:`~currentOp.lockStats.acquireCount` lock acquisitions
+      because the locks were held in a conflicting mode.
+      :data:`~currentOp.lockStats.acquireWaitCount` is less than or
+      equal to :data:`~currentOp.lockStats.acquireCount`.
+
+   .. data:: currentOp.lockStats.timeAcquiringMicros
+
+      Cumulative time in microseconds that the operation had to wait to
+      aqcuire the locks.
+
+      :data:`~currentOp.lockStats.timeAcquiringMicros` divided by
+      :data:`~currentOp.lockStats.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
+
+   .. data:: currentOp.lockStats.deadlockCount
+
+      Number of times the operation encountered deadlocks while waiting
+      for lock acquisitions.
