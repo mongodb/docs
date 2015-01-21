@@ -11,61 +11,90 @@ Definition
 
 .. dbcommand:: listCollections
 
-   Returns an array with a document for each collection in the database.
+   Retrieve information, i.e. the name and options, about the
+   collections in a database. Specifically, the command returns a
+   document that contains information with which to create a
+   cursor to the collection information. The :program:`mongo` shell
+   provides the :method:`db.getCollectionInfos()` and the
+   :method:`db.getCollectionNames()`.
 
+   The command has the following form:
+
+   .. code-block:: javascript
+
+      { listCollections: 1, filter: <document> }
+
+   The :dbcommand:`listCollections` command can take the following
+   optional field:
+   
    .. include:: /reference/command/listCollections-field.rst
+
+.. _listCollections-behavior:
+
+Behavior
+--------
+
+Use a filter to limit the results of :dbcommand:`listCollections`. You
+can specify a ``filter`` on the collection ``name`` and the following
+collection options:
+
+- ``"options.capped"``
+- ``"options.autoIndexId"``
+- ``"options.size"``
+- ``"options.max"``
+- ``"options.flags"``
+- ``"options.storageEngine"``
+
+The options correspond directly to the options available in
+:method:`db.createCollection()`, with the exception of the
+``"options.flags"``. The ``"options.flags"`` corresponds to the
+``usePowerOf2Sizes`` and the ``noPadding`` options in the
+:method:`db.createCollection()` method:
+
+
+- ``"options.flags"`` value of ``0`` corresponds to
+  ``usePowerOf2Sizes`` value of ``false`` and ``noPadding`` value of
+  ``false``.
+
+- ``"options.flags"`` value of ``1`` corresponds to
+  ``usePowerOf2Sizes`` value of ``true``.
+
+- ``"options.flags"`` value of ``2`` corresponds to ``noPadding`` value
+  of ``true``.
+
+For the descriptions on the options, see
+:method:`db.createCollection()`.
 
 Output
 ------
 
-.. data:: listCollections.collections
+.. data:: listCollections.cursor
 
-   An array of documents for each collection.
-
-   .. data:: listCollections.collections[n].name
-
-      The name of the collection.
-
-   .. data:: listCollections.collections[n].options
-
-      A document with a mapping of collection options and their
-      values.
+   A document that contains information with which to create a cursor
+   to documents that contain collection names and options. The cursor
+   information includes the cursor id, the full namespace for the
+   command, as well as the first batch of results.
 
 .. data:: listCollections.ok
 
    The return value for the command. A value of ``1`` indicates
    success.
 
-Examples
---------
+Example
+-------
 
 List All Collections
 ~~~~~~~~~~~~~~~~~~~~
 
-To return all collections in the ``records`` database use the
-following operation in the :program:`mongo` shell:
+The following example uses the :method:`db.getCollectionInfos()` helper
+to return information for all collections in the ``records`` database:
 
 .. code-block:: javascript
 
    use records
-   db.runCommand( { listCollections: 1 } );
+   db.getCollectionInfos();
 
-Consider the following output for a database that only has a ``users``
-collection: 
-
-.. code-block:: javascript
-
-   {
-        "collections" : [
-                {
-                        "name" : "users",
-                        "options" : {
-                                "flags" : 1
-                        }
-                }
-        ],
-        "ok" : 1
-   }
+.. seealso:: :method:`db.getCollectionInfos()`
 
 List Matching Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,5 +106,5 @@ the list, as in the following examples:
 .. code-block:: javascript
 
    use records
-   db.runCommand( { listCollections: 1, filter: { capped: true } } );
-   db.runCommand( { listCollections: 1, filter: { name: { $regex: "^users\..*" } } } );
+   db.runCommand( { listCollections: 1, filter: { "options.capped": true } } );
+   db.runCommand( { listCollections: 1, filter: { name:  /^b/ } } );
