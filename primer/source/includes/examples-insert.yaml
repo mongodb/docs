@@ -2,14 +2,18 @@ collection: "inventory"
 options:
   show_title: False
   show_collection: False
-ref: 0
-edition: shell
+content:
+  source:
+    file: example-query-all.yaml
+    ref: 0
+edition:
+  - shell
+  - python
 ---
-title: ''
-ref: 1
-pre: |
-  Insert a document into a collection named ``inventory``. The operation
-  will create the collection if the collection does not currently exist.
+source:
+  file: examples-insert-base.yaml
+  ref: _insert-documents
+ref: insert-documents
 edition: shell
 operation:
   language: javascript
@@ -18,7 +22,7 @@ operation:
          {
            item: "ABC",
            category: "gloves",
-           details: { 
+           details: {
               model: "14Q2",
               color: "brown"
            },
@@ -32,21 +36,58 @@ post: |
 results: |
    WriteResult({ "nInserted" : 1 })
 ---
-title: ''
-ref: 2
+source:
+  file: examples-insert-base.yaml
+  ref: _insert-documents
+ref: insert-documents
+edition: python
+operation:
+  language: python
+  code: |
+      db.inventory.insert(
+         {
+           "item": "ABC",
+           "category": "gloves",
+           "details": {
+              "model": "14Q2",
+              "color": "brown"
+           },
+           "stock": [ { "size": "S", "qty": 25 }, { "size": "M", "qty": 50 } ]
+         }
+      )
+post: |
+  The operation returns the ``_id`` field value for the inserted
+  document.
+results: |
+  ObjectId('53fb68e0e908a14912ef43cc')
+---
+source:
+  file: examples-insert-base.yaml
+  ref: _review-inserted-document
+ref: review-inserted-document
 edition: shell
-pre: |
-  To review the inserted document, you can query the collection:
 operation:
   language: javascript
   code: |
        db.inventory.find()
-post: |
-  The returned document is the document you inserted with the addition
-  of the :term:`_id` field. If the document passed to the
-  :method:`~db.collection.insert()` method does not contain the ``_id``
-  field, the :program:`mongo` shell automatically adds the field to the
-  document and sets the field's value to a generated :manual:`ObjectId
-  </reference/object-id>`.
 results:
+  - '{item: "ABC", category: "gloves", details: { model: "14Q2", color: "brown" }, stock: [ { size: "S", qty: 25 }, { size: "M", qty: 50 } ] }'
+replacement:
+  insert-method: :method:`~db.collection.insert()`
+---
+source:
+  file: examples-insert-base.yaml
+  ref: _review-inserted-document
+ref: review-inserted-document
+edition: python
+operation:
+  # this operation assumes running the example in the python shell.
+  language: python
+  code: |
+    results = db.inventory.find()
+
+    for document in results:
+       document
+replacement:
+  insert-method: :python:meth:`~pymongo.collection.Collection.insert()`
 ...
