@@ -18,7 +18,7 @@ the following comparison order, from lowest to highest:
 MongoDB treats some types as equivalent for comparison purposes. For
 instance, numeric types undergo conversion before comparison.
 
-.. versionchanged:: 2.8.0
+.. versionchanged:: 3.0.0
    Date objects sort before Timestamp objects. Previously Date and
    Timestamp objects sorted together.
 

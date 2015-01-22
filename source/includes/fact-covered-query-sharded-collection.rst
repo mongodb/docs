@@ -6,7 +6,7 @@ field and returns only the ``_id`` field, the ``_id`` index can cover
 the query when run against a :program:`mongos` even if the ``_id``
 field is not the shard key.
 
-.. versionchanged:: 2.8
+.. versionchanged:: 3.0
 
    In previous versions, an index cannot :ref:`cover <covered-queries>`
    a query on a :term:`sharded <shard>` collection when run against a
