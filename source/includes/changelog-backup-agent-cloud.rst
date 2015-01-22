@@ -5,7 +5,7 @@ Backup Agent ``3.0.0.246``
 
 *Released 2015-01-08*
 
-Further enhancements to support backup of MongoDB 2.8.
+Enhancements to support backup of MongoDB 2.8.
 
 Backup Agent ``2.9.1.235-1``
 ----------------------------
