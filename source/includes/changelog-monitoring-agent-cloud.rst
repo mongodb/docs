@@ -2,6 +2,13 @@
 
        All entries should be in the past tense.
 
+Monitoring Agent ``2.9.0.164``
+------------------------------
+
+*Released 2015-01-08*
+
+Improved error handling on Windows.
+
 Monitoring Agent ``2.8.0.143``
 ------------------------------
 
