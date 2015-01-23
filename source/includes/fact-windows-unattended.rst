@@ -1,5 +1,5 @@
-Install Windows Unattended
---------------------------
+ Unattended Installation of MongoDB for Windows
+-----------------------------------------------
 
 You may install MongoDB unattended on Windows from the command line
 using ``msiexec.exe``. Open a shell in the directory containing the
