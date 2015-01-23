@@ -1,52 +1,35 @@
-collection: "inventory"
+collection: "restaurants"
 options:
   show_title: False
   show_collection: False
-content:
-  source:
-    file: example-query-all.yaml
-    ref: 0
-edition: shell
+edition:
+  - shell
+  - python
+ref: 0
 ---
-title:
-  text: "Remove All Documents That Match a Condition"
-  level: 2
-ref: 1
+source:
+  file: examples-remove-base.yaml
+  ref: _remove-matching-documents
+ref: remove-matching-documents
 edition: shell
-pre : |
-  The following removes from the ``inventory`` collection all documents
-  with ``"category"`` field equal to ``"hat"``.
 operation:
   language: javascript
   code: |
-    db.inventory.remove( { "category": "hat" } )
+    db.restaurants.remove( { "borough": "Manhattan" } )
 post: |
   The remove operation returns a :method:`WriteResult` object which
-  contains the status of the operation. Successful operation should
-  return the following:
-results: |
-   WriteResult({ "nRemoved" : 2 })
-final: |
-  :data:`~WriteResult.nRemoved` field specifies the number of documents
-  removed, in this case ``2``.
+  contains the status of the operation. :data:`~WriteResult.nRemoved`
+  field specifies the number of documents removed.
 ---
-title:
-  text: Use the ``justOne`` Option
-  level: 2
-ref: 2
+source:
+  file: examples-remove-base.yaml
+  ref: _remove-justOne
+ref: remove-justOne
 edition: shell
-pre: |
-  By default, the :method:`~db.collection.remove()` method removes all
-  documents that match the remove condition. Use the ``justOne`` option
-  to limit the remove operation to only one of the matching documents.
 operation:
-  - pre: |
-      For example, multiple documents have ``category`` field equal to
-      ``"gloves"``. The following operation only removes a single
-      document even though multiple documents match.
-    language: javascript
+  - language: javascript
     code: |
-      db.inventory.remove( { "category": "gloves" },  { justOne: true } )
+      db.restaurants.remove( { "borough": "Queens" }, { justOne: true } )
 post: |
   Successful operation should return the following
   :method:`WriteResult` object.
@@ -55,50 +38,34 @@ results: |
 final: |
   :data:`~WriteResult.nRemoved` field specifies the number of documents
   removed, in this case ``1``.
+replacement:
+  removeMethod: :method:`~db.collection.remove()`
 ---
-title:
-  text: "Remove All Documents"
-  level: 2
-ref: 3
+source:
+  file: examples-remove-base.yaml
+  ref: _remove-all-documents
+ref: remove-all-documents
 edition: shell
-pre: |
-  To remove all documents from a collection, pass an empty
-  conditions document ``{}`` to the
-  :method:`~db.collection.remove()` method.
 operation:
   language: javascript
   code: |
-    db.inventory.remove( { } )
+    db.restaurants.remove( { } )
 post: |
-  Successful operation should return the following
-  :method:`WriteResult` object.
-results: |
-  WriteResult({ "nRemoved" : 2 })
-final: |
-  :data:`~WriteResult.nRemoved` field specifies the number of documents
-  removed, in this case ``2``.
+  The remove operation returns a :method:`WriteResult` object which
+  contains the status of the operation. :data:`~WriteResult.nRemoved`
+  field specifies the number of documents removed.
+replacement:
+  removeMethod: :method:`~db.collection.remove()`
 ---
-title:
-  text: "Drop a Collection"
-  level: 2
-ref: 4
+source:
+  file: examples-remove-base.yaml
+  ref: _drop-collection
+ref: drop-collection
 edition: shell
-pre: |  
-  The remove all operation only removes the documents from the
-  collection. The collection itself, as well as any indexes for the
-  collection, remain.
- 
-  To remove all documents from a collection, it may be more efficient
-  to drop the entire collection, including the indexes, and then
-  recreate the collection and rebuild the indexes.
 operation:
-  pre: |
-    Use the :method:`~db.collection.drop()` method to drop a collection,
-    including any indexes. For example, the following drops the
-    ``inventory`` collection. 
   language: javascript
   code: |
-     db.inventory.drop()
+     db.restaurants.drop()
 post: |
    Upon successful drop of the collection, the operation returns
    ``true``.
@@ -107,4 +74,50 @@ results:
 final: |
   If the collection to drop does not exist, the operation
   will return ``false``.
+replacement:
+  dropMethod: :method:`~db.collection.drop()`
+---
+source:
+  file: examples-remove-base.yaml
+  ref: _remove-matching-documents
+ref: remove-matching-documents
+edition: python
+operation:
+  language: python
+  code: |
+    db.restaurants.remove( { "borough": "Manhattan" } )
+post: |
+  The remove operation returns a ``dict`` object which contains the
+  status of the operation. Successful operation should return ``u'ok':
+  1.0``. ``u'n'`` field indicates the number of documents removed.
+replacement:
+  removeMethod: :py:meth:`~pymongo.collection.Collection.remove()`
+---
+source:
+  file: examples-remove-base.yaml
+  ref: _remove-all-documents
+ref: remove-all-documents
+edition: python
+operation:
+  language: python
+  code: |
+    db.restaurants.remove()
+post: |
+  The remove operation returns a ``dict`` object which contains the
+  status of the operation. Successful operation should return ``u'ok':
+  1.0``. ``u'n'`` field indicates the number of documents removed.
+replacement:
+  removeMethod: :py:meth:`~pymongo.collection.Collection.remove()`
+---
+source:
+  file: examples-remove-base.yaml
+  ref: _drop-collection
+ref: drop-collection
+edition: python
+operation:
+  language: python
+  code: |
+     db.restaurants.drop()
+replacement:
+  dropMethod: :py:meth:`~pymongo.collection.Collection.drop()`
 ...

@@ -1,99 +1,158 @@
-collection: "inventory"
+collection: "restaurants"
 options:
   show_title: False
   show_collection: False
-content:
-  source:
-    file: example-query-all.yaml
-    ref: 0
-edition: shell
+edition:
+  - shell
+  - python
+ref: 0
 ---
-title:
-  text: Update Top-Level Fields
-  level: 3
-ref: 1
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-top-level-fields
+ref: update-top-level-fields
 edition: shell
 pre: |
-  The following operation updates the first document with ``item``
-  equal to ``"ABC"``, using the :update:`$set` operator to update the
-  ``item`` and the ``details`` fields to the
-  specified values and the :update:`$currentDate` operator to update
+  The following operation updates the first document with ``name``
+  equal to ``"Juni"``, using the :update:`$set` operator to update the
+  ``cusine`` field and the :update:`$currentDate` operator to update
   the ``lastModified`` field with the current date.
 operation:
     language: javascript
     code: |
-      db.inventory.update(
-          { "item": "ABC" },
+      db.restaurants.update(
+          { "name" : "Juni" },
           {
             $set: {
-              "item": "ABC1",
-              "details": { "model": "14Q3", "color": "mocha" }
+              "cuisine": "American (New)"
             },
             $currentDate: { "lastModified": true }
           }
       )
 post: |
   The update operation returns a :method:`WriteResult` object which
-  contains the status of the operation. A successful update of the
-  document returns the following object:
-results:
-  - 'WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })'
+  contains the status of the operation.
 ---
-title:
-  text: Update an Embedded Field
-  level: 3
-ref: 2
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-embedded-field
+ref: update-embedded-field
 edition: shell
-pre: |
-  To update a field within an embedded document, use the :term:`dot
-  notation`. When using the dot notation, enclose the whole dotted
-  field name in quotes.
 operation:
-  - pre: |
-      The following updates the ``model`` field within the embedded
-      ``details`` document.
-    language: javascript
-    code: |
-      db.inventory.update(
-        { item: "DEF" },
-        { $set: { "details.model": "14Q2" } }
+  pre: |
+      The following updates the ``street`` field in the embedded
+      ``address`` document.
+  language: javascript
+  code: |
+      db.restaurants.update(
+        { "restaurant_id" : "41156888" },
+        { $set: { "address.street": "East 31st Street" } }
       )
 post: |
    The update operation returns a :method:`WriteResult` object which
-   contains the status of the operation. A successful update of the
-   document returns the following object:
-results:
-  - 'WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })'
+   contains the status of the operation.
 ---
-title: 
-  text: Update Multiple Documents
-  level: 3
-ref: 3
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-multiple-documents
+ref: update-multiple-documents
 edition: shell
-pre: |
-  By default, the :method:`~db.collection.update()` method updates a
-  single document. To update multiple documents, use the ``multi``
-  option in the :method:`~db.collection.update()` method.
 operation:
   - pre: |
       The following operation updates *all* documents that have
-      ``category`` field equal to ``"hat"``, setting the ``category``
-      field to ``"hats"`` and the ``lastModified`` field to the current
+      ``address.zipcode`` field equal to ``"10016"``, setting the ``borough``
+      field to ``"Midtown"`` and the ``lastModified`` field to the current
       date.
     language: javascript
     code: |
-      db.inventory.update( 
-         { "category": "hat" },
+      db.restaurants.update( 
+         { "address.zipcode": "10016" },
          {
-           $set: { "category": "hats" },
+           $set: { "borough": "Midtown" },
            $currentDate: { "lastModified": true }
          },
          { multi: true }
       )
 post: |
   The update operation returns a :method:`WriteResult` object which
-  contains the status of the operation. A successful update of the
-  document returns the following object:
-results:
-  - 'WriteResult({ "nMatched" : 2, "nUpserted" : 0, "nModified" : 2 })'
+  contains the status of the operation.
+replacement:
+  updateMethod: :method:`~db.collection.update()`
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-top-level-fields
+ref: update-top-level-fields
+edition: python
+pre: |
+  The following operation updates the first document with the field
+  ``name`` equal to ``"Juni"``. The operation uses the update:`$set`
+  operator to update the ``cusine`` field and the
+  :update:`$currentDate` operator to update the ``lastModified`` field
+  with the current date.
+operation:
+    language: python
+    code: |
+      db.restaurants.update(
+          { "name" : "Juni" },
+          {
+            "$set": {
+              "cuisine": "American (New)"
+            },
+            "$currentDate": { "lastModified": True }
+          }
+      )
+      
+post: |
+  The operation returns a ``dict`` object which contains the status of
+  the operation. Successful operation should return ``u'ok': 1.0``. The
+  ``u'n'`` field indicates the number of documents modified.
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-embedded-field
+ref: update-embedded-field
+edition: python
+operation:
+  - pre: |
+      The following updates the ``street`` field in the embedded
+      ``address`` document.
+    language: javascript
+    code: |
+      db.restaurants.update(
+        { "restaurant_id" : "41156888" },
+        { "$set": { "address.street": "East 31st Street" } }
+      )
+post: |
+  The operation returns a ``dict`` object which contains the status of
+  the operation. Successful operation should return ``u'ok': 1.0``. The
+  ``u'n'`` field indicates the number of documents modified.
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-multiple-documents
+ref: update-multiple-documents
+edition: python
+operation:
+  pre: |
+      The following operation updates *all* documents that have
+      ``address.zipcode`` field equal to ``"10016"``, setting the ``borough``
+      field to ``"Midtown"`` and the ``lastModified`` field to the current
+      date.
+  language: javascript
+  code: |
+      db.restaurants.update( 
+         { "address.zipcode": "10016" },
+         {
+           "$set": { "borough": "Midtown" },
+           "$currentDate": { "lastModified": True }
+         },
+         multi=True
+      )
+post: |
+  The operation returns a ``dict`` object which contains the status of
+  the operation. Successful operation should return ``u'ok': 1.0``. The
+  ``u'n'`` field indicates the number of documents modified.
+replacement:
+  updateMethod: py:meth:`~pymongo.collection.Collection.update()`
 ...

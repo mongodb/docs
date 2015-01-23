@@ -1,36 +1,59 @@
-collection: "inventory"
+collection: "restaurants"
 options:
   show_title: False
   show_collection: False
-content:
-  source:
-    file: example-query-all.yaml
-    ref: 0
-edition: shell
+edition:
+  - shell
+  - python
+ref: 0
 ---
-ref: 1
+source:
+  file: examples-query-sort-base.yaml
+  ref: _sort
+ref: sort
 edition: shell
-pre: |
-  To specify an order for the result set, append the
-  :method:`~cursor.sort()` method to the query. Pass to
-  :method:`~cursor.sort()` a document which contains the field(s) to
-  sort by and the corresponding sort type, e.g. ``1`` for ascending and
-  ``-1`` for descending.
 operation:
   pre: |
     For example, the following operation returns all documents in the
-    ``inventory`` collection, sorted first by the ``category`` field in
-    descending order, and then, within each category, by the ``item``
-    field in ascending order:
+    ``restaurants`` collection, sorted first by the ``borough`` field in
+    ascending order, and then, within each borough, by the ``"address.zipcode"``
+    field in ascending order
   language: javascript
   code: |
-    db.inventory.find().sort( { "category": -1, "item": 1 } )
-post: "The operation returns the following sorted results."
-results:
- - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4de"), "item" : "IJK", "category" : "hat", "details" : { "model" : "14Q2", "color" : "blue" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
- - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4df"), "item" : "LMN", "category" : "hat", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
- - '{ "_id" : ObjectId("53f768b390a2eb8e072cc4dc"), "item" : "ABC", "category" : "gloves", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 25 }, { "size" : "M", "qty" : 50 } ] }'
- - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4dd"), "item" : "DEF", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "red" }, "stock" : [ { "size" : "M", "qty" : 50 } ] }'
- - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4e0"), "item" : "PQR", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "black" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
+    db.restaurants.find().sort( { "borough": 1, "address.zipcode": 1 } )
+replacement:
+  sortMethod: :method:`~cursor.remove()`
+  ascKey: "``1``"
+  descKey: "``-1``"
+---
+source:
+  file: examples-query-sort-base.yaml
+  ref: _sort
+ref: sort
+edition: python
+operation:
+  - pre: |
+      To sort by multiple keys, pass a list of keys and sort type pairs.
+      For example, the following operation returns all documents in the
+      ``restaurants`` collection, sorted first by the ``borough`` field in
+      ascending order, and then, within each borough, by the ``"address.zipcode"``
+      field in ascending order:
+    language: python
+    code: |
+      import pymongo
+      cursor = db.restaurants.find().sort( [
+         ( "borough", pymongo.ASCENDING),
+         ( "address.zipcode", pymongo.DESCENDING )
+      ] )
+  - pre: |
+      Iterate the cursor and print the matching documents.
+    language: python
+    code: |
+      for document in cursor:
+          print(document)
+replacement:
+  sortMethod: :method:`~cursor.remove()`
+  ascKey: "``pymongo.ASCENDING``"
+  descKey: "``pymongo.DESCENDING``"
 ...
   
