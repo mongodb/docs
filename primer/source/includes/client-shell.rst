@@ -64,7 +64,10 @@ on the :program:`mongo` shell.
   information.
 
 - :manual:`MongoDB Shell Help </tutorial/access-mongo-shell-help>`
+
 - :manual:`mongo Reference Page </reference/program/mongo>`
+
 - :manual:`mongo Shell Scripting
   </tutorial/write-scripts-for-the-mongo-shell>`
+
 - :manual:`Data Types in the MongoDB Shell </core/shell-types>`
