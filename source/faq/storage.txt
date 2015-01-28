@@ -11,10 +11,74 @@ If you don't find the answer you're looking for, check
 the :doc:`complete list of FAQs </faq>` or post your question to the
 `MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
 
+Storage Engine Fundamentals
+---------------------------
+
+What is a storage engine?
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A storage engine is the part of a database that is responsible for
+managing how data is stored on disk. Many databases, support multiple
+storage engines, where different engines perform better for specific
+workloads. For example, one storage engine might offer better
+performance for read-heavy workloads, and another might support
+a higher-throughput for write operations.
+
+What will be the default storage engine going forward?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MMAPv1 will be the default storage engine in 3.0.  WiredTiger will
+become the default storage engine in a future version of
+MongoDB. You will be able to decide which storage engine is best for
+their application.
+
+Can you mix storage engines in a replica set?
+---------------------------------------------
+
+Yes. You can have a replica set members that use different storage
+engines.
+
+When designing these milt-storage engine deployments consider the
+following:
+
+- the oplog on each member may need to be sized differently to account
+  for differences in throughput between different storage engines.
+
+- recovery from backups may become more complex if your backup
+  captures data files from MongoDB: you may need to maintain backups
+  for each storage engine.
+
+Wired Tiger Storage Engine
+--------------------------
+
+Can I upgrade an existing deployment to a WiredTiger?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. You can upgrade an existing deployment to WiredTiger while the
+deployment remains continuously available, by adding replica set
+members with the new storage engine and then removing members with the
+legacy storage engine. See the following sections of the
+:doc:`/release-notes/3.0-upgrade` for the complete procedure that you
+can use to upgrade an existing deployment:
+
+- :ref:`3.0-upgrade-repl-set-wiredtiger`
+
+- :ref:`3.0-upgrade-cluster-wiredtiger`
+
+How much compression does WiredTiger provide?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As much as 50% to 80%. Collection data in WiredTiger use Snappy
+:term:`block compression` by default, and index data use :term:`prefix
+compression` by default.
+
+MMAP Storage Engine
+-------------------
+
 .. _faq-storage-memory-mapped-files:
 
 What are memory mapped files?
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A memory-mapped file is a file with data that the operating system
 places in memory by way of the ``mmap()`` system call. ``mmap()`` thus
@@ -25,7 +89,7 @@ they were in memory. This provides MongoDB with an extremely fast and
 simple method for accessing and manipulating data.
 
 How do memory mapped files work?
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Memory mapping assigns files to a block of virtual memory with a
 direct byte-for-byte correlation. Once mapped, the relationship
@@ -33,84 +97,16 @@ between file and memory allows MongoDB to interact with the data in
 the file as if it were memory.
 
 How does MongoDB work with memory mapped files?
------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB uses memory mapped files for managing and interacting with all
 data. MongoDB memory maps data files to memory as it accesses
 documents. Data that isn't accessed is *not* mapped to memory.
 
-.. _faq-storage-page-faults:
-
-What are page faults?
----------------------
-
-.. include:: /includes/fact-page-fault.rst
-
-If there is free memory, then the operating system can find the page
-on disk and load it to memory directly. However, if there is no free
-memory, the operating system must:
-
-- find a page in memory that is stale or no longer needed, and write
-  the page to disk.
-
-- read the requested page from disk and load it into memory.
-
-This process, particularly on an active system can take a long time,
-particularly in comparison to reading a page that is already in
-memory.
-
-See :ref:`administration-monitoring-page-faults` for more information.
-
-What is the difference between soft and hard page faults?
----------------------------------------------------------
-
-:term:`Page faults <page fault>` occur when MongoDB needs access to
-data that isn't currently in active memory. A "hard" page fault
-refers to situations when MongoDB must access a disk to access the
-data. A "soft" page fault, by contrast, merely moves memory pages from
-one list to another, such as from an operating system file
-cache. In production, MongoDB will rarely encounter soft page faults.
-
-See :ref:`administration-monitoring-page-faults` for more information.
-
-.. _faq-tools-for-measuring-storage-use:
-
-What tools can I use to investigate storage use in MongoDB?
------------------------------------------------------------
-
-The :method:`db.stats()` method in the :program:`mongo` shell,
-returns the current state of the "active" database. The
-:doc:`dbStats command </reference/command/dbStats>` document describes
-the fields in the :method:`db.stats()` output.
-
-.. _faq-working-set:
-
-What is the working set?
-------------------------
-
-Working set represents the total body of data that the application
-uses in the course of normal operation. Often this is a subset of the
-total data size, but the specific size of the working set depends on
-actual moment-to-moment use of the database.
-
-If you run a query that requires MongoDB to scan every document in a
-collection, the working set will expand to include every
-document. Depending on physical memory size, this may cause documents
-in the working set to "page out," or to be removed from physical memory by
-the operating system. The next time MongoDB needs to access these
-documents, MongoDB may incur a hard page fault.
-
-If you run a query that requires MongoDB to scan every
-:term:`document` in a collection, the working set includes every
-active document in memory.
-
-For best performance, the majority of your *active* set should fit in
-RAM.
-
 .. _faq-disk-size:
 
 Why are the files in my data directory larger than the data in my database?
----------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The data files in your data directory, which is the :file:`/data/db`
 directory in default configurations, might be larger than the data set
@@ -174,47 +170,8 @@ inserted into the database. Consider the following possible causes:
      running. Be aware that :dbcommand:`repairDatabase` will block
      all other operations and may take a long time to complete.
 
-How can I check the size of a collection?
------------------------------------------
-
-To view the size of a collection and other information, use the
-:method:`db.collection.stats()` method from the :program:`mongo` shell.
-The following example issues :method:`db.collection.stats()` for the
-``orders`` collection:
-
-.. code-block:: javascript
-
-   db.orders.stats();
-
-To view specific measures of size, use these methods:
-
-- :method:`db.collection.dataSize()`: data size in bytes for the collection.
-- :method:`db.collection.storageSize()`: allocation size in bytes, including unused space.
-- :method:`db.collection.totalSize()`: the data size plus the index size in bytes.
-- :method:`db.collection.totalIndexSize()`: the index size in bytes.
-
-Also, the following scripts print the statistics for each database and
-collection:
-
-.. code-block:: javascript
-
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
-
-.. code-block:: javascript
-
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
-
-How can I check the size of indexes?
-------------------------------------
-
-To view the size of the data allocated for an index, use one of the
-following procedures in the :program:`mongo` shell:
-
-Check the value of :data:`~collStats.indexSizes` in the output of the
-:method:`db.collection.stats()` method.
-
 How do I know when the server runs out of disk space?
------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your server runs out of disk space for data files, you will see
 something like this in the log:
@@ -245,50 +202,115 @@ filesystem mount or a symlink.
    will not be able to use a file system snapshot tool to capture a
    valid snapshot of your data files and journal files.
 
-.. todo the following "journal FAQ" content is from the wiki. Must add
-   this content to the manual, perhaps on this page.
+Data Storage Diagnostics
+------------------------
 
-   If I am using replication, can some members use journaling and others not?
-   --------------------------------------------------------------------------
+How can I check the size of indexes?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Yes. It is OK to use journaling on some replica set members and not
-   others.
+To view the size of the data allocated for an index, use one of the
+following procedures in the :program:`mongo` shell:
 
-   Can I use the journaling feature to perform safe hot backups?
-   -------------------------------------------------------------
+Check the value of :data:`~collStats.indexSizes` in the output of the
+:method:`db.collection.stats()` method.
 
-   Yes, see :doc:`/administration/backups`.
+How can I check the size of a collection?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   32 bit nuances?
-   ---------------
+To view the size of a collection and other information, use the
+:method:`db.collection.stats()` method from the :program:`mongo` shell.
+The following example issues :method:`db.collection.stats()` for the
+``orders`` collection:
 
-   There is extra memory mapped file activity with journaling. This will
-   further constrain the limited db size of 32 bit builds. Thus, for now
-   journaling by default is disabled on 32 bit systems.
+.. code-block:: javascript
 
-   When did the --journal option change from --dur?
-   ------------------------------------------------
+   db.orders.stats();
 
-   In 1.8 the option was renamed to --journal, but the old name is still
-   accepted for backwards compatibility; please change to --journal if
-   you are using the old option.
+To view specific measures of size, use these methods:
 
-   Will the journal replay have problems if entries are incomplete (like the failure happened in the middle of one)?
-   -----------------------------------------------------------------------------------------------------------------
+- :method:`db.collection.dataSize()`: data size in bytes for the collection.
+- :method:`db.collection.storageSize()`: allocation size in bytes, including unused space.
+- :method:`db.collection.totalSize()`: the data size plus the index size in bytes.
+- :method:`db.collection.totalIndexSize()`: the index size in bytes.
 
-   Each journal (group) write is consistent and won't be replayed during
-   recovery unless it is complete.
+Also, the following scripts print the statistics for each database and
+collection:
 
-   How many times is data written to disk when replication and journaling are both on?
-   -----------------------------------------------------------------------------------
+.. code-block:: javascript
 
-   In v1.8, for an insert, four times. The object is written to the main
-   collection and also the oplog collection. Both of those writes are
-   also journaled as a single mini-transaction in the journal files in
-   /data/db/journal.
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
 
-   The above applies to collection data and inserts which is the worst
-   case scenario. Index updates are written to the index and the
-   journal, but not the oplog, so they should be 2X today not 4X.
-   Likewise updates with things like $set, $addToSet, $inc, etc. are
-   compactly logged all around so those are generally small.
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
+
+.. _faq-tools-for-measuring-storage-use:
+
+What tools can I use to investigate storage use in MongoDB?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.stats()` method in the :program:`mongo` shell,
+returns the current state of the "active" database. The
+:doc:`dbStats command </reference/command/dbStats>` document describes
+the fields in the :method:`db.stats()` output.
+
+Page Faults
+-----------
+
+.. _faq-working-set:
+
+What is the working set?
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Working set represents the total body of data that the application
+uses in the course of normal operation. Often this is a subset of the
+total data size, but the specific size of the working set depends on
+actual moment-to-moment use of the database.
+
+If you run a query that requires MongoDB to scan every document in a
+collection, the working set will expand to include every
+document. Depending on physical memory size, this may cause documents
+in the working set to "page out," or to be removed from physical memory by
+the operating system. The next time MongoDB needs to access these
+documents, MongoDB may incur a hard page fault.
+
+If you run a query that requires MongoDB to scan every
+:term:`document` in a collection, the working set includes every
+active document in memory.
+
+For best performance, the majority of your *active* set should fit in
+RAM.
+
+.. _faq-storage-page-faults:
+
+What are page faults?
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-page-fault.rst
+
+If there is free memory, then the operating system can find the page
+on disk and load it to memory directly. However, if there is no free
+memory, the operating system must:
+
+- find a page in memory that is stale or no longer needed, and write
+  the page to disk.
+
+- read the requested page from disk and load it into memory.
+
+This process, particularly on an active system can take a long time,
+particularly in comparison to reading a page that is already in
+memory.
+
+See :ref:`administration-monitoring-page-faults` for more information.
+
+What is the difference between soft and hard page faults?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Page faults <page fault>` occur when MongoDB needs access to
+data that isn't currently in active memory. A "hard" page fault
+refers to situations when MongoDB must access a disk to access the
+data. A "soft" page fault, by contrast, merely moves memory pages from
+one list to another, such as from an operating system file
+cache. In production, MongoDB will rarely encounter soft page faults.
+
+See :ref:`administration-monitoring-page-faults` for more information.
