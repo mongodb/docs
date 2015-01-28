@@ -20,7 +20,7 @@ deployment. Configure firewalls to allow the Monitoring Agent to connect across
 data centers and servers.
 
 Use multiple Monitoring Agents within a single |mms| group *only* :ref:`to
-provide redundancy <monitoring-agent-redundancy`>. For each |mms| group, the
+provide redundancy <monitoring-agent-redundancy>`. For each |mms| group, the
 agent must be able to connect
 to every monitored MongoDB. Unless you have multiple groups,
 complete your initial Monitoring Agent setup with a single agent.

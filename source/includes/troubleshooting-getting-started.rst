@@ -38,7 +38,7 @@ Check Agent Output or Log
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you continue to encounter problems, check the agent's output for errors.
-See :ref:`view-logs-single-agent`.
+See :ref:`agent-logs`.
 
 .. _troubleshooting-one-agent:
 
