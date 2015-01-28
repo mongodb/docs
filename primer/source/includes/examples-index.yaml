@@ -6,10 +6,11 @@ content:
   source:
     file: example-query-all.yaml
     ref: restaurant-data
-ref: inventory-example-coll
+ref: restaurant-index-example-coll
 edition:
   - shell
   - python
+  - node
 ---
 source:
   file: examples-index-base.yaml
@@ -19,7 +20,7 @@ edition: shell
 operation:
   - language: javascript
     code: |
-      db.inventory.ensureIndex( { "item": 1 } )
+      db.restaurants.ensureIndex( { "cuisine": 1 } )
 results: |
   {
     "createdCollectionAutomatically" : false,
@@ -27,18 +28,12 @@ results: |
     "numIndexesAfter" : 2,
     "ok" : 1
   }
----
-source:
-  file: examples-index-base.yaml
-  ref: _single-field-index
-ref: single-field-index
-edition: python
-operation:
-  language: python
-  code: |
-    db.inventory.ensure_index( [ ( "item", pymongo.ASCENDING ) ] )
-results:
-  - "u'item_1'"
+post: |
+  The method returns a document with the status of the operation.
+final: |
+  Upon successful index creation, the ``"numIndexesAfter"`` value is
+  one greater than the ``"numIndexesBefore"`` value. For a description
+  of the output, see :ref:`gs-ensureIndex-output`.
 ---
 source:
   file: examples-index-base.yaml
@@ -48,7 +43,7 @@ edition: shell
 operation:
   - language: javascript
     code: |
-      db.inventory.ensureIndex( { "category": 1, "details.model": -1 } )
+      db.restaurants.createIndex( { "cuisine": 1, "address.zipcode": -1 } )
 results: |
   {
      "createdCollectionAutomatically" : false,
@@ -56,6 +51,28 @@ results: |
      "numIndexesAfter" : 3,
      "ok" : 1
   }
+post: |
+  The method returns a document with the status of the operation.
+final: |
+  Upon successful index creation, the ``"numIndexesAfter"`` value is
+  one greater than the ``"numIndexesBefore"`` value.
+
+  For a description of the output, see :ref:`gs-ensureIndex-output`.
+---
+source:
+  file: examples-index-base.yaml
+  ref: _single-field-index
+ref: single-field-index
+edition: python
+operation:
+  language: python
+  code: |
+    import pymongo
+    db.restaurants.ensure_index( [ ( "cuisine", pymongo.ASCENDING ) ] )
+results: |
+  "u'cuisine_1'"
+post: |
+  The method returns the name of the created index.
 ---
 source:
   file: examples-index-base.yaml
@@ -65,8 +82,79 @@ edition: python
 operation:
   language: python
   code: |
-    db.inventory.ensure_index( [ ( "category", pymongo.ASCENDING ),
-                                 ( "details.model", pymongo.DESCENDING ) ] )
-results:
-  - "u'category_1_details.model_-1'"
+    import pymongo
+    db.restaurants.create_index( [
+       ( "cuisine", pymongo.ASCENDING ),
+       ( "address.zipcode", pymongo.DESCENDING )
+    ] )
+results: |
+  "u'cuisine_1_address.zipcode_-1'"
+post: |
+  The method returns the name of the created index.
+---
+source:
+  file: examples-index-base.yaml
+  ref: _single-field-index
+ref: single-field-index
+edition: node
+operation:
+  - pre: |
+      Define an ``indexRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var indexRestaurants = function(db, callback) {
+         db.collection('restaurants').createIndex( 
+            { "cuisine": 1 },
+            null,
+            function(err, results) {
+               console.log(results);
+               callback();
+            }
+         );
+      };
+  - pre: |
+      Call the ``indexRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        indexRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+  The method returns the name of the created index ``cuisine_1``.
+---
+source:
+  file: examples-index-base.yaml
+  ref: _create-compound-index
+ref: create-compound-index
+edition: node
+operation:
+  - pre: |
+      Define an ``indexRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var indexRestaurants = function(db, callback) {
+         db.collection('restaurants').createIndex( 
+            { "cuisine": 1, "address.zipcode": -1 },
+            null,
+            function(err, results) {
+               console.log(results);
+               callback();
+            }
+         );
+      };
+  - pre: |
+      Call the ``indexRestaurants`` function.
+    language: javascript
+    code: |
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        indexRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+  The method returns the name of the created index ``cuisine_1_address.zipcode_-1``.
 ...

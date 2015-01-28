@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: collection-example
 ---
 source:
@@ -22,7 +23,7 @@ operation:
   code: |
     db.restaurants.find().sort( { "borough": 1, "address.zipcode": 1 } )
 replacement:
-  sortMethod: :method:`~cursor.remove()`
+  sortMethod: :method:`~cursor.sort()`
   ascKey: "``1``"
   descKey: "``-1``"
 ---
@@ -52,7 +53,48 @@ operation:
       for document in cursor:
           print(document)
 replacement:
-  sortMethod: :method:`~cursor.remove()`
+  sortMethod: :py:meth:`~pymongo.cursor.Cursor.sort()`
   ascKey: "``pymongo.ASCENDING``"
   descKey: "``pymongo.DESCENDING``"
+---
+source:
+  file: examples-query-sort-base.yaml
+  ref: _sort
+ref: sort
+edition: node
+operation:
+  - pre: |
+      Define a ``findRestaurants`` function to retrieve all documents
+      in the ``restaurants`` collection, sorted first by the
+      ``borough`` field in ascending order, and then, within each
+      borough, by the ``"address.zipcode"`` field in ascending order.
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find().sort( { "borough": 1, "address.zipcode": 1 } );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  sortMethod: |
+    `sort() <http://mongodb.github.io/node-mongodb-native/2.0/api/Cursor.html#sort>`_
+  ascKey: "``1``"
+  descKey: "``-1``"
 ...

@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: example-collection
 ---
 source:
@@ -54,4 +55,48 @@ operation:
 post: |
   The operation returns a ``dict`` object which contains the status of
   the operation.
+---
+source:
+  file: examples-update-replace-base.yaml
+  ref: _replace-document
+ref: replace-document
+edition: node
+operation:
+  - pre: |
+      Define an ``updateRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var updateRestaurants = function(db, callback) {
+         db.collection('restaurants').update(
+            { "restaurant_id" : "41704620" },
+            {
+              "name" : "Vella 2",
+              "address" : {
+                 "coord" : [ -73.9557413, 40.7720266 ],
+                 "building" : "1480",
+                 "street" : "2 Avenue",
+                 "zipcode" : "10075"
+              }
+            },
+            function(err, results) {
+              console.log(results);
+              callback();
+         });
+      };
+  - pre: |
+      Call the ``updateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        updateRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+   The {{updateMethod}} returns the number of documents updated. 
+replacement:
+  updateMethod: |
+    `update() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#update>`_
 ...

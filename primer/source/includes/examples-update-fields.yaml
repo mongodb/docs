@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: collection-example
 ---
 source:
@@ -12,20 +13,13 @@ source:
   ref: _update-top-level-fields
 ref: update-top-level-fields
 edition: shell
-pre: |
-  The following operation updates the first document with ``name``
-  equal to ``"Juni"``, using the :update:`$set` operator to update the
-  ``cusine`` field and the :update:`$currentDate` operator to update
-  the ``lastModified`` field with the current date.
 operation:
     language: javascript
     code: |
       db.restaurants.update(
           { "name" : "Juni" },
           {
-            $set: {
-              "cuisine": "American (New)"
-            },
+            $set: { "cuisine": "American (New)" },
             $currentDate: { "lastModified": true }
           }
       )
@@ -39,9 +33,6 @@ source:
 ref: update-embedded-field
 edition: shell
 operation:
-  pre: |
-      The following updates the ``street`` field in the embedded
-      ``address`` document.
   language: javascript
   code: |
       db.restaurants.update(
@@ -58,11 +49,6 @@ source:
 ref: update-multiple-documents
 edition: shell
 operation:
-  - pre: |
-      The following operation updates *all* documents that have
-      ``address.zipcode`` field equal to ``"10016"``, setting the ``borough``
-      field to ``"Midtown"`` and the ``lastModified`` field to the current
-      date.
     language: javascript
     code: |
       db.restaurants.update(
@@ -84,12 +70,6 @@ source:
   ref: _update-top-level-fields
 ref: update-top-level-fields
 edition: python
-pre: |
-  The following operation updates the first document with the field
-  ``name`` equal to ``"Juni"``. The operation uses the update:`$set`
-  operator to update the ``cusine`` field and the
-  :update:`$currentDate` operator to update the ``lastModified`` field
-  with the current date.
 operation:
     language: python
     code: |
@@ -114,9 +94,6 @@ source:
 ref: update-embedded-field
 edition: python
 operation:
-  - pre: |
-      The following updates the ``street`` field in the embedded
-      ``address`` document.
     language: javascript
     code: |
       db.restaurants.update(
@@ -134,11 +111,6 @@ source:
 ref: update-multiple-documents
 edition: python
 operation:
-  pre: |
-      The following operation updates *all* documents that have
-      ``address.zipcode`` field equal to ``"10016"``, setting the ``borough``
-      field to ``"Midtown"`` and the ``lastModified`` field to the current
-      date.
   language: javascript
   code: |
       db.restaurants.update(
@@ -150,9 +122,123 @@ operation:
          multi=True
       )
 post: |
-  The operation returns a ``dict`` object which contains the status of
+  The {{updateMethod}}  returns a ``dict`` object which contains the status of
   the operation. Successful operation should return ``u'ok': 1.0``. The
   ``u'n'`` field indicates the number of documents modified.
 replacement:
-  updateMethod: py:meth:`~pymongo.collection.Collection.update()`
+  updateMethod: :py:meth:`~pymongo.collection.Collection.update()`
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-top-level-fields
+ref: update-top-level-fields
+edition: node
+operation:
+  - pre: |
+      Define an ``updateRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var updateRestaurants = function(db, callback) {
+         db.collection('restaurants').update(
+            { "name" : "Juni" },
+            {
+              $set: { "cuisine": "American (New)" },
+              $currentDate: { "lastModified": true }
+            }, function(err, results) {
+            console.log(results);
+            callback();
+         });
+      };
+  - pre: |
+      Call the ``updateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        updateRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+   The {{updateMethod}} returns the number of documents updated. 
+replacement:
+  updateMethod: |
+    `update() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#update>`_
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-embedded-field
+ref: update-embedded-field
+edition: node
+operation:
+  - pre: |
+      Define an ``updateRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var updateRestaurants = function(db, callback) {
+         db.collection('restaurants').update(
+            { "restaurant_id" : "41156888" },
+            { $set: { "address.street": "East 31st Street" } },
+            function(err, results) {
+              console.log(results);
+              callback();
+         });
+      };
+  - pre: |
+      Call the ``updateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        updateRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+   The {{updateMethod}} returns the number of documents updated. 
+replacement:
+  updateMethod: |
+    `update() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#update>`_
+---
+source:
+  file: examples-update-fields-base.yaml
+  ref: _update-multiple-documents
+ref: update-multiple-documents
+edition: node
+operation:
+  - pre: |
+      Define an ``updateRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var updateRestaurants = function(db, callback) {
+         db.collection('restaurants').update(
+            { "address.zipcode": "10016" },
+            {
+              $set: { "borough": "Midtown" },
+              $currentDate: { "lastModified": true }
+            },
+            { multi: true },
+            function(err, results) {
+              console.log(results);
+              callback();
+         });
+      };
+  - pre: |
+      Call the ``updateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        updateRestaurants(db, function() {
+            db.close();
+        });
+      });
+post: |
+   The {{updateMethod}} returns the number of documents updated. 
+replacement:
+  updateMethod: |
+    `update() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#update>`_
 ...

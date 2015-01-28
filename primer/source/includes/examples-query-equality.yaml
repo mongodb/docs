@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: collection-example
 ---
 source:
@@ -13,9 +14,6 @@ source:
 ref: query-top-level-field
 edition: shell
 operation:
-  pre: |
-    The following operation finds documents whose ``borough``
-    field equals ``"Manhattan"``.
   language: javascript
   code: |
     db.restaurants.find( { "borough": "Manhattan" } )
@@ -87,4 +85,111 @@ operation:
     code: |
       for document in cursor:
           print(document)
+---
+source:
+  file: examples-query-equality-base.yaml
+  ref: _query-top-level-field
+ref: query-top-level-field
+edition: node
+operation:
+  - pre: |
+      Define a ``findRestaurants`` function.
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find( { "borough": "Manhattan" } );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  findMethod: |
+    `find() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find>`_
+---
+source:
+  file: examples-query-equality-base.yaml
+  ref: _query-embedded-document
+ref: query-embedded-document
+edition: node
+operation:
+  - pre: |
+      Define a ``findRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find( { "address.zipcode": "10075" } );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  findMethod: |
+    `find() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find>`_
+---
+source:
+  file: examples-query-equality-base.yaml
+  ref: _query-field-in-array
+ref: query-field-in-array
+edition: node
+operation:
+  - pre: |
+      Define a ``findRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find( { "grades.grade": "B" } );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  findMethod: |
+    `find() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find>`_
 ...

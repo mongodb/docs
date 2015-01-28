@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: collection-base
 ---
 source:
@@ -17,44 +18,28 @@ operation:
   code: |
       db.restaurants.insert(
          {
-            "_id" : ObjectId("54c1478ec2341ddf130f62b7"),
+            "address" : {
+               "street" : "2 Avenue",
+               "zipcode" : "10075",
+               "building" : "1480",
+               "coord" : [ -73.9557413, 40.7720266 ],
+            },
+            "borough" : "Manhattan",
             "cuisine" : "Italian",
-            "restaurant_id" : "41704620",
-            "name" : "Vella",
             "grades" : [
                {
-                  "grade" : "A",
                   "date" : ISODate("2014-10-01T00:00:00Z"),
+                  "grade" : "A",
                   "score" : 11
                },
                {
-                  "date" : ISODate("2014-10-01T00:00:00Z"),
-                  "score" : 11,
-                  "grade" : "A"
-               },
-               {
-                  "score" : 11,
-                  "grade" : "A",
-                  "date" : ISODate("2014-10-01T00:00:00Z")
-               },
-               {
-                  "grade" : "B",
                   "date" : ISODate("2014-01-16T00:00:00Z"),
-                  "score" : 17
-               },
-               {
                   "grade" : "B",
-                  "date" : ISODate("2014-01-16T00:00:00Z"),
                   "score" : 17
                }
             ],
-            "address" : {
-               "coord" : [ -73.9557413, 40.7720266 ],
-               "building" : "1480",
-               "street" : "2 Avenue",
-               "zipcode" : "10075"
-            },
-            "borough" : "Manhattan"
+            "name" : "Vella",
+            "restaurant_id" : "41704620"
          }
       )
 post: |
@@ -74,46 +59,31 @@ edition: python
 operation:
   language: python
   code: |
+      from datetime import *;
       db.restaurants.insert(
          {
-            "_id" : ObjectId("54c1478ec2341ddf130f62b7"),
+            "address" : {
+               "street" : "2 Avenue",
+               "zipcode" : "10075",
+               "building" : "1480",
+               "coord" : [ -73.9557413, 40.7720266 ],
+            },
+            "borough" : "Manhattan",
             "cuisine" : "Italian",
-            "restaurant_id" : "41704620",
-            "name" : "Vella",
             "grades" : [
                {
+                  "date" : datetime.strptime("2014-10-01", "%Y-%m-%d"),
                   "grade" : "A",
-                  "date" : ISODate("2014-10-01T00:00:00Z"),
                   "score" : 11
                },
                {
-                  "date" : ISODate("2014-10-01T00:00:00Z"),
-                  "score" : 11,
-                  "grade" : "A"
-               },
-               {
-                  "score" : 11,
-                  "grade" : "A",
-                  "date" : ISODate("2014-10-01T00:00:00Z")
-               },
-               {
+                  "date" : datetime.strptime("2014-01-16", "%Y-%m-%d"),
                   "grade" : "B",
-                  "date" : ISODate("2014-01-16T00:00:00Z"),
-                  "score" : 17
-               },
-               {
-                  "grade" : "B",
-                  "date" : ISODate("2014-01-16T00:00:00Z"),
                   "score" : 17
                }
             ],
-            "address" : {
-               "coord" : [ -73.9557413, 40.7720266 ],
-               "building" : "1480",
-               "street" : "2 Avenue",
-               "zipcode" : "10075"
-            },
-            "borough" : "Manhattan"
+            "name" : "Vella",
+            "restaurant_id" : "41704620"
          }
       )
 post: |
@@ -124,4 +94,63 @@ results: |
 replacement:
   insertMethod: :py:meth:`~pymongo.collection.Collection.insert()`
   clientName: :py:mod:`pymongo`
+---
+source:
+  file: examples-insert-base.yaml
+  ref: _insert-a-document
+ref: node-insert-a-document
+edition: node
+operation:
+  - pre: |
+      Defines a function ``insertDocument``:
+    language: javascript
+    code: |
+      var insertDocument = function(db, callback) {
+         db.collection('restaurants').insert( {
+            "address" : {
+               "street" : "2 Avenue",
+               "zipcode" : "10075",
+               "building" : "1480",
+               "coord" : [ -73.9557413, 40.7720266 ],
+            },
+            "borough" : "Manhattan",
+            "cuisine" : "Italian",
+            "grades" : [
+               {
+                  "date" : new Date("2014-10-01T00:00:00Z"),
+                  "grade" : "A",
+                  "score" : 11
+               },
+               {
+                  "date" : new Date("2014-01-16T00:00:00Z"),
+                  "grade" : "B",
+                  "score" : 17
+               }
+            ],
+            "name" : "Vella",
+            "restaurant_id" : "41704620"
+         }, function(err, result) {
+          assert.equal(err, null);
+          console.log("Inserted a document into the restaurants collection.");
+          callback(result);
+        });
+      };
+  - pre: |
+      Call the ``insertDocument`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        insertDocument(db, function() {
+            db.close();
+        });
+      });
+  - pre: |
+       A successful insert should print out the following line:
+    language: sh
+    code:
+       Inserted a document into the restaurants collection.
+replacement:
+  insertMethod: |
+    `insert <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#insert>`_
 ...

@@ -5,6 +5,7 @@ options:
 edition:
   - shell
   - python
+  - node
 ref: collection-example
 ---
 source:
@@ -15,7 +16,7 @@ edition: shell
 operation:
   language: javascript
   code: |
-    db.restaurants.find( { "cusine": "Italian", "address.zipcode": "10075" } )
+    db.restaurants.find( { "cuisine": "Italian", "address.zipcode": "10075" } )
 ---
 source:
   file: examples-query-combination-base.yaml
@@ -26,7 +27,7 @@ operation:
   language: javascript
   code: |
     db.restaurants.find(
-       { $or: [ { "cusine": "Italian" }, { "address.zipcode": "10075" } ] }
+       { $or: [ { "cuisine": "Italian" }, { "address.zipcode": "10075" } ] }
     )
 ---
 source:
@@ -37,7 +38,7 @@ edition: python
 operation:
   - language: python
     code: |
-      cursor = db.restaurants.find( { "cusine": "Italian", "address.zipcode": "10075" } )
+      cursor = db.restaurants.find( { "cuisine": "Italian", "address.zipcode": "10075" } )
   - pre: |
       Iterate the cursor and print the matching documents.
     language: python
@@ -53,11 +54,87 @@ edition: python
 operation:
   - language: python
     code: |
-      cursor = db.restaurants.find( { "$or": [ { "cusine": "Italian" }, { "address.zipcode": "10075" } ] } )
+      cursor = db.restaurants.find( { "$or": [ { "cuisine": "Italian" }, { "address.zipcode": "10075" } ] } )
   - pre: |
       Iterate the cursor and print the matching documents.
     language: python
     code: |
       for document in cursor:
           print(document)
+---
+source:
+  file: examples-query-combination-base.yaml
+  ref: _logical-and
+ref: logical-and
+edition: node
+operation:
+  - pre: |
+      Define the ``findRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find(
+           { "cuisine": "Italian", "address.zipcode": "10075" }
+         );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  findMethod: |
+    `find() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find>`_
+---
+source:
+  file: examples-query-combination-base.yaml
+  ref: _logical-or
+ref: logical-or
+edition: node
+operation:
+  - pre: |
+      Define the ``findRestaurants`` function as follows:
+    language: javascript
+    code: |
+      var findRestaurants = function(db, callback) {
+         var cursor =db.collection('restaurants').find( 
+             { $or: [ { "cuisine": "Italian" }, { "address.zipcode": "10075" } ] }
+         );
+         cursor.each(function(err, doc) {
+            assert.equal(err, null);
+            if (doc != null) {
+               console.dir(doc);
+            } else {
+               callback();
+            }
+         });
+      };
+  - pre: |
+      Call the ``findRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+
+        findRestaurants(db, function() {
+            db.close();
+        });
+      });
+replacement:
+  findMethod: |
+    `find() <http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find>`_
 ...

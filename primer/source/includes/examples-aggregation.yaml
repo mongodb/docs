@@ -1,17 +1,12 @@
-collection: "inventory"
+collection: "restaurants"
 options:
   show_title: False
   show_collection: False
-content:
-  - '{ "_id" : ObjectId("53f768b390a2eb8e072cc4dc"), "item" : "ABC", "category" : "gloves", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 25 }, { "size" : "M", "qty" : 50 } ] }'
-  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4dd"), "item" : "DEF", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "red" }, "stock" : [ { "size" : "M", "qty" : 50 } ] }'
-  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4de"), "item" : "IJK", "category" : "hat", "details" : { "model" : "14Q2", "color" : "blue" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "M", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
-  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4df"), "item" : "LMN", "category" : "hat", "details" : { "model" : "14Q2", "color" : "brown" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
-  - '{ "_id" : ObjectId("53f7694390a2eb8e072cc4e0"), "item" : "PQR", "category" : "gloves", "details" : { "model" : "14Q3", "color" : "black" }, "stock" : [ { "size" : "S", "qty" : 5 }, { "size" : "L", "qty" : 1 } ] }'
 edition:
   - shell
   - python
-ref: example-collection
+  - node
+ref: collection-example
 ---
 source:
   file: examples-aggregation-base.yaml
@@ -21,14 +16,39 @@ edition: shell
 operation:
   - language: javascript
     code: |
-      db.inventory.aggregate(
+      db.restaurants.aggregate(
          [
-           { $group: { "_id": "$category", "count": { $sum: 1 } } }
+           { $group: { "_id": "$borough", "count": { $sum: 1 } } }
          ]
       );
 results:
-  - '{ "_id" : "hat", "count" : 2 }'
-  - '{ "_id" : "gloves", "count" : 3 }'
+  - '{ "_id" : "Staten Island", "count" : 969 }'
+  - '{ "_id" : "Brooklyn", "count" : 6086 }'
+  - '{ "_id" : "Manhattan", "count" : 10259 }'
+  - '{ "_id" : "Queens", "count" : 5656 }'
+  - '{ "_id" : "Bronx", "count" : 2338 }'
+  - '{ "_id" : "Missing", "count" : 51 }'
+---
+source:
+  file: examples-aggregation-base.yaml
+  ref: _filter-and-group-documents
+ref: filter-and-group-documents
+edition: shell
+operation:
+  - language: javascript
+    code: |
+      db.restaurants.aggregate(
+         [
+           { $match: { "borough": "Queens", "cuisine": "Brazilian" } },
+           { $group: { "_id": "$address.zipcode" , "count": { $sum: 1 } } }
+         ]
+      );
+results:
+  - '{ "_id" : "11368", "count" : 1 }'
+  - '{ "_id" : "11106", "count" : 3 }'
+  - '{ "_id" : "11377", "count" : 1 }'
+  - '{ "_id" : "11103", "count" : 1 }'
+  - '{ "_id" : "11101", "count" : 2 }'
 ---
 source:
   file: examples-aggregation-base.yaml
@@ -38,9 +58,9 @@ edition: python
 operation:
   - language: python
     code: |
-      cursor = db.inventory.aggregate(
+      cursor = db.restaurants.aggregate(
          [
-           { "$group": { "_id": "$category", "count": { "$sum": 1 } } }
+           { "$group": { "_id": "$borough", "count": { "$sum": 1 } } }
          ],
          cursor={}
       )
@@ -50,26 +70,12 @@ operation:
       for document in cursor:
           print(document)
 results:
-  - "{u'count': 2, u'_id': u'hat'}"
-  - "{u'count': 3, u'_id': u'gloves'}"
----
-source:
-  file: examples-aggregation-base.yaml
-  ref: _filter-and-group-documents
-ref: filter-and-group-documents
-edition: shell
-operation:
-  - language: javascript
-    code: |
-      db.inventory.aggregate(
-         [
-           { $match: { "category": "gloves" } },
-           { $group: { "_id": "$details.model" , "count": { $sum: 1 } } }
-         ]
-      );
-results:
-  - '{ "_id" : "14Q2", "count" : 1 }'
-  - '{ "_id" : "14Q3", "count" : 2 }'
+  - "{u'count': 969, u'_id': u'Staten Island'}"
+  - "{u'count': 6086, u'_id': u'Brooklyn'}"
+  - "{u'count': 10259, u'_id': u'Manhattan'}"
+  - "{u'count': 5656, u'_id': u'Queens'}"
+  - "{u'count': 2338, u'_id': u'Bronx'}"
+  - "{u'count': 51, u'_id': u'Missing'}"
 ---
 source:
   file: examples-aggregation-base.yaml
@@ -79,10 +85,10 @@ edition: python
 operation:
   - language: python
     code: |
-      cursor = db.inventory.aggregate(
+      cursor = db.restaurants.aggregate(
          [
-           { "$match": { "category": "gloves" } },
-           { "$group": { "_id": "$details.model" , "count": { "$sum": 1 } } }
+             { "$match": { "borough": "Queens", "cuisine": "Brazilian" } },
+             { "$group": { "_id": "$address.zipcode" , "count": { "$sum": 1 } } }
          ],
          cursor={}
       )
@@ -93,65 +99,86 @@ operation:
       for document in cursor:
           print(document)
 results:
-  - "{u'count': 2, u'_id': u'14Q3'}"
-  - "{u'count': 1, u'_id': u'14Q2'}"
+  - "{u'count': 1, u'_id': u'11368'}"
+  - "{u'count': 3, u'_id': u'11106'}"
+  - "{u'count': 1, u'_id': u'11377'}"
+  - "{u'count': 1, u'_id': u'11103'}"
+  - "{u'count': 2, u'_id': u'11101'}"
 ---
 source:
   file: examples-aggregation-base.yaml
-  ref:  _unwind-an-array-and-project
-ref: unwind-an-array-and-project
-edition: shell
+  ref: _group-documents-by-a-field-and-calculate-count
+ref: group-documents-by-a-field-and-calculate-count
+edition: node
 operation:
   - language: javascript
     code: |
-      db.inventory.aggregate(
-         [
-           { $unwind: "$stock" },
-           { $project: { "_id": 0, "stock": 1, "item": 1 } }
-         ]
-      )
-results:
-  - '{ "item" : "ABC", "stock" : { "size" : "S", "qty" : 25 } }'
-  - '{ "item" : "ABC", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "DEF", "stock" : { "size" : "M", "qty" : 50 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "M", "qty" : 5 } }'
-  - '{ "item" : "IJK", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "LMN", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "LMN", "stock" : { "size" : "L", "qty" : 1 } }'
-  - '{ "item" : "PQR", "stock" : { "size" : "S", "qty" : 5 } }'
-  - '{ "item" : "PQR", "stock" : { "size" : "L", "qty" : 1 } }'
+      var aggregateRestaurants = function(db, callback) {
+         db.collection('restaurants').aggregate(
+           [
+             { $group: { "_id": "$borough", "count": { $sum: 1 } } }
+           ],
+           function(err, result) {
+             assert.equal(err, null);
+             console.log(result);
+             callback(result);
+           }
+         );
+      };
+  - pre: |
+      Call the ``aggregateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        aggregateRestaurants(db, function() {
+            db.close();
+        });
+      }); 
+results: |
+  [ { _id: 'Missing', count: 51 },
+    { _id: 'Staten Island', count: 969 },
+    { _id: 'Manhattan', count: 10259 },
+    { _id: 'Brooklyn', count: 6086 },
+    { _id: 'Queens', count: 5656 },
+    { _id: 'Bronx', count: 2338 } ]
 ---
 source:
   file: examples-aggregation-base.yaml
-  ref:  _unwind-an-array-and-project
-ref: unwind-an-array-and-project
-edition: python
+  ref: _filter-and-group-documents
+ref: filter-and-group-documents
+edition: node
 operation:
-  - language: python
+  - pre: "Define an aggregateRestaurants function."
+    language: javascript
     code: |
-      cursor = db.inventory.aggregate(
-         [
-           { "$unwind": "$stock" },
-           { "$project": { "_id": 0, "stock": 1, "item": 1 } }
-         ],
-         cursor={}
-      )
+      var aggregateRestaurants = function(db, callback) {
+         db.collection('restaurants').aggregate(
+           [
+             { $match: { "borough": "Queens", "cuisine": "Brazilian" } },
+             { $group: { "_id": "$address.zipcode" , "count": { $sum: 1 } } }
+           ],
+           function(err, result) {
+             assert.equal(err, null);
+             console.log(result);
+             callback(result);
+           }
+         );
+      };
   - pre: |
-      Iterate the cursor and print the matching documents.
-    language: python
-    code: |
-      for document in cursor:
-          print(document)
-results:
-  - "{u'item': u'ABC', u'stock': {u'size': u'S', u'qty': 25}}"
-  - "{u'item': u'ABC', u'stock': {u'size': u'M', u'qty': 50}}"
-  - "{u'item': u'DEF', u'stock': {u'size': u'M', u'qty': 50}}"
-  - "{u'item': u'IJK', u'stock': {u'size': u'S', u'qty': 5}}"
-  - "{u'item': u'IJK', u'stock': {u'size': u'M', u'qty': 5}}"
-  - "{u'item': u'IJK', u'stock': {u'size': u'L', u'qty': 1}}"
-  - "{u'item': u'LMN', u'stock': {u'size': u'S', u'qty': 5}}"
-  - "{u'item': u'LMN', u'stock': {u'size': u'L', u'qty': 1}}"
-  - "{u'item': u'PQR', u'stock': {u'size': u'S', u'qty': 5}}"
-  - "{u'item': u'PQR', u'stock': {u'size': u'L', u'qty': 1}}"
+      Call the ``aggregateRestaurants`` function.
+    language: javascript
+    code: | 
+      MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        aggregateRestaurants(db, function() {
+            db.close();
+        });
+      }); 
+results: |
+  [ { _id: '11377', count: 1 },
+    { _id: '11368', count: 1 },
+    { _id: '11101', count: 2 },
+    { _id: '11106', count: 3 },
+    { _id: '11103', count: 1 } ]
 ...
