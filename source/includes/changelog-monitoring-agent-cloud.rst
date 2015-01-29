@@ -2,6 +2,14 @@
 
        All entries should be in the past tense.
 
+Monitoring Agent ``3.0.0.167``
+------------------------------
+
+*Released 2015-01-28*
+
+Stagger the timing of DNS look-ups, to avoid triggering a rare issue
+in glibc 2.19 on Ubuntu 14.04.
+
 Monitoring Agent ``2.9.0.164``
 ------------------------------
 

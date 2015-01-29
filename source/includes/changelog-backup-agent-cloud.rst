@@ -1,5 +1,13 @@
 .. put cloud-only versions of the release notes in this file
 
+
+Backup Agent ``3.1.0.250``
+--------------------------
+
+*Released 2015-01-08*
+
+Logging improvements for Windows
+
 Backup Agent ``3.0.0.246``
 --------------------------
 
