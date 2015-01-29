@@ -128,19 +128,19 @@ try:
     if tags.has('onprem'):
         conf.runstate.edition = 'onprem'
 
-        project = u'MongoDB Management Service (MMS) On-Prem'
+        project = u'Ops Manager'
         latex_documents = onprem_latex_documents
 
-        html_title = 'MMS On-Prem Manual'
-        html_short_title = 'MMS On-Prem Manual'
+        html_title = 'Ops Manager Manual'
+        html_short_title = 'Ops Manager Manual'
 
         html_theme = 'mms-onprem'
         html_theme_options['pdfpath'] = '/'.join([conf.project.url,
                                                   conf.project.basepath,
                                                   conf.git.branches.current,
-                                                  'mms-manual.pdf'])
+                                                  'opsmanager-manual.pdf'])
         html_theme_options['edition'] = 'hosted'
-        html_theme_options['sitename'] = 'On Prem MMS Docs'
+        html_theme_options['sitename'] = 'Ops Manager Docs'
 
         if release == "Upcoming":
             rst_epilog.append(".. |release-string| replace:: \   ")
