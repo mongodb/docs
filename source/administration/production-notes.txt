@@ -50,12 +50,12 @@ Concurrency and Storage
 MMAPv1
 ~~~~~~
 
-Beginning with MongoDB 3.0 MMAPv1 provides *collection-level locking*:
+Beginning with MongoDB 3.0, MMAPv1 provides *collection-level locking*:
 All collections have a unique readers-writer lock that allows multiple
 clients to modify documents in different collections at the same time.
 
 Between MongoDB 2.2 and 2.6, each database has a readers-writer lock
-that allows concurrent reads access to a database, but gives exclusive
+that allows concurrent read access to a database, but gives exclusive
 access to a single write operation per database. See the
 :doc:`Concurrency </faq/concurrency>` page for more information. In
 earlier versions of MongoDB, all write operations contended for a
@@ -71,24 +71,25 @@ documents in a collection at the same time.
 
 In most respects, recommendations for managing production MongoDB
 systems that use the WiredTiger storage engine are the same as
-managing any other MongoDB instance. However, consider the following:
+managing any other MongoDB instance.
 
-- If you run :program:`mongod` in a container (e.g. ``lxc``,
-  ``cgroups``, Docker, etc.) that does *not* have access to all of the
-  RAM available in a system, you must set the
-  :setting:`wiredTiger.engineConfig.cacheSizeGB` to a value less than
-  the amount of RAM available in the container.
+If you run :program:`mongod` in a container (e.g. ``lxc``,
+``cgroups``, Docker, etc.) that does *not* have access to all of the
+RAM available in a system, you must set the
+:setting:`wiredTiger.engineConfig.cacheSizeGB` to a value less than
+the amount of RAM available in the container.
 
-- See :ref:`WiredTiger <storage-wiredtiger>` for more information
-  about WiredTiger in MongoDB.
+The :ref:`WiredTiger <storage-wiredtiger>` section has more
+information about WiredTiger in MongoDB.
 
 Journaling
 ----------
 
 MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee that MongoDB is able to quickly recover the
-:doc:`write operations </core/write-operations>`
-following a crash or other serious failure.
+guarantee that MongoDB is able to quickly recover
+:doc:`write operations </core/write-operations>` that were not written
+to data files before the :program:`mongod` terminated as a result of a
+crash or other serious failure.
 
 In order to ensure that :program:`mongod` will be able to recover its
 data files and keep the data files in a valid state following a crash,
@@ -149,14 +150,11 @@ libraries (i.e. drivers) can run on big or little endian systems.
 Hardware Requirements and Limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The hardware for the most effective MongoDB deployments have the
-following properties:
+When allocating hardware for an effective MongoDB deployment, consider
+the following:
 
 Allocate Sufficient RAM and CPU
 ```````````````````````````````
-
-As with all software, more RAM and a faster CPU clock speed are
-important for performance.
 
 In general, databases are not CPU bound. As such, increasing the
 number of cores can help, but does not provide significant marginal
@@ -244,8 +242,9 @@ Assign swap space for your systems. Allocating swap space can avoid issues
 with memory contention and can prevent the OOM Killer on Linux systems
 from killing :program:`mongod`.
 
-The method :program:`mongod` uses to map memory files to memory ensures
-that the operating system will never store MongoDB data in swap space.
+For the MMAPv1 storage engine, the method :program:`mongod` uses to
+map memory files to memory ensures that the operating system will
+never store MongoDB data in swap space.
 
 RAID
 ````
@@ -473,7 +472,7 @@ MongoDB's performance and ease of use. For more information, see
 Azure
 `````
 
-For all MongoDB deployments using Azure, you **must** mount volume
+For all MongoDB deployments using Azure, you **must** mount the volume
 that hosts the :program:`mongod` instance's :setting:`~storage.dbPath`
 with the *Host Cache Preference* ``READ/WRITE``.
 
@@ -488,7 +487,7 @@ eventually shut down with the following error:
    [DataFileSync] FlushViewOfFile for <data file> failed with error 1 ...
    [DataFileSync] Fatal Assertion 16387
 
-These shut downs do not produce data loss if when
+These shut downs do not produce data loss when
 :setting:`storage.journal.enabled` is set to ``true``. You can safely
 restart :program:`mongod` at any time following this event.
 
@@ -517,16 +516,6 @@ spin up a new virtual host to add as a member of a replica
 set. If you clone a VM with journaling enabled, the clone snapshot will
 be valid. If not using journaling, first stop :program:`mongod`,
 then clone the VM, and finally, restart :program:`mongod`.
-
-OpenVZ
-``````
-
-Some users have had issues when running MongoDB on some older version
-of OpenVZ due to its handling of virtual memory, as with VMWare.
-
-This issue seems to have been resolved in the more recent versions of
-OpenVZ.
-
 
 Performance Monitoring
 ----------------------
