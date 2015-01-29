@@ -131,7 +131,7 @@ try:
         project = u'Ops Manager'
         latex_documents = onprem_latex_documents
 
-        html_title = 'Ops Manager Manual'
+        html_title = 'MongoDB Ops Manager Manual'
         html_short_title = 'Ops Manager Manual'
 
         html_theme = 'mms-onprem'
