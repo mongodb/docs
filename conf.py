@@ -143,6 +143,11 @@ try:
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'On Prem MMS Docs'
 
+        if release == "Upcoming":
+            rst_epilog.append(".. |release-string| replace:: \   ")
+        else:
+            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+
         ## add `extlinks` for each published version.
         for i in conf.git.branches.published:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
