@@ -1,0 +1,88 @@
+title: Use the API to create a group.
+stepnum: 1
+ref: create-group-via-api
+pre: |
+  Use the |mms| Public API to send a :doc:`groups </reference/api/groups>`
+  document to create the new group. Issue the following command, replacing
+  ``<user@example.net>`` with the credentials of the :ref:`global owner
+  <global-owner-role>`, ``<api_key>`` with your API key,
+  ``<app-example.net>`` with the URL of the |application|, and
+  ``<group_name>`` with the name of the new group:
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" -H "Content-Type: application/json" "http://<app-example.net>:8080/api/public/v1.0/groups" --digest -i -X POST --data \
+    '{
+       "name": "<group_name>"
+    }'
+post: |
+  The API returns a document that includes the group's ``agentApiKey`` and
+  ``id``. The API automatically sets the ``publicApiEnabled`` field to
+  ``true`` to allow subsequent API-based configuration.
+---
+title: "Record the values of ``agentApiKey`` and ``id`` in the returned document."
+stepnum: 2
+ref: record-api-and-id
+content: |
+  Record these values for use in this procedure and in other procedures in
+  this tutorial.
+---
+title: Use the API to create a user in the new group.
+stepnum: 3
+ref: create-user-via-api
+pre: |
+  Use the |mms| Public API to send a :doc:`users </reference/api/users>`
+  document with the user's ``roles.roleName`` for the group set to
+  ``GROUP_OWNER``. Issue a command similar to the following. Replace the
+  credentials, API key, and |application| URL as in Step 1. Replace
+  ``<group_id>`` with the group ``id`` you retrieved. Replace the other
+  values in the :doc:`users </reference/api/users>` document specific to
+  the user you are creating.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" -H "Content-Type: application/json" "http://<app-example.net>:8080/api/public/v1.0/users" --digest -i -X POST --data \
+    '{
+       "username": "<new_user@example.com>",
+       "emailAddress": "<new_user@example.com>",
+       "firstName": "<First>",
+       "lastName": "<Last>",
+       "password": "<password>",
+       "roles": [{
+         "groupId": "<group_id>",
+         "roleName": "GROUP_OWNER"
+       }]
+    }'
+---
+title: "Remove global owner from the group. (Optional)"
+stepnum: 4
+ref: remove-global-owner
+pre: |
+  The :ref:`global owner <global-owner-role>` that you used to create the
+  group is also automatically added to the group. You can remove the
+  global owner from the group without losing access to make changes to the
+  group in the future. As long as you have the group's ``agentApiKey`` and
+  ``id``, you have full access to the group when logged in as the global
+  owner.
+action:
+  - pre: |
+      First, get the global owner's ID. Issue the following command to
+      request the group's users. Replace the credentials, API key,
+      |application| URL, and group ID, as in the previous steps:
+    language: none
+    code: |
+      curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/users" --digest -i
+  - pre: |
+      The API returns a document that lists all the group's users.
+      Locate the user with ``roles.roleName`` set to ``GLOBAL_OWNER``.
+      Copy the user's ``id`` value, and issue the following to remove the
+      user from the group. Replace the credentials, API key, |application|
+      URL, and group ID as in the previous steps. Replace ``<user_id>``
+      with the user's ``id`` value:
+    language: none
+    code: |
+      curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/users/<user_id>" --digest -i -X DELETE
+  - pre: |
+      Upon successful removal of the user, the API returns the HTTP ``200
+      OK`` status code to indicate the request has succeeded.
+...

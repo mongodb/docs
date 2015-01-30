@@ -1,0 +1,252 @@
+title: "Retrieve the ``automationConfig`` document from the |application|."
+stepnum: 1
+ref: check-automation-config
+pre: |
+  Use the API to issue the following command. Replace
+  ``<user@example.net>`` with the credentials of the :ref:`global owner
+  <global-owner-role>`, ``<api_key>`` with the previously retrieved API
+  key, ``<app-example.net>`` with the URL of the |application|, and
+  ``<group_id>`` with the previously retrieved group ID:
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
+post: |
+  Confirm that the ``automationConfig`` document matches the
+  ``mms-cluster-config-backup.json`` file on the servers. In particular,
+  both files should have ``version`` set to ``1``.
+---
+title: "Create the top level of the new configuration document."
+stepnum: 2
+ref: begin-populating
+pre: |
+  Create a document with the following fields. As you build the
+  configuration document in the next several steps, reference the
+  :doc:`/reference/cluster-configuration` page for detailed descriptions
+  of each setting.
+action:
+  language: none
+  code: |
+    {
+        "options": {
+            "downloadBase": "/var/lib/mongodb-mms-automation"
+        },
+        "mongoDbVersions": [],
+        "monitoringVersions": [],
+        "backupVersions": [],
+        "processes": [],
+        "replicaSets": [],
+        "sharding": []
+    }
+---
+title: "Add MongoDB versions to the configuration document."
+stepnum: 3
+ref: add-mongodb-versions
+pre: |
+  In the ``mongoDbVersions`` array, add the versions of MongoDB to have
+  available to the cluster. Add only those versions you will use. This
+  tutorial uses just one version, ``2.4.12``, but you can specify multiple
+  versions. Using ``2.4.12`` allows this deployment to later upgrade to
+  ``2.6``.
+action:
+  language: none
+  code: |
+    "mongoDbVersions": [
+        { "name": "2.4.12" }
+    ]
+---
+title: "Add the Monitoring Agent to the configuration document."
+stepnum: 4
+ref: add-monitoring-agent
+pre: |
+  In the ``monitoringVersions.hostname`` field, enter the hostname of the
+  server where |onprem| should install the Monitoring Agent. Use the fully
+  qualified domain name that results when issuing ``hostname -f`` on the
+  server.
+
+  For example, enter the following, replacing ``<server_x.example.net>``
+  with the hostname of the server. The example also includes entries for
+  the log location and log thresholds:
+action:
+  language: none
+  code: |
+    "monitoringVersions": [
+        {
+            "hostname": "<server_x.example.net>",
+            "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            }
+        }
+    ]
+---
+title: Add the servers to the configuration document.
+stepnum: 5
+ref: add-servers
+pre: |
+  The sharded cluster in this tutorial has 10 MongoDB instances, as
+  described in the :ref:`create-cluster-with-api-overview`, each running
+  on its own server. Therefore the ``processes`` array will have 10
+  documents, one for each server running a MongoDB instance.
+
+  The following example shows the addition of the first document to the
+  array. Replace ``<process_name_1>`` with any name you choose, and
+  replace ``<server_1.example.net>`` with the FQDN of the server. Add nine
+  more documents for the remaining servers.
+
+  The example uses the ``args2_4`` syntax for the ``processes.<args>``
+  field. For MongoDB versions 2.6 and later, use the ``args2_6`` syntax.
+  See :ref:`mongodb-instances-config` for information on the two forms.
+action:
+  language: none
+  code: |
+    "processes": [
+        {
+            "version": "2.4.12",
+            "name": "<process_name_1>",
+            "hostname": "<server_1.example.net>",
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            },
+            "authSchemaVersion": 1,
+            "processType": "mongod",
+            "args2_4": {
+                "port": 27017,
+                "replSet": "rs1",
+                "dbpath": "/data/",
+                "logpath": "/data/mongodb.log"
+            }
+        },
+        ...
+    ]
+---
+title: Add the sharded cluster topology to the configuration document.
+stepnum: 6
+ref: add-topology
+action:
+  - pre: |
+      Add two replica set documents to the ``replicaSets`` array. Add
+      three members to each document. The following example shows one
+      replica set member added in the first replica set document:
+    language: none
+    code: |
+      "replicaSets": [
+          {
+              "_id": "rs1",
+              "members": [
+                  {
+                      "_id": 0,
+                      "host": "<server_1.example.net>",
+                      "priority": 1,
+                      "votes": 1,
+                      "slaveDelay": 0,
+                      "hidden": false,
+                      "arbiterOnly": false
+                  },
+                  ...
+              ]
+          },
+          ...
+  - pre: |
+      In the ``sharding`` array, add the replica sets to the shards, and
+      add the three config servers, as shown in this example array:
+    language: none
+    code: |
+      "sharding": [
+          {
+              "shards": [
+                  {
+                      "tags": [],
+                      "_id": "shard1",
+                      "rs": "rs1"
+                  },
+                  {
+                      "tags": [],
+                      "_id": "shard2",
+                      "rs": "rs2"
+                  }
+              ],
+              "name": "sharded_cluster_via_api",
+              "configServer": [
+                  "<server_7.example.net>",
+                  "<server_8.example.net>",
+                  "<server_9.example.net>"
+              ],
+              "collections": []
+          }
+      ]
+---
+title: Send the configuration document.
+stepnum: 7
+ref: send-configuration-doc
+pre: |
+  Use the following command to send the document, replacing
+  ``<user@example.net>`` with the credentials of the :ref:`global owner
+  <global-owner-role>`, ``<api_key>`` with previously retrieved API key,
+  ``<app-example.net>`` with the URL of the |application|, and
+  ``<group_id>`` with the previously retrieved group ``id``.
+
+  Replace ``<configuration_document>`` with the configuration document
+  you have created in the previous steps.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" -H "Content-Type: application/json" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i -X PUT --data \
+    ' ``<configuration_document>`` '
+post: |
+  Upon successful update of the configuration, the API returns the HTTP
+  ``200 OK`` status code to indicate the request has succeeded.
+---
+title: Confirm successful update of the cluster configuration.
+stepnum: 8
+ref: confirm-update-of-configuration-doc
+pre: |
+  Retrieve the ``automationConfig`` document from the |application| server
+  to compare it against the document you sent. In particular confirm that
+  the ``version`` field equals ``2``.
+
+  Issue a command similar to the following. Replace the credentials, API
+  key, |application| URL, and group ``id`` as in previous steps.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
+---
+title: Check the deployment status to ensure goal state is reached.
+stepnum: 9
+ref: check-deployment-status
+action:
+  - pre: |
+      Issue the following to retrieve the ``automationStatus``. Replace
+      the credentials, API key, |application| URL, and group ``id`` as in
+      previous steps.
+    language: none
+    code: |
+      curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
+  - pre: |
+      The command returns the ``processes`` array and the ``goalVersion``
+      field. The ``processes`` array contains a document for each server
+      that is to run a MongoDB instance, similar to the following:
+    language: none
+    code: |
+      {
+        "plan": [],
+        "lastGoalVersionAchieved": 2,
+        "name": "<process_name_1>",
+        "hostname": "<server_1.example.net>",
+      }
+post: |
+  If any document has a ``lastGoalVersionAchieved`` field equal to ``1``,
+  the configuration is still deploying. The document's ``plan`` field
+  displays the work still to be done. Wait several seconds and issue the
+  ``curl`` command again.
+
+  When all ``lastGoalVersionAchieved`` fields equal ``2``, which is the
+  value of the ``goalVersion`` field, the new configuration has
+  successfully deployed.
+
+  To view the new configuration in the |mms| web interface, select the
+  :guilabel:`Deployment` tab and then the :guilabel:`Deployment` page.
+...
