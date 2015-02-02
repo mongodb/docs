@@ -10,7 +10,6 @@ import datetime
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
 from giza.config.project import get_current_path
-from giza.tools.strings import dot_concat
 from giza.content.replacements import get_replacements
 
 conf = fetch_config(RuntimeStateConfig())
