@@ -9,7 +9,7 @@ using ``msiexec.exe``. Open a shell in the directory containing the
 By default, this method installs the following MongoDB binaries:
 ``mongod.exe``, ``mongo.exe``, ``mongodump.exe``,
 ``mongorestore.exe``, ``mongoimport.exe``, ``mongoexport.exe``,
- ``mongostat.exe``, and ``mongotop.exe``.
+``mongostat.exe``, and ``mongotop.exe``.
 You can specify the installation location for the executable by
 modifying the ``<installation directory>`` value. To install specific
 subsets of the binaries, you may specify an``ADDLOCAL`` argument:
