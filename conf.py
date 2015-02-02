@@ -13,7 +13,6 @@ from sphinx.errors import SphinxError
 from sphinx.ext.extlinks import make_link_role
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
-from giza.tools.strings import dot_concat
 
 conf = fetch_config(RuntimeStateConfig())
 sconf = conf.system.files.data.sphinx_local
@@ -134,8 +133,8 @@ manual_edition_path = '{0}/{1}/{2}'.format(conf.project.url,
 
 html_theme_options = {
     'branch': conf.git.branches.current,
-    'pdfpath': dot_concat(manual_edition_path, 'pdf'),
-    'epubpath': dot_concat(manual_edition_path, 'epub'),
+    'pdfpath': manual_edition_path + '.pdf',
+    'epubpath': manual_edition_path + '.epub',
     'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
