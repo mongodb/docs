@@ -131,7 +131,7 @@ a subset of the following fields:
 
    - :dbcommand:`cleanupOrphaned` found and deleted orphaned
      documents, but could not confirm replication before the 1
-     hour timeout. In this case, replication does occur, but only
+     hour timeout. In this case, replication does occur but only
      after :dbcommand:`cleanupOrphaned` returns.
 
 .. data:: cleanupOrphaned.stoppedAtKey
@@ -213,12 +213,17 @@ the following:
 
    use admin
    var nextKey = { };
+   var result;
 
-   while ( nextKey = db.runCommand( {
-                         cleanupOrphaned: "test.user",
-                         startingFromKey: nextKey
-                     } ).stoppedAtKey ) {
-      printjson(nextKey);
+   while ( nextKey != null ) {
+     result = db.runCommand( { cleanupOrphaned: "test.user", startingFromKey: nextKey } );
+
+     if (result.ok != 1)
+        print("Unable to complete at this time: failure or timeout.")
+
+     printjson(result);
+
+     nextKey = result.stoppedAtKey;
    }
 
 .. admin-only
