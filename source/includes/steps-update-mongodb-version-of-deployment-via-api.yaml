@@ -1,0 +1,124 @@
+title: "Retrieve the automation configuration from the |application|."
+stepnum: 1
+source:
+  file: steps-create-cluster-through-api.yaml
+  ref: check-automation-config
+---
+title: "Open the configuration document for editing."
+stepnum: 2
+ref: open-for-editing
+pre: |
+  As you edit the configuration document in the next steps, reference the
+  :doc:`/reference/cluster-configuration` page for detailed descriptions
+  of each setting.
+---
+title: "Add the new MongoDB version number to the configuration document."
+stepnum: 3
+ref: add-new-mongodb-version-number
+pre: |
+  Update the ``mongoDbVersions`` array to to include ``{"name":
+  "2.6.7"}``, as shown here:
+action:
+  language: none
+  code: |
+    "mongoDbVersions": [
+        {"name": "2.4.12"},
+        {"name": "2.6.7"}
+    ]
+---
+title: "Update the MongoDB configuration options to the ``2.6`` syntax."
+stepnum: 4
+ref: update-processes
+pre: |
+  Update **each document** in the ``processes`` array as follows.
+action:
+  - pre: |
+      Update the ``processes.version`` field to specify ``2.6.7``:
+    language: none
+    code: |
+      "version": "2.6.7"
+  - pre: |
+      Change the ``processes.args2_4`` field to ``processes.args2_6``:
+    language: none
+    code: |
+      "args2_6": {
+  - pre: |
+      Edit the options in the ``processes.args2_6`` field to conform with
+      the MongoDB 2.6 structure described in :manual:`Configuration File
+      Options </reference/configuration-options>` in the MongoDB manual.
+      For example:
+    language: none
+    code: |
+      "args2_6": {
+          "net": {
+              "port": 27017
+          },
+          "storage": {
+              "dbPath": "/data/"
+          },
+          "systemLog": {
+              "path": "/data/mongodb.log"
+              "destination": "file"
+          },
+          "replication": {
+              "replSetName": "rs1"
+          },
+          "operationProfiling": {}
+      }
+---
+title: Send the configuration document.
+stepnum: 5
+ref: send-updated-configuration
+pre: |
+  Use the :doc:`automationConfig </reference/api/automation-config>`
+  resource to send the updated automation configuration.
+
+  Issue the following command, replacing ``<user@example.net>`` with the
+  credentials of the :ref:`global owner <global-owner-role>`,
+  ``<api_key>`` with the API key, ``<app-example.net>`` with the URL of
+  the |application|, and ``<group_id>`` with the group ``id``. Replace
+  ``<configuration_document>`` with the **entire** updated configuration
+  document.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" -H "Content-Type: application/json" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i -X PUT --data \
+    ' ``<configuration_document>`` '
+post: |
+  Upon successful update of the configuration, the API returns the HTTP
+  ``200 OK`` status code to indicate the request has succeeded.
+---
+title: Confirm successful update of the automation configuration.
+stepnum: 6
+ref: confirm-update-of-config
+pre: |
+  Retrieve the automation configuration from the |application| server
+  to compare it against the document you sent. Issue a command similar to
+  the following. Replace the credentials, API key, |application| URL, and
+  group ``id`` as in the previous step.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
+---
+title: Check the deployment status to ensure goal state is reached.
+stepnum: 7
+ref: check-deployment-status
+pre: |
+  Use the :doc:`automationStatus </reference/api/automation-status>`
+  resource to retrieve the deployment status. Issue the following command,
+  replacing the credentials, API key, |application| URL, and group
+  ``id`` as in previous steps.
+action:
+  language: none
+  code: |
+    curl -u "<user@example.net>:<api_key>" "http://<app-example.net>:8080/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
+post: |
+  Confirm that the values of all the ``lastGoalVersionAchieved`` fields in
+  the ``processes`` array match the ``goalVersion`` field. For more
+  information on deployment status, see
+  :doc:`/reference/api/automation-status`.
+
+  To view the new configuration in the |mms| web interface, select the
+  :guilabel:`Deployment` tab and then the :guilabel:`Deployment` page.
+...
