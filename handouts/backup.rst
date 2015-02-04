@@ -1,6 +1,6 @@
-==========================
-MMS On-Prem Backup Service
-==========================
+==============
+Backup Service
+==============
 
 .. include:: includes/header.tmpl
 
@@ -30,8 +30,8 @@ MMS provides a web interface to support backup and restoration. MMS
 Backup support horizontal scaling, so that you can support required
 availability and durability for the backups.
 
-How On-Prem Backup Works
-------------------------
+How Backup Works
+----------------
 
 A lightweight agent runs within your infrastructure and connects to
 the configured MongoDB instances. Using the same mechanism as
