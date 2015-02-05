@@ -7,6 +7,31 @@ specific point-in-time, in order to restore a ``mongod`` to a previous state.
 In order to initiate a restore job, the request must originate from an IP
 address on the API user's whitelist.
 
+Operations
+~~~~~~~~~~
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
+  Get all restore jobs for a cluster. ``CLUSTER-ID`` must be the ID of
+  either a replica set or a sharded cluster.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs?batchId=BATCH-ID`` -
+  Get all restore jobs in the specified batch. When creating a restore job for a
+  sharded cluster, |mms| creates a separate job for each shard, plus another
+  for the config server. Each of those jobs will be part of a batch. A restore job
+  for a replica set, however, will not be part of a batch.
+
+- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs/JOB-ID`` -
+  Get a single restore job.
+
+- ``POST /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
+  Create a restore job for the specified ``CLUSTER-ID``. You can create a restore
+  job for either an existing snapshot or for a specific recent point-in-time. (The
+  recency depends on the size of your "point-in-time window.") See below for
+  examples of each. The response body includes an array of restore jobs. When
+  requesting a restore of a replica set, the array will contain a single element.
+  For a sharded cluster, the array will contain one element for each shard, plus
+  one for the config server. Each element will also include the ``batchId``
+  representing the batch to which the jobs belong.
 
 Sample Entity
 ~~~~~~~~~~~~~
@@ -108,32 +133,6 @@ Links
      - The snapshot that is to restore.
    * - group
      - The group that owns the cluster.
-
-Operations
-~~~~~~~~~~
-
-- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
-  Get all restore jobs for a cluster. ``CLUSTER-ID`` must be the ID of
-  either a replica set or a sharded cluster.
-
-- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs?batchId=BATCH-ID`` -
-  Get all restore jobs in the specified batch. When creating a restore job for a
-  sharded cluster, |mms| creates a separate job for each shard, plus another
-  for the config server. Each of those jobs will be part of a batch. A restore job
-  for a replica set, however, will not be part of a batch.
-
-- ``GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs/JOB-ID`` -
-  Get a single restore job.
-
-- ``POST /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs`` -
-  Create a restore job for the specified ``CLUSTER-ID``. You can create a restore
-  job for either an existing snapshot or for a specific recent point-in-time. (The
-  recency depends on the size of your "point-in-time window.") See below for
-  examples of each. The response body includes an array of restore jobs. When
-  requesting a restore of a replica set, the array will contain a single element.
-  For a sharded cluster, the array will contain one element for each shard, plus
-  one for the config server. Each element will also include the ``batchId``
-  representing the batch to which the jobs belong.
 
 Examples
 ~~~~~~~~
