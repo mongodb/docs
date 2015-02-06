@@ -8,32 +8,118 @@ TTL Indexes
 
 .. default-domain:: mongodb
 
-TTL indexes are special indexes that MongoDB can use to automatically
-remove documents from a collection after a certain amount of
-time. This is ideal for certain types of information like machine
-generated event data, logs, and session information that only need to
-persist in a database for a finite amount of time.
+TTL indexes are special single-field indexes that MongoDB can use to
+automatically remove documents from a collection after a certain amount
+of time. Data expiration is useful for certain types of information
+like machine generated event data, logs, and session information that
+only need to persist in a database for a finite amount of time.
 
-Considerations
---------------
+To create a TTL index, use the :method:`db.collection.createIndex()`
+method with the ``expireAfterSeconds`` option on a field whose value is
+either a :ref:`date <document-bson-type-date>` or an array that
+contains :ref:`date values <document-bson-type-date>`.
 
-TTL indexes have the following limitations:
+For example, to create a TTL index on the ``lastModifiedDate`` field of
+the ``eventlog`` collection, use the following operation in the
+:program:`mongo` shell:
 
-- :ref:`Compound indexes <index-type-compound>` are *not* supported.
+.. code-block:: javascript
 
-- The indexed field **must** be a date :term:`type <bson types>`.
+   db.eventlog.createIndex( { "lastModifiedDate": 1 }, { expireAfterSeconds: 3600 } )
 
-- If the field holds an array, and there are multiple date-typed data
-  in the index, the document will expire when the *lowest*
-  (i.e. earliest) matches the expiration threshold.
+Behavior
+--------
+
+Expiration of Data
+~~~~~~~~~~~~~~~~~~
+
+TTL indexes expire documents after the specified number of seconds has
+passed since the indexed field value; i.e. the expiration threshold is
+the indexed field value plus the specified number of seconds.
+
+If the field is an array, and there are multiple date values in the
+index, MongoDB uses *lowest* (i.e. earliest) date value in the array to
+calculate the expiration threshold.
+
+If the indexed field in a document is not a :term:`date <bson types>`
+or an array that holds a date value(s), the document will not expire.
+
+If a document does not contain the indexed field, the document will not
+expire.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+A background thread in :program:`mongod` reads the values in the index
+and removes expired :term:`documents <document>` from the collection.
+
+When the TTL thread is active, you will see :doc:`delete
+</core/write-operations>` operations in the output of
+:method:`db.currentOp()` or in the data collected by the
+:ref:`database profiler <database-profiler>`.
+
+Timing of the Delete Operation
+``````````````````````````````
+
+When you build a TTL index in the :ref:`background
+<index-creation-background>`, the TTL thread can begin deleting
+documents while the index is building. If you build a TTL index in the
+foreground, MongoDB begins removing expired documents as soon as the
+index finishes building.
 
 .. include:: /includes/fact-ttl-collection-background-timing.rst
 
-In all other respects, TTL indexes are normal indexes,
-and if appropriate, MongoDB can use these
-indexes to fulfill arbitrary queries.
+Replica Sets
+````````````
+
+On :term:`replica sets <replica set>`, the TTL background thread *only*
+deletes documents on the :term:`primary`. However, the TTL background
+thread does run on secondaries. :term:`Secondary` members replicate
+deletion operations from the primary.
+
+Support for Queries
+~~~~~~~~~~~~~~~~~~~
+
+A TTL index supports queries in the same way non-TTL indexes do.
+
+Record Allocation
+~~~~~~~~~~~~~~~~~
+
+A collection with a TTL index has :collflag:`usePowerOf2Sizes` enabled,
+and you cannot modify this setting for the collection. As a result of
+enabling :collflag:`usePowerOf2Sizes`, MongoDB must allocate more disk
+space relative to data size. This approach helps mitigate the
+possibility of storage fragmentation caused by frequent delete
+operations and leads to more predictable storage use patterns.
+
+Restrictions
+------------
+
+- TTL indexes are a single-field indexes. :ref:`Compound indexes
+  <index-type-compound>` do not support TTL and ignores the
+  ``expireAfterSeconds`` option.
+
+- The ``_id`` field does not support TTL indexes.
+
+- You cannot create a TTL index on a :doc:`capped collection
+  </core/capped-collections>` because MongoDB cannot remove documents
+  from a capped collection.
+
+- You cannot use :method:`~db.collection.createIndex()` to change the
+  value of ``expireAfterSeconds`` of an existing index. Instead use the
+  :dbcommand:`collMod` database command in conjunction with the
+  :collflag:`index` collection flag. Otherwise, to change the value of
+  the option of an existing index, you must drop the index first and
+  recreate.
+
+- If a non-TTL single-field index already exists for a field, you
+  cannot create a TTL index on the same field since you cannot create
+  indexes that have the same key specification and differ only by the
+  options. To change a non-TTL single-field index to a TTL index, you
+  must drop the index first and recreate with the
+  ``expireAfterSeconds`` option.
 
 Additional Information
 ----------------------
 
-:doc:`/tutorial/expire-data`
+For examples, see :doc:`/tutorial/expire-data`.
