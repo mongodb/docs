@@ -1,0 +1,128 @@
+.. _3.0-scram:
+
+===========================
+MongoDB 3.0 and SCRAM-SHA-1
+===========================
+
+.. default-domain:: mongodb
+
+MongoDB 3.0 includes support for the :ref:`SCRAM-SHA-1
+<authentication-scram-sha-1>` challenge-response user authentication
+mechanism. This changes how user credentials are stored and used.  If
+your deployment uses authentication and authorization, you must
+upgrade the authentication schema in addition to upgrading MongoDB
+processes if you wish to make use of ``SCRAM-SHA-1``.
+
+You may, alternatively, opt to continue to use the ``MONGODB-CR``
+challenge-response mechanism and skip this upgrade. See the
+:ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` documentation for
+further information on its advantages.
+
+.. note::
+
+   ``SCRAM-SHA-1`` represents a significant improvement in security
+   over ``MONGODB-CR``, the previous default authentication mechanism,
+   and you are strongly urged to upgrade. The next major version of
+   MongoDB is likely to remove support for ``MONGODB-CR`` entirely.
+
+The following scenarios are possible when upgrading from 2.6 to 3.0:
+
+- If you are starting with a new 3.0 installation without any users
+  or upgrading from a 2.6 database that has no users and wish to use
+  ``SCRAM-SHA-1``, **no action is required**. All new users created in
+  this situation will be created using the appropriate format for
+  ``SCRAM-SHA-1``.
+
+- If you are upgrading from a 2.6 database with existing data,
+  including users, and wish to continue to use ``MONGODB-CR``, **no
+  action is required**. All new users created under 3.0 will continue to
+  use the same authentication model as users already in the database. You can
+  execute the upgrade to ``SCRAM-SHA-1`` at any point in the future.
+
+- If you are upgrading from a 2.6 database with existing data,
+  including users, and wish to upgrade to ``SCRAM-SHA-1``, you may
+  follow the steps under the heading :ref:`Upgrade a 2.6 Database to
+  Use SCRAM-SHA-1 on 3.0 <2.8-upgrade-mongodb-cr-to-scram>`.
+
+Upgrade a 2.6 Database to Use ``SCRAM-SHA-1``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   This procedure **discards** the ``MONGODB-CR`` credentials used by
+   2.6, and therefore is irreversible short of restoring from
+   backups.
+
+   This  procedure   disables  ``MONGODB-CR``  as   an  authentication
+   mechanism.
+
+Considerations
+``````````````
+
+Before upgrading the authentication model, you should
+first upgrade MongoDB binaries to 3.0. For sharded clusters, ensure
+that **all** cluster components are 3.0.
+
+Timing
+``````
+
+Because downgrades are more difficult after you upgrade the user
+authentication model, once you upgrade the MongoDB binaries to
+version 3.0, allow your MongoDB deployment to run for a day or two
+before following this procedure.
+
+This allows 3.0 some time to "burn in" and decreases the likelihood
+of downgrades occurring after the user privilege model upgrade. The
+user authentication and access control will continue to work as
+it did in 2.6.
+
+If you decide to upgrade the user authentication
+model immediately instead of waiting the recommended "burn in"
+period, then for sharded clusters, you must wait at least 10 seconds
+after upgrading the sharded clusters to run the authentication
+upgrade command.
+
+Replica Sets
+````````````
+
+For a replica set, it is only necessary to run the upgrade process on
+the :term:`primary` as the changes will automatically replicate to
+the secondaries.
+
+Sharded Clusters
+````````````````
+
+For a sharded cluster, connect to a :program:`mongos` and run the
+upgrade procedure to upgrade the cluster's authentication data. By
+default, the procedure will upgrade the authentication data of the
+shards as well.
+
+To override this behavior, run the upgrade command with the
+additional parameter ``upgradeShards: false``. If you choose to
+override, you must run the upgrade procedure on the :program:`mongos`
+first, and then run the procedure on the :term:`primary` members of
+each shard.
+
+For a sharded cluster, do **not** run the upgrade process directly
+against the :doc:`config servers
+</core/sharded-cluster-config-servers>`. Instead, perform the upgrade
+process using one :program:`mongos` instance to interact with the
+config database.
+
+Requirements
+````````````
+
+To upgrade the authentication model, you must have a user in the
+``admin`` database with the role :authrole:`userAdminAnyDatabase`.
+
+Procedure
+`````````
+
+.. include:: /includes/steps/2.8-upgrade-mongodb-cr-to-scram.rst
+
+Result
+``````
+
+After this procedure is complete, all users in the database will have
+``SCRAM-SHA-1``-style credentials, and any subsequently-created users
+will also have this type of credentials.

@@ -61,9 +61,11 @@ database.
 Authentication Mechanisms
 -------------------------
 
+.. versionchanged:: 3.0
+
 MongoDB supports multiple authentication mechanisms. MongoDB's default
 authentication method is a :ref:`challenge and response mechanism
-(MONGODB-CR) <authentication-mongodb-cr>`. MongoDB also supports
+(SCRAM-SHA-1) <authentication-scram-sha-1>`. MongoDB also supports
 :ref:`x509 certificate authentication <security-auth-x509>`, :ref:`LDAP
 proxy authentication <security-auth-ldap>`, and :ref:`Kerberos
 authentication <security-auth-kerberos>`.
@@ -73,20 +75,66 @@ This section introduces the mechanisms available in MongoDB.
 To specify the authentication mechanism to use, see
 :parameter:`authenticationMechanisms`.
 
+.. _authentication-scram-sha-1:
+
+``SCRAM-SHA-1`` Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.0
+
+``SCRAM-SHA-1`` is an IETF standard,
+`RFC 5802 <https://tools.ietf.org/html/rfc5802>`_, that defines best practice
+methods for implementation of challenge-response mechanisms for authenticating
+users with passwords.
+
+``SCRAM-SHA-1`` verifies supplied user credentials against the user's
+:data:`name <admin.system.users.user>`, :data:`password
+<admin.system.users.credentials>` and :data:`database
+<admin.system.users.db>`. The user's database is the database where
+the user was created, and the user's database and the user's name
+together serves to identify the user.
+
+MongoDB's implementation of ``SCRAM-SHA-1`` represents an improvement
+in security over the previously-used ``MONGODB-CR``, providing:
+
+- A tunable work factor (``iterationCount``),
+- Per-user random salts rather than server-wide salts,
+- A cryptographically stronger hash function (``SHA-1`` rather than ``MD5``),
+  and
+- Authentication of the server to the client as well as the client to the
+  server.
+
+.. versionchanged:: 3.0
+
+   ``SCRAM-SHA-1`` is the default mechanism for MongoDB versions
+   beginning with the 3.0 series. Legacy ``MONGODB-CR`` credentials
+   from databases created with older server versions will still work
+   under 3.0 but must be upgraded with :dbcommand:`authSchemaUpgrade`
+   in order to take advantage of many of the improvements. The server
+   will continue to use the legacy credentials until it undergoes this
+   upgrade. Clients and drivers compatible with 3.0 will use the
+   ``SCRAM`` communication protocol even while using the legacy
+   credentials.
+
 .. _authentication-mongodb-cr:
 
 ``MONGODB-CR`` Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``MONGODB-CR`` is a challenge-response mechanism that authenticates
-users through passwords. ``MONGODB-CR`` is the default mechanism.
+users through passwords.
 
-When you use ``MONGODB-CR`` authentication, ``MONGODB-CR`` verifies the
-user against the user's :data:`name <admin.system.users.user>`,
-:data:`password <admin.system.users.credentials>` and :data:`database
-<admin.system.users.db>`. The user's database is the database where the
-user was created, and the user's database and the user's name together
-serves to identify the user.
+.. versionchanged:: 3.0
+   Versions of MongoDB prior to 3.0 use ``MONGODB-CR`` as the default
+   mechanism. As of version 3.0, MongoDB uses ``SCRAM-SHA-1`` by
+   default.
+
+``MONGODB-CR`` verifies supplied user credentials against the user's
+:data:`name <admin.system.users.user>`, :data:`password
+<admin.system.users.credentials>` and :data:`database
+<admin.system.users.db>`. The user's database is the database where
+the user was created, and the user's database and the user's name
+together serve to identify the user.
 
 Using :setting:`key files <security.keyFile>`, you can also use
 ``MONGODB-CR`` authentication for the :ref:`internal member
@@ -266,7 +314,7 @@ exception allows connections from the localhost interface to create
 the first user on the ``admin`` database. The exception applies only
 when there are no users created in the MongoDB instance.
 
-.. versionchanged:: 3.0.0
+.. versionchanged:: 2.8.0
    The localhost exception changed so that these connections *only*
    have access to create the first user on the ``admin``
    database. In previous versions, connections that gained access
