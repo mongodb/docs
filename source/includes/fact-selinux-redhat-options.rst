@@ -1,5 +1,5 @@
 You must configure SELinux to allow MongoDB to start on Red Hat Linux-based
-systems (Red Hat Enterprise Linux, CentOS, Fedora). Administrators have three
+systems (Red Hat Enterprise Linux or CentOS Linux). Administrators have three
 options:
 
 - enable access to the relevant ports (e.g. 27017) for SELinux. See
