@@ -6,5 +6,5 @@ from the query statement.
 
 The :projection:`$elemMatch` projection operator takes an explicit condition
 argument.  This allows you to project based on a condition not in the query, or
-if you need to project based on multiple fields in the array's subdocuments.
+if you need to project based on multiple fields in the array's embedded documents.
 See :ref:`array-field-limitation` for an example.
