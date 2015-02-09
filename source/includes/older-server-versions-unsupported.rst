@@ -1,0 +1,1 @@
+Older server versions are unsupported.
