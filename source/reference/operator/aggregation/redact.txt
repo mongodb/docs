@@ -37,26 +37,26 @@ Definition
 
       * - _`$$DESCEND`
 
-        - :pipeline:`$redact` returns the *non-subdocument* fields at
-          the current document/subdocument level. For subdocuments or
-          subdocuments in arrays, apply the :expression:`$cond`
-          expression to the subdocuments to determine access for these
-          subdocuments.
+        - :pipeline:`$redact` returns the fields at the current document level,
+          excluding embedded documents. To include embedded documents and
+          embedded documents within arrays, apply the :expression:`$cond`
+          expression to the embedded documents to determine access for these
+          embedded documents.
 
       * - _`$$PRUNE`
 
         - :pipeline:`$redact` excludes all fields at this current
-          document/subdocument level, **without** further inspection of
+          document/embedded document level, **without** further inspection of
           any of the excluded fields. This applies even if the excluded
-          field contains subdocuments that may have different access
+          field contains embedded documents that may have different access
           levels.
 
       * - _`$$KEEP`
 
         - :pipeline:`$redact` returns or keeps all fields at this
-          current document/subdocument level, **without** further
+          current document/embedded document level, **without** further
           inspection of the fields at this level. This applies even if
-          the included field contains subdocuments that may have
+          the included field contains embedded documents that may have
           different access levels.
 
 Examples
@@ -66,12 +66,12 @@ The examples in this section use the
 :method:`db.collection.aggregate()` helper provided in the 2.6 version
 of the :program:`mongo` shell.
 
-Evaluate Access at Every Document/Sub-document Level
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Evaluate Access at Every Document Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A ``forecasts`` collection contains documents of the following form
 where the ``tags`` field lists the different access values for that
-document/subdocument level; i.e. a value of ``[ "G", "STLW" ]``
+document/embedded document level; i.e. a value of ``[ "G", "STLW" ]``
 specifies either ``"G"`` or ``"STLW"`` can access the data:
 
 .. code-block:: javascript
@@ -192,7 +192,7 @@ In this example document, the ``level`` field determines the access
 level required to view the data.
 
 To run a query on all documents with status ``A`` and exclude *all*
-fields contained in a document/subdocument at level ``5``, include a
+fields contained in a document/embedded document at level ``5``, include a
 :pipeline:`$redact` stage that specifies the system variable
 ``"$$PRUNE"`` in the ``then`` field:
 
@@ -215,7 +215,7 @@ fields contained in a document/subdocument at level ``5``, include a
 
 The :pipeline:`$redact` stage evaluates the ``level`` field to
 determine access. If the ``level`` field equals ``5``, then exclude all
-fields at that level, even if the excluded field contains subdocuments
+fields at that level, even if the excluded field contains embedded documents
 that may have different ``level`` values, such as the ``shipping_addr``
 field.
 
@@ -232,7 +232,7 @@ The aggregation operation returns the following "redacted" document:
 
 The result set shows that the :pipeline:`$redact` stage excluded
 the field ``cc`` as a whole, including the ``shipping_addr`` field
-which contained subdocuments that had ``level`` field values equal to
+which contained embedded documents that had ``level`` field values equal to
 ``3`` and not ``5``.
 
 .. seealso:: :doc:`/tutorial/implement-field-level-redaction` for
