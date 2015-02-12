@@ -1,5 +1,5 @@
 =================================
-Preparing Backing MongoDB Servers
+Prepare Backing MongoDB Instances
 =================================
 
 .. default-domain:: mongodb
@@ -7,20 +7,18 @@ Preparing Backing MongoDB Servers
 Overview
 --------
 
-Backing MongoDB servers run the databases that store |onprem| data and
-snapshots. |onprem| requires separate backing servers for the
+Backing MongoDB instances are dedicated instances that store data to
+support |onprem| operations and **store no other data**. |onprem| requires
+a separate backing instance for each of the two backing databases: the
 :ref:`mms-application-database` and the
-:ref:`mms-backup-blockstore-database`.
+:ref:`mms-backup-blockstore-database`. Run each backing instance as a
+:term:`replica set`, for high availability.
 
-You provision backing MongoDB servers when you install |onprem|, but if you run out
-of capacity on the |onprem| Backup Blockstore database, you can add capacity by
-provisioning additional backing servers.
+A backing MongoDB instance:
 
-The databases that run on the backing MongoDB servers:
+- Stores data in support of |onprem| operations and **stores no other data**.
 
-- Store data in support of |onprem| operations and store no other data.
-
-- Must be running MongoDB 2.4.9 or later.
+- Must run MongoDB 2.4.9 or later.
 
 - Must have the MongoDB ``security.javascriptEnabled`` set to ``true``, which
   is the default. The |application| uses the :query:`$where` query and
@@ -28,30 +26,47 @@ The databases that run on the backing MongoDB servers:
 
 - Must **not** run the MongoDB ``notablescan`` option.
 
-Requirements and Specifications
--------------------------------
+Prerequisites
+-------------
 
-Read the :manual:`MongoDB Production Notes </administration/production-notes>`
-before installing MongoDB and other software on your servers.
+Prior to installation, you must deploy servers that comply with the
+:manual:`Production Notes </administration/production-notes>` in the
+MongoDB manual and that meet the hardware requirements described below.
 
-|application| Database Specifications
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If a server hosts |onprem| components as well, you must sum the
+:doc:`hardware requirements </core/requirements>` for each component to
+determine the requirements for the server. For deployment diagrams, see
+:doc:`/core/deployments`.
+
+Ensure that firewall rules allow access to the :doc:`ports
+</reference/on-prem>` that the instances runs on.
+
+Configure as many servers as needed for your deployment. As needs change,
+you can later add capacity by provisioning additional backing servers.
+
+|application| Database Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/requirements-application-database.rst
 
-|onprem| Backup Blockstore Database Specifications
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|onprem| Backup Blockstore Database Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/requirements-backup-blockstore-database.rst
 
 Procedure
 ---------
 
-To create replica sets, start the :program:`mongod` instances for each member
-of a new replica set, configure the replica set, then add the
-:program:`mongod` instances to the replica set. For more information, see
-:manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the MongoDB
-manual.
+Do **not** use MongoDB instances that store other data.
 
-For information on installing MongoDB, see :manual:`Install MongoDB
-</installation/>`.
+Install MongoDB
+~~~~~~~~~~~~~~~
+
+Install MongoDB on each server. See :manual:`Install MongoDB </installation/>`
+in the MongoDB manual.
+
+Deploy the Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Deploy a replica set for each database using the :manual:`Deploy a Replica
+Set </tutorial/deploy-replica-set>` procedure in the MongoDB manual.
