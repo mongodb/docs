@@ -9,14 +9,13 @@ after acknowledgement from the primary and one secondary. If you use a replica
 set with fewer than 3 data-bearing members, and if you lose one of the
 data-bearing members, MongoDB blocks write operations.
 
-Run the replica set on :doc:`backing MongoDB servers
-</tutorial/prepare-backing-mongodb-instances>`. You can optionally run one
+Run the replica set on dedicated servers. You can optionally run one
 member of the replica set on the same physical server as the |application|.
 For a test deployment, you can use a MongoDB standalone in place of a replica
 set.
 
-Each backing MongoDB server that runs an |application| database requires
-the following:
+Each server that runs a dedicated MongoDB instance that hosts an
+|application| database requires the following:
 
 .. list-table::
    :header-rows: 1
