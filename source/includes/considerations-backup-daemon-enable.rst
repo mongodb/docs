@@ -1,12 +1,3 @@
-Excluded Namespaces
-+++++++++++++++++++
-
-Excluded namespaces are databases or collections that |mms| will not
-back up. Exclude name spaces to prevent backing up collections that
-contain logging data, caches, or other ephemeral data. By excluding
-these kinds of databases and collections will allow you to reduce
-backup time and costs.
-
 Snapshot Frequency and Retention Policy
 +++++++++++++++++++++++++++++++++++++++
 
@@ -24,6 +15,15 @@ for up to 52 weeks, and monthly snapshots for up to 36 months. By default,
 Changes to the snapshot schedule will affect your snapshot storage costs. The
 longer your snapshot window, the longer it will take to build a point in time
 restore.
+
+Excluded Namespaces
++++++++++++++++++++
+
+Excluded namespaces are databases or collections that |mms| will not
+back up. Exclude name spaces to prevent backing up collections that
+contain logging data, caches, or other ephemeral data. By excluding
+these kinds of databases and collections will allow you to reduce
+backup time and costs.
 
 Storage Engine
 ++++++++++++++
