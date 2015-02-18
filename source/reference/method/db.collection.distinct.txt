@@ -19,34 +19,106 @@ Definition
    around the :dbcommand:`distinct` command. Results must not be larger
    than the maximum :ref:`BSON size <limit-bson-document-size>`.
 
-   When possible to use covered indexes, the
-   :method:`db.collection.distinct()` method will use an index to find
-   the documents in the query as well as to return the data.
+Behavior
+--------
+
+.. _distict-method-array:
+
+Array Fields
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-method-array-field.rst
+
+For an example, see :ref:`distinct-method-array`.
+
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/extracts/fact-distinct-method-index-use.rst
 
 Examples
 --------
 
-The following are examples of the :method:`db.collection.distinct()`
-method:
+The examples use the ``inventory`` collection that contains the
+following documents:
 
-- Return an array of the distinct values of the field ``ord_dt`` from
-  all documents in the ``orders`` collection:
+.. code-block:: javascript
 
-  .. code-block:: javascript
+   { "_id": 1, "dept": "A", "item": { "sku": "111", "color": "red" }, "sizes": [ "S", "M" ] }
+   { "_id": 2, "dept": "A", "item": { "sku": "111", "color": "blue" }, "sizes": [ "M", "L" ] }
+   { "_id": 3, "dept": "B", "item": { "sku": "222", "color": "blue" }, "sizes": "S" }
+   { "_id": 4, "dept": "A", "item": { "sku": "333", "color": "black" }, "sizes": [ "S" ] }
 
-     db.orders.distinct( 'ord_dt' )
+Return Distinct Values for a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Return an array of the distinct values of the field ``sku`` in the
-  subdocument ``item`` from all documents in the ``orders`` collection:
+The following example returns the distinct values for the field
+``dept`` from all documents in the ``inventory`` collection:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.orders.distinct( 'item.sku' )
+   db.inventory.distinct( "dept" )
 
-- Return an array of the distinct values of the field ``ord_dt`` from
-  the documents in the ``orders`` collection where the ``price`` is
-  greater than ``10``:
+The method returns the following array of distinct ``dept`` values:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.orders.distinct( 'ord_dt', { price: { $gt: 10 } } )
+   [ "A", "B" ]
+
+Return Distinct Values for an Embedded Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from all documents in the
+``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "item.sku" )
+
+The method returns the following array of distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   [ "111", "222", "333" ]
+
+.. seealso:: :ref:`document-dot-notation` for information on accessing fields
+   within embedded documents
+
+.. _distinct-method-array:
+
+Return Distinct Values for an Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sizes`` from all documents in the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "sizes" )
+
+The method returns the following array of distinct ``sizes`` values:
+
+.. code-block:: javascript
+
+   [ "M", "S", "L" ]
+
+For information on :method:`~db.collection.distinct()` and array
+fields, see the :ref:`Behavior <distict-method-array>` section.
+
+Specify Query with ``distinct``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns the distinct values for the field
+``sku``, embedded in the ``item`` field, from the documents whose
+``dept`` is equal to ``"A"``:
+
+.. code-block:: javascript
+
+   db.inventory.distinct( "item.sku", { dept: "A" } )
+
+The method returns the following array of distinct ``sku`` values:
+
+.. code-block:: javascript
+
+   [ "111", "333" ]
