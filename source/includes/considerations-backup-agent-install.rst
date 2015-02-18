@@ -16,9 +16,6 @@ later.
    entries for at least an hour on average over the last 24 hour
    period.
 
-.. **BUILD WARNINGS**:: This below is tagged correctly and "/reference/configuration"
-   exists in onprem, so can't figure out the error I'm getting here.
-
 .. only:: onprem
 
    All backed up replica sets and config servers must be able to
