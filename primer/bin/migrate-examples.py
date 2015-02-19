@@ -46,7 +46,7 @@ def create_migrations_yaml(edition, inputFiles, inputFileDirectory, prereqThresh
                    output.write('source: ' + source + '\n')
                    output.write('target: ' + targetDir + example + '\n')
 
-                   output.write('truncate: \n')
+                   output.write('truncate:\n')
                    output.write('   start-after: "' + l.strip() + '"\n')
 
                 elif '// @end: ' in l:
@@ -55,7 +55,7 @@ def create_migrations_yaml(edition, inputFiles, inputFileDirectory, prereqThresh
        output.write('...')
 
 def create_cpp_migrations_yaml():
-    assetsDir = 'build/cpp-examples/examples'
+    assetsDir = 'build/cpp-examples/examples/mongocxx'
     inputFiles = [ 'aggregate.cpp', 'create.cpp', 'index.cpp', 'query.cpp', 'remove.cpp', 'update.cpp' ]
     prereqThreshold = 'int main(int, char**)'
     create_migrations_yaml( 'cpp', inputFiles, assetsDir, prereqThreshold )
