@@ -23,7 +23,7 @@ MongoDB installations that store other data.
 
 Install separate MongoDB instances for the two databases and install the
 instances as replica sets. Ensure that firewall rules on the servers allow
-access to the :doc:`ports </reference/on-prem>` that the instances runs
+access to the :doc:`ports </reference/firewall-configuration>` that the instances runs
 on.
 
 For more information, see :doc:`/tutorial/prepare-backing-mongodb-instances`.
