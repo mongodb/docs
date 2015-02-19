@@ -289,13 +289,54 @@ write concern is 1 or higher.
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
 
   result = client[:artists].insert_one({ name: 'FKA Twigs' })
-  result.n #=> returns 1, since 1 document was inserted.
+  result.n #=> returns 1, because 1 document was inserted.
 
   result = client[:artists].insert_many([
     { name: 'Flying Lotus' },
     { name: 'Aphex Twin' }
   ])
   result.n #=> returns 2, since 2 documents were inserted.
+
+Querying
+--------
+
+The Ruby driver provides a fluent interface for querying that is accessed
+via the method ``find`` on the collection. From there, one has various
+options that can be added.
+
+The query is lazily executed against the server only when iterating the
+results - at that point the query is dispatched and a ``Mongo::Cursor`` is
+returned.
+
+To find all documents for a given filter, simply call ``find`` with the
+query:
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+
+  client[:artists].find(name: 'Flying Lotus').each do |document|
+    #=> Yields a BSON::Document.
+  end
+
+Query Options
+`````````````
+
+To add options to a query, simply chain the appropriate methods after the
+``find``. Note that the underlying object, the ``Mongo::Collection::View``,
+is immutable and a new object will be returned after each method call.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+
+  documents = client[:artists].find(name: 'Flying Lotus').skip(10).limit(10)
+  documents.each do |document|
+    #=> Yields a BSON::Document.
+  end
+
+The following is a full list of the available options that can be added
+when querying and their corresponding methods.
 
 
 Authentication
@@ -477,11 +518,6 @@ Aggregation
 The aggregation framework is used to process documents and return computed results. An aggregation is defined in the driver by providing a list of pipeline operators and options to a collection view.
 
 ``find`` is called on a collection and then ``aggreagte`` can be called with a list of pipeline operators.
-
-The query is lazily executed against the server only when iterating the
-results - at that point the query is dispatched and a ``Mongo::Cursor`` is
-returned.
-
 .. code-block:: ruby
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'demographics')
