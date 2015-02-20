@@ -9,19 +9,51 @@ Description
 
 .. method:: rs.stepDown(seconds)
 
-   Forces the current :term:`replica set` member to step down as
-   :term:`primary` and then attempt to avoid election as primary for
-   the designated number of seconds. Produces an error if the current
-   member is not the primary.
+   Forces the :term:`primary` of the replica set to become a
+   :term:`secondary`, triggering an :ref:`election for primary
+   <replica-set-election-internals>`. The method steps down the primary
+   for a specified number of seconds; during this period, the stepdown
+   member is ineligible from becoming primary.
 
+   The method only steps down the primary if an :data:`electable
+   <~local.system.replset.members[n].priority>` secondary is up-to-date
+   with the primary, waiting up to 10 seconds for a secondary to catch
+   up.
+
+   The method is only valid against the primary and will error if run
+   on a non-primary member.
+   
    The :method:`rs.stepDown()` method has the following parameter:
 
    .. include:: /includes/apiargs/method-rs.stepDown-param.rst
 
-   This function disconnects the shell briefly and forces a
-   reconnection as the replica set renegotiates which member
-   will be primary. As a result, the shell will display an
-   error even if this command succeeds.
-
    :method:`rs.stepDown()` provides a wrapper around the
-   :term:`database command` :dbcommand:`replSetStepDown`.
+   command :dbcommand:`replSetStepDown`.
+
+Behavior
+--------
+
+.. versionadded:: 3.0
+
+Before stepping down, :method:`rs.stepDown()` will attempt to
+terminate long running user operations that would block the primary
+from stepping down, such as an index build, a write operation or a
+map-reduce job.
+
+To avoid rollbacks, :method:`rs.stepDown()` only steps down the primary
+if an electable secondary is completely caught up with the primary. The
+method will wait up to the ``10`` seconds for a secondary to catch up.
+
+If no electable secondary meets this criterion by the waiting period,
+the primary does not step down and the method throws an exception.
+
+If the :method:`rs.stepDown()` completes successfully, the method
+forces all clients currently connected to the database to disconnect.
+This helps ensure that the clients maintain an accurate view of the
+replica set. The :program:`mongo` shell will display an error related
+to the disconnect.
+
+.. note::
+
+   :method:`rs.stepDown()` blocks all writes to the primary while it
+   runs.
