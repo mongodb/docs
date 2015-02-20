@@ -1,0 +1,38 @@
+tasks:
+  - name: "install"
+    commands: shell.exec
+    params:
+      script: |
+        sudo apt-get -y install fonts-inconsolata ttf-adf-gillius imagemagick inkscape
+        sudo apt-get -y install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
+
+        sudo pip install -r requirements.txt
+  - name: "generate_source"
+    commands: shell.exec
+    params: 
+      script: | 
+        giza generate source
+  - name: "build_sphinx"
+    commands: shell.exec
+    params: 
+      script: | 
+        giza generate sphinx --builder publish
+  - name: "package"
+    commands: shell.exec
+    params: 
+      script: | 
+        giza env package --builder publish
+        giza packaging create --target push
+        
+  # TODO: deploy build/archive/* to s3
+
+buildvariants:
+  - name: ubuntu1404-release
+    display_name: "Ubuntu 14.04"
+    run_on:
+      - ubuntu1404-test
+    tasks:
+      - name: "install"
+      - name: "generate_source"
+      - name: "build_sphinx"
+      - name: "package"
