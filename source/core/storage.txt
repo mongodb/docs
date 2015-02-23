@@ -122,16 +122,20 @@ MongoDB.
 Record Storage Characteristics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Every document in MongoDB is stored in a *record* which contains the
-document itself and extra space, or :term:`padding`, which allows the
-document to grow as the result of updates.
-
 All records are contiguously located on disk, and when a document
 becomes larger than the allocated record, MongoDB must allocate a new
 record. New allocations require MongoDB to move a document and update
 all indexes that refer to the document, which takes more time than
 in-place updates and leads to storage
 fragmentation.
+
+.. versionchanged:: 3.0.0
+
+By default, MongoDB uses :ref:`power-of-2-allocation` so that every
+document in MongoDB is stored in a *record* which contains the document
+itself and extra space, or :term:`padding`. Padding allows the document
+to grow as the result of updates while minimizing the likelihood of
+reallocations.
 
 .. _record-allocation-strategies:
 
@@ -143,7 +147,7 @@ how :program:`mongod` adds padding to a document when creating a
 record. Because documents in MongoDB may grow after insertion
 and all records are contiguous on disk, the padding can reduce the
 need to relocate documents on disk following updates. Relocations are
-less efficient than in-place updates, and can lead to storage
+less efficient than in-place updates and can lead to storage
 fragmentation. As a result, all padding strategies trade additional
 space for increased efficiency and decreased fragmentation.
 
@@ -158,67 +162,48 @@ update and delete workloads.
 Power of 2 Sized Allocations
 ````````````````````````````
 
-.. versionchanged:: 2.6
-   For all new collections, :collflag:`usePowerOf2Sizes` became the
-   default allocation strategy. To change the default allocation strategy, use
-   the :parameter:`newCollectionsUsePowerOf2Sizes` parameter.
+.. versionchanged:: 3.0.0
 
-:program:`mongod` uses an allocation strategy called
-:collflag:`usePowerOf2Sizes` where each record has a size in bytes
-that is a power of 2 (e.g. 32, 64, 128, 256, 512...16777216.) The
-smallest allocation for a document is 32 bytes. The power of 2 sizes
-allocation strategy has two key properties:
+MongoDB 3.0 uses the power of 2 sizes allocation as the default record
+allocation strategy for MMAPv1. With the power of 2 sizes allocation
+strategy, each record has a size in bytes that is a power of 2 (e.g.
+32, 64, 128, 256, 512 ... 16777216). The smallest allocation for a
+document is 32 bytes.
 
-- there are a limited number of record allocation sizes, which makes
-  it easier for :program:`mongod` to reuse existing allocations, which
-  will reduce fragmentation in some cases.
+The power of 2 sizes allocation strategy has the following key
+properties:
 
-- in many cases, the record allocations are significantly larger than
-  the documents they hold. This allows documents to grow while
-  minimizing or eliminating the chance that the :program:`mongod` will
-  need to allocate a new record if the document grows.
+- Can efficiently reuse freed records to reduce fragmentation. The
+  limited number of record allocation sizes help ensure that MongoDB
+  can efficiently reuse free space created by document deletion or
+  relocation.
 
-The :collflag:`usePowerOf2Sizes` strategy does not *eliminate* document
-reallocation as a result of document growth, but it minimizes its
-occurrence in many common operations.
+- Can minimize the occurrence of re-allocation. In many cases, the
+  record allocations are significantly larger than the documents they
+  hold. This significantly larger size minimizes the chance that the
+  :program:`mongod` will need to allocate a new record if the document
+  grows. Although the power of 2 sizes strategy can minimize the
+  occurrence of reallocation, it does not eliminate
+  document re-allocation.
 
 .. _exact-fit-allocation:
 
-Exact Fit Allocation
-````````````````````
+Exact Fit Allocation with No Padding
+````````````````````````````````````
 
-The exact fit allocation strategy allocates record sizes based on the
-size of the document and an additional *padding factor*. Each
-collection has its own padding factor, which defaults to ``1`` when you
-insert the first document in a collection. MongoDB dynamically adjusts
-the padding factor up to ``2`` depending on the rate of growth of the
-documents over the life of the collection.
+.. versionchanged:: 3.0.0
 
-To estimate total record size, compute the product of the padding
-factor and the size of the document. That is:
+For collections whose workloads do not change the document sizes, such
+as workloads that consist of insert-only operations, insert-and-remove
+operations on documents of uniform size, or update operations that do
+not increase document size, you can disable the :ref:`power of 2
+allocation <power-of-2-allocation>` using the :dbcommand:`collMod`
+command with the :collflag:`noPadding` flag or the
+:method:`db.createCollection()` method with the ``noPadding`` option.
 
-.. code-block:: none
-
-   record size = paddingFactor * <document size>
-
-.. the document size is quantized and also includes a 16 byte record
-   heading.
-
-The size of each record in a collection reflects the size of the
-padding factor at the time of allocation. See the
-:data:`~collStats.paddingFactor` field in the output of
-:method:`db.collection.stats()` to see the current padding factor for
-a collection.
-
-On average, this exact fit allocation strategy uses less storage space
-than the :collflag:`usePowerOf2Sizes` strategy but will result in
-higher levels of storage fragmentation if documents grow beyond the
-size of their initial allocation.
-
-The :dbcommand:`compact` and :dbcommand:`repairDatabase` operations
-remove padding by default, as do the :program:`mongodump` and
-:program:`mongorestore`. :dbcommand:`compact` does allow you to
-specify a padding for records during compaction.
+Prior to version 3.0.0, MongoDB used an exact fit allocation strategy
+that included a dynamically calculated :data:`padding
+<collStats.paddingFactor>` as a factor of the document size.
 
 Capped Collections
 ------------------
