@@ -4,54 +4,95 @@ FAQ: Concurrency
 
 .. default-domain:: mongodb
 
-.. versionchanged:: 2.2
+.. versionchanged:: 3.0
 
-MongoDB allows multiple clients to read and write a single corpus of
-data using a locking system to ensure that all clients receive the
-same view of the data *and* to prevent multiple applications
-from modifying the exact same pieces of data at the same time. Locks
-help guarantee that all writes to a single document occur either in
-full or not at all.
-
-.. seealso:: `Presentation on Concurrency and Internals in 2.2 <http://www.mongodb.com/presentations/concurrency-internals-mongodb-2-2>`_
+MongoDB allows multiple clients to read and write the same data.
+In order to ensure consistency, it uses locking and other
+:term:`concurrency control` measures to prevent multiple clients
+from modifying the same piece of data simultaneously.
+Together, these mechanisms guarantee that all writes to a single
+document occur either in full or not at all and that clients never
+see an inconsistent view of the data.
 
 .. _faq-concurrency-locking:
 
 What type of locking does MongoDB use?
 --------------------------------------
 
-MongoDB uses a readers-writer [#multi-reader-lock-names]_ lock that
-allows concurrent reads access to a database but gives exclusive
-access to a single write operation.
+MongoDB uses reader-writer locks that allow concurrent readers
+shared access to a resource, such as a database or collection, but
+give exclusive access to a single write operation.
 
-When a read lock exists, many read operations may use this lock. However, when
-a write lock exists, a single write operation holds the lock
-exclusively, and no other read *or* write operations may share the lock.
+MongoDB uses multi-granularity locking [#mgl-ref]_ that allows
+operations to lock at the global, database or collection level, and
+allows for individual storage engines to implement their own
+concurrency control below the collection (i.e., at the document-level
+in WiredTiger).
 
-Locks are "writer greedy," which means write locks have preference
-over reads. When both a read and write are waiting for a lock, MongoDB
-grants the lock to the write.
+In addition to a shared (S) locking mode for reads and an exclusive
+(X) locking mode for write operations, intent shared (IS) and intent
+exclusive (IX) modes indicate an intent to read or write a resource
+using a finer granularity lock.  When locking at a certain granularity
+all higher levels are locked using an :term:`intent lock`.
 
-.. [#multi-reader-lock-names] You may be familiar with a
-   "readers-writer" lock as "multi-reader" or "shared exclusive"
-   lock. See the Wikipedia page on `Readers-Writer Locks
-   <http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock>`_ for
+For example, when locking a collection for writing (using mode X),
+both the corresponding database lock and the global lock must be
+locked in intent exclusive (IX) mode. A single database can
+simultaneously be locked in IS and IX mode, but an exclusive (X)
+lock cannot coexist with any other modes, and a shared (S) lock can
+only coexists with intent shared (IS) locks.
+
+.. |rarr| unicode:: 0x2192 .. right arrow
+
+Locks are fair, with reads and writes being queued in order. However,
+to optimize throughput, when one request is granted, all other
+compatible requests will be granted at the same time, potentially
+releasing them before a conflicting request.  For example, consider
+a case in which an X lock was just released, and in which the
+conflict queue contains the following items:
+
+   IS |rarr| IS |rarr| X |rarr| X |rarr| S |rarr| IS
+
+In strict first-in, first-out (FIFO) ordering, only the first two
+IS modes would be granted. Instead MongoDB will actually grant all
+IS and S modes, and once they all drain, it will grant X, even if
+new IS or S requests have been queued in the meantime. As a grant
+will always move all other requests ahead in the queue, no starvation
+of any request is possible.
+
+.. [#mgl-ref] See the Wikipedia page on `Multiple granularity locking
+   <http://en.wikipedia.org/wiki/Multiple_granularity_locking>`_ for
    more information.
 
 How granular are locks in MongoDB?
 ----------------------------------
 
-.. versionchanged:: 2.2
+.. versionchanged:: 3.0
 
-Beginning with version 2.2, MongoDB implements locks on a per-database
-basis for most read and write operations. Some global operations,
-typically short lived operations involving multiple databases, still
-require a global "instance" wide lock. Before 2.2, there is only one
-"global" lock per :program:`mongod` instance.
+Beginning with version 3.0, MongoDB ships with the :ref:`WiredTiger
+<storage-wiredtiger>` storage engine, which uses optimistic concurrency
+control for most read and write operations. WiredTiger only uses
+intent locks at the global, database and collection levels. When
+the storage engine detects conflicts between two operations, one
+will incur a write conflict causing MongoDB to transparently retry
+that operation.
 
-For example, if you have six databases and one takes a database-level
-write lock, the other five are still available for read and write. A
-global lock makes all six databases unavailable during the operation.
+Some global operations, typically short lived operations involving
+multiple databases, still require a global "instance-wide" lock.
+Some other operations, such as dropping a collection, still require
+an exclusive database lock.
+
+The MMAPv1 storage engine uses collection-level locking as of the
+3.0 release series, an improvement on earlier versions in which the
+database lock was the finest-grain lock. Third-party storage engines
+may either use collection-level locking or implement their own 
+finer-grained concurrency control.
+
+For example, if you have six collections in a database using the
+MMAPv1 storage engine and one takes a collection-level write lock,
+the other five are still available for read and write operations.
+An exclusive database lock makes all six collections unavailable
+during the operation holding the lock.
 
 How do I see the status of locks on my :program:`mongod` instances?
 -------------------------------------------------------------------
@@ -80,21 +121,24 @@ Does a read or write operation ever yield the lock?
 
 In some situations, read and write operations can yield their locks.
 
-Long running read and write operations, such as queries, updates, and
-deletes, yield under many conditions. MongoDB uses an adaptive
-algorithms to allow operations to yield locks based on predicted disk
-access patterns (i.e. page faults.)
-
-MongoDB operations can also yield locks between individual document
-modification in write operations that affect multiple documents like
+Long running read and write operations, such as queries, updates,
+and deletes, yield under many conditions.  MongoDB operations can
+also yield locks between individual document modifications in write
+operations that affect multiple documents like
 :method:`~db.collection.update()` with the ``multi`` parameter.
 
-MongoDB uses heuristics based on its access pattern to predict whether
-data is likely in physical memory before performing a read. If MongoDB
-*predicts* that the data is not in physical memory an operation will
-yield its lock while MongoDB loads the data to memory. Once data is
-available in memory, the operation will reacquire the lock to complete
-the operation.
+MongoDB's :ref:`mmapv1 <storage-mmapv1>` storage engine uses
+heuristics based on its access pattern to predict whether data is
+likely in physical memory before performing a read. If MongoDB
+*predicts* that the data is not in physical memory, an operation
+will yield its lock while MongoDB loads the data into memory. Once
+data is available in memory, the operation will reacquire the lock
+to complete the operation.
+
+For storage engines supporting document level :term:`concurrency
+control`, yielding is not necessary when accessing storage, as the
+:term:`intent locks <intent lock>` held at the global, database and
+collection level do not block other readers and writers.
 
 .. versionchanged:: 2.6
    MongoDB does not yield locks when scanning an index even if it
@@ -189,7 +233,7 @@ operations concurrently to the various downstream :program:`mongod`
 instances.
 
 Each :program:`mongod` instance is independent of the others in the
-shard cluster and uses the MongoDB :ref:`readers-writer lock
+shard cluster and uses its own :ref:`locks
 <faq-concurrency-locking>`. The operations on one :program:`mongod`
 instance do not block the operations on any others.
 
