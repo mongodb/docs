@@ -17,21 +17,23 @@
    * - :guilabel:`Auth Mechanism`
 
      - The :manual:`authentication mechanism </core/authentication>` used
-       by the host. Can specify:
+       by the host.
        
-       - :doc:`MONGODB-CR
-         </tutorial/configure-monitoring-agent-for-cr>`,
+       .. only:: onprem
        
-       - :doc:`LDAP (PLAIN)
-         </tutorial/configure-monitoring-agent-for-ldap>`, or
+          - :doc:`MONGODB-CR
+            </tutorial/configure-monitoring-agent-for-cr>`,
+       
+          - :doc:`LDAP (PLAIN)
+            </tutorial/configure-monitoring-agent-for-ldap>`, or
          
-       - :doc:`Kerberos(GSSAPI)
-         </tutorial/configure-monitoring-agent-for-kerberos>`.
+          - :doc:`Kerberos(GSSAPI)
+            </tutorial/configure-monitoring-agent-for-kerberos>`.
 
-       See :doc:`/tutorial/configure-monitoring-agent-for-cr`,
-       :doc:`/tutorial/configure-monitoring-agent-for-ldap`, or
-       :doc:`/tutorial/configure-monitoring-agent-for-kerberos` for
-       setting up user credentials.
+          See :doc:`/tutorial/configure-monitoring-agent-for-cr`,
+          :doc:`/tutorial/configure-monitoring-agent-for-ldap`, or
+          :doc:`/tutorial/configure-monitoring-agent-for-kerberos` for
+          setting up user credentials.
 
    * - :guilabel:`DB Username`
 
