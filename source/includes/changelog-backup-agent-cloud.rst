@@ -1,5 +1,20 @@
-.. put cloud-only versions of the release notes in this file
+Backup Agent ``3.2.0.262``
+--------------------------
 
+*Released 2015-02-23*
+
+.. only:: cloud
+
+   Ability to monitor and back up deployments without managing them
+   through Automation. Specifically, you can :doc:`import an existing
+   deployment into Monitoring </tutorial/add-hosts-to-monitoring>` and
+   then use |mms| to back up the deployment.
+
+.. only:: classic
+
+   Ability to upgrade a group to Cloud |mms|, which provides Automation
+   and the Metrics API. For information about Cloud |mms| pricing, please
+   see `the pricing page <https://mms.mongodb.com/pricing>`_.
 
 Backup Agent ``3.1.0.250``
 --------------------------

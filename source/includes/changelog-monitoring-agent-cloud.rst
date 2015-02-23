@@ -1,6 +1,25 @@
-.. NOTE TO WRITERS:
+Monitoring Agent ``3.1.0.175``
+------------------------------
 
-       All entries should be in the past tense.
+*Released 2015-02-23*
+
+.. only:: cloud
+
+   - Ability to monitor and back up deployments without managing them
+     through Automation. Specifically, you can import an existing
+     deployment into Monitoring, which allows you to use |mms| to monitor
+     and optionally back up the deployment. See
+     :doc:`/tutorial/add-hosts-to-monitoring`.
+
+.. only:: classic
+
+   - Ability to upgrade a group to Cloud |mms|, which provides Automation
+     and the Metrics API. For information about Cloud |mms| pricing,
+     please see `the pricing page <https://mms.mongodb.com/pricing>`_.
+
+- The :guilabel:`Deployment` tab now displays all deployment information,
+  for both servers and processes, on one page, with icons for selecting
+  view options.
 
 Monitoring Agent ``3.0.0.167``
 ------------------------------
