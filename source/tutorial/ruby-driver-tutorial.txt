@@ -297,8 +297,8 @@ write concern is 1 or higher.
   result.n #=> returns 1, because 1 document was inserted.
 
   result = client[:artists].insert_many([
-    { name: 'Flying Lotus' },
-    { name: 'Aphex Twin' }
+    { :name => 'Flying Lotus' },
+    { :name => 'Aphex Twin' }
   ])
   result.n #=> returns 2, since 2 documents were inserted.
 
@@ -320,7 +320,7 @@ query:
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
 
-  client[:artists].find(name: 'Flying Lotus').each do |document|
+  client[:artists].find(:name => 'Flying Lotus').each do |document|
     #=> Yields a BSON::Document.
   end
 
@@ -335,7 +335,7 @@ is immutable and a new object will be returned after each method call.
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
 
-  documents = client[:artists].find(name: 'Flying Lotus').skip(10).limit(10)
+  documents = client[:artists].find(:name => 'Flying Lotus').skip(10).limit(10)
   documents.each do |document|
     #=> Yields a BSON::Document.
   end
@@ -373,14 +373,14 @@ when querying and their corresponding methods as examples.
 
        .. code-block:: ruby
 
-         client[:artists].find.projection(name: 1)
+         client[:artists].find.projection(:name => 1)
 
    * - ``#read(hash)``
      - Changes the read preference for this query only.
 
        .. code-block:: ruby
 
-         client[:artists].find.read(mode: :secondary_preferred)
+         client[:artists].find.read(:mode => :secondary_preferred)
 
    * - ``#show_disk_loc(boolean)``
      - Tells the results to also include the location of the documents on disk.
@@ -393,7 +393,7 @@ when querying and their corresponding methods as examples.
 
        .. code-block:: ruby
 
-         client[:artists].find.sort(name: -1)
+         client[:artists].find.sort(:name => -1)
 
 Additional Query Operations
 ```````````````````````````
@@ -404,7 +404,7 @@ To execute a count of documents on a collection, call ``count`` on the view.
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
 
-  client[:artists].find(name: 'Flying Lotus').count
+  client[:artists].find(:name => 'Flying Lotus').count
 
 To get an array of distinct field values, use ``distinct``.
 
@@ -428,23 +428,41 @@ use ``update_one``, ``update_many``, or ``replace_one``.
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
   artists = client[:artists]
 
-  result = artists.find(name: 'Goldie').update_one("$inc" => { :plays => 1 })
+  result = artists.find(:name => 'Goldie').update_one("$inc" => { :plays => 1 })
   result.n #=> Returns 1.
 
-  result = artists.find(label: 'Hospital').update_many("$inc" => { :plays => 1 })
+  result = artists.find(:label => 'Hospital').update_many("$inc" => { :plays => 1 })
   result.n #=> Returns the number of documents that were updated.
 
-  result = artists.find(name: 'Aphex Twin').replace_one(:name => 'Richard James')
+  result = artists.find(:name => 'Aphex Twin').replace_one(:name => 'Richard James')
   result.n #=> Returns 1.
 
 To update documents and return a document via ``$findAndModify``, use one of
 the three provided helpers: ``find_one_and_delete``, ``find_one_and_replace``,
-or ``find_one_and_update``.
+or ``find_one_and_update``. One may opt to return the document before or after
+the modification occurs.
 
 .. code-block:: ruby
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
   artists = client[:artists]
+
+  artists.find(:name => 'José James').find_one_and_delete #=> Returns the document.
+
+  doc = artists.find(:name => 'José James').find_one_and_replace(:name => 'José')
+  doc #=> Return the document before the update.
+
+  doc = artists.find(:name => 'José James').
+    find_one_and_replace({ :name => 'José' }, :return_document => :after)
+  doc #=> Return the document after the update.
+
+  doc = artists.find(:name => 'José James').
+    find_one_and_update('$set' => { :name => 'José' })
+  doc #=> Return the document before the update.
+
+  doc = artists.find(:name => 'José James').
+    find_one_and_replace({ '$set' => { :name => 'José' }}, :return_document => :after)
+  doc #=> Return the document after the update.
 
 
 Authentication
