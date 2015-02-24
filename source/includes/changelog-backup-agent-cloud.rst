@@ -12,8 +12,8 @@ Backup Agent ``3.2.0.262``
 
 .. only:: classic
 
-   Ability to upgrade a group to Cloud |mms|, which provides Automation
-   and the Metrics API. For information about Cloud |mms| pricing, please
+   Ability to upgrade a group in Cloud |mms|, which provides Automation
+   and the Metrics API. For information about new Cloud |mms| pricing, please
    see `the pricing page <https://mms.mongodb.com/pricing>`_.
 
 Backup Agent ``3.1.0.250``
