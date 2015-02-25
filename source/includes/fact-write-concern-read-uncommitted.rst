@@ -17,12 +17,12 @@ document in isolation: clients never see documents in intermediate
 states. For multi-document operations, MongoDB does not provide any
 multi-document transactions or isolation.
 
-When :program:`mongod` returns a successful *journaled write concern*,
+When a standalone :program:`mongod` returns a successful *journaled write concern*,
 the data is fully committed to disk and will be available
 after :program:`mongod` restarts.
 
 For replica sets, write operations are durable only after a write
-replicates and commits to the journal of a majority of the voting members of
+replicates and commits to the journal on a majority of the voting members of
 the set. MongoDB regularly commits data to the journal regardless of
 journaled write concern: use the :setting:`~storage.journal.commitIntervalMs`
 to control how often a :program:`mongod` commits the journal.
