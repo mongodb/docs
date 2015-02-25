@@ -294,6 +294,30 @@ Undefined Type
 
    The representation for the JavaScript/BSON undefined type.
 
+   You *cannot* use ``undefined`` in query documents.
+   Consider the following document inserted into the ``people`` collection:
+   
+   .. code-block:: sh
+   
+      db.people.insert( { name : "Sally", age : undefined } )
+
+   The following queries return an error:
+   
+   .. code-block:: sh
+   
+      db.people.find( { age : undefined } )
+      db.people.find( { age : ( $gte : undefined ) } )
+   
+   However, you can query for undefined values using :query:`$type`, as
+   in:
+   
+   .. code-block:: sh
+      
+      db.people.find( { age : { $type : 6 } } )
+   
+   This query returns all documents for which the ``age`` field has
+   value ``undefined``.
+
 MinKey
 ~~~~~~
 
@@ -379,6 +403,25 @@ NumberLong
 
         - .. code-block:: none
 
-             NumberLong( <number> )
+             NumberLong( "<number>" )
 
-   Number long is a 64 bit signed integer.
+   ``NumberLong`` is a 64 bit signed integer. You must include quotation
+   marks or it will be interpreted as a floating point number, resulting
+   in a loss of accuracy.
+
+   For example, the following commands insert ``9223372036854775807`` as a
+   ``NumberLong`` with and without quotation marks around the integer value:
+
+   .. code-block:: sh
+
+      db.json.insert( { longQuoted : NumberLong("9223372036854775807") } )
+      db.json.insert( { longUnQuoted : NumberLong(9223372036854775807) } )
+
+   When you retrieve the documents, the value of ``longUnquoted`` has
+   changed, while ``longQuoted`` retains its accuracy:
+
+   .. code-block:: sh
+
+      db.json.find()
+      { "_id" : ObjectId("54ee1f2d33335326d70987df"), "longQuoted" : NumberLong("9223372036854775807") }
+      { "_id" : ObjectId("54ee1f7433335326d70987e0"), "longUnquoted" : NumberLong("-9223372036854775808") }
