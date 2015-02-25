@@ -1,4 +1,4 @@
-Monitoring Agent ``3.1.0.175``
+Monitoring Agent ``3.1.0.173``
 ------------------------------
 
 *Released 2015-02-23*
@@ -10,6 +10,11 @@ Monitoring Agent ``3.1.0.175``
      deployment into Monitoring, which allows you to use |mms| to monitor
      and optionally back up the deployment. See
      :doc:`/tutorial/add-hosts-to-monitoring`.
+
+   - Support for x.509 certificate authentication.
+
+   - Improved support for collecting database staistics from secondaries
+     as well as primaries.
 
 .. only:: classic
 

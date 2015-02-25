@@ -10,6 +10,12 @@ Backup Agent ``3.2.0.262``
    deployment into Monitoring </tutorial/add-hosts-to-monitoring>` and
    then use |mms| to back up the deployment.
 
+   - Support for x.509 certificate authentication.
+
+   - Fixes a race condition which could result in inconsistent
+     clustershots for MongoDB v2.6.4+ sharded clusters using the 
+     :authrole:`backup` role.
+
 .. only:: classic
 
    Ability to upgrade a group in Cloud |mms|, which provides Automation
