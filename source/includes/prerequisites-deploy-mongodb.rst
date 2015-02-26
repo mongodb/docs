@@ -4,6 +4,3 @@ have access to the servers.
 The servers can exist on your own system or on Amazon Web Services (AWS).
 To give |mms| access to servers on your system, install the Automation Agent
 to each server.
-
-You can use |mms| to provision new servers on AWS, as described in
-:doc:`/tutorial/add-servers`.
