@@ -127,3 +127,45 @@ For more information about deploying MongoDB with Kerberos authentication, pleas
                              auth_mech: :gssapi,
                              user: 'test',
                              password: '123')
+
+
+Read Preferences
+----------------
+
+Read preferences determine the candidate replica set members to which a query or command can be sent. They consist of a **mode** specified as a symbol, an array of hashes known as **tag_sets**, and two timing options: **local_threshold** and **server_selection_timeout**.
+
+``local_threshold`` defines the upper limit in seconds of the latency window between the nearest server and suitable servers to which an operation may be sent. The default is 15 milliseconds, i.e. 0.015 seconds.
+
+``server_selection_timeout`` defines how long to block for server selection before throwing an exception. The default is 30,000 milliseconds, i.e. 30 seconds.
+
+For more information on the algorithm used to select a server, please refer to `this documentation <https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst>`_.
+
+The read preference is set as an option on the client or passed an option when a command is run on a database.
+
+.. code-block:: ruby
+
+  # Set read preference on a client, used for all operations
+  client = Mongo::Client.new([ '127.0.0.1:27017' ],
+                             read: { mode: :secondary,
+                                     tag_sets: [{ 'dc': 'nyc' } ]
+                                    })
+
+  # Set read preference for a given command
+  database.command({ collstats: 'test' }, read: { mode: secondary,
+                                                  tag_sets: [{ 'dc': 'nyc' }  })
+
+Mode
+````
+
+There are five possible read preference modes. They are ``:primary``, ``:secondary``, ``:primary_preferred``, ``:secondary_preferred``, ``:nearest``. Please see `this documentation <http://docs.mongodb.org/manual/core/read-preference/>`_ for an explanation of the modes and tag sets.
+
+Tag sets
+````````
+
+The ``tag_sets`` parameter is an ordered list of tag sets used to restrict the eligibility of servers for selection, such as for data center awareness.
+
+A read preference tag set (T) matches a server tag set (S) – or equivalently a server tag set (S) matches a read preference tag set (T) — if T is a subset of S (i.e. T ⊆ S).
+
+For example, the read preference tag set ``{ dc: 'ny', rack: 2 }`` matches a secondary server with tag set ``{ dc: 'ny', rack: 2, size: 'large' }``.
+
+A tag set that is an empty document matches any server, because the empty tag set is a subset of any tag set. This means the default ``tag_sets`` parameter ``[{}]`` matches all servers.
