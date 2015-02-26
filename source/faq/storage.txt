@@ -28,7 +28,7 @@ What will be the default storage engine going forward?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MMAPv1 is the default storage engine in 3.0. With multiple storage
-engines, you will always be able to decide which storage engine is
+engines, you can decide which storage engine is
 best for your application.
 
 Can you mix storage engines in a replica set?
@@ -47,14 +47,14 @@ following:
   captures data files from MongoDB: you may need to maintain backups
   for each storage engine.
 
-Wired Tiger Storage Engine
---------------------------
+WiredTiger Storage Engine
+-------------------------
 
 Can I upgrade an existing deployment to a WiredTiger?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes. You can upgrade an existing deployment to WiredTiger while the
-deployment remains continuously available by adding replica set
+deployment remains available by adding replica set
 members with the new storage engine and then removing members with the
 legacy storage engine. See the following sections of the
 :doc:`/release-notes/3.0-upgrade` for the complete procedure that you
@@ -68,13 +68,72 @@ How much compression does WiredTiger provide?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ratio of compressed data to uncompressed data depends on your data
-and the compression library used. Collection data in WiredTiger use
-Snappy :term:`block compression` by default, although ``zlib``
-compression is also optionally available. Index data use
-:term:`prefix compression` by default.
+and the compression library used. By default, collection data in
+WiredTiger use :term:`Snappy block compression <snappy>`; :term:`zlib`
+compression is also available. Index data use :term:`prefix
+compression` by default.
 
-MMAP Storage Engine
--------------------
+.. _wt-cache-and-eviction:
+
+To what size should I set the WiredTiger cache?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The size of the cache should be sufficient to hold the entire working
+set for the :program:`mongod`. If the cache does not have enough space
+to load additional data, WiredTiger evicts pages from the cache to free
+up space.
+
+To see statistics on the cache and eviction, use the
+:dbcommand:`serverStatus` command. The
+:data:`~serverStatus.wiredTiger.cache` field holds the information on
+the cache and eviction:
+
+.. code-block:: none
+
+   ...
+   "wiredTiger" : {
+      ...
+      "cache" : {
+         "tracked dirty bytes in the cache" : <num>,
+         "bytes currently in the cache" : <num>,
+         "maximum bytes configured" : <num>,
+         "bytes read into cache" :<num>,
+         "bytes written from cache" : <num>,
+         "pages evicted by application threads" : <num>,
+         "checkpoint blocked page eviction" : <num>,
+         "unmodified pages evicted" : <num>,
+         "page split during eviction deepened the tree" : <num>,
+         "modified pages evicted" : <num>,
+         "pages selected for eviction unable to be evicted" : <num>,
+         "pages evicted because they exceeded the in-memory maximum" : <num>,,
+         "pages evicted because they had chains of deleted items" : <num>,
+         "failed eviction of pages that exceeded the in-memory maximum" : <num>,
+         "hazard pointer blocked page eviction" : <num>,
+         "internal pages evicted" : <num>,
+         "maximum page size at eviction" : <num>,
+         "eviction server candidate queue empty when topping up" : <num>,
+         "eviction server candidate queue not empty when topping up" : <num>,
+         "eviction server evicting pages" : <num>,
+         "eviction server populating queue, but not evicting pages" : <num>,
+         "eviction server unable to reach eviction goal" : <num>,
+         "pages split during eviction" : <num>,
+         "pages walked for eviction" : <num>,
+         "eviction worker thread evicting pages" : <num>,
+         "in-memory page splits" : <num>,
+         "percentage overhead" : <num>,
+         "tracked dirty pages in the cache" : <num>,
+         "pages currently held in the cache" : <num>,
+         "pages read into cache" : <num>,
+         "pages written from cache" : <num>,
+      },
+      ...
+
+To adjust the size of the WiredTiger cache, see
+:setting:`storage.wiredTiger.engineConfig.cacheSizeGB` and
+:option:`--wiredTigerCacheSizeGB`.
+
+MMAPv1 Storage Engine
+---------------------
 
 .. _faq-storage-memory-mapped-files:
 
@@ -84,25 +143,23 @@ What are memory mapped files?
 A memory-mapped file is a file with data that the operating system
 places in memory by way of the ``mmap()`` system call. ``mmap()`` thus
 *maps* the file to a region of virtual memory. Memory-mapped files are
-the critical piece of the storage engine in MongoDB. By using memory
-mapped files MongoDB can treat the contents of its data files as if
+the critical piece of the MMAPv1 storage engine in MongoDB. By using memory
+mapped files, MongoDB can treat the contents of its data files as if
 they were in memory. This provides MongoDB with an extremely fast and
 simple method for accessing and manipulating data.
 
 How do memory mapped files work?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Memory mapping assigns files to a block of virtual memory with a
-direct byte-for-byte correlation. Once mapped, the relationship
-between file and memory allows MongoDB to interact with the data in
-the file as if it were memory.
-
-How does MongoDB work with memory mapped files?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 MongoDB uses memory mapped files for managing and interacting with all
-data. MongoDB memory maps data files to memory as it accesses
-documents. Data that isn't accessed is *not* mapped to memory.
+data.
+
+Memory mapping assigns files to a block of virtual memory with a direct
+byte-for-byte correlation. MongoDB memory maps data files to memory as
+it accesses documents. Unaccessed data is *not* mapped to memory.
+
+Once mapped, the relationship between file and memory allows MongoDB to
+interact with the data in the file as if it were memory.
 
 .. _faq-disk-size:
 
@@ -171,38 +228,6 @@ inserted into the database. Consider the following possible causes:
      running. Be aware that :dbcommand:`repairDatabase` will block
      all other operations and may take a long time to complete.
 
-How do I know when the server runs out of disk space?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If your server runs out of disk space for data files, you will see
-something like this in the log:
-
-.. code-block:: none
-
-   Thu Aug 11 13:06:09 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
-   Thu Aug 11 13:06:09 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
-   Thu Aug 11 13:06:09 [FileAllocator]     will try again in 10 seconds
-   Thu Aug 11 13:06:19 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
-   Thu Aug 11 13:06:19 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
-   Thu Aug 11 13:06:19 [FileAllocator]     will try again in 10 seconds
-
-The server remains in this state forever, blocking all writes
-including deletes. However, reads still work. With MMAPv1 you can
-delete some data and compact, using the :dbcommand:`compact` command;
-however, you must restart the server first.
-
-If your server runs out of disk space for journal files, the server
-process will exit. By default, :program:`mongod` creates journal files
-in a sub-directory of :setting:`~storage.dbPath` named ``journal``. You may
-elect to put the journal files on another storage device using a
-filesystem mount or a symlink.
-
-.. note::
-
-   If you place the journal files on a separate storage device you
-   will not be able to use a file system snapshot tool to capture a
-   valid snapshot of your data files and journal files.
-
 .. _faq-working-set:
 
 What is the working set?
@@ -253,59 +278,74 @@ storage engine, needs access to data that isn't currently in active
 memory. A "hard" page fault refers to situations when MongoDB must
 access a disk to access the data. A "soft" page fault, by contrast,
 merely moves memory pages from one list to another, such as from an
-operating system file cache. In production, MongoDB will rarely
-encounter soft page faults.
+operating system file cache.
 
 See :ref:`administration-monitoring-page-faults` for more information.
 
 Data Storage Diagnostics
 ------------------------
 
-How can I check the size of indexes?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To view the size of the data allocated for an index, use one of the
-following procedures in the :program:`mongo` shell:
-
-Check the value of :data:`~collStats.indexSizes` in the output of the
-:method:`db.collection.stats()` method.
-
 How can I check the size of a collection?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To view the size of a collection and other information, use the
-:method:`db.collection.stats()` method from the :program:`mongo` shell.
-The following example issues :method:`db.collection.stats()` for the
-``orders`` collection:
+To view the statistics for a collection, including the data size, use
+the :method:`db.collection.stats()` method from the :program:`mongo`
+shell. The following example issues :method:`db.collection.stats()` for
+the ``orders`` collection:
 
 .. code-block:: javascript
 
    db.orders.stats();
 
-To view specific measures of size, use these methods:
+MongoDB also provides the following methods to return specific sizes
+for the collection:
 
-- :method:`db.collection.dataSize()`: data size in bytes for the collection.
-- :method:`db.collection.storageSize()`: allocation size in bytes, including unused space.
-- :method:`db.collection.totalSize()`: the data size plus the index size in bytes.
-- :method:`db.collection.totalIndexSize()`: the index size in bytes.
+- :method:`db.collection.dataSize()` to return data size in bytes for
+  the collection.
 
-Also, the following scripts print the statistics for each database and
-collection:
+- :method:`db.collection.storageSize()` to return allocation size in
+  bytes, including unused space.
+
+- :method:`db.collection.totalSize()` to return the data size plus the
+  index size in bytes.
+
+- :method:`db.collection.totalIndexSize()` to return the index size in
+  bytes.
+
+The following script prints the statistics for each database:
 
 .. code-block:: javascript
 
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
+   db._adminCommand("listDatabases").databases.forEach(function (d) {
+      mdb = db.getSiblingDB(d.name);
+      printjson(mdb.stats());
+   })
+
+The following script prints the statistics for each collection in each
+database:
 
 .. code-block:: javascript
 
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
+   db._adminCommand("listDatabases").databases.forEach(function (d) {
+      mdb = db.getSiblingDB(d.name);
+      mdb.getCollectionNames().forEach(function(c) { 
+         s = mdb[c].stats();
+         printjson(s);
+      })
+   })
+
+How can I check the size of indexes for a collection?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the size of the data allocated for an index, use the
+:method:`db.collection.stats()` method and check the
+:data:`~collStats.indexSizes` field in the returned document.
 
 .. _faq-tools-for-measuring-storage-use:
 
-What tools can I use to investigate storage use in MongoDB?
+How can I get information on the storage use of a database?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :method:`db.stats()` method in the :program:`mongo` shell
-returns the current state of the "active" database. The
-:dbcommand:`dbStats` document describes
-the fields in the :method:`db.stats()` output.
+The :method:`db.stats()` method in the :program:`mongo` shell returns
+the current state of the "active" database. For the description of the
+returned fields, see :ref:`dbStats Output <dbstats-output>`.
