@@ -101,50 +101,43 @@ This document addresses common questions about |mms| and its use.
 Monitoring FAQs
 ---------------
 
-.. only:: classic or onprem
+Host Configuration
+~~~~~~~~~~~~~~~~~~
 
-   Host Configuration
-   ~~~~~~~~~~~~~~~~~~
+How do I add a new host or server?
+++++++++++++++++++++++++++++++++++
 
-   How do I add a new host or server?
-   ++++++++++++++++++++++++++++++++++
+See :doc:`/tutorial/add-hosts-to-monitoring`.
 
-   See :doc:`/tutorial/add-hosts-to-monitoring`.
+Can I monitor Kerberos-enabled instances?
++++++++++++++++++++++++++++++++++++++++++
 
-   Can I monitor Kerberos-enabled instances?
-   +++++++++++++++++++++++++++++++++++++++++
+Yes. |monitoring| does support monitoring for
+Kerberos-enabled MongoDB instances. See
+:doc:`/tutorial/connect-to-hosts-with-kerberos-authentication`
+for more information.
 
-   Yes. |monitoring| does support monitoring for
-   Kerberos-enabled MongoDB instances. See
-   :doc:`/tutorial/connect-to-hosts-with-kerberos-authentication`
-   for more information.
+.. _db-stats-warning:
 
-.. only:: classic or cloud or onprem
+How does |mms| gather database statistics?
+++++++++++++++++++++++++++++++++++++++++++
 
-   .. _db-stats-warning:
+In most instances, |monitoring| will scale its request cycle to limit more
+expensive statistics gathering. The DB Stats information updates every 10
+minutes, and the agent will throttle the frequency to reduce the impact on
+the database. [#dbstats]_ Even so, the "DB stats" operation impacts the
+performance of your database, as is possible when installations have a
+large number of databases and collections.
 
-   How does |mms| gather database statistics?
-   ++++++++++++++++++++++++++++++++++++++++++
+If the collection of database statistics impacts database performance,
+disable database stats collection before starting your agent. Select the
+:guilabel:`Administration` tab, then the :guilabel:`Group Settings` page,
+and then set :guilabel:`Collect Database Specific Statistics` to ``NO``.
 
-   In most instances, |monitoring| will scale its request cycle to limit
-   more expensive statistics gathering. The DB Stats information
-   updates every 10 minutes, and the agent will throttle the frequency
-   to reduce the impact on the database. [#dbstats]_ Even so, the "DB
-   stats" operation impacts the performance of your database, as is
-   possible when installations have a large number of databases and
-   collections.
+.. [#dbstats] DB Stats will not appear until 30 minutes
+   after you add the host to |monitoring|
 
-   If the collection of database statistics impacts database performance, disable
-   database stats collection before starting your agent. Select
-   the :guilabel:`Administration` tab, then the :guilabel:`Group Settings` page, and
-   then set :guilabel:`Collect Database Specific Statistics` to ``NO``.
-
-   .. [#dbstats] DB Stats will not appear until 30 minutes
-      after you add the host to |monitoring|
-
-.. only:: classic or onprem
-
-   .. include:: /includes/faq-agents.rst
+.. include:: /includes/faq-agents.rst
 
 Data Presentation
 ~~~~~~~~~~~~~~~~~
@@ -290,44 +283,43 @@ your data to |mms|. After the initial sync, the agent tails the
 :manual:`oplog </manual/core/replica-set-oplog/>` to provide a
 continuous backup of your deployment.
 
-.. only:: classic or onprem
+Where should I run the Backup Agent?
+++++++++++++++++++++++++++++++++++++
 
-   Where should I run the Backup Agent?
-   ++++++++++++++++++++++++++++++++++++
+The Backup Agent can run anywhere in your infrastructure that has access
+to your ``mongod`` instances. To avoid contention for network and CPU
+resources, *do not* run the Backup Agent on the same hosts that provide
+your ``mongod`` instances.
 
-   The Backup Agent can run anywhere in your infrastructure that has
-   access to your ``mongod`` instances. To avoid contention for network
-   and CPU resources, *do not* run the Backup Agent on the same hosts that
-   provide your ``mongod`` instances.
+The Backup Agent has the same performance profile impact as a secondary.
+For the initial backup, the load scales with the size of your data set.
+Once an initial backup exists, the load scales with oplog gigabytes used
+per hour.
 
-   The Backup Agent has the same performance profile impact as a secondary. For
-   the initial backup, the load scales with the size of your data set. Once an
-   initial backup exists, the load scales with oplog gigabytes used per hour.
+Can I run the Backup and Monitoring Agents on a Single System?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-   Can I run the Backup and Monitoring Agents on a Single System?
-   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.. include:: /includes/faq-backup-and-monitoring-agent-on-one-server.rst
 
-   .. include:: /includes/faq-backup-and-monitoring-agent-on-one-server.rst
+Can I run multiple Backup Agents to achieve high availability?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-   Can I run multiple Backup Agents to achieve high availability?
-   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+You can run multiple Backup Agents for high availability. If you do, the
+Backup Agents must run on different hosts.
 
-   You can run multiple Backup Agents for high availability. If you do, the
-   Backup Agents must run on different hosts.
+When you run multiple Backup Agents, only one agent per group or
+environment is the **primary agent**. The primary agent performs the
+backups. The remaining agents are completely idle, except to log their
+status as standbys and to periodically ask |mms| whether they should
+become the primary.
 
-   When you run multiple Backup Agents, only one agent per group or
-   environment is the **primary agent**. The primary agent performs the
-   backups. The remaining agents are completely idle, except to log their
-   status as standbys and to periodically ask |mms| whether they should become
-   the primary.
+Does the Backup Agent modify my database?
++++++++++++++++++++++++++++++++++++++++++
 
-   Does the Backup Agent modify my database?
-   +++++++++++++++++++++++++++++++++++++++++
-
-   The Backup Agent writes a small token into the oplog of the source
-   database every hour. These tokens provide a heartbeat for |backup|
-   and have no effect on the source deployment. Each token is
-   less than 100 bytes.
+The Backup Agent writes a small token into the oplog of the source
+database every hour. These tokens provide a heartbeat for |backup| and
+have no effect on the source deployment. Each token is less than 100
+bytes.
 
 Will the MongoDB Backup Service impact my production databases?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

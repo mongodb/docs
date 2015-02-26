@@ -10,7 +10,7 @@ later.
 |mms| only supports backup for sharded clusters that run MongoDB 2.4 or
 later.
 
-.. only:: classic
+.. only:: cloud or classic
 
    All backed up replica sets and config servers should maintain oplog
    entries for at least an hour on average over the last 24 hour

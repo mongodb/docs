@@ -105,7 +105,7 @@ How do I setup and configure the agent?
 
 See the ``README`` file included in the agent download.
 
-.. only:: classic
+.. only:: cloud or classic
 
    Can I run the Backup and Monitoring Agents on a Single System?
    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
