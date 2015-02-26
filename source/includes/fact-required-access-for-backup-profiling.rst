@@ -1,4 +1,4 @@
-To backup the :data:`system.profile <<database>.system.profile>`
+To back up the :data:`system.profile <<database>.system.profile>`
 collection, which is created when you activate :ref:`database profiling
 <database-profiling>`, you must have **additional**
 ``read`` access on this collection. Several
