@@ -7,44 +7,66 @@ Functional Overview
 Overview
 --------
 
-|mms-full| is a service for monitoring and
-backing up a MongoDB infrastructure.
+|mms-full| is a service for managing, monitoring and backing up a MongoDB
+infrastructure. |mms| provides the services described here.
 
-|mms| Monitoring
-~~~~~~~~~~~~~~~~
+Monitoring
+----------
 
-|mms| provides real-time reporting, visualization and alerting on key database and
-hardware indicators and presents the data in an intuitive web dashboard.
+|mms| Monitoring provides real-time reporting, visualization, and alerting
+on key database and hardware indicators.
 
 A lightweight Monitoring Agent runs within your infrastructure and
-connects to the configured MongoDB instances.  The Monitoring Agent
-collect statistics from the nodes in your deployment and transmit it
-back to |mms|.  The |mms| user interface allowsthe user to view the
-visualized data and set alerts.
+collects statistics from the nodes in your MongoDB deployment. The agent
+transmits database statistics back to |mms| to provide real-time
+reporting. You can set alerts on indicators you choose.
+
+.. _automation:
+
+Automation
+----------
+
+|mms| Automation provides an interface for provisioning machines,
+configuring MongoDB nodes and clusters, and upgrading your MongoDB
+deployment.
+
+.. image:: /figures/how-it-works.gif
+   :alt: "Automation coordinates MongoDB instances running in a public cloud, in your private data center, or on your local system."
+   :width: 700px
+   :align: center
+
+Automation uses the Automation Agent to maintain your deployments. The
+Automation Agent also maintains the Monitoring and Backup agents and
+starts, restarts, and upgrades the agents as needed.
+
+Automation allows only one agent of each type per machine and will remove
+additional agents. For example, when maintaining Backup Agents, automation
+will remove one of the Backup Agents from a machine that has two Backup
+Agents.
 
 .. _mms-backup-functional-overview:
 
-|mms| Backup
-~~~~~~~~~~~~
+Backup
+------
 
-Engineered specifically for MongoDB, |mms| Backup features scheduled
-snapshots and point in time recovery. Once the service is up and running,
-|mms| provides a web interface to support backup and restoration. |mms|
-Backup supports horizontal scaling.
+|mms| Backup provides scheduled snapshots and point-in-time recovery of
+your MongoDB :term:`replica sets <replica set>` and :term:`sharded
+clusters <sharded cluster>`. Backup can also create snapshots of
+:term:`standalones <standalone>` that are run as single-member replica
+sets.
 
-A lightweight Backup Agent runs within your infrastructure and connects to the
-configured MongoDB instances. The agent performs an initial sync and then
-tails the oplog of a :term:`replica set’s <replica set>` :term:`primary`.
-For a :term:`sharded cluster`, the
-Backup Agent tails the primary of each shard and each config server. The
-agent ships initial sync and oplog data over HTTPS back to the |mms| Backup service.
+Data Backup
+~~~~~~~~~~~
 
-Operations
-``````````
+A lightweight Backup Agent runs within your infrastructure and connects to
+your MongoDB processes. When you start Backup for a MongoDB deployment,
+the agent performs an :term:`initial sync` of the data as though it were a
+new hidden member of the replica set. For a sharded cluster the agent
+performs a sync of each shard's :term:`primary` and of each config server.
+The agent ships initial sync and oplog data over HTTPS back to |mms|.
 
-The |mms| Backup service recreates every replica set you back up and applies the
-:term:`oplog` entries sent by the Backup Agents. |mms| then maintains a standalone
-MongoDB database on disk, also called a *head*, for each backed-up replica
+The Backup Agent then tails each replica set's :term:`oplog` to maintain
+on disk a standalone database, called a *head*, for each backed-up replica
 set. Each head is consistent with the original primary up to the last
 oplog supplied by the agent.
 
@@ -52,8 +74,8 @@ Backup performs the initial sync and the tailing of the oplog using
 standard MongoDB queries. The production replica set is not aware of the
 copy of the backup data.
 
-The Backup service uses a :program:`mongod` with a version equal to or
-greater than the version of the replica set it backs up.
+Backup uses a :program:`mongod` with a version equal to or greater than
+the version of the replica set it backs up.
 
 The service retains snapshots based on a :ref:`user-defined policy
 <configure-snapshot-retention>`.
@@ -69,23 +91,22 @@ Snapshots use only a fraction of the disk space required for full snapshots.
 
 .. _restores:
 
-Restores
-````````
+Data Restoration
+~~~~~~~~~~~~~~~~
 
 |mms| Backup lets you restore data from a scheduled snapshot or from a
-selected checkpoint or point in time between snapshots. Sharded clusters
-use checkpoints, and replica sets use point-in-time restores.
-
+selected point between snapshots. For sharded clusters you can restore
+from checkpoints between snapshots. For replica sets, you can restore from
+selected points in time.
 
 When you restore from a snapshot, |mms| reads directly from the Backup
-Blockstore Database
-and transfers files via an HTTPS download link (pull) or by the |mms|
-service sending files via SSH (push).
+Blockstore database and transfers files either via an HTTPS download link
+(pull) or via |mms| sending the files via SSH (push).
 
 When you restore from checkpoint or point in time, |mms| first creates a
-local restore of a snapshot from the blockstore. |mms| then applies stored
-oplogs until the specified point. |mms| delivers the backup via the same
-HTTPS or SSH mechanisms.
+local restore of a snapshot from the blockstore and then applies stored
+oplogs until the specified point is reached. |mms| delivers the backup via
+the same HTTPS or SSH mechanisms.
 
 .. only:: onprem
 
