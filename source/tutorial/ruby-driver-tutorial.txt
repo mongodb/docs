@@ -169,3 +169,45 @@ A read preference tag set (T) matches a server tag set (S) – or equivalently a
 For example, the read preference tag set ``{ dc: 'ny', rack: 2 }`` matches a secondary server with tag set ``{ dc: 'ny', rack: 2, size: 'large' }``.
 
 A tag set that is an empty document matches any server, because the empty tag set is a subset of any tag set. This means the default ``tag_sets`` parameter ``[{}]`` matches all servers.
+
+
+Aggregation
+-----------
+
+The aggregation framework is used to process documents and return computed results. An aggregation is defined in the driver by providing a list of pipeline operators and options to a collection view.
+
+``find`` is called on a collection and then ``aggreagte`` can be called with a list of pipeline operators.
+
+The query is lazily executed against the server only when iterating the
+results - at that point the query is dispatched and a ``Mongo::Cursor`` is
+returned.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'demographics')
+  coll = client['populations']
+  aggregation = coll.find.aggregate([ { $group: { _id: "$city",
+                                                  total_pop: { $sum: "$pop" }
+                                                }
+                                      }
+                                    ])
+
+  aggregation.each do |document|
+    #=> Yields a BSON::Document.
+  end
+
+The MongoDB option, ``allowDiskUse`` can be explicitly set on the aggregation using the ``allow_disk_use`` method:
+
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'demographics')
+  coll = client['populations']
+  aggregation = coll.find.aggregate([ { $group: { _id: "$city",
+                                                  total_pop: { $sum: "$pop" }
+                                                }
+                                      }
+                                    ])
+  aggregation.allow_disk_use(true)
+
+  results = aggregation.to_a
