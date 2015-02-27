@@ -13,7 +13,7 @@ later.
 .. only:: cloud or classic
 
    All backed up replica sets and config servers should maintain oplog
-   entries for at least an hour on average over the last 24 hour
+   entries for at least 1 hour over the last 24 hour
    period.
 
 .. only:: onprem
