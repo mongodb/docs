@@ -23,7 +23,7 @@ later.
    last 24 hour period. This window is configurable with the
    :setting:`brs.minimumReplicationOplogWindowHr` setting in the
    ``conf-mms.properties`` file for the |application|.
-   See :doc:`/reference/configuration` for more information.
+   See :doc:`/reference/cluster-configuration` for more information.
 
 Agent Architecture
 ++++++++++++++++++
