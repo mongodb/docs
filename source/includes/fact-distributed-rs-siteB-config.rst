@@ -1,5 +1,5 @@
 a. View the replica set configuration to determine the
-   :data:`~local.system.replset.members` array position for the member. Keep
+   :data:`~replSetGetConfig.members` array position for the member. Keep
    in mind the array position is not the same as the ``_id``:
 
    .. code-block:: javascript

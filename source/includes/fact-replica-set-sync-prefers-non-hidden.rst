@@ -1,4 +1,4 @@
-If the :data:`~local.system.replset.settings.chainingAllowed` setting
+If the :data:`~replSetGetConfig.settings.chainingAllowed` setting
 allows secondary members to sync from other secondaries, MongoDB by
 default prefers non-hidden members over hidden members when selecting
 a sync target. MongoDB will only choose hidden members as a last
