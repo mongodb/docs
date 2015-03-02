@@ -1,5 +1,3 @@
-.. REVIEWERS: Is the version number below correct???
-
 Monitoring Agent ``2.9.1.176``
 ------------------------------
 
@@ -14,15 +12,7 @@ Monitoring Agent ``2.9.1.176``
 - |mms| now staggers the timing of DNS look-ups, to avoid triggering a
   rare issue in glibc 2.19 on Ubuntu 14.04.
 
-.. REVIEWERS: The remaining bullets are NOT from Cory's writeup in DOCS-4772
-     but from the Cloud releases since the last "Onprem" release. Are the correct
-     to include here???
-
 - Adds support for RHEL7.
-
-- The :guilabel:`Deployment` tab now displays all deployment information
-  for both servers and processes on one page. Icons provide different view
-  options.
 
 - Improved error handling on Windows.
 
