@@ -1,3 +1,43 @@
+.. REVIEWERS: Is the version number below correct???
+
+Monitoring Agent ``2.9.1.176``
+------------------------------
+
+- Adds support for non-default Kerberos service names.
+
+- Added support for authentication using MongoDB 2.4 style client
+  certificates.
+
+- The Monitoring Agent now identifies itself to the MMS servers using the
+  fully qualified domain name (FQDN) of the server on which it is running.
+
+- |mms| now staggers the timing of DNS look-ups, to avoid triggering a
+  rare issue in glibc 2.19 on Ubuntu 14.04.
+
+.. REVIEWERS: The remaining bullets are NOT from Cory's writeup in DOCS-4772
+     but from the Cloud releases since the last "Onprem" release. Are the correct
+     to include here???
+
+- Adds support for RHEL7.
+
+- The :guilabel:`Deployment` tab now displays all deployment information
+  for both servers and processes on one page. Icons provide different view
+  options.
+
+- Improved error handling on Windows.
+
+- Improved connection management for monitored MongoDB processes.
+
+- Improve correctness of the database statics collection.
+
+- Now uses the :dbcommand:`listDatabases` command to retrieve a list of
+  databases.
+
+- The default value for :msetting:`sslTrustedServerCertificates` is now
+  ``true``. Users upgrading from 2.4.0 and using SSL will need to set the
+  value of :msetting:`sslTrustedServerCertificates` in their configuration
+  file. See :msetting:`sslTrustedServerCertificates` for more information.
+
 Monitoring Agent ``2.4.2.113``
 ------------------------------
 
