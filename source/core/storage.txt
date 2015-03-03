@@ -167,42 +167,40 @@ Power of 2 Sized Allocations
 MongoDB 3.0 uses the power of 2 sizes allocation as the default record
 allocation strategy for MMAPv1. With the power of 2 sizes allocation
 strategy, each record has a size in bytes that is a power of 2 (e.g.
-32, 64, 128, 256, 512 ... 16777216). The smallest allocation for a
-document is 32 bytes.
+32, 64, 128, 256, 512 ... 2MB). For documents larger than 2MB, the
+allocation is rounded up to the nearest multiple of 2MB.
 
 The power of 2 sizes allocation strategy has the following key
 properties:
 
-- Can efficiently reuse freed records to reduce fragmentation. The
-  limited number of record allocation sizes help ensure that MongoDB
-  can efficiently reuse free space created by document deletion or
-  relocation.
+- Can efficiently reuse freed records to reduce fragmentation.
+  Quantizing record allocation sizes into a fixed set of sizes
+  increases the probability that an insert will fit into the free space
+  created by an earlier document deletion or relocation.
 
-- Can minimize the occurrence of re-allocation. In many cases, the
-  record allocations are significantly larger than the documents they
-  hold. This significantly larger size minimizes the chance that the
-  :program:`mongod` will need to allocate a new record if the document
-  grows. Although the power of 2 sizes strategy can minimize the
-  occurrence of reallocation, it does not eliminate
-  document re-allocation.
+- Can reduce moves. The added padding space gives a document room to
+  grow without requiring a move. In addition to saving the cost of
+  moving, this results in less updates to indexes. Although the power
+  of 2 sizes strategy can minimize moves, it does not eliminate them
+  entirely.
 
 .. _exact-fit-allocation:
 
-Exact Fit Allocation with No Padding
-````````````````````````````````````
+No Padding Allocation Strategy
+``````````````````````````````
 
 .. versionchanged:: 3.0.0
 
 For collections whose workloads do not change the document sizes, such
-as workloads that consist of insert-only operations, insert-and-remove
-operations on documents of uniform size, or update operations that do
-not increase document size, you can disable the :ref:`power of 2
-allocation <power-of-2-allocation>` using the :dbcommand:`collMod`
-command with the :collflag:`noPadding` flag or the
-:method:`db.createCollection()` method with the ``noPadding`` option.
+as workloads that consist of insert-only operations or update
+operations that do not increase document size (such as incrementing a
+counter), you can disable the :ref:`power of 2 allocation
+<power-of-2-allocation>` using the :dbcommand:`collMod` command with
+the :collflag:`noPadding` flag or the :method:`db.createCollection()`
+method with the ``noPadding`` option.
 
-Prior to version 3.0.0, MongoDB used an exact fit allocation strategy
-that included a dynamically calculated :data:`padding
+Prior to version 3.0.0, MongoDB used an allocation strategy that
+included a dynamically calculated :data:`padding
 <collStats.paddingFactor>` as a factor of the document size.
 
 Capped Collections
