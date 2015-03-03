@@ -13,7 +13,7 @@ Backup Agent ``3.2.0.262``
    - Support for x.509 certificate authentication.
 
    - Fixes a race condition which could result in inconsistent
-     clustershots for MongoDB v2.6.4+ sharded clusters using the 
+     clustershots for MongoDB 3.0+ sharded clusters using the 
      :authrole:`backup` role.
 
 .. only:: classic
