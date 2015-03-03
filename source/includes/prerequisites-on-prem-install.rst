@@ -3,12 +3,12 @@ Deploy Servers
 
 Prior to installation, you must set up servers for the entire |onprem|
 deployment, including the |application|, the optional Backup Daemon, and
-the :ref:`backing databases <backing-database>`. For deployment diagrams,
-see :doc:`/core/deployments`.
+the :ref:`backing replica sets <backing-database>`. For deployment diagrams,
+see :ref:`deployment-diagrams`.
 
 Deploy servers that meet the hardware requirements described in
-:doc:`/core/requirements`. For additional considerations when deploying
-servers that will run the MongoDB backing databases, see the
+:doc:`/core/requirements`. The
+servers for the backing replica sets must also comply with the
 :manual:`Production Notes </administration/production-notes>` in the
 MongoDB manual. Configure as many servers as needed for your deployment.
 
