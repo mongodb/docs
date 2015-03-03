@@ -1,81 +1,93 @@
 .. list-table::
    :header-rows: 1
-   :widths: 10 20 25 25 20
+   :widths: 20 15 15 10 10 15
 
    * - Documentation
-     - Downloads & Release Notes
-     - Source Code
-     - API Documentation
-     - JIRA Project
+     - Releases
+     - Source
+     - API
+     - JIRA
+     - Online Course
 
    * - :doc:`C </drivers/c>`
-     - `C Driver Releases <https://github.com/mongodb/mongo-c-driver/releases>`_
-     - `C Driver Source Code <https://github.com/mongodb/mongo-c-driver>`_
-     - `C Driver API <http://api.mongodb.org/c/current/>`_
-     - `C Driver JIRA Project <https://jira.mongodb.org/browse/CDRIVER>`_
+     - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`_
+     - `Source <https://github.com/mongodb/mongo-c-driver>`_
+     - `API <http://api.mongodb.org/c/current/>`_
+     - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`_
+     -
 
    * - `C++ <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `C++ Driver Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
-     - `C++ Driver Source Code <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `C++ Driver API <http://api.mongodb.org/cplusplus/current/>`_
-     - `C++ Driver JIRA Project <https://jira.mongodb.org/browse/CXX>`_
+     - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
+     - `Source <https://github.com/mongodb/mongo-cxx-driver>`_
+     - `API <http://api.mongodb.org/cplusplus/current/>`_
+     - `JIRA <https://jira.mongodb.org/browse/CXX>`_
+     - 
 
    * - :doc:`C# </drivers/csharp>`
-     - `C# Driver Releases <https://github.com/mongodb/mongo-csharp-driver/releases>`_
-     - `C# Driver Source Code <https://github.com/mongodb/mongo-csharp-driver>`_
-     - `Current C# Driver API <http://api.mongodb.org/csharp/current/>`_
-     - `C# Driver JIRA Project <https://jira.mongodb.org/browse/CSHARP>`_
+     - `Releases <https://github.com/mongodb/mongo-csharp-driver/releases>`_
+     - `Source <https://github.com/mongodb/mongo-csharp-driver>`_
+     - `API <http://api.mongodb.org/csharp/current/>`_
+     - `JIRA <https://jira.mongodb.org/browse/CSHARP>`_
+     - `Course <https://university.mongodb.com/courses/M101N/about>`_
 
    * - :doc:`Java </drivers/java>`
-     - `Java Driver Releases <https://github.com/mongodb/mongo-java-driver/releases>`_
-     - `Java Driver Source Code <https://github.com/mongodb/mongo-java-driver>`_
-     - `Current Java Driver API <http://api.mongodb.org/java/current>`_
-     - `Java Driver JIRA Project <https://jira.mongodb.org/browse/JAVA>`_
+     - `Releases <https://github.com/mongodb/mongo-java-driver/releases>`_
+     - `Source <https://github.com/mongodb/mongo-java-driver>`_
+     - `API <http://api.mongodb.org/java/current>`_
+     - `JIRA <https://jira.mongodb.org/browse/JAVA>`_
+     - `Course <https://university.mongodb.com/courses/M101J/about>`_
 
    * - :doc:`Node.js </drivers/node-js>`
-     - `Node.js Driver Releases <https://github.com/mongodb/node-mongodb-native/releases>`_
-     - `Node.js Driver Source Code <https://github.com/mongodb/node-mongodb-native>`_
-     - `Node.js Driver API <http://mongodb.github.io/node-mongodb-native>`_
-     - `Node.js Driver JIRA Project <https://jira.mongodb.org/browse/NODE>`_
+     - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`_
+     - `Source <https://github.com/mongodb/node-mongodb-native>`_
+     - `API <http://mongodb.github.io/node-mongodb-native>`_
+     - `JIRA <https://jira.mongodb.org/browse/NODE>`_
+     - `Course <https://university.mongodb.com/courses/M101JS/about>`_
 
    * - :doc:`Perl </drivers/perl>`
-     - `Perl Driver Releases <http://search.cpan.org/dist/MongoDB/>`_
-     - `Perl Driver Source Code <https://github.com/mongodb/mongo-perl-driver>`_
-     - `Current Perl Driver API <http://api.mongodb.org/perl/current>`_
-     - `Perl Driver JIRA Project <https://jira.mongodb.org/browse/PERL>`_
+     - `Releases <http://search.cpan.org/dist/MongoDB/>`_
+     - `Source <https://github.com/mongodb/mongo-perl-driver>`_
+     - `API <http://api.mongodb.org/perl/current>`_
+     - `JIRA <https://jira.mongodb.org/browse/PERL>`_
+     - 
 
    * - :doc:`PHP </drivers/php>`
-     - `PHP Driver Releases <http://pecl.php.net/package/mongo>`_
-     - `PHP Driver Source Code <https://github.com/mongodb/mongo-php-driver>`_
-     - `Current PHP Driver API <http://php.net/mongo>`_
-     - `PHP Driver JIRA Project <https://jira.mongodb.org/browse/PHP>`_
+     - `Releases <http://pecl.php.net/package/mongo>`_
+     - `Source <https://github.com/mongodb/mongo-php-driver>`_
+     - `API <http://php.net/mongo>`_
+     - `JIRA <https://jira.mongodb.org/browse/PHP>`_
+     - 
 
    * - :doc:`Python </drivers/python>`
-     - `Python Driver Releases <https://pypi.python.org/pypi/pymongo/>`_
-     - `Python Driver Source Code <https://github.com/mongodb/mongo-python-driver>`_
-     - `Python Driver API <http://api.mongodb.org/python/current>`_
-     - `Python Driver JIRA Project <https://jira.mongodb.org/browse/PYTHON>`_
+     - `Releases <https://pypi.python.org/pypi/pymongo/>`_
+     - `Source <https://github.com/mongodb/mongo-python-driver>`_
+     - `API <http://api.mongodb.org/python/current>`_
+     - `JIRA <https://jira.mongodb.org/browse/PYTHON>`_
+     - `Course <https://university.mongodb.com/courses/M101P/about>`_
 
    * - :doc:`Motor </drivers/python>`
-     - `Motor Releases <https://pypi.python.org/pypi/motor/>`_
-     - `Motor Source Code <https://github.com/mongodb/motor>`_
-     - `Motor API <http://motor.readthedocs.org/en/stable/api/index.html>`_
-     - `Motor JIRA Project <https://jira.mongodb.org/browse/MOTOR>`_
+     - `Releases <https://pypi.python.org/pypi/motor/>`_
+     - `Source <https://github.com/mongodb/motor>`_
+     - `API <http://motor.readthedocs.org/en/stable/api/index.html>`_
+     - `JIRA <https://jira.mongodb.org/browse/MOTOR>`_
+     - 
 
    * - :doc:`Ruby </drivers/ruby>`
-     - `Ruby Driver Releases <https://rubygems.org/gems/mongo>`_
-     - `Ruby Driver Source Code <https://github.com/mongodb/mongo-ruby-driver>`_
-     - `Ruby Driver API <http://api.mongodb.org/ruby/current/>`_
-     - `Ruby Driver JIRA Project <https://jira.mongodb.org/browse/RUBY>`_
+     - `Releases <https://rubygems.org/gems/mongo>`_
+     - `Source <https://github.com/mongodb/mongo-ruby-driver>`_
+     - `API <http://api.mongodb.org/ruby/current/>`_
+     - `JIRA <https://jira.mongodb.org/browse/RUBY>`_
+     - 
 
    * - :doc:`Scala </drivers/scala>`
-     - `Scala Driver Releases <https://github.com/mongodb/casbah/releases>`_
-     - `Scala Driver Source Code <https://github.com/mongodb/casbah>`_
-     - `Scala Driver API <http://mongodb.github.io/casbah/>`_
-     - `Scala Driver JIRA Project <https://jira.mongodb.org/browse/SCALA>`_
+     - `Releases <https://github.com/mongodb/casbah/releases>`_
+     - `Source <https://github.com/mongodb/casbah>`_
+     - `API <http://mongodb.github.io/casbah/>`_
+     - `JIRA <https://jira.mongodb.org/browse/SCALA>`_
+     - 
 
 ..
    * - :doc:`Haskell </drivers/haskell>`
-     - `Haskell Driver Releases <https://github.com/mongodb/mongodb-haskell/releases>`_
-     - `Current Haskell Driver API <http://api.mongodb.org/haskell/>`_
-     - `Haskell Driver JIRA Project <https://jira.mongodb.org/browse/HASKELL>`_
+     - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`_
+     - `API <http://api.mongodb.org/haskell/>`_
+     - `JIRA <https://jira.mongodb.org/browse/HASKELL>`_

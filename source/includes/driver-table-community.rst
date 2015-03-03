@@ -1,21 +1,24 @@
 .. list-table::
    :header-rows: 1
-   :widths: 10 20 25 25 20
+   :widths: 20 15 15 10 10 15
 
    * - Documentation
-     - Downloads & Release Notes
-     - Source Code
-     - API Documentation
-     - JIRA Project
+     - Releases
+     - Source
+     - API
+     - JIRA
+     - Online Course
 
    * - :doc:`Go </drivers/go>` (mgo)
-     - `Go Driver Releases <http://labix.org/mgo>`_
-     - `Go Driver Source Code <https://launchpad.net/mgo>`_
-     - `Go Driver API <http://godoc.org/labix.org/v2/mgo>`_
-     - `Go Driver JIRA Project <https://jira.mongodb.org/browse/MGO>`_
+     - `Releases <http://labix.org/mgo>`_
+     - `Source <https://launchpad.net/mgo>`_
+     - `API <http://godoc.org/labix.org/v2/mgo>`_
+     - `JIRA <https://jira.mongodb.org/browse/MGO>`_
+     - 
 
    * - :doc:`Erlang </drivers/erlang>`
-     - `Erlang Driver Releases <https://github.com/comtihon/mongodb-erlang/releases>`_
-     - `Erlang Driver Source Code <https://github.com/comtihon/mongodb-erlang>`_
-     - `Current Erlang Driver API <http://api.mongodb.org/erlang/>`_
-     - `Erlang Driver JIRA Project <https://jira.mongodb.org/browse/ERLANG>`_
+     - `Releases <https://github.com/comtihon/mongodb-erlang/releases>`_
+     - `Source <https://github.com/comtihon/mongodb-erlang>`_
+     - `API <http://api.mongodb.org/erlang/>`_
+     - `JIRA <https://jira.mongodb.org/browse/ERLANG>`_
+     - 
