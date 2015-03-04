@@ -1,0 +1,119 @@
+# This file ref'd in steps-convert-replica-set-shard-deploy-test-data.yaml
+# This file is tweaked to work with the other step file, as well.
+#
+title: 
+  text: Start each member of the replica set with the appropriate options.
+  character: "`"
+stepnum: 1
+ref: start-mongod
+pre: |
+  For each member, start a :program:`mongod` and specify the replica set
+  name through the :setting:`replSet` option. Specify any other parameters
+  specific to your deployment. For replication-specific parameters, see
+  :ref:`cli-mongod-replica-set`.
+
+  .. include:: /includes/fact-unique-replica-set-names.rst
+action:
+  - pre: |
+      The following example specifies the replica set name through the
+      :option:`--replSet` command-line option:
+    language: javascript
+    code: |
+      mongod --replSet "rs0"
+  - pre: |
+      You can also specify the :setting:`replica set name <replication>` in
+      the :doc:`configuration file </reference/configuration-options>`.
+      To start :program:`mongod` with a configuration file, specify the
+      file with the :option:`--config <mongod --config>` option:
+    language: javascript
+    code: |
+      mongod --config $HOME/.mongodb/config
+post: |
+  In production deployments, you can configure a :term:`control script` to
+  manage this process. Control scripts are beyond the scope of this document.
+---
+title: 
+  text: Connect a :program:`mongo` shell to a replica set member.
+  character: "`"
+stepnum: 2
+ref: open-shell
+pre: |
+  For example, to connect to a :program:`mongod` running on localhost on
+  the default port of ``27017``, simply issue:
+action:
+  language: javascript
+  code: |
+    mongo
+---
+title: 
+  text: Initiate the replica set.
+  character: "`"
+stepnum: 3
+ref: initiate-rs
+pre: |
+  Use :method:`rs.initiate()` on the replica set member:
+action:
+  language: javascript
+  code: |
+    rs.initiate()
+post: |
+  MongoDB initiates a set that consists of the current member and that
+  uses the default replica set configuration.
+---
+title: 
+  text: Verify the initial replica set configuration.
+  character: "`"
+stepnum: 4
+ref: verify-rsconf
+action:
+  - pre: |
+      Use :method:`rs.conf()` to display the :doc:`replica set configuration
+      object </reference/replica-configuration>`:
+    language: javascript
+    code: |
+      rs.conf()
+  - pre: |
+      The replica set configuration object resembles the following:
+    language: javascript
+    code: |
+      {
+         "_id" : "rs0",
+         "version" : 1,
+         "members" : [
+            {
+               "_id" : 1,
+               "host" : "mongodb0.example.net:27017"
+            }
+         ]
+      }
+---
+title: 
+  text: Add the remaining members to the replica set.
+  character: "`"
+stepnum: 5
+ref: add-remaining-members
+pre: |
+  Add the remaining members with the :method:`rs.add()` method.
+action:
+  pre: |
+    The following example adds two members:
+  language: javascript
+  code: |
+      rs.add("mongodb1.example.net")
+      rs.add("mongodb2.example.net")
+post: |
+  When complete, you have a fully functional replica set. The new replica
+  set will elect a :term:`primary`.
+---
+title: 
+  text: Check the status of the replica set.
+  character: "`"
+stepnum: 6
+ref: check-status
+action:
+  pre: |
+    Use the :method:`rs.status()` operation:
+  language: javascript
+  code: |
+    rs.status()
+...
