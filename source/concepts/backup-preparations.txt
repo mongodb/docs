@@ -1,0 +1,135 @@
+===================
+Backup Preparations
+===================
+
+.. default-domain:: mongodb
+
+
+Overview
+--------
+
+Before backing up your cluster or replica set, decide how to back up the
+data and what data to back up. This page describes items you must consider
+before starting a backup. For an overview of how Backup works, see
+:ref:`mms-backup-functional-overview`.
+
+Snapshot Frequency and Retention Policy
+---------------------------------------
+
+You can take snapshots every 6, 8, 12, or 24 hours and save them for 2-5
+days. |mms| can retain daily snapshots for up to 365 days, weekly snapshots
+for up to 52 weeks, and monthly snapshots for up to 36 months. By default,
+|mms| uses the :ref:`retention policy described here
+<configure-snapshot-retention>`.
+
+.. only:: onprem
+
+   Depending on how long your save 6-hour snapshots, you can set
+   point-in-time restores going back 1, 2, 3, or 4 days.
+
+Changes to the snapshot schedule will affect your snapshot storage costs. The
+longer your snapshot window, the longer it will take to build a point in time
+restore. Administrators can change the schedule through the
+:doc:`snapshotSchedule resource in the API
+</reference/api/snapshot-schedule>`.
+
+.. _excluded-namespaces:
+
+Excluded Namespaces
+-------------------
+
+Excluded namespaces are databases or collections that |mms| will not
+back up. Exclude name spaces to prevent backing up collections that
+contain logging data, caches, or other ephemeral data. By excluding
+these kinds of databases and collections will allow you to reduce
+backup time and costs.
+
+.. _considerations-backup-storage-engine:
+
+Storage Engine
+--------------
+
+When you enable backups for a cluster or replica set, you choose the
+storage engine for the backups. Your choices are the MongoDB default
+``MMAPv1`` engine and the ``WiredTiger`` engine. For more information on
+both, see :manual:`Storage </core/storage>` in the MongoDB manual.
+
+You can choose a different storage engine for a backup than you do for the
+original data. There is no requirement that the storage engine for a backup
+match that of the data it replicates. If your original data uses ``MMAPv1``,
+you can choose ``WiredTiger`` for backing up, and vice versa.
+
+You can change the storage engine for a cluster or replica set's backups
+at any time, but doing so requires an :term:`initial sync` of the backup
+on the new engine.
+
+If you choose the ``WiredTiger`` engine to back up a collection that
+already uses ``WiredTiger``, the initial sync replicates all the
+collection's ``WiredTiger`` options. For information on these options,
+see the ``storage.wiredTiger.collectionConfig`` section of the
+:manual:`Configuration File Options </reference/configuration-options>`
+page in the MongoDB manual.
+
+.. only:: onprem
+
+   For collections created after initial sync, the Backup Daemon uses its
+   own defaults for storing data. The Daemon will not replicate any
+   ``WiredTiger`` options for a collection created after iniitial sync.
+
+Index collection options are never replicated.
+
+Resyncing Production Deployments
+--------------------------------
+
+For production deployments, it is recommended that as a best practice you
+periodically (annually) :doc:`resync </tutorial/resync-backup>` all
+backed-up replica sets. When you resync, data is read from a secondary in
+each replica set. During resync, no new snapshots are generated.
+
+.. _checkpoint:
+
+Checkpoints
+-----------
+
+For :term:`sharded clusters <sharded cluster>`, checkpoints provide
+additional restore points between snapshots. With
+checkpoints enabled, |mms| Backup creates restoration points at
+configurable intervals of every 15, 30 or 60 minutes between
+snapshots.
+
+To create a checkpoint, |mms| Backup stops the :term:`balancer`
+and inserts a token into the :term:`oplog` of each
+:term:`shard` and :term:`config server` in the cluster. These
+checkpoint tokens are lightweight and do not have a consequential
+impact on performance or disk use.
+
+|mms| backup does not require checkpoints: by default, |mms| does not
+enable checkpoints.
+
+Restoring from a checkpoint requires |mms| Backup to apply the oplog of
+each shard and config server to the last snapshot captured before the
+checkpoint. Restoration from a checkpoint takes longer than
+restoration from a snapshot.
+
+.. _snapshot-while-balancer-enabled:
+
+Snapshots when Agent Cannot Stop Balancer
+-----------------------------------------
+
+For :term:`sharded clusters <sharded cluster>`,
+|mms| disables the :term:`balancer` before taking a
+cluster snapshot. In certain situations, such as a long migration or no
+running :program:`mongos`, |mms| tries to disable the balancer but cannot.
+In such cases, |mms| will continue to take cluster snapshots but will flag
+the snapshots with a warning that data may be incomplete and/or
+inconsistent. Cluster snapshots taken during an active balancing
+operation the risk of containing data loss or orphaned data.
+
+Snapshots when Agent Cannot Contact a ``mongod``
+------------------------------------------------
+
+For :term:`sharded clusters <sharded cluster>`,
+if the Backup Agent cannot reach a :program:`mongod` instance, whether a
+shard or config server, then the agent cannot insert a synchronization
+:term:`oplog` token. If this happens, |mms| will not create the snapshot and
+will display a warning message.
