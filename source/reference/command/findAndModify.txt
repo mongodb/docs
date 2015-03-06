@@ -146,14 +146,6 @@ cluster. :dbcommand:`findAndModify` operations issued against
 :program:`mongos` instances for non-sharded collections function
 normally.
 
-Concurrency
-~~~~~~~~~~~
-
-This command obtains a write lock on the affected database and
-will block other operations until it has completed; however,
-typically the write lock is short lived and equivalent to other
-similar :method:`~db.collection.update()` operations.
-
 .. _findAndModify-command-and-update:
 
 Comparisons with the ``update`` Method
@@ -213,18 +205,20 @@ This command performs the following actions:
 
         {
           "lastErrorObject" : {
+             "connectionId" : 1,
              "updatedExisting" : true,
              "n" : 1,
-             "connectionId" : 1,
+             "syncMillis" : 0,
+             "writtenTo" : null,
              "err" : null,
              "ok" : 1
           },
-          "value" : {
-             "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
-             "name" : "Tom",
-             "state" : "active",
-             "rating" : 100,
-             "score" : 5
+          value" : {
+            "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
+            "name" : "Tom",
+            "state" : "active",
+            "rating" : 100,
+            "score" : 5
           },
           "ok" : 1
         }
@@ -260,7 +254,7 @@ method returns only the unmodified document, or if ``new`` is
 .. code-block:: javascript
 
   {
-     "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
+     "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
      "name" : "Tom",
      "state" : "active",
      "rating" : 100,
@@ -303,10 +297,12 @@ and returns a document with the following fields:
 
    {
      "lastErrorObject" : {
-        "updatedExisting" : false,
-        "upserted" : ObjectId("50f2329d0092b46dae1dc98e"),
-        "n" : 1,
         "connectionId" : 1,
+        "updatedExisting" : false,
+        "upserted" : ObjectId("54f62c08c85d4472eadea26e"),
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
         "err" : null,
         "ok" : 1
      },
@@ -326,7 +322,7 @@ would contain ``null``:
      "lastErrorObject" : {
         "updatedExisting" : false,
         "n" : 1,
-        "upserted" : ObjectId("5102f7540cb5c8be998c2e99")
+        "upserted" : ObjectId("54f62c8bc85d4472eadea26f")
      },
      "ok" : 1
    }
@@ -362,19 +358,63 @@ The command returns the newly inserted document in the ``value`` field:
 
    {
      "lastErrorObject" : {
-        "updatedExisting" : false,
-        "upserted" : ObjectId("50f47909444c11ac2448a5ce"),
-        "n" : 1,
         "connectionId" : 1,
+        "updatedExisting" : false,
+        "upserted" : ObjectId("54f62bbfc85d4472eadea26d"),
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
         "err" : null,
         "ok" : 1
      },
      "value" : {
-        "_id" : ObjectId("50f47909444c11ac2448a5ce"),
+        "_id" : ObjectId("54f62bbfc85d4472eadea26d"),
         "name" : "Pascal",
         "rating" : 25,
-        "score" : 1,
         "state" : "active"
+        "score" : 1,
+     },
+     "ok" : 1
+   }
+
+Sort and Remove
+~~~~~~~~~~~~~~~
+
+By including a ``sort`` specification on the ``rating`` field, the
+following example removes from the ``people`` collection a single
+document with the ``state`` value of ``active`` and the lowest
+``rating`` among the matching documents:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { state: "active" },
+        sort: { rating: 1 },
+        remove: true
+      }
+   )
+
+The method returns the deleted document:
+
+.. code-block:: sh
+
+   {
+     "lastErrorObject" : {
+        "connectionId" : 1,
+        "n" : 1,
+        "syncMillis" : ,
+        "writtenTo" : null,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
+        "_id" : ObjectId("54f62a6785e4be1f982b9c9b"),
+        "name" : "XYZ123",
+        "score" : 1,
+        "state" : "active",
+        "rating" : 3
      },
      "ok" : 1
    }
