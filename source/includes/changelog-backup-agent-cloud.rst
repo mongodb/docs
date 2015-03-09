@@ -27,14 +27,14 @@ Backup Agent ``3.1.0.250``
 
 *Released 2015-01-08*
 
-Logging improvements for Windows
+Logging improvements for Windows.
 
 Backup Agent ``3.0.0.246``
 --------------------------
 
 *Released 2015-01-08*
 
-Enhancements to support backup of MongoDB 2.8.
+Enhancements to support backup of MongoDB 3.0.
 
 Backup Agent ``2.9.1.235-1``
 ----------------------------
