@@ -1,7 +1,8 @@
 .. note::
-   :mms-home:`MongoDB Management Service (MMS) </>` is a hosted
-   service that provides monitoring, backup, and automated deployment
-   of MongoDB instances. See the
-   :mms-home:`MMS Website </>` and the
-   :mms:`MMS documentation </>` for more
-   information.
+   :mms-home:`MongoDB Management Service (MMS) </>`, a hosted service,
+   and `Ops Manager
+   <https://www.mongodb.com/products/mongodb-enterprise-advanced>`_, an
+   on-premise solution, provide monitoring, backup, and automation of
+   MongoDB instances. See the :mms:`MMS documentation</>` and `Ops
+   Manager documentation <https://docs.opsmanager.mongodb.com>`_ for
+   more information.
