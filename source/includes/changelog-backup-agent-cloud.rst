@@ -1,3 +1,10 @@
+Backup Agent ``3.3.0.261``
+--------------------------
+
+*Released 2015-03-10*
+
+Logging improvements.
+
 Backup Agent ``3.2.0.262``
 --------------------------
 
