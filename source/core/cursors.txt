@@ -41,11 +41,10 @@ Closure of Inactive Cursors
 
 By default, the server will automatically close the cursor after 10
 minutes of inactivity or if client has exhausted the cursor. To
-override this behavior, you can specify the ``noTimeout``
-:meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in
-your query; however, you should either close the cursor manually or
-exhaust the cursor. In the :program:`mongo` shell, you can set the
-``noTimeout`` flag:
+override this behavior, you can specify the ``noTimeout`` flag in your
+query using :method:`cursor.addOption()`; however, you should either
+close the cursor manually or exhaust the cursor. In the
+:program:`mongo` shell, you can set the ``noTimeout`` flag:
 
 .. code-block:: javascript
 
@@ -65,6 +64,8 @@ document more than once if that document has changed. To handle this
 situation, see the information on :ref:`snapshot mode
 <faq-developers-isolate-cursors>`.
 
+.. _cursor-batches:
+
 Cursor Batches
 ~~~~~~~~~~~~~~
 
@@ -77,8 +78,8 @@ the batch, see :method:`~cursor.batchSize()` and
 :method:`~cursor.limit()`.
 
 For queries that include a sort operation *without* an index, the
-server must load all the documents in memory to perform the sort and
-will return all documents in the first batch.
+server must load all the documents in memory to perform the sort
+before returning any results.
 
 As you iterate through the cursor and reach the end of the returned
 batch, if there are more results, :method:`cursor.next()` will perform
@@ -98,28 +99,42 @@ in the following example:
 Cursor Information
 ------------------
 
-You can use the command :dbcommand:`cursorInfo` to retrieve the
-following information on cursors:
-
-- total number of open cursors
-
-- size of the client cursors in current use
+The :method:`db.serverStatus()` method returns a document that includes
+a :data:`~serverStatus.metrics` field. The
+:data:`~serverStatus.metrics` field contains a
+:data:`~serverStatus.metrics.cursor` field with the following
+information:
 
 - number of timed out cursors since the last server restart
 
-Consider the following example:
+- number of open cursors with the option
+  :data:`DBQuery.Option.noTimeout` set to prevent timeout after a
+  period of inactivity
+
+- number of "pinned" open cursors
+
+- total number of open cursors
+
+Consider the following example which calls the
+:method:`db.serverStatus()` method and accesses the ``metrics`` field
+from the results and then the ``cursor`` field from the ``metrics``
+field:
 
 .. code-block:: javascript
 
-   db.runCommand( { cursorInfo: 1 } )
+   db.serverStatus().metrics.cursor
 
-The result from the command returns the following document:
+The result is the following document:
 
 .. code-block:: javascript
 
    {
-     "totalOpen" : <number>,
-     "clientCursors_size" : <number>,
-     "timedOut" : <number>,
-     "ok" : 1
+      "timedOut" : <number>
+      "open" : {
+         "noTimeout" : <number>,
+         "pinned" : <number>,
+         "total" : <number>
+      }
    }
+
+.. seealso:: :method:`db.serverStatus()`
