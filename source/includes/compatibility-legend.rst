@@ -1,11 +1,9 @@
 .. list-table::
    :class: compatibility
    
-   * - compatible:
-     - Compatible
-   * - untested:
-     - Untested
-   * - incompatible:
-     - Incompatible
-   * - unknown:
-     - Unknown
+   * - supported. compatible. anything incompatible will be fixed:
+     - Supported
+   * - unsupported. minor incompatibilities may exist:
+     - Minor incompatibility
+   * - unsupported. incompatible:
+     - Unsupported
