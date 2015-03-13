@@ -186,9 +186,9 @@ returned.
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'demographics')
   coll = client['populations']
-  aggregation = coll.find.aggregate([ { $group: { _id: "$city",
-                                                  total_pop: { $sum: "$pop" }
-                                                }
+  aggregation = coll.find.aggregate([ { :$group => { :_id => "$city",
+                                                     :total_pop => { :$sum => "$pop" }
+                                                   }
                                       }
                                     ])
 
@@ -203,11 +203,106 @@ The MongoDB option, ``allowDiskUse`` can be explicitly set on the aggregation us
 
   client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'demographics')
   coll = client['populations']
-  aggregation = coll.find.aggregate([ { $group: { _id: "$city",
-                                                  total_pop: { $sum: "$pop" }
-                                                }
+  aggregation = coll.find.aggregate([ { :$group => { :_id => "$city",
+                                                     :total_pop => { :$sum => "$pop" }
+                                                   }
                                       }
                                     ])
   aggregation.allow_disk_use(true)
 
   results = aggregation.to_a
+
+
+Bulk Operations
+---------------
+
+The bulk write API allows a list of write operations to be sent to the server through one method call. The type of execution can either be ``ordered`` or ``unordered``.
+
+A bulk operation is defined by passing a list of operations to the ``bulk_write`` method on a collection. The second argument to the method is options defining whether the operations should be executed in order and what write concern should be used. The default is ``ordered`` and the collection's write concern will be used if no other is specified.
+
+
+Each operation is defined as a document with one of the follow keys.
+
+- ``insert_one``
+- ``delete_one``
+- ``delete_many``
+- ``replace_one``
+- ``update_one``
+- ``update_many``
+
+
+The format for each operation is the following:
+
+insert_one
+``````````
+
+.. code-block:: ruby
+    
+    { :insert_one => { :x => 1 } }
+
+delete_one
+``````````
+
+.. code-block:: ruby
+    
+    { :delete_one => { :x => 1 } }
+
+delete_many
+```````````
+
+.. code-block:: ruby
+    
+    { :delete_many => { :x => 1 } }
+
+replace_one
+```````````
+
+.. code-block:: ruby
+    
+    { :replace_one => { :find => { :x => 1 },
+                        :replacement => { :x => 2 },
+                        :upsert => true } # upsert is optional and defaults to false
+     }
+
+update_one
+``````````
+
+.. code-block:: ruby
+    
+    { :update_one => { :find => { :x => 1 },
+                       :update => { '$set' =>  { :x => 2 } },
+                       :upsert => true } # upsert is optional and defaults to false
+     }
+
+update_many
+```````````
+
+.. code-block:: ruby
+    
+    { :update_many => { :find => { :x => 1 },
+                        :update => { '$set' =>  { :x => 2 } },
+                        :upsert => true } # upsert is optional and defaults to false
+     }
+
+The follow is an example of a list of operations passed to the ``bulk_write`` method.
+
+.. code-block:: ruby
+
+    coll = client['documents']
+    coll.bulk_write([ { :insert_one => { :x => 1 }
+                      }, 
+                      { :update_one => { :find => { :x => 1 },
+                                         '$set' => { :x => 2 }
+                                       }
+                      },
+                      { :replace_one => { :find => { :x => 2 },
+                                          :replacement => { :x => 3 }
+                                        }
+                      }
+                    ],
+                    :ordered => true )
+    coll.find.to_a #=> { '_id' => ..., 'x' => 3 }
+
+
+
+
