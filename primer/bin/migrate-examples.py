@@ -31,7 +31,7 @@ def create_migrations_yaml(edition, inputFiles, inputFileDirectory, prereqThresh
              output.write('---\n')
              output.write('source: ' + source + '\n')
              output.write('target: ' + targetDir + 'example-prereq-' + edition + '-'+ file + '\n')
-             output.write('truncate: \n')
+             output.write('truncate:\n')
              output.write('   end-before: "' + prereqThreshold.strip() + '"\n')
 
           with open( source, 'r') as f:

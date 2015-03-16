@@ -1,6 +1,6 @@
-=================
-The MongoDB Shell
-=================
+=====================
+MongoDB Shell (mongo)
+=====================
 
 .. default-domain:: mongodb
 
