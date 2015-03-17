@@ -1,3 +1,14 @@
+Automation Agent ``1.7.0.992``
+------------------------------
+
+*Released: 2015-03-16*
+
+- Improves algorithm for balancing :program:`mongod` processes across cores
+
+- Fixed issue with configuring oplog sizes greater than 1 TB
+
+- Improvements that make auto-upgrades more reliable
+
 Automation Agent ``1.6.2.960``
 ------------------------------
 
