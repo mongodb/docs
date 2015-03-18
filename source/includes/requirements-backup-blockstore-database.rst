@@ -25,11 +25,17 @@ times the total backed-up data size. Please **contact your MongoDB Account
 Manager** for assistance in estimating the storage requirements for your
 Blockstore servers.
 
+Configuration Requirements from the MongoDB Production Notes
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Each server that hosts a MongoDB process for the Blockstore database
+**must** comply with the :manual:`Production Notes
+</administration/production-notes>` in the MongoDB manual. The
+Production Notes include important information on ulimits, NUMA,
+Transparent Huge Pages (THP), and other configuration options.
+
 Other Requirements for the Blockstore Databsase
 +++++++++++++++++++++++++++++++++++++++++++++++
-
-The servers must comply with the :manual:`Production Notes
-</administration/production-notes>` in the MongoDB manual.
 
 Medium grade HDDs should have enough I/O throughput to handle the load of the
 Blockstore. Each replica set member should have 4 x 2ghz+ CPU cores. We

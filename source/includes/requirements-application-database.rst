@@ -14,9 +14,11 @@ member of the replica set on the same physical server as the |application|.
 For a test deployment, you can use a MongoDB standalone in place of a replica
 set.
 
-Each server that runs a dedicated MongoDB instance that hosts an
-|application| database **must comply** with the :manual:`Production Notes
-</administration/production-notes>` in the MongoDB manual.
+Each server that hosts a MongoDB process for the |application|
+database **must** comply with the :manual:`Production Notes
+</administration/production-notes>` in the MongoDB manual. The
+Production Notes include important information on ulimits, NUMA,
+Transparent Huge Pages (THP), and other configuration options.
 
 Each server also requires the following:
 
