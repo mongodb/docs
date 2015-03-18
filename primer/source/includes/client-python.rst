@@ -1,6 +1,6 @@
-=======
-PyMongo
-=======
+=======================
+Python Driver (PyMongo)
+=======================
 
 .. default-domain:: mongodb
 

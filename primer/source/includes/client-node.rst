@@ -1,6 +1,6 @@
-=======
-Node.js
-=======
+==============
+Node.js Driver
+==============
 
 .. default-domain:: mongodb
 

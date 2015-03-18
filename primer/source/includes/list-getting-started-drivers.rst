@@ -1,9 +1,9 @@
-Getting Started is available in the following editions:
+- `mongo Edition <../shell/>`_ (JavaScript Shell)
 
-- `mongo <../shell/>`_ (JavaScript Shell)
+- `Python Edition <../python/>`_ (PyMongo)
 
-- `Python <../python/>`_ (PyMongo)
+- `Node.JS Edition <../node/>`_
 
-- `Node.JS <../node/>`_
+- `C++ Edition <../cpp/>`_
 
-- `C++ <../cpp/>`_
+- `Java Edition <../java/>`_
