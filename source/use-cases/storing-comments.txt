@@ -485,14 +485,14 @@ Schema
 ~~~~~~
 
 In the "hybrid approach" you will store comments in "buckets" that
-hold about 100 comments. Consider the following example document:
+hold about 100 comments. Consider the following example bucket document:
 
 .. code-block:: javascript
 
    {
        _id: ObjectId(...),
        discussion_id: ObjectId(...),
-       page: 1,
+       bucket: 1,
        count: 42,
        comments: [ {
            slug: '34db',
@@ -503,8 +503,8 @@ hold about 100 comments. Consider the following example document:
    }
 
 
-Each document maintains ``page`` and ``count`` data that contains meta
-data regarding the page, the page number and the comment count, in
+Each document maintains ``bucket`` and ``count`` data that contains meta
+data regarding the bucket, the bucket number, and the comment count, in
 addition to the ``comments`` array that holds the comments
 themselves.
 
@@ -514,7 +514,7 @@ themselves.
    this specific configuration is not covered in this document.
 
    Also, 100 comments is a *soft* limit for the number of comments per
-   page. This value is arbitrary: choose a value that will prevent the
+   bucket. This value is arbitrary: choose a value that will prevent the
    maximum document size from growing beyond the 16MB :limit:`BSON
    document size limit <BSON Document Size>`, but large enough
    to ensure that most comment threads will fit in a single
@@ -527,7 +527,7 @@ Operations
 
 This section contains a number of common operations that you may use
 when building a CMS using this hybrid storage model with documents
-that hold 100 comment "pages."
+that hold 100 comment "buckets."
 
 All examples in this document use the Python programming language and
 the :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but
@@ -540,15 +540,15 @@ Updating
 ^^^^^^^^
 
 In order to post a new comment, you need to :operator:`$push` the
-comment onto the last page and :operator:`$inc` that page's comment
+comment onto the last bucket and :operator:`$inc` that bucket's comment
 count. Consider the following example that queries on the basis of a
 ``discussion_id`` field:
 
 .. code-block:: python
 
-   page = db.comment_pages.find_and_modify(
+   bucket = db.comment_buckets.find_and_modify(
        { 'discussion_id': discussion['_id'],
-         'page': discussion['num_pages'] },
+         'bucket': discussion['num_buckets'] },
        { '$inc': { 'count': 1 },
          '$push': {
              'comments': { 'slug': slug, ... } } },
@@ -558,21 +558,21 @@ count. Consider the following example that queries on the basis of a
 
 The :py:meth:`find_and_modify() <pymongo:pymongo.collection.Collection.find_and_modify>`
 operation is an :term:`upsert`,: if MongoDB cannot find a document
-with the correct ``page`` number, the :py:meth:`find_and_modify() <pymongo:pymongo.collection.Collection.find_and_modify>`
+with the correct ``bucket`` number, the :py:meth:`find_and_modify() <pymongo:pymongo.collection.Collection.find_and_modify>`
 will create it and initialize the new document with appropriate values
 for ``count`` and ``comments``.
 
-To limit the number of comments per page to roughly 100, you will
+To limit the number of comments per bucket to roughly 100, you will
 need to create new pages as they become necessary. Add the following
 logic to support this:
 
 .. code-block:: python
 
-   if page['count'] > 100:
+   if bucket['count'] > 100:
        db.discussion.update(
            { 'discussion_id: discussion['_id'],
-             'num_pages': discussion['num_pages'] },
-           { '$inc': { 'num_pages': 1 } } )
+             'num_buckets': discussion['num_buckets'] },
+           { '$inc': { 'num_buckets': 1 } } )
 
 This :py:meth:`update() <pymongo:pymongo.collection.Collection.update>` operation
 includes the last known number of pages in the query to prevent a race
@@ -586,69 +586,78 @@ Indexing
 
 To support the :py:meth:`find_and_modify() <pymongo:pymongo.collection.Collection.find_and_modify>`
 and :py:meth:`update() <pymongo:pymongo.collection.Collection.update>`
-operations, maintain a compound index on (``discussion_id``, ``page``)
-in the ``comment_pages`` collection, by issuing the following
+operations, maintain a compound index on (``discussion_id``, ``bucket``)
+in the ``comment_buckets`` collection, by issuing the following
 operation at the Python/PyMongo console:
 
 .. code-block:: pycon
 
-   >>> db.comment_pages.ensure_index([
-   ...    ('discussion_id', 1), ('page', 1)])
+   >>> db.comment_buckets.ensure_index([
+   ...    ('discussion_id', 1), ('bucket', 1)])
 
 View Paginated Comments
 ```````````````````````
 
-The following function defines how to paginate comments with a *fixed*
-page size (i.e. not with the roughly 100 comment documents in the
-above example,) as en example:
+The following function presents an example of paginating comments into pages
+of fixed size. This works by iterating through all comments in a discussion,
+and keeping a counter of both how many comments it has skipped, and how many it
+has returned.
 
 .. code-block:: python
 
    def find_comments(discussion_id, skip, limit):
        result = []
-       page_query = db.comment_pages.find(
+
+       # Find this discussion's comment buckets
+       buckets = db.comment_buckets.find(
            { 'discussion_id': discussion_id },
-           { 'count': 1, 'comments': { '$slice': [ skip, limit ] } })
-       page_query = page_query.sort('page')
-       for page in page_query:
-           result += page['comments']
-           skip = max(0, skip - page['count'])
-           limit -= len(page['comments'])
+           { 'bucket': 1 })
+       buckets = buckets.sort('bucket')
+
+       # Iterate through those buckets, making a query obtaining comments for each
+       for bucket in buckets:
+           page_query = db.comment_buckets.find_one(
+               { 'discussion_id': discussion_id, 'bucket': bucket['bucket'] },
+               { 'count': 1, 'comments': { '$slice': [ skip, limit ] }})
+           result.append((bucket['bucket'], page_query['comments']))
+           skip = max(0, skip - page_query['count'])
+           limit -= len(page_query['comments'])
            if limit == 0: break
+
        return result
 
 Here, the :operator:`$slice` operator pulls out comments from each
-page, but *only* when this satisfies the ``skip`` requirement. For
-example: if you have 4 pages with 100, 102, 101, and 22 comments on
-each page, respectively, and you wish to retrieve comments where ``skip=300`` and
+bucket, but *only* when this satisfies the ``skip`` requirement. For
+example: if you have 4 buckets with 100, 102, 101, and 22 comments on
+each bucket, respectively, and you wish to retrieve comments where ``skip=300`` and
 ``limit=50``. Use the following algorithm:
 
 +-------+-------+-------------------------------------------------------+
 | Skip  | Limit | Discussion                                            |
 +=======+=======+=======================================================+
-| 300   | 50    | ``{$slice: [ 300, 50 ] }`` matches nothing in page    |
-|       |       | #1; subtract page #1's ``count`` from ``skip`` and    |
+| 300   | 50    | ``{$slice: [ 300, 50 ] }`` matches nothing in bucket  |
+|       |       | #1; subtract bucket #1's ``count`` from ``skip`` and  |
 |       |       | continue.                                             |
 +-------+-------+-------------------------------------------------------+
-| 200   | 50    | ``{$slice: [ 200, 50 ] }`` matches nothing in page    |
-|       |       | #2; subtract page #2's ``count`` from ``skip`` and    |
+| 200   | 50    | ``{$slice: [ 200, 50 ] }`` matches nothing in bucket  |
+|       |       | #2; subtract bucket #2's ``count`` from ``skip`` and  |
 |       |       | continue.                                             |
 +-------+-------+-------------------------------------------------------+
-| 98    | 50    | ``{$slice: [ 98, 50 ] }`` matches 2 comments in page  |
-|       |       | #3; subtract page #3's ``count`` from ``skip``        |
-|       |       | (saturating at 0), subtract 2 from limit, and         |
+| 98    | 50    | ``{$slice: [ 98, 50 ] }`` matches 3 comments in bucket|
+|       |       | #3; subtract bucket #3's ``count`` from ``skip``      |
+|       |       | (saturating at 0), subtract 3 from limit, and         |
 |       |       | continue.                                             |
 +-------+-------+-------------------------------------------------------+
 | 0     | 48    | ``{$slice: [ 0, 48 ] }`` matches all 22 comments in   |
-|       |       | page #4; subtract 22 from ``limit`` and continue.     |
+|       |       | bucket #4; subtract 22 from ``limit`` and continue.   |
 +-------+-------+-------------------------------------------------------+
-| 0     | 26    | There are no more pages; terminate loop.              |
+| 0     | 26    | There are no more buckets; terminate loop.            |
 +-------+-------+-------------------------------------------------------+
 
 .. note::
 
-   Since you already have an index on (``discussion_id``, ``page``) in
-   your ``comment_pages`` collection, MongoDB can satisfy these
+   Since you already have an index on (``discussion_id``, ``bucket``) in
+   your ``comment_buckets`` collection, MongoDB can satisfy these
    queries efficiently.
 
 Retrieve a Comment via Direct Links
@@ -658,16 +667,16 @@ Query
 ^^^^^
 
 To retrieve a comment directly without paging through all preceding
-pages of commentary, use the slug to find the correct page, and then
+pages of commentary, use the slug to find the correct bucket, and then
 use application logic to find the correct comment:
 
 .. code-block:: python
 
-   page = db.comment_pages.find_one(
+   bucket = db.comment_buckets.find_one(
        { 'discussion_id': discussion_id,
          'comments.slug': comment_slug},
        { 'comments': 1 })
-   for comment in page['comments']:
+   for comment in bucket['comments']:
        if comment['slug'] = comment_slug:
            break
 
@@ -681,7 +690,7 @@ following operation in the Python/PyMongo console:
 
 .. code-block:: pycon
 
-   >>> db.comment_pages.ensure_index([
+   >>> db.comment_buckets.ensure_index([
    ...    ('discussion_id', 1), ('comments.slug', 1)])
 
 Sharding
@@ -712,7 +721,7 @@ In the case of comments that fully-embedded in parent content
 :term:`documents <document>` the determination of the shard key is
 outside of the scope of this document.
 
-For hybrid documents, use the page number of the comment page in the
+For hybrid documents, use the bucket number in the
 shard key along with the ``discussion_id`` to allow MongoDB to split
 popular discussions between pages while grouping discussions on the same
 shard. Issue the following operation
@@ -720,6 +729,6 @@ at the Python/PyMongo console:
 
 .. code-block:: python
 
-   >>> db.command('shardCollection', 'comment_pages', {
-   ...     key : { 'discussion_id' : 1, 'page': 1 } })
-   { "collectionsharded" : "comment_pages", "ok" : 1 }
+   >>> db.command('shardCollection', 'comment_buckets', {
+   ...     key : { 'discussion_id' : 1, 'bucket': 1 } })
+   { "collectionsharded" : "comment_buckets", "ok" : 1 }
