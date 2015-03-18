@@ -17,8 +17,11 @@ set.
 Each server that hosts a MongoDB process for the |application|
 database **must** comply with the :manual:`Production Notes
 </administration/production-notes>` in the MongoDB manual. The
-Production Notes include important information on ulimits, NUMA,
-Transparent Huge Pages (THP), and other configuration options.
+Production Notes include important information on :manual:`ulimits
+</reference/ulimit>`, :manual:`NUMA
+</administration/production-notes#production-numa>`,
+:manual:`Transparent Huge Pages (THP)
+</reference/transparent-huge-pages>`, and other configuration options.
 
 Each server also requires the following:
 
