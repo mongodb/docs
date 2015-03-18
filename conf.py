@@ -65,7 +65,10 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'about': ('http://www.mongodb.org/about%s', '')
+    'about': ('http://www.mongodb.org/about%s', ''),
+    'mms': ('https://docs.mms.mongodb.com%s', ''),
+    'mms-hosted': ('https://mms.mongodb.com/help-hosted%s', ''),
+    'mms-home': ('https://mms.mongodb.com%s', '')
 }
 
 intersphinx_mapping = {}
