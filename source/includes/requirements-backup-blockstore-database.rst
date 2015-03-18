@@ -37,6 +37,12 @@ Production Notes include important information on :manual:`ulimits
 :manual:`Transparent Huge Pages (THP)
 </reference/transparent-huge-pages>`, and other configuration options.
 
+.. warning::
+
+   Failure to configure servers according to the :manual:`MongoDB
+   Production Notes </administration/production-notes>` can lead to
+   production failure.
+
 Other Requirements for the Blockstore Databsase
 +++++++++++++++++++++++++++++++++++++++++++++++
 

@@ -7,10 +7,16 @@ the :ref:`backing replica sets <backing-database>`. For deployment diagrams,
 see :ref:`deployment-diagrams`.
 
 Deploy servers that meet the hardware requirements described in
-:doc:`/core/requirements`. The
-servers for the backing replica sets must also comply with the
+:doc:`/core/requirements`. Servers for the Backup Daemon and the
+backing replica sets must also comply with the
 :manual:`Production Notes </administration/production-notes>` in the
 MongoDB manual. Configure as many servers as needed for your deployment.
+
+.. warning::
+
+   Failure to configure servers according to the :manual:`MongoDB
+   Production Notes </administration/production-notes>` can lead to
+   production failure.
 
 Deploy MongoDB
 ++++++++++++++
