@@ -1,0 +1,34 @@
+title: Edit ``/etc/rc.local``
+stepnum: 1
+ref: edit-rclocal
+pre: |
+  ``/etc/rc.local`` is a user-configurable script that is run at the end of
+  post-boot system initialization. Add the following script lines to the file
+  as ``root`` to disable THP upon each boot.
+action:
+  - language: sh
+    code: |
+      if test -f /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; then
+        echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+      fi
+      if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+        echo never > /sys/kernel/mm/transparent_hugepage/defrag
+      fi
+      if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+        echo never > /sys/kernel/mm/transparent_hugepage/enabled
+      fi
+  - post: |
+      These lines should immediately precede ``exit 0``, which should
+      already be the last line in the file. Note that on Red Hat
+      Enterprise Linux, CentOS, and potentially other Red Hat-based
+      derivatives, ``transparent_hugepage`` in the paths in the script
+      should be replaced by ``redhat_transparent_hugepages``.
+---
+title: Apply the changes to ``/etc/rc.local`` as ``root``
+stepnum: 2
+ref: source
+action:
+  - language: sh
+    code: |
+      source /etc/rc.local
+...
