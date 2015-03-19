@@ -74,20 +74,25 @@ edition: python
 operation:
     language: python
     code: |
-      db.restaurants.update(
-          { "name" : "Juni" },
+      result = db.restaurants.update_one(
+          {"name": "Juni"},
           {
-            "$set": {
-              "cuisine": "American (New)"
-            },
-            "$currentDate": { "lastModified": True }
+              "$set": {
+                  "cuisine": "American (New)"
+              },
+              "$currentDate": {"lastModified": True}
           }
       )
-
 post: |
-  The operation returns a ``dict`` object which contains the status of
-  the operation. Successful operation should return ``u'ok': 1.0``. The
-  ``u'n'`` field indicates the number of documents modified.
+  The operation returns a :py:class:`~pymongo.results.UpdateResult` object that
+  reports the count of documents matched and modified.
+results: |
+  result.matched_count
+  1
+  result.modified_count
+  1
+replacement:
+  updateMethod: :py:meth:`~pymongo.collection.Collection.update_one`
 ---
 source:
   file: examples-update-fields-base.yaml
@@ -95,39 +100,57 @@ source:
 ref: update-embedded-field
 edition: python
 operation:
-    language: javascript
+    language: python
     code: |
-      db.restaurants.update(
-        { "restaurant_id" : "41156888" },
-        { "$set": { "address.street": "East 31st Street" } }
+      result = db.restaurants.update_one(
+          {"restaurant_id": "41156888"},
+          {"$set": {"address.street": "East 31st Street"}}
       )
 post: |
-  The operation returns a ``dict`` object which contains the status of
-  the operation. Successful operation should return ``u'ok': 1.0``. The
-  ``u'n'`` field indicates the number of documents modified.
+  The operation returns a :py:class:`~pymongo.results.UpdateResult` object that
+  reports the count of documents matched and modified.
+results: |
+  result.matched_count
+  1
+  result.modified_count
+  1
+replacement:
+  updateMethod: :py:meth:`~pymongo.collection.Collection.update_one`
 ---
 source:
   file: examples-update-fields-base.yaml
   ref: _update-multiple-documents
 ref: update-multiple-documents
+pre: |
+  The {{update}} method updates a single document. To update multiple
+  documents, use the {{updateMany}} method.
+
+  The following operation updates *all* documents that have
+  ``address.zipcode`` field equal to ``"10016"``, setting the ``borough``
+  field to ``"Midtown"`` and the ``lastModified`` field to the current
+  date.
 edition: python
 operation:
-  language: javascript
+  language: python
   code: |
-      db.restaurants.update(
-         { "address.zipcode": "10016" },
-         {
-           "$set": { "borough": "Manhattan" },
-           "$currentDate": { "lastModified": True }
-         },
-         multi=True
+      result = db.restaurants.update_many(
+          {"address.zipcode": "10016"},
+          {
+              "$set": {"borough": "Midtown"},
+              "$currentDate": {"lastModified": True}
+          }
       )
 post: |
-  The {{updateMethod}}  returns a ``dict`` object which contains the status of
-  the operation. Successful operation should return ``u'ok': 1.0``. The
-  ``u'n'`` field indicates the number of documents modified.
+  The operation returns a :py:class:`~pymongo.results.UpdateResult` object that
+  reports the count of documents matched and modified.
+results: |
+  result.matched_count
+  433
+  result.modified_count
+  433
 replacement:
-  updateMethod: :py:meth:`~pymongo.collection.Collection.update()`
+  update: :py:meth:`~pymongo.collection.Collection.update_one`
+  updateMany: :py:meth:`~pymongo.collection.Collection.update_many`
 ---
 source:
   file: examples-update-fields-base.yaml
