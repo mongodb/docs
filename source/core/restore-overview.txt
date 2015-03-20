@@ -1,0 +1,204 @@
+======================
+|onprem| Restore Flows
+======================
+
+Overview
+--------
+
+|onprem| Backup enables you to restore your :program:`mongod` instance,
+:term:`replica set` or :term:`sharded cluster` using stored snapshots,
+or from a point in time any number of days in the past, 
+up to the retention period of your longest snapshot. 
+
+Whether you are restoring a :program:`mongod`, replica set, or sharded
+cluster, the general flows and options are the same: the only major 
+difference is that sharded cluster restores result in the production of
+multiple restore files that must be copied to the correct destination
+
+This page describes the different types of restores, and different
+delivery options, and then provides some insight into the actual 
+process that occurs when you request a restore through |onprem|.
+
+For a step-by-step guide to restoring a replica set or sharded cluster
+using Backup, see: :doc:`/tutorial/nav/backup-restore-deployments`.
+
+Restore Types
+~~~~~~~~~~~~~
+
+With Backup, you can restore from a stored snapshot or build a custom
+snapshot reflecting a specific point in time. For all
+backups, restoring from a stored snapshot is faster than restoring from
+a specific point in time.
+
+Snapshots provide a complete backup of the state of your MongoDB
+deployment at a given point in time. You can take snapshots every 6, 8,
+12, or 24 hours, and set a :ref:`retention policy
+<configure-snapshot-retention>` to determine for how long the snapshots
+are stored.
+
+Point-in-time restores let you restore your :program:`mongod` instance
+or replica set to a specific point in time in the past. You can restore
+to any point back to your oldest retained snapshot. For sharded
+clusters, point-in-time restores let you restore to a checkpoint. See
+:ref:`checkpoint` for more information.
+
+Point-in-time restores take
+longer to perform than snapshot restores, but allow you to retore more
+granularly. When you perform a point-in-time restore, |onprem| takes the most
+recent snapshot that occurred prior to that point, and then applies the
+:term:`oplog` to bring the database up to the state it was in at that point in
+time. This way, |onprem| creates a custom snapshot, which you can then use in
+your restore.
+
+Delivery Methods and File Formats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| provides two delivery methods: HTTP delivery, and SCP. 
+
+With HTTP delivery, |onprem| creates a link that you can
+use to download the snapshot file or files. See: :ref:`advanced-backup-restore-settings`
+for informaton about configuring the restore behaviors.
+
+With the ``SCP`` delivery
+option, the Backup Daemon securely copies the restore file or
+files directly to your system. The :doc:`Backup File Format and Method
+</tutorial/restore-select-delivery-format>` tutorial describes how to
+select a restore's delivery method and file format.
+
+For SCP delivery, you can choose your file format to better suit your restore
+needs. With the :guilabel:`Individual DB Files` format, |onprem| transmits the
+MongoDB data files directly to the target directory. The individual files
+format only requires sufficient space on the destination server for
+the data files.
+
+In contrast, the :guilabel:`Archive (tar.gz)` option bundles the database
+files into a single ``tar.gz`` archive file, which you must extract before
+reconstruction your databases. This is generally faster than the
+individual files option, but requires temporary space on the server
+hosting the Backup Daemon, and sufficient space on the destination server
+to hold the archive file, and extract it.
+
+Restore Flows
+-------------
+
+Regardless of the delivery method and restore type, |onprem|'s restore flow
+follows a consistent pattern: when you request a restore, the MMS HTTP service
+calls out to the Backup Daemon, which prepares the snapshot you will receive,
+then either the user downloads the files from the MMS HTTP service, or
+the Backup Daemon securely copies the files to the destination server.
+
+The following sections describe the restore flows for both snapshot restores
+and point-in-time restores, for each delivery and file format option.
+
+HTTP Restore
+~~~~~~~~~~~~
+
+Snapshot
+````````
+
+.. include:: /images/http-pull-snapshot-restore.rst
+
+With the HTTP PULL snapshot restore, the Backup Daemon simply creates
+a link to the appropriate snapshot in the Backup Blockstore database.
+When the user clicks the download link, they download the snapshot from
+the MMS HTTP Service, which streams the file out of the
+Backup Blockstore.
+
+This restore method has the advantage of taking up **no** space on the
+server hosting the Backup Daemon: the file passes directly from the
+Backup Blockstore to the destination server.
+
+Point-In-Time
+`````````````
+
+.. include:: /images/http-pull-point-in-time-restore.rst
+
+The HTTP PULL point-in-time restore follows the same pattern as the HTTP
+PULL snapshot restore, with added steps for applying the oplog. When the
+user requests the restore, the Backup Daemon retrieves the snapshot that
+immediately precedes the point in time, and writes that snapshot to
+disk. The Backup Daemon then retrieves oplog entries from the Backup
+Blockstore and applies them, creating a custom snapshot from that point
+in time. The Daemon then writes the snapshot back to the Backup
+Blockstore. Finally, when the user clicks the download link, the user
+downloads the snapshot from the MMS HTTP Service, which streams the file
+out of the Backup Blockstore.
+
+This restore method requires that you have adequate space on the server
+hosting the Backup Daemon for the snapshot files and oplog.
+
+Archive SCP Restore
+~~~~~~~~~~~~~~~~~~~
+
+Snapshot
+````````
+
+.. include:: /images/scp-snapshot-archive.rst
+
+For a snapshot restore, with SCP archive delivery, the Backup Daemon
+simply retrieves the snapshot from the Backup Blockstore, and writes it
+to its disk. The Backup Daemon then combines and compresses the snapshot into a
+``.tar.gz`` archive, and securely copies the archive to the destination
+server.
+
+This restore method requries that you have adequate space on the server
+hosting the Backup Daemon for the snapshot files and archive.
+
+Point-In-Time
+`````````````
+
+.. include:: /images/scp-point-in-time-archive.rst
+
+The point-in-time restore with SCP archive delivery follows the same
+pattern as the snapshot restore, but with added steps for applying the
+oplog. 
+
+When the user requests the restore, the Backup Daemon retrieves
+the snapshot that immediately precedes the point in time, and writes
+that snapshot to disk. The Backup Daemon then retrieves oplog entries
+from the Backup Blockstore and applies them, creating a custom snapshot
+for that point in time. The Backup Daemon then combines and compresses
+the snapshot into a ``tar.gz`` archive, and securely copies the archive
+to the destination server.
+
+This restore method requries that you have adequate space on the server
+hosting the Backup Daemon for the snapshot files, oplog, and archive.
+
+Individual Files SCP Restore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Snapshot
+````````
+
+.. include:: /images/scp-snapshot-individual-files.rst
+
+For a snapshot restore, with SCP individual files delivery, the Backup
+Daemon simply retrieves the snapshot from the Backup Blockstore, and
+securely copies the data files to the target directory on the desintation server.
+
+This restore method also has the advantage of taking up no space on the
+server hosting the Backup Daemon: the file passes directly from the
+Backup Blockstore to the destination server. The destination server
+requires only sufficient space for the uncompressed data files. The data
+*is* compressed during transmission.
+
+Point-In-Time
+`````````````
+
+.. include:: /images/scp-point-in-time-individual-files.rst
+
+The point-in-time restore with SCP individual files delivery follows the same
+pattern as the snapshot restore, but with added steps for applying the
+oplog. 
+
+When the user requests the restore, the Backup Daemon retrieves the
+snapshot that immediately precedes the point in time, and writes that
+snapshot to disk. The Backup Daemon then retrieves oplog entries from
+the Backup Blockstore and applies them, creating a custom snapshot for
+that point in time. The Backup Daemon then securely copies the data
+files to the target directory on the desintation server
+
+This restore method also requries that you have adequate space on the
+server hosting the Backup Daemon for the snapshot files and oplog. The
+destination server requires only sufficient space for the uncompressed
+data files. The data *is* compressed during transmission.
