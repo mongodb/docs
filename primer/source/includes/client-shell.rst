@@ -14,7 +14,7 @@ Start ``mongo``
 
 Once you have :doc:`installed and have started </installation>`
 MongoDB, connect the :program:`mongo` shell to your running MongoDB
-instance. Ensure MongoDB is running before attempting to launch the
+instance. Ensure that MongoDB is running before attempting to launch the
 :program:`mongo` shell.
 
 On the same system where the MongoDB is running, open a terminal window
