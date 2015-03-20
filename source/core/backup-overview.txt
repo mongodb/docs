@@ -1,17 +1,20 @@
-================
-Backup Lifecycle
-================
+============
+Backup Flows
+============
 
-.. _backup-initial-sync:
 
 Introduction
 ------------
 
 The Backup service's process for keeping a backup in sync with your
 deployment is analogous to the process used by a secondary to replicate
-data in a replica set. Backup first performs an initial sync to catch up
-with your deployment and then tails the oplog to stay caught up. For
-historical data, Backup takes scheduled snapshots.
+data in a :term:`replica set`. Backup first performs an initial sync to catch up
+with your deployment and then tails the oplog to stay caught up. Backup
+takes scheduled snapshots to keep a history of the data.
+
+.. include:: /images/v1_6-backup_flow.rst
+
+.. _backup-initial-sync:
 
 Initial Sync
 ------------
@@ -20,13 +23,13 @@ Transfer of Data and Oplog Entries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you start a backup, the Backup Agent streams your deployment's
-existing data to the the Backup HTTP Service in batches of documents
+existing data to the Backup HTTP Service in batches of documents
 totaling roughly 10MB. The batches are called "slices." The Backup HTTP
 Service stores the slices in a sync store for later processing. The sync
-store contains only the data as it existed when you started the Backup.
+store contains only the data as it existed when you started the backup.
 
-Simultaneous to transferring data, the Backup Agent tails the oplog and
-also streams oplog updates to the Backup HTTP Service. The service places
+While transferring the data, the Backup Agent also tails the oplog and
+also streams the oplog updates to the Backup HTTP Service. The service places
 the entries in the oplog store for later processing offline.
 
 By default, both the sync store and oplog store reside on the backing
@@ -35,11 +38,11 @@ MongoDB replica set that hosts the Backup Blockstore database.
 Building the Backup
 ~~~~~~~~~~~~~~~~~~~
 
-When the Backup HTTP Service has received all the slices, a Backup Daemon
-creates a local database on its server and inserts the documents that were
-captured as slices during the initial sync. The daemon then applies the
-oplog entries from the oplog store and removes the entries from the store
-as they are applied.
+When the Backup HTTP Service has received all of the slices, a Backup
+Daemon creates a local database on its server and inserts the documents
+that were captured as slices during the initial sync. The daemon then
+applies the oplog entries from the oplog store. |mms| retails all oplog
+entries for seven days.
 
 The Backup Daemon then validates the data. If there are missing documents,
 |mms| queries the deployment for the documents and the Backup Daemon
@@ -56,13 +59,13 @@ Routine Operation
 The Backup Agent tails the deployment's oplog and routinely batches and
 transfers new oplog entries to the Backup HTTP Service, which stores them
 in the oplog store. The Backup Daemon applies all newly received oplog
-entries in batches to its local replica of the backed-up deployment and
-then deletes the applied entries from the oplog store.
+entries in batches to its local replica of the backed-up deployment.
+|mms| retains the oplog entries for seven days.
 
 Snapshots
 ---------
 
-During a preset interval, a Backup Daemon takes a snapshot of the data
+During a preset interval, the Backup Daemon takes a snapshot of the data
 directory for the backed-up deployment, breaks it into blocks, and transfers
 the blocks to the Backup Blockstore database. For a sharded cluster, the
 daemon takes a snapshot of each shard and of the config servers. The
@@ -71,6 +74,7 @@ config servers for the snapshots.
 
 When a user requests a snapshot, a Backup Daemon retrieves the data from
 the Backup Blockstore database and delivers it to the requested destination.
+See: :doc:`/core/restore-overview` for an overview of the restore process.
 
 Grooms
 ------
