@@ -7,3 +7,5 @@
 - `C++ Edition <../cpp/>`_
 
 - `Java Edition <../java/>`_
+
+- `C# Edition <../csharp/>`_
