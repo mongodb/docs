@@ -641,115 +641,6 @@ To view all the indexes in a collection, iterate over the index view.
   end
 
 
-GridFS
-------
-
-The driver provides a clean and extremely simple interface to work with storage of
-chunked files in the database, also known as the pattern "GridFS".
-
-Files
-`````
-
-The core object when working with GridFS in Ruby is a ``Mongo::Grid::File`` object.
-This is the object that must be inserted into the database, and when retrieving
-files this is the object that is returned.
-
-To create a file with raw data:
-
-.. code-block:: ruby
-
-  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
-
-To create a file from a Ruby ``File`` object:
-
-.. code-block:: ruby
-
-  file = File.open('/path/to/my-file.txt')
-  grid_file = Mongo::Grid::File.new(file.read, :filename => File.basename(file.path))
-
-To change file options, for example chunk size, pass the options to the constructor:
-
-.. code-block:: ruby
-
-  file = File.open('/path/to/my-file.txt')
-  grid_file = Mongo::Grid::File.new(
-    file.read,
-    :filename => File.basename(file.path),
-    :chunk_size => 1024
-  )
-
-The following is a full list of the available options that files support.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 80
-
-   * - Option
-     - Description
-   * - ``:chunk_size``
-     - Sets the size of each file chunk in the database.
-   * - ``:content_type``
-     - Set a content type for the file.
-   * - ``:filename`` (Required)
-     - The file name.
-   * - ``:upload_date``
-     - The date the file was uploaded (stored).
-
-
-Inserting Files
-```````````````
-
-Files can be inserted into the database, one at a time. File chunks are inserted
-by default into the ``fs.chunks`` collection and file metadata is inserted into the
-``fs.files`` collection.
-
-.. code-block:: ruby
-
-  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
-  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
-
-  client.database.fs.insert_one(file)
-
-To insert into collections with a name prefix other than `fs`, access the
-"filesystem" with a ``:fs_name`` option.
-
-.. code-block:: ruby
-
-  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
-  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
-
-  client.database.fs(:fs_name => 'grid').insert_one(file)
-
-Note that the first time the ``fs`` is called, it will create the required index
-for you on the ``chunks`` collection. This index is a compound index:
-
-.. code-block:: ruby
-
-  { :files_id => 1, :n => 1 }
-
-Finding Files
-`````````````
-
-To retrieve a file from the database, call ``find_one`` with the appropriate filter.
-
-.. code-block:: ruby
-
-  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
-  client.database.fs.find_one(:filename => 'new-file.txt') #=> Returns a Mongo::Grid::File
-
-Deleting Files
-``````````````
-
-To delete a file, pass the file object to ``delete_one``.
-
-.. code-block:: ruby
-
-  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
-  fs = client.database.fs
-  file = fs.find_one(:filename => 'new-file.txt')
-  fs.delete_one(file)
-
-
 Authentication
 --------------
 
@@ -1050,4 +941,115 @@ The follow is an example of a list of operations passed to the ``bulk_write`` me
                       }
                     ],
                     :ordered => true )
+
+
+GridFS
+------
+
+The driver provides a clean and extremely simple interface to work with storage of
+chunked files in the database, also known as the pattern "GridFS".
+
+Files
+`````
+
+The core object when working with GridFS in Ruby is a ``Mongo::Grid::File`` object.
+This is the object that must be inserted into the database, and when retrieving
+files this is the object that is returned.
+
+To create a file with raw data:
+
+.. code-block:: ruby
+
+  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
+
+To create a file from a Ruby ``File`` object:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-file.txt')
+  grid_file = Mongo::Grid::File.new(file.read, :filename => File.basename(file.path))
+
+To change file options, for example chunk size, pass the options to the constructor:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-file.txt')
+  grid_file = Mongo::Grid::File.new(
+    file.read,
+    :filename => File.basename(file.path),
+    :chunk_size => 1024
+  )
+
+The following is a full list of the available options that files support.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 80
+
+   * - Option
+     - Description
+   * - ``:chunk_size``
+     - Sets the size of each file chunk in the database.
+   * - ``:content_type``
+     - Set a content type for the file.
+   * - ``:filename`` (Required)
+     - The file name.
+   * - ``:upload_date``
+     - The date the file was uploaded (stored).
+
+
+Inserting Files
+```````````````
+
+Files can be inserted into the database, one at a time. File chunks are inserted
+by default into the ``fs.chunks`` collection and file metadata is inserted into the
+``fs.files`` collection.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
+
+  client.database.fs.insert_one(file)
+
+To insert into collections with a name prefix other than `fs`, access the
+"filesystem" with a ``:fs_name`` option.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+  file = Mongo::Grid::File.new('I am a file', :filename => 'new-file.txt')
+
+  client.database.fs(:fs_name => 'grid').insert_one(file)
+
+Note that the first time the ``fs`` is called, it will create the required index
+for you on the ``chunks`` collection. This index is a compound index:
+
+.. code-block:: ruby
+
+  { :files_id => 1, :n => 1 }
+
+Finding Files
+`````````````
+
+To retrieve a file from the database, call ``find_one`` with the appropriate filter.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+  client.database.fs.find_one(:filename => 'new-file.txt') #=> Returns a Mongo::Grid::File
+
+Deleting Files
+``````````````
+
+To delete a file, pass the file object to ``delete_one``.
+
+.. code-block:: ruby
+
+  client = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'music')
+  fs = client.database.fs
+  file = fs.find_one(:filename => 'new-file.txt')
+  fs.delete_one(file)
+
+
     coll.find.to_a #=> { '_id' => ..., 'x' => 3 }
