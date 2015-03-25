@@ -1,0 +1,244 @@
+====================
+Operations Checklist
+====================
+
+.. default-domain:: mongodb
+
+.. COMMENT File is included in another file.  Keep the subtite levels as is.
+
+The following checklist, along with the
+:doc:`/administration/production-checklist-development` list, provides
+recommendations to help you avoid issues in your production MongoDB
+deployment.
+
+.. start-content
+
+Filesystem
+~~~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Align your disk partitions with your RAID configuration.
+
+   - Avoid using NFS drives for your :setting:`~storage.dbPath`.
+     Using NFS drives can result in degraded and unstable performance.
+     See: :ref:`production-nfs` for more information.
+
+     - VMWare users should use VMWare virtual drives over NFS.
+
+   - Linux/Unix: format your drives into XFS or EXT4. If using RAID,
+     you may need to configure XFS with your RAID geometry.
+
+   - Windows: use the NTFS file system.
+     **Do not** use any FAT file system (i.e. FAT 16/32/exFAT).
+
+Replication
+~~~~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Verify that all non-hidden replica set members are identically
+     provisioned in terms of their RAM, CPU, disk, network setup, etc.
+
+   - :doc:`Configure the oplog size </tutorial/change-oplog-size>` to
+     suit your use case:
+
+     - The replication oplog window should cover normal maintenance and
+       downtime windows to avoid the need for a full resync.
+
+     - The replication oplog window should cover the time needed to
+       restore a replica set member, either by an initial sync, or
+       restoring from the last backup.
+
+   - Ensure that your replica set includes at least three data-bearing nodes
+     with ``w:majority`` :doc:`write concern
+     </reference/write-concern>`. Three data-bearing nodes are
+     required for replica set wide data durability.
+
+   - Use hostnames when configuring replica set members, rather than IP
+     addresses.
+
+   - Ensure full bidirectional network connectivity between all
+     :program:`mongod` instances.
+
+   - Ensure that each host can resolve itself.
+
+   - Ensure that your replica set contains an odd number of voting members.
+
+     .. TODO: add link to fault tolerance page when WRITING-1222 closes
+
+   - Ensure that :program:`mongod` instances have ``0`` or ``1`` votes.
+
+   - For high availability, deploy your replica set into a *minimum* of
+     three data centers.
+
+     .. TODO: add link to fault tolerance page when WRITING-1222 closes
+
+Sharding
+~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Pplace your :doc:`config servers
+     </core/sharded-cluster-config-servers>` on dedicated hardware for
+     optimal performance in large clusters. Ensure that the hardware has
+     enough RAM to hold the data files entirely in memory and that it
+     has dedicated storage.
+
+   - Use NTP to synchronize the clocks on all components of your sharded
+     cluster.
+
+   - Ensure full bidirectional network connectivity between
+     :program:`mongod`, :program:`mongos` and config servers.
+
+   - Use CNAMEs to identify your config servers to the cluster so that
+     you can rename and renumber your config servers without downtime.
+
+Journaling: MMAPv1 Storage Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO: change heading to use an H4 for MMAPv1 and WT once WT
+   journaling notes added
+
+.. cssclass:: checklist
+
+   - Ensure that all instances use :doc:`journaling </core/journaling>`.
+
+   - Place the journal on its own low-latency disk for write-intensive
+     workloads. Note that this will affect snapshot-style backups as the
+     files constituting the state of the database will reside on
+     separate volumes.
+
+Hardware
+~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Use RAID10 and SSD drives for optimal performance.
+
+   - SAN and Virtualization:
+
+     - Ensure that each :program:`mongod` has provisioned IOPS for its
+       :setting:`~storage.dbPath`, or has its own physical drive or LUN.
+
+     - Avoid dynamic memory features, such as memory ballooning, when
+       running in virtual environments.
+
+     - Avoid placing all replica set members on the same SAN, as the SAN
+       can be a single point of failure.
+
+Deployments to Cloud Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Windows Azure: Adjust the TCP keepalive (``tcp_keepalive_time``) to
+     100-120. The default TTL for TCP connections on Windows Azure load
+     balancers is too show for MongoDB's connection pooling behavior.
+
+   - Use MongoDB version 2.6.4 or later on systems with high-latency
+     storage, such as Windows Azure, as these versions include
+     performance improvements for those systems. See: :ecosystem:`Azure
+     Deployment Recommendations </platforms/windows-azure>` for more
+     information.
+
+Operating System Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Linux
+`````
+
+.. cssclass:: checklist
+
+   - Turn off transparent hugepages and defrag. See: :ref:`Recommended
+     Configuration for MongoDB on Linux <linux-recommended-configuration>`
+     for more information.
+
+   - :ref:`Adjust the readahead settings <readahead>` on the devices
+     storing your database files to suit your use case. If your working
+     set is bigger that the available RAM, and the document access
+     pattern is random, consider lowering the readahead to 32 or 16.
+     Evaluate different settings to find an optimal value that maximizes
+     the resident memory and lowers the number of page faults.
+
+   - Use the ``noop`` or ``deadline`` disk schedulers for SSD drives.
+
+   - Use the ``noop`` disk scheduler for virtualized drives in guest VMs.
+
+   - Disable NUMA or set vm.zone_reclaim_mode to 0 and run :program:`mongod`
+     instances with node interleaving. See: :ref:`production-numa`
+     for more information.
+
+   - Adjust the ``ulimit`` values on your hardware to suit your use case. If
+     multiple :program:`mongod` or :program:`mongos` instances are
+     running under the same user, scale the ``ulimit`` values
+     accordingly. See: :doc:`/reference/ulimit` for more information.
+
+   - Use ``noatime`` for the :setting:`~storage.dbPath` mount point.
+
+   - Configure sufficient file handles (``fs.file-max``), kernel pid limit
+     (``kernel.pid_max``), and maximum threads per process
+     (``kernel.threads-max``) for your deployment. For large systems,
+     values of 98000, 32768, and 64000 are a good starting point.
+
+   - Ensure that your system has swap space configured. Refer to your
+     operating system's documentation for details on appropriate sizing.
+
+   - Ensure that the system default TCP keepalive is set correctly. A
+     value of 300 often provides better performance for replica sets and
+     sharded clusters. See: :ref:`faq-keepalive` in the Frequently Asked
+     Questions for more information.
+
+Windows
+```````
+
+.. cssclass:: checklist
+
+   - Consider disabling NTFS "last access time"  updates. This is 
+     analogous to diabling ``atime`` on Unix-like systems.
+
+Backups
+~~~~~~~
+
+.. cssclass:: checklist
+
+   - Schedule periodic tests of your back up and restore process to have
+     time estimates on hand, and to verify its functionality.
+
+Monitoring
+~~~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Use :mms-home:`MMS </>` or another monitoring system to monitor
+     key database metrics and set up alerts for them. Include alerts
+     for the following metrics:
+
+     - lock percent (for the :ref:`MMAPv1 storage engine <storage-mmapv1>`)
+     - replication lag
+     - replication oplog window
+     - assertions
+     - queues
+     - page faults
+
+   - Monitor hardware statistics for your servers. In particular,
+     pay attention to the disk use, CPU, and available disk space.
+
+     In the absence of disk space monitoring, or as a precaution:
+
+     - Create a dummy 4GB file on the :setting:`storage.dbPath` drive to
+       ensure available space if the disk becomes full.
+
+     - A combination of ``cron+df`` can alert when disk space hits a
+       high-water mark, if no other monitoring tool is available.
+
+Load Balancing
+~~~~~~~~~~~~~~
+
+.. cssclass:: checklist
+
+   - Configure load balancers to enable "sticky sessions" or "client
+     affinity", with a sufficient timeout for existing connections.
+
+   - Avoid placing load balancers between MongoDB cluster or replica set
+     components.
