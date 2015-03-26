@@ -94,7 +94,7 @@ readers and writers to the documents in a collection. Clients can read
 documents while write operations are in progress, and multiple threads
 can modify different documents in a collection at the same time.
 
-.. seealso:: :ref:`prod-notes-connection-pools`, :ref:`prod-notes-ram`
+.. seealso:: :ref:`prod-notes-ram`
 
 Data Consistency
 ----------------
@@ -175,15 +175,11 @@ maintain reasonable connection pool sizes. Adjust the connection pool
 size to suit your use case, beginning at 110-115% of the typical number
 of concurrent database requests.
 
-When using the :ref:`WiredTiger storage engine <storage-wiredtiger>`,
-the number of incoming connections to Wired Tiger should be less than
-or equal to the number of cores available on the machine.
-
-.. TODO add guidance for MMAPv1
-
 The :dbcommand:`connPoolStats` command returns information regarding
 the number of open connections to the current database for
 :program:`mongos` and :program:`mongod` instances in sharded clusters.
+
+See also :ref:`prod-notes-ram`.
 
 Hardware Considerations
 -----------------------
@@ -208,14 +204,14 @@ provide significant return.
 Increasing the amount of RAM accessible to MongoDB may help reduce the
 frequency of page faults.
 
-
 WiredTiger
 ``````````
 
-The WiredTiger storage engine is CPU bound since the number of
-connections to Wired Tiger should be less than or equal to the number
-of cores available on the machine. As such, increasing the number of
-cores can improve performance.
+With WiredTiger, the total number of active threads (i.e. concurrent
+operations) can impact performance. Specifically, if the total number
+of concurrent operations saturate the CPU, WiredTiger will experience
+negative performance. For information on active operations, you can use
+:method:`db.currentOp ( { active: true } )`.
 
 If you run :program:`mongod` in a container (e.g. ``lxc``, ``cgroups``,
 Docker, etc.) that does *not* have access to all of the RAM available
