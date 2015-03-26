@@ -27,56 +27,55 @@ pre: |
    approximation of a single moment in time. Lock these :program:`mongod`
    instances in as short of an interval as possible.
 
-   To lock or freeze a sharded cluster, you shut down one member of each
-   replica set. Ensure that the :term:`oplog` has sufficient capacity to
-   allow these secondaries to catch up to the state of the primaries after
-   finishing the backup procedure. See :ref:`replica-set-oplog-sizing` for
-   more information.
+   To lock or freeze a sharded cluster, issue :method:`db.fsyncLock()`
+   on a member of each replica set in the cluster. Ensure that the
+   :term:`oplog` has sufficient capacity to allow these secondaries to
+   catch up to the state of the primaries after finishing the backup
+   procedure. See :ref:`replica-set-oplog-sizing` for more information.
 ---
 title: Backup one config server.
 stepnum: 3
 ref: backup-config-server
 pre: |
-   Use :program:`mongodump` to backup one of the :ref:`config servers
-   <sharding-config-server>`. This backs up the cluster's metadata. You
-   only need to back up one config server, as they all hold the same data.
+   Use :program:`mongodump` with the :option:`--oplog` option to
+   backup one of the :ref:`config servers <sharding-config-server>`.
+   This backs up the cluster's metadata. You only need to back up one
+   config server as they all hold the same data.
 
-   Use the :program:`mongodump` tool to capture the content of the config
-   :program:`mongod` instances.
-
-   Your config servers must run MongoDB 2.4 or later with the
-   :option:`--configsvr <mongod --configsvr>` option:
+   Run :program:`mongodump` against the config server :program:`mongod`
+   instance; the config server :program:`mongod` instance must be
+   version 2.4 or later and must run with the :option:`--configsvr`
+   option.
 action:
    language: sh
    code: |
-      mongodump --db config
+      mongodump --oplog
 ---
 title: Backup replica set members.
 stepnum: 4
 ref: backup-replica-set-members
 pre: |
-   Back up the replica set members of the shards that shut down using
+   Back up the "frozen" replica set members of the shards using
    :program:`mongodump` and specifying the
-   :option:`--dbpath <mongodump --dbpath>` option. You may back up the
+   :option:`--oplog` option. You may back up the
    shards in parallel. Consider the following invocation:
 action:
    language: sh
    code: |
-      mongodump --journal --dbpath /data/db/ --out /data/backup/
+      mongodump --oplog --out /data/backup/
 post: |
    You must run :program:`mongodump` on the same system where the
-   :program:`mongod` ran. This operation will create a dump of all the
-   data managed by the :program:`mongod` instances that used the
-   :setting:`~storage.dbPath` ``/data/db/``.  :program:`mongodump`
-   writes the output of this dump to the ``/data/backup/``
-   directory.
+   :program:`mongod` ran. :program:`mongodump` writes the output of
+   this dump as well as the ``oplog.bson`` file to the
+   ``/data/backup/`` directory.
 ---
-title: Restart replica set members.
+title: Unlock replica set members.
 stepnum: 5
 ref: restart-replica-set-members
 pre: |
-   Restart all stopped replica set members of each shard as normal and
-   allow them to catch up with the state of the primary.
+   Use :method:`db.fsyncUnlock()` to unlock the locked replica set
+   members of each shard. Allow these mebers to catch up with the state
+   of the primary.
 ---
 title: Re-enable the balancer process.
 stepnum: 6
