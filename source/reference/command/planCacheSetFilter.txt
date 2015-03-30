@@ -48,6 +48,9 @@ A user must have access that includes the
 Examples
 --------
 
+Set Filter on Query Shape Consisting of Predicate Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The following example creates an index filter on the ``orders``
 collection such that for queries that consists only of an equality
 match on the ``status`` field without any projection and sort, the
@@ -80,6 +83,31 @@ To see whether MongoDB will apply an index filter for a query shape,
 check the :data:`~explain.queryPlanner.indexFilterSet` field of either
 the :method:`db.collection.explain()` or the :method:`cursor.explain()`
 method.
+
+Set Filter on Query Shape Consisting of Predicate, Projection, and Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an index filter for the ``orders``
+collection. The filter applies to queries whose predicate is an
+equality match on the ``item`` field, where only the ``quantity`` field
+is projected and an ascending sort by ``order_date`` is specified.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheSetFilter: "orders",
+         query: { item: "ABC" },
+         projection: { quantity: 1, _id: 0 },
+         sort: { order_date: 1 },
+         indexes: [
+            { item: 1, order_date: 1 , quantity: 1 }
+         ]
+      }
+   )
+
+For the query shape, the query optimizer will only consider indexed
+plans which use the index ``{ item: 1, order_date: 1, quantity: 1 }``.
 
 .. seealso::
    :dbcommand:`planCacheClearFilters`,
