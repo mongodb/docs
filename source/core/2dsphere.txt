@@ -6,65 +6,64 @@
 
 .. versionadded:: 2.4
 
-A ``2dsphere`` index supports queries that calculate geometries on an
-earth-like sphere. The index supports data stored as both
-:term:`GeoJSON` objects and as legacy coordinate pairs. The index
-supports legacy coordinate pairs by converting the data to the GeoJSON
-``Point`` type. The default datum for an earth-like sphere in MongoDB
-2.4 is :term:`WGS84`. Coordinate-axis order is **longitude, latitude**.
+Overview
+--------
 
-The ``2dsphere`` index supports all MongoDB geospatial queries: queries
-for inclusion, intersection and proximity. See the
+A ``2dsphere`` index supports queries that calculate geometries on an
+earth-like sphere. ``2dsphere`` index supports all MongoDB geospatial
+queries: queries for inclusion, intersection and proximity. See the
 :doc:`/reference/operator/query-geospatial` for the query operators
 that support geospatial queries.
 
-To create a ``2dsphere`` index, use the
-:method:`db.collection.ensureIndex` method. A :ref:`compound
-<index-type-compound>` ``2dsphere`` index can reference multiple
-location and non-location fields within a collection’s documents. See
-:doc:`/tutorial/build-a-2dsphere-index` for more information.
+The ``2dsphere`` index supports data stored as :doc:`GeoJSON
+</reference/geojson>` objects and as legacy coordinate pairs (See also
+:ref:`2dsphere-data-restrictions`). For legacy coordinate pairs, the
+index converts the data to GeoJSON :ref:`geojson-point`. For details on
+the supported GeoJSON objects, see :doc:`/reference/geojson`.
+
+The default datum for an earth-like sphere is :term:`WGS84`.
+Coordinate-axis order is **longitude, latitude**.
 
 .. _2dsphere-v2:
 
-``2dsphere`` Version 2
-----------------------
+``2dsphere (Version 2)``
+------------------------
 
 .. versionchanged:: 2.6
 
 MongoDB 2.6 introduces a version 2 of ``2dsphere`` indexes. Version 2
-is the default version of ``2dsphere`` indexes created in MongoDB 2.6.
-To create a ``2dsphere`` index as a version 1, include the option ``{
-"2dsphereIndexVersion": 1 }`` when creating the index.
-
-Additional GeoJSON Objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.6
-
-Version 2 adds support for additional GeoJSON object:
-:ref:`geojson-multipoint`, :ref:`geojson-multilinestring`,
-:ref:`geojson-multipolygon`, and
-:ref:`geojson-geometrycollection`.
+is the default version of ``2dsphere`` indexes created in MongoDB 2.6
+and later series. To override the default version 2 and create a
+version 1 index, include the option ``{ "2dsphereIndexVersion": 1 }``
+when creating the index.
 
 ``sparse`` Property
 ~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 2.6
 
-Version 2 ``2dsphere`` indexes are :doc:`sparse </core/index-sparse>`
+``2dsphere (Version 2)`` indexes are :doc:`sparse </core/index-sparse>`
 by default and ignores the :doc:`sparse: true </core/index-sparse>`
 option. If a document lacks a ``2dsphere`` index field (or the field is
 ``null`` or an empty array), MongoDB does not add an entry for the
-document to the ``2dsphere`` index. For inserts, MongoDB inserts the
-document but does not add to the ``2dsphere`` index.
+document to the index. For inserts, MongoDB inserts the document but
+does not add to the ``2dsphere`` index.
 
 For a compound index that includes a ``2dsphere`` index key along with
 keys of other types, only the ``2dsphere`` index field determines
 whether the index references a document.
 
-Earlier versions of MongoDB only support Version 1 ``2dsphere``
-indexes. Version 1 ``2dsphere`` indexes are *not* sparse by default and
-will reject documents with ``null`` location fields.
+Earlier versions of MongoDB only support ``2dsphere (Version 1)``
+indexes. ``2dsphere (Version 1)`` indexes are *not* sparse by default
+and will reject documents with ``null`` location fields.
+
+Additional GeoJSON Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``2dsphere (Version 2)`` includes support for additional GeoJSON
+object: :ref:`geojson-multipoint`, :ref:`geojson-multilinestring`,
+:ref:`geojson-multipolygon`, and :ref:`geojson-geometrycollection`. For
+details on all supported GeoJSON objects, see :doc:`/reference/geojson`.
 
 Considerations
 --------------
@@ -83,249 +82,29 @@ You cannot use a ``2dsphere`` index as a shard key when sharding a
 collection. However, you can create and maintain a geospatial index on
 a sharded collection by using a different field as the shard key.
 
-Data Restrictions
-~~~~~~~~~~~~~~~~~
+.. _2dsphere-data-restrictions:
+
+``2dsphere`` Indexed Field Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/geo-data-limit-for-2dsphere.rst
 
-.. _geospatial-indexes-store-geojson:
+Create a ``2dsphere`` Index
+---------------------------
 
-GeoJSON Objects
----------------
-
-MongoDB supports the following GeoJSON objects:
-
-- :ref:`geojson-point`
-
-- :ref:`geojson-linestring`
-
-- :ref:`geojson-polygon`
-
-- :ref:`geojson-multipoint`
-
-- :ref:`geojson-multilinestring`
-
-- :ref:`geojson-multipolygon`
-
-- :ref:`geojson-geometrycollection`
-
-The :ref:`geojson-multipoint`, :ref:`geojson-multilinestring`,
-:ref:`geojson-multipolygon`, and
-:ref:`geojson-geometrycollection` require ``2dsphere`` index version 2.
-
-In order to index GeoJSON data, you must store the data in a location
-field that you name. The location field contains an embedded document with a
-``type`` field specifying the GeoJSON object type and a ``coordinates``
-field specifying the object's coordinates. Always store coordinates in
-``longitude, latitude`` order.
-
-Use the following syntax:
+To create a ``2dsphere`` index, use the
+:method:`db.collection.ensureIndex()` method, specifying the location
+field as the key and specify the string literal ``"2dsphere"`` as the
+index type:
 
 .. code-block:: javascript
 
-   { <location field>: { type: "<GeoJSON type>" , coordinates: <coordinates> } }
+   db.collection.ensureIndex( { <location field> : "2dsphere" } )
 
-.. _geojson-point:
+Unlike a compound :doc:`2d </core/2d>` index which can reference one
+location field and one other field, a :ref:`compound
+<index-type-compound>` ``2dsphere`` index can reference multiple
+location and non-location fields.
 
-``Point``
-~~~~~~~~~
-
-.. versionadded:: 2.4
-
-The following example stores a GeoJSON :term:`Point`:
-
-.. code-block:: javascript
-
-   { loc: { type: "Point", coordinates: [ 40, 5 ] } }
-
-.. _geojson-linestring:
-
-``LineString``
-~~~~~~~~~~~~~~
-
-.. versionadded:: 2.4
-
-The following example stores a GeoJSON :term:`LineString`:
-
-.. code-block:: javascript
-
-   { loc: { type: "LineString", coordinates: [ [ 40, 5 ], [ 41, 6 ] ] } }
-
-.. _geojson-polygon:
-
-``Polygon``
-~~~~~~~~~~~
-
-.. versionadded:: 2.4
-
-:term:`Polygons <Polygon>` consist of an array of GeoJSON
-``LinearRing`` coordinate arrays. These ``LinearRings`` are closed
-``LineStrings``. Closed ``LineStrings`` have at least four coordinate
-pairs and specify the same position as the first and last coordinates.
-
-The line that joins two points on a curved surface may or may not contain
-the same set of co-ordinates that joins those two points on a flat
-surface. The line that joins two points on a curved surface will be a
-geodesic. Carefully check points to avoid errors with shared edges, as
-well as overlaps and other types of intersections.
-
-Polygons with a Single Ring
-```````````````````````````
-
-The following example stores a GeoJSON ``Polygon`` with an exterior
-ring and no interior rings (or holes). Note the first and last
-coordinate pair with the ``[ 0 , 0 ]`` coordinate:
-
-.. code-block:: javascript
-
-   {
-     loc :
-       {
-         type: "Polygon",
-         coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0  ] ] ]
-       }
-   }
-
-For Polygons with a single ring, the ring cannot self-intersect.
-
-Polygons with Multiple Rings
-````````````````````````````
-
-For Polygons with multiple rings:
-
-- The first described ring must be the exterior ring.
-
-- The exterior ring cannot self-intersect.
-
-- Any interior ring must be entirely contained by the outer ring.
-
-- Interior rings cannot intersect or overlap each other. Interior
-  rings cannot share an edge.
-
-The following document represents a polygon with an interior ring as
-GeoJSON:
-
-.. code-block:: javascript
-
-   { loc : {
-        type : "Polygon",
-        coordinates : [
-            [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ],
-            [ [ 2 , 2 ] , [ 3 , 3 ] , [ 4 , 2 ] , [ 2 , 2 ] ]
-        ]
-     }
-   }
-
-.. include:: /images/index-2dsphere-polygon-with-ring.rst
-
-.. _geojson-multipoint:
-
-``MultiPoint``
-~~~~~~~~~~~~~~
-
-.. versionadded:: 2.6
-   Requires ``2dsphere`` index version 2.
-
-The following example stores coordinates of GeoJSON type `MultiPoint
-<http://geojson.org/geojson-spec.html#id5>`_:
-
-.. code-block:: javascript
-
-   { loc: {
-       type: "MultiPoint",
-       coordinates: [
-          [ -73.9580, 40.8003 ],
-          [ -73.9498, 40.7968 ],
-          [ -73.9737, 40.7648 ],
-          [ -73.9814, 40.7681 ]
-       ]
-     }
-   }
-
-.. _geojson-multilinestring:
-
-``MultiLineString``
-~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.6
-   Requires ``2dsphere`` index version 2.
-
-The following example stores coordinates of GeoJSON type
-`MultiLineString <http://geojson.org/geojson-spec.html#id6>`_:
-
-.. code-block:: javascript
-
-   { loc:
-       {
-         type: "MultiLineString",
-         coordinates: [
-            [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
-            [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
-            [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
-            [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
-         ]
-       }
-   }
-
-.. _geojson-multipolygon:
-
-``MultiPolygon``
-~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.6
-   Requires ``2dsphere`` index version 2.
-
-The following example stores coordinates of GeoJSON type `MultiPolygon
-<http://geojson.org/geojson-spec.html#id7>`_:
-
-.. code-block:: javascript
-
-   { loc:
-       {
-         type: "MultiPolygon",
-         coordinates: [
-            [ [ [ -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [ -73.9814, 40.7681 ], [ -73.958, 40.8003 ] ] ],
-            [ [ [ -73.958, 40.8003 ], [ -73.9498, 40.7968 ], [ -73.9737, 40.7648 ], [ -73.958, 40.8003 ] ] ]
-         ]
-       }
-   }
-
-.. _geojson-geometrycollection:
-
-``GeometryCollection``
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.6
-   Requires ``2dsphere`` index version 2.
-
-The following example stores coordinates of GeoJSON type
-`GeometryCollection
-<http://geojson.org/geojson-spec.html#geometrycollection>`_:
-
-.. code-block:: javascript
-
-   { loc:
-       {
-         type: "GeometryCollection",
-         geometries: [
-            {
-               type: "MultiPoint",
-               coordinates: [
-                  [ -73.9580, 40.8003 ],
-                  [ -73.9498, 40.7968 ],
-                  [ -73.9737, 40.7648 ],
-                  [ -73.9814, 40.7681 ]
-               ]
-            },
-            {
-               type: "MultiLineString",
-               coordinates: [
-                  [ [ -73.96943, 40.78519 ], [ -73.96082, 40.78095 ] ],
-                  [ [ -73.96415, 40.79229 ], [ -73.95544, 40.78854 ] ],
-                  [ [ -73.97162, 40.78205 ], [ -73.96374, 40.77715 ] ],
-                  [ [ -73.97880, 40.77247 ], [ -73.97036, 40.76811 ] ]
-               ]
-            }
-         ]
-       }
-   }
+For more information on creating ``2dspshere`` indexes, see
+:doc:`/tutorial/build-a-2dsphere-index`.
