@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) 2011-2014
+# Copyright (C) 2011-2015
 # This file is distributed under the same license as the mongodb-manual package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mongodb-manual 2.6\n"
+"Project-Id-Version: mongodb-manual 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-03 15:39-0400\n"
+"POT-Creation-Date: 2015-03-30 14:28-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,422 +17,447 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../source/faq/concurrency.txt:3
-# ad20b9cd2fa54cc3b4e5c79f4685d1ac
+# 63f8a810bda74f01bd47d3145da17b13
 msgid "FAQ: Concurrency"
 msgstr ""
 
 #: ../source/faq/concurrency.txt:9
-# 1058f3a2213b41929b8f47583c8d7977
-msgid "MongoDB allows multiple clients to read and write a single corpus of data using a locking system to ensure that all clients receive the same view of the data *and* to prevent multiple applications from modifying the exact same pieces of data at the same time. Locks help guarantee that all writes to a single document occur either in full or not at all."
+# ebda362bb5ab4766b075f6fb5cabe4f2
+msgid "MongoDB allows multiple clients to read and write the same data. In order to ensure consistency, it uses locking and other :term:`concurrency control` measures to prevent multiple clients from modifying the same piece of data simultaneously. Together, these mechanisms guarantee that all writes to a single document occur either in full or not at all and that clients never see an inconsistent view of the data."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:16
-# 116498d69aa44f96a3fa19c9624f3f41
-msgid "`Presentation on Concurrency and Internals in 2.2 <http://www.mongodb.com/presentations/concurrency-internals-mongodb-2-2>`_"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:21
-# 7ac8bb4953ae42fb9d8107f544bd440e
+#: ../source/faq/concurrency.txt:20
+# 961f23bac8d845a78c46ae2da561459f
 msgid "What type of locking does MongoDB use?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:23
-# b1651e4e02264394953cf7c9dfa58039
-msgid "MongoDB uses a readers-writer [#multi-reader-lock-names]_ lock that allows concurrent reads access to a database but gives exclusive access to a single write operation."
+#: ../source/faq/concurrency.txt:22
+# 873aa09545ad4989a0e7a4cc19ae7b4e
+msgid "MongoDB uses reader-writer locks that allow concurrent readers shared access to a resource, such as a database or collection, but give exclusive access to a single write operation."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:27
-# c63fb02f1bde4d738510e918bb836af6
-msgid "When a read lock exists, many read operations may use this lock. However, when a write lock exists, a single write operation holds the lock exclusively, and no other read *or* write operations may share the lock."
+#: ../source/faq/concurrency.txt:26
+# c004a15838054a2ebee4819ae85e2f8e
+msgid "MongoDB uses multi-granularity locking [#mgl-ref]_ that allows operations to lock at the global, database or collection level, and allows for individual storage engines to implement their own concurrency control below the collection (i.e., at the document-level in WiredTiger)."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:31
-# 03aaf06d43774a46aef9756a2a2db4b8
-msgid "Locks are \"writer greedy,\" which means write locks have preference over reads. When both a read and write are waiting for a lock, MongoDB grants the lock to the write."
+#: ../source/faq/concurrency.txt:32
+# 0b7d58fb60954c85aa819fb350b63566
+msgid "In addition to a shared (S) locking mode for reads and an exclusive (X) locking mode for write operations, intent shared (IS) and intent exclusive (IX) modes indicate an intent to read or write a resource using a finer granularity lock.  When locking at a certain granularity all higher levels are locked using an :term:`intent lock`."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:35
-# 7e69ea9b28114f69873edca2cd512b8e
-msgid "You may be familiar with a \"readers-writer\" lock as \"multi-reader\" or \"shared exclusive\" lock. See the Wikipedia page on `Readers-Writer Locks <http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock>`_ for more information."
+#: ../source/faq/concurrency.txt:38
+# e2b67bfce09644ed9f5fb78def3b2832
+msgid "For example, when locking a collection for writing (using mode X), both the corresponding database lock and the global lock must be locked in intent exclusive (IX) mode. A single database can simultaneously be locked in IS and IX mode, but an exclusive (X) lock cannot coexist with any other modes, and a shared (S) lock can only coexists with intent shared (IS) locks."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:42
-# 5ca386e5e8ad407f875a0c2270bd247b
-msgid "How granular are locks in MongoDB?"
+#: ../source/faq/concurrency.txt:47
+# 866fb03b6d0c46ab89e65af8e29b5d06
+msgid "Locks are fair, with reads and writes being queued in order. However, to optimize throughput, when one request is granted, all other compatible requests will be granted at the same time, potentially releasing them before a conflicting request.  For example, consider a case in which an X lock was just released, and in which the conflict queue contains the following items:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:46
-# 7bcc6987928840af9e39de8bfe74741a
-msgid "Beginning with version 2.2, MongoDB implements locks on a per-database basis for most read and write operations. Some global operations, typically short lived operations involving multiple databases, still require a global \"instance\" wide lock. Before 2.2, there is only one \"global\" lock per :program:`mongod` instance."
+#: ../source/faq/concurrency.txt:54
+# 4dd044fd3e074e1386f1c1d317e0ffc8
+msgid "IS |rarr| IS |rarr| X |rarr| X |rarr| S |rarr| IS"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:52
-# eefc1068ef07457bb23e14b695973a56
-msgid "For example, if you have six databases and one takes a database-level write lock, the other five are still available for read and write. A global lock makes all six databases unavailable during the operation."
-msgstr ""
-
-#: ../source/faq/concurrency.txt:57
-# 9751825e914f4e9f8f4a3d92c61922f9
-msgid "How do I see the status of locks on my :program:`mongod` instances?"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:59
-# c1f57e421e614cefa478fe107b3c7375
-msgid "For reporting on lock utilization information on locks, use any of the following methods:"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:62
-#: ../source/faq/concurrency.txt:149
-# be4354f0b68f470bba637ed7dcb93a62
-# 40225bc170294df7aad43f1b3f50ff28
-msgid ":method:`db.serverStatus()`,"
+#: ../source/faq/concurrency.txt:56
+# 4e5987eafa3147cbb195a39411077a2c
+msgid "In strict first-in, first-out (FIFO) ordering, only the first two IS modes would be granted. Instead MongoDB will actually grant all IS and S modes, and once they all drain, it will grant X, even if new IS or S requests have been queued in the meantime. As a grant will always move all other requests ahead in the queue, no starvation of any request is possible."
 msgstr ""
 
 #: ../source/faq/concurrency.txt:63
-# ccc729bb85514542b4ba6a5ed8dba032
-msgid ":method:`db.currentOp()`,"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:64
-# a01634ea22614103a6f2287ba9e94110
-msgid ":doc:`mongotop </reference/program/mongotop>`,"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:65
-# cb69994f118048fab4c004d864b16f45
-msgid ":doc:`mongostat </reference/program/mongostat>`, and/or"
-msgstr ""
-
-#: ../source/faq/concurrency.txt:66
-# feb582dc02e84bf799429a6aba6bc9b0
-msgid "the `MongoDB Management Service (MMS) <http://mms.mongodb.com/>`_"
+# 32f293c1a47d4de39e3c6bc9066e9230
+msgid "See the Wikipedia page on `Multiple granularity locking <http://en.wikipedia.org/wiki/Multiple_granularity_locking>`_ for more information."
 msgstr ""
 
 #: ../source/faq/concurrency.txt:68
-# a17ccd4e0bff4b84b1d87ccd82880555
-msgid "Specifically, the :data:`~serverStatus.locks` document in the :doc:`output of serverStatus </reference/command/serverStatus>`, or the :data:`~currentOp.locks` field in the :doc:`current operation reporting </reference/method/db.currentOp>` provides insight into the type of locks and amount of lock contention in your :program:`mongod` instance."
+# 99703bc9ed11412081b78068c34d6bcf
+msgid "How granular are locks in MongoDB?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:74
-# f159706123e342a5b305c57bfa96d0b3
-msgid "To terminate an operation, use :method:`db.killOp()`."
+#: ../source/faq/concurrency.txt:72
+# fe4c4c1253d64586ae2d084aabef8d64
+msgid "Beginning with version 3.0, MongoDB ships with the :ref:`WiredTiger <storage-wiredtiger>` storage engine, which uses optimistic concurrency control for most read and write operations. WiredTiger only uses intent locks at the global, database and collection levels. When the storage engine detects conflicts between two operations, one will incur a write conflict causing MongoDB to transparently retry that operation."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:79
-# f8357a4790a24d0fa6693dfc9ce1041c
-msgid "Does a read or write operation ever yield the lock?"
+#: ../source/faq/concurrency.txt:80
+# d7e5d72a139f4b28ae2f9b65b646fa6f
+msgid "Some global operations, typically short lived operations involving multiple databases, still require a global \"instance-wide\" lock. Some other operations, such as dropping a collection, still require an exclusive database lock."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:81
-# 5408c15ae28a4cff8b64a8457cbe35bf
-msgid "In some situations, read and write operations can yield their locks."
+#: ../source/faq/concurrency.txt:85
+# 66ac39fde7d34524a01387da1eac8f6e
+msgid "The MMAPv1 storage engine uses collection-level locking as of the 3.0 release series, an improvement on earlier versions in which the database lock was the finest-grain lock. Third-party storage engines may either use collection-level locking or implement their own finer-grained concurrency control."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:83
-# 847b2aaeeaa14e4c8a0d787c8f7ce59a
-msgid "Long running read and write operations, such as queries, updates, and deletes, yield under many conditions. MongoDB uses an adaptive algorithms to allow operations to yield locks based on predicted disk access patterns (i.e. page faults.)"
+#: ../source/faq/concurrency.txt:91
+# f1461ba7a38a454d80c0eef014589960
+msgid "For example, if you have six collections in a database using the MMAPv1 storage engine and one takes a collection-level write lock, the other five are still available for read and write operations. An exclusive database lock makes all six collections unavailable during the operation holding the lock."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:88
-# 4a794d72f56a44bba84b8c73463c2eec
-msgid "MongoDB operations can also yield locks between individual document modification in write operations that affect multiple documents like :method:`~db.collection.update()` with the ``multi`` parameter."
+#: ../source/faq/concurrency.txt:98
+# 3e64b047d19c4485af8180a45558f6c8
+msgid "How do I see the status of locks on my :program:`mongod` instances?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:92
-# 1ac86e91306749e9beb50421d9a801ff
-msgid "MongoDB uses heuristics based on its access pattern to predict whether data is likely in physical memory before performing a read. If MongoDB *predicts* that the data is not in physical memory an operation will yield its lock while MongoDB loads the data to memory. Once data is available in memory, the operation will reacquire the lock to complete the operation."
+#: ../source/faq/concurrency.txt:100
+# 87d5faed7c5743ec8f7420d41932107a
+msgid "For reporting on lock utilization information on locks, use any of the following methods:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:99
-# fca4f53393de47fe9ef679419380491b
-msgid "MongoDB does not yield locks when scanning an index even if it predicts that the index is not in memory."
+#: ../source/faq/concurrency.txt:103
+#: ../source/faq/concurrency.txt:193
+# 3801ac54482e450ba9f6f6df31f01024
+# 37e814b24d524abaa722892ffd492824
+msgid ":method:`db.serverStatus()`,"
+msgstr ""
+
+#: ../source/faq/concurrency.txt:104
+# 88fd6dff5c6c4846aaaa04d6c9e315f9
+msgid ":method:`db.currentOp()`,"
+msgstr ""
+
+#: ../source/faq/concurrency.txt:105
+# c4af26b9302d4c018fc448b87816a7a4
+msgid ":doc:`mongotop </reference/program/mongotop>`,"
 msgstr ""
 
 #: ../source/faq/concurrency.txt:106
-# 71c0796ca5b24527bd0bdd0c51c5a9c0
+# 8e0290b358b74398b184e88411fc0d38
+msgid ":doc:`mongostat </reference/program/mongostat>`, and/or"
+msgstr ""
+
+#: ../source/faq/concurrency.txt:107
+# fcbe13333ace447dbddb3503c5693353
+msgid "the :mms-home:`MongoDB Management Service (MMS) </>`"
+msgstr ""
+
+#: ../source/faq/concurrency.txt:109
+# 4343a9a2713845a0b2f17ac1455f0fea
+msgid "Specifically, the :data:`~serverStatus.locks` document in the :doc:`output of serverStatus </reference/command/serverStatus>`, or the :data:`~currentOp.locks` field in the :doc:`current operation reporting </reference/method/db.currentOp>` provides insight into the type of locks and amount of lock contention in your :program:`mongod` instance."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:115
+# 4250a230cc7a49c496d34073a627160d
+msgid "To terminate an operation, use :method:`db.killOp()`."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:120
+# 5b953f5a22ca4071b503c2084e7cf668
+msgid "Does a read or write operation ever yield the lock?"
+msgstr ""
+
+#: ../source/faq/concurrency.txt:122
+# 172cbb79498c47cfb094d668ab7c21ea
+msgid "In some situations, read and write operations can yield their locks."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:124
+# b70356c5fbf94f8c9d1bfce0479de28d
+msgid "Long running read and write operations, such as queries, updates, and deletes, yield under many conditions.  MongoDB operations can also yield locks between individual document modifications in write operations that affect multiple documents like :method:`~db.collection.update()` with the ``multi`` parameter."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:130
+# 41fcc76f249f44438de3eed7752954ad
+msgid "MongoDB's :ref:`mmapv1 <storage-mmapv1>` storage engine uses heuristics based on its access pattern to predict whether data is likely in physical memory before performing a read. If MongoDB *predicts* that the data is not in physical memory, an operation will yield its lock while MongoDB loads the data into memory. Once data is available in memory, the operation will reacquire the lock to complete the operation."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:138
+# db07e5c4ceae4859a37324d805c21297
+msgid "For storage engines supporting document level :term:`concurrency control`, yielding is not necessary when accessing storage, as the :term:`intent locks <intent lock>` held at the global, database and collection level do not block other readers and writers."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:143
+# f0b4196369104a35a995f958c4b70f74
+msgid "MongoDB does not yield locks when scanning an index even if it predicts that the index is not in memory."
+msgstr ""
+
+#: ../source/faq/concurrency.txt:150
+# 964c3828f9434c48ab55950a52b76471
 msgid "Which operations lock the database?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:110
-# 42d1883b9d0049d7b83035bbcc360011
+#: ../source/faq/concurrency.txt:154
+# 9097000d648e41caa4fc7041d4b4bac0
 msgid "The following table lists common database operations and the types of locks they use."
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:4
-# b28901a4094c4437aa69bc2f2b0879a9
+# 7e41fcfacf21475980fd67f376bc41f4
 msgid "Operation"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:6
-# fcca843f406f4e4c9128fa0a71ad445b
+# 7db5bc7f2788444499256c9d77ed8683
 msgid "Lock Type"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:8
-# f15dfede174a4010bbb53773ba822a92
+# 223c8ffd77bd44acb54f7d6eceadc2fc
 msgid "Issue a query"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:10
 #: ../source/includes/table/lock-behavior-per-operation.rst:14
-#: ../source/includes/table/lock-behavior-per-operation.rst:60
-# e6597aac2233463ba1fb8ba320ddfb6d
-# e3dedf5b1ef84dea8bbb2b1607db666b
-# 0d1e335bf18141caa75c573eb81e2957
+#: ../source/includes/table/lock-behavior-per-operation.rst:66
+# 86c60b09b3374809b2c9f8bebd958d40
+# d6c5d496a2a44183892113ed8c2aa0a5
+# 22afec860f8c4763be8a763aa2058c95
 msgid "Read lock"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:12
-# 131cc4c2638e40f69c89ee9878dc4f75
+# edc355288da14fc7ad603286fee83389
 msgid "Get more data from a :term:`cursor`"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:16
-# 228bceb77d1b4dc0864bc8daab726315
+# 358032c3fed64e82a96b767654be4224
 msgid "Insert data"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:18
 #: ../source/includes/table/lock-behavior-per-operation.rst:22
 #: ../source/includes/table/lock-behavior-per-operation.rst:26
-# ca078a825b5c4e778162008bcb4f5b4e
-# 77607493bbd143899935287f51d63426
-# 487aefd26f0b48daba3f131b8e347da5
+# 56c03c537e964e0386356da8cf5a78c7
+# 0bfc0bad4f06488ebda03cc1756ffa65
+# df4c7db3625e4fd9bcb0bfc5613e6956
 msgid "Write lock"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:20
-# 4e1cc3a57f7240ffb0d5c734de662ed6
+# 8d08d65bb2094059a432bea8a8fc675e
 msgid "Remove data"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:24
-# f4c5cf4129d847b6be53f31b4c940226
+# ee2a5bcfa5e1422e9ed7d2cbc99c9d40
 msgid "Update data"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:28
-# 98f49e536df8446aa6f3dd50b65852c6
+# 4412dcc053164e84a1e0b1c563600617
 msgid ":term:`Map-reduce <map-reduce>`"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:30
-# 7451cbf635734fdbb75b2063fa977b5b
+# a494fb40a9194bb1bbeb44f283fbeb76
 msgid "Read lock and write lock, unless operations are specified as non-atomic. Portions of map-reduce jobs can run concurrently."
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:34
-# 192364223d4748cdba77c30dee8b581c
+# d2cb284d33a14881bc83b6098b0c05d5
 msgid "Create an index"
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:36
-# c5199d97b0dd4272bd4036f568126c11
+# b2f4aa66d59543af865360ef37380750
 msgid "Building an index in the foreground, which is the default, locks the database for extended periods of time."
 msgstr ""
 
 #: ../source/includes/table/lock-behavior-per-operation.rst:40
-# b85b99575b324b1f9cded5127b071f3f
+# c2defffa53c04b7aa33ec7e073157227
 msgid ":method:`db.eval()`"
 msgstr ""
 
-#: ../source/includes/table/lock-behavior-per-operation.rst:42
-# bc61ec23c79a4181a1ffb4c82345b0b7
+#: ../source/includes/table/lock-behavior-per-operation.rst:45
+# d9c140c7ae8742f1a67651a006baec54
 msgid "Write lock. The :method:`db.eval()` method takes a global write lock while evaluating the JavaScript function. To avoid taking this global write lock, you can use the :dbcommand:`eval` command with ``nolock: true``."
 msgstr ""
 
-#: ../source/includes/table/lock-behavior-per-operation.rst:48
-# 7e00b1bb7438415ea91d2fac35b1700c
+#: ../source/includes/table/lock-behavior-per-operation.rst:51
+# 39138d4871a44298a0d9942ae679877a
 msgid ":dbcommand:`eval`"
 msgstr ""
 
-#: ../source/includes/table/lock-behavior-per-operation.rst:50
-# cc4469142d84473cb304d72b0f065a1e
+#: ../source/includes/table/lock-behavior-per-operation.rst:56
+# edf567877e1d48a4aa135996b60ae1bd
 msgid "Write lock. By default, :dbcommand:`eval` command takes a global write lock while evaluating the JavaScript function. If used with ``nolock: true``, the :dbcommand:`eval` command does *not* take a global write lock while evaluating the JavaScript function. However, the logic within the JavaScript function may take write locks for write operations."
 msgstr ""
 
-#: ../source/includes/table/lock-behavior-per-operation.rst:58
-# bb4c75d48d2d47fc8d48f654f4123657
+#: ../source/includes/table/lock-behavior-per-operation.rst:64
+# b5effde21a6146769eaffbc5e65176aa
 msgid ":method:`~db.collection.aggregate()`"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:119
-# e9eeb8c664124fc1b12687e58fcf8701
+#: ../source/faq/concurrency.txt:163
+# 22e0e3fdec434aca9988286eaee13072
 msgid "Which administrative commands lock the database?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:121
-# ab7afe9dc64149dcaec245367b56d319
+#: ../source/faq/concurrency.txt:165
+# e6090feaf57146dda3c72f56e7a3ee8f
 msgid "Certain administrative commands can exclusively lock the database for extended periods of time. In some deployments, for large databases, you may consider taking the :program:`mongod` instance offline so that clients are not affected. For example, if a :program:`mongod` is part of a :term:`replica set`, take the :program:`mongod` offline and let other members of the set service load while maintenance is in progress."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:128
-# 4dd41972eaf04dc1befa86432a9cd3c4
+#: ../source/faq/concurrency.txt:172
+# a9635a7e02fc4952adb8c9880f27fc51
 msgid "The following administrative operations require an exclusive (i.e. write) lock on the database for extended periods:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:131
-# 5134a5545fd4465a9a7f5c045e62314a
-msgid ":method:`db.collection.ensureIndex()`, when issued *without* setting ``background`` to ``true``,"
+#: ../source/faq/concurrency.txt:175
+# 192da3e92f8742628666ef0667a3adf9
+msgid ":method:`db.collection.createIndex()`, when issued *without* setting ``background`` to ``true``,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:133
-# 0cc14deb9d0041d6a536e0592da3e4d7
+#: ../source/faq/concurrency.txt:177
+# 08c75f4fa872403ba3f2140bb04da205
 msgid ":dbcommand:`reIndex`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:134
-# 210842ed9fb64916b8b5b26c98b9a475
+#: ../source/faq/concurrency.txt:178
+# 3139be8948a64e99a59c4b7520c2fb08
 msgid ":dbcommand:`compact`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:135
-# 28a1ff8d6f454f00af5888fb585f53ed
+#: ../source/faq/concurrency.txt:179
+# 6d05bfb48ae545ac922e2561f9dec779
 msgid ":method:`db.repairDatabase()`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:136
-# bf052ba8b6984f999f54fbadb615a5e4
+#: ../source/faq/concurrency.txt:180
+# c58fd55ebac24009a83bb154d499ac9e
 msgid ":method:`db.createCollection()`, when creating a very large (i.e. many gigabytes) capped collection,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:138
-# c9011f88ecd04b52afe33628cc6a2276
+#: ../source/faq/concurrency.txt:182
+# dfb35e10d7ca4fd8b2e5c078d4f20c4d
 msgid ":method:`db.collection.validate()`, and"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:139
-# dea497e1e8074ab087bb80136622121e
+#: ../source/faq/concurrency.txt:183
+# 859cd86dd29440f3be1fe048019c7092
 msgid ":method:`db.copyDatabase()`. This operation may lock all databases. See :ref:`faq-concurrency-lock-multiple-dbs`."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:142
-# 97c7831fcde94509816b40d61dea6079
+#: ../source/faq/concurrency.txt:186
+# c386f00c962f4302bc43ff1a313a47c2
 msgid "The following administrative commands lock the database but only hold the lock for a very short time:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:145
-# 7b54338b9ac343cda67dd4b6e495af44
+#: ../source/faq/concurrency.txt:189
+# e7a55b9174fc4061afb4a4730bc034bd
 msgid ":method:`db.collection.dropIndex()`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:146
-# 24b225b4fa9245b8a26f39cf71efbe8a
+#: ../source/faq/concurrency.txt:190
+# 03abe7d392b241bd8cdec058e1000514
 msgid ":method:`db.getLastError()`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:147
-# 7b4b27d3175c4a2e8629ed85a0716182
+#: ../source/faq/concurrency.txt:191
+# 38b82676b8dc4522b0deacd90a8d10b7
 msgid ":method:`db.isMaster()`,"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:148
-# ba0b6b01eff24f829a030c0ac58a100f
+#: ../source/faq/concurrency.txt:192
+# 0e75e8f828494b23855c17131ec8a80e
 msgid ":method:`rs.status()` (i.e. :dbcommand:`replSetGetStatus`),"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:150
-# fd71f9911f134a5697f9be1a797e5350
+#: ../source/faq/concurrency.txt:194
+# bd679f9f720a4292a1b84662998453e2
 msgid ":method:`db.auth()`, and"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:151
-# 20a3f5bd4cfa467c8493b600e1d90b5a
+#: ../source/faq/concurrency.txt:195
+# e18d2f54048a4c4c99c4a6530e15b053
 msgid ":method:`db.addUser()`."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:156
-# 96f6038316034d8b8f6e2154570df97a
+#: ../source/faq/concurrency.txt:200
+# 6c7a23481963482c8680456223a70386
 msgid "Does a MongoDB operation ever lock more than one database?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:158
-# 4f137b5a8828453984403a69493fd1fe
+#: ../source/faq/concurrency.txt:202
+# 75df8db6a8414d7197e8733a79a3133d
 msgid "The following MongoDB operations lock multiple databases:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:160
-# 61affbb100154ef99a41ecc9352c8fb0
+#: ../source/faq/concurrency.txt:204
+# 06b4e175c50743f4854f519a3dd3a171
 msgid ":method:`db.copyDatabase()` must lock the entire :program:`mongod` instance at once."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:163
-# c152d777e4414cf6904fca6ba6120245
+#: ../source/faq/concurrency.txt:207
+# dfa074a3993942e1a5ce0b2b3027e229
 msgid ":method:`db.repairDatabase()` obtains a global write lock and will block other operations until it finishes."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:166
-# 6c24fa90f0254a45b1c79a1ebf1f29ea
+#: ../source/faq/concurrency.txt:210
+# ec58ceeced5a4e0798345a0280cf8ee3
 msgid ":term:`Journaling <journal>`, which is an internal operation, locks all databases for short intervals. All databases share a single journal."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:170
-# 57e7f08f7d8144b2b4335ecbeb3bb51f
+#: ../source/faq/concurrency.txt:214
+# be92759147c945a6a9ac107746e8f80c
 msgid ":doc:`User authentication </core/authentication>` requires a read lock on the ``admin`` database for deployments using :ref:`2.6 user credentials <admin-system-users-collection>`. For deployments using the 2.4 schema for user credentials, authentication locks the ``admin`` database as well as the database the user is accessing."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:176
-# c48342812e394c9196f1ac9528db9ba3
+#: ../source/faq/concurrency.txt:220
+# 9103030b77744906ba7f408d4a4d2d8f
 msgid "All writes to a replica set's :term:`primary` lock both the database receiving the writes and then the ``local`` database for a short time. The lock for the ``local`` database allows the :program:`mongod` to write to the primary's :term:`oplog` and accounts for a small portion of the total time of the operation."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:183
-# 790b03d7c2734a3ea436aca77f19e147
+#: ../source/faq/concurrency.txt:227
+# d2cced28a4234514bb8195fd2af18ab8
 msgid "How does sharding affect concurrency?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:185
-# ab0d00f607f744a8b59564f391cbc002
+#: ../source/faq/concurrency.txt:229
+# 2240ba2bf9dd49518039987478306b58
 msgid ":term:`Sharding <sharding>` improves concurrency by distributing collections over multiple :program:`mongod` instances, allowing shard servers (i.e. :program:`mongos` processes) to perform any number of operations concurrently to the various downstream :program:`mongod` instances."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:191
-# 634e51475bd549ef914e95c0ec1224cd
-msgid "Each :program:`mongod` instance is independent of the others in the shard cluster and uses the MongoDB :ref:`readers-writer lock <faq-concurrency-locking>`. The operations on one :program:`mongod` instance do not block the operations on any others."
+#: ../source/faq/concurrency.txt:235
+# 60cb88ae905d4c0099d98e2b86fa0dad
+msgid "Each :program:`mongod` instance is independent of the others in the shard cluster and uses its own :ref:`locks <faq-concurrency-locking>`. The operations on one :program:`mongod` instance do not block the operations on any others."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:199
-# da0c23b4f8fc44dc9b2eacad750db2cc
+#: ../source/faq/concurrency.txt:243
+# f1da7ecfb5204a02a1fe8b04eef0d073
 msgid "How does concurrency affect a replica set primary?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:201
-# 4c773e4ddfb54f4bbf12f1d2722e18e8
+#: ../source/faq/concurrency.txt:245
+# f729009439264076ba25017b37c4dcb8
 msgid "In :term:`replication`, when MongoDB writes to a collection on the :term:`primary`, MongoDB also writes to the primary's :term:`oplog`, which is a special collection in the ``local`` database.  Therefore, MongoDB must lock both the collection's database and the ``local`` database. The :program:`mongod` must lock both databases at the same time to keep the database consistent and ensure that write operations, even with replication, are \"all-or-nothing\" operations."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:210
-# 63858c4df65048418ad738eb7aeb23f7
+#: ../source/faq/concurrency.txt:254
+# 632665ced52243bfa6ecf62c96ae4c13
 msgid "How does concurrency affect secondaries?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:212
-# 517893730f7f4524a95ae0b88e1a041f
+#: ../source/faq/concurrency.txt:256
+# f8228057701646ca87065da268285b16
 msgid "In :term:`replication`, MongoDB does not apply writes serially to :term:`secondaries <secondary>`. Secondaries collect oplog entries in batches and then apply those batches in parallel. Secondaries do not allow reads while applying the write operations, and apply write operations in the order that they appear in the oplog."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:218
-# d31131be0bdd44a090ea82f91752b774
+#: ../source/faq/concurrency.txt:262
+# d89d47bcf949437687e70a070db07fd2
 msgid "MongoDB can apply several writes in parallel on replica set secondaries, in two phases:"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:221
-# 6e4a353cfdf34635ace7ac256b6c3f54
+#: ../source/faq/concurrency.txt:265
+# bb07ade6313a4096b37672ed4da97a08
 msgid "During the first *prefer* phase, under a read lock, the :program:`mongod` ensures that all documents affected by the operations are in memory. During this phase, other clients may execute queries against this member."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:226
-# 096c0a2b084045b49f7628b72182db6f
+#: ../source/faq/concurrency.txt:270
+# f8d36661dc434e67bdafebd0789faec8
 msgid "A thread pool using write locks applies all write operations in the batch as part of a coordinated write phase."
 msgstr ""
 
-#: ../source/faq/concurrency.txt:230
-# 7955371738e54765abe646156854be24
+#: ../source/faq/concurrency.txt:274
+# 5dd39d4f19fb464f8d85507e9fea0dc8
 msgid "What kind of concurrency does MongoDB provide for JavaScript operations?"
 msgstr ""
 
-#: ../source/faq/concurrency.txt:232
-# c75b2472c67d414c89d5e2553a1c0a2e
+#: ../source/faq/concurrency.txt:276
+# 3157bbd27cbb49acb2dd5e52e8722151
 msgid "The V8 JavaScript engine added in 2.4 allows multiple JavaScript operations to run at the same time. Prior to 2.4, a single :program:`mongod` could only run a *single* JavaScript operation at once."
 msgstr ""
 
