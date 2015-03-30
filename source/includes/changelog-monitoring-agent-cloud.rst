@@ -1,3 +1,11 @@
+Monitoring Agent ``3.2.0.177``
+------------------------------
+
+*Released 2015-03-31*
+
+Upgrades the version of the MongoDB Go driver (mgo), which fixes a rare
+deadlock while monitoring :program:`mongos` processes.
+
 Monitoring Agent ``3.1.0.173``
 ------------------------------
 
