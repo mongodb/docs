@@ -5,9 +5,11 @@ returns statistics describing the execution of the winning plan as well
 as statistics for the other candidate plans captured during :ref:`plan
 selection <query-plans-query-optimization>`.
 
-For write operations, |explain| returns information about the update or
-delete operations that *would* be performed, but does *not* apply the
-modifications to the database.
+.. start-explain-write
+
+.. include:: /includes/fact-explain-write-operations.rst
+
+.. end-explain-write
 
 |explain| returns the :data:`~explain.queryPlanner` and
 :data:`~explain.executionStats` information for the evaluated
