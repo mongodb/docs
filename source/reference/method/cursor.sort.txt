@@ -76,37 +76,42 @@ The specified metadata determines the sort order. For example, the
 ``"textScore"`` metadata sorts in descending order. See
 :projection:`$meta` for details.
 
+Restrictions
+~~~~~~~~~~~~
+
+When unable to obtain the sort order from an index, MongoDB will sort
+the results in memory, which requires that the result set being sorted
+is less than 32 megabytes.
+
+When the sort operation consumes more than 32 megabytes, MongoDB
+returns an error. To avoid this error, either create an index
+supporting the sort operation (see :ref:`sort-index-use`) or use
+:method:`~cursor.sort()` in conjunction with :method:`~cursor.limit()`
+(see :ref:`sort-limit-results`).
+
+.. _sort-index-use:
+
+Sort and Index Use
+~~~~~~~~~~~~~~~~~~
+
+The sort can sometimes be satisfied by scanning an index in order. If
+the query plan uses an index to provide the requested sort order,
+MongoDB does not perform an in-memory sorting of the result set. For
+more information, see :doc:`/tutorial/sort-results-with-indexes`.
+
 Limit Results
 ~~~~~~~~~~~~~
 
-The sort operation requires that the entire sort be able to complete
-within 32 megabytes.
+You can use :method:`~cursor.sort()` in conjunction with
+:method:`~cursor.limit()` to return the first (in terms of the sort
+order) ``k`` documents, where ``k`` is the specified limit.
 
-When the sort operation consumes more than 32 megabytes, MongoDB
-returns an error. To avoid this error, either create an index to
-support the sort operation or use :method:`~cursor.sort()` in
-conjunction with :method:`~cursor.limit()`. The specified limit must
-result in a number of documents that fall within the 32 megabyte limit.
-
-For example, if the following sort operation ``stocks_quotes`` exceeds
-the 32 megabyte limit:
-
-.. code-block:: javascript
-
-   db.stocks.find().sort( { ticker: 1, date: -1 } )
-
-Either create an index to support the sort operation:
-
-.. code-block:: javascript
-
-   db.stocks.ensureIndex( { ticker: 1, date: -1 } )
-
-Or use :method:`~cursor.sort()` in conjunction with
-:method:`~cursor.limit()`:
-
-.. code-block:: javascript
-
-   db.stocks.find().sort( { ticker: 1, date: -1 } ).limit(100)
+If MongoDB cannot obtain the sort order via an index scan, then MongoDB
+uses a top-k sort algorithm. This algorithm buffers the first ``k``
+results (or last, depending on the sort order) seen so far by the
+underlying index or collection access. If at any point the memory
+footprint of these ``k`` results exceeds 32 megabytes, the query will
+fail.
 
 .. _sort-with-projection:
 
