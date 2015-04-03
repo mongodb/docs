@@ -1,8 +1,8 @@
 .. _3.0-scram:
 
-===========================
-MongoDB 3.0 and SCRAM-SHA-1
-===========================
+==========================
+Upgrade to ``SCRAM-SHA-1``
+==========================
 
 .. default-domain:: mongodb
 
@@ -11,67 +11,99 @@ Overview
 
 MongoDB 3.0 includes support for the :ref:`SCRAM-SHA-1
 <authentication-scram-sha-1>` challenge-response user authentication
-mechanism. This changes how MongoDB uses and stores user credentials.  If
-your deployment uses authentication and authorization, you must
-upgrade the authentication schema in addition to upgrading MongoDB
-processes if you wish to make use of ``SCRAM-SHA-1``.
+mechanism, which changes how MongoDB uses and stores user credentials.
+
+For deployments that already contain user authentication data, to use
+the ``SCRAM-SHA-1`` mechanism, you must upgrade the authentication
+schema in addition to upgrading the MongoDB processes.
 
 You may, alternatively, opt to continue to use the ``MONGODB-CR``
-challenge-response mechanism and skip this upgrade. See the
-:ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` documentation for
-further information on its advantages.
+challenge-response mechanism and skip this upgrade.
 
-Recommendation
-~~~~~~~~~~~~~~
+See :ref:`upgrade-scram-scenarios` for details.
 
-``SCRAM-SHA-1`` represents a significant improvement in security
-over ``MONGODB-CR``, the previous default authentication mechanism:
-you are strongly urged to upgrade. The next major version of
-MongoDB is likely to remove all support for ``MONGODB-CR``.
+.. _upgrade-scram-scenarios:
 
 Upgrade Scenarios
 ~~~~~~~~~~~~~~~~~
 
 The following scenarios are possible when upgrading from 2.6 to 3.0:
 
-- If you are starting with a new 3.0 installation without any users
-  or upgrading from a 2.6 database that has no users and wish to use
-  ``SCRAM-SHA-1``, **no action is required**. All new users created
-  will have the correct format for ``SCRAM-SHA-1``.
+Continue to Use ``MONGODB-CR``
+``````````````````````````````
 
-- If you are upgrading from a 2.6 database with existing data,
-  including users, and wish to continue to use ``MONGODB-CR``, **no
-  action is required**. All new users created under 3.0 will continue to
-  use the same authentication model as users already in the database. You can
-  execute the upgrade to ``SCRAM-SHA-1`` at any point in the future.
+If you are upgrading from a 2.6 database with **existing** user
+authentication data, to continue to use ``MONGODB-CR`` for existing 
+challenge-response users, **no upgrade to
+the existing user data is required**. However, new challenge-response users
+created in 3.0 will use the following authentication mechanism:
 
-- If you are upgrading from a 2.6 database with existing data,
-  including users, and wish to upgrade to ``SCRAM-SHA-1``, you may
-  follow the steps under the heading :ref:`Upgrade a 2.6 Database to
-  Use SCRAM-SHA-1 on 3.0 <3.0-upgrade-mongodb-cr-to-scram>`.
+- If you populated MongoDB 3.0 user data by importing the 2.6 user
+  authentication data, including user data, new challenge-response
+  users created in MongoDB 3.0 will use ``SCRAM-SHA1``.
+
+- If you run MongoDB 3.0 binary against the 2.6 data files, including
+  the user authentication data files, new challenge-response users
+  created in MongoDB 3.0 will continue to use the ``MONGODB-CR``.
+
+You can execute the upgrade to ``SCRAM-SHA-1`` at any
+point in the future.
+
+Use ``SCRAM-SHA-1``
+```````````````````
+
+- If you are starting with a new 3.0 installation without any users or
+  upgrading from a 2.6 database that has no users, to use
+  ``SCRAM-SHA-1``, **no user data upgrade is required**. All newly
+  created users will have the correct format for ``SCRAM-SHA-1``.
+
+- If you are upgrading from a 2.6 database with **existing** user data,
+  to use ``SCRAM-SHA-1``, follow the steps in
+  :ref:`3.0-upgrade-mongodb-cr-to-scram`.
+
+.. important::
+
+   Before you attempt any upgrade, familiarize yourself with the
+   :ref:`3.0-scram-considerations` as the upgrade to ``SCRAM-SHA-1`` is
+   **irreversible** short of restoring from backups.
+
+Recommendation
+~~~~~~~~~~~~~~
+
+``SCRAM-SHA-1`` represents a significant improvement in security over
+``MONGODB-CR``, the previous default authentication mechanism: you are
+strongly urged to upgrade. For advantances of using ``SCRAM-SHA-1``,
+see :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`.
+
+.. _3.0-scram-considerations:
 
 Considerations
 --------------
+
+Backwards Incompatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upgrade-scram-irreversible.rst
+
+Upgrade Binaries
+~~~~~~~~~~~~~~~~
 
 Before upgrading the authentication model, you should
 first upgrade MongoDB binaries to 3.0. For sharded clusters, ensure
 that **all** cluster components are 3.0.
 
-You should also upgrade all drivers used by applications that will
-connect to upgraded database instances. The minimum driver versions
-that support ``SCRAM-SHA-1`` are:
+.. _considerations-scram-sha-1-drivers:
 
-- **C** - 1.1.0
-- **C++** - 1.0.0
-- **C#** - 1.1
-- **Java** - 2.13
-- **Node.js** - 2.0
-- **Perl** - 0.706.0.0
-- **PHP** - 1.6.0
-- **Python** - 2.8
-- **Motor** - 0.4
-- **Ruby** - 1.12
-- **Scala** - 2.8.0
+Upgrade Drivers
+~~~~~~~~~~~~~~~
+
+You must upgrade all drivers used by applications that will connect to
+upgraded database instances to version that support ``SCRAM-SHA-1``.
+The minimum driver versions that support ``SCRAM-SHA-1`` are:
+
+.. |driver-compatibility-heading| replace:: Version
+
+.. include:: /includes/list-table-3.0-driver-compatibility.rst
 
 See the :ecosystem:`MongoDB Drivers Page </drivers>` for links to
 download upgraded drivers.
@@ -130,17 +162,19 @@ config database.
 
 .. _3.0-upgrade-mongodb-cr-to-scram:
 
-Procedure: Upgrade a 2.6 Database to Use ``SCRAM-SHA-1``
---------------------------------------------------------
+Upgrade 2.6 ``MONGODB-CR`` Users to ``SCRAM-SHA-1``
+---------------------------------------------------
+
+.. warning::
+
+   .. include:: /includes/fact-upgrade-scram-irreversible.rst
 
 .. important::
 
-   This procedure **discards** the ``MONGODB-CR`` credentials used by
-   2.6, and therefore is irreversible short of restoring from
-   backups.
-
-   This  procedure   disables  ``MONGODB-CR``  as   an  authentication
-   mechanism.
+   To use the ``SCRAM-SHA-1`` authentication mechanism, a driver
+   upgrade is **neccessary** if your current driver version does not
+   support ``SCRAM-SHA-1``. See :ref:`required driver versions
+   <considerations-scram-sha-1-drivers>` for details.
 
 .. include:: /includes/steps/3.0-upgrade-mongodb-cr-to-scram.rst
 

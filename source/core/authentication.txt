@@ -65,10 +65,14 @@ Authentication Mechanisms
 
 MongoDB supports multiple authentication mechanisms. MongoDB's default
 authentication method is a :ref:`challenge and response mechanism
-(SCRAM-SHA-1) <authentication-scram-sha-1>`. MongoDB also supports
-:ref:`x509 certificate authentication <security-auth-x509>`, :ref:`LDAP
-proxy authentication <security-auth-ldap>`, and :ref:`Kerberos
-authentication <security-auth-kerberos>`.
+(SCRAM-SHA-1) <authentication-scram-sha-1>`. Previously, MongoDB used
+:ref:`MongoDB Challenge and Response (MONGODB-CR)
+<authentication-mongodb-cr>` as the default.
+
+MongoDB also supports :ref:`x509 certificate authentication
+<security-auth-x509>`, :ref:`LDAP proxy authentication
+<security-auth-ldap>`, and :ref:`Kerberos authentication
+<security-auth-kerberos>`.
 
 This section introduces the mechanisms available in MongoDB.
 
@@ -94,6 +98,16 @@ users with passwords.
 the user was created, and the user's database and the user's name
 together serves to identify the user.
 
+.. note:: 
+
+   A driver upgrade is **neccessary** to use the ``SCRAM-SHA-1``
+   authentication mechanism if your current driver version does not
+   support ``SCRAM-SHA-1``. See :ref:`required driver versions
+   <considerations-scram-sha-1-drivers>` for details.
+
+``SCRAM-SHA-1`` Advantages
+``````````````````````````
+
 MongoDB's implementation of ``SCRAM-SHA-1`` represents an improvement
 in security over the previously-used ``MONGODB-CR``, providing:
 
@@ -104,17 +118,24 @@ in security over the previously-used ``MONGODB-CR``, providing:
 - Authentication of the server to the client as well as the client to the
   server.
 
-.. versionchanged:: 3.0
+``SCRAM-SHA-1`` and Existing User Credentials
+`````````````````````````````````````````````
 
-   ``SCRAM-SHA-1`` is the default mechanism for MongoDB versions
-   beginning with the 3.0 series. Legacy ``MONGODB-CR`` credentials
-   from databases created with older server versions will still work
-   under 3.0 but must be upgraded with :dbcommand:`authSchemaUpgrade`
-   in order to take advantage of many of the improvements. The server
-   will continue to use the legacy credentials until it undergoes this
-   upgrade. Clients and drivers compatible with 3.0 will use the
-   ``SCRAM`` communication protocol even while using the legacy
-   credentials.
+``SCRAM-SHA-1`` is the default mechanism for MongoDB versions beginning
+with the 3.0 series. However, if you are upgrading a MongoDB 2.6
+instances that already have users credentials, MongoDB will continue to
+use ``MONGODB-CR`` for challenge-response authentication until you
+upgrade the authentication schema. Even when using the ``MONGODB-CR``
+authentication mechanism, clients and drivers that support MongoDB 3.0
+features (see :ref:`compatibility-driver-versions`) will use the
+``SCRAM`` communication protocol.
+
+For details on upgrading the authentication schema model to
+``SCRAM-SHA-1``, see :doc:`/release-notes/3.0-scram`.
+
+.. warning::
+
+   .. include:: /includes/fact-upgrade-scram-irreversible.rst
 
 .. _authentication-mongodb-cr:
 
@@ -125,9 +146,8 @@ in security over the previously-used ``MONGODB-CR``, providing:
 users through passwords.
 
 .. versionchanged:: 3.0
-   Versions of MongoDB prior to 3.0 use ``MONGODB-CR`` as the default
-   mechanism. As of version 3.0, MongoDB uses ``SCRAM-SHA-1`` by
-   default.
+   As of version 3.0, MongoDB no longer defaults to ``MONGODB-CR`` and
+   instead uses ``SCRAM-SHA-1`` as the default authentication mechanism.
 
 ``MONGODB-CR`` verifies supplied user credentials against the user's
 :data:`name <admin.system.users.user>`, :data:`password
