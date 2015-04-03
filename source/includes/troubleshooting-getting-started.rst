@@ -21,16 +21,8 @@ fixed problems:
 Authentication Errors
 ~~~~~~~~~~~~~~~~~~~~~
 
-If your MongoDB instances run with authentication enabled, ensure |mms| has these
-credentials. For new hosts, click the :guilabel:`Add Host` button on the
-:guilabel:`Deployment` page then specify credentials for every host with
-authentication enabled. For hosts already listed in |mms|, click the
-:guilabel:`gear icon` to the right of a host name on the :guilabel:`Deployment` page
-then select :guilabel:`Edit Host` to provide credentials.
-
-Please consult the :ref:`Authentication Requirements documentation
-<security-access-control-authentication>` for details about
-how to use authentication.
+If your MongoDB instances run with authentication enabled, ensure |mms| has the
+MongoDB credentials. See :doc:`/tutorial/edit-host-authentication-credentials`.
 
 .. _troubleshooting-check-logs:
 

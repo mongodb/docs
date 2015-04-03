@@ -9,3 +9,10 @@ to each server.
 
    You can use |mms| to provision new servers on AWS. 
    See: :doc:`/tutorial/provision-aws-servers` for full instructions.
+
+.. important::
+
+   If you provision your own servers and if you use :term:`MongoDB
+   Enterprise`, you must install the :ref:`prerequisite packages
+   <mongodb-enterprise-dependencies>` on the servers before deploying
+   MongoDB Enterprise on the servers.

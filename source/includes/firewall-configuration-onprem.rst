@@ -1,0 +1,129 @@
+Overview
+--------
+
+|mms| components use the default ports and health-check endpoints
+described here.
+
+Ports
+-----
+
+Although the following components are logically distinct, the
+:ref:`mms-http-service`, :ref:`backup-http-service`, and
+:ref:`backup-alert-service` are all part of the |application|
+and typically run on a single system. The Backup Daemon typically
+runs on a distinct system.
+
+|http-service|
+~~~~~~~~~~~~~~
+
+.. describe:: 8080
+
+   Web server, available from browsers. The system running the
+   Monitoring Agent must be able to access this port as well.
+
+Backup HTTP Service
+~~~~~~~~~~~~~~~~~~~
+
+.. describe:: 8081
+
+   Available from browsers for HTTP restores, and from systems running
+   the Backup Agent.
+
+.. describe:: 8091
+
+   *Optional*
+
+   Used for internal diagnostics. Only available on the localhost interface.
+
+Backup Alert Service
+~~~~~~~~~~~~~~~~~~~~
+
+.. describe:: 8650
+
+   A "kill-port" that the control script uses to signal a shutdown.
+
+   Only available on the localhost interface.
+
+.. describe:: 8092
+
+   *Optional*
+
+   Used for internal diagnostics. Only available on the localhost interface.
+
+Backup Daemon
+~~~~~~~~~~~~~
+
+.. describe:: 8640
+
+   A "kill-port" that the control script uses to signal a shutdown.
+
+   Only available on the localhost interface.
+
+.. describe:: 27500-27503
+
+   The Backup Daemon uses this port range to on the localhost
+   interface to run :program:`mongod` instances to apply oplog entries
+   to maintain the local copies of the backed up database.
+
+.. describe:: 8090
+
+   *Optional*
+
+   Used for internal diagnostics. Only available on the localhost interface.
+
+Monitoring HTTP Endpoints
+-------------------------
+
+|onprem| provides health-check endpoints for the monitoring of the 
+|onprem| components via a standard monitoring service, such as Zabbix or
+Nagios. These endpoints are only accessible on the ``localhost`` interface.
+
+.. _backup-http-service-endpoint:
+
+Backup HTTP Service Endpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Backup HTTP Service <backup-http-service>` on the |application|
+exposes the following endpoint:
+
+.. code-block:: sh
+
+   http://localhost:8091/health
+
+The endpoint checks the connections from the service to the
+:ref:`mms-application-database` and the
+:ref:`mms-backup-blockstore-database`.
+
+A successful response from the endpoint returns the following:
+
+.. code-block:: sh
+
+   {
+     "mms_db": "OK",
+     "backup_db": "OK"
+   }
+
+.. _backup-alert-service-endpoint:
+
+Backup Alert Service Endpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Backup Alert Service <backup-alert-service>` on the
+:ref:`mms-application-package` exposes the following health-check
+endpoint:
+
+.. code-block:: sh
+
+   http://localhost:8092/health
+
+.. _backup-daemon-endpoint:
+
+Backup Daemon Endpoint
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`Backup Daemon <backup-daemon>` on the Backup Daemon server
+exposes a health-check endpoint at:
+
+.. code-block:: sh
+
+   http://localhost:8090/health
