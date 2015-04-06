@@ -21,7 +21,7 @@ Monitoring Agent ``3.1.0.173``
 
    - Support for x.509 certificate authentication.
 
-   - Improved support for collecting database staistics from secondaries
+   - Improved support for collecting database statistics from secondaries
      as well as primaries.
 
 .. only:: classic
