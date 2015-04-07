@@ -35,4 +35,4 @@
      - `1.12 <https://rubygems.org/gems/mongo>`_
 
    * - :ecosystem:`Scala </drivers/scala>`
-     - `2.8 <https://github.com/mongodb/casbah/releases>`_
+     - `2.8.0 <https://github.com/mongodb/casbah/releases>`_
