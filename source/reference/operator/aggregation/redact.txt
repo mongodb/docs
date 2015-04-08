@@ -74,80 +74,78 @@ where the ``tags`` field lists the different access values for that
 document/embedded document level; i.e. a value of ``[ "G", "STLW" ]``
 specifies either ``"G"`` or ``"STLW"`` can access the data:
 
-.. code-block:: javascript
+.. code-block:: json
 
-   {
-      _id: 1,
-      title: "123 Department Report",
-      tags: [ "G", "STLW" ],
-      year: 2014,
-      subsections: [
-          {
-              subtitle: "Section 1: Overview",
-              tags: [ "SI", "G" ],
-              content:  "Section 1: This is the content of section 1."
-          },
-          {
-              subtitle: "Section 2: Analysis",
-              tags: [ "STLW" ],
-              content: "Section 2: This is the content of section 2."
-          },
-          {
-              subtitle: "Section 3: Budgeting",
-              tags: [ "TK" ],
-              content: {
-                  text: "Section 3: This is the content of section3.",
-                  tags: [ "HCS" ]
-              }
-          }
-      ]
-   }
+  {
+    _id: 1,
+    title: "123 Department Report",
+    tags: [ "G", "STLW" ],
+    year: 2014,
+    subsections: [
+      {
+        subtitle: "Section 1: Overview",
+        tags: [ "SI", "G" ],
+        content:  "Section 1: This is the content of section 1."
+      },
+      {
+        subtitle: "Section 2: Analysis",
+        tags: [ "STLW" ],
+        content: "Section 2: This is the content of section 2."
+      },
+      {
+        subtitle: "Section 3: Budgeting",
+        tags: [ "TK" ],
+        content: {
+          text: "Section 3: This is the content of section3.",
+          tags: [ "HCS" ]
+        }
+      }
+    ]
+  }
 
 A user has access to view information with either the tag ``"STLW"`` or
 ``"G"``. To run a query on all documents with year ``2014`` for this
 user, include a :pipeline:`$redact` stage as in the following:
 
-.. code-block:: none
+.. code-block:: javascript
 
    var userAccess = [ "STLW", "G" ];
    db.forecasts.aggregate(
       [
         { $match: { year: 2014 } },
-        { $redact:
-            {
-               $cond:
-                  {
-                    if: { $gt: [ { $size: { $setIntersection: [ "$tags", userAccess ] } }, 0 ] },
-                    then: "$$DESCEND",
-                    else: "$$PRUNE"
-                  }
+        { $redact: {
+           $cond: {
+              if: { $gt: [ { $size: { $setIntersection: [ "$tags", userAccess ] } }, 0 ] },
+              then: "$$DESCEND",
+              else: "$$PRUNE"
             }
+          }
         }
       ]
-   )
+   );
 
 The aggregation operation returns the following "redacted" document:
 
-.. code-block:: none
+.. code-block:: json
 
-   {
-      "_id" : 1,
-      "title" : "123 Department Report",
-      "tags" : [ "G", "STLW" ],
-      "year" : 2014,
-      "subsections" : [
-         {
-            "subtitle" : "Section 1: Overview",
-            "tags" : [ "SI", "G" ],
-            "content" : "Section 1: This is the content of section 1."
-         },
-         {
-            "subtitle" : "Section 2: Analysis",
-            "tags" : [ "STLW" ],
-            "content" : "Section 2: This is the content of section 2."
-         }
-      ]
-   }
+  {
+    "_id" : 1,
+    "title" : "123 Department Report",
+    "tags" : [ "G", "STLW" ],
+    "year" : 2014,
+    "subsections" : [
+      {
+        "subtitle" : "Section 1: Overview",
+        "tags" : [ "SI", "G" ],
+        "content" : "Section 1: This is the content of section 1."
+      },
+      {
+        "subtitle" : "Section 2: Analysis",
+        "tags" : [ "STLW" ],
+        "content" : "Section 2: This is the content of section 2."
+      }
+    ]
+  }
 
 .. seealso:: :expression:`$size`, :expression:`$setIntersection`
 
@@ -156,37 +154,37 @@ Exclude All Fields at a Given Level
 
 A collection ``accounts`` contains the following document:
 
-.. code-block:: javascript
+.. code-block:: json
 
-   {
-     _id: 1,
-     level: 1,
-     acct_id: "xyz123",
-     cc: {
-           level: 5,
-           type: "yy",
-           num: 000000000000,
-           exp_date: ISODate("2015-11-01T00:00:00.000Z"),
-           billing_addr: {
-                           level: 5,
-                           addr1: "123 ABC Street",
-                           city: "Some City"
-                         },
-           shipping_addr: [
-                             {
-                               level: 3,
-                               addr1: "987 XYZ Ave",
-                               city: "Some City"
-                             },
-                             {
-                               level: 3,
-                               addr1: "PO Box 0123",
-                               city: "Some City"
-                             }
-                          ]
-         },
-     status: "A"
-   }
+  {
+    _id: 1,
+    level: 1,
+    acct_id: "xyz123",
+    cc: {
+      level: 5,
+      type: "yy",
+      num: 000000000000,
+      exp_date: ISODate("2015-11-01T00:00:00.000Z"),
+      billing_addr: {
+        level: 5,
+        addr1: "123 ABC Street",
+        city: "Some City"
+      },
+      shipping_addr: [
+        {
+          level: 3,
+          addr1: "987 XYZ Ave",
+          city: "Some City"
+        },
+        {
+          level: 3,
+          addr1: "PO Box 0123",
+          city: "Some City"
+        }
+      ]
+    },
+    status: "A"
+  }
 
 In this example document, the ``level`` field determines the access
 level required to view the data.
@@ -196,22 +194,22 @@ fields contained in a document/embedded document at level ``5``, include a
 :pipeline:`$redact` stage that specifies the system variable
 ``"$$PRUNE"`` in the ``then`` field:
 
-.. code-block:: none
+.. code-block:: javascript
 
-   db.accounts.aggregate(
-      [
-        { $match: { status: "A" } },
-        { $redact:
-           {
-               $cond: {
-                        if: { $eq: [ "$level", 5 ] },
-                        then: "$$PRUNE",
-                        else: "$$DESCEND"
-                      }
-           }
+  db.accounts.aggregate(
+    [
+      { $match: { status: "A" } },
+      {
+        $redact: {
+          $cond: {
+            if: { $eq: [ "$level", 5 ] },
+            then: "$$PRUNE",
+            else: "$$DESCEND"
+          }
         }
-      ]
-   )
+      }
+    ]
+  );
 
 The :pipeline:`$redact` stage evaluates the ``level`` field to
 determine access. If the ``level`` field equals ``5``, then exclude all
@@ -221,14 +219,14 @@ field.
 
 The aggregation operation returns the following "redacted" document:
 
-.. code-block:: none
+.. code-block:: json
 
-   {
-     "_id" : 1,
-     "level" : 1,
-     "acct_id" : "xyz123",
-     "status" : "A"
-   }
+  {
+    "_id" : 1,
+    "level" : 1,
+    "acct_id" : "xyz123",
+    "status" : "A"
+  }
 
 The result set shows that the :pipeline:`$redact` stage excluded
 the field ``cc`` as a whole, including the ``shipping_addr`` field
