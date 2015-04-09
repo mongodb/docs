@@ -234,3 +234,89 @@ What kind of concurrency does MongoDB provide for JavaScript operations?
    operations to run at the same time. Prior to 2.4, a single
    :program:`mongod` could only run a *single* JavaScript operation at
    once.
+
+Does MongoDB support transactions?
+----------------------------------
+
+MongoDB does not support multi-document transactions.
+
+However, MongoDB does provide atomic operations on a single
+document. Often these document-level atomic operations are sufficient
+to solve problems that would require ACID transactions in a relational
+database.
+
+For example, in MongoDB, you can embed related data in nested arrays or
+nested documents within a single document and update the entire
+document in a single atomic operation. Relational databases might
+represent the same kind of data with multiple tables and rows, which
+would require transaction support to update the data atomically.
+
+.. seealso:: :doc:`/core/write-operations-atomicity`
+
+What isolation guarantees does MongoDB provide?
+-----------------------------------------------
+
+MongoDB provides the following guarantees in the presence of concurrent read and
+write operations.
+
+#. Read and write operations are atomic with respect to a single document and
+   will always leave the document in a consistent state. This means that readers
+   will never see a partially updated document, and indices will always be
+   consistent with the contents of the collection. Furthermore, a set of read
+   and write operations to a single document are serializable.
+
+#. Correctness with respect to query predicates, e.g.
+   :method:`db.collection.find()` will only return documents that match and
+   :method:`db.collection.update()` will only write to matching documents.
+
+#. Correctness with respect to sort. For read operations that request a sort
+   order (e.g. :method:`db.collection.find()` or
+   :method:`db.collection.aggregate()`), the sort order will not be violated due
+   to concurrent writes.
+
+Although MongoDB provides these strong guarantees for single-document
+operations, read and write operations may access an arbitrary number of
+documents during execution.  Multi-document operations do *not* occur
+transactionally and are not isolated from concurrent writes. This means that the
+following behaviors are expected under the normal operation of the system:
+
+#. Non-point-in-time read operations. Suppose a read operation begins at time
+   *t*\ :sub:`1` and starts reading documents. A write operation then commits an
+   update to a document at some later time *t*\ :sub:`2`. The reader may see the updated
+   version of the document, and therefore does not see a point-in-time snapshot of
+   the data.
+
+#. Non-serializable operations. Suppose a read operation reads a document
+   *d*\ :sub:`1` at time *t*\ :sub:`1` and a write operation updates *d*\ :sub:`1`
+   at some later time *t*\ :sub:`3`. This introduces a read-write dependency such
+   that, if the operations were to be serialized, the read operation must precede
+   the write operation. But also suppose that the write operation updates document
+   *d*\ :sub:`2` at time *t*\ :sub:`2` and the read operation subsequently reads
+   *d*\ :sub:`2` at some later time *t*\ :sub:`4`. This introduces a write-read
+   dependency which would instead require the read operation to come *after* the
+   write operation in a serializable schedule. There is a dependency cycle which
+   makes serializability impossible.
+
+#. Dropped results. Reads may miss matching documents that are updated or
+   deleted during the course of the read operation. However, data that has not
+   been modified during the operation will always be visible.
+
+.. seealso:: :doc:`/core/write-operations-atomicity`
+
+Can reads see changes that have not been committed to disk?
+-----------------------------------------------------------
+
+Yes, readers can see the results of writes before they are made durable by the
+journaling subsystem, regardless of write concern level or journaling
+configuration. As a result, applications may observe the following behaviors:
+
+#. MongoDB will allow a concurrent reader to see the result of the write
+   operation before the write is acknowledged to the client application. For details
+   on when writes are acknowledged for different write concern levels, see
+   :doc:`/core/write-concern`.
+
+#. Reads can see data which may subsequently be rolled back in rare cases such
+   as replica set failover or power loss. It does *not* mean that read operations
+   can see documents in a partially written or otherwise inconsistent state.
+
+Other systems refer to these semantics as *read uncommitted*.
