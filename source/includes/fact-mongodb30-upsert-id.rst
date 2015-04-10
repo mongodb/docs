@@ -1,9 +1,3 @@
 When you execute an :method:`~db.collection.update()` with the ``upsert``
-option, you can no longer use :ref:`document-dot-notation` to select only on
-part of the ``_id`` field. For example, the following will raise an error:
-
-.. code-block:: javascript
-
-   db.collection.update( { "_id.authorID": 1 },
-      { "name": "Robert Frost" },
-      { upsert: true } )
+option, you can not use :ref:`dot notation <document-dot-notation>` to select only
+part of the ``_id`` field.
