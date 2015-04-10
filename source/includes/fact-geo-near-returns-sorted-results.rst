@@ -1,4 +1,7 @@
-|geo-operation| always returns the documents sorted by distance. Any
-other sort order requires to sort the documents in memory, which can be
-inefficient. To return results in a different sort order, use the
-:operator:`$geoWithin` operator and the :method:`sort()` method.
+|geo-operation| sorts documents by distance. If you also include a
+:method:`~cursor.sort()` for the query, :method:`~cursor.sort()`
+re-orders the matching documents, effectively overriding the sort
+operation already performed by |geo-operation|. When using
+:method:`~cursor.sort()` with geospatial queries, consider instead
+:query:`$geoWithin` operator, which does not sort documents, instead of
+|geo-operation|.
