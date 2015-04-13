@@ -70,16 +70,24 @@ specified.
 Data Backup
 ~~~~~~~~~~~
 
-When you start Backup for a MongoDB deployment,
-the agent performs an :term:`initial sync` of the data as though it were a
-new hidden member of the replica set. For a sharded cluster the agent
+When you start Backup for a MongoDB deployment, the agent performs an
+:term:`initial sync` of the deployment's data as if it were creating a
+new, "invisible" member of a replica set. For a sharded cluster the agent
 performs a sync of each shard's :term:`primary` and of each config server.
 The agent ships initial sync and oplog data over HTTPS back to |mms|.
 
-The Backup Agent then tails each replica set's :term:`oplog` to maintain
-on disk a standalone database, called a *head*, for each backed-up replica
-set. Each head is consistent with the original primary up to the last
-oplog supplied by the agent.
+.. only:: onprem
+
+   The Backup Agent then tails each replica set's :term:`oplog` to maintain
+   on disk a standalone database, called a *head*, for each backed-up replica
+   set. Each head is consistent with the original primary up to the last
+   oplog supplied by the agent.
+
+.. only:: cloud or classic
+
+   The Backup Agent then tails each replica set's :term:`oplog` to
+   continually update the backup. The backup is consistent with the
+   original primary up to the last oplog supplied by the agent.
 
 Backup performs the initial sync and the tailing of the oplog using
 standard MongoDB queries. The production replica set is not aware of the
@@ -88,15 +96,14 @@ copy of the backup data.
 Backup uses a :program:`mongod` with a version equal to or greater than
 the version of the replica set it backs up.
 
-The service retains snapshots based on a user-defined :ref:`snapshot
+Backup takes and stores snapshots based on a user-defined :ref:`snapshot
 retention policy <snapshot-frequency-and-retention>`.
-
 Sharded clusters snapshots temporarily stop the
 balancer via the :program:`mongos` so that they can insert a marker
 token into all shards and config servers in the cluster. |mms| takes a
 snapshot when the marker tokens appear in the backup data.
 
-Compression and block-level deduplication technology reduces snapshot data
+Compression and block-level de-duplication technology reduce snapshot data
 size. The snapshot only stores the differences between successive snapshots.
 Snapshots use only a fraction of the disk space required for full snapshots.
 

@@ -59,57 +59,55 @@ action:
 title: "Use ``scp`` to copy the ``gen.key`` file from the |application| server, **server 1**."
 stepnum: 4
 ref: copy-gen-key
-pre: |
+content: |
   Use ``scp`` to copy the ``/etc/mongodb-mms/gen.key`` from the |application|
   server to the ``/etc/mongodb-mms`` directory on the Backup
   Daemon server, **server 2**.
-action:
-  - pre: |
-      If it is inconvenient to use ``scp`` to copy ``gen.key``, you may encode
-      the file and copy its contents, provided you have a graphical user
-      interface with terminals open to both **server 1** and **server 2**. As
-      ``gen.key`` is a binary file, you must first encode the file into text
-      via ``base64``. On the console connected to **server 1**, type:
-    language: sh
-    code: |
-      sudo base64 /etc/mongodb-mms/gen.key
-  - pre: |
-      The command encodes the text and prints it to the terminal. For example:
-    language: sh
-    code: |
-      /LETVVl9rA1aFsY7masSLYJmlKValKbu
-  - pre: |
-      When the text appears on the terminal connected to **server 1**, use
-      your mouse and keyboard to select and copy it to your clipboard. On the
-      console connected to **server 2**, type:
-    language: sh
-    code: |
-      echo "
-  - pre: |
-      Then paste the copied text to the terminal, press RETURN, and type:
-    language: sh
-    code: |
-      " > gen.key.txt
-  - pre: |
-      This saves the string to a temporary file called ``gen.key.txt``. Next,
-      issue the following on **server 2** to convert the key back into binary
-      and save it as ``/etc/mongodb-mms/gen.key``:
-    language: sh
-    code: |
-      sudo base64 -d gen.key.txt > /etc/mongodb-mms/gen.key
-  - pre: |
-      Check that the key was converted properly by issuing the following
-      ``sum`` command on both **server 1** and **server 2** and ensuring that
-      the outputs match:
-    language: sh
-    code: |
-      sum /etc/mongodb-mms/gen.key
-  - pre: |
-      Once you have verified ``/etc/mongodb-mms/gen.key`` on **server 2**, issue
-      the following to remove the temporary file:
-    language: sh
-    code: |
-      rm gen.key.txt
+
+  For example, if you are running the command from the |application|
+  server:
+
+  .. code-block:: sh
+
+     scp -i .ssh/<key> /etc/mongodb-mms/gen.key <username>@<backup-daemon-hostname>:/etc/mongodb-mms
+
+  .. note::
+
+     If it is inconvenient to use ``scp`` to copy ``gen.key``, you may
+     encode the file and copy its contents, provided you have a graphical
+     user interface with terminals open to both **server 1** and **server
+     2**. As ``gen.key`` is a binary file, you must first encode the file
+     into text via ``base64``. On the console connected to **server 1**,
+     type:
+
+     ``sudo base64 /etc/mongodb-mms/gen.key``
+
+     The command encodes the text and prints it to the terminal. For example:
+
+     ``/LETVVl9rA1aFsY7masSLYJmlKValKbu``
+
+     Copy it to your clipboard. Then, on the console connected to **server
+     2**, enter the following, replacing ``<encoded-text>`` by pasting in
+     the copied text:
+
+     ``echo "<encoded-text>" > gen.key.txt``
+
+     On **server 2**, issue the following to convert the key back into
+     binary and save it as ``/etc/mongodb-mms/gen.key``:
+
+     ``sudo base64 -d gen.key.txt > /etc/mongodb-mms/gen.key``
+
+     Check that the key was converted properly by issuing the following
+     ``sum`` command on both **server 1** and **server 2** and ensuring
+     that the outputs match:
+
+     ``sum /etc/mongodb-mms/gen.key``
+
+     Once you have verified ``/etc/mongodb-mms/gen.key`` on **server 2**,
+     issue the following to remove the temporary file:
+
+     ``rm gen.key.txt``
+
 ---
 title: "Set permissions and ownership of the ``gen.key`` file on the Backup Daemon server, **server 2**."
 stepnum: 5
@@ -121,7 +119,7 @@ pre: |
 action:
   language: sh
   code: |
-    chown mongodb-mms.mongodb-mms /etc/mongodb-mms/gen.key
+    chown mongodb-mms:mongodb-mms /etc/mongodb-mms/gen.key
     chmod 600 /etc/mongodb-mms/gen.key
 ---
 title: Start the Backup Daemon.
@@ -140,23 +138,23 @@ title: "Open |onprem| and access the Backup configuration page."
 stepnum: 7
 ref: access-backup-config
 content: |
-  Open the |onprem| home page and log in as the user you registered when
-  installing the |application|. Then click the :guilabel:`Admin` link at the
-  top right of the page. Then click the :guilabel:`Backup` tab.
+  Open the |onprem| home page and log in as the user you first registered
+  when installing the |application|. (This user is the :ref:`global owner
+  <global-owner-role>`.) Then click the :guilabel:`Admin` link at the top
+  right of the page. Then click the :guilabel:`Backup` tab.
 ---
 title: "Enter configuration information for the Backup database."
 stepnum: 8
 ref: configure-backup-database-uri
 content: |
-  Enter the configuration information described here, and then click
+  Enter the configuration information described below, and then click
   :guilabel:`Save`. |onprem| uses this information to create the
   :manual:`connection string URI </reference/connection-string>` used to
   connect to the database.
 
   :guilabel:`<hostname>:<port>`: Enter a comma-separated list of the fully
   qualified domain names and port numbers for all :term:`replica set` members
-  for the Backup database. For test deployments, you can use a
-  :term:`standalone` MongoDB instance for the database.
+  for the Backup database.
 
   :guilabel:`MongoDD Auth Username` and :guilabel:`MongoDB Auth Password`:
   Enter the user credentials if the database uses authentication.

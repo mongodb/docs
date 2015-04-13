@@ -24,27 +24,30 @@ this page. The Production Notes include information on
    production failure.
 
 This page also includes requirements for the EC2 security group used when
-installing to AWS servers.
+installing on AWS servers.
 
 .. _hardware-requirements:
 
 Hardware Requirements
 ---------------------
 
-|onprem| Monitoring and Automation require a server for the following
-components, which usually run on
-the same machine. The server must meet the sum of the requirements for both
+Each server must meet the sum of the requirements for all its components.
+
+|onprem| Monitoring and Automation require servers for the following
 components:
 
-- :ref:`mms-application-package`
+- :ref:`mms-application-package`.
 
-- :ref:`mms-application-database`
+- :ref:`mms-application-database` replica set members
+
+  .. note:: Usually the |application| and one of the Application database's
+            replica set members run on the same server.
 
 If you run Backup, |onprem| also requires servers for the following:
 
 - :ref:`Backup Daemon <backup-daemon>`
 
-- :ref:`Backup Blockstore database <mms-backup-blockstore-database>`
+- :ref:`Backup Blockstore database <mms-backup-blockstore-database>` replica set members
 
 .. note::
 
@@ -106,12 +109,14 @@ If you wish to install the Backup Daemon on the same physical server as the
 |application|, the server must satisfy these requirements separately
 from the requirements in :ref:`application-hardware-requirements`.
 
-The server running the Backup Daemon acts as a hidden secondary for every
-replica set assigned to it. The server must have the disk space and write
+The server running the Backup Daemon acts similar to a hidden secondary for every
+replica set assigned to it, except that it differs from a hidden secondary in that
+the replica set is not aware of it. The server must have the disk space and write
 capacity to maintain the replica sets plus the space to store an additional
 copy of the data to support point-in-time restore. Typically, the Backup
 Daemon must be able to store 2 to 2.5 times the sum of the size on disk of all
-the backed-up replica sets.
+the backed-up replica sets, as it also needs space locally to build
+:ref:`point-in-time <point-in-time-restore>` restores.
 
 Before installing the Backup Daemon, we recommend contacting your MongoDB Account
 Manager for assistance in estimating the storage requirements for your Backup
@@ -152,7 +157,7 @@ Software Requirements
 Operating System
 ~~~~~~~~~~~~~~~~
 
-|onprem| supports the following operating systems:
+The |application| and Backup Daemon(s) can run on the following operating systems:
 
 - CentOS 5 or later
 
@@ -180,24 +185,37 @@ remove it before continuing.
 See :manual:`MongoDB ulimit Settings </reference/ulimit>` for recommended
 ulimit settings.
 
+.. warning::
+
+   Always refer to the :manual:`MongoDB Production Notes
+   </administration/production-notes>` to ensure healthy server configurations.
+
 .. _authentication-requirements:
 
 Authentication
 ~~~~~~~~~~~~~~
 
-If you will use LDAP for authentication, you must enable LDAP **before
-performing any setup of the |mms| service**, beyond starting the service. You
-**cannot** enable LDAP once you have opened the interface and signed up a
-user. You can enable LDAP **only** on a completely blank, no-hosts, no-users
-installation.
+If you will use LDAP for user-authentication to |onprem| (as described in
+:doc:`/tutorial/configure-for-ldap-authentication`), you must enable LDAP
+**before setting up** |mms|, beyond starting the service. You **cannot**
+enable LDAP once you have opened the interface and registered the first
+user. You can enable LDAP **only** on a completely blank, no-hosts,
+no-users installation.
 
 MongoDB
 ~~~~~~~
 
-The backing MongoDB replica sets must be MongoDB 2.4.9 or later.
-To back up a replica set with |mms|, all members of the set must run at
-least MongoDB 2.2 or later. To back up a sharded cluster, all
-components of the sharded cluster must be MongoDB 2.4.3 or later.
+The :ref:`mms-application-database` and
+:ref:`mms-backup-blockstore-database` must run on MongoDB 2.4.9 or later.
+
+.. note::
+
+   |onprem| 1.8.0, when released, **will not** support MongoDB 2.4 for the
+   |application| database and Backup Blockstore database.
+
+Your **backed-up** sharded cluster deployments must run at least MongoDB 2.4.3 or
+later. Your backed-up replica set deployments must run at least MongoDB
+2.2 or later.
 
 Web Browsers
 ~~~~~~~~~~~~

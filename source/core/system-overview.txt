@@ -82,29 +82,31 @@ See :ref:`backup-alert-service-endpoint`.
 
 .. _backup-daemon:
 
+.. _head-db:
+
 Backup Daemon
 -------------
 
-The Backup Daemon manages all local copies of backed up database (i.e. HEADs)
-as well as backup snapshots. The daemon does scheduled work based on data
+The Backup Daemon manages both the local copies of the backed-up databases
+and each backup's snapshots. The daemon does scheduled work based on data
 coming in to the Backup HTTP Service from the Backup Agents. No client
 applications talk directly to the daemon. Its state and job queues come from
 the :ref:`mms-application-database`.
 
-The daemon creates a local copy of the backed up database on in its
-local storage in the :setting:`rootDirectory` path. If you run
-multiple Backup Daemons, when you add a new backup the system selects
-a daemon for that instance and the local copy of that instance resides
-with that Daemon.
+The Backup Daemon's local copy of a backed-up deployment is called the
+**head** database. The daemon stores all its ``head`` databases in its
+:setting:`rootDirectory` path. To create each ``head`` database, the
+daemon's server acts as though it were an "invisible" :term:`secondary`
+for each :term:`replica set` designated for backup.
+
+If you run multiple Backup Daemons, |onprem| selects the Backup Daemon to
+use when a user enables backup for a deployment. The local copy of the
+deployment resides with that daemon's server.
 
 The daemon will take scheduled snapshots and store the snapshots in the
 :ref:`Backup Blockstore database <mms-backup-blockstore-database>`. It will
 also act on restore requests by retrieving data from the Blockstore and
 delivering it to the requested destination.
-
-The server running the Backup Daemon acts as a :manual:`hidden secondary
-</core/replica-set-hidden-member>` for every :term:`replica set` assigned
-to it.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` can increase your
 storage by scaling horizontally and can provide **manual** failover.

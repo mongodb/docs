@@ -8,11 +8,17 @@ Backup requires a separate, **dedicated** MongoDB replica set to hold
 snapshot data. This cannot be a replica set used for any
 purpose other than holding the snapshots.
 
-The replica set must have at least 3 members **that hold data**. |mms| uses
-``w:2`` :manual:`write concern </reference/write-concern>`, which reports a
-write operation as successful after acknowledgement from the primary and one
-secondary. If you use a replica set with fewer than 3 data-holding members,
-and if you lose one of the members, MongoDB blocks write operations.
+For durability the replica set must have at least two data-bearing
+members. For high availability the replica set must have at least three
+data-bearing members.
+
+.. note::
+
+   |mms| uses ``w:2`` :manual:`write concern </reference/write-concern>`,
+   which reports a write operation as successful after acknowledgement
+   from the primary and one secondary. If you use a replica set with two
+   data-bearing members and an arbiter, and if you lose one of the
+   data-bearing members, write operations are blocked.
 
 For *testing only* you may use a standalone MongoDB deployment in place of a
 replica set.
@@ -20,10 +26,13 @@ replica set.
 Server Size for the Blockstore Database
 +++++++++++++++++++++++++++++++++++++++
 
-The replica set must run on servers with enough capacity to store 2 to 3
-times the total backed-up data size. Please **contact your MongoDB Account
-Manager** for assistance in estimating the storage requirements for your
-Blockstore servers.
+Snapshots are compressed and de-duplicated at the block level in the
+Blockstore database. Typically, depending on data compressibility and
+change rate, the replica set must run on servers with enough capacity to
+store 2 to 3 times the total backed-up production data size. Please
+**contact your MongoDB Account Manager** for assistance in estimating the
+use-case and workload-dependent storage requirements for your Blockstore
+servers.
 
 Configuration Requirements from the MongoDB Production Notes
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -46,8 +55,19 @@ Production Notes include important information on :manual:`ulimits
 Other Requirements for the Blockstore Databsase
 +++++++++++++++++++++++++++++++++++++++++++++++
 
-Medium grade HDDs should have enough I/O throughput to handle the load of the
-Blockstore. Each replica set member should have 4 x 2ghz+ CPU cores. We
-recommend 8 GB of RAM for every 1 TB disk of Blockstore to provide good
-snapshot and restore speed. |mms| defines 1 TB of Blockstore as 1024\ :sup:`4`
-bytes.
+For each data-bearing member of the replica set member
+
+.. list-table::
+   :header-rows: 1
+
+   * - **CPU Cores**
+     - **RAM**
+     - **Disk Space**
+     - **Storage IOPS**
+   * - 4 x 2ghz+ 
+     - 8 GB of RAM for every 1 TB disk of Blockstore to provide good
+       snapshot and restore speed. |mms| defines 1 TB of Blockstore as
+       1024\ :sup:`4` bytes.
+     - Contact your MongoDB Account Manager.
+     - Medium grade HDDs should have enough I/O throughput to handle the
+       load of the Blockstore.

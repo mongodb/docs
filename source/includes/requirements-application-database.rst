@@ -1,5 +1,5 @@
-The :ref:`mms-application-database` holds the
-monitoring information for the :ref:`mms-application-package`.
+The :ref:`mms-application-database` holds monitoring and other metadata
+for the :ref:`mms-application-package`.
 
 The database runs as a three-member :term:`replica set`. If you cannot
 allocate space for three data-bearing members, the third member can be an
@@ -7,12 +7,13 @@ arbiter, but keep in mind that |mms| uses ``w:2`` :manual:`write concern
 </reference/write-concern>`, which reports a write operation as successful
 after acknowledgement from the primary and one secondary. If you use a replica
 set with fewer than 3 data-bearing members, and if you lose one of the
-data-bearing members, MongoDB blocks write operations.
+data-bearing members, MongoDB blocks write operations, meaning the
+:ref:`mms-application-database` has durability but not high availability.
 
 Run the replica set on dedicated servers. You can optionally run one
 member of the replica set on the same physical server as the |application|.
-For a test deployment, you can use a MongoDB standalone in place of a replica
-set.
+(For a :doc:`test deployment </tutorial/install-simple-test-deployment>`,
+you can use a MongoDB standalone in place of a replica set.)
 
 Each server that hosts a MongoDB process for the |application|
 database **must** comply with the :manual:`Production Notes

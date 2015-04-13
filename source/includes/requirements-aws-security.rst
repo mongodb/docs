@@ -1,4 +1,4 @@
-If you install to AWS servers, you must have at least one EC2 security group
+If you install on AWS servers, you must have at least one EC2 security group
 configured with the following inbound rules:
 
 - An SSH rule on the ``ssh`` port, usually port ``22``, that allows traffic from

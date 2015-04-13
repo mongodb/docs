@@ -15,8 +15,9 @@ The basic deployment uses three servers. The :ref:`mms-application-database`
 runs on the first server, and the :ref:`Backup Daemon <backup-daemon>` runs on
 the second. The two backing databases, the :ref:`mms-application-database`
 and optional :ref:`Backup Blockstore database
-<mms-backup-blockstore-database>`, run as three-member :term:`replica sets
-<replica set>` with members on each server.
+<mms-backup-blockstore-database>`, run as a three-member :term:`replica
+sets <replica-set>`, each with two data-bearing members and an arbiter
+spread across the three servers.
 
 The replica sets provide durability in case of failure by storing
 redundant copies of your application data and snapshots. However, the
@@ -38,11 +39,13 @@ The following diagram shows the basic deployment.
 Prerequisites
 -------------
 
-Your |onprem| and MongoDB servers must meet the :ref:`hardware-requirements`
-described on the :doc:`/core/requirements` page. Servers that host
-MongoDB instances must also meet the system configurations in the
-:manual:`MongoDB Production Notes </administration/production-notes>`.
-This includes the server hosting the Backup Daemon.
+Required System Configurations
+++++++++++++++++++++++++++++++
+
+All servers that host MongoDB instances must meet the system
+configurations in the :manual:`MongoDB Production Notes
+</administration/production-notes>`. This includes the server hosting the
+Backup Daemon.
 
 .. warning::
 
@@ -50,6 +53,11 @@ This includes the server hosting the Backup Daemon.
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
+Hardware Requirements
++++++++++++++++++++++
+
+Your |onprem| and MongoDB servers must meet the :ref:`hardware-requirements`
+described on the :doc:`/core/requirements` page.
 When a server hosts multiple components, you must sum the requirements for
 each component to determine the requirements for the server.
 
@@ -68,39 +76,28 @@ A basic deployment that can monitor up to 400 hosts has the following requiremen
        database, and the Arbiter for the Backup Blockstore.
      - 23 GB
      - 200 GB
+   * - 
+     - 
+     - 
    * - **Server 2**, which runs the Backup Daemon, the Primary for the Backup Blockstore, and
        the Arbiter for the |application| database.
      - 15 GB for the Backup Daemon **plus** 8 GB for every 1 TB of the Backup Blockstore database.
      - *Contact your MongoDB account manager.*
+   * - 
+     - 
+     - 
    * - **Server 3**, which runs the secondaries for the |application| and Backup Blockstore databases.
      - 8 GB for the |application| database **plus** 8 GB for every 1 TB of the Backup Blockstore
        database.
      - 200 GB for the |application| database. *Contact your MongoDB account manager for requirements
        for the Backup Blockstore database.*
 
+Permissions and Networking Requirements
++++++++++++++++++++++++++++++++++++++++
+
 You must have root access on the machines you are provisioning.
 
 .. include:: /includes/requirements-aws-security.rst
-
-.. note::
-
-   For a **test installation**, you can install all the server-side components
-   on a single server, as shown in the :ref:`test deployment diagram
-   <on-prem-minimal-deployment-diagram>`. Install the |application| database
-   and Backup Blockstore database as single-member :term:`replica sets
-   <replica set>`. For production installations, always use replica sets of at
-   least three members, to provide redundancy.
-
-   Running the components on a single server requires 15 GB of memory and 50
-   GB of disk space for the root partition. You can meet the size requirements
-   by using an AWS EC2 ``m3.xlarge`` instance and changing the size of the
-   root partition from 8 GB to 50 GB. When you log into the instance, execute
-   "``df -h``" to verify the root partition has 50 GB of space.
-
-   **Running on a single physical server is *not* suitable for production
-   deployments.** For production installations, ensure that you provision
-   physical servers with enough RAM and disk space to comfortably handle all
-   of the components and databases that run on them.
 
 Procedures
 ----------
@@ -138,7 +135,7 @@ Install the |application|
 
 Install the :ref:`mms-application-package` on **server 1**.
 The |application| and |application| database together provide full
-monitoring functionality.
+monitoring and automation functionality.
 
 .. include:: /includes/steps/install-basic-application.rst
 
