@@ -29,42 +29,46 @@ Example ``system.profile`` Document
 
 The documents in the :data:`system.profile
 <<database>.system.profile>` collection have the following form. This
-example document reflects an update operation:
+example document reflects an insert operation:
 
 .. code-block:: javascript
 
    {
-       "op" : "update",
-       "ns" : "social.users",
+       "op" : "insert",
+       "ns" : "test.orders",
        "query" : {
-           "name" : "j.r."
+          "_id" : 1,
+          "cust_id" : "A123",
+          "amount" : 500,
+          "status" : "A"
        },
-       "updateobj" : {
-           "$set" : {
-               "likes" : [
-                   "basketball",
-                   "trekking"
-               ]
-           }
-       },
-       "nscanned" : 1,
-       "nscannedObjects" : 1,
-       "moved" : true,
-       "nmoved" : 1,
-       "nMatched" : 1,
-       "nModified" : 1,
+       "ninserted" : 1,
        "keyUpdates" : 0,
+       "writeConflicts" : 0,
        "numYield" : 0,
-       "lockStats" : {
-           "timeLockedMicros" : {
-               "r" : NumberLong(0),
-               "w" : NumberLong(258)
-           },
-           "timeAcquiringMicros" : {
-               "r" : NumberLong(0),
-               "w" : NumberLong(7)
-           }
-       },
+       "locks" : {
+             "Global" : {
+                "acquireCount" : {
+                   "w" : NumberLong(1)
+                }
+             },
+             "MMAPV1Journal" : {
+                "acquireCount" : {
+                   "w" : NumberLong(2)
+                }
+             },
+             "Database" : {
+                "acquireCount" : {
+                   "w" : NumberLong(1)
+                }
+             },
+             "Collection" : {
+                "acquireCount" : {
+                   "W" : NumberLong(1)
+                }
+             }
+          },
+       ,
        "millis" : 0,
        "execStats" : {
        },
@@ -81,6 +85,11 @@ For any single operation, the documents created by the database
 profiler will include a subset of the following fields. The precise
 selection of fields in these documents depends on the type of
 operation.
+
+.. note::
+
+   For the output specific to the version of your MongoDB, refer to
+   the appropriate version of the MongoDB Manual.
 
 .. data:: system.profile.op
 
@@ -102,27 +111,35 @@ operation.
 
 .. data:: system.profile.query
 
-   The :ref:`query document <read-operations-query-document>` used.
+   The :ref:`query document <read-operations-query-document>` used, or
+   for an insert operation, the inserted document. If the document
+   exceeds 50 kilobytes, the value is a string summary of the object.
+   If the string summary exceeds 50 kilobytes, the string summary is
+   truncated, denoted with an ellipsis (``...``) at the end of the
+   string.
 
 .. data:: system.profile.command
 
-   The command operation.
+   The command operation. If the command document exceeds 50 kilobytes,
+   the value is a string summary of the object. If the string summary
+   exceeds 50 kilobytes, the string summary is truncated, denoted with
+   an ellipsis (``...``) at the end of the string.
 
 .. data:: system.profile.updateobj
 
-   The ``<update>`` document passed in
-   during an :doc:`update </tutorial/modify-documents>` operation.
+   The ``<update>`` document passed in during an :doc:`update
+   </tutorial/modify-documents>` operation. If the document exceeds 50
+   kilobytes, the value is a string summary of the object. If the
+   string summary exceeds 50 kilobytes, the string summary is
+   truncated, denoted with an ellipsis (``...``) at the end of the
+   string.
 
 .. data:: system.profile.cursorid
 
-   The ID of the cursor accessed by a ``getmore`` operation.
+   The ID of the cursor accessed by a ``query`` and ``getmore``
+   operations.
 
 .. data:: system.profile.ntoreturn
-
-   .. versionchanged:: 2.2
-      In 2.0, MongoDB includes this field for ``query`` and
-      ``command`` operations. In 2.2, this information MongoDB also
-      includes this field for ``getmore`` operations.
 
    The number of documents the operation specified to return. For
    example, the :dbcommand:`profile` command would return one document
@@ -137,8 +154,6 @@ operation.
 
 .. data:: system.profile.ntoskip
 
-   .. versionadded:: 2.2
-
    The number of documents the :method:`~cursor.skip()` method
    specified to skip.
 
@@ -151,7 +166,7 @@ operation.
    database is scanning many objects to find the target objects.
    Consider creating an index to improve this.
 
-.. data:: system.profile.nscannedObject
+.. data:: system.profile.nscannedObjects
 
    The number of documents that MongoDB scans from the collection in
    order to carry out the operation.
@@ -180,16 +195,11 @@ operation.
 
 .. data:: system.profile.scanAndOrder
 
-   :data:`~system.profile.scanAndOrder` is a boolean that is ``true`` when
-   a query **cannot** use the order of documents in the index for
-   returning sorted results: MongoDB must sort the documents after it
-   receives the documents from a cursor.
-
-   If :data:`~system.profile.scanAndOrder` is ``false``, MongoDB *can* use
-   the order of the documents in an index to return sorted results.
-
-   .. Based on informal tests, it looks like:data:`~system.profile.scanAndOrder`  is
-      only included in the profiler data when scanAndOrder is true.
+   :data:`~system.profile.scanAndOrder` is a boolean that is ``true``
+   when a query **cannot** use the ordering in the index to return the
+   requested sorted results; i.e. MongoDB must sort the documents after
+   it receives the documents from a cursor. The field only appears when
+   the value is ``true``.
 
 .. data:: system.profile.ndeleted
 
@@ -201,10 +211,14 @@ operation.
 
 .. data:: system.profile.nMatched
 
+   .. versionadded:: 2.6
+
    The number of documents that match the :data:`system.profile.query`
    condition for the update operation.
 
 .. data:: system.profile.nModified
+
+   .. versionadded:: 2.6
 
    The number of documents modified by the update operation.
 
@@ -215,16 +229,20 @@ operation.
 
 .. data:: system.profile.keyUpdates
 
-   .. versionadded:: 2.2
-
    The number of :doc:`index </indexes>` keys the update changed in
    the operation. Changing an index key
    carries a small performance cost because the database must remove the old
    key and inserts a new key into the B-tree index.
 
-.. data:: system.profile.numYield
+.. data:: system.profile.writeConflicts
 
-   .. versionadded:: 2.2
+   .. versionadded:: 3.0.0
+
+   The number of conflicts encountered during the write operation; e.g.
+   an ``update`` operation attempts to modify the same document as
+   another ``update`` operation. See also :term:`write conflict`.
+
+.. data:: system.profile.numYield
 
    The number of times the operation yielded to allow other operations
    to complete. Typically, operations yield when they need access to
@@ -234,42 +252,55 @@ operation.
    see :ref:`the FAQ on when operations yield
    <faq-concurrency-yielding>`.
 
-   .. versionchanged:: 3.0.0
-      :data:`system.profile.numYeild` does not apply to databases
-      using the :doc:`WiredTiger </core/storage>` storage engine, and
-      as such, is not included in the profiler output for
-      those databases.
+.. data:: system.profile.locks
 
-.. data:: system.profile.lockStats
+   .. versionadded:: 3.0.0
 
-   .. versionadded:: 2.2
+      :data:`~system.profile.locks` replaces the ``lockStats`` field.
 
-   The time in microseconds the operation spent acquiring and holding
-   locks. This field reports data for the following lock types:
+   The :data:`system.profile.locks` provides information for various
+   :ref:`lock types and lock modes <faq-concurrency-locking>` held
+   during the operation.
 
-   - ``R`` - global read lock
-   - ``W`` - global write lock
-   - ``r`` - database-specific read lock
-   - ``w`` - database-specific write lock
+   The possible lock types are:
 
-   .. data:: system.profile.lockStats.timeLockedMicros
+   .. include:: /includes/fact-lock-types.rst
 
-      The time in microseconds the operation held a specific lock. For
-      operations that require more than one lock, like those
-      that lock the ``local`` database to update the :term:`oplog`,
-      this value may be longer than the total length of the
-      operation (i.e. :data:`~system.profile.millis`.)
+   The possible locking modes for the lock types are as follows:
 
-   .. data:: system.profile.lockStats.timeAcquiringMicros
+   .. include:: /includes/fact-lock-modes.rst
 
-      The time in microseconds the operation spent waiting to acquire a
-      specific lock.
+   The returned lock information for the various lock types include:
 
-   .. versionchanged:: 3.0.0
-      :data:`system.profile.lockStats` does not apply to databases
-      using the :doc:`WiredTiger </core/storage>` storage engine, and
-      as such, is not included in the profiler output for
-      those databases.
+   .. data:: system.profile.locks.acquireCount
+
+      Number of times the operation acquired the lock in the specified
+      mode.
+
+   .. data:: system.profile.locks.acquireWaitCount
+
+      Number of times the operation had to wait for the
+      :data:`~system.profile.locks.acquireCount` lock acquisitions
+      because the locks were held in a conflicting mode.
+      :data:`~system.profile.locks.acquireWaitCount` is less than or
+      equal to :data:`~system.profile.locks.acquireCount`.
+
+   .. data:: system.profile.locks.timeAcquiringMicros
+
+      Cumulative time in microseconds that the operation had to wait to
+      acquire the locks.
+
+      :data:`~system.profile.locks.timeAcquiringMicros` divided by
+      :data:`~system.profile.locks.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
+
+   .. data:: system.profile.locks.deadlockCount
+
+      Number of times the operation encountered deadlocks while waiting
+      for lock acquisitions.
+
+   For more information on lock modes, see
+   :ref:`faq-concurrency-locking`.
 
 .. data:: system.profile.nreturned
 
@@ -299,8 +330,42 @@ operation.
 
 .. data:: system.profile.execStats
 
+   .. versionchanged:: 3.0
+
    A document that contains the execution statistics of the query
    operation. For other operations, the value is an empty document.
+
+   The :data:`system.profile.execStats` presents the staticstics as a
+   tree; each node provides the statistics for the operation executed
+   during that stage of the query operation.
+
+   .. note::
+
+      The following fields list for :data:`~system.profile.execStats`
+      is not meant to be exhaustive as the returned fields vary per
+      stage.
+
+   .. data:: system.profile.execStats.stage
+   
+      .. versionadded:: 3.0
+         :data:`~system.profile.execStats.stage` replaces the ``type`` field.
+
+      The descriptive name for the operation performed as part of the
+      query execution; e.g.
+
+      - ``COLLSCAN`` for a collection scan
+      - ``IXSCAN`` for scanning index keys
+      - ``FETCH`` for retrieving documents
+
+   .. data:: system.profile.execStats.inputStages
+
+      .. versionadded:: 3.0
+
+         :data:`~system.profile.execStats.inputStages` replaces the
+         ``children`` field.
+
+      An array that contains statistics for the operations that are the
+      input stages of the current stage.
 
 .. data:: system.profile.ts
 
