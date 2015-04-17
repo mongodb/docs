@@ -1,21 +1,29 @@
-=================================
-Prepare Backing MongoDB Instances
-=================================
+===================================
+Deploy Backing MongoDB Replica Sets
+===================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-Backing MongoDB instances are dedicated :term:`replica sets <replica set>`
-that store data to support |onprem| operations and **store no other
-data**. |onprem| requires a separate backing replica set for each of the
-two backing databases: the :ref:`mms-application-database` and the
-:ref:`mms-backup-blockstore-database`.
+|onprem| uses two dedicated :term:`replica sets <replica set>` to store operational
+data: one replica set to store the :ref:`mms-application-database` and another
+to store the :ref:`mms-backup-blockstore-database`. If you use multiple application
+or blockstore databases, set up separate replica sets for each database.
 
-A backing MongoDB replica set:
+The backing MongoDB replica sets are dedicated to operational data and
+**must store no other data**.
 
-- Stores data in support of |onprem| operations and **stores no other data**.
+Replica Sets Requirements
+-------------------------
+
+Each replica set that hosts an application or blockstore database:
+
+- Stores data in support of |onprem| operations only **and stores no other data**.
+
+- Must run on a server that meets the :ref:`server prerequisites below
+  <backing-instances-prerequisites>`.
 
 - Must run MongoDB 2.4.9 or later.
 
@@ -25,16 +33,49 @@ A backing MongoDB replica set:
 
 - Must **not** run the MongoDB ``notablescan`` option.
 
-Prerequisites
--------------
+.. _backing-instances-prerequisites:
 
-Deploy servers that meet the requirements described here and also meet the
-requirements in the :manual:`MongoDB Production Notes
-</administration/production-notes>`. The Production Notes include
-important information on :manual:`ulimits </reference/ulimit>`,
-:manual:`NUMA </administration/production-notes#production-numa>`,
-:manual:`Transparent Huge Pages (THP)
-</reference/transparent-huge-pages>`, and other configuration options.
+Server Prerequisites
+--------------------
+
+The servers that run the replica sets must meet the following requirements.
+
+- The hardware requirements described in
+  :ref:`mms-application-database-specifications` or
+  :ref:`mms-blockstore-database-specifications`, depending on which
+  database the server will host. If a server hosts other |onprem|
+  components in addition to the database, you must sum the hardware
+  requirements for each component to determine the requirements for the
+  server.
+
+- The system requirements in the :manual:`MongoDB Production Notes
+  </administration/production-notes>`. The Production Notes include
+  important information on :manual:`ulimits </reference/ulimit>`,
+  :manual:`NUMA </administration/production-notes#production-numa>`,
+  :manual:`Transparent Huge Pages (THP)
+  </reference/transparent-huge-pages>`, and other configuration options.
+
+- The MongoDB ports requirements described in
+  :doc:`/reference/firewall-configuration`. Each server's firewall rules
+  must allow access to the required ports.
+
+- **RHEL servers only**: if the ``/etc/security/limits.d`` directory
+  contains the ``90-nproc.conf`` file, remove the file. The file overrides
+  ``limits.conf``, decreasing ``ulimit`` settings. Issue the following
+  command to remove the file:
+
+  .. code-block:: sh
+
+     sudo rm /etc/security/limits.d/90-nproc.conf
+
+Procedures
+----------
+
+Install MongoDB on Each Server
+++++++++++++++++++++++++++++++
+
+Use servers that meet the above :ref:`prerequisites
+<backing-instances-prerequisites>`.
 
 .. warning::
 
@@ -42,40 +83,18 @@ important information on :manual:`ulimits </reference/ulimit>`,
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
-If a server hosts |onprem| components as well as a member of the backing
-replica set, you must sum the :doc:`hardware requirements
-</core/requirements>` for each component to determine the requirements for
-the server.
+.. include:: /includes/steps/install-mongodb-for-backing-dbs.rst
 
-Ensure that firewall rules allow access to the :doc:`ports
-</reference/firewall-configuration>` that the instances runs on.
+Deploy a Backing Replica Set
+++++++++++++++++++++++++++++
 
-Configure as many servers as needed for your deployment. As needs change,
-you can later add capacity by provisioning additional backing servers.
+This procedure deploys a three-member replica set dedicated to store
+either the |application| database or Backup Blockstore database. Deploy
+the replica set to three servers that meet the :ref:`above requirements
+<backing-instances-prerequisites>` for the database the replica set will
+host.
 
-|application| Database Hardware
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Repeat this procedure for each backing replica set your installation
+requires.
 
-.. include:: /includes/requirements-application-database.rst
-
-|onprem| Backup Blockstore Database Hardware
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/requirements-backup-blockstore-database.rst
-
-Procedure
----------
-
-Do **not** use MongoDB instances that store other data.
-
-Install MongoDB
-~~~~~~~~~~~~~~~
-
-Install MongoDB on each server. See :manual:`Install MongoDB </installation/>`
-in the MongoDB manual.
-
-Deploy the Replica Sets
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Deploy a replica set for each database using the :manual:`Deploy a Replica
-Set </tutorial/deploy-replica-set>` procedure in the MongoDB manual.
+.. include:: /includes/steps/deploy-backing-replica-set.rst
