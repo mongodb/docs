@@ -215,6 +215,9 @@ from killing :program:`mongod`.
 
 The method :program:`mongod` uses to map memory files to memory ensures
 that the operating system will never store MongoDB data in swap space.
+On Windows systems, MongoDB requires extra swap space due to commitment
+limits. For details, see :ref:`MongoDB on Windows
+<production-windows-pagefile>`.
 
 RAID
 ````
@@ -405,6 +408,48 @@ operations to detect symbol version mismatches:
 This procedure is neither exact nor exhaustive: many symbols used by
 :program:`mongod` from the ``libcrypto`` library do not begin with
 ``CRYPTO_``.
+
+MongoDB on Windows
+~~~~~~~~~~~~~~~~~~
+
+Install Hotfix
+``````````````
+
+Microsoft has released a hotfix for Windows 7 and Windows Server 2008
+R2, `KB2731284 <http://support.microsoft.com/kb/2731284>`_, that repairs a bug
+in these operating systems' use of memory-mapped files that adversely affects
+the performance of MongoDB.
+
+Install this hotfix to obtain significant performance improvements on MongoDB
+2.6.6 and later releases in the 2.6 series.
+
+.. _production-windows-pagefile:
+
+Configure Windows Page File
+```````````````````````````
+
+Configure the page file such that the minimum and maximum page file
+size are equal and at least 32 GB. Use a multiple of this size if,
+during peak usage, you expect concurrent writes to many databases
+or collections. 
+
+A large page file is needed as Windows requires enough space to
+accommodate all regions of memory mapped files made writable during
+peak usage, regardless of whether writes actually occur. However,
+the page file size does not need to exceed the maximum size of the
+database.
+
+The page file is not used for database storage and will not receive
+writes during normal MongoDB operation. As such, the page file will not
+affect performance, but it must exist and be large enough to
+accommodate Windows' commitment rules during peak database use.
+
+.. note::
+
+   Dynamic page file sizing is too slow to accommodate the rapidly
+   fluctuating commit charge of an active MongoDB deployment. This can
+   result in transient overcommitment situations that may lead to
+   abrupt server shutdown with a VirtualProtect error 1455.
 
 .. _production-virtualization:
 
