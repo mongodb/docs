@@ -12,8 +12,9 @@ data-bearing members, MongoDB blocks write operations, meaning the
 
 Run the replica set on dedicated servers. You can optionally run one
 member of the replica set on the same physical server as the |application|.
-(For a :doc:`test deployment </tutorial/install-simple-test-deployment>`,
-you can use a MongoDB standalone in place of a replica set.)
+
+For a :doc:`test deployment </tutorial/install-simple-test-deployment>`,
+you can use a MongoDB standalone in place of a replica set.
 
 Each server that hosts a MongoDB process for the |application|
 database **must** comply with the :manual:`Production Notes

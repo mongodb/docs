@@ -8,17 +8,17 @@ Backup requires a separate, **dedicated** MongoDB replica set to hold
 snapshot data. This cannot be a replica set used for any
 purpose other than holding the snapshots.
 
-For durability the replica set must have at least two data-bearing
+For durability, the replica set must have at least two data-bearing
 members. For high availability the replica set must have at least three
-data-bearing members.
+data-bearing members. If possible, including three 
 
 .. note::
 
    |mms| uses ``w:2`` :manual:`write concern </reference/write-concern>`,
    which reports a write operation as successful after acknowledgement
    from the primary and one secondary. If you use a replica set with two
-   data-bearing members and an arbiter, and if you lose one of the
-   data-bearing members, write operations are blocked.
+   data-bearing members and an arbiter, and you lose one of the
+   data-bearing members, write operations will be blocked.
 
 For *testing only* you may use a standalone MongoDB deployment in place of a
 replica set.
@@ -29,8 +29,9 @@ Server Size for the Blockstore Database
 Snapshots are compressed and de-duplicated at the block level in the
 Blockstore database. Typically, depending on data compressibility and
 change rate, the replica set must run on servers with enough capacity to
-store 2 to 3 times the total backed-up production data size. Please
-**contact your MongoDB Account Manager** for assistance in estimating the
+store 2 to 3 times the total backed-up production data size. 
+
+**Contact your MongoDB Account Manager** for assistance in estimating the
 use-case and workload-dependent storage requirements for your Blockstore
 servers.
 
