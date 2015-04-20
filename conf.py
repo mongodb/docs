@@ -71,6 +71,7 @@ extlinks = {
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
     'mms': ('https://docs.mms.mongodb.com%s', ''),
