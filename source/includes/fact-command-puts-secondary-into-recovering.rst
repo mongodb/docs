@@ -5,7 +5,7 @@
   operations issued to an instance in the :replstate:`RECOVERING`
   state will fail.  This prevents clients from reading during the
   operation. When the operation completes, the secondary returns
-  to:replstate:`SECONDARY` state.
+  to :replstate:`SECONDARY` state.
 
 - See :doc:`/reference/replica-states/` for more information about
   replica set member states.
