@@ -34,7 +34,6 @@ example document reflects an update operation:
 .. code-block:: javascript
 
    {
-       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
        "op" : "update",
        "ns" : "social.users",
        "query" : {
@@ -48,11 +47,12 @@ example document reflects an update operation:
                ]
            }
        },
-       "nscanned" : 8,
-       "scanAndOrder" : true,
+       "nscanned" : 1,
+       "nscannedObjects" : 1,
        "moved" : true,
        "nmoved" : 1,
-       "nupdated" : 1,
+       "nMatched" : 1,
+       "nModified" : 1,
        "keyUpdates" : 0,
        "numYield" : 0,
        "lockStats" : {
@@ -66,7 +66,11 @@ example document reflects an update operation:
            }
        },
        "millis" : 0,
+       "execStats" : {
+       },
+       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
        "client" : "127.0.0.1",
+       "allUsers" : [ ],
        "user" : ""
    }
 
@@ -77,10 +81,6 @@ For any single operation, the documents created by the database
 profiler will include a subset of the following fields. The precise
 selection of fields in these documents depends on the type of
 operation.
-
-.. data:: system.profile.ts
-
-   The timestamp of the operation.
 
 .. data:: system.profile.op
 
@@ -111,7 +111,7 @@ operation.
 .. data:: system.profile.updateobj
 
    The ``<update>`` document passed in
-   during an :doc:`update </core/write-operations>` operation.
+   during an :doc:`update </tutorial/modify-documents>` operation.
 
 .. data:: system.profile.cursorid
 
@@ -151,6 +151,27 @@ operation.
    database is scanning many objects to find the target objects.
    Consider creating an index to improve this.
 
+.. data:: system.profile.nscannedObjects
+
+   The number of documents that MongoDB scans from the collection in
+   order to carry out the operation.
+
+.. data:: system.profile.moved
+
+   This field appears with a value of ``true`` when an update operation
+   moved one or more documents to a new location on disk. If the operation
+   did not result in a move, this field does not appear. Operations that
+   result in a move take more time than in-place updates and typically
+   occur as a result of document growth.
+
+.. data:: system.profile.nmoved
+
+   .. versionadded:: 2.2
+
+   The number of documents the operation moved on disk. This field appears
+   only if the operation resulted in a move. The field's implicit value is
+   zero, and the field is present only when non-zero.
+
 .. data:: system.profile.scanAndOrder
 
    :data:`~system.profile.scanAndOrder` is a boolean that is ``true`` when
@@ -164,30 +185,31 @@ operation.
    .. Based on informal tests, it looks like:data:`~system.profile.scanAndOrder`  is
       only included in the profiler data when scanAndOrder is true.
 
-.. data:: system.profile.moved
+.. data:: system.profile.ndeleted
 
-   This field appears with a value of ``true`` when an update operation
-   moved one or more documents to a new location on disk. If the operation
-   did not result in a move, this field does not appear. Operations that
-   result in a move take more time than in-place updates and typically
-   occur as a result of document growth.
+   The number of documents deleted by the operation.
 
-   .. todo put a link to document growth in schema design/data
-      modeling docs.
+.. data:: system.profile.ninserted
 
-.. data:: system.profile.nmoved
+   The number of documents inserted by the operation.
 
-   .. versionadded:: 2.2
+.. data:: system.profile.nMatched
 
-   The number of documents the operation moved on disk. This field appears
-   only if the operation resulted in a move. The field's implicit value is
-   zero, and the field is present only when non-zero.
+   .. versionadded:: 2.6
 
-.. data:: system.profile.nupdated
+   The number of documents that match the :data:`system.profile.query`
+   condition for the update operation.
 
-   .. versionadded:: 2.2
+.. data:: system.profile.nModified
 
-   The number of documents updated by the operation.
+   .. versionadded:: 2.6
+
+   The number of documents modified by the update operation.
+
+.. data:: system.profile.upsert
+
+   A boolean that indicates the update operation's ``upsert`` option
+   value. Only appears if ``upsert`` is true.
 
 .. data:: system.profile.keyUpdates
 
@@ -260,6 +282,39 @@ operation.
    :program:`mongod` from the beginning of the operation to the end of
    the operation.
 
+   .. versionadded:: 2.6
+
+   A document that contains the execution statistics of the query
+   operation. For other operations, the value is an empty document.
+
+   The :data:`system.profile.execStats` presents the staticstics as a
+   tree; each node provides the statistics for the operation executed
+   during that stage of the query operation.
+
+   .. note::
+
+      The following fields list for :data:`~system.profile.execStats`
+      is not meant to be exhaustive as the returned fields vary per
+      stage.
+
+   .. data:: system.profile.execStats.type
+
+      The descriptive name for the operation performed as part of the
+      query execution; e.g.
+
+      - ``COLLSCAN`` for a collection scan
+      - ``IXSCAN`` for scanning index keys
+      - ``FETCH`` for retrieving documents
+
+   .. data:: system.profile.execStats.children
+
+      An array that contains statistics for the operations that are the
+      children of the current stage.
+
+.. data:: system.profile.ts
+
+   The timestamp of the operation.
+
 .. data:: system.profile.client
 
    The IP address or hostname of the client connection where the
@@ -268,15 +323,13 @@ operation.
    For some operations, such as :method:`db.eval()`, the client is
    ``0.0.0.0:0`` instead of an actual client.
 
+.. data:: system.profile.allUsers
+
+   An array of authenticated user information (user name and database)
+   for the session. See also :ref:`client-authentication`.
+
 .. data:: system.profile.user
 
-   The authenticated user who ran the operation.
-
-.. todo Test what values appear for authenticated users and add that info.
-   When we do, we can add back this: "If the operation was not run by an
-   authenticated user, this field's value is an empty string."
-
-.. todo Consider adding documentation to our manual on the
-   "internal user" used by replication
-
-.. todo add versionchanged stats for version 2.0 in all the fields.
+   The authenticated user who ran the operation. If the operation was
+   not run by an authenticated user, this field's value is an empty
+   string.
