@@ -31,51 +31,55 @@ same data set. One :program:`mongod`, the primary, receives all write
 operations. All other instances, secondaries, apply operations from
 the primary so that they have the same data set.
 
-The **primary** accepts all write operations from clients. Replica sets
-can have one and only one primary at any given moment. Because only one member can accept write
-operations, replica sets provide **strict consistency**. To support
-replication, the primary records all changes to its data sets in its
-:doc:`oplog </core/replica-set-oplog>`. See :doc:`primary
-</core/replica-set-primary>` for more information.
+The :doc:`primary </core/replica-set-primary>` accepts all write
+operations from clients. A replica set can have only one primary.
+[#edge-cases-2-primaries]_ To support replication, the primary records all
+changes to its data sets in its :doc:`oplog </core/replica-set-oplog>`.
+For more information on primary node operation, see
+:doc:`/core/replica-set-primary`.
 
 .. include:: /images/replica-set-read-write-operations-primary.rst
 
-The **secondaries** replicate the primary's oplog and apply the
-operations to their data sets. Secondaries' data sets reflect the
-primary's data set. If the primary is unavailable, the replica set
-will elect a secondary to be primary. By default, clients read from
-the primary; however, clients can specify a :doc:`read preference
-</core/read-preference>` to send read operations to secondaries. See
-:doc:`secondaries </core/replica-set-secondary>` for more information.
+The :doc:`secondaries </core/replica-set-secondary>` replicate the
+primary's oplog and apply the operations to their data sets such that
+the secondaries' data sets reflect the primary's data set. If the
+primary is unavailable, the replica set will elect a secondary to be
+primary. For more information on secondary members, see
+:doc:`/core/replica-set-secondary`.
 
 .. include:: /images/replica-set-primary-with-two-secondaries.rst
 
 You may add an extra :program:`mongod` instance to a replica set as an
-**arbiter**. Arbiters do not maintain a data set. Arbiters only exist
-to vote in elections. If your replica set has an even number of
-members, add an arbiter to obtain a majority of votes in an election
-for primary. Arbiters do not require dedicated hardware. See
-:doc:`arbiter </core/replica-set-arbiter>` for more information.
+:doc:`arbiter </core/replica-set-arbiter>`. Arbiters do not maintain a
+data set. The purpose of an arbiter is to maintain a quorum in a
+replica set by responding to heartbeat and election requests by other
+replica set members. Because they do not store a data set, arbiters can
+be a good way to provide replica set quorum functionality with a
+cheaper resource cost than a fully functional replica set member with a
+data set. If your replica set has an even number of members, add an
+arbiter to obtain a majority of votes in an election for primary.
+Arbiters do not require dedicated hardware. For more information on
+arbiters, see :doc:`/core/replica-set-arbiter`.
 
 .. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
 
-.. note::
+An :doc:`arbiter </core/replica-set-arbiter>` will always be an arbiter
+whereas a :doc:`primary </core/replica-set-primary>` may step down and
+become a :doc:`secondary </core/replica-set-secondary>` and a
+:doc:`secondary </core/replica-set-secondary>` may become the primary
+during an election.
 
-   The **primary** may, under some conditions, step
-   down and become a **secondary**. A **secondary** may become the
-   primary during an election. An **arbiter**, however, will never change state and will always be an arbiter.
+.. _asynchronous-replication:
 
 Asynchronous Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Secondaries apply operations from the primary asynchronously. By
 applying operations after the primary, replica sets can continue to function
-without some members. However, as a result, secondaries may not return
-the most current data to clients.
+despite the failure of one or more members.
 
-See :doc:`/core/replica-set-oplog` and :doc:`/core/replica-set-sync`
-for more information. See :doc:`/core/read-preference` for more on
-read operations and secondaries.
+For more information on replication mechanics, see
+:doc:`/core/replica-set-oplog` and :doc:`/core/replica-set-sync`.
 
 Automatic Failover
 ~~~~~~~~~~~~~~~~~~
@@ -89,6 +93,27 @@ that receives a majority of the votes becomes primary.
 
 See :doc:`/core/replica-set-elections` and
 :doc:`/core/replica-set-rollbacks` for more information.
+
+Read Operations
+~~~~~~~~~~~~~~~
+
+When a replica set has one and only one primary, reads from that
+primary provide :term:`strict consistency`. [#edge-cases-2-primaries]_
+
+By default, clients read from the primary; however, clients can specify
+a :doc:`read preference </core/read-preference>` to send read
+operations to secondaries. :ref:`Asynchronous replication
+<asynchronous-replication>` to secondaries means that reads from
+secondaries may return data that does not reflect the state of the data
+on the primary. For information on reading from replica sets, see
+:doc:`/core/read-preference`.
+
+In MongoDB, clients can see the results of writes before they are made
+durable:
+
+.. include:: /includes/list-visibility-of-data.rst
+
+.. end-primer-here
 
 Additional Features
 ~~~~~~~~~~~~~~~~~~~
@@ -105,3 +130,7 @@ disaster recovery, or backup functions.
 See :doc:`/core/replica-set-priority-0-member`,
 :doc:`/core/replica-set-hidden-member` and
 :doc:`/core/replica-set-delayed-member` for more information.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
