@@ -1,3 +1,11 @@
+Monitoring Agnet ``3.3.0.183``
+------------------------------
+
+*Released 2015-04-22*
+
+- Added an explicit timeout for SSL connections to :program:`mongod` instances
+- The Kerberos credentials cache now uses a fixed name.
+
 Monitoring Agent ``3.2.0.177``
 ------------------------------
 

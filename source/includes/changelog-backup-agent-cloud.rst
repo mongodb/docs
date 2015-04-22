@@ -1,3 +1,12 @@
+Backup Agent ``3.4.0.273``
+--------------------------
+
+*Released 2015-04-22*
+
+- Added an explicit timeout for SSL connections to :program:`mongod` instances
+- Added an optimization for syncs of collections with lots of small documents
+- The Kerberos credentials cache now uses a fixed name.
+
 Backup Agent ``3.3.0.261``
 --------------------------
 
