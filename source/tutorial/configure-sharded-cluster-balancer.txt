@@ -114,8 +114,11 @@ megabytes.
 .. index:: secondary throttle
 .. _sharded-cluster-config-secondary-throttle:
 
-Change Replication Behavior for Chunk Migration (Secondary Throttle)
---------------------------------------------------------------------
+Change Replication Behavior for Chunk Migration
+-----------------------------------------------
+
+Secondary Throttle
+~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 3.0.0
    The balancer configuration document added configurable
@@ -158,3 +161,54 @@ The effects of changing the ``_secondaryThrottle`` and
 immediate. To ensure an immediate effect, stop and restart the balancer
 to enable the selected value of ``_secondaryThrottle``. See
 :doc:`/tutorial/manage-sharded-cluster-balancer` for details.
+
+.. _wait-for-delete-setting:
+
+Wait for Delete
+~~~~~~~~~~~~~~~
+
+The ``_waitForDelete`` setting of the balancer and the
+:dbcommand:`moveChunk` command affects how the balancer migrates
+multiple chunks from a shard. By default, the balancer does not wait
+for the on-going migration's delete phase to complete before starting
+the next chunk migration. To have the delete phase **block** the start
+of the next chunk migration, you can set the ``_waitForDelete`` to
+true.
+
+For details on chunk migration, see :ref:`sharding-chunk-migration`.
+For details on the chunk migration queuing behavior, see
+:ref:`chunk-migration-queuing`.
+
+The ``_waitForDelete`` is generally for internal testing purposes. To
+change the balancer's ``_waitForDelete`` value:
+
+#. Connect to a :program:`mongos` instance.
+
+#. Update the ``_waitForDelete`` value in the :data:`~config.settings`
+   collection of the :ref:`config database <config-database>`. For
+   example:
+
+   .. code-block:: javascript
+
+      use config
+      db.settings.update(
+         { "_id" : "balancer" },
+         { $set : { "_waitForDelete" : true } },
+         { upsert : true }
+      )
+
+Once set to ``true``, to revert to the default behavior:
+
+#. Connect to a :program:`mongos` instance.
+
+#. Update or unset the ``_waitForDelete`` field in the
+   :data:`~config.settings` collection of the :ref:`config database
+   <config-database>`:
+
+   .. code-block:: javascript
+
+      use config
+      db.settings.update(
+         { "_id" : "balancer", "_waitForDelete": true },
+         { $unset : { "_waitForDelete" : "" } }
+      )
