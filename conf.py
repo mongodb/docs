@@ -64,6 +64,7 @@ extlinks = {
     'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
     'about': ('http://www.mongodb.org/about%s', ''),
     'mms': ('https://docs.mms.mongodb.com%s', ''),
