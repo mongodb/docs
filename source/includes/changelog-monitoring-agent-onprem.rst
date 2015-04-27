@@ -1,3 +1,14 @@
+Monitoring Agent ``2.9.2.184``
+------------------------------
+
+*Released 2015-04-28*
+
+- Added an explicit timeout for SSL connections to MongoDB instances.
+
+- Upgraded the MongoDB Go driver (mgo) version, which fixed a rare
+  deadlock issue that could occur when monitoring :program:`mongos`
+  instances.
+
 Monitoring Agent ``2.9.1.176``
 ------------------------------
 

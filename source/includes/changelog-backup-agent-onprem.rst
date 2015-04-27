@@ -1,3 +1,13 @@
+Backup Agent ``3.1.2.274``
+--------------------------
+
+*Released 2015-04-28*
+
+- Added an explicit timeout for SSL connections to MongoDB instances.
+
+- Added an optimization for syncs of collections with lots of small documents.
+
+
 Backup Agent ``3.1.1.263``
 --------------------------
 
