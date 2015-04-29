@@ -11,3 +11,8 @@ To set a shorter keep alive period use the following invocation:
 
    sysctl -w net.inet.tcp.keepinit=<value>
 
+The change is not persistent; you will need to reset the new
+``tcp_keepalive_time`` value each time you reboot or restart a
+system. See your operating system's documentation for instructions
+on setting it persistently.
+
