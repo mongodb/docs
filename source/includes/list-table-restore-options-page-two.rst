@@ -8,10 +8,10 @@
 
    * - :guilabel:`Push Via Secure Copy`
 
-     - Direct |mms| to copy the restore files to your server via SCP. To
+     - Direct |mms| to copy the restore files to your server via ``SCP``. To
        use this option you must have an existing key pair that |mms| can
        use to transmit the files. See
-       :doc:`/tutorial/restore-select-delivery-format`.
+       :doc:`/tutorial/generate-key-pair-for-scp-restores`.
 
    * - :guilabel:`Format`
 
@@ -19,12 +19,13 @@
 
        - :guilabel:`Individual DB Files`: Transmits MongoDB data files
          produced by |mms| Backup directly to the target directory. The
-         individual database files are faster for |backup| to construct
-         but require additional file space on the destination server. The
          data *is* compressed during transmission.
 
        - :guilabel:`Archive (tar.gz)`: Delivers database files in a single
-         ``tar.gz`` file you must extract before reconstructing databases.
+         ``tar.gz`` file that you must extract before reconstructing databases.
+         With :guilabel:`Archive (tar.gz)` delivery, you need sufficient
+         space on the destination server for the archive *and* the 
+         extracted files.
 
    * - :guilabel:`SCP Host`
 

@@ -4,32 +4,29 @@
    * - :guilabel:`Auth Mechanism`
 
      - The :manual:`authentication mechanism </core/authentication>` used
-       by the host. Can specify :doc:`MONGODB-CR
-       </tutorial/configure-backup-agent-for-cr>`, :doc:`LDAP (PLAIN)
-       </tutorial/configure-backup-agent-for-ldap>`, or
-       :doc:`Kerberos(GSSAPI)
-       </tutorial/configure-backup-agent-for-kerberos>`.
+       by the host. The available options are:
 
-   * - :guilabel:`Current DB Username`
+       - :doc:`Username/Password </tutorial/configure-backup-agent-for-cr>`
+       - :doc:`Kerberos </tutorial/configure-backup-agent-for-kerberos>`
+       - :doc:`LDAP </tutorial/configure-backup-agent-for-ldap>`
+       - X.509 Client Certificate
 
-     - If the authentication mechanism is MONGODB-CR or LDAP, the username
-       used to authenticate the Monitoring Agent to the MongoDB
-       deployment. See :doc:`/tutorial/configure-backup-agent-for-cr`,
-       :doc:`/tutorial/configure-backup-agent-for-ldap`, or
-       :doc:`/tutorial/configure-backup-agent-for-kerberos` for
-       setting up user credentials.
+   * - :guilabel:`DB Username`
 
-   * - :guilabel:`Current DB Password`
+     - For ``Username/Password`` or ``LDAP`` authentication, the username
+       used to authenticate the Backup Agent to the MongoDB deployment.
+       For information on setting up credentials, see:
+       :doc:`/tutorial/configure-backup-agent-for-cr` or
+       :doc:`/tutorial/configure-backup-agent-for-ldap`.
 
-     - If the authentication mechanism is MONGODB-CR or LDAP, the password
-       used to authenticate the Monitoring Agent to the MongoDB
-       deployment. See :doc:`/tutorial/configure-backup-agent-for-cr`,
-       :doc:`/tutorial/configure-backup-agent-for-ldap`, or
-       :doc:`/tutorial/configure-backup-agent-for-kerberos` for
-       setting up user credentials.
+   * - :guilabel:`DB Password`
 
-   * - :guilabel:`My deployment supports SSL for MongoDB connections`
+     - For ``Username/Password`` or ``LDAP`` authentication, the password
+       used to authenticate the Backup Agent to the MongoDB deployment.
 
-     - If checked, the Monitoring Agent must have a trusted CA
-       certificate in order to connect to the MongoDB instances. See
-       :doc:`/tutorial/configure-monitoring-agent-for-ssl`.
+   * - :guilabel:`Replica set allows SSL for connections`, or
+       :guilabel:`Cluster allows SSL for connections`
+
+     - If checked, the Backup Agent uses SSL to connect to MongoDB. The
+       agent must have a trusted CA certificate to connect. See
+       :doc:`/tutorial/configure-backup-agent-for-ssl`.

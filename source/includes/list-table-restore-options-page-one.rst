@@ -3,7 +3,7 @@
 
    * - :guilabel:`Snapshot`
 
-     - Restores from a :ref:`stored snapshot <snapshot>`. Select the
+     - Restores from a stored snapshot. Select the
        snapshot from which to restore.
 
    * - :guilabel:`Point In Time`
