@@ -33,10 +33,8 @@ another starts monitoring. As long as at least one Monitoring Agent is
 available, |mms| will not trigger a *Monitoring Agent Down* alert. To run multiple
 Monitoring Agents, see :ref:`monitoring-agent-redundancy`.
 
-You also can create an alert to notify you when an agent is down. In |mms|,
-click the :guilabel:`Activity` tab and then :guilabel:`Alert Settings`. Click the
-:guilabel:`Add Alert` button then set the alert through the fields in the
-:guilabel:`Create a New Alert` window.
+You can :doc:`create an alert </tutorial/create-alert>` to notify you when an
+agent is down.
 
 Where should I run the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++
