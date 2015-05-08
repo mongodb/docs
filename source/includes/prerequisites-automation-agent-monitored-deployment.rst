@@ -3,14 +3,14 @@ Installing to a Server that Already Runs MongoDB
 
 If you install the Automation Agent to a server that is already running a
 MongoDB process, the user that owns the Automation Agent must be the same
-as the user that owns the MongoDB process. If you installed MongoDB with a
-package manager, then installing the agent with the same package manager
-will ensure the same user owns both.
+as the user that owns the MongoDB process. If you had installed MongoDB with a
+package manager, then install the agent with the same package manager
+to ensure the same user owns both.
 
-Having the same owner for both ensures that the Automation Agent has
-``Read`` / ``Write`` permission on the MongoDB data and logs and has the
-ability to stop the pre-existing MongoDB processes so that the agent can
-start processes under its own control using its own MongoDB binaries.
+Having the same owner for both ensures that the Automation Agent can stop
+the pre-existing MongoDB processes and re-start them using its own MongoDB
+binaries. Assigning the same owner also gives the agent the needed
+``Read`` / ``Write`` permission on the MongoDB data and logs.
 
 In addition, the Automation Agent must have permission to stop, start, and
 update the pre-existing Monitoring Agent and, if applicable, Backup Agent.
