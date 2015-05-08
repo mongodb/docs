@@ -1,46 +1,124 @@
+title: "Deploy a new replica set for each shard."
 stepnum: 1
-source:
-  file: steps-restore-sharded-cluster-with-snapshots.yaml
-  ref: shutdown-cluster
+ref: deploy-replica-sets
+content: |
+  For each shard, deploy a new replica set:
+
+  #. Start a new :program:`mongod` for each member of the replica set.
+     Include any other configuration as appropriate.
+
+  #. Connect a :program:`mongo` to *one* of the :program:`mongod`
+     instances. In the :program:`mongo` shell:
+
+     a. Run :method:`rs.initiate()`.
+
+     b. Use :method:`rs.add()` to add the other members of the replica set.
+
+post: |
+   For detailed instructions on deploying a replica set, see
+   :doc:`/tutorial/deploy-replica-set`.
 ---
-title: Restore the data files.
+title: "Deploy three new config servers."
 stepnum: 2
-ref: restore
+ref: deploy-config-servers
+content: |
+  Start three :program:`mongod` instances for the config servers (i.e.
+  ``mongod --configsvr``). Include any other configuration as appropriate.
+
+  For detailed instructions on setting up the config servers, see
+  :ref:`sharding-setup-start-cfgsrvr`.
+---
+title: "Start the ``mongos`` instances."
+stepnum: 3
+ref: deploy-mongos
+content: |
+  Start the :program:`mongos` instances, specifying the new config
+  servers with ``--configdb``. Include any other configuration as
+  appropriate.
+
+  For detailed instructions on starting the :program:`mongos` instances for a
+  sharded cluster, see :ref:`sharding-setup-start-mongos`.
+---
+title: "Add shards to the cluster."
+stepnum: 4
+ref: add-shards
+content: |
+  Connect a :program:`mongo` shell to a :program:`mongos` instance.
+  Use :method:`sh.addShard()` to add each replica sets as a shard. 
+
+  For detailed instructions in adding shards to the cluster, see
+  :ref:`sharding-setup-add-shards`.
+---
+title: "Shut down the ``mongos`` instances."
+stepnum: 5
+ref: shutdown-mongos
+content: |
+  Once the new sharded cluster is up, shut down all :program:`mongos`
+  instances.
+---
+title: "Restore the shard data."
+stepnum: 6
+ref: restore-shard-data
 pre: |
-  One each server, use :program:`mongorestore` to restore the database
-  dump to the location where the :program:`mongod` instance will access
-  the data.
+  For each shard, use :program:`mongorestore` to restore the data dump
+  to the primary's data directory. Include the ``--drop`` option to
+  drop the collections before restoring and, because the :doc:`backup
+  procedure </tutorial/backup-sharded-cluster-with-database-dumps>`
+  included the :option:`--oplog` option, include the
+  :option:`--oplogReplay` option for :program:`mongorestore`.
 action:
   pre: |
-    The following example restores a database dump located at
-    ``/opt/backup/`` to the ``/data/`` directory. This requires that there
-    are no active :program:`mongod` instances attached to the ``/data``
-    directory.
+    For example, on the primary for ShardA, run the
+    :program:`mongorestore`. Specify any other configuration as
+    appropriate.
   language: sh
   code: |
-    mongorestore --dbpath /data /opt/backup
+    mongorestore --drop --oplogReplay /data/dump/shardA
+post: |
+  After you have finished restoring all the shards, shut down all shard
+  instances.
 ---
-stepnum: 3
+title: "Restore the config server data."
+stepnum: 7
+ref: restore-config-data
+pre: |
+  For each config server, use :program:`mongorestore` to restore the
+  data dump to each config server's data directory. Include the
+  ``--drop`` option to drop the collections before restoring and,
+  because the :doc:`backup procedure
+  </tutorial/backup-sharded-cluster-with-database-dumps>` included the
+  :option:`--oplog` option, include the :option:`--oplogReplay` option
+  for :program:`mongorestore`.
+action:
+  language: sh
+  code: |
+    mongorestore --drop --oplogReplay /data/dump/configData
+---
+stepnum: 8
 source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
-  ref: restart-config-servers
+  ref: restart-one-mongos
+replacement:
+   step: "the step `Deploy three new config servers.`_"
 ---
-stepnum: 4
+stepnum: 9
 source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: shard-hostname
 ---
-stepnum: 5
+stepnum: 10
 source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: restart-shards
 ---
-stepnum: 6
+stepnum: 11
 source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: restart-mongos-instances
+replacement:
+   step: "the step `Deploy three new config servers.`_"
 ---
-stepnum: 7
+stepnum: 12
 source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: ensure
