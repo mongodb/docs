@@ -8,8 +8,8 @@ Ports
 -----
 
 Although the following components are logically distinct, the
-:ref:`mms-http-service`, :ref:`backup-http-service`, and
-:ref:`backup-alert-service` are all part of the |application|
+:ref:`mms-http-service` and :ref:`backup-http-service`
+are part of the |application|
 and typically run on a single system. The Backup Daemon typically
 runs on a distinct system.
 
@@ -30,21 +30,6 @@ Backup HTTP Service
    the Backup Agent.
 
 .. describe:: 8091
-
-   *Optional*
-
-   Used for internal diagnostics. Only available on the localhost interface.
-
-Backup Alert Service
-~~~~~~~~~~~~~~~~~~~~
-
-.. describe:: 8650
-
-   A "kill-port" that the control script uses to signal a shutdown.
-
-   Only available on the localhost interface.
-
-.. describe:: 8092
 
    *Optional*
 
@@ -102,19 +87,6 @@ A successful response from the endpoint returns the following:
      "mms_db": "OK",
      "backup_db": "OK"
    }
-
-.. _backup-alert-service-endpoint:
-
-Backup Alert Service Endpoint
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :ref:`Backup Alert Service <backup-alert-service>` on the
-:ref:`mms-application-package` exposes the following health-check
-endpoint:
-
-.. code-block:: sh
-
-   http://localhost:8092/health
 
 .. _backup-daemon-endpoint:
 
