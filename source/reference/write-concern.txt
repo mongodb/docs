@@ -36,78 +36,86 @@ When deciding the level of write
 concern for your application, see the introduction to
 :doc:`/core/write-concern`.
 
-The :dbcommand:`getLastError` command has the following options to
-configure write concern requirements:
+The :dbcommand:`getLastError` command has the ``j`` and the ``w``
+options to configure write concern requirements.
 
-- ``j`` or "journal" option
+``j`` or "journal" option
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  This option confirms that the :program:`mongod` instance has written
-  the data to the on-disk journal and ensures data is not lost if the
-  :program:`mongod` instance shuts down unexpectedly. Set to ``true`` to
-  enable, as shown in the following example:
+This option confirms that the :program:`mongod` instance has written
+the data to the on-disk journal and ensures data is not lost if the
+:program:`mongod` instance shuts down unexpectedly. Set to ``true`` to
+enable, as shown in the following example:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.runCommand( { getLastError: 1, j: "true" } )
+  db.runCommand( { getLastError: 1, j: "true" } )
 
-  If you set :data:`journal` to true, and the :program:`mongod` does
-  not have journaling enabled, as with :setting:`nojournal`, then
-  :dbcommand:`getLastError` will provide basic receipt acknowledgment,
-  and will include a ``jnote`` field in its return document.
+If you set :data:`journal` to true, and the :program:`mongod` does
+not have journaling enabled, as with :setting:`nojournal`, then
+:dbcommand:`getLastError` will provide basic receipt acknowledgment,
+and will include a ``jnote`` field in its return document.
 
-- ``w`` option
+``w`` option
+~~~~~~~~~~~~
 
-  This option provides the ability to disable write concern entirely
-  *as well as* specifies the write concern operations for
-  :term:`replica sets <replica set>`. See :doc:`Write Concern
-  Considerations </core/write-concern>` for an introduction to the
-  fundamental concepts of write concern. By default, the ``w`` option
-  is set to ``1``, which provides basic receipt acknowledgment on a
-  single :program:`mongod` instance or on the :term:`primary` in a
-  replica set.
+This option provides the ability to disable write concern entirely
+*as well as* specifies the write concern operations for
+:term:`replica sets <replica set>`. See :doc:`Write Concern
+Considerations </core/write-concern>` for an introduction to the
+fundamental concepts of write concern. By default, the ``w`` option
+is set to ``1``, which provides basic receipt acknowledgment on a
+single :program:`mongod` instance or on the :term:`primary` in a
+replica set.
 
-  The ``w`` option takes the following values:
+Using the ``w`` option, the following ``w: <value>`` write concerns
+are available:
 
-  - ``0``:
+- .. writeconcern:: w: 0
 
-    Disables basic acknowledgment of write operations, but returns
-    information about socket exceptions and networking errors to the
-    application.
+  Disables basic acknowledgment of write operations, but returns
+  information about socket exceptions and networking errors to the
+  application.
 
-    .. note::
+  .. note::
 
-       If you disable basic write operation acknowledgment but require
-       journal commit acknowledgment, the journal commit prevails, and
-       the driver will require that :program:`mongod` will
-       acknowledge the write operation.
+     If you disable basic write operation acknowledgment but require
+     journal commit acknowledgment, the journal commit prevails, and
+     the driver will require that :program:`mongod` will acknowledge
+     the write operation.
 
-  - ``1``:
+- .. writeconcern:: w: 1
 
-    Provides acknowledgment of write operations on a standalone
-    :program:`mongod` or the :term:`primary` in a replica set.
+  Provides acknowledgment of write operations on a standalone
+  :program:`mongod` or the :term:`primary` in a replica set.
 
-  - *A number greater than 1*:
+- .. writeconcern:: w: <Number greater than 1>
 
-    Guarantees that write operations have propagated successfully to
-    the specified number of replica set members including the primary.
-    If you set ``w`` to a number that is greater than the number of set
-    members that hold data, MongoDB waits for the non-existent members
-    to become available, which means MongoDB blocks indefinitely.
+  Guarantees that write operations have propagated successfully to the
+  specified number of replica set members including the primary. If you
+  set ``w`` to a number that is greater than the number of set members
+  that hold data, MongoDB waits for the non-existent members to become
+  available, which means MongoDB blocks indefinitely.
 
-  - ``majority``:
+- .. writeconcern:: w: "majority"
 
-    Confirms that write operations have propagated to the majority of
-    configured replica set: a majority of the set's configured members
-    must acknowledge the write operation before it succeeds. This
-    allows you to avoid hard coding assumptions about the size of your
-    replica set into your application.
+  Confirms that write operations have propagated to the majority of
+  configured replica set: a majority of the set's configured members
+  must acknowledge the write operation before it succeeds. This allows
+  you to avoid hard coding assumptions about the size of your replica
+  set into your application.
 
-  - *A tag set*:
+- .. writeconcern:: w: <tag set>
 
-    By specifying a :ref:`tag set <replica-set-configuration-tag-sets>`
-    you can have fine-grained control over which replica
-    set members must acknowledge a write operation to satisfy the required
-    level of write concern.
+  By specifying a :ref:`tag set <replica-set-configuration-tag-sets>`
+  you can have fine-grained control over which replica set members must
+  acknowledge a write operation to satisfy the required level of write
+  concern.
+
+.. _wc-wtimeout:
+
+``wtimeout``
+~~~~~~~~~~~~
 
 :dbcommand:`getLastError` also supports a ``wtimeout`` setting which
 allows clients to specify a timeout for the write concern: if you
