@@ -13,7 +13,7 @@ Security Options
 
    * - 
      - Connections with |onprem|
-     - Connections with |onprem| :doc:`Backing Instances
+     - Connections with :doc:`Backing Instances
        </tutorial/prepare-backing-mongodb-instances>`
      - Connections with MongoDB Deployments
    * - Ops Manager
