@@ -13,7 +13,7 @@ When updating a document, |operation| and the
   method, you cannot specify which single document to update when
   multiple documents match.
 
-- By default, |operation| returns |return-object|. To
+- By default, |operation| method returns |return-object|. To
   obtain the updated document, use the ``new`` option.
 
   The :method:`~db.collection.update()` method returns a
