@@ -16,7 +16,7 @@ ref: start-mongod-instance
 pre: |
   For each replica set member, start the :program:`mongod` process and
   specify ``mongod`` as the user. Start each process on its own dedicated
-  port number and point to the data directory you created in the
+  port and point to the data directory you created in the
   previous step. Specify the same replica set for all three members.
 action:
   pre: |
@@ -26,7 +26,7 @@ action:
   code: |
     sudo -u mongod mongod --port 27017 --dbpath /data --replSet operations --logpath /data/mongodb.log --fork
 ---
-title: "Connect to the MongoDB process on the server that will host the database's primary."
+title: "Connect to the MongoDB process on the server that will initially host the database's primary."
 stepnum: 3
 ref: connect
 action:
@@ -37,33 +37,41 @@ action:
   code: |
     mongo --host mongodb1.example.net --port 27017
 post: |
-  Once you are connected, your command prompt changes to ``>``.
+  When you connect, the MongoDB shell displays its version as well as
+  the database to which you are connected.
 ---
 title: Initiate the replica set.
 stepnum: 4
 ref: initiate
 action:
   - pre: |
-      To initiate the replica set, issue the following command. The
-      command returns ``1`` upon successful initiation:
+      To initiate the replica set, issue the following command:
     language: none
     code: |
       rs.initiate()
-  - pre: |
-      MongoDB returns ``1`` and creates a replica set with the current member
-      as the initial member. The command prompt displays the current state of
-      the member. When the member becomes primary, prompt displays
-      ``PRIMARY>``.
+    post: |
+      MongoDB returns ``1`` upon successful completion, and creates a
+      replica set with the current :program:`mongod` as the initial member.
+post: |
+  The server on which you initiate the replica set becomes the initial
+  :term:`primary`. The :program:`mongo` shell displays the replica set
+  member's state in the prompt.
+  
+  MongoDB supports :manual:`automatic failover
+  <core/replica-set-high-availability/>`, so this :program:`mongod` may
+  not always be the primary.
 ---
 title: Add the remaining members to the replica set.
 stepnum: 5
 ref: add-members
 action:
   pre: |
-    On the server that hosts the primary, issue the :manual:`rs.add()
+    In a :program:`mongo` shell connected to the primary,
+    use the :manual:`rs.add()
     </reference/method/rs.add>` method to add the other two replica set
-    members. For example, the following two commands add MongoDB processes
-    running on ``mongodb2.example.net`` and ``mongodb3.example.net``:
+    members. For example, the following adds the :program:`mongod` instances
+    running on ``mongodb2.example.net:27017`` and ``mongodb3.example.net:27017``
+    to the replica set:
   language: javascript
   code: |
     rs.add('mongodb2.example.net:27017')
@@ -102,8 +110,9 @@ action:
           ]
       }
   - pre: |
-      Optionally, connect to the MongoDB processes running on the other two
-      servers and verify that each has the ``SECONDARY>`` prompt.
+      Optionally, run :manual:`rs.status() </reference/method/rs.status`
+      to verify the status of the replica set and see the state of
+      each replica set member.
 post: |
   For more information on deploying replica sets, see :manual:`Deploy a
   Replica Set </tutorial/deploy-replica-set>` in the MongoDB manual.
