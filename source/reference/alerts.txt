@@ -7,13 +7,23 @@ Alert Conditions
 Overview
 --------
 
-When you create an alert configuration, you can specify the targets and
-alert conditions described here.
+.. only:: cloud
+
+   When you create an :doc:`alert configuration
+   </tutorial/manage-alert-configurations>`, specify the targets and alert
+   conditions described here.
+
+.. only:: onprem
+
+   When you create a :doc:`group </tutorial/manage-alert-configurations>`
+   or :doc:`global </tutorial/manage-global-alerts>` alert configuration,
+   specify the targets and alert conditions described here.
 
 Host Alerts
 -----------
 
-For host alerts, you select a host type and an alert condition.
+When configuring an alert that applies to hosts, you select the host type
+as well as the alert condition.
 
 Host Types
 ~~~~~~~~~~
@@ -62,7 +72,7 @@ Status
 ``````
 
 The following conditions apply to a change in status for a
-:program:`mongod` or :program:`mongos`:
+MongoDB process:
 
 .. alert:: is added
 
@@ -600,15 +610,35 @@ and Backup Agents.
 
 .. alert:: Backup Agent is down
 
-   Sends an alert if the Backup Agent has been down for at least 15
-   minutes. Under normal operation, the Backup Agent periodically sends
-   data to |mms|. This alert is never triggered for a group that has no
-   running backups.
+   Sends an alert when the Backup Agent for a group with at least one
+   active replica set or cluster is down for more than 1 hour.
+
+   To resolve this alert:
+
+   1. Open the group in |mms| by typing the group's name in the
+      :guilabel:`GROUP` box.
+
+   2. Select the :guilabel:`Backup` tab and then the :guilabel:`Backup
+      Agents` page to see what server the Backup Agent is hosted on.
+
+   3. Check the Backup Agent log file on that server.
 
 .. alert:: Backup Agent is out of date
 
    Sends an alert when the Backup Agent is not running the latest
    version of the software.
+
+.. only:: onprem
+
+   .. alert:: Backup Agent has too many conf call failures
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert when the cluster topology as known by monitoring does
+      not match the backup configuration from conf calls made by the
+      Backup Agent.
+
+.. _backup-alert-conditions:
 
 Backup Alerts
 -------------
@@ -625,20 +655,125 @@ These alert conditions apply to the |mms| Backup service.
    Sends an alert if the replication process for a backup falls too far
    behind the :term:`oplog` to catch up. This occurs when the host
    overwrites oplog entries that backup has not yet replicated. When this
-   happens, backup must be fully resynced.
+   happens, you must resync backup, as described in the procedure
+   :doc:`/tutorial/resync-backup`.
+
+   Also, check the corresponding Backup Agent log. If you see a "Failed
+   Common Points" test, one of the following may have happened.
+
+   - A significant rollback event occurred on the backed-up replica set.
+
+   - The :manual:`oplog </core/replica-set-oplog/>` for the backed-up
+     replica set was resized or deleted.
+
+   - High oplog churn caused the agent to lose the tail of the oplog.
 
 .. alert:: Cluster Mongos Is Missing
 
    Sends an alert if |mms| cannot reach a :program:`mongos` for the cluster.
 
+.. only:: onprem
+
+   .. alert:: Bind Error
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert if a backup job fails to bind to a Backup Daemon. A
+      job might fail to bind, for example, if:
+
+      - No :manual:`primary </core/replica-set-primary>` is found for the
+        backed-up replica set. At the time the binding occurred, no
+        primary could be detected by the Monitoring Agent. Ensure that the
+        replica set is healthy.
+
+      - Not enough space is available on any Backup Daemon.
+
+      In both cases, resolve the issue and then :doc:`restart the initial
+      sync of the backup </tutorial/enable-backup>`.
+
+      As an alternative, you can manually bind jobs to daemons through the
+      :guilabel:`Admin` interface. See :ref:`jobs-page` for more
+      information.
+
+.. only:: onprem
+
+   .. alert:: Backup has reached a high number of retries
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert if the same task fails repeatedly. This could happen,
+      for example, during maintenance. :ref:`Check the corresponding job
+      log <jobs-page>` for an error message explaining the problem.
+      Contact MongoDB Support if you need help interpreting the error
+      message.
+
+      In such cases, you must resync the Backup replica set, as described
+      in the procedure :doc:`/tutorial/resync-backup`.
+
+.. only:: onprem
+
+   .. alert:: Backup is in an unexpected state
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert when something very unexpected happened and the
+      Backup state for the replica set is marked as "broken." You must
+      resync the backed-up replica set, as described in the procedure
+      :doc:`/tutorial/resync-backup`.
+
+      Also, :ref:`check the corresponding job log <jobs-page>` for an
+      error message explaining the problem. Contact MongoDB Support if you
+      need help interpreting the error message.
+
+.. only:: onprem
+
+   .. alert:: Late Snapshot
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert if a snapshot has failed to complete before the next
+      snapshot is scheduled to begin. :ref:`Check the job log <jobs-page>`
+      in the |mms| Admin interface for any obvious errors.
+
 .. alert:: Bad Clustershot Count is
 
    Sends an alert if |mms| fails a consecutive number of times to
-   successfully take a cluster snapshot. |mms| sends an alert if the
-   number of failures exceeds the number you specify in the alert
-   configuration. Failed cluster snapshots can occur, for example, if no
-   :manual:`mongos </reference/program/mongos>` is reachable or the
-   :manual:`balancer </core/sharding-balancing>` could not be stopped.
+   successfully take a cluster snapshot. |mms| sends notification when the
+   number exceeds the number specified in the alert
+   configuration.
+
+   The alert text should contain the reason for the problem. Common
+   problems include the following:
+
+   - There was no reachable :manual:`mongos </reference/program/mongos>`.
+     To resolve this issue, ensure that there is at least one
+     :program:`mongos` showing on the |mms| :guilabel:`Deployment` page.
+
+   - The :manual:`balancer </core/sharding-balancing>` could not be
+     stopped. To resolve this issue, check the log files for the first
+     :manual:`config server </core/sharded-cluster-config-servers>` to
+     determine why the balancer will not stop.
+
+   - Could not insert a token in one or more :manual:`shards
+     </core/sharded-cluster-shards>`. To resolve this issue, ensure
+     connectivity between the Backup Agent and all shards.
+
+.. only:: onprem
+
+   .. alert:: Sync Slice Has Not Progressed in
+
+      Available only as a :doc:`global alert </core/global-and-system-alerts>`.
+
+      Sends an alert when an :ref:`initial sync <backup-initial-sync>` has
+      started but then subsequently stalled. A number of issues can cause
+      this, including:
+
+      - processes that are down (agents, ingest, backing databases)
+      - network issues
+      - incorrect authentication credentials
+
+      :ref:`Sync slices <sync-stores-page>` are temporary backups the
+      Backup Agent creates during the initial sync.
 
 User Alerts
 -----------
@@ -657,10 +792,11 @@ These alert conditions apply to the |mms| Users.
 
    Sends an alert when a user's roles have been changed.
 
-Group Alert
------------
+Group Alerts
+------------
 
-These alert conditions apply to |mms| groups.
+These alert conditions apply to group membership, group security, and the
+group's subscription.
 
 .. alert:: Users awaiting approval to join group
 
@@ -683,16 +819,14 @@ These alert conditions apply to |mms| groups.
 
    - terminates stored snapshots 90 days after suspension.
 
-.. only:: cloud
+.. only:: cloud or classic
 
-   Billing Alert
-   -------------
+   Billing Alert Condition
+   -----------------------
 
    The following alert condition applies to |mms| billing.
 
    .. alert:: Credit card is about to expire
-
-      This does not apply to |onprem|.
 
       Sends an alert if the credit card on file is about to expire. The
       alert is triggered at the beginning of the month that the card
