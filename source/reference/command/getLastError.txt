@@ -75,9 +75,30 @@ subset of the fields listed below.
 
 .. data:: getLastError.n
 
-   :data:`~getLastError.n` reports the number of documents updated or
-   removed, if the preceding operation was an update or remove
-   operation.
+   If the preceding operation was an update or a remove operation, but
+   *not* a :dbcommand:`findAndModify` operation,
+   :data:`~getLastError.n` reports the number of documents matched by
+   the update or remove operation.
+
+   For a remove operation, the number of matched documents will equal
+   the number removed.
+
+   For an update operation, if the update operation results in no
+   change to the document, such as setting the value of the field to
+   its current value, the number of matched documents may be smaller
+   than the number of documents actually modified. If the update
+   includes the ``upsert:true`` option and results in the creation of a
+   new document, :data:`~getLastError.n` returns the number of
+   documents inserted.
+
+   :data:`~getLastError.n` is ``0`` if reporting on an update or remove
+   that occurs through a :dbcommand:`findAndModify` operation.
+
+.. data:: getLastError.syncMillis
+
+   :data:`~getLastError.syncMillis` is the number of milliseconds spent
+   waiting for the write to disk operation (e.g. write to journal
+   files).
 
 .. data:: getLastError.shards
 
@@ -137,6 +158,13 @@ subset of the fields listed below.
    :dbcommand:`getLastError` timed out, :data:`~getLastError.wtime` and
    :dbcommand:`getLastError.waited` are equal.
 
+.. data:: getLastError.writtenTo
+
+   If writing to a replica set, :data:`~getLastError.writtenTo` is an
+   array that contains the hostname and port number of the members that
+   confirmed the previous write operation, based on the value of the
+   ``w`` field in the command.
+
 .. _gle-examples:
 
 Examples
@@ -145,36 +173,27 @@ Examples
 Confirm Replication to Two Replica Set Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example ensures the operation has replicated to two
-members (the primary and one other member):
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: 2 } )
-
-Confirm Replication to a Majority of a Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example ensures the write operation has replicated to a
-majority of the voting members of the replica set.
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: "majority" } )
-
-.. include:: /includes/fact-master-slave-majority.rst
-
-Set a Timeout for a ``getLastError`` Response
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Unless you specify a timeout, a :dbcommand:`getLastError` command may
-block forever if MongoDB cannot satisfy the requested write
-concern. To specify a timeout of 5000 milliseconds, use an invocation
-that resembles the following:
+The following example ensures the preceding operation has replicated to
+two members (the primary and one other member). The command also
+specifies a timeout of ``5000`` milliseconds to ensure that
+the:dbcommand:`getLastError` command does not block forever if MongoDB
+cannot satisfy the requested write concern:
 
 .. code-block:: javascript
 
    db.runCommand( { getLastError: 1, w: 2, wtimeout:5000 } )
 
-When ``wtimeout`` is ``0``, the :dbcommand:`getLastError` operation
-will never time out.
+Confirm Replication to a Majority of a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example ensures the write operation has replicated to a
+majority of the voting members of the replica set. The command also
+specifies a timeout of ``5000`` milliseconds to ensure that
+the:dbcommand:`getLastError` command does not block forever if MongoDB
+cannot satisfy the requested write concern:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "majority", wtimeout:5000 } )
+
+.. include:: /includes/fact-master-slave-majority.rst
