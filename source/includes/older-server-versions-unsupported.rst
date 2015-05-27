@@ -1,1 +1,1 @@
-Older server versions are unsupported.
+The driver does not support older versions of MongoDB.
