@@ -9,304 +9,138 @@ Overview
 
 The :ref:`Backup Blockstore databases <mms-backup-blockstore-database>`
 are the primary storage systems for the backup data of your MongoDB
-deployments. A Backup Blockstore database requires a dedicated replica set
-of at least 3 members that hold data.
+deployments. You can :ref:`add new blockstores <add-blockstore>` to your
+data center if existing ones have reached capacity.
 
-If needed, you can deploy multiple blockstores in multiple data
-centers, each backing up different MongoDB replica sets and sharded clusters.
-You can attach a particular |onprem| Group to a particular |application|
-instance and blockstore.
+If needed, you can also deploy blockstores in multiple data centers and
+assign backups of particular MongoDB deployments to particular data
+centers, as described on this page. You assign backups to data centers by
+attaching specific |onprem| groups to specific blockstores.
 
-Add additional blockstore instances when:
+Deploy blockstores to multiple data centers when:
 
-- existing blockstores have reached capacity.
-
-- two sets of backed up data that cannot have co-located storage for
+- Two sets of backed up data cannot have co-located storage for
   regulatory reasons.
 
-- you have multiple data centers and want to reduce cross-data center
+- You have multiple data centers and want to reduce cross-data center
   network traffic by keeping each blockstore in the data center it
   backs.
 
-This tutorial describes how to set up two blockstores in two separate data
-centers.
+This tutorial sets up two blockstores in two separate data centers and
+attaches a separate group to each.
+
+Required Components
+-------------------
+
+Each data center hosts a :ref:`Backup Blockstore database
+<mms-backup-blockstore-database>` and requires its own:
+
+- :ref:`application`
+
+- :ref:`backup-daemon`
+
+- :doc:`Backup Agent </tutorial/nav/install-backup-agent>`
+
+The two |application| instances must share a single dedicated
+:ref:`mms-application-database`. If you run the |application| database as
+a replica set, you can put members in each data center.
+
+You must configure each Backup Agent to use the URL for its local
+|application|. You can configure each |application| to use a different
+hostname, or you can use split-horizon DNS to point each agent to its
+local |application|.
+
+The |application| database and the Backup Blockstore databases are MongoDB
+databases and can run as :term:`standalones <standalone>` or
+:term:`replica sets <replica set>`. Replica sets are recommended to
+provide database :manual:`high availability
+</core/replica-set-high-availability>`.
 
 Procedures
 ----------
 
-The following procedures set up two blockstores in two data centers.
-
 Provision Servers in Each Data Center
-+++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Each blockstore requires a separate instance of the
-:ref:`mms-application-package` and the :ref:`backup-daemon`.
-The |application| requires a dedicated :ref:`mms-application-database`.
+Each server must meet the cumulative hardware and software requirements
+for the components it runs. See :doc:`/core/requirements`.
 
-To support automatic :manual:`failover
-</core/replica-set-high-availability>` for the Backup Blockstore and
-|application| database, deploy a :term:`replica set` as the
-:doc:`backing MongoDB instance
-</tutorial/prepare-backing-mongodb-instances>` for each database.
+Servers that run the Backup Damon, |application| database, and the Backup
+Blockstore databases all run MongoDB. They must meet the configuration
+requirements in the :manual:`MongoDB Production Notes
+</administration/production-notes>`.
 
-Each data center should have the following servers:
+Install MongoDB
+~~~~~~~~~~~~~~~
 
-- A server to run:
+Install MongoDB on the servers that host the:
 
-  - the :ref:`mms-application-package`, and
+- Backup Daemon
+- |application| database
+- Backup Blockstore databases
 
-  - a member and an arbiter for the :term:`replica set` that stores the
-    :ref:`mms-application-database`. For
-    specifications, see the :ref:`mms-application-database-specifications`.
-
-- A server to run the second member of the replica set that stores the
-  |application| database.
-
-- A server to run:
-
-  - the :ref:`Backup Daemon <backup-daemon>`, and
-
-  - a member and an arbiter for the replica set that stores the
-    :ref:`Backup Blockstore database <mms-backup-blockstore-database>`.
-
-- A server to run the second member of the replica set that stores the
-  Backup Blockstore database.
-
-Optionally, for high availability, a data center can have additional
-servers to run additional :ref:`Backup Daemons <backup-daemon>` and
-:ref:`Backup Blockstore databases <mms-backup-blockstore-database>`. For
-more information on using multiple Backup Daemons and high availability,
-see :ref:`multiple-backup-daemons`.
-
-Install MongoDB and Deploy Replica Sets
-+++++++++++++++++++++++++++++++++++++++
-
-.. TODO
-
-   reuse content in this section from existing tutorials which describe
-   this procedure
-
-On *both* :ref:`mms-application-package` servers in *each*
-data center and on *both* :ref:`Backup Daemon <backup-daemon>` servers in
-*each* data center:
-
-1. Install the MongoDB software package. See the :manual:`MongoDB
-   Installation tutorials </installation>` to find the correct install
-   procedure for your operating system. Perform only the installation
-   procedure and *not* the start procedure.
-
-2. Create the necessary data directories.
-
-   On the first |application| or Backup Daemon server in each data
-   center, issue the following commands:
-
-   .. code-block:: sh
-
-      mkdir /data/db0
-      mkdir /data/db1
-
-   On the second |application| or Backup Daemon server in each data
-   center, issue the following command:
-
-   .. code-block:: sh
-
-      mkdir /data/db0
-
-3. Set ulimits. Set the maximum number of open file descriptors and
-   maximum number of processes available to a single user to ``64000``:
-
-   .. code-block:: sh
-
-      ulimit -n 64000 -u 64000
-
-4. Deploy a :term:`replica set` to host the database. Issue the following
-   commands.
-
-   On the first |application| or Backup Daemon server in each data
-   center, issue the following commands to deploy the first two members of
-   the replica set:
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db0 --fork --logpath /tmp/mongo.log --replSet rs
-      mongod --dbpath /data/db1 -fork --logpath /tmp/arb.log --replSet rs --port 27018
-
-   Then, start a :program:`mongo` shell connected to the first
-   instance:
-
-   .. code-block:: sh
-
-      mongo
-
-   Now use the :method:`rs.initiate()` to create the new replica set:
-
-   .. code-block:: javascript
-
-      rs.initiate()
-
-   On the second |application| or Backup Daemon server in each data
-   center, issue the following command:
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db0 --fork --logpath /tmp/mongo.log --replSet rs
-
-   On the first |application| or Backup Daemon server in each data
-   center, issue the following to enter the :program:`mongo` shell, add the deployed
-   members to the replica set, and then verify that the members were
-   added:
-
-   .. code-block:: sh
-
-      mongo
-
-   .. code-block:: javascript
-
-      rs.add("<hostname-of-second-server>:<port>")
-      rs.addArb("<hostname-of-first-server>:<port>")
-      rs.status()
-
-   Issue the following to exit the :program:`mongo` shell:
-
-   .. code-block:: javascript
-
-      quit()
-
-At this point, you have replica sets running for all the backing
-databases.
+See :manual:`Install MongoDB </installation>` in the MongoDB manual to
+find the correct install procedure for your operating system. To run
+replica sets for the |application| database and Backup Blockstore
+databases, see :manual:`Deploy a Replica Set
+</tutorial/deploy-replica-set>` in the MongoDB manual.
 
 Install the |application|
-+++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On the first |application| server in each data center, install the
-:ref:`mms-application-package` using the procedure
-appropriate to the operating system. Open the :doc:`list of install
-procedures </tutorial/nav/advanced-deployments>` and go to the page specific to
-your OS. Perform the procedure to install the service but *do not* perform
-the step to *start* the service.
+Install the |application| in each data center but **do not** perform the
+step to *start* the service. See :doc:`/tutorial/nav/advanced-deployments`
+to find the procedure for your operating system.
 
-In the step for configuring the ``conf-mms.properties`` file, set the
-following fields as follows:
+.. begin 1.8 only
+
+In the step for configuring the ``conf-mms.properties`` file, set the same
+|application| URL in both data centers. For example, in both data centers,
+set :setting:`mms.centralUrl` to point to the server in Data Center 1:
 
 .. code-block:: sh
 
-   mms.centralUrl = <first-application-server>:<8080>
+   mms.centralUrl = <application-server-in-data-center-1>:<8080>
 
-   mms.centralBackupUrl = <first-application-server>:<8081>
+.. end 1.8 only
 
-   mongo.mongoUri=mongodb://<first-mongod>:<27017>,<second-mongod>:<27017>
+.. begin 1.6 only
+
+   In the step for configuring the ``conf-mms.properties`` file, set the same
+   |application| URL in both data centers. For example, in both data centers,
+   set :setting:`mms.centralUrl` and :setting:`mms.centralBackupUrl` to point
+   to the server in Data Center 1:
+
+   .. code-block:: sh
+
+      mms.centralUrl = <application-server-in-data-center-1>:<8080>
+
+      mms.centralBackupUrl = <application-server-in-data-center-1>:<8081>
+
+.. end 1.6 only
+
+Start the |application|
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The |application| creates a gen.key on initial startup. You must start the
+|application| in one data center and copy its gen.key **before** starting
+the other |application|. The ``gen.key`` file in the first data center
+will be the ``gen.key`` for **all** servers in both data centers.
+
+The ``gen.key`` file is binary. You cannot copy the contents; you must
+copy the file. For example, use SCP.
+
+.. include:: /includes/steps/configure-backup-data-locality-start-application.rst
 
 Install the Backup Daemon
-+++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. TODO clarify here what is the "first backup daemon server"
+Install and start the Backup Daemon in each data center. See
+:doc:`/tutorial/nav/advanced-deployments` and click the link for your
+operating system. On the resulting installation page, locate the procedure
+for installing the Backup Daemon.
 
-On the first Backup Daemon server in each data center, install the Backup
-Daemon using the procedure appropriate to the operating system. For install
-instructions, go to :doc:`/tutorial/nav/advanced-deployments` and select the page
-specific to your OS. Perform the procedure for installing the *Backup
-Component*, including the step to start the service.
+Bind Groups to Backup Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the step for configuring the ``conf-daemon.properties`` file, set the
-following field as follows:
-
-.. The assumption in the code-block below is that every Backup Daemon in
-   every data center has the exact same settings.
-
-.. code-block:: sh
-
-   mongo.mongoUri=mongodb://<application-database-Data-Center-1>:<27017>,<application-database-in-Data-Center-2>:<27017>
-
-See :setting:`mongo.mongoUri`
-for more information.
-
-Copy the ``gen.key``
-++++++++++++++++++++
-
-The ``/etc/mongodb-mms/gen.key`` from the first |application| server in
-**Data Center 1** will be the ``gen.key`` for all servers in both data
-centers. The ``gen.key`` file is a binary file. Use SCP to copy the file.
-
-1. Use SCP to copy the ``/etc/mongodb-mms/gen.key`` from the first |application|
-   server in Data Center 1 to the ``/etc/mongodb-mms`` directory on the
-   first |application| server in Data Center 2.
-
-2. Use SCP to copy this ``gen.key`` to the ``/etc/mongodb-mms`` directory of each
-   Backup Daemon server.
-
-Start the |application| Service
-+++++++++++++++++++++++++++++++
-
-1. On the first |application| server in Data Center 1, issue the following:
-
-   .. code-block:: sh
-
-      service mongodb-mms start
-
-2. On the first |application| server in Data Center 2, issue the following:
-
-   .. code-block:: sh
-
-      service mongodb-mms start
-
-Bind Groups to Daemons
-++++++++++++++++++++++
-
-1. In a web browser, go to the URL for the |application| in Data Center 1:
-
-   .. code-block:: sh
-
-      <first-application-server>:<8080>
-
-2. Register a new account, with the group set to a particular data center.
-
-   To test this, go to the URL for the |application| server in Data
-   Center **2** and try to log in with the new account. It should succeed.
-
-3. Once logged into |onprem|, select the :guilabel:`Administration` tab and
-   then the :guilabel:`My Groups` page. Create a new
-   group for other data center.
-
-   You should now have one group for each data center.
-
-4. In |onprem|, select the :guilabel:`Admin` and then select
-   :guilabel:`Backup`. Do the following:
-
-   - Select :guilabel:`Daemons` and ensure there are two daemons listed.
-
-   - Select :guilabel:`Blockstores`. Add a blockstore with the hostname
-     and port of the blockstore for Data Center 2 and click :guilabel:`Save`.
-
-   - Select :guilabel:`Sync Stores`. Add a sync store with the hostname
-     and port of the blockstore for Data Center 2 and click :guilabel:`Save`.
-
-   - Select :guilabel:`Oplog Stores`. Add an oplog store with the hostname
-     and port of the blockstore for Data Center 2 and click :guilabel:`Save`.
-
-5. Select the :guilabel:`General` tab, then select :guilabel:`Groups`,
-   then select ``Data Center 1``, and then select the :guilabel:`View`
-   link for the :guilabel:`Backup Configuration`.
-
-6. For each of the following, click the drop-down box and select the
-   local option for the group:
-
-   - :guilabel:`Backup Daemons`
-
-   - :guilabel:`Sync Stores`
-
-   - :guilabel:`Oplog Stores`
-
-   - :guilabel:`Block Stores`
-
-7. Repeat the above steps for the Data Center 2 group.
-
-8. For all users in Data Center 1, download the Monitoring and Backup
-   agents from the group assigned to Data Center 1. For all users in Data
-   Center 2, download the Monitoring and Backup agents from the group
-   assigned to Data Center 2.
-
-   See the following pages for the procedures for installing the agents:
-
-   - :doc:`/tutorial/nav/install-monitoring-agent`
-
-   - :doc:`/tutorial/nav/install-backup-agent`
+.. include:: /includes/steps/configure-backup-data-locality-bind-groups.rst
