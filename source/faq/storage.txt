@@ -116,63 +116,111 @@ The data files in your data directory, which is the :file:`/data/db`
 directory in default configurations, might be larger than the data set
 inserted into the database. Consider the following possible causes:
 
-- Preallocated data files.
+Preallocated data files
+~~~~~~~~~~~~~~~~~~~~~~~
 
-  In the data directory, MongoDB preallocates data files to a
-  particular size, in part to prevent file system
-  fragmentation. MongoDB names the first data file ``<databasename>.0``,
-  the next ``<databasename>.1``, etc. The first file :program:`mongod`
-  allocates is 64 megabytes, the next 128 megabytes, and so on, up to
-  2 gigabytes, at which point all subsequent files are 2
-  gigabytes. The data files include files with allocated space but
-  that hold no data. :program:`mongod` may allocate a 1 gigabyte data
-  file that may be 90% empty. For most larger databases, unused
-  allocated space is small compared to the database.
+In the data directory, MongoDB preallocates data files to a particular
+size, in part to prevent file system fragmentation. MongoDB names the
+first data file ``<databasename>.0``, the next ``<databasename>.1``,
+etc. The first file :program:`mongod` allocates is 64 megabytes, the
+next 128 megabytes, and so on, up to 2 gigabytes, at which point all
+subsequent files are 2 gigabytes. The data files include files with
+allocated space but that hold no data. :program:`mongod` may allocate a
+1 gigabyte data file that may be 90% empty. For most larger databases,
+unused allocated space is small compared to the database.
 
-- The :term:`oplog`.
+The ``oplog``
+~~~~~~~~~~~~~
 
-  If this :program:`mongod` is a member of a replica set, the data
-  directory includes the :term:`oplog.rs <oplog>` file, which is a
-  preallocated :term:`capped collection` in the ``local``
-  database. The default allocation is approximately 5% of disk space
-  on 64-bit installations, see :ref:`Oplog Sizing
-  <replica-set-oplog-sizing>` for more information. In most cases, you
-  should not need to resize the oplog. However, if you do, see
-  :doc:`/tutorial/change-oplog-size`.
+If this :program:`mongod` is a member of a replica set, the data
+directory includes the :term:`oplog.rs <oplog>` file, which is a
+preallocated :term:`capped collection` in the ``local`` database.
 
-- The :term:`journal`.
+The default allocation is approximately 5% of disk space on 64-bit
+installations. In most cases, you should not need to resize the oplog.
+See :ref:`Oplog Sizing <replica-set-oplog-sizing>` for more information
 
-  The data directory contains the journal files, which store write
-  operations on disk prior to MongoDB applying them to databases. See
-  :doc:`/core/journaling`.
+The ``journal``
+~~~~~~~~~~~~~~~
 
-- Empty records.
+The data directory contains the journal files, which store write
+operations on disk before MongoDB applies them to databases. See
+:doc:`/core/journaling`.
 
-  MongoDB maintains lists of empty records in data files when
-  deleting documents and collections. MongoDB can reuse this space,
-  but will never return this space to the operating system.
+.. _faq-empty-records:
 
-  To de-fragment allocated storage, use :dbcommand:`compact`, which
-  de-fragments allocated space. By de-fragmenting storage, MongoDB
-  can effectively use the allocated space. :dbcommand:`compact`
-  requires up to 2 gigabytes of extra disk space to run. Do not
-  use :dbcommand:`compact` if you are critically low on disk space.
+Empty records
+~~~~~~~~~~~~~
 
-  .. important:: :dbcommand:`compact` only removes fragmentation
-     from MongoDB data files and does not return any disk space to
-     the operating system.
+MongoDB maintains lists of empty records in data files as it deletes
+documents and collections. MongoDB can reuse this space,
+but will not, by default, return this space to the operating system.
 
-  To reclaim deleted space, use :dbcommand:`repairDatabase`, which
-  rebuilds the database which de-fragments the storage and may release
-  space to the operating system. :dbcommand:`repairDatabase` requires
-  up to 2 gigabytes of extra disk space to run. Do not use
-  :dbcommand:`repairDatabase` if you are critically low on disk space.
+To allow MongoDB to more effectively reuse the space, you can
+de-fragment your data. To de-fragment, use the :dbcommand:`compact`
+command. The :dbcommand:`compact` requires up to 2 gigabytes of extra
+disk space to run. Do not use :dbcommand:`compact` if you are
+critically low on disk space. For more information on its behavior and
+other considerations, see :dbcommand:`compact`.
 
-  .. warning::
-     :dbcommand:`repairDatabase` requires enough free disk space to
-     hold both the old and new database files while the repair is
-     running. Be aware that :dbcommand:`repairDatabase` will block
-     all other operations and may take a long time to complete.
+:dbcommand:`compact` only removes fragmentation from MongoDB data files
+within a collection and does not return any disk space to the operating
+system. To return disk space to the operating system, see
+:ref:`faq-reclaim-disk-space`.
+
+.. _faq-reclaim-disk-space:
+
+How do I reclaim disk space?
+----------------------------
+
+The following provides some options to consider when reclaiming disk
+space.
+
+.. note::
+
+   You do not need to reclaim disk space for MongoDB to reuse freed
+   space. See :ref:`faq-empty-records` for information on reuse of
+   freed space.
+
+``repairDatabase``
+~~~~~~~~~~~~~~~~~~
+
+You can use :dbcommand:`repairDatabase` on a database to rebuilds the
+database, de-fragmenting the associated storage in the process.
+ 
+:dbcommand:`repairDatabase` requires enough free disk space to hold
+both the old and new database files as well as up to 2 gigabytes of
+extra disk space to run. For additional information and
+considerations, see :dbcommand:`repairDatabase`.
+
+.. warning::
+
+   Do not use :dbcommand:`repairDatabase` if you
+   are critically low on disk space.
+
+   :dbcommand:`repairDatabase` will block all other operations and may
+   take a long time to complete.
+
+You can only run :dbcommand:`repairDatabase` on a standalone
+:program:`mongod` instance. If the :program:`mongod` instance is a
+member of a replica set, you will need to take the node out of a
+replica set and restart it as a standalone in order to run
+:dbcommand:`repairDatabase`.
+
+You can also run the :dbcommand:`repairDatabase` operation for all
+databases on the server by restarting your :program:`mongod` standalone
+instance with the :option:`--repair` and :option:`--repairpath` options. All
+databases will on the server will be unavailable during this operation.
+
+Resync the Member of the Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a secondary member of a replica set, you can perform a :doc:`resync
+of the member </tutorial/resync-replica-set-member>` by: stopping the
+secondary member to resync, deleting all data and subdirectories from
+the member's data directory, and restarting.
+
+For details, see :doc:`/tutorial/resync-replica-set-member`.
 
 How can I check the size of a collection?
 -----------------------------------------
