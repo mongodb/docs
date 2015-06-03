@@ -1,14 +1,25 @@
-On Linux systems you can use the following operation to check the
-value of ``tcp_keepalive_time``:
+**On Linux systems**:
 
-.. code-block:: sh
+- To view the keep alive setting, issue the following command:
 
-   cat /proc/sys/net/ipv4/tcp_keepalive_time
+  .. code-block:: sh
 
-The value is measured in seconds. You can change the
-``tcp_keepalive_time`` value with the following operation:
+     cat /proc/sys/net/ipv4/tcp_keepalive_time
 
-.. code-block:: sh
+  The value is measured in seconds.
 
-   echo <value> > /proc/sys/net/ipv4/tcp_keepalive_time
+- To change the ``tcp_keepalive_time`` value, you can use the
+  following command:
 
+  .. code-block:: sh
+
+     echo <value> > /proc/sys/net/ipv4/tcp_keepalive_time
+
+  On Linux, :program:`mongod` and :program:`mongos` processes limit the
+  keepalive to a maximum of 300 seconds (5 minutes) on their own
+  sockets by overriding keepalive values greater than 5 minutes.
+
+  The above method for setting the TCP keepalive is not persistent; you
+  will need to reset the value each time you reboot or restart a
+  system. See your operating system’s documentation for instructions on
+  setting the TCP keepalive value persistently.
