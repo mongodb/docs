@@ -1,4 +1,12 @@
-Monitoring Agnet ``3.3.0.183``
+Monitoring Agent ``3.4.0.190``
+------------------------------
+
+*Released 2015-06-03*
+
+- Adds an optimization to ensure the Monitoring Agent's database stats
+  collection tasks do not synchronize.
+
+Monitoring Agent ``3.3.0.183``
 ------------------------------
 
 *Released 2015-04-22*
