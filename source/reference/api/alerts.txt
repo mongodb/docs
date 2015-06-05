@@ -25,6 +25,12 @@ Operations
 
    GET /api/public/v1.0/groups/GROUP-ID/alerts
 
+- Gets all alerts regardless of status.
+
+.. code-block:: none
+
+   GET /api/public/v1.0/groups/GROUP-ID/alerts?status=STATUS
+
 - Gets all alerts with the specified status. Use the ``status`` query
   parameter with one of these possible values: ``TRACKING``, ``OPEN``,
   or ``CLOSED``.
@@ -33,19 +39,19 @@ Operations
 
    GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
 
-- Get a single alert by ID.
+- Gets a single alert by ID.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID/alertConfigs
 
-- Get the alert configuration(s) that triggered this alert.
+- Gets the alert configuration(s) that triggered this alert.
 
 .. code-block:: none
 
    PATCH /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
 
-- Update an existing alert. The only field you may modify is the
+- Updates an existing alert. The only field you may modify is the
   ``acknowledgedUntil`` field.
 
   - To acknowledge an alert "forever" set the date to 100 years in the future.
@@ -54,6 +60,10 @@ Operations
 
 Sample Entity
 -------------
+
+The fields in the return document depend on the alert type. The
+``typeName`` field specifies the alert type. The fields shown here are
+common to all alert types.
 
 .. code-block:: javascript
 
@@ -69,10 +79,9 @@ Sample Entity
      "updated": "2014-02-02T01:23:45Z",
      "resolved": null,
      "lastNotified": "2014-02-04T02:43:13Z",
-     "currentValue": {
-       "number": 123.45,
-       "units": "MEGABYTES"
-     },
+
+     // Additional fields follow, depending on the type of alert
+
      "links": [ ... ]
    }
 
@@ -80,7 +89,7 @@ Entity Fields
 -------------
 
 .. list-table::
-   :widths: 10 10 80
+   :widths: 20 20 60
    :header-rows: 1
 
    * - Name
@@ -99,37 +108,101 @@ Entity Fields
      - enum
      - The type of alert. Possible values are:
 
-       - ``AGENT``
-       - ``BACKUP``
        - ``HOST``
        - ``HOST_METRIC``
+       - ``AGENT``
+       - ``BACKUP``
+       - ``GROUP``
        - ``REPLICA_SET``
+       - ``USER``
 
    * - eventTypeName
      - enum
      - The name of the event that triggered the alert. The possible values here
        depend on the ``typeName``:
 
-       - **AGENT** - Possible values:
+       - **HOST** alert type. Possible values:
 
-         - ``MONITORING_AGENT_DOWN``
-         - ``BACKUP_AGENT_DOWN``
-
-       - **HOST** - Possible values:
-
+         - ``NEW_HOST``
+         - ``HOST_RESTARTED``
+         - ``HOST_UPGRADED``
+         - ``HOST_DOWNGRADED``
+         - ``HOST_NOW_PRIMARY``
+         - ``HOST_NOW_SECONDARY``
+         - ``HOST_UP``
          - ``HOST_DOWN``
+         - ``HOST_RECOVERED``
          - ``HOST_RECOVERING``
+         - ``VERSION_CURRENT``
          - ``VERSION_BEHIND``
          - ``HOST_EXPOSED``
+         - ``HOST_LOCKED_DOWN``
+         - ``OUTSIDE_METRIC_THRESHOLD``
 
-       - **HOST_METRIC** - Possible values:
+       - **HOST_METRIC** alert type. Possible values:
 
          - ``OUTSIDE_METRIC_THRESHOLD``
 
-       - **BACKUP** - Possible values:
+       - **AGENT** alert type. Possible values:
 
+         - ``MONITORING_AGENT_UP``
+         - ``MONITORING_AGENT_DOWN``
+         - ``MONITORING_AGENT_VERSION_CURRENT``
+         - ``MONITORING_AGENT_VERSION_BEHIND``
+         - ``BACKUP_AGENT_UP``
+         - ``BACKUP_AGENT_DOWN``
+         - ``BACKUP_AGENT_VERSION_CURRENT``
+         - ``BACKUP_AGENT_VERSION_BEHIND``
+         - ``BACKUP_AGENT_CONF_CALL_FAILURE``
+         - ``BACKUP_AGENT_CONF_CALL_OK``
+
+       - **BACKUP** alert type. Possible values:
+
+         - ``OPLOG_CURRENT``
          - ``OPLOG_BEHIND``
+         - ``CLUSTER_MONGOS_IS_PRESENT``
+         - ``CLUSTER_MONGOS_IS_MISSING``
+         - ``RESYNC_PERFORMED``
          - ``RESYNC_REQUIRED``
+         - ``RS_BIND_ERROR``
+         - ``NO_RS_BIND_ERROR``
+         - ``BACKUP_TOO_MANY_RETRIES``
+         - ``BACKUP_RECOVERED``
+         - ``BACKUP_IN_UNEXPECTED_STATE``
+         - ``LATE_SNAPSHOT``
+         - ``TIMELY_SNAPSHOT``
+         - ``GOOD_CLUSTERSHOT``
+         - ``BAD_CLUSTERSHOTS``
+         - ``SYNC_SLICE_PROGRESSED``
+         - ``SYNC_SLICE_HAS_NOT_PROGRESSED``
+
+       - **GROUP** alert type. Possible values:
+
+         - ``USERS_AWAITING_APPROVAL``
+         - ``NO_USERS_AWAITING_APPROVAL``
+         - ``USERS_WITHOUT_MULTIFACTOR_AUTH``
+         - ``ALL_USERS_HAVE_MULTIFACTOR_AUTH``
+         - ``DELINQUENT``
+         - ``PAID_IN_FULL``
+         - ``ACCOUNT_CLOSED``
+
+       - **REPLICA_SET** alert type. Possible values:
+
+         - ``CONFIGURATION_CHANGED``
+         - ``PRIMARY_ELECTED``
+         - ``ENOUGH_HEALTHY_MEMBERS``
+         - ``TOO_FEW_HEALTHY_MEMBERS``
+         - ``TOO_MANY_UNHEALTHY_MEMBERS``
+         - ``ONE_PRIMARY``
+         - ``MULTIPLE_PRIMARIES``
+         - ``NO_PRIMARY``
+
+       - **USER** alert type. Possible values:
+
+         - ``JOINED_GROUP``
+         - ``REMOVED_FROM_GROUP``
+         - ``INVITED_TO_GROUP``
+         - ``REQUESTED_TO_JOIN_GROUP``
 
    * - status
      - enum
@@ -164,6 +237,17 @@ Entity Fields
      - date
      - When the last notification was sent for this alert. Only present if
        notifications have been sent.
+   * - hostnameAndPort
+     - string
+     - The hostname and port of each host to which the alert applies.
+   * - hostId
+     - string
+     - ID of the host to which the metric pertains. Only present for
+       alerts of type ``HOST_METRIC``.
+   * - replicaSetName
+     - string
+     - Name of the replica set. Only present for alerts of type
+       ``REPLICA_SET``.
    * - metricName
      - enum
      - The name of the metric whose value went outside the threshold. Only
@@ -203,11 +287,18 @@ Entity Fields
        - ``NETWORK_NUM_REQUESTS``
        - ``OPLOG_MASTER_TIME``
        - ``OPLOG_SLAVE_LAG_MASTER_TIME``
+       - ``OPLOG_MASTER_LAG_TIME_DIFF``
        - ``EXTRA_INFO_PAGE_FAULTS``
        - ``DB_STORAGE_TOTAL``
        - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
        - ``JOURNALING_MB``
        - ``JOURNALING_WRITE_DATA_FILES_MB``
+       - ``TICKETS_AVAILABLE_READS``
+       - ``TICKETS_AVAILABLE_WRITES``
+       - ``CACHE_DIRTY_BYTES``
+       - ``CACHE_USED_BYTES``
+       - ``CACHE_BYTES_READ_INTO``
+       - ``CACHE_BYTES_WRITTEN_FROM``
 
    * - currentValue
      - object
@@ -240,9 +331,24 @@ Entity Fields
        - ``HOURS``
        - ``DAYS``
 
+   * - clusterId
+     - string
+     - The ID of the cluster to which this alert applies.
+   * - clusterName
+     - string
+     - The name the cluster to which this alert applies.
+   * - sourceTypeName
+     - 
+     - 
+   * - bindError
+     - 
+     - 
 
 Links
 -----
+
+The available links depend on the alert type, which is specified in the
+``typeName`` field.
 
 .. list-table::
    :widths: 10 90
