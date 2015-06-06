@@ -69,15 +69,14 @@ extlinks = {
     'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
-    'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'api': ('https://api.mongodb.org/%s', ''),
+    'manual': ('https://docs.mongodb.org/manual%s', ''),
+    'ecosystem': ('https://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'mms': ('https://docs.mms.mongodb.com%s', ''),
-    'mms-hosted': ('https://mms.mongodb.com/help-hosted%s', ''),
-    'mms-home': ('https://mms.mongodb.com%s', ''),
-    'about': ('http://www.mongodb.org/about%s', ''),
+    'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
+    'mms-home': ('https://cloud.mongodb.com%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com%s', ''),
+    'about': ('https://www.mongodb.org/about%s', ''),
     'products': ('https://www.mongodb.com/products%s', '')
 
 }
