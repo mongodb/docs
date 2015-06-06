@@ -72,9 +72,10 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'mms': ('https://mms.mongodb.com/help%s', ''),
-    'mms-hosted': ('https://mms.mongodb.org/help-hosted%s', ''),
-    'about': ('http://www.mongodb.org/about%s', '')
+    'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
+    'mms-home': ('https://cloud.mongodb.com%s', ''),
+    'about': ('http://www.mongodb.org/about%s', ''),
+    'products': ('https://www.mongodb.com/products%s', '')
 }
 
 ## add `extlinks` for each published version.
