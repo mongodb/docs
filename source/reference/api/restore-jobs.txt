@@ -129,6 +129,7 @@ Entity Fields
      - How the data will be delivered. Possible values are:
 
        - ``HTTP``
+       - ``SCP``
 
    * - delivery.url
      - string
@@ -143,10 +144,49 @@ Entity Fields
      - Current status of the downloadable file. Only present if ``delivery.methodName`` is
        ``HTTP``. Possible values are:
 
+       - ``NOT_STARTED``
+       - ``IN_PROGRESS``
        - ``READY``
+       - ``FAILED``
+       - ``INTERRUPTED``
        - ``EXPIRED``
        - ``MAX_DOWNLOADS_EXCEEDED``
 
+   * - delivery.formatName
+     - enum
+     - Format in which data from an SCP restore should be written to the destination.
+       Only present if ``delivery.methodName`` is ``SCP``. Possible values are:
+
+       - ``ARCHIVE``
+       - ``INDIVIDUAL``
+
+   * - delivery.hostname
+     - string
+     - Hostname of the server to which the data should be written for an SCP restore.
+       Only present if ``delivery.methodName`` is ``SCP``.
+   * - delivery.port
+     - integer
+     - Port to use for SCP. Only present if ``delivery.methodName`` is SCP.
+   * - username
+     - string
+     - Username to use for SCP. Only present if ``delivery.methodName`` is SCP.
+   * - password
+     - string
+     - Password to use for SCP. If ``delivery.methodName`` is SCP, then you must include
+       this field when creating the restore job. However, it will never be exposed when
+       a restore job entity is returned.
+   * - passwordTypeName
+     - enum
+     - Type of authentication to use for SCP. Only present if ``delivery.methodName`` is
+       SCP. Possible values are:
+
+       - ``PASSWORD``
+       - ``SSH_KEY``
+
+   * - targetDirectory
+     - string
+     - Target directory to which the data should be written for an SCP restore. Only
+       present if ``delivery.methodName`` is ``SCP``.
    * - hashes
      - object array
      - If the corresponding ``delivery.url`` has been downloaded, each document
@@ -271,8 +311,8 @@ Get a Single Restore Job
      "links" : [ ... ]
    }
 
-Create a Restore Job for an Existing Snapshot
-+++++++++++++++++++++++++++++++++++++++++++++
+Create a Restore Job for an Existing Snapshot via HTTPS
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. code-block:: none
 
@@ -297,6 +337,56 @@ Create a Restore Job for an Existing Snapshot
        },
        "statusName" : "IN_PROGRESS",
        "pointInTime" : false,
+       "links" : [ ... ]
+     } ]
+   }
+
+Create a Restore Job for an Existing Snapshot via SCP
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://mms.mongodb.com/api/public/v1.0/groups/525ec8394f5e625c80c7404a/clusters/53bc556ce4b049c88baec825/restoreJobs" --data '
+   {
+     "snapshotId": "53bd439ae4b0774946a16490",
+     "delivery": {
+       "methodName": "SCP",
+       "formatName": "ARCHIVE",
+       "hostname": "dbserver.example.com",
+       "port": 22,
+       "username": "admin",
+       "password": "secret",
+       "passwordTypeName": "PASSWORD",
+       "targetDirectory", "/data/backup"
+     }
+   }'
+
+   HTTP/1.1 200 OK
+
+   {
+     "totalCount" : 1,
+     "results" : [ {
+       "id" : "53bd9f9be4b0a7304e23a8c6",
+       "groupId" : "525ec8394f5e625c80c7404a",
+       "clusterId" : "53bc556ce4b049c88baec825",
+       "snapshotId" : "53bd439ae4b0774946a16490",
+       "created" : "2014-07-09T20:01:31Z",
+       "timestamp" : {
+         "date" : "2014-07-09T09:24:37Z",
+         "increment" : 1
+       },
+       "statusName" : "IN_PROGRESS",
+       "pointInTime" : false,
+       "delivery": {
+         "methodName": "SCP",
+         "formatName": "ARCHIVE",
+         "hostname": "dbserver.example.com",
+         "port": 22,
+         "username": "admin",
+         "password": "secret",
+         "passwordTypeName": "PASSWORD",
+         "targetDirectory": "/data/backup"
+       },
        "links" : [ ... ]
      } ]
    }
