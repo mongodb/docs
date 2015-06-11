@@ -39,7 +39,7 @@ Configuration
 ~~~~~~~~~~~~~
 
 Specify the run time configuration on each system in a :doc:`configuration
-file </reference/configuration-options>` stored in ``/etc/mongodb.conf``
+file </reference/configuration-options>` stored in ``/etc/mongod.conf``
 or a related location. Create the directory where MongoDB stores data
 files before deploying MongoDB.
 
