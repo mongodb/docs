@@ -89,11 +89,11 @@ HEAD databases that reside on the Backup Daemon:
      - x509 Authentication
      - LDAP Authentication
    * - OnPrem 1.0+
-     - |onprem| 1.6
+     - |onprem| 1.6+
      - OnPrem 1.3
-     - |onprem| 1.6
-     - |onprem| 1.6
-     - OnPrem 1.5
+     - |onprem| 1.6+
+     - |onprem| 1.6+
+     - OnPrem 1.5+
 
 Security Between Agents and MongoDB Deployments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -116,18 +116,18 @@ up:
      - OnPrem 1.0
      - OnPrem 1.0
      - OnPrem 1.3
-     - OnPrem 1.5
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
    * - Backup Agent
      - OnPrem 1.4
      - OnPrem 1.4
      - OnPrem 1.4.1
-     - OnPrem 1.5
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
    * - Automation Agent
-     - OnPrem 1.6
+     - |onprem| 1.6+
      - 
      - 
      - 
@@ -156,12 +156,12 @@ HEAD databases that reside on the Backup Daemon:
      - MongoDB SSL Connections with Client Certificates
      - x509 Authentication
      - LDAP Authentication
-   * - OnPrem 1.5
-     - |onprem| 1.6
+   * - OnPrem 1.5+
+     - |onprem| 1.6+
      - 
-     - |onprem| 1.6
-     - |onprem| 1.6
-     - OnPrem 1.5
+     - |onprem| 1.6+
+     - |onprem| 1.6+
+     - OnPrem 1.5+
 
 Security Between Agents and MongoDB Deployments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,21 +181,21 @@ up:
      - x509 Authentication
      - LDAP Authentication
    * - Monitoring Agent
-     - OnPrem 1.5
-     - OnPrem 1.5
+     - OnPrem 1.5+
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
    * - Backup Agent
-     - OnPrem 1.5
-     - OnPrem 1.5
+     - OnPrem 1.5+
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
      - 
-     - OnPrem 1.5
+     - OnPrem 1.5+
    * - Automation Agent
-     - OnPrem 1.6
+     - |onprem| 1.6+
      - 
      - 
      - 
