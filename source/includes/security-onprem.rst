@@ -71,8 +71,8 @@ Supported MongoDB Security Features on Linux
 
 This section describes supported security options on Linux.
 
-Security Between |onprem| Servers and Backing Replica Sets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connections Between |onprem| Servers and Backing Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the authentication and SSL options available
 between |onprem| and the :ref:`mms-application-database` and
@@ -95,8 +95,8 @@ HEAD databases that reside on the Backup Daemon:
      - |onprem| 1.6+
      - OnPrem 1.5+
 
-Security Between Agents and MongoDB Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connections Between Agents and MongoDB Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the authentication and SSL options available
 between the |mms| agents and the MongoDB deployments they manage and back
@@ -139,8 +139,8 @@ Supported MongoDB Security Features on Windows
 
 This section describes supported security options on Windows.
 
-Authentication Between |onprem| Servers and Backing Replica Sets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connections Between |onprem| Servers and Backing Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the authentication and SSL options available
 between |onprem| and the :ref:`mms-application-database` and
@@ -163,8 +163,8 @@ HEAD databases that reside on the Backup Daemon:
      - |onprem| 1.6+
      - OnPrem 1.5+
 
-Security Between Agents and MongoDB Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connections Between Agents and MongoDB Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the authentication and SSL options available
 between the |mms| agents and the MongoDB deployments they manage and back
