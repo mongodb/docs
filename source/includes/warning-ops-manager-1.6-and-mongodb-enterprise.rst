@@ -1,6 +1,6 @@
 .. warning::
 
-   To use |onprem| 1.6 Automation to manage :term:`MongoDB Enterprise`
+   To use |onprem| 1.6 or later Automation to manage :term:`MongoDB Enterprise`
    deployments, you must **first install** the :ref:`MongoDB Enterprise
    dependencies <mongodb-enterprise-dependencies>` to each server that
    runs MongoDB Enterprise. You must install the dependencies to the
