@@ -96,7 +96,7 @@ How do I download the Monitoring Agent?
 You can update the Monitoring Agent from the :guilabel:`Agents` page on the |mms|
 `Administration tab`_.
 
-.. _`Administration tab`: https://mms.mongodb.com/settings
+.. _`Administration tab`: https://cloud.mongodb.com/settings
 
 How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++

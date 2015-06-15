@@ -51,7 +51,7 @@ Monitoring Agent ``3.1.0.173``
 
    - Ability to upgrade a group to Cloud |mms|, which provides Automation
      and the Metrics API. For information about Cloud |mms| pricing,
-     please see `the pricing page <https://mms.mongodb.com/pricing>`_.
+     please see `the pricing page <https://cloud.mongodb.com/pricing>`_.
 
 - The :guilabel:`Deployment` tab now displays all deployment information,
   for both servers and processes, on one page, with icons for selecting

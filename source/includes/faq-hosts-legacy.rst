@@ -42,7 +42,7 @@ Cannot Delete a Host
 In rare cases, the :program:`mongod` is brought down and the replica set is
 reconfigured. The down host cannot be deleted and returns an error message,
 "This host cannot be deleted because it is enabled for backup." `Contact |mms|
-Support <https://mms.mongodb.com/links/support>`_ for help in deleting these
+Support <https://cloud.mongodb.com/links/support>`_ for help in deleting these
 hosts.
 
 For more information on deleted hosts, see :ref:`removing-hosts`.

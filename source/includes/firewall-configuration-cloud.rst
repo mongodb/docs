@@ -17,7 +17,7 @@ IP Addresses for GET and POST
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must keep open the following addresses on port ``443`` so that the
-agents can ``GET`` AND ``POST`` to the ``mms.mongodb.com`` and
+agents can ``GET`` AND ``POST`` to the ``cloud.mongodb.com`` and
 ``api-backup.mongodb.com`` servers:
 
 - ``54.173.82.137``
@@ -84,5 +84,5 @@ agents managing processes in that deployment.
 Therefore, all MongoDB ports must be open to every server that hosts an
 Automation, Monitoring or Backup Agent. For example, if you are running
 MongoDB processes on ``27000``, ``27017`` and ``27020``, then those
-three ports must be open from all servers that are hosting an |mms|
+three ports must be open from all servers that are hosting an
 Agent.

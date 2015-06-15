@@ -57,6 +57,7 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'v2.2': ('http://docs.mongodb.org/v2.2%s', ''),
     'v2.4': ('http://docs.mongodb.org/v2.4%s', ''),
+    'v2.6': {'http://docs.mongodb.org/v2.6%s', ''},
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
     'about': ('http://www.mongodb.org/about%s', '')
@@ -129,7 +130,7 @@ try:
     if tags.has('onprem'):
         conf.runstate.edition = 'onprem'
 
-        project = u'Ops Manager'
+        project = u'MongoDB Ops Manager'
         latex_documents = onprem_latex_documents
 
         html_title = 'MongoDB Ops Manager Manual'
@@ -168,17 +169,17 @@ try:
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
-        project = u'MongoDB Management Service (MMS)'
+        project = u'MongoDB Cloud Manager'
 
         latex_documents = cloud_latex_documents
 
-        html_short_title = 'MMS Manual'
-        html_title = 'MMS Manual'
+        html_short_title = 'Cloud Manager Manual'
+        html_title = 'MongoDB Cloud Manager Manual'
 
         html_theme = 'mms-cloud'
         html_theme_options['edition'] = 'saas'
-        html_theme_options['pdfpath'] = '/' + 'mms-manual.pdf'
-        html_theme_options['sitename'] = 'MMS Cloud Docs'
+        html_theme_options['pdfpath'] = '/' + 'cloudmanager-manual.pdf'
+        html_theme_options['sitename'] = 'Cloud Manager Docs'
 except NameError:
     pass
 
