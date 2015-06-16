@@ -1,5 +1,5 @@
-|monitoring| Agent
-~~~~~~~~~~~~~~~~~~
+Monitoring Agent
+~~~~~~~~~~~~~~~~
 
 Do I need a Monitoring Agent for every MongoDB Instance?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,7 +69,7 @@ To test the connection, login to the server running the agent and run:
 ``mongo hostname:port/test`` If you are unable to connect, the agent
 will not be able to connect.
 
-In addition, |monitoring| supports monitoring for
+In addition, |mms| supports monitoring for
 Kerberos-enabled instances.
 
 Why does the Monitoring Agent connect with hostnames instead of IP addresses?

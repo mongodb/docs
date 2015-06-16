@@ -6,6 +6,6 @@ The Backup Agent relies on the |mms| Monitoring Agent to populate the
 list of sharded clusters and replica sets eligible for backup. If
 the appropriate hosts are not added, or the Monitoring Agent is not
 being correctly run, the lists may be incomplete or out-of-date.
-If you have not already installed and configured |monitoring|,
+If you have not already installed and configured the Monitoring Agent,
 please refer to the :doc:`/tutorial/nav/install-monitoring-agent`
 documentation.

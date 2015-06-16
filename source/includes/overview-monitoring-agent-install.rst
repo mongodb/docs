@@ -2,10 +2,10 @@
 
 The |mms| Monitoring Agent is a lightweight component that runs within your
 infrastructure, connects to your MongoDB processes, collects data about the
-state of your deployment, and then sends the data to the |monitoring| service
-which processes and renders this data. The agent initiates all connections to
-the |monitoring| service, and communications between the agent and the
-|monitoring| service are encrypted. A single agent can collect data from
+state of your deployment, and then sends the data to |mms|,
+which processes and renders this data. The agent initiates all connections
+between the agent and |mms|, and communications between the agent and
+|mms| are encrypted. A single agent can collect data from
 multiple MongoDB processes.
 
 .. only:: web
@@ -18,8 +18,8 @@ multiple MongoDB processes.
 .. only:: onprem
 
    This tutorial will guide you through the steps necessary
-   to install or update |monitoring| on your system. You must install
-   the |onprem| Monitoring server itself before installing the
+   to install or update the Monitoring Agent on your system. You must install
+   the |onprem| itself before installing the
    Monitoring Agent.
 
 .. only:: classic or cloud
