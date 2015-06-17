@@ -3,7 +3,7 @@
    use $external
    db.createUser(
       {
-         user: "<x.509 subject>"
+         user: "<x.509 subject>",
          roles: [ { role: "clusterMonitor", db: "admin" } ]
       }
    )
