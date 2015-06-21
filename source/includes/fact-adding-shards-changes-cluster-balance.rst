@@ -3,3 +3,5 @@ When you add a shard to a sharded cluster, you affect the balance of
 collections. The balancer will begin migrating chunks so that the
 cluster will achieve balance. See :doc:`/core/sharding-balancing` for
 more information.
+
+.. include:: /includes/fact-archiveMovedChunks.rst
