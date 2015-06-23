@@ -12,4 +12,4 @@ manager to install the Automation Agent. This gives the agent the same
 owner as MongoDB.
 
 In addition, the Automation Agent must have permission to stop, start, and
-update any pre-existing Monitoring and Backup Agents.
+update any existing Monitoring and Backup Agents.
