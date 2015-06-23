@@ -1,3 +1,19 @@
+Monitoring Agent ``3.3.1.193``
+------------------------------
+
+*Released with Ops Manager 1.8 on 2015-06-23*
+
+- Added support for x.509 Client Certificate authentication. For
+  configuration details, see:
+  :doc:`/tutorial/configure-monitoring-agent-for-x509`.
+
+- The Kerberos credentials cache now uses a fixed name.
+
+- Improved support for collecting database statistics from secondaries.
+
+- Adds an optimization to ensure the Monitoring Agent's database stats
+  collection tasks do not synchronize.
+ 
 Monitoring Agent ``2.9.2.184``
 ------------------------------
 

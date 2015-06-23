@@ -1,3 +1,5 @@
+.. _monitoring-agent-redundancy:
+
 Monitoring Agent Redundancy
 +++++++++++++++++++++++++++
 

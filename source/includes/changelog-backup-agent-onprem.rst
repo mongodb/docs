@@ -1,3 +1,18 @@
+Backup Agent ``3.3.1.193``
+--------------------------
+
+*Released with Ops Manager 1.8 on 2015-06-23*
+
+- Added support for x.509 Client Certificate authentication. For
+  configuration details, see:
+  :doc:`/tutorial/configure-backup-agent-for-x509`.
+
+- The Kerberos credentials cache now uses a fixed name.
+
+- Fixed a race condition which could result in inconsistent cluster
+  snapshots for MongoDB 3.0+ sharded clusters using the
+  :authrole:`backup` role.
+
 Backup Agent ``3.1.2.274``
 --------------------------
 
