@@ -13,16 +13,14 @@ version on a staging environment that reproduces your production
 environment. This can help avoid discovering compatibility issues that may
 result in downtime for your production deployment.
 
-Before changing version on a production environment, change versions on a
-*staging* environment that reproduces your production environment to
-ensure your configuration is compatible with all changes.
+If you *downgrade* to an earlier version of MongoDB and your MongoDB
+configuration file includes options that are not part of the earlier
+MongoDB version, you must perform the downgrade in two phases. First,
+remove the configuration settings that are specific to the newer MongoDB
+version, and deploy those changes. Then, update the MongoDB version and
+deploy that change.
 
-If you downgrade to an earlier version of MongoDB, and if you have set
-configuration options that are not part of the earlier version, you must
-make the changes in two steps. You must first remove the configuration
-options that are specific to the higher version and deploy those changes,
-then change the MongoDB version and deploy that change. For example, if
-run MongoDB 3.0 with the :guilabel:`engine` option set to ``mmapv1`` and
-want to downgrade to MongoDB 2.6, you must first remove the
-:guilabel:`engine` option. Though MongoDB 2.6 uses ``mmapv1``, it does not
-have the :guilabel:`engine` option.
+For example, if you are running MongoDB version 3.0 with the
+:guilabel:`engine` option set to ``mmapv1``, and you wish to downgrade
+to MongoDB 2.6, you must first remove the :guilabel:`engine` option as
+MongoDB 2.6 does not include that option.
