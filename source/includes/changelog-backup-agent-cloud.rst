@@ -1,3 +1,13 @@
+Backup Agent ``3.5.0.286-1``
+------------------------------
+
+*Released 2015-06-24*
+
+- Updated documentation and setting URLs to cloud.mongodb.com
+
+- Added support for backing up selected namespaces. This functionality
+  is not yet exposed in the |mms| user interface.
+
 Backup Agent ``3.4.0.273``
 --------------------------
 

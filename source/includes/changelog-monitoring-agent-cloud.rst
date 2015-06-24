@@ -1,3 +1,10 @@
+Monitoring Agent ``3.5.0.197``
+------------------------------
+
+*Released 2015-06-24*
+
+- Updated documentation and setting URLs to cloud.mongodb.com
+
 Monitoring Agent ``3.4.0.190``
 ------------------------------
 
