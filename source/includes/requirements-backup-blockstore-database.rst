@@ -1,12 +1,13 @@
-Blockstore servers store snapshots of MongoDB deployments. Only provision
-Blockstore servers if you are deploying |mms| Backup.
+Provision :ref:`backup-database` servers only if you are deploying |mms|
+Backup.
 
-Replica Set for the Blockstore Database
-+++++++++++++++++++++++++++++++++++++++
+Replica Set for the Backup Database
++++++++++++++++++++++++++++++++++++
 
 Backup requires a separate, **dedicated** MongoDB replica set to hold
-snapshot data. This cannot be a replica set used for any
-purpose other than holding the snapshots.
+backup data, which include snapshots, oplog data and temporary sync data.
+This cannot be a replica set used for any
+purpose other than holding the backup data.
 
 For durability, the replica set must have at least two data-bearing
 members. For high availability the replica set must have at least three
@@ -23,11 +24,11 @@ data-bearing members.
 For *testing only* you may use a standalone MongoDB deployment in place of a
 replica set.
 
-Server Size for the Blockstore Database
-+++++++++++++++++++++++++++++++++++++++
+Server Size for the Backup Database
++++++++++++++++++++++++++++++++++++
 
 Snapshots are compressed and de-duplicated at the block level in the
-Blockstore database. Typically, depending on data compressibility and
+:term:`Backup Blockstore Database`. Typically, depending on data compressibility and
 change rate, the replica set must run on servers with enough capacity to
 store 2 to 3 times the total backed-up production data size. 
 
@@ -38,7 +39,7 @@ servers.
 Configuration Requirements from the MongoDB Production Notes
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Each server that hosts a MongoDB process for the Blockstore database
+Each server that hosts a MongoDB process for the Backup Database
 **must** comply with the :manual:`Production Notes
 </administration/production-notes>` in the MongoDB manual. The
 Production Notes include important information on :manual:`ulimits
@@ -53,8 +54,8 @@ Production Notes include important information on :manual:`ulimits
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
-Other Requirements for the Blockstore Databsase
-+++++++++++++++++++++++++++++++++++++++++++++++
+Other Requirements for the Backup Database
+++++++++++++++++++++++++++++++++++++++++++
 
 For each data-bearing member of the replica set member
 

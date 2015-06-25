@@ -53,37 +53,35 @@ group.
 
 .. _backup-http-service:
 
-Backup HTTP Service
-~~~~~~~~~~~~~~~~~~~
+|backup-http-service|
+~~~~~~~~~~~~~~~~~~~~~
 
-The HTTP server runs on port ``8081`` by default. The Backup HTTP Service
+The HTTP server runs on port ``8081`` by default. The |backup-http-service|
 contains a set of web services used by the Backup Agent. The agent
 retrieves its configuration from this service. The agent also sends
 back initial sync and oplog data through this interface. There is no
-user interaction with this service. The Backup HTTP service runs on
+user interaction with this service. The |backup-http-service| runs on
 port ``8081`` by default.
 
-The Backup HTTP Service exposes an endpoint that reports on the state of the
+The |backup-http-service| exposes an endpoint that reports on the state of the
 service and the underlying database to support monitoring of the Backup
 service. This status also checks the connections from the service to the
-:ref:`mms-application-database` and the :ref:`mms-backup-blockstore-database`. See
+:ref:`mms-application-database` and the :ref:`backup-database`. See
 :ref:`backup-http-service-endpoint`.
 
 .. _backup-daemon:
-
-.. _head-db:
 
 Backup Daemon
 -------------
 
 The Backup Daemon manages both the local copies of the backed-up databases
 and each backup's snapshots. The daemon does scheduled work based on data
-coming in to the Backup HTTP Service from the Backup Agents. No client
+coming in to the |backup-http-service| from the Backup Agents. No client
 applications talk directly to the daemon. Its state and job queues come from
 the :ref:`mms-application-database`.
 
 The Backup Daemon's local copy of a backed-up deployment is called the
-*head database*. The daemon stores all its head databases in its
+:term:`head database`. The daemon stores all its head databases in its
 :setting:`rootDirectory` path. To create each head database, the
 daemon's server acts as though it were an "invisible" :term:`secondary`
 for each :term:`replica set` designated for backup.
@@ -93,8 +91,8 @@ use when a user enables backup for a deployment. The local copy of the
 deployment resides with that daemon's server.
 
 The daemon will take scheduled snapshots and store the snapshots in the
-:ref:`Backup Blockstore database <mms-backup-blockstore-database>`. It will
-also act on restore requests by retrieving data from the Blockstore and
+:ref:`backup-database`. It will
+also act on restore requests by retrieving data from the Backup Database and
 delivering it to the requested destination.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` can increase your
@@ -132,21 +130,35 @@ This database contains application metadata used by the
 For topology and specifications, see
 :ref:`mms-application-database-specifications`.
 
-.. _mms-backup-blockstore-database:
+.. _backup-database:
 
-Backup Blockstore Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Backup Database
+~~~~~~~~~~~~~~~
 
-This database contains all snapshots of databases backed up and oplogs
-retained for point in time restores. The Backup Blockstore database requires
-disk space proportional to the backed-up databases.
+The Backup Database stores snapshots of your backed up deployments and
+stores temporary backup data. The Backup Database is actually three
+databases. You can have multiple instances of each, according to your
+sizing needs:
 
-Configure the Blockstore as a replica set to provide durability and automatic
-failover to the backup and restore components. The replica set must have at
-least three members that hold data.
+- The :term:`Backup Blockstore Database`, which stores the snapshots of
+  your backed-up deployments and requires the bulk of the space on the
+  Backup Database servers.
 
-You **cannot** back up the Blockstore database with |onprem| Backup. To
+- The :term:`Oplog Store Database`, which stores oplog entries the Backup
+  Daemon will apply to its local copies of your backed-up deployments.
+
+- The :term:`Sync Store Database`, which stores temporary backup
+  information when you start a new backup. The Backup Daemon creates its
+  local backup by performing an initial sync using this data.
+
+The databases must run on a dedicated MongoDB deployment that holds no
+other data. For production, you must configure the MongoDB deployment as a
+replica set, to provide durability and automatic failover for the data.
+The replica set must have at least three members that hold data.
+
+You **cannot** back up the Blockstore Database with |onprem| Backup. To
 back up |onprem| Backup, see :doc:`/tutorial/backup-the-backup-service`.
 
-For additional specifications, see
-:ref:`mms-blockstore-database-specifications`.
+The Backup Database requires disk space proportional to the backed-up
+deployments. For specifications, see
+:ref:`backup-database-specifications`.

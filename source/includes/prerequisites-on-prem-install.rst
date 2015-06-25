@@ -22,8 +22,8 @@ Deploy MongoDB
 ++++++++++++++
 
 Install MongoDB on the servers that will store the
-:ref:`mms-application-database` and :ref:`mms-backup-blockstore-database`.
-The Backup Blockstore database is required only if you run the Backup
+:ref:`mms-application-database` and :ref:`backup-database`.
+The Backup Database is required only if you run the Backup
 Daemon. The databases require dedicated MongoDB instances. Do **not** use
 MongoDB installations that store other data.
 

@@ -17,7 +17,7 @@ For a :doc:`test deployment </tutorial/install-simple-test-deployment>`,
 you can use a MongoDB standalone in place of a replica set.
 
 Each server that hosts a MongoDB process for the |application|
-database **must** comply with the :manual:`Production Notes
+Database **must** comply with the :manual:`Production Notes
 </administration/production-notes>` in the MongoDB manual. The
 Production Notes include important information on :manual:`ulimits
 </reference/ulimit>`, :manual:`NUMA

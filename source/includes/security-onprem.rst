@@ -84,10 +84,8 @@ Connections Between |onprem| and the Backing Databases (Linux)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows security options for connections between
-|onprem| and backing databases when both run on Linux. The backing
-databases are the :ref:`mms-application-database` and
-:ref:`mms-backup-blockstore-database`.
-
+|onprem| and the :ref:`mms-application-database` and
+:ref:`backup-database` when both run on Linux.
 
 .. list-table::
    :header-rows: 1
@@ -155,9 +153,8 @@ Connections Between |onprem| and the Backing Databases (Windows)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows security options for connections between
-|onprem| and backing databases when both run on Windows. The backing
-databases are the :ref:`mms-application-database` and
-:ref:`mms-backup-blockstore-database`.
+|onprem| and the :ref:`mms-application-database` and
+:ref:`backup-database` when both run on Windows.
 
 .. list-table::
    :header-rows: 1

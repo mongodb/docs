@@ -10,7 +10,9 @@ Hosts are not Visible
 Problems with the Monitoring Agent detecting hosts can be caused by a few
 factors.
 
-**Host not added to |mms|**: In |mms|, select the :guilabel:`Deployment` tab, then
+.. COMMENT - you can't have replacement text inside bold. It publishes incorrectly.
+
+**Host not added**: In |mms|, select the :guilabel:`Deployment` tab, then
 the :guilabel:`Deployment` page, and then click
 the :guilabel:`Add Host` button. In the :guilabel:`New Host` window, specify
 the host type, internal hostname, and port. If appropriate, add the database
@@ -38,8 +40,10 @@ no available Monitoring Agents available. See :ref:`Monitoring FAQ
 Cannot Delete a Host
 ++++++++++++++++++++
 
+.. COMMENT - you can't have replacement text inside back ticks. It publishes incorrectly.
+
 In rare cases, the :program:`mongod` is brought down and the replica set is
 reconfigured. The down host cannot be deleted and returns an error message,
-"This host cannot be deleted because it is enabled for backup." `Contact |mms|
+"This host cannot be deleted because it is enabled for backup." `Contact
 Support <https://cloud.mongodb.com/links/support>`_ for help in deleting these
 hosts.
