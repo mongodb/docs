@@ -1,9 +1,8 @@
 Packages
 --------
 
-MongoDB provides packages of the officially supported MongoDB
-Enterprise builds in it's own repository. This repository provides the
-MongoDB Enterprise distribution in the following packages:
+MongoDB provides officially supported Enterprise packages in their own
+repository. This repository contains the following packages:
 
 - ``mongodb-enterprise``
 
