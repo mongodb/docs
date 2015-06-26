@@ -47,7 +47,7 @@
    * - :doc:`Perl </drivers/perl>`
      - `Releases <http://search.cpan.org/dist/MongoDB/>`_
      - `Source <https://github.com/mongodb/mongo-perl-driver>`_
-     - `API <http://api.mongodb.org/perl/current>`_
+     - `API <https://metacpan.org/pod/MongoDB>`_
      - `JIRA <https://jira.mongodb.org/browse/PERL>`_
      - 
 
