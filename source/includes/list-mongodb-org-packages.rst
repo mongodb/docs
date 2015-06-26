@@ -1,9 +1,8 @@
 Packages
 --------
 
-MongoDB provides packages of the officially supported MongoDB builds in
-its own repository. This repository provides the MongoDB distribution
-in the following packages:
+MongoDB provides officially supported packages in their own repository. This
+repository contains the following packages:
 
 - ``mongodb-org``
 
