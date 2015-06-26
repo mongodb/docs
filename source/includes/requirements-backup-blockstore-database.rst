@@ -10,7 +10,7 @@ purpose other than holding the snapshots.
 
 For durability, the replica set must have at least two data-bearing
 members. For high availability the replica set must have at least three
-data-bearing members. If possible, including three 
+data-bearing members.
 
 .. note::
 
