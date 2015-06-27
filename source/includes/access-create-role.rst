@@ -1,4 +1,4 @@
-To create a role in a database, the user must have:
+To create a role in a database, you must have:
 
 - the :authaction:`createRole` :ref:`action <security-user-actions>` on
   that :ref:`database resource <resource-specific-db>`.

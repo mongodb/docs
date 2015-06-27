@@ -1,0 +1,204 @@
+=====================
+Manage User and Roles
+=====================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+.. versionchanged:: 2.6
+   MongoDB 2.6 introduces a new :ref:`authorization model
+   <authorization>`.
+
+MongoDB employs Role-Based Access Control (RBAC) to determine access
+for users. A user is granted one or more :ref:`roles <roles>` that
+determine the user's access or privileges to MongoDB :ref:`resources
+<resource-document>` and the :ref:`actions <security-user-actions>`
+that user can perform. A user should have only the minimal set of
+privileges required to ensure a system of :term:`least privilege`.
+
+Each application and user of a MongoDB system should map to a distinct
+application or administrator. This *access isolation* facilitates
+access revocation and ongoing user maintenance. 
+
+This tutorial provides examples for user and role management under the
+MongoDB's authorization model.
+
+Prerequisites
+-------------
+
+.. important::
+
+   If you have enabled :ref:`authorization <authorization>` for your
+   deployment, you must authenticate as a user with the required
+   privileges specified in each section. A :doc:`user administrator
+   </tutorial/add-user-administrator>` with the
+   :authrole:`userAdminAnyDatabase` role, or :authrole:`userAdmin` role
+   in the specific databases, provides the required privileges to
+   perform the operations listed in this tutorial.
+
+   If you have not yet created a user administrator, do so as described
+   in :doc:`/tutorial/add-user-administrator`.
+
+.. _add-new-user:
+
+Add a User
+----------
+
+To create a user, specify the user name, password, and :ref:`roles
+<roles>`. For users that authenticate using external mechanisms
+[#external-auth-mechanisms]_, you do not need to provide the password
+when creating users.
+
+When assigning roles, select the roles that have the exact required
+:ref:`privileges <privileges>`. If the correct roles does not exist,
+you can :ref:`create new roles <create-user-defined-role>`.
+
+.. [#external-auth-mechanisms] See :ref:`security-auth-x509`,
+   :ref:`security-auth-kerberos`, and :ref:`security-auth-ldap`
+   
+.. _add-user-prereq:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/access-create-user.rst
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/add-user-to-database.rst
+
+.. _create-user-defined-role:
+
+Create a User-Defined Role
+--------------------------
+
+Roles grant users access to MongoDB resources. MongoDB provides a
+number of :doc:`built-in roles </reference/built-in-roles>` that
+administrators can use to control access to a MongoDB system. However,
+if these roles cannot describe the desired set of privileges, you can
+create new roles in a particular database.
+
+Except for roles created in the ``admin`` database, a role can only
+include privileges that apply to its database and can only inherit from
+other roles in its database.
+
+A role created in the ``admin`` database can include privileges that
+apply to the ``admin`` database, other databases or to the
+:ref:`cluster <resource-cluster>` resource, and can inherit from roles
+in other databases as well as the ``admin`` database.
+
+To create a new role, use the :method:`db.createRole()` method,
+specifying the privileges in the ``privileges`` array and the inherited
+roles in the ``roles`` array.
+
+MongoDB uses the combination of the database name and the role name to
+uniquely define a role. Each role is scoped to the database in which
+you create the role, but MongoDB stores all role information in the
+:data:`admin.system.roles` collection in the ``admin`` database.
+
+.. _define-roles-prereq:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/access-create-role.rst
+
+.. _create-role-to-manage-ops:
+
+Create a Role to Manage Current Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a role named ``manageOpRole`` which
+provides only the privileges to run both :method:`db.currentOp()` and
+:method:`db.killOp()`. [#built-in-roles1]_
+
+.. include:: /includes/steps/create-role-manage-ops.rst
+
+.. [#built-in-roles1] 
+   The built-in role :authrole:`clusterMonitor` also provides the
+   privilege to run :method:`db.currentOp()` along with other
+   privileges, and the built-in role :authrole:`hostManager` provides
+   the privilege to run :method:`db.killOp()` along with other
+   privileges.
+
+.. _create-role-for-mongostat:
+
+Create a Role to Run ``mongostat``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a role named ``mongostatRole`` that
+provides only the privileges to run :program:`mongostat`.
+[#built-in-roles2]_
+
+.. include:: /includes/steps/create-role-mongostat.rst
+
+.. [#built-in-roles2] The built-in role
+   :authrole:`clusterMonitor` also provides the privilege to run
+   :program:`mongostat` along with other
+   privileges.
+
+Modify Access for Existing User
+-------------------------------
+
+.. _assign-role-to-user-prereq:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- .. include:: /includes/access-grant-roles.rst
+
+- .. include:: /includes/access-revoke-roles.rst
+
+- .. include:: /includes/access-roles-info.rst
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/change-user-privileges.rst
+
+Modify Password for Existing User
+---------------------------------
+
+.. _change-password-prereq:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/access-change-password.rst
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/change-user-password.rst
+
+.. seealso:: :doc:`/tutorial/change-own-password-and-custom-data`
+
+View a User's Role
+------------------
+
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/access-user-info.rst
+
+Procedure
+~~~~~~~~~~
+
+.. include:: /includes/steps/verify-user-privileges.rst
+
+View Role's Privileges
+----------------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+.. include:: /includes/access-roles-info.rst
+
+Procedure
+~~~~~~~~~~
+
+.. include:: /includes/steps/view-role-info.rst

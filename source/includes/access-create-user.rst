@@ -1,10 +1,11 @@
-You must have the :authaction:`createUser` :ref:`action
-<security-user-actions>` on a database to create a new user on that
-database.
+- To create a new user in a database, you must have
+  :authaction:`createUser` :ref:`action <security-user-actions>` on
+  that :ref:`database resource <resource-specific-db>`.
 
-You must have the :authaction:`grantRole` :ref:`action
-<security-user-actions>` on a role's database to grant the role to another
-user.
+- To grant roles to a user, you must have the :authaction:`grantRole`
+  :ref:`action <security-user-actions>` on the role's database.
 
-If you have the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
-role, you have those actions.
+Built-in roles :authrole:`userAdmin` and
+:authrole:`userAdminAnyDatabase` provide :authaction:`createUser` and
+:authaction:`grantRole` actions on their respective :doc:`resources
+</reference/resource-document>`.
