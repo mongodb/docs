@@ -6,12 +6,12 @@ Replica Set Data Synchronization
 
 .. default-domain:: mongodb
 
-In order to maintain up-to-date copies of the shared data set, members
-of a replica set :term:`sync` or replicate data from other
-members. MongoDB uses two forms of data synchronization: :ref:`initial
-sync <replica-set-initial-sync>` to populate new members with the full
-data set, and replication to apply ongoing changes to the entire
-data set.
+In order to maintain up-to-date copies of the shared data set,
+secondary members of a replica set :term:`sync` or replicate data from
+other members. MongoDB uses two forms of data synchronization:
+:ref:`initial sync <replica-set-initial-sync>` to populate new members
+with the full data set, and replication to apply ongoing changes to the
+entire data set.
 
 .. _replica-set-initial-sync:
 
@@ -54,12 +54,14 @@ To perform an initial sync, see
 Replication
 -----------
 
-Replica set members replicate data continuously after the initial
-sync. This process keeps the members up to date with all changes to
-the replica set's data. In most cases, secondaries synchronize from
-the primary. Secondaries may automatically change their *sync targets*
-if needed based on changes in the ping time and state of other members'
-replication.
+Secondary members replicate data continuously after the initial sync.
+Secondary members copy the :doc:`oplog </core/replica-set-oplog>` from
+their *sync from* source and apply these operations in an asynchronous
+process.
+
+In most cases, secondaries sync from the primary. Secondaries may
+automatically change their *sync from* source if needed based on
+changes in the ping time and state of other members' replication.
 
 For a member to sync from another, both members must have the same
 value for the :rsconf:`members[n].buildIndexes`
@@ -69,27 +71,10 @@ Secondaries avoid syncing from
 :ref:`delayed members <replica-set-delayed-members>` and :ref:`hidden
 members <replica-set-hidden-members>`.
 
-Validity and Durability
------------------------
-
-In a replica set, the set can have at most one primary and only the
-primary can accept write operations. [#edge-cases-2-primaries]_
-Secondaries apply operations from the primary asynchronously to provide
-:term:`eventual consistency`.
-
-:term:`Journaling <journal>` provides single-instance write durability.
-Without journaling, if a MongoDB instance terminates
-ungracefully, you must assume that the database is in an invalid state.
-
-In MongoDB, clients can see the results of writes before they are made
-durable:
-
-.. include:: /includes/list-visibility-of-data.rst
-
 .. _replica-set-internals-multi-threaded-replication:
 
 Multithreaded Replication
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB applies write operations in batches using multiple threads to
 improve concurrency. MongoDB groups batches by namespace (:ref:`MMAPv1
@@ -103,7 +88,7 @@ result, secondary read queries can never return data that reflect a
 state that never existed on the primary.
 
 Pre-Fetching Indexes to Improve Replication Throughput
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
    Applies to MMAPv1 only.
@@ -117,7 +102,3 @@ entries. By default, secondaries will pre-fetch all :ref:`indexes`.
 Optionally, you can disable all pre-fetching or only pre-fetch
 the index on the ``_id`` field. See the :setting:`~replication.secondaryIndexPrefetch`
 setting for more information.
-
-.. [#edge-cases-2-primaries]
-
-   .. include:: /includes/footnote-two-primaries-edge-cases.rst

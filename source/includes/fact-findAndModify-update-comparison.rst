@@ -24,7 +24,7 @@ When updating a document, |operation| and the
   only a single document but multiple documents matched, you will need to
   use additional logic to identify the updated document.
 
-- You cannot specify a :doc:`write concern </core/write-concern>` to
+- You cannot specify a :doc:`write concern </reference/write-concern>` to
   |operation| to override the default write concern whereas, starting
   in MongoDB 2.6, you can specify a write concern to the
   :method:`~db.collection.update()` method.
