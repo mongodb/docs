@@ -720,6 +720,100 @@ must use the other provided accessor methods:
   person[:gender] = "Male"
   person.write_attribute(:gender, "Male")
 
+Localized Fields
+````````````````
+
+Mongoid now supports localized fields without the need of any external gem.
+
+.. code-block:: ruby
+
+  class Product
+    include Mongoid::Document
+    field :description, localize: true
+  end
+
+By telling the field to ``localize``, Mongoid will under the covers store the field
+as a hash of locale/value pairs, but normal access to it will behave like a string.
+
+.. code-block:: ruby
+
+  I18n.default_locale = :en
+  product = Product.new
+  product.description = "Marvelous!"
+  I18n.locale = :de
+  product.description = "Fantastisch!"
+
+  product.attributes
+  #=> { "description" => { "en" => "Marvelous!", "de" => "Fantastisch!" }
+
+You can get and set all the translations at once by using the corresponding ``_translations`` method.
+
+.. code-block:: ruby
+
+  product.description_translations
+  #=> { "en" => "Marvelous!", "de" => "Fantastisch!" }
+  product.description_translations =
+    { "en" => "Marvelous!", "de" => "Wunderbar!" }
+
+Fallbacks
+*********
+
+When using fallbacks, Mongoid will automatically use them when a translation is not available.
+
+For Rails applications, set the fallbacks configuration setting to true in your environment.
+
+.. code-block:: ruby
+
+  config.i18n.fallbacks = true
+
+For non-rails applications, you must include the fallbacks module straight to the I18n gem.
+
+.. code-block:: ruby
+
+  require "i18n/backend/fallbacks"
+  I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
+
+Then when the fallbacks are defined, if a translation is not present Mongoid will fallback
+in order of the defined locales.
+
+.. code-block:: ruby
+
+  I18n.default_locale = :en
+  I18n.fallbacks = true
+  ::I18n.fallbacks[:de] = [ :de, :en, :es ]
+  product = Product.new
+  product.description = "Marvelous!"
+  I18n.locale = :de
+  product.description #=> "Marvelous!"
+
+Querying
+********
+
+When querying for localized fields using Mongoid's criteria API, Mongoid will automatically
+alter the criteria to match the current locale.
+
+.. code-block:: ruby
+
+  # Match all prodcucts with Marvelous as the description. Locale is en.
+  Product.where(description: "Marvelous!")
+  # The resulting MongoDB query filter: { "description.en" : "Marvelous!" }
+
+Indexing
+********
+
+If you plan to be querying extensively on localized fields, you should index each of the
+locales that you plan on searching on.
+
+.. code-block:: ruby
+
+  class Product
+    include Mongoid::Document
+    field :description, localize: true
+
+    index "description.de" => 1
+    index "description.en" => 1
+  end
+
 Persistence
 -----------
 
