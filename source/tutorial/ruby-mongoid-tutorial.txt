@@ -344,6 +344,220 @@ and have a structure like so:
     ]
   }
 
+Fields
+``````
+
+Even though MongoDB is a schemaless database, most uses will be with web applications where
+form parameters always come to the server as strings. Mongoid provides an easy mechanism for
+transforming these strings into their appropriate types through the definition of fields
+in a ``Mongoid::Document``.
+
+Consider a simple class for modeling a person in an application. A person may have a first name,
+last name, and middle name. We can define these attributes on a person by using the fields macro.
+
+.. code-block:: ruby
+
+  class Person
+    include Mongoid::Document
+    field :first_name, type: String
+    field :middle_name, type: String
+    field :last_name, type: String
+  end
+
+Below is a list of valid types for fields.
+
+- ``Array``
+- ``BigDecimal``
+- ``Boolean``
+- ``Date``
+- ``DateTime``
+- ``Float``
+- ``Hash``
+- ``Integer``
+- ``BSON::ObjectId``
+- ``BSON::Binary``
+- ``Range``
+- ``Regexp``
+- ``String``
+- ``Symbol``
+- ``Time``
+- ``TimeWithZone``
+
+If you decide not to specify the type of field with the definition, Mongoid will treat
+it as an object and not try to typecast it when sending the values to the database.
+This can be advantageous in 2 places, since the lack of attempted conversion will yield
+a slight performance gain. However some fields are not supported if not defined as fields.
+A note of thumb for what fields you can use are:
+
+- You're not using a web front end and values are already properly cast.
+- All of your fields are strings.
+
+.. code-block:: ruby
+
+  class Person
+    include Mongoid::Document
+    field :first_name
+    field :middle_name
+    field :last_name
+  end
+
+Types that are not supported as dynamic attributes since they cannot be cast are:
+
+- ``BigDecimal``
+- ``Date``
+- ``DateTime``
+- ``Range``
+
+Accessing Field Values
+**********************
+
+When a field is defined, Mongoid provides several different ways of accessing the field.
+
+.. code-block:: ruby
+
+  # Get the value of the first_name field
+  person.first_name
+  person[:first_name]
+  person.read_attribute(:first_name)
+
+
+  # Set the value for the first_name field
+  person.first_name = "Jean"
+  person[:first_name] = "Jean"
+  person.write_attribute(:first_name, "Jean")
+
+If you have defined custom getter/setter, those will be used when using the dot notation.
+
+.. code-block:: ruby
+
+  class Person
+    include Mongoid::Document
+
+    field :first_name
+
+    # custom getter
+    def first_name
+      "My name is Johnny"
+    end
+
+    # custom setter
+    def first_name=(value)
+      p 'Setting.. '
+      self.first_name = value
+      p '.. done!'
+    end
+  end
+
+  # Like this:
+  person.first_name = 'John'
+  # Setting..
+  # .. done!
+
+  person.first_name                  # My name is Johnny
+  person[:first_name]                # John
+  person.read_attribute(:first_name) # John
+
+In cases where you want to set multiple field values at once, there are a few different ways
+of handling this as well.
+
+.. code-block:: ruby
+
+  # Get the field values as a hash.
+  person.attributes
+
+  # Set the field values in the document.
+  Person.new(first_name: "Jean-Baptiste", middle_name: "Emmanuel")
+  person.attributes = { first_name: "Jean-Baptiste", middle_name: "Emmanuel" }
+  person.write_attributes(
+    first_name: "Jean-Baptiste",
+    middle_name: "Emmanuel"
+  )
+
+Hash Fields
+***********
+
+When using a field of type Hash, be wary of adhering to the
+`legal key names for mongoDB <http://docs.mongodb.org/manual/reference/limits/#naming-restrictions>`_,
+or else the values will not store properly.
+
+.. code-block:: ruby
+
+  class Person
+    include Mongoid::Document
+    field :first_name
+    field :url, type: Hash
+
+    # will update the fields properly and save the values
+    def set_vals
+      self.first_name = 'Daniel'
+      self.url = {'home_page' => 'http://www.homepage.com'}
+      save
+    end
+
+    # all data will fail to save due to the illegal hashkey
+    def set_vals_fail
+      self.first_name = 'Daniel'
+      self.url = {'home.page' => 'http://www.homepage.com'}
+      save
+    end
+  end
+
+Defaults
+********
+
+You can tell a field in Mongoid to always have a default value if nothing has been provided.
+Defaults are either static values or lambdas.
+
+.. code-block:: ruby
+
+  class Person
+    include Mongoid::Document
+    field :blood_alcohol_level, type: Float, default: 0.40
+    field :last_drink, type: Time, default: ->{ 10.minutes.ago }
+  end
+
+Be wary that default values that are not defined as lambdas or procs are evaluated
+at class load time, so the following 2 definitions are not equivalent.
+(One would probably prefer the second, which is at document creation time.)
+
+.. code-block:: ruby
+
+  field :dob, type: Time, default: Time.now
+  field :dob, type: Time, default: ->{ Time.now }
+
+If you want to set a default with a dependency on the document's state, self inside a lambda
+or proc evaluates to the document instance.
+
+.. code-block:: ruby
+
+  field :intoxicated_at, type: Time, default: ->{ new_record? ? 2.hours.ago : Time.now }
+
+When defining a default value as a proc, Mongoid will apply the default after all other
+attributes are set. If you want this to happen before the other attributes, set ``pre_processed: true``.
+
+Aliasing Fields
+***************
+
+One of the drawbacks of having a schemaless database is that MongoDB must store all field
+information along with every document, meaning that it takes up a lot of storage space in RAM
+and on disk. A common pattern to limit this is to alias fields to a small number of characters,
+while keeping the domain in the application expressive. Mongoid allows you to do this and
+reference the fields in the domain via their long names in getters, setters, and criteria while
+performing the conversion for you.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    field :n, as: :name, type: String
+  end
+
+  band = Band.new(name: "Placebo")
+  band.attributes #=> { "n" => "Placebo" }
+
+  criteria = Band.where(name: "Placebo")
+  criteria.selector #=> { "n" => "Placebo" }
+
 Persistence
 -----------
 
