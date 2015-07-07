@@ -1000,6 +1000,181 @@ setting or through the build and create methods on the association:
 Persistence
 -----------
 
+Mongoid supports all expected CRUD operations for those familiar with other Ruby mappers
+like Active Record or Data Mapper. What distinguishes Mongoid from other mappers for MongoDB
+is that the general persistence operations perform atomic updates on only the fields that have
+changed instead of writing the entire document to the database each time.
+
+The persistence sections will provide examples on what database operation is performed
+when executing the documented command.
+
+Standard
+````````
+
+Mongoid's standard persistence methods come in the form of common methods you would find
+in other mapping frameworks. The following table shows all standard operations with
+examples.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 60
+
+   * - Operation
+     - Example
+
+   * - ``Model.create``
+
+       *Insert a document or multiple documents into the database.*
+     -
+        .. code-block:: ruby
+
+          Person.create(
+            first_name: "Heinrich",
+            last_name: "Heine"
+          )
+
+          Person.create([
+            { first_name: "Heinrich", last_name: "Heine" },
+            { first_name: "Willy", last_name: "Brandt" }
+          ])
+
+          Person.create(first_name: "Heinrich") do |doc|
+            doc.last_name = "Heine"
+          end
+
+   * - ``Model.create!``
+
+       *Insert a document or multiple documents into the database, raising an error
+       if a validation error occurs.*
+     -
+        .. code-block:: ruby
+
+          Person.create!(
+            first_name: "Heinrich",
+            last_name: "Heine"
+          )
+
+          Person.create!([
+            { first_name: "Heinrich", last_name: "Heine" },
+            { first_name: "Willy", last_name: "Brandt" }
+          ])
+
+          Person.create!(first_name: "Heinrich") do |doc|
+            doc.last_name = "Heine"
+          end
+
+   * - ``Model#save``
+
+       *Saves the changed attributes to the database atomically, or insert the document
+       if flagged as a new record via* ``Model#new_record?`` *. Can bypass validations if wanted.*
+     -
+        .. code-block:: ruby
+
+          person = Person.new(
+            first_name: "Heinrich",
+            last_name: "Heine"
+          )
+          person.save
+          person.save(validate: false)
+
+          person.first_name = "Christian Johan"
+          person.save
+
+   * - ``Model#save!``
+
+       *Saves the changed attributes to the database atomically, or insert the document if
+       new. Will raise an error of validations fail.*
+     -
+        .. code-block:: ruby
+
+          person = Person.new(
+            first_name: "Heinrich",
+            last_name: "Heine"
+          )
+          person.save!
+
+          person.first_name = "Christian Johan"
+          person.save!
+
+   * - ``Model#update_attributes``
+
+       *Update the provided attributes (and any other dirty fields).*
+     -
+        .. code-block:: ruby
+
+          person.update_attributes!(
+            first_name: "Jean",
+            last_name: "Zorg"
+          )
+
+   * - ``Model#update_attribute``
+
+       *Update a single attribute, bypassing validations.*
+     -
+        .. code-block:: ruby
+
+          person.update_attribute(:first_name, "Jean")
+
+   * - ``Model#upsert``
+
+       *Performs a MongoDB upsert on the document. If the document exists in the database,
+       it will get overwritten with the current attributes of the document in memory.
+       If the document does not exist in the database, it will be inserted. Note that
+       this only runs the* ``{before|after|around}_upsert`` *callbacks.*
+     -
+        .. code-block:: ruby
+
+          person = Person.new(
+            first_name: "Heinrich",
+            last_name: "Heine"
+          )
+          person.upsert
+
+   * - ``Model#touch``
+
+       *Update the document's updated_at timestamp, optionally with one extra provided
+       time field. This will cascade the touch to all* ``belongs_to`` *relations of the document
+       with the option set. This operation skips validations and callbacks.*
+     -
+        .. code-block:: ruby
+
+          person.touch
+          person.touch(:audited_at)
+
+   * - ``Model#delete``
+
+       *Deletes the document from the database without running callbacks.*
+     -
+        .. code-block:: ruby
+
+          person.delete
+
+   * - ``Model#destroy``
+
+       *Deletes the document from the database while running destroy callbacks.*
+     -
+        .. code-block:: ruby
+
+          person.destroy
+
+   * - ``Model.delete_all``
+
+       *Deletes all documents from the database without running any callbacks.*
+     -
+        .. code-block:: ruby
+
+          Person.delete_all
+
+   * - ``Model.destroy_all``
+
+       *Deletes all documents from the database while running callbacks. This is a
+       potentially expensive operation since all documents will be loaded into memory.*
+     -
+        .. code-block:: ruby
+
+          Person.destroy_all
+
+
 Querying
 --------
 
