@@ -3,50 +3,36 @@ inherit:
   file: steps-create-manually-windows-service-for-mongodb.yaml
   ref: open-command-prompt
 ---
-title: Configure directories and files.
 stepnum: 2
-ref: directories
-pre: |
-  Create a :doc:`configuration file </reference/configuration-options>`
-  and a directory path for MongoDB log output (:setting:`logpath`):
-action:
-  - pre: |
-      Create a specific directory for MongoDB log files:
-    language: powershell
-    code: |
-      md "C:\mongodb\log"
-  - pre: |
-      In the :guilabel:`Command Prompt`, create a configuration file for
-      the :setting:`logpath` option for MongoDB:
-    language: powershell
-    code: |
-      echo logpath=C:\mongodb\log\mongo.log > "C:\mongodb\mongod.cfg"
+inherit:
+  file: steps-create-manually-windows-service-for-mongodb.yaml
+  ref: create-directories
 ---
-title: Run the MongoDB service.
 stepnum: 3
+inherit:
+  file: steps-create-manually-windows-service-for-mongodb.yaml
+  ref: create-configuration-file
+---
+title: Install the MongoDB service.
+stepnum: 4
 ref: mongodb-service
 pre: |
      .. important::
 
         Run all of the following commands in :guilabel:`Command Prompt` with
-        "Administrative Privileges"
+        "Administrative Privileges".
 action:
   - pre: |
-      Install the MongoDB service. For :option:`--install <mongod.exe
-      --install>` to succeed, you *must* specify the :setting:`logpath`
-      run-time option.
+      Install the MongoDB service by providing the ``--install`` argument to
+      :program:`mongod`. This will use the previously created configuration
+      file.
     language: powershell
     code: |
       "C:\mongodb\bin\mongod.exe" --config "C:\mongodb\mongod.cfg" --install
-  - pre: |
-      Modify the path to the ``mongod.cfg`` file as needed.
 post: |
   To use an alternate :setting:`dbpath`, specify the path in the
   configuration file (e.g. ``C:\mongodb\mongod.cfg``) or
   on the command line with the :option:`--dbpath <mongod --dbpath>` option.
-
-  If the :setting:`dbpath` directory does not exist, :program:`mongod.exe`
-  will not start. The default value for :setting:`dbpath` is ``\data\db``.
 
   If needed, you can install services for multiple instances of
   :program:`mongod.exe` or :program:`mongos.exe`. Install each service
@@ -55,8 +41,13 @@ post: |
   multiple instances only when sufficient system resources exist and your
   system design requires it.
 ---
+stepnum: 5
+inherit:
+  file: steps-create-manually-windows-service-for-mongodb.yaml
+  ref: start-mongodb-service
+---
 title: Stop or remove the MongoDB service as needed.
-stepnum: 4
+stepnum: 6
 ref: stop
 action:
   - pre: |
