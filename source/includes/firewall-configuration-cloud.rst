@@ -17,7 +17,7 @@ IP Addresses for GET and POST
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must keep open the following addresses on port ``443`` so that the
-agents can ``GET`` AND ``POST`` to the ``cloud.mongodb.com`` and
+agents can ``GET`` AND ``POST`` to the ``api-agents.mongodb.com`` and
 ``api-backup.mongodb.com`` servers:
 
 - ``54.173.82.137``
