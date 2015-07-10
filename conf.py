@@ -76,7 +76,7 @@ extlinks = {
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
-    'opsmgr': ('https://docs.opsmanager.mongodb.com/current/%s', ''),
+    'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
     'about': ('https://www.mongodb.org/about%s', ''),
     'products': ('https://www.mongodb.com/products%s', '')
 }
