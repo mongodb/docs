@@ -8,7 +8,7 @@ target database. For example:
 
 .. code-block:: javascript
 
-   { resource: { db: "myTargetDB", collection: "" }, actions: [ "insert", "createIndex" ] }
+   { resource: { db: "myTargetDB", collection: "" }, actions: [ "insert", "createIndex" ] },
    { resource: { db: "myTargetDB", collection: "system.js" }, actions: [ "insert" ] }
 
 .. target-admin-source
@@ -38,8 +38,8 @@ source database. For example:
 
 .. code-block:: javascript
 
-   { resource: { db: "mySourceDB", collection: "" }, actions: [ "find", "listCollections", "listIndexes" ] }
-   { resource: { db: "mySourceDB", collection: "system.js" }, actions: [ "find" ] }
+   { resource: { db: "mySourceDB", collection: "" }, actions: [ "find", "listCollections", "listIndexes" ] },
+   { resource: { db: "mySourceDB", collection: "system.js" }, actions: [ "find" ] },
 
 .. source-admin
 
@@ -52,8 +52,8 @@ in the ``admin`` database. For example:
 
 .. code-block:: javascript
 
-   { resource: { db: "admin", collection: "" }, actions: [ "find",  "listCollections", "listIndexes" ] }
-   { resource: { db: "admin", collection: "system.js" }, actions: [ "find" ] }
-   { resource: { db: "admin", collection: "system.users" }, actions: [ "find" ] }
-   { resource: { db: "admin", collection: "system.roles" }, actions: [ "find" ] }
+   { resource: { db: "admin", collection: "" }, actions: [ "find",  "listCollections", "listIndexes" ] },
+   { resource: { db: "admin", collection: "system.js" }, actions: [ "find" ] },
+   { resource: { db: "admin", collection: "system.users" }, actions: [ "find" ] },
+   { resource: { db: "admin", collection: "system.roles" }, actions: [ "find" ] },
    { resource: { db: "admin", collection: "system.version" }, actions: [ "find" ] }
