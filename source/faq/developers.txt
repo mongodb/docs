@@ -53,25 +53,18 @@ exist in MongoDB's on-disk data storage.
 When does MongoDB write updates to disk?
 ----------------------------------------
 
-MongoDB flushes writes to disk on a regular interval. In the default
-configuration, MongoDB writes data to the main data files on disk
-every 60 seconds and commits the :term:`journal` roughly every 100
-milliseconds. These values are configurable with the
-:setting:`~storage.journal.commitIntervalMs` and :setting:`~storage.syncPeriodSecs`.
+MongoDB flushes writes to disk on a regular interval. 
 
-These values represent the *maximum* amount of time between the
-completion of a write operation and the point when the write is
-durable in the journal, if enabled, and when MongoDB flushes data to
-the disk. In many cases MongoDB and the operating system flush data to
-disk more frequently, so that the above values represents a
-theoretical maximum.
+MMAPv1
+   .. include:: /includes/fact-mmapv1-write-to-disk.rst
 
-However, by default, MongoDB uses a "lazy" strategy to write to
-disk. This is advantageous in situations where the database receives a
-thousand increments to an object within one second, MongoDB only needs
-to flush this data to disk once. In addition to the aforementioned
-configuration options, you can also use :dbcommand:`fsync` and
-:doc:`/reference/write-concern` to modify this strategy.
+WiredTiger
+   For the data files, MongoDB
+   creates checkpoints (i.e. write the snapshot data to disk) at
+   intervals of 60 seconds or 2 gigabytes of data to write, depending
+   on which occurs first. For the journal data,
+
+   .. include:: /includes/extracts/wt-journal-sync-list.rst
 
 How do I do transactions and locking in MongoDB?
 ------------------------------------------------
@@ -591,10 +584,11 @@ driver <>`.
 How do I isolate cursors from intervening write operations?
 -----------------------------------------------------------
 
-MongoDB cursors can return the same document more than once in some
-situations. [#duplicate-document-in-result-set]_ You can use the
-:method:`~cursor.snapshot()` method on a cursor to isolate
-the operation for a very specific case.
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, MongoDB cursors
+can return the same document more than once in some situations.
+[#duplicate-document-in-result-set]_ You can use the
+:method:`~cursor.snapshot()` method on a cursor to isolate the
+operation for a very specific case.
 
 :method:`~cursor.snapshot()` traverses the index on the ``_id`` field
 and guarantees that the query will return each document (with respect to
@@ -612,20 +606,20 @@ provide isolation from insert or delete operations.
    - You **cannot** use :method:`~cursor.snapshot()` with
      :method:`~cursor.sort()` or :method:`~cursor.hint()` cursor methods.
 
-
 As an alternative, if your collection has a field or fields that are
 never modified, you can use a *unique* index on this field or these
 fields to achieve a similar result as the :method:`~cursor.snapshot()`.
 Query with :method:`~cursor.hint()` to explicitly force the query to use
 that index.
 
-.. [#duplicate-document-in-result-set] As a cursor returns documents other
-   operations may interleave with the query: if some of these
-   operations are :doc:`updates </core/write-operations>` that cause the
-   document to move (in the case of a table scan, caused by document
-   growth) or that change the indexed field on the index used by the
-   query; then the cursor will return the same document more than
-   once.
+.. [#duplicate-document-in-result-set] 
+   As a cursor returns documents other operations may interleave with
+   the query: with :doc:`MMAPv1 storage engine </core/mmapv1>`, if some
+   of these operations are :doc:`updates </core/write-operations>` that
+   cause the document to move (in the case of a table scan, caused by
+   document growth) or that change the indexed field on the index used
+   by the query; then the cursor will return the same document more
+   than once.
 
 .. [#id-is-immutable] MongoDB does not permit changes to the value of the
    ``_id`` field; it is not possible for a cursor that transverses
@@ -718,9 +712,9 @@ Can I manually pad documents to prevent moves during updates?
 
 .. versionchanged:: 3.0.0
 
-An update can cause a document to move on disk if the document grows in
-size. To *minimize* document movements, MongoDB uses
-:term:`padding`.
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, an update can
+cause a document to move on disk if the document grows in size. To
+*minimize* document movements, MongoDB uses :term:`padding`.
 
 You should not have to pad manually because by default, MongoDB uses
 :ref:`power-of-2-allocation` to add :ref:`padding automatically

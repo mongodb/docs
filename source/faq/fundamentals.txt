@@ -113,35 +113,50 @@ see :doc:`/faq/concurrency`.
 Does MongoDB require a lot of RAM?
 ----------------------------------
 
-Not necessarily. It's certainly possible to run MongoDB
-on a machine with a small amount of free RAM.
+MMAPv1
+   Not necessarily. It's certainly possible to run MongoDB
+   on a machine with a small amount of free RAM.
 
-MongoDB automatically uses all free memory on the machine as its
-cache. System resource monitors show that MongoDB uses a lot of
-memory, but its usage is dynamic. If another process suddenly needs
-half the server's RAM, MongoDB will yield cached memory to the other process.
+   MongoDB automatically uses all free memory on the machine as its
+   cache. System resource monitors show that MongoDB uses a lot of
+   memory, but its usage is dynamic. If another process suddenly needs
+   half the server's RAM, MongoDB will yield cached memory to the other process.
 
-Technically, the operating system's virtual memory subsystem manages
-MongoDB's memory. This means that MongoDB will use as much free memory
-as it can, swapping to disk as needed. Deployments with enough memory
-to fit the application's working data set in RAM will achieve the best
-performance.
+   Technically, the operating system's virtual memory subsystem manages
+   MongoDB's memory. This means that MongoDB will use as much free memory
+   as it can, swapping to disk as needed. Deployments with enough memory
+   to fit the application's working data set in RAM will achieve the best
+   performance.
 
-.. seealso:: :doc:`/faq/diagnostics` for answers to additional
-   questions about MongoDB and Memory use.
+WiredTiger
+   With WiredTiger, MongoDB utilizes both filesystem cache and
+   WiredTiger cache. By default, the WiredTiger cache will use either
+   1GB or half of the installed physical RAM, whichever is larger.
 
-How do I configure the cache size for MMAPv1?
----------------------------------------------
+   MongoDB also automatically uses all free memory on the machine via
+   the filesystem cache (data in the filesystem cache is compressed).
 
-MongoDB has no configurable cache for MMAPv1 storage engine. MongoDB
-uses all *free* memory on the system automatically by way of
-memory-mapped files. Operating systems use the same approach with their
-file system caches.
+.. seealso:: :ref:`faq-configure-cache-size`, :doc:`/faq/diagnostics`
 
-For the WiredTiger storage engine, you can specify the maximum size of
-the cache that WiredTiger will use for all data. See
-:setting:`storage.wiredTiger.engineConfig.cacheSizeGB` and
-:option:`--wiredTigerCacheSizeGB`.
+.. _faq-configure-cache-size:
+
+How do I configure the cache size?
+----------------------------------
+
+MMAPv1
+  MongoDB has no configurable cache for the :doc:`MMAPv1 storage engine
+  </core/mmapv1>`. MongoDB uses all *free* memory on the system
+  automatically by way of memory-mapped files. Operating systems use
+  the same approach with their file system caches.
+
+WiredTiger
+  For the :doc:`WiredTiger storage engine </core/wiredtiger>` storage
+  engine, you can specify the maximum size of the cache that WiredTiger
+  will use for all data. See
+  :setting:`storage.wiredTiger.engineConfig.cacheSizeGB` and
+  :option:`--wiredTigerCacheSizeGB`.
+
+  .. include:: /includes/extracts/wt-cache-eviction.rst
 
 .. _faq-database-and-caching:
 
@@ -169,23 +184,23 @@ Yes. MongoDB keeps all of the most recently used data in RAM. If you
 have created indexes for your queries and your working data set fits
 in RAM, MongoDB serves all queries from memory.
 
-MongoDB does not implement a query cache: MongoDB serves all queries
-directly from the indexes and/or data files.
+MongoDB does not implement a query cache; i.e. MongoDB does not cache
+the query results in order to return the cached results for identical
+queries.
 
-Are writes written to disk immediately, or lazily?
+Are writes written to disk immediately or lazily?
 --------------------------------------------------
 
-Writes are physically written to the :doc:`journal </core/journaling>`
-within 100 milliseconds, by default. At that point, the write is "durable" in the
-sense that after a pull-plug-from-wall event, the data will still be
-recoverable after a hard restart. See :setting:`~storage.journal.commitIntervalMs`
-for more information on the journal commit window.
+MMAPv1
+  .. include:: /includes/fact-mmapv1-write-to-disk.rst
 
-While the journal commit is nearly instant, MongoDB writes to the data
-files lazily. MongoDB may wait to write data to the data files for as
-much as one minute by default. This does not affect durability, as the journal
-has enough information to ensure crash recovery. To change the interval
-for writing to the data files, see :setting:`~storage.syncPeriodSecs`.
+WiredTiger
+   For the data files, MongoDB
+   creates checkpoints (i.e. write the snapshot data to disk) at
+   intervals of 60 seconds or 2 gigabytes of data to write, depending
+   on which occurs first. For the journal data,
+
+   .. include:: /includes/extracts/wt-journal-sync-list.rst
 
 What language is MongoDB written in?
 ------------------------------------

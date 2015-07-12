@@ -6,36 +6,22 @@ Manage Journaling
 
 MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
 guarantee :doc:`write operation </core/write-operations>` durability
-and to provide crash resiliency. Before applying a change to the data
-files, MongoDB writes the change operation to the journal. If MongoDB
-should terminate or encounter an error before it can write the changes
-from the journal to the data files, MongoDB can re-apply the write
-operation and maintain a consistent state.
+and to provide crash resiliency. 
 
-*Without* a journal, if :program:`mongod` exits unexpectedly, you must
-assume your data is in an inconsistent state, and you must run either
-:doc:`repair </tutorial/recover-data-following-unexpected-shutdown>`
-or, preferably, :doc:`resync </tutorial/resync-replica-set-member>`
-from a clean member of the replica set.
-
-With journaling enabled, if :program:`mongod` stops unexpectedly,
-the program can recover everything written to the journal, and the
-data remains in a consistent state. By default, the greatest extent of lost
+With MMAPv1, before applying a change to the data files, MongoDB writes
+the change operation to the journal. If MongoDB should terminate or
+encounter an error before it can write the changes from the journal to
+the data files, MongoDB can re-apply the write operation and maintain a
+consistent state.  By default, the greatest extent of lost
 writes, i.e., those not made to the journal, are those made in the last
 100 milliseconds. See :setting:`~storage.journal.commitIntervalMs` for more
 information on the default.
 
-With journaling, if you want a data set to reside entirely in RAM, you
-need enough RAM to hold the data set plus the "write working set." The
-"write working set" is the amount of unique data you expect to see
-written between re-mappings of the private view. For information on
-views, see :ref:`journaling-storage-views`.
-
-.. important::
-
-   .. versionchanged:: 2.0
-      For 64-bit builds of :program:`mongod`, journaling is enabled by
-      default.  For other platforms, see :setting:`storage.journal.enabled`.
+With WiredTiger, even without journaling, :ref:`checkpoints
+<storage-wiredtiger-checkpoints>` provide a consistent view of data on
+disk and allow MongoDB to recover from the last checkpoint. However, if
+MongoDB exits unexpectedly in between checkpoints, journaling is
+required to recover information that occured after the last checkpoint.
 
 Procedures
 ----------
@@ -48,13 +34,6 @@ Enable Journaling
 
 To enable journaling, start :program:`mongod` with the
 :option:`--journal <mongod --journal>` command line option.
-
-If no journal files exist, when :program:`mongod` starts, it must
-preallocate new journal files. During this operation, the
-:program:`mongod` is not listening for connections until preallocation
-completes: for some systems this may take a several minutes. During
-this period your applications and the :program:`mongo` shell are not
-available.
 
 Disable Journaling
 ~~~~~~~~~~~~~~~~~~
@@ -80,8 +59,20 @@ You can get commit acknowledgment with the
 
 .. _journaling-avoid-preallocation-lag:
 
-Avoid Preallocation Lag
-~~~~~~~~~~~~~~~~~~~~~~~
+Avoid Preallocation Lag for MMAPv1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, MongoDB may
+preallocate journal files if the :program:`mongod` process determines
+that it is more efficient to preallocate journal files than create new
+journal files as needed.
+
+Depending on your filesystem, you might experience a preallocation lag
+the first time you start a :program:`mongod` instance with journaling
+enabled. The amount of time required to pre-allocate files might last
+several minutes; during this time, you will not be able to connect to
+the database. This is a one-time preallocation and does not occur with
+future invocations.
 
 To avoid :ref:`preallocation lag <journaling-journal-files>`, you can
 preallocate files in the journal directory by copying them from another
@@ -162,14 +153,13 @@ Use the following commands and methods to monitor journal status:
 
 .. _journaling-journal-commit-interval:
 
-Change the Group Commit Interval
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change the Group Commit Interval for MMAPv1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 2.0
-
-You can set the group commit interval using the
-:option:`--journalCommitInterval <mongod --journalCommitInterval>`
-command line option. The allowed range is ``2`` to ``300`` milliseconds.
+For the :doc:`MMAPv1 storage engine </core/mmapv1>`, you can set the
+group commit interval using the :option:`--journalCommitInterval
+<mongod --journalCommitInterval>` command line option. The allowed
+range is ``2`` to ``300`` milliseconds.
 
 Lower values increase the durability of the journal at the expense of
 disk performance.
