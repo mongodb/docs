@@ -1,6 +1,6 @@
 .. _backup-3.3.1.193:
 
-Backup Agent ``3.3.1.193``
+Backup Agent ``3.4.1.283``
 --------------------------
 
 *Released with Ops Manager 1.8 on 2015-06-23*
