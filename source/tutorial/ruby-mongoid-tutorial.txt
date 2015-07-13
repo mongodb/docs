@@ -1965,6 +1965,61 @@ treated like scopes, and can be chained as well.
 
   Band.active
 
+Map/Reduce
+``````````
+
+Mongoid provides a DSL around MongoDB's map/reduce framework, for performing
+custom map/reduce jobs or simple aggregations.
+
+Execution
+*********
+
+You can tell Mongoid off the class or a criteria to perform a map/reduce
+by calling ``map_reduce`` and providing map and reduce javascript
+functions.
+
+.. code-block:: ruby
+
+  map = %Q{
+    function() {
+      emit(this.name, { likes: this.likes });
+    }
+  }
+
+  reduce = %Q{
+    function(key, values) {
+      var result = { likes: 0 };
+      values.forEach(function(value) {
+        result.likes += value.likes;
+      });
+      return result;
+    }
+  }
+
+  Band.where(:likes.gt => 100).map_reduce(map, reduce).out(inline: true)
+
+Just like criteria, map/reduce calls are lazily evaluated. So nothing will
+hit the database until you iterate over the results, or make a call on the
+wrapper that would need to force a database hit.
+
+.. code-block:: ruby
+
+  Band.map_reduce(map, reduce).out(replace: "mr-results").each do |document|
+    p document # { "_id" => "Tool", "value" => { "likes" => 200 }}
+  end
+
+The only required thing you provide along with a map/reduce is where to
+output the results. If you do not provide this an error will be raised.
+Valid options to ``#out`` are:
+
+- ``inline: 1``: Don't store the output in a collection.
+- ``replace: "name"``: Store in a collection with the
+  provided name, and overwrite any documents that exist in it.
+- ``merge: "name"``: Store in a collection with the
+  provided name, and merge the results with the existing documents.
+- ``reduce: "name"``: Store in a collection with the
+  provided name, and reduce all existing results in that collection.
+
 
 Relations
 ---------
