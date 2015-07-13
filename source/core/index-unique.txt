@@ -64,6 +64,41 @@ the indexed field. If there is more than one document without a value
 for the indexed field or is missing the indexed field, the index build
 will fail with a duplicate key error.
 
+For example, a collection has a unique index on ``x``:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "x": 1 }, { unique: true } )
+
+The unique index allows the insertion of a document without the field
+``x`` if the collection does not already contain a document missing the
+field ``x``:
+
+.. code-block:: javascript
+
+   db.collection.insert( { y: 1 } )
+
+However, the unique index errors on the insertion of a document without
+the field ``x`` if the collection already contains a document missing
+the field ``x``:
+
+.. code-block:: javascript
+
+   db.collection.insert( { z: 1 } )
+
+The operation fails to insert the document because of the violation of
+the unique constraint on the value of the field ``x``:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000,
+         "errmsg" : "E11000 duplicate key error index: test.collection.$a.b_1 dup key: { : null }"
+      }
+   })
+
 You can combine the unique constraint with the :ref:`sparse index
 <index-type-sparse>` to filter these null values from the unique index
 and avoid the error.
