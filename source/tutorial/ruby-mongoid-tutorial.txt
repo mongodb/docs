@@ -1829,6 +1829,141 @@ document inserts, updates, and deletion.
 
           Band.where(label: "Mute").destroy
 
+Scoping
+```````
+
+Scopes provide a convenient way to reuse common criteria with more
+business domain style syntax.
+
+Named Scopes
+************
+
+Named scopes are simply criteria defined at class load that are referenced
+by a provided name. Just like normal criteria, they are lazy and chainable.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    field :country, type: String
+    field :genres, type: Array
+
+    scope :english, ->{ where(country: "England") }
+    scope :rock, ->{ where(:genres.in => [ "rock" ]) }
+  end
+
+  Band.english.rock # Get the English rock bands.
+
+%p
+  Named scopes can take procs and blocks for accepting parameters or
+  extending functionality.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    field :name, type: String
+    field :country, type: String
+    field :active, type: Boolean, default: true
+
+    scope :named, ->(name){ where(name: name) }
+    scope :active, ->{
+      where(active: true) do
+        def deutsch
+          tap |scope| do
+            scope.selector.store("origin" => "Deutschland")
+          end
+        end
+      end
+    }
+  end
+
+  Band.named("Depeche Mode") # Find Depeche Mode.
+  Band.active.deutsch # Find active German bands.
+
+Default Scopes
+**************
+
+Default scopes can be useful when you find yourself applying the same
+criteria to most queries, and want something to be there by default.
+Default scopes take procs that return criteria objects.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    field :name, type: String
+    field :active, type: Boolean, default: true
+
+    default_scope ->{ where(active: true) }
+  end
+
+  Band.each do |band|
+    # All bands here are active.
+  end
+
+You can tell Mongoid not to apply the default scope by using
+``unscoped``, which can be inline or take a block.
+
+.. code-block:: ruby
+
+  Band.unscoped.where(name: "Depeche Mode")
+  Band.unscoped do
+    Band.where(name: "Depeche Mode")
+  end
+
+You can also tell Mongoid to explicitly apply the default scope
+again later to always ensure it's there.
+
+.. code-block:: ruby
+
+  Band.unscoped.where(name: "Depeche Mode").scoped
+
+If you are using a default scope on a model that is part of a relation,
+you must reload the relation to have scoping reapplied.
+This is important to note if you change a value of a document in the relation
+that would affect its visibility within the scoped relation.
+
+.. code-block:: ruby
+
+  class Label
+    include Mongoid::Document
+    embeds_many :bands
+  end
+
+  class Band
+    include Mongoid::Document
+    field :active, default: true
+    embedded_in :label
+    default_scoped ->{ where(active: true) }
+  end
+
+  label.bands.push(band)
+  label.bands #=> [ band ]
+  band.update_attribute(:active, false)
+  label.bands #=> [ band ] Must reload.
+  label.reload.bands #=> []
+
+
+Class Methods
+*************
+
+Class methods on models that return criteria objects are also
+treated like scopes, and can be chained as well.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    field :name, type: String
+    field :active, type: Boolean, default: true
+
+    def self.active
+      where(active: true)
+    end
+  end
+
+  Band.active
 
 
 Relations
