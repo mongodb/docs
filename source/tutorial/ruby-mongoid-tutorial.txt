@@ -2638,17 +2638,109 @@ but the child document contains a "foreign key" reference to the parent.
 Has Many
 ````````
 
+One to many relationships where the children are stored in a separate collection from the parent
+document are defined using Mongoid's ``has_many`` and ``belongs_to`` macros. This exhibits similar
+behavior to Active Record.
+
+Defining
+********
+
+The parent document of the relation should use the ``has_many`` macro to indicate is has n number
+of referenced children, where the document that is referenced uses ``belongs_to``.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    has_many :members
+  end
+
+  class Member
+    include Mongoid::Document
+    field :name, type: String
+    belongs_to :band
+  end
+
+Definitions are required on both sides to the relation in order for it to work properly,
+unless one of the models is embedded.
+
+Storage
+*******
+
+When defining a relation of this nature, each document is stored in its respective collection,
+but the child document contains a "foreign key" reference to the parent.
+
+.. code-block:: ruby
+
+  # The parent band document.
+  { "_id" : ObjectId("4d3ed089fb60ab534684b7e9") }
+
+  # A child member document.
+  {
+    "_id" : ObjectId("4d3ed089fb60ab534684b7f1"),
+    "band_id" : ObjectId("4d3ed089fb60ab534684b7e9")
+  }
+
 Has And Belongs To Many
 ```````````````````````
 
+Many to many relationships where the inverse documents are stored in a separate collection
+from the base document are defined using Mongoid's ``has_and_belongs_to_many`` macro. This
+exhibits similar behavior to Active Record with the exception that no join collection is needed,
+the foreign key ids are stored as arrays on either side of the relation.
 
+Defining
+********
 
+Both sides of the relation use the same macro.
 
+.. code-block:: ruby
 
+  class Band
+    include Mongoid::Document
+    has_and_belongs_to_many :tags
+  end
 
+  class Tag
+    include Mongoid::Document
+    field :name, type: String
+    has_and_belongs_to_many :bands
+  end
 
+You can create a one sided many to many if you want to mimic a has_many that stores the keys
+as an array on the parent.
 
+.. code-block:: ruby
 
+  class Band
+    include Mongoid::Document
+    has_and_belongs_to_many :tags, inverse_of: nil
+  end
+
+  class Tag
+    include Mongoid::Document
+    field :name, type: String
+  end
+
+Storage
+*******
+
+When defining a relation of this nature, each document is stored in its respective collection,
+and each document contains a "foreign key" reference to the other in the form of an array.
+
+.. code-block:: ruby
+
+  # The band document.
+  {
+    "_id" : ObjectId("4d3ed089fb60ab534684b7e9"),
+    "tag_ids" : [ ObjectId("4d3ed089fb60ab534684b7f2") ]
+  }
+
+  # The tag document.
+  {
+    "_id" : ObjectId("4d3ed089fb60ab534684b7f2"),
+    "band_ids" : [ ObjectId("4d3ed089fb60ab534684b7e9") ]
+  }
 
 
 Nested Attributes
