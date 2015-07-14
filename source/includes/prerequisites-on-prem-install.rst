@@ -32,4 +32,13 @@ instances as replica sets. Ensure that firewall rules on the servers allow
 access to the :doc:`ports </reference/firewall-configuration>` that the instances runs
 on.
 
-For more information, see :doc:`/tutorial/prepare-backing-mongodb-instances`.
+The |application| and Backup Daemon must authenticate to their databases
+as a MongoDB user with appropriate access. The user must have the
+following roles:
+
+- :authrole:`readWriteAnyDatabase`
+
+- :authrole:`dbAdminAnyDatabase`.
+
+- :authrole:`clusterAdmin` if the database is a sharded cluster, otherwise
+  :authrole:`clusterMonitor`
