@@ -2513,7 +2513,7 @@ Storage
 Documents that are embedded using the ``embeds_one`` macro are stored as a hash inside the
 parent in the parent's database collection.
 
-.. code-block:: json
+.. code-block:: ruby
 
   {
     "_id" : ObjectId("4d3ed089fb60ab534684b7e9"),
@@ -2537,8 +2537,103 @@ than the name, by providing a ``:store_as`` option.
 Embeds Many
 ```````````
 
+One to many relationships where the children are embedded in the parent document are defined
+using Mongoid's ``embeds_many`` and ``embedded_in`` macros.
+
+Defining
+********
+
+The parent document of the relation should use the ``embeds_many`` macro to indicate it has n
+number of embedded children, where the document that is embedded uses ``embedded_in``. Definitions
+are required on both sides to the relation in order for it to work properly.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    embeds_many :albums
+  end
+
+  class Album
+    include Mongoid::Document
+    field :name, type: String
+    embedded_in :band
+  end
+
+Storage
+*******
+
+Documents that are embedded using the ``embeds_many`` macro are stored as an array of hashes
+inside the parent in the parent's database collection.
+
+.. code-block:: ruby
+
+  {
+    "_id" : ObjectId("4d3ed089fb60ab534684b7e9"),
+    "albums" : [
+      {
+        "_id" : ObjectId("4d3ed089fb60ab534684b7e0"),
+        "name" : "Violator",
+      }
+    ]
+  }
+
+You can optionally tell Mongoid to store the embedded document in a different attribute other
+than the name, by providing a ``:store_as`` option.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    embeds_many :albums, store_as: "albs"
+  end
+
+
 Has One
 ```````
+
+One to one relationships where the children are referenced in the parent document are defined
+using Mongoid's ``has_one`` and ``belongs_to`` macros.
+
+Defining
+********
+
+The parent document of the relation should use the ``has_one`` macro to indicate is has 1 referenced
+child, where the document that is referenced in it uses ``belongs_to``.
+
+.. code-block:: ruby
+
+  class Band
+    include Mongoid::Document
+    has_one :studio
+  end
+
+  class Studio
+    include Mongoid::Document
+    field :name, type: String
+    belongs_to :band
+  end
+
+Definitions are required on both sides to the relation in order for it to work properly, unless
+one of the models is embedded.
+
+Storage
+*******
+
+When defining a relation of this nature, each document is stored in its respective collection,
+but the child document contains a "foreign key" reference to the parent.
+
+.. code-block:: ruby
+
+  # The parent band document.
+  { "_id" : ObjectId("4d3ed089fb60ab534684b7e9") }
+
+  # The child studio document.
+  {
+    "_id" : ObjectId("4d3ed089fb60ab534684b7f1"),
+    "band_id" : ObjectId("4d3ed089fb60ab534684b7e9")
+  }
+
 
 Has Many
 ````````
