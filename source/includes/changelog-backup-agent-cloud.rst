@@ -1,3 +1,11 @@
+Backup Agent ``3.6.0.292``
+--------------------------
+
+*Released 2015-07-15*
+
+- Added minor optimization to explicitly set the ``Content-Type`` on
+  HTTP requests.
+
 Backup Agent ``3.5.0.286-1``
 ------------------------------
 

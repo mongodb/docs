@@ -1,3 +1,13 @@
+Monitoring Agent ``3.6.0.201``
+------------------------------
+
+*Released 2015-07-15*
+
+- Added optimization to ensure that profile data collection is
+  not impacted by clock skew.
+- Stopped collecting data-base specific ``recordStats`` information.
+
+
 Monitoring Agent ``3.5.0.197``
 ------------------------------
 
