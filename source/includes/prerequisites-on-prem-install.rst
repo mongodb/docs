@@ -29,10 +29,16 @@ MongoDB installations that store other data.
 
 Install separate MongoDB instances for the two databases and install the
 instances as replica sets. Ensure that firewall rules on the servers allow
-access to the :doc:`ports </reference/firewall-configuration>` that the instances runs
-on.
+access to the :doc:`ports </reference/firewall-configuration>` that the
+instances runs on.
 
-The |application| and Backup Daemon must authenticate to their databases
+Install MongoDB on each server using the :manual:`install procedures in
+the MongoDB manual </administration/install-on-linux/>`. If you choose to
+install :term:`MongoDB Enterprise` for the backing database, you must
+install the MongoDB Enterprise dependencies, as described in the install
+procedures.
+
+The |application| and Backup Daemon must authenticate to the databases
 as a MongoDB user with appropriate access. The user must have the
 following roles:
 
