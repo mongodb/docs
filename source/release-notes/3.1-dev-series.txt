@@ -1,0 +1,922 @@
+:orphan:
+
+==========================================
+Release Notes for Development Series 3.1.x
+==========================================
+
+.. default-domain:: mongodb
+
+MongoDB 3.2 is currently in development as part of the 3.1.x
+development release series. 
+
+.. warning::
+
+   While 3.1.x releases are available, these versions of MONGODB are
+   for **testing purposes only and not for production use**.
+
+This document covers the 3.1 development series as a work-in-progress.
+Features are subject to change.
+
+.. |version-dev| replace:: 3.1.6
+
+WiredTiger as Default
+---------------------
+
+Starting in 3.1.4, MongoDB uses the WiredTiger as the default
+storage engine.
+
+To specify the MMAPv1 storage engine, you must specify the storage
+engine setting either:
+
+- On the command line with the ``--storageEngine`` option:
+
+  .. code-block:: sh
+
+     mongod --storageEngine mmapv1
+
+- Or in a :doc:`configuration file </reference/configuration-options>`,
+  using the :setting:`storage.engine` setting:
+
+  .. code-block:: yaml
+
+     storage:
+        engine: mmapv1
+
+Partial Indexes
+---------------
+
+MongoDB |version-dev| provides the option to create indexes that only index
+the documents in a collection that meet a specified filter expression.
+By indexing a subset of the documents in a collection, partial indexes
+have lower storage requirements and reduced performance costs for index
+creation and maintenance.
+
+Create a Partial Index
+~~~~~~~~~~~~~~~~~~~~~~
+
+To create a partial index, use the
+:method:`db.collection.createIndex()` method with the new
+``partialFilterExpression`` option.
+
+The following example creates a compound index that indexes only the
+documents with the ``rating`` field greater than 5.
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex(
+      { cuisine: 1, name: 1 },
+      { partialFilterExpression: { rating: { $gt: 5 } } }
+   )
+
+``partialFilterExpression`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify a ``partialFilterExpression`` option for all MongoDB
+:doc:`index types </core/index-types>`.
+
+The ``partialFilterExpression`` accepts a document that specifies the
+condition using:
+
+- equality expressions (i.e. ``field: value`` or using the :query:`$eq`
+  operator),
+
+- :query:`$exists: true <$exists>` expression,
+
+- :query:`$gt`, :query:`$gte`, :query:`$lt`, :query:`$lte` expressions,
+
+- :query:`$type` expressions,
+
+- :query:`$and` operator at the top-level only
+
+Restrictions
+~~~~~~~~~~~~
+
+- To use the partial index, a query **must** contain the filter
+  expression as part of its query condition unless you use a partial
+  index that specifies only the existence check on the index keys; i.e.
+  implement the sparse index behavior using a partial index.
+
+- In MongoDB, you cannot create multiple versions of an index that
+  differ only in the options. As such, you cannot create multiple
+  partial indexes that differ only by the filter expression.
+
+- You cannot specify both the ``partialFilterExpression`` option and
+  the ``sparse`` option.
+
+- Earlier versions of MongoDB do not support partial indexes. If using
+  sharded clusters or replica set, all nodes must be version |version-dev|.
+
+Comparison with the ``sparse`` Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+   Partial indexes represent a superset of the functionality offered by
+   sparse indexes and should be preferred over sparse indexes.
+
+Partial indexes offer a more expressive mechanism than
+:doc:`/core/index-sparse` indexes to determine which documents are
+indexed.
+
+Sparse indexes selects documents to index *soley* based on the
+existence of the indexed field, or for compound indexes, the existence
+the indexed fields.
+
+Partial indexes determine the index entries based on the specified
+filter. The filter can include fields other than the index keys and
+specify conditions other than just an existence check. For example,
+a partial index can implement the same behavior as a sparse index:
+
+.. code-block:: javascript
+
+   db.contacts.createIndex( { name: 1 }, { partialFilterExpression: { name: { $exists: true } } } )
+
+This partial index supports the same queries as a sparse index on the
+``name`` field.
+
+However, a partial index can also specify filter expressions on
+fields other than the index key:
+
+.. code-block:: javascript
+
+   db.contacts.createIndex( { name: 1 }, { partialFilterExpression: { email: { $exists: true } } } )
+
+For the query optimizer to choose this partial index, the query
+predicate must include a non-null match on the ``email`` field as well
+as a condition on the ``name`` field.
+
+For example, the following query can use the index:
+
+.. code-block:: javascript
+
+   db.contacts.find( { name: "xyz", email: { $regex: /\.org$/ } } )
+
+However, the following query cannot use the index:
+
+.. code-block:: javascript
+
+   db.contacts.find( { name: "xyz", email: { $exists: false } }
+
+.. _3.2-rel-notes-document-validation:
+
+Document Validation
+-------------------
+
+Starting in |version-dev|, MongoDB provides the capability to validate
+documents during updates and insertions. Validation rules are specified
+on a per-collection basis. MongoDB provides the following new options:
+
+- ``validator`` option to specify validation rules.
+
+- :ref:`3.2-rel-notes-validationLevel` option to determine how strictly
+  MongoDB applies the validation rules to existing documents during an
+  update.
+
+- :ref:`3.2-rel-notes-validationState` option to determine whether to
+  ``enforce`` validation by rejecting invalid inserts or updates or
+  ``warn`` about the violations in the log but allow invalid documents.
+
+To create a validation specification, include the new ``validator``
+option when creating a collection using
+:method:`db.createCollection()`, or modifying the behavior of a
+collection using :dbcommand:`collMod`. You can also include the
+optional ``validationLevel`` and ``validationState`` fields. By
+default, MongoDB uses *strict* validation level and *enforces*
+validation.
+
+.. note::
+
+   Validation occur during updates and inserts; i.e. existing documents
+   do not undergo validation checks until modification.
+
+``validator``
+~~~~~~~~~~~~~
+
+The ``validator`` option takes a document that specifies the validation
+rules or expressions. You can specify the expressions using the same
+operators as the :ref:`query operators <query-selectors>` with the
+exception of the following operators: :query:`$geoNear`,
+:query:`$near`, :query:`$nearSphere`, :query:`$text`, :query:`$where`.
+
+Add Validation to a New Collection
+``````````````````````````````````
+
+The following example creates a collection ``contact`` with a validator
+that specifies that either the ``phone`` field must exist or the
+``email`` field must exist or the ``status`` field equals ``Unknown``.
+
+.. code-block:: javascript
+
+   db.createCollection( "contacts", { 
+      validator: { $or: 
+         [ { phone: { $exists: true } }, { email: { $exists: true } }, { status: "Unknown" } ]
+      }
+   } )
+
+With the validator in place, the following insert operation will fail
+validation:
+
+.. code-block:: javascript
+
+   db.contacts.insert( { name: "xyz", status: "A" } )
+
+The method returns the error in the ``WriteResult``:
+
+.. code-block:: yaml
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 121,
+         "errmsg" : "Document failed validation"
+      }
+   })
+
+Add Validation to an Existing Collection
+````````````````````````````````````````
+
+To modify the validation rules for an existing collection, use the
+:dbcommand:`collMod` command with the ``validator`` option:
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      collMod: "contacts",
+      validator: { $or: [ { phone: { $exists: true } }, { email: { $exists: true } } ] }
+   } )
+
+.. note::
+
+   Validation occur during updates and inserts; i.e. existing documents
+   do not undergo validation checks until modification.
+
+View Validation Level for a Collection
+``````````````````````````````````````
+
+To view the validation specifications for a collection, use the
+:method:`db.getCollectionInfos( )` method:
+
+.. code-block:: javascript
+
+   db.getCollectionInfos( { name: "contacts" } )
+
+The method returns the following array with a document that contains
+information about the ``contacts`` collection:
+
+.. code-block:: javascript
+
+   [
+      {
+         "name" : "contacts",
+         "options" : {
+            "validator" : {
+               "$or" : [
+                  {
+                     "phone" : {
+                        "$exists" : true
+                     }
+                  },
+                  {
+                     "email" : {
+                        "$exists" : true
+                     }
+                  }
+               ]
+            },
+            "validationLevel" : "strict",
+            "validationState" : "enforce"
+         }
+      }
+   ]
+
+Validation Restrictions
+```````````````````````
+
+- You cannot specify a validator for collections in the ``admin``,
+  ``local``, and ``config`` databases.
+
+- You cannot specify a validator for ``system.*`` collections.
+
+Bypass Validation
+`````````````````
+
+By passing a new option ``bypassDocumentValidation``, the following
+commands can bypass validation per operation:
+
+- :dbcommand:`applyOps` command
+
+- :dbcommand:`clone` command and :method:`db.cloneDatabase()` method
+
+- :dbcommand:`cloneCollection` command and :method:`db.cloneCollection()`
+
+- :dbcommand:`copyDb` command and :method:`db.copyDatabase()` method
+
+- :dbcommand:`findAndModify` command and
+  :method:`db.collection.findAndModify()` method
+
+- :dbcommand:`mapReduce` command and
+  :method:`db.collection.mapReduce()` method
+
+- :dbcommand:`insert` command
+
+- :dbcommand:`update` command
+
+- :pipeline:`$out` for the :dbcommand:`aggregate` command and
+  :method:`db.collection.aggregate()` method
+
+.. _3.2-rel-notes-validationLevel:
+
+``validationLevel``
+~~~~~~~~~~~~~~~~~~~
+
+The ``validationLevel`` determines how strictly MongoDB applies the
+validation rules to existing documents during an update.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+   
+   * - validationLevel
+     - Description
+
+   * - ``"off"``
+
+     - No validation for inserts or updates.
+
+   * - ``"strict"``
+
+     - The default level. Apply validation rules to all inserts and all
+       updates.
+
+   * - ``"moderate"``
+
+     - Apply validation rules to inserts and to updates on existing
+       *valid* documents. Do not apply rules to updates on existing
+       *invalid* documents.
+
+.. _3.2-rel-notes-validationState:
+
+``validationState``
+~~~~~~~~~~~~~~~~~~~
+
+The ``validationState`` option determines whether to ``enforce``
+validation or just ``warn`` about the violations but allow invalid
+documents.
+
+.. important::
+
+   Validation of documents only applies to those documents as
+   determined by the ``validationLevel``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+   
+   * - validationState
+     - Description
+
+   * - ``"enforce"``
+
+     - Documents must pass validation before the write occurs.
+       Otherwise, the write operation fails.
+
+   * - ``"warn"``
+
+     - Documents do not have to pass validation. If the document fails
+       validation, the write operation logs the validation failure.
+
+Aggregation Framework Enhancements
+----------------------------------
+
+MongoDB |version-dev| introduces:
+
+- New stages, accumulators, and operators.
+
+- :ref:`Performance improvements <3.2-agg-shard-optimization>` on
+  sharded clusters.
+
+New Aggregation Stages
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Stage
+     - Description
+     - Syntax
+
+   * - :pipeline:`$sample`
+     - Randomly select N documents from its input.
+     - ``{ $sample: { size: <positive integer> } }``
+
+New Accumulators for ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Accumulator
+     - Description
+     - Syntax
+
+   * - :group:`$stdDevSamp`
+     - Calculates standard deviation.
+     - ``{stdDevSamp: <array> }``
+
+   * - :group:`$stdDevPop`
+     - Calculates population standard deviation.
+     - ``{stdDevPop: <array> }``
+
+New Aggregation Arithmetic Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Operator
+     - Description
+     - Syntax
+
+   * - :expression:`$sqrt`
+     - Calculates the square root.
+     - ``{ $sqrt: [ <number> ] }``
+
+   * - :expression:`$abs`
+     - Returns the absolute value of a number.
+     - ``{ $abs: [ <number> ] }``
+
+New Aggregation Array Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Operator
+     - Description
+     - Syntax
+
+   * - :expression:`$slice`
+     - Returns a subset of an array.
+     - ``{ $slice: [ <array>, <n> ] }``
+
+       or
+
+       ``{ $slice: [ <array>, <position>, <n> ] }``
+
+   * - :expression:`$arrayElemAt`
+     - Returns the element at the specified array index.
+     - ``{ $arrayElemAt: [ <array>, <idx> ] }``
+
+   * - :expression:`$concatArrays`
+     - Concatenates arrays.
+     - ``{ $concatArrays: [ <array1>, <array2> ] }``
+
+   * - :expression:`$isArray`
+     - Determines if the operand is an array.
+     - ``{ $isArray: [ <expression> ] }``
+
+   * - :expression:`$filter`
+     - Selects a subset of the array based on condition.
+     - .. code-block:: javascript
+
+          { 
+            $filter: 
+              {
+                input: <array>, 
+                as: <string>, 
+                cond: <expression>
+              }
+          }
+
+General Enhacements
+~~~~~~~~~~~~~~~~~~~
+
+``$project`` New Arrays
+```````````````````````
+
+In MongoDB |version-dev|, :pipeline:`$project` stage supports using the
+square brackets ``[]`` to directly create new array fields.
+
+For example, if a collection includes the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "x" : 1, "y" : 1 }
+
+The following operation projects the fields ``x`` and ``y`` as elements
+in a new field ``myArray``:
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y" ] } } ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
+
+``$minDistance`` for ``$geoNear``
+`````````````````````````````````
+
+MongoDB |version-dev| introduces the ``$minDistance`` option for the
+:pipeline:`$geoNear` stage. Use the new option to specify the minimum
+distance from the center point that the documents can be. MongoDB
+limits the results to those documents that fall outside the specified
+distance from the center point. 
+
+Specify the distance in meters for GeoJSON data and in radians for
+legacy coordinate pairs. For example:
+
+.. code-block:: javascript
+
+   db.places.aggregate([ 
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           minDistance: 2,
+           query: { type: "public" },
+           includeLocs: "dist.location",
+           num: 5,
+           spherical: true
+        }
+      }
+   ])
+
+Other Enhancements
+```````````````````
+
+- :expression:`$unwind` no longer errors on non-array operand. If the
+  operand does not resolve to an array, :expression:`$unwind` treats
+  the value as an single-element array.
+
+- :group:`$avg` accumulator returns null when run against a
+  non-existent field. Previous versions returned ``0``.
+
+- :expression:`$substr` errors when the result is an invalid UTF-8.
+  Previous versions output the invalid UTF-8 result.
+
+.. _3.2-agg-shard-optimization:
+
+Optimization
+~~~~~~~~~~~~
+
+MongoDB |version-dev| improves the overall performance of the pipeline
+in large sharded clusters.
+
+If the pipeline starts with an exact :pipeline:`$match` on a shard key,
+the entire pipeline runs on the matching shard only. Previously, the
+pipeline would have been split, and the work of merging it would have
+to be done on the primary shard.
+
+
+MongoDB Tools Enhancements
+--------------------------
+
+``mongodump`` and ``mongorestore`` Support Archive Files and ``stdout/in``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the new ``--archive`` option, :program:`mongodump` and
+:program:`mongorestore` add support for archive files and standard
+output/input streams. This enhancement allows for the streaming of the
+dump data over a network device via a pipe.
+
+``mongodump``
+   With the new ``--archive`` option, :program:`mongodump` can write the
+   output to a single archive file or to the standard output (``stdout``).
+
+   To output the dump to an archive file, run :program:`mongodump` with
+   the new ``--archive`` option and the archive filename. For example, the
+   following operation creates a file ``test.20150715.archive`` that
+   contains the dump of the ``test`` database.
+
+   .. code-block:: sh
+
+      mongodump --archive=test.20150715.archive --db test
+
+   To output the dump to the standard output stream in order to pipe to
+   another process, run :program:`mongodump` with the ``archive``
+   option but *omit* the filename:
+
+   .. code-block:: sh
+
+      mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
+
+   .. note::
+
+      You cannot use the ``--archive`` option with the
+      :option:`--out` option.
+
+``mongorestore``
+   With the new ``--archive`` option, :program:`mongorestore` can restore
+   from an archive file or from the standard input (``stdin``).
+
+   To restore from an archive file, run :program:`restore` with the new
+   ``--archive`` option and the archive filename. For example, the
+   following operation restores the ``test`` database from the file
+   ``test.20150715.archive``.
+
+   .. code-block:: sh
+
+      mongorestore --archive=test.20150715.archive --db test
+
+   To restore full data dump from the standard input, run
+   :program:`mongorestore` with the ``archive`` option but *omit* the
+   filename:
+
+   .. code-block:: sh
+
+      mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
+
+   .. note::
+
+      - You cannot use the ``--archive`` option with the ``--dir`` option.
+
+      - :program:`mongorestore` still supports the positional ``-`` parameter
+        to restore a *single* collection from the standard input.
+
+``mongodump`` and ``mongorestore`` Support Compressed Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the new ``--gzip`` option, :program:`mongodump` and
+:program:`mongorestore` add support for compressed data dumps. This
+enhancement reduces storage space for the dump files.
+
+
+``mongodump``
+   With the new ``--gzip`` option, :program:`mongodump` can compress
+   its output. If :program:`mongodump` outputs to the dump directory,
+   the new feature compresses the individual files. The files have the
+   suffix ``.gz``.
+   
+   If :program:`mongodump` outputs to an archive file or the standard
+   out stream, the new feature compresses the archive file or the data
+   output to the stream.
+
+   To compress the files in the output dump directory, run
+   :program:`mongodump` with the new ``--gzip`` option. For example,
+   the following operation outputs compressed files into the default
+   ``dump`` directory.
+
+   .. code-block:: sh
+
+      mongodump --gzip --db test
+
+   To compress the archive file output by :program:`mongodump`, use the
+   ``--gzip`` option in conjunction with the :option:`--archive`
+   option, specifying the name of the compressed file.
+
+   .. code-block:: sh
+
+      mongodump --archive=test.20150715.gz --gzip --db test
+
+``mongorestore``
+   With the new ``--gzip`` option, :program:`mongorestore` can restore
+   from compressed files or data stream created by :program:`mongodump`.
+
+   To restore from a dump directory that contains compressed files, run
+   :program:`restore` with the new ``--gzip`` option. For example, the
+   following operation restores the ``test`` database from the
+   compressed files located in the default ``dump`` directory:
+
+   .. code-block:: sh
+
+      mongorestore --gzip --db test
+
+   To restore from a compressed archive file, run :program:`restore`
+   with the ``--gzip`` option in conjunction with the new ``--archive``
+   option, specifying the name of the compressed filename. For example,
+   the following operation restores the ``test`` database from the file
+   ``test.20150715.gz``.
+
+   .. code-block:: sh
+
+      mongorestore --gzip --archive=test.20150715.gz --db test
+
+.. _3.2-rel-notes-encryption:
+
+Encrypted Storage Engine
+------------------------
+
+.. important:: Available for the WiredTiger Storage Engine Only
+
+Encryption at rest, when used in conjunction with transport encryption
+and good security policies that protect relevant accounts, passwords,
+and encryption keys, can help ensure compliance with security and
+privacy standards, including HIPAA, PCI-DSS, and FERPA.
+
+MongoDB |version-dev| introduces a native encryption option for the
+WiredTiger storage engine. This feature allows MongoDB to encrypt data
+files such that only parties with the decryption key can decode and
+read the data.
+
+Encryption Process
+~~~~~~~~~~~~~~~~~~
+
+For encryption, MongoDB uses AES-256 (or 256-bit Advanced Encryption
+Standard) in GCM via OpenSSL as the default. AES-256 uses a symmetric
+key; i.e. the same key to encrypt and decrypt text. FIPS mode
+encryption is also available.
+
+The data encryption includes:
+
+- Generating an system key.
+
+- Generating keys for each database.
+
+- Encrypting data with the database keys.
+
+- Encrypting the database keys with the system key.
+
+The encryption occur transparently in the storage layer; i.e. all data
+files are fully encrypted from a filesystem perspective, and data only
+exists in an unencrypted state in memory and during transmission.
+
+To encrypt all of MongoDB's network traffic, you can use TLS/SSL
+(Transport Layer Security/Secure Sockets Layer). See
+:doc:`/tutorial/configure-ssl` and
+:doc:`/tutorial/configure-ssl-clients`.
+
+Key Management
+~~~~~~~~~~~~~~
+
+.. important:: Secure management of the encryption keys is critical.
+
+The database keys are internal to the server and are only paged to disk
+in an encrypted format. MongoDB never pages the system key to disk
+under any circumstances.
+
+Only the system key is external to the server (i.e. kept separate from
+the data and the database keys), and requires external management. To
+manage the system key, MongoDB's encrypted storage engine supports two
+key management options:
+
+- Integration with a third party key management appliance via the Key
+  Management Interoperability Protocol (KMIP). **Recommended**
+
+- Local key management via a keyfile.
+
+To configure MongoDB for encryption and use one of the two key
+management options, see
+:doc:`/release-notes/3.1-dev-series-configure-encryption`
+
+Encryption and Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Encryption is not a part of replication:
+
+- System keys and database keys are not replicated, and 
+
+- Data is not natively encrypted over the wire.
+
+Although you could reuse the same key for the nodes, MongoDB recommends
+the use of individual keys for each node as well as the use of
+transport encryption.
+
+.. seealso:: :ref:`3.2-rotate-encryption-keys`
+
+.. _3.2-geo-enhancements
+
+General Enhancements
+--------------------
+
+Geospatial Optimization
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB |version-dev| introduces a version 3 of the :doc:`2dsphere
+indexes </core/2dsphere>`, which indexes the :doc:`GeoJSON geometries
+</reference/geojson>` at a finer gradation. The new version improves
+performance of :doc:`2dsphere indexes </core/2dsphere>` queries over
+smaller regions. In addition, for both :doc:`2d indexes </core/2d>` and
+:doc:`2dsphere indexes </core/2dsphere>`, the performance of
+Geo near queries has been improved for dense datasets.
+
+Bit Test Query Operators
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB |version-dev| provides new query operators to test bit values:
+
+- :query:`$bitsAllSet`
+
+- :query:`$bitsAllClear`
+
+- :query:`$bitsAnySet`
+
+- :query:`$bitsAnyClear`
+
+Text Search Enhancements
+------------------------
+
+.. _3.2-case-sensitive-text-search:
+
+Case Sensitive Text Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :query:`$text` operator adds support for case sensitive text search
+of the Latin alphabet ``[A-z]`` with the new ``$caseSensitive`` field.
+
+Case Sensitive Search Process
+`````````````````````````````
+
+To perform case sensitive text search for the Latin alphabet, the
+:query:`$text` operator:
+
+- First searches the ``text`` index, which is case insensitive for the
+  Latin alphabet.
+
+- Then, to return just the documents that match the case of the search
+  terms, the :query:`$text` query operation includes an additional
+  stage to filter out the documents that do not match the specified
+  case.
+
+Specifying ``$caseSensitive: true`` may impact performance.
+
+Example
+```````
+
+If the ``articles`` collection contains the following
+documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "subject" : "coFFeE and cake" }
+   { "_id" : 2, "subject" : "COFFEE and TEA" }
+   { "_id" : 3, "subject" : "coffee and Milk" }
+
+The following query performs a case sensitive search for the term
+``coFFeE``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "coFFeE", $caseSensitive: true } } )
+
+The search matches just the document:
+
+.. code-block:: json
+
+   { "_id" : 1, "subject" : "coFFeE and cake" }
+
+.. seealso:: :ref:`3.2-ref-case-sensitive-text-search`
+
+Support for Additional Languages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in |version-dev|, MongoDB Enterprise provides support for the
+following languages: Arabic, Farsi (specifically Dari and Iranian
+Persian dialects), Urdu, Simplified Chinese, and Traditional Chinese.
+
+For details, see
+:doc:`/release-notes/3.1-dev-series-text-search-enterprise`.
+
+Compatibility Changes
+---------------------
+
+The following changes can affect the compatibility with older versions
+of MongoDB.
+
+Default Storage Engine
+~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.1.4, MongoDB uses the WiredTiger as the default storage
+engine. Previous versions used the MMAPv1 storage engine. As such, for
+:program:`mongod` instances running MMAPv1,you must explicitly specify
+the storage engine setting either:
+
+- On the command line with the ``--storageEngine`` option:
+
+  .. code-block:: sh
+
+     mongod --storageEngine mmapv1
+
+- Or in a :doc:`configuration file </reference/configuration-options>`,
+  using the :setting:`storage.engine` setting:
+
+  .. code-block:: yaml
+
+     storage:
+        engine: mmapv1
+
+Aggregation Compatibility Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :group:`$avg` accumulator returns null when run against a
+  non-existent field. Previous versions returned ``0``.
+
+- :expression:`$substr` errors when the result is an invalid UTF-8.
+  Previous versions output the invalid UTF-8 result.
+
+- Array elements are no longer treated as literals in the aggregation
+  pipeline. Instead, each element of an array is now parsed as an
+  expression. To treat the element as a literal instead of an
+  expression, use the :expression:`$literal` operator to create a
+  literal value.
+
+Additional Information
+----------------------
+
+For more information on the features, see
+:doc:`/release-notes/3.1-dev-series-reference`.

@@ -1,0 +1,1087 @@
+:orphan:
+
+==================================
+Development Series 3.1.x Reference
+==================================
+
+.. default-domain:: mongodb
+
+MongoDB 3.2 is currently in development as part of the 3.1.x
+development release series. 
+
+.. warning::
+
+   While 3.1.x releases are available, these versions of MONGODB are
+   for **testing purposes only and not for production use**.
+
+This reference document covers the 3.1 development series as a
+work-in-progress. Features are subject to change. See also
+:doc:`/release-notes/3.1-dev-series`.
+
+.. |version-dev| replace:: 3.1.6
+
+Aggregation Framework Enhancements
+----------------------------------
+
+New Stages
+~~~~~~~~~~
+
+MongoDB |version-dev| introduces the following new stages for the
+aggregation framework:
+
+.. pipeline:: $sample
+
+   Randomly select N documents from its input.
+
+   The :pipeline:`$sample` stage has the following syntax: 
+
+   .. code-block:: javascript
+
+      { $sample: { size: <positive integer> } }
+
+   For example, the following aggregation operaton randomly selects
+   ``5`` documents from the collection:
+
+   .. code-block:: javascript
+
+      db.datasets.aggregate(
+         { $sample: { size: 5 } }
+      )
+
+   .. warning::
+
+      - :pipeline:`$sample` may output the same document more than once
+        in its result set. For more information, see
+        :ref:`cursor-isolation`.
+
+      - :pipeline:`$sample` as the first stage requires a collection
+        scan.
+
+New Accumulators for ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB |version-dev| introduces the following new accumulators for the
+aggregation framework:
+
+.. group:: $stdDevSamp
+
+   Calculates the sample standard deviation of the input values. Use if
+   the values encompasses a sample of a population of data from which
+   to generalize about the population. Use :group:`$stdDevPop` if the
+   values represent the entire population of data or you do not wish to
+   generalize about a larger population.
+
+.. group:: $stdDevPop
+
+   Calculates the population standard deviation of the input values.
+   Use if the values encompasses the entire population of data you want
+   to represent and do not wish to generalize about a larger
+   population. Use :group:`$stdDevSamp` if the values represent only a
+   sample of a population of data from which to generalize about the
+   population.
+
+New Arithmetic Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB |version-dev| introduces the following new arithmetic operators for
+the aggregation framework:
+
+.. expression:: $sqrt
+
+   Calculates the square root of a positive number and returns the
+   result as a double.
+
+   :expression:`$sqrt` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $sqrt: <expression> }
+
+   The argument can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolve to a *non-negative*
+   number. For more information
+   on expressions, see :ref:`aggregation-expressions`.
+
+   If the argument resolves to a value of ``null`` or refers to a field
+   that is missing, :expression:`$sqrt` returns ``null``. If the
+   argument resolves to ``NaN``, :expression:`$sqrt` returns ``NaN``.
+
+   :expression:`$sqrt` errors on negative numbers.
+
+.. expression:: $abs 
+
+   Returns the absolute value of a number.
+
+   :expression:`$abs` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $abs: [ <number> ] }
+
+   The ``<number>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolve to a number. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+   If the argument resolves to a value of ``null`` or refers to a field
+   that is missing, :expression:`$abs` returns ``null``. If the
+   argument resolves to ``NaN``, :expression:`$abs` returns ``NaN``.
+
+New Array Expression Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB |version-dev| introduces the following new array operators for the
+aggregation framework:
+
+.. expression:: $slice
+
+   Returns a subset of an array.
+
+   :expression:`$exp` has one of two syntax forms:
+
+   The following syntax returns elements from either the start or end
+   of the array:
+
+   .. code-block:: javascript
+
+      { $slice: [ <array>, <n> ] }
+
+   The following syntax returns elements from the specified position in
+   the array:
+
+   .. code-block:: javascript
+
+      { $slice: [ <array>, <position>, <n> ] }
+
+   The ``<array>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to an array.
+
+   The optional ``<position>`` expression can be any valid
+   :ref:`expression <aggregation-expressions>` as long as it resolves
+   to an integer.
+
+   - If positive, :expression:`$slice` determines the starting position
+     from the start of the array. If ``<position>`` is greater than the
+     number of elements, the :expression:`$slice` returns an empty
+     array.
+
+   - If negative, :expression:`$slice` determines the starting position
+     from the end of the array. If the absolute value of the
+     ``<position>`` is greater than the number of elements, the
+     starting position is the start of the array.
+
+   The ``<n>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to an integer. If
+   ``<position>`` is specified, ``<n>`` must resolve to a positive
+   integer.
+   
+
+   - If positive, :expression:`$slice` returns up to the first ``n``
+     elements in the array. If the ``<position>`` is specified,
+     :expression:`$slice` returns the first ``n`` elements starting
+     from the position.
+
+   - If negative, :expression:`$slice` returns up to the last ``n``
+     elements in the array. ``n`` cannot resolve to a negative number
+     *if* ``<position>`` is specified.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Example
+        - Results
+
+      * - ``{ $slice: [ [ 1, 2, 3 ], 1, 1 ] }``
+
+        - ``[ 2 ]``
+
+      * - ``{ $slice: [ [ 1, 2, 3 ], -2 ] }``
+
+        - ``[ 2, 3 ]``
+
+      * - ``{ $slice: [ [ 1, 2, 3 ], 15, 2 ] }``
+
+        - ``[  ]``
+
+      * - ``{ $slice: [ [ 1, 2, 3 ], -15, 2 ] }``
+
+        - ``[ 1, 2 ]``
+
+.. expression:: $arrayElemAt
+
+   Returns the element at the specified array index.
+
+   :expression:`$arrayElemAt` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $arrayElemAt: [ <array>, <idx> ] }
+
+   The ``<array>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolve to an array.
+
+   The ``<idx>`` expression can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolve to an integer.
+
+   - If positive, :expression:`$arrayElemAt` returns the element at the
+     ``idx`` position, counting from the start of the array.
+
+   - If negative, :expression:`$arrayElemAt` returns the element at the
+     ``idx`` position, counting from the end of the array.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Example
+
+        - Results
+
+      * - ``{ $arrayElemAt: [ [ 1, 2, 3 ], 0 ] }``
+
+        - ``1``
+
+      * - ``{ $arrayElemAt: [ [ 1, 2, 3 ], -2 ] }``
+
+        - ``2``
+
+
+      * - ``{ $arrayElemAt: [ [ 1, 2, 3 ], 15 ] }``
+
+        - 
+
+   If the ``idx`` exceeds the array bounds, :expression:`$arrayElemAt`
+   does not return any result.
+
+.. expression:: $concatArrays
+
+   Concatenates arrays to return the concatenated array.
+
+   :expression:`$concatArrays` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $concatArrays: [ <array1>, <array2>, ... ] }
+
+   The ``<array>`` expressions can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they resolve to an array. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Example
+        - Results
+
+      * - ``{ $concatArrays: [ [ "hello", " "], [ "world" ] ] }``
+        - ``[ "hello", " ", "world" ]``
+
+      * - ``{ $concatArrays: [ [ "hello", " "], [ [ "world" ], "again"] ] }``
+        - ``[ "hello", " ", [ "world" ], "again" ]``
+
+.. expression:: $isArray
+
+   Determines if the operand is an array. Returns a boolean.
+
+   :expression:`$isArray` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $isArray: [ <expression> ] }
+
+   The ``<expression>`` can be any valid :ref:`expression
+   <aggregation-expressions>`. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Example
+        - Results
+
+      * - ``{ $isArray: [ "hello" ] }``
+        - ``false``
+
+      * - ``{ $isArray: [ [ "hello", "world" ] ] }``
+        - ``true``
+
+.. expression:: $filter
+
+   Selects a subset of the array to return based on the specified
+   condition. Returns an array with only those elements that match the
+   condition. The returned elements are in the original order.
+
+   :expression:`$filter` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $filter: { input: <array>, as: <string>, cond: <expression> } }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Specification
+
+      * - ``input``
+
+        - An :ref:`expression <aggregation-expressions>` that
+          resolves to an array.
+
+      * - ``as``
+
+        - The variable name for the element in the ``input`` array. The
+          ``as`` expression accesses each element in the ``input``
+          array by this :doc:`variable
+          </reference/aggregation-variables>`.
+
+      * - ``cond``
+
+        - The :ref:`expression <aggregation-expressions>` that
+          determines whether to include the element in the resulting
+          array. The expression accesses the element by the variable
+          name specified in ``as``.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Example
+        - Results
+
+      * - .. code-block:: javascript
+
+             {
+               $filter: {
+                  input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+                  as: "num",
+                  cond: { $and: [
+                     { $gte: [ "$$num", NumberLong("-9223372036854775807") ] }, 
+                     { $lte: [ "$$num", NumberLong("9223372036854775807") ] }
+                   ] } 
+               }
+             }
+
+        - ``[ 1, 2, 3.1, NumberLong(4) ]``
+
+Bit Test Query Operators
+------------------------
+
+MongoDB |version-dev| introduces the four new bit test query operators.
+The bit test query operators allow applications to test whether
+particular bits are set or clear in bitpacked numerical fields or in
+fields storing binary data.
+
+Behavior
+~~~~~~~~
+
+#. The operators can only test fields whose values are either number or
+   BinData. Values of other types will not match.
+
+#. If the value is a Double, the operators convert the Double to a
+   64-bit signed integer before applying the bit test. 
+   
+   As such, the value must be an integer, i.e. cannot have a fractional
+   part, and must be representable as a 64-bit signed integer, i.e.
+   cannot be too big (2 :sup:`100`) or too small (-2\ :sup:`100`).
+
+#. Negative numbers are logically sign-extended to infinity. For
+   example, we consider bit position ``200`` set for the number ``-5``
+   but we consider bit position ``200`` clear for the number ``+5``.
+
+Operators
+~~~~~~~~~
+
+.. query:: $bitsAllSet
+
+   Selects documents where the all the specified bits of a field are
+   set (i.e. ``1``).
+
+   To use :query:`$bitsAllSet`, you can use one of
+   the following syntaxes:
+
+   - To use bit positions to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllSet: [ <position>, <position2>, ... ] } }
+
+     The ``<positions>`` can be any non-negative numerical BSON element
+     type and be representable as a 32-bit signed integer.
+
+     The bit position is ``0``-based, starting at the least significant
+     bit:
+
+     .. code-block:: none
+
+        11111111
+        --------
+        76543210 Position
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllSet` operator to test
+     whether field ``a`` has bits set at position ``1`` and position
+     ``5``, counting from the least significant bit as position ``0``:
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllSet: [ 1, 5 ] } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+
+   - To use a numeric bitmask to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllSet: <numeric bitmask> } }
+
+     :query:`$bitsAllSet` uses the positions of the ``1``'s in the
+     bitmask to test the bit in the corresponding position in the
+     ``<field>``.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllSet` operator to test
+     whether field ``a`` has bits set at positions that corresponds to
+     positions of ``1``'s in the numeric bitmask ``50`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllSet: 50 } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+
+   - To use BinData to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllSet: <BinData> } }
+
+     :query:`$bitsAllSet` uses the positions of the ``1``'s in the
+     BinData to test the bit in the corresponding position in the
+     ``<field>``. Bit position ``0`` is the first bit in the first byte
+     of a BinData element.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllSet` operator to test
+     whether field ``a`` has bits set at positions that corresponds to
+     positions of ``1``'s in the ``BinData(0, "MC==")`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllSet: BinData(0, "MC==") } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+
+.. query:: $bitsAllClear
+
+   Selects documents where the all the specified bits of a field are
+   clear (i.e. ``0``). To use :query:`$bitsAllClear`, you can use one
+   of the following syntaxes:
+
+   - To use bit positions to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllClear: [ <position>, <position2>, ... ] } }
+
+     The ``<positions>`` can be any non-negative numerical BSON element
+     type and be representable as a 32-bit signed integer.
+
+     The bit position is ``0``-based, starting at the least significant
+     bit:
+
+     .. code-block:: none
+
+        11111111
+        --------
+        76543210 Position
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllClear` operator to test
+     whether field ``a`` has bits cleared in position ``1`` and position
+     ``5``, counting from the least significant bit as position ``0``:
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllClear: [ 1, 5 ] } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id: 2, a: 20, binaryValueofA: "00010100" }
+
+   - To use a numeric bitmask to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllClear: <numeric bitmask> } }
+
+     :query:`$bitsAllClear` uses the positions of the ``1``'s in the
+     bitmask to test the bit in the corresponding position in the
+     ``<field>``.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllClear` operator to test
+     whether field ``a`` has bits cleared at positions that corresponds to
+     positions of ``1``'s in the numeric bitmask ``35`` (i.e. ``00100011``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllClear: 35 } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+   - To use BinData to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAllClear: <BinData> } }
+
+     :query:`$bitsAllClear` uses the positions of the ``1``'s in the
+     BinData to test the bit in the corresponding position in the
+     ``<field>``. Bit position ``0`` is the first bit in the first byte
+     of a BinData element.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAllClear` operator to test
+     whether field ``a`` has bits cleared at positions that corresponds to
+     positions of ``1``'s in the ``BinData(0, "ID==")`` (i.e. ``00100011``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAllClear: BinData(0, "ID==") } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+.. query:: $bitsAnySet
+
+   Selects documents where at least one of the specified bits of a
+   field are set (i.e. ``1``). To use :query:`$bitsAnySet`, you can use
+   one of the following syntaxes:
+
+   - To use bit positions to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnySet: [ <position>, <position2>, ... ] } }
+
+     The ``<positions>`` can be any non-negative numerical BSON element
+     type and be representable as a 32-bit signed integer.
+
+     The bit position is ``0``-based, starting at the least significant
+     bit:
+
+     .. code-block:: none
+
+        11111111
+        --------
+        76543210 Position
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAnySet` operator to test
+     whether field ``a`` has any bits set in position ``1`` and position
+     ``5``, counting from the least significant bit as position ``0``:
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnySet: [ 1, 5 ] } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+
+   - To use a numeric bitmask to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnySet: <numeric bitmask> } }
+
+     :query:`$bitsAnySet` uses the positions of the ``1``'s in the
+     bitmask to test the bit in the corresponding position in the
+     ``<field>``.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAnySet` operator to test
+     whether field ``a`` has any bits set at positions that corresponds to
+     positions of ``1``'s in the numeric bitmask ``50`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnySet: 50 } } )
+
+     The query matches the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+   - To use BinData to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnySet: <BinData> } }
+
+     :query:`$bitsAnySet` uses the positions of the ``1``'s in the
+     BinData to test the bit in the corresponding position in the
+     ``<field>``. Bit position ``0`` is the first bit in the first byte
+     of a BinData element.
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAnySet` operator to test
+     whether field ``a`` has any bits set at positions that corresponds to
+     positions of ``1``'s in the ``BinData(0, "MC==")`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnySet: BinData(0, "MC==") } } )
+
+     The query matches the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+.. query:: $bitsAnyClear
+
+   Selects documents where at least one of the specified bits of a
+   field are clear (i.e. ``0``). To use :query:`$bitsAnyClear`, you can
+   use one of the following syntaxes:
+
+   - To use bit positions to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnyClear: [ <position>, <position2>, ... ] } }
+
+     The ``<positions>`` can be any non-negative numerical BSON element
+     type and be representable as a 32-bit signed integer.
+
+     The bit position is ``0``-based, starting at the least significant
+     bit:
+
+     .. code-block:: none
+
+        11111111
+        --------
+        76543210 Position
+
+     Consider a collection with the following documents:
+
+     .. code-block:: javascript
+
+        { _id:1, a: 54, binaryValueofA: "00110110" }
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+     The following query uses the :query:`$bitsAnyClear` operator to test
+     whether field ``a`` has any bits cleared in position ``1`` and
+     position ``5``, counting from the least significant bit as
+     position ``0``:
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnyClear: [ 1, 5 ] } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+   - To use a numeric bitmask to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnyClear: <numeric bitmask> } }
+
+     :query:`$bitsAnyClear` uses the positions of the ``1``'s in the
+     bitmask to test the bit in the corresponding position in the
+     ``<field>``.
+
+     The following query uses the :query:`$bitsAnyClear` operator to test
+     whether field ``a`` has any bits cleared at positions that corresponds to
+     positions of ``1``'s in the numeric bitmask ``50`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnyClear: 50 } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+   - To use BinData to specify which bits to test:
+
+     .. code-block:: javascript
+
+        { <field>: { $bitsAnyClear: <BinData> } }
+
+     :query:`$bitsAnyClear` uses the positions of the ``1``'s in the
+     BinData to test the bit in the corresponding position in the
+     ``<field>``.  Bit position ``0`` is the first bit in the first byte
+     of a BinData element.
+
+     The following query uses the :query:`$bitsAnyClear` operator to test
+     whether field ``a`` has any bits cleared at positions that corresponds to
+     positions of ``1``'s in the ``BinData(0, "MC==")`` (i.e. ``00110010``).
+
+     .. code-block:: javascript
+
+        db.collection.find( { a: { $bitsAnyClear: BinData(0, "MC==") } } )
+
+     The query matches the following document:
+
+     .. code-block:: javascript
+
+        { _id:2, a: 20, binaryValueofA: "00010100" }
+
+.. _3.2-ref-case-sensitive-text-search:
+
+Case Sensitive Text Search Examples
+-----------------------------------
+
+The :query:`$text` operator adds support for case sensitive text search
+of the Latin alphabet ``[A-z]`` with the new ``$caseSensitive`` option.
+
+For more information on case sensitive text search, see
+:ref:`3.2-case-sensitive-text-search`.
+
+Case Sensitive Search for a Phrase
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``articles`` collection contains the following documents:
+
+.. code-block:: json
+
+   { "_id" : 4, "subject" : "café con leche" }
+   { "_id" : 5, "subject" : "Café Con Leche" }
+   { "_id" : 6, "subject" : "Café con leche" }
+
+The following query performs a case sensitive search for the phrase
+``Café Con Leche``:
+
+.. code-block:: javascript
+
+   db.articles.find( { 
+      $text: { $search: "\"Café Con Leche\"", $language: "es", $caseSensitive: true }
+   } )
+
+The search matches just the document:
+
+.. code-block:: json
+
+   { "_id" : 5, "subject" : "Café Con Leche" }
+
+.. note::
+
+   - For ``$caseSensitive: true``, the :query:`$text` operator performs
+     an exact match on the phrase when filtering out documents.
+
+   - Regardless of the ``$caseSensitive`` option, the :query:`$text`
+     operator, as well as the :doc:`text index </core/index-text>`,
+     treats the character with a diacritic ``é`` as distinct from ``É``.
+
+Case Sensitivity with Negated Term
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A *negated* term is a term that is prefixed by a minus sign ``-``. If
+you negate a term, the :query:`$text` operator will exclude the
+documents that contain those terms from the results. You can also
+specify case sensitivity for negated terms.
+
+The following example performs a case sensitive search for documents
+that contain the words ``bake`` or ``coffee`` but do **not** contain
+the term ``milk``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "bake coffee -milk", $caseSensitive: true } } )
+
+The query matches the following document:
+
+.. code-block:: json
+
+   { "_id" : 3, "subject" : "coffee and Milk" }
+
+View Document Validation Information
+------------------------------------
+
+To view the validation specifications for a collection, you can use the
+:method:`db.getCollectionInfos( )` method and the
+:dbcommand:`listCollections` command.
+
+If a collection includes :ref:`3.2-rel-notes-document-validation`
+settings, the :dbcommand:`listCollections` command and the
+:method:`db.getCollectionInfos()` method will include them in the
+output for the collections.
+
+.. _3.2-encryption-key-management-options:
+
+Key Management Configuration Options
+------------------------------------
+
+MongoDB |version-dev| adds the following configuration options to support
+encryption for the WiredTiger storage engine.
+
+Command Line Options
+~~~~~~~~~~~~~~~~~~~~
+
+.. option:: enableEncryption
+
+   *Type*: boolean
+
+   *Default*: false
+   
+   Enables encryption for the WiredTiger storage engine. You must set
+   to ``true`` to pass in encryption keys and configurations.
+
+.. option:: encryptionKeyFile
+
+   *Type*: string
+
+   The path to the local keyfile when managing keys via process *other
+   than* KMIP. Only set when managing keys via process other than KMIP.
+   If data is already encrypted using KMIP, MongoDB will throw an error.
+
+   Requires :setting:`enableEncryption` to be ``true``.
+
+.. option:: kmipKeyIdentifier
+
+   *Type*: string
+
+   Unique KMIP identifier for an existing key within the KMIP server.
+   Include to use the key associated with the identifier as the system
+   key. You can only use the setting the first time you enable
+   encryption for the :program:`mongod` instance. Requires
+   :setting:`enableEncryption` to be true.
+   
+   If unspecified, MongoDB will request that the KMIP server create a
+   new key to utilize as the system key.
+
+   If the KMIP server cannot locate a key with the specified identifier
+   or the data is already encrypted with a key, MongoDB will throw an
+   error
+
+.. option:: kmipServerName
+
+   *Type*: string
+
+   Hostname or IP address of key management solution running a KMIP
+   server. Requires :setting:`enableEncryption` to be true.
+
+.. option:: kmip.port
+
+   *Type*: string
+
+   *Default*: 5696
+
+   Port number the KMIP server is listening on. Requires that a
+   :setting:`kmipServerName` be provided. Requires
+   :setting:`enableEncryption` to be true.
+
+.. option:: kmipClientCertificateFile
+
+   *Type*: string
+
+   String containing the path to the client certificate used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipServerName` be provided.
+
+.. option:: kmipClientCertificatePassword
+
+   *Type*: string
+
+   The password (if one exists) for the client certificate passed into
+   :setting:`kmipClientCertificateFile`. Is used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipClientCertificateFile` be provided.
+
+.. option:: kmipServerCAFile
+
+   *Type*: string
+
+   Path to CA File. Used for validating secure client connection to
+   KMIP server.
+
+Configuration File Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+   {
+      security:
+         enableEncryption: <boolean>,
+         encryptionKeyFile: <string>,
+         kmip:
+            keyIdentifier: <string>,
+            serverName: <string>,
+            port: <string>,
+            clientCertificatePassword: <string>,
+            serverCAFile: <string>
+   }
+
+.. setting:: security.enableEncryption
+
+   *Type*: boolean
+
+   *Default*: false
+   
+   Enables encryption for the WiredTiger storage engine. You must set
+   to ``true`` to pass in encryption keys and configurations.
+
+.. setting:: security.encryptionKeyFile
+
+   *Type*: string
+
+   The path to the local keyfile when managing keys via process *other
+   than* KMIP. Only set when managing keys via process other than KMIP.
+   If data is already encrypted using KMIP, MongoDB will throw an error.
+
+   Requires :setting:`security.enableEncryption` to be ``true``.
+
+.. setting:: security.kmip.keyIdentifier
+
+   *Type*: string
+
+   Unique KMIP identifier for an existing key within the KMIP server.
+   Include to use the key associated with the identifier as the system
+   key. You can only use the setting the first time you enable
+   encryption for the :program:`mongod` instance. Requires
+   :setting:`security.enableEncryption` to be true.
+   
+   If unspecified, MongoDB will request that the KMIP server create a
+   new key to utilize as the system key.
+
+   If the KMIP server cannot locate a key with the specified identifier
+   or the data is already encrypted with a key, MongoDB will throw an
+   error.
+
+.. setting:: security.kmip.serverName
+
+   *Type*: string
+
+   Hostname or IP address of key management solution running a KMIP
+   server. Requires :setting:`security.enableEncryption` to be true.
+
+.. setting:: security.kmip.port
+
+   *Type*: string
+
+   *Default*: 5696
+
+   Port number the KMIP server is listening on. Requires that a
+   :setting:`security.kmip.serverName` be provided. Requires
+   :setting:`security.enableEncryption` to be true.
+
+.. setting:: security.kmip.clientCertificateFile
+
+   *Type*: string
+
+   String containing the path to the client certificate used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`security.kmip.serverName` be provided.
+
+.. setting:: security.kmip.clientCertificatePassword
+
+   *Type*: string
+
+   The password to decrypt the client certificate (i.e.
+   :setting:`security.kmip.clientCertificateFile`), used to
+   authenticate MongoDB to the KMIP server. Use the option only if the
+   certificate is encrypted.
+
+.. setting:: security.kmip.serverCAFile
+
+   *Type*: string
+
+   Path to CA File. Used for validating secure client connection to
+   KMIP server.
+
+See also :doc:`/release-notes/3.1-dev-series`.
