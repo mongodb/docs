@@ -4,62 +4,66 @@ Disable Transparent Huge Pages (THP)
 
 .. default-domain:: mongodb
 
-Transparent Huge Pages (THP) is a Linux memory management kernel
-module used to reduce the overhead of Translation Lookaside Buffer
-(TLB) lookups on machines with large amounts of memory, and therefore
-a large number of memory pages. In effect, it presents system memory
-as a smaller number of much larger pages rather than as a larger
-number of 4096-byte pages.
+Transparent Huge Pages (THP) is a Linux memory management system
+that reduces the overhead of Translation Lookaside Buffer (TLB) lookups on
+machines with large amounts of memory by using larger memory pages.
 
-However, THP is known to perform poorly under database workloads,
-which tend to have sparse rather than contiguous memory access
-patterns. You must disable THP on Linux machines used to run MongoDB
-instances to ensure best performance.
+However, database workloads often perform poorly with THP,
+because they tend to have sparse rather than contiguous memory access
+patterns. You should disable THP on Linux machines to ensure best performance
+with MongoDB.
 
-There are three ways to disable Transparent Huge Pages on Linux.
+Init Script
+-----------
 
-In Boot-Time Configuration (Preferred)
---------------------------------------
+.. include:: /includes/steps/disable-thp-in-initd.rst
 
-.. include:: /includes/steps/disable-thp-in-grub.rst
+Using ``tuned`` and ``ktune``
+-----------------------------
 
-Using ``tuned`` and ``ktune`` (Necessary if you use ``tuned``)
---------------------------------------------------------------
+.. important::
 
-``tuned`` and ``ktune`` are dynamic kernel tuning tools that act in
-accordance with policies set by the system administrator. One of the
-settings available to ``tuned`` and ``ktune`` is whether or not to use
-THP.
+   If installed, you must configure ``tuned`` and ``ktune`` to prevent them from
+   re-enabling THP.
 
-To disable transparent hugepages, you need to edit or create a new
-profile that sets THP to ``never``.
+``tuned`` and ``ktune`` are dynamic kernel tuning tools available on Red Hat
+and CentOS that can disable transparent huge pages.
 
-.. include:: /includes/steps/disable-thp-in-ktune.rst
+To disable transparent huge pages in ``tuned`` or ``ktune``, you need to edit or
+create a new profile that sets THP to ``never``.
 
-In ``/etc/rc.local`` (Alternate)
---------------------------------
+Red Hat/CentOS 6
+~~~~~~~~~~~~~~~~
 
-.. include:: /includes/steps/disable-thp-in-rc.local.rst
+.. include:: /includes/steps/disable-thp-in-tuned-rhel-6.rst
+
+Red Hat/CentOS 7
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/disable-thp-in-tuned-rhel-7.rst
+
+.. _test-thp-changes:
 
 Test Your Changes
 -----------------
 
-Whichever of the three methods you use, you can check the status of THP support by issuing the command:
+You can check the status of THP support by issuing the following commands:
 
 .. code:: sh
 
    cat /sys/kernel/mm/transparent_hugepage/enabled
+   cat /sys/kernel/mm/transparent_hugepage/defrag
 
-or
+On Red Hat Enterprise Linux, CentOS, and potentially other Red
+Hat-based derivatives, you may instead need to use the following:
 
 .. code:: sh
 
    cat /sys/kernel/mm/redhat_transparent_hugepage/enabled
+   cat /sys/kernel/mm/redhat_transparent_hugepage/defrag
 
-on Red Hat Enterprise Linux, CentOS, and potentially other Red
-Hat-based derivatives.
 
-Correct output resembles:
+For both files, the correct output resembles:
 
 .. code:: sh
 
