@@ -44,14 +44,13 @@ the file:
 Export in JSON Format
 ~~~~~~~~~~~~~~~~~~~~~
 
-This example creates an export of the ``contacts`` collection
-from the MongoDB instance running on the localhost port number ``27017``,
-with journaling explicitly enabled. This writes the export to the
-``contacts.json`` file in :term:`JSON` format.
+This example creates an export of the ``contacts`` collection from the
+MongoDB instance running on the localhost port number ``27017``. This
+writes the export to the ``contacts.json`` file in :term:`JSON` format.
 
 .. code-block:: sh
 
-   mongoexport --db sales --collection contacts --out contacts.json --journal
+   mongoexport --db sales --collection contacts --out contacts.json
 
 Export from Remote Host Running with Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
