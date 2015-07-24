@@ -5,23 +5,27 @@ content: |
   Open the files listed below. For file locations, see
   :doc:`/reference/configuration`:
 
-  - ``conf-mms.properties``, which configures the connection to the :ref:`mms-application-database`
+  - ``conf-mms.properties``, which configures the connection to the :ref:`mms-application-database` and :ref:`mms-backup-blockstore-database`.
 
-  - ``conf-daemon.properties``, which configures the connection to the :ref:`backup-database`. Open ``conf-daemon.propeties`` only if you have installed the :ref:`backup-daemon`.
+  - ``conf-daemon.properties``, which configures the Backup Daemon the
+    connection information for the |application| Database and the SSL
+    client certificates used to connect to the Backup database. Open
+    ``conf-daemon.propeties`` only if you have installed the
+    :ref:`backup-daemon`.
 ---
-title: "Configure the SSL connections to the backing MongoDB instances."
+title: "Update ``conf-mms.properties`` with the following settings."
 stepnum: 2
 ref: configure
 content: |
   Configure the following settings in each file:
 
   :setting:`mongo.mongoUri`: Configure this setting with the credentials for
-  accessing the backing MongoDB instance. If your MongoDB instance uses
+  accessing the |application| Database. If your MongoDB instance uses
   X509, LDAP, or Kerberos authentication, specify that here. See
-  :setting:`mongo.mongoUri` for syntax for this setting.
+  :setting:`mongo.mongoUri` for the syntax for this setting.
 
   :setting:`mongo.ssl`: Set this to ``true`` to enable SSL for connections
-  to the backing MongoDB instance.
+  to the :ref:`mms-application-database`.
 
   :setting:`mongodb.ssl.CAFile`: Specify the PEM file that contains the root
   certificate chain from the Certificate Authority that signed the MongoDB
@@ -35,4 +39,47 @@ content: |
   an encrypted private key, specify the password for PEM file. To encrypt
   this password in the configuration file, use the |mms| ``credentialstool``
   tool. See :ref:`encrypt-mongodb-user-credentials`.
+---
+title: "Update ``conf-daemon.properties`` with the connection information for the application database and SSL client certificates used to connect to the backing databases."
+stepnum: 3
+ref: configure-backup
+optional: true
+content: |
+  If you are using Backup, set the following settings in ``conf-daemon.properties``:
+  
+  Set :setting:`mongo.mongoUri` to the connection string for the
+  |application| database. :setting:`mongo.mongoUri` should match the
+  :setting:`mongo.mongoUri` set in ``conf-mms.properties`` exactly.
+  
+  Set :setting:`mongo.ssl` to ``true``. This setting should match the
+  :setting:`mongo.ssl` setting in ``conf-mms.properties``.
+
+  Update the SSL settings with the SSL client certificate information to use to
+  connect to the backing databases. :setting:`mongodb.ssl.CAFile`,
+  :setting:`mongodb.ssl.PEMKeyFile`, and
+  :setting:`mongodb.ssl.PEMKeyFilePassword` should match the settings
+  in ``conf-mms.properties``. 
+  |onprem| uses this
+  certificate information to connect to the Application and Backup Database instances.
+---
+title: "In the |onprem| UI, configure the Blockstores, Sync Stores, and Oplog Stores to use SSL."
+stepnum: 4
+ref: use-ssl-for-stores
+content: |
+  In the :guilabel:`Backup` tab, under :guilabel:`Configuration`, select
+  :guilabel:`Blockstores`, then check :guilabel:`Use SSL`. Click :guilabel:`Save`.
+  
+  Repeat this procedure for the :guilabel:`Sync Stores` and :guilabel:`Oplog Stores`.
+---
+title: "Restart |onprem|."
+stepnum: 5
+ref: restart
+pre: |
+  Restart all |onprem| components using a command that resembles the
+  following:
+action:
+  language: sh
+  code: |
+    sudo /etc/init.d/mongodb-mms restart
+    sudo /etc/init-d/mongod-mms-backup-daemon restart
 ...
