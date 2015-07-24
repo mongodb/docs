@@ -13,6 +13,9 @@
        use to transmit the files. See
        :doc:`/tutorial/generate-key-pair-for-scp-restores`.
 
+       Windows machines do not come with ``SCP`` and require additional
+       setup outside the scope of this manual.
+
    * - :guilabel:`Format`
 
      - Sets the format of the restore files:
