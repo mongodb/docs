@@ -17,13 +17,16 @@ development release series.
 This document covers the 3.1 development series as a work-in-progress.
 Features are subject to change.
 
+
 .. |version-dev| replace:: 3.1.6
+
+.. |version-wt-default| replace:: 3.1.4 or greater
 
 WiredTiger as Default
 ---------------------
 
-Starting in 3.1.4, MongoDB uses the WiredTiger as the default
-storage engine.
+Starting in 3.1.4, MongoDB uses the WiredTiger as the default storage
+engine.
 
 To specify the MMAPv1 storage engine, you must specify the storage
 engine setting either:
@@ -41,6 +44,18 @@ engine setting either:
 
      storage:
         engine: mmapv1
+
+.. note::
+
+   For existing deployments, if you do not specify the
+   ``--storageEngine`` or the :setting:`storage.engine` setting,
+   MongoDB |version-wt| can automatically determine the storage engine
+   used to create the data files in the ``--dbpath`` or
+   :setting:`storage.dbPath`.
+
+   If specifying ``--storageEngine`` or :setting:`storage.engine`,
+   :program:`mongod` will not start if ``dbPath`` contains data files
+   created by a storage engine other than the one specified.
 
 Partial Indexes
 ---------------
@@ -91,10 +106,38 @@ condition using:
 Restrictions
 ~~~~~~~~~~~~
 
-- To use the partial index, a query **must** contain the filter
-  expression as part of its query condition unless you use a partial
-  index that specifies only the existence check on the index keys; i.e.
-  implement the sparse index behavior using a partial index.
+- MongoDB will not use the partial index if the index results in an
+  incomplete result set for the query or sort operation.
+
+  To use the partial index, a query **must** contain the filter
+  expression (or a modified filter expression that specifies a subset
+  of the filter expression) as part of its query condition
+
+  For example, given the following index:
+
+  .. code-block:: javascript
+  
+     db.restaurants.createIndex(
+        { cuisine: 1, name: 1 },
+        { partialFilterExpression: { rating: { $gt: 5 } } }
+     )
+
+  The following queries can use the index since the query predicates
+  includes a modified filter expressions ``rating: 6`` and ``rating: {
+  $gte: 8 }`` that are subsets of the filter expression ``ratings: {
+  $gt: 5 }``:
+
+  .. code-block:: javascript
+
+     db.restaurants.find( { rating: 6 } )
+     db.restaruants.find( { cuisine: "Italian", rating: { $gte: 8 } } )
+
+  However, the following queries cannot use the partial index:
+
+  .. code-block:: javascript
+
+     db.restaurants.find( { rating: { $lt: 8 } } )
+     db.restaruants.find( { cuisine: "Italian" } )
 
 - In MongoDB, you cannot create multiple versions of an index that
   differ only in the options. As such, you cannot create multiple
@@ -105,6 +148,10 @@ Restrictions
 
 - Earlier versions of MongoDB do not support partial indexes. If using
   sharded clusters or replica set, all nodes must be version |version-dev|.
+
+- ``_id`` indexes cannot be partial indexes.
+
+- Shard key indexes cannot be partial indexes.
 
 Comparison with the ``sparse`` Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,14 +256,19 @@ Add Validation to a New Collection
 ``````````````````````````````````
 
 The following example creates a collection ``contact`` with a validator
-that specifies that either the ``phone`` field must exist or the
-``email`` field must exist or the ``status`` field equals ``Unknown``.
+that specifies that either the ``phone`` field must be a string or the
+``email`` field must match the regular expression or the ``status``
+field must be either ``Unknown`` or ``Incomplete``.
 
 .. code-block:: javascript
 
-   db.createCollection( "contacts", { 
+   db.createCollection( "contacts", {
       validator: { $or: 
-         [ { phone: { $exists: true } }, { email: { $exists: true } }, { status: "Unknown" } ]
+         [
+            { phone: { $type: "string" } },
+            { email: { $regex: /@mongodb\.com$/ } },
+            { status: { $in: [ "Unknown", "Incomplete" ] } }
+         ]
       }
    } )
 
@@ -890,9 +942,15 @@ Default Storage Engine
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Starting in 3.1.4, MongoDB uses the WiredTiger as the default storage
-engine. Previous versions used the MMAPv1 storage engine. As such, for
-:program:`mongod` instances running MMAPv1,you must explicitly specify
-the storage engine setting either:
+engine. Previous versions used the MMAPv1 as the storage engine.
+
+For existing deployments, if you do not specify the ``--storageEngine``
+or the :setting:`storage.engine` setting, MongoDB automatically
+determines the storage engine used to create the data files in the
+``--dbpath`` or :setting:`storage.dbPath`.
+
+For new deployments, to use MMAPv1, you must explicitly specify the
+storage engine setting either:
 
 - On the command line with the ``--storageEngine`` option:
 
