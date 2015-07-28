@@ -1,0 +1,5 @@
+ - ``MONGODB_CR``
+ - ``GSSAPI``
+ - ``PLAIN``
+ - ``MONGODB_X509``
+ - ``NONE``
