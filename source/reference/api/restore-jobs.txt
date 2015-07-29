@@ -2,73 +2,101 @@
 Restore Jobs
 ============
 
-This resource allows you to manage restore jobs. A restore job is essentially a
+Overview
+--------
+
+The ``restoreJobs`` resource allows you to manage restore jobs. A restore job is essentially a
 request to retrieve one of your existing snapshots, or a snapshot for a recent
 specific point-in-time, in order to restore a ``mongod`` to a previous state.
 In order to initiate a restore job, the request must originate from an IP
 address on the API user's whitelist.
 
-Operations
-----------
+Endpoints
+---------
+
+``GET /groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get all restore jobs for a cluster. ``CLUSTER-ID`` must be the ID of
+either a :term:`replica set` or a :term:`sharded cluster`.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs
 
-- Get all restore jobs for a cluster. ``CLUSTER-ID`` must be the ID of
-  either a :term:`replica set` or a :term:`sharded cluster`.
+Using the ``batchId`` query parameter, you can retrieve all restore jobs
+in the specified batch. When creating a restore job for a sharded
+cluster, |mms| creates a separate job for each shard, plus another for
+the config server. Each of those jobs will be part of a batch. A restore
+job for a replica set, however, will not be part of a batch.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs?batchId=BATCH-ID
 
-- Get all restore jobs in the specified batch. When creating a restore job for a
-  sharded cluster, |mms| creates a separate job for each shard, plus another
-  for the config server. Each of those jobs will be part of a batch. A restore job
-  for a replica set, however, will not be part of a batch.
+``GET /groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs/JOB-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a single restore job.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs/JOB-ID
 
-- Get a single restore job.
+``GET /groups/GROUP-ID/hosts/HOST-ID/restoreJobs``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get all restore jobs for a :term:`config server`. ``HOST-ID`` must be
+the ID of a config server.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/restoreJobs
 
-- Get all restore jobs for a :term:`config server`. ``HOST-ID`` must be
-  the ID of a config server.
+``GET /groups/GROUP-ID/hosts/HOST-ID/restoreJobs/JOB-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a single restore job for a :term:`config server`. ``HOST-ID`` must
+be the ID of a config server.
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/restoreJobs/JOB-ID
 
-- Get a single restore job for a :term:`config server`. ``HOST-ID`` must
-  be the ID of a config server.
+``POST /groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a restore job for the specified ``CLUSTER-ID``. You can create a
+restore job for either an existing snapshot or for a specific recent
+point-in-time. The recency depends on the size of your "point-in-time
+window."
 
 .. code-block:: none
 
    POST /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/restoreJobs
 
-- Create a restore job for the specified ``CLUSTER-ID``. You can create a restore
-  job for either an existing snapshot or for a specific recent point-in-time. (The
-  recency depends on the size of your "point-in-time window.") See below for
-  examples of each. The response body includes an array of restore jobs. When
-  requesting a restore of a replica set, the array will contain a single element.
-  For a sharded cluster, the array will contain one element for each shard, plus
-  one for the config server. Each element will also include the ``batchId``
-  representing the batch to which the jobs belong.
+The response body includes an array of restore jobs. When requesting a
+restore of a replica set, the array will contain a single element. For a
+sharded cluster, the array will contain one element for each shard, plus
+one for the config server. Each element will also include the
+``batchId`` representing the batch to which the jobs belong.
 
-.. TODO: add the following when the config server snapshots API is implemented.
-   The api does not yet enumerate snapshots for a config server.
+The :ref:`Create Restore Jobs <examples-create-restore-jobs>` examples
+describe each restore job type.
 
+.. TODO: add the following when the config server snapshots API is 
+.. implemented.
+..  The api does not yet enumerate snapshots for a config server.
+
+.. ``POST /groups/GROUP-ID/hosts/HOST-ID``
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+..
+.. Create a restore job for a :term:`config servers`. ``HOST-ID``
+.. must be the ID of a config server.
+..
 .. .. code-block:: none
-
+..
 ..    POST /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
-
-..    - Create a restore job for a :term:`config server`. ``HOST-ID`` must be
-        the ID of a config server.
 
 Sample Entity
 -------------
@@ -371,8 +399,13 @@ Get a Restore Job for a Config Server
      }
    }
 
+.. _examples-create-restore-jobs:
+
+Create Restore Jobs
+~~~~~~~~~~~~~~~~~~~
+
 Create a Restore Job for an Existing Snapshot via HTTPS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````````````````````````````
 
 .. code-block:: none
 
@@ -402,7 +435,7 @@ Create a Restore Job for an Existing Snapshot via HTTPS
    }
 
 Create a Restore Job for an Existing Snapshot via SCP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````````````````````````
 
 .. code-block:: none
 
@@ -452,7 +485,7 @@ Create a Restore Job for an Existing Snapshot via SCP
    }
 
 Create a Point-In-Time Restore Job
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````````
 
 .. code-block:: none
 

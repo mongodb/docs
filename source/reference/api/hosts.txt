@@ -2,6 +2,9 @@
 Hosts
 =====
 
+Overview
+--------
+
 You can typically access a host using a variety of names. DNS records
 and entries in the ``/etc/hosts`` file determine what names you can use to
 access a given host.
@@ -19,12 +22,11 @@ may change over time. You can also :ref:`specify preferred hostnames
 <group-settings-page>` in |mms|'s group settings to override the hostname
 algorithm.
 
-Operations
-----------
+Endpoints
+---------
 
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/hosts
+``GET /groups/GROUP-ID/hosts``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get all hosts in a group. Use the ``clusterId`` query parameter to only
 get the hosts that belong to the specified cluster. The resulting list
@@ -32,69 +34,92 @@ is sorted alphabetically by ``hostname:port``.
 
 .. code-block:: none
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
+   GET /api/public/v1.0/groups/GROUP-ID/hosts
+
+``GET /groups/GROUP-ID/hosts/HOST-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get a single host by ID.
 
 .. code-block:: none
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/byName/HOSTNAME:PORT
+   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
+
+``GET /groups/GROUP-ID/hosts/byName/HOSTNAME:PORT``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get a single host by its hostname and port combination. You can specify
 either the primary hostname or an alias.
 
 .. code-block:: none
 
-   POST /api/public/v1.0/groups/GROUP-ID/hosts
+   GET /api/public/v1.0/groups/GROUP-ID/hosts/byName/HOSTNAME:PORT
+
+``POST /groups/GROUP-ID/hosts``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a new host in the group. When you create a new host, |mms| only
 knows the information that you provided. Thus, the document returned in
 the response document will include blank values while |mms| discovers
-the missing values. You may specify the following fields when creating a
-host:
+the missing values. 
+
+.. code-block:: none
+
+   POST /api/public/v1.0/groups/GROUP-ID/hosts
+
+You may specify the following fields when creating a host:
 
 - ``hostname`` - Required.
-
 - ``port`` - Required.
-
 - ``username`` - Required if ``authMechanismName`` is
   ``MONGODB_CR``. Otherwise illegal.
-
 - ``password`` - Required if ``authMechanismName`` is
   ``MONGODB_CR``. Otherwise illegal.
-
-- ``sslEnabled`` - Default is ``false`` if omitted.
-
+- ``sslEnabled`` - Must be ``true`` if the ``authMechanismName`` is
+  ``MONGODB_X509``. Default is ``false`` if omitted.
 - ``logsEnabled`` - Default is ``false`` if omitted.
-
 - ``alertsEnabled`` - Default is ``true`` if omitted.
-
 - ``profilerEnabled`` - Default is ``false`` if omitted.
-
 - ``muninPort`` - Default is 0 and Munin stats are not collected if omitted.
-
 - ``authMechanismName`` - Default is ``NONE`` if omitted. If set to
   ``MONGODB_CR`` then you must provide the ``username`` and ``password``.
+  
+.. COMMENT: if authMechanism is x509, then ssl must be enabled, no?
+
+``PATCH /hosts/HOST-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update an existing host.
 
 .. code-block:: none
 
    PATCH /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
 
-Update an existing host using the fields provided. Unspecified fields will
-preserve their current values.
+You can specify the following fields:
 
-- Only these fields may be specified: ``username password sslEnabled
-  logsEnabled alertsEnabled profilerEnabled muninPort authMechanismName``
+- ``username``
+- ``password``
+- ``sslEnabled``
+- ``logsEnabled``
+- ``alertsEnabled``
+- ``profilerEnabled``
+- ``muninPort``
+- ``authMechanismName``
 
-- If ``authMechanismName`` is ``NONE`` then any existing value for
-  ``username`` and ``password`` will be cleared out. For ``MONGODB_CR``
-  you must provide both ``username`` and ``password``.
+If ``authMechanismName`` is ``NONE`` then any existing value for
+``username`` and ``password`` will be cleared out. If
+``authMechanismName`` is ``MONGODB_CR``, then you must provide both
+the ``username`` and ``password``.
+
+``DELETE /hosts/HOST-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove a host.
 
 .. code-block:: none
 
    DELETE /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
 
-Remove a host.
 
 Sample Entity
 -------------
@@ -196,7 +221,8 @@ Entity Fields
      - Are there startup warnings for this host?
    * - ``sslEnabled``
      - boolean
-     - Is SSL enabled for this host?
+     - Is SSL enabled for this host? Must be ``true`` if the
+       ``authMechanismName`` is ``MONGODB_X509``.
    * - ``logsEnabled``
      - boolean
      - Is |mms| collecting logs for this host?
