@@ -172,12 +172,17 @@ information:
          "stage" : <STAGE1>
          "nReturned" : <int>,
          "executionTimeMillisEstimate" : <int>,
+         "works" : <int>,
+         "advanced" : <int>,
+         "needTime" : <int>,
+         "needYield" : <int>,
+         "isEOF" : <boolean>,
          ...
          "inputStage" : {
             "stage" : <STAGE2>,
             ...
             "nReturned" : 0,
-            "executionTimeMillisEstimate" : 0,
+            "executionTimeMillisEstimate" : <int>,
             ...
             "inputStage" : {
                ...
@@ -233,6 +238,51 @@ information:
 
       Each stage consists of execution information specific to the
       stage.
+
+      .. data:: explain.executionStats.executionStages.works
+
+         Specifies the number of "work units" performed by the query
+         execution stage. Query execution divides its work into small
+         units. A "work unit" might consist of examining a single index key,
+         fetching a single document from the collection, applying a
+         projection to a single document, or doing a piece of internal
+         bookkeeping.
+
+      .. data:: explain.executionStats.executionStages.advanced
+
+         The number of intermediate results returned, or *advanced*, by
+         this stage to its parent stage.
+
+      .. data:: explain.executionStats.executionStages.needTime
+
+         The number of work cycles that did not advance an intermediate
+         result to its parent stage (see
+         :data:`explain.executionStats.executionStages.advanced`). For
+         instance, an index scan stage may spend a work cycle seeking to a
+         new position in the index as opposed to returning an index
+         key; this work cycle would count towards
+         :data:`explain.executionStats.executionStages.needTime` rather
+         than :data:`explain.executionStats.executionStages.advanced`.
+
+      .. data:: explain.executionStats.executionStages.needYield
+
+         The number of times that the storage layer requested that the query
+         system yield its locks.
+
+      .. data:: explain.executionStats.executionStages.isEOF
+
+         Specifies whether the execution stage has reached end of stream:
+
+         - If ``true`` or ``1``, the execution stage has reached
+           end-of-stream.
+
+         - If ``false`` or ``0``, the stage may still have results to
+           return. For example, consider a query with a limit whose
+           execution stages consists of a ``LIMIT`` stage with an
+           input stage of ``IXSCAN`` for the query. If the query
+           returns more than the specified limit, the ``LIMIT`` stage
+           will report ``isEOF: 1``, but its underlying ``IXSCAN`` stage
+           will report ``isEOF: 0``.
 
    .. data:: explain.executionStats.allPlansExecution
 
