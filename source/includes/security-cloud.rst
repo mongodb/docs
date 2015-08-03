@@ -63,7 +63,7 @@ To create a MongoDB user, see
 :doc:`/tutorial/configure-backup-agent-for-cr`.
 
 You can specify the host's authentication settings when :doc:`adding the
-host </tutorial/add-hosts-to-monitoring>`, or you can :doc:`edit the
+host </tutorial/add-existing-mongodb-processes>`, or you can :doc:`edit the
 settings </tutorial/edit-host-authentication-credentials>` for an existing
 host.
 
@@ -84,7 +84,7 @@ To create a MongoDB user for the agents, see
 :doc:`/tutorial/configure-backup-agent-for-ldap`.
 
 You can specify the host's authentication settings when :doc:`adding the host
-</tutorial/add-hosts-to-monitoring>`, or you can :doc:`edit
+</tutorial/add-existing-mongodb-processes>`, or you can :doc:`edit
 the settings </tutorial/edit-host-authentication-credentials>` for an
 existing host.
 
@@ -107,6 +107,6 @@ as edit the configuration file, see
 :doc:`/tutorial/configure-backup-agent-for-kerberos`.
 
 You can specify the host's authentication settings when :doc:`adding
-the host </tutorial/add-hosts-to-monitoring>`, or you can :doc:`edit
+the host </tutorial/add-existing-mongodb-processes>`, or you can :doc:`edit
 the settings </tutorial/edit-host-authentication-credentials>` for an
 existing host.

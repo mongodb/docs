@@ -51,7 +51,7 @@ value on the :guilabel:`Administration` tab's :guilabel:`Agents` page. If there
 is no last ping value for a listed agent, the agent is a standby agent.
 
 See :ref:`faq-monitoring` and
-:doc:`/tutorial/add-hosts-to-monitoring` for more information.
+:doc:`/tutorial/add-existing-mongodb-processes` for more information.
 
 .. _troubleshooting-host-connectivity:
 

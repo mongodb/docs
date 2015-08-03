@@ -33,8 +33,7 @@ after upgrading the Monitoring Agent.
 A second Monitoring Agent can be set up for redundancy. However, the |mms|
 Monitoring Agent is robust. |mms| sends an *Agent Down* alert only when there are
 no available Monitoring Agents available. See :ref:`Monitoring FAQ
-<faq-monitoring>` and :doc:`Monitoring Architecture
-</tutorial/add-hosts-to-monitoring>` for more information.
+<faq-monitoring>` for more information.
 
 Cannot Delete a Host
 ++++++++++++++++++++
