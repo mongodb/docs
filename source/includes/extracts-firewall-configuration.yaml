@@ -1,0 +1,199 @@
+ref: firewall-configuration
+edition:
+  - cloud
+  - classic
+content: |
+  Overview
+  --------
+
+  |mms| requires access on the ports and IP addresses described here.
+
+  Required Outbound Access
+  ------------------------
+
+  The agents connect to |mms| on port ``443``. Whether you provision your
+  servers on AWS or on your own network, configure your network
+  infrastructure to allow outbound connections on port ``443``.
+
+  If you wish to restrict outbound access on port ``443`` to specific IP
+  addresses, you must keep open gtrethe following addresses and domains.
+
+  IP Addresses for GET and POST
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  You must keep open the following addresses on port ``443`` so that the
+  agents can ``GET`` AND ``POST`` to the ``api-agents.mongodb.com`` and
+  ``api-backup.mongodb.com`` servers:
+
+  - ``54.173.82.137``
+
+  - ``54.175.147.155``
+
+  Domain for Download of MongoDB Binaries
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The Automation Agents require outbound access on port ``443`` to the
+  following domains, depending on your MongoDB edition, for downloading
+  MongoDB binaries:
+
+  - For the MongoDB community edition, the Automation Agents require
+    outbound access on port ``443`` to download binaries from the
+    ``fastdl.mongodb.org`` domain, provided by Amazon CloudFront. The IP
+    ranges for CloudFront change frequently. See `the current list of IP
+    ranges for CloudFront
+    <http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html>`_.
+
+  - If you use Automation with `MongoDB Enterprise
+    <http://www.mongodb.com/products/mongodb-enterprise>`_, the
+    Automation Agents require outbound access on port ``443`` to the
+    ``downloads.mongodb.com`` domain in order to download the Enterprise
+    binaries.
+
+  - If you use automation with a custom build of MongoDB, the custom
+    build must be available at a URL accessible to the Automation Agent.
+    It could, for example, be served by a web server running inside an
+    isolated network environment. The custom build's ``Git Version``
+    field must be set to the output of the following command, issued on
+    the target binary.
+
+    .. code-block:: javascript
+
+       mongod --version
+
+  Required Inbound Access (AWS auto-provisioning only)
+  ----------------------------------------------------
+
+  If you use |mms| :doc:`provisioning </tutorial/provision-aws-servers>`,
+  you must grant SSH access to the following ranges at minimum:
+
+  - ``4.71.186.128/25``
+
+  - ``4.35.16.128/25``
+
+  .. important::
+
+     MongoDB reserves the right to change these IP addresses at any time
+     without user notice.
+
+  For information specific to AWS access, see :ref:`ssh-access-to-aws`.
+
+  If you do **not** use |mms| :doc:`provisioning
+  </tutorial/provision-aws-servers>`, you do not need to keep any inbound
+  ports open.
+
+  Required Ports on Your Network
+  ------------------------------
+
+  All MongoDB processes in a deployment must be accessible to all |mms|
+  agents managing processes in that deployment.
+  Therefore, all MongoDB ports must be open to every server that hosts an
+  Automation, Monitoring or Backup Agent. For example, if you are running
+  MongoDB processes on ``27000``, ``27017`` and ``27020``, then those
+  three ports must be open from all servers that are hosting an
+  Agent.
+---
+ref: firewall-configuration
+edition: onprem
+content: |
+  Overview
+  --------
+
+  |mms| components use the default ports and health-check endpoints
+  described here.
+
+  Ports
+  -----
+
+  Although the following components are logically distinct, the
+  :ref:`mms-http-service` and :ref:`backup-http-service`
+  are part of the |application|
+  and typically run on a single system. The Backup Daemon typically
+  runs on a distinct system.
+
+  |http-service|
+  ~~~~~~~~~~~~~~
+
+  .. describe:: 8080
+
+     Web server, available from browsers. The system running the
+     Monitoring Agent must be able to access this port as well.
+
+  Backup HTTP Service
+  ~~~~~~~~~~~~~~~~~~~
+
+  .. describe:: 8081
+
+     Available from browsers for HTTP restores, and from systems running
+     the Backup Agent.
+
+  .. describe:: 8091
+
+     *Optional*
+
+     Used for internal diagnostics. Only available on the localhost interface.
+
+  Backup Daemon
+  ~~~~~~~~~~~~~
+
+  .. describe:: 8640
+
+     A "kill-port" that the control script uses to signal a shutdown.
+
+     Only available on the localhost interface.
+
+  .. describe:: 27500-27503
+
+     The Backup Daemon uses this port range to on the localhost
+     interface to run :program:`mongod` instances to apply oplog entries
+     to maintain the local copies of the backed up database.
+
+  .. describe:: 8090
+
+     *Optional*
+
+     Used for internal diagnostics. Only available on the localhost interface.
+
+  Monitoring HTTP Endpoints
+  -------------------------
+
+  |onprem| provides health-check endpoints for the monitoring of the 
+  |onprem| components via a standard monitoring service, such as Zabbix or
+  Nagios. These endpoints are only accessible on the ``localhost`` interface.
+
+  .. _backup-http-service-endpoint:
+
+  Backup HTTP Service Endpoint
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The :ref:`Backup HTTP Service <backup-http-service>` on the |application|
+  exposes the following endpoint:
+
+  .. code-block:: sh
+
+     http://localhost:8091/health
+
+  The endpoint checks the connections from the service to the
+  :ref:`mms-application-database` and the
+  :ref:`mms-backup-blockstore-database`.
+
+  A successful response from the endpoint returns the following:
+
+  .. code-block:: sh
+
+     {
+       "mms_db": "OK",
+       "backup_db": "OK"
+     }
+
+  .. _backup-daemon-endpoint:
+
+  Backup Daemon Endpoint
+  ~~~~~~~~~~~~~~~~~~~~~~
+
+  The :ref:`Backup Daemon <backup-daemon>` on the Backup Daemon server
+  exposes a health-check endpoint at:
+
+  .. code-block:: sh
+
+     http://localhost:8090/health
+...
