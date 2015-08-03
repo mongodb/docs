@@ -44,5 +44,3 @@ reconfigured. The down host cannot be deleted and returns an error message,
 "This host cannot be deleted because it is enabled for backup." `Contact |mms|
 Support <https://cloud.mongodb.com/links/support>`_ for help in deleting these
 hosts.
-
-For more information on deleted hosts, see :ref:`removing-hosts`.
