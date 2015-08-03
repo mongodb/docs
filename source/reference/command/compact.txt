@@ -11,23 +11,19 @@ Definition
 
 .. dbcommand:: compact
 
-   .. versionadded:: 2.0
+   Rewrites and defragments all data and indexes in a collection. On
+   :ref:`WiredTiger <storage-wiredtiger>` databases, this command will release
+   unneeded disk space to the operating system.
 
-   Rewrites and defragments all data in a collection, as well as all
-   of the indexes on that collection. :dbcommand:`compact` has the
-   following form:
+   :dbcommand:`compact` has the following form:
 
    .. code-block:: javascript
 
       { compact: <collection name> }
 
-   :dbcommand:`compact` has the following fields:
+   :dbcommand:`compact` takes the following fields:
 
    .. include:: /includes/apiargs/dbcommand-compact-field.rst
-
-   :dbcommand:`compact` is similar to :dbcommand:`repairDatabase`;
-   however, :dbcommand:`repairDatabase` operates on an entire
-   database.
 
 .. warning:: Always have an up-to-date backup before performing server
    maintenance such as the :dbcommand:`compact` operation.
@@ -37,14 +33,12 @@ Definition
 paddingFactor
 ~~~~~~~~~~~~~
 
-.. versionadded:: 2.2
-
 .. note::
 
    Applicable for the MMAPv1 storage engine only; specifying
    ``paddingFactor`` has no effect when used with the WiredTiger
    storage engine.
-   
+
 The ``paddingFactor`` field takes the following range of values:
 
 - Default: ``1.0``
@@ -77,17 +71,13 @@ the document size, or a padding factor of 10 percent (10%):
 
    db.runCommand ( { compact: '<collection>', paddingFactor: 1.1 } )
 
-:dbcommand:`compact` compacts existing documents but does not reset
-``paddingFactor`` statistics for the collection. After the
-:dbcommand:`compact` MongoDB will use the existing ``paddingFactor``
-when allocating new records for documents in this collection.
+:dbcommand:`compact` modifies existing documents, but does not set the padding
+factor for future documents.
 
 .. _compact-paddingBytes:
 
 paddingBytes
 ~~~~~~~~~~~~
-
-.. versionadded:: 2.2
 
 .. note::
 
@@ -96,29 +86,31 @@ paddingBytes
    engine.
 
 Specifying ``paddingBytes`` can be useful if your documents start small
-but then increase in size significantly. For example, if your documents
+but then increase in size significantly.
+
+For example, if your documents
 are initially 40 bytes long and you grow them by 1KB, using
 ``paddingBytes: 1024`` might be reasonable since using ``paddingFactor:
 4.0`` would specify a record size of 160 bytes (``4.0`` times the
 initial document size), which would only provide a padding of 120 bytes
 (i.e. record size of 160 bytes minus the document size).
 
-With the following command, you can use the ``paddingBytes`` option of
-the :dbcommand:`compact` command to set the padding size to ``100``
-bytes on the collection named by ``<collection>``:
+The following command uses the ``paddingBytes`` option to set the padding size
+to 100 bytes on the collection named by ``<collection>``:
 
 .. code-block:: javascript
 
    db.runCommand ( { compact: '<collection>', paddingBytes: 100 } )
 
-Behaviors
----------
+Behavior
+--------
 
 Blocking
 ~~~~~~~~
 
-In MongoDB 2.2, :dbcommand:`compact` blocks activities only for its
-database. Prior to 2.2, the command blocked all activities.
+:dbcommand:`compact` only blocks operations for the database it is currently
+operating on. Only use :dbcommand:`compact` during scheduled maintenance
+periods.
 
 You may view the intermediate progress either by viewing the
 :program:`mongod` log file or by running the :method:`db.currentOp()`
@@ -129,7 +121,7 @@ Operation Termination
 
 If you terminate the operation with the :method:`db.killOp()
 <db.killOp()>` method or restart the server before the
-:dbcommand:`compact` operation has finished:
+:dbcommand:`compact` operation has finished, be aware of the following:
 
 - If you have journaling enabled, the data remains valid and
   usable, regardless of the state of the :dbcommand:`compact` operation.
@@ -146,17 +138,31 @@ If you terminate the operation with the :method:`db.killOp()
 Disk Space
 ~~~~~~~~~~
 
-:dbcommand:`compact` generally uses less disk space than
-:dbcommand:`repairDatabase` and is faster. However, the
-:dbcommand:`compact` command is still slow and blocks other database
-use. Only use :dbcommand:`compact` during scheduled maintenance periods.
-
-:dbcommand:`compact` requires up to 2 gigabytes of additional disk
-space while running. Unlike :dbcommand:`repairDatabase`,
-:dbcommand:`compact` does *not* free space on the file system.
+:dbcommand:`compact` has different impacts on available disk space depending on
+which storage engine is in use.
 
 To see how the storage space changes for the collection, run the
 :dbcommand:`collStats` command before and after compaction.
+
+WiredTiger
+``````````
+
+On :ref:`WiredTiger <storage-wiredtiger>`, :dbcommand:`compact` will rewrite
+the collection and indexes to minimize disk space by releasing unused disk space
+to the system. This is useful if you have removed a large amount of data
+from the collection, and do not plan to replace it.
+
+MMAPv1
+``````
+
+On :ref:`MMAPv1 <storage-mmapv1>`, :dbcommand:`compact` defragments the
+collection's data files and recreates its indexes. Unused disk space is *not*
+released to the system, but instead retained for future data. If you wish to
+reclaim disk space from a MMAPv1 database, you should perform an
+:term:`initial sync`.
+
+:dbcommand:`compact` requires up to 2 gigabytes of additional disk space to run
+on MMAPv1 databases.
 
 Size and Number of Data Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,7 +177,7 @@ Replica Sets
 ~~~~~~~~~~~~
 
 :dbcommand:`compact` commands do not replicate to secondaries in a
-:term:`replica set`:
+:term:`replica set`.
 
 - Compact each member separately.
 
@@ -183,7 +189,7 @@ Replica Sets
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
 
-:dbcommand:`compact` is a command issued to a :program:`mongod`. In a
+:dbcommand:`compact` only applies to :program:`mongod` instances. In a
 sharded environment, run :dbcommand:`compact` on each shard separately
 as a maintenance operation.
 
@@ -192,10 +198,9 @@ You cannot issue :dbcommand:`compact` against a :program:`mongos` instance.
 Capped Collections
 ~~~~~~~~~~~~~~~~~~
 
-It is not possible to compact :term:`capped collections <capped
-collection>` because they don't have padding, and documents cannot grow
-in these collections. However, the documents of a :term:`capped
-collection` are not subject to fragmentation.
+It is not possible or necessary to compact :term:`capped collections <capped
+collection>` because they lack padding and their documents cannot grow.
+As a result, they cannot become fragmented.
 
 Index Building
 ~~~~~~~~~~~~~~
