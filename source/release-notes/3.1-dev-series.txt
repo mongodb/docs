@@ -17,6 +17,7 @@ development release series.
 This document covers the 3.1 development series as a work-in-progress.
 Features are subject to change.
 
+.. TODO For the rc, must find and replace both the version-xxx and all 3.1 instances since the page distinguishes between dev versions as well.
 
 .. |version-dev| replace:: 3.1.6
 
@@ -226,17 +227,17 @@ on a per-collection basis. MongoDB provides the following new options:
   MongoDB applies the validation rules to existing documents during an
   update.
 
-- :ref:`3.2-rel-notes-validationState` option to determine whether to
-  ``enforce`` validation by rejecting invalid inserts or updates or
+- :ref:`3.2-rel-notes-validationAction` option to determine whether to
+  ``error`` and reject documents that violate the validation rules, or
   ``warn`` about the violations in the log but allow invalid documents.
 
 To create a validation specification, include the new ``validator``
 option when creating a collection using
 :method:`db.createCollection()`, or modifying the behavior of a
 collection using :dbcommand:`collMod`. You can also include the
-optional ``validationLevel`` and ``validationState`` fields. By
-default, MongoDB uses *strict* validation level and *enforces*
-validation.
+optional ``validationLevel`` and ``validationAction`` fields. By
+default, MongoDB uses ``strict`` validation level and ``error``
+validation action.
 
 .. note::
 
@@ -341,12 +342,13 @@ information about the ``contacts`` collection:
                      }
                   }
                ]
-            },
-            "validationLevel" : "strict",
-            "validationState" : "enforce"
+            }
          }
       }
    ]
+
+The method does not return ``validationLevel`` and ``validationAction``
+unless they are explicitly set.
 
 Validation Restrictions
 ```````````````````````
@@ -368,7 +370,7 @@ commands can bypass validation per operation:
 
 - :dbcommand:`cloneCollection` command and :method:`db.cloneCollection()`
 
-- :dbcommand:`copyDb` command and :method:`db.copyDatabase()` method
+- :dbcommand:`copydb` command and :method:`db.copyDatabase()` method
 
 - :dbcommand:`findAndModify` command and
   :method:`db.collection.findAndModify()` method
@@ -413,14 +415,21 @@ validation rules to existing documents during an update.
        *valid* documents. Do not apply rules to updates on existing
        *invalid* documents.
 
-.. _3.2-rel-notes-validationState:
+.. _3.2-rel-notes-validationAction:
 
-``validationState``
-~~~~~~~~~~~~~~~~~~~
+``validationAction``
+~~~~~~~~~~~~~~~~~~~~
 
-The ``validationState`` option determines whether to ``enforce``
-validation or just ``warn`` about the violations but allow invalid
-documents.
+.. TODO remove inter-dev series versionchanges
+
+.. versionchanged:: 3.1.7
+
+   In earlier development series, the ``validationAction`` option was
+   named ``validationState``.
+
+The ``validationAction`` option determines whether to ``error`` on
+invalid documents or just ``warn`` about the violations but allow
+invalid documents.
 
 .. important::
 
@@ -431,10 +440,10 @@ documents.
    :header-rows: 1
    :widths: 20 80
    
-   * - validationState
+   * - validationAction
      - Description
 
-   * - ``"enforce"``
+   * - ``"error"``
 
      - Documents must pass validation before the write occurs.
        Otherwise, the write operation fails.
@@ -447,9 +456,12 @@ documents.
 Aggregation Framework Enhancements
 ----------------------------------
 
-MongoDB |version-dev| introduces:
+MongoDB introduces:
 
 - New stages, accumulators, and expressions.
+
+- :ref:`Availability of accumulator expressions
+  <3.2-agg-accumulator-availability>` in :pipeline:`$project` stage.
 
 - :ref:`Performance improvements <3.2-agg-shard-optimization>` on
   sharded clusters.
@@ -469,6 +481,40 @@ New Aggregation Stages
      - Randomly selects N documents from its input.
      - ``{ $sample: { size: <positive integer> } }``
 
+Left Outer Join
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+Starting in 3.1.7, MongoDB Enterprise provides a new
+:pipeline:`$lookUp` stage that performs a left outer join with another
+collection to filter in documents from the joined collection for
+processing. See :pipeline:`$lookUp` for details.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Stage
+     - Description
+     - Syntax
+
+   * - :pipeline:`$lookUp`
+
+     - Performs a left outer join with another collection.
+
+     - .. code-block:: none
+
+          {
+             $lookUp:
+               {
+                 from: <collection to join>,
+                 localField: <fieldA>,
+                 foreignField: <fieldB>,
+                 as: <output array field>
+               }
+          }
+
 New Accumulators for ``$group`` Stage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -482,11 +528,11 @@ New Accumulators for ``$group`` Stage
 
    * - :group:`$stdDevSamp`
      - Calculates standard deviation.
-     - ``{stdDevSamp: <array> }``
+     - ``{ stdDevSamp: <array> }``
 
    * - :group:`$stdDevPop`
      - Calculates population standard deviation.
-     - ``{stdDevPop: <array> }``
+     - ``{ stdDevPop: <array> }``
 
 New Aggregation Arithmetic Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -501,18 +547,54 @@ New Aggregation Arithmetic Operators
 
    * - :expression:`$sqrt`
      - Calculates the square root.
-     - ``{ $sqrt: [ <number> ] }``
+     - ``{ $sqrt: <number> }``
 
    * - :expression:`$abs`
      - Returns the absolute value of a number.
-     - ``{ $abs: [ <number> ] }``
+     - ``{ $abs: <number> }``
+
+   * - :expression:`$log`
+     - Calculates the log of a number in the specified base.
+     - ``{ $log: [ <number>, <base> ] }``
+
+   * - :expression:`$log10`
+     - Calculates the log base 10 of a number.
+     - ``{ $log10: <number> }``
+
+   * - :expression:`$ln`
+     - Calculates the natural log of a number.
+     - ``{ $ln: <number> }``
+
+   * - :expression:`$pow`
+     - Raises a number to the specified exponent.
+     - ``{ $pow: [ <number>, <exponent> ] }``
+
+   * - :expression:`$exp`
+     - Raises *e* to the specified exponent.
+     - ``{ exp: <number> }``
+
+   * - :expression:`$trunc`
+     - Truncates a number to its integer.
+     - ``{ $trunc: <number> }``
+
+   * - :expression:`$ceil`
+
+     - Returns the smallest integer greater than or equal to the
+       specified number.
+
+     - ``{ $ceil: <number> }``
+
+   * - :expression:`$floor`
+     - Returns the largest integer less than or equal to the specified
+       number.
+     - ``{ floor: <number> }``
 
 New Aggregation Array Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 40 50
+   :widths: 10 35 55
 
    * - Operator
      - Description
@@ -532,7 +614,11 @@ New Aggregation Array Operators
 
    * - :expression:`$concatArrays`
      - Concatenates arrays.
-     - ``{ $concatArrays: [ <array1>, <array2>, ... ] }``
+     - .. code-block:: javascript
+
+          {
+            $concatArrays: [ <array1>, <array2>, ... ]
+          }
 
    * - :expression:`$isArray`
      - Determines if the operand is an array.
@@ -543,13 +629,136 @@ New Aggregation Array Operators
      - .. code-block:: javascript
 
           { 
-            $filter: 
+            $filter:
               {
                 input: <array>, 
                 as: <string>, 
                 cond: <expression>
               }
           }
+
+.. _3.2-agg-accumulator-availability:
+
+Accumulator Expression Availability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 3.1.7, the following accumulator expressions,
+previously only available in the :pipeline:`$group` stage, are now also
+available in the :pipeline:`$project` stage:
+
+- :group:`$avg`
+- :group:`$min`
+- :group:`$max`
+- :group:`$sum`
+- :group:`$stdDevPop`
+- :group:`$stdDevSamp`
+
+When used as part of the :pipeline:`$project` stage, these accumulator
+expressions can accept either:
+
+- A single argument: ``<accumulator> : <arg>``
+
+- Multiple arguments: ``<accumulator> : [ <arg1>, <arg2>, ... ]``
+
+Single Argument: ``<arg>``
+``````````````````````````
+
+If the argument is an array, the accumulator operates on the elements
+of the array to return a single value. If the argument is not an array,
+the accumulator operates on the single argument.
+
+For example, given a collection ``examples`` with the following two
+documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ 1, 19, 29, 100 ] }
+   { _id: 2, a: 5 }
+
+The following aggregation operation uses ``$sum`` in the
+:pipeline:`$project` stage to return the sum of the field ``a`` for
+each document:
+
+.. code-block:: javascript
+
+   db.examples.aggregate([ 
+      { $project: { sumOfa: { $sum: "$a" } } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "sumOfa" : 149 }
+   { "_id" : 2, "sumOfa" : 5 }
+
+Multiple arguments: ``[ <arg1>, <arg2>, ... ]``
+```````````````````````````````````````````````
+
+The accumulator operates on the arguments to return a single value.
+
+If any of the argments is an array, the accumulator does not traverse
+into the array elements.
+
+For example, given a collection ``examples`` with the following two
+documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ [ 10, 5 ], 10 ], b: [ 5, 10 ] }
+   { _id: 2, a: 10, b: [ [ [ 2, 3 ], 10 ], 15, 5 ] }
+
+The following aggregation operation uses ``$sum`` in the
+:pipeline:`$project` stage to return the sum of the field ``a`` for
+each document:
+
+.. code-block:: javascript
+
+   db.examples.aggregate([ 
+      { $project: { sumAandB: { $sum: [ "$a", "$b" ] } } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "sumAandB" : 0 }
+   { "_id" : 2, "sumAandB" : 10 }
+
+Non-numerical Arguments
+```````````````````````
+
+When used as part of the :pipeline:`$project` stage, :group:`$sum`,
+:group:`$avg`, :group:`$stdDevSamp`, and :group:`$stdDevPop`
+accumulators ignore non-numerical arguments. :group:`$min` and
+:group:`$max` uses the :ref:`specified BSON comparison order
+<bson-types-comparison-order>` for values of different types.
+
+For example, given a collection ``examples`` with the following two
+documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ 1, 19, 29, 100 ] }
+   { _id: 2, a: [ -999, 3.4, "hello", 872 ] }
+
+The following aggregation operation uses the :group:`$max` and
+:group:`$sum` accumulators in the :pipeline:`$project` stage to
+calculate the maximum and the sum of the values in the array ``a``.
+:group:`$sum` ignores the non-numerical elements in the array:
+
+.. code-block:: javascript
+
+   db.examples.aggregate([ 
+      { $project: { max: { $max:"$a" }, sum: { $sum: "$a" } } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "max" : 100, "sum" : 149 }
+   { "_id" : 2, "max" : "hello", "sum" : -123.60000000000002 }
 
 General Enhancements
 ~~~~~~~~~~~~~~~~~~~~
@@ -625,7 +834,7 @@ Other Enhancements
 Optimization
 ~~~~~~~~~~~~
 
-MongoDB |version-dev| improves the overall performance of the pipeline
+MongoDB improves the overall performance of the pipeline
 in large sharded clusters.
 
 If the pipeline starts with an exact :pipeline:`$match` on a shard key,
@@ -633,6 +842,12 @@ the entire pipeline runs on the matching shard only. Previously, the
 pipeline would have been split, and the work of merging it would have
 to be done on the primary shard.
 
+For aggregation operations that run on multiple shards, if the
+operations do not require running on the database's primary shard,
+these operations can route the results to any shard to merge the
+results and avoid overloading the primary shard for that database.
+Aggregation operations that require running on the database's primary
+shard are the :pipeline:`$out` stage and :pipeline:`$lookUp` stage.
 
 MongoDB Tools Enhancements
 --------------------------
@@ -762,14 +977,16 @@ enhancement reduces storage space for the dump files.
 Encrypted Storage Engine
 ------------------------
 
-.. important:: Available for the WiredTiger Storage Engine Only
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+.. important:: Available for the WiredTiger Storage Engine only.
 
 Encryption at rest, when used in conjunction with transport encryption
 and good security policies that protect relevant accounts, passwords,
 and encryption keys, can help ensure compliance with security and
 privacy standards, including HIPAA, PCI-DSS, and FERPA.
 
-MongoDB |version-dev| introduces a native encryption option for the
+MongoDB Enterprise |version-dev| introduces a native encryption option for the
 WiredTiger storage engine. This feature allows MongoDB to encrypt data
 files such that only parties with the decryption key can decode and
 read the data.
@@ -777,9 +994,9 @@ read the data.
 Encryption Process
 ~~~~~~~~~~~~~~~~~~
 
-For encryption, MongoDB uses AES-256 (or 256-bit Advanced Encryption
-Standard) in GCM via OpenSSL as the default. AES-256 uses a symmetric
-key; i.e. the same key to encrypt and decrypt text. FIPS mode
+For encryption, MongoDB Enterprise uses AES-256 (or 256-bit Advanced
+Encryption Standard) in GCM via OpenSSL as the default. AES-256 uses a
+symmetric key; i.e. the same key to encrypt and decrypt text. FIPS mode
 encryption is also available.
 
 The data encryption includes:
@@ -868,25 +1085,370 @@ MongoDB |version-dev| provides new query operators to test bit values:
 
 - :query:`$bitsAnyClear`
 
+SpiderMonkey JavaScript Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.1.7 uses SpiderMonkey as the JavaScript engine for the
+:program:`mongo` shell and :program:`mongod` server. SpiderMonkey
+provides support for additional platforms and has an improved memory
+management model.
+
+This change affects all JavaScript behavior including the commands
+:dbcommand:`mapReduce`, :dbcommand:`group`, and the query operator
+:query:`$where`; *however*, this change should be completely
+transparent to the user.
+
+``mongo`` Shell and CRUD API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To provide consistency with the MongoDB drivers' CRUD
+(Create/Read/Update/Delete) API, the :program:`mongo` shell introduces
+additional CRUD methods that are consistent with the drivers' CRUD API:
+
+.. list-table::
+   :header-rows: 1
+
+   * - New API
+     - Description
+
+   * - :method:`db.collection.bulkWrite()`
+
+     - Equivalent to initializing :method:`Bulk()` operations builder,
+       using :ref:`Bulk methods <bulk-methods>` to add operations, and
+       running :method:`Bulk.execute()` to execute the operations.
+
+       MongoDB 3.1.7 deprecates :method:`Bulk()` and its associated
+       :doc:`methods </reference/method/js-bulk>`.
+
+   * - :method:`db.collection.deleteMany()`
+     - Equivalent to :method:`db.collection.remove()`.
+
+   * - :method:`db.collection.deleteOne()`
+
+     - Equivalent to :method:`db.collection.remove()` with the
+       ``justOne`` set to true; i.e.
+
+       :method:`db.collection.remove( \<query\>, true ) <db.collection.remove>` or
+       :method:`db.collection.remove( \<query\>, { justOne: true } ) <db.collection.remove>`.
+
+   * - :method:`db.collection.findOneAndDelete()`
+
+     - Equivalent to :method:`db.collection.findAndModify()` method
+       with ``remove`` set to true.
+   
+   * - :method:`db.collection.findOneAndReplace()`
+
+     - Equivalent to :method:`db.collection.findAndModify()` method
+       with ``update`` set to a replacement document.
+
+   * - :method:`db.collection.findOneAndUpdate()`
+
+     - Equivalent to :method:`db.collection.findAndModify()` method
+       with ``update`` set to a document that specifies modifications
+       using :doc:`update operators </reference/operator/update>`.
+
+   * - :method:`db.collection.insertMany()`
+     - Equivalent to :method:`db.collection.insert()` method
+       with an array of documents as the parameter.
+
+   * - :method:`db.collection.insertOne()`
+     - Equivalent to :method:`db.collection.insert()` method
+       with a single document as the parameter.
+
+   * - :method:`db.collection.replaceOne()`
+
+     - Equivalent to :method:`db.collection.update( \<query\>,
+       \<update\> ) <db.collection.update()>` method with a replacement
+       document as the ``<update>`` parameter.
+
+   * - :method:`db.collection.updateMany()`
+
+     - Equivalent to :method:`db.collection.update( \<query\>,
+       \<update\>, { multi: true, ... }) <db.collection.update()>`
+       method with an ``<update>`` document that specifies
+       modifications using :doc:`update operators
+       </reference/operator/update>` and the ``multi`` option set to
+       true.
+
+   * - :method:`db.collection.updateOne()`
+   
+     - Equivalent to :method:`db.collection.update( \<query\>,
+       \<update\> ) <db.collection.update()>` method with an
+       ``<update>`` document that specifies modifications using
+       :doc:`update operators </reference/operator/update>`.
+
 Text Search Enhancements
 ------------------------
+
+.. _3.2-relnotes-text-index-v3:
+
+``text`` Index Version 3
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.1.7 introduces a version 3 of the :doc:`text index
+</core/index-text>`. Key features of the new version of the index are:
+
+- Improved case insensitivity.
+
+- Diacritic insensitivity.
+
+- Additional delimiters for tokenization.
+
+Starting in MongoDB 3.1.7, version 3 is the default version for new
+``text`` indexes.
+
+.. _3.2-relnotes-text-index-case-insensitivity:
+
+Case Insensitivity
+``````````````````
+
+For case insensitivity, the :doc:`text index (version 3)
+</core/index-text>` supports the common ``C``, simple ``S``, and for
+Turkish languages, the special ``T`` case foldings as specified in
+`<ftp://ftp.unicode.org/Public/8.0.0/ucd/CaseFolding.txt>`_.
+
+This change expands the case insensitivity of the ``text`` index to
+include Latin characters with :ref:`diacritics
+<3.2-text-index-v3-diacritic-sensitivity>` and characters from
+non-Latin alphabets, such as the Cyrillic alphabet.
+
+Consider a collection ``countries`` that contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "country" : "РОССИЯ"}
+   { "_id" : 2, "country" : "Polynésie française"}
+   { "_id" : 3, "country" : "PANAMÁ"}
+   { "_id" : 4, "country" : "PANAMA"}
+
+Create a ``text`` index (version 3) on the field ``country``:
+
+.. code-block:: javascript
+
+   db.countries.createIndex( { country: "text" } )
+
+The following query performs a text search on the lower case
+term ``россия``:
+
+.. code-block:: javascript
+
+   db.countries.find( { $text: { $search: "россия" } } )
+
+Using the version 3 ``text`` index, the query matches the following
+document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "country" : "РОССИЯ" }
+
+With the previous versions of the ``text`` index, the query would not
+match any document.
+
+The case insensitivity extends to characters with diacritic marks. The
+following query performs a text search on the term ``PolynÉsie
+franÇaise``:
+
+.. code-block:: javascript
+
+   db.countries.find( { $text: { $search: "PolynÉsie franÇaise" } } )
+
+Using the version 3 ``text`` index, the query matches the following
+document:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "country" : "Polynésie française" }
+
+With the previous versions of the ``text`` index, the query would not
+match any document.
+
+.. _3.2-text-index-v3-diacritic-sensitivity:
+
+Diacritic Insensitivity
+```````````````````````
+
+The :doc:`text index (version 3) </core/index-text>` is diacritic
+insensitive. That is, the index does not distinguish between characters
+that contain diacritical marks and their non-marked counterpart, such
+as ``é``, ``ê``, and ``e``.
+
+Consider a collection ``countries`` that contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "country" : "РОССИЯ"}
+   { "_id" : 2, "country" : "Polynésie française"}
+   { "_id" : 3, "country" : "PANAMÁ"}
+   { "_id" : 4, "country" : "PANAMA"}
+
+Create a ``text`` index (version 3) on the field ``country``:
+
+.. code-block:: javascript
+
+   db.countries.createIndex( { country: "text" } )
+
+The following query performs a text search on the term ``francaise``,
+without any diacritic marks:
+
+.. code-block:: javascript
+
+   db.countries.find( { $text: { $search: "francaise" } } )
+
+Using the version 3 ``text`` index, the query matches the following
+document:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "country" : "Polynésie française" }
+
+With the previous versions of the ``text`` index, the query would not
+match any document.
+
+.. seealso:: :ref:`3.2-diacritic-sensitive-text-search`.
+
+Tokenization Delimiters
+````````````````````````
+
+For tokenization, :doc:`text index (version 3) </core/index-text>` uses
+the delimiters categorized under ``White_Space``, ``Dash``,
+``Hyphen``, ``Quotation_Mark``, ``Terminal_Punctuation``, and
+``Pattern_Syntax`` in
+`<ftp://ftp.unicode.org/Public/8.0.0/ucd/PropList.txt>`_.
+
+For example, if given a string ``"Il a dit qu'il «était le meilleur
+joueur du monde»"``, the ``text`` index treats ``«``, ``»``, and spaces
+as delimiters. Previous versions of the index treat ``«`` as part of
+the term ``"«était"`` and ``»`` as part of the term ``"monde»"``.
+
+Restrictions
+````````````
+
+Earlier versions of MongoDB will not start if :doc:`text index (version
+3) </core/index-text>` exists in the database.
+
+.. _3.2-diacritic-sensitive-text-search:
+
+Diacritic Sensitive Text Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike earlier versions of the ``text`` index, version 3 of the
+``text`` index is :ref:`diacritic insensitive
+<3.2-text-index-v3-diacritic-sensitivity>`. To support diacritic
+sensitive text search against the version 3 ``text`` index, MongoDB
+3.1.7 adds the ``$diacriticSensitive`` option to the :query:`$text`
+operator.
+
+Text searches against earlier versions of the ``text`` index are
+inherently diacritic sensitive and cannot be diacritic insensitive. As
+such, the ``$diacriticSensitive`` option for the :query:`$text`
+operator has no effect with earlier versions of the ``text`` index.
+
+Diacritic Sensitive Search Process
+``````````````````````````````````
+
+If using a version 3 ``text`` index, to perform a diacritic sensitive
+text search, the :query:`$text` operator:
+
+- First searches the ``text`` index, which is diacritic insensitive.
+
+- Then, to return just the documents that match the diacritic marked
+  characters of the search terms, the :query:`$text` query operation
+  includes an additional stage to filter out the documents that do not
+  match.
+
+Specifying ``$diacriticSensitive: true`` may impact performance.
+
+If using an earlier version of the ``text`` index, to perform a
+diacritic sensitive text search, the :query:`$text` operator searches
+the ``text`` index which is diacritic sensitive.
+
+Example
+```````
+
+Consider a ``countries`` collection that contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "country" : "РОССИЯ"}
+   { "_id" : 2, "country" : "Polynésie française"}
+   { "_id" : 3, "country" : "PANAMÁ"}
+   { "_id" : 4, "country" : "PANAMA"}
+
+And a ``text`` index (version 3) exists on the field ``country``:
+
+.. code-block:: javascript
+
+   db.countries.createIndex( { country: "text" } )
+
+The following query performs a diacritic sensitive text search on the
+term ``panama``:
+
+.. code-block:: javascript
+
+   db.countries.find( { $text: { $search: "panama", $diacriticSensitive: true } } )
+
+The query only matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 4, "country" : "PANAMA" }
+
+The ``$diacriticSensitive`` option applies also to negated terms. A
+negated term is a term that is prefixed by a minus sign ``-``. If you
+negate a term, the :query:`$text` operator will exclude the documents that
+contain those terms from the results.
+
+The following query performs a diacritic sensitive text search for
+document that contains the term ``"polynésie"`` but not the term
+``francaise``.
+
+.. code-block:: javascript
+
+   db.countries.find(
+     { $text: { $search: "polynésie -francaise", $diacriticSensitive: true } }
+   )
+
+The query matches the following document since with diacritic
+sensitivity, the term "francaise" does not exist in the document.
+
+.. code-block:: javascript
+
+   { "_id" : 2, "country" : "Polynésie française" }
+
+.. seealso:: :ref:`3.2-text-index-v3-diacritic-sensitivity`
 
 .. _3.2-case-sensitive-text-search:
 
 Case Sensitive Text Search
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :query:`$text` operator adds support for case sensitive text search
-of the Latin alphabet ``[A-z]`` with the new ``$caseSensitive`` field.
+The ``text`` index is case insensitive for certain characters:
+
+- The :ref:`version 3 text index <3.2-relnotes-text-index-v3>` is case
+  insensitive for Latin characters with or without :ref:`diacritics
+  <3.2-text-index-v3-diacritic-sensitivity>` and characters from
+  non-Latin alphabets, such as the Cyrillic alphabet.
+
+- Earlier versions of the ``text`` index are case insensitive for Latin
+  characters without diacritic marks.
+
+By default, if the ``text`` index is case insensitive for a character,
+the :query:`$text` operator is also case insensitive for that character.
+
+To support case sensitive search where the ``text`` index is case
+insensitive, MongoDB adds a new ``$caseSensitive`` option for the
+:query:`$text` operator.
 
 Case Sensitive Search Process
 `````````````````````````````
 
-To perform case sensitive text search for the Latin alphabet, the
-:query:`$text` operator:
+To perform a case sensitive search for characters where the ``text``
+index is case insensitive, the :query:`$text` operator:
 
-- First searches the ``text`` index, which is case insensitive for the
-  Latin alphabet.
+- First searches the ``text`` index:
 
 - Then, to return just the documents that match the case of the search
   terms, the :query:`$text` query operation includes an additional
@@ -924,6 +1486,8 @@ The search matches just the document:
 
 Support for Additional Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
 
 Starting in |version-dev|, MongoDB Enterprise provides support for the
 following languages: Arabic, Farsi (specifically Dari and Iranian
@@ -980,6 +1544,9 @@ Aggregation Compatibility Changes
   expression. To treat the element as a literal instead of an
   expression, use the :expression:`$literal` operator to create a
   literal value.
+
+- :ref:`Text index (version 3) <3.2-relnotes-text-index-v3>` is
+  incompatible with earlier versions of MongoDB.
 
 Additional Information
 ----------------------
