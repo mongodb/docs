@@ -10,9 +10,12 @@ snapshots. A snapshot is a complete copy of the data in a ``mongod``
 instance at a point in time. In order to delete a resource, the request
 must originate from an IP address on the API user's whitelist.
 
-Note that this resource is only meant to provide snapshot metadata. In
-order to retrieve the snapshot data (in order to perform a restore,
-for example), you must create a Restore Job.
+You can retrieve snapshot metadata for the whole :term:`cluster <sharded
+cluster>` or :term:`replica set`, or for a single :term:`config server` in
+a cluster.
+
+In order to perform a restore of the snapshot data, you must create a
+:doc:`restore job </reference/api/restore-jobs>`.
 
 Endpoints
 ---------
@@ -47,60 +50,79 @@ backed-up data.
 
    DELETE /api/public/v1.0/groups/GROUP-ID/clusters/CLUSTER-ID/snapshots/SNAPSHOT-ID
 
+``GET /groups/GROUP-ID/hosts/HOST-ID/snapshots``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get all snapshots for a :term:`config server`. ``HOST-ID`` must be the ID
+of a config server.
+
+.. code-block:: none
+
+   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/snapshots
+
+``GET /groups/GROUP-ID/hosts/HOST-ID/snapshots/SNAPSHOT-ID``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a single snapshot for a config server.
+
+.. code-block:: none
+
+   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/snapshots/SNAPSHOT-ID
+
 Sample Entity
 -------------
 
+The following is a sample snapshot document.
+
 .. code-block:: javascript
 
-  {
-    "id": "5875f665da588548965b",
-    "groupId": "2847387cd717dabc348a",
-    "clusterId": "348938fbdbca74718cba",
-    "created": {
-      "date": "2014-02-01T12:34:12Z",
-      "increment": 54
-    },
-    "expires": "2014-08-01T12:34:12Z",
-    "complete": true,
-    "isPossiblyInconsistent": false,
-    "missingShards": [
-      {
-        "id": "472837bcbd278abcd7",
-        "groupId": "2847387cd717dabc348a",
-        "typeName": "REPLICA_SET",
-        "clusterName": "Cluster 1",
-        "shardName": "shard002",
-        "replicaSetName": "rs3",
-        "lastHeartbeat": "2014-02-26T17:32:45Z"
-      }
-    ],
-    "parts": [
-      {
-        "typeName": "REPLICA_SET",
-        "clusterId": "2383294dbcafa82928ad",
-        "replicaSetName": "rs0",
-        "mongodVersion": "2.4.8",
-        "dataSizeBytes": 489283492,
-        "storageSizeBytes": 489746352,
-        "fileSizeBytes": 518263456
-      }, {
-        "typeName": "REPLICA_SET",
-        "clusterId": "2383294dbcafa82928b3",
-        "replicaSetName": "rs1",
-        "mongodVersion": "2.4.8",
-        "dataSizeBytes": 489283492,
-        "storageSizeBytes": 489746352,
-        "fileSizeBytes": 518263456
-      }, {
-        "typeName": "CONFIG_SERVER",
-        "mongodVersion": "2.4.6",
-        "dataSizeBytes": 48928,
-        "storageSizeBytes": 48974,
-        "fileSizeBytes": 51826
-      }
-    ]
-  }
-
+   {
+     "clusterId" : "348938fbdbca74718cba",
+     "complete" : true,
+     "created" : {
+       "date" : "2015-07-29T02:57:17Z",
+       "increment" : 1
+     },
+     "expires" : "2016-07-27T02:57:17Z",
+     "groupId" : "2847387cd717dabc348a",
+     "id" : "5875f665da588548965b",
+     "isPossiblyInconsistent" : false,
+     "missingShards": [
+       {
+         "id": "472837bcbd278abcd7",
+         "groupId": "2847387cd717dabc348a",
+         "typeName": "REPLICA_SET",
+         "clusterName": "Cluster 1",
+         "shardName": "shard002",
+         "replicaSetName": "rs2",
+         "lastHeartbeat": "2014-02-26T17:32:45Z"
+       }
+     ],
+     "parts" : [ {
+       "clusterId" : "55b83f6ce4b074d9e2f2e741",
+       "dataSizeBytes" : 177588,
+       "fileSizeBytes" : 201326640,
+       "mongodVersion" : "3.0.5",
+       "replicaSetName" : "rs0",
+       "storageSizeBytes" : 11235328,
+       "typeName" : "REPLICA_SET"
+     }, {
+       "clusterId" : "55b83f6ce4b074d9e2f2e73d",
+       "dataSizeBytes" : 3450212,
+       "fileSizeBytes" : 201326640,
+       "mongodVersion" : "3.0.5",
+       "replicaSetName" : "rs1",
+       "storageSizeBytes" : 21721088,
+       "typeName" : "REPLICA_SET"
+     }, {
+       "dataSizeBytes" : 3211448,
+       "fileSizeBytes" : 201326640,
+       "hostId" : "8e42be22e49d3002c1744f2f5c6327eb",
+       "mongodVersion" : "3.0.5",
+       "storageSizeBytes" : 25989120,
+       "typeName" : "CONFIG_SERVER"
+     } ]
+   }
 
 Entity Fields
 -------------
@@ -117,7 +139,12 @@ Entity Fields
      - ID of the group that owns the snapshot.
    * - ``clusterId``
      - string
-     - ID of the cluster represented by the snapshot.
+     - ID of the cluster represented by the snapshot. Not present for a
+       config server snapshot.
+   * - ``hostId``
+     - string
+     - ID of the :term:`config server` represented by the snapshot.
+       Present only for a config server snapshot.
    * - ``created``
      - BSON timestamp
      - The exact point-in-time at which the snapshot was taken.
@@ -165,6 +192,9 @@ Entity Fields
    * - ``parts.replicaSetName``
      - string
      - Name of the replica set. Not present for a config server.
+   * - ``parts.hostId``
+     - string
+     - ID of a config server. Not present for a replica set.
    * - ``parts.mongodVersion``
      - string
      - The version of ``mongod`` that was running when the snapshot was created.
