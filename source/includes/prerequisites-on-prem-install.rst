@@ -2,7 +2,12 @@ You must have administrative access on the machines to which you install.
 
 Before you install |onprem|, you must:
 
+.. |nbsp| unicode:: 0xA0
+   :trim:
+
 1. Plan your configuration. See :doc:`/core/installation-checklist`.
+
+   |nbsp|
 
 2. Deploy servers that meet the :doc:`/core/requirements`.
 
@@ -18,6 +23,12 @@ Before you install |onprem|, you must:
    require dedicated MongoDB instances. Do **not** use MongoDB
    installations that store other data. The Backup Database is required
    only if you will use the Backup feature.
+
+   |nbsp|
+
+   The |application| and Backup Daemon must authenticate to the backing
+   databases as a MongoDB user with appropriate access. See
+   :setting:`mongo.mongoUri` for more information.
 
    .. note::
 
