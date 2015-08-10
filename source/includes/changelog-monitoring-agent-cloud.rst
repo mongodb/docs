@@ -1,3 +1,13 @@
+Monitoring Agent ``3.7.0.212``
+------------------------------
+
+*Released 2015-08-10*
+
+- Updated retrieval logic for oplog information to retrieve from either
+  ``serverStatus`` or the ``oplog`` collection as determined by the
+  roles of Monitoring Agent user to avoid authentication errors related
+  to oplog information retrieval in MongoDB logs.
+
 Monitoring Agent ``3.6.0.201``
 ------------------------------
 

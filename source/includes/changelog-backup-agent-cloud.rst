@@ -1,3 +1,12 @@
+Backup Agent ``3.7.0.300``
+--------------------------
+
+*Released 2015-08-10*
+
+- Added fix to not trim spaces from collection names.
+
+- Upgraded to new version of snappy compression library.
+
 Backup Agent ``3.6.0.292``
 --------------------------
 
