@@ -60,7 +60,7 @@ Monitoring Agent ``3.1.0.173``
      through Automation. Specifically, you can import an existing
      deployment into Monitoring, which allows you to use |mms| to monitor
      and optionally back up the deployment. See
-     :doc:`/tutorial/add-hosts-to-monitoring`.
+     :doc:`/tutorial/add-existing-mongodb-processes`.
 
    - Support for x.509 certificate authentication.
 

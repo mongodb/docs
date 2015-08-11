@@ -50,7 +50,7 @@ Backup Agent ``3.2.0.262``
 
    Ability to monitor and back up deployments without managing them
    through Automation. Specifically, you can :doc:`import an existing
-   deployment into Monitoring </tutorial/add-hosts-to-monitoring>` and
+   deployment into Monitoring </tutorial/add-existing-mongodb-processes>` and
    then use |mms| to back up the deployment.
 
    - Support for x.509 certificate authentication.
