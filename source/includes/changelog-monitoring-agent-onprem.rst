@@ -1,3 +1,13 @@
+.. _monitoring-3.7.0.212:
+
+Monitoring Agent 3.7.0.212
+--------------------------
+
+*Released with Ops Manager 1.8.1 on 2015-08-17*
+
+- Avoid harmless authentication in ``mongod`` log files when reading
+  ``oplog`` stats using the ``clusterMonitor`` role.
+
 .. _monitoring-3.3.1.193:
 
 Monitoring Agent ``3.3.1.193``
