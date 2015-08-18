@@ -61,9 +61,10 @@
 
    * - Slack
 
-     - Sends the alert to a Slack channel. Enter the channel name and API
-       token. To create the token, see the `<https://api.slack.com/web>`_
-       page in your Slack account.
+     - Sends the alert to a Slack channel. Enter the channel name and either an API
+       token or a Bot token. To create an API token, see the `<https://api.slack.com/web>`_
+       page in your Slack account. For information on Bot users in Slack,
+       see `https://api.slack.com/bot-users>`_.
 
    * - Flowdock
 
