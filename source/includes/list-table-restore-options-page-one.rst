@@ -19,7 +19,8 @@
    * - :guilabel:`Oplog Timestamp`
 
      - Creates a custom snapshot based on the timestamp of an entry in the
-       :term:`oplog`, as specified by the entry’s ``ts`` field. The ``ts``
+       :term:`oplog`, as specified by the entry’s ``ts`` field. |mms| includes all
+       operations up to **and including** the time of the timestamp. An entry's ``ts``
        field is a :manual:`BSON </reference/bson-types>` timestamp and has
        two components: the timestamp and the increment.
 
