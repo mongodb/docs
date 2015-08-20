@@ -6,7 +6,7 @@ You must configure the networking rules of your deployment so that:
 - the Monitoring Agent can connect to all :program:`mongod` and
   :program:`mongos` instances that you want to monitor.
 
-.. only:: classic or cloud
+.. only:: cloud
 
    - the Monitoring Agent can connect to ``api-agents.mongodb.com`` on port 443
      (i.e. ``https``.)

@@ -22,7 +22,7 @@ multiple MongoDB processes.
    the |onprem| itself before installing the
    Monitoring Agent.
 
-.. only:: classic or cloud
+.. only:: cloud
 
    This tutorial will guide you through the steps necessary
    to install or update the Monitoring Agent on your system.
