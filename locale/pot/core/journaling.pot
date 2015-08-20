@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mongodb-manual 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-03-30 14:28-0400\n"
+"POT-Creation-Date: 2015-08-20 19:13-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,147 +17,147 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../source/core/journaling.txt:5
-# 997254ffa1f84df6ba79798c17ad63d2
+# 6ba25fc2bcfe49bc8e3cf02d5fb1ff8b
 msgid "Journaling Mechanics"
 msgstr ""
 
 #: ../source/core/journaling.txt:9
-# 4cb6041a99be4a538926f3074aa5a3dd
+# b3fa00ceeb3244ff9f21d6f05d91096e
 msgid "When running with journaling, MongoDB stores and applies :doc:`write operations </core/write-operations>` in memory and in the on-disk journal before the changes are present in the data files on disk. Writes to the journal are atomic, ensuring the consistency of the on-disk journal files. This document discusses the implementation and mechanics of journaling in MongoDB systems.  See :doc:`/tutorial/manage-journaling` for information on configuring, tuning, and managing journaling."
 msgstr ""
 
 #: ../source/core/journaling.txt:22
-# 43552413c8f44fb987d72ea1d081cf72
+# 7c67c84d6ac146b3a9f3b218826b0d87
 msgid "Journal Files"
 msgstr ""
 
 #: ../source/core/journaling.txt:24
-# f9939200120e495fb7ee809d198f2c37
+# da560c04b94248649f1723c326d0ae02
 msgid "With journaling enabled, MongoDB creates a journal subdirectory within the directory defined by :setting:`~storage.dbPath`, which is :file:`/data/db` by default. The journal directory holds journal files, which contain write-ahead redo logs. The directory also holds a last-sequence-number file. A clean shutdown removes all the files in the journal directory. A dirty shutdown (crash) leaves files in the journal directory; these are used to automatically recover the database to a consistent state when the mongod process is restarted."
 msgstr ""
 
 #: ../source/core/journaling.txt:33
-# d97e74d5550f460c94c6cd5d50b7f39c
+# 0bbee034b681442e89e33503529d38dc
 msgid "Journal files are append-only files and have file names prefixed with ``j._``. When a journal file holds 1 gigabyte of data, MongoDB creates a new journal file. Once MongoDB applies all the write operations in a particular journal file to the database data files, it deletes the file, as it is no longer needed for recovery purposes. Unless you write *many* bytes of data per second, the journal directory should contain only two or three journal files."
 msgstr ""
 
 #: ../source/core/journaling.txt:41
-# 082bfd6d557f4e0c961a06101da30265
+# 09fd47b127ae49ca9f12add0cb065d15
 msgid "You can use the :setting:`storage.smallFiles` run time option when starting :program:`mongod` to limit the size of each journal file to 128 megabytes, if you prefer."
 msgstr ""
 
 #: ../source/core/journaling.txt:45
-# 44d214cbf1a1442586e475503a0b1bbb
+# 05a9c129a4b149349be1ccf1709b12e7
 msgid "To speed the frequent sequential writes that occur to the current journal file, you can ensure that the journal directory is on a different filesystem from the database data files."
 msgstr ""
 
 #: ../source/core/journaling.txt:51
-# cf5ddf87386a48e882dd9881530692bc
+# d6da119ef93e4a6a82fbe6173860db60
 msgid "If you place the journal on a different filesystem from your data files you *cannot* use a filesystem snapshot alone to capture valid backups of a :setting:`~storage.dbPath` directory. In this case, use :method:`~db.fsyncLock()` to ensure that database files are consistent before the snapshot and :method:`~db.fsyncUnlock()` once the snapshot is complete."
 msgstr ""
 
 #: ../source/core/journaling.txt:60
-# c6b76c83350d40d4ab574f0def032889
+# a7f4909b302446e6a23d496593c6df2c
 msgid "Depending on your filesystem, you might experience a preallocation lag the first time you start a :program:`mongod` instance with journaling enabled."
 msgstr ""
 
 #: ../source/core/journaling.txt:64
-# 2888f006794248088ab75d16c5b150c2
+# b5f499be7c0340a3a78f07dad5e23127
 msgid "MongoDB may preallocate journal files if the :program:`mongod` process determines that it is more efficient to preallocate journal files than create new journal files as needed. The amount of time required to pre-allocate lag might last several minutes, during which you will not be able to connect to the database. This is a one-time preallocation and does not occur with future invocations."
 msgstr ""
 
 #: ../source/core/journaling.txt:71
-# 47522dcea6e44890bf6bb9a48abe33ac
+# 70d87b32978049bdb9a54235b7d96d40
 msgid "To avoid preallocation lag, see :ref:`journaling-avoid-preallocation-lag`."
 msgstr ""
 
 #: ../source/core/journaling.txt:76
-# 3087728af45b4c7e9d0919975cdd3a82
+# 039f732264bc4d359837b7dff9bd082d
 msgid "Storage Views used in Journaling"
 msgstr ""
 
 #: ../source/core/journaling.txt:78
-# 8484047b6f8c4583b31a84d3bce72234
+# 65946e03b2e344e1929d8ff5868ef59a
 msgid "With journaling, MongoDB's storage layer has two internal views of the data set."
 msgstr ""
 
 #: ../source/core/journaling.txt:81
-# 4a98586095604cc9be566764f2e845d1
+# 0e26a14782e9425890faf3f1b563321b
 msgid "The ``shared view`` stores modified data for upload to the MongoDB data files. The ``shared view`` is the only view with direct access to the MongoDB data files. When running with journaling, :program:`mongod` asks the operating system to map your existing on-disk data files to the ``shared view`` virtual memory view. The operating system maps the files but does not load them. MongoDB later loads data files into the ``shared view`` as needed."
 msgstr ""
 
 #: ../source/core/journaling.txt:89
-# 982cac5a6de841d4b82110fd30aff543
+# d6587575e0cc48539697f057e264d6c0
 msgid "The ``private view`` stores data for use with :doc:`read operations </core/read-operations>`.  The ``private view`` is the first place MongoDB applies new :doc:`write operations </core/write-operations>`. Upon a journal commit, MongoDB copies the changes made in the ``private view`` to the ``shared view``, where they are then available for uploading to the database data files."
 msgstr ""
 
 #: ../source/core/journaling.txt:95
-# db4e5e26130948558f7bec809a5b73a2
+# c64d5c7a28f5436db5a50681a78630d5
 msgid "The journal is an on-disk view that stores new write operations after MongoDB applies the operation to the ``private view`` but before applying them to the data files. The journal provides durability. If the :program:`mongod` instance were to crash without having applied the writes to the data files, the journal could replay the writes to the ``shared view`` for eventual upload to the data files."
 msgstr ""
 
 #: ../source/core/journaling.txt:105
-# 3f538a1abb0241a89a93d385e5532dd4
+# 6e0a10c08ccc4e319c6984c1f636a84a
 msgid "How Journaling Records Write Operations"
 msgstr ""
 
 #: ../source/core/journaling.txt:107
-# 821190da763f43f68ce2295e3b89cd3c
+# 5ebb374b3aa241958b6260f412c77b67
 msgid "MongoDB copies the write operations to the journal in batches called group commits. These \"group commits\" help minimize the performance impact of journaling, since a group commit must block all writers during the commit.  See :setting:`~storage.journal.commitIntervalMs` for information on the default commit interval."
 msgstr ""
 
 #: ../source/core/journaling.txt:113
-# b51d2110188d4feb91b4d9bef3034ee9
+# f091f5dc7f8445e18085e3cdc6fa06f2
 msgid "Journaling stores raw operations that allow MongoDB to reconstruct the following:"
 msgstr ""
 
 #: ../source/core/journaling.txt:116
-# 1d5f43b7433144dc9e3ea64ff3326c95
+# 98b0578344f04aa6bf5805bfa07fd181
 msgid "document insertion/updates"
 msgstr ""
 
 #: ../source/core/journaling.txt:117
-# fdfb6013ca1f40b587185afc0a22438e
+# 6274e101df894a609578dd94432c6d05
 msgid "index modifications"
 msgstr ""
 
 #: ../source/core/journaling.txt:118
-# f6257db07f414ca899e50f6c654e1a98
+# 85d1bad0fda3417da4d33b336841133e
 msgid "metadata changes to the namespace files"
 msgstr ""
 
 #: ../source/core/journaling.txt:119
-# cf662987e3df450487866965703144ab
+# 3e8f4d534059429ab14218a614088d3b
 msgid "creation and dropping of databases and their associated data files"
 msgstr ""
 
 #: ../source/core/journaling.txt:121
-# 55532c3aaa984204b47a7965cdc5dd3e
+# cf13599ee81b4af7b4ba0e55f2fb04b8
 msgid "As :doc:`write operations </core/write-operations>` occur, MongoDB writes the data to the ``private view`` in RAM and then copies the write operations in batches to the journal. The journal stores the operations on disk to ensure durability.  Each journal entry describes the bytes the write operation changed in the data files."
 msgstr ""
 
 #: ../source/core/journaling.txt:127
-# 49da20a52b954f3ba35aa87e12fd536c
+# fcfafc5f9f914c2f8dfd11a3795bea71
 msgid "MongoDB next applies the journal's write operations to the ``shared view``. At this point, the ``shared view`` becomes inconsistent with the data files."
 msgstr ""
 
 #: ../source/core/journaling.txt:131
-# befde989623547cfb3011f28736880c7
+# 865a8246cbe34c7aa47104f6d3b38472
 msgid "At default intervals of 60 seconds, MongoDB asks the operating system to flush the ``shared view`` to disk. This brings the data files up-to-date with the latest write operations.  The operating system may choose to flush the ``shared view`` to disk at a higher frequency than 60 seconds, particularly if the system is low on free memory."
 msgstr ""
 
 #: ../source/core/journaling.txt:137
-# 2b158b07333d4ee2975848ee7faece15
+# f3909276aa1b4a119d063e379d105a83
 msgid "When MongoDB flushes write operations to the data files, MongoDB notes which journal writes have been flushed.  Once a journal file contains only flushed writes, it is no longer needed for recovery, and MongoDB either deletes it or recycles it for a new journal file."
 msgstr ""
 
 #: ../source/core/journaling.txt:141
-# d6ed1c93c87f4ff78cacaa3f81e04ba1
+# 5ce9079698d7439e9980c5a4875a7513
 msgid "As part of journaling, MongoDB routinely asks the operating system to remap the ``shared view`` to the ``private view``, in order to save physical RAM. Upon a new remapping, the operating system knows that physical memory pages can be shared between the ``shared view`` and the ``private view`` mappings."
 msgstr ""
 
 #: ../source/core/journaling.txt:148
-# 1fab8c835f7d4e60b5135f5a75064327
+# 39349c36ef9e4a82a91a7ccf5193556d
 msgid "The interaction between the ``shared view`` and the on-disk data files is similar to how MongoDB works *without* journaling, which is that MongoDB asks the operating system to flush in-memory changes back to the data files every 60 seconds."
 msgstr ""
 
