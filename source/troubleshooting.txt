@@ -1,5 +1,3 @@
-.. The published page has additional Troubleshooting tips in a nested include.
-
 .. _troubleshooting:
 
 ===============
@@ -10,11 +8,91 @@ Troubleshooting
 
 This document provides advice for troubleshooting problems with |mms|.
 
-.. include:: /includes/troubleshooting-getting-started.rst
+Getting Started Checklist
+-------------------------
 
-.. only:: onprem
+To begin troubleshooting, complete these tasks to check for common, easily
+fixed problems:
 
-   .. include:: /includes/troubleshooting-onprem-installation.rst
+#. :ref:`troubleshooting-auth-creds`
+#. :ref:`troubleshooting-check-logs`
+#. :ref:`troubleshooting-one-agent`
+#. :ref:`troubleshooting-host-connectivity`
+#. :ref:`troubleshooting-mms-connectivity`
+#. :ref:`troubleshooting-discover-hosts`
+
+.. _troubleshooting-auth-creds:
+
+Authentication Errors
+~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDB instances run with authentication enabled, ensure |mms| has the
+MongoDB credentials. See :doc:`/tutorial/edit-host-authentication-credentials`.
+
+.. _troubleshooting-check-logs:
+
+Check Agent Output or Log
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you continue to encounter problems, check the agent's output for errors.
+See :ref:`Agent Logs <agent-logs>` for more information.
+
+.. _troubleshooting-one-agent:
+
+Confirm Only One Agent is Actively Monitoring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you :ref:`run multiple Monitoring Agents
+<monitoring-agent-redundancy>`, make sure they are all the same version
+and that only one if actively monitoring. When you upgrade a Monitoring
+Agent, do not forget to delete any old standby agents.
+
+When you run multiple agents, one runs as the primary agent and the others
+as standby agents. Standby agents poll |mms| periodically to get the
+configuration but do not send data.
+
+To determine which agent is the primary agent, look at the :guilabel:`Status`
+value on the :guilabel:`Administration` tab's :guilabel:`Agents` page. If there
+is no last ping value for a listed agent, the agent is a standby agent.
+
+See :ref:`faq-monitoring` and
+:doc:`/tutorial/add-existing-mongodb-processes` for more information.
+
+.. _troubleshooting-host-connectivity:
+
+Ensure Connectivity Between Agent and Monitored Hosts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure the system running the agent can resolve and connect to the
+MongoDB instances. To confirm, log into the system where the agent
+is running and issue a command in the following form:
+
+.. code-block:: sh
+
+   mongo [hostname]:[port]
+
+Replace ``[hostname]`` with the hostname and ``[port]`` with the
+port that the database is listening on.
+
+.. _troubleshooting-mms-connectivity:
+
+Ensure Connectivity Between Agent and |mms| Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that the Monitoring Agent can connect on TCP port 443
+(outbound) to the |mms| server (i.e. ``api-agents.mongodb.com``.)
+
+.. _troubleshooting-discover-hosts:
+
+Allow Agent to Discover Hosts and Collect Initial Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Allow the agent to run for 5-10 minutes to allow host discovery and initial
+data collection.
+
+.. "Ops Manager Installation:"
+
+.. include:: /includes/extracts/troubleshooting-onprem-installation.rst
 
 Monitoring
 ----------
@@ -80,55 +158,37 @@ See :manual:`the MongoDB ulimit reference page </reference/ulimit>` and the
 :manual:`the MongoDB maxConns reference page
 </reference/configuration-options/#maxConns>` for details.
 
-.. only:: cloud or onprem
+Deployments
+~~~~~~~~~~~
 
-   Deployments
-   ~~~~~~~~~~~
+Deployment Hangs in ``In Progress``
++++++++++++++++++++++++++++++++++++
 
-   Deployment Hangs in ``In Progress``
-   +++++++++++++++++++++++++++++++++++
+If you have added or restarted a deployment and the deployment remains
+in the ``In Progress`` state for several minutes, click :guilabel:`View
+Agent Logs` and look for any errors.
 
-   If you have added or restarted a deployment and the deployment remains
-   in the ``In Progress`` state for several minutes, click :guilabel:`View
-   Agent Logs` and look for any errors.
+If you diagnose an error and need to correct the deployment
+configuration:
 
-   If you diagnose an error and need to correct the deployment
-   configuration:
+1. Click :guilabel:`Edit Configuration` and then click :guilabel:`Edit
+   Configuration` again.
 
-   1. Click :guilabel:`Edit Configuration` and then click :guilabel:`Edit
-      Configuration` again.
+2. Reconfigure the deployment.
 
-   2. Reconfigure the deployment.
+3. When you complete your changes, click :guilabel:`Review & Deploy`
+   and then :guilabel:`Confirm & Deploy`.
 
-   3. When you complete your changes, click :guilabel:`Review & Deploy`
-      and then :guilabel:`Confirm & Deploy`.
+If you shut down the deployment and still cannot find a solution,
+:doc:`remove the deployment </tutorial/unmanage-deployment>` from |mms|.
 
-   If you shut down the deployment and still cannot find a solution,
-   :doc:`remove the deployment </tutorial/unmanage-deployment>` from |mms|.
+.. "Monitoring Agent Fails to Collect Data:"
 
-.. only:: classic or onprem
+.. include:: /includes/extracts/troubleshooting-monitoring-agent-fails-to-collect-data.rst
 
-   Monitoring Agent Fails to Collect Data
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. "Hosts:"
 
-   Possible causes for this state:
-
-   - If the Monitoring Agent can't connect to the server because of
-     networking restrictions or issues (i.e. firewalls, proxies,
-     routing.)
-
-   - If your database is running with SSL. You must enable SSL either
-     globally or on a per-host basis. See
-     :doc:`/tutorial/configure-monitoring-agent-for-ssl` and
-     :doc:`/tutorial/enable-ssl-for-a-group` for more information.
-
-   - If your database is running with authentication. You must supply
-     |mms| with the authentication credentials for the host. See
-     :doc:`/tutorial/edit-host-authentication-credentials`.
-
-.. only:: classic or onprem
-
-   .. include:: /includes/faq-hosts-legacy.rst
+.. include:: /includes/extracts/troubleshooting-faq-hosts-legacy.rst
 
 Groups
 ~~~~~~
@@ -261,241 +321,96 @@ If you do not receive the SMS authentication tokens:
    area code and the phone number. Also try 011 first followed by
    the country code, then area code, and then the phone number.
 
-.. COMMENT - you can't have replacement text inside back ticks. It publishes incorrectly.
-
 If you do not receive the authentication token in a reasonable amount
 of time `contact Support <https://cloud.mongodb.com/links/support>`_ to
 rule out SMS message delivery delays.
 
-How to Delete or Reset Two-Factor Authentication
-++++++++++++++++++++++++++++++++++++++++++++++++
+.. "Delete or Reset Two-Factor Authentication:"
 
-.. COMMENT - you can't have replacement text inside back ticks. It publishes incorrectly.
+.. include:: /includes/extracts/troubleshooting-reset-2fa.rst
 
-.. only:: classic or cloud
+.. "LDAP:"
 
-   `Contact Support <https://cloud.mongodb.com/links/support>`_ to delete or
-   reset any two-factor authentications you have configured.
+.. include:: /includes/extracts/troubleshooting-ldap.rst
 
-.. only:: onprem
+.. "Backup:"
 
-   Contact your system administrator to remove or reset two-factor
-   authentication on your account.
+.. include:: /includes/extracts/troubleshooting-backup.rst
 
-   For administrative information on two-factor authentication, see
-   :doc:`/tutorial/manage-two-factor-authentication`.
+.. "System:"
 
-.. only:: onprem
+.. include:: /includes/extracts/troubleshooting-system.rst
 
-   LDAP
-   ~~~~
+.. _automation-checklist:
 
-   Cannot Enable LDAP
-   ++++++++++++++++++
+Automation Checklist
+--------------------
 
-   You must enable LDAP **before** you sign up the first user through the |mms|
-   interface, as required in :ref:`Authentication Requirements
-   <authentication-requirements>`. If you cannot enable LDAP because you have
-   created a user through |mms|, you must reinstall |mms|, being sure to enable
-   LDAP before creating users and hosts. Please see :ref:`Authentication
-   Requirements <authentication-requirements>`.
+|mms| Automation allows you to deploy, configure, and manage MongoDB
+deployments with the |mms| UI.  |mms| Automation relies on an Automation
+Agent, which must be installed on every server in the deployment.  The
+Automation Agents periodically poll the |mms| service to determine the
+current goal, and continually report their status to |mms|.
 
-   Forgot to Change MONGODB-CR Error
-   +++++++++++++++++++++++++++++++++
-
-   If your MongoDB deployment uses LDAP for authentication, and you find
-   the following error message:
-
-   .. code-block:: none
-
-      You forget to change "MONGODB-CR" to "LDAP (PLAIN)" since they both
-      take username/password.
-
-   Then make sure that you specified the ``LDAP (PLAIN)`` as is the
-   authentication mechanism for both the Monitoring Agent and the Backup
-   Agent. See :doc:`/tutorial/configure-backup-agent-for-ldap` and
-   :doc:`/tutorial/configure-monitoring-agent-for-ldap`.
-
-.. only:: onprem
-
-   Backup
-   ------
-
-   Logs Display MongodVersionException
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   The ``MongodVersionException`` can occur if the :ref:`Backup Daemon's
-   <backup-daemon>` host cannot access the internet to download the
-   version or versions of MongoDB required for the backed-up databases.
-   Each database requires a version of MongoDB that matches the database's
-   version. Specifically, for each instance you must run the latest stable release
-   of that release series. For versions earlier than 2.4, the database
-   requires the latest stable release of 2.4.
-
-   If the Daemon runs without access to the internet, you must
-   manually download the required MongoDB versions, as described here:
-
-   1. Go to the `MongoDB downloads page <http://www.mongodb.org/downloads>`_
-      and download the appropriate versions for your environment.
-
-   2. Copy the download to the Daemon's host.
-
-   3. Decompress the download into the directory specified in the
-      :setting:`mongodb.release.directory` setting in the Daemon's
-      ``conf-daemon.properties`` file. For the file's location, see
-      :doc:`/reference/configuration`.
-
-      Within the directory specified in the
-      :setting:`mongodb.release.directory` setting, the folder structure
-      for MongoDB should look like the following:
-
-      .. code-block:: sh
-
-         <path-to-mongodb-release-directory>/
-         |-- mongodb-<platform>
-         |  |-- THIRD-PARTY-NOTICES
-         |  |-- README
-         |  |-- GNU-AGPL-3.0
-         |  |-- bin
-         |  |  |-- bsondump
-         |  |  |-- mongo
-         |  |  |-- mongod
-         |  |  |-- mongodump
-         |  |  |-- mongoexport
-         |  |  |-- mongofiles
-         |  |  |-- mongoimport
-         |  |  |-- mongooplog
-         |  |  |-- mongoperf
-         |  |  |-- mongorestore
-         |  |  |-- mongos
-         |  |  |-- mongostat
-         |  |  |-- mongotop
-
-.. only:: onprem
-
-   System
-   ------
-
-   Logs Display OutOfMemoryError
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   If your logs display ``OutOfMemoryError``, ensure you are running with
-   sufficient ulimits and RAM.
-
-   Increase Ulimits
-   ++++++++++++++++
-
-   For the recommended ulimit setting, see the FAQ on
-   :ref:`open-file-limits`.
-
-   |mms| infers the host's ``ulimit`` setting using the total number of
-   available and current connections. For more information about ulimits
-   in MongoDB, see the :manual:`UNIX ulimit Settings </reference/ulimit/>`
-   reference page.
-
-   Ensure Sufficient RAM for All Components
-   ++++++++++++++++++++++++++++++++++++++++
-
-   - Ensure that each server has enough RAM for the components it runs. If
-     a server runs multiple components, its RAM must be at least the sum
-     of the required amount of RAM for **each** component.
-
-     For the individual RAM requirements for the |application| server,
-     |application| Database, Backup Daemon server, and Backup
-     Database, see :doc:`/core/requirements`.
-
-   Obsolete Config Settings
-   ~~~~~~~~~~~~~~~~~~~~~~~~
-   
-   |mms| will fail to start if there are obsolete configuration settings
-   set in the :doc:`conf-mms.properties </reference/configuration>` file.
-   If there is an obsolete setting, the log lists an "Obsolete Setting"
-   error as in the following:
-   
-   .. code-block:: sh
-   
-      [OBSOLETE SETTING] Remove "mms.multiFactorAuth.require" or replace "mms.multiFactorAuth.require" with "mms.multiFactorAuth.level".
-     
-   You will need to remove or replace the obsolete property in the
-   ``conf-mms.properties`` file before you can start |mms|.
-     
-.. only:: onprem or cloud
-
-   .. _automation-checklist:
-
-   Automation Checklist
-   --------------------
-
-   |mms| Automation allows you to deploy, configure, and manage MongoDB
-   deployments with the |mms| UI.  |mms| Automation relies on an Automation
-   Agent, which must be installed on every server in the deployment.  The
-   Automation Agents periodically poll the |mms| service to determine the
-   current goal, and continually report their status to |mms|.
-
-   To use Automation, you must install the Automation Agent on each
-   server that you want |mms| to manage.
+To use Automation, you must install the Automation Agent on each
+server that you want |mms| to manage.
    
 .. only:: cloud
-   
+
    Alternatively, you can use |mms| Provisioning to
    automatically create Amazon Web Services (AWS) EC2 instances that have
    the Automation Agent pre-installed.
 
-.. only:: automation or cloud
+Automation Runs Only on 64-bit Architectures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Automation Runs Only on 64-bit Architectures
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|mms| provides only 64-bit downloads of the Automation Agent.
 
-   |mms| provides only 64-bit downloads of the Automation Agent.
+Using Own Hardware
+~~~~~~~~~~~~~~~~~~
 
-   Using Own Hardware
-   ~~~~~~~~~~~~~~~~~~
+- If you deploy Automation manually, ensure that you have one
+  Automation Agent on every server.
 
-   - If you deploy Automation manually, ensure that you have one
-     Automation Agent on every server.
+- If you deploy the agent manually, you must create MongoDB's
+  :setting:`dbpath` and the directory for the MongoDB binaries and
+  ensure that the user running the agent owns these
+  directories.
 
-   - If you deploy the agent manually, you must create MongoDB's
-     :setting:`dbpath` and the directory for the MongoDB binaries and
-     ensure that the user running the agent owns these
-     directories.
+  If you install using the ``rpm`` package, the agent runs as the
+  ``mongod`` user; if using the ``deb`` package, the agent runs as the
+  ``mongodb`` user. If you install using the ``tar.gz`` archive file,
+  you can run the agent as any user.
 
-     If you install using the ``rpm`` package, the agent runs as the
-     ``mongod`` user; if using the ``deb`` package, the agent runs as the
-     ``mongodb`` user. If you install using the ``tar.gz`` archive file,
-     you can run the agent as any user.
+.. "Using |mms| Provisioning (Amazon Web Services):"
 
-   .. only:: cloud
+.. include:: /includes/extracts/troubleshooting-aws.rst
 
-      Using |mms| Provisioning (Amazon Web Services)
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Networking
+~~~~~~~~~~
 
-      See :ref:`aws-checklist`.
+All hosts must be able to allow communication between MongoDB
+ports. The default is ``27017``, but you can configure alternate port
+ranges in the |mms| interface.
 
-   Networking
-   ~~~~~~~~~~
+The Automation Agent *must* be able to connect to
+``cloud.mongodb.com`` on port ``443`` (i.e. ``https``).
+For more information on access to ports and IP addresses, see
+:doc:`/core/security`.
 
-   All hosts must be able to allow communication between MongoDB
-   ports. The default is ``27017``, but you can configure alternate port
-   ranges in the |mms| interface.
+Automation Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The Automation Agent *must* be able to connect to
-   ``api-agents.mongodb.com`` on port ``443`` (i.e. ``https``).
-   For more information on access to ports and IP addresses, see
-   :doc:`/core/security`.
+After completing the automation configuration, always ensure that the
+deployment plan satisfies the needs of your
+deployment. Always double check hostnames and ports before
+confirming the deployment.
 
-   Automation Configuration
-   ~~~~~~~~~~~~~~~~~~~~~~~~
+Sizing
+~~~~~~
 
-   After completing the automation configuration, always ensure that the
-   deployment plan satisfies the needs of your
-   deployment. Always double check hostnames and ports before
-   confirming the deployment.
+- Ensure that you provision machines with enough space to run MongoDB
+  and support the requirements of your data set.
 
-   Sizing
-   ~~~~~~
-
-   - Ensure that you provision machines with enough space to run MongoDB
-     and support the requirements of your data set.
-
-   - Ensure that you provision sufficient machines to run your
-     deployment. Each :program:`mongod` should run on its own host.
+- Ensure that you provision sufficient machines to run your
+  deployment. Each :program:`mongod` should run on its own host.

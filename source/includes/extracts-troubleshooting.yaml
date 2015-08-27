@@ -1,0 +1,296 @@
+ref: troubleshooting-onprem-installation
+edition: onprem
+content: |
+
+  Installation
+  ------------
+
+  The monitoring server does not start up successfully
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Confirm the URI or IP address for the |mms| service is stored correctly
+  in the :setting:`mongo.mongoUri` property in the
+  ``<install_dir>/conf/conf-mms.properties`` file:
+
+  .. code-block:: ini
+
+     mongo.mongoUri=<SetToValidUri>
+
+  If you don't set this property, |mms| will fail while trying to connect
+  to the default 127.0.0.1:27017 URL.
+
+  If the URI or IP address of your service changes, you must update the
+  property with the new address. For example, update the address if you
+  deploy on a system without a static IP address, or if you deploy on EC2
+  without a fixed IP and then restart the EC2 instance.
+
+   If the URI or IP address changes, then each user who access the service
+  must also update the address in the URL used to connect and in the
+  client-side ``monitoring-agent.config`` files.
+
+   If you use the |mms| :program:`<install_dir>/bin/credentialstool` to
+  encrypt the password used in the ``mongo.mongoUri`` value, also add the
+  :setting:`mongo.encryptedCredentials` key to the
+  ``<install_dir>/conf/conf-mms.properties`` file and set the value for
+  this property to true:
+
+  .. code-block:: ini
+
+     mongo.encryptedCredentials=true
+
+---
+ref: troubleshooting-monitoring-agent-fails-to-collect-data
+edition: onprem
+content: |
+
+  Monitoring Agent Fails to Collect Data
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Possible causes for this state:
+
+  - If the Monitoring Agent can't connect to the server because of
+    networking restrictions or issues (i.e. firewalls, proxies, routing.)
+
+  - If your database is running with SSL. You must enable SSL either
+    globally or on a per-host basis. See
+    :doc:`/tutorial/configure-monitoring-agent-for-ssl` and
+    :doc:`/tutorial/enable-ssl-for-a-group` for more information.
+
+  - If your database is running with authentication. You must supply |mms|
+    with the authentication credentials for the host. See
+    :doc:`/tutorial/edit-host-authentication-credentials`.
+
+---
+ref: troubleshooting-faq-hosts-legacy
+edition: onprem
+content: |
+
+  Hosts
+  ~~~~~
+
+  .. This "Hosts" section is referring to what are now called "deployments." This section
+     also needs updating per the new UI.
+
+  Hosts are not Visible
+  +++++++++++++++++++++
+
+  Problems with the Monitoring Agent detecting hosts can be caused by a
+  few factors.
+
+  **Host not added**: In |mms|, select the :guilabel:`Deployment` tab,
+  then the :guilabel:`Deployment` page, and then click the :guilabel:`Add
+  Host` button. In the :guilabel:`New Host` window, specify the host type,
+  internal hostname, and port. If appropriate, add the database username
+  and password and whether or not |mms| should use SSL to connect with
+  your Monitoring Agent. Note it is not necessary to restart your
+  Monitoring Agent when adding (or removing) a host.
+
+  **Accidental duplicate mongods** If you add the host after a crash and
+  restart the Monitoring Agent, you might not see the hostname on the
+  |mms| :guilabel:`Deployment` page. |mms| detects the host as a duplicate
+  and suppresses its data. To reset, select the :guilabel:`Administration`
+  tab, then :guilabel:`Group Settings`, and then the :guilabel:`Reset
+  Duplicates` button.
+
+  **Too many Monitoring Agents installed**: Only one Monitoring Agent is
+  needed to monitor all hosts within a single network. You can use a
+  single Monitoring Agent if your hosts exist across multiple data centers
+  and can be discovered by a single agent. Check you have only one
+  Monitoring Agent and remove old agents after upgrading the Monitoring
+  Agent.
+
+  A second Monitoring Agent can be set up for redundancy. However, the
+  |mms| Monitoring Agent is robust. |mms| sends an *Agent Down* alert only
+  when there are no available Monitoring Agents available. See
+  :ref:`Monitoring FAQ <faq-monitoring>` for more information.
+
+  Cannot Delete a Host
+  ++++++++++++++++++++
+
+  In rare cases, the :program:`mongod` is brought down and the replica set
+  is reconfigured. The down host cannot be deleted and returns an error
+  message, "This host cannot be deleted because it is enabled for backup."
+  `Contact Support <https://cloud.mongodb.com/links/support>`_ for help in
+  deleting these hosts.
+
+---
+ref: troubleshooting-reset-2fa
+edition: cloud
+content: |
+
+  Delete or Reset Two-Factor Authentication
+  +++++++++++++++++++++++++++++++++++++++++
+
+  To delete or reset two-factor authentication, go to
+  `<https://cloud.mongodb.com/user/resetTwoFactorAuthentication>`_. The
+  reset button deletes your existing two-factor authentication settings
+  and provides the option to create new ones.
+
+---
+ref: troubleshooting-reset-2fa
+edition: onprem
+content: |
+
+  Delete or Reset Two-Factor Authentication
+  +++++++++++++++++++++++++++++++++++++++++
+
+  Contact your system administrator to remove or reset two-factor
+  authentication on your account.
+
+  For administrative information on two-factor authentication, see
+  :doc:`/tutorial/manage-two-factor-authentication`.
+
+---
+ref: troubleshooting-ldap
+edition: onprem
+content: |
+
+  LDAP
+  ~~~~
+
+  Cannot Enable LDAP
+  ++++++++++++++++++
+
+  You must enable LDAP **before** you sign up the first user through the
+  |mms| interface, as required in :ref:`Authentication Requirements
+  <authentication-requirements>`. If you cannot enable LDAP because you
+  have created a user through |mms|, you must reinstall |mms|, being sure
+  to enable LDAP before creating users and hosts. Please see
+  :ref:`Authentication Requirements <authentication-requirements>`.
+
+  Forgot to Change MONGODB-CR Error
+  +++++++++++++++++++++++++++++++++
+
+  If your MongoDB deployment uses LDAP for authentication, and you find
+  the following error message:
+
+  .. code-block:: none
+
+     You forget to change "MONGODB-CR" to "LDAP (PLAIN)" since they both
+     take username/password.
+
+  Then make sure that you specified the ``LDAP (PLAIN)`` as is the
+  authentication mechanism for both the Monitoring Agent and the Backup
+  Agent. See :doc:`/tutorial/configure-backup-agent-for-ldap` and
+  :doc:`/tutorial/configure-monitoring-agent-for-ldap`.
+
+---
+ref: troubleshooting-backup
+edition: onprem
+content: |
+
+  Backup
+  ------
+
+  Logs Display MongodVersionException
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The ``MongodVersionException`` can occur if the :ref:`Backup Daemon's
+  <backup-daemon>` host cannot access the internet to download the version
+  or versions of MongoDB required for the backed-up databases. Each
+  database requires a version of MongoDB that matches the database's
+  version. Specifically, for each instance you must run the latest stable
+  release of that release series. For versions earlier than 2.4, the
+  database requires the latest stable release of 2.4.
+
+  If the Daemon runs without access to the internet, you must manually
+  download the required MongoDB versions, as described here:
+
+  1. Go to the `MongoDB downloads page <http://www.mongodb.org/downloads>`_
+     and download the appropriate versions for your environment.
+
+  2. Copy the download to the Daemon's host.
+
+  3. Decompress the download into the directory specified in the
+     :setting:`mongodb.release.directory` setting in the Daemon's
+     ``conf-daemon.properties`` file. For the file's location, see
+     :doc:`/reference/configuration`.
+
+     Within the directory specified in the
+     :setting:`mongodb.release.directory` setting, the folder structure
+     for MongoDB should look like the following:
+
+     .. code-block:: sh
+
+        <path-to-mongodb-release-directory>/
+        |-- mongodb-<platform>
+        |  |-- THIRD-PARTY-NOTICES
+        |  |-- README
+        |  |-- GNU-AGPL-3.0
+        |  |-- bin
+        |  |  |-- bsondump
+        |  |  |-- mongo
+        |  |  |-- mongod
+        |  |  |-- mongodump
+        |  |  |-- mongoexport
+        |  |  |-- mongofiles
+        |  |  |-- mongoimport
+        |  |  |-- mongooplog
+        |  |  |-- mongoperf
+        |  |  |-- mongorestore
+        |  |  |-- mongos
+        |  |  |-- mongostat
+        |  |  |-- mongotop
+
+---
+ref: troubleshooting-system
+edition: onprem
+content: |
+
+  System
+  ------
+
+  Logs Display OutOfMemoryError
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  If your logs display ``OutOfMemoryError``, ensure you are running with
+  sufficient ulimits and RAM.
+
+  Increase Ulimits
+  ++++++++++++++++
+
+  For the recommended ulimit setting, see the FAQ on
+  :ref:`open-file-limits`.
+
+  |mms| infers the host's ``ulimit`` setting using the total number of
+  available and current connections. For more information about ulimits
+  in MongoDB, see the :manual:`UNIX ulimit Settings </reference/ulimit/>`
+  reference page.
+
+  Ensure Sufficient RAM for All Components
+  ++++++++++++++++++++++++++++++++++++++++
+
+  - Ensure that each server has enough RAM for the components it runs. If
+    a server runs multiple components, its RAM must be at least the sum
+    of the required amount of RAM for **each** component.
+
+    For the individual RAM requirements for the |application| server,
+    |application| Database, Backup Daemon server, and Backup
+    Database, see :doc:`/core/requirements`.
+
+  Obsolete Config Settings
+  ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  |mms| will fail to start if there are obsolete configuration settings
+  set in the :doc:`conf-mms.properties </reference/configuration>` file.
+  If there is an obsolete setting, the log lists an "Obsolete Setting"
+  error as in the following:
+
+  .. code-block:: sh
+
+     [OBSOLETE SETTING] Remove "mms.multiFactorAuth.require" or replace "mms.multiFactorAuth.require" with "mms.multiFactorAuth.level".
+
+  You will need to remove or replace the obsolete property in the
+  ``conf-mms.properties`` file before you can start |mms|.
+
+---
+ref: troubleshooting-aws
+edition: cloud
+content: |
+
+  Using |mms| Provisioning (Amazon Web Services)
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  See :ref:`aws-checklist`.
+
+...
