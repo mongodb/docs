@@ -106,7 +106,7 @@ everything else from there.
 
   $ rails g mongoid:config
 
-When Mongoid loads its configuration, it chooses the environment to used based
+When Mongoid loads its configuration, it chooses the environment to use based
 on the following order:
 
 - ``Rails.env`` if using Rails.
@@ -306,7 +306,7 @@ named ``Status``.
   end
 
 The collection for the model's documents can be changed at the class level if you would like
-them persisted elsewhere. You can also change the database and session the model gets persisted
+them persisted elsewhere. You can also change the database and client the model gets persisted
 in from the defaults.
 
 .. code-block:: ruby
@@ -389,7 +389,7 @@ If you decide not to specify the type of field with the definition, Mongoid will
 it as an object and not try to typecast it when sending the values to the database.
 This can be advantageous in 2 places, since the lack of attempted conversion will yield
 a slight performance gain. However some fields are not supported if not defined as fields.
-A note of thumb for what fields you can use are:
+A rule of thumb for what fields you can use are:
 
 - You're not using a web front end and values are already properly cast.
 - All of your fields are strings.
@@ -1342,8 +1342,8 @@ Model Level Persistence Options
 *******************************
 
 On a per-model basis, you can tell it to store in a custom collection name, a different
-database, or a different session. The following example would store the Band class by
-default into a collection named "artists" in the database named "music", with the session "secondary".
+database, or a different client. The following example would store the Band class by
+default into a collection named "artists" in the database named "music", with the client "secondary".
 
 Note that the value supplied to the ``client`` option must be configured under ``clients``
 in your mongoid.yml.
@@ -1356,7 +1356,7 @@ in your mongoid.yml.
   end
 
 If no ``store_in`` macro would have been provided, Mongoid would store the model in a
-collection named "bands" in the default database in the default session.
+collection named "bands" in the default database in the default client.
 
 Runtime Persistence Options
 ***************************
@@ -1371,7 +1371,7 @@ any operation with ``#with``.
   band.with(client: :tertiary).save!
 
 Persisting using with is a one time switch in the persistence context - it creates a new
-client under the cover which will get garbage collected after use. Mongoid will not remember
+client under the covers which will get garbage collected after use. Mongoid will not remember
 anything specific on the document level regarding how it was saved when using this method.
 A potential gotcha with this is persisting a document via with and then immediately updating it after.
 
@@ -1382,8 +1382,8 @@ A potential gotcha with this is persisting a document via with and then immediat
   band.update_attribute(likes: 1000) # This will not save - tries the collection "bands"
   band.with(collection: "artists").update_attribute(likes: 1000) # This will update the document.
 
-Also note that because a new client is created, not to change any options that would cause
-a cluster configuration change and instantiate a client that would *never* get garbage collected
+Also note that because a new client is created, it's important not to change any options that would
+cause a cluster configuration change and instantiate a client that would *never* get garbage collected
 due to the new cluster's monitor threads. To avoid this, *only* use ``with`` when changing the
 following options:
 
@@ -1397,7 +1397,7 @@ If you want to switch the persistence context for all operations at runtime, but
 to be using with all over your code, Mongoid provides the ability to do this as the client
 and database level globally. The methods for this are ``Mongoid.override_client`` and
 ``Mongoid.override_database``. A useful case for this are internationalized applications
-that store information for different locales in different databases or sessions, but the
+that store information for different locales in different databases or clients, but the
 schema in each remains the same.
 
 .. code-block:: ruby
@@ -1436,12 +1436,19 @@ the Mongo client or collection from the model or document instance.
   Band.collection
   band.collection
 
-From here you also have the same runtime persistence options using the driver's ``#with``.
+From here you also have the same runtime persistence options using the client's ``#with``.
 
 .. code-block:: ruby
 
   client = Band.mongo_client.with(write: { w: 0 }, database: "musik")
   client[:artists].find(...)
+
+You can also override the :read or :write options on the collection using the collections ``#with``.
+
+.. code-block:: ruby
+
+  collection_w_0 = Band.collection.with(write: { w: 0 })
+  collection_w_0[:artists].find(...)
 
 Capped Collections
 ******************
@@ -1454,7 +1461,7 @@ To create a capped collection with the driver:
 
 .. code-block:: ruby
 
-  client[:name, :capped => true, :size => 1024].create
+  client["name", :capped => true, :size => 1024].create
 
 To create a capped collection from the Mongo console:
 
@@ -1526,7 +1533,8 @@ methods on criteria.
 
    * - ``Criteria#distinct``
 
-       *Get a list of distinct values for a single field.*
+       *Get a list of distinct values for a single field. Note this will always hit
+       the database for the distinct values.*
 
      -
         .. code-block:: ruby
@@ -1689,7 +1697,7 @@ Eager Loading
 Mongoid provides a facility to eager load documents
 from relations to prevent the n+1 issue when
 iterating over documents with relation access. Eager loaded is supported on
-all relations with the exception of polymorphic ``belongs_to<``
+all relations with the exception of polymorphic ``belongs_to``
 associations.
 
 .. code-block:: ruby
@@ -1915,9 +1923,9 @@ by a provided name. Just like normal criteria, they are lazy and chainable.
 
   Band.english.rock # Get the English rock bands.
 
-%p
-  Named scopes can take procs and blocks for accepting parameters or
-  extending functionality.
+
+Named scopes can take procs and blocks for accepting parameters or
+extending functionality.
 
 .. code-block:: ruby
 
@@ -2219,12 +2227,12 @@ its parent, you will need to provide the cascade callbacks option to the relatio
 Dependent Behaviour
 *******************
 
-You can provided dependent options to referenced associations to instruct Mongoid
+You can provide dependent options to referenced associations to instruct Mongoid
 how to handle situations where one side of the relation is deleted, or is attempted
 to be deleted. The options are as follows:
 
-- ``:delete``: Delete the child document without run any of the model callbacks.
-- ``:destroy``: Destroy the child document running all of the model callbacks.
+- ``:delete``: Delete the child document without running any of the model callbacks.
+- ``:destroy``: Destroy the child document and run all of the model callbacks.
 - ``:nullify``: Orphan the child document.
 - ``:restrict``: Raise an error if the child is not empty.
 
@@ -2896,7 +2904,6 @@ Validation
 
 Mongoid includes ``ActiveModel::Validations`` to supply the basic
 validation plus an additional associated and uniqueness validator.
-`Rubygems <http://rubygems.org>`_.
 
 See `ActiveModel::Validations <http://github.com/rails/rails/blob/master/activemodel/lib/active_model/validations.rb>`_ documentation for more information.
 
