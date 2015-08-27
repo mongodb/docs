@@ -75,7 +75,7 @@ Ensure Connectivity Between Agent and |mms| Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Verify that the Monitoring Agent can connect on TCP port 443
-(outbound) to the |mms| server (i.e. "``cloud.mongodb.com``".)
+(outbound) to the |mms| server (i.e. ``api-agents.mongodb.com``.)
 
 .. _troubleshooting-discover-hosts:
 

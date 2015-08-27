@@ -8,7 +8,7 @@ You must configure the networking rules of your deployment so that:
 
 .. only:: classic or cloud
 
-   - the Monitoring Agent can connect to ``cloud.mongodb.com`` on port 443
+   - the Monitoring Agent can connect to ``api-agents.mongodb.com`` on port 443
      (i.e. ``https``.)
 
 .. only:: onprem
