@@ -115,11 +115,3 @@ Monitoring Agents report their status to the |mms|. When an agent does not
 report for more than 24 hours, the agent no longer appears in |mms|.
 
 For more details, see :doc:`/tutorial/delete-monitoring-agent`.
-
-Can I run the |mms| Monitoring Agent with |onprem| Backup?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Yes. Both the |mms| Monitoring Service and |onprem| Backup can operate in
-the same environment. You will need to install and configure two separate
-Monitoring Agents: configure one agent for the |onprem| environment and
-the other for the |mms| Service.
