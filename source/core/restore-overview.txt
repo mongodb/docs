@@ -7,89 +7,66 @@ Restore Overview
 Introduction
 ------------
 
-|mms| Backup enables you to restore your :program:`mongod` instance,
-:term:`replica set`, or :term:`sharded cluster` from a stored snapshot
-or from a point in time as far back as the retention period of your
-longest snapshot.
+When you restore a deployment from a backup, you select a restore point
+and |mms| provides you with one or more restore files. If you use |mms|
+automation, |mms| can automatically restore the files for you. Otherwise,
+you manually restore the files by copying them yourself to the servers you
+choose.
 
-The general flows and options are the same whether you are restoring
-a :program:`mongod`, replica set, or sharded cluster; the only major 
-difference is that sharded cluster restores result in the production of
-multiple restore files that must be copied to the correct destination.
+You can restore a single MongoDB process or an entire :term:`replica set`
+or :term:`sharded cluster`. You select whether to restore from an existing
+snapshot or a restore point between snapshots. For the latter, |mms|
+builds a custom snapshot based on the restore point you choose. Installing
+from a custom snapshot takes longer as |mms| must build the snapshot by
+applying the :manual:`oplog </core/replica-set-oplog/>` to the previous
+regular snapshot. For sharded clusters, you must :ref:`enable checkpoints
+<enable-cluster-checkpoints>` before you can restore to a point between
+snapshots.
 
-.. only:: onprem
+.. COMMENT: can you only restore to a point-in-time "in the last 24 hours"?
 
-   This page describes the different types of restores and different
-   delivery options, and then provides some insight into the actual 
-   process that occurs when you request a restore through |mms|.
+You can restore to either new hardware or existing hardware. If you use
+existing hardware and perform the restore manually, create a new path for
+the MongoDB data directory. Do not use existing data directories.
 
-For the procedure for restoring a replica set or sharded cluster,
-see: :doc:`/tutorial/nav/backup-restore-deployments`.
+Automated Restore
+-----------------
 
-.. _point-in-time-restore:
-.. _snapshot:
-.. _restore-type:
+If you choose to have |mms| automatically restore your backup, |mms| will
+clear out all existing data for the chosen servers and replace them with
+the data from your backup.
 
-Restore Types
--------------
-
-With Backup, you can restore from a stored snapshot or build a custom
-snapshot reflecting a specific point in time. For all
-backups, restoring from a stored snapshot is faster than restoring from
-a specific point in time.
-
-Snapshots provide a complete backup of the state of your MongoDB
-deployment at a given point in time. You can take snapshots every 6, 8,
-12, or 24 hours and set a :ref:`retention policy
-<snapshot-frequency-and-retention>` to determine for how long the snapshots
-are stored.
-
-Point-in-time restores let you restore your :program:`mongod` instance
-or replica set to a specific point in time in the past. You can restore
-to any point back to your oldest retained snapshot. For sharded
-clusters, point-in-time restores let you restore to a checkpoint. You must
-first :ref:`enable checkpoints <enable-cluster-checkpoints>`. See
-:ref:`checkpoint` for more information.
-
-Point-in-time restores take
-longer to perform than snapshot restores, but allow you to restore more
-granularly. When you perform a point-in-time restore, |mms| takes the most
-recent snapshot that occurred prior to that point and then applies the
-:term:`oplog` to bring the database up to the state it was in at that point in
-time. This way, |mms| creates a custom snapshot, which you can then use in
-your restore.
+.. COMMENT: can you install over a running MongoDB?
 
 .. _delivery-methods-file-formats:
 
-Delivery Methods and File Formats
----------------------------------
+Manual Restore
+--------------
 
-|mms| provides two delivery methods: HTTP delivery, and SCP. 
+For a manual restore, |mms| provides each restore file as ``.tar.gz`` file
+containing a complete copy of the process's data directory. For a replica
+set, |mms| provides a single ``.tar.gz`` file that you copy to each
+replica set member. For a sharded cluster, |mms| provides one ``.tar.gz``
+file for the :term:`config servers <config server>` and separate
+``.tar.gz`` files for each :term:`shard`.
 
-With HTTP delivery, |mms| creates a link that you can
-use to download the snapshot file or files.
+|mms| delivers the files through either ``HTTP`` or ``SCP``. You select
+whether |mms| provides a download link for the restore files or uses
+``SCP`` to copy the files directly to your system. The ``SCP`` method
+requires you to :doc:`generate a key pair
+</tutorial/generate-key-pair-for-scp-restores>` ahead of time but provides
+faster delivery. Windows machines do not come with ``SCP`` and require
+additional setup outside the scope of this manual.
 
-With the ``SCP`` delivery
-option, the Backup Daemon securely copies the restore file or
-files directly to your system. To use this option, you must first
-:doc:`generate a key pair for SCP restores
-</tutorial/generate-key-pair-for-scp-restores>`. Windows machines do not
-come with ``SCP`` and require additional setup outside the scope of this
-manual.
+For ``SCP`` delivery, you can choose to receive individual data files
+instead of ``tar.gz`` files. |mms| transmits the data files directly to
+the target directory. The destination server must have sufficient space
+for the data files.
 
-For SCP delivery, you can choose your file format to better suit your restore
-needs. With the :guilabel:`Individual DB Files` format, |mms| transmits the
-MongoDB data files directly to the target directory. The individual files
-format only requires sufficient space on the destination server for
-the data files.
-
-In contrast, the :guilabel:`Archive (tar.gz)` option bundles the database
-files into a single ``tar.gz`` archive file, which you must extract before
-reconstruction your databases. This is generally faster than the
-individual files option, but requires temporary space on the server
-hosting the Backup Daemon and sufficient space on the destination server
-to hold the archive file and extract it.
+If you choose to receive ``tar.gz`` files, you must extract each file
+before reconstructing your data. This is generally faster than the
+data-files option but requires temporary space on the server hosting the
+Backup Daemon and sufficient space on the destination server to hold the
+archive file and extract it.
 
 .. include:: /includes/extracts/restore-delivery-methods-postscript.rst
-
-.. include:: /includes/extracts/restore-flows.rst
