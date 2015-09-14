@@ -58,6 +58,298 @@ engine setting either:
    :program:`mongod` will not start if ``dbPath`` contains data files
    created by a storage engine other than the one specified.
 
+.. _3.2-rel-notes-sharded-cluster:
+
+Sharded Cluster Enhancements
+----------------------------
+
+MongoDB 3.1.8 deprecates the use of three mirrored :program:`mongod`
+instances for config servers.
+
+Instead, starting in 3.1.8, the :doc:`config servers
+</core/sharded-cluster-config-servers>` for a sharded cluster will, by
+default, be deployed as a replica set. The replica set config servers must
+run the WiredTiger storage engine.
+
+This change improves consistency across the config servers, since
+MongoDB can take advantage of the standard replica set read and write
+protocols for sharding config data. In addition, this allows a sharded
+cluster to have more than 3 config servers since a replica set can have
+up to 50 members.
+
+Restrictions
+~~~~~~~~~~~~
+
+The following restrictions apply to a replica set configuration when
+used for config servers:
+
+- Must have zero :doc:`arbiters </core/replica-set-arbiter>`.
+
+- Must have no :doc:`delayed members
+  </core/replica-set-delayed-member>`.
+
+- Must build indexes (i.e. no member should have
+  :data:`~replSetGetConfig.members[n].buildIndexes` setting set to
+  false).
+
+Set up Config Servers for a New Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Start all the config servers with both the ``--configsvr`` and
+   ``--replSet <name>`` options:
+
+   .. code-block:: javascript
+
+      mongod --configsvr --replSet configReplSet --port <port> --dbpath <path>
+
+   Or if using a :doc:`configuration file
+   </reference/configuration-options>`, include the
+   :setting:`sharding.clusterRole` and
+   :setting:`replication.replSetName` setting:
+
+   .. code-block:: yaml
+
+      sharding:
+         clusterRole: configsvr
+      replication:
+         replSetName: configReplSet
+      net:
+         port: <port>
+      storage:
+         dbpath: <path>
+
+#. Connect a :program:`mongo` shell to one of the config servers and
+   run :method:`rs.initiate()` to initiate the replica set. You must
+   specify ``configsvr: true`` in the initial replica set configuration
+   document.
+
+   .. code-block:: javascript
+
+      rs.initiate( {
+         _id: "configReplSet",
+         configsvr: true,
+         members: [ 
+            { _id: 0, host: "<host1>:<port1>" },
+            { _id: 1, host: "<host2>:<port2>" }
+            { _id: 2, host: "<host3>:<port3>" }
+         ]
+      } )
+
+#. Start one or more :program:`mongos` instances. For the
+   ``--configdb`` option, specify the config server replica set name
+   followed by the config server hostnames and ports:
+
+   .. code-block:: sh
+
+      mongos --configdb configReplSet/<cfgsvr1:port1>,<cfgsvr2:port2>,<cfgsvr3:port3>
+
+#. To add shards to the sharded cluster, see
+   :ref:`sharding-setup-add-shards`.
+
+#. To enable sharding for a database, see
+   :ref:`sharding-setup-enable-sharding`.
+
+#. To shard a collection, see :ref:`sharding-setup-shard-collection`.
+
+.. _3.2-rel-notes-readConcern:
+
+``readConcern``
+---------------
+
+For the WiredTiger storage engine, MongoDB 3.1.8 introduces the
+``readConcern`` option for replica sets and replica set shards. The
+``readConcern`` option allows clients to choose a level of isolation
+for their reads. You can specify a ``readConcern`` of ``"majority"`` to
+read data that has been written to a majority of nodes and thus cannot
+be rolled back. By default, MongoDB uses a ``readConcern`` of
+``"local"`` which does not guarantee that the read data would not be
+rolled back.
+
+``readConcern`` requires MongoDB drivers updated for 3.1.8.
+
+``readConcern`` Option
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``readConcern`` option takes a document that can specify the
+``level`` of ``readConcern``.
+
+.. code-block:: javascript
+
+   readConcern: { level: <majority|local> }
+
+``level`` Field
+````````````````
+
+Specify either the string ``"majority"`` or ``"local"``.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 90
+
+   * - ``level``
+     - Description
+
+   * - ``"local"``
+
+     - Default. The query will return the node's most recent copy of
+       data. Provides no guarantee that the data has been written to a
+       majority of the nodes.
+
+   * - ``"majority"``
+
+     - The query will return the node's most recent copy of the data
+       confirmed as having been written to a majority of the nodes.
+
+.. COMMENT OUT but add to final place for readConcern
+   The most recent data on a node, regardless of the level, may not
+   reflect the most recent version of the data in the system.
+
+
+Operations That Support ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``readConcern`` is available for the following operations:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+     - Example
+
+   * - :dbcommand:`find`
+
+     - The :dbcommand:`getMore` command uses the ``readConcern`` level
+       specified in the originating ``find`` command.
+
+       The :program:`mongo` shell :method:`~db.collection.find()`
+       method does not support ``readConcern``; however,
+       drivers updated for 3.1.8 may provide support for
+       ``readConcern`` in their respective ``find`` method. Refer to
+       your specific driver for details.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               find: "restaurants",
+               filter: { rating: { $lt: 5 } },
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :method:`~db.collection.aggregate()`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :method:`db.collection.aggregate()`, you cannot include the
+       :pipeline:`$out` stage.
+
+       .. code-block:: javascript
+
+          db.restaurants.aggregate(
+             [ { $match: { rating: { $lt: 5 } } } ],
+             { readConcern: { level: "majority" } }
+          )
+
+   * - :dbcommand:`aggregate`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :dbcommand:`aggregate`, you cannot include the :pipeline:`$out`
+       stage.
+
+       The :dbcommand:`getMore` command uses the ``readConcern`` level
+       specified in the originating :dbcommand:`aggregate` command.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               aggregate: "restaurants",
+               pipeline: [ { $match: { rating: { $lt: 5 } } } ],
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`distinct`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+                distinct: "restaurants",
+                key: "rating",
+                query: { cuisine: "italian" },
+                readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`count`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :dbcommand:`count`, you must specify a nonempty ``query``
+       condition.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               count: "restaurants",
+               query: { rating: { $gte: 4 } },
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`explain`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               explain: { count: "products", query: { quantity: { $gt: 50 } } },
+               verbosity: "queryPlanner",
+               readConcern: { level: "majority" } 
+             }
+          )
+
+   * - :dbcommand:`parallelCollectionScan`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               parallelCollectionScan: "restaurants",
+               numCursors: 5,
+               readConcern: { level: "majority" } 
+             }
+          )
+
+   * - :dbcommand:`geoNear`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               geoNear: "restaurants",
+               near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+               spherical: true,
+               query: {cuisine: "coffee"},
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`geoSearch`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               geoNear: "restaurants",
+               near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+               spherical: true,
+               cuisine: "bakery",
+               readConcern: { level: "majority" }
+             }
+          )
+
 Partial Indexes
 ---------------
 
@@ -422,11 +714,6 @@ validation rules to existing documents during an update.
 
 .. TODO remove inter-dev series versionchanges
 
-.. versionchanged:: 3.1.7
-
-   In earlier development series, the ``validationAction`` option was
-   named ``validationState``.
-
 The ``validationAction`` option determines whether to ``error`` on
 invalid documents or just ``warn`` about the violations but allow
 invalid documents.
@@ -480,6 +767,10 @@ New Aggregation Stages
    * - :pipeline:`$sample`
      - Randomly selects N documents from its input.
      - ``{ $sample: { size: <positive integer> } }``
+
+   * - :pipeline:`$indexStats`
+     - Returns statistics on index usage.
+     - ``{ $indexStats: { } }``
 
 Left Outer Join
 ~~~~~~~~~~~~~~~
@@ -994,9 +1285,12 @@ read the data.
 Encryption Process
 ~~~~~~~~~~~~~~~~~~
 
-For encryption, MongoDB Enterprise uses AES-256 (or 256-bit Advanced
-Encryption Standard) in GCM via OpenSSL as the default. AES-256 uses a
-symmetric key; i.e. the same key to encrypt and decrypt text. FIPS mode
+If encryption is enabled, the default encryption mode that MongoDB
+Enterprise uses is the ``AES256-CBC`` (or 256-bit Advanced Encryption
+Standard in Cipher Block Chaining mode) via OpenSSL. AES-256 uses a
+symmetric key; i.e. the same key to encrypt and decrypt text. MongoDB
+Enterprise also supports authenticated encryption ``AES256-GCM`` (or
+256-bit Advanced Encryption Standard in Galois/Counter Mode). FIPS mode
 encryption is also available.
 
 The data encryption includes:
@@ -1060,6 +1354,35 @@ transport encryption.
 
 General Enhancements
 --------------------
+
+.. _3.2-diagnostic-data-capture:
+
+Diagnostic Data Capture
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.1.8
+
+To facilitate analysis of the MongoDB server behavior by MongoDB
+engineers, MongoDB 3.1.8 introduces a diagnostic data collection
+mechanism for logging server statistics to diagnostic files at periodic
+intervals. By default, the mechanism captures data at 1 second
+intervals. To modify the interval, see
+:parameter:`diagnosticDataCollectionPeriodMillis`.
+
+MongoDB creates a ``diagnostic.data`` directory under the
+:program:`mongod` instance's ``--dbpath`` or :setting:`storage.dbPath`.
+The diagnostic data is stored in files under this directory.
+
+The maximum size of the diagnostic files is configurable with the
+:parameter:`diagnosticDataCollectionFileSizeMb`, and the maximum size
+of the ``diagnostic.data`` directory is configurable with
+:parameter:`diagnosticDataCollectionDirectorySizeMb`.
+
+The default values for the capture interval and the maximum sizes are
+chosen to provide useful data to MongoDB engineers with minimal impact
+on performance and storage size. Typically, these values will only need
+modifications as requested by MongoDB engineers for specific diagnostic
+purposes.
 
 Geospatial Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1547,6 +1870,12 @@ Aggregation Compatibility Changes
 
 - :ref:`Text index (version 3) <3.2-relnotes-text-index-v3>` is
   incompatible with earlier versions of MongoDB.
+
+SpiderMonkey Compatibility Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The change to SpiderMonkey may cause incompatibility issues for
+JavaScript code that relies on specific V8 functionality/behavior.
 
 Additional Information
 ----------------------

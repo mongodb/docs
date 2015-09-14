@@ -200,6 +200,107 @@ stage for the aggregation framework:
         ]
       }
 
+.. pipeline:: $indexStats
+
+   Returns statistics regarding the use of each index for the
+   collection. If running with :doc:`access control
+   </core/authorization>`, the user must have privileges that include
+   :authaction:`indexStats` action.
+
+   The :pipeline:`$indexStats` stage takes an empty document and has
+   the following syntax:
+
+   .. code-block:: javascript
+
+      { $indexStats: { } }
+
+   For example, a collection ``orders`` contain the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "item" : "abc", "price" : 12, "quantity" : 2, "type": "apparel" }
+      { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "type": "electronics" }
+      { "_id" : 3, "item" : "abc", "price" : 10, "quantity" : 5, "type": "apparel" }
+
+   Create the following two indexes on the collection:
+
+   .. code-block:: javascript
+
+      db.orders.createIndex( { item: 1, quantity: 1 } )
+      db.orders.createIndex( { type: 1, item: 1 } )
+
+   Run some queries against the collection:
+
+   .. code-block:: javascript
+
+      db.orders.find( { type: "apparel"} )
+      db.orders.find( { item: "abc" } ).sort( { quantity: 1 } )
+
+   To view statistics on the index use on the ``orders`` collection,
+   run the following aggregation operation:
+
+   .. code-block:: javascript
+
+      db.orders.aggregate( [ { $indexStats: { } } ] )
+
+   The operation returns a document that contains usage statistics for
+   each index:
+
+   .. code-block:: json
+   
+      {
+         "name" : "item_1",
+         "ns" : "test.orders",
+         "processName" : "examplehost.local:27017", 
+         "usageStats" : { "operations" : NumberLong(1), "validSince" : ISODate("2015-09-10T17:45:00.837Z") }
+      }
+
+      {
+         "name" : "_id_",
+         "ns" : "test.orders",
+         "processName" : "examplehost.local:27017",
+         "usageStats" : { "operations" : NumberLong(0), "validSince" : ISODate("2015-09-10T17:44:47.531Z") } }
+
+      {
+         "name" : "type_1_item_1",
+         "ns" : "test.orders",
+         "processName" : "examplehost.local:27017",
+         "usageStats" : { "operations" : NumberLong(1), "validSince" : ISODate("2015-09-10T17:45:05.986Z") }
+      }
+
+   The result include the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Output Field
+        - Description
+
+      * - ``name``
+        - Index name.
+
+      * - ``ns``
+
+        - The namespace (i.e. ``<database>.<collection>``) for the index
+
+      * - ``processName``
+
+        - The hostname and port of process.
+
+      * - ``usageStats``
+
+        - Stastics on the index use:
+
+          - ``operations`` is the number of operations that used the
+            index.
+
+          - ``validSince`` is the time from which MongoDB gathered the
+            statistics.
+
+   Statistics for an index will be reset on :program:`mongod` restart
+   or index drop and recreation.
+
 New Accumulators for ``$group`` Stage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2175,6 +2276,414 @@ settings, the :dbcommand:`listCollections` command and the
 :method:`db.getCollectionInfos()` method will include them in the
 output for the collections.
 
+``find`` and ``getMore`` Commands
+---------------------------------
+
+:dbcommand:`find` and :dbcommand:`getMore` commands require an upgrade
+of the official MongoDB drivers.
+
+.. versionadded:: 3.1.8
+
+.. dbcommand:: find
+
+   Executes a query and returns the first batch of results and the
+   cursor id, from which the client can construct a cursor.
+
+   The :dbcommand:`find` command has the following form:
+
+   .. code-block:: javascript
+
+      {
+         "find": <string>,
+         "filter": <document>,
+         "sort": <document>,
+         "projection": <document>,
+         "hint": <document or string>,
+         "skip": <int>,
+         "limit": <int>,
+         "batchSize": <int>,
+         "singleBatch": <bool>,
+         "comment": <string>,
+         "maxScan": <int>,
+         "maxTimeMS": <int>,
+         "readConcern": <document>,
+         "max": <document>,,
+         "min": <document>,,
+         "returnKey": <bool>,
+         "showRecordId": <bool>,
+         "snapshot": <bool>,
+         "tailable": <bool>,
+         "oplogReplay": <bool>,
+         "noCursorTimeout": <bool>,
+         "awaitData": <bool>,
+         "allowPartialResults": <bool>
+      }
+
+   The command accepts the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 15 65
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``find``
+        - String
+        - The name of the collection to query.
+
+      * - ``filter``
+
+        - Document
+
+        - Optional. The query predicate. If unspecified, then all
+          documents in the collection will match the predicate.
+
+      * - ``sort``
+
+        - Document
+
+        - Optional. The sort specification for the ordering of the results.
+  
+      * - ``projection``
+
+        - Document
+
+        - Optional. The :ref:`projection specification <projections>`
+          to determine which fields to include in the returned
+          documents. See :ref:`projections` and
+          :doc:`/reference/operator/projection`.
+
+      * - ``hint``
+
+        - String or document
+
+        - Optional. Index specification. Specify either the index name as a
+          string or the index key pattern. If specified, then
+          the query system will only consider plans using the hinted index.
+
+      * - ``skip``
+
+        - Positive integer
+
+        - Optional. Number of documents to skip. Defaults to 0.
+
+      * - ``limit``
+
+        - Non-negative integer
+
+        - Optional. The maximum number of documents to return. If
+          unspecified, then defaults to no limit. A limit of 0 is
+          equivalent to setting no limit.
+
+      * - ``batchSize``
+
+        - Non-negative integer
+  
+        - Optional. The number of documents to return in the first batch.
+          Defaults to 101. A ``batchSize`` of 0 means that the cursor will be
+          established, but no documents will be returned in the first batch.
+
+.. For the reference page, add the sentence:
+   Unlike the previous wire protocol version, a ``batchSize`` of 1 for
+   the :dbcommand:`find` command does not close the cursor.
+
+      * - ``singleBatch``
+
+        -  Boolean
+
+        - Optional. Determines whether to close the cursor after the first
+          batch. Defaults to false.
+
+      * - ``comment``
+
+        - String
+
+        - A comment to attach to the query to help interpret and trace query
+          :dbcommand:`profile` data.
+
+      * - ``maxScan``
+
+        - Postitive integer
+
+        - Optional. Maximum number of documents or index keys to scan
+          when executing the query.
+
+      * - ``maxTimeMS``
+
+        - Postitive integer
+
+        - Optional. The cumulative time limit in milliseconds for processing
+          operations on the cursor. MongoDB aborts the operation at the
+          earliest following :term:`interrupt point`.
+
+      * - ``readConcern``
+
+        - Document
+
+        - Optional. The :ref:`3.2-rel-notes-readConcern` specification.
+
+      * - ``max``
+
+        - Document
+
+        - Optional. The *exclusive* upper bound for a specific
+          index. See :method:`cursor.max()` for details.
+
+      * - ``min``
+
+        - Document
+
+        - Optional. The *inclusive* lower bound for a specific
+          index. See :method:`cursor.min()` for details.
+
+      * - ``returnKey``
+
+        - Boolean
+
+        - Optional. If true, returns only the index keys in the
+          resulting documents. Default value is false. If ``returnKey``
+          is ``true`` and the :dbcommand:`find` command does not use an
+          index, the returned documents will be empty.
+
+      * - ``showRecordId``
+
+        - Boolean
+
+        - Optional. Determines whether to return the record identifier
+          for each document. If true, adds a field ``$recordId`` to the
+          returned documents.
+
+      * - ``snapshot``
+
+        - Boolean
+
+        - Optional. Prevents the cursor from returning a document more than
+          once because of an intervening write operation.
+
+      * - ``tailable``
+
+        - Boolean
+
+        - Optional. Returns a :term:`tailable cursor` for a capped collections.
+
+      * - ``awaitData``
+      
+        - Boolean
+
+        - Optional. Use in conjunction with the ``tailable`` option to
+          block a :dbcommand:`getMore` command on the cursor
+          temporarily if at the end of data rather than returning no
+          data. After a timeout period, :dbcommand:`find` returns as
+          normal.
+
+      * - ``oplogReplay``
+
+        - Boolean
+
+        - Optional. Internal use for replica sets. To use
+          ``oplogReplay``, you must include the following condition in
+          the ``filter``:
+
+          .. code-block:: javascript
+
+             { ts: { $gte: <timestamp> } }
+
+      * - ``noCursorTimeout``
+
+        - Boolean
+
+        - Optional. Prevents the server from timing out idle cursors after an
+          inactivity period (10 minutes).
+
+      * - ``allowPartialResults``
+
+        - Boolean
+
+        - Optional. For queries against a sharded collection, returns partial
+          results from the :program:`mongos` if some shards are unavailable
+          instead of throwing an error.
+
+   For example, the following command runs the :dbcommand:`find`
+   command filtering on the ``rating`` field and the ``cuisine`` field.
+   The command includes a ``projection`` to only return the
+   following fields in the matching documents: ``_id``, ``name``,
+   ``rating``, and ``address`` fields.
+
+   The command sorts the documents in the result set by the ``name``
+   field and limits the result set to 5 documents.
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+           find: "restaurants",
+           filter: { rating: { $gte: 9 }, cuisine: "italian" },
+           projection: { name: 1, rating: 1, address: 1 },
+           sort: { name: 1 },
+           limit: 5
+         }
+      )
+
+.. versionadded:: 3.1.8
+
+.. dbcommand:: getMore
+
+   Use in conjunction with commands that return a cursor, e.g.
+   :dbcommand:`find` and :dbcommand:`aggregate`, to return subsequent
+   batches of documents currently pointed to by the cursor.
+
+   The :dbcommand:`getMore` command has the following form:
+
+   .. code-block:: javascript
+
+      {
+         "getMore": <long>,
+         "collection": <string>,
+         "batchSize": <int>,
+         "maxTimeMS": <int>
+      }
+
+   The command accepts the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 15 65
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``getMore``
+
+        - Long
+
+        - The cursor id.
+
+      * - ``collection``
+
+        - String
+
+        - The name of the collection over which the cursor is
+          operating.
+
+      * - ``batchSize``
+
+        - Non-negative integer.
+
+        - Optional. The number of documents to return in the batch.
+
+      * - ``maxTimeMS``
+
+        - Postitive integer.
+
+        - Optional. The timeout duration in milliseconds.
+
+Diagnostic Parameters
+---------------------
+
+To support the diagnostic feature, MongoDB introduces the following
+parameters:
+
+.. |mongod-only| replace:: Available for :program:`mongod` only.
+
+.. parameter:: diagnosticDataCollectionEnabled
+
+   .. versionadded:: 3.1.8
+
+   *Type*: boolean
+
+   *Default*: true
+
+   |mongod-only|
+
+   Determines whether to enable the collecting and logging of data for
+   diagnostic purposes. Diagnostic logging is enabled by default.
+
+   For example, the following disables the diagnostic collection:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionEnabled=false
+
+.. parameter:: diagnosticDataCollectionDirectorySizeMb
+
+   .. versionadded:: 3.1.8
+
+   *Type*: integer
+
+   *Default*: 100
+
+   |mongod-only|
+
+   Specifies the maximum size, in megabytes, of the ``diagnostic.data``
+   directory . If directory size exceeds this number, the oldest
+   :ref:`diagnostic files in the directory
+   <3.2-diagnostic-data-capture>` are automatically deleted based on
+   the timestamp in the file name.
+
+   For example, the following sets the maximum size of the directory to
+   ``200`` megabytes:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionDirectorySizeMb=200
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionDirectorySizeMb` is ``10``
+   megabytes. :parameter:`diagnosticDataCollectionDirectorySizeMb` must
+   be greater than maximum diagnostic file size
+   :parameter:`diagnosticDataCollectionFileSizeMb`.
+
+.. parameter:: diagnosticDataCollectionFileSizeMb
+
+   .. versionadded:: 3.1.8
+
+   *Type*: integer
+
+   *Default*: 10
+
+   |mongod-only|
+
+   Specifies the maximum size, in megabytes, of each :ref:`diagnostic
+   file <3.2-diagnostic-data-capture>`. If the file exceeds the maximum
+   file size, MongoDB creates a new file.
+
+   For example, the following sets the maximum size of the directory to
+   ``20`` megabytes:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionDirectorySizeMb=20
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionFileSizeMb` is ``1`` megabyte.
+
+.. parameter:: diagnosticDataCollectionPeriodMillis
+
+   .. versionadded:: 3.1.8
+
+   *Type*: integer
+
+   *Default*: 1000
+
+   |mongod-only|
+
+   Specifies the interval, in milliseconds, for the diagnostic data
+   collection.
+
+   For example, the following sets the maximum size of the directory to
+   ``5000`` milliseconds or 5 seconds:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionPeriodMillis=5000
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionPeriodMillis` is ``100``
+   milliseconds.
+
 .. _3.2-encryption-key-management-options:
 
 Key Management Configuration Options
@@ -2193,9 +2702,28 @@ Command Line Options
    *Type*: boolean
 
    *Default*: false
-   
+
    Enables encryption for the WiredTiger storage engine. You must set
    to ``true`` to pass in encryption keys and configurations.
+
+.. option:: encryptionCipherMode
+
+   The cipher mode to use for encryption at rest:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+
+      * - Mode
+        - Description
+
+      * - ``AES256-CBC``
+        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
+          Mode
+
+      * - ``AES256-GCM``
+
+        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
 
 .. option:: encryptionKeyFile
 
@@ -2223,6 +2751,19 @@ Command Line Options
    If the KMIP server cannot locate a key with the specified identifier
    or the data is already encrypted with a key, MongoDB will throw an
    error
+
+.. option:: kmipRotateMasterKey
+
+   .. versionadded:: 3.1.8
+
+   *Type*: boolean
+
+   *Default*: false
+
+   If true, rotate the master key and re-encrypt the internal
+   keystore.
+
+   .. seealso:: :ref:`3.1-kmip-master-key-rotation`
 
 .. option:: kmipServerName
 
@@ -2275,9 +2816,11 @@ Configuration File Options
    {
       security:
          enableEncryption: <boolean>,
+         encryptionCipherMode: <string>,
          encryptionKeyFile: <string>,
          kmip:
             keyIdentifier: <string>,
+            rotateMasterKey: <boolean>
             serverName: <string>,
             port: <string>,
             clientCertificatePassword: <string>,
@@ -2292,6 +2835,31 @@ Configuration File Options
    
    Enables encryption for the WiredTiger storage engine. You must set
    to ``true`` to pass in encryption keys and configurations.
+
+.. setting:: encryptionCipherMode
+
+   *Type*: string
+
+   *Default*: ``AES256-CBC``
+
+   .. versionadded:: 3.1.8
+
+   The cipher mode to use for encryption at rest:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+
+      * - Mode
+        - Description
+
+      * - ``AES256-CBC``
+        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
+          Mode
+
+      * - ``AES256-GCM``
+
+        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
 
 .. setting:: security.encryptionKeyFile
 
@@ -2319,6 +2887,17 @@ Configuration File Options
    If the KMIP server cannot locate a key with the specified identifier
    or the data is already encrypted with a key, MongoDB will throw an
    error.
+
+.. setting:: security.kmip.rotateMasterKey
+
+   *Type*: boolean
+
+   *Default*: false
+
+   If true, rotate the master key and re-encrypt the internal
+   keystore.
+
+   .. seealso:: :ref:`3.1-kmip-master-key-rotation`
 
 .. setting:: security.kmip.serverName
 
