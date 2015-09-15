@@ -1107,12 +1107,147 @@ legacy coordinate pairs. For example:
       }
    ])
 
+``$unwind`` Enhancements
+````````````````````````
+
+:pipeline:`$unwind` stage no longer errors on non-array operand. If the
+operand does not resolve to an array but is not missing, null, or an
+empty array, :pipeline:`$unwind` treats the operand as a single element
+array.
+
+.. versionchanged:: 3.1.8
+
+In addition to the existing syntax for :pipeline:`$unwind` stage ``{
+$unwind: <field path> }``, :pipeline:`$unwind` can take an alternate
+syntax:
+
+.. code-block:: javascript
+
+   { $unwind:
+      {
+        path: <field path>,
+        includeArrayIndex: <boolean>,
+        preserveNullAndEmptyArrays: <boolean>
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 10 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``path``
+
+     - String
+
+     - Field path to an array field. To specify a field path, prefix
+       the field name with a dollar sign ``$`` and enclose in quotes.
+
+   * - ``includeArrayIndex``
+
+     - Boolean
+
+     - Optional. If ``true``, for the document output for the i\
+       :sup:`th` element in the array ``path``, the array is replaced
+       by the document ``{index: i, value: <ith element> }``. If the
+       ``path`` does not resolve to an array, :pipeline:`$unwind` uses
+       the default behavior to replace the field by the value.
+
+       If ``false``, :pipeline:`$unwind` replaces the array in the
+       ``path`` field with the element in the array.
+
+       The default value is ``false``.
+
+   * - ``preserveNullAndEmptyArrays``
+
+     - Boolean
+
+     - Optional. If ``true``, if the ``path`` is null, missing, or an
+       empty array, :pipeline:`$unwind` outputs the document unmodified.
+       If ``false``, :pipeline:`$unwind` does not output a document if the
+       ``path`` is null, missing, or an empty array.
+
+       The default value is ``false``.
+
+For example, consider a collection ``inventory`` with the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "shirt", "colors" : [ "blue", "red" ] }
+   { "_id" : 2, "item" : "cable", "colors" : [ ] }
+   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
+   { "_id" : 4, "item" : "candy" }
+   { "_id" : 5, "item" : "chocolate", "colors" : null }
+
+The following :pipeline:`$unwind` operations are equivalent and return
+a document for each element in the ``colors`` field. If the ``colors``
+field does not resolve to an array but is not missing, null, or an
+empty array, :pipeline:`$unwind` treats the non-array operand as a
+single element array.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ { $unwind: "$colors" } ] )
+   db.inventory.aggregate( [ { $unwind: { path: "$colors" } } ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "shirt", "colors" : "blue" }
+   { "_id" : 1, "item" : "shirt", "colors" : "red" }
+   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
+
+The following :pipeline:`$unwind` operation uses the
+``includeArrayIndex`` option to output also the array index of the
+array element.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ { $unwind: { path: "$colors", includeArrayIndex: true } } ] )
+
+The operation replaces the ``colors`` field with a document that
+contains a ``value`` field for the element and ``index`` field for the
+array index of the element. If the ``colors`` field does not resolve to
+an array but is not missing, null, or an empty array, the
+``includeArrayIndex`` has no effect.
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(0), "value" : "blue" } }
+   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(1), "value" : "red" } }
+   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
+
+The following :pipeline:`$unwind` operation uses the
+``preserveNullAndEmptyArrays`` option to include in the output those
+documents where ``colors`` field is missing, null or an empty array.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ 
+      { $unwind: { path: "$colors", preserveNullAndEmptyArrays: true } }
+   ] )
+
+In addition to unwinding the documents where the ``colors`` is an array
+of elements or a non-null, non-array field, the operation outputs, without
+modification, those documents where the ``colors`` field is missing, null
+or an empty array:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "shirt", "colors" : "blue" }
+   { "_id" : 1, "item" : "shirt", "colors" : "red" }
+   { "_id" : 2, "item" : "cable", "colors" : [ ] }
+   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
+   { "_id" : 4, "item" : "candy" }
+   { "_id" : 5, "item" : "chocolate", "colors" : null }
+
 Other Enhancements
 ```````````````````
-
-- :expression:`$unwind` no longer errors on non-array operand. If the
-  operand does not resolve to an array, :expression:`$unwind` treats
-  the value as an single-element array.
 
 - :group:`$avg` accumulator returns null when run against a
   non-existent field. Previous versions returned ``0``.
@@ -1420,6 +1555,9 @@ This change affects all JavaScript behavior including the commands
 :dbcommand:`mapReduce`, :dbcommand:`group`, and the query operator
 :query:`$where`; *however*, this change should be completely
 transparent to the user.
+
+The change to SpiderMonkey may cause incompatibility issues for
+JavaScript code that relies on specific V8 functionality/behavior.
 
 ``mongo`` Shell and CRUD API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
