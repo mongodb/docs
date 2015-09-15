@@ -1,3 +1,12 @@
+Backup Agent ``3.8.0.315``
+--------------------------
+
+*Released 2015-09-16*
+
+- Built with Go 1.5.0.
+
+- Fix: Ignore collections deleted during an initial sync.
+
 Backup Agent ``3.7.0.300``
 --------------------------
 
