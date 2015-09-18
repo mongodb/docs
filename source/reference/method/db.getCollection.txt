@@ -10,16 +10,87 @@ db.getCollection()
    :depth: 1
    :class: singlecol
 
-Description
+Definition
 -----------
 
 .. method:: db.getCollection(name)
 
-   Returns a collection name. This is useful for a collection whose name
-   might interact with the shell itself, such names that begin with
-   ``_`` or that mirror the :doc:`database commands
-   </reference/command>`.
+   Returns a :term:`collection` object that is functionally equivalent
+   to using the ``db.<collectionName>`` syntax. The method is useful for a
+   collection whose name might interact with the shell itself, such as names
+   that begin with ``_`` or that match a :doc:`database shell method
+   </reference/method/js-database>`.
 
    The :method:`db.getCollection()` method has the following parameter:
 
    .. include:: /includes/apiargs/method-db.getCollection-param.rst
+
+Behavior
+--------
+
+The :method:`db.getCollection()` object can access any
+:doc:`collection methods</reference/method/js-collection>`.
+
+The collection specified may or may not exist on the server.  If the collection
+does not exist, MongoDB creates it implicitly as part of 
+:doc:`write operations </core/write-operations-introduction>` like 
+:method:`~db.collection.insertOne()`.
+
+Example
+-------
+
+The following example uses :method:`db.getCollection()` to access the
+``auth`` collection and insert a document into it.
+
+.. code-block:: javascript
+
+   var authColl = db.getCollection("auth")
+
+   authColl.insertOne(
+      {
+          usrName : "John Doe",
+          usrDept : "Sales",
+          usrTitle : "Executive Account Manager",
+          authLevel : 4,
+          authDept : [ "Sales", "Customers"]
+      }
+   )
+
+This returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "insertedId" : ObjectId("569525e144fe66d60b772763")
+   }
+
+The previous example requires the use of 
+:method:`db.getCollection("auth")<db.getCollection()>` because
+of a name conflict with the database method :method:`db.auth()`.  Calling
+``db.auth`` directly to perform an insert operation would reference
+:method:`db.auth()` and would error.
+
+The following example attempts the same operation, but without using the
+:method:`db.getCollection()` method:
+
+.. code-block:: javascript
+
+   db.auth.insertOne(
+      {
+          usrName : "John Doe",
+          usrDept : "Sales",
+          usrTitle : "Executive Account Manager",
+          authLevel : 4,
+          authDept : [ "Sales", "Customers"]
+      }
+   )
+
+This returns:
+
+.. code-block:: javascript
+
+   2016-01-12T11:12:09.302-0500 E QUERY    [thread1]
+      TypeError: db.auth.insertOne is not a function : @(shell):1:1
+
+.. seealso:: :doc:`/reference/method/js-collection`
