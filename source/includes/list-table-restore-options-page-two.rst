@@ -21,7 +21,7 @@
      - Sets the format of the restore files:
 
        - :guilabel:`Individual DB Files`: Transmits MongoDB data files
-         produced by |mms| Backup directly to the target directory. The
+         produced by |mms| directly to the target directory. The
          data *is* compressed during transmission.
 
        - :guilabel:`Archive (tar.gz)`: Delivers database files in a single
