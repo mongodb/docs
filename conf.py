@@ -51,7 +51,7 @@ source_suffix = '.txt'
 master_doc = sconf.master_doc
 language = 'en'
 project = sconf.project
-copyright = u'2011-{0}'.format(datetime.date.today().year)
+copyright = u'2008-{0}'.format(datetime.date.today().year)
 version = conf.version.branch
 release = conf.version.release
 
