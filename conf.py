@@ -41,7 +41,8 @@ templates_path = ['templates']
 source_suffix = '.txt'
 master_doc = 'index'
 
-copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
+# MongoDB is added in the layout.html to the copyright
+copyright = u'2011-{0}'.format(datetime.date.today().year)
 
 version = conf.version.branch
 release = conf.version.release
