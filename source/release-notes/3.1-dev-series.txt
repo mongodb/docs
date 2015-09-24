@@ -58,6 +58,36 @@ engine setting either:
    :program:`mongod` will not start if ``dbPath`` contains data files
    created by a storage engine other than the one specified.
 
+.. seealso:: :ref:`3.2-storage-engine-compatibility`
+
+.. _3.2-rel-notes-rs-enhancements:
+
+Replication Election Enhancements
+---------------------------------
+
+Starting in MongoDB 3.1.9, MongoDB reduces replica set failover time
+and accelerates the detection of multiple simultaneous primaries.
+
+As part of this enhancement, MongoDB introduces a version 1 of the
+replication protocol. New replica sets will, by default, use
+:rsconf:`protocolVersion: 1 <protocolVersion>`. Previous versions of
+MongoDB use version 0 of the protocol.
+
+In addition, MongoDB introduces a new :doc:`replica set configuration
+</reference/replica-configuration>` option
+:rsconf:`~settings.electionTimeoutMillis`.
+:rsconf:`~settings.electionTimeoutMillis` specifies the time limit in
+milliseconds for detecting when a replica set's primary is unreachable:
+
+- Higher values result in slower failovers but decreased sensitivity to
+  primary node or network slowness or spottiness.
+
+- Lower values result in faster failover, but increased sensitivity to
+  primary node or network slowness or spottiness.
+
+:rsconf:`~settings.electionTimeoutMillis` only applies if using the
+version 1 of the :rsconf:`replication protocol <protocolVersion>`.
+
 .. _3.2-rel-notes-sharded-cluster:
 
 Sharded Cluster Enhancements
@@ -120,8 +150,8 @@ Set up Config Servers for a New Sharded Cluster
 
 #. Connect a :program:`mongo` shell to one of the config servers and
    run :method:`rs.initiate()` to initiate the replica set. You must
-   specify ``configsvr: true`` in the initial replica set configuration
-   document.
+   specify :rsconf:`configsvr: true <configsvr>` in the initial replica
+   set configuration document.
 
    .. code-block:: javascript
 
@@ -777,11 +807,15 @@ Left Outer Join
 
 .. include:: /includes/fact-enterprise-only-admonition.rst
 
-Starting in 3.1.7, MongoDB Enterprise provides a new
-:pipeline:`$lookUp` stage that performs a left outer join with another
-collection to filter in documents from the joined collection for
-processing. See :pipeline:`$lookUp` for details.
+MongoDB Enterprise provides a new :pipeline:`$lookup` stage that
+performs a left outer join with another collection to filter in
+documents from the joined collection for processing. See
+:pipeline:`$lookup` for details.
 
+.. versionchanged:: 3.1.9
+   MongoDB Enterprise 3.1.9 renames the ``$lookUp`` stage, introduced in
+   3.1.7, to ``$lookup``.
+   
 .. list-table::
    :header-rows: 1
    :widths: 10 40 50
@@ -790,14 +824,14 @@ processing. See :pipeline:`$lookUp` for details.
      - Description
      - Syntax
 
-   * - :pipeline:`$lookUp`
+   * - :pipeline:`$lookup`
 
      - Performs a left outer join with another collection.
 
      - .. code-block:: none
 
           {
-             $lookUp:
+             $lookup:
                {
                  from: <collection to join>,
                  localField: <fieldA>,
@@ -1079,6 +1113,24 @@ The operation returns the following document:
 
    { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
 
+If array specification includes fields that are non-existent in a
+document, the operation substitutes ``null`` as the value for that
+field.
+
+For example, given the same document as above, the following operation
+projects the fields ``x``, ``y``, and a non-existing field
+``$someField`` as elements in a new field ``myArray``:
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y", "$someField" ] } } ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
+
 ``minDistance`` for ``$geoNear``
 `````````````````````````````````
 
@@ -1246,15 +1298,6 @@ or an empty array:
    { "_id" : 4, "item" : "candy" }
    { "_id" : 5, "item" : "chocolate", "colors" : null }
 
-Other Enhancements
-```````````````````
-
-- :group:`$avg` accumulator returns null when run against a
-  non-existent field. Previous versions returned ``0``.
-
-- :expression:`$substr` errors when the result is an invalid UTF-8.
-  Previous versions output the invalid UTF-8 result.
-
 .. _3.2-agg-shard-optimization:
 
 Optimization
@@ -1273,7 +1316,12 @@ operations do not require running on the database's primary shard,
 these operations can route the results to any shard to merge the
 results and avoid overloading the primary shard for that database.
 Aggregation operations that require running on the database's primary
-shard are the :pipeline:`$out` stage and :pipeline:`$lookUp` stage.
+shard are the :pipeline:`$out` stage and :pipeline:`$lookup` stage.
+
+Compatibility
+~~~~~~~~~~~~~
+
+For compatibility changes, see :ref:`3.2-agg-compatibility`.
 
 MongoDB Tools Enhancements
 --------------------------
@@ -1485,6 +1533,12 @@ transport encryption.
 
 .. seealso:: :ref:`3.2-rotate-encryption-keys`
 
+Deprecation of 32-bit Binaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.1.9, 32-bit binaries are deprecated and will be
+unavailable in future releases.
+
 .. _3.2-geo-enhancements:
 
 General Enhancements
@@ -1519,6 +1573,8 @@ on performance and storage size. Typically, these values will only need
 modifications as requested by MongoDB engineers for specific diagnostic
 purposes.
 
+.. _3.2-relnotes-2dsphere-index:
+
 Geospatial Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1529,6 +1585,8 @@ performance of :doc:`2dsphere indexes </core/2dsphere>` queries over
 smaller regions. In addition, for both :doc:`2d indexes </core/2d>` and
 :doc:`2dsphere indexes </core/2dsphere>`, the performance of
 Geo near queries has been improved for dense datasets.
+
+.. seealso:: :ref:`3.2-2dsphere-index-compatibility`
 
 Bit Test Query Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1556,8 +1614,7 @@ This change affects all JavaScript behavior including the commands
 :query:`$where`; *however*, this change should be completely
 transparent to the user.
 
-The change to SpiderMonkey may cause incompatibility issues for
-JavaScript code that relies on specific V8 functionality/behavior.
+.. seealso:: :ref:`3.2-spidermonkey-compatibility`
 
 ``mongo`` Shell and CRUD API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1637,6 +1694,18 @@ additional CRUD methods that are consistent with the drivers' CRUD API:
        \<update\> ) <db.collection.update()>` method with an
        ``<update>`` document that specifies modifications using
        :doc:`update operators </reference/operator/update>`.
+
+WiredTiger and ``fsyncLock``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.1.9, the WiredTiger storage engine supports the
+:dbcommand:`fsync` command with the ``lock`` option or the
+:program:`mongo` shell method :method:`db.fsyncLock()`. That is, for
+the WiredTiger storage engine, these operations can guarantee that the
+data files do not change, ensuring consistency for the purposes of
+creating backups.
+
+.. comment:  Refer DOCS-4751 as well as an audit to see the pages to update in 3.2 manual. You must do an audit.
 
 Text Search Enhancements
 ------------------------
@@ -1783,11 +1852,10 @@ joueur du monde»"``, the ``text`` index treats ``«``, ``»``, and spaces
 as delimiters. Previous versions of the index treat ``«`` as part of
 the term ``"«était"`` and ``»`` as part of the term ``"monde»"``.
 
-Restrictions
-````````````
+Compatibility
+`````````````
 
-Earlier versions of MongoDB will not start if :doc:`text index (version
-3) </core/index-text>` exists in the database.
+For compatibility changes, see :ref:`3.2-text-index-compatibility`.
 
 .. _3.2-diacritic-sensitive-text-search:
 
@@ -1957,63 +2025,14 @@ Persian dialects), Urdu, Simplified Chinese, and Traditional Chinese.
 For details, see
 :doc:`/release-notes/3.1-dev-series-text-search-enterprise`.
 
-Compatibility Changes
----------------------
+.. seealso:: :ref:`3.2-relnotes-text-index-case-insensitivity`
 
-The following changes can affect the compatibility with older versions
-of MongoDB.
+Changes Affecting Compatibility
+-------------------------------
 
-Default Storage Engine
-~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in 3.1.4, MongoDB uses the WiredTiger as the default storage
-engine. Previous versions used the MMAPv1 as the storage engine.
-
-For existing deployments, if you do not specify the ``--storageEngine``
-or the :setting:`storage.engine` setting, MongoDB automatically
-determines the storage engine used to create the data files in the
-``--dbpath`` or :setting:`storage.dbPath`.
-
-For new deployments, to use MMAPv1, you must explicitly specify the
-storage engine setting either:
-
-- On the command line with the ``--storageEngine`` option:
-
-  .. code-block:: sh
-
-     mongod --storageEngine mmapv1
-
-- Or in a :doc:`configuration file </reference/configuration-options>`,
-  using the :setting:`storage.engine` setting:
-
-  .. code-block:: yaml
-
-     storage:
-        engine: mmapv1
-
-Aggregation Compatibility Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- :group:`$avg` accumulator returns null when run against a
-  non-existent field. Previous versions returned ``0``.
-
-- :expression:`$substr` errors when the result is an invalid UTF-8.
-  Previous versions output the invalid UTF-8 result.
-
-- Array elements are no longer treated as literals in the aggregation
-  pipeline. Instead, each element of an array is now parsed as an
-  expression. To treat the element as a literal instead of an
-  expression, use the :expression:`$literal` operator to create a
-  literal value.
-
-- :ref:`Text index (version 3) <3.2-relnotes-text-index-v3>` is
-  incompatible with earlier versions of MongoDB.
-
-SpiderMonkey Compatibility Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The change to SpiderMonkey may cause incompatibility issues for
-JavaScript code that relies on specific V8 functionality/behavior.
+Some 3.1.x changes can affect compatibility and may require user
+actions. For a detailed list of compatibility changes, see
+:doc:`/release-notes/3.1-dev-series-compatibility`.
 
 Additional Information
 ----------------------

@@ -1,0 +1,154 @@
+:orphan:
+
+=====================================================
+Compatibility Changes in for Development Series 3.1.x
+=====================================================
+
+.. default-domain:: mongodb
+
+MongoDB 3.2 is currently in development as part of the 3.1.x
+development release series. 
+
+.. warning::
+
+   While 3.1.x releases are available, these versions of MONGODB are
+   for **testing purposes only and not for production use**.
+
+This document covers the 3.1 development series as a work-in-progress.
+Features are subject to change. See also
+:doc:`/release-notes/3.1-dev-series`.
+
+.. TODO For the rc, must find and replace both the version-xxx and all 3.1 instances since the page distinguishes between dev versions as well.
+
+.. |version-dev| replace:: 3.1.6
+
+.. |version-wt| replace:: 3.1.4 or greater
+
+The following changes can affect the compatibility with older versions
+of MongoDB.
+
+.. _3.2-storage-engine-compatibility:
+
+Default Storage Engine Change
+-----------------------------
+
+Starting in 3.1.4, MongoDB uses the WiredTiger as the default storage
+engine. Previous versions used the MMAPv1 as the storage engine.
+
+For existing deployments, if you do not specify the ``--storageEngine``
+or the :setting:`storage.engine` setting, MongoDB automatically
+determines the storage engine used to create the data files in the
+``--dbpath`` or :setting:`storage.dbPath`.
+
+For new deployments, to use MMAPv1, you must explicitly specify the
+storage engine setting either:
+
+- On the command line with the ``--storageEngine`` option:
+
+  .. code-block:: sh
+
+     mongod --storageEngine mmapv1
+
+- Or in a :doc:`configuration file </reference/configuration-options>`,
+  using the :setting:`storage.engine` setting:
+
+  .. code-block:: yaml
+
+     storage:
+        engine: mmapv1
+
+Index Changes
+-------------
+
+.. _3.2-version-0-indexes:
+
+Version 0 Indexes
+~~~~~~~~~~~~~~~~~
+
+MongoDB 3.1.9 disallows the creation of version 0 indexes (i.e. ``{v:
+0}``). If version 0 indexes exist, MongoDB 3.1.9 outputs a warning log
+message, specifying the collection and the index.
+
+Starting in MongoDB 2.0, MongoDB started automatically upgrading ``v:
+0`` indexes during :ref:`initial sync <replica-set-initial-sync>`,
+:program:`mongorestore` or :dbcommand:`reIndex` operations.
+
+If a version 0 index exists, you can use any of the aforementioned
+operations as well as drop and recreate the index to upgrade to the
+``v: 1`` version.
+
+For example, if upon startup, a warning message indicated that an index
+``index { v: 0, key: { x: 1.0 }, name: "x_1", ns: "test.legacyOrders"
+}`` is a version 0 index, to upgrade to the appropriate version, you
+can drop and recreate the index:
+
+   .. code-block:: javascript
+
+      use test
+      db.legacyOrders.dropIndex( "x_1" )
+
+   or by key: 
+
+   .. code-block:: javascript
+
+      use test
+      db.legacyOrders.dropIndex( { x: 1 } )
+
+#. Recreate the index without the version option ``v``:
+
+   .. code-block:: none
+
+      db.legacyOrders.createIndex( { x: 1 } )
+
+.. comment Also, need to remove index version option in the createIndex page (+ any other places that seems to suggest you can manually set v:0) in 3.2 manual.
+
+.. _3.2-text-index-compatibility:
+
+Text Index Version 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Text index (version 3) <3.2-relnotes-text-index-v3>` is
+incompatible with earlier versions of MongoDB. Earlier versions of
+MongoDB will not start if :doc:`text index (version 3)
+</core/index-text>` exists in the database.
+
+.. _3.2-2dsphere-index-compatibility:
+
+``2dsphere`` Index Version 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`2dsphere index (version 3) <3.2-relnotes-2dsphere-index>` is
+incompatible with earlier versions of MongoDB. Earlier versions of
+MongoDB will not start if ``2dsphere`` index (version 3) exists in the
+database.
+
+.. _3.2-agg-compatibility:
+
+Aggregation Compatibility Changes
+---------------------------------
+
+- :group:`$avg` accumulator returns null when run against a
+  non-existent field. Previous versions returned ``0``.
+
+- :expression:`$substr` errors when the result is an invalid UTF-8.
+  Previous versions output the invalid UTF-8 result.
+
+- Array elements are no longer treated as literals in the aggregation
+  pipeline. Instead, each element of an array is now parsed as an
+  expression. To treat the element as a literal instead of an
+  expression, use the :expression:`$literal` operator to create a
+  literal value.
+
+
+.. _3.2-spidermonkey-compatibility:
+
+SpiderMonkey Compatibility Changes
+----------------------------------
+
+The change to SpiderMonkey may cause incompatibility issues for
+JavaScript code that relies on specific V8 functionality/behavior.
+
+Additional Information
+----------------------
+
+See also :doc:`/release-notes/3.1-dev-series`.

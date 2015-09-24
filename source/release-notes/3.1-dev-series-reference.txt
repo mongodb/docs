@@ -50,6 +50,11 @@ aggregation framework:
          { $sample: { size: 5 } }
       )
 
+   In order to get N random documents, :pipeline:`$sample` stage
+   performs a collection scan, performs a sort, and then select the top
+   N documents. As such, the :pipeline:`$sample` stage is subject to
+   the :ref:`sort memory restrictions <sort-memory-limit>`.
+
    .. warning::
 
       - :pipeline:`$sample` may output the same document more than once
@@ -59,29 +64,29 @@ aggregation framework:
       - :pipeline:`$sample` as the first stage requires a collection
         scan.
 
-MongoDB Enterprise 3.1.7 introduces the following new
-stage for the aggregation framework:
+MongoDB Enterprise 3.1.9 renames the ``$lookUp`` stage, introduced in
+3.1.7, to ``$lookup``:
 
-.. pipeline:: $lookUp
+.. pipeline:: $lookup
 
    .. include:: /includes/fact-enterprise-only-admonition.rst
 
    Performs a left outer join to another collection in the *same*
    database to filter in documents from the "joined" collection for
-   processing. The :pipeline:`$lookUp` stage does an equality match
+   processing. The :pipeline:`$lookup` stage does an equality match
    between a field from the input documents with a field from the
    documents of the "joined" collection.
 
-   To each input document, the :pipeline:`$lookUp` stage adds a new
+   To each input document, the :pipeline:`$lookup` stage adds a new
    array field whose elements are the matching documents from the
-   "joined" collection. The :pipeline:`$lookUp` stage passes these
+   "joined" collection. The :pipeline:`$lookup` stage passes these
    reshaped documents to the next stage.
-   The :pipeline:`$lookUp` stage has the following syntax: 
+   The :pipeline:`$lookup` stage has the following syntax: 
 
    .. code-block:: none
 
       {
-         $lookUp:
+         $lookup:
            {
              from: <collection to join>,
              localField: <field from the input documents>,
@@ -90,7 +95,7 @@ stage for the aggregation framework:
            }
       }
 
-   The :pipeline:`$lookUp` takes a document with the following fields:
+   The :pipeline:`$lookup` takes a document with the following fields:
    
    .. list-table::
       :header-rows: 1
@@ -107,20 +112,20 @@ stage for the aggregation framework:
       * - ``localField``
 
         - Specifies the field from the documents input to the
-          :pipeline:`$lookUp` stage. :pipeline:`$lookUp` performs an
+          :pipeline:`$lookup` stage. :pipeline:`$lookup` performs an
           equality match on the ``localField`` to the
           ``foreignField`` from the documents of the ``from``
           collection. If an input document does not contain the
-          ``localField``, the :pipeline:`$lookUp` treats the
+          ``localField``, the :pipeline:`$lookup` treats the
           field as having a value of ``null`` for matching purposes.
 
       * - ``foreignField``
 
         - Specifies the field from the documents in the ``from``
-          collection. :pipeline:`$lookUp` performs an equality match on
+          collection. :pipeline:`$lookup` performs an equality match on
           the ``foreignField`` to the ``localField`` from the input
           documents. If a document in the ``from`` collection does not
-          contain the ``foreignField``, the :pipeline:`$lookUp` treats
+          contain the ``foreignField``, the :pipeline:`$lookup` treats
           the value as ``null`` for matching purposes.
 
       * - ``as``
@@ -160,7 +165,7 @@ stage for the aggregation framework:
 
       db.orders.aggregate([
           {
-            $lookUp:
+            $lookup:
               {
                 from: "inventory",
                 localField: "item",
@@ -247,28 +252,40 @@ stage for the aggregation framework:
    each index:
 
    .. code-block:: json
-   
-      {
-         "name" : "item_1",
-         "ns" : "test.orders",
-         "processName" : "examplehost.local:27017", 
-         "usageStats" : { "operations" : NumberLong(1), "validSince" : ISODate("2015-09-10T17:45:00.837Z") }
-      }
 
+      {
+         "name" : "item_1_quantity_1",
+         "host" : "examplehost.local:27017",
+         "accesses" : {
+            "ops" : NumberLong(1),
+            "since" : ISODate("2015-10-02T14:31:53.685Z")
+         }
+      }
       {
          "name" : "_id_",
-         "ns" : "test.orders",
-         "processName" : "examplehost.local:27017",
-         "usageStats" : { "operations" : NumberLong(0), "validSince" : ISODate("2015-09-10T17:44:47.531Z") } }
-
+         "host" : "examplehost.local:27017",
+         "accesses" : {
+            "ops" : NumberLong(0),
+            "since" : ISODate("2015-10-02T14:31:32.479Z")
+         }
+      }
       {
          "name" : "type_1_item_1",
-         "ns" : "test.orders",
-         "processName" : "examplehost.local:27017",
-         "usageStats" : { "operations" : NumberLong(1), "validSince" : ISODate("2015-09-10T17:45:05.986Z") }
+         "host" : "examplehost.local:27017",
+         "accesses" : {
+            "ops" : NumberLong(1),
+            "since" : ISODate("2015-10-02T14:31:58.321Z")
+         }
       }
 
-   The result include the following fields:
+   The return document include the following fields:
+
+   .. TODO for docs - remove this versionchanged in next release
+
+   .. versionchanged:: 3.1.9
+
+      :pipeline:`$indexStats` changed the format of the return document
+      from that of earlier development series.
 
    .. list-table::
       :header-rows: 1
@@ -280,22 +297,18 @@ stage for the aggregation framework:
       * - ``name``
         - Index name.
 
-      * - ``ns``
-
-        - The namespace (i.e. ``<database>.<collection>``) for the index
-
-      * - ``processName``
+      * - ``host``
 
         - The hostname and port of process.
 
-      * - ``usageStats``
+      * - ``accesses``
 
         - Statistics on the index use:
 
-          - ``operations`` is the number of operations that used the
+          - ``ops`` is the number of operations that used the
             index.
 
-          - ``validSince`` is the time from which MongoDB gathered the
+          - ``since`` is the time from which MongoDB gathered the
             statistics.
 
    Statistics for an index will be reset on :program:`mongod` restart
@@ -2683,6 +2696,104 @@ parameters:
    The minimum value for
    :parameter:`diagnosticDataCollectionPeriodMillis` is ``100``
    milliseconds.
+
+.. _3.2-replica-set-options:
+
+Replica Sets
+------------
+
+Replica Set Config Servers Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support :ref:`replica set config servers
+<3.2-rel-notes-sharded-cluster>`, MongoDB introduces the following new
+configuration setting:
+
+.. rsconf:: configsvr
+
+   .. versionadded:: 3.1.8
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Indicates whether the replica set is used for a sharded cluster's
+   config servers. Set to ``true`` if the replica set is for a sharded
+   cluster's config servers.
+
+Replica Set Election Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support the enhanced replica set election and failover algorithm,
+MongoDB introduces the following new replica set configuration settings:
+
+.. rsconf:: protocolVersion
+
+   .. versionadded:: 3.1.9
+
+   *Type*: int
+
+   *Default*: 1
+
+   The version number of the replication protocol.
+
+   To enable :ref:`replication election enhancements
+   <3.2-rel-notes-rs-enhancements>` introduced in MongoDB 3.1.9, the
+   replica set must be configured to :rsconf:`protocolVersion: 1
+   <protocolVersion>`. By default, new replica sets in 3.1.9 use
+   :rsconf:`protocolVersion: 1 <protocolVersion>`.
+
+   Prior to MongoDB 3.1.9, replica sets used protocol version 0.
+
+.. rsconf:: settings.electionTimeoutMillis
+
+   .. versionadded:: 3.1.9
+
+   *Type*: int
+
+   *Default*: 10000 (i.e. 10 seconds)
+
+   The time limit in milliseconds for detecting when a replica set's
+   primary is unreachable:
+
+   - Higher values result in slower failovers but decreased sensitivity to
+     primary node or network slowness or spottiness.
+
+   - Lower values result in faster failover but increased sensitivity to
+     primary node or network slowness or spottiness.
+
+   :rsconf:`settings.electionTimeoutMillis` is only
+   applicable when :rsconf:`protocolVersion` is 1.
+
+.. rsconf:: settings.heartbeatIntervalMillis
+
+   .. versionadded:: 3.1.9
+
+   *Type*: int
+
+   *Default*: 2000
+
+   Frequency in milliseconds of the heartbeats. *Internal use only.*
+
+``mongod`` Parameter
+~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: replWriterThreadCount
+
+   .. versionadded:: 3.1.9
+
+   *Type*: int
+
+   *Default*: 16
+
+   |mongod-only|
+
+   Number of threads to use to apply replicated operations in parallel.
+   Values can range from 1 to 256 inclusive.
+
+   You can only set :parameter:`replWriterThreadCount` during startup
+   and cannot change this setting using the :dbcommand:`setParameter`
+   database command.
 
 .. _3.2-encryption-key-management-options:
 
