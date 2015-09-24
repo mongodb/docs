@@ -1,7 +1,7 @@
 .. _deployment-diagrams:
 
 =============================
-Example Installation Diagrams
+Example Deployment Topologies
 =============================
 
 .. default-domain:: mongodb
@@ -13,8 +13,8 @@ The following diagrams show example |onprem| deployments.
 
 .. _on-prem-minimal-deployment-diagram:
 
-Non-Durable, Test Install on a Single Server
---------------------------------------------
+Test Install on a Single Server
+-------------------------------
 
 For a test deployment, you can deploy all of the |onprem|
 components to a single server, as described in
@@ -27,16 +27,20 @@ The :term:`head databases <head database>` are dynamically created and maintaine
 by the Backup Daemon. They reside on the disk partition specified
 in the ``conf-daemon.properties`` file.
 
-Durable Production Install
---------------------------
+Production Install with Redundant Metadata and Snapshots
+--------------------------------------------------------
 
-The basic deployment provides durability in case of failure by keeping a
-redundant copy of the application data and snapshots.
-However, the basic deployment
-does not provide high availability and cannot accept writes to the backing
-databases in the event that a replica set member is lost. See
-:ref:`highly-available-deployment` for a deployment that can continue to
-accept writes with the loss of a member.
+This deployment provides redundancy for the
+:ref:`mms-application-database` and :ref:`backup-database`, in the event
+of server failure. The deployment keeps a redundant copy of each database
+by running each as a MongoDB :term:`replica set`, each with two
+data-bearing members and an arbiter.
+
+This deployment does not provide high availability: the deployment cannot
+accept writes to a database if a data-bearing replica set member is lost.
+|onprem| uses ``w: 2`` :manual:`write concern </reference/write-concern>`,
+with requires acknowledgement from both data-bearing members in order
+write to the database.
 
 .. include:: /images/opsmanager-medium.rst
 
@@ -64,13 +68,20 @@ For an example tutorial on installing the minimally viable |onprem|
 installation on RHEL 6+ or Amazon Linux, see
 :doc:`/tutorial/install-basic-deployment`.
 
+.. note:: **Durable Metadata and Snapshots**
+
+   To make the |application| and Backup Databases durable, run each
+   three-member with three data-bearing members and ensure journaling is
+   enabled.
+
 .. _highly-available-deployment:
 
-Durable, Highly Available Install with Multiple Backup Databases
-----------------------------------------------------------------
+Production Install with a Highly Available |application| and Multiple Backup Databases
+--------------------------------------------------------------------------------------
 
-The following is a highly available deployment that you can scale out to
-add additional Backup Databases.
+This |onprem| deployment provides high availability for the |application|
+by running multiple instances behind a load balancer. This deployment
+scales out to add an additional Backup Database.
 
 .. include:: /images/opsmanager-large.rst
 
@@ -115,5 +126,5 @@ on the :doc:`appropriate ports </reference/firewall-configuration>`.
   Databases. They must satisfy the combined hardware and software
   requirements for the databases.
 
-To deploy |onprem| with high availability, see:
+For the procedure to install |onprem| with high availability, see
 :doc:`/tutorial/configure-application-high-availability`.

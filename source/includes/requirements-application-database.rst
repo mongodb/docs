@@ -8,7 +8,7 @@ arbiter, but keep in mind that |mms| uses ``w:2`` :manual:`write concern
 after acknowledgement from the primary and one secondary. If you use a replica
 set with fewer than 3 data-bearing members, and if you lose one of the
 data-bearing members, MongoDB blocks write operations, meaning the
-:ref:`mms-application-database` has durability but not high availability.
+:ref:`mms-application-database` has redundancy but not high availability.
 
 Run the replica set on dedicated servers. You can optionally run one
 member of the replica set on the same physical server as the |application|.

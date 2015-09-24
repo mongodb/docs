@@ -9,9 +9,9 @@ backup data, which include snapshots, oplog data and temporary sync data.
 This cannot be a replica set used for any
 purpose other than holding the backup data.
 
-For durability, the replica set must have at least two data-bearing
-members. For high availability the replica set must have at least three
-data-bearing members.
+For redundancy, the replica set must have at least two data-bearing
+members. For high availability, the replica set must have
+at least three data-bearing members.
 
 .. note::
 
