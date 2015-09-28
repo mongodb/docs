@@ -44,7 +44,7 @@ language = 'en'
 project = sconf.project
 copyright = u'2008-{0}'.format(datetime.date.today().year)
 
-version = '2.6.0'
+version = '3.0'
 release = version
 
 rst_epilog = '\n'.join([
@@ -152,6 +152,7 @@ html_sidebars = sconf.sidebars
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_documents = []
+
 try:
     for pdf in pdfs:
         _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
