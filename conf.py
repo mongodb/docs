@@ -32,7 +32,6 @@ extensions = [
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
-                os.path.join(conf.paths.projectroot, conf.paths.locale + '-classic'),
                 os.path.join(conf.paths.projectroot, conf.paths.locale + '-cloud') ]
 
 gettext_compact = False
@@ -110,7 +109,6 @@ html_theme_options = {
 }
 
 onprem_latex_documents = []
-classic_latex_documents = []
 cloud_latex_documents = []
 
 latex_documents = []
@@ -118,8 +116,6 @@ if 'pdfs' in conf.system.files.data:
     for pdf in conf.system.files.data.pdfs:
         if pdf.edition == 'onprem':
             onprem_latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
-        elif pdf.edition == 'classic':
-            classic_latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
         elif pdf.edition == 'cloud':
             cloud_latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
 
@@ -153,20 +149,6 @@ try:
         ## add `extlinks` for each published version.
         for i in conf.git.branches.published:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
-    elif tags.has('classic'):
-        conf.runstate.edition = 'classic'
-
-        project = u'MongoDB Management Service (MMS)'
-
-        latex_documents = classic_latex_documents
-
-        html_title = 'MMS Manual'
-        html_short_title = 'MMS Manual'
-
-        html_theme = 'mms-classic'
-        html_theme_options['pdfpath'] = '/'.join([conf.project.basepath, 'mms-manual.pdf'])
-        html_theme_options['edition'] = 'saas'
-        html_theme_options['sitename'] = 'MMS Classic Docs'
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
