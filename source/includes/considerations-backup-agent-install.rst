@@ -10,20 +10,7 @@ later.
 |mms| only supports backup for sharded clusters that run MongoDB 2.4 or
 later.
 
-.. only:: cloud or classic
-
-   All backed up replica sets and config servers should maintain oplog
-   entries for at least 1 hour over the last 24 hour
-   period.
-
-.. only:: onprem
-
-   All backed up replica sets and config servers must be able to
-   maintain oplog entries, by default, for at least 3 hours over the
-   last 24 hour period. This window is configurable with the
-   :setting:`brs.minimumReplicationOplogWindowHr` setting in the
-   ``conf-mms.properties`` file for the |application|.
-   See :doc:`/reference/configuration` for more information.
+.. include:: /includes/extracts/backup-agent-install-requirements.rst
 
 Agent Architecture
 ++++++++++++++++++
