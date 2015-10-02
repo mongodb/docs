@@ -48,7 +48,16 @@ on a smaller dedicated instance.
 The Monitoring Agent load scales with the number of monitored ``mongod`` plus
 ``mongos`` processes and the number of databases in your MongoDB environment.
 
-.. include:: /includes/fact-host-for-monitoring-agent.rst
+Never install the Monitoring Agent on the same server as a
+data bearing :program:`mongod` instance. This will allow you to
+perform maintenance on a the :program:`mongod` and its host without
+affecting the monitoring for your deployment. Additionally a
+Monitoring Agent may contend for resources with the :program:`mongod`
+
+You can install the Monitoring Agent on the same system as an
+:term:`arbiter`, a :program:`mongos`, or an application server
+depending on the requirements of these services and available
+resources.
 
 Can I run the Monitoring Agent on an AWS micro server?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -100,13 +109,6 @@ How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++
 
 See the ``README`` file included in the agent download.
-
-.. only:: cloud or classic
-
-   Can I run the Backup and Monitoring Agents on a Single System?
-   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-   .. include:: /includes/faq-backup-and-monitoring-agent-on-one-server.rst
 
 How do I delete a Monitoring Agent from |mms|?
 ++++++++++++++++++++++++++++++++++++++++++++++
