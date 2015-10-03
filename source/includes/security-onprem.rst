@@ -46,7 +46,7 @@ links to setup instructions.
    * - Automation Agent
      - - :doc:`SSL </tutorial/configure-ssl-connection-to-web-interface>`
      - *Not applicable.*
-     - - :doc:`SSL </tutorial/enable-ssl-for-a-group>`
+     - - :doc:`SSL </tutorial/enable-ssl-for-a-deployment>`
        - :doc:`MONGODB-CR </tutorial/enable-mongodbcr-authentication-for-group>`
        - :doc:`LDAP </tutorial/enable-ldap-authentication-for-group>`
        - :doc:`Kerberos </tutorial/enable-kerberos-authentication-for-group>`
