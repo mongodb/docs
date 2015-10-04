@@ -1,40 +1,100 @@
 stepnum: 1
-source:
-  file: steps-generate-key-file.yaml
-  ref: generate
+title: Create a keyfile.
+ref: generate-keyfile
+level: 4
+pre: |
+   Create the :ref:`keyfile <internal-auth-keyfile>` your deployment will
+   use to authenticate to members to each other. You can generate a
+   keyfile using any method you choose. Ensure that the password stored
+   in the keyfile is both long and contains a high amount of randomness.
+
+   For example, the following operation uses ``openssl`` command to
+   generate pseudo-random data to use for a keyfile:
+action:
+  language: sh
+  code: |
+    openssl rand -base64 741 > /srv/mongodb/mongodb-keyfile
+    chmod 600 mongodb-keyfile
+post: |
+
 ---
-title: Enable authentication on each component in the cluster.
+title: Enable authentication for each member of the sharded cluster or replica set. 
 stepnum: 2
 ref: enable-auth
+level: 4
 pre: |
-  On each :program:`mongos` and :program:`mongod` in the cluster,
-  including all config servers and shards, specify the key file using
-  one of the following approaches:
+  For *each* :program:`mongod` in the replica set or for *each*
+  :program:`mongos` and :program:`mongod` in the sharded cluster,
+  including all config servers and shards, specify the keyfile using 
+  either a configuration file or a command line option.
 action:
-  - heading: Specify the key file in the configuration file.
-    pre: |
-      In the configuration file, set the :setting:`~security.keyFile` option to the
-      key file's path and then start the component, as in the following
+  - pre: |
+      In a configuration file, set the :setting:`security.keyFile` option to the
+      keyfile's path and then start the component, as in the following
       example:
     language: yaml
     code: |
       security:
         keyFile: /srv/mongodb/keyfile
-  - heading: Specify the key file at runtime.
-    pre:
-      When starting the component, set the :option:`--keyFile <mongos --keyFile>`
-      option, which is an option for both :program:`mongos` instances and
-      :program:`mongod` instances. Set the :option:`--keyFile <mongos --keyFile>`
-      to the key file's path. The :setting:`~security.keyFile` setting implies the
-      :setting:`~security.authorization` setting, which means in most cases you do not need
-      to set :setting:`~security.authorization` explicitly.
+    post: |
+       Include any other settings as appropriate for your deployment.
+  - pre: |
+      Or, when starting the component, specify the ``--keyFile``
+      option. For example, for a :program:`mongod`
+    language: sh
+    code: |
+       mongod --keyfile /srv/mongodb/mongodb-keyfile --dbpath <path to data>
+    post: |
+       Include any other options as appropriate for your deployment.
+post: |
+  Enabling internal authentication enables :doc:`access control
+  </core/authorization>`.
 ---
-title: Add users.
+title: Connect to the MongoDB instance via the localhost exception.
 stepnum: 3
+level: 4
+ref: connect-via-localhost
+content: |
+    To add the first user using :ref:`localhost-exception`:
+
+    - For a replica set, connect a :program:`mongo` shell to the primary.
+      Run the :program:`mongo` shell from the same host as the primary.
+
+    - For a sharded cluster, connect a :program:`mongo` shell to the
+      :program:`mongos`. Run the :program:`mongo` shell from same host as
+      the :program:`mongos`.
+---
+title: Add  first user.
+stepnum: 4
+level: 4
 ref: add-user
-action:
-  pre: |
-    While connected to a :program:`mongos`, add the first
-    administrative user and then add subsequent users. See
-    :doc:`/tutorial/add-user-administrator`.
+source:
+  file: steps-create-admin-then-enable-authentication.yaml
+  ref: create-user-admin
+post: |
+   After you create the user administrator, for a replica set, the
+   :ref:`localhost exception <localhost-exception>` is no longer
+   available.
+   
+   For sharded clusters, you must still prevent unauthorized access to
+   the individual shards. Follow one of the following steps for each
+   shard in your cluster:
+
+   - Create an administrative user, or
+
+   - Disable the :ref:`localhost-exception` at startup. To disable the
+     localhost exception, set the :parameter:`enableLocalhostAuthBypass`
+     to 0.
+---
+stepnum: 5
+source:
+  file: steps-create-admin-then-enable-authentication.yaml
+  ref: auth-as-admin
+level: 4
+---
+stepnum: 6
+source:
+  file: steps-create-admin-then-enable-authentication.yaml
+  ref: create-additionalusers
+level: 4
 ...

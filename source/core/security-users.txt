@@ -1,0 +1,161 @@
+.. _users:
+.. _authentication-client-users:
+
+=====
+Users
+=====
+
+.. default-domain:: mongodb
+
+To authenticate a client in MongoDB, you must add a corresponding user to
+MongoDB.
+
+User Management Interface
+-------------------------
+
+To add a user, MongoDB provides the :method:`db.createUser()` method.
+When adding a user, you can assign :doc:`roles </core/authorization>` to
+the user in order to grant privileges.
+
+.. note::
+
+   The first user created in the database should be a user administrator
+   who has the privileges to manage other users. See
+   :doc:`/tutorial/enable-authentication`.
+
+You can also update existing users, such as to change password and grant
+or revoke roles. For a full list of user management methods, see
+:ref:`user-management-methods`.
+
+.. _authentication-database:
+.. _user-authentication-database:
+
+Authentication Database
+-----------------------
+
+When adding a user, you create the user in a specific database. This
+database is the authentication database for the user.
+
+A user can have privileges across different databases; i.e. a user's
+privileges are not limited to the authentication database. By assigning
+to the user roles in other databases, a user created in one database can
+have permissions to act on other databases. For more information on
+roles, see :doc:`/core/authorization`.
+
+The user's name and authentication database serve as a unique identifier
+for that user. That is, if two users have the same name but are created
+in different databases, they are two separate users. If you intend to
+have a single user with permissions on multiple databases, create a
+single user with roles in the applicable databases instead of creating
+the user multiple times in different databases.
+
+.. COMMENT DOCS-6244  (Ricardo Lorenzo)
+
+Authenticate a User
+-------------------
+
+To authenticate a user, either
+
+- Use the command line authentication options (e.g. ``-u``, ``-p``,
+  ``--authenticationDatabase``) when connecting to the :program:`mongod` or
+  :program:`mongos` instance, or
+
+- Connect first to the :program:`mongod` or :program:`mongos` instance, and
+  then run the :dbcommand:`authenticate` command or the :method:`db.auth()`
+  method against the authentication database.
+
+To authenticate, the client must authenticate the user against the user's
+:ref:`authentication database <mongo-shell-authentication-options>`. 
+
+For instance, if using the :program:`mongo` shell as a client, you can
+specify the authentication database for the user with the
+``--authenticationDatabase`` option.
+
+Centralized User Data
+---------------------
+
+.. versionchanged:: 2.6
+
+MongoDB stores all user information, including :data:`name
+<admin.system.users.user>`, :data:`password
+<admin.system.users.credentials>`, and the :data:`user's authentication
+database <admin.system.users.db>`, in the :doc:`system.users
+</reference/system-users-collection>` collection in the ``admin``
+database.
+
+Do not access this collection directly but instead use the :ref:`user
+management commands <user-management-commands>`.
+
+.. index:: sharding; localhost
+.. _sharding-localhost:
+.. _sharding-security:
+
+Sharded Cluster Users
+---------------------
+
+To create users for a sharded cluster, connect to the :program:`mongos`
+instance and add the users. Clients then authenticate these users through the
+:program:`mongos` instances.
+
+.. versionchanged:: 2.6
+    
+   MongoDB stores these sharded cluster user data in the ``admin`` database of
+   the :term:`config servers <config server>`. Previously, the credentials for
+   authenticating to a database on a sharded cluster resided on the
+   :ref:`primary shard <primary-shard>` for that database.
+
+Shard Local Users
+~~~~~~~~~~~~~~~~~
+
+However, some maintenance operations, such as :dbcommand:`cleanupOrphaned`,
+:dbcommand:`compact`, :method:`rs.reconfig()`, require direct connections to
+specific shards in a sharded cluster. To perform these operations, you must
+connect directly to the shard and authenticate as a *shard local*
+administrative user.
+
+To create a *shard local* administrative user, connect directly to the shard
+and create the user. MongoDB stores *shard local* users in the ``admin``
+database of the shard itself.
+
+These *shard local* users are completely independent from the users added to
+the sharded cluster via :program:`mongos`. *Shard local* users are local to the
+shard and are inaccessible by :program:`mongos`.
+
+Direct connections to a shard should only be for shard-specific maintenance and
+configuration. In general, clients should connect to the sharded cluster
+through the :program:`mongos`.
+
+.. _localhost-exception:
+
+Localhost Exception
+-------------------
+
+The localhost exception allows you to enable access control and then
+create the first user in the system. With the localhost exception, after
+you enable access control, connect to the localhost interface and create
+the first user in the ``admin`` database. The first user must have
+privileges to create other users, such as a user with the
+:authrole:`userAdmin` or :authrole:`userAdminAnyDatabase` role.
+
+.. versionchanged:: 3.0
+
+   The localhost exception changed so that these connections *only*
+   have access to create the first user on the ``admin``
+   database. In previous versions, connections that gained access
+   using the localhost exception had unrestricted access to the
+   MongoDB instance.
+
+The localhost exception applies only when there are no users created in the
+MongoDB instance.
+
+In the case of a sharded cluster, the localhost exception applies to each shard
+individually as well as to the cluster as a whole. Once you create a sharded
+cluster and add a user administrator through the :program:`mongos` instance,
+you must still prevent unauthorized access to the individual shards. Follow one
+of the following steps for each shard in your cluster:
+
+- Create an administrative user, or
+
+- Disable the localhost exception at startup. To disable the localhost
+  exception, set the :parameter:`enableLocalhostAuthBypass` parameter to ``0``.
+  

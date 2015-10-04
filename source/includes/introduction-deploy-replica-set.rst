@@ -4,7 +4,7 @@ set` from three existing :program:`mongod` instances running with
 
 To deploy a replica set with enabled :doc:`access control
 </core/authorization>`, see
-:doc:`/tutorial/deploy-replica-set-with-auth`. If you wish to deploy a
+:ref:`deploy-repl-set-with-auth`. If you wish to deploy a
 replica set from a single MongoDB instance, see
 :doc:`/tutorial/convert-standalone-to-replica-set`. For more
 information on replica set deployments, see the :doc:`/replication` and
