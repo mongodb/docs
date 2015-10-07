@@ -7,10 +7,7 @@
        how long |mms| retains base snapshots. For information on how these
        settings affect |mms|, see :ref:`snapshot-frequency-and-retention`.
 
-       .. only:: cloud
-
-          Changes to the snapshot schedule affect your :ref:`snapshot
-          storage costs <backup-pricing>`.
+       .. include:: /includes/extracts/list-table-edit-snapshot-schedule.rst
 
    * - :guilabel:`Create cluster checkpoint every` (Sharded Clusters only)
 
