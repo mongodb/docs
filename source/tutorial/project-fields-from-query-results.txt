@@ -133,6 +133,102 @@ The operation returns the following document:
 .. code-block:: javascript
 
    { "classification" : { "category" : "chocolate" } }
+   
+Suppress Specific Fields in Embedded Documents
+----------------------------------------------
+
+Use :ref:`dot notation <document-dot-notation>` to supress specific
+fields inside an embedded document using a ``0`` instead of ``1``.
+For example, the ``inventory`` collection contains the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery", "category" : "chocolate"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Marsupial Vending Co",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza",
+            "delivery" : ["Sa"]
+         }
+      } 
+   }
+
+The following operation returns all documents where the value of the 
+``type`` field is ``food`` and the ``_id`` field is ``3``.
+The projection supresses only the ``category`` field in the
+``classification`` document. The ``dept`` field remains
+inside the ``classification`` document.
+
+.. code-block:: javascript
+
+   db.inventory.find(
+      { type: 'food', _id: 3 },
+      { "classification.category": 0}
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Bobs Vending",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza",
+            "delivery" : ["Sa"]
+         }
+      } 
+   }
+You can supress nested subdocuments at any depth using :ref:`dot notation <document-dot-notation>`. 
+The following specifies a projection to suppress the ``delivery`` array only for the ``secondary`` document.
+
+.. code-block:: javascript
+
+   db.inventory.find(
+      { "type" : "food" },
+      { "vendor.secondary.delivery" : 0 }
+   )
+   
+This returns all documents except the ``delivery`` array in the ``secondary`` document
+
+.. code-block:: javascript
+    
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery", "category" : "chocolate"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Bobs Vending",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza"
+         }
+      } 
+   }
+   
 
 Projection for Array Fields
 ---------------------------
