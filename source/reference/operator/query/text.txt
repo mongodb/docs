@@ -4,9 +4,15 @@ $text
 
 .. default-domain:: mongodb
 
-.. query:: $text
+.. admonition:: New Features in MongoDB 3.2
 
-   .. versionadded:: 2.6
+   In MongoDB 3.2, the :query:`$text` operator adds support for case
+   sensitive text search of the Latin alphabet ``[A-z]``.
+
+Definition
+----------
+
+.. query:: $text
 
    :query:`$text` performs a text search on the content of the fields
    indexed with a :doc:`text index </core/index-text>`. A
@@ -14,7 +20,7 @@ $text
 
    .. code-block:: javascript
 
-      { $text: { $search: <string>, $language: <string> } }
+      { $text: { $search: <string>, $language: <string>, $caseSensitive: <boolean> } }
 
    The :query:`$text` operator accepts a text query document with the
    following fields:
@@ -22,11 +28,18 @@ $text
    .. |object-behavior| replace:: :ref:`text-query-operator-behavior`
    .. |text-obj| replace:: text search
 
-   .. include:: /includes/apiargs/query-text-field.rst
+   .. only:: website
+
+      .. include:: /includes/apiargs/query-text-field.rst
+
+   .. only:: latex
+
+      .. include:: /includes/text-operator-param-table-for-pdf.rst
 
    The :query:`$text` operator, by default, does *not* return results
-   sorted in terms of the results' score. For more information, see
-   the :ref:`text-operator-text-score` documentation.
+   sorted in terms of the results' scores. For more information on
+   sorting by the text search scores, see the
+   :ref:`text-operator-text-score` documentation.
 
 .. _text-query-operator-behavior:
 
@@ -61,13 +74,13 @@ Restrictions
 In the ``$search`` field, specify a string of words that the
 :query:`text` operator parses and uses to query the :doc:`text index
 </core/index-text>`. The :query:`text` operator treats most punctuation
-in the string as delimiters, except a hyphen ``-`` that negates term or
+in the string as delimiters, except a hyphen-minus (``-``) that negates term or
 an escaped double quotes ``\"`` that specifies a phrase.
 
 .. _text-operator-phrases:
 
 Phrases
-^^^^^^^
+```````
 
 To match on a phrase, as opposed to individual terms, enclose the
 phrase in escaped double quotes (``\"``), as in:
@@ -94,9 +107,9 @@ certificate"`` **and** (``"authority"`` **or** ``"key"`` **or**
 .. _text-operator-term-negation:
 
 Negations
-^^^^^^^^^
+`````````
 
-Prefixing a word with a hyphen sign (``-``) negates a word:
+Prefixing a word with a hyphen-minus (``-``) negates a word:
 
 - The negated word excludes documents that contain the
   negated word from the result set.
@@ -105,7 +118,8 @@ Prefixing a word with a hyphen sign (``-``) negates a word:
   search will not match any documents.
 
 - A hyphenated word, such as ``pre-market``, is not a negation. The
-  :query:`$text` operator treats the hyphen as a delimiter.
+  :query:`$text` operator treats the hyphen-minus (``-``) as a
+  delimiter.
 
 The :query:`$text` operator adds all negations to the query with the
 logical ``AND`` operator.
@@ -113,16 +127,45 @@ logical ``AND`` operator.
 Match Operation
 ~~~~~~~~~~~~~~~
 
+Stop Words
+``````````
+
 The :query:`$text` operator ignores language-specific stop words, such
 as ``the`` and ``and`` in English.
 
-The :query:`$text` operator matches on the complete *stemmed* word. So
-if a document field contains the word ``blueberry``, a search on the
-term ``blue`` will not match. However, ``blueberry`` or ``blueberries``
-will match.
+.. _match-operation-stemmed-words:
 
-For the Latin alphabet, text search is case insensitive for
-non-diacritics; i.e. case insensitive for ``[A-z]``.
+Stemmed Words
+`````````````
+
+For case insensitive text searches, the :query:`$text` operator matches
+on the complete *stemmed* word. So if a document field contains the
+word ``blueberry``, a search on the term ``blue`` will not match.
+However, ``blueberry`` or ``blueberries`` will match.
+
+For :ref:`case sensitive <text-case-sensitivity>` search, the
+:query:`$text` operator matches on the exact word.
+
+.. _text-case-sensitivity:
+
+Case Sensitivity
+````````````````
+
+For the Latin alphabet, the :query:`$text` operator, by default, is case
+insensitive for letters without diacritics; i.e. case insensitive for
+``[A-z]``. For all other characters, including letters with
+diacritics, the :query:`$text` operator treats them as distinct.
+
+.. versionadded:: 3.2
+
+   To enable case sensitive search for the Latin alphabet, specify
+   ``$caseSensitive: true``. When specifying ``$caseSensitive: true``, the
+   :query:`$text` operator first searches the ``text`` index, which is
+   case insensitive for the Latin alphabet. Then, to return just the
+   documents that match the case of the search terms, the
+   :query:`$text` query operation includes an additional stage to
+   filter out the documents that do not match the specified case.
+   Specifying ``$caseSensitive: true`` may impact performance.
 
 .. _text-operator-text-score:
 
@@ -200,6 +243,126 @@ The following example searches for documents that contain the words
 .. code-block:: javascript
 
    db.articles.find( { $text: { $search: "bake coffee -cake" } } )
+
+.. seealso:: :ref:`text-operator-term-negation`
+
+Search a Different Language
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the optional ``$language`` field in the :query:`$text` expression
+to specify a language that determines the list of stop words and the
+rules for the stemmer and tokenizer for the search string.
+
+.. include:: /includes/fact-text-search-language-none.rst
+
+The following query specifies ``es``, i.e. Spanish, as the language
+that determines the tokenization, stemming, and stop words:
+
+.. code-block:: javascript
+
+   db.articles.find(
+      { $text: { $search: "leche", $language: "es" } }
+   )
+
+The :query:`$text` expression can also accept the language by name,
+``spanish``. See :ref:`text-search-languages` for the supported
+languages.
+
+Perform Case Sensitive Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the Latin alphabet, the :query:`$text` operator is case insensitive
+for characters without diacritics by default; i.e. case insensitive for
+``[A-z]``. For all other characters, the :query:`$text` operator treats
+them as distinct.
+
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, the :query:`$text` operator can perform case
+   sensitive searches for the Latin alphabet ``[A-z]``. To enable case
+   sensitive search for the Latin alphabet, specify ``$caseSensitive:
+   true``. Specifying ``$caseSensitive: true`` may impact performance.
+
+Case Sensitive Search for a Term
+````````````````````````````````
+
+If the ``articles`` collection contains the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "subject" : "coFFeE and cake" }
+   { "_id" : 2, "subject" : "COFFEE and TEA" }
+   { "_id" : 3, "subject" : "coffee and Milk" }
+
+The following query performs a case sensitive search for the term
+``coFFeE``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "coFFeE", $caseSensitive: true } } )
+
+The search matches just the document:
+
+.. code-block:: json
+
+   { "_id" : 1, "subject" : "coFFeE and cake" }
+
+Case Sensitive Search for a Phrase
+``````````````````````````````````
+
+If the ``articles`` collection contains the following documents:
+
+.. code-block:: json
+
+   { "_id" : 4, "subject" : "café con leche" }
+   { "_id" : 5, "subject" : "Café Con Leche" }
+   { "_id" : 6, "subject" : "Café con leche" }
+
+The following query performs a case sensitive search for the phrase
+``Café Con Leche``:
+
+.. code-block:: javascript
+
+   db.articles.find( { 
+      $text: { $search: "\"Café Con Leche\"", $language: "es", $caseSensitive: true }
+   } )
+
+The search matches just the document:
+
+.. code-block:: json
+
+   { "_id" : 5, "subject" : "Café Con Leche" }
+
+.. note::
+
+   - For ``$caseSensitive: true``, the :query:`$text` operator performs
+     an exact match on the phrase when filtering out documents.
+
+   - Regardless of the ``$caseSensitive`` option, the :query:`$text`
+     operator, as well as the :doc:`text index </core/index-text>`,
+     treats the character with a diacritic ``é`` as distinct from ``É``.
+
+Case Sensitivity with Negated Term
+``````````````````````````````````
+
+A *negated* term is a term that is prefixed by a minus sign ``-``. If
+you negate a term, the :query:`$text` operator will exclude the
+documents that contain those terms from the results. You can also
+specify case sensitivity for negated terms.
+
+The following example performs a case sensitive search for documents
+that contain the words ``bake`` or ``coffee`` but do **not** contain
+the term ``milk``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "bake coffee -milk", $caseSensitive: true } } )
+
+The query matches the following document:
+
+.. code-block:: json
+
+   { "_id" : 3, "subject" : "coffee and Milk" }
 
 .. seealso:: :ref:`text-operator-term-negation`
 
@@ -282,28 +445,6 @@ text score:
       { status: "A", $text: { $search: "coffee cake" } },
       { score: { $meta: "textScore" } }
    ).sort( { date: 1, score: { $meta: "textScore" } } )
-
-Search a Different Language
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use the optional ``$language`` field in the :query:`$text` expression
-to specify a language that determines the list of stop words and the
-rules for the stemmer and tokenizer for the search string.
-
-.. include:: /includes/fact-text-search-language-none.rst
-
-The following query specifies ``es`` for Spanish as the language that
-determines the tokenization, stemming, and stop words:
-
-.. code-block:: javascript
-
-   db.articles.find(
-      { $text: { $search: "leche", $language: "es" } }
-   )
-
-The :query:`$text` expression can also accept the language by name,
-``spanish``. See :ref:`text-search-languages` for the supported
-languages.
 
 .. seealso:: :doc:`/tutorial/text-search-in-aggregation`
 
