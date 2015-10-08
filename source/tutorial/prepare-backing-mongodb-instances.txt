@@ -22,18 +22,23 @@ The backing MongoDB replica sets are dedicated to operational data and
 Replica Sets Requirements
 -------------------------
 
-Each replica set that hosts the |application| Database or a Backup Database:
+The replica set that hosts the |application| Database and each replica set
+that hosts a Backup Database must:
 
-- Stores data in support of |onprem| operations only **and stores no other data**.
+- Store data in support of |onprem| operations **only** and **store no other data**.
 
-- Must run on a server that meets the :ref:`server prerequisites below
-  <backing-instances-prerequisites>`.
+- Run on a server that meets the :ref:`server prerequisites
+  <backing-instances-prerequisites>` below.
 
-- Must run MongoDB 2.6.0 or later.
+- Run MongoDB 3.0.6 or later if running MongoDB 3.0 or run MongoDB 2.6.6
+  or later if running MongoDB 2.6. Do not use a MongoDB version earlier
+  than 2.6.6.
 
-- Must use the :ref:`MMAPv1 storage engine <storage-mmapv1>`.
+- Use the storage engine appropriate to your workload. In most cases, this
+  is MMAPv1. See :ref:`storage engine considerations
+  <storage-engine-considerations-for-backing-dbs>` below.
 
-- Must have the MongoDB ``security.javascriptEnabled`` set to ``true``, which
+- Set the MongoDB :setting:`security.javascriptEnabled` option to ``true``, which
   is the default. The |application| uses the :query:`$where` query and
   requires this setting be enabled on the |application| Database.
 
@@ -74,6 +79,33 @@ The servers that run the replica sets must meet the following requirements.
 
      sudo rm /etc/security/limits.d/90-nproc.conf
 
+.. _storage-engine-considerations-for-backing-dbs:
+
+Choosing a Storage Engine for the Backing Databases
+---------------------------------------------------
+
+MongoDB provides both the MMAPv1 and WiredTiger storage engines. The
+|application| and Backup Database schemas have been designed to achieve
+maximum performance on MMAPv1. Therefore, while WiredTiger outperforms
+MMAPv1 on typical workloads, we recommend MMAPv1 for the unique |onprem|
+workload.
+
+The MMAPv1 engine also minimizes storage in the Backup Database's
+blockstore, as all the blocks are already compressed and padding is
+disabled. There is typically no further storage benefit to be gained by
+taking advantage of WiredTiger compression.
+
+In one case, WiredTiger might be preferable. Backups of insert-only
+MongoDB workloads that benefit from high levels of block-level
+de-duplication in the blockstore may see a compression-based storage
+reduction when running the Backup Database on the WiredTiger storage
+engine.
+
+The storage engine used by the Backup Database is independent from the
+storage engine chosen to store a deployment's snapshots. If the Backup
+Database uses the MMAPv1 storage engine, it can store backup snapshots for
+WiredTiger backup jobs in its blockstore.
+
 Procedures
 ----------
 
@@ -91,10 +123,12 @@ Use servers that meet the above :ref:`prerequisites
 
 The following procedure assumes that you
 are installing MongoDB on a server running Red Hat Enterprise Linux (RHEL).
-If you are installing MongoDB on another Linux operating system,
-or you prefer to use ``cURL`` rather than ``yum``,
-refer to the :manual:`installation guides </administration/install-on-linux/>`
+If you are installing MongoDB on another operating system,
+or if you prefer to use ``cURL`` rather than ``yum``,
+see the :manual:`Install MongoDB </installation>` section
 in the MongoDB manual.
+
+To install MongoDB on a server running RHEL:
 
 .. include:: /includes/steps/install-mongodb-for-backing-dbs.rst
 
@@ -107,6 +141,8 @@ the replica set to three servers that meet the :ref:`requirements
 <backing-instances-prerequisites>` for the database.
 
 Repeat this procedure for each backing replica set that your installation
-requires.
+requires. For additional information on deploying replica sets, see
+:manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the
+MongoDB manual.
 
 .. include:: /includes/steps/deploy-backing-replica-set.rst
