@@ -1,3 +1,10 @@
+Monitoring Agent ``3.9.0.233``
+------------------------------
+
+*Released 2015-10-08*
+
+- Support for MongoDB 3.2.0 config servers as replica sets
+
 Monitoring Agent ``3.8.0.222-1``
 --------------------------------
 
