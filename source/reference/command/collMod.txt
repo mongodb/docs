@@ -74,7 +74,7 @@ Disable All Record Padding
 
 .. collflag:: noPadding
 
-   .. versionadded:: 3.0.0
+   .. versionadded:: 3.0
 
    :collflag:`noPadding` flag is available for the MMAPv1 storage
    engine only.
@@ -99,7 +99,7 @@ Powers of Two Record Allocation
 .. _usePowerOf2Sizes:
 .. collflag:: usePowerOf2Sizes
 
-   .. deprecated:: 3.0.0
+   .. deprecated:: 3.0
 
    :collflag:`usePowerOf2Sizes` flag is available for the MMAPv1 storage
    engine only.
@@ -115,8 +115,57 @@ Powers of Two Record Allocation
    method with the ``noPadding`` option. For more information, see
    :ref:`3.0-mmapv1-padding`.
 
-Example: Change Expiration Value for Indexes
---------------------------------------------
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. collflag:: validator
+
+   .. versionadded:: 3.2
+   
+   :collflag:`validator` allows users to specify :doc:`validation rules
+   or expressions </core/document-validation>` for a collection.
+   
+   The ``validator`` option takes a document that specifies the
+   validation rules or expressions. You can specify the expressions
+   using the same operators as the :ref:`query operators
+   <query-selectors>` with the exception of : :query:`$geoNear`,
+   :query:`$near`, :query:`$nearSphere`, :query:`$text`, and
+   :query:`$where`.
+   
+   .. note:: 
+   
+      Validation occurs during updates and inserts. Existing documents
+      do not undergo validation checks until modification.
+   
+.. collflag:: validationLevel
+
+   .. versionadded:: 3.2
+
+   The :collflag:`validationLevel` determines how strictly MongoDB applies the
+   validation rules to existing documents during an update.
+
+   .. include:: /includes/table/validationLevel-values.rst
+
+.. collflag:: validationAction   
+
+   .. versionadded:: 3.2
+
+   The :collflag:`validationAction` option determines whether to ``error`` on
+   invalid documents or just ``warn`` about the violations but allow
+   invalid documents.
+
+   .. important::
+
+      Validation of documents only applies to those documents as
+      determined by the ``validationLevel``.
+
+   .. include:: /includes/table/validationAction-values.rst
+   
+Examples
+--------
+
+Change Expiration Value for Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To update the expiration value for a collection
 named ``sessions`` indexed on a ``lastAccess`` field from 30
@@ -124,12 +173,58 @@ minutes to 60 minutes, use the following operation:
 
 .. code-block:: javascript
 
-   db.runCommand({collMod: "sessions",
-                  index: {keyPattern: {lastAccess:1},
-                          expireAfterSeconds: 3600}})
+   db.runCommand( { collMod: "sessions",
+                    index: { keyPattern: { lastAccess: 1 },
+                             expireAfterSeconds: 3600 
+                           }
+   })
 
 Which will return the document:
 
 .. code-block:: javascript
 
    { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
+
+Add Document Validation to an Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example adds a validator to a collection named ``contacts``.
+The validator specifies that inserted or updated documents should meet at least
+one of the following conditions:
+
+- the ``phone`` field is a string
+- the ``email`` field matches the regular expression
+- the ``status`` field is either ``Unknown`` or ``Incomplete``.
+
+The ``moderate`` :collflag:`validationLevel` specifies that only updates
+to existing *valid* documents will be checked against the validator, and
+the ``warn`` :collflag:`validationAction` means that the write operation
+will log a validation failure for any document that does not pass
+validation.
+
+.. code-block:: javascript
+
+   db.runCommand( { collMod: "contacts",
+                    validator: { $or:
+                       [
+                          { phone: { $type: "string" } },
+                          { email: { $regex: /@mongodb\.com$/ } },
+                          { status: { $in: [ "Unknown", "Incomplete" ] } }
+                       ]
+                    },
+                    validationLevel: "moderate",
+                    validationAction: "warn"
+   
+   } )
+
+With the validator in place, the following insert operation fails validation:
+
+.. code-block:: javascript
+
+   db.contacts.insert( { name: "Amanda", status: "Updated" } )
+
+The write operation logs the failure and succeeds:
+
+.. code-block:: sh
+
+   2015-10-15T11:20:44.260-0400 W STORAGE  [conn3] Document would fail validation collection: example.contacts doc: { _id: ObjectId('561fc44c067a5d85b96274e4'), name: "Amanda", status: "Updated" }

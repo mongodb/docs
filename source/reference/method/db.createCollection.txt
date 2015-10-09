@@ -13,8 +13,11 @@ Definition
 
    Because MongoDB creates a collection implicitly when the collection
    is first referenced in a command, this method is used primarily for
-   creating new :term:`capped collections <capped collection>`. This is
-   also used to pre-allocate space for an ordinary collection.
+   creating new collections that use specific options. For example, you use
+   :method:`db.createCollection()` to create a :term:`capped collection
+   <capped collection>`, or to create a new collection that uses
+   :doc:`document validation </core/document-validation>`. :method:`db.createCollection()` is also
+   used to pre-allocate space for an ordinary collection.
 
    The :method:`db.createCollection()` method has the following prototype form:
 
@@ -24,14 +27,18 @@ Definition
                                     autoIndexId: <boolean>,
                                     size: <number>,
                                     max: <number>,
-                                    storageEngine: <document> } )
+                                    storageEngine: <document>,
+                                    validator: <document>,
+                                    validationLevel: <string>,
+                                    validationAction: <string> } )
 
    The :method:`db.createCollection()` method has the following parameters:
 
    .. include:: /includes/apiargs/method-db.createCollection-param.rst
 
-   The ``options`` document creates a capped collection or preallocates
-   space in a new ordinary collection. The ``options`` document contains
+   The ``options`` document creates a capped collection, preallocates
+   space in a new ordinary collection, or specifies :doc:`document validation
+   </core/document-validaton>` criteria. The ``options`` document contains
    the following fields:
 
    .. include:: /includes/apiargs/method-db.createCollection-options-param.rst
@@ -66,6 +73,57 @@ collection named ``people``:
 This command provides a wrapper around the database command
 :dbcommand:`create`. See :doc:`/core/capped-collections` for more
 information about capped collections.
+
+Create a Collection with Document Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+Collections with validation compare each inserted or updated document
+against the criteria specified in the ``validator`` option. Depending
+on the ``validationLevel`` and ``validationAction``, MongoDB either
+returns a warning, or refuses to insert or update the document if it
+fails to meet the specified criteria.
+
+The following example creates a ``contacts`` collection with a validator
+that specifies that inserted or updated documents should match at least
+one of three following conditions:
+
+- the ``phone`` field is a string
+- the ``email`` field matches the regular expression
+- the ``status`` field is either ``Unknown`` or ``Incomplete``.
+
+.. code-block:: javascript
+
+   db.createCollection( "contacts",
+      {
+         validator: { $or:
+            [
+               { phone: { $type: "string" } },
+               { email: { $regex: /@mongodb\.com$/ } },
+               { status: { $in: [ "Unknown", "Incomplete" ] } }
+            ]
+         }
+      }
+   )
+
+With the validator in place, the following insert operation fails validation:
+
+.. code-block:: javascript
+
+   db.contacts.insert( { name: "Amanda", status: "Updated" } )
+
+The method returns the error in the ``WriteResult``:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 121,
+         "errmsg" : "Document failed validation"
+      }
+   })
 
 .. _create-collection-storage-engine-options:
 
