@@ -330,6 +330,6 @@ Backup Agent ``v20130812.1``
 
 *Major stability update*
 
-If the communication between the Backup Agent and the |backup| API
+If the communication between the Backup Agent and the |mms| API
 is interrupted, the Backup Agent can more reliably recover the
 current state. This results in fewer "resync required" errors.

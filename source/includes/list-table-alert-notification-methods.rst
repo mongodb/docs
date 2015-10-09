@@ -113,5 +113,5 @@
      - .. only:: onprem
 
           Sends the alert to the email address specified in the
-          :setting:`mms.adminEmailAddr` setting in the
-          :ref:`conf-mms.properties` configuration file.
+          :guilabel:`Admin Email Address` field in the |onprem|
+          :doc:`configuration options </reference/configuration>`.

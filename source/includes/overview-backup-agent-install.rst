@@ -1,4 +1,4 @@
-The |backup| Agent polls the primary MongoDB instance of
+The Backup Agent polls the primary MongoDB instance of
 every backup-enabled replica set and transmits the operations to
 the |mms| service.
 

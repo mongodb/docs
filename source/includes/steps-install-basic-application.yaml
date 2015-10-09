@@ -1,19 +1,19 @@
-title: "Download the |application| package."
+title: "Download the |onprem| package."
 stepnum: 1
 ref: application-package-download
 content: |
-  On **server 1**, download the latest version of the |application|
+  On **server 1**, download the latest version of the |onprem|
   package by issuing ``curl -OL`` with the URL for the latest version. If
   the **server 1** does not have Internet access, download the package to
   another server and ``scp`` it to **server 1**.
 
-  To download the |application| package:
+  To download the |onprem| package:
 
   a. In a browser, go to `http://www.mongodb.com/download <http://www.mongodb.com/download>`_.
 
   b. Submit the subscription form.
 
-  c. On the :guilabel:`MongoDB Enterprise Downloads` page, go to the :guilabel:`MongoDB Ops Manager` section and click the :guilabel:`here` link.
+  c. On the :guilabel:`MongoDB Enterprise Downloads` page, scroll to the :guilabel:`MongoDB Ops Manager` section and click the :guilabel:`here` link.
 
   d. On the :guilabel:`Ops Manager Download` page, acknowledge the recommendation to contact MongoDB for production installs.
 
@@ -21,17 +21,17 @@ content: |
 
   f. Open a system prompt.
 
-  g. Download the |application| package by issuing a ``curl`` command that uses the copied link address:
+  g. Download the |onprem| package by issuing a ``curl`` command that uses the copied link address:
 
      .. code-block:: none
 
-        curl -OL <link-address-for-monitoring-automation-core-rpm>
+        curl -OL <link-address-for-ops-manager-rpm>
 
      The downloaded package is named ``mongodb-mms-<version>.x86_64.rpm``,
      where ``<version>`` is replaced by the version number.
 
 ---
-title: "Install the |application| package."
+title: "Install the |onprem| package on both **server 1** and **server 2**."
 stepnum: 2
 ref: application-package-install
 pre: |
@@ -42,19 +42,19 @@ action:
   code: |
     sudo rpm --install <downloaded-package>
 ---
-title: "Configure the |application|."
+title: "Configure the |onprem|."
 stepnum: 3
 ref: mms-application-configure
 pre: |
-  Open the ``/opt/mongodb/mms/conf/conf-mms.properties`` file with root
-  privileges and set values for the options described in this step. For
+  On **server 1**, open ``/opt/mongodb/mms/conf/conf-mms.properties`` with
+  root privileges and set values for the options described in this step. For
   detailed information on each option, see the :doc:`/reference/configuration`
   page.
 action:
   - pre: |
       Set :setting:`mms.centralUrl` as
       follows, where ``<ip_address>`` is the IP address of the server running
-      the |application|.
+      |onprem|.
     language: cfg
     code: |
       mms.centralUrl=http://<ip_address>:8080
@@ -84,9 +84,9 @@ action:
       automation.versions.source=<mode>
       automation.versions.directory=<directory-that-stores-MongoDB-binaries>
 ---
-title: "Start the |application|."
+title: "Start |onprem|."
 stepnum: 4
-ref: mms-application-start
+ref: application-start
 pre: |
   Issue the following command:
 action:
@@ -94,22 +94,40 @@ action:
   code: |
     sudo service mongodb-mms start
 ---
-title: "Open the |onprem| home page."
 stepnum: 5
-ref: home-page
+level: 4
+source:
+  file: steps-source-install-onprem.yaml
+  ref: home-page
+---
+title: "Configure |onprem|."
+stepnum: 6
+level: 4
+ref: configure-app
+content: |
+  |onprem| presents several configuration pages. For each page, enter
+  information as appropriate and click :guilabel:`Continue`. When
+  configuration is complete, |onprem| opens the :guilabel:`Deployment`
+  page.
+---
+title: "Copy the ``gen.key`` file from the **server 1** to **server 2**."
+stepnum: 7
+level: 4
+ref: sync-genkey
 pre: |
-  The first user created for |onprem| is automatically assigned the
-  :ref:`Global Owner <global-owner-role>` role.
-action:
-  pre: |
-    Enter the following URL in a browser, where ``<ip_address>`` is the
-    IP address of the server:
-  language: none
-  code: |
-    http://<ip_address>:8080
-post: |
-  Click the :guilabel:`Register` link and follow the prompts to register
-  the new :ref:`Global Owner <global-owner-role>` user and create the
-  first group. When you finish, you are logged into the |application| as
-  the new user.
+  |onprem| requires an identical :ref:`gen-key` file be stored on both
+  servers running |onprem| and uses the file to encrypt data at rest in
+  the |application| Database and Backup Database.
+
+  Use ``scp`` to copy the ``gen.key`` file from the ``/etc/mongodb-mms/``
+  directory on **server2** to the ``/etc/mongodb-mms/`` directory on
+  **server2**. You must copy the ``gen.key`` file before starting |onprem|
+  on **server2**.
+---
+title: "Configure the Backup Database."
+stepnum: 8
+level: 4
+source:
+  file: steps-source-install-onprem.yaml
+  ref: configure-backup-database-uri
 ...

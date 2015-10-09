@@ -4,37 +4,44 @@
 
 .. default-domain:: mongodb
 
-An |onprem| installation consists of the :ref:`mms-application-package` and
-:ref:`backup-daemon`. Each component requires a
-separate dedicated MongoDB database to hold operational data.
+An |onprem| installation includes servers running |onprem| and servers
+hosting dedicated MongoDB databases for storing application data and
+snapshots.
 
 Network Diagram
 ---------------
 
 .. include:: /images/opsmanager-network-diagram-automation.rst
 
+|onprem|
+--------
+
+The |onprem| installation package consists of the :ref:`application` and
+:ref:`backup-daemon`. Each requires a separate dedicated MongoDB database
+to hold operational data.
+
 .. _mms-http-service:
 .. _application:
 .. _mms-application-package:
 
 |application|
--------------
+~~~~~~~~~~~~~
 
-The front-end |application| contains the UI the end user interacts with, as
-well as the HTTP service used by the Monitoring Agent and Backup Agent
-to transmit data to and from |mms|. The components are stateless and start
+The |application| contains the UI the end user interacts with and
+the HTTP service used by the Monitoring Agent and Backup Agent
+to transmit data to and from |onprem|. The components are stateless and start
 automatically when the |application| starts.
 Multiple instances of the |application| can run as
 long as each instance has the same configuration. Users and agents can
 interact with any instance.
 
 The |http-service| runs on port ``8080`` by default and
-contains the web interface for managing |mms| users, monitoring of
+contains the web interface for managing |onprem| users, monitoring of
 MongoDB servers, and managing those server’s backups. Users can sign
 up, create new accounts and groups, as well as join an existing
 group.
 
-The |onprem| agents use the |http-service| to transmit application and
+The |onprem| agents use the HTTP service to transmit application and
 backup data and to retrieve configuration information. The service exposes
 an endpoint that reports on the state of |onprem| and its connections to
 the :ref:`mms-application-database` and the :ref:`backup-database`. See
@@ -43,7 +50,7 @@ the :ref:`mms-application-database` and the :ref:`backup-database`. See
 .. _backup-daemon:
 
 Backup Daemon
--------------
+~~~~~~~~~~~~~
 
 The Backup Daemon manages both the local copies of the backed-up databases
 and each backup's snapshots. The daemon does scheduled work based on data
@@ -77,11 +84,11 @@ The Backup Daemon exposes a health-check endpoint. See
 Dedicated MongoDB Databases for Operational Data
 ------------------------------------------------
 
-|mms| uses dedicated MongoDB databases to store the |application|'s
+|onprem| uses dedicated MongoDB databases to store the |application|'s
 monitoring data and the Backup Daemon's snapshots. To ensure redundancy
 and high availability, the backing databases
 run as :term:`replica sets <replica set>`. The
-replica sets host **only** |mms| data. You must :doc:`provision the
+replica sets host **only** |onprem| data. You must :doc:`provision the
 replica sets </tutorial/prepare-backing-mongodb-instances>` before
 installing |onprem|.
 
@@ -91,11 +98,11 @@ installing |onprem|.
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This database contains application metadata used by the 
-:ref:`mms-application-package`. The database stores:
+:ref:`application`. The database stores:
 
 - Monitoring data collected from Monitoring Agents.
 
-- Metadata for |mms| users, groups, hosts, monitoring data, and backup
+- Metadata for |onprem| users, groups, hosts, monitoring data, and backup
   state.
 
 For topology and specifications, see
@@ -118,10 +125,6 @@ sizing needs:
 
 - The :term:`Oplog Store Database`, which stores oplog entries the Backup
   Daemon will apply to its local copies of your backed-up deployments.
-
-- The :term:`Sync Store Database`, which stores temporary backup
-  information when you start a new backup. The Backup Daemon creates its
-  local backup by performing an initial sync using this data.
 
 The databases must run on a dedicated MongoDB deployment that holds no
 other data. For production, configure the MongoDB deployment as a replica
