@@ -4,11 +4,6 @@ $text
 
 .. default-domain:: mongodb
 
-.. admonition:: New Features in MongoDB 3.2
-
-   In MongoDB 3.2, the :query:`$text` operator adds support for case
-   sensitive text search of the Latin alphabet ``[A-z]``.
-
 Definition
 ----------
 
@@ -18,9 +13,19 @@ Definition
    indexed with a :doc:`text index </core/index-text>`. A
    :query:`$text` expression has the following syntax:
 
+   .. versionchanged:: 3.2
+
    .. code-block:: javascript
 
-      { $text: { $search: <string>, $language: <string>, $caseSensitive: <boolean> } }
+      {
+        $text: 
+          {
+            $search: <string>,
+            $language: <string>,
+            $caseSensitive: <boolean>,
+            $diacriticSensitive: <boolean>
+          }
+      }
 
    The :query:`$text` operator accepts a text query document with the
    following fields:
@@ -28,13 +33,7 @@ Definition
    .. |object-behavior| replace:: :ref:`text-query-operator-behavior`
    .. |text-obj| replace:: text search
 
-   .. only:: website
-
-      .. include:: /includes/apiargs/query-text-field.rst
-
-   .. only:: latex
-
-      .. include:: /includes/text-operator-param-table-for-pdf.rst
+   .. include:: /includes/apiargs/query-text-field.rst
 
    The :query:`$text` operator, by default, does *not* return results
    sorted in terms of the results' scores. For more information on
@@ -64,6 +63,11 @@ Restrictions
 
 - .. include:: /includes/fact-special-indexes-and-text.rst
 
+If using the :query:`$text` operator in aggregation, the following
+restrictions also apply.
+
+.. include:: /includes/list-text-search-restrictions-in-agg.rst
+
 .. |text-object| replace:: :query:`$text`
 .. |meta-object| replace:: :projection:`$meta` projection operator
 .. |sort-object| replace:: :method:`~cursor.sort()` method
@@ -73,7 +77,9 @@ Restrictions
 
 In the ``$search`` field, specify a string of words that the
 :query:`text` operator parses and uses to query the :doc:`text index
-</core/index-text>`. The :query:`text` operator treats most punctuation
+</core/index-text>`. 
+
+The :query:`text` operator treats most punctuation
 in the string as delimiters, except a hyphen-minus (``-``) that negates term or
 an escaped double quotes ``\"`` that specifies a phrase.
 
@@ -138,34 +144,132 @@ as ``the`` and ``and`` in English.
 Stemmed Words
 `````````````
 
-For case insensitive text searches, the :query:`$text` operator matches
-on the complete *stemmed* word. So if a document field contains the
-word ``blueberry``, a search on the term ``blue`` will not match.
-However, ``blueberry`` or ``blueberries`` will match.
+For case insensitive and diacritic insensitive text searches, the
+:query:`$text` operator matches on the complete *stemmed* word. So if a
+document field contains the word ``blueberry``, a search on the term
+``blue`` will not match. However, ``blueberry`` or ``blueberries`` will
+match.
 
-For :ref:`case sensitive <text-case-sensitivity>` search, the
-:query:`$text` operator matches on the exact word.
+.. _case-sensitivity-and-stemming:
 
-.. _text-case-sensitivity:
+Case Sensitive Search and Stemmed Words
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Case Sensitivity
-````````````````
+For :ref:`case sensitive <text-operator-case-sensitivity>` search (i.e.
+``$caseSensitive: true``), if the suffix stem contains uppercase
+letters, the :query:`$text` operator matches on the exact word.
 
-For the Latin alphabet, the :query:`$text` operator, by default, is case
-insensitive for letters without diacritics; i.e. case insensitive for
-``[A-z]``. For all other characters, including letters with
-diacritics, the :query:`$text` operator treats them as distinct.
+.. _diacritic-sensitivity-and-stemming:
 
-.. versionadded:: 3.2
+Diacritic Sensitive Search and Stemmed Words
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   To enable case sensitive search for the Latin alphabet, specify
-   ``$caseSensitive: true``. When specifying ``$caseSensitive: true``, the
-   :query:`$text` operator first searches the ``text`` index, which is
-   case insensitive for the Latin alphabet. Then, to return just the
-   documents that match the case of the search terms, the
-   :query:`$text` query operation includes an additional stage to
-   filter out the documents that do not match the specified case.
-   Specifying ``$caseSensitive: true`` may impact performance.
+For :ref:`diacritic sensitive <text-operator-diacritic-sensitivity>`
+search (i.e. ``$diacriticSensitive: true``), if the suffix stem
+contains the diacritic mark or marks, the :query:`$text` operator
+matches on the exact word.
+
+.. _text-operator-case-sensitivity:
+
+Case Insensitivity
+~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+The :query:`$text` operator defaults to the case insensitivity of the
+:doc:`text </core/index-text>` index:
+
+- The :ref:`version 3 text index <text-index-case-insensitivity>` is
+  case insensitive for Latin characters with or without diacritics and
+  characters from non-Latin alphabets, such as the Cyrillic alphabet.
+  See :ref:`text <text-index-case-insensitivity>` index for details.
+
+- Earlier versions of the ``text`` index are case insensitive for Latin
+  characters without diacritic marks; i.e. for ``[A-z]``.
+
+``$caseSensitive`` Option
+`````````````````````````
+
+To support case sensitive search where the ``text`` index is case
+insensitive, specify ``$caseSensitive: true``.
+
+Case Sensitive Search Process
+`````````````````````````````
+
+When performing a case sensitive search (``$caseSensitive: true``)
+where the ``text`` index is case insensitive, the :query:`$text`
+operator:
+
+- First searches the ``text`` index for case insensitive and diacritic
+  matches.
+
+- Then, to return just the documents that match the case of the search
+  terms, the :query:`$text` query operation includes an additional
+  stage to filter out the documents that do not match the specified
+  case.
+
+For case sensitive search (i.e. ``$caseSensitive: true``), if
+the suffix stem contains uppercase letters, the :query:`$text` operator
+matches on the exact word.
+
+Specifying ``$caseSensitive: true`` may impact performance.
+
+.. seealso:: 
+   :ref:`match-operation-stemmed-words`
+
+.. _text-operator-diacritic-sensitivity:
+
+Diacritic Insensitivity
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+The :query:`$text` operator defaults to the diacritic insensitivity of
+the :doc:`text </core/index-text>` index:
+
+- The :ref:`version 3 text index <text-index-diacritic-insensitivity>` is
+  diacritic insensitive. That is, the index does not distinguish
+  between characters that contain diacritical marks and their
+  non-marked counterpart, such as ``é``, ``ê``, and ``e``.
+
+- Earlier versions of the ``text`` index are diacritic sensitive.
+
+``$diacriticSensitive`` Option
+``````````````````````````````
+
+To support diacritic sensitive text search against the version 3
+``text`` index, specify ``$diacriticSensitive: true``.
+
+Text searches against earlier versions of the ``text`` index are
+inherently diacritic sensitive and cannot be diacritic insensitive. As
+such, the ``$diacriticSensitive`` option for the :query:`$text`
+operator has no effect with earlier versions of the ``text`` index.
+
+Diacritic Sensitive Search Process
+``````````````````````````````````
+
+To perform a diacritic sensitive text search (``$diacriticSensitive:
+true``) against a version 3 ``text`` index, the :query:`$text` operator:
+
+- First searches the ``text`` index, which is diacritic insensitive.
+
+- Then, to return just the documents that match the diacritic marked
+  characters of the search terms, the :query:`$text` query operation
+  includes an additional stage to filter out the documents that do not
+  match.
+
+Specifying ``$diacriticSensitive: true`` may impact performance.
+
+To perform a diacritic sensitive search against an earlier version of
+the ``text`` index, the :query:`$text` operator searches the ``text``
+index which is diacritic sensitive.
+
+For diacritic sensitive search, if the suffix stem contains the
+diacritic mark or marks, the :query:`$text` operator matches on the
+exact word.
+
+.. seealso::
+   :ref:`match-operation-stemmed-words`
 
 .. _text-operator-text-score:
 
@@ -179,24 +283,52 @@ Text Score
 Examples
 --------
 
-The following examples assume a collection ``articles`` that has a text
-index on the field ``subject``:
+The following examples assume a collection ``articles`` that has a
+:doc:`version 3 text </core/index-text>` index on the field ``subject``:
 
 .. code-block:: javascript
 
    db.articles.createIndex( { subject: "text" } )
 
+Populate the collection with the following documents:
+
+.. code-block:: javascript
+
+   db.articles.insert(
+      [
+        { _id: 1, subject: "coffee", author: "xyz", views: 50 },
+        { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
+        { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
+        { _id: 4, subject: "baking", author: "xyz", views: 100 },
+        { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
+        { _id: 6, subject: "Сырники", author: "jkl", views: 80 },
+        { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
+        { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
+      ]
+   )
+
 Search for a Single Word
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following query searches for the term ``coffee``:
+The following query specifies a ``$search`` string of ``coffee``:
 
 .. code-block:: javascript
 
    db.articles.find( { $text: { $search: "coffee" } } )
 
-This query returns documents that contain the term ``coffee`` in the
-indexed ``subject`` field.
+This query returns the documents that contain the term ``coffee`` in the
+indexed ``subject`` field, or more precisely, the stemmed version of
+the word:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
+   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+
+.. seealso::
+   :ref:`text-operator-case-sensitivity`,
+   :ref:`match-operation-stemmed-words`
 
 Match Any of the Search Terms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,28 +337,45 @@ If the search string is a space-delimited string, :query:`$text`
 operator performs a logical ``OR`` search on each term and returns
 documents that contains any of the terms.
 
-The following query searches specifies a ``$search`` string of three
-terms delimited by space, ``"bake coffee cake"``:
+The following query specifies a ``$search`` string of three terms
+delimited by space, ``"bake coffee cake"``:
 
 .. code-block:: javascript
 
    db.articles.find( { $text: { $search: "bake coffee cake" } } )
 
 This query returns documents that contain either ``bake`` **or**
-``coffee`` **or** ``cake`` in the indexed ``subject`` field.
+``coffee`` **or** ``cake`` in the indexed ``subject`` field, or more
+precisely, the stemmed version of these words:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
+   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90 }
+   { "_id" : 4, "subject" : "baking", "author" : "xyz", "views" : 100 }
+
+.. seealso:: 
+   :ref:`text-operator-case-sensitivity`,
+   :ref:`match-operation-stemmed-words`
 
 Search for a Phrase
 ~~~~~~~~~~~~~~~~~~~
 
 To match the exact phrase as a single term, escape the quotes.
 
-The following query searches for the phrase ``coffee cake``:
+The following query searches for the phrase ``coffee shop``:
 
 .. code-block:: javascript
 
-   db.articles.find( { $text: { $search: "\"coffee cake\"" } } )
+   db.articles.find( { $text: { $search: "\"coffee shop\"" } } )
 
-This query returns documents that contain the phrase ``coffee cake``.
+This query returns documents that contain the phrase ``coffee shop``:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
 
 .. seealso:: :ref:`text-operator-phrases`
 
@@ -238,13 +387,23 @@ you negate a term, the :query:`$text` operator will exclude the
 documents that contain those terms from the results.
 
 The following example searches for documents that contain the words
-``bake`` or ``coffee`` but do **not** contain the term ``cake``:
+``coffee`` but do **not** contain the term ``shop``, or more precisely
+the stemmed version of the words:
 
 .. code-block:: javascript
 
-   db.articles.find( { $text: { $search: "bake coffee -cake" } } )
+   db.articles.find( { $text: { $search: "coffee -shop" } } )
 
-.. seealso:: :ref:`text-operator-term-negation`
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
+   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+
+.. seealso:: 
+   :ref:`text-operator-term-negation`,
+   :ref:`match-operation-stemmed-words`
 
 Search a Different Language
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,59 +423,89 @@ that determines the tokenization, stemming, and stop words:
       { $text: { $search: "leche", $language: "es" } }
    )
 
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+
 The :query:`$text` expression can also accept the language by name,
 ``spanish``. See :ref:`text-search-languages` for the supported
 languages.
 
-Perform Case Sensitive Search
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. seealso:: :ref:`text-operator-case-sensitivity`
 
-For the Latin alphabet, the :query:`$text` operator is case insensitive
-for characters without diacritics by default; i.e. case insensitive for
-``[A-z]``. For all other characters, the :query:`$text` operator treats
-them as distinct.
+Case and Diacritic Insensitive Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 3.2
 
-   Starting in MongoDB 3.2, the :query:`$text` operator can perform case
-   sensitive searches for the Latin alphabet ``[A-z]``. To enable case
-   sensitive search for the Latin alphabet, specify ``$caseSensitive:
-   true``. Specifying ``$caseSensitive: true`` may impact performance.
+The :query:`$text` operator defers to the case and diacritic
+insensitivity of the ``text`` index. The version 3 ``text`` index is
+diacritic insensitive and expands its case insensitivity to include the
+Cyrillic alphabet as well as characters with diacritics. For details,
+see :ref:`text Index Case Insensitivity
+<text-index-case-insensitivity>` and :ref:`text Index Diacritic
+Insensitivity <text-index-diacritic-insensitivity>`.
+
+The following query performs a case and diacritic insensitive text
+search for the terms ``сы́рники`` or ``CAFÉS``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "сы́рники CAFÉS" } } )
+
+Using the version 3 ``text`` index, the query matches the following
+documents.
+
+.. code-block:: javascript
+
+   { "_id" : 6, "subject" : "Сырники", "author" : "jkl", "views" : 80 }
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+
+With the previous versions of the ``text`` index, the query would not
+match any document.
+
+.. seealso:: 
+   :ref:`text-operator-case-sensitivity`,
+   :ref:`text-operator-diacritic-sensitivity`,
+   :ref:`match-operation-stemmed-words`,
+   :doc:`/core/index-text`
+
+.. _text-operator-case-sensitive-search:
+
+Perform Case Sensitive Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+To enable case sensitive search, specify ``$caseSensitive: true``.
+Specifying ``$caseSensitive: true`` may impact performance.
 
 Case Sensitive Search for a Term
 ````````````````````````````````
 
-If the ``articles`` collection contains the following documents:
-
-.. code-block:: json
-
-   { "_id" : 1, "subject" : "coFFeE and cake" }
-   { "_id" : 2, "subject" : "COFFEE and TEA" }
-   { "_id" : 3, "subject" : "coffee and Milk" }
-
 The following query performs a case sensitive search for the term
-``coFFeE``:
+``Coffee``:
 
 .. code-block:: javascript
 
-   db.articles.find( { $text: { $search: "coFFeE", $caseSensitive: true } } )
+   db.articles.find( { $text: { $search: "Coffee", $caseSensitive: true } } )
 
 The search matches just the document:
 
 .. code-block:: json
 
-   { "_id" : 1, "subject" : "coFFeE and cake" }
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+
+.. seealso:: 
+   :ref:`text-operator-case-sensitivity`,
+   :ref:`case-sensitivity-and-stemming`
 
 Case Sensitive Search for a Phrase
 ``````````````````````````````````
-
-If the ``articles`` collection contains the following documents:
-
-.. code-block:: json
-
-   { "_id" : 4, "subject" : "café con leche" }
-   { "_id" : 5, "subject" : "Café Con Leche" }
-   { "_id" : 6, "subject" : "Café con leche" }
 
 The following query performs a case sensitive search for the phrase
 ``Café Con Leche``:
@@ -324,23 +513,18 @@ The following query performs a case sensitive search for the phrase
 .. code-block:: javascript
 
    db.articles.find( { 
-      $text: { $search: "\"Café Con Leche\"", $language: "es", $caseSensitive: true }
+      $text: { $search: "\"Café Con Leche\"", $caseSensitive: true }
    } )
 
 The search matches just the document:
 
 .. code-block:: json
 
-   { "_id" : 5, "subject" : "Café Con Leche" }
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
 
-.. note::
-
-   - For ``$caseSensitive: true``, the :query:`$text` operator performs
-     an exact match on the phrase when filtering out documents.
-
-   - Regardless of the ``$caseSensitive`` option, the :query:`$text`
-     operator, as well as the :doc:`text index </core/index-text>`,
-     treats the character with a diacritic ``é`` as distinct from ``É``.
+.. seealso::
+   :ref:`case-sensitivity-and-stemming`,
+   :ref:`text-operator-case-sensitivity`
 
 Case Sensitivity with Negated Term
 ``````````````````````````````````
@@ -351,20 +535,82 @@ documents that contain those terms from the results. You can also
 specify case sensitivity for negated terms.
 
 The following example performs a case sensitive search for documents
-that contain the words ``bake`` or ``coffee`` but do **not** contain
-the term ``milk``:
+that contain the word ``Coffee`` but do **not** contain the lower-case
+term ``shop``, or more precisely the stemmed version of the words:
 
 .. code-block:: javascript
 
-   db.articles.find( { $text: { $search: "bake coffee -milk", $caseSensitive: true } } )
+   db.articles.find( { $text: { $search: "Coffee -shop", $caseSensitive: true } } )
 
 The query matches the following document:
 
 .. code-block:: json
 
-   { "_id" : 3, "subject" : "coffee and Milk" }
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg" }
 
-.. seealso:: :ref:`text-operator-term-negation`
+.. seealso::
+   :ref:`case-sensitivity-and-stemming`,
+   :ref:`text-operator-term-negation`
+
+Diacritic Sensitive Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+To enable diacritic sensitive search against a version 3 :doc:`text
+</core/index-text>` index, specify ``$diacriticSensitive: true``.
+Specifying ``$diacriticSensitive: true`` may impact performance.
+
+Diacritic Sensitive Search for a Term
+``````````````````````````````````````
+
+The following query performs a diacritic sensitive text search on the
+term ``CAFÉ``, or more precisely the stemmed version of the word:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "CAFÉ", $diacriticSensitive: true } } )
+
+The query only matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc" }
+
+.. seealso::
+   :ref:`diacritic-sensitivity-and-stemming`,
+   :ref:`text-operator-diacritic-sensitivity`,
+   :ref:`text-operator-case-sensitivity`
+
+   
+Diacritic Sensitivity with Negated Term
+```````````````````````````````````````
+
+The ``$diacriticSensitive`` option applies also to negated terms. A
+negated term is a term that is prefixed by a minus sign ``-``. If you
+negate a term, the :query:`$text` operator will exclude the documents that
+contain those terms from the results.
+
+The following query performs a diacritic sensitive text search for
+document that contains the term ``leches`` but not the term ``cafés``,
+or more precisely the stemmed version of the words:
+
+.. code-block:: javascript
+
+   db.articles.find(
+     { $text: { $search: "leches -cafés", $diacriticSensitive: true } }
+   )
+
+The query matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz" }
+
+.. seealso:: 
+   :ref:`diacritic-sensitivity-and-stemming`,
+   :ref:`text-operator-diacritic-sensitivity`,
+   :ref:`text-operator-case-sensitivity`
 
 .. _ex-return-text-search-score:
 
@@ -381,9 +627,9 @@ score assigned to each matching document:
       { score: { $meta: "textScore" } }
    )
 
-In the result set, the returned documents includes an *additional*
-field ``score`` that contains the document's score associated with the
-text search. [#meta-aggregation]_
+The returned document includes an *additional* field ``score`` that
+contains the document's score associated with the text search.
+[#meta-aggregation]_
 
 .. seealso:: :ref:`text-operator-text-score`
 
@@ -394,38 +640,38 @@ Sort by Text Search Score
 
 To sort by the text score, include the **same** :projection:`$meta`
 expression in **both** the projection document and the sort expression.
-[#meta-aggregation]_ The following query searches for the term ``cake``
+[#meta-aggregation]_ The following query searches for the term ``coffee``
 and sorts the results by the descending score:
 
 .. code-block:: javascript
 
    db.articles.find(
-      { $text: { $search: "cake" } },
+      { $text: { $search: "coffee" } },
       { score: { $meta: "textScore" } }
    ).sort( { score: { $meta: "textScore" } } )
 
-In the result set, the returned documents includes an additional field
-``score`` that contains the document's score associated with the text
-search.
+The query returns the matching documents sorted by descending score.
 
 .. seealso:: :ref:`text-operator-text-score`
 
-.. _ex-sort-limit-three:
+.. _ex-sort-limit-two:
 
-Return Top 3 Matching Documents
+Return Top 2 Matching Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the :method:`~cursor.limit()` method in conjunction with a
-:method:`~cursor.sort()` to return the top three matching documents.
-The following query searches for the term ``cake`` and sorts the
-results by the descending score:
+:method:`~cursor.sort()` to return the top ``n`` matching documents.
+
+The following query searches for the term ``coffee`` and sorts the
+results by the descending score, limiting the results to the top two
+matching documents:
 
 .. code-block:: javascript
 
    db.articles.find(
-      { $text: { $search: "cake" } },
+      { $text: { $search: "coffee" } },
       { score: { $meta: "textScore" } }
-   ).sort( { score: { $meta: "textScore" } } ).limit(3)
+   ).sort( { score: { $meta: "textScore" } } ).limit(2)
 
 .. seealso:: :ref:`text-operator-text-score`
 
@@ -434,15 +680,15 @@ results by the descending score:
 Text Search with Additional Query and Sort Expressions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following query searches for documents with status equal to ``"A"``
-that contain the terms ``coffee`` or ``cake`` in the indexed field
-``subject`` and specifies a sort order of ascending date, descending
-text score:
+The following query searches for documents where the ``author`` equals
+``"xyz"`` and the indexed field ``subject`` contains the terms
+``coffee`` or ``bake``. The operation also specifies a sort order of
+ascending ``_id``, then descending text search score:
 
 .. code-block:: javascript
 
    db.articles.find(
-      { status: "A", $text: { $search: "coffee cake" } },
+      { author: "xyz", $text: { $search: "coffee bake" } },
       { score: { $meta: "textScore" } }
    ).sort( { date: 1, score: { $meta: "textScore" } } )
 
