@@ -172,7 +172,8 @@ latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
 latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
-    'papersize': 'letterpaper'
+    'papersize': 'letterpaper',
+    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2015 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
 }
 
 latex_paper_size = 'letter'
