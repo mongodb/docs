@@ -1,3 +1,10 @@
+Monitoring Agent ``3.9.1.238``
+------------------------------
+
+*Released 2015-10-14*
+
+- Upgraded build to Go 1.5.1.
+
 Monitoring Agent ``3.9.0.233``
 ------------------------------
 
