@@ -1,6 +1,6 @@
-- Chrome 8 and greater
+- Chrome latest stable
 
-- Firefox 12 and greater
+- Firefox latest stable
 
 - Internet Explorer 10 (IE10) and greater
 
