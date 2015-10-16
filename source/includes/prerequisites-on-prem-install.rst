@@ -13,8 +13,9 @@ Before you install |onprem|, you must:
      :manual:`MongoDB Production Notes
      </administration/production-notes>`, can lead to production failure.
 
-- Deploy the |application| Database and Backup Database. The Backup
-  Database is required only if you run the Backup Daemon. The databases
-  require dedicated MongoDB instances. Do **not** use MongoDB
-  installations that store other data. See
+- Deploy the |application| Database and optional Backup Database. The
+  databases require dedicated MongoDB instances. Do **not** use MongoDB
+  installations that store other data. The Backup Database is required
+  only if you run the Backup Daemon and store snapshots and oplog entries
+  through |onprem|. To deploy the databases, see
   :doc:`/tutorial/prepare-backing-mongodb-instances`.
