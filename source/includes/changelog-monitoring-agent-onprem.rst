@@ -1,3 +1,12 @@
+.. _monitoring-3.7.1.227:
+
+Monitoring Agent 3.7.1.227
+--------------------------
+
+*Released with Ops Manager 1.8.2 on 2015-10-20*
+
+- Fixed potential memory leak when profiler is enabled.
+
 .. _monitoring-3.7.0.212:
 
 Monitoring Agent 3.7.0.212

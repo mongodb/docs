@@ -1,3 +1,13 @@
+.. _backup-3.4.2.314:
+
+Backup Agent ``3.4.2.314``
+--------------------------
+
+*Released with Ops Manager 1.8.2 on 2015-10-20*
+
+- Fixed issue where initial syncs would fail if a namespace was deleted
+  during the sync.
+
 .. _backup-3.3.1.193:
 
 Backup Agent ``3.4.1.283``
