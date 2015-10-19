@@ -191,7 +191,8 @@ latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
 latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
-    'papersize': 'letterpaper'
+    'papersize': 'letterpaper',
+    'tableofcontents': '\\clearpage\\textcopyright{ MongoDB, Inc. 2008 - 2015 }\\clearpage\\tableofcontents'
 }
 
 latex_logo = None
