@@ -11,17 +11,82 @@ Overview
 monitoring and management. The wizard prompts you to install an Automation
 Agent if none exists, and then prompts you to identify the :term:`cluster
 <sharded cluster>`, :term:`replica set`, or :term:`standalone` to add. You
-can choose to add the deployment to both :ref:`monitoring
+can choose to add the deployment to :ref:`monitoring
+<monitoring-functional-overview>` or to both :ref:`monitoring
 <monitoring-functional-overview>` and :ref:`automation
-<automation>`, or just to monitoring.
+<automation>`.
+
+Considerations
+--------------
 
 Authentication
 ~~~~~~~~~~~~~~
 
-If your deployment requires authentication you must provide the necessary
+If your deployment requires authentication, you must provide the necessary
 credentials when adding the deployment to |mms|. For information on
 configuring authentication, see
 :doc:`/tutorial/edit-host-authentication-credentials`.
+
+.. _automation-updated-security-settings:
+
+Automation and Updated Security Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Adding to automation may affect the security settings of the |mms| group
+or the MongoDB process.
+
+- Enables |mms| Group Security Setting.
+    If the MongoDB process requires authentication but the |mms| group
+    does not have authentication settings enabled, upon successful
+    addition of the MongoDB process to automation, the group's security
+    settings will have the security settings of the newly imported
+    deployment.
+
+    .. note::
+
+       The import process only enables the |mms| group's security setting
+       if the group's security setting is currently not enabled. If the
+       group's security setting is currently enabled, the import process
+       does not disable the group's security setting or change its
+       enabled authentication mechanism.
+
+- Updates MongoDB Users.
+    If the imported MongoDB process already has ``mms-backup-agent`` and
+    ``mms-monitoring-agent`` users in the ``admin`` database, and the
+    group's authentication settings are already enabled or will become
+    enabled by the import process, the roles assigned to
+    ``mms-backup-agent`` and ``mms-monitoring-agent`` will be overriden
+    with the roles designated by the group.
+
+- Updates |mms| Group's MongoDB Users.
+    Regardless of the group's security setting, if the MongoDB process to
+    import contains users, the import process will add these users to the
+    group and apply the updated list of users to *all* processes in the
+    group's deployment. During the import process, you can remove the
+    users from importing into the group while allowing them to remain in
+    an unmanaged state in the database. Only import the users you want
+    managed since once imported, users cannot be "forgotten".
+
+- Updates |mms| Group's MongoDB User Roles.
+    If the MongoDB process contains user-defined roles, the import
+    process will add these roles to the group. You can only remove these
+    roles after the import process completes. That is, you can only
+    remove roles from the group and all its managed processes as a whole.
+
+    .. note::
+
+       Custom roles are fully managed by Ops Manager, and the Automation
+       agent will remove custom roles manually added to a database.
+
+- Applies to All Deployments in Group.
+   The group's updated security settings apply to *all* deployments in
+   the group and will restart all deployments in the group with the new
+   setting, including the imported process. All processes will use the
+   |mms| automation keyfile upon restart.
+
+   If the existing deployment or deployments in the group require a
+   different security profile from the imported process, create a new
+   group to import the MongoDB process.
 
 Unique Replica Set Names
 ~~~~~~~~~~~~~~~~~~~~~~~~
