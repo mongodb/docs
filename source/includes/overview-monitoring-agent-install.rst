@@ -8,13 +8,6 @@ between the agent and |mms|, and communications between the agent and
 |mms| are encrypted. A single agent can collect data from
 multiple MongoDB processes.
 
-.. only:: web
-
-   Consider the following diagram of an example
-   deployment:
-
-   .. include:: /images/mms-deployment.rst
-
 .. only:: onprem
 
    This tutorial will guide you through the steps necessary
