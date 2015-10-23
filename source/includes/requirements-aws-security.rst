@@ -4,7 +4,7 @@ configured with the following inbound rules:
 - An SSH rule on the ``ssh`` port, usually port ``22``, that allows traffic from
   all IPs. This is to provide administrative access.
 
-- A custom TCP rule that allows connection on ports ``8080`` and ``8081`` on
+- A custom TCP rule that allows connection on port ``8080`` on
   the server that runs the |application|. This lets users connect to |mms|.
 
 - A custom TCP rule that allows traffic on all MongoDB ports from any member

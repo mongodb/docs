@@ -1,77 +1,114 @@
-title: Shutdown the |mms| server and take a backup of your existing configuration and logs.
 stepnum: 1
-ref: backup-existing
+level: 4
+source:
+  file: steps-source-upgrade-onprem.yaml
+  ref: backup
+---
+title: "Stop all existing |onprem| services and Backup Daemon services."
+stepnum: 2
+level: 4
+ref: shutdown
+action:
+  - pre: |
+      To shut down the |onprem| Application, issue the following:
+    language: sh
+    code: |
+      <install_dir>/bin/mongodb-mms stop
+  - pre: |
+      To shut down the Backup Daemon, issue the following:
+    language: sh
+    code: |
+      <install_dir>/bin/mongodb-mms-backup-daemon stop
+---
+title: "On each |onprem| server, back up your existing configuration files and logs to a directory other than the install directory."
+stepnum: 3
+level: 4
+ref: create-backups
+content: |
+
+  .. important::
+
+     You will need to access the backed-up ``<install_dir>/conf/conf-mms.properties``
+     file later in this procedure.
+
 action:
   pre: |
-    For example:
+    The following example backs up the configuration files and logs to the
+    server's home directory:
   language: sh
   code: |
-    <install_dir>/bin/mongodb-mms stop
     cp -a <install_dir>/conf ~/mms_conf.backup
     cp -a <install_dir>/logs ~/mms_logs.backup
 ---
-title: "If you are running |mms| Backup, shutdown the |mms| Backup Daemon."
-stepnum: 2
-ref: shutdown-daemon
-action:
-  pre: |
-    The daemon may be installed on a different server. It is *critical*
-    that this is also shut down. To shut down, issue a command similar to
-    the following:
-  language: sh
-  code: |
-    <install_dir>/bin/mongodb-mms-backup-daemon stop
----
-title: "Remove your existing |mms| server installation entirely and extract the latest release in its place."
-stepnum: 3
-ref: remove
-action:
-  pre: |
-    For example:
-  language: sh
-  code: |
-    cd <install_dir>/../
-    rm -rf <install_dir>
-    tar -zxf -C . /path/to/mongodb-mms-<version>.x86_64.tar.gz
----
-title: "Compare and reconcile any changes in :doc:`configuration </reference/configuration>` between versions."
+title: "On each Backup Daemon server, back up the configuration file and then uninstall the Backup Daemon."
 stepnum: 4
-ref: compare
-action:
-  pre: |
-    For example:
-  language: sh
-  code: |
-    diff -u ~/mms_conf.backup/conf-mms.properties <install_dir>/conf/conf-mms.properties
-    diff -u ~/mms_conf.backup/mms.conf <install_dir>/conf/mms.conf
----
-title: "Edit your configuration to resolve any conflicts between the old and new versions."
-stepnum: 5
-ref: edit
+level: 4
+ref: uninstall-daemon
 content: |
-  Make :doc:`configuration </reference/configuration>` changes as
-  appropriate. Changes to ``mms.centralUri``, email
-  addresses, and MongoDB are the most common configuration changes.
+  Do the following on **every server** where the Backup Daemon is installed:
+
+  a. Create a backup copy of each ``conf-daemon.properties`` file to preserve the existing configuration.
+
+  b. Uninstall the Backup Daemon package.
+
 ---
-title: "Restart the |mms| server."
+stepnum: 5
+level: 4
+# Note: This step is borrowed from the archive install procedure, not from steps-source-upgrade.
+source:
+  file: steps-install-on-prem-from-archive.yaml
+  ref: download
+---
+title: "Install the |onprem| package on each server being used for |onprem|."
 stepnum: 6
-ref: restart
+level: 4
+ref: install
+content: |
+  a. On servers where there is an existing |onprem| Application or Backup Daemon, first remove
+     the existing application or daemon. **Do not remove your backups of the configuration files.**
+
+  b. Navigate to the directory to which to install |onprem|. Extract the archive to that directory:
+
+     .. code-block:: sh
+
+        tar -zxf mongodb-mms-<version>.x86_64.tar.gz
+---
+title: "Copy the connection string to the new properties file."
+stepnum: 7
+level: 4
+ref: connection-string
+content: |
+  Copy the connection string from the backed-up ``conf-mms.properties`` file
+  to the new ``conf-mms.properties`` file. The connection string is found in
+  the :setting:`mongo.mongoUri` field. On servers where there was only a
+  Backup Daemon, copy the connection string from another server's backed-up
+  ``conf-mms.properties`` file.
+---
+title: "Start |onprem| on every server."
+stepnum: 8
+ref: start
+pre: |
+  Issue the following command:
 action:
-  pre: |
-    For example:
   language: sh
   code: |
     <install_dir>/bin/mongodb-mms start
 ---
-stepnum: 7
+stepnum: 9
+level: 4
 source:
-  file: steps-upgrade-on-prem-with-rpm-packages.yaml
-  ref: update
+  file: steps-source-upgrade-onprem.yaml
+  ref: log-in-as-global-owner
 ---
-stepnum: 8
+stepnum: 10
+level: 4
 source:
-  file: steps-upgrade-on-prem-with-rpm-packages.yaml
-  ref: update-daemon
-post: |
-  See :doc:`/tutorial/nav/install-backup-agent` for more information.
+  file: steps-source-upgrade-onprem.yaml
+  ref: configuration
+---
+stepnum: 11
+level: 4
+source:
+  file: steps-source-upgrade-onprem.yaml
+  ref: backup-agent-configuration
 ...

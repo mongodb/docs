@@ -2,20 +2,17 @@
    :widths: 35 65
    :header-rows: 1
 
-   * - Version
+   * - Existing Version
 
-     - Upgrade Patch
+     - Upgrade Path
 
    * - 1.5 or later
 
-     - Use this procedure to upgrade directly to the latest release.
+     - Use this procedure to upgrade directly to the latest version.
 
-   * - 1.3 or 1.4
+   * - 1.4 or earlier
 
-     - 1. Use this procedure first to upgrade to 1.5 or 1.6.
+     - 1. Upgrade to 1.8 using the :v1.8:`upgrade procedure in the v1.8
+          documentation </tutorial/nav/upgrade-application-daemon>`.
 
-       2. Use this procedure again to upgrade to the latest version.
-
-   * - 1.2 or earlier
-
-     - Use :doc:`/tutorial/upgrade-on-prem-version-1_2-and-earlier`.
+       2. Use this procedure to upgrade to the latest version.
