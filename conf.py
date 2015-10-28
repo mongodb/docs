@@ -137,8 +137,8 @@ manual_edition_path = '{0}/{1}/{2}'.format(conf.project.url,
 
 html_theme_options = {
     'branch': conf.git.branches.current,
-    'pdfpath': manual_edition_path + '.pdf',
-    'epubpath': manual_edition_path + '.epub',
+    'pdfpath': manual_edition_path + '-' + conf.git.branches.current + '.pdf',
+    'epubpath': manual_edition_path + '-' + conf.git.branches.current + '.epub',
     'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
@@ -195,9 +195,9 @@ if 'manpages' in conf.system.files.data:
 
 # Bibliographic Dublin Core info.
 epub_title = conf.project.title
-epub_author = u'MongoDB Documentation Project'
+epub_author = u'MongoDB, Inc.'
 epub_publisher = u'MongoDB, Inc.'
-epub_copyright = copyright
+epub_copyright = u'MongoDB, Inc. 2008 - 2015'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
