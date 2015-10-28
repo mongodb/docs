@@ -138,7 +138,7 @@ manual_edition_path = '{0}/{1}/{2}'.format(conf.project.url,
 html_theme_options = {
     'branch': conf.git.branches.current,
     'pdfpath': manual_edition_path + '-' + conf.git.branches.current + '.pdf',
-    'epubpath': manual_edition_path + '-' + conf.git.branches.current + '.epub',
+    'epubpath': manual_edition_path + '.epub',
     'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
