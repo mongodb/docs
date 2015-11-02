@@ -1,3 +1,12 @@
+Backup Agent ``3.9.0.336``
+--------------------------
+
+*Released 2015-11-02*
+
+- Support for streaming initial syncs.
+
+- Support for MongoDB 3.2 clusters with config server replica sets.
+
 Backup Agent ``3.8.1.320``
 --------------------------
 
