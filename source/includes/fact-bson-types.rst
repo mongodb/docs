@@ -19,6 +19,6 @@ JavaScript (with scope)     15       "javascriptWithScope"
 32-bit integer              16       "int"
 Timestamp                   17       "timestamp"
 64-bit integer              18       "long"
-Min key                    -1       "minKey"                  
+Min key                    -1        "minKey"                  
 Max key                    127       "maxKey"
 =======================  ========== ======================  ==================================
