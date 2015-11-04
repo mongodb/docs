@@ -1,0 +1,212 @@
+===========
+readConcern
+===========
+
+.. default-domain:: mongodb
+
+.. versionadded:: 3.2
+
+For the WiredTiger storage engine, MongoDB 3.2 introduces the
+``readConcern`` option for replica sets and replica set shards. The
+``readConcern`` option allows clients to choose a level of isolation
+for their reads. 
+
+``readConcern`` requires MongoDB drivers updated for 3.2.
+
+``readConcern`` Levels
+----------------------
+
+By default, MongoDB uses a ``readConcern`` of ``"local"`` which does not
+guarantee that the read data would not be rolled back.
+
+You can specify a ``readConcern`` of ``"majority"`` to
+read data that has been written to a majority of nodes and thus cannot
+be rolled back. 
+
+To use ``readConcern`` level of :readconcern:`"majority"`, you must start
+the :program:`mongod` instances with
+:option:`--enableMajorityReadConcern` command line option or, if using a
+configuration file, the :setting:`replication.enableMajorityReadConcern`
+setting.
+
+``readConcern`` Option
+----------------------
+
+The ``readConcern`` option takes a document that can specify the
+``level`` of ``readConcern``.
+
+.. code-block:: javascript
+
+   readConcern: { level: <majority|local> }
+
+``level`` Field
+````````````````
+
+Specify either the string ``"majority"`` or ``"local"``.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 90
+
+   * - ``level``
+     - Description
+
+   * - .. readconcern:: "local"
+
+     - Default. The query will return the node's most recent copy of
+       data. Provides no guarantee that the data has been written to a
+       majority of the nodes.
+
+   * - .. readconcern:: "majority"
+
+     - The query will return the node's most recent copy of the data
+       confirmed as having been written to a majority of the nodes.
+
+.. note::
+   The most recent data on a node, regardless of the level, may not
+   reflect the most recent version of the data in the system.
+
+Operations That Support ``readConcern``
+```````````````````````````````````````
+
+The ``readConcern`` is available for the following operations:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+     - Example
+
+   * - :dbcommand:`find`
+
+     - The :dbcommand:`getMore` command uses the ``readConcern`` level
+       specified in the originating ``find`` command.
+
+       The :program:`mongo` shell :method:`~db.collection.find()`
+       method does not support ``readConcern``; however,
+       drivers updated for 3.2 may provide support for
+       ``readConcern`` in their respective ``find`` method. Refer to
+       your specific driver for details.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               find: "restaurants",
+               filter: { rating: { $lt: 5 } },
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :method:`~db.collection.aggregate()`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :method:`db.collection.aggregate()`, you cannot include the
+       :pipeline:`$out` stage.
+
+       .. code-block:: javascript
+
+          db.restaurants.aggregate(
+             [ { $match: { rating: { $lt: 5 } } } ],
+             { readConcern: { level: "majority" } }
+          )
+
+   * - :dbcommand:`aggregate`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :dbcommand:`aggregate`, you cannot include the :pipeline:`$out`
+       stage.
+
+       The :dbcommand:`getMore` command uses the ``readConcern`` level
+       specified in the originating :dbcommand:`aggregate` command.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               aggregate: "restaurants",
+               pipeline: [ { $match: { rating: { $lt: 5 } } } ],
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`distinct`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+                distinct: "restaurants",
+                key: "rating",
+                query: { cuisine: "italian" },
+                readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`count`
+
+     - To use the ``readConcern`` level of ``"majority"`` with
+       :dbcommand:`count`, you must specify a nonempty ``query``
+       condition.
+
+       .. code-block:: javascript
+
+          db.runCommand(
+             {
+               count: "restaurants",
+               query: { rating: { $gte: 4 } },
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`explain`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               explain: { count: "products", query: { quantity: { $gt: 50 } } },
+               verbosity: "queryPlanner",
+               readConcern: { level: "majority" } 
+             }
+          )
+
+   * - :dbcommand:`parallelCollectionScan`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               parallelCollectionScan: "restaurants",
+               numCursors: 5,
+               readConcern: { level: "majority" } 
+             }
+          )
+
+   * - :dbcommand:`geoNear`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               geoNear: "restaurants",
+               near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+               spherical: true,
+               query: {cuisine: "coffee"},
+               readConcern: { level: "majority" }
+             }
+          )
+
+   * - :dbcommand:`geoSearch`
+
+     - .. code-block:: javascript
+
+          db.runCommand(
+             {
+               geoNear: "restaurants",
+               near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+               spherical: true,
+               cuisine: "bakery",
+               readConcern: { level: "majority" }
+             }
+          )
