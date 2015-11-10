@@ -116,6 +116,8 @@ document depend on the type of restore and other factors:
       "methodName" : "HTTP",
       "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
       "expires" : "2014-07-09T18:42:43Z",
+      "expirationHours": 4,
+      "maxDownloads": 1,
       "statusName" : "READY"
     },
     "hashes" : [
@@ -138,29 +140,37 @@ Entity Fields
    * - Name
      - Type
      - Description
+
    * - ``groupId``
      - string
      - ID of the group that owns the restore job.
+
    * - ``clusterId``
      - string
      - ID of the cluster represented by the restore job.
+
    * - ``snapshotId``
      - string
      - ID of the snapshot to restore.
+
    * - ``batchId``
      - string
      - ID of the batch to which this restore job belongs. Only present for
        a restore of a sharded cluster.
+
    * - ``hostId``
      - string
      - ID of the :term:`config server` to which this restore job belongs.
        Only present for a restore of a config server.
+
    * - ``created``
      - timestamp
      - When the restore job was requested.
+
    * - ``timestamp``
      - BSON timestamp
      - Timestamp of the latest oplog entry in the restored snapshot.
+
    * - ``statusName``
      - string
      - Current status of the job. Possible values are:
@@ -173,10 +183,12 @@ Entity Fields
    * - ``pointInTime``
      - boolean
      - Is this job for a point-in-time restore?
+
    * - ``delivery``
      - object
      - Additional details about how the restored snapshot data will be
        delivered.
+
    * - ``delivery.methodName``
      - string
      - How the data will be delivered. Possible values are:
@@ -188,10 +200,22 @@ Entity Fields
      - string
      - The URL from which the restored snapshot data can be downloaded. Only
        present if ``delivery.methodName`` is ``HTTP``.
+
    * - ``delivery.expires``
      - timestamp
      - Date after which the URL will no longer be available. Only present if
        ``delivery.methodName`` is ``HTTP``.
+
+   * - ``delivery.expirationHours``
+     - integer
+     - The number of hours the download URL will be valid once the restore
+       job is complete. Only present if ``delivery.methodName`` is ``HTTP``.
+
+   * - ``delivery.maxDownloads``
+     - integer
+     - The number of times the download URL can be used. This must be
+       ``1`` or greater. Only present if ``delivery.methodName`` is ``HTTP``.
+
    * - ``delivery.statusName``
      - string
      - Current status of the downloadable file. Possible values are:
@@ -216,17 +240,21 @@ Entity Fields
      - string
      - Hostname of the server to which the data should be written for an SCP restore.
        Only present if ``delivery.methodName`` is ``SCP``.
+
    * - ``delivery.port``
      - integer
      - Port to use for SCP. Only present if ``delivery.methodName`` is SCP.
+
    * - ``username``
      - string
      - Username to use for SCP. Only present if ``delivery.methodName`` is SCP.
+
    * - ``password``
      - string
      - Password to use for SCP. If ``delivery.methodName`` is SCP, then you must include
        this field when creating the restore job. However, it will never be exposed when
        a restore job entity is returned.
+
    * - ``passwordTypeName``
      - string
      - Type of authentication to use for SCP. Only present if ``delivery.methodName`` is
@@ -239,6 +267,7 @@ Entity Fields
      - string
      - Target directory to which the data should be written for an SCP restore. Only
        present if ``delivery.methodName`` is ``SCP``.
+
    * - ``hashes``
      - object array
      - If the corresponding ``delivery.url`` has been downloaded, each document
@@ -246,6 +275,7 @@ Entity Fields
        array is present **only after** the file is downloaded. Note that for an
        ``HTTP`` restore, this array will only contain a single object representing
        the hash of the ``.tar.gz`` file.
+
    * - ``hashes.typeName``
      - string
      - The hashing algorithm used to compute the hash value. Possible values are:
@@ -255,6 +285,7 @@ Entity Fields
    * - ``hashes.fileName``
      - string
      - The name of the file that has been hashed.
+
    * - ``hashes.hash``
      - string
      - The hash of the file.
@@ -306,6 +337,8 @@ Get All Restore Jobs
          "methodName" : "HTTP",
          "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f38e4b0a7304e226b3f/8924913772648127956/525ec8394f5e625c80c7404a-rs0-1404854677.tar.gz",
          "expires" : "2014-07-09T18:43:21Z",
+         "expirationHours": 1,
+         "maxDownloads": 1,
          "statusName" : "READY"
        },
        "links" : [ ... ]
@@ -325,6 +358,8 @@ Get All Restore Jobs
          "methodName" : "HTTP",
          "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
          "expires" : "2014-07-09T18:42:43Z",
+         "expirationHours": 1,
+         "maxDownloads": 1,
          "statusName" : "READY"
        },
        "links" : [ ... ]
@@ -357,6 +392,8 @@ Get a Single Restore Job
        "methodName" : "HTTP",
        "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/ae6bc7a8bfdd5a99a0c118c73845dc75/53bd7f13e4b0a7304e226998/2292652411027442213/525ec8394f5e625c80c7404a-rs0-1404897877.tar.gz",
        "expires" : "2014-07-09T18:42:43Z",
+       "expirationHours": 1,
+       "maxDownloads": 1,
        "statusName" : "READY"
      },
      "links" : [ ... ]
@@ -377,7 +414,9 @@ Get a Restore Job for a Config Server
        "expires" : "2015-06-19T21:08:59Z",
        "methodName" : "HTTP",
        "statusName" : "READY",
-       "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/fa16fef25e5753a9ff3a278d6e02f571/558476dbe4b08b5fb379a698/-6653753052034930159/config-0db2ee9eadfbed225a60057abcd4352b-1434744240-558476dbe4b08b5fb379a698.tar.gz"
+       "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/fa16fef25e5753a9ff3a278d6e02f571/558476dbe4b08b5fb379a698/-6653753052034930159/config-0db2ee9eadfbed225a60057abcd4352b-1434744240-558476dbe4b08b5fb379a698.tar.gz",
+       "expirationHours": 4,
+       "maxDownloads": 2
      },
      "groupId" : "558452c9e4b06adf8b239d92",
      "hostId" : "0db2ee9eadfbed225a60057abcd4352b",
