@@ -37,46 +37,47 @@ Always investigate availability interruptions and failures. If a system
 is unrecoverable, replace it and create a new member of the replica set
 as soon as possible to replace the lost redundancy.
 
-All Members of a Replica Set Become Unavailable
------------------------------------------------
+.. [#recovery-window] If an unavailable secondary becomes available
+   while it still has current oplog entries, it can catch up to the
+   latest state of the set using the normal :term:`replication process
+   <sync>`; otherwise, it must perform an :term:`initial sync`.
 
-If all members of a replica set within a shard are unavailable, all data
+All Members of a Shard Become Unavailable
+-----------------------------------------
+
+If all members of a replica set shard are unavailable, all data
 held in that shard is unavailable. However, the data on all other shards
-will remain available, and it's possible to read and write data to the
+will remain available, and it is possible to read and write data to the
 other shards. However, your application must be able to deal with
 partial results, and you should investigate the cause of the
 interruption and attempt to recover the shard as soon as possible.
 
-One or Two Config Servers Become Unavailable
---------------------------------------------
+.. _sharding-config-servers-and-availability:
 
-Three distinct :program:`mongod` instances provide the :doc:`config
-servers </core/sharded-cluster-config-servers>`.
+A Config Server Replica Set Member Become Unavailable
+-----------------------------------------------------
 
-If one or two config servers become unavailable, the cluster's metadata
-becomes *read only*. You can still read and write data from the shards,
-but no :ref:`chunk migration <sharding-balancing>` or :doc:`chunk
-splits </tutorial/split-chunks-in-sharded-cluster>` will occur until
-all three servers are available. Replace the config server as soon as
-possible. If all config databases become unavailable, the cluster can
+.. versionchanged:: 3.2
+
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+:doc:`Replica sets </replication>` provide high availability for the
+config servers. If an unavailable config server is a :term:`primary`,
+then the replica set will :ref:`elect <replica-set-elections>` a new
+primary.
+
+If the replica set config server loses its primary and cannot elect a
+primary, the cluster's metadata becomes *read only*. You can still read
+and write data from the shards, but no :ref:`chunk migration
+<sharding-balancing>` or :doc:`chunk splits
+</tutorial/split-chunks-in-sharded-cluster>` will occur until a primary
+is available. If all config databases become unavailable, the cluster can
 become inoperable.
-
-If the config servers are inconsistent, the balancer will not perform
-any :ref:`chunk migration <sharding-balancing>` nor will the
-:program:`mongos` perform :doc:`auto-chunk splits
-</tutorial/split-chunks-in-sharded-cluster>`.
 
 .. include:: /includes/note-config-server-startup.rst
 
-.. [#recovery-window] If an unavailable secondary becomes available
-   while it still has current oplog entries, it can catch up to the
-   latest state of the set using the normal :term:`replication process
-   <sync>`, otherwise it must perform an :term:`initial sync`.
-
-.. _sharding-config-servers-and-availability:
-
-Renaming Config Servers and Cluster Availability
-------------------------------------------------
+Renaming Mirrored Config Servers and Cluster Availability
+---------------------------------------------------------
 
 .. include:: /includes/fact-rename-config-servers-requires-cluster-restart.rst
 

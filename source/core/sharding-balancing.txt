@@ -31,15 +31,13 @@ round. When a balancer process is active, the responsible
 :program:`mongos` acquires a "lock" by modifying a document in the
 ``lock`` collection in the :ref:`config-database`.
 
-.. note::
+.. versionchanged:: 3.2
 
-   .. versionchanged:: 2.0
-      Before MongoDB version 2.0, large differences in timekeeping
-      (i.e. clock skew) between :program:`mongos` instances could lead
-      to failed distributed locks. This carries the possibility of
-      data loss, particularly with skews larger than 5 minutes.
-      Always use the network time protocol (NTP) by running ``ntpd``
-      on your servers to minimize clock skew.
+   With replica set config servers, clock skew does not affect
+   distributed lock management. If you are using *mirrored* config
+   servers, large differences in timekeeping can lead to failed
+   distrubuted locks. With *mirrored* config servers, minimize clock skew
+   by running the network time protocol (NTP) ``ntpd`` on your servers.
 
 To address uneven chunk distribution for a sharded collection, the
 balancer :doc:`migrates chunks </core/sharding-chunk-migration>` from
@@ -91,19 +89,20 @@ between the shard with the most chunks for the collection and the shard
 with the fewest chunks for that collection. The balancer has the
 following thresholds:
 
-.. versionchanged:: 2.2
-   The following thresholds appear first in 2.2. Prior to this
-   release, a balancing round would only start if the shard with the most
-   chunks had 8 more chunks than the shard with the least number of
-   chunks.
+.. list-table::
+   :header-rows: 1
 
-================  ===================
-Number of Chunks  Migration Threshold
-----------------  -------------------
-Fewer than 20      2
-20-79              4
-80 and greater     8
-================  ===================
+   * - Number of Chunks
+     - Migration Threshold
+
+   * - Fewer than 20
+     - 2
+
+   * - 20-79
+     - 4
+
+   * - 80 and greater
+     - 8
 
 Once a balancing round starts, the balancer will not stop until, for
 the collection, the difference between the number of chunks on any two
