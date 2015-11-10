@@ -1,8 +1,8 @@
-You must have the :guilabel:`Administrator` role on the servers on which you install |onprem|.
+You must have the :guilabel:`Administrator` access privileges (be the Administrator or belong to an Administrator group) on the servers on which you install |onprem|.
 
 Before you install |onprem|, you must:
 
-1. Plan your configuration. See :doc:`/core/installation-checklist`.
+1. Plan your configuration, referring to the :doc:`/core/installation-checklist`.
 
 2. Deploy servers that meet the :doc:`/core/requirements`.
 
@@ -15,11 +15,7 @@ Before you install |onprem|, you must:
 
 3. Set any firewall rules toallow access to the ports on which the MongoDB instances run. 
 
-4. :doc:`Install the Ops Manager Application Database and optional Backup
-   Database </tutorial/prepare-backing-mongodb-instances>`. The databases
-   require dedicated MongoDB instances. Do **not** use MongoDB
-   installations that store other data. The Backup Database is required
-   only if you will use the Backup feature.
+4. :doc:`Install the Ops Manager Application Database and optional Backup Database </tutorial/prepare-backing-mongodb-instances>`. The databases require dedicated MongoDB instances. Do **not** use MongoDB installations that store other data. The Backup Database is required only if you will use the Backup feature.
 
    .. note::
 
