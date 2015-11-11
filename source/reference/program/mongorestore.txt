@@ -19,6 +19,9 @@ data to an existing database.
 instances, in addition to writing directly to MongoDB data files
 without an active :program:`mongod`.
 
+For an overview of :program:`mongorestore` usage, see
+:doc:`/tutorial/backup-and-restore-tools`.
+
 Behavior
 --------
 
@@ -150,18 +153,19 @@ Options
 
 .. _mongorestore-path-option:
 
+.. include:: /includes/option/option-mongorestore-gzip.rst
+
 .. include:: /includes/option/option-mongorestore-<path>.rst
+
+.. include:: /includes/option/option-mongorestore-archive.rst
 
 .. include:: /includes/option/option-mongorestore-dir.rst
 
-Use
----
+Examples
+--------
 
-For an overview of :program:`mongorestore` usage, see
-:doc:`/tutorial/backup-and-restore-tools`.
-
-For an overview of :program:`mongodump`, which provides the related
-inverse functionality, see the :doc:`mongodump` document.
+Restore a Collection
+~~~~~~~~~~~~~~~~~~~~
 
 Consider the following example:
 
@@ -175,6 +179,9 @@ documents in the collection named ``people`` from the database named
 ``accounts``. :program:`mongorestore` restores data to the instance
 running on the localhost interface on port ``27017``.
 
+Restore with Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In the following example, :program:`mongorestore` restores a database
 dump located at ``/opt/backup/mongodump-2011-10-24``, to a database
 running on port ``37017`` on the host
@@ -186,9 +193,69 @@ password ``pass``, as follows:
 
    mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodump-2011-10-24
 
+Restore a Collection from Standard Input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 You can also *pipe* data directly into to :program:`mongorestore`
 through standard input, as in the following example:
 
 .. code-block:: sh
 
    zcat /opt/backup/mongodump-2014-12-03/accounts.people.bson.gz | mongorestore --collection people --db accounts -
+
+.. _mongorestore-example-archive-file:
+
+Restore a Database from an Archive File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To restore from an archive file, run :program:`restore` with the new
+``--archive`` option and the archive filename. For example, the
+following operation restores the ``test`` database from the file
+``test.20150715.archive``.
+
+.. code-block:: sh
+
+   mongorestore --archive=test.20150715.archive --db test
+
+.. _mongorestore-example-archive-stdin:
+
+Restore a Database from Standard Input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To restore from the standard input, run :program:`mongorestore` with the
+``archive`` option but *omit* the filename. For example:
+
+.. code-block:: sh
+
+   mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
+
+.. _mongorestore-example-gzip:
+
+Restore from Compressed Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+   With the ``--gzip`` option, :program:`mongorestore` can restore from
+   compressed files or data stream created by :program:`mongodump`.
+
+To restore from a dump directory that contains compressed files, run
+:program:`mongorestore` with the new ``--gzip`` option. For example, the
+following operation restores the ``test`` database from the compressed
+files located in the default ``dump`` directory:
+
+.. code-block:: sh
+
+   mongorestore --gzip --db test
+
+To restore from a compressed archive file, run :program:`mongorestore`
+with the ``--gzip`` option in conjunction with the new ``--archive``
+option. For example, the following operation restores the ``test``
+database from the archive file ``test.20150715.gz``.
+
+.. code-block:: sh
+
+   mongorestore --gzip --archive=test.20150715.gz --db test
