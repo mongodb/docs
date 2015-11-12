@@ -1,13 +1,21 @@
 title: "Set up a **RHEL 6+** or **Amazon Linux** server that meets the following requirements:"
 stepnum: 1
+level: 4
 ref: set-up-server
 content: |
-  - The server must have 15 GB of memory and 50 GB of disk space for the  root partition. You can meet the size requirements by using an Amazon Web Services EC2 ``m3.xlarge`` instance and changing the size of the root partition from 8 GB to 50 GB. When you log into the instance, execute "``df -h``" to verify the root partition has 50 GB of space.
 
-  - You must have root access to the server.
+  **15 GB memory and 50 GB disk space**:
+  The server must have 15 GB of memory and 50 GB of disk space for the
+  root partition. You can meet the size requirements by using an Amazon
+  Web Services EC2 ``m3.xlarge`` instance and changing the size of the
+  root partition to 50 GB. When you log into the instance,
+  execute ``df -h`` to verify the root partition has 50 GB of space.
+
+  **Root access**: You must have root access to the server.
 ---
 title: "Configure the ``yum`` package management system to install the latest stable release of MongoDB."
 stepnum: 2
+level: 4
 ref: config-yum
 pre: |
   Issue the following command to set up a ``yum`` repository definition:
@@ -22,6 +30,7 @@ action:
 ---
 title: "Install MongoDB."
 stepnum: 3
+level: 4
 ref: install-mongodb
 pre: |
   Issue the following command to install the latest stable release of MongoDB:
@@ -32,6 +41,7 @@ action:
 ---
 title: "Create the data directory for the |application| Database."
 stepnum: 4
+level: 4
 ref: create-data-dir
 action: 
   - pre: |
@@ -49,8 +59,9 @@ action:
       sudo mkdir -p /data/backup
       sudo chown mongod:mongod /data/backup
 ---
-title: "Start the MongoDB backing instance for the |application| Database."
+title: "Start MongoDB for the Application Database and optionally for the Backup Database."
 stepnum: 5
+level: 4
 ref: start-mongod-instance
 action: 
   - pre: |
@@ -63,155 +74,194 @@ action:
       sudo -u mongod mongod --port 27017 --dbpath /data/appdb --logpath /data/appdb/mongodb.log --fork
   - pre: |
       **OPTIONAL:** To also install the Backup feature, issue following
-      command to start a MongoDB instance similar to the other but on port
-      ``27018`` and with the data directory and log path of the Backup
-      Database:
+      command to start MongoDB for the Backup Database. Use port ``27018``
+      and the ``/data/backup`` directory:
     language: sh
     code: |
       sudo -u mongod mongod --port 27018 --dbpath /data/backup --logpath /data/backup/mongodb.log --fork
 ---
 title: "Download the |onprem| package."
 stepnum: 6
+level: 4
 ref: application-package-download
 content: |
-  a. In a browser, go to `http://www.mongodb.com/download <http://www.mongodb.com/download>`_.
 
-  b. Fill out and submit the subscription form.
+  .. |nbsp| unicode:: 0xA0
+     :trim:
 
-  c. On the :guilabel:`MongoDB Enterprise Downloads` page, scroll to the :guilabel:`MongoDB Ops Manager` section and click the :guilabel:`here` link.
+  a. In a browser, go to `http://www.mongodb.com/download
+     <http://www.mongodb.com/download>`_.
 
-  d. On the :guilabel:`Ops Manager Download` page, acknowledge the recommendation to contact MongoDB for production installs.
+     |nbsp|
 
-  e. On the :guilabel:`MongoDB Ops Manager Downloads` page, copy the link address of the :guilabel:`RPM` link for Monitoring, Automation and Core. **OPTIONAL:** If you will install Backup, copy the link address of the :guilabel:`RPM` link for Backup as well.
+  b. Submit the subscription form.
+
+     |nbsp|
+
+  c. On the :guilabel:`MongoDB Enterprise Downloads` page, scroll to the
+     :guilabel:`MongoDB Ops Manager` section and click the :guilabel:`here`
+     link.
+
+     |nbsp|
+
+  d. On the :guilabel:`Ops Manager Download` page, acknowledge the
+     recommendation to contact MongoDB for production installs.
+
+     |nbsp|
+
+  e. On the :guilabel:`MongoDB Ops Manager Downloads` page, copy the link
+     address of the :guilabel:`RPM` link.
+
+     |nbsp|
 
   f. Open a system prompt.
 
-  g. Download the |onprem| package by issuing  a ``curl`` command that uses the link address copied for the RPM for Monitoring, Automation and Core:
+     |nbsp|
 
-     .. code-block:: none
+  g. Download the |onprem| package by issuing a ``curl`` command that uses
+     the copied link address:
+
+     .. code-block:: sh
 
         curl -OL <link-address-for-ops-manager-rpm>
 
-     **OPTIONAL:** Download the Backup Daemon package by issuing a ``curl`` command that uses the link address copied for the Backup RPM:
-
-     .. code-block:: none
-
-        curl -OL <link-address-for-backup-rpm>
+     The downloaded package is named ``mongodb-mms-<version>.x86_64.rpm``,
+     where ``<version>`` is the version number.
 
 ---
 title: "Install |onprem|."
 stepnum: 7
-ref: application-package-install
-action: 
-  - pre: |
-      Install the *Monitoring, Automation and Core* RPM package that you downloaded.
-      Issue the ``rpm --install`` command with root
-      privileges and specify the package name:
-    language: sh
-    code: |
-      sudo rpm --install <ops-manager-rpm>
-  - pre: |
-      **OPTIONAL:** To also install Backup, issue the ``rpm --install``
-      command with root privileges and specify the *Backup* RPM package:
-    language: sh
-    code: |
-      sudo rpm --install <rpm-package-for-backup>
+level: 4
+ref: install
+pre: |
+  Install the ``.rpm`` package by issuing the following command, where
+  ``<version>`` is the version of the ``.rpm`` package:
+action:
+  language: sh
+  code: |
+    sudo rpm -ivh mongodb-mms-<version>.x86_64.rpm
+post: |
+  The install creates the following:
+
+  - The base directory for the |onprem| software, which is:
+
+    ``/opt/mongodb/mms/``
+
+    |nbsp|
+
+  - A new system user, ``mongodb-mms``, under which the server runs.
+
+    |nbsp|
+
+  - The ``/opt/mongodb/mms/conf/conf-mms.properties`` file, which contains the connection string to access the Application Database. The default is ``locahost``, port ``27017``, so no changes are necessary.
+
 ---
-title: "Get your server's public IP address."
+title: "Start |onprem|."
 stepnum: 8
+level: 4
+ref: start-the-application
+pre: |
+  Issue the following:
+action:
+  language: sh
+  code: |
+    sudo service mongodb-mms start
+---
+title: "Get your server's host name."
+stepnum: 9
+level: 4
 ref: public-host-name
 pre: |
-  If you are using an EC2 instance, this is available on the instance's
-  ``Description`` tab.
+  If you are using an EC2 instance, the host name is the ``Public DNS``
+  listed on the EC2 instance's ``Description`` tab.
 action:
   pre: |
-    Alternately, you can get the public IP address by issuing the following:
+    If you do not have a hostname, you can instead use the public IP
+    address. To get the public IP address, issue the following:
   language: sh
   code: |
     curl -s http://whatismijnip.nl |cut -d " " -f 5
 ---
-title: "Configure |onprem|."
-stepnum: 9
-ref: configure-ops-man-app
-pre: |
-  Edit ``/opt/mongodb/mms/conf/conf-mms.properties`` with root privileges
-  and set the following options. For detailed information on each option,
-  see :doc:`/reference/configuration`.
-action:
-  - pre: |
-      Set :setting:`mms.centralUrl` as
-      follows, where ``<ip_address>`` is the IP address of the server running
-      the |application|.
-    language: cfg
-    code: |
-      mms.centralUrl=http://<ip_address>:8080
-  - pre: |
-      Set the following :ref:`email-address-settings` as appropriate.
-      You can use the same email address throughout, or specify a
-      different address for each field.
-    language: cfg
-    code: |
-      mms.fromEmailAddr=<email_address>
-      mms.replyToEmailAddr=<email_address>
-      mms.adminFromEmailAddr=<email_address>
-      mms.adminEmailAddr=<email_address>
-      mms.bounceEmailAddr=<email_address>
-  - pre: |
-      Set the :setting:`mongo.mongoUri` option to the  port
-      hosting the |application| Database:
-    language: cfg
-    code: |
-      mongo.mongoUri=mongodb://localhost:27017
-  - pre: |
-      **OPTIONAL:** If you installed the Backup Daemon, edit
-      ``/opt/mongodb/mms-backup-daemon/conf/conf-daemon.properties`` with
-      root privileges and set the :setting:`mongo.mongoUri` value to the
-      port hosting the |application| Database:
-    language: cfg
-    code: |
-      mongo.mongoUri=mongodb://localhost:27017
----
-title: "Start the |application|."
+title: "Open the |onprem| home page and register the first user."
 stepnum: 10
-ref: start-the-application
-action:
-  - pre: |
-      To start the |application|, issue the following:
-    language: sh
-    code: |
-      sudo service mongodb-mms start
-  - pre: |
-      **OPTIONAL:** To start the Backup Daemon, issue the following:
-    language: sh
-    code: |
-      sudo service mongodb-mms-backup-daemon start
----
-title: "Open the |onprem| home page."
-stepnum: 11
+level: 4
 ref: home-page
-pre: |
-  In a browser, enter the following URL, where ``<ip_address>`` is the
-  IP address of the server:
-action:
-  language: none
-  code: |
-    http://<ip_address>:8080
+content: |
+  a. In a browser, enter the following URL using the server's host name.
+     If do not have a hostname, use the public IP address instead:
+
+     .. code-block:: sh
+
+        http://<host_name>:8080
+
+     |nbsp|
+
+  b. Click the :guilabel:`Register` link and follow the prompts to
+     register the first user and create the first group. The first user is
+     automatically assigned the :ref:`Global Owner <global-owner-role>`
+     role.
+
 ---
-title: "To begin testing |onprem|, click :guilabel:`Register` and follow the prompts to create the first user and group."
+title: "Configure |onprem|."
+stepnum: 11
+level: 4
+ref: configure-app
+content: |
+  |onprem| walks you through several configuration pages. Required
+  settings are marked with an asterisk. Enter information as appropriate.
+  When configuration is complete, |onprem| opens the
+  :guilabel:`Deployment` page.
+---
+title: "If you will use the Backup feature, configure the Backup Daemon and Backup Storage."
 stepnum: 12
-ref: begin-testing
+level: 4
+ref: configure-backup-feature
 content: |
-  The first user receives :ref:`Global Owner <global-owner-role>`
-  permissions for the test install.
+  a. Create the following directory to store the :term:`head databases
+     <head database>`. Do not use this directory for any other purpose:
+
+     .. code-block:: sh
+
+        /data/backupDaemon
+
+     |nbsp|
+
+  b. Issue the following to make the directory writable by the ``mongodb-mms`` user:
+
+     .. code-block:: sh
+
+        sudo chown mongodb-mms:mongodb-mms /data/backupDaemon
+
+     |nbsp|
+
+  c. In |onprem|, while logged in as the user you registered during installation,
+     click the :guilabel:`Admin` link at the top right of the page.
+
+     |nbsp|
+
+  d. Click the :guilabel:`Backup` tab.
+
+     |nbsp|
+
+  e. Follow the prompts to configure the Backup Daemon and Backup storage.
+     |onprem| walks you through the configuration. For :term:`snapshot
+     storage <snapshot>`, select either the local filesystem or the Backup
+     Database. Whichever choice you make, |onprem| still uses the Backup
+     Database for :term:`oplog storage <Oplog Store Database>`. At the
+     prompt to configure the connection string to the Backup Database,
+     enter the following:
+
+     .. code-block:: sh
+
+        mongodb://localhost:27018
+
 ---
-title: "At the Welcome page, follow the prompts to set up your first deployment."
+title: "Set up your first deployment."
 stepnum: 13
-ref: set-up-monitoring
+level: 4
+ref: deploy
 content: |
-  **OPTIONAL:** If you installed the Backup Daemon, do the following after
-  setting up your first deployment:
-  click the :guilabel:`Admin` link in at the top right of
-  the |onprem| page and click the :guilabel:`Backup` tab. In the
-  :guilabel:`<hostname>:<port>` field, enter ``localhost:27018`` and click
-  :guilabel:`Save`.
+  To return to the :guilabel:`Deployment` page, click :guilabel:`mongoDB
+  Ops Manager` in the upper left corner of the page. Use the
+  :guilabel:`Add` button to deploy MongoDB.
 ...
