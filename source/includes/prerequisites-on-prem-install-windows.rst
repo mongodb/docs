@@ -1,4 +1,4 @@
-You must have the :guilabel:`Administrator` access privileges (be the Administrator or belong to an Administrator group) on the servers on which you install |onprem|.
+You must have the :guilabel:`Administrator` access privileges (be the Administrator or belong to the Administrators group) on the servers on which you install |onprem|.
 
 Before you install |onprem|, you must:
 
