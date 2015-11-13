@@ -1277,122 +1277,133 @@ page, and then the :guilabel:`Custom` section.
 
       mongodb.disable.numa=true
 
-
-
-
-
-
-
-
-
-Settings
---------
-
-|application| Database Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|application| Database Connection String
+----------------------------------------
 
 The following settings configure the |onprem| connection to the
-:ref:`mms-application-database`.
+:ref:`mms-application-database`. You must configure this setting in the
+:ref:`conf-mms.properties <conf-mms.properties>` file on each |onprem|
+server. To encrypt authentication information, see
+:ref:`encrypt-mongodb-user-credentials`.
 
-Connection String
-`````````````````
+.. |nbsp| unicode:: 0xA0 
+   :trim:
 
 .. setting:: mongo.mongoUri
 
    *Type*: string
 
-   **Required**. The :manual:`connection string </reference/connection-string/>`
-   used to access the :ref:`mms-application-database`.
+   **Required**. The :manual:`connection string
+   </reference/connection-string/>` used to access the |application|
+   Database. The connection string **must** include the following if applicable:
 
-   The following examples show the formats to use for replica sets and for
-   the different :parameter:`authentication mechanisms
-   <authenticationMechanisms>`.
+   - All members of the replica set, if the |application| database is a replica set.
 
-   **Replica Sets:** If you use a :term:`replica set` for the database's :doc:`backing
-   instance </tutorial/prepare-backing-mongodb-instances>`, specify all
-   members of the replica set:
+   - Authentication credentials for the :parameter:`authentication
+     mechanism <authenticationMechanisms>` used on the |application|
+     database.
+
+   See the following example connection strings:
+
+   - **Replica Sets:** If you use a :term:`replica set` for the database's :doc:`backing
+     instance </tutorial/prepare-backing-mongodb-instances>`, specify all
+     members of the replica set:
+
+     .. code-block:: ini
+
+        mongo.mongoUri=mongodb://db1.example.net:40000,db2.example.net:40000,db3.example.net:40000
+
+     If you omit the port number, |onprem| uses the default ``27017`` port for
+     all hosts.
+
+     |nbsp|
+
+   - **Default MongoDB Authentication:** For a MongoDB instance using the
+     MongoDB ``SCRAM-SHA-1`` or ``MONGODB-CR`` challenge-response mechanisms,
+     the connection string must include authentication credentials. The
+     |application| must authenticate as a MongoDB user with the following
+     roles:
+
+     - :authrole:`readWriteAnyDatabase`
+
+     - :authrole:`dbAdminAnyDatabase`.
+
+     - :authrole:`clusterAdmin` if the database is a sharded cluster,
+       otherwise :authrole:`clusterMonitor`
+
+     Prefix the hostname with the MongoDB username and password in the form
+     ``<username>:<password>@``
+
+     .. code-block:: ini
+
+        mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000
+
+   - **x.509 Certificate Authentication:** For a MongoDB instance using ``MONGODB-X509``
+     authentication, you must first add the value of the **subject** from the client certificate as a
+     MongoDB user, as described in :manual:`Use x.509 Certificates to
+     Authenticate Clients </tutorial/configure-x509-client-authentication>` in
+     the MongoDB manual. The client certificate is contained in the PEM file
+     you specify in the :setting:`mongodb.ssl.PEMKeyFile` setting. Once you
+     have created the user, prefix the host specified in
+     :setting:`mongo.mongoUri` with the name of the new user and append
+     ``authMechanism=MONGODB-X509`` after the specified port:
+
+     .. code-block:: ini
+
+        mongo.mongoUri=mongodb://<new_mongodb_user>@mydb1.example.net:40000/?authMechanism=MONGODB-X509
+
+   - **LDAP Authentication:** For a MongoDB instance using LDAP, prefix the hostname with the MongoDB
+     username and password in the form ``<username>:<password>@``, and append
+     the ``authMechanism=PLAIN&authSource=$external`` options after the port:
+
+     .. code-block:: ini
+
+        mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/?authMechanism=PLAIN&authSource=$external
+
+   - **Kerberos Authentication:** For a MongoDB instance using Kerberos, prefix the hostname with the
+     Kerberos user principal and specify the authentication mechanism,
+     ``authMechanism=GSSAPI``, after the port.
+
+     Kerberos user principal names have the form ``<username>@<KERBEROS
+     REALM>``. You must escape the user principal, replacing symbols with
+     the URL encoded representation. A Kerberos user principal of
+     ``username@REALM.EXAMPLE.COM`` would therefore become
+     ``username%40REALM.EXAMPLE.COM``.
+
+     The following is an example of Kerberos authentication:
+
+     .. code-block:: ini
+
+        mongo.mongoUri=mongodb://username%40REALM.EXAMPLE.COM@mydb1.example.net:40000/?authMechanism=GSSAPI
+
+     To enable Kerberos authentication between the |application| and the
+     :ref:`backup-database`, see :ref:`configuration-kerberos-settings`.
+     See also :data:`~uri.authMechanism` and :data:`~uri.authSource`
+     in the MongoDB manual.
+
+.. setting:: mongo.encryptedCredentials
+
+   *Type*: boolean
+
+   To use encrypted credentials in :setting:`mongo.mongoUri`, encrypt the
+   credentials using the |onprem| :ref:`credentialstool
+   <encrypt-mongodb-user-credentials>`, enter them in the
+   :setting:`mongo.mongoUri` setting, and set this to ``true``:
 
    .. code-block:: ini
 
-      mongo.mongoUri=mongodb://db1.example.net:40000,db2.example.net:40000,db3.example.net:40000
-
-   If you omit the port number, |onprem| uses the default ``27017`` port for
-   all hosts.
-
-   **MongoDB Default Authentication:** For a MongoDB instance using the
-   MongoDB ``SCRAM-SHA-1`` or ``MONGODB-CR`` challenge-response mechanisms,
-   the connection string must include authentication credentials. The
-   |application| must authenticate as a MongoDB user with the following
-   roles:
-
-   - :authrole:`readWriteAnyDatabase`
-
-   - :authrole:`dbAdminAnyDatabase`.
-
-   - :authrole:`clusterAdmin` if the database is a sharded cluster,
-     otherwise :authrole:`clusterMonitor`
-
-   Prefix the hostname with the MongoDB username and password in the form
-   ``<username>:<password>@``
-
-   .. code-block:: ini
-
-      mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000
-
-   **x.509 Certificate Authentication:** For a MongoDB instance using ``MONGODB-X509``
-   authentication, you must first add the value of the **subject** from the client certificate as a
-   MongoDB user, as described in :manual:`Use x.509 Certificates to
-   Authenticate Clients </tutorial/configure-x509-client-authentication>` in
-   the MongoDB manual. The client certificate is contained in the PEM file
-   you specify in the :setting:`mongodb.ssl.PEMKeyFile` setting. Once you
-   have created the user, prefix the host specified in
-   :setting:`mongo.mongoUri` with the name of the new user and append
-   ``authMechanism=MONGODB-X509`` after the specified port:
-
-   .. code-block:: ini
-
-      mongo.mongoUri=mongodb://<new_mongodb_user>@mydb1.example.net:40000/?authMechanism=MONGODB-X509
-
-   **LDAP Authentication:** For a MongoDB instance using LDAP, prefix the hostname with the MongoDB
-   username and password in the form ``<username>:<password>@``, and append
-   the ``authMechanism=PLAIN&authSource=$external`` options after the port:
-
-   .. code-block:: ini
-
-      mongo.mongoUri=mongodb://mongodbuser1:password@mydb1.example.net:40000/?authMechanism=PLAIN&authSource=$external
-
-   **Kerberos Authentication:** For a MongoDB instance using Kerberos, prefix the hostname with the
-   Kerberos user principal and specify the authentication mechanism,
-   ``authMechanism=GSSAPI``, after the port.
-   
-   Kerberos user principal names have the form ``<username>@<KERBEROS
-   REALM>``. You must escape the user principal, replacing symbols with
-   the URL encoded representation. A Kerberos user principal of
-   ``username@REALM.EXAMPLE.COM`` would therefore become
-   ``username%40REALM.EXAMPLE.COM``.
-
-   The following is an example of Kerberos authentication:
-
-   .. code-block:: ini
-
-      mongo.mongoUri=mongodb://username%40REALM.EXAMPLE.COM@mydb1.example.net:40000/?authMechanism=GSSAPI
-
-   To enable Kerberos authentication between the |application| and the
-   :ref:`backup-database`, see :ref:`configuration-kerberos-settings`.
-   See also :data:`~uri.authMechanism` and :data:`~uri.authSource`
-   in the MongoDB manual.
+      mongo.encryptedCredentials=true
 
 .. _mongodb-ssl-settings:
 
-MongoDB SSL Settings
-````````````````````
+SSL Connection to the Application Database
+------------------------------------------
 
-The following settings in ``conf-mms.properties`` and
-``conf-daemon.propeties`` configure |onprem| to use SSL to encrypt connections
-to the :doc:`backing MongoDB instances
-</tutorial/prepare-backing-mongodb-instances>` that host the
-:ref:`mms-application-database`
-and :ref:`backup-database`.
+The following settings configure |onprem| to use SSL to encrypt
+connections to the dedicated MongoDB instances that host the
+:ref:`mms-application-database` and :ref:`backup-database`. You must
+configure this setting in the :ref:`conf-mms.properties
+<conf-mms.properties>` file on each |onprem| server.
 
 .. setting:: mongo.ssl
 
@@ -1425,44 +1436,19 @@ and :ref:`backup-database`.
    *Type*: string
 
    Required if the PEM file contains an encrypted private key. Specify the
-   password for PEM file. You can encrypt the specified password using the
-   |onprem| ``credentialstool``. See :ref:`encrypt-mongodb-user-credentials`.
-
-Encrypted Credentials
-`````````````````````
-
-.. setting:: mongo.encryptedCredentials
-
-   *Type*: boolean
-
-   Add this property and set it to ``true`` if :setting:`mongo.mongoUri`
-   contains the
-   encrypted username and password:
-
-   .. code-block:: ini
-
-      mongo.encryptedCredentials=true
-
-   You must encrypt the username and password in :setting:`mongo.mongoUri`
-   using the |mms| ``credentialstool``. See
-   :ref:`encrypt-mongodb-user-credentials`.
-
-   .. important::
-      The ``conf-mms.properties`` file can contain multiple
-      :setting:`mongo.mongoUri` settings. If
-      :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
-      all user credentials found in the various :setting:`mongo.mongoUri`
-      settings.
+   password for PEM file. You can encrypt the password using the |onprem|
+   ``credentialstool``. See :ref:`encrypt-mongodb-user-credentials`.
 
 .. _configuration-kerberos-settings:
 
-Kerberos Settings
-~~~~~~~~~~~~~~~~~
+Kerberos Authentication to the Application Database
+---------------------------------------------------
 
-To enable Kerberos authentication between the |application| and the
-:ref:`mms-application-database`,
-configure the following settings. You must configure
-all required Kerberos settings to enable Kerberos authentication.
+To enable Kerberos authentication between |onprem| and the
+:ref:`mms-application-database`, configure the following settings in the
+:ref:`conf-mms.properties <conf-mms.properties>` file on each |onprem|
+server. You must configure all required Kerberos settings to enable
+Kerberos authentication.
 
 .. setting:: jvm.java.security.krb5.kdc
 
@@ -1522,57 +1508,53 @@ all required Kerberos settings to enable Kerberos authentication.
 
 .. _encrypt-mongodb-user-credentials:
 
-Encrypt MongoDB User Credentials
---------------------------------
+Encrypt User Credentials
+------------------------
 
-If you do not want to store credentials in plain text, |mms|
-provides a tool to encrypt the MongoDB credentials. To encrypt
-authentication credentials:
+For configuration settings that store credentials, you can either store
+the credentials in plain text or use the |onprem| ``credentialstool`` to
+encrypt the credentials. If you choose to store credentials in plain text,
+reduce the permissions on the :ref:`conf-mms.properties
+<conf-mms.properties>` file on each server. For example:
 
-#. Issue the following command to create an encrypted credential pair,
+.. code-block:: sh
+
+   sudo chmod 600 <install_dir>/conf/conf-mms.properties
+
+The rest of this section describes how to use the |onprem|
+``credentialstool`` tool. The tool requires root privileges, (i.e.
+``sudo``) when installed with ``rpm`` or ``deb`` packages, because it
+modifies the ``/etc/mongodb-mms/gen.key`` file. |onprem| uses the
+``gen.key`` to encrypt sensitive data in the database and configuration
+files.
+
+To use the ``credentialstool``, do the following on each |onprem| server's
+``conf-mms.properties`` file:
+
+1. Issue the following command to create an encrypted credential pair,
    replacing ``<username>`` with your username:
 
    .. code-block:: sh
 
       sudo <install_dir>/bin/credentialstool --username <username> --password
 
-   This will prompt you to enter the password and will output the
-   encrypted credential pair.
+2. When prompted, enter the password.
 
-   ``credentialstool`` requires root privileges, (i.e. ``sudo``) when
-   installed with ``rpm`` or ``deb`` packages, because it modifies the
-   ``/etc/mongodb-mms/gen.key`` file. |onprem| uses the ``gen.key`` to
-   encrypt sensitive data in the database and configuration files.
+   The ``credentialstool`` then outputs the encrypted credential pair.
 
-#. Use the encrypted credential pair in the :setting:`mongo.mongoUri`
-   settings where needed, and add the
-   :setting:`mongo.encryptedCredentials = true
-   <mongo.encryptedCredentials>` setting. For example:
+3. Enter the encrypted credential pair in the :setting:`mongo.mongoUri`
+   settings where needed and add the :setting:`mongo.encryptedCredentials
+   <mongo.encryptedCredentials>` setting, set to ``true``. For example:
 
    .. code-block:: sh
 
       mongo.mongoUri=mongodb://da83ex3s:a4fbcf3a1@mydb1.example.net:40000/admin
       mongo.encryptedCredentials=true
 
-.. important::
-   The ``conf-mms.properties`` file can contain multiple
-   :setting:`mongo.mongoUri` settings. If
-   :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
-   all user credentials found in the various :setting:`mongo.mongoUri`
-   settings.
+   .. important::
 
-Required Roles for MongoDB User Connecting to Backing Databases
----------------------------------------------------------------
-
-The MongoDB user used to connect to |onprem|'s backing databases must
-possess the :authrole:`readWriteAnyDatabase`, :authrole:`clusterAdmin`,
-and :authrole:`dbAdminAnyDatabase` MongoDB user roles.
-
-
-.. NOTE: Do NOT document these settings:
-   increment.gle.freq
-   increment.offer.time
-   increment.queue.size
-   increment.thread.count
-   ping.queue.size
-   ping.thread.count
+      The ``conf-mms.properties`` file can contain multiple
+      :setting:`mongo.mongoUri` settings. If
+      :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
+      all user credentials found in the various :setting:`mongo.mongoUri`
+      settings.
