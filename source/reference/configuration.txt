@@ -899,6 +899,231 @@ To receive alert notifications via SMS, you must have a `Twilio
 
    Twilio phone number.
 
+.. _automation-versions-settings:
+
+MongoDB Version Management
+--------------------------
+
+The following settings determine how |onprem| knows what MongoDB releases
+exist and from what servers the Automation Agent downloads the binaries
+for a MongoDB release.
+
+.. setting:: automation.versions.source
+
+   *Field Name*: :guilabel:`Version Manifest Source`
+
+   *Type*: string
+
+   *Default*: mongodb
+
+   Selects whether the Automation Agents retrieve MongoDB binaries over
+   the internet from MongoDB Inc. or locally from the |application|
+   server. Set this to ``mongodb`` if the Automation Agents have internet
+   access to retrieve the binaries from MongoDB Inc. Set this to ``local``
+   if your Automation Agents cannot reach the internet. If you specify
+   ``local``, you must set the :setting:`automation.versions.directory`
+   and place ``.tgz`` archive files for the MongoDB binaries in the
+   specified directory. You must also provide the MongoDB version
+   manifest. For details, see :doc:`/tutorial/configure-local-mode`.
+
+   .. note::
+
+      Configuring local access to binaries for the Automation Agent is
+      independent from configuring local access to binaries for the Backup
+      Daemon. To configure local access to MongoDB binaries for the Backup
+      Daemon, see the :setting:`mongodb.release.autoDownload` setting.
+
+.. setting:: automation.versions.directory
+
+   *Field Name*: :guilabel:`Versions Directory`
+
+   *Type*: string
+
+   When :setting:`automation.versions.source` is set to ``local``, this
+   specifies the directory on the |application| server from which the
+   Automation Agents access MongoDB binaries when installing a new
+   deployment or changing the MongoDB version of an existing deployment.
+   You must download the desired MongoDB binaries as ``.tgz`` archive
+   files and place the ``.tgz`` files in the specified directory.
+
+.. _mongodb-release-autodownload:
+
+.. setting:: mongodb.release.autoDownload
+
+   *Field Name*: :guilabel:`Backup Versions Auto Download`
+
+   *Type*: boolean
+
+   If you set :setting:`mongodb.release.autoDownload` to ``true``, Backup
+   automatically downloads the MongoDB releases from `mongodb.org
+   <http://www.mongodb.org/downloads>`_ (Community Edition) and
+   `mongodb.com <https://www.mongodb.com/lp/download/mongodb-enterprise>`_
+   (Enterprise Edition) and stores them in the directory
+   specified by the :setting:`mongodb.release.directory` setting. Backup's
+   ``mongodb-fetch`` utility, located in the
+   ``/opt/mongodb/backup-daemon/bin`` directory, runs once an hour to
+   perform the downloads.
+
+   If you set :setting:`mongodb.release.autoDownload` to ``false``, you
+   must manually download and install
+   the needed MongoDB releases to the directory specified in the
+   :setting:`mongodb.release.directory` setting. Downloads must adhere to
+   the rules described in the :setting:`mongodb.release.directory`
+   entry.
+
+   .. note::
+
+      Configuring local access to binaries for the Backup Daemon is
+      independent from configuring local access to binaries for the
+      Automation Agent. To configure local access to MongoDB binaries for
+      the Automation Agent, see the :setting:`automation.versions.source`
+      setting and see the :doc:`/tutorial/configure-local-mode` tutorial.
+
+.. setting:: mongodb.release.directory
+
+   *Field Name*: :guilabel:`Backup Versions Auto Download Enterprise Builds`
+
+   *Type*: string
+
+   When :setting:`mongodb.release.autoDownload` is set to ``false``, this
+   specifies the full path to the directory that contains the MongoDB
+   releases needed by the Backup Daemon. When backing up a replica set,
+   the Backup Daemon must use a :program:`mongod` that matches the version
+   of the replica set being backed up. Once you specify release directory,
+   you must manually download the needed releases.
+
+   .. warning::
+
+      .. include:: /includes/extracts/fact-enterprise-dependencies-vanilla.rst
+
+   For each version of MongoDB needed,
+   you must download the archive for that version and extract it into this
+   directory. The extracted archive creates a subdirectory that uses the
+   following naming convention:
+   ``mongodb-<platform>-<architecture>-<version>``.
+
+   Adhere to the following rules for populating the release directory:
+
+   - The release directory can contain versions from either the MongoDB
+     Community edition or the MongoDB Enterprise but not from both.
+
+   - |onprem| 1.8 supports platform-specific MongoDB Community Edition
+     builds for MongoDB 3.0. Use the MongoDB 3.0 Community Edition build
+     for your operating system, available from
+     `<http://www.mongodb.org/downloads>`_. You can also use the generic
+     ``Linux 64-bit legacy`` version if you wish or if there is no
+     platform-specific build for your operating system.
+
+   .. important::
+
+      If you are backing up MongoDB custom builds, you must manually place
+      a matching binary distribution for each custom build in this
+      directory.
+
+   Beginning in |onprem| version 1.5, the Backup Daemon uses the following
+   rules to match the MongoDB version of the replica set being backed up:
+
+   - If the MongoDB version uses the MongoDB standard ``A.B.C`` version
+     format, the daemon looks for a folder named
+     ``mongodb-<platform>-<architecture>-A.B.x``, where ``x`` is greater
+     than or equal to ``C``.
+
+   - If the MongoDB version does not use the standard format, the daemon
+     looks for a folder named
+     ``mongodb-<platform>-<architecture>-<version>``, where ``<version>``
+     ends with the MongoDB instance's version. For example, if the source
+     version is ``2.4.10-abc``, the daemon would match on
+     ``mongodb-linux-x86_64-production-2.4.10-abc``.
+
+Backup Settings
+---------------
+
+These settings are necessary if you use the Backup feature.
+
+.. setting:: rootDirectory
+
+   *Type*: string
+
+   The disk partition used by the Backup Daemon to dynamically create and
+   maintain the :term:`head database` directories. For more information,
+   see the :ref:`Backup functional overview
+   <mms-backup-functional-overview>`.
+
+   This directory must be writable
+   by the mongodb-mms user and must end in a trailing slash.  It is critical
+   that this partition is sized appropriately.
+
+   .. important::
+      Data in this directory is dynamically created, maintained and destroyed by the
+      Backup Daemon. This partition should not be used for any other purpose.
+      This partition should *not* overlap with the partition used for the Backup
+      Database.
+
+.. setting:: numWorkers
+
+   *Type*: number
+
+   The number of replica sets that should be processed at a time.
+
+.. setting:: mms.alerts.LowHeadFreeSpace.minimumHeadFreeSpaceGB
+
+   *Type*: integer
+
+   *Default*: 10
+
+   Specifies the minimum amount of free disk space in GB required on the
+   partition where the Backup Daemon stores the :term:`head databases
+   <head database>` that back up your data. You can view a daemon's
+   available head space on the |onprem| :ref:`daemons-interface`. If the
+   amount of free space drops below this minimum, |onprem| triggers the
+   following :doc:`system alert </core/system-alerts>`:
+
+   :alert:`System detects backup daemon has low free head space`
+
+.. setting:: mms.alerts.BackupAgentConfCallFailure.maximumFailedConfCalls
+
+   *Type*: integer
+
+   *Default*: 10
+
+   If the Backup Agent experiences more than this number of consecutive
+   failed conf calls, |onprem| triggers the following :doc:`global alert
+   </tutorial/manage-global-alerts>`:
+
+   :alert:`Backup Agent has too many conf call failures`
+
+.. _advanced-backup-restore-settings:
+
+.. setting:: mms.backup.restore.linkExpirationHours
+
+   *Type*: number
+
+   *Default*: 1
+
+   The amount of time in hours that a restore link is available.
+
+.. setting:: mms.backup.restore.linkUnlimitedUses
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Sets whether the link to a restored point-in-time snapshot can be used
+   more than once. By default, when you create a point-in-time snapshot,
+   the link to download the snapshot can be used just once. To allow
+   multiple downloads of the snapshot, set this value to ``true``.
+
+.. setting:: mms.backup.restore.snapshotPITExpirationHours
+
+   *Type*: number
+
+   *Default*: 24
+
+   The length of time in hours that a link to a restored point-in-time
+   snapshot is available. By default, the link is available for 24 hours
+   after creation of the point-in-time snapshot.
+
+
 
 
 
@@ -1070,244 +1295,6 @@ Encrypted Credentials
       :setting:`mongo.encryptedCredentials` is ``true``, you must encrypt
       all user credentials found in the various :setting:`mongo.mongoUri`
       settings.
-
-.. _automation-versions-settings:
-
-Automation Versions Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following settings in the ``conf-mms.properties`` file determine
-how |onprem| knows what MongoDB releases exist and from what servers the
-Automation Agent downloads the binaries for a MongoDB release.
-
-.. setting:: automation.versions.source
-
-   *Type*: string
-
-   *Default*: mongodb
-
-   Selects whether the Automation Agents retrieve MongoDB binaries over
-   the internet from MongoDB Inc. or locally from the |application|
-   server. Set this to ``mongodb`` if the Automation Agents have internet
-   access to retrieve the binaries from MongoDB Inc. Set this to ``local``
-   if your Automation Agents cannot reach the internet. If you specify
-   ``local``, you must set the :setting:`automation.versions.directory`
-   and place ``.tgz`` archive files for the MongoDB binaries in the
-   specified directory. You must also provide the MongoDB version
-   manifest. For details, see :doc:`/tutorial/configure-local-mode`.
-
-.. note::
-
-   Configuring local access to binaries for the Automation Agent is
-   independent from configuring local access to binaries for the
-   Backup Daemon. To configure local access to MongoDB binaries for
-   the Backup Daemon, see the :setting:`mongodb.release.autoDownload`
-   setting.   
-
-.. setting:: automation.versions.directory
-
-   *Type*: string
-
-   When :setting:`automation.versions.source` is set to ``local``, this
-   specifies the directory on the |application| server from which the
-   Automation Agents accesses MongoDB binaries when installing a new
-   deployment or changing the MongoDB version of an existing deployment.
-   You must download the desired MongoDB binaries as ``.tgz`` archive
-   files and place the ``.tgz`` files in the specified directory.
-
-Backup Daemon Settings
-~~~~~~~~~~~~~~~~~~~~~~
-
-These settings are found only in the ``conf-daemon.properties`` file and are
-necessary only if you are using |mms| Backup.
-
-.. setting:: rootDirectory
-
-   *Type*: string
-
-   The disk partition used by the Backup Daemon to dynamically create and
-   maintain the :term:`head database` directories. For more information,
-   see the :ref:`Backup functional overview
-   <mms-backup-functional-overview>`.
-
-   This directory must be writable
-   by the mongodb-mms user and must end in a trailing slash.  It is critical
-   that this partition is sized appropriately.
-
-   .. important::
-      Data in this directory is dynamically created, maintained and destroyed by the
-      Backup Daemon. This partition should not be used for any other purpose.
-      This partition should *not* overlap with the partition used for the Backup
-      Database.
-
-.. setting:: numWorkers
-
-   *Type*: number
-
-   The number of replica sets that should be processed at a time.
-
-.. _mongodb-release-autodownload:
-
-.. setting:: mongodb.release.autoDownload
-
-   *Type*: boolean
-
-   If you set :setting:`mongodb.release.autoDownload` to ``true``, Backup
-   automatically downloads the MongoDB releases from `mongodb.org
-   <http://www.mongodb.org/downloads>`_ (Community Edition) and
-   `mongodb.com <https://www.mongodb.com/lp/download/mongodb-enterprise>`_
-   (Enterprise Edition) and stores them in the directory
-   specified by the :setting:`mongodb.release.directory` setting. Backup's
-   ``mongodb-fetch`` utility, located in the
-   ``/opt/mongodb/backup-daemon/bin`` directory, runs once an hour to
-   perform the downloads.
-
-   If you set :setting:`mongodb.release.autoDownload` to ``false``, you
-   must manually download and install
-   the needed MongoDB releases to the directory specified in the
-   :setting:`mongodb.release.directory` setting. Downloads must adhere to
-   the rules described in the :setting:`mongodb.release.directory`
-   entry.
-
-   .. note::
-
-      Configuring local access to binaries for the Backup Daemon is
-      independent from configuring local access to binaries for the
-      Automation Agent. To configure local access to MongoDB binaries for
-      the Automation Agent, see the :setting:`automation.versions.source`
-      setting and see the :doc:`/tutorial/configure-local-mode` tutorial.
-
-.. setting:: mongodb.release.directory
-
-   *Type*: string
-
-   When :setting:`mongodb.release.autoDownload` is set to ``false``, this
-   specifies the full path to the directory that contains the MongoDB
-   releases needed by the Backup Daemon. When backing up a replica set,
-   the Backup Daemon must use a :program:`mongod` that matches the version
-   of the replica set being backed up. Once you specify release directory,
-   you must manually download the needed releases.
-
-   .. warning::
-
-      .. include:: /includes/extracts/fact-enterprise-dependencies-vanilla.rst
-
-   For each version of MongoDB needed,
-   you must download the archive for that version and extract it into this
-   directory. The extracted archive creates a subdirectory that uses the
-   following naming convention:
-   ``mongodb-<platform>-<architecture>-<version>``.
-
-   Adhere to the following rules for populating the release directory:
-
-   - The release directory can contain versions from either the MongoDB
-     Community edition or the MongoDB Enterprise but not from both.
-
-   - |onprem| 1.8 supports platform-specific MongoDB Community Edition
-     builds for MongoDB 3.0. Use the MongoDB 3.0 Community Edition build
-     for your operating system, available from
-     `<http://www.mongodb.org/downloads>`_. You can also use the generic
-     ``Linux 64-bit legacy`` version if you wish or if there is no
-     platform-specific build for your operating system.
-
-   .. important::
-
-      If you are backing up MongoDB custom builds, you must manually place
-      a matching binary distribution for each custom build in this
-      directory.
-
-   Beginning in |onprem| version 1.5, the Backup Daemon uses the following
-   rules to match the MongoDB version of the replica set being backed up:
-
-   - If the MongoDB version uses the MongoDB standard ``A.B.C`` version
-     format, the daemon looks for a folder named
-     ``mongodb-<platform>-<architecture>-A.B.x``, where ``x`` is greater
-     than or equal to ``C``.
-
-   - If the MongoDB version does not use the standard format, the daemon
-     looks for a folder named
-     ``mongodb-<platform>-<architecture>-<version>``, where ``<version>``
-     ends with the MongoDB instance's version. For example, if the source
-     version is ``2.4.10-abc``, the daemon would match on
-     ``mongodb-linux-x86_64-production-2.4.10-abc``.
-
-.. setting:: mms.alerts.LowHeadFreeSpace.minimumHeadFreeSpaceGB
-
-   *Type*: integer
-
-   *Default*: 10
-
-   Specifies the minimum amount of free disk space in GB required on the
-   partition where the Backup Daemon stores the :term:`head databases
-   <head database>` that back up your data. You can view a daemon's
-   available head space on the |onprem| :ref:`daemons-interface`. If the
-   amount of free space drops below this minimum, |onprem| triggers the
-   following :doc:`system alert </core/system-alerts>`:
-
-   :alert:`System detects backup daemon has low free head space`
-
-   This setting does not appear by default in either of the
-   .``properties`` configuration files. You can add it to the
-   :ref:`conf-mms.properties` file.
-
-
-Backup Agent Settings
-~~~~~~~~~~~~~~~~~~~~~
-
-.. setting:: mms.alerts.BackupAgentConfCallFailure.maximumFailedConfCalls
-
-   *Type*: integer
-
-   *Default*: 10
-
-   If the Backup Agent experiences more than this number of consecutive
-   failed conf calls, |onprem| triggers the following :doc:`global alert
-   </tutorial/manage-global-alerts>`:
-
-   :alert:`Backup Agent has too many conf call failures`
-
-   This property does not appear by default in either of the
-   .``properties`` configuration files. You can add it to the
-   :ref:`conf-mms.properties` file.
-
-.. _advanced-backup-restore-settings:
-
-Advanced Backup Restore Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded 1.5.4, 1.6.1
-
-These settings in the ``conf-daemon.properties`` file affect |mms|
-Backup restore behaviors.
-
-.. setting:: mms.backup.restore.linkExpirationHours
-
-   *Type*: number
-
-   *Default*: 1
-
-   The amount of time in hours that a restore link is available.
-
-.. setting:: mms.backup.restore.linkUnlimitedUses
-
-   *Type*: boolean
-
-   *Default*: false
-
-   Sets whether the link to a restored point-in-time snapshot can be used
-   more than once. By default, when you create a point-in-time snapshot,
-   the link to download the snapshot can be used just once. To allow
-   multiple downloads of the snapshot, set this value to ``true``.
-
-.. setting:: mms.backup.restore.snapshotPITExpirationHours
-
-   *Type*: number
-
-   *Default*: 24
-
-   The length of time in hours that a link to a restored point-in-time
-   snapshot is available. By default, the link is available for 24 hours
-   after creation of the point-in-time snapshot.
 
 Public API
 ~~~~~~~~~~
