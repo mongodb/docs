@@ -1,121 +1,112 @@
-==================
-Configure |onprem|
-==================
+.. _conf-mms.properties:
+
+======================
+|onprem| Configuration
+======================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-The |application| and the Backup Daemon use the :ref:`conf-mms.properties`
-and :ref:`conf-daemon.properties` configuration files respectively. This
-document describes all available settings between the two files. Each
-configuration file uses a subset of the settings described here.
+|onprem| stores configuration settings both globally in the |application|
+Database and locally on each server. Global settings apply to all your
+|onprem| servers. Local settings apply to the server on which they are
+configured. Any local settings on a server override the global settings.
 
-This document includes some configurable settings that |onprem| does not
-include in the configuration files but that you can add. These properties
-are marked as such.
+You configure global settings through the |onprem| interface during
+installation. You can edit global settings at any time through the
+:guilabel:`Admin` interfaces's :guilabel:`General` > :guilabel:`Ops
+Manager Config` page.
 
-.. _conf-mms.properties:
+You configure local settings through a server's ``conf-mms.properties``
+file. Each server's ``conf-mms.properties`` must contain the connection
+string and authentication settings for accessing the |onprem| Application
+Database. The ``conf-mms.properties`` file also contains any overrides of
+global settings specific to that server.
 
-conf-mms.properties
-~~~~~~~~~~~~~~~~~~~
+The location of the ``conf-mms.properties`` file depends on how you
+installed |onprem|, as described in the table below.
 
-The |application| uses the ``conf-mms.properties`` configuration file.
-If you installed |onprem| using an ``rpm`` or ``deb`` package, the
-file's location is::
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
 
-/opt/mongodb/mms/conf/
+   * - Install method
 
-If you installed using a ``tar.gz`` file, the configuration file's
-location is::
+     - conf-mms.properties location
 
-   <install-directory>/conf/
+   * - ``rpm`` or ``deb`` package
 
-If you installed on Windows, the file's location is::
+     - ``/opt/mongodb/mms/conf/``
 
-   <install-folder>\Server\Config
+   * - ``tar.gz`` archive
 
-By default, this is ``C:\MMSData\Server\Config``.
+     - ``<install-directory>/conf/``
 
-.. _conf-daemon.properties:
+   * - ``msi`` file (Windows)
 
-conf-daemon.properties
-~~~~~~~~~~~~~~~~~~~~~~
+     - ``<install-folder>\Server\Config``
 
-The Backup Daemon uses the ``conf-daemon.properties`` configuration
-file. If you installed |onprem| using an ``rpm`` or ``deb`` package, the
-file's location is::
+       By default, this is: ``C:\MMSData\Server\Config``.
 
-/opt/mongodb/mms-backup-daemon/conf/
+Web Server Settings
+-------------------
 
-If you installed using a ``tar.gz`` file, the configuration file's
-location is::
-
-<install-directory>/conf/
-
-If you installed on Windows, the configuration file's location is::
-
-<install-folder>\BackupDaemon\Config
-
-Mandatory Settings
-~~~~~~~~~~~~~~~~~~
-
-To start the |application|, you must configure the
-:ref:`application-url-settings` and :ref:`email-address-settings`
-in the ``conf-mms.properties`` file.
-
-Security
-~~~~~~~~
-
-For configuration settings that store credentials, you can either store the
-credentials in plain text or use the |onprem| ``credentialstool`` to encrypt
-the credentials, as described in :ref:`encrypt-mongodb-user-credentials`.
-
-If you choose to store credentials in plain text, reduce the permissions on the
-configuration file. For example:
-
-.. code-block:: sh
-
-   sudo chmod 600 <install_dir>/conf/conf-mms.properties
-
-Settings
---------
-
-.. _application-url-settings:
-
-|application| URL Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following two settings are mandatory for the |application|.
+Configure global settings through the :guilabel:`Admin` interface.
+|onprem| stores global settings in the |application| database.
 
 .. setting:: mms.centralUrl
 
+   *Field Name*: :guilabel:`URL to Access Ops Manager`
+
    *Type*: string
 
-   Required. Fully qualified URL, including the port number, of the
-   |application|. For example,
+   The fully qualified URL and port number of the |application|. For
+   example:
 
    .. code-block:: ini
 
       mms.centralUrl=http://mms.example.com:8080
 
-   .. only:: onprem
+   To use a port other than ``8080``, see :doc:`/tutorial/manage-ports`.
 
-      If you wish to use a port other than ``8080``,
-      :doc:`/tutorial/manage-ports` describes how to
-      change the ports that |mms| uses.
+.. setting:: mms.https.PEMKeyFile
 
-Load Balancer
-~~~~~~~~~~~~~
-
-Set the following when using a load balancer with the |application|.
-
-.. setting:: mms.remoteIp.header
+   *Field Name*: :guilabel:`HTTPS PEM Key File`
 
    *Type*: string
 
-   Specify the name of the header that the load balancer will use to
+   Absolute path to the PEM file that contains the |application|'s valid
+   certificate and private key. The PEM file is required if the
+   |application| will use HTTPS to encrypt connections between the
+   |application|, the agents, and the web interface.
+
+   The default port for HTTPS access to the |application| is ``8443``, as
+   set in ``<install_dir>/conf/mms.conf`` file. If you change this
+   default, you must also change the port specified in the
+   :setting:`mms.centralUrl` setting.
+
+.. setting:: mms.https.PEMKeyFilePassword
+
+   *Field Name*: :guilabel:`HTTPS PEM Key File Password`
+
+   *Type*: string
+
+   The password for the HTTPS PEM key file. This is required if the PEM
+   file contains an encrypted private key. If storing this in the
+   :ref:`conf-mms.properties <conf-mms.properties>` file, you can encrypt
+   the password using the |onprem| ``credentialstool``. See
+   :ref:`encrypt-mongodb-user-credentials`.
+
+.. setting:: mms.remoteIp.header
+
+   *Field Name*: :guilabel:`Load Balancer Remote IP Header`
+
+   *Type*: string
+
+   If you use a load balancer with the |application|, use this setting to
+   specify the name of the header that the load balancer will use to
    specify the original client's IP address to the application server.
 
    See :doc:`/tutorial/configure-application-high-availability` for
@@ -123,6 +114,14 @@ Set the following when using a load balancer with the |application|.
 
    When you specify :setting:`mms.remoteIp.header`, do not allow
    clients to connect directly to any application server.
+
+
+
+
+
+
+Settings
+--------
 
 HTTP/HTTPS Proxy
 ~~~~~~~~~~~~~~~~
@@ -174,34 +173,6 @@ or HTTPS proxy.
    .. code-block:: ini
 
       http.proxy.password=cDZRJAb2tsb6BE
-
-.. _https-settings:
-
-|application| HTTPS Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can configure the |application|'s application servers to use HTTPS to
-encrypt connections between the |application|, the agents, and the web
-interface.
-
-The default port for HTTPS access to the |application| is ``8443``, as set in
-``<install_dir>/conf/mms.conf`` file. If you change this default, you must
-also change the port specified in the :setting:`mms.centralUrl` setting.
-
-.. setting:: mms.https.PEMKeyFile
-
-   *Type*: string
-
-   Specify the PEM file that contains the application's valid certificate and
-   private key.
-
-.. setting:: mms.https.PEMKeyFilePassword
-
-   *Type*: string
-
-   Required if the PEM file contains an encrypted private key. Specify the
-   password for PEM file. You can encrypt the specified password using the
-   |onprem| ``credentialstool``. See :ref:`encrypt-mongodb-user-credentials`.
 
 Email Settings
 ~~~~~~~~~~~~~~
