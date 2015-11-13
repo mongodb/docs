@@ -1123,6 +1123,164 @@ These settings are necessary if you use the Backup feature.
    snapshot is available. By default, the link is available for 24 hours
    after creation of the point-in-time snapshot.
 
+Public API
+----------
+
+You can modify certain default behaviors of the :doc:`Public API
+</core/api>`. To add the following settings, click the :guilabel:`Admin`
+link, then the :guilabel:`General` tab, then the :guilabel:`Ops Manage
+Config` page, and then the :guilabel:`Custom` section.
+
+.. setting:: mms.publicApi.ignoreEnabledForGlobalRoles
+
+   *Type*: boolean
+
+   By default, a user with a :ref:`global role <global-roles>` can access any
+   |onprem| group through the :doc:`Public API </core/api>`, whether or not
+   the Public API is enabled for that group.
+
+   To prevent access when a group's Public API is disabled, add this
+   setting and set its value to ``false``:
+
+   .. code-block:: ini
+
+      mms.publicApi.ignoreEnabledForGlobalRoles=false
+
+.. setting:: mms.publicApi.whitelistEnabled
+
+   *Type*: boolean
+
+   Certain API calls require that requests originate from a whitelisted IP
+   address. To turn off this requirement, add this setting and set its
+   value to ``false``:
+
+   .. code-block:: ini
+
+      mms.publicApi.whitelistEnabled=false
+
+.. _config-monitoring-agent-failover:
+
+Monitoring Agent Session Failover
+---------------------------------
+
+If you have multiple monitoring agents for a group, only one Monitoring
+Agent is the **primary agent**. The primary agent reports the cluster's
+status to |mms|. The remaining agents are completely idle, except to log
+their status as standby agents and to periodically ask |mms| whether they
+should become the primary.
+
+The following settings tune the frequency with which the standby agents
+poll |mms| to determine if they have become the primary agent, and the
+interval that |mms| uses to determine if the primary agent is
+unaccessible. To add the following settings, click the :guilabel:`Admin`
+link, then the :guilabel:`General` tab, then the :guilabel:`Ops Manage
+Config` page, and then the :guilabel:`Custom` section.
+
+.. setting:: mms.monitoring.agent.session.timeoutMillis
+
+   *Type*: integer
+
+   *Default*: ``90000``
+
+   The interval that |mms| uses to determine if a secondary agent should
+   be promoted to primary. If |mms| does not hear from the primary agent
+   for the duration specifies in
+   :setting:`mms.monitoring.agent.session.timeoutMillis`, |mms|
+   promotes a secondary agent to primary. The minimum supported value
+   is ``90000``.
+
+.. setting:: mms.monitoring.agent.standbyCollectionFactor
+
+   *Type*: Integer
+   
+   *Default*: ``4``
+
+   Specifies how frequently standby agents check in with |mms| to see if
+   they have become the primary agent. The following values are
+   permitted:
+
+   - ``1``: the standby agents check every 55 seconds.
+
+   - ``2``: the standby agents check in at twice the rate as ``1``, or
+     approximately every 27 seconds.
+
+   - ``3``: the standby agents check approximately every 18 seconds
+
+   - ``4``: the standby agents check approximately every 14
+     seconds.
+
+.. _snmp-heartbeat-configure:
+
+SNMP Heartbeat Settings
+-----------------------
+
+|onprem| uses SNMP v2c. You can configure the |application| to send a
+periodic heartbeat trap notification (v2c) that contains an internal
+health assessment of the |application|. The |application| can send traps
+to one or more endpoints on the standard SNMP UDP port 162.
+
+To configure the |application| to send trap notifications, first download
+the Management Information Base (MIB) file at
+`<http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt>`_ .
+Then add the following settings as custom settings. To do so, click the
+:guilabel:`Admin` link, then the :guilabel:`General` tab, then the
+:guilabel:`Ops Manage Config` page, and then the :guilabel:`Custom`
+section.
+
+.. setting:: snmp.default.hosts
+
+   *Type*: string
+
+   *Default*: blank
+
+   Comma-separated list of hosts where 'heartbeat' traps will be sent
+   on the standard UDP port 162.
+   You must set :setting:`snmp.default.hosts` to enable the SNMP
+   heartbeat functionality; otherwise, leaving the setting blank
+   disables the SNMP heartbeat functionality.
+
+.. setting:: snmp.listen.port
+
+   *Type*: number
+
+   *Default*: 11611
+
+   Listening UDP port for SNMP. Setting to a number less than 1024 will
+   require running the |application| with root privileges.
+
+.. setting:: snmp.default.heartbeat.interval
+
+   *Type*: number
+
+   *Default*: 300
+
+   Number of seconds between heartbeat notifications.
+
+Non-Uniform Access Memory (NUMA) Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable NUMA for the :term:`head databases <head database>` managed by
+the Backup Daemon, configure this setting. See :manual:`MongoDB and NUMA
+Hardware </administration/production-notes/>` in the MongoDB Production
+Notes. To add the following setting, click the :guilabel:`Admin` link,
+then the :guilabel:`General` tab, then the :guilabel:`Ops Manage Config`
+page, and then the :guilabel:`Custom` section.
+
+.. setting:: mongodb.disable.numa
+
+   *Type*: boolean
+
+   Add this property and set it to ``true`` to disable
+   the NUMA setting. 
+
+   .. code-block:: properties
+
+      mongodb.disable.numa=true
+
+
+
+
+
 
 
 
@@ -1296,133 +1454,6 @@ Encrypted Credentials
       all user credentials found in the various :setting:`mongo.mongoUri`
       settings.
 
-Public API
-~~~~~~~~~~
-
-You can modify certain default behaviors of the :doc:`Public API </core/api>`.
-
-.. setting:: mms.publicApi.ignoreEnabledForGlobalRoles
-
-   *Type*: boolean
-
-   By default, a user with a :ref:`global role <global-roles>` can access any
-   |onprem| group through the :doc:`Public API </core/api>`, whether or not
-   the Public API is enabled for that group.
-
-   To prevent access when a group's Public API is disabled, add
-   :setting:`mms.publicApi.ignoreEnabledForGlobalRoles` to
-   ``conf-mms.properties`` and set its value to ``false``:
-
-   .. code-block:: ini
-
-      mms.publicApi.ignoreEnabledForGlobalRoles=false
-
-.. setting:: mms.publicApi.whitelistEnabled
-
-   *Type*: boolean
-
-   Certain API calls require that requests originate from a whitelisted IP
-   address. To turn off this requirement, add
-   :setting:`mms.publicApi.whitelistEnabled` to ``conf-mms.properties`` and
-   set its value to ``false``:
-
-   .. code-block:: ini
-
-      mms.publicApi.whitelistEnabled=false
-
-.. _config-monitoring-agent-failover:
-
-Monitoring Agent Session Failover
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have multiple monitoring agents for a group, only one Monitoring
-Agent is the **primary agent**. The primary agent reports the
-cluster's status to |mms|. The remaining agents are completely idle, except
-to log their status as standby agents and to periodically ask |mms| whether
-they should become the primary.
-
-The following settings tune the frequency with which the standby agents
-poll |mms| to determine if they have become the primary agent, and
-the interval that |mms| uses to determine if the primary agent is unaccessible.
-
-.. setting:: mms.monitoring.agent.session.timeoutMillis
-
-   *Type*: integer
-
-   *Default*: ``90000``
-
-   The interval that |mms| uses to determine if a secondary agent should
-   be promoted to primary. If |mms| does not hear from the primary agent
-   for the duration specifies in
-   :setting:`mms.monitoring.agent.session.timeoutMillis`, |mms|
-   promotes a secondary agent to primary. The minimum supported value
-   is ``90000``.
-
-.. setting:: mms.monitoring.agent.standbyCollectionFactor
-
-   *Type*: Integer
-   
-   *Default*: ``4``
-
-   Specifies how frequently standby agents check in with |mms| to see if
-   they have become the primary agent. The following values are
-   permitted:
-
-   - ``1``: the standby agents check every 55 seconds.
-
-   - ``2``: the standby agents check in at twice the rate as ``1``, or
-     approximately every 27 seconds.
-
-   - ``3``: the standby agents check approximately every 18 seconds
-
-   - ``4``: the standby agents check approximately every 14
-     seconds.
-
-.. _snmp-heartbeat-configure:
-
-SNMP Heartbeat Settings
-~~~~~~~~~~~~~~~~~~~~~~~
-
-|onprem| uses SNMP v2c.
-You can configure the |application| to send a periodic heartbeat
-trap notification (v2c) that contains an internal health assessment of
-the |application|. The |application| can send traps to one or more endpoints
-on the standard SNMP UDP port 162.
-
-To configure the |application| to send trap notifications,
-download the Management Information Base (MIB) file at
-`<http://downloads.mongodb.com/on-prem-monitoring/MMS-MONGODB-MIB.txt>`_
-and configure the following settings:
-
-.. setting:: snmp.default.hosts
-
-   *Type*: string
-
-   *Default*: blank
-
-   Comma-separated list of hosts where 'heartbeat' traps will be sent
-   on the standard UDP port 162.
-   You must set :setting:`snmp.default.hosts` to enable the SNMP
-   heartbeat functionality; otherwise, leaving the setting blank
-   disables the SNMP heartbeat functionality.
-
-.. setting:: snmp.listen.port
-
-   *Type*: number
-
-   *Default*: 11611
-
-   Listening UDP port for SNMP. Setting to a number less than 1024 will
-   require running the |application| with root privileges.
-
-.. setting:: snmp.default.heartbeat.interval
-
-   *Type*: number
-
-   *Default*: 300
-
-   Number of seconds between heartbeat notifications.
-
 .. _configuration-kerberos-settings:
 
 Kerberos Settings
@@ -1488,22 +1519,6 @@ all required Kerberos settings to enable Kerberos authentication.
    .. code-block:: properties
 
       mms.kerberos.debug=false
-
-Non-Uniform Access Memory (NUMA) Settings 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To disable NUMA for the Backup HEADs managed by the Backup Daemon of |mms|, configure this setting. See :manual:`MongoDB and NUMA Hardware </administration/production-notes/>` in the MongoDB Production Notes.
-
-.. setting:: mongodb.disable.numa
-
-   *Type*: boolean
-
-   Add this property and set it to ``true`` to disable
-   the NUMA setting. 
-
-   .. code-block:: properties
-
-      mongodb.disable.numa=true
 
 .. _encrypt-mongodb-user-credentials:
 
