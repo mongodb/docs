@@ -1,0 +1,272 @@
+.. index:: index; partial
+.. _index-type-partial:
+
+===============
+Partial Indexes
+===============
+
+.. default-domain:: mongodb
+
+.. versionadded:: 3.2
+
+Partial indexes only index the documents in a collection that meet a
+specified filter expression. By indexing a subset of the documents in a
+collection, partial indexes have lower storage requirements and reduced
+performance costs for index creation and maintenance.
+
+To create a ``partial`` index, use the :method:`db.collection.createIndex`
+method with the new ``partialFilterExpression`` option. For example,
+the following example creates a compound index that indexes only the
+documents with the ``rating`` field greater than 5.
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex(
+      { cuisine: 1, name: 1 },
+      { partialFilterExpression: { rating: { $gt: 5 } } }
+   )
+
+Behavior
+--------
+
+Query Coverage
+~~~~~~~~~~~~~~
+
+To use the partial index, a query **must** contain the filter expression
+(or a modified filter expression that specifies a subset of the filter
+expression) as part of its query condition. 
+As such, MongoDB will not use the
+partial index if the index results in an incomplete result set for the
+query or sort operation.
+
+For example, given the following index:
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex(
+      { cuisine: 1, name: 1 },
+      { partialFilterExpression: { rating: { $gt: 5 } } }
+   )
+
+The following queries can use the index since the query predicates
+includes a modified filter expressions ``rating: 6`` and ``rating: {
+$gte: 8 }`` that are subsets of the filter expression ``ratings: {
+$gt: 5 }``:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { rating: 6 } ) 
+   db.restaurants.find( { cuisine: "Italian", rating: { $gte: 8 } } )
+
+However, the following query *cannot* use the partial index because the
+query requests all restaurants with a rating of less than ``8``, while
+the index filter only covers restaurants with ``rating`` greater than
+``5``. The index, therefore, does not include any restaurants with
+rating less than ``5``, and would result in an incomplete result set.
+
+.. code-block:: javascript
+
+   db.restaurants.find( { rating: { $lt: 8 } } )
+
+Similarly, the following query cannot use the partial index because the
+query predicate does not match the filter expression.
+
+.. code-block:: javascript
+
+   db.restaurants.find( { cuisine: "Italian" } )
+
+Comparison with the ``sparse`` Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+   Partial indexes represent a superset of the functionality offered by
+   sparse indexes and should be preferred over sparse indexes.
+
+Partial indexes offer a more expressive mechanism than
+:doc:`/core/index-sparse` indexes to determine which documents are
+indexed.
+
+Sparse indexes selects documents to index *solely* based on the
+existence of the indexed field, or for compound indexes, the existence
+the indexed fields.
+
+Partial indexes determine the index entries based on the specified
+filter. The filter can include fields other than the index keys and
+specify conditions other than just an existence check. For example,
+a partial index can implement the same behavior as a sparse index:
+
+.. code-block:: javascript
+
+   db.contacts.createIndex( 
+      { name: 1 }, 
+      { partialFilterExpression: { name: { $exists: true } } } 
+   )
+
+This partial index supports the same queries as a sparse index on the
+``name`` field.
+
+However, a partial index can also specify filter expressions on fields
+other than the index key. For example, the following operation creates
+a partial index, where the index is on the ``name`` field but the
+filter expression is on the ``email`` field:
+
+.. code-block:: javascript
+
+   db.contacts.createIndex(
+      { name: 1 },
+      { partialFilterExpression: { email: { $exists: true } } }
+   )
+
+For the query optimizer to choose this partial index, the query
+predicate must include a non-null match on the ``email`` field as well
+as a condition on the ``name`` field.
+
+For example, the following query can use the index:
+
+.. code-block:: javascript
+
+   db.contacts.find( { name: "xyz", email: { $regex: /\.org$/ } } )
+
+However, the following query cannot use the index:
+
+.. code-block:: javascript
+
+   db.contacts.find( { name: "xyz", email: { $exists: false } }
+
+Restrictions
+------------
+
+MongoDB will not use the partial index if the index results in an
+incomplete result set for the query or sort operation. To use the
+partial index, a query must contain the filter expression (or a modified
+filter expression that specifies a subset of the filter expression) as
+part of its query condition.
+
+In MongoDB, you cannot create multiple versions of an index that
+differ only in the options. As such, you cannot create multiple
+partial indexes that differ only by the filter expression.
+
+You cannot specify both the ``partialFilterExpression`` option and
+the ``sparse`` option.
+
+Earlier versions of MongoDB do not support partial indexes. If using
+sharded clusters or replica set, all nodes must be version 3.2.
+
+``_id`` indexes cannot be partial indexes.
+
+Shard key indexes cannot be partial indexes.
+
+Examples
+--------
+
+Create a Partial Index On A Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``restaurants`` containing documents that resemble
+the following
+
+.. code-block:: javascript
+
+   {
+   	"_id" : ObjectId("5641f6a7522545bc535b5dc9"),
+   	"address" : {
+   		"building" : "1007",
+   		"coord" : [
+   			-73.856077,
+   			40.848447
+   		],
+   		"street" : "Morris Park Ave",
+   		"zipcode" : "10462"
+   	},
+   	"borough" : "Bronx",
+   	"cuisine" : "Bakery",
+   	"rating" : { "date" : ISODate("2014-03-03T00:00:00Z"),
+   			       "grade" : "A",
+         			 "score" : 2
+   		        },
+   	"name" : "Morris Park Bake Shop",
+   	"restaurant_id" : "30075445"
+   }
+
+You could add a partial index on the ``borough`` and ``cuisine`` fields
+choosing only to index documents where the ``rating.grade``
+field is ``A``:
+
+.. code-block:: javascript
+
+   db.restaurants.createIndex( { borough: 1, cuisine: 1 }, 
+                               { partialFilterExpression: { 'rating.grade': { $eq: "A"} } }
+   )
+
+Then, the following query on the ``scores`` collection uses the partial index
+to return the restaurants in the Bronx with ``rating.grade`` equal to ``A``:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { borough: "Bronx", 'rating.grade': "A" } )
+
+However, the following query cannot use the partial index because the
+query expression does not include the ``rating.grade`` field:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { borough: "Bronx", cuisine: "Bakery" } )
+
+Partial Index with Unique Constraint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you specify a ``partialFilterExpression``, you limit what documents
+that the index includes. If you use both the ``partialFilterExpression``
+and a :ref:`unique constraint <index-type-unique>` MongoDB only applies
+the unique constraint to documents that meet the filter expression
+criteria. As such, MongoDB can permit the insertion of documents that do
+not meet the filter criteria and that do not meet the unique constraint.
+
+Consider a collection ``users`` that contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("56424f1efa0358a27fa1f99a"), "age" : 29, "username" : "david" }
+   { "_id" : ObjectId("56424f37fa0358a27fa1f99b"), "age" : 35, "username" : "amanda" }
+   { "_id" : ObjectId("56424fe2fa0358a27fa1f99c"), "age" : 57, "username" : "rajiv" }
+
+You could create an index with a :ref:`unique constraint
+<index-type-unique>` on the ``username`` field and a partial filter
+expression selecting users whose age is more than ``21``:
+
+.. code-block:: javascript
+
+   db.users.createIndex( { username: 1 },
+                         { unique: true, 
+                           partialFilterExpression: { age: { $gte: 21 } } 
+                         })
+
+This index *would permit* the insertion of documents that had unique
+values for the ``username`` field, or did not include a ``username``
+field. As such, given the existing documents in the ``users``
+collection, the index permits the following :doc:`insert operations
+</tutorial/insert-documents>`:
+
+.. code-block:: javascript
+
+   db.users.insert( { "username": "lily", "age": 44 } )
+   db.users.insert( { "username": "adara", "age": 6 } )
+
+In addition, due to the index's filter expression, which indexes only
+documents where the ``age`` field is greater than or equal to ``21``,
+MongoDB would permit the following operations despite the unique
+constraint on ``username``:
+
+.. code-block:: javascript
+
+   db.users.insert( { "username": "david", "age": 20 } )
+   db.users.insert( { "username": "amanda" } )
+
+The index *would not permit* the insertion of the following documents
+since documents already exist with the specified usernames, and the
+``age`` fields are greater than ``21``:
+
+.. code-block:: javascript
+
+   db.users.insert( { "username": "david", "age": 27 } )
+   db.users.inertt( { "username": "rajiv", "age": 32 } )
