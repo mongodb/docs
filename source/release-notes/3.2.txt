@@ -700,321 +700,40 @@ expressions can accept either:
 
 - Multiple arguments: ``<accumulator> : [ <arg1>, <arg2>, ... ]``
 
-Single Argument: ``<arg>``
-``````````````````````````
-
-If the argument is an array, the accumulator operates on the elements
-of the array to return a single value. If the argument is not an array,
-the accumulator operates on the single argument.
-
-For example, given a collection ``examples`` with the following two
-documents:
-
-.. code-block:: javascript
-
-   { _id: 1, a: [ 1, 19, 29, 100 ] }
-   { _id: 2, a: 5 }
-
-The following aggregation operation uses ``$sum`` in the
-:pipeline:`$project` stage to return the sum of the field ``a`` for
-each document:
-
-.. code-block:: javascript
-
-   db.examples.aggregate([ 
-      { $project: { sumOfa: { $sum: "$a" } } }
-   ])
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "sumOfa" : 149 }
-   { "_id" : 2, "sumOfa" : 5 }
-
-Multiple arguments: ``[ <arg1>, <arg2>, ... ]``
-```````````````````````````````````````````````
-
-The accumulator operates on the arguments to return a single value.
-
-If any of the arguments is an array, the accumulator does not traverse
-into the array elements.
-
-For example, given a collection ``examples`` with the following two
-documents:
-
-.. code-block:: javascript
-
-   { _id: 1, a: [ [ 10, 5 ], 10 ], b: [ 5, 10 ] }
-   { _id: 2, a: 10, b: [ [ [ 2, 3 ], 10 ], 15, 5 ] }
-
-The following aggregation operation uses ``$sum`` in the
-:pipeline:`$project` stage to return the sum of the field ``a`` for
-each document:
-
-.. code-block:: javascript
-
-   db.examples.aggregate([ 
-      { $project: { sumAandB: { $sum: [ "$a", "$b" ] } } }
-   ])
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "sumAandB" : 0 }
-   { "_id" : 2, "sumAandB" : 10 }
-
-Non-numerical Arguments
-```````````````````````
-
-When used as part of the :pipeline:`$project` stage, :group:`$sum`,
-:group:`$avg`, :group:`$stdDevSamp`, and :group:`$stdDevPop`
-accumulators ignore non-numerical arguments. :group:`$min` and
-:group:`$max` uses the :ref:`specified BSON comparison order
-<bson-types-comparison-order>` for values of different types.
-
-For example, given a collection ``examples`` with the following two
-documents:
-
-.. code-block:: javascript
-
-   { _id: 1, a: [ 1, 19, 29, 100 ] }
-   { _id: 2, a: [ -999, 3.4, "hello", 872 ] }
-
-The following aggregation operation uses the :group:`$max` and
-:group:`$sum` accumulators in the :pipeline:`$project` stage to
-calculate the maximum and the sum of the values in the array ``a``.
-:group:`$sum` ignores the non-numerical elements in the array:
-
-.. code-block:: javascript
-
-   db.examples.aggregate([ 
-      { $project: { max: { $max:"$a" }, sum: { $sum: "$a" } } }
-   ])
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "max" : 100, "sum" : 149 }
-   { "_id" : 2, "max" : "hello", "sum" : -123.60000000000002 }
-
 General Enhancements
 ~~~~~~~~~~~~~~~~~~~~
 
-``$project`` New Arrays
-```````````````````````
+- In MongoDB 3.2, :pipeline:`$project` stage supports using the square
+  brackets ``[]`` to directly create new array fields. For an example,
+  see :ref:`example-project-new-array-fields`.
 
-In MongoDB 3.2, :pipeline:`$project` stage supports using the
-square brackets ``[]`` to directly create new array fields.
+- MongoDB 3.2 introduces the ``minDistance`` option for the
+  :pipeline:`$geoNear` stage.
 
-For example, if a collection includes the following document:
+- :pipeline:`$unwind` stage no longer errors on non-array operand. If
+  the operand does not resolve to an array but is not missing, null, or
+  an empty array, :pipeline:`$unwind` treats the operand as a single
+  element array.
 
-.. code-block:: javascript
+  :pipeline:`$unwind` stage can:
 
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "x" : 1, "y" : 1 }
+   - include the array index of the array element in the output by
+     specifying a new option ``includeArrayIndex`` in the stage
+     specification.
 
-The following operation projects the fields ``x`` and ``y`` as elements
-in a new field ``myArray``:
+   - output those documents where the array field is missing, null or an
+     empty array by specifying a new option ``preserveNullAndEmptyArrays``
+     in the stage specification.
 
-.. code-block:: javascript
-
-   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y" ] } } ] )
-
-The operation returns the following document:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
-
-If array specification includes fields that are non-existent in a
-document, the operation substitutes ``null`` as the value for that
-field.
-
-For example, given the same document as above, the following operation
-projects the fields ``x``, ``y``, and a non-existing field
-``$someField`` as elements in a new field ``myArray``:
-
-.. code-block:: javascript
-
-   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y", "$someField" ] } } ] )
-
-The operation returns the following document:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
-
-``minDistance`` for ``$geoNear``
-`````````````````````````````````
-
-MongoDB 3.2 introduces the ``minDistance`` option for the
-:pipeline:`$geoNear` stage. Use the new option to specify the minimum
-distance from the center point that the documents can be. MongoDB
-limits the results to those documents that fall outside the specified
-distance from the center point. 
-
-Specify the distance in meters for GeoJSON data and in radians for
-legacy coordinate pairs. For example:
-
-.. code-block:: javascript
-
-   db.places.aggregate([ 
-      {
-        $geoNear: {
-           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
-           distanceField: "dist.calculated",
-           minDistance: 2,
-           query: { type: "public" },
-           includeLocs: "dist.location",
-           num: 5,
-           spherical: true
-        }
-      }
-   ])
-
-``$unwind`` Enhancements
-````````````````````````
-
-:pipeline:`$unwind` stage no longer errors on non-array operand. If the
-operand does not resolve to an array but is not missing, null, or an
-empty array, :pipeline:`$unwind` treats the operand as a single element
-array.
-
-In addition to the existing syntax for :pipeline:`$unwind` stage ``{
-$unwind: <field path> }``, :pipeline:`$unwind` can take an alternate
-syntax:
-
-.. code-block:: javascript
-
-   { $unwind:
-      {
-        path: <field path>,
-        includeArrayIndex: <boolean>,
-        preserveNullAndEmptyArrays: <boolean>
-      }
-   }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 10 60
-
-   * - Field
-     - Type
-     - Description
-
-   * - ``path``
-
-     - String
-
-     - Field path to an array field. To specify a field path, prefix
-       the field name with a dollar sign ``$`` and enclose in quotes.
-
-   * - ``includeArrayIndex``
-
-     - Boolean
-
-     - Optional. If ``true``, for the document output for the i\
-       :sup:`th` element in the array ``path``, the array is replaced
-       by the document ``{index: i, value: <ith element> }``. If the
-       ``path`` does not resolve to an array, :pipeline:`$unwind` uses
-       the default behavior to replace the field by the value.
-
-       If ``false``, :pipeline:`$unwind` replaces the array in the
-       ``path`` field with the element in the array.
-
-       The default value is ``false``.
-
-   * - ``preserveNullAndEmptyArrays``
-
-     - Boolean
-
-     - Optional. If ``true``, if the ``path`` is null, missing, or an
-       empty array, :pipeline:`$unwind` outputs the document unmodified.
-       If ``false``, :pipeline:`$unwind` does not output a document if the
-       ``path`` is null, missing, or an empty array.
-
-       The default value is ``false``.
-
-For example, consider a collection ``inventory`` with the following
-documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "shirt", "colors" : [ "blue", "red" ] }
-   { "_id" : 2, "item" : "cable", "colors" : [ ] }
-   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
-   { "_id" : 4, "item" : "candy" }
-   { "_id" : 5, "item" : "chocolate", "colors" : null }
-
-The following :pipeline:`$unwind` operations are equivalent and return
-a document for each element in the ``colors`` field. If the ``colors``
-field does not resolve to an array but is not missing, null, or an
-empty array, :pipeline:`$unwind` treats the non-array operand as a
-single element array.
-
-.. code-block:: javascript
-
-   db.inventory.aggregate( [ { $unwind: "$colors" } ] )
-   db.inventory.aggregate( [ { $unwind: { path: "$colors" } } ] )
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "shirt", "colors" : "blue" }
-   { "_id" : 1, "item" : "shirt", "colors" : "red" }
-   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
-
-The following :pipeline:`$unwind` operation uses the
-``includeArrayIndex`` option to output also the array index of the
-array element.
-
-.. code-block:: javascript
-
-   db.inventory.aggregate( [ { $unwind: { path: "$colors", includeArrayIndex: true } } ] )
-
-The operation replaces the ``colors`` field with a document that
-contains a ``value`` field for the element and ``index`` field for the
-array index of the element. If the ``colors`` field does not resolve to
-an array but is not missing, null, or an empty array, the
-``includeArrayIndex`` has no effect.
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(0), "value" : "blue" } }
-   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(1), "value" : "red" } }
-   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
-
-The following :pipeline:`$unwind` operation uses the
-``preserveNullAndEmptyArrays`` option to include in the output those
-documents where ``colors`` field is missing, null or an empty array.
-
-.. code-block:: javascript
-
-   db.inventory.aggregate( [ 
-      { $unwind: { path: "$colors", preserveNullAndEmptyArrays: true } }
-   ] )
-
-In addition to unwinding the documents where the ``colors`` is an array
-of elements or a non-null, non-array field, the operation outputs, without
-modification, those documents where the ``colors`` field is missing, null
-or an empty array:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "item" : "shirt", "colors" : "blue" }
-   { "_id" : 1, "item" : "shirt", "colors" : "red" }
-   { "_id" : 2, "item" : "cable", "colors" : [ ] }
-   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
-   { "_id" : 4, "item" : "candy" }
-   { "_id" : 5, "item" : "chocolate", "colors" : null }
+   To support these new features, :pipeline:`$unwind` can now take an
+   alternate syntax. See :pipeline:`$unwind` for details.
 
 .. _3.2-agg-shard-optimization:
 
 Optimization
 ~~~~~~~~~~~~
+
+Indexes can :ref:`cover <read-operations-covered-query>` aggregation operations.
 
 MongoDB improves the overall performance of the pipeline
 in large sharded clusters.

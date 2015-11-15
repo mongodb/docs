@@ -23,6 +23,9 @@ Definition
    <aggregation-expressions>` as long as they resolve to an array. For
    more information on expressions, see :ref:`aggregation-expressions`.
 
+   If any argument resolves to a value of ``null`` or refers to a field
+   that is missing, :expression:`$concatArrays` returns ``null``.
+
 Behavior
 --------
 
@@ -38,3 +41,33 @@ Behavior
 
    * - ``{ $concatArrays: [ [ "hello", " "], [ [ "world" ], "again"] ] }``
      - ``[ "hello", " ", [ "world" ], "again" ]``
+
+Example
+-------
+
+A collection named ``warehouses`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, instock: [ "chocolate" ], ordered: [ "butter", "apples" ] }
+   { "_id" : 2, instock: [ "apples", "pudding", "pie" ] }
+   { "_id" : 3, instock: [ "pears", "pecans"], ordered: [ "cherries" ] }
+   { "_id" : 4, instock: [ "ice cream" ], ordered: [ ] }
+
+The following example concatenates the ``instock`` and the ``ordered``
+arrays:
+
+.. code-block:: javascript
+
+   db.warehouses.aggregate([
+      { $project: { items: { $concatArrays: [ "$instock", "$ordered" ] } } }
+   ])
+
+.. code-block:: javascript
+
+   { "_id" : 1, "items" : [ "chocolate", "butter", "apples" ] }
+   { "_id" : 2, "items" : null }
+   { "_id" : 3, "items" : [ "pears", "pecans", "cherries" ] }
+   { "_id" : 4, "items" : [ "ice cream" ] }
+
+.. seealso:: :group:`$push`

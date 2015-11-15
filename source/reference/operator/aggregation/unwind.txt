@@ -13,33 +13,69 @@ Definition
    document for *each* element. Each output document is the input
    document with the value of the array field replaced by the element.
 
-   The :pipeline:`$unwind` stage has the following prototype form:
+   The :pipeline:`$unwind` stage has one of two syntaxes:
 
-   .. code-block:: javascript
+   - The operand is a field path:
 
-      { $unwind: <field path> }
+     .. code-block:: javascript
 
-   To specify a field path, prefix the field name with a dollar sign
-   ``$`` and enclose in quotes.
+        { $unwind: <field path> }
+
+     To specify a field path, prefix the field name with a dollar sign
+     ``$`` and enclose in quotes.
+
+   - The operand is a document:
+
+     .. versionadded:: 3.2
+
+     .. code-block:: javascript
+
+        {
+          $unwind:
+            {
+              path: <field path>,
+              includeArrayIndex: <string>,
+              preserveNullAndEmptyArrays: <boolean>
+            }
+        }
+
+   .. include:: /includes/apiargs/pipeline-unwind-field.rst
 
 Behaviors
 ---------
 
-:pipeline:`$unwind` has the following behaviors:
+Non-Array Field Path
+~~~~~~~~~~~~~~~~~~~~
 
-- If a value in the field specified by the field path is *not* an
-  array, :method:`db.collection.aggregate()` generates an error.
+.. versionchanged:: 3.2
 
-- If you specify a path for a field that does not exist in an input
-  document, the pipeline ignores the input document and will not output
-  documents for that input document.
+   :pipeline:`$unwind` stage no longer errors on non-array operands. If
+   the operand does not resolve to an array but is not missing, null,
+   or an empty array, :pipeline:`$unwind` treats the operand as a
+   single element array.
 
-- If the array holds an empty array (``[]``) in an input document, the
-  pipeline ignores the input document and will not output
-  documents for that input document.
+   Previously, if a value in the field specified by the field path is
+   *not* an array, :method:`db.collection.aggregate()` generates an
+   error.
+
+Missing Field
+~~~~~~~~~~~~~
+
+If you specify a path for a field that does not exist in an input
+document or the field is an empty array, :pipeline:`$unwind`, by
+default, ignores the input document and will not output documents for
+that input document.
+
+.. versionadded:: 3.2
+
+   To output documents where the array field is missing, null or an
+   empty array, use the option ``preserveNullAndEmptyArrays``.
 
 Examples
 --------
+
+Unwind Array
+~~~~~~~~~~~~
 
 Consider an ``inventory`` with the following document:
 
@@ -69,3 +105,83 @@ of the ``sizes`` field which now holds a value from the original
 .. seealso:: 
    :doc:`/tutorial/aggregation-zip-code-data-set`,
    :doc:`/tutorial/aggregation-with-user-preference-data`
+
+``includeArrayIndex`` and ``preserveNullAndEmptyArrays``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+A collection ``inventory`` has the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC", "sizes": [ "S", "M", "L"] }
+   { "_id" : 2, "item" : "EFG", "sizes" : [ ] }
+   { "_id" : 3, "item" : "IJK", "sizes": "M" }
+   { "_id" : 4, "item" : "LMN" }
+   { "_id" : 5, "item" : "XYZ", "sizes" : null }
+
+The following :pipeline:`$unwind` operations are equivalent and return
+a document for each element in the ``sizes`` field. If the ``sizes``
+field does not resolve to an array but is not missing, null, or an
+empty array, :pipeline:`$unwind` treats the non-array operand as a
+single element array.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ { $unwind: "$sizes" } ] )
+   db.inventory.aggregate( [ { $unwind: { path: "$sizes" } } ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC", "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC", "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC", "sizes" : "L" }
+   { "_id" : 3, "item" : "IJK", "sizes" : "M" }
+
+The following :pipeline:`$unwind` operation uses the
+``includeArrayIndex`` option to output also the array index of the
+array element.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ { $unwind: { path: "$sizes", includeArrayIndex: "arrayIndex" } } ] )
+
+The operation unwinds the ``sizes`` array and includes the array index
+of the array index in the new ``arrayIndex`` field. If the ``sizes``
+field does not resolve to an array but is not missing, null, or an
+empty array, the ``arrayIndex`` field is ``null``.
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC", "sizes" : "S", "arrayIndex" : NumberLong(0) }
+   { "_id" : 1, "item" : "ABC", "sizes" : "M", "arrayIndex" : NumberLong(1) }
+   { "_id" : 1, "item" : "ABC", "sizes" : "L", "arrayIndex" : NumberLong(2) }
+   { "_id" : 3, "item" : "IJK", "sizes" : "M", "arrayIndex" : null }
+
+The following :pipeline:`$unwind` operation uses the
+``preserveNullAndEmptyArrays`` option to include in the output those
+documents where ``sizes`` field is missing, null or an empty array.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ 
+      { $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true } }
+   ] )
+
+In addition to unwinding the documents where the ``sizes`` is an array
+of elements or a non-null, non-array field, the operation outputs,
+without modification, those documents where the ``sizes`` field is
+missing, null or an empty array:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC", "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC", "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC", "sizes" : "L" }
+   { "_id" : 2, "item" : "EFG" }
+   { "_id" : 3, "item" : "IJK", "sizes" : "M" }
+   { "_id" : 4, "item" : "LMN" }
+   { "_id" : 5, "item" : "XYZ", "sizes" : null }
