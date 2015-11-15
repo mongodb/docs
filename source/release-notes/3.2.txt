@@ -326,18 +326,6 @@ The ``readConcern`` is available for the following operations:
              }
           )
 
-   * - :dbcommand:`explain`
-
-     - .. code-block:: javascript
-
-          db.runCommand(
-             {
-               explain: { count: "products", query: { quantity: { $gt: 50 } } },
-               verbosity: "queryPlanner",
-               readConcern: { level: "majority" } 
-             }
-          )
-
    * - :dbcommand:`parallelCollectionScan`
 
      - .. code-block:: javascript
@@ -1149,7 +1137,7 @@ syntax:
    { $unwind:
       {
         path: <field path>,
-        includeArrayIndex: <boolean>,
+        includeArrayIndex: <string>,
         preserveNullAndEmptyArrays: <boolean>
       }
    }
@@ -1171,18 +1159,10 @@ syntax:
 
    * - ``includeArrayIndex``
 
-     - Boolean
+     - String
 
-     - Optional. If ``true``, for the document output for the i\
-       :sup:`th` element in the array ``path``, the array is replaced
-       by the document ``{index: i, value: <ith element> }``. If the
-       ``path`` does not resolve to an array, :pipeline:`$unwind` uses
-       the default behavior to replace the field by the value.
-
-       If ``false``, :pipeline:`$unwind` replaces the array in the
-       ``path`` field with the element in the array.
-
-       The default value is ``false``.
+     - Optional. The name of a new field to hold the array index of the
+       element. The name cannot start with a dollar sign ``$``.
 
    * - ``preserveNullAndEmptyArrays``
 
@@ -1231,19 +1211,16 @@ array element.
 
 .. code-block:: javascript
 
-   db.inventory.aggregate( [ { $unwind: { path: "$colors", includeArrayIndex: true } } ] )
+   db.inventory.aggregate( [ { $unwind: { path: "$colors", includeArrayIndex: "arrayIndex" } } ] )
 
-The operation replaces the ``colors`` field with a document that
-contains a ``value`` field for the element and ``index`` field for the
-array index of the element. If the ``colors`` field does not resolve to
-an array but is not missing, null, or an empty array, the
-``includeArrayIndex`` has no effect.
+The resulting documents include an additional field ``arrayIndex``
+that holds the array index of the element.
 
 .. code-block:: javascript
 
-   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(0), "value" : "blue" } }
-   { "_id" : 1, "item" : "shirt", "colors" : { "index" : NumberLong(1), "value" : "red" } }
-   { "_id" : 3, "item" : "chocolate", "colors" : "dark" }
+   { "_id" : 1, "item" : "shirt", "colors" : "blue", "arrayIndex" : NumberLong(0) }
+   { "_id" : 1, "item" : "shirt", "colors" : "red", "arrayIndex" : NumberLong(1) }
+   { "_id" : 3, "item" : "chocolate", "colors" : "dark", "arrayIndex" : null }
 
 The following :pipeline:`$unwind` operation uses the
 ``preserveNullAndEmptyArrays`` option to include in the output those
