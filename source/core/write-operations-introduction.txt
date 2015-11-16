@@ -14,9 +14,9 @@ level of a single :term:`document`.
 
 There are three classes of write operations in MongoDB: :ref:`insert
 <write-op-insert>`, :ref:`update <write-op-update>`, and :ref:`delete
-<write-op-delete>`. Insert operations add new data to a collection.
-Update operations modify existing data, and delete operations delete
-data from a collection. No insert, update, or delete can affect more
+<write-op-delete>`. Insert operations add new documents to a collection.
+Update operations modify existing documents, and delete operations delete
+documents from a collection. No insert, update, or delete can affect more
 than one document atomically.
 
 For the update and remove operations, you can specify criteria, or
@@ -33,17 +33,23 @@ acknowledgement required of write operations. See
 Insert
 ------
 
-.. versionadded:: 3.2
+MongoDB provides the following methods for inserting documents into a 
+collection:
 
-   MongoDB adds two new methods for inserting documents into a collection:
-   
-   - :method:`db.collection.insertOne()` inserts a *single* document
-   - :method:`db.collection.insertMany()` inserts *multiple* documents
+- :method:`db.collection.insertOne()`
+
+- :method:`db.collection.insertMany()`
+
+- :method:`db.collection.insert()`
 
 .. _write-op-insertOne:
 
 insertOne
 ~~~~~~~~~
+
+.. versionadded:: 3.2
+
+:method:`db.collection.insertOne()` inserts a *single* document
 
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.insertOne()` operation:
@@ -79,6 +85,10 @@ For more information and examples, see :method:`db.collection.insertOne()`.
 insertMany
 ~~~~~~~~~~
 
+.. versionadded:: 3.2
+
+:method:`db.collection.insertMany()` inserts *multiple* documents
+
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.insertMany()` operation:
 
@@ -100,9 +110,9 @@ The following diagram shows the same query in SQL:
 
       db.users.insertMany( 
          [
-            { name : "sue", age : 26, status : "pending" },
-            { name : "bob", age : 29, status : "enrolled" },
-            { name : "ann", age : 27, status : "enrolled" }
+            { name: "sue", age: 26, status: "pending" },
+            { name: "bob", age: 25, status: "enrolled" },
+            { name: "ann", age: 28, status: "enrolled" }
          ]
       )
 
@@ -110,7 +120,7 @@ For more information and examples, see :method:`db.collection.insertMany()`.
 
 .. _write-op-insert-method:
 
-Insert
+insert
 ~~~~~~
 
 In MongoDB, the :method:`db.collection.insert()` method adds new
@@ -150,69 +160,68 @@ For more information and examples, see :method:`db.collection.insert()`.
 Insert Behavior
 ~~~~~~~~~~~~~~~
 
-The :term:`_id` field is required in every MongoDB :term:`document`. Think of 
-the ``_id`` field as the document's :term:`primary key`. The ``_id`` 
-field is a :term:`unique index` created by default in every collection.
+The :term:`_id` field is required in every MongoDB :term:`document`.  
+The ``_id`` field is like the document's :term:`primary key`. 
 
 If you add a new document *without* the :term:`_id` field, the client
 library or the :program:`mongod` instance adds an ``_id`` field and
 populates the field with a unique :term:`ObjectId <objectid>`. If you pass in 
 an ``_id`` value that already exists, an exception is thrown.
 
-If you create additional :term:`unique indexes <unique index>` on other fields 
-in your collection, you must ensure new documents contain those fields. 
-MongoDB will *not* automatically generate a value for fields outside of 
-``_id``. See :ref:`unique-index-and-missing-field`.
+The ``_id`` 
+field is :term:`uniquely indexed <unique index>` by default in every 
+collection.
 
 Other Methods to Add Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :method:`~db.collection.updateOne()`, 
 :method:`~db.collection.updateMany()`, and 
-:method:`~db.collection.replaceOne()` operations use the ``upsert`` parameter 
-to trigger the creation of a new document. When ``upsert : true``, if no 
-document in the collection matches the filter, a new 
-document is created based on the information passed to the operation. See 
-:ref:`write-operations-upsert-behavior`. 
+:method:`~db.collection.replaceOne()` operations accept the ``upsert`` 
+parameter. When ``upsert : true``, if no document in the collection matches 
+the filter, a new document is created based on the information passed to the 
+operation. See :ref:`write-operations-upsert-behavior`. 
 
 .. _write-op-update:
 
 Update
 ------
 
-.. versionadded:: 3.2
+MongoDB provides the following methods for updating documents in a collection:
 
-   MongoDB adds three methods for updating documents in a collection:
-
-   - :method:`db.collection.updateOne()` updates a *single* document
-   - :method:`db.collection.updateMany()` updates *multiple* documents
-   - :method:`db.collection.replaceOne()` replaces a *single* document
+- :method:`db.collection.updateOne()` updates a *single* document
+- :method:`db.collection.updateMany()` updates *multiple* documents
+- :method:`db.collection.replaceOne()` replaces a *single* document
+- :method:`db.collection.update()` updates or replaces either a *single* 
+  document or, if ``multi : true``, multiple documents
 
 .. _write-op-updateOne:
 
 updateOne
 ~~~~~~~~~
 
-The following diagram highlights the components of the MongoDB 
-:method:`~db.collection.udpateOne()` operation:
+.. versionadded:: 3.2
 
-..  /images/crud-annotated-mongodb-updateOne.rst
+The following diagram highlights the components of the MongoDB 
+:method:`~db.collection.updateOne()` operation:
+
+.. include:: /images/crud-annotated-mongodb-updateOne.rst
 
 The following diagram shows the same query in SQL:
 
-..  /images/crud-annotated-sql-updateOne.rst
+.. include:: /images/crud-annotated-sql-updateOne.rst
 
 .. example::
 
    This update operation on the ``users`` collection sets the
    ``status`` field to ``reject`` for the *first* document that matches the 
    filter of ``age`` less than ``18``. See 
-   :ref:`crud-write-op-update-behavior`.
+   :ref:`write-op-update-behavior`.
 
    .. code-block:: javascript
 
       db.users.updateOne(
-         { age: { $gt: 18 } },
+         { age: { $lt: 18 } },
          { $set: { status: "reject" } }
       )
 
@@ -223,21 +232,23 @@ For more information and examples, see :method:`db.collection.updateOne()`.
 updateMany
 ~~~~~~~~~~
 
+.. versionadded:: 3.2
+
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.updateMany()` operation:
 
-..  /images/crud-annotated-mongodb-updateMany.rst
+.. include:: /images/crud-annotated-mongodb-updateMany.rst
 
 The following diagram shows the same query in SQL:
 
-..  /images/crud-annotated-sql-updateMany.rst
+.. include:: /images/crud-annotated-sql-updateMany.rst
 
 .. example::
 
    This update operation on the ``users`` collection sets the
    ``status`` field to ``reject`` for *all* documents that match the filter
    of ``age`` less than ``18``. See 
-   :ref:`crud-write-op-update-behavior`.
+   :ref:`write-op-update-behavior`.
 
    .. code-block:: javascript
 
@@ -253,26 +264,28 @@ For more information and examples, see :method:`db.collection.updateMany()`.
 replaceOne
 ~~~~~~~~~~
 
+.. versionadded:: 3.2
+
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.replaceOne()` operation:
 
-..  /images/crud-annotated-mongodb-replaceOne.rst
+.. include:: /images/crud-annotated-mongodb-replaceOne.rst
 
 The following diagram shows the same query in SQL:
 
-..  /images/crud-annotated-sql-replaceOne.rst
+.. include:: /images/crud-annotated-sql-replaceOne.rst
 
 .. example::
 
    This replace operation on the ``users`` collection replaces the *first* 
    document that matches the filter of ``name`` is ``sue`` with a new 
-   document. See :ref:`crud-write-op-replace-behavior`.
+   document. See :ref:`write-op-replace-behavior`.
 
    .. code-block:: javascript
 
       db.users.replaceOne(
-         { name : "sue" },
-         { name : "amy", age : 25, score: "enrolled" }
+         { name: "sue" },
+         { name: "amy", age : 25, score: "enrolled" }
       )
 
 For more information and examples, see :method:`db.collection.replaceOne()`.
@@ -317,7 +330,7 @@ The following diagram shows the same query in SQL:
 For more information, see :method:`db.collection.update()` and
 :ref:`update() Examples <update-method-examples>`.
 
-.. _write-op-default-update-behavior:
+.. _write-op-update-behavior:
 .. _update-multiple-documents:
 
 Update Behavior
@@ -376,27 +389,30 @@ the operation modifies the matching document or documents.
 
 Delete
 ------
-
-.. versionadded:: 3.2
-
-   MongoDB adds two methods for deleting documents from a collection:
+ 
+MongoDB provides the following methods for deleting documents from a 
+collection:
    
-   - :method:`db.collection.deleteOne()` deletes a *single* document
-   - :method:`db.collection.deleteMany()` deletes *multiple* documents
+- :method:`db.collection.deleteOne()` deletes a *single* document
+- :method:`db.collection.deleteMany()` deletes *multiple* documents
+- :method:`db.collection.remove()` deletes either *multiple* documents or 
+  a *single* document if ``justOne : true``.
    
 .. _write-op-deleteOne:
 
 deleteOne
 ~~~~~~~~~
 
+.. versionadded:: 3.2
+
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.deleteOne()` operation:
 
-..  /images/crud-annotated-mongodb-deleteOne.rst
+.. include:: /images/crud-annotated-mongodb-deleteOne.rst
 
 The following diagram shows the same query in SQL:
 
-..  /images/crud-annotated-sql-deleteOne.rst
+.. include:: /images/crud-annotated-sql-deleteOne.rst
 
 .. example::
 
@@ -407,7 +423,7 @@ The following diagram shows the same query in SQL:
    .. code-block:: javascript
 
       db.users.deleteOne(
-         { name: "sue" }
+         { status: "reject" }
       )
 
 For more information and examples, see :method:`db.collection.deleteOne()`.
@@ -417,14 +433,16 @@ For more information and examples, see :method:`db.collection.deleteOne()`.
 deleteMany
 ~~~~~~~~~~
 
+.. versionadded:: 3.2
+
 The following diagram highlights the components of the MongoDB 
 :method:`~db.collection.deleteMany()` operation:
 
-..  /images/crud-annotated-mongodb-deleteMany.rst
+.. include:: /images/crud-annotated-mongodb-deleteMany.rst
 
 The following diagram shows the same query in SQL:
 
-..  /images/crud-annotated-sql-deleteMany.rst
+.. include:: /images/crud-annotated-sql-deleteMany.rst
 
 .. example::
 
@@ -435,7 +453,7 @@ The following diagram shows the same query in SQL:
    .. code-block:: javascript
 
       db.users.deleteMany( 
-         { status : "reject" }
+         { status: "reject" }
       )
 
 For more information and examples, see :method:`db.collection.deleteMany()`.
@@ -477,11 +495,6 @@ For more information, see :method:`db.collection.remove()` method and
 Delete Behavior
 ~~~~~~~~~~~~~~~
 
-Neither :method:`~db.collection.deleteOne()` nor 
-:method:`~db.collection.deleteMany()` will prompt for confirmation before 
-execution. Use :method:`db.collection.find()` with the delete filter to 
-preview the scope of the delete operation.
-
 :method:`~db.collection.deleteOne()` will delete the *first* document that 
 matches the filter. :method:`db.collection.findOneAndDelete()` 
 offers :method:`sorting <cursor.sort()>` of the filter results, 
@@ -493,8 +506,9 @@ Remove Behavior
 ~~~~~~~~~~~~~~~
 
 By default, :method:`db.collection.remove()` method removes all
-documents that match its query. However, the method can accept a flag
-to limit the delete operation to a single document.
+documents that match its query. If the optional ``justOne`` parameter is set 
+to ``true``, :method:`~db.collection.remove()` will limit the delete operation 
+to a single document.
 
 Additional Methods
 ------------------
@@ -532,5 +546,3 @@ the level of a single :term:`document`.
             { deleteMany : { "filter" : { "status" : { $exists : true } } } }
          ]
       )
-
-.. deprecated:: :method:`Bulk()` is deprecated in MongoDB 3.2
