@@ -5,63 +5,62 @@
 .. default-domain:: mongodb
 
 This page describes the hardware and software requirements for the servers
-that run the :doc:`/core/system-overview`, including the servers that run
-the backing MongoDB replica sets.
+that run the :doc:`Ops Manager components </core/system-overview>`. Please
+plan your configuration using the :doc:`/core/installation-checklist`
+before deploying servers.
 
-The servers that run the Backup Daemon and the backing replica sets **must**
-also meet the configuration requirements in the :manual:`MongoDB Production
-Notes </administration/production-notes>` in addition to the requirements on
-this page. The Production Notes include information on
-:manual:`ulimits </reference/ulimit>`, :manual:`NUMA
-</administration/production-notes#production-numa>`,
-:manual:`Transparent Huge Pages (THP)
-</reference/transparent-huge-pages>`, and other configuration options.
+This page describes the following:
 
-.. warning::
+- Hardware requirements:
 
-   Failure to configure servers according to the :manual:`MongoDB
-   Production Notes </administration/production-notes>` can lead to
-   production failure.
+  - :ref:`application-hardware-requirements`
 
-This page also includes requirements for the EC2 security group used when
-installing on AWS servers.
+  - :ref:`mms-application-database-specifications`
+
+  - :ref:`backup-hardware-requirements`
+
+  - :ref:`backup-database-specifications`
+
+- Software requirements:
+
+  - :ref:`ops-manager-operating-system`
+
+  - :ref:`onprem-config-ulimits`
+
+  - :ref:`smtp-software-requirements`
+
+  - :ref:`snmp-software-requirements`
+
+  - :ref:`client-web-browsers`
+
+For requirements for MongoDB running on the |onprem| Application Database
+and Backup Database, see :doc:`/tutorial/prepare-backing-mongodb-instances`.
 
 .. _hardware-requirements:
 
 Hardware Requirements
 ---------------------
 
-Each server must meet the sum of the requirements for all its components.
+Each server must meet the sum of **RAM** and **disk space** the
+requirements for all its components. For example, a server that runs
+|onprem| and hosts the |onprem| Application Database must meet the RAM and
+disk space required for |onprem| and then have the additional RAM and disk
+space required for the Application Database.
 
-|onprem| Monitoring and Automation require servers for the following
-components:
+The servers also must meet the MongoDB ports requirements described in
+:doc:`/reference/firewall-configuration`. Each server's firewall rules
+must allow access to the required ports.
 
-- :ref:`application`.
-
-- :ref:`mms-application-database` replica set members
-
-  .. note:: Usually the |application| runs on the same server as one of the
-            replica set members for the |application| Database.
-
-If you run Backup, |onprem| also requires servers for the following:
-
-- :ref:`backup-daemon`
-
-- :ref:`backup-database` replica set members
-
-.. note::
-
-   The following requirements are specific to a given component. You must add
-   together the requirements for the components you will install. For example,
-   the requirements for the |application| do not cover the |application|
-   Database.
+If you install on AWS servers, see also :ref:`aws-security-groups` section
+on this page.
 
 .. _application-hardware-requirements:
 
-|application| Hardware
-~~~~~~~~~~~~~~~~~~~~~~
+|onprem| Hardware Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The |application| requires the hardware listed here.
+Every server that runs |onprem| must meet the following hardware
+requirements:
 
 .. list-table::
    :header-rows: 1
@@ -81,35 +80,15 @@ The |application| requires the hardware listed here.
 
 .. _mms-application-database-specifications:
 
-|application| Database Hardware
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|onprem| Application Database Hardware Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :ref:`mms-application-database` holds monitoring and other metadata
-for the :ref:`mms-application-package`.
-
-The database runs as a three-member :term:`replica set`. If you cannot
-allocate space for three data-bearing members, the third member can be an
-arbiter, but keep in mind that |mms| uses ``w:2`` :manual:`write concern
-</reference/write-concern>`, which reports a write operation as successful
-after acknowledgement from the primary and one secondary. If you use a replica
-set with fewer than 3 data-bearing members, and if you lose one of the
-data-bearing members, MongoDB blocks write operations, meaning the
-:ref:`mms-application-database` has redundancy but not high availability.
-
-Run the replica set on dedicated servers. You can optionally run one
-member of the replica set on the same physical server as the |application|.
-
-For a :doc:`test deployment </tutorial/install-simple-test-deployment>`,
-you can use a MongoDB standalone in place of a replica set.
-
-Each server that hosts a MongoDB process for the |application|
-Database **must** comply with the :manual:`Production Notes
-</administration/production-notes>` in the MongoDB manual. The
-Production Notes include important information on :manual:`ulimits
-</reference/ulimit>`, :manual:`NUMA
-</administration/production-notes#production-numa>`,
-:manual:`Transparent Huge Pages (THP)
-</reference/transparent-huge-pages>`, and other configuration options.
+The :ref:`Ops Manager Application Database <mms-application-database>`
+runs as a three-member :term:`replica set` that runs on dedicated servers.
+Each server that hosts a MongoDB process for the Application Database
+**must** comply with the :manual:`Production Notes </administration/production-notes>`
+in the MongoDB manual, which include information on NUMA, ulimits, and
+other configuration options.
 
 .. warning::
 
@@ -117,7 +96,9 @@ Production Notes include important information on :manual:`ulimits
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
-Each server also requires the following:
+Every server that hosts the |onprem| Application Database must meet the
+following hardware requirements. For the best results use SSD-backed
+storage.
 
 .. list-table::
    :header-rows: 1
@@ -126,30 +107,25 @@ Each server also requires the following:
      - **RAM**
      - **Disk Space**
    * - Up to 400 monitored hosts
-     - 8 GB additional RAM beyond the RAM required for the |application|
+     - 8 GB additional RAM beyond the RAM required for Ops Manager
      - 200 GB of storage space
    * - Up to 2000 monitored hosts
-     - 15 GB additional RAM beyond the RAM required for the |application|
+     - 15 GB additional RAM beyond the RAM required for Ops Manager
      - 500 GB of storage space
    * - More than 2000 hosts
      - Contact MongoDB account manager
      - Contact MongoDB account manager
 
-For the best results use SSD-backed storage.
-
-
 .. _backup-hardware-requirements:
 
-Backup Daemon Hardware
-~~~~~~~~~~~~~~~~~~~~~~
+Backup Daemon Hardware Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Daemon server must meet the requirements in the table below and
-**also must meet** the configuration requirements in the :manual:`MongoDB
-Production Notes </administration/production-notes>`. The Production Notes
-include information on :manual:`ulimits </reference/ulimit>`,
-:manual:`NUMA </administration/production-notes#production-numa>`,
-:manual:`Transparent Huge Pages (THP)
-</reference/transparent-huge-pages>`, and other options.
+Each server on which you activate the Backup Daemon must meet the
+requirements here **in addition to** the :ref:`requirements for Ops
+Manager <application-hardware-requirements>`. Each server also must meet
+the configuration requirements in the :manual:`MongoDB Production Notes
+</administration/production-notes>`.
 
 .. warning::
 
@@ -157,26 +133,27 @@ include information on :manual:`ulimits </reference/ulimit>`,
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
-If you wish activate the Backup Daemon on an |onprem| server, the server
-must satisfy these requirements separately
-from the requirements in :ref:`application-hardware-requirements`.
+Before getting started with Backup, **contact your MongoDB Account
+Manager** for assistance in estimating the storage requirements for your
+Backup Daemon server.
 
-The server running the Backup Daemon acts like a hidden secondary for
-every replica set assigned to it, receiving the streamed :term:`oplog`
-entries each replica set's :term:`primary`. However, the Backup Daemon
-differs from a hidden secondary in that the replica set is not aware of
-it.
+The Backup Daemon creates :term:`head databases <head database>` that
+replicate data for each replica set assigned to the Daemon. Typically,
+each server on which you activate the Backup Daemon must be able to store
+2 to 2.5 times the sum of the size on disk of all the backed-up replica
+sets. Specifically each server must have:
 
-The server must have the disk space and write
-capacity to maintain the replica sets plus the space to store an additional
-copy of the data to support point-in-time restore. Typically, the Backup
-Daemon must be able to store 2 to 2.5 times the sum of the size on disk of all
-the backed-up replica sets, as it also needs space locally to build
-:term:`point-in-time restore` restores.
+- the disk space and write capacity to maintain each head database,
+  **plus**
 
-Before installing the Backup Daemon, we recommend contacting your MongoDB Account
-Manager for assistance in estimating the storage requirements for your Backup
-Daemon server.
+- the disk space to store an additional copy of the data for each head
+  database, in order to support point-in-time restore, **plus**
+
+- additional space to build :term:`point-in-time restores <point-in-time
+  restore>`.
+
+Each server that hosts an active Backup Daemon has the following hardware
+requirements.
 
 .. list-table::
    :header-rows: 1
@@ -195,58 +172,26 @@ Daemon server.
 
 .. _backup-database-specifications:
 
-Backup Database Hardware
-~~~~~~~~~~~~~~~~~~~~~~~~
+Backup Database Hardware Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Provision :ref:`backup-database` servers only if you are deploying |mms|
-Backup.
+If you use |onprem| Backup, you must provision servers for the Backup
+Database. Server requirements for the Backup Database vary, depending on
+whether you will store your snapshots there. The Backup Database always
+holds oplog data and temporary sync data.
 
-Replica Set for the Backup Database
-+++++++++++++++++++++++++++++++++++
+If you store snapshots in the Backup Database, its servers typically must
+have enough capacity to store 2 to 3 times the total backed-up production
+data size. Snapshots are compressed and de-duplicated at the block level
+in the :term:`Backup Blockstore Database`. Your specific requirements
+depend on your data compressibility and change rate. **Contact your
+MongoDB Account Manager** for assistance in estimating the use-case and
+workload-dependent storage requirements for your Backup Database servers.
 
-Backup requires a separate, **dedicated** MongoDB replica set to hold
-backup data, which include snapshots, oplog data and temporary sync data.
-This cannot be a replica set used for any
-purpose other than holding the backup data.
-
-For redundancy, the replica set must have at least two data-bearing
-members. For high availability, the replica set must have
-at least three data-bearing members.
-
-.. note::
-
-   |mms| uses ``w:2`` :manual:`write concern </reference/write-concern>`,
-   which reports a write operation as successful after acknowledgement
-   from the primary and one secondary. If you use a replica set with two
-   data-bearing members and an arbiter, and you lose one of the
-   data-bearing members, write operations will be blocked.
-
-For *testing only* you may use a standalone MongoDB deployment in place of a
-replica set.
-
-Server Size for the Backup Database
-+++++++++++++++++++++++++++++++++++
-
-Snapshots are compressed and de-duplicated at the block level in the
-:term:`Backup Blockstore Database`. Typically, depending on data compressibility and
-change rate, the replica set must run on servers with enough capacity to
-store 2 to 3 times the total backed-up production data size. 
-
-**Contact your MongoDB Account Manager** for assistance in estimating the
-use-case and workload-dependent storage requirements for your Blockstore
-servers.
-
-Configuration Requirements from the MongoDB Production Notes
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Each server that hosts a MongoDB process for the Backup Database
-**must** comply with the :manual:`Production Notes
-</administration/production-notes>` in the MongoDB manual. The
-Production Notes include important information on :manual:`ulimits
-</reference/ulimit>`, :manual:`NUMA
-</administration/production-notes#production-numa>`,
-:manual:`Transparent Huge Pages (THP)
-</reference/transparent-huge-pages>`, and other configuration options.
+Each server for the Backup Database **must** comply with the
+:manual:`Production Notes </administration/production-notes>` in the
+MongoDB manual, which include information on NUMA, ulimits, and other
+configuration options.
 
 .. warning::
 
@@ -254,10 +199,8 @@ Production Notes include important information on :manual:`ulimits
    Production Notes </administration/production-notes>` can lead to
    production failure.
 
-Other Requirements for the Backup Database
-++++++++++++++++++++++++++++++++++++++++++
-
-For each data-bearing member of the replica set member
+If you store snapshots in the Backup Database, each data-bearing member
+meet the following requirements:
 
 .. list-table::
    :header-rows: 1
@@ -268,26 +211,47 @@ For each data-bearing member of the replica set member
      - **Storage IOPS**
    * - 4 x 2ghz+ 
      - 8 GB of RAM for every 1 TB disk of Blockstore to provide good
-       snapshot and restore speed. |mms| defines 1 TB of Blockstore as
+       snapshot and restore speed. |onprem| defines 1 TB of Blockstore as
        1024\ :sup:`4` bytes.
      - Contact your MongoDB Account Manager.
      - Medium grade HDDs should have enough I/O throughput to handle the
        load of the Blockstore.
 
+If you will **not** store snapshots in the Backup Database, each data-bearing
+member meet the following requirements:
+
+.. list-table::
+   :header-rows: 1
+
+   * - **CPU Cores**
+     - **Disk Space**
+   * - 4 x 2ghz+
+     - The size of your oplogs compressed for the :ref:`configured
+       retention period <snapshot-frequency-and-retention>`. The default
+       is 24 hours.
+
 .. _aws-security-groups:
 
 EC2 Security Groups
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/requirements-aws-security.rst
+
+.. _software-requirements:
 
 Software Requirements
 ---------------------
 
-Operating System
-~~~~~~~~~~~~~~~~
+Servers that run |onprem| components must meet the software requirements
+described here.
 
-The |application| and Backup Daemon(s) can run on 64-bit versions of the following operating systems:
+.. _ops-manager-operating-system:
+
+|onprem| Operating System
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Servers that run |onprem| must run on a 64-bit version of one of the
+following operating systems:
 
 - CentOS 5 or later
 
@@ -303,77 +267,57 @@ The |application| and Backup Daemon(s) can run on 64-bit versions of the followi
 
 .. _onprem-config-ulimits:
 
-Ulimits
-~~~~~~~
+Ulimits Requirements
+~~~~~~~~~~~~~~~~~~~~
 
-The |onprem| package automatically raises the open file, max user processes, and
-virtual memory ulimits. On Red Hat, be sure to check for a
-``/etc/security/limits.d/90-nproc.conf`` file that may override the max user
-processes limit. If the ``/etc/security/limits.d/90-nproc.conf`` file exists,
-remove it before continuing.
+For ulimit requirements for the servers that run MongoDB (i.e., the Backup
+Daemon servers and the servers that host the |onprem| Application Database
+or the Backup Database), see all of the following:
 
-See :manual:`MongoDB ulimit Settings </reference/ulimit>` for recommended
-ulimit settings.
+- :manual:`MongoDB Production Notes </administration/production-notes>`
 
-.. warning::
+- :manual:`MongoDB Ulimit Settings </reference/ulimit>` in the MongoDB manual
 
-   Always refer to the :manual:`MongoDB Production Notes
-   </administration/production-notes>` to ensure healthy server configurations.
+For any RHEL server that runs any of the :doc:`Ops Manager components
+</core/system-overview>`, check the ``/etc/security/limits.d/`` directory
+for the ``90-nproc.conf`` file, which may override the ``max user
+processes`` ulimit. If the ``90-nproc.conf`` file exists, remove it.
 
-.. _authentication-requirements:
+The |onprem| package automatically raises the following ulimits:
 
-Authentication
-~~~~~~~~~~~~~~
+- open files
 
-If you are using LDAP for user authentication to |onprem| (as described in
-:doc:`/tutorial/configure-for-ldap-authentication`), you must enable LDAP
-**before setting up** |mms|.
+- max user processes
 
-.. important::
+- virtual memory
 
-   You **cannot** enable LDAP once you have opened the |onprem| user
-   interface and registered the first user. You can enable LDAP **only**
-   on a completely blank, no-hosts, no-users installation.
-
-MongoDB
-~~~~~~~
-
-.. versionchanged:: 1.8
-
-   The :ref:`mms-application-database` and
-   :ref:`backup-database` must run MongoDB version 2.6.0
-   or later. |onprem| 1.8 does not support backing databases running
-   earlier versions of MongoDB.
-
-Your **backed-up** sharded cluster deployments must run at least MongoDB 2.4.3 or
-later. Your backed-up replica set deployments must run at least MongoDB
-2.2 or later.
-
-Web Browsers
-~~~~~~~~~~~~
-
-|onprem| supports clients using the following browsers:
-
-.. include:: /includes/list-supported-browsers.rst
-
-|onprem| will display a warning on non-supported browsers.
+.. _smtp-software-requirements:
 
 SMTP
 ~~~~
 
 |onprem| requires email for fundamental server functionality such as
-password reset and alerts.
+password reset and alerts. Many Linux server-oriented distributions
+include a local SMTP server by default, for example, Postfix, Exim, or
+Sendmail. You also may configure |onprem| to send mail via third party
+providers, including Gmail and Sendgrid.
 
-Many Linux server-oriented distributions include a local SMTP server by
-default, for example, Postfix, Exim, or Sendmail. You also may configure |onprem|
-to send mail via third party providers, including Gmail and Sendgrid.
+.. _snmp-software-requirements:
 
 SNMP
 ~~~~
 
 If your environment includes SNMP, you can configure an SMNP trap receiver
-with periodic heartbeat traps to monitor the internal health of |mms|.
-|onprem| uses SNMP v2c.
+with periodic heartbeat traps to monitor the internal health of |onprem|.
+|onprem| uses SNMP v2c. For more information, see :ref:`Configure SNMP
+Heartbeat Support <snmp-heartbeat-configure>`.
 
-For more information, see :ref:`Configure SNMP Heartbeat Support
-<snmp-heartbeat-configure>`.
+.. _client-web-browsers:
+
+Client Web Browsers
+~~~~~~~~~~~~~~~~~~~
+
+|onprem| supports clients using the following browsers. |onprem| will
+display a warning on non-supported browsers. The following are supported:
+
+.. include:: /includes/list-supported-browsers.rst

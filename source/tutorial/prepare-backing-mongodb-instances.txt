@@ -1,22 +1,44 @@
-=====================================================
-Deploy the |application| Database and Backup Database
-=====================================================
+======================================================
+Install the |application| Database and Backup Database
+======================================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-|onprem| uses two dedicated :term:`replica sets <replica set>` to store operational
-data: one replica set to store the :ref:`mms-application-database` and another
-to store the :ref:`backup-database`. If you use multiple Backup Databases,
-set up separate replica sets for each database. The replica sets are
-dedicated to operational data and **must store no other data**.
+Before you install |onprem| you must install the :ref:`mms-application-database`,
+which holds |onprem| operational data. If you will use the |onprem| Backup
+feature, you must also install the Backup Database, which stores oplog
+data, temporary sync data, and, depending on your configuration, stores
+your snapshots.
+
+Both databases run on dedicated MongoDB :term:`replica sets <replica
+set>`. If you use multiple Backup Databases, set up separate replica sets
+for each database. The replica set for each database is dedicated to that
+database only and **must store no other data**.
 
 .. note::
 
-   You cannot use |mms| to manage |mms|'s backing instances. You must
-   deploy and manage the backing instances manually.
+   You cannot use |onprem| to deploy the backing database. You must deploy
+   and manage the backing databases manually.
+
+Replica Set Topology
+--------------------
+
+Each replica set is usually comprised of three data-bearing members to
+provide high availability. If you cannot allocate space for three
+data-bearing members, the third member can be an arbiter, but keep in mind
+that |onprem| uses ``w:2`` :manual:`write concern
+</reference/write-concern>`, which reports a write operation as successful
+after acknowledgement from the primary and one secondary. If you use a
+replica set with only two data-bearing members, and if you lose one of the
+data-bearing members, MongoDB blocks write operations.
+
+For the |onprem| Application Database, you can optionally run one member
+of the replica set on the same physical server as |onprem|. For *testing
+only*, you may use a standalone MongoDB deployment in place of each
+replica set.
 
 .. _requirements-backing-db-replica-sets:
 
@@ -26,10 +48,7 @@ Replica Sets Requirements
 The replica set that hosts the |application| Database and each replica set
 that hosts a Backup Database must:
 
-- Store data in support of |onprem| operations **only** and **store no other data**.
-
-- Run on a server that meets the :ref:`server prerequisites
-  <backing-instances-prerequisites>` below.
+- **Only** store data in support of |onprem| operations and **store no other data**.
 
 - Run MongoDB 3.0.6 or later if running MongoDB 3.0 or run MongoDB 2.6.6
   or later if running MongoDB 2.6. Do not use a MongoDB version earlier
@@ -52,22 +71,18 @@ Server Prerequisites
 
 The servers that run the replica sets must meet the following requirements.
 
-- The hardware requirements described in
-  :ref:`mms-application-database-specifications` or
-  :ref:`backup-database-specifications`, depending on which
-  database the server will host. If a server hosts other |onprem|
-  components in addition to the database, you must sum the hardware
-  requirements for each component to determine the requirements for the
-  server.
+- The hardware requirements described in :ref:`mms-application-database-specifications`
+  or :ref:`backup-database-specifications`, depending on which database
+  the server will host. If a server hosts other |onprem| components in
+  addition to the database, you must sum the hardware requirements for
+  each component to determine the requirements for the server.
 
 - The system requirements in the :manual:`MongoDB Production Notes
   </administration/production-notes>`. The Production Notes include
-  important information on ulimits, NUMA, Transparent Huge Pages (THP),
-  and other configuration options.
+  information on ulimits, NUMA, and other configuration options.
 
-- The MongoDB ports requirements described in
-  :doc:`/reference/firewall-configuration`. Each server's firewall rules
-  must allow access to the required ports.
+- The MongoDB ports requirements described in :doc:`/reference/firewall-configuration`.
+  Each server's firewall rules must allow access to the required ports.
 
 - **RHEL servers only**: if the ``/etc/security/limits.d`` directory
   contains the ``90-nproc.conf`` file, remove the file. The file overrides
