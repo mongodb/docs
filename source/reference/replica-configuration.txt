@@ -19,7 +19,6 @@ Example Output
 
 .. include:: /includes/replica-set-conf-document-output.rst
 
-
 .. _replSetGetConfig-output:
 
 Replica Set Configuration Fields
@@ -42,6 +41,8 @@ Replica Set Configuration Fields
 
 .. rsconf::  version
 
+   *Type*: int
+
    An incrementing number used to distinguish revisions of the replica
    set configuration object from previous iterations of the
    configuration.
@@ -59,6 +60,25 @@ Replica Set Configuration Fields
    cluster's config servers.
 
    .. seealso:: :ref:`3.2-rel-notes-sharded-cluster`
+
+.. rsconf:: protocolVersion
+
+   .. versionadded:: 3.2
+
+   *Type*: number
+
+   *Default*: 1 for new replica sets
+
+   Version of the :ref:`replica set election protocol
+   <3.2-rel-notes-rs-enhancements>`. 
+
+   Set to ``1`` to enable the :ref:`replication election enhancements
+   <3.2-rel-notes-rs-enhancements>` introduced in MongoDB 3.2. 
+
+   By default, new replica sets in MongoDB 3.2 use ``protocolVersion: 1``.
+   Previous versions of MongoDB use version 0 of the protocol and
+   cannot run as members of a replica set configuration that specifies
+   ``protocolVersion`` 1.
 
 ``members``
 ~~~~~~~~~~~
@@ -201,13 +221,14 @@ Replica Set Configuration Fields
 
       Specify higher values to make a member *more* eligible to become
       :term:`primary`, and lower values to make the member *less*
-      eligible. Priorities are only used in comparison to each other.
-      Members of the set will veto election requests from members when
-      another eligible member has a higher priority value. Changing the
-      balance of priority in a replica set will trigger an election.
+      eligible. A member with a :rsconf:`members[n].priority` of ``0`` is
+      ineligible to become primary.
 
-      A :rsconf:`members[n].priority` of ``0``
-      makes it impossible for a member to become primary.
+      Changing the balance of priority in a replica set will trigger
+      one or more elections. If a lower priority secondary is elected
+      over a higher priority secondary, replica set members will
+      continue to call elections until the highest priority available
+      member becomes primary.
 
       .. seealso::
          :ref:`Replica Set Elections <replica-set-elections>`.
@@ -359,3 +380,32 @@ Replica Set Configuration Fields
       successful heartbeat from each other. If a member does not
       respond in time, other members mark the delinquent member as
       inaccessible.
+
+   .. rsconf::  settings.electionTimeoutMillis
+
+      .. versionadded:: 3.2
+
+      *Optional*.
+
+      *Type*: int
+
+      *Default*: 10000 (10 seconds)
+
+      The time limit in milliseconds for detecting when a replica set's
+      primary is unreachable:
+
+      - Higher values result in slower failovers but decreased
+        sensitivity to primary node or network slowness or spottiness.
+
+      - Lower values result in faster failover, but increased
+        sensitivity to primary node or network slowness or spottiness.
+
+      The setting only applies when using :rsconf:`protocolVersion: 1`.
+
+   .. rsconf::  settings.heartbeatIntervalMillis
+
+      .. versionadded:: 3.2
+
+      *Internal use only*.
+
+      The frequency in milliseconds of the heartbeats.

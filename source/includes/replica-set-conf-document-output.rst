@@ -7,6 +7,7 @@ include only a subset of these settings:
    {
      _id: <string>,
      version: <int>,
+     protocolVersion: <number>,
      members: [
        {
          _id: <int>,
@@ -22,9 +23,11 @@ include only a subset of these settings:
        ...
      ],
      settings: {
-       getLastErrorDefaults : <document>,
        chainingAllowed : <boolean>,
+       heartbeatIntervalMillis : <int>,
+       heartbeatTimeoutSecs: <int>,
+       electionTimeoutMillis : <int>,
        getLastErrorModes : <document>,
-       heartbeatTimeoutSecs: <int>
+       getLastErrorDefaults : <document>
      }
    }
