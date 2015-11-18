@@ -376,6 +376,311 @@ Authentication through |onprem| Application Database
 
    The number of days a password is valid before the password expires.
 
+.. _ldap-settings:
+.. _ldap-user-settings:
+.. _default-ldap-separator:
+.. _ldap-global-role-settings:
+
+Authentication through LDAP
+---------------------------
+
+These settings configure |mms| to use an LDAP server for authentication. If you
+use LDAP authentication, users must belong to an LDAP group to log into |mms|.
+You must create LDAP groups for each |mms| :doc:`user role
+</reference/user-roles>`.
+
+*Settings that begin with "mms.ldap.global.role"* assign |mms|
+:ref:`global roles <global-roles>` to the members of
+the specified LDAP groups. Specify groups using the format used by the LDAP
+attribute specified in the :setting:`mms.ldap.user.group` setting. You can
+specify multiple groups using the ``;;`` delimiter. To change the default
+delimiter, use the :setting:`mms.ldap.group.separator` setting.
+Each |mms| global role provides its level of access to all the |mms| :doc:`groups
+</tutorial/create-group>` in the deployment. To provide access to specific
+groups, use :doc:`group-level roles </reference/user-roles>`.
+
+.. setting:: mms.ldap.url
+
+   *Field Name*: :guilabel:`LDAP URI`
+
+   *Type*: string
+
+   The URI for the LDAP or SSL LDAP server.  For example:
+
+   .. code-block:: ini
+
+      mms.ldap.url=ldaps://acme-dc1.acme.example.net:3890
+
+.. setting:: mms.ldap.ssl.CAFile
+
+   *Field Name*: :guilabel:`LDAP SSL CA File`
+
+   *Type*: string
+
+   A file containing one or more trusted certificates in PEM format.
+   Use :setting:`mms.ldap.ssl.CAFile` if you are using LDAPS and the server
+   is using a certificate that is not from a well-known CA. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.ssl.CAFile=/opt/CA.pem
+
+.. setting:: mms.ldap.ssl.PEMKeyFile
+
+   *Field Name*: :guilabel:`LDAP SSL PEM Key File`
+
+   *Type*: string
+
+   A file containing a client certificate and private key.
+   Use :setting:`mms.ldap.ssl.PEMKeyFile` when your SSL LDAP server
+   requires client certificates.
+
+.. setting:: mms.ldap.ssl.PEMKeyFilePassword
+
+   *Field Name*: :guilabel:`LDAP SSL PEM Key File Password`
+
+   *Type*: string
+
+   The password for :setting:`mms.ldap.ssl.PEMKeyFile`. Use
+   :setting:`mms.ldap.ssl.PEMKeyFilePassword` if the ``PEMKeyFile``
+   is encrypted.
+
+.. setting:: mms.ldap.bindDn
+
+   *Field Name*: :guilabel:`LDAP Bind Dn`
+
+   *Type*: string
+
+   The LDAP user used to execute searches for other users. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.bindDn=authUser@acme.example.net
+
+.. setting:: mms.ldap.bindPassword
+
+   *Field Name*: :guilabel:`LDAP Bind Password`
+
+   *Type*: string
+
+   The credentials for the search user. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.bindPassword=<user-password>
+
+.. setting:: mms.ldap.user.baseDn
+
+   *Field Name*: :guilabel:`LDAP User Base Dn`
+
+   *Type*: string
+
+   The base Distinguished Name (DN) that |mms| uses to search for users. Escape
+   the ``=`` sign with ``\``. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.baseDn=DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.user.searchAttribute
+
+   *Field Name*: :guilabel:`LDAP User Search Attribute`
+
+   *Type*: string
+
+   The LDAP field used for the LDAP search. This is typically a username
+   or email address.
+
+   The value of this field is also used as the |mms| username.
+
+   Example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.searchAttribute=mail
+
+.. setting:: mms.ldap.user.group
+
+   *Field Name*: :guilabel:`LDAP User Group`
+
+   *Type*: string
+
+   The LDAP user attribute that contains the list of LDAP groups the user
+   belongs to. The LDAP attribute can use any format to list the groups,
+   including Common Name (``cn``) or Distinguished Name (``dn``). All |mms|
+   settings in this configuration file that specify groups must match the
+   chosen format.
+
+   Example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.group=memberOf
+
+.. setting:: mms.ldap.global.role.owner
+
+   *Field Name*: :guilabel:`LDAP Global Role Owner`
+
+   *Type*: string
+
+   The LDAP group that has full privileges for the |mms| deployment, including
+   full access to all |mms| :doc:`groups </tutorial/create-group>` and all
+   administrative permissions. Users in the specified LDAP group receive the
+   :ref:`global owner <global-owner-role>` role in |mms|. Specify the group
+   using the format that is used by the LDAP attribute specified in the
+   :setting:`mms.ldap.user.group` setting.
+
+   .. COMMENT/QUESTION: Should the LDAP examples use ;; as the delimiter?
+
+   Example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.owner=CN\=MMSGlobalOwner,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.user.firstName
+
+   *Field Name*: :guilabel:`LDAP User First Name`
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's first name. After
+   successful LDAP authentication, |mms| synchronizes the specified LDAP
+   attribute with the first name from the |mms| user record.
+
+   For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.firstName=givenName
+
+.. setting:: mms.ldap.user.lastName
+
+   *Field Name*: :guilabel:`LDAP User Last Name`
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's last name. After
+   successful LDAP authentication, |mms| synchronizes the specified LDAP
+   attribute with the last name from the |mms| user record.
+
+   For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.lastName=sn
+
+.. setting:: mms.ldap.user.email
+
+   *Field Name*: :guilabel:`LDAP User Email`
+
+   *Type*: string
+
+   The LDAP user attribute that contains the user's email address. After
+   successful LDAP authentication, |mms| synchronizes the specified LDAP
+   attribute with the email address from the |mms| user record.
+
+   For example:
+
+   .. code-block:: ini
+
+      mms.ldap.user.email=mail
+
+.. setting:: mms.ldap.global.role.backupAdmin
+
+   *Field Name*: :guilabel:`LDAP Global Role Backup Admin`
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global backup admin role
+   <global-backup-admin-role>` in |mms|. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.backupAdmin=CN\=MMS-BackupAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.global.role.monitoringAdmin
+
+   *Field Name*: :guilabel:`LDAP Global Role Monitoring Admin`
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global monitoring admin
+   role <global-monitoring-admin-role>` in |mms|. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.monitoringAdmin=CN\=MMS-MonitoringAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.global.role.userAdmin
+
+   *Field Name*: :guilabel:`LDAP Global Role User Admin`
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global user admin role
+   <global-user-admin-role>` in |mms|. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.userAdmin=CN\=MMS-UserAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.global.role.readOnly
+
+   *Field Name*: :guilabel:`LDAP Global Role Read Only`
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global read-only role
+   <global-read-only-role>` in |mms|. For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.readOnly=CN\=MMS-ReadOnly,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+.. setting:: mms.ldap.global.role.automationAdmin
+
+   *Type*: string
+
+   The LDAP group whose members have the :ref:`global automation admin
+   role <global-automation-admin-role>` in |mms|. Specify groups using the
+   format used by the LDAP attribute specified in the
+   :setting:`mms.ldap.user.group` setting. You can specify multiple groups
+   using the ``;;`` delimiter. To change the default delimiter, use the
+   :setting:`mms.ldap.group.separator` setting.
+
+   For example:
+
+   .. code-block:: ini
+
+      mms.ldap.global.role.automationAdmin=CN\=MMS-AutomationAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
+
+   Each |mms| global role provides its level of access to all the |mms|
+   :doc:`groups </tutorial/create-group>` in the deployment. To provide
+   access to specific groups, use :ref:`group-level roles <global-roles>`.
+
+.. setting:: mms.ldap.group.separator
+
+   *Type*: string
+
+   Each of the global role values can take a delimited list of groups: for
+   example ``"dbas,sysadmins"``.
+
+   If a group value contains the delimiter, the
+   delimiter must be set to another value. For example, if you
+   have the group value ``"CN\=foo,DN\=bar"`` and the delimiter is ``,`` then
+   |mms| parses ``"CN\=foo,DN\=bar"`` as two elements rather than as the
+   description for a single group. Change the delimiter by adding the
+   :setting:`mms.ldap.group.separator` setting to the configuration file
+   and specifying a different delimiter.
+
+   Starting with |mms| 1.5, the default delimiter is ``;;``.
+
+
+
+
+
+
 
 
 
@@ -1125,274 +1430,6 @@ information in the configuration file.
    *Type*: string
 
    The reCaptcha private key associated with your account.
-
-.. _ldap-settings:
-
-LDAP Settings
-~~~~~~~~~~~~~
-
-To configure |onprem| for LDAP, you must start with a new installation or reset
-your installation to a clean state. Your |onprem| installation cannot have
-existing users, groups, or hosts. For assistance, contact your MongoDB account
-manager.
-
-.. _ldap-user-settings:
-
-LDAP User Settings
-``````````````````
-
-These settings configure |mms| to use an LDAP server for authentication. If you
-use LDAP authentication, users must belong to an LDAP group to log into |mms|.
-You must create LDAP groups for each |mms| :doc:`user role
-</reference/user-roles>`.
-
-.. setting:: mms.ldap.url
-
-   *Type*: string
-
-   The URI for the LDAP or SSL LDAP server.  For example:
-
-   .. code-block:: ini
-
-      mms.ldap.url=ldaps://acme-dc1.acme.example.net:3890
-
-.. setting:: mms.ldap.ssl.CAFile
-
-   *Type*: string
-   
-   A file containing one or more trusted certificates in PEM format.
-   Use :setting:`mms.ldap.ssl.CAFile` if you are using LDAPS and the server
-   is using a certificate that is not from a well-known CA. For example:
-   
-   .. code-block:: ini
-   
-      mms.ldap.ssl.CAFile=/opt/CA.pem
-
-.. setting:: mms.ldap.ssl.PEMKeyFile
-
-   *Type*: string
-   
-   A file containing a client certificate and private key. 
-   Use :setting:`mms.ldap.ssl.PEMKeyFile` when your SSL LDAP server
-   requires client certificates.
-
-.. setting:: mms.ldap.ssl.PEMKeyFilePassword
-
-   *Type*: string
-   
-   The password for :setting:`mms.ldap.ssl.PEMKeyFile`. Use
-   :setting:`mms.ldap.ssl.PEMKeyFilePassword` if the ``PEMKeyFile``
-   is encrypted.
-
-.. setting:: mms.ldap.bindDn
-
-   *Type*: string
-
-   The LDAP user used to execute searches for other users. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.bindDn=authUser@acme.example.net
-
-.. setting:: mms.ldap.bindPassword
-
-   *Type*: string
-
-   The credentials for the search user. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.bindPassword=<user-password>
-
-.. setting:: mms.ldap.user.baseDn
-
-   *Type*: string
-
-   The base Distinguished Name (DN) that |mms| uses to search for users. Escape
-   the ``=`` sign with ``\``. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.baseDn=DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.user.searchAttribute
-
-   *Type*: string
-
-   The LDAP field used for the LDAP search. This is typically a username
-   or email address.
-
-   The value of this field is also used as the |mms| username.
-
-   Example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.searchAttribute=mail
-
-.. setting:: mms.ldap.user.group
-
-   *Type*: string
-
-   The LDAP user attribute that contains the list of LDAP groups the user
-   belongs to. The LDAP attribute can use any format to list the groups,
-   including Common Name (``cn``) or Distinguished Name (``dn``). All |mms|
-   settings in this configuration file that specify groups must match the
-   chosen format.
-
-   Example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.group=memberOf
-
-.. setting:: mms.ldap.global.role.owner
-
-   *Type*: string
-
-   The LDAP group that has full privileges for the |mms| deployment, including
-   full access to all |mms| :doc:`groups </tutorial/create-group>` and all
-   administrative permissions. Users in the specified LDAP group receive the
-   :ref:`global owner <global-owner-role>` role in |mms|. Specify the group
-   using the format that is used by the LDAP attribute specified in the
-   :setting:`mms.ldap.user.group` setting.
-
-   Example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.owner=CN\=MMSGlobalOwner,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.user.firstName
-
-   *Type*: string
-
-   The LDAP user attribute that contains the user's first name. After
-   successful LDAP authentication, |mms| synchronizes the specified LDAP
-   attribute with the first name from the |mms| user record.
-
-   For example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.firstName=givenName
-
-.. setting:: mms.ldap.user.lastName
-
-   *Type*: string
-
-   The LDAP user attribute that contains the user's last name. After
-   successful LDAP authentication, |mms| synchronizes the specified LDAP
-   attribute with the last name from the |mms| user record.
-
-   For example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.lastName=sn
-
-.. setting:: mms.ldap.user.email
-
-   *Type*: string
-
-   The LDAP user attribute that contains the user's email address. After
-   successful LDAP authentication, |mms| synchronizes the specified LDAP
-   attribute with the email address from the |mms| user record.
-
-   For example:
-
-   .. code-block:: ini
-
-      mms.ldap.user.email=mail
-
-.. _default-ldap-separator:
-
-.. _ldap-global-role-settings:
-
-LDAP Global Role Settings
-`````````````````````````
-
-These settings assign |mms| :ref:`global roles <global-roles>` to the members of
-the specified LDAP groups. Specify groups using the format used by the LDAP
-attribute specified in the :setting:`mms.ldap.user.group` setting. You can
-specify multiple groups using the ``;;`` delimiter. To change the default
-delimiter, use the :setting:`mms.ldap.group.separator` setting.
-
-Each |mms| global role provides its level of access to all the |mms| :doc:`groups
-</tutorial/create-group>` in the deployment. To provide access to specific
-groups, use :ref:`group-level roles <global-roles>`.
-
-.. setting:: mms.ldap.global.role.automationAdmin
-
-   *Type*: string
-
-   The LDAP group whose members have the :ref:`global automation admin
-   role <global-automation-admin-role>` in |mms|. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.automationAdmin=CN\=MMS-AutomationAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.global.role.backupAdmin
-
-   *Type*: string
-
-   The LDAP group whose members have the :ref:`global backup admin role
-   <global-backup-admin-role>` in |mms|. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.backupAdmin=CN\=MMS-BackupAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.global.role.monitoringAdmin
-
-   *Type*: string
-
-   The LDAP group whose members have the :ref:`global monitoring admin
-   role <global-monitoring-admin-role>` in |mms|. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.monitoringAdmin=CN\=MMS-MonitoringAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.global.role.userAdmin
-
-   *Type*: string
-
-   The LDAP group whose members have the :ref:`global user admin role
-   <global-user-admin-role>` in |mms|. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.userAdmin=CN\=MMS-UserAdmin,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.global.role.readOnly
-
-   *Type*: string
-
-   The LDAP group whose members have the :ref:`global read-only role
-   <global-read-only-role>` in |mms|. For example:
-
-   .. code-block:: ini
-
-      mms.ldap.global.role.readOnly=CN\=MMS-ReadOnly,OU\=MMS,OU\=acme Groups,DC\=acme,DC\=example,DC\=net
-
-.. setting:: mms.ldap.group.separator
-
-   *Type*: string
-
-   Each of the global role values can take a delimited list of groups: for
-   example ``"dbas,sysadmins"``.
-
-   If a group value contains the delimiter, the
-   delimiter must be set to another value. For example, if you
-   have the group value ``"CN\=foo,DN\=bar"`` and the delimiter is ``,`` then
-   |mms| parses ``"CN\=foo,DN\=bar"`` as two elements rather than as the
-   description for a single group. Change the delimiter by adding the
-   :setting:`mms.ldap.group.separator` setting to the configuration file
-   and specifying a different delimiter.
-
-   Starting with |mms| 1.5, the default delimiter is ``;;``.
 
 .. _configuration-kerberos-settings:
 
