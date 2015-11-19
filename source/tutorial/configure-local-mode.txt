@@ -1,98 +1,93 @@
-=========================================================
-Configure "Local Mode" if Servers Have No Internet Access
-=========================================================
+=======================================================
+Configure Local Mode if Servers Have No Internet Access
+=======================================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-If the servers that run your MongoDB deployments do not have internet
-access, then you must configure |onprem| to run in "local" mode and
-provide local access to MongoDB binaries.
+If the servers that run your Automation Agents or Backup Daemons do not have
+internet access, you must configure |onprem| to run in Local mode, and you
+must manually provide the MongoDB binaries and :term:`version manifest
+<version manifest>`. As MongoDB Inc. releases new versions, you must update
+the binaries and manifest.
 
-The Automation Agents require access to MongoDB binaries in order to
-install MongoDB on new deployments or change MongoDB versions on existing
-ones. In a default configuration, the agents access the binaries over the
-internet from MongoDB Inc. If you deploy MongoDB on servers that have no
-internet access, you can run local mode and provide the Automation Agents
-access to the binaries from a directory on the |application| server.
+The Automation Agents require MongoDB binaries in order to install MongoDB on
+new deployments and to change MongoDB versions on existing ones. The Backup
+Daemons require the binaries in order to install the correct versions of
+MongoDB for the databases being backed up.
 
-.. note::
+.. In a default configuration, the agents and daemons access the binaries
+   over the internet from MongoDB Inc. ???
 
-   You can also configure offline binary access for the Backup Daemon,
-   which is a separate set of steps. See the
-   :ref:`mongodb.release.autoDownload <mongodb-release-autodownload>`
-   setting.
+Internet Mode and Local Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Binaries Directory
+The :setting:`Version Manifest Source` setting determines whether |onprem|
+runs in Internet mode or Local mode.
+
+.. _versions-directory:
+
+Versions Directory
 ~~~~~~~~~~~~~~~~~~
 
-You specify the binaries directory in the :ref:`conf-mms.properties`
-file and then place ``.tgz`` archives of the binaries in that directory.
-The Automation Agents will use these archives for all MongoDB installs.
-The "mongodb-mms" user must possess the permissions to read the ``.tgz``
-files in the directory.
+The versions directory on the |onprem| server(s) holds ``.tgz`` archive files
+of the MongoDB binaries that the agents and daemons require in order to manage
+and back up your deployments. You specify this directory in the
+:setting:`Versions Directory` setting.
 
-The following shows the ``ls -l`` output of the binaries directory for
-an example |onprem| install that deploys only the versions of MongoDB
-listed:
-
-.. code-block:: sh
-
-   $ cd /opt/mongodb/mms/mongodb-releases
-   $ ls -l
-   total 355032
-   -rw-r----- 1 mongodb-mms staff 116513825 Apr 27 15:06 mongodb-linux-x86_64-2.6.9.tgz
-   -rw-r----- 1 mongodb-mms staff  51163601 May 22 10:05 mongodb-linux-x86_64-amazon-3.0.3.tgz
-   -rw-r----- 1 mongodb-mms staff  50972165 May 22 10:06 mongodb-linux-x86_64-suse11-3.0.3.tgz
-   -rw-r----- 1 mongodb-mms staff  95800685 Apr 27 15:05 mongodb-linux-x86_64-enterprise-amzn64-2.6.9.tgz
-   -rw-r----- 1 mongodb-mms staff  50594134 Apr 27 15:04 mongodb-linux-x86_64-enterprise-amzn64-3.0.2.tgz
-   -rw-r----- 1 mongodb-mms staff  50438645 Apr 27 15:04 mongodb-linux-x86_64-enterprise-suse11-3.0.2.tgz
+If you run in Local mode, you must manually download the binaries from MongoDB
+Inc. and place them in this directory. The "mongodb-mms" user must have
+permission to read the archives in this directory.
 
 .. _version-manifest:
 
 Version Manifest
 ~~~~~~~~~~~~~~~~
 
-When you run in local mode, you provide |onprem| with the MongoDB version
-manifest, which makes |onprem| aware of all released MongoDB versions. The
-Automation Agents, however, can only deploy those versions available in
-the binaries directory on the |application| server. Further, the agent for
-a given group can only deploy an available version if that version is
-selected for use in the group's Version Manager.
+The MongoDB version manifest makes |onprem| aware of all released MongoDB
+versions. In Local mode, the Automation Agents and Backup Daemons can deploy
+versions for which archives exist in the :ref:`versions directory
+<versions-directory>`. For a given |onprem| :term:`group`, the version must
+also be selected in the group's :ref:`Version Manager <version-manager>`.
 
-As MongoDB releases new versions, you must update the version manifest.
+In Internet mode, |onprem| automatically updates the version manifest from
+MongoDB, Inc. In Local mode, you must update the version manifest as MongoDB
+releases new versions.
+
+Required Access
+---------------
+
+To configure Local mode, you must have :ref:`Global Automation Admin
+<global-automation-admin-role>` or :ref:`Global Owner <global-owner-role>`
+access to |onprem|.
 
 Prerequisites
 -------------
 
-Download Binaries Before Importing a Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Populate the binaries directory with all required MongoDB
-versions **before you import a MongoDB deployment** into |onprem|.
-If a version is missing, the
-Automation Agents will not be able to take control of the deployment.
+Before configuring |onprem| to run in Local mode, you must meet the
+prerequisites described here.
 
 .. _local-mode-determine-versions:
 
 Determine Which Binaries to Store
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your binaries directory will require archives of following versions:
+The :ref:`versions directory <versions-directory>` requires archives of
+following versions of MongoDB:
 
-- versions used by existing deployments that you will import
+- Versions that are used by existing deployments that you will import into |onprem|.
 
-- versions you will use to create new deployments
+- Versions you will use to create new deployments through |onprem| Automation.
 
-- versions you will use during an intermediary step in an upgrade. For
-  example, if you will import an existing MongoDB 2.6 Community deployment
-  and upgrade it first to MongoDB 3.0 Community and then to MongoDB 3.0
-  Enterprise, you must include all those editions and versions.
+- Versions you will use during an intermediary step in an upgrade. For example,
+  if you will import an existing deployment of MongoDB 2.6 Community and upgrade it
+  to MongoDB 3.0 Community and then to MongoDB 3.0 Enterprise, you must include
+  all those editions and versions.
 
-If you use both the MongoDB Community edition and the MongoDB Enterprise
-subscription edition, you must include the required versions of both.
+- If you use both the MongoDB Community edition and the MongoDB Enterprise
+  subscription edition, you must include the required versions of both.
 
 The following table describes the archives required for specific versions:
 
@@ -107,23 +102,29 @@ The following table describes the archives required for specific versions:
      - 2.6+, 2.4+
      - Linux archive at `<http://www.mongodb.org/downloads>`_.
    * - Community
-     - 3.0+
+     - 3.2+, 3.0+
      - Platform-specific archive available from `<http://www.mongodb.org/downloads>`_.
    * - Enterprise
-     - 3.0+, 2.6+, 2.4+
+     - 3.2+, 3.0+, 2.6+, 2.4+
      - Platform-specific archive available from `<http://mongodb.com/download>`_.
 
-Install Dependencies (MongoDB Enterprise Only)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Download Binaries Before Importing a Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/fact-enterprise-dependencies-vanilla.rst
+Populate the :ref:`versions directory <versions-directory>` with all required
+MongoDB versions **before you import any existing MongoDB deployments** into
+|onprem|. If a version is missing, the Automation Agent cannot take control of
+the deployment.
 
-Required Access
----------------
+Install Enterprise Dependencies (MongoDB Enterprise Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must have :ref:`Global Automation Admin
-<global-automation-admin-role>` or :ref:`Global Owner <global-owner-role>`
-access to perform this procedure.
+If you will run :term:`MongoDB Enterprise` and use Linux servers, then you must
+manually install a set of dependencies to each server **before installing MongoDB**.
+The MongoDB manual provides the appropriate command to install the dependencies.
+See the link for the server's operating system:
+
+.. include:: /includes/list-links-per-os-for-enterprise-dependencies.rst
 
 Procedure
 ---------
