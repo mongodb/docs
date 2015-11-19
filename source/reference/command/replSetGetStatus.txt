@@ -50,8 +50,10 @@ Consider the following example output:
 
    {
        "set" : "replset",
-       "date" : ISODate("2014-05-01T14:44:03Z"),
+       "date" : ISODate("2015-11-19T15:22:32.597Z"),
        "myState" : 1,
+       "term": NumberLong(1),
+       "heartbeatIntervalMillis" : NumberLong(2000),
        "members" : [
            {
                "_id" : 0,
@@ -60,10 +62,14 @@ Consider the following example output:
                "state" : 1,
                "stateStr" : "PRIMARY",
                "uptime" : 269,
-               "optime" : Timestamp(1404225575, 11),
-               "optimeDate" : ISODate("2014-05-01T14:39:35Z"),
-               "electionTime" : Timestamp(1404225586, 1),
-               "electionDate" : ISODate("2014-05-01T14:39:46Z"),
+               "optime" : {
+                           "ts" : Timestamp(1447946550, 1),
+                           "t" : NumberLong(1)
+                        },
+               "optimeDate" : ISODate("2015-11-19T15:22:30Z"),
+               "infoMessage" : "could not find member to sync from",
+               "electionTime" : Timestamp(1447946549, 1),
+               "electionDate" : ISODate("2015-11-19T15:22:29Z"),
                "configVersion" : 1,
                "self" : true
            },
@@ -73,13 +79,15 @@ Consider the following example output:
                "health" : 1,
                "state" : 2,
                "stateStr" : "SECONDARY",
-               "uptime" : 265,
-               "optime" : Timestamp(1404225575, 11),
-               "optimeDate" : ISODate("2014-05-01T14:39:35Z"),
-               "lastHeartbeat" : ISODate("2014-05-01T14:44:03Z"),
-               "lastHeartbeatRecv" : ISODate("2014-05-01T14:44:02Z"),
-               "pingMs" : 0,
-               "syncingTo" : "m1.example.net:27017",
+               "uptime" : 13,
+                        "optime" : {
+                           "ts" : Timestamp(1447946539, 1),
+                           "t" : NumberLong(-1)
+                        },
+               "optimeDate" : ISODate("2015-11-19T15:22:19Z"),
+               "lastHeartbeat" : ISODate("2015-11-19T15:22:31.323Z"),
+               "lastHeartbeatRecv" : ISODate("2015-11-19T15:22:32.045Z"),
+               "pingMs" : NumberLong(0),
                "configVersion" : 1
            },
            {
@@ -88,13 +96,15 @@ Consider the following example output:
                "health" : 1,
                "state" : 2,
                "stateStr" : "SECONDARY",
-               "uptime" : 265,
-               "optime" : Timestamp(1404225575, 11),
-               "optimeDate" : ISODate("2014-05-01T14:39:35Z"),
-               "lastHeartbeat" : ISODate("2014-05-01T14:44:02Z"),
-               "lastHeartbeatRecv" : ISODate("2014-05-01T14:44:02Z"),
-               "pingMs" : 0,
-               "syncingTo" : "m1.example.net:27017",
+               "uptime" : 13,
+                        "optime" : {
+                           "ts" : Timestamp(1447946539, 1),
+                           "t" : NumberLong(-1)
+                        },
+               "optimeDate" : ISODate("2015-11-19T15:22:19Z"),
+               "lastHeartbeat" : ISODate("2015-11-19T15:22:31.325Z"),
+               "lastHeartbeatRecv" : ISODate("2015-11-19T15:22:31.971Z"),
+               "pingMs" : NumberLong(0),
                "configVersion" : 1
            }
        ],
@@ -127,6 +137,23 @@ following fields:
    :data:`~replSetGetStatus.myState` is an integer between ``0`` and
    ``10`` that represents the :doc:`replica state </reference/replica-states>` of the current member.
 
+.. data:: replSetGetStatus.term
+
+   .. versionadded:: 3.2
+
+   The election count for the replica set, as known to this replica set
+   member. The :data:`~replSetGetStatus.term` is used by the
+   distributed consensus algorithm to ensure correctness.
+
+   If using :rsconf:`protocolVersion: 0 <protocolVersion>`, instead of
+   :rsconf:`protocolVersion: 1 <protocolVersion>`, returns ``-1``.
+
+.. data:: replSetGetStatus.heartbeatIntervalMillis
+
+   .. versionadded:: 3.2
+
+   The frequency in milliseconds of the heartbeats.
+
 .. data:: replSetGetStatus.members
 
    The ``members`` field holds an array that contains a document for
@@ -139,15 +166,15 @@ following fields:
    .. data:: replSetGetStatus.members[n].self
 
       The ``self`` field is only included in the document for the
-      current ``mongod`` instance in the members array. It's value is
+      current ``mongod`` instance in the members array. Its value is
       ``true``.
 
    .. data:: replSetGetStatus.members[n].health
 
       The ``health`` value is only present for the other members of the
       replica set (i.e. not the member that returns
-      :method:`rs.status`.) This field conveys if the member is up (i.e.
-      ``1``) or down (i.e. ``0``.)
+      :method:`rs.status`). This field conveys if the member is up (i.e.
+      ``1``) or down (i.e. ``0``).
 
    .. data:: replSetGetStatus.members.state
 
@@ -173,16 +200,22 @@ following fields:
       Information regarding the last operation from the operation log that
       this member has applied.
 
-      .. data:: replSetGetStatus.members[n].optime.t
+      .. versionchanged:: 3.2
 
-         A 32-bit timestamp of the last operation applied to this member
-         of the replica set from the :term:`oplog`.
+      If using :rsconf:`protocolVersion: 1 <protocolVersion>`,
+      ``optime`` returns a document that contains:
 
-      .. data:: replSetGetStatus.members[n].optime.i
+      - ``ts``, the :ref:`Timestamp <document-bson-type-timestamp>` of
+        the last operation applied to this member of the replica set
+        from the :term:`oplog`.
 
-         An incremented field, which reflects the number of operations
-         in since the last time stamp. This value only increases if
-         there is more than one operation per second.
+      - ``t``, the :data:`~replSetGetStatus.term` in which the last
+        applied operation was originally generated on the primary.
+
+      If using :rsconf:`protocolVersion: 0 <protocolVersion>`, ``optime``
+      returns the :ref:`Timestamp <document-bson-type-timestamp>` of
+      the last operation applied to this member of the replica set from
+      the :term:`oplog`.
 
    .. data:: replSetGetStatus.members[n].optimeDate
 
@@ -196,20 +229,10 @@ following fields:
 
    .. data:: replSetGetStatus.members[n].electionTime
 
-      For the current primary, information regarding the election time
-      from the operation log. See :doc:`/core/replica-set-elections` for
-      more information about elections.
-
-      .. data:: replSetGetStatus.members[n].electionTime.t
-
-         For the current primary, a 32-bit timestamp of the election time
-         applied to this member of the replica set from the :term:`oplog`.
-
-      .. data:: replSetGetStatus.members[n].electionTime.i
-
-         For the current primary, an incremented field which reflects the
-         number of operations in since the last time stamp. This value
-         only increases if there is more than one operation per second.
+      For the current primary, information regarding the election
+      :ref:`Timestamp <document-bson-type-timestamp>` from the
+      operation log. See :doc:`/core/replica-set-elections` for more
+      information about elections.
 
    .. data:: replSetGetStatus.members[n].electionDate
 
@@ -270,5 +293,5 @@ following fields:
 
       .. versionadded:: 3.0
 
-      The ``configVersion`` value is the :data:`replica
-      set configuration version <replSetGetConfig.version>`.
+      The ``configVersion`` value is the :rsconf:`replica
+      set configuration version <version>`.
