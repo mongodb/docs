@@ -1,0 +1,356 @@
+.. _bi-connector:
+
+===============================
+Business Intelligence Connector
+===============================
+
+.. default-domain:: mongodb
+
+.. note::
+
+   The MongoDB Business Intelligence Connector is currently in beta and is
+   available for limited testing. Functionality and availability may change
+   before its official release.
+
+The MongoDB Business Intelligence Connector allows users to
+visualize their MongoDB Enterprise data using existing relational business
+intelligence tools such as `Tableau <https://www.tableau.com/>`_.
+
+These tools expect to connect to a data source and find data in tabular form
+following a fixed schema. This presents a challenge when working with MongoDB's
+:doc:`flexible schema </data-modeling>` and rich, multi-dimensional, documents.
+
+The Business Intelligence Connector acts as a layer in between a
+:program:`mongod` instance and your reporting tool. Currently, it uses a
+foreign data wrapper with  `PostgreSQL <http://postgresql.org/>`_ to provide a
+relational :term:`SQL` view into your MongoDB data.
+
+.. include:: /images/bi-connector.rst
+
+Installation
+------------
+
+.. note::
+
+   The Business Intelligence Connector works only with MongoDB versions 3.2 and
+   greater.
+
+To set up the Business Intelligence Connector with a business intelligence tool
+such as Tableau, follow the steps in this section.
+
+.. include:: /includes/steps/install-bi-connector.rst
+
+Schema Configuration
+--------------------
+
+Business Intelligence tools connect to a data source and, given a fixed
+tabular schema, allow the user to visually explore their data. However,
+because MongoDB uses a :doc:`flexible schema </data-modeling>`, these tools
+currently cannot use MongoDB as a native data source.
+
+To use MongoDB with a relational business intelligence tool such as Tableau,
+you must define a relational mapping for your MongoDB data.
+
+The schema generation tool :program:`mongodrdl` will output such a schema in the
+:ref:`Document Relational Definition Language <drdl>` (DRDL) format, but you
+should verify that the schema it proposes matches your data requirements.
+Examine both the table structure and field types to ensure that you will be
+able to generate your desired reports.
+
+You may have to edit the schema definition files by hand to remove unneeded
+fields; add fields that :program:`mongodrdl` did not discover within the subset
+of documents that it sampled; and modify erroneous field types.
+
+You may edit DRDL files in the following ways:
+
+- Add :ref:`aggregation pipeline <aggregation-pipeline>` stages,
+- Add fields,
+- Remove fields,
+- Remove tables,
+- Rename tables, so long as the ``collection`` field remains the same.
+
+Note that you can *not* currently rename fields.
+
+.. _drdl:
+
+Document Relational Definition Language
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Document Relational Definition Language (``DRDL``) defines a relational
+view of a MongoDB schema.
+
+:program:`mongodrdl` produces these files using one or more MongoDB collections
+as a guideline, and :program:`mongobischema` imports them into the Business
+Intelligence Connector.
+
+Using the `YAML <https://yaml.org/>`_ format, the file lists the databases,
+tables, and columns to be "exported" for use in the Business Intelligence tools.
+
+File Format
+```````````
+.. code-block:: yaml
+
+   schema:
+   - db: <database name>
+     tables:
+     - table: <table name>
+       collection: <mongo collection name>
+       pipeline:
+       - <optional pipeline elements>
+       columns:
+       - name: <column name>
+         mongotype: <mongo field type>
+         sqltype: <mapped SQL type>
+
+Example
+```````
+
+.. include:: /includes/fact-mongodrdl-example.rst
+
+Field Types
+~~~~~~~~~~~
+
+The MongoDB Business Intelligence Connector will correctly map fields that
+always contain the same data type into the relational model. Schema generation
+will deal specially with the following cases:
+
+Dates
+  The connector will treat any field of type :bsontype:`data_date` as the
+  :term:`SQL` ``timestamp`` type.
+
+Timestamps
+  The connector will treat any field of type :bsontype:`data_timestamp` as a
+  ``varchar`` string type.
+
+Heterogeneous Fields
+  If a field can contain multiple types, :program:`mongodrdl` will pick the type
+  that appears most frequently.
+
+  If a field can contain either a string or an array of strings, the generated
+  schema will always specify that the field contains an array of strings.
+
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
+
+The Business Intelligence Connector will map embedded documents to simple fields
+that have a ``.`` separator character, making them appear similar to the way you
+would reference them using :ref:`dot notation <document-dot-notation>` in a
+MongoDB query.
+
+While Tableau properly quotes identifiers, within "ad-hoc"
+SQL expressions you must double-quote every identifier that contains ``.``
+characters or mixed-case characters.
+
+For example, consider the following document:
+
+.. code-block:: javascript
+
+   {
+       "_id": 1,
+       "familyName": "Partridge",
+       "hometown" : "Hollywood Hills",
+       "address" : { "street": "123 Main Street",
+                     "city" : "Hollywood",
+                     "state" : "CA",
+                     "zip" : "90210" },
+       "members_since" : ISODate("2002-04-12T00:00:00Z")
+   }
+
+This will result in the following fields in the generated schema:
+
+.. list-table::
+
+   * - ``_id``
+
+     - ``numeric``
+
+   * - ``familyName``
+
+     - ``varchar``
+
+   * - ``hometown``
+
+     - ``varchar``
+
+   * - ``address.street``
+
+     - ``varchar``
+
+   * - ``address.city``
+
+     - ``varchar``
+
+   * - ``address.state``
+
+     - ``varchar``
+
+   * - ``address.zip``
+
+     - ``varchar``
+
+   * - ``members_since``
+
+     - ``timestamp``
+
+Arrays
+~~~~~~
+
+The MongoDB Business Intelligence Connector exposes arrays to business
+intelligence tools using two collections: one without the array, and the other
+with the array "pre-joined" to its parent.
+
+For example, consider the following document in the collection ``families``:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "familyName": "Partridge",
+      "hometown" : "Hollywood Hills",
+      "familyMembers" : [
+        {
+            "firstname" : "Shirley",
+            "age" : 42,
+            "attributes" : [
+                { "name" : "instrument", "value" : "singer" },
+                { "name" : "role", "value" : "mom" }
+            ]
+        },
+        {
+            "firstname" : "Keith",
+            "age" : 18,
+            "attributes" : [
+                { "name" : "instrument", "value" : "guitar" },
+                { "name" : "role", "value" : "son" }
+            ]
+        },
+        {
+            "firstname" : "Laurie",
+            "age" : 16,
+            "attributes" : [
+                { "name" : "instrument", "value" : "keyboard" },
+                { "name" : "role", "value" : "sister" }
+            ]
+        }]
+   }
+
+This will result in the following three tables:
+
+``families``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+``families_familyMembers``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyMembers.age``
+
+       - ``numeric``
+
+     * - ``familyMembers.firstname``
+
+       - ``varchar``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+``families_familyMembers_attributes``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyMembers.age``
+
+       - ``numeric``
+
+     * - ``familyMembers.attributes.name``
+
+       - ``varchar``
+
+     * - ``familyMembers.attributes.value``
+
+       - ``varchar``
+
+     * - ``familyMembers.attributes_idx``
+
+       - ``numeric``
+
+     * - ``familyMembers.firstname``
+
+       - ``varchar``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+Aggregation Pipelines
+~~~~~~~~~~~~~~~~~~~~~
+
+The Business Intelligence Connector can use
+:ref:`aggregation pipelines <aggregation-pipeline>` as part of the schema to
+transform documents from the collection into the proper form for the relational
+tables.
+
+For example, consider a simple document in the collection ``simpleFamilies``:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "familyName": "Partridge",
+      "familyMembers" : [ "Shirley", "Keith", "Laurie"]
+   }
+
+
+:program:`mongodrdl` will generate a schema with the tables ``simpleFamilies``
+and ``simpleFamilies_familyMembers``.
+
+The table ``simpleFamilies_familyMembers`` enumerates each family members, and
+has the following pipeline:
+
+.. code-block:: yaml
+
+   pipeline:
+   - $unwind:
+       includeArrayIndex: familyMembers_idx
+       path: $familyMembers
+
+This pipeline uses :pipeline:`$unwind` to create a new record for each member of
+``familyMembers``. The schema will track the array index in the field
+``familyMembers_idx``.
+
+.. seealso:: :program:`mongodrdl`, :program:`mongobiuser`, :program:`mongobischema`
