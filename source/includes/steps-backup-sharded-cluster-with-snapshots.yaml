@@ -15,21 +15,20 @@ post: |
   For more information, see the
   :ref:`sharding-balancing-disable-temporarily` procedure.
 ---
-title: If necessary, lock one secondary member of each replica set in each shard.
+title: If necessary, lock one secondary member of each replica set.
 stepnum: 2
 ref: lock
 content: |
+  If your deployment requires this step, you must perform it on one secondary
+  of each shard and, if your deployment uses CSRS config servers, one secondary config
+  server.
+
   If your :program:`mongod` does not have journaling enabled *or* your
   journal and data files are on different volumes, you **must** lock
   your :program:`mongod` before capturing a back up.
 
   If your :program:`mongod` has journaling enabled and your journal
   and data files are on the same volume, you may skip this step.
-
-  If you need to lock the :program:`mongod`, attempt to lock one
-  secondary member of each replica set in each shard so that your
-  backups reflect the state of your database at the nearest possible
-  approximation of a single moment in time.
 
   To lock a secondary, connect through the :program:`mongo` shell to the
   secondary member's :program:`mongod` instance and issue the
@@ -41,7 +40,9 @@ ref: backup-config-server
 pre: |
   Backing up a :ref:`config server <sharding-config-server>` backs up the
   sharded cluster's metadata. You need back up only one config server, as
-  they all hold the same data. Do one of the following to back up one of
+  they all hold the same data. If you are using CSRS config servers and locked a config
+  server secondary in the previous step, perform this step against the locked config
+  server. Do one of the following to back up one of
   the config servers:
 action:
   - heading: "Create a file-system snapshot of the config server."
@@ -79,7 +80,7 @@ content: |
   If you locked any :program:`mongod` instances to capture the backup,
   unlock them now.
 
-  Unlock all locked replica set members of each shard using the
+  Unlock all locked replica set members using the
   :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
 ---
 title: Enable the balancer.
