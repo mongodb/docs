@@ -2,12 +2,11 @@ title: Disable the balancer.
 stepnum: 1
 ref: disable-balancer
 pre: |
-  Disable the :term:`balancer` process that equalizes the distribution
-  of data among the :term:`shards <shard>`. To disable the balancer, use
-  the :method:`sh.stopBalancer()` method in the :program:`mongo` shell.
+  To disable the :ref:`balancer <sharding-internals-balancing>`,
+  connect the :program:`mongo` shell to a :program:`mongos` instance and run
+  :method:`sh.stopBalancer()` in the ``config`` database.
 action:
-  pre: "Consider the following example:"
-  language: sh
+  language: javascript
   code: |
     use config
     sh.stopBalancer()
@@ -15,84 +14,129 @@ post: |
   For more information, see the
   :ref:`sharding-balancing-disable-temporarily` procedure.
 ---
-title: If necessary, lock one secondary member of each replica set.
+title: "If necessary, lock one secondary member of each replica set."
 stepnum: 2
 ref: lock
-content: |
-  If your deployment requires this step, you must perform it on one secondary
-  of each shard and, if your deployment uses CSRS config servers, one secondary config
-  server.
-
-  If your :program:`mongod` does not have journaling enabled *or* your
+pre: |
+  If your secondary does not have journaling enabled *or* its
   journal and data files are on different volumes, you **must** lock
-  your :program:`mongod` before capturing a back up.
+  the secondary's :program:`mongod` instance before capturing a backup.
 
-  If your :program:`mongod` has journaling enabled and your journal
-  and data files are on the same volume, you may skip this step.
+  If your secondary has journaling enabled and its journal and data
+  files are on the same volume, you may skip this step.
+ 
+  .. important::
 
-  To lock a secondary, connect through the :program:`mongo` shell to the
-  secondary member's :program:`mongod` instance and issue the
-  :method:`db.fsyncLock()` method.
+     If your deployment requires this step, you must perform it on one
+     secondary of each shard and, if your sharded cluster uses a
+     replica set for the config servers, one secondary of the
+     :ref:`config server replica set (CSRS) <replset-config-servers>`.
+
+  Ensure that the :term:`oplog` has sufficient capacity to allow these
+  secondaries to catch up to the state of the primaries after finishing
+  the backup procedure. See :ref:`replica-set-oplog-sizing` for more
+  information.
+   
+action:
+  - heading: Lock shard replica set secondary.
+    pre: |
+      For each shard replica set in the sharded cluster, connect a
+      :program:`mongo` shell to the secondary member's
+      :program:`mongod` instance and run :method:`db.fsyncLock()`. 
+    language: javascript
+    code: |
+      db.fsyncLock()
+    post: |
+      When calling :method:`db.fsyncLock()`, ensure that the connection
+      is kept open to allow a subsequent call to
+      :method:`db.fsyncUnlock()`.
+  - heading: Lock config server replica set secondary.
+    pre: |
+       Connect a :program:`mongo` shell to the secondary member's 
+       :program:`mongod` instance.
+    language: javascript
+    code: |
+       db.fsyncLock()
+    post: |
+      When calling :method:`db.fsyncLock()`, ensure that the connection is
+      kept open to allow a subsequent call to :method:`db.fsyncUnlock()`.
 ---
 title: Back up one of the config servers.
 stepnum: 3
 ref: backup-config-server
 pre: |
-  Backing up a :ref:`config server <sharding-config-server>` backs up the
-  sharded cluster's metadata. You need back up only one config server, as
-  they all hold the same data. If you are using CSRS config servers and locked a config
-  server secondary in the previous step, perform this step against the locked config
-  server. Do one of the following to back up one of
-  the config servers:
+  Backing up a :ref:`config server <sharding-config-server>` backs
+  up the sharded cluster's metadata. You only need to back up one
+  config server, as they all hold the same data. If you are using
+  CSRS config servers, perform this step against the locked config
+  server.
 action:
-  - heading: "Create a file-system snapshot of the config server."
-    content: |
-      Do this **only if** the config server has :term:`journaling
-      <journal>` enabled. Use the procedure in
-      :doc:`/tutorial/backup-with-filesystem-snapshots`. **Never** use
-      :method:`db.fsyncLock()` on config databases.
-  - heading: "Create a database dump to backup the config server."
+  - heading: "If the sharded cluster uses ``CSRS``"
     pre: |
-      Issue :program:`mongodump` against one of the config
-      :program:`mongod` instances. If you are
-      running MongoDB 2.4 or later with the
-      :option:`--configsvr <mongod --configsvr>` option, then include the
-      :option:`--oplog <mongod --oplog>` option to ensure that the dump
-      includes a partial oplog
-      containing operations from the duration of the mongodump operation.
-      For example:
-    language: sh
+      Confirm that the locked secondary member of
+      the CSRS recognizes that the balancer is disabled. In 
+      a :program:`mongo` shell connected to the secondary member's 
+      :program:`mongod` instance, perform the following.
+    language: javascript
     code: |
-      mongodump --oplog
+         use config
+         rs.slaveOk()
+         db.settings.find({ "_id" : "balancer", "stopped" : true })
+    post: |
+       If the member recognizes that the balancer is disabled, the query 
+       should return a document.  Otherwise, wait until the query returns
+       a document.
+  - pre: |
+      To confirm that the CSRS secondary member has replicated past the
+      last completed migration, check the ``changelog`` collection in the ``config`` database.
+      The last logged ``moveChunk`` operation should be a commit.
+    language: javascript
+    code: |
+         use config;
+         db.changelog.find({what:/^moveChunk/}).sort({time:-1}).next().what"
+    post: |
+      The query should return ``"moveChunk.commit"``.  If not, wait until
+      the chunk migration completes.
+  - heading: Take a file-system snapshot of the config server.
+    pre: |
+      To create a file-system snapshot of the config server, follow the
+      procedure in :ref:`lvm-backup-operation`.
 ---
-title: Back up the replica set members of the shards that you locked.
+title: Back up a replica set member for each shard.
 stepnum: 4
 ref: backup-locked-shards
 content: |
+  If you locked a member of the replica set shards, perform this step
+  against the locked secondary.
+  
   You may back up the shards in parallel. For each shard, create a
-  snapshot. Use the procedure in
+  snapshot, using the procedure in
   :doc:`/tutorial/backup-with-filesystem-snapshots`.
 ---
-title: Unlock locked replica set members.
+title: Unlock all locked replica set members.
 stepnum: 5
 ref: unlock
-content: |
+pre: |
   If you locked any :program:`mongod` instances to capture the backup,
-  unlock them now.
+  unlock them.
 
-  Unlock all locked replica set members using the
-  :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
+  To unlock the replica set members, use :method:`db.fsyncUnlock()`
+  method in the :program:`mongo` shell. For each locked member, use the
+  same :program:`mongo` shell used to lock the instance.
+action: 
+  language: javascript
+  code: |
+    db.fsyncUnlock()
 ---
 title: Enable the balancer.
 stepnum: 6
 ref: enable-balancer
 pre: |
-  Re-enable the balancer with the :method:`sh.setBalancerState()`
-  method. Use the following command sequence when connected to the
-  :program:`mongos` with the :program:`mongo` shell:
+  To re-enable to balancer, connect the :program:`mongo` shell to a
+  :program:`mongos` instance and run
+  :method:`sh.setBalancerState()`.
 action:
   language: javascript
   code: |
-    use config
     sh.setBalancerState(true)
 ...

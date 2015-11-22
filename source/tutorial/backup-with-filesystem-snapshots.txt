@@ -13,7 +13,14 @@ level tools to create copies of the device that holds MongoDB's data
 files. These methods complete quickly and work reliably, but require
 additional system configuration outside of MongoDB.
 
-.. include:: /includes/extracts/wt-snapshot-compatibility.rst
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, the data files as well as the journal files
+   can reside on separate volumes to create volume-level backup of
+   MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
+   storage engine. With previous versions, for the purpose of
+   volume-level backup of MongoDB instances using WiredTiger, the data
+   files and the journal must reside on a single volume.
 
 .. seealso:: :doc:`/core/backups` and
    :doc:`/tutorial/backup-and-restore-tools`.
@@ -59,8 +66,6 @@ For the :doc:`WiredTiger storage engine </core/wiredtiger>`, the data
 files reflect a consistent state as of the last :ref:`checkpoint
 <storage-wiredtiger-checkpoints>`, which occurs with every 2 GB of
 data or every minute.
-
-.. include:: /includes/extracts/wt-snapshot-compatibility.rst
 
 Entire Disk Image
 `````````````````
@@ -127,8 +132,8 @@ an alternative, you can do one of the following:
 
 .. _lvm-backup-and-restore:
 
-Backup and Restore Using LVM on a Linux System
-----------------------------------------------
+Back up and Restore Using LVM on Linux
+--------------------------------------
 
 This section provides an overview of a simple backup process
 using :term:`LVM` on a Linux system. While the tools, commands, and paths may
@@ -147,9 +152,11 @@ high level overview of the backup operation.
 Create a Snapshot
 ~~~~~~~~~~~~~~~~~
 
-.. important::
+.. versionchanged:: 3.2
 
-   .. include:: /includes/extracts/wt-snapshot-tutorial-single-volume-assumption.rst
+   Starting in MongoDB 3.2, for the purpose of volume-level backup of
+   MongoDB instances using WiredTiger, the data files and the journal
+   are no longer required to reside on a single volume.
 
 To create a snapshot with :term:`LVM`, issue a command as root in the
 following format:
@@ -301,28 +308,30 @@ Consider the following procedure:
 
 .. _backup-without-journaling:
 
-Create Backups on Instances using MMAPv1 that Do Not Have Journaling Enabled
-----------------------------------------------------------------------------
+Back up Instances with Journal Files on Separate Volume or without Journaling
+-----------------------------------------------------------------------------
 
-If your :program:`mongod` instance is using the :doc:`MMAPv1 storage
-engine </core/mmapv1>` and is either running with journaling disabled or
-the journal files are on a separate volume, obtaining a functional
-backup of a consistent state is more complicated. As described in this
-section, you must flush all writes to disk and lock the database to
-prevent writes during the backup process. If you have a :term:`replica
-set` configuration, then for your backup use a :term:`secondary` which
-is not receiving reads (i.e. :term:`hidden member`).
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, for the purpose of volume-level backup of
+   MongoDB instances using WiredTiger, the data files and the journal
+   are no longer required to reside on a single volume.
+
+If your :program:`mongod` instance is either running without journaling
+or has the journal files on a separate volume, you must flush all
+writes to disk and lock the database to prevent writes during the
+backup process. If you have a :term:`replica set` configuration, then
+for your backup use a :term:`secondary` which is not receiving reads
+(i.e. :term:`hidden member`).
 
 .. important::
 
-   - This procedure is only supported with the MMAPv1 storage engine.
-
-   - In the following procedure to create backups, you **must** issue
-     the :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()`
-     operations on the same connection. The client that issues
-     :method:`db.fsyncLock()` is solely responsible for issuing a
-     :method:`db.fsyncUnlock()` operation and must be able to handle
-     potential error conditions so that it can perform the
-     :method:`db.fsyncUnlock()` before terminating the connection.
+   In the following procedure to create backups, you **must** issue the
+   :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()` operations
+   on the same connection. The client that issues
+   :method:`db.fsyncLock()` is solely responsible for issuing a
+   :method:`db.fsyncUnlock()` operation and must be able to handle
+   potential error conditions so that it can perform the
+   :method:`db.fsyncUnlock()` before terminating the connection.
 
 .. include:: /includes/steps/backup-without-journaling.rst

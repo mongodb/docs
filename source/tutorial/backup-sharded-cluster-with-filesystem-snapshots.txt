@@ -4,13 +4,15 @@ Backup a Sharded Cluster with Filesystem Snapshots
 
 .. default-domain:: mongodb
 
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, the procedure can be used with the
+   :doc:`MMAPv1 </core/mmapv1>` and the :doc:`WiredTiger
+   </core/wiredtiger>` storage engines. With previous versions of
+   MongoDB, the procedure applied to :doc:`MMAPv1 </core/mmapv1>` only.
+
 Overview
 --------
-
-.. important::
-
-   The following procedure applies to the :doc:`MMAPv1 </core/mmapv1>`
-   storage engine only.
 
 This document describes a procedure for taking a backup of all
 components of a sharded cluster. This procedure uses file system
@@ -20,27 +22,20 @@ database dumps when file-system snapshots are not available. See
 :doc:`/tutorial/backup-sharded-cluster-with-database-dumps` for the
 alternate procedure.
 
-See :doc:`/core/backups` and
-:doc:`/administration/backup-sharded-clusters` for complete
-information on backups in MongoDB and backups of sharded clusters in
-particular.
-
 .. include:: /includes/note-shard-cluster-backup.rst
+
+For more information on backups in MongoDB and backups of sharded
+clusters in particular, see :doc:`/core/backups` and
+:doc:`/administration/backup-sharded-clusters`.
 
 Considerations
 --------------
 
-Storage Engine
-~~~~~~~~~~~~~~
+Balancer
+~~~~~~~~
 
-The following procedure applies to the :doc:`MMAPv1 </core/mmapv1>`
-storage engine only.
-   
-Balancing
-~~~~~~~~~
-
-It is *essential* that you stop the balancer before capturing a
-backup.
+It is *essential* that you stop the :ref:`balancer
+<sharding-internals-balancing>` before capturing a backup.
 
 If the balancer is active while you capture backups, the backup
 artifacts may be incomplete and/or have duplicate data, as :term:`chunks
@@ -56,28 +51,23 @@ exact moment-in-time snapshot of the system, you will need to stop all
 application writes before taking the filesystem snapshots; otherwise
 the snapshot will only approximate a moment in time.
 
-For approximate point-in-time snapshots, you can improve the quality
-of the backup while minimizing impact on the cluster by taking the
-backup from a secondary member of the replica set that provides each
-shard.
+For approximate point-in-time snapshots, you can minimize the impact on
+the cluster by taking the backup from a secondary member of each
+replica set shard.
 
 Consistency
 ~~~~~~~~~~~
 
 If the journal and data files are on the same logical volume, you can
-use a single point-in-time snapshot to capture a valid copy of the data.
+use a single point-in-time snapshot to capture a consistent copy of the
+data files.
 
 If the journal and data files are on different file systems, you must
-use :method:`db.fsyncLock()` and :method:`db.fsyncUnLock()` to capture
-a valid copy of your data.
+use :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()` to ensure
+that the data files do not change, providing consistency for the
+purposes of creating backups.
 
 Procedure
 ---------
-
-.. important::
-
-   The following procedure, which includes :method:`db.fsyncLock()` and
-   :method:`db.fsyncUnlock()` operations, applies only to MongoDB instances
-   using MMAPv1 storage engine. 
 
 .. include:: /includes/steps/backup-sharded-cluster-with-snapshots.rst
