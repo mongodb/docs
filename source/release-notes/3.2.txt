@@ -121,32 +121,10 @@ MongoDB 3.2 provides the option to create indexes that only index
 the documents in a collection that meet a specified filter expression.
 By indexing a subset of the documents in a collection, partial indexes
 have lower storage requirements and reduced performance costs for index
-creation and maintenance.
+creation and maintenance. You can specify a ``partialFilterExpression``
+option for all MongoDB :doc:`index types </core/index-types>`.
 
-Create a Partial Index
-~~~~~~~~~~~~~~~~~~~~~~
-
-To create a partial index, use the
-:method:`db.collection.createIndex()` method with the new
-``partialFilterExpression`` option.
-
-The following example creates a compound index that indexes only the
-documents with the ``rating`` field greater than 5.
-
-.. code-block:: javascript
-
-   db.restaurants.createIndex(
-      { cuisine: 1, name: 1 },
-      { partialFilterExpression: { rating: { $gt: 5 } } }
-   )
-
-``partialFilterExpression`` Option
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can specify a ``partialFilterExpression`` option for all MongoDB
-:doc:`index types </core/index-types>`.
-
-The ``partialFilterExpression`` accepts a document that specifies the
+The ``partialFilterExpression`` option accepts a document that specifies the
 condition using:
 
 - equality expressions (i.e. ``field: value`` or using the :query:`$eq`
@@ -160,113 +138,7 @@ condition using:
 
 - :query:`$and` operator at the top-level only
 
-Restrictions
-~~~~~~~~~~~~
-
-- MongoDB will not use the partial index if the index results in an
-  incomplete result set for the query or sort operation.
-
-  To use the partial index, a query **must** contain the filter
-  expression (or a modified filter expression that specifies a subset
-  of the filter expression) as part of its query condition.
-
-  For example, given the following index:
-
-  .. code-block:: javascript
-  
-     db.restaurants.createIndex(
-        { cuisine: 1, name: 1 },
-        { partialFilterExpression: { rating: { $gt: 5 } } }
-     )
-
-  The following queries can use the index since the query predicates
-  includes a modified filter expressions ``rating: 6`` and ``rating: {
-  $gte: 8 }`` that are subsets of the filter expression ``ratings: {
-  $gt: 5 }``:
-
-  .. code-block:: javascript
-
-     db.restaurants.find( { rating: 6 } )
-     db.restaurants.find( { cuisine: "Italian", rating: { $gte: 8 } } )
-
-  However, the following queries cannot use the partial index:
-
-  .. code-block:: javascript
-
-     db.restaurants.find( { rating: { $lt: 8 } } )
-     db.restaurants.find( { cuisine: "Italian" } )
-
-- In MongoDB, you cannot create multiple versions of an index that
-  differ only in the options. As such, you cannot create multiple
-  partial indexes that differ only by the filter expression.
-
-- You cannot specify both the ``partialFilterExpression`` option and
-  the ``sparse`` option.
-
-- Earlier versions of MongoDB do not support partial indexes. If using
-  sharded clusters or replica set, all nodes must be version 3.2.
-
-- ``_id`` indexes cannot be partial indexes.
-
-- Shard key indexes cannot be partial indexes.
-
-Comparison with the ``sparse`` Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. tip::
-   Partial indexes represent a superset of the functionality offered by
-   sparse indexes and should be preferred over sparse indexes.
-
-Partial indexes offer a more expressive mechanism than
-:doc:`/core/index-sparse` indexes to determine which documents are
-indexed.
-
-Sparse indexes selects documents to index *solely* based on the
-existence of the indexed field, or for compound indexes, the existence
-the indexed fields.
-
-Partial indexes determine the index entries based on the specified
-filter. The filter can include fields other than the index keys and
-specify conditions other than just an existence check. For example,
-a partial index can implement the same behavior as a sparse index:
-
-.. code-block:: javascript
-
-   db.contacts.createIndex( 
-      { name: 1 }, 
-      { partialFilterExpression: { name: { $exists: true } } } 
-   )
-
-This partial index supports the same queries as a sparse index on the
-``name`` field.
-
-However, a partial index can also specify filter expressions on fields
-other than the index key. For example, the following operation creates
-a partial index, where the index is on the ``name`` field but the
-filter expression is on the ``email`` field:
-
-.. code-block:: javascript
-
-   db.contacts.createIndex(
-      { name: 1 },
-      { partialFilterExpression: { email: { $exists: true } } }
-   )
-
-For the query optimizer to choose this partial index, the query
-predicate must include a non-null match on the ``email`` field as well
-as a condition on the ``name`` field.
-
-For example, the following query can use the index:
-
-.. code-block:: javascript
-
-   db.contacts.find( { name: "xyz", email: { $regex: /\.org$/ } } )
-
-However, the following query cannot use the index:
-
-.. code-block:: javascript
-
-   db.contacts.find( { name: "xyz", email: { $exists: false } }
+For details, see :doc:`/core/index-partial`.
 
 .. _3.2-rel-notes-document-validation:
 
