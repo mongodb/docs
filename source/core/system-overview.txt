@@ -27,24 +27,21 @@ to hold operational data.
 |application|
 ~~~~~~~~~~~~~
 
-The |application| contains the UI the end user interacts with and
-the HTTP service used by the Monitoring Agent and Backup Agent
-to transmit data to and from |onprem|. The components are stateless and start
-automatically when the |application| starts.
-Multiple instances of the |application| can run as
-long as each instance has the same configuration. Users and agents can
-interact with any instance.
+The |application| contains the user interface and the HTTP services the
+Monitoring Agent and Backup Agent use to transmit data to and from |onprem|.
+These are all stateless and start automatically when the |application| starts.
+Multiple instances of the |application| can run as long as each instance has
+the same configuration. Users and agents can interact with any instance.
 
-The |http-service| runs on port ``8080`` by default and
-contains the web interface for managing |onprem| users, monitoring of
-MongoDB servers, and managing those server’s backups. Users can sign
-up, create new accounts and groups, as well as join an existing
-group.
+The |http-service| runs on port ``8080`` by default and contains the web
+interface for managing |onprem| users, monitoring of MongoDB servers, and
+managing those server’s backups. Users can sign up, create new accounts and
+groups, as well as join an existing group.
 
-The |onprem| agents use the HTTP service to transmit application and
-backup data and to retrieve configuration information. The service exposes
-an endpoint that reports on the state of |onprem| and its connections to
-the :ref:`mms-application-database` and the :ref:`backup-database`. See
+The |onprem| agents use the HTTP service to transmit application and backup
+data and to retrieve configuration information. The service exposes an
+endpoint that reports on the state of |onprem| and its connections to the :ref
+:`mms-application-database` and the :ref:`backup-database`. See
 :doc:`/reference/firewall-configuration`.
 
 .. _backup-daemon:
@@ -60,52 +57,49 @@ the :ref:`mms-application-database`.
 
 The Backup Daemon's local copy of a backed-up deployment is called the
 :term:`head database`. The daemon stores all its head databases in its
-:setting:`rootDirectory` path. To create each head database, the
-daemon's server acts as though it were an "invisible" :term:`secondary`
-for each :term:`replica set` designated for backup.
+:setting:`rootDirectory` path. To create each head database, the daemon's
+server acts as though it were an "invisible" :term:`secondary` for each
+:term:`replica set` designated for backup.
 
-If you run multiple Backup Daemons, |onprem| selects the Backup Daemon to
-use when a user enables backup for a deployment. The local copy of the
-deployment resides with that daemon's server.
+If you run multiple Backup Daemons, |onprem| selects the Backup Daemon to use
+when a user enables backup for a deployment. The local copy of the deployment
+resides with that daemon's server.
 
-The daemon will take scheduled snapshots and store the snapshots in the
-:ref:`backup-database`. It will
-also act on restore requests by retrieving data from the Backup Database and
-delivering it to the requested destination.
+The daemon will take scheduled snapshots and store the snapshots in the :ref
+:`backup-database`. It will also act on restore requests by retrieving data
+from the Backup Database and delivering it to the requested destination.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` can increase your
-storage by scaling horizontally and can provide **manual** failover.
+    storage by scaling horizontally and can provide **manual** failover.
 
-The Backup Daemon exposes a health-check endpoint. See
-:doc:`/reference/firewall-configuration`.
+The Backup Daemon exposes a health-check endpoint. See :doc:`/reference
+/firewall-configuration`.
 
 .. _backing-database:
 
 Dedicated MongoDB Databases for Operational Data
 ------------------------------------------------
 
-|onprem| uses dedicated MongoDB databases to store the |application|'s
-monitoring data and the Backup Daemon's snapshots. To ensure redundancy
-and high availability, the backing databases
-run as :term:`replica sets <replica set>`. The
-replica sets host **only** |onprem| data. You must :doc:`provision the
-replica sets </tutorial/prepare-backing-mongodb-instances>` before
-installing |onprem|.
+|onprem| uses a dedicated MongoDB databases to store the |application|'s
+monitoring data and the Backup Daemon's snapshots. The backing databases run
+as :term:`replica sets <replica set>` to ensure redundancy and high
+availability. The replica sets host **only** |onprem| data. You must
+:doc:`provision the replica sets </tutorial/prepare-backing-mongodb-
+instances>` before installing |onprem|.
 
 .. _mms-application-database:
 
 |application| Database
 ~~~~~~~~~~~~~~~~~~~~~~
 
-This database contains application metadata used by the 
-:ref:`application`. The database stores:
+This database contains application metadata the :ref:`application` uses. The
+database stores:
 
 - Monitoring data collected from Monitoring Agents.
 
-- Metadata for |onprem| users, groups, hosts, monitoring data, and backup
-  state.
+- Metadata for |onprem| users, groups, hosts, monitoring data, and backup state.
 
-For topology and specifications, see
+For topology and specifications, see 
 :ref:`mms-application-database-specifications`.
 
 .. _backup-database:
@@ -114,26 +108,25 @@ For topology and specifications, see
 Backup Database
 ~~~~~~~~~~~~~~~
 
-The Backup Database stores snapshots of your backed up deployments and
-stores temporary backup data. The Backup Database is actually three
-databases. You can have multiple instances of each, according to your
-sizing needs:
+The Backup Database stores snapshots of your backed up deployments and stores
+temporary backup data. The Backup Database is actually two databases. You can
+have multiple instances of each, according to your sizing needs:
 
-- The :term:`Backup Blockstore Database`, which stores the snapshots of
-  your backed-up deployments and requires the bulk of the space on the
-  Backup Database servers.
+- The :term:`Backup Blockstore Database` stores the snapshots of your backed-
+  up deployments and requires most of the space on the Backup Database
+  servers. Backups can also be stored on the file system directly without a
+  database in the directory specified as the `head` database.
 
-- The :term:`Oplog Store Database`, which stores oplog entries the Backup
-  Daemon will apply to its local copies of your backed-up deployments.
+- The :term:`Oplog Store Database` stores `oplog` entries the Backup Daemon
+  will apply to its local copies of your backed-up deployments.
 
-The databases must run on a dedicated MongoDB deployment that holds no
-other data. For production, configure the MongoDB deployment as a replica
-set to provide redundancy for the data. To provide high availability through
-automatic failover, configure the replica set with three data-bearing
-members.
+These databases *must* run on a dedicated MongoDB deployment that holds no
+other data. For production, configure the MongoDB deployment as a replica set
+to provide redundancy for the data. To provide high availability through
+automatic failover, configure the replica set with three data-bearing members.
 
-You **cannot** back up the Blockstore Database with |onprem| Backup. To
-back up |onprem| Backup, see :doc:`/tutorial/backup-the-backup-service`.
+You **cannot** back up the Blockstore Database with |onprem| Backup. To back
+up |onprem| Backup, see :doc:`/tutorial/backup-the-backup-service`.
 
 The Backup Database requires disk space proportional to the backed-up
 deployments. For specifications, see
