@@ -74,13 +74,7 @@ Manual Upgrade
 
 Otherwise, you can manually upgrade MongoDB:
 
-1. Download binaries of the latest release in the 3.2 series from the
-   `MongoDB Download Page`_. See :doc:`/installation` for more
-   information.
-
-#. Shut down your :program:`mongod` instance. Replace the existing
-   binary with the 3.2 :program:`mongod` binary and restart
-   :program:`mongod`.
+.. include:: /includes/steps/3.2-upgrade-mongod.rst
 
 .. note::
    MongoDB 3.2 generates core dumps on some :program:`mongod`
@@ -108,49 +102,7 @@ You can upgrade from MongoDB 3.0 to 3.2 using a "rolling" upgrade to
 minimize downtime by upgrading the members individually while the other
 members are available:
 
-1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
-   members of the replica set one at a time:
-
-   - Shut down the :program:`mongod` instance and replace the 3.0
-     binary with the 3.2 binary.
-
-   - Restart the member and wait for the member to recover to
-     ``SECONDARY`` state before upgrading the next secondary member.
-     To check the member’s state, issue :method:`rs.status()` in the
-     :program:`mongo` shell.
-
-#. Step down the replica set primary.
-
-   Connect a :program:`mongo` shell to the primary and use
-   :method:`rs.stepDown()` to step down the primary and force an
-   election of a new primary:
-
-   .. code-block:: javascript
-
-      rs.stepDown()
-
-#. When :method:`rs.status()`
-   shows that the primary has stepped down and another member
-   has assumed ``PRIMARY`` state, upgrade the stepped-down primary: 
-
-   - Shut down the stepped-down primary and replace the
-     :program:`mongod` binary with the 3.2 binary.
-
-   - Restart.
-
-#. Connect a :program:`mongo` shell to the current primary and
-   upgrade the replication protocol:
-
-   .. code-block:: javascript
-
-      cfg = rs.conf();
-      cfg.settings.protocolVersion=1;
-      rs.reconfig(cfg);
-
-Replica set failover is not instant and will render the set
-unavailable to accept writes until the failover process
-completes. This may take 30 seconds or more: schedule the
-upgrade procedure during a scheduled maintenance window.
+.. include:: /includes/steps/3.2-upgrade-replica-set.rst
 
 .. note::
    MongoDB 3.2 generates core dumps on some :program:`mongod`
@@ -202,104 +154,10 @@ Prerequisites
     *Optional but Recommended.* As a precaution, take a backup of the
     ``config`` database *before* upgrading the sharded cluster.
 
-Upgrade Sharded Clusters
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Upgrade Binaries
+~~~~~~~~~~~~~~~~
 
-#. **Disable the balancer** as described in
-   :ref:`sharding-balancing-disable-temporarily`.
-
-#. **Upgrade the shards.** If the shards are replica sets, for each shard:
-
-   a. Upgrade the :ref:`secondary <replica-set-secondary-members>`
-      members of the replica set one at a time:
-
-      - Shut down the :program:`mongod` instance and replace the 3.0
-        binary with the 3.2 binary.
-
-      - Restart the member and wait for the member to recover to
-        ``SECONDARY`` state before upgrading the next secondary member.
-        To check the member’s state, issue :method:`rs.status()` in the
-        :program:`mongo` shell.
-
-   #. Step down the replica set primary.
-
-      Connect a :program:`mongo` shell to the primary and use
-      :method:`rs.stepDown()` to step down the primary and force an
-      election of a new primary:
-
-      .. code-block:: javascript
-
-         rs.stepDown()
-
-   #. When :method:`rs.status()`
-      shows that the primary has stepped down and another member
-      has assumed ``PRIMARY`` state, upgrade the stepped-down primary: 
-
-      - Shut down the stepped-down primary and replace the
-        :program:`mongod` binary with the 3.2 binary.
-
-      - Restart.
-
-   #. Connect a :program:`mongo` shell to the current primary and
-      upgrade the :rsconf:`replication protocol <protocolVersion>` for the
-      shard:
-
-      .. code-block:: javascript
-
-         cfg = rs.conf();
-         cfg.settings.protocolVersion=1;
-         rs.reconfig(cfg);
-
-#. **Upgrade the config servers one at a time** in reverse order of the
-   :setting:`~sharding.configDB` or :option:`--configdb` setting for
-   the :program:`mongos`. That is, if the :program:`mongos` has the
-   :setting:`~sharding.configDB` or the :option:`--configdb` option set
-   to ``<cfgsvr1:port1>,<cfgsvr2:port2>,<cfgsvr3:port3>``, upgrade
-   ``<cfgsvr3>`` first, then ``<cfgsvr2>``, and lastly, ``<cfgsvr1>``.
-
-   Starting with the last config server listed in the
-   :setting:`~sharding.configDB` setting:
-
-   a. Stop the config server and replace with the 3.2 binary.
-
-   #. Start the 3.2 binary with both the ``--configsvr`` and
-      ``--port`` options:
-
-      .. note::
-         The default port for the config server has changed from
-         ``27019`` to ``27017``.
-
-      .. code-block:: sh
-
-         mongod --configsvr --port <port> --dbpath <path>
-
-      If using a :doc:`configuration file
-      </reference/configuration-options>`, specify
-      :setting:`sharding.clusterRole: configsvr <sharding.clusterRole>`
-      and :setting:`net.port` in the file:
-
-      .. code-block:: yaml
-
-         sharding:
-            clusterRole: configsvr
-         net:
-            port: <port>
-         storage:
-            dbpath: <path>
-
-   Repeat for the config server listed *second* in the
-   :setting:`~sharding.configDB` setting, and finally the config server
-   listed *first* in the :setting:`~sharding.configDB` setting.
-
-#. **Upgrade the mongos instances**. Replace each :program:`mongos`
-   instance with the 3.2 binary and restart.
-
-   .. code-block:: sh
-
-      mongos --configdb <cfgsvr1:port1>,<cfgsvr2:port2>,<cfgsvr3:port3>
-
-#. **Re-enable the balancer** as described in
-   :ref:`sharding-balancing-enable`.
+.. include:: /includes/steps/3.2-upgrade-sharded-cluster.rst
 
 .. note::
    MongoDB 3.2 generates core dumps on some :program:`mongod`
