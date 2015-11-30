@@ -2,15 +2,19 @@
 Backup Flows
 ============
 
-
 Introduction
 ------------
 
 |mms| Backup's process for keeping a backup in sync with your
 deployment is analogous to the process used by a secondary to replicate
-data in a :term:`replica set`. Backup first performs an initial sync to catch up
-with your deployment and then tails the oplog to stay caught up. Backup
+data in a :term:`replica set`. Backup first performs an :term:`initial sync` to catch up
+with your deployment and then tails the :term:`oplog` to stay caught up. Backup
 takes scheduled snapshots to keep a history of the data.
+
+.. versionchanged:: 2.0
+
+   |mms| 2.0 added the ability to choose between using a database for
+   snapshot storage and storing snapshots on a shared filesystem.
 
 Blockstore Storage
 ~~~~~~~~~~~~~~~~~~
@@ -22,6 +26,22 @@ Filesystem Storage
 
 .. include:: /images/backup-flow-filesystem-storage.rst
 
+Filesystem storage gives you full control over your data, allowing you
+to reduce the number of MongoDB instances you need to run and enabling
+you to take advantage of existing storage infrastructure. With
+filesystem storage, you can access the backed up data files using
+standard filesystem utilities, rather than having to retrieve them
+through the |mms| interface.
+
+With filesystem storage, you can select any mountable filesystem to
+which |mms| will write the snapshots. In addition, an "oplog store"
+database stores your :term:`oplog` for processing. When you add a
+filesystem store |mms| prompts you to specify the database for your
+oplogs.
+
+.. TODO: link to the installation tutorial where it talks about
+   picking the snapshot store.
+
 .. _backup-initial-sync:
 
 Initial Sync
@@ -32,61 +52,62 @@ Transfer of Data and Oplog Entries
 
 When you start a backup, the Backup Agent streams your deployment's
 existing data to the |http-service| in batches of documents
-totaling roughly 10MB. The batches are called "slices." The service
-stores the slices in the Sync Store Database for later processing. The sync
-store contains only the data as it existed when you started the backup.
+totaling roughly 10MB. The batches are called "slices," and contain
+only the data as it existed when you started the backup. 
 
-While transferring the data, the Backup Agent also tails the oplog and
-also streams the oplog updates to the |http-service|. The service places
-the entries in the Oplog Store Database for later processing offline.
-
-By default, both the Sync Store Database and Oplog Store Database reside on
-the backing MongoDB replica set that hosts the Backup Blockstore Database.
+While transferring the data, the Backup Agent tails the
+:term:`oplog` and streams the oplog updates to the |http-service|. If
+you are using the blockstore, |mms| stores oplog entries in the Blockstore
+for later processing offline. If you are using filesystem
+storage, |mms| stores the oplog entries in the oplog database
+for later processing offline.
 
 Building the Backup
 ~~~~~~~~~~~~~~~~~~~
 
 When the |http-service| has received all of the slices, a Backup
 Daemon creates a local database on its server and inserts the documents
-that were captured as slices during the initial sync. The daemon then
+that were captured as slices during the initial sync. The Daemon then
 applies the oplog entries from the oplog store.
 
-The Backup Daemon then validates the data. If there are missing documents,
-|mms| queries the deployment for the documents and the Backup Daemon
-inserts them. A missing document could occur because of an update that
-caused a document to move during the initial sync.
+The Backup Daemon then validates the data. If there are missing
+documents, |mms| queries the deployment for the documents and the Backup
+Daemon inserts them. A missing document could occur because of an update
+that caused a document to move during the initial sync.
 
 Once the Backup Daemon validates the accuracy of the data directory, it
-removes the data slices from the sync store. At this point, Backup has
-completed the initial sync process and proceeds to routine operation.
+has completed the initial sync process and proceeds to routine operation.
 
 Routine Operation
 -----------------
 
 The Backup Agent tails the deployment's oplog and routinely batches and
-transfers new oplog entries to the |http-service|, which stores them
-in the oplog store. The Backup Daemon applies all newly received oplog
-entries in batches to its local replica of the backed-up deployment.
+transfers new oplog entries to the |http-service|, which stores them in
+the oplog store. The Backup Daemon applies all
+newly-received oplog entries in batches to its local replica of the
+backed-up deployment.
 
 Snapshots
 ---------
 
-During a preset interval, the Backup Daemon takes a snapshot of the data
-directory for the backed-up deployment, breaks it into blocks, and transfers
-the blocks to the Backup Blockstore Database. For a sharded cluster, the
-daemon takes a snapshot of each shard and of the config servers. The
-daemon can also use :ref:`checkpoints <checkpoint>` to synchronize the shards and
-config servers for custom snapshots. You must first :ref:`enable checkpoints
+The Backup Daemon takes a snapshot of the data directory for the
+backed-up deployment regularly, as specified by the :ref:`snapshot
+schedule <snapshot-frequency-and-retention>`. The Backup daemon takes
+the snapshot and transfers it to the snapshot storage.
+For a sharded cluster, the daemon takes a snapshot of
+each shard and of the config servers. The daemon can also use
+:ref:`checkpoints <checkpoint>` to synchronize the shards and config
+servers for custom snapshots. You must first :ref:`enable checkpoints
 <enable-cluster-checkpoints>`.
 
 When a user requests a snapshot, a Backup Daemon retrieves the data from
-the Backup Blockstore Database and delivers it to the requested destination.
-For an overview of the restore process, see :doc:`/core/restore-overview`.
+the snapshot storage and delivers it to the
+requested destination. For an overview of the restore process, see
+:doc:`/core/restore-overview`.
 
 Grooms
 ------
 
-Groom jobs perform periodic "garbage collection" on the Backup Blockstore
-Database to remove unused blocks and reclaim space. Unused blocks are
-those that are no longer referenced by a live snapshot. A scheduling
+Groom jobs perform periodic "garbage collection" on the snapshot storage
+to reclaim space from deleted snapshots. A scheduling
 process determines when grooms are necessary.
