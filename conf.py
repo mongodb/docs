@@ -165,6 +165,7 @@ if 'pdfs' in conf.system.files.data:
 
 latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
                             r'\DeclareUnicodeCharacter{FF0E}{.}',
+                            r'\DeclareUnicodeCharacter{2713}{Y}',
                             r'\PassOptionsToPackage{hyphens}{url}',
                             r'\usepackage{upquote}',
                             r'\pagestyle{plain}',
