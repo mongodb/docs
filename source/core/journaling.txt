@@ -38,30 +38,31 @@ With journaling, the recovery process:
 Journaling Process
 ~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 3.2
+
 With journaling, WiredTiger creates a log record per transaction.
 
 MongoDB configures WiredTiger to use in-memory buffering for storing
 the write-ahead log records. Threads coordinate to allocate and copy
-into their portion of the buffer. When the buffer becomes full, the
-buffer will be written to the backing file in the file system. If the
-system becomes idle such that the buffer does not fill, WiredTiger will
-periodically (several times a second) write any buffers that are in
-memory.
+into their portion of the buffer. All log records up to 128 KB are
+buffered.
 
-WiredTiger syncs journal files to disk according to the following
-intervals or conditions:
+WiredTiger syncs the buffered log records to disk according to the
+following intervals or conditions:
+
+- Every 100 milliseconds.
 
 - MongoDB sets checkpoints to occur in WiredTiger on user data at an
   interval of 60 seconds or when 2 GB of journal data has been written,
   whichever occurs first.
 
+- If the write operation includes a write concern of ``j:true``,
+  WiredTiger forces a sync of the WiredTiger log files.
+
 - Because MongoDB uses a log file size limit of 100 MB, WiredTiger
   creates a new journal file approximately every 100MB of data. When
   WiredTiger creates a new journal file, WiredTiger syncs the previous
   journal file.
-
-- If the write operation includes a write concern of ``j:true``,
-  WiredTiger forces a sync of the WiredTiger log files.
 
 .. important::
 
