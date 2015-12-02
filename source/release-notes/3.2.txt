@@ -145,159 +145,23 @@ For details, see :doc:`/core/index-partial`.
 Document Validation
 -------------------
 
-Starting in 3.2, MongoDB provides the capability to validate
-documents during updates and insertions. Validation rules are specified
-on a per-collection basis. MongoDB provides the following new options:
+Starting in 3.2, MongoDB provides the capability to validate documents
+during updates and insertions. Validation rules are specified on a
+per-collection basis.
 
-- ``validator`` option to specify validation rules.
-
-- :ref:`3.2-rel-notes-validationLevel` option to determine how strictly
-  MongoDB applies the validation rules to existing documents during an
-  update.
-
-- :ref:`3.2-rel-notes-validationAction` option to determine whether to
-  ``error`` and reject documents that violate the validation rules, or
-  ``warn`` about the violations in the log but allow invalid documents.
-
-To create a validation specification, include the new ``validator``
-option when creating a collection using
-:method:`db.createCollection()`, or modifying the behavior of a
-collection using :dbcommand:`collMod`. You can also include the
-optional ``validationLevel`` and ``validationAction`` fields. By
-default, MongoDB uses ``strict`` validation level and ``error``
-validation action.
-
-.. note::
-
-   Validation occurs during updates and inserts; i.e. existing documents
-   do not undergo validation checks until modification.
-
-``validator``
-~~~~~~~~~~~~~
-
-The ``validator`` option takes a document that specifies the validation
-rules or expressions. You can specify the expressions using the same
-operators as the :ref:`query operators <query-selectors>` with the
-exception of the following operators: :query:`$geoNear`,
-:query:`$near`, :query:`$nearSphere`, :query:`$text`, :query:`$where`.
-
-Add Validation to a New Collection
-``````````````````````````````````
-
-The following example creates a ``contacts`` collection with a validator
-that specifies that inserted or updated documents should match at least
-one of three following conditions:
-
-- the ``phone`` field is a string
-- the ``email`` field matches the regular expression
-- the ``status`` field is either ``Unknown`` or ``Incomplete``.
-
-.. code-block:: javascript
-
-   db.createCollection( "contacts", {
-      validator: { $or:
-         [
-            { phone: { $type: "string" } },
-            { email: { $regex: /@mongodb\.com$/ } },
-            { status: { $in: [ "Unknown", "Incomplete" ] } }
-         ]
-      }
-   } )
-
-With the validator in place, the following insert operation will fail
-validation:
-
-.. code-block:: javascript
-
-   db.contacts.insert( { name: "xyz", status: "A" } )
-
-The method returns the error in the ``WriteResult``:
-
-.. code-block:: yaml
-
-   WriteResult({
-      "nInserted" : 0,
-      "writeError" : {
-         "code" : 121,
-         "errmsg" : "Document failed validation"
-      }
-   })
-
-Add Validation to an Existing Collection
-````````````````````````````````````````
-
-To modify the validation rules for an existing collection, use the
-:dbcommand:`collMod` command with the ``validator`` option:
-
-.. code-block:: javascript
-
-   db.runCommand( {
-      collMod: "contacts",
-      validator: { $or: [ { phone: { $exists: true } }, { email: { $exists: true } } ] }
-   } )
-
-.. note::
-
-   Validation occur during updates and inserts; i.e. existing documents
-   do not undergo validation checks until modification.
-
-View Validation Level for a Collection
-``````````````````````````````````````
+To specify document validation on a new collection, use the new
+``validator`` option in the :method:`db.createCollection()` method. To
+add document validation to an existing collection, use the new
+``validator`` option in the :dbcommand:`collMod` command. For more
+information, see :doc:`/core/document-validation`.
 
 To view the validation specifications for a collection, use the
-:method:`db.getCollectionInfos( )` method:
+:method:`db.getCollectionInfos()` method.
 
-.. code-block:: javascript
-
-   db.getCollectionInfos( { name: "contacts" } )
-
-The method returns the following array with a document that contains
-information about the ``contacts`` collection:
-
-.. code-block:: javascript
-
-   [
-      {
-         "name" : "contacts",
-         "options" : {
-            "validator" : {
-               "$or" : [
-                  {
-                     "phone" : {
-                        "$exists" : true
-                     }
-                  },
-                  {
-                     "email" : {
-                        "$exists" : true
-                     }
-                  }
-               ]
-            }
-         }
-      }
-   ]
-
-The method does not return ``validationLevel`` and ``validationAction``
-unless they are explicitly set.
-
-Validation Restrictions
-```````````````````````
-
-- You cannot specify a validator for collections in the ``admin``,
-  ``local``, and ``config`` databases.
-
-- You cannot specify a validator for ``system.*`` collections.
-
-Bypass Validation
-`````````````````
-
-By passing a new option ``bypassDocumentValidation``, the following
-commands can bypass validation per operation:
+The following commands can bypass validation per operation using the
+new option ``bypassDocumentValidation``:
 
 - :dbcommand:`applyOps` command
-
-- :dbcommand:`copydb` command
 
 - :dbcommand:`findAndModify` command and
   :method:`db.collection.findAndModify()` method
@@ -311,67 +175,6 @@ commands can bypass validation per operation:
 
 - :pipeline:`$out` for the :dbcommand:`aggregate` command and
   :method:`db.collection.aggregate()` method
-
-.. _3.2-rel-notes-validationLevel:
-
-``validationLevel``
-~~~~~~~~~~~~~~~~~~~
-
-The ``validationLevel`` determines how strictly MongoDB applies the
-validation rules to existing documents during an update.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - validationLevel
-     - Description
-
-   * - ``"off"``
-
-     - No validation for inserts or updates.
-
-   * - ``"strict"``
-
-     - The default level. Apply validation rules to all inserts and all
-       updates.
-
-   * - ``"moderate"``
-
-     - Apply validation rules to inserts and to updates on existing
-       *valid* documents. Do not apply rules to updates on existing
-       *invalid* documents.
-
-.. _3.2-rel-notes-validationAction:
-
-``validationAction``
-~~~~~~~~~~~~~~~~~~~~
-
-The ``validationAction`` option determines whether to ``error`` on
-invalid documents or just ``warn`` about the violations but allow
-invalid documents.
-
-.. important::
-
-   Validation of documents only applies to those documents as
-   determined by the ``validationLevel``.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - validationAction
-     - Description
-
-   * - ``"error"``
-
-     - Documents must pass validation before the write occurs.
-       Otherwise, the write operation fails.
-
-   * - ``"warn"``
-
-     - Documents do not have to pass validation. If the document fails
-       validation, the write operation logs the validation failure.
 
 Aggregation Framework Enhancements
 ----------------------------------
