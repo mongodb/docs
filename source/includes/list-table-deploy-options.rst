@@ -15,6 +15,12 @@
        (\".\"). To select a specific set of servers, enter their common
        prefix. To use your local machine, enter the machine name.
 
+   * - :guilabel:`Config Server Replica Set Name`
+
+     - If you deploy a sharded cluster on MongoDB 3.2 or higher, the config
+       servers deploy as a replica set. This field specifies the name for
+       the replica set.
+
    * - :guilabel:`Member Options`
 
      - Configures replica set members. By default, each member is a voting
@@ -23,6 +29,11 @@
        </core/replica-set-hidden-member>`, :manual:`delayed
        </core/replica-set-delayed-member>`, or :manual:`having a certain
        priority in an election </core/replica-set-priority-0-member>`.
+
+   * - :guilabel:`Index Configuration`
+
+     - Creates a MongoDB index. For details, see
+       :doc:`/tutorial/create-indexes`.
 
    * - :guilabel:`Advanced Options`
 
