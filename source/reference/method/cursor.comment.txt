@@ -1,0 +1,144 @@
+================
+cursor.comment()
+================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. method:: cursor.comment()
+
+   .. versionadded:: 3.2
+
+   Adds a ``comment`` field to the query. 
+   
+   :method:`cursor.comment()` has the following syntax:
+   
+   .. code-block:: javascript
+   
+      cursor.comment( <string> )
+      
+   :method:`~cursor.comment()` has the following parameter:
+   
+   .. include:: /includes/apiargs/method-cursor.comment-param.rst
+
+Behavior
+--------
+
+:method:`~cursor.comment()` associates a comment string with the 
+find operation. This can make it easier to track a particular query in the 
+following diagnostic outputs:
+   
+- The :data:`system.profile <<database>.system.profile>`
+- The :data:`QUERY` :doc:`log </reference/log-messages>` component
+- :method:`db.currentOp()` 
+
+See :ref:`configure log verbosity <log-messages-configure-verbosity>` for the 
+:program:`mongod` log, the 
+:doc:`Database Profiler tutorial </tutorial/manage-the-database-profiler>`, or 
+the :method:`db.currentOp()` command.
+
+Example
+-------
+
+The following operation attaches a comment to a query on the ``restaurants`` 
+collection:
+
+.. code-block:: javascript
+
+   db.restaurants.find( 
+      { "borough" : "Manhattan" } 
+   ).comment( "Find all Manhattan restaurants" )
+
+Output Examples
+---------------
+
+:data:`system.profile <<database>.system.profile>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following is an excerpt from the 
+:data:`system.profile <<database>.system.profile>`:
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   {
+      "op" : "query",
+      "ns" : "guidebook.restaurant",
+      "query" : {
+         "find" : "restaurant",
+         "filter" : {
+            "borough" : "Manhattan"
+         },
+         "comment" : "Find all Manhattan restaurants"
+      },
+      ...
+   }
+   
+
+:program:`mongod` :doc:`log </reference/log-messages>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following is an excerpt from the :program:`mongod` log. It has been 
+formatted for readability.
+
+.. important:: 
+
+   The verbosity level for :data:`QUERY` must be greater than ``0``. 
+   See :ref:`log-messages-configure-verbosity`
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   2015-11-23T13:09:16.202-0500 I COMMAND  [conn1] 
+      command guidebook.restaurant command: find { 
+         find: "restaurant", 
+         filter: { "borough" : "Manhattan" }, 
+         comment: "Find all Manhattan restaurants" 
+      } 
+      ...
+
+
+:method:`db.currentOp()`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Suppose the following operation is currently running on a :program:`mongod` 
+instance:
+
+.. code-block:: javascript
+
+   db.restaurant.find( 
+      { "borough" : "Manhattan" } 
+   ).comment("Find all Manhattan restaurants")
+   
+Running the :method:`db.currentOp()` command returns the following:
+
+.. code-block:: javascript
+   :emphasize-lines: 17
+
+
+   {
+      "inprog" : [
+         {
+            "desc" : "conn5",
+            "threadId" : "0x10772e000",
+            "connectionId" : 5,
+            "client" : "127.0.0.1:62560",
+            "active" : true,
+            "opid" : 2249279,
+            "secs_running" : 0,
+            "microsecs_running" : NumberLong(258562),
+            "op" : "query",
+            "ns" : "guidebook.restaurant",
+            "query" : {
+               "find" : "restaurant",
+               "filter" : { "borough" : "Manhattan" },
+               "comment" : "Find all Manhattan restaurants"
+            },
+            ...
+         },
+         ...
+      ],
+      "ok" : 1
+   }
