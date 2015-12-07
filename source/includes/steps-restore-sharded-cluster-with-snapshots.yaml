@@ -10,8 +10,6 @@ action:
   code: |
     use admin
     db.shutdownServer()
-  post: |
-    For version 2.4 or earlier, use ``db.shutdownServer({force:true})``.
 ---
 title: Restore the data files.
 stepnum: 2
@@ -20,35 +18,55 @@ content: |
   On each server, extract the data files to the location where the
   :program:`mongod` instance will access them and restore the following:
 
-  - Data files for each server in each shard.
+  - **Data files for each server in each shard.**
 
-    Because each production :term:`shard` is a replica set, for each
-    shard, restore all the members of the replica set. See
-    :doc:`/tutorial/restore-replica-set-from-backup`.
+    For each shard replica set, restore all the members of the replica
+    set. See :doc:`/tutorial/restore-replica-set-from-backup`.
 
-  - Data files for each config server.
+  - **Data files for each config server.**
+ 
+    .. versionchanged:: 3.2
 
-  .. seealso:: :ref:`backup-restore-snapshot`
+       If restoring to a :ref:`config server replica set (CSRS)
+       <csrs>`, restore the members of the replica
+       set. See :doc:`/tutorial/restore-replica-set-from-backup`.
+
+    Else, if restoring to 3 mirrored config servers, restore the files
+    on each config server :program:`mongod` instance as you would a
+    standalone node.
+
+  .. seealso:: :ref:`backup-restore-snapshot`.
 ---
 title: Restart the config servers.
 stepnum: 3
 ref: restart-config-servers
-pre: |
-  Restart each :ref:`config server <sharding-config-server>`
-  :program:`mongod` instance by issuing a command similar to the
-  following for each, using values appropriate to your configuration:
-action:
-  language: sh
-  code: |
-    mongod --configsvr --dbpath /data/configdb --port 27019
+content: |
+   - If restoring to a :ref:`config server replica set <csrs>`, restart
+     each member of the CSRS.
+       
+     .. code-block:: sh
+
+       mongod --configsvr --replSet <CSRS name> --dbpath <config dbpath> --port 27019
+
+   - Or, if restoring to a three mirrored :program:`mongod` instances,
+     start exactly three :program:`mongod` config server instances.
+
+     .. code-block:: sh
+
+        mongod --configsvr --dbpath <config dbpath> --port 27019
 ---
 title: "Start **one** :program:`mongos` instance."
 stepnum: 4
 ref: restart-one-mongos
 content: |
-  Start **one** :program:`mongos` instance. For the ``--configdb``,
-  specify the hostnames (and port numbers) of the config servers
-  started in {{step}}
+  - If using a :ref:`CSRS <csrs>` deployment, start :program:`mongos`
+    with the :option:`--configdb` option set to the replica set name
+    and seed list of the CSRS started in {{step}}
+
+  - Or, if using three mirrored config servers, start :program:`mongos`
+    with the :option:`--configdb` option set to the hostnames (and port
+    numbers) of the config servers started in {{step}}
+    
 replacement:
    step: "the step `Restart the config servers.`_"
 ---
@@ -56,31 +74,72 @@ title: "If shard hostnames have changed, update the config database."
 stepnum: 5
 ref: shard-hostname
 content: |
-   If shard hostnames **have changed**, update the :data:`~config.shards`
+   If shard hostnames have changed, connect a :program:`mongo` shell to
+   the :program:`mongos` instance and update the :data:`~config.shards`
    collection in the :ref:`config-database` to reflect the new
    hostnames.
 ---
-title: "Restart all the shard :program:`mongod` instances."
+title: "Clear per-shard sharding recovery information."
 stepnum: 6
+ref: per-shard-recovery
+pre: |
+   If the backup data was from a deployment using :ref:`CSRS <csrs>`,
+   clear out the no longer applicable recovery information on each shard. For each
+   shard:
+      
+   #. Restart the replica set members for the shard with the
+      :parameter:`recoverShardingState` parameter set to ``false``.
+      Include additional options as required for your specific
+      configuration.
+
+      .. code-block:: sh
+
+         mongod --setParameter=recoverShardingState=false --replSet <replSetName>
+
+   #. Connect :program:`mongo` shell to the primary of the replica set
+      and delete from the ``admin.system.version`` collection the
+      document where ``_id`` equals ``minOpTimeRecovery`` id. Use
+      write concern ``"majority"``.
+
+      .. code-block:: javascript
+
+         use admin
+         db.system.version.remove(
+            { _id: "minOpTimeRecovery" },
+            { writeConcern: { w: "majority" } }
+         )
+
+   #. Shut down the replica set members for the shard.
+---
+title: "Restart all the shard :program:`mongod` instances."
+stepnum: 7
 ref: restart-shards
+content: |
+   Do not include the :parameter:`recoverShardingState`  parameter.
 ---
 title: "Restart the other :program:`mongos` instances."
-stepnum: 7
+stepnum: 8
 ref: restart-mongos-instances
 content: |
-  Restart the remaining two :program:`mongos` instances. For the
-  ``--configdb``, specify the hostnames (and port numbers) of the
-  config servers started in {{step}}
+  - If using a CSRS deployment, specify for :option:`--configdb` the
+    config server replica set name and a seed list of the CSRS started
+    in {{step}}
+
+  - Or, if using three mirrored config servers, specify for
+    :option:`--configdb` the hostnames (and port numbers) of the config
+    servers started in {{step}} All :program:`mongos` must specify the
+    same :option:`--configdb` string.
+
 replacement:
    step: "the step `Restart the config servers.`_"
 ---
 title: "Verify that the cluster is operational."
-stepnum: 8
+stepnum: 9
 ref: ensure
 pre: |
   Connect to a :program:`mongos` instance from a :program:`mongo` shell
   and use the :method:`db.printShardingStatus()` method to ensure that
-  the cluster is operational, as follows:
+  the cluster is operational.
 action:
   language: javascript
   code: |

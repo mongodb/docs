@@ -18,15 +18,15 @@ post: |
    For detailed instructions on deploying a replica set, see
    :doc:`/tutorial/deploy-replica-set`.
 ---
-title: "Deploy three new config servers."
+title: "Deploy new config servers."
 stepnum: 2
 ref: deploy-config-servers
 content: |
-  Start three :program:`mongod` instances for the config servers (i.e.
-  ``mongod --configsvr``). Include any other configuration as appropriate.
-
-  For detailed instructions on setting up the config servers, see
+  To deploy config servers as replica set (CSRS), see
   :ref:`sharding-setup-start-cfgsrvr`.
+  
+  To deploy config servers as 3 mirrored :program:`mongod` instances, see
+  :ref:`sharding-setup-start-config-servers-deprecated`.
 ---
 title: "Start the ``mongos`` instances."
 stepnum: 3
@@ -36,8 +36,11 @@ content: |
   servers with ``--configdb``. Include any other configuration as
   appropriate.
 
-  For detailed instructions on starting the :program:`mongos` instances for a
-  sharded cluster, see :ref:`sharding-setup-start-mongos`.
+  For sharded clusters with CSRS, see
+  :ref:`sharding-setup-start-mongos`.
+
+  For sharded clusters with 3 mirrored config servers, see
+  :ref:`sharding-setup-start-mongos-deprecated`.
 ---
 title: "Add shards to the cluster."
 stepnum: 4
@@ -81,14 +84,30 @@ post: |
 title: "Restore the config server data."
 stepnum: 7
 ref: restore-config-data
-pre: |
-  For each config server, use :program:`mongorestore` to restore the
-  data dump to each config server's data directory. Include the
-  ``--drop`` option to drop the collections before restoring and,
-  because the :doc:`backup procedure
-  </tutorial/backup-sharded-cluster-with-database-dumps>` included the
-  :option:`--oplog` option, include the :option:`--oplogReplay` option
-  for :program:`mongorestore`.
+action:
+  - pre: |
+      To restore to a :ref:`config server replica set <csrs>`, run
+      :program:`mongorestore` against the primary of the CSRS. 
+      Include the ``--drop`` option to drop the collections before
+      restoring and, because the :doc:`backup procedure
+      </tutorial/backup-sharded-cluster-with-database-dumps>` included
+      the :option:`--oplog` option, include the :option:`--oplogReplay`
+      option for :program:`mongorestore`.
+    language: sh
+    code: |
+      mongorestore --drop --oplogReplay /data/dump/configData
+  - pre: |
+      If restoring to three mirrored config servers instead, for each
+      config server, use :program:`mongorestore` to restore the data
+      dump to each config server's data directory. Include the
+      ``--drop`` option to drop the collections before restoring and,
+      because the :doc:`backup procedure
+      </tutorial/backup-sharded-cluster-with-database-dumps>` included
+      the :option:`--oplog` option, include the :option:`--oplogReplay`
+      option for :program:`mongorestore`.
+    language: sh
+    code: |
+        mongorestore --drop --oplogReplay /data/dump/configData
 action:
   language: sh
   code: |
@@ -99,7 +118,7 @@ source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: restart-one-mongos
 replacement:
-   step: "the step `Deploy three new config servers.`_"
+   step: "the step `Deploy new config servers.`_"
 ---
 stepnum: 9
 source:
@@ -116,7 +135,7 @@ source:
   file: steps-restore-sharded-cluster-with-snapshots.yaml
   ref: restart-mongos-instances
 replacement:
-   step: "the step `Deploy three new config servers.`_"
+   step: "the step `Deploy new config servers.`_"
 ---
 stepnum: 12
 source:
