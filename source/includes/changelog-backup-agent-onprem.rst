@@ -1,3 +1,21 @@
+.. _backup-3.9.0.336:
+
+Backup Agent ``3.9.0.336``
+--------------------------
+
+*Released with Ops Manager 2.0.0 on 2015-12-08*
+
+- Added support for streaming initial syncs.
+
+- Added support for MongoDB 3.2.0 config servers as replica sets.
+
+- Added the ability to only backup selected namespaces (whitelist).
+
+- Fixed issue with initial sync failing due to collections being deleted
+  during the sync.
+
+- Fixed issue with collection names with trailing spaces.
+
 .. _backup-3.4.2.314:
 
 Backup Agent ``3.4.2.314``

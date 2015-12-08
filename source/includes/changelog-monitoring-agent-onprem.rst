@@ -1,3 +1,12 @@
+.. _monitoring-3.9.1.238:
+
+Monitoring Agent ``3.9.1.238``
+------------------------------
+
+*Released with Ops Manager 2.0.0 on 2015-12-08*
+
+- Added support for MongoDB 3.2.0 config servers as replica sets.
+
 .. _monitoring-3.7.1.227:
 
 Monitoring Agent 3.7.1.227
