@@ -1,31 +1,9 @@
-title: "Download the |onprem| package."
 stepnum: 1
 level: 4
-ref: application-package-download
-content: |
-  On **server 1**, download the latest version of the |onprem|
-  package by issuing ``curl -OL`` with the URL for the latest version. If
-  the **server 1** does not have Internet access, download the package to
-  another server and ``scp`` it to **server 1**.
-
-  To download the |onprem| package:
-
-  a. In a browser, go to `http://www.mongodb.com/download <http://www.mongodb.com/download>`_.
-
-  b. On the :guilabel:`MongoDB Ops Manager Downloads` page, copy the link
-     address of the :guilabel:`RPM` link.
-
-  c. Open a system prompt.
-
-  d. Download the |onprem| package by issuing a ``curl`` command that uses the copied link address:
-
-     .. code-block:: none
-
-        curl -OL <link-address-for-ops-manager-rpm>
-
-     The downloaded package is named ``mongodb-mms-<version>.x86_64.rpm``,
-     where ``<version>`` is replaced by the version number.
-
+# Note: This step is borrowed from the rpm install procedure.
+source:
+  file: steps-install-on-prem-with-rpm-packages.yaml
+  ref: download
 ---
 title: "Install the |onprem| package on both **server 1** and **server 2**."
 stepnum: 2
@@ -45,36 +23,49 @@ source:
   file: steps-source-install-onprem.yaml
   ref: configure-app-db-connection
 pre: |
-  On **server 1**, open ``/opt/mongodb/mms/conf/conf-mms.properties`` with
-  root privileges and configure the settings described here, as
-  appropriate.
+  On both **server 1** and **server 2**, open
+  ``/opt/mongodb/mms/conf/conf-mms.properties`` with root privileges and
+  configure the settings described here, as appropriate.
 ---
-title: "Start |onprem|."
+title: "Start |onprem| on server 1."
 stepnum: 4
 level: 4
 ref: application-start
 pre: |
-  Issue the following command:
+  On **server 1**, issue the following command:
 action:
   language: sh
   code: |
     sudo service mongodb-mms start
+post: |
+  **Do not start Ops Manager on server 2**.
 ---
+title: "Open the |onprem| home page and register the first user."
 stepnum: 5
 level: 4
-source:
-  file: steps-source-install-onprem.yaml
-  ref: home-page
+ref: home-page
+content: |
+  a. Enter the following URL in a browser, where ``<host>`` is the fully
+     qualified domain name of **server 1**:
+
+     .. code-block:: none
+
+        http://<host>:8080
+
+  b. Click the :guilabel:`Register` link and follow the prompts to register
+     the first user and create the first group. The first user is
+     automatically assigned the :ref:`Global Owner <global-owner-role>` role.
+
 ---
 title: "Configure |onprem|."
 stepnum: 6
 level: 4
 ref: configure-app
 content: |
-  |onprem| presents several configuration pages. For each page, enter
-  information as appropriate and click :guilabel:`Continue`. When
-  configuration is complete, |onprem| opens the :guilabel:`Deployment`
-  page.
+  |onprem| walks you through several configuration pages. Required settings
+  are marked with an asterisk. Enter information as appropriate. For more
+  information on a setting, see :doc:`/reference/configuration`. When
+  configuration is complete, |onprem| opens the :guilabel:`Deployment` page.
 ---
 title: "Copy the ``gen.key`` file from the **server 1** to **server 2**."
 stepnum: 7
@@ -82,18 +73,79 @@ level: 4
 ref: sync-genkey
 pre: |
   |onprem| requires an identical :ref:`gen-key` file be stored on both
-  servers running |onprem| and uses the file to encrypt data at rest in
-  the |application| Database and Backup Database.
+  servers running |onprem| and uses the file to encrypt data at rest in the
+  |onprem| Application Database and Backup Database.
 
   Use ``scp`` to copy the ``gen.key`` file from the ``/etc/mongodb-mms/``
-  directory on **server2** to the ``/etc/mongodb-mms/`` directory on
-  **server2**. You must copy the ``gen.key`` file before starting |onprem|
-  on **server2**.
+  directory on **server 1** to the ``/etc/mongodb-mms/`` directory on
+  **server 2**. You must copy the ``gen.key`` file before starting |onprem|
+  on **server 2**.
 ---
-title: "Configure the Backup Database."
+title: "Enable the Backup Daemon."
 stepnum: 8
 level: 4
-source:
-  file: steps-source-install-onprem.yaml
-  ref: configure-backup-database-uri
+ref: enable-backup-daemon
+content: |
+  a. On **server 2**, create the directory that will store the :term:`head
+     databases <head database>`. The directory must be:
+
+     - a dedicated disk partition that is not be used for any other
+       purpose.
+
+     - sized appropriately according to the :doc:`/core/requirements`.
+
+     - writable by the ``mongodb-mms`` user.
+
+  b. Open |onprem| and make sure you are logged in as the user you
+     registered when installing |onprem|. This user is the :ref:`global
+     owner <global-owner-role>`.
+
+  c. Click the :guilabel:`Admin` link at the top right of the page.
+
+  d. Click the :guilabel:`Backup` tab.
+
+  e. Follow the prompts to configure the Backup Daemon and Backup Storage.
+
+     .. warning::
+
+        Once the connection string is saved, any change to the string requires
+        you to restart all |onprem| instances, including those running
+        enabled Backup Daemons. Making the change and clicking
+        :guilabel:`Save` is not sufficient. |onprem| will continue to use the
+        previous string until you restart the instances.
+
+     .. list-table::
+        :widths: 35 65
+
+        * - :guilabel:`<hostname>:<port>`
+
+          - Enter a comma-separated list of the fully qualified domain
+            names and port numbers for all :term:`replica set` members for
+            the Backup Database.
+
+        * - :guilabel:`MongoDB Auth Username` and
+
+            :guilabel:`MongoDB Auth Password`
+
+          - Enter the user credentials if the database uses
+            authentication.
+
+        * - :guilabel:`Encrypted Credentials`
+
+          - Check this if the user credentials use the |onprem|
+            ``credentialstool``. For more information, see
+            :ref:`encrypt-mongodb-user-credentials`.
+
+        * - :guilabel:`Use SSL`
+
+          - Check this if the database uses SSL. If you select this, you
+            must configure SSL settings |onprem|. See
+            :doc:`/reference/configuration`.
+
+        * - :guilabel:`Connection Options`
+
+          - To add additional connection options, enter them using the
+            MongoDB :manual:`Connection String URI Format
+            </reference/connection-string>`.
+
 ...

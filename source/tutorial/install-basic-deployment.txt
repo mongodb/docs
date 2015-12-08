@@ -14,59 +14,55 @@ Install a Basic Production Deployment on RHEL or Amazon Linux
 Overview
 --------
 
-This tutorial installs the minimally viable |onprem| deployment to servers
-that run either **RHEL 6+** or **Amazon Linux**.
-The deployment provides full functionality for monitoring and
-automating your MongoDB deployments and optionally provides functionality
-to back up your deployments.
+If you have not yet read the :doc:`Introduction </introduction>`, please do so
+now. The introduction describes the |onprem| components.
 
-The deployment uses three servers. The :ref:`application`
-runs on the first server, and the :ref:`Backup Daemon <backup-daemon>` runs on
-the second. The :ref:`mms-application-database`
-and optional :ref:`backup-database` run as three-member :term:`replica
-sets <replica set>`, each with two data-bearing members and an arbiter
-spread across the three servers.
+This tutorial installs a minimally viable |onprem| deployment to servers that
+run either **RHEL 6+** or **Amazon Linux**. The deployment provides full
+monitoring, automation, and backup functionality.
 
-The replica sets provide redundancy for your application data and
-snapshots in case of failure. The deployment does not provide high
-availability and cannot continue to accept writes to a backing database
-that loses a replica set member.
+The deployment uses three servers. |onprem| runs on two servers. On one of
+those, the Backup Daemon is enabled. The |onprem| Application Database and the
+Backup Database run as three-member :term:`replica sets <replica set>` spread
+across the three servers. Each replica set has two data-bearing members and an
+arbiter. The replica sets provide redundancy for your application data and
+snapshots but do not provide high availability should a replica set member fail.
 
 To install |onprem| using a different configuration or operating system,
 see :doc:`/installation`.
 
-The following diagram shows the deployment.
+.. COMMENTING OUT UNTIL DOCS-6752 is resolved:
 
-.. include:: /images/opsmanager-medium.rst
+   The following diagram shows the deployment.
+
+   .. include:: /images/opsmanager-medium.rst
 
 Prerequisites
 -------------
 
-Required System Configurations
-++++++++++++++++++++++++++++++
+.. _basic-install-hardware-requirements:
 
-All servers that host MongoDB instances must meet the system
-configurations in the :manual:`MongoDB Production Notes
-</administration/production-notes>`. This includes the server hosting the
-Backup Daemon.
+Hardware Requirements for Basic Install
++++++++++++++++++++++++++++++++++++++++
+
+Provision servers that meet the :ref:`hardware-requirements` described on the
+:doc:`/core/requirements` page. When a server hosts multiple components, you
+must sum the requirements for each component to determine the requirements for
+the server.
 
 .. warning::
 
-   Failure to configure servers according to the :manual:`MongoDB
-   Production Notes </administration/production-notes>` can lead to
-   production failure.
+   Failure to configure servers according to the :doc:`/core/requirements`,
+   including the requirement to read the :manual:`MongoDB Production Notes
+   </administration/production-notes>`, can lead to production failure.
 
-.. _basic-deploy-hardware-requirements:
+The size of the Backup Database depends on whether you store :term:`snapshots
+<snapshot>` in the Backup Database or on your :doc:`file system
+<manage-filestore-storage>`.
 
-Hardware Requirements
-+++++++++++++++++++++
-
-Your |onprem| and MongoDB servers must meet the :ref:`hardware-requirements`
-described on the :doc:`/core/requirements` page.
-When a server hosts multiple components, you must sum the requirements for
-each component to determine the requirements for the server.
-
-A deployment that can monitor up to 400 hosts has the following requirements:
+A deployment that can monitor up to 400 hosts and that stores snapshots in the
+Backup Database has the following size requirements, in addition to the other
+requirements in :ref:`hardware-requirements`:
 
 .. list-table::
    :header-rows: 1
@@ -75,24 +71,23 @@ A deployment that can monitor up to 400 hosts has the following requirements:
      - **RAM**
      - **Storage Capacity**
 
-   * - **Server 1** runs the |application|, the primary for the |application|
+   * - **Server 1** runs |onprem|, the primary for the |onprem| Application
        Database, and the arbiter for the Backup Database.
      - 23 GB
      - 200 GB
    * - 
      - 
      - 
-   * - **Server 2** runs the Backup Daemon, the primary for the Backup Database, and
-       the arbiter for the |application| Database.
+   * - **Server 2** runs |onprem| with the Backup Daemon enabled, the primary
+       for the Backup Database, and the arbiter for the |onprem| Application Database.
      - 15 GB for the Backup Daemon **plus** 8 GB for every 1 TB of the Backup Database.
      - *Contact your MongoDB account manager.*
    * - 
      - 
      - 
-   * - **Server 3** runs the secondaries for the |application| and Backup Databases.
-     - 8 GB for the |application| Database **plus** 8 GB for every 1 TB of the Backup
-       Database.
-     - 200 GB for the |application| Database. *Contact your MongoDB account manager for requirements
+   * - **Server 3** runs the secondaries for the Application and Backup Databases.
+     - 8 GB for the Application Database **plus** 8 GB for every 1 TB of the Backup Database.
+     - 200 GB for the Application Database. *Contact your MongoDB account manager for requirements
        for the Backup Database.*
 
 Permissions and Networking Requirements
@@ -100,56 +95,63 @@ Permissions and Networking Requirements
 
 You must have root access on the machines you are provisioning.
 
-.. include:: /includes/requirements-aws-security.rst
+Firewall rules must allow the following:
+
+- An ``ssh`` port, usually port ``22``, must provide access to system
+  administrators.
+
+- Port ``8080`` of the |onprem| server, **server 1**, must allow users to
+  connect to |onprem|.
+
+- The three servers must be able to connect with each other on all MongoDB
+  ports.
 
 Procedures
 ----------
+
+The following procedures prepare the servers, install the databases, and
+install |onprem|. Perform the procedures in sequence.
 
 .. _basic-deployment-prepare-servers:
 
 Prepare Each Server
 +++++++++++++++++++
 
-Set up servers that meet the :ref:`hardware requirements <hardware-requirements>` for deployments that
-monitor up to 400 hosts. If your deployment will monitor more than 400 hosts,
-use the requirements on the :doc:`/core/requirements` page instead.
+If you have not yet provisioned servers, see :ref:`basic-install-hardware-requirements`.
+
+Prepare each server as follows:
 
 .. include:: /includes/steps/prepare-servers-basic-install.rst
 
-Deploy the |application| Database
-+++++++++++++++++++++++++++++++++
+Install the |onprem| Application Database
++++++++++++++++++++++++++++++++++++++++++
 
-Install the :ref:`mms-application-database` as a three-member
-:term:`replica set`, as shown in the deployment diagram.
+Install the |onprem| Application Database as a three-member replica set.
 
 .. note::
 
-   |onprem| cannot deploy its own backing databases. You must deploy those
+   |onprem| cannot deploy its own backing databases. You must install those
    databases manually.
 
 .. include:: /includes/steps/install-basic-application-database.rst
 
-Deploy the Backup Database (Optional)
-+++++++++++++++++++++++++++++++++++++
+Install the Backup Database
++++++++++++++++++++++++++++
 
-If you intend to use |onprem| Backup, deploy the :ref:`backup-database`
-as a three-member replica set, as shown in the deployment diagram.
+Install the Backup Database as a three-member replica set.
 
 .. include:: /includes/steps/install-basic-backup-database.rst
 
 Install |onprem|
 ++++++++++++++++
 
-Install the :ref:`mms-application-package` on **server 1**.
-The |application| and |application| Database together provide full
-monitoring and automation functionality.
+Install |onprem| on **server 1** and **server 2**.
 
 .. include:: /includes/steps/install-basic-application.rst
 
 Next Steps
 ----------
 
-To set up a replica set for a test environment, see
-:doc:`/tutorial/test-new-deployment`. The tutorial populates the replica set
-with test data, registers a user, and installs the Monitoring and Backup
-Agents on a client machine in order to monitor the test replica set.
+To set up a replica set for a test environment, see :doc:`/tutorial/test-new-deployment`.
+The tutorial populates the replica set with test data, registers a user, and installs
+the Monitoring and Backup Agents on a client machine in order to monitor the test replica set.
