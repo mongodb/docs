@@ -5,23 +5,23 @@ Manage Journaling
 .. default-domain:: mongodb
 
 MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee :doc:`write operation </core/write-operations>` durability
-and to provide crash resiliency. 
+guarantee :doc:`write operation </core/write-operations>` durability.
+The MMAPv1 storage engine also requires the `journal` in order to provide
+crash resiliency.
 
-With MMAPv1, before applying a change to the data files, MongoDB writes
-the change operation to the journal. If MongoDB should terminate or
-encounter an error before it can write the changes from the journal to
-the data files, MongoDB can re-apply the write operation and maintain a
-consistent state.  By default, the greatest extent of lost
-writes, i.e., those not made to the journal, are those made in the last
-100 milliseconds. See :setting:`~storage.journal.commitIntervalMs` for more
-information on the default.
+The WiredTiger storage engine does not require journaling to guarantee a
+consistent state after a crash. The database will be restored to the last
+consistent :ref:`checkpoint <storage-wiredtiger-checkpoints>` during recovery.
+However, if MongoDB exits unexpectedly in between checkpoints, journaling is
+required to recover writes that occurred after the last checkpoint.
 
-With WiredTiger, even without journaling, :ref:`checkpoints
-<storage-wiredtiger-checkpoints>` provide a consistent view of data on
-disk and allow MongoDB to recover from the last checkpoint. However, if
-MongoDB exits unexpectedly in between checkpoints, journaling is
-required to recover information that occurred after the last checkpoint.
+With journaling enabled, if :program:`mongod` stops unexpectedly, the program
+can recover everything written to the journal. MongoDB will re-apply the write
+operations on restart and maintain a consistent state. By default, the greatest
+extent of lost writes, i.e., those not made to the journal, are those made in
+the last 100 milliseconds, plus the time it takes to perform the actual journal
+writes. See :setting:`~storage.journal.commitIntervalMs` for more information
+on the default.
 
 Procedures
 ----------
@@ -40,7 +40,8 @@ Disable Journaling
 
 .. warning::
 
-   Do not disable journaling on production systems. If your
+   Do not disable journaling on production systems. When using the
+   MMAPv1 storage engine *without* a journal, if your
    :program:`mongod` instance stops without shutting down cleanly
    unexpectedly for any reason, (e.g. power failure) and you are
    not running with journaling, then you must recover from an
