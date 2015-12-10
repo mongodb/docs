@@ -29,53 +29,96 @@ Example ``system.profile`` Document
 
 The documents in the :data:`system.profile
 <<database>.system.profile>` collection have the following form. This
-example document reflects an insert operation:
+example document reflects a find operation:
 
 .. code-block:: javascript
 
    {
-       "op" : "insert",
-       "ns" : "test.orders",
-       "query" : {
-          "_id" : 1,
-          "cust_id" : "A123",
-          "amount" : 500,
-          "status" : "A"
-       },
-       "ninserted" : 1,
-       "keyUpdates" : 0,
-       "writeConflicts" : 0,
-       "numYield" : 0,
-       "locks" : {
-             "Global" : {
-                "acquireCount" : {
-                   "w" : NumberLong(1)
-                }
-             },
-             "MMAPV1Journal" : {
-                "acquireCount" : {
-                   "w" : NumberLong(2)
-                }
-             },
-             "Database" : {
-                "acquireCount" : {
-                   "w" : NumberLong(1)
-                }
-             },
-             "Collection" : {
-                "acquireCount" : {
-                   "W" : NumberLong(1)
-                }
-             }
-          },
-       ,
-       "millis" : 0,
-       "execStats" : {
-       },
-       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
-       "client" : "127.0.0.1",
-       "allUsers" : [ ],
-       "user" : ""
+      "op" : "query",
+      "ns" : "test.c",
+      "query" : {
+         "find" : "c",
+         "filter" : {
+            "a" : 1
+         }
+      },
+      "keysExamined" : 2,
+      "docsExamined" : 2,
+      "cursorExhausted" : true,
+      "keyUpdates" : 0,
+      "writeConflicts" : 0,
+      "numYield" : 0,
+      "locks" : {
+         "Global" : {
+            "acquireCount" : {
+               "r" : NumberLong(2)
+            }
+         },
+         "Database" : {
+            "acquireCount" : {
+               "r" : NumberLong(1)
+            }
+         },
+         "Collection" : {
+            "acquireCount" : {
+               "r" : NumberLong(1)
+            }
+         }
+      },
+      "nreturned" : 2,
+      "responseLength" : 108,
+      "millis" : 0,
+      "execStats" : {
+         "stage" : "FETCH",
+         "nReturned" : 2,
+         "executionTimeMillisEstimate" : 0,
+         "works" : 3,
+         "advanced" : 2,
+         "needTime" : 0,
+         "needYield" : 0,
+         "saveState" : 0,
+         "restoreState" : 0,
+         "isEOF" : 1,
+         "invalidates" : 0,
+         "docsExamined" : 2,
+         "alreadyHasObj" : 0,
+         "inputStage" : {
+            "stage" : "IXSCAN",
+            "nReturned" : 2,
+            "executionTimeMillisEstimate" : 0,
+            "works" : 3,
+            "advanced" : 2,
+            "needTime" : 0,
+            "needYield" : 0,
+            "saveState" : 0,
+            "restoreState" : 0,
+            "isEOF" : 1,
+            "invalidates" : 0,
+            "keyPattern" : {
+               "a" : 1
+            },
+            "indexName" : "a_1",
+            "isMultiKey" : false,
+            "isUnique" : false,
+            "isSparse" : false,
+            "isPartial" : false,
+            "indexVersion" : 1,
+            "direction" : "forward",
+            "indexBounds" : {
+               "a" : [
+                  "[1.0, 1.0]"
+               ]
+            },
+            "keysExamined" : 2,
+            "dupsTested" : 0,
+            "dupsDropped" : 0,
+            "seenInvalidated" : 0
+         }
+      },
+      "ts" : ISODate("2015-09-03T15:26:14.948Z"),
+      "client" : "127.0.0.1",
+      "allUsers" : [ ],
+      "user" : ""
    }
 
 Output Reference
@@ -85,6 +128,19 @@ For any single operation, the documents created by the database
 profiler will include a subset of the following fields. The precise
 selection of fields in these documents depends on the type of
 operation.
+
+.. versionchanged:: 3.2.0
+
+   ``system.profile.query.skip`` replaces the ``system.profile.ntoskip``
+   field.
+
+.. versionchanged:: 3.2.0
+
+   The information in the ``system.profile.ntoreturn`` field has been
+   replaced by two separate fields, ``system.profile.query.limit`` and
+   ``system.profile.query.batchSize``. Older drivers or older versions
+   of the :program:`mongo` shell may still use ``ntoreturn``; this will
+   appear as ``system.profile.query.ntoreturn``.
 
 .. note::
 
@@ -141,36 +197,27 @@ operation.
    The ID of the cursor accessed by a ``query`` and ``getmore``
    operations.
 
-.. data:: system.profile.ntoreturn
+.. data:: system.profile.keysExamined
 
-   The number of documents the operation specified to return. For
-   example, the :dbcommand:`profile` command would return one document
-   (a results document) so the :data:`~system.profile.ntoreturn` value would be ``1``. The
-   :method:`limit(5) <cursor.limit()>` command would return five
-   documents so the :data:`~system.profile.ntoreturn` value would be ``5``.
+   .. versionchanged:: 3.2.0
 
-   If the :data:`~system.profile.ntoreturn` value is ``0``, the command did not specify a
-   number of documents to return, as would be the case with a simple
-   :method:`~db.collection.find()` command with no limit
-   specified.
+      Renamed from ``system.profile.nscanned``.
 
-.. data:: system.profile.ntoskip
+   The number of :doc:`index </indexes>` keys that MongoDB scanned in
+   order to carry out the operation.
 
-   The number of documents the :method:`~cursor.skip()` method
-   specified to skip.
+   In general, if :data:`~system.profile.keysExamined` is much higher
+   than :data:`~system.profile.nreturned`, the database is scanning many
+   index keys to find the result documents. Consider creating or
+   adjusting indexes to improve query performance..
 
-.. data:: system.profile.nscanned
+.. data:: system.profile.docsExamined
 
-   The number of documents that MongoDB scans in the :doc:`index </indexes>` in order to
-   carry out the operation.
+   .. versionchanged:: 3.2.0
 
-   In general, if :data:`~system.profile.nscanned` is much higher than :data:`~system.profile.nreturned`, the
-   database is scanning many objects to find the target objects.
-   Consider creating an index to improve this.
+      Renamed from ``system.profile.nscannedObjects``.
 
-.. data:: system.profile.nscannedObjects
-
-   The number of documents that MongoDB scans from the collection in
+   The number of documents in the collection that MongoDB scanned in
    order to carry out the operation.
 
 .. data:: system.profile.moved
@@ -195,9 +242,13 @@ operation.
    only if the operation resulted in a move. The field's implicit value is
    zero, and the field is present only when non-zero.
 
-.. data:: system.profile.scanAndOrder
+.. data:: system.profile.hasSortStage
 
-   :data:`~system.profile.scanAndOrder` is a boolean that is ``true``
+   .. versionchanged:: 3.2.0
+
+      Renamed from ``system.profile.scanAndOrder``.
+
+   :data:`~system.profile.hasSortStage` is a boolean that is ``true``
    when a query **cannot** use the ordering in the index to return the
    requested sorted results; i.e. MongoDB must sort the documents after
    it receives the documents from a cursor. The field only appears when
