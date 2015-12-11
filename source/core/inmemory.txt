@@ -1,0 +1,53 @@
+.. _storage-inmemory:
+
+========================
+In-Memory Storage Engine
+========================
+
+.. default-domain:: mongodb
+
+.. warning:: 
+   The ``inMemory`` storage engine is provided for beta-testing and not intended for 
+   production use at this time.
+
+Starting in MongoDB Enterprise 3.2, an in-memory storage engine is available in
+the 64-bit builds for beta-testing purposes.  By avoiding disk I/O, this storge 
+engine allows for more predictable latency of database operations.
+
+
+Specify In-Memory Storage Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To select the in-memory storage engine, specify:
+``inMemory`` for the :option:`--storageEngine`  option or the
+:setting:`storage.engine` setting.
+
+Although the in-memory storage engine does not write data to the filesystem,
+it maintains small metadata files in the ``--dbpath``.
+
+.. code-block:: sh
+
+   mongod --storageEngine inMemory --dbpath <path>
+
+See :ref:`cli-mongod-inmemory` for configuration options specific to this storage engine.
+
+.. warning::
+   The ``inMemory`` storage engine is ephemeral, and all data will be lost when
+   the ``mongod`` instance shuts down.
+
+Concurrency
+~~~~~~~~~~~
+The in-memory storage engine uses *document-level* concurrency control for write
+operations. As a result, multiple clients can modify different
+documents of a collection at the same time.
+
+Durability
+----------
+
+The in-memory storage engine is ephemeral and does not write data to persistent
+storage.  As such, the concept of :term:`journal` or waiting for data to become
+:term:`durable` does not apply to the in-memory storage engine.
+Write operations that specify a write concern :writeconcern:`journaled <j>` are
+acknowledged immediately. When an :program:`mongod` instance shuts down, either as
+result of the :dbcommand:`shutdown` command or due to a system error, recovery is
+impossible.
+
