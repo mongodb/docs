@@ -1,3 +1,8 @@
+- **Backup Database**: There are data migrations that touch the various backup
+  data stores that make up the :ref:`backup-database`. They must all be online
+  when you to upgrade. Any data stores that are no longer in use should be
+  deleted through the |onprem| UI before upgrading.
+
 - **Backup Daemon**: Beginning with |onprem| 2.0, there is no separate Backup
   Daemon package. The |onprem| package also installs the Backup Daemon. The
   upgrade procedure includes instructions to upgrade your Backup Daemons to 2.0.
