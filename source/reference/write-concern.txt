@@ -1,5 +1,8 @@
 .. _write-concern-operation:
 .. _write-concern-internals:
+.. _write-operations-write-concern:
+.. _replica-set-write-concern:
+.. _write-concern:
 
 =======================
 Write Concern Reference
@@ -7,8 +10,12 @@ Write Concern Reference
 
 .. default-domain:: mongodb
 
-:doc:`Write concern </core/write-concern>` describes the guarantee that
-MongoDB provides when reporting on the success of a write operation.
+Write concern describes the level of acknowledgement requested from
+MongoDB for write operations to a standalone :program:`mongod` or to
+:doc:`replica sets </core/replication-introduction>` or to
+:doc:`sharded clusters </core/sharding-introduction>`. In
+sharded clusters, :program:`mongos` instances will pass the write
+concern on to the shards.
 
 .. versionchanged:: 2.6
    A new protocol for :ref:`write operations
@@ -18,29 +25,23 @@ MongoDB provides when reporting on the success of a write operation.
    :dbcommand:`getLastError` command immediately after a write
    operation to specify the write concern.
 
-Available Write Concern
------------------------
+Write Concern Specification
+---------------------------
 
-Write concern can include the :ref:`w <wc-w>` option to specify the
-required number of acknowledgments before returning, the :ref:`j
-<wc-j>` option to require writes to the journal before returning, and
-:ref:`wtimeout <wc-wtimeout>` option to specify a time limit to prevent
-write operations from blocking indefinitely.
+Write concern can include the following fields:
 
-In sharded clusters, :program:`mongos` instances will pass the write
-concern on to the shard.
+.. code-block:: javascript
+
+   { w: <value>, j: <boolean>, wtimeout: <number> }
 
 .. _wc-w:
 
 ``w`` Option
 ~~~~~~~~~~~~
 
-The ``w`` option provides the ability to disable write concern entirely
-*as well as* specify the write concern for :term:`replica sets <replica
-set>`.
-
-MongoDB uses ``w: 1`` as the default write concern. ``w: 1``
-provides basic receipt acknowledgment.
+The ``w`` option requests acknowledgement that the write operation has
+propagated to a specified number of :program:`mongod` instances or to
+:program:`mongod` instances with specified tags.
 
 The ``w`` option accepts the following values:
 
@@ -52,68 +53,61 @@ The ``w`` option accepts the following values:
 
      - Description
 
-   * - ``1``
+   * - .. writeconcern:: <number>
 
-     - Provides acknowledgment of write operations on a standalone
-       :program:`mongod` or the :term:`primary` in a replica set.
+     - Requests acknowledgement that the write operation has propagated
+       to the specified number of :program:`mongod` instances. For
+       example:
 
-       This is the default write concern for MongoDB.
+       ``w: 1``
+         Requests acknowledgement that the write operation has
+         propagated to the standalone :program:`mongod` or the primary
+         in a replica set. ``w: 1`` is the default write concern for
+         MongoDB.
 
-   * - ``0``
+       ``w: 0``
+         Requests no acknowledgment of the write operation. However, ``w:
+         0`` may return information about socket exceptions and
+         networking errors to the application.
 
-     - Disables basic acknowledgment of write operations, but returns
-       information about socket exceptions and networking errors to the
-       application.
+         If you specify ``w: 0`` but include :ref:`j: true <wc-j>`, the
+         :ref:`j: true <wc-j>` prevails to request acknowledgement from
+         the standalone :program:`mongod` or the primary of a replica
+         set.
 
-       If you disable basic write operation acknowledgment but require
-       journal commit acknowledgment, the journal commit prevails, and
-       the server will require that :program:`mongod` acknowledge
-       the write operation.
+       Numbers greater than 1 are valid only for replica sets to
+       request acknowledgement from specified number of members,
+       including the primary. If you set ``w`` to a number that is
+       greater than the number of set members that hold data, MongoDB
+       waits for the non-existent members to become available, which
+       means MongoDB blocks indefinitely.
 
-   * - <Number greater than 1>
+   * - .. writeconcern:: "majority"
 
-     - Guarantees that write operations have propagated successfully to
-       the specified number of replica set members including the
-       primary.
-
-       For example, ``w: 2`` indicates acknowledgements from the
-       primary and at least one secondary.
-
-       If you set ``w`` to a number that is greater than the number of
-       set members that hold data, MongoDB waits for the non-existent
-       members to become available, which means MongoDB blocks
-       indefinitely.
-
-   * - ``"majority"``
-
-     - Confirms that write operations have propagated to the majority
-       of voting nodes: a majority of the replica set's
-       voting members must acknowledge the write operation before it succeeds.
-       This allows you to avoid hard coding assumptions about the size
-       of your replica set into your application.
+     - Requests acknowledgment that write operations have propagated to
+       the majority of voting nodes.
 
        .. versionchanged:: 3.0
+
           In previous versions, ``w: "majority"`` refers to the
           majority of the replica set's members.
 
        .. include:: /includes/fact-master-slave-majority.rst
 
-   * - <tag set>
+   * - .. writeconcern:: <tag set>
 
-     - By specifying a :ref:`tag set
-       <replica-set-configuration-tag-sets>`, you can have fine-grained
-       control over which replica set members must acknowledge a write
-       operation to satisfy the required level of write concern.
+     - Requests acknowledgement that the write operations have
+       propagated to a replica set member with the specified :ref:`tag
+       <replica-set-configuration-tag-sets>`.
 
 .. _wc-j:
 
 ``j`` Option
 ~~~~~~~~~~~~
 
-The ``j`` option confirms that the :program:`mongod` instance has
-written the data to the on-disk journal. This ensures that data is not
-lost if the :program:`mongod` instance shuts down unexpectedly. Set to
-``true`` to enable.
+The :ref:`j <wc-j>` option requests acknowledgement from MongoDB that
+the write operation has been written to the :doc:`journal
+</core/journaling>`.
 
 .. versionchanged:: 2.6
    Specifying a write concern that includes ``j: true`` to
@@ -143,5 +137,5 @@ concern is unachievable, the write operation will block indefinitely.
 Specifying a ``wtimeout`` value of ``0`` is equivalent to a write
 concern without the ``wtimeout`` option.
 
-.. seealso:: :doc:`Write Concern Introduction </core/write-concern>` and
+.. seealso::
    :ref:`Write Concern for Replica Sets <replica-set-write-concern>`.
