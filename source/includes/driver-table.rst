@@ -21,7 +21,7 @@
      - `Source <https://github.com/mongodb/mongo-cxx-driver>`_
      - `API <http://api.mongodb.org/cplusplus/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CXX>`_
-     - 
+     -
 
    * - :doc:`C# </drivers/csharp>`
      - `Releases <https://github.com/mongodb/mongo-csharp-driver/releases>`_
@@ -49,14 +49,14 @@
      - `Source <https://github.com/mongodb/mongo-perl-driver>`_
      - `API <https://metacpan.org/pod/MongoDB>`_
      - `JIRA <https://jira.mongodb.org/browse/PERL>`_
-     - 
+     -
 
    * - :doc:`PHP </drivers/php>`
      - `Releases <http://pecl.php.net/package/mongo>`_
      - `Source <https://github.com/mongodb/mongo-php-driver>`_
      - `API <http://php.net/mongo>`_
      - `JIRA <https://jira.mongodb.org/browse/PHP>`_
-     - 
+     -
 
    * - :doc:`Python </drivers/python>`
      - `Releases <https://pypi.python.org/pypi/pymongo/>`_
@@ -70,21 +70,21 @@
      - `Source <https://github.com/mongodb/motor>`_
      - `API <http://motor.readthedocs.org/en/stable/api/index.html>`_
      - `JIRA <https://jira.mongodb.org/browse/MOTOR>`_
-     - 
+     -
 
    * - :doc:`Ruby </drivers/ruby>`
      - `Releases <https://rubygems.org/gems/mongo>`_
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`_
      - `API <http://api.mongodb.org/ruby/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/RUBY>`_
-     - 
+     -
 
    * - :doc:`Scala </drivers/scala>`
-     - `Releases <https://github.com/mongodb/casbah/releases>`_
-     - `Source <https://github.com/mongodb/casbah>`_
-     - `API <http://mongodb.github.io/casbah/>`_
+     - `Releases <http://mongodb.github.io/mongo-scala-driver/>`_
+     - `Source <https://github.com/mongodb/mongo-scala-driver>`_
+     - `API <http://mongodb.github.io/mongo-scala-driver/>`_
      - `JIRA <https://jira.mongodb.org/browse/SCALA>`_
-     - 
+     -
 
 ..
    * - :doc:`Haskell </drivers/haskell>`
