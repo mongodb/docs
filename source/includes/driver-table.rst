@@ -53,10 +53,14 @@
      - `Ruby Driver API <http://api.mongodb.org/ruby/current/?jmp=docs>`_
 
    * - :ecosystem:`Scala </drivers/scala?jmp=docs>`
-     - `Scala Driver Releases <https://github.com/mongodb/casbah/releases?jmp=docs>`_
-     - `Scala Driver Source Code <https://github.com/mongodb/casbah?jmp=docs>`_
-     - `Scala Driver API <http://mongodb.github.io/casbah/?jmp=docs>`_
+     - `Scala Driver Releases <http://mongodb.github.io/mongo-scala-driver/?jmp=docs>`_
+     - `Scala Driver Source Code <https://github.com/mongodb/mongo-scala-driver?jmp=docs>`_
+     - `Scala Driver API <http://mongodb.github.io/mongo-scala-driver/?jmp=docs>`_
 
+     * - :ecosystem:`Scala </drivers/scala?jmp=docs>`
+       - `Casbah (Scala Driver) Releases <https://github.com/mongodb/casbah/releases?jmp=docs>`_
+       - `Casbah (Scala Driver) Source Code <https://github.com/mongodb/casbah?jmp=docs>`_
+       - `Casbah (Scala Driver) API <http://mongodb.github.io/casbah/?jmp=docs>`_
 ..
    * - :ecosystem:`Haskell </drivers/haskell?jmp=docs>`
      - `Haskell Driver Releases <https://github.com/mongodb/mongodb-haskell/releases?jmp=docs>`_

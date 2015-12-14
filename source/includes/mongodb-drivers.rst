@@ -31,6 +31,9 @@
    * - `Ruby Driver <https://github.com/mongodb/mongo-ruby-driver>`_
      - `Ruby Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/ruby/>`_
 
+   * - `Scala Driver <https://github.com/mongodb/mongo-scala-driver>`_
+     - `Scala Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/scala/>`_
+
    * - `Casbah (Scala Driver) <https://github.com/mongodb/casbah>`_
      - `Casbah Documentation <http://docs.mongodb.org/ecosystem/drivers/scala/>`_
 
