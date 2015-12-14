@@ -6,7 +6,7 @@
      - Specifies the schema for storing user data. MongoDB 3.0 uses a
        different schema for user data than previous versions. For
        compatibility information, see the :manual:`MongoDB Release Notes
-       <release-notes>`.
+       </release-notes/3.0-compatibility/#security-changes>`.
 
    * - :guilabel:`Eligible Server RegExp`
 
