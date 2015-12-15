@@ -16,9 +16,13 @@ Definition
 .. dbcommand:: connPoolStats
 
    The command :dbcommand:`connPoolStats` returns information
-   regarding the number of open connections to the current database
-   instance, including client connections and server-to-server
-   connections for replication and clustering.
+   regarding the open outgoing connections from the current database
+   instance to other members of the :term:`sharded cluster` or 
+   :term:`replica set`.
+   
+   .. include:: /includes/fact-dbcommand.rst
+   
+   .. |command| replace:: ``connPoolStats``
 
    .. include:: /includes/note-conn-pool-stats.rst
 
@@ -30,156 +34,271 @@ Definition
 
    The value of the argument (i.e. ``1`` ) does not affect the
    output of the command.
+   
+Behavior
+--------
+
+A :program:`mongod` or :program:`mongos` has a number of connection 
+pools used for outgoing connections to members in a :term:`sharded cluster` or 
+:term:`replica set`. 
+:dbcommand:`connPoolStats` returns aggregated statistics related to all 
+of the outgoing connection pools used by the :program:`mongod` or 
+:program:`mongo` running the command.
+
+Example
+-------
+
+The following operation uses the :method:`db.runCommand()` method to 
+run the :dbcommand:`connPoolStats` command.
+
+.. code-block:: javascript
+
+   db.runCommand( { "connPoolStats" : 1 } )
 
 Output
 ------
 
+The following output is a sample of what :dbcommand:`connPoolStats` returns. 
+It represents a :term:`sharded cluster` with 3 single-member 
+:term:`replica set` shards and a config server replica set. 
+
+.. note:: 
+   This example does not represent all possible 
+   output data from the :dbcommand:`connPoolStats` command. 
+
+.. code-block:: javascript
+
+   {
+      "numClientConnections" : <num>,
+      "numAScopedConnections" : <num>,
+      "totalInUse" : <num>,
+      "totalAvailable" : <num>,
+      "totalCreated" : <num>,
+      "hosts" : {
+         "cfg1.example.net:27800" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         },
+         "cfg2.example.net:27800" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         },
+         "cfg3.example.net:27800" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         },
+         "shard1.example.net:27100" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         },
+         "shard2.example.net:27200" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         },
+         "shard3.example.net:27300" : {
+            "inUse" : <num>,
+            "available" : <num>,
+            "created" : <num>
+         }
+      },
+      "replicaSets" : {
+         "cfgReplSet" : {
+            "hosts" : [
+               {
+                  "addr" : "cfg1.example.net:27800",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               },
+               {
+                  "addr" : "cfg2.example.net:27800",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               },
+               {
+                  "addr" : "cfg3.example.net:27800",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               },
+            ]
+         },
+         "shard1" : {
+            "hosts" : [
+               {
+                  "addr" : "shard1.example.net:27100",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               }
+            ]
+         },
+         "shard2" : {
+            "hosts" : [
+               {
+                  "addr" : "shard2.example.net:27200",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               }
+            ]
+         },
+         "shard3" : {
+            "hosts" : [
+               {
+                  "addr" : "shard3.example.net:27300",
+                  "ok" : <bool>,
+                  "ismaster" : <bool>,
+                  "hidden" : <bool>,
+                  "secondary" : <bool>,
+                  "pingTimeMillis" : <num>
+               }
+            ]
+         }
+      },
+      "ok" : 1
+   }
+
+
+Output
+------
+
+.. data:: connPoolStats.totalAvailable
+
+   Reports the total number of available outgoing connections from the 
+   current :program:`mongod`/:program:`mongos` instance to other members
+   of the :term:`sharded cluster` or :term:`replica set`.
+
+.. data:: connPoolStats.totalCreated
+
+   Reports the total number of outgoing connections ever created by the
+   current :program:`mongod`/:program:`mongos` instance to other members
+   of the :term:`sharded cluster` or :term:`replica set`.
+   
+.. data:: connPoolStats.totalInUse
+
+   Reports the total number of outgoing connections from the current
+   :program:`mongod`/:program:`mongos` instance to other members of the
+   :term:`sharded cluster` or :term:`replica set` that are currently in use.
+
+.. data:: connPoolStats.numClientConnection
+
+   Reports the number of active and stored outgoing **synchronous**
+   connections from the current :program:`mongod`/:program:`mongos` instance
+   to other members of the :term:`sharded cluster` or :term:`replica set`.
+   
+   These connections are a part of a pool that is a subset of the data 
+   reported by :data:`~connPoolStats.totalAvailable`, 
+   :data:`~connPoolStats.totalCreated`, and :data:`~connPoolStats.totalInUse`.
+
+.. data:: connPoolStats.numAScopedConnection
+
+   Reports the number of active and stored outgoing **scoped
+   synchronous** connections from the current
+   :program:`mongod`/:program:`mongos` instance to other members of the
+   :term:`sharded cluster` or :term:`replica set`.
+   
+   These connections are a part of a pool that is a subset of the data 
+   reported by :data:`~connPoolStats.totalAvailable`, 
+   :data:`~connPoolStats.totalCreated`, and :data:`~connPoolStats.totalInUse`.
+
 .. data:: connPoolStats.hosts
 
-   The embedded documents of the :data:`~connPoolStats.hosts` :term:`document` report connections
-   between the :program:`mongos` or :program:`mongod` instance and each component
-   :program:`mongod` of the :term:`sharded cluster`.
+   Contains :term:`documents<document>` that represent a report of connections
+   between the current :program:`mongod`/:program:`mongos` instance and
+   each member of the :term:`sharded cluster` or :term:`replica set`.
 
    .. data:: connPoolStats.hosts.[host].available
 
-      :data:`~connPoolStats.hosts.[host].available` reports the total number of
-      connections that the :program:`mongos` or :program:`mongod`
-      could use to connect to this :program:`mongod`.
+      Reports the total number of connections available for connecting 
+      to the ``[host]``.
 
    .. data:: connPoolStats.hosts.[host].created
 
-      :data:`~connPoolStats.hosts.[host].created` reports the number of connections
-      that this :program:`mongos` or :program:`mongod` has ever created for this host.
+      Reports the number of connections to the ``[host]``  ever created.
+      
+   .. data:: connPoolStats.hosts.[host].inUse
+   
+      Reports the number of connections to the ``[host]``
+      that are currently in use.
 
 .. data:: connPoolStats.replicaSets
 
-   :data:`~connPoolStats.replicaSets` is a :term:`document` that contains
-   :term:`replica set` information for the :term:`sharded cluster`.
+   Contains :term:`documents <document>` that represent a report of 
+   information related to each replica set connected to the current
+   :program:`mongod`/:program:`mongos`.
 
-   .. data:: connPoolStats.replicaSets.shard
+   .. data:: connPoolStats.replicaSets.replicaSet
 
-      The :data:`~connPoolStats.replicaSets.shard` :term:`document` reports
-      on each :term:`shard` within the :term:`sharded cluster`
+      Reports on each :term:`replica set` connected to the 
+      current :program:`mongod`/:program:`mongos`.
 
-   .. data:: connPoolStats.replicaSets.[shard].host
+   .. data:: connPoolStats.replicaSets.[replicaSets].hosts
 
-      The :data:`~connPoolStats.replicaSets.[shard].host` field holds an array of
-      :term:`document` that reports on each host within the
-      :term:`shard` in the :term:`replica set`.
+      Holds an array of :term:`documents<document>` that reports on each 
+      member in the :term:`replica set`.
 
       These values derive from the :doc:`replica set status
       </reference/command/replSetGetStatus>` values.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].addr
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].addr
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].addr` reports the address
-         for the host in the :term:`sharded cluster` in the format of
-         "``[hostname]:[port]``".
+         Reports the address for the member in the :term:`replica set` 
+         in ``[hostname]:[port]`` format.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].ok
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].ok
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].ok` reports ``false``
-         when:
+         Reports ``false`` when:
 
-         - the :program:`mongos` or :program:`mongod` cannot connect
+         - the current :program:`mongos` or :program:`mongod` cannot connect
            to instance.
 
-         - the :program:`mongos` or :program:`mongod` received a
+         - the current :program:`mongos` or :program:`mongod` received a
            connection exception or error.
 
          This field is for internal use.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].ismaster
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].ismaster
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].ismaster` reports ``true``
-         if this :data:`~connPoolStats.replicaSets.[shard].host` is the
+         Reports ``true`` if this 
+         :data:`~connPoolStats.replicaSets.[replicaSet].host` is the
          :term:`primary` member of the :term:`replica set`.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].hidden
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].hidden
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].hidden` reports ``true``
-         if this :data:`~connPoolStats.replicaSets.[shard].host` is a :term:`hidden
-         member` of the :term:`replica set`.
+         Reports ``true`` if this 
+         :data:`~connPoolStats.replicaSets.[replicaSet].host` is a 
+         :term:`hidden member` of the :term:`replica set`.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].secondary
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].secondary
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].secondary` reports
-         ``true`` if this :data:`~connPoolStats.replicaSets.[shard].host` is a
+         Reports ``true`` if this 
+         :data:`~connPoolStats.replicaSets.[replicaSet].host` is a
          :term:`secondary` member of the :term:`replica set`.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].pingTimeMillis
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].pingTimeMillis
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].pingTimeMillis` reports
-         the ping time in milliseconds from the :program:`mongos` or
-         :program:`mongod` to this :data:`~connPoolStats.replicaSets.[shard].host`.
+         Reports the ping time in milliseconds from the :program:`mongos` or
+         :program:`mongod` to this 
+         :data:`~connPoolStats.replicaSets.[replicaSet].host`.
 
-      .. data:: connPoolStats.replicaSets.[shard].host[n].tags
+      .. data:: connPoolStats.replicaSets.[replicaSet].hosts[n].tags
 
-         :data:`~connPoolStats.replicaSets.[shard].host[n].tags` reports the
-         :rsconf:`members[n].tags`, if this member of the set has tags
-         configured.
-
-   .. data:: connPoolStats.replicaSets.[shard].master
-
-      :data:`~connPoolStats.replicaSets.[shard].master` reports the ordinal identifier
-      of the host in the :data:`~connPoolStats.replicaSets.[shard].host` array that is
-      the :term:`primary` of the :term:`replica set`.
-
-   .. data:: connPoolStats.replicaSets.[shard].nextSlave
-
-      .. deprecated:: 2.2
-
-      :data:`~connPoolStats.replicaSets.[shard].nextSlave` reports the
-      :term:`secondary` member that the :program:`mongos` will use to
-      service the next request for this :term:`replica set`.
-
-.. data:: connPoolStats.createdByType
-
-   :data:`~connPoolStats.createdByType` :term:`document` reports the number of each
-   type of connection that :program:`mongos` or :program:`mongod` has created in all
-   connection pools.
-
-   :program:`mongos` connect to :program:`mongod` instances using one
-   of three types of connections. The following embedded document reports
-   the total number of connections by type.
-
-   .. data:: connPoolStats.createdByType.master
-
-      :data:`~connPoolStats.createdByType.master` reports the total number of
-      connections to the :term:`primary` member in each :term:`cluster`.
-
-   .. data:: connPoolStats.createdByType.set
-
-      :data:`~connPoolStats.createdByType.set` reports the total number of
-      connections to a :term:`replica set` member.
-
-   .. data:: connPoolStats.createdByType.sync
-
-      :data:`~connPoolStats.createdByType.sync` reports the total number of
-      :term:`config database` connections.
-
-.. data:: connPoolStats.totalAvailable
-
-   :data:`~connPoolStats.totalAvailable` reports the running total of connections
-   from the :program:`mongos` or :program:`mongod` to all :program:`mongod` instances in
-   the :term:`sharded cluster` available for use.
-
-.. data:: connPoolStats.totalCreated
-
-   :data:`~connPoolStats.totalCreated` reports the total number of connections ever
-   created from the :program:`mongos` or :program:`mongod` to all :program:`mongod`
-   instances in the :term:`sharded cluster`.
-
-.. data:: connPoolStats.numDBClientConnection
-
-   :data:`~connPoolStats.numDBClientConnection` reports the total number of
-   connections from the :program:`mongos` or :program:`mongod` to all of the :program:`mongod`
-   instances in the :term:`sharded cluster`.
-
-.. data:: connPoolStats.numAScopedConnection
-
-   :data:`~connPoolStats.numAScopedConnection` reports the number of exception safe
-   connections created from :program:`mongos` or :program:`mongod` to all :program:`mongod`
-   in the :term:`sharded cluster`. The :program:`mongos` or :program:`mongod` releases these
-   connections after receiving a socket exception from the
-   :program:`mongod`.
+         Reports the :rsconf:`members[n].tags`, if this member of the set has
+         tags configured.
