@@ -81,10 +81,12 @@ Solid state drives (SSDs) can outperform spinning hard disks (HDDs) by
 Journaling
 ~~~~~~~~~~
 
-MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee :doc:`write operation </core/write-operations>` durability
-and to provide crash resiliency. Before applying a change to the data
-files, MongoDB writes the change operation to the journal.
+To provide durability in the event of a crash, MongoDB uses *write
+ahead logging* to an on-disk :term:`journal`. MongoDB writes the
+in-memory changes first to the on-disk journal files. If MongoDB should
+terminate or encounter an error before committing the changes to the
+data files, MongoDB can use the journal files to apply the write
+operation to the data files.
 
 While the durability assurance provided by the journal typically
 outweigh the performance costs of the additional write operations,
@@ -93,15 +95,15 @@ performance:
 
 - if the journal and the data file reside on the same block device,
   the data files and the journal may have to contend for a finite
-  number of available write operations. Moving the journal to a
+  number of available I/O resources. Moving the journal to a
   separate device may increase the capacity for write operations.
 
 - if applications specify :doc:`write concern </reference/write-concern>`
   that includes the :ref:`j option <wc-j>`,
   :program:`mongod` will decrease the duration between journal
-  commits, which can increases the overall write load.
+  writes, which can increases the overall write load.
 
-- the duration between journal commits is configurable using the
+- the duration between journal writes is configurable using the
   :setting:`~storage.journal.commitIntervalMs` run-time option. Decreasing the
   period between journal commits will increase the number of write
   operations, which can limit MongoDB's capacity for write
