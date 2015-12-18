@@ -3,8 +3,15 @@
 
    * - :guilabel:`Pull Via Secure HTTP`
 
-     - Create a one-time direct download link. If you select this, click
-       :guilabel:`Finalize Request` and skip the rest of this procedure.
+     - Create a direct download link. Select the following options and click
+       :guilabel:`Finalize Request`. Skip the rest of this procedure.
+
+       - :guilabel:`Pull Restore Usage Limit`: Select whether the link can be
+         re-used or used just once. If you select ``No Limit``, the link is
+         re-usable until it expires.
+
+       - :guilabel:`Restore Link Expiration (in hours)`: Select the number of
+         hours until the link expires.
 
    * - :guilabel:`Push Via Secure Copy`
 
