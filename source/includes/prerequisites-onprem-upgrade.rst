@@ -1,3 +1,11 @@
+Your servers must meet the :doc:`/core/requirements`.
+
+   .. warning::
+
+      Failure to configure servers according to the :doc:`/core/requirements`,
+      including the requirement to read the :manual:`MongoDB Production Notes
+      </administration/production-notes>`, can lead to production failure.
+
 You must have administrator privileges on the servers on which you perform
 the upgrade.
 

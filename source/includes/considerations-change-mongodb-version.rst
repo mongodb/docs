@@ -6,6 +6,8 @@ issues:
 
 - The documentation for your driver.
 
+- :doc:`/reference/mongodb-compatibility`
+
 Plan the version change during a predefined maintenance window.
 
 Before applying the change to a production environment, change the MongoDB
