@@ -22,9 +22,11 @@ Network Diagram
 |onprem|
 --------
 
-The |onprem| installation package consists of the :ref:`application` and
-:ref:`backup-daemon`. Each requires a separate dedicated MongoDB database
-to hold operational data.
+The |onprem| installation package consists of the :ref:`application` and 
+:ref:`backup-daemon`. The |onprem| application requires an |onprem| Application
+Database (a dedicated MongoDB database to hold operational data) as well as
+dedicated MongoDB Backup Database(s).
+
 
 .. _mms-http-service:
 .. _application:
@@ -46,14 +48,15 @@ groups, as well as join an existing group.
 
 .. _backup-daemon:
 
-Backup Daemon
-~~~~~~~~~~~~~
+Backup Daemon Service
+~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Daemon manages both the local copies of the backed-up databases
-and each backup's snapshots. The daemon does scheduled work based on data
-coming in to the |http-service| from the Backup Agents. No client
-applications talk directly to the daemon. Its state and job queues come from
-the :ref:`mms-application-database`.
+Any Ops Manager instance can be configured to run the Backup Daemon service to
+provide backup capabilities. The Backup Daemon service manages both the local
+copies of the backed-up databases and each backup's snapshots. The daemon does
+scheduled work based on data coming into the |http-service| from the Backup
+Agents. No client applications talk directly to the daemon. Its state and job
+queues come from the :ref:`mms-application-database`.
 
 The Backup Daemon's local copy of a backed-up deployment is called the
 :term:`head database`. The daemon stores all its head databases in its
@@ -65,10 +68,10 @@ If you run multiple Backup Daemons, |onprem| selects the Backup Daemon to use
 when a user enables backup for a deployment. The local copy of the deployment
 resides with that daemon's server.
 
-The daemon takes scheduled snapshots and stores the snapshots in the
-:ref:`backup-database` or on the file system. It also acts on restore requests by
-retrieving data from the Backup Database and delivering it to the requested
-destination.
+The daemon takes scheduled snapshots and stores the snapshots in either
+databases (the :ref:`backup-database`) or on the file system (the file system
+store). It also acts on restore requests by retrieving data from the Backup
+Database and delivering it to the requested destination.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` scale horizontally
 to increase your storage and can provide **manual** failover.
@@ -82,11 +85,11 @@ Dedicated MongoDB Databases for Operational Data
 ------------------------------------------------
 
 |onprem| uses dedicated MongoDB databases to store the |application|'s
-monitoring data and the Backup Daemon's snapshots. The backing databases run
-as :term:`replica sets <replica set>` to ensure redundancy and high
-availability. The replica sets host **only** |onprem| data. You must
-:doc:`provision the replica sets 
-</tutorial/prepare-backing-mongodb-instances>` before installing |onprem|.
+monitoring data and the Backup Daemon's operational backup data. The backing
+databases run as :term:`replica sets <replica set>` to ensure redundancy and
+high availability. The replica sets host **only** |onprem| data. You must
+:doc:`provision the replica sets </tutorial/prepare-backing-mongodb-instances>` 
+before installing |onprem|.
 
 .. _mms-application-database:
 
@@ -105,35 +108,52 @@ For topology and specifications, see
 .. _backup-database:
 .. _mms-backup-blockstore-database:
 
-Backup Database
-~~~~~~~~~~~~~~~
+Backup Data Storage
+~~~~~~~~~~~~~~~~~~~
 
-The Backup Database stores snapshots of your backed-up deployments and stores
-temporary backup data. The Backup Database serves two purposes: storing Oplogs
-and, optionally, Snapshots. You can have multiple instances of each, according
-to your sizing needs:
+|mms| backs up snapshots of deployments. These snapshots are stored in either
+databases or file systems. There can be more than one database and/or file
+system paths to which snapshots are written. The recent history of the
+deployment database is written to a separate database regardless of where the
+snapshots are written.
 
-- The :term:`Backup Blockstore Database` stores the snapshots of your backed-
-  up deployments and requires most of the space on the Backup Database
-  servers. 
+The components of backup data storage include:
 
-  Backups can also be stored on the file system directly without a
-  database in the directory of your choosing.
+- Snapshots. Snapshots can be written to one of two destinations:
 
-- The :term:`Oplog Store Database` stores Oplog entries the Backup Daemon
-  applies to its local copies of your backed-up deployments.
+  - A :term:`Blockstore <Backup Blockstore Database>`, a MongoDB database.
 
-These databases *must* run on a dedicated MongoDB deployment that holds no
-other data. For production, configure the MongoDB deployment as a replica set
-to provide redundancy for the data. To provide high availability through
-automatic failover, configure the replica set with three data-bearing members.
+  - A :term:`File System Store <File System Store>` a file system, in the
+    directory of your choosing.
 
-You **cannot** back up the Blockstore Database with |onprem| Backup. To back
-up |onprem| Backup, see :doc:`/tutorial/backup-the-backup-service`.
+- :term:`Oplog Slices <oplog slice>`. The :term:`Oplog Store <Oplog Store Database>` 
+  retains oplog entries the Backup Daemon applies to its local copies of your 
+  backed-up deployments.
 
-The Backup Database requires disk space proportional to the backed-up
-deployments. For specifications, see
-:ref:`backup-database-specifications`.
+The **Blockstore** backup option requires:
+
+- Two databases that run on a dedicated MongoDB deployment that
+  holds no other data:
+
+  - A large database to store the backup data (the Blockstore).
+  - A small database to store the operations logs (the Oplog Store).
+
+- Disk space proportional to the deployments being backed up.
+  See :ref:`backup-database-specifications`.
+
+If redundancy and high availability for the backup data is desired, configure
+the Blockstores and Oplog Stores as a replica sets with three data-bearing
+members.
+
+.. important::
+   |onprem| cannot be backed up using |onprem| Backup. 
+   See :doc:`/tutorial/backup-the-backup-service`.
+
+The **File System Store** backup option requires:
+
+- A small backup database (the Oplog Store) in a MongoDB deployment.
+- A filesystem path that can be mounted from all |mms| application instances
+  so they can read and write backup snapshots.
 
 Default Ports
 -------------
