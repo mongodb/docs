@@ -18,12 +18,17 @@ ref: quorum-read-findAndModify
 pre: |
   Use the :method:`db.collection.findAndModify()` method to make a
   trivial update to the document you want to read and return the
-  modified document. To specify the document to read, you must use an
-  exact match query that is supported by a unique index.
+  modified document. A write concern of :writeconcern:`{ w: "majority" }
+  <"majority">` is required. To specify the document to read, you must
+  use an exact match query that is supported by a unique index.
 
   The following :method:`~db.collection.findAndModify()` operation
   specifies an exact match on the uniquely indexed field ``sku`` and
   increments the field named ``_dummy_field`` in the matching document.
+  While not necessary, the write concern for this command also includes
+  a :ref:`wc-wtimeout` value of ``5000`` milliseconds to prevent the
+  operation from blocking forever if the write cannot propagate to a
+  majority of voting members.
 action:
   language: javascript
   code: |
@@ -31,62 +36,20 @@ action:
        {
          query: { sku: "abc123" },
          update: { $inc: { _dummy_field: 1 } },
-         new: true
-       }
+         new: true,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+       },
     );
----
-title: Issue ``getLastError`` to determine quorum read.
-stepnum: 3
-ref: quorum-read-gle
-pre: |
-  To determine if the read from the
-  :method:`~db.collection.findAndModify()` was a true quorum read,
-  issue a :dbcommand:`getLastError` command with :writeconcern:`w:
-  "majority"`.
-
-  While not necessary to the procedure, the
-  :dbcommand:`getLastError` command also includes a :ref:`wc-wtimeout`
-  value of ``5000`` milliseconds to prevent the operation from blocking
-  forever if the write cannot propagate to a majority of voting members.
-action:
-  language: javascript
-  code: |
-    var gle = db.runCommand( { getLastError: 1, w: "majority", wtimeout: 5000 } );
-
-    if ( (gle.ok != 1) || (gle.err != null) ) {
-      print("The document returned from findAndModify() may reflect data that is not durable and subject to rollback.");
-      printjson(gle);
-    } else {
-      printjson(updatedDocument);
-    }
 post: |
-   The :dbcommand:`getLastError` determines whether the update from
-   the :method:`~db.collection.findAndModify()` operation has
-   propagated to the majority of the replica set's voting members.
+  Even in situations where two nodes in the replica set believe that
+  they are the primary, only one will be able to complete the write with
+  :writeconcern:`w: "majority" <"majority">`. As such, the
+  :method:`~db.collection.findAndModify()` method with
+  :writeconcern:`"majority"` write concern will be successful only when
+  the client has connected to the true primary to perform the operation.
 
-   Even in situations where two nodes in the replica set believe that
-   they are the primary, only one will be able to complete the write
-   with :writeconcern:`w: "majority"`. As such, the
-   :dbcommand:`getLastError` with :writeconcern:`w: "majority"` write
-   concern can confirm whether the client has connected to the true
-   primary to perform the :method:`~db.collection.findAndModify()`
-   operation.
-
-   .. note::
-      :ref:`wc-wtimeout` causes :dbcommand:`getLastError` to return
-      with an error after the specified time limit, even if the
-      required write concern will eventually succeed. As such, if the
-      :dbcommand:`getLastError` times out, it cannot determine whether
-      the document returned by :method:`~db.collection.findAndModify()`
-      is or is not the result of a quorum read. For quorum reads,
-      ignore the document returned by
-      :method:`~db.collection.findAndModify()` and repeat the
-      :method:`~db.collection.findAndModify()` and
-      :dbcommand:`getLastError`.
-
-      Since the quorum read procedure only increments a dummy field in
-      the document, you can safely repeat the
-      :method:`~db.collection.findAndModify()` and
-      :dbcommand:`getLastError`, adjusting the :ref:`wc-wtimeout` as
-      necessary.
+  Since the quorum read procedure only increments a dummy field in the
+  document, you can safely repeat invocations of
+  :method:`~db.collection.findAndModify()`, adjusting the
+  :ref:`wc-wtimeout` as necessary.
 ...
