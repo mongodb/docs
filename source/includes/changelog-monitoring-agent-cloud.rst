@@ -1,3 +1,11 @@
+Monitoring Agent ``4.0.0.242``
+------------------------------
+
+*Released 2016-01-07*
+
+- Added the ability to customize the Kerberos configuration file
+  location.
+
 Monitoring Agent ``3.9.1.238``
 ------------------------------
 

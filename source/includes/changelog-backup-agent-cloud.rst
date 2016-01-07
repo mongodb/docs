@@ -1,3 +1,17 @@
+Backup Agent ``4.0.0.343``
+--------------------------
+
+*Released 2016-01-07*
+
+- Added the ability to customize the Kerberos configuration file
+  location.
+
+- Added support to tune the number of concurrent initial syncs.
+
+- Added support to adjust the size of the :term:`oplog` and sync slice
+  channels according to the size of the documents: this can lower memory
+  consumption.
+
 Backup Agent ``3.9.0.336``
 --------------------------
 
