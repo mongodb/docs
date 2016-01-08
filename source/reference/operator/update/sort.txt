@@ -11,45 +11,22 @@ $sort
    The :update:`$sort` modifier orders the elements of an array
    during a :update:`$push` operation.
 
-   To use the :update:`$sort` modifier, it must appear with the
-   :update:`$each` modifier.
-
-   .. tip::
-      You can pass an empty array ``[]`` to the :update:`$each`
-      modifier such that only the :update:`$sort` modifier has an
-      effect.
-
-   .. versionchanged:: 2.6
-
-      - The :update:`$sort` modifier can sort array elements that are
-        not documents. In previous versions, the :update:`$sort`
-        modifier required the array elements be documents.
-
-      - If the array elements are documents, the modifier can sort by
-        either the whole document or by a specific field in the
-        documents. In previous versions, the :update:`$sort` modifier
-        can only sort by a specific field in the documents.
-
-      - The :update:`$sort` no longer requires the :update:`$slice`
-        modifier.
-
-      - Trying to use the :update:`$sort` modifier without the
-        :update:`$each` modifier results in an error.
+   To use the :update:`$sort` modifier, it **must** appear with the
+   :update:`$each` modifier. You can pass an empty array ``[]`` to the
+   :update:`$each` modifier such that only the :update:`$sort` modifier
+   has an effect.
 
    .. code-block:: javascript
 
-      db.collection.update( <query>,
-                            { $push: {
-                                       <arrayField>: {
-                                                        $each: [ <value1>,
-                                                                 <value2>,
-                                                                 ...
-                                                               ],
-                                                        $sort: <sort specification>,
-                                                     }
-                                     }
-                            }
-                          )
+      {
+        $push: {
+           <field>: {
+             $each: [ <value1>, <value2>, ... ],
+             $sort: <sort specification>
+           }
+        }
+      }
+
 
    For ``<sort specification>``:
 
@@ -63,6 +40,25 @@ $sort
      reference the containing array field in the sort specification
      (e.g. ``{ "arrayField.field": 1 }`` is incorrect).
 
+Behavior
+--------
+
+.. versionchanged:: 2.6
+
+The :update:`$sort` modifier can sort array elements that are not
+documents. In previous versions, the :update:`$sort` modifier required
+the array elements be documents.
+
+If the array elements are documents, the modifier can sort by either
+the whole document or by a specific field in the documents. In previous
+versions, the :update:`$sort` modifier can only sort by a specific
+field in the documents.
+
+Trying to use the :update:`$sort` modifier without the :update:`$each`
+modifier results in an error. The :update:`$sort` no longer requires
+the :update:`$slice` modifier. For a list of modifiers available for
+:update:`$push`, see :ref:`push-modifiers`.
+
 Examples
 --------
 
@@ -75,11 +71,12 @@ A collection ``students`` contains the following document:
 
 .. code-block:: javascript
 
-   { "_id": 1,
+   {
+     "_id": 1,
      "quizzes": [
-                  { "id" : 1, "score" : 6 },
-                  { "id" : 2, "score" : 9 }
-                ]
+       { "id" : 1, "score" : 6 },
+       { "id" : 2, "score" : 9 }
+     ]
    }
 
 The following update appends additional documents to the ``quizzes``
@@ -88,15 +85,17 @@ array and then sorts all the elements of the array by the ascending
 
 .. code-block:: javascript
 
-   db.students.update( { _id: 1 },
-                       { $push: { quizzes: { $each: [ { id: 3, score: 8 },
-                                                      { id: 4, score: 7 },
-                                                      { id: 5, score: 6 } ],
-                                             $sort: { score: 1 },
-                                           }
-                                }
-                       }
-                     )
+   db.students.update(
+      { _id: 1 },
+      {
+        $push: {
+          quizzes: {
+            $each: [ { id: 3, score: 8 }, { id: 4, score: 7 }, { id: 5, score: 6 } ],
+            $sort: { score: 1 }
+          }
+        }
+      }
+   )
 
 .. important:: The sort document refers directly to the field in the
    documents and does not reference the containing array field
@@ -110,12 +109,12 @@ After the update, the array elements are in order of ascending
    {
      "_id" : 1,
      "quizzes" : [
-                   { "id" : 1, "score" : 6 },
-                   { "id" : 5, "score" : 6 },
-                   { "id" : 4, "score" : 7 },
-                   { "id" : 3, "score" : 8 },
-                   { "id" : 2, "score" : 9 }
-                 ]
+        { "id" : 1, "score" : 6 },
+        { "id" : 5, "score" : 6 },
+        { "id" : 4, "score" : 7 },
+        { "id" : 3, "score" : 8 },
+        { "id" : 2, "score" : 9 }
+     ]
    }
 
 Sort Array Elements That Are Not Documents
@@ -133,9 +132,9 @@ and sorts the elements:
 .. code-block:: javascript
 
    db.students.update(
-                       { _id: 2 },
-                       { $push: { tests: { $each: [ 40, 60 ], $sort: 1 } } }
-                     )
+      { _id: 2 },
+      { $push: { tests: { $each: [ 40, 60 ], $sort: 1 } } }
+   )
 
 The updated document has the elements of the ``scores`` array in
 ascending order:
@@ -160,9 +159,9 @@ for the :update:`$each` modifier, as in the following:
 .. code-block:: javascript
 
    db.students.update(
-                       { _id: 3 },
-                       { $push: { tests: { $each: [ ], $sort: -1 } } }
-                     )
+      { _id: 3 },
+      { $push: { tests: { $each: [ ], $sort: -1 } } }
+   )
 
 The result of the operation is to update the ``scores`` field to sort
 its elements in descending order:

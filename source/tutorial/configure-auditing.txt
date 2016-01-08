@@ -1,14 +1,15 @@
-================================
-Configure System Events Auditing
-================================
+==================
+Configure Auditing
+==================
 
 .. default-domain:: mongodb
 
 .. versionadded:: 2.6
-
-MongoDB Enterprise supports :ref:`auditing <auditing>` of various
-operations. A complete auditing solution must involve all
-:program:`mongod` server and :program:`mongos` router processes.
+ 
+:products:`MongoDB Enterprise </mongodb-enterprise-advanced?jmp=docs>`
+supports :ref:`auditing <auditing>` of various operations. A complete
+auditing solution must involve **all** :program:`mongod` server and
+:program:`mongos` router processes.
 
 The audit facility can write audit events to the console, the
 :term:`syslog` (option is unavailable on Windows), a JSON file, or a
@@ -20,6 +21,12 @@ Enable and Configure Audit Output
 
 Use the :option:`--auditDestination` option to enable
 auditing and specify where to output the audit events.
+
+.. warning::
+
+   For sharded clusters, if you enable auditing on :program:`mongos`
+   instances, you must enable auditing on all :program:`mongod`
+   instances in the cluster, i.e. shards and config servers.
 
 Output to Syslog
 ~~~~~~~~~~~~~~~~
@@ -41,10 +48,12 @@ is unavailable on Windows) in JSON format, specify ``syslog`` for the
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=syslog
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: syslog
 
 Output to Console
 ~~~~~~~~~~~~~~~~~
@@ -60,10 +69,12 @@ output (i.e. ``stdout``), specify ``console`` for the
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=console
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: console
 
 Output to JSON File
 ~~~~~~~~~~~~~~~~~~~
@@ -86,12 +97,14 @@ The audit file rotates at the same time as the server log file.
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=file
-   auditFormat=JSON
-   auditPath=data/db/auditLog.json
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
 
 .. note:: Printing audit events to a file in JSON format degrades
    server performance more than printing to a file in BSON format.
@@ -116,12 +129,14 @@ The audit file rotates at the same time as the server log file.
 You may also specify these options in the :doc:`configuration file
 </reference/configuration-options>`:
 
-.. code-block:: none
+.. code-block:: yaml
 
-   dbpath=data/db
-   auditDestination=file
-   auditFormat=BSON
-   auditPath=data/db/auditLog.bson
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: BSON
+      path: data/db/auditLog.bson
 
 To view the contents of the file, pass the file to the MongoDB utility
 :program:`bsondump`. For example, the following converts the audit log
@@ -131,72 +146,6 @@ into a human-readable form and output to the terminal:
 
    bsondump data/db/auditLog.bson
 
-.. _audit-filter:
-
-Filter Events
--------------
-
-By default, the audit facility records all :ref:`auditable operations
-<audit-action-details-results>`. The audit feature has an
-:option:`--auditFilter` option to determine which events to record. The
-:option:`--auditFilter` option takes a document of the form:
-
-.. code-block:: javascript
-
-   { atype: <expression> }
-
-The ``<expression>`` is a :ref:`query condition expression
-<query-selectors>` to match on :ref:`various actions
-<audit-action-details-results>` .
-
-Filter for a Single Operation Type
-----------------------------------
-
-For example, to audit only the :authaction:`createCollection` action, use the
-filter ``{ atype: "createCollection" }``:
-
-.. tip::
-   To specify the filter as a command-line option, enclose the filter document
-   in single quotes to pass the document as a string.
-
-.. code-block:: javascript
-
-   mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: "createCollection" }' --auditFormat JSON --auditPath data/db/auditLog.json
-
-Filter for Multiple Operation Types
------------------------------------
-
-To match on multiple operations, use the :operator:`$in` operator in
-the ``<expression>`` as in the following:
-
-.. tip::
-   To specify the filter as a command-line option, enclose the filter document
-   in single quotes to pass the document as a string.
-
-.. code-block:: javascript
-
-   mongod --dbpath data/db --auditDestination file --auditFilter '{ atype: { $in: [ "createCollection", "dropCollection" ] } }' --auditFormat JSON --auditPath data/db/auditLog.json
-
-Filter on Authentication Operations on a Single Database
---------------------------------------------------------
-
-For authentication operations, you can also specify a specific
-database with the ``param.db`` field:
-
-.. code-block:: javascript
-
-   { atype: <expression>, "param.db": <database> }
-
-For example, to audit only ``authenticate`` operations that occur
-against the ``test`` database, use the filter ``{ atype:
-"authenticate", "param.db": "test" }``:
-
-.. tip:: To specify the filter as a command-line option, enclose the
-   filter document in single quotes to pass the document as a string.
-
-.. code-block:: javascript
-
-   mongod --dbpath data/db --auth --auditDestination file --auditFilter '{ atype: "authenticate", "param.db": "test" }' --auditFormat JSON --auditPath data/db/auditLog.json
-
-To filter on all :authaction:`authenticate` operations across
-databases, use the filter ``{ atype: "authenticate" }``.
+.. seealso::
+   :doc:`/tutorial/configure-audit-filters`, :doc:`/core/auditing`,
+   :doc:`/reference/audit-message`

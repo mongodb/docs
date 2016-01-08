@@ -1,0 +1,112 @@
+====
+find
+====
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: find
+
+   .. versionadded:: 3.2
+
+   Executes a query and returns the first batch of results and the
+   cursor id, from which the client can construct a cursor.
+
+   The :dbcommand:`find` command has the following form:
+
+   .. code-block:: javascript
+
+      {
+         "find": <string>,
+         "filter": <document>,
+         "sort": <document>,
+         "projection": <document>,
+         "hint": <document or string>,
+         "skip": <int>,
+         "limit": <int>,
+         "batchSize": <int>,
+         "singleBatch": <bool>,
+         "comment": <string>,
+         "maxScan": <int>,
+         "maxTimeMS": <int>,
+         "readConcern": <document>,
+         "max": <document>,
+         "min": <document>,
+         "returnKey": <bool>,
+         "showRecordId": <bool>,
+         "snapshot": <bool>,
+         "tailable": <bool>,
+         "oplogReplay": <bool>,
+         "noCursorTimeout": <bool>,
+         "awaitData": <bool>,
+         "allowPartialResults": <bool>
+      }
+
+   The command accepts the following fields:
+
+   .. include:: /includes/apiargs/dbcommand-find-field.rst
+
+Examples
+--------
+
+Specify a Sort and Limit
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command runs the :dbcommand:`find`
+command filtering on the ``rating`` field and the ``cuisine`` field.
+The command includes a ``projection`` to only return the
+following fields in the matching documents: ``_id``, ``name``,
+``rating``, and ``address`` fields.
+
+The command sorts the documents in the result set by the ``name``
+field and limits the result set to 5 documents.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "restaurants",
+        filter: { rating: { $gte: 9 }, cuisine: "italian" },
+        projection: { name: 1, rating: 1, address: 1 },
+        sort: { name: 1 },
+        limit: 5
+      }
+   )
+
+Override Default ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation on a replica set specifies a :doc:`/reference/readConcern`
+of :readconcern:`"majority"` to read the most recent copy of the data
+confirmed as having been written to a majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - The :dbcommand:`getMore` command uses the ``readConcern`` level
+     specified in the originating :dbcommand:`find` command.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        find: "restaurants",
+        filter: { rating: { $lt: 5 } },
+        readConcern: { level: "majority" }
+      }
+   )
+
+A ``readConcern`` can be specified for the :program:`mongo` shell method
+:method:`db.collection.find()` using the :method:`cursor.readConcern`
+method:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { rating: { $lt: 5 } } ).readConcern("majority")
+
+.. seealso:: :ref:`3.2-driver-compatibility`

@@ -6,60 +6,89 @@ Deploy a Sharded Cluster
 
 .. default-domain:: mongodb
 
-Use the following sequence of tasks to deploy a sharded cluster:
+.. versionchanged:: 3.2
+
+.. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+The following tutorial deploys a new sharded cluster for MongoDB
+|version|. To deploy a sharded cluster for earlier versions of MongoDB,
+refer to the corresponding version of the MongoDB Manual.
+   
+Considerations
+--------------
+
+Host Identifier
+~~~~~~~~~~~~~~~
 
 .. include:: /includes/warning-sharding-hostnames.rst
 
+Connectivity
+~~~~~~~~~~~~
+
+All members of a sharded cluster must be able to connect to *all* other
+members of a sharded cluster, including all shards and all config
+servers. Ensure that the network and security systems, including all
+interfaces and firewalls, allow these connections.
+
 .. _sharding-setup-start-cfgsrvr:
 
-Start the Config Server Database Instances
-------------------------------------------
+Deploy the Config Server Replica Set
+------------------------------------
 
-The config server processes are :program:`mongod` instances that store
-the cluster's metadata. You designate a :program:`mongod` as a config
-server using the :option:`--configsvr <mongod --configsvr>` option. Each
-config server stores a complete copy of the cluster's metadata.
+.. versionchanged:: 3.2
 
-In production deployments, you must deploy exactly three config server
-instances, each running on different servers to assure good uptime and
-data safety. In test environments, you can run all three instances on a
-single server.
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
 
-.. important:: All members of a sharded cluster must be able to
-   connect to *all* other members of a sharded cluster, including all
-   shards and all config servers. Ensure that the network and
-   security systems including all interfaces and firewalls, allow
-   these connections.
+   .. include:: /includes/fact-config-server-replica-set-restrictions.rst
 
+The config servers store the sharded cluster's metadata. The following
+steps deploy a three member replica set for the config servers.
 
-1. Create data directories for each of the three config server
-   instances. By default, a config server stores its data files in the
-   `/data/configdb` directory. You can choose a different location. To
-   create a data directory, issue a command similar to the following:
+.. include:: /includes/tip-hostnames.rst
 
-   .. code-block:: sh
+#. Start all the config servers with both the :option:`--configsvr` and
+   :option:`--replSet \<name\> <--replSet>` options:
 
-      mkdir /data/configdb
+   .. code-block:: javascript
 
-#. Start the three config server instances. Start each by issuing a
-   command using the following syntax:
+      mongod --configsvr --replSet configReplSet --port <port> --dbpath <path>
 
-   .. code-block:: sh
+   Or if using a :doc:`configuration file
+   </reference/configuration-options>`, include the
+   :setting:`sharding.clusterRole` and
+   :setting:`replication.replSetName` setting:
 
-      mongod --configsvr --dbpath <path> --port <port>
+   .. code-block:: yaml
 
-   The default port for config servers is ``27019``. You can specify a
-   different port. The following example starts a config server using
-   the default port and default data directory:
+      sharding:
+         clusterRole: configsvr
+      replication:
+         replSetName: configReplSet
+      net:
+         port: <port>
+      storage:
+         dbpath: <path>
 
-   .. code-block:: sh
-
-      mongod --configsvr --dbpath /data/configdb --port 27019
-
-   For additional command options, see :doc:`/reference/program/mongod` or
+   For additional options, see :doc:`/reference/program/mongod` or
    :doc:`/reference/configuration-options`.
 
-   .. include:: /includes/note-config-server-startup.rst
+#. Connect a :program:`mongo` shell to one of the config servers and
+   run :method:`rs.initiate()` to initiate the replica set.
+
+   .. code-block:: javascript
+
+      rs.initiate( {
+         _id: "configReplSet",
+         configsvr: true,
+         members: [ 
+            { _id: 0, host: "<host1>:<port1>" },
+            { _id: 1, host: "<host2>:<port2>" },
+            { _id: 2, host: "<host3>:<port3>" }
+         ]
+      } )
+
+To use the deprecated mirrored config server deployment topology, see
+:ref:`sharding-setup-start-config-servers-deprecated`.
 
 .. _sharding-setup-start-mongos:
 
@@ -72,39 +101,23 @@ runs other cluster components, such as on an application server or a
 server running a :program:`mongod` process. By default, a
 :program:`mongos` instance runs on port ``27017``.
 
-When you start the :program:`mongos` instance, specify the hostnames of
-the three config servers, either in the configuration file or as command
-line parameters.
+When you start the :program:`mongos` instance, specify the config
+servers, using either the :setting:`sharding.configDB` setting in the
+configuration file or the :option:`--configdb` command line option.
 
-.. include:: /includes/tip-hostnames.rst
+.. include:: /includes/note-config-server-startup.rst
 
-To start a :program:`mongos` instance, issue a command using the following syntax:
+#. Start one or more :program:`mongos` instances. For
+   :option:`--configdb`, or :setting:`sharding.configDB`, specify the config
+   server replica set name followed by a slash ``/`` and at least one of the
+   config server hostnames and ports:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   mongos --configdb <config server hostnames>
+      mongos --configdb configReplSet/<cfgsvr1:port1>,<cfgsvr2:port2>,<cfgsvr3:port3>
 
-For example, to start a :program:`mongos` that connects to config server
-instance running on the following hosts and on the default ports:
-
-- ``cfg0.example.net``
-- ``cfg1.example.net``
-- ``cfg2.example.net``
-
-You would issue the following command:
-
-.. code-block:: sh
-
-   mongos --configdb cfg0.example.net:27019,cfg1.example.net:27019,cfg2.example.net:27019
-
-Each :program:`mongos` in a sharded cluster must use the same
-:setting:`~sharding.configDB` string, with identical host names listed in
-identical order.
-
-If you start a :program:`mongos` instance with a string that *does
-not* exactly match the string used by the other :program:`mongos`
-instances in the cluster, the :program:`mongos` return a
-:ref:`config-database-string-error` error and refuse to start.
+If using the deprecated mirrored config server deployment topology, see
+:ref:`sharding-setup-start-mongos-deprecated`.
 
 .. _sharding-setup-add-shards:
 
@@ -160,21 +173,12 @@ deploy replica sets for each shard.
 
         sh.addShard( "rs1/mongodb0.example.net:27017" )
 
-     .. versionchanged:: 2.0.3
-
-     For MongoDB versions prior to 2.0.3, you must specify all members of the replica set. For
-     example:
-
-     .. code-block:: javascript
-
-        sh.addShard( "rs1/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" )
-
    - To add a shard for a standalone :program:`mongod` on port ``27017``
      of ``mongodb0.example.net``, issue the following command:
 
-      .. code-block:: javascript
+     .. code-block:: javascript
 
-         sh.addShard( "mongodb0.example.net:27017" )
+        sh.addShard( "mongodb0.example.net:27017" )
 
    .. note:: It might take some time for :term:`chunks <chunk>` to
       migrate to the new shard.
@@ -216,21 +220,21 @@ Optionally, you can enable sharding for a database using the
 
 .. _sharding-setup-shard-collection:
 
-Enable Sharding for a Collection
---------------------------------
+Shard a Collection
+------------------
 
-You enable sharding on a per-collection basis.
+You shard on a per-collection basis.
 
 1. Determine what you will use for the :term:`shard key`. Your selection
    of the shard key affects the efficiency of sharding. See the
    selection considerations listed in the :ref:`sharding-shard-key-selection`.
 
 #. If the collection already contains data you must create an index on
-   the :term:`shard key` using :method:`~db.collection.ensureIndex()`.
+   the :term:`shard key` using :method:`~db.collection.createIndex()`.
    If the collection is empty then MongoDB will create the index as part
    of the :method:`sh.shardCollection()` step.
 
-#. Enable sharding for a collection by issuing the
+#. Shard a collection by issuing the
    :method:`sh.shardCollection()` method in the :program:`mongo` shell.
    The method uses the following syntax:
 
@@ -243,7 +247,7 @@ You enable sharding on a per-collection basis.
    database, a dot (e.g. ``.``), and the full name of the collection.
    The ``shard-key-pattern`` represents your shard key, which you
    specify in the same form as you would an :method:`index
-   <db.collection.ensureIndex()>` key pattern.
+   <db.collection.createIndex()>` key pattern.
 
    .. example:: The following sequence of commands shards four collections:
 
@@ -286,10 +290,108 @@ You enable sharding on a per-collection basis.
    #. The ``alerts`` collection in the ``events`` database using the shard key
       ``{ "_id": "hashed" }``.
 
-      .. versionadded:: 2.4
-
       This shard key distributes documents by a hash of the value of
       the ``_id`` field.  MongoDB computes the hash of the ``_id``
       field for the :ref:`hashed index <index-hashed-index>`,
       which should provide an even distribution of documents across a
       cluster.
+
+Using 3 Mirrored Config Servers (Deprecated)
+--------------------------------------------
+
+.. _sharding-setup-start-config-servers-deprecated:
+
+Start 3 Mirrored Config Servers (Deprecated)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+In production deployments, if using mirrored config servers, you must
+deploy exactly three config server instances, each running on different
+servers to assure good uptime and data safety. In test environments,
+you can run all three instances on a single server.
+
+.. important:: All members of a sharded cluster must be able to
+   connect to *all* other members of a sharded cluster, including all
+   shards and all config servers. Ensure that the network and
+   security systems including all interfaces and firewalls, allow
+   these connections.
+
+1. Create data directories for each of the three config server
+   instances. By default, a config server stores its data files in the
+   `/data/configdb` directory. You can choose a different location. To
+   create a data directory, issue a command similar to the following:
+
+   .. code-block:: sh
+
+      mkdir /data/configdb
+
+#. Start the three config server instances. Start each by issuing a
+   command using the following syntax:
+
+   .. code-block:: sh
+
+      mongod --configsvr --dbpath <path> --port <port>
+
+   The default port for config servers is ``27019``. You can specify a
+   different port. The following example starts a config server using
+   the default port and default data directory:
+
+   .. code-block:: sh
+
+      mongod --configsvr --dbpath /data/configdb --port 27019
+
+   For additional command options, see :doc:`/reference/program/mongod` or
+   :doc:`/reference/configuration-options`.
+
+   .. include:: /includes/note-config-server-startup.rst
+
+.. _sharding-setup-start-mongos-deprecated:
+
+Start the ``mongos`` Instances (Deprecated)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+If using 3 mirrored config servers, when you start the
+:program:`mongos` instance, specify the hostnames of the three config
+servers, either in the configuration file or as command line parameters.
+
+.. include:: /includes/tip-hostnames.rst
+
+To start a :program:`mongos` instance, issue a command using the following syntax:
+
+.. code-block:: sh
+
+   mongos --configdb <config server hostnames>
+
+For example, to start a :program:`mongos` that connects to config server
+instance running on the following hosts and on the default ports:
+
+- ``cfg0.example.net``
+- ``cfg1.example.net``
+- ``cfg2.example.net``
+
+You would issue the following command:
+
+.. code-block:: sh
+
+   mongos --configdb cfg0.example.net:27019,cfg1.example.net:27019,cfg2.example.net:27019
+
+Each :program:`mongos` in a sharded cluster must use the same
+:setting:`~sharding.configDB` string, with identical host names listed in
+identical order.
+
+If you start a :program:`mongos` instance with a string that *does
+not* exactly match the string used by the other :program:`mongos`
+instances in the cluster, the :program:`mongos` instance returns a
+:ref:`config-database-string-error` error and refuses to start.
+
+To add shards, enable sharding and shard a collection, see
+:ref:`sharding-setup-add-shards`,
+:ref:`sharding-setup-enable-sharding`, and
+:ref:`sharding-setup-shard-collection`.

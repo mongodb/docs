@@ -1,5 +1,7 @@
 .. index:: connections
 
+.. _mongodb-uri:
+
 ============================
 Connection String URI Format
 ============================
@@ -135,9 +137,9 @@ Connection Options
 
 .. data:: uri.ssl
 
-   ``true``: Initiate the connection with SSL.
+   ``true``: Initiate the connection with TLS/SSL.
 
-   ``false``: Initiate the connection without SSL.
+   ``false``: Initiate the connection without TLS/SSL.
 
    .. todo Determine whether ``prefer`` option exists. Check with server
       team whether it's possible to do rolling restarts of a cluster to
@@ -217,28 +219,42 @@ Write Concern Options
 that the :program:`mongod` and the driver provide to the application
 regarding the success and durability of the write operation. For a
 full explanation of write concern and write operations in general, see
-:doc:`/core/write-concern`:
+:doc:`/reference/write-concern`.
+
+.. note::
+
+   You can specify the write concern both in the connection string and
+   as a parameter to method calls like ``insert`` or ``update``. If the
+   write concern is specified in both places, the method parameter
+   overrides the connection-string setting.
 
 .. data:: uri.w
 
-   Defines the level and kind of write concern. This option can take either
-   a number or a string as a value.
+   Corresponds to the write concern :ref:`wc-w`. The ``w`` option
+   requests acknowledgement that the write operation has propagated to
+   a specified number of :program:`mongod` instances or to
+   :program:`mongod` instances with specified tags.
 
-   .. include:: /reference/connection-string-w-param.rst
+   You can specify a :writeconcern:`number <\<number\>>`, the string
+   :writeconcern:`majority <"majority">`, or a :writeconcern:`tag set
+   <\<tag set\>>`.
+
+   For details, see :ref:`wc-w`.
 
 .. data:: uri.wtimeoutMS
 
-   The time in milliseconds to wait for replication to succeed, as
-   specified in the :data:`~uri.w` option, before timing out. When ``wtimeoutMS`` is ``0``,
-   write operations will never time out.
+   Corresponds to the write concern :ref:`wc-wtimeout`. :data:`~uri.wtimeoutMS`
+   specifies a time limit, in milliseconds, for the write concern.
+
+   When ``wtimeoutMS`` is ``0``, write operations will never time out.
+   For more information, see :ref:`wc-wtimeout`.
 
 .. data:: uri.journal
 
-   Controls whether write operations will wait until the
-   :program:`mongod` acknowledges the write operations and commits the
-   data to the on disk :term:`journal`.
-
-   .. include:: /reference/connection-string-journal-param.rst
+   Corresponds to the write concern :ref:`wc-j` option. The
+   :data:`~uri.journal` option requests acknowledgement from MongoDB
+   that the write operation has been written to the :doc:`journal
+   </core/journaling>`. For details, see :ref:`wc-j`.
 
    If you set :data:`~uri.journal` to ``true``, and specify a :data:`~uri.w`
    value less than 1, :data:`~uri.journal` prevails.
@@ -250,6 +266,24 @@ full explanation of write concern and write operations in general, see
       versions, MongoDB would provide basic receipt acknowledgment
       (i.e. ``w:1``), ignore :data:`~uri.journal`, and include a
       ``jnote`` field in its return document.
+
+``readConcern`` Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+   For the WiredTiger storage engine, MongoDB 3.2 introduces the
+   readConcern option for replica sets and replica set shards.
+
+:doc:`/reference/readConcern` allows clients to choose a level of
+isolation for their reads from replica sets.
+
+.. data:: uri.readConcernLevel
+
+   The level of isolation. Accepts either :readconcern:`"local"` or
+   :readconcern:`"majority"`.
+
+   For details, see :doc:`/reference/readConcern`.
 
 Read Preference Options
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -320,7 +354,11 @@ Authentication Options
    .. versionadded:: 2.4
 
    .. versionchanged:: 2.6
-      Support for the ``PLAIN`` and ``MONGODB-X509`` authentication mechanisms.
+      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+      mechanisms.
+
+   .. versionchanged:: 3.0
+      Added support for the ``SCRAM-SHA-1`` authentication mechanism.
 
    Specify the authentication mechanism that MongoDB will use to
    authenticate the connection. Possible values include:
@@ -328,14 +366,15 @@ Authentication Options
    .. these options should link to a reference page for authentication
       mechanisms. DOCS-2940
 
-   - MONGODB-CR
-   - MONGODB-X509
-   - GSSAPI
-   - PLAIN
+   - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+   - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+   - :ref:`MONGODB-X509 <security-auth-x509>`
+   - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+   - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
    Only MongoDB Enterprise :program:`mongod` and :program:`mongos`
    instances provide ``GSSAPI`` (Kerberos) and ``PLAIN`` (LDAP)
-   mechanisms. To use ``MONGODB-X509``, you must have SSL Enabled.
+   mechanisms. To use ``MONGODB-X509``, you must have TLS/SSL Enabled.
 
    See :doc:`/core/authentication` for more information about the
    authentication system in MongoDB. Also consider
@@ -358,7 +397,7 @@ Miscellaneous Configuration
 
 .. data:: uri.uuidRepresentation
 
-   .. include:: /reference/connection-string-uuidRepresentation-param.rst
+   .. include:: /includes/apiargs/option-connection-string-uuidRepresentation-param.rst
 
    For the default, see the :doc:`drivers </applications/drivers>`
    documentation for your driver.

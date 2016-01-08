@@ -16,16 +16,6 @@ MongoDB instance spends reading and writing data. :program:`mongotop`
 provides statistics on a per-collection level. By default,
 :program:`mongotop` returns values every second.
 
-.. important:: In order to connect to a :program:`mongod` that enforces
-   authorization with the :option:`--auth <mongod --auth>` option, the
-   :option:`--username <mongotop --username>` and
-   :option:`--password <mongotop --password>` options must be used, and the
-   user specified must have the :authaction:`serverStatus` and 
-   :authaction:`top` privileges.
-   
-   The most appropriate built-in role that has these privileges is
-   :authrole:`clusterMonitor`.
-
 .. seealso::
 
    For more information about monitoring MongoDB, see
@@ -41,6 +31,18 @@ provides statistics on a per-collection level. By default,
 
    For an additional utility that provides MongoDB metrics
    see :doc:`mongostat </reference/program/mongostat>`.
+
+Required Access
+---------------
+
+In order to connect to a :program:`mongod` that enforces authorization
+with the :option:`--auth <mongod --auth>` option, you must use the
+:option:`--username <mongotop --username>` and :option:`--password
+<mongotop --password>` options, and the connecting user must
+have the :authaction:`serverStatus` and :authaction:`top` privileges.
+
+The most appropriate built-in role that has these privileges is
+:authrole:`clusterMonitor`.
 
 .. _mongotop-options:
 
@@ -77,6 +79,8 @@ Options
 
 .. include:: /includes/option/option-mongotop-sslAllowInvalidCertificates.rst
 
+.. include:: /includes/option/option-mongotop-sslAllowInvalidHostnames.rst
+
 .. include:: /includes/option/option-mongotop-sslFIPSMode.rst
 
 .. include:: /includes/option/option-mongotop-username.rst
@@ -87,7 +91,15 @@ Options
 
 .. include:: /includes/option/option-mongotop-authenticationMechanism.rst
 
+.. include:: /includes/option/option-mongotop-gssapiServiceName.rst
+
+.. include:: /includes/option/option-mongotop-gssapiHostName.rst
+
 .. include:: /includes/option/option-mongotop-locks.rst
+
+.. include:: /includes/option/option-mongotop-rowcount.rst
+
+.. include:: /includes/option/option-mongotop-json.rst
 
 .. include:: /includes/option/option-mongotop-<sleeptime>.rst
 
@@ -111,7 +123,7 @@ affect the output of :program:`mongotop`.
    and collection.
 
    .. versionchanged:: 2.2
-      If you use the :option:`--locks`, the :data:`~mongotop.ns` field does not
+      If you use the :option:`mongotop --locks`, the :data:`~mongotop.ns` field does not
       appear in the :program:`mongotop` output.
 
 .. data:: mongotop.db
@@ -143,6 +155,8 @@ affect the output of :program:`mongotop`.
 
    Provides a time stamp for the returned data.
 
+.. _mongotop-use:
+
 Use
 ---
 
@@ -164,22 +178,32 @@ This command produces the following output:
 
 .. code-block:: sh
 
-   connected to: 127.0.0.1
+                       ns    total    read    write          2014-12-19T15:32:01-05:00
+       admin.system.roles      0ms     0ms      0ms
+     admin.system.version      0ms     0ms      0ms
+                 local.me      0ms     0ms      0ms
+           local.oplog.rs      0ms     0ms      0ms
+   local.replset.minvalid      0ms     0ms      0ms
+        local.startup_log      0ms     0ms      0ms
+     local.system.indexes      0ms     0ms      0ms
+  local.system.namespaces      0ms     0ms      0ms
+     local.system.replset      0ms     0ms      0ms
 
-                       ns       total        read       write           2012-08-13T15:45:40
-   test.system.namespaces         0ms         0ms         0ms
-     local.system.replset         0ms         0ms         0ms
-     local.system.indexes         0ms         0ms         0ms
-     admin.system.indexes         0ms         0ms         0ms
-                   admin.         0ms         0ms         0ms
+                       ns    total    read    write          2014-12-19T15:47:01-05:00
+       admin.system.roles      0ms     0ms      0ms
+     admin.system.version      0ms     0ms      0ms
+                 local.me      0ms     0ms      0ms
+           local.oplog.rs      0ms     0ms      0ms
+   local.replset.minvalid      0ms     0ms      0ms
+        local.startup_log      0ms     0ms      0ms
+     local.system.indexes      0ms     0ms      0ms
+  local.system.namespaces      0ms     0ms      0ms
+     local.system.replset      0ms     0ms      0ms
 
-                       ns       total        read       write           2012-08-13T15:45:55
-   test.system.namespaces         0ms         0ms         0ms
-     local.system.replset         0ms         0ms         0ms
-     local.system.indexes         0ms         0ms         0ms
-     admin.system.indexes         0ms         0ms         0ms
-                   admin.         0ms         0ms         0ms
-
+The output varies depending on your MongoDB setup. For example,
+``local.system.indexes`` and ``local.system.namespaces`` only appear
+for :program:`mongod` instances using the :ref:`MMAPv1 <storage-mmapv1>`
+storage engine.
 
 To return a :program:`mongotop` report every 5 minutes, use the
 following command:
@@ -188,7 +212,7 @@ following command:
 
    mongotop 300
 
-To report the use of per-database locks, use :option:`mongotop --locks`,
+To report the use of per-database locks, use :option:`--locks`,
 which produces the following output:
 
 .. code-block:: sh
@@ -200,3 +224,8 @@ which produces the following output:
                   local         0ms         0ms         0ms
                   admin         0ms         0ms         0ms
                       .         0ms         0ms         0ms
+
+.. versionchanged:: 3.0.0
+   When called against a :program:`mongod` that does not report lock
+   usage, :option:`--locks` will return a ``Failed: Server does not
+   support reporting locking information`` error.

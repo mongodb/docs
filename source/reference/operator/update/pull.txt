@@ -7,16 +7,31 @@ $pull
 .. update:: $pull
 
    The :update:`$pull` operator removes from an existing array all
-   instances of a value or values that match a specified query.
+   instances of a value or values that match a specified condition.
+
+   The :update:`$pull` operator has the form:
 
    .. code-block:: javascript
 
-      { $pull: { <arrayField>: <value|query> } }
+      { $pull: { <field1>: <value|condition>, <field2>: <value|condition>, ... } }
 
-   If the array elements are embedded documents, :update:`$pull`
-   operator applies its specified query to each element as though it
-   were a top-level object. See :ref:`pull-array-of-documents` for an
-   example.
+   .. include:: /includes/use-dot-notation.rst
+
+Behavior
+--------
+
+If you specify a ``<condition>`` and the array elements are embedded
+documents, :update:`$pull` operator applies the ``<condition>`` as if each
+array element were a document in a collection. See
+:ref:`pull-array-of-documents` for an example.
+
+If the specified ``<value>`` to remove is an array, :update:`$pull`
+removes only the elements in the array that match the specified
+``<value>`` exactly, including order.
+
+If the specified ``<value>`` to remove is a document, :update:`$pull`
+removes only the elements in the array that have the exact same fields
+and values. The ordering of the fields can differ.
 
 Examples
 --------
@@ -24,31 +39,49 @@ Examples
 Remove All Items That Equals a Specified Value
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given the following documents in the ``cpuinfo`` collection:
+Given the following document in the ``stores`` collection:
 
 .. code-block:: javascript
 
-   { _id: 1, flags: [ "vme", "de", "msr", "tsc", "pse", "msr" ] }
-   { _id: 2, flags: [ "msr", "pse", "tsc" ] }
+   {
+      _id: 1,
+      fruits: [ "apples", "pears", "oranges", "grapes", "bananas" ],
+      vegetables: [ "carrots", "celery", "squash", "carrots" ]
+   }
+   {
+      _id: 2,
+      fruits: [ "plums", "kiwis", "oranges", "bananas", "apples" ],
+      vegetables: [ "broccoli", "zucchini", "carrots", "onions" ]
+   }
 
-The following operation removes the value ``"msr"`` from the ``flags``
-array:
-
-.. code-block:: javascript
-
-   db.cpuinfo.update(
-                      { flags: "msr" },
-                      { $pull: { flags: "msr" } },
-                      { multi: true }
-                    )
-
-After the operation, the documents no longer contain any ``"msr"``
-values in the ``flags`` array:
+The following operation updates all documents in the collection to
+remove ``"apples"`` and ``"oranges"`` from the array ``fruits`` and
+remove ``"carrots"`` from the array ``vegetables``:
 
 .. code-block:: javascript
 
-   { _id: 1, flags: [  "vme",  "de",  "tsc",  "pse" ] }
-   { _id: 2, flags: [  "pse",  "tsc" ] }
+   db.stores.update(
+       { },
+       { $pull: { fruits: { $in: [ "apples", "oranges" ] }, vegetables: "carrots" } },
+       { multi: true }
+   )
+
+After the operation, the ``fruits`` array no longer contains any
+``"apples"`` or ``"oranges"`` values, and the ``vegetables`` array no
+longer contains any ``"carrots"`` values:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "fruits" : [ "pears", "grapes", "bananas" ],
+     "vegetables" : [ "celery", "squash" ]
+   }
+   {
+     "_id" : 2,
+     "fruits" : [ "plums", "kiwis", "bananas" ],
+     "vegetables" : [ "broccoli", "zucchini", "onions" ]
+   }
 
 Remove All Items That Match a Specified ``$pull`` Condition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,7 +116,7 @@ A ``survey`` collection contains the following documents:
 
    {
       _id: 1,
-      results: [ 
+      results: [
          { item: "A", score: 5 },
          { item: "B", score: 8, comment: "Strongly agree" }
       ]
@@ -97,8 +130,8 @@ A ``survey`` collection contains the following documents:
    }
 
 The following operation will remove from the ``results`` array all
-elements that contain a ``score`` field equal to ``8`` and ``item``
-field equal to ``"B"``:
+elements that contain both a ``score`` field equal to ``8`` and an
+``item`` field equal to ``"B"``:
 
 .. code-block:: javascript
 
@@ -112,13 +145,13 @@ The :update:`$pull` expression applies the condition to each element of
 the ``results`` array as though it were a top-level document.
 
 After the operation, the ``results`` array contains no documents that
-contains ``score`` field equal to ``8`` and ``item`` field equal to
-``"B"``.
+contain both a ``score`` field equal to ``8`` and an ``item`` field
+equal to ``"B"``.
 
 .. code-block:: javascript
 
    {
-      "_id" : 1, 
+      "_id" : 1,
       "results" : [ { "item" : "A", "score" : 5 } ]
    }
    {
@@ -152,7 +185,7 @@ also contain arrays:
 
    {
       _id: 1,
-      results: [ 
+      results: [
          { item: "A", score: 5, answers: [ { q: 1, a: 4 }, { q: 2, a: 6 } ] },
          { item: "B", score: 8, answers: [ { q: 1, a: 8 }, { q: 2, a: 9 } ] }
       ]
@@ -194,3 +227,6 @@ with ``q`` equal to ``2`` and ``a`` greater than or equal to ``8``:
          { "item" : "C", "score" : 8, "answers" : [ { "q" : 1, "a" : 8 }, { "q" : 2, "a" : 7 } ] }
       ]
    }
+
+.. seealso:: :method:`db.collection.update()`,
+   :method:`db.collection.findAndModify()`

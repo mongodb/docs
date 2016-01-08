@@ -14,7 +14,7 @@ complete a `MongoDB Contributor Agreement`_ before we can accept your
 pull request.
 
 .. _`Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported`: http://creativecommons.org/licenses/by-nc-sa/3.0/
-.. _`MongoDB/10gen Contributor Agreement`: http://www.mongodb.com/legal/contributor-agreement
+.. _`MongoDB Contributor Agreement`: http://www.mongodb.com/legal/contributor-agreement
 
 Please review the following documents for our style, conventions,
 processes and practices for the MongoDB Documentation:

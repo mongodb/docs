@@ -29,27 +29,33 @@ Namespaces
 .. _limit-namespace-length:
 .. limit:: Namespace Length
 
-   Each namespace, including database and collection name, must be
-   shorter than 123 bytes.
-
-   .. fix when we know what the actual limit is.
+   .. include:: /includes/fact-collection-namespace-limit.rst
 
 .. _limit-number-of-namespaces:
 .. limit:: Number of Namespaces
 
-   The limitation on the number of namespaces is the size of the
-   namespace file divided by 628.
+   .. versionchanged:: 3.0
+
+   For the MMAPv1 the number of namespaces is limited to the size of
+   the namespace file divided by 628.
 
    A 16 megabyte namespace file can support approximately 24,000
    namespaces. Each collection and index is a namespace.
 
+   The WiredTiger storage engine is *not* subject to this limitation.
+
 .. _limit-size-of-namespace-file:
 .. limit:: Size of Namespace File
 
-   Namespace files can be no larger than 2047 megabytes.
+   .. versionchanged:: 3.0
+
+   For the MMAPv1 storage engine, namespace files can be no larger
+   than 2047 megabytes.
 
    By default namespace files are 16 megabytes. You can configure the
-   size using the :setting:`~storage.nsSize` option.
+   size using the :setting:`~storage.mmapv1.nsSize` option.
+
+   The WiredTiger storage engine is *not* subject to this limitation.
 
 .. _index-limitations:
 
@@ -79,12 +85,12 @@ Indexes
 .. limit:: Index Name Length
 
    Fully qualified index names, which includes the namespace and the dot
-   separators (i.e. <database name>.<collection name>.$<index name>),
+   separators (i.e. ``<database name>.<collection name>.$<index name>``),
    cannot be longer than 128 characters.
 
    By default, ``<index name>`` is the concatenation of the field names
    and index type. You can explicitly specify the ``<index name>`` to the
-   :method:`~db.collection.ensureIndex()` method to ensure that the fully
+   :method:`~db.collection.createIndex()` method to ensure that the fully
    qualified index name does not exceed the limit.
 
 .. limit:: Number of Indexed Fields in a Compound Index
@@ -93,13 +99,27 @@ Indexes
 
 .. limit:: Queries cannot use both text and Geospatial Indexes
 
-   .. |operation| replace:: :dbcommand:`text` command
+   .. |operation| replace:: :query:`$text` query
 
    .. include:: /includes/fact-special-indexes-and-text.rst
 
    .. TODO remove in the 2.6 version of the manual
 
+.. limit:: Fields with 2dsphere Indexes can only hold Geometries
+
+   .. include:: /includes/geo-data-limit-for-2dsphere.rst
+
 .. seealso:: The unique indexes limit in :ref:`limits-sharding-operations`.
+
+.. limit:: NaN values returned from Covered Queries by the WiredTiger Storage Engine are always of type double
+
+   If the value of a field returned from a query that is :ref:`covered
+   by an index <covered-queries>` is ``NaN``, the type of that ``NaN``
+   value is *always* ``double``.
+
+.. limit:: Multikey Index
+
+   .. include:: /includes/fact-multikey-index-covered-query.rst
 
 Data
 ----
@@ -115,12 +135,21 @@ Data
    creating a capped collection, there is no limit on the number of
    documents.
 
+.. _limit-database-size:
+.. limit:: Database Size
+
+   The MMAPv1 storage engine limits each database to no more than 16000 data
+   files. This means that a single MMAPv1 database has a maximum size of 32TB.
+   Setting the :setting:`storage.mmapv1.smallFiles` option reduces this limit to 8TB.
+
 .. _limit-data-size:
 .. limit:: Data Size
 
-   A single :program:`mongod` instance cannot manage a data set that
-   exceeds maximum virtual memory address space provided by the
-   underlying operating system.
+   .. versionchanged:: 3.0
+
+   Using the MMAPv1 storage engine, a single :program:`mongod`
+   instance cannot manage a data set that exceeds maximum virtual
+   memory address space provided by the underlying operating system.
 
    .. list-table:: Virtual Memory Limitations
       :widths: 15 10 10
@@ -139,11 +168,17 @@ Data
         - 4 terabytes
         - 8 terabytes
 
+   The WiredTiger storage engine is *not* subject to this limitation.
+
 .. limit:: Number of Collections in a Database
 
-   The maximum number of collections in a database is a function of
-   the size of the namespace file and the number of indexes of
-   collections in the database.
+   .. versionchanged:: 3.0
+
+   For the MMAPv1 storage engine, the maximum number of collections in
+   a database is a function of the size of the namespace file and the
+   number of indexes of collections in the database.
+
+   The WiredTiger storage engine is *not* subject to this limitation.
 
    See :limit:`Number of Namespaces` for more information.
 
@@ -152,12 +187,16 @@ Replica Sets
 
 .. limit:: Number of Members of a Replica Set
 
-   Replica sets can have no more than 12 members.
+   .. versionchanged:: 3.0.0
+
+   Replica sets can have up to 50 members. See
+   :ref:`3.0-replica-sets-max-members` for more information about
+   specific driver compatibility with large replica sets.
 
 .. limit:: Number of Voting Members of a Replica Set
 
-   Only 7 members of a replica set can have votes at any given
-   time. See can vote :ref:`replica-set-non-voting-members` for more information
+   Replica sets can have up to 7 voting members. For replica sets with
+   more than 7 total members, see :ref:`replica-set-non-voting-members`.
 
 .. limit:: Maximum Size of Auto-Created Oplog
 
@@ -203,8 +242,7 @@ Sharding Operational Restrictions
 
 .. limit:: Covered Queries in Sharded Clusters
 
-   MongoDB does not support :ref:`covered queries <covered-queries>`
-   for sharded collections.
+   .. include:: /includes/extracts/fact-covered-query-sharded-collection-covered-queries.rst
 
 .. limit:: Sharding Existing Collection Data Size
 
@@ -213,7 +251,28 @@ Sharding Operational Restrictions
    gigabytes of data. MongoDB *may* be able to shard collections with as
    many as 400 gigabytes depending on the distribution of document
    sizes. The precise size of the limitation is a function of the
-   chunk size and the data size.
+   chunk size and the data size. Consider the following table:
+
+   .. list-table::
+      :header-rows: 1
+      :stub-columns: 1
+
+      * - Shard Key Size
+        - 512 bytes
+        - 200 bytes
+      * - Number of Splits
+        - 31,558
+        - 85,196
+      * - Max Collection Size (1 MB Chunk Size)
+        - 31 GB
+        - 83 GB
+      * - Max Collection Size (64 MB Chunk Size)
+        - 1.9 TB
+        - 5.3 TB
+
+   The data in this chart reflects documents with no
+   data other than the shard key values and therefore represents the
+   smallest possible data size that could reach this limit.
 
    .. important:: Sharded collections may have *any* size, after
       successfully enabling sharding.
@@ -236,6 +295,15 @@ Sharding Operational Restrictions
 
    .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
       for an alternate approach.
+
+.. _limit-balancer-migration-document-limit:
+
+.. limit:: Maximum Number of Documents Per Chunk to Migrate
+
+   MongoDB cannot move a chunk if the number of documents in the chunk
+   exceeds either 250000 documents or 1.3 times the number of average
+   sized documents that the :ref:`maximum chunk size
+   <sharding-chunk-size>` can hold.
 
 .. _limits-shard-keys:
 
@@ -313,10 +381,11 @@ Operations
 ----------
 
 .. _limit-sort:
-.. limit:: Sorted Documents
+.. limit:: Sort Operations
 
-   MongoDB will only return sorted results on fields without an index
-   *if* the sort operation uses less than 32 megabytes of memory.
+   If MongoDB cannot use an index to get documents in the requested
+   sort order, the combined size of all documents in the sort
+   operation, plus a small overhead, must be less than 32 megabytes.
 
 .. _limit-agg-sort:
 
@@ -328,7 +397,7 @@ Operations
 
    .. see:: :query:`$or` and :doc:`/core/geospatial-indexes`.
 
-.. limit:: Spherical Polygons must fit within a hemisphere.
+.. limit:: Area of GeoJSON Polygons
 
    .. |geo-operator-method| replace:: :query:`$geoIntersects` or :query:`$geoWithin`
 
@@ -359,7 +428,7 @@ Naming Restrictions
 
    .. code-block:: none
 
-         /\. "*<>:|?
+         /\. "$*<>:|?
 
    Also, database names cannot contain the null character.
 
@@ -371,7 +440,7 @@ Naming Restrictions
 
    .. code-block:: none
 
-      /\. "
+      /\. "$
 
    Also, database names cannot contain the null character.
 
@@ -403,6 +472,6 @@ Naming Restrictions
 
 .. limit:: Restrictions on Field Names
 
-   Field names cannot contain dots (i.e. ``.``), dollar signs
-   (i.e. ``$``), or null characters. See
+   Field names cannot contain dots (i.e. ``.``) or null characters, and they
+   must not start with a dollar sign (i.e. ``$``). See
    :ref:`faq-dollar-sign-escaping` for an alternate approach.

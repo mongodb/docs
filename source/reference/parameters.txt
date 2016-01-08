@@ -8,22 +8,115 @@ Synopsis
 --------
 
 MongoDB provides a number of configuration options that are accessible
-via the :option:`--setParameter <mongod --setParameter>` option to
-:program:`mongod`. This document documents all of these options.
+via the :dbcommand:`setParameter` command or the
+:option:`--setParameter` option.
 
-For additional run time configuration options, see
+For additional configuration options, see
 :doc:`/reference/configuration-options` and :doc:`Manual Page for
 mongod </reference/program/mongod>`.
 
 Parameters
 ----------
 
+.. |mongod-only| replace:: Available for :program:`mongod` only.
+
+.. |mongos-only| replace:: Available for :program:`mongos` only.
+
+.. |both| replace:: Available for both :program:`mongod` and :program:`mongos`.
+
+Authentication Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: authenticationMechanisms
+
+   .. versionchanged:: 2.6
+      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+      mechanisms.
+
+   .. versionchanged:: 3.0
+      Added support for the ``SCRAM-SHA-1`` authentication mechanism.
+
+   |both|
+
+   Specifies the list of authentication mechanisms the server accepts. Set
+   this to one or more of the following values. If you specify multiple
+   values, use a comma-separated list and no spaces. For descriptions
+   of the authentication mechanisms, see :doc:`/core/authentication`.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Value
+
+        - Description
+
+      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+
+        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+          Salted Challenge Response Authentication Mechanism using the SHA-1
+          hash function.
+
+      * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+
+        - MongoDB challenge/response authentication.
+
+      * - :ref:`MONGODB-X509 <security-auth-x509>`
+
+        - MongoDB TLS/SSL certificate authentication.
+
+      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+
+        - External authentication using Kerberos. This mechanism is
+          available only in `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+
+      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+
+        - External authentication using LDAP. ``PLAIN`` transmits
+          passwords in plain text. This mechanism is available only in
+          `MongoDB Enterprise
+          <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+
+   .. todo:: Per DOCS-2940, combine this with similar info in
+             /includes/options-conf
+             /includes/options-shared
+             /reference/connection-string
+             /tutorial/control-access-to-mongodb-windows-with-kerberos-authentication
+             /tutorial/control-access-to-mongodb-with-kerberos-authentication.txt
+
+   For example, to specify ``PLAIN`` as the authentication mechanism, use
+   the following command:
+
+   .. code-block:: sh
+
+      mongod --setParameter authenticationMechanisms=PLAIN --auth
+
+.. parameter:: clusterAuthMode
+
+   .. versionadded:: 2.6
+
+   |both|
+
+   Set the :setting:`~security.clusterAuthMode` to either ``sendX509`` or
+   ``x509``. Useful during :ref:`rolling upgrade to use x509 for
+   membership authentication <upgrade-to-x509-internal-authentication>`
+   to minimize downtime.
+
+   .. include:: /includes/fact-ssl-supported.rst
+
+   .. code-block:: sh
+
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, clusterAuthMode: "sendX509" } )
+
 .. parameter:: enableLocalhostAuthBypass
 
    .. versionadded:: 2.4
 
-   Specify ``0`` to disable localhost authentication bypass.  Enabled
-   by default.
+   |both|
+
+   Specify ``0`` or ``false`` to disable localhost authentication
+   bypass. Enabled by default.
 
    :parameter:`enableLocalhostAuthBypass` is not available using
    :dbcommand:`setParameter` database command. Use the
@@ -31,140 +124,22 @@ Parameters
    :option:`--setParameter <mongod --setParameter>` option on the
    command line.
 
-.. parameter:: enableTestCommands
+   See :ref:`localhost-exception` for more information.
 
-   .. versionadded:: 2.4
+.. parameter:: saslauthdPath
 
-   :parameter:`enableTestCommands` enables a set of internal commands
-   useful for internal testing
-   operations. :parameter:`enableTestCommands` is only available when
-   starting :program:`mongod` and you cannot use
-   :dbcommand:`setParameter` to modify this parameter. Consider the
-   following :program:`mongod` invocation, which sets
-   :parameter:`enableTestCommands`:
+   .. note:: Available only in MongoDB Enterprise (except MongoDB Enterprise for Windows).
 
-   .. code-block:: sh
+   |both|
 
-      mongod --setParameter enableTestCommands=1
-
-   :parameter:`enableTestCommands` provides access to the following
-   internal commands:
-
-   - :dbcommand:`captrunc`
-   - :dbcommand:`configureFailPoint`
-   - :dbcommand:`emptycapped`
-   - :dbcommand:`godinsert`
-   - :dbcommand:`_hashBSONElement`
-   - :dbcommand:`journalLatencyTest`
-   - :dbcommand:`replSetTest`
-   - :dbcommand:`_skewClockCommand`
-   - :dbcommand:`sleep`
-   - :dbcommand:`_testDistLockWithSkew`
-   - :dbcommand:`_testDistLockWithSyncCluster`
-
-.. parameter:: journalCommitInterval
-
-   Specify an integer between ``1`` and ``500`` signifying the number
-   of milliseconds (ms) between journal commits.
-
-   Consider the following example which sets the
-   :parameter:`journalCommitInterval` to ``200`` ms:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").runCommand( { setParameter: 1, journalCommitInterval: 200 } )
-
-   .. seealso:: :setting:`~storage.journal.commitIntervalMs`.
-
-.. parameter:: logUserIds
-
-   .. versionadded:: 2.4
-
-   Specify ``1`` to enable logging of userids.
-
-   Disabled by default.
-
-.. parameter:: logLevel
-
-   Specify an integer between ``0`` and ``5`` signifying the verbosity
-   of the logging, where ``5`` is the most verbose.
-
-   Consider the following example which sets the
-   :parameter:`logLevel` to ``2``:
-
-   .. code-block:: javascript
-
-      use admin
-      db.runCommand( { setParameter: 1, logLevel: 2 } )
-
-   .. seealso::
-
-      :setting:`~systemLog.verbosity`.
-
-.. parameter:: notablescan
-
-   Specify whether **all** queries must use indexes. If ``1``, MongoDB
-   will not execute queries that require a table scan and will return an
-   error.
-
-   Consider the following example which sets :parameter:`notablescan` to ``1``
-   or true:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").runCommand( { setParameter: 1, notablescan: 1 } )
-
-   Setting :parameter:`notablescan` to ``1`` can be useful for testing
-   application queries, for example, to identify queries that scan an
-   entire collection and cannot use an index.
-
-   To detect unindexed queries without ``notablescan``, consider reading
-   the :doc:`/tutorial/evaluate-operation-performance` and
-   :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`
-   sections and using the :parameter:`logLevel` parameter,
-   :doc:`/reference/program/mongostat` and :ref:`profiling
-   <database-profiling>`.
-
-   Don't run production :program:`mongod` instances with
-   :parameter:`notablescan` because preventing table scans can potentially
-   affect queries in all databases, including administrative queries.
-
-.. parameter:: replIndexPrefetch
-
-   .. versionadded:: 2.2
-
-   Use :parameter:`replIndexPrefetch` in conjunction with
-   :setting:`~replication.replSetName` when configuring a replica
-   set. The default value is ``all`` and available
-   options are:
-
-   - ``none``
-   - ``all``
-   - ``_id_only``
-
-   By default :term:`secondary` members of a :term:`replica set` will
-   load all indexes related to an operation into memory before
-   applying operations from the oplog. You can modify this behavior so
-   that the secondaries will only load the ``_id`` index. Specify
-   ``_id_only`` or ``none`` to prevent the :program:`mongod` from
-   loading *any* index into memory.
-
-.. parameter:: replApplyBatchSize
-
-   .. versionadded:: 1.6
-
-   Specify the number of oplog entries to apply as a single batch.
-   :parameter:`replApplyBatchSize` must be an integer between 1 and
-   1024. The default value is 1. This option only applies to
-   master/slave configurations and is valid only on a :program:`mongod`
-   started with the ``--slave`` command line option.
-
-   Batch sizes must be ``1`` for members with
-   :option:`slavedelay <mongod --slavedelay>` configured.
+   Specify the path to the Unix Domain Socket of the ``saslauthd``
+   instance to use for proxy authentication.
 
 .. parameter:: saslHostName
 
    .. versionadded:: 2.4
+
+   |both|
 
    :parameter:`saslHostName` overrides MongoDB's default hostname
    detection for the purpose of configuring SASL and Kerberos
@@ -191,315 +166,11 @@ Parameters
             which includes support for Kerberos. See also
             :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication-under-windows`.
 
-.. parameter:: supportCompatibilityFormPrivilegeDocuments
-
-   .. versionadded:: 2.4
-
-   .. deprecated:: 2.6
-      :parameter:`supportCompatibilityFormPrivilegeDocuments` has no
-      effect in 2.6 and will be removed in 2.8.
-
-   :parameter:`supportCompatibilityFormPrivilegeDocuments` is not
-   available using :dbcommand:`setParameter` database command. Use the
-   :setting:`setParameter` option in the configuration file or the
-   :option:`--setParameter <mongod --setParameter>` option on the
-   command line.
-
-.. parameter:: syncdelay
-
-   Specify the interval in seconds between :term:`fsync` operations
-   where :program:`mongod` flushes its working memory to disk. By
-   default, :program:`mongod` flushes memory to disk every 60
-   seconds. In almost every situation you should not set this value
-   and use the default setting.
-
-   Consider the following example which sets the ``syncdelay`` to
-   ``60`` seconds:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").runCommand( { setParameter: 1, syncdelay: 60 } )
-
-   .. seealso:: :setting:`~storage.syncPeriodSecs` and
-      :parameter:`journalCommitInterval`.
-
-.. parameter:: traceExceptions
-
-   .. versionadded:: 2.2
-
-   Configures :program:`mongod` log full stack traces on assertions or
-   errors. If ``1``, :program:`mongod` will log full stack
-   traces on assertions or errors.
-
-   Consider the following example which sets the
-   ``traceExceptions`` to ``true``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").runCommand( { setParameter: 1, traceExceptions: true } )
-
-   .. seealso:: :setting:`systemLog.traceAllExceptions`
-
-.. parameter:: quiet
-
-   Sets quiet logging mode. If
-   ``1``, :program:`mongod` will go into a quiet logging
-   mode which will not log the following events/activities:
-
-   - connection events;
-
-   - the :dbcommand:`drop` command, the
-     :dbcommand:`dropIndexes` command, the
-     :dbcommand:`diagLogging` command, the
-     :dbcommand:`validate` command, and the
-     :dbcommand:`clean` command; and
-
-   - replication synchronization activities.
-
-   Consider the following example which sets the
-   ``quiet`` to ``1``:
-
-   .. code-block:: javascript
-
-      db = db.getSiblingDB("admin")
-      db.runCommand( { setParameter: 1, quiet: 1 } )
-
-   .. seealso:: :setting:`~systemLog.quiet`
-
-.. parameter:: textSearchEnabled
-
-   .. deprecated:: 2.6
-      MongoDB enables the text search feature by default.
-      Manual enabling of this feature is unnecessary.
-
-   Enables the :doc:`text search </core/index-text>` feature. When
-   manually enabling, you must enable on **each and every**
-   :program:`mongod` for replica sets.
-
-.. parameter:: releaseConnectionsAfterResponse
-
-   .. versionadded:: 2.2.4 and 2.4.2
-
-   Changes the behavior of the connection pool that :program:`mongos` uses
-   to connect to the shards. As a result, each :program:`mongos`
-   should need to maintain fewer connections to each shard. When
-   enabled, the :program:`mongos` will release a connection into the
-   thread pool *after* each read operation or command.
-
-   .. warning:: For applications that do not use the :ref:`default
-      <write-concern-acknowledged>`, :ref:`journaled
-      <write-concern-replica-journaled>`, or :ref:`replica
-      acknowledged <write-concern-replica-acknowledged>` write concern
-      modes of the driver, :parameter:`releaseConnectionsAfterResponse`
-      will affect the meaning of :dbcommand:`getLastError`.
-
-      If an application allows read operations in between
-      write operations and :dbcommand:`getLastError` calls,
-      the resulting :dbcommand:`getLastError` will **not** report on
-      the success of the proceeding write operation.
-
-      Use with caution.
-
-   To enable, use the following command while connected to a
-   :program:`mongos`:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, releaseConnectionsAfterResponse: true } )
-
-   Alternately, you may start the :program:`mongos` instance with the
-   following run-time option:
-
-   .. code-block:: sh
-
-      mongos --setParameter releaseConnectionsAfterResponse=true
-
-   To change this policy for the entire cluster, you must set
-   :parameter:`releaseConnectionsAfterResponse` on each
-   :program:`mongos` instance in the cluster.
-
-.. parameter:: connPoolMaxShardedConnectionsPerHost
-
-   .. versionadded:: 2.6
-
-   *Default*: 200
-
-   :program:`mongos` instances reuse connections to the shards to
-   service multiple requests. However, in some situations very active
-   :program:`mongos` instances may need to maintain a pool larger than
-   the default maximum of 200 connections.
-
-   The :parameter:`connPoolMaxShardedConnectionsPerHost` value
-   defines the size of the largest connection pool that
-   :program:`mongos` instances will maintain for communication to the
-   shards. The size of a pool does not prevent :program:`mongos`
-   instances from creating additional connections, but *does* prevent
-   the connection pools from retaining connections above this limit.
-
-   Increase the :parameter:`connPoolMaxShardedConnectionsPerHost`
-   value **only** if the number of connections in a connection pool
-   has a high level of churn, or if the total number of created
-   connections increase.
-
-   :parameter:`connPoolMaxShardedConnectionsPerHost` only applies for
-   :program:`mongos` instances. You can only set
-   :parameter:`connPoolMaxShardedConnectionsPerHost` during start up
-   in the config file or on the command line, as follows to increase
-   the size of the connection pool:
-
-   .. code-block:: sh
-
-      mongos --setParameter connPoolMaxShardedConnectionsPerHost=250
-
-.. parameter:: connPoolMaxConnectionsPerHost
-
-   .. versionadded:: 2.6
-
-   *Default*: 200
-
-   :program:`mongod` maintains connection pools for outgoing
-   connections to other :program:`mongod` instances to maximize
-   connection reuse.
-
-   The :parameter:`connPoolMaxConnectionsPerHost` value defines the
-   size of the largest connection pool that :program:`mongod`
-   instances will maintain for inter-process communication. The size
-   of a pool does not prevent a :program:`mongod` from creating
-   additional connections, but *does* prevent a connection pool
-   from retaining connections in excess of the value of
-   :parameter:`connPoolMaxConnectionsPerHost`.
-
-   **Only** adjust this setting if your driver does *not* pool
-   connections and you're using authentication in the
-   context of a sharded cluster.
-
-   :parameter:`connPoolMaxShardedConnectionsPerHost` applies to
-   :program:`mongod` instances only. You can only set
-   :parameter:`connPoolMaxShardedConnectionsPerHost` during start up
-   in the config file or on the command line, as follows to increase
-   the size of the connection pool:
-
-   .. code-block:: sh
-
-      mongos --setParameter connPoolMaxConnectionsPerHost=250
-
-.. parameter:: authenticationMechanisms
-
-   .. versionchanged:: 2.6
-      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
-      mechanisms.
-
-   Specifies the list of authentication mechanisms the server accepts. Set
-   this to one or more of the following values. If you specify multiple
-   values, use a comma-separated list and no spaces. For descriptions
-   of the authentication mechanisms, see :doc:`/core/authentication`.
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 40
-
-      * - Value
-
-        - Description
-
-      * - MONGODB-CR
-
-        - MongoDB challenge/response authentication.
-
-      * - MONGODB-X509
-
-        - MongoDB SSL certificate authentication.
-
-      * - PLAIN
-
-        - External authentication using LDAP. You can also use ``PLAIN``
-          for authenticating in-database users. ``PLAIN`` transmits
-          passwords in plain text. This mechanism is available only in
-          `MongoDB Enterprise
-          <http://www.mongodb.com/products/mongodb-enterprise>`_.
-
-      * - GSSAPI
-
-        - External authentication using Kerberos. This mechanism is
-          available only in `MongoDB Enterprise
-          <http://www.mongodb.com/products/mongodb-enterprise>`_.
-
-   .. todo:: Per DOCS-2940, combine this with similar info in
-             /includes/options-conf
-             /includes/options-shared
-             /reference/connection-string
-             /tutorial/control-access-to-mongodb-windows-with-kerberos-authentication
-             /tutorial/control-access-to-mongodb-with-kerberos-authentication.txt
-
-   For example, to specify ``PLAIN`` as the authentication mechanism, use
-   the following command:
-
-   .. code-block:: sh
-
-      mongod --setParameter authenticationMechanisms=PLAIN --auth
-
-.. parameter:: saslauthdPath
-
-   .. note:: Available only in MongoDB Enterprise (except MongoDB Enterprise for Windows).
-
-   Specify the path to the Unix Domain Socket of the ``saslauthd``
-   instance to use for proxy authentication.
-
-.. parameter:: sslMode
-
-   .. versionadded:: 2.6
-
-   Set the :setting:`net.ssl.mode` to either ``preferSSL`` or
-   ``requireSSL``. Useful during :doc:`rolling upgrade to SSL
-   </tutorial/upgrade-cluster-to-ssl>` to minimize downtime.
-
-   .. include:: /includes/fact-ssl-supported.rst
-
-   .. code-block:: sh
-
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, sslMode: "preferSSL" } )
-
-.. parameter:: clusterAuthMode
-
-   .. versionadded:: 2.6
-
-   Set the :setting:`~security.clusterAuthMode` to either ``sendX509`` or
-   ``x509``. Useful during :ref:`rolling upgrade to use x509 for
-   membership authentication <upgrade-to-x509-internal-authentication>`
-   to minimize downtime.
-
-   .. include:: /includes/fact-ssl-supported.rst
-
-   .. code-block:: sh
-
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, clusterAuthMode: "sendX509" } )
-
-.. parameter:: ttlMonitorEnabled
-
-   .. versionadded:: 2.4.6
-
-   To support :doc:`TTL Indexes </core/index-ttl>`, :program:`mongod`
-   instances have a background thread that is responsible for deleting
-   documents from collections with TTL indexes.
-
-   To disable this worker thread for a :program:`mongod`, set
-   :parameter:`ttlMonitorEnabled` to ``false``, as in the following
-   operations:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, ttlMonitorEnabled: false } )
-
-   Alternately, you may disable the thread at run-time by starting the
-   :program:`mongod` instance with the following option:
-
-   .. code-block:: sh
-
-      mongod --setParameter ttlMonitorEnabled=false
-
 .. parameter:: saslServiceName
 
    .. versionadded:: 2.4.6
+
+   |both|
 
    Allows users to override the default :doc:`Kerberos
    </tutorial/control-access-to-mongodb-with-kerberos-authentication>`
@@ -519,65 +190,165 @@ Parameters
 
       Ensure that your driver supports alternate service names.
 
-.. parameter:: newCollectionsUsePowerOf2Sizes
+.. parameter:: scramIterationCount
+
+   .. versionadded:: 3.0.0
+
+   *Default*: ``10000``
+
+   |both|
+
+   Changes the number of hashing iterations used for all new stored
+   passwords. More iterations increase the amount of time required for
+   clients to authenticate to MongoDB, but makes passwords less
+   susceptible to brute-force attempts. The default value is ideal for most
+   common use cases and requirements. If you modify this value, it
+   does not change the number of iterations for existing passwords.
+
+   You can set :parameter:`scramIterationCount` when starting MongoDB
+   or on running :program:`mongod` instances.
+
+.. parameter:: sslMode
 
    .. versionadded:: 2.6
 
-   *Default*: ``true``.
+   |both|
 
-   :program:`mongod` uses an allocation strategy called
-   :collflag:`usePowerOf2Sizes` where each record has a size, in bytes
-   that is a power of 2 (e.g. 32, 64, 128, 256, 512...16777216.) The
-   minimum allocation for a document is 32 bytes.
+   Set the :setting:`net.ssl.mode` to either ``preferSSL`` or
+   ``requireSSL``. Useful during :doc:`rolling upgrade to TLS/SSL
+   </tutorial/upgrade-cluster-to-ssl>` to minimize downtime.
 
-   MongoDB stores documents in contiguous spaces on disk, and each
-   record includes both the document itself and some additional space
-   to allow the document to grow slightly through updates.
-
-   By default, all *new* collections, created after 2.6 use
-   the :collflag:`usePowerOf2Sizes` strategy. To revert to the prior
-   *exact fit allocation* strategy, set
-   :parameter:`newCollectionsUsePowerOf2Sizes` to
-   ``false``.
-
-   New collections include those: created during
-   :ref:`initial sync <replica-set-initial-sync>`, as well as those
-   created by the :program:`mongorestore` and :program:`mongoimport`
-   tools, by running :program:`mongod` with the :option:`--repair
-   <mongod --repair>` option, as well as the
-   :dbcommand:`restoreDatabase` command.
-
-   Issue the following command to change the allocation strategy for a
-   running :program:`mongod` instance:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, newCollectionsUsePowerOf2Sizes: false } )
-
-   You can also set :parameter:`newCollectionsUsePowerOf2Sizes`  at
-   run-time with the following operation.
+   .. include:: /includes/fact-ssl-supported.rst
 
    .. code-block:: sh
 
-      mongod --setParameter newCollectionsUsePowerOf2Sizes=false
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, sslMode: "preferSSL" } )
+
+.. parameter:: supportCompatibilityFormPrivilegeDocuments
+
+   .. versionchanged:: 3.0
+      Removed in MongoDB 3.0
+
+   .. deprecated:: 2.6
+      :parameter:`supportCompatibilityFormPrivilegeDocuments` has no
+      effect in 2.6 and will be removed in 3.0.
+
+   .. versionadded:: 2.4
 
 .. parameter:: userCacheInvalidationIntervalSecs
 
+   *Default*: 30.
+
+   |mongos-only|
+
+   On a :program:`mongos` instance, specifies the interval (in seconds)
+   at which the :program:`mongos` instance checks to determine whether
+   the in-memory cache of :doc:`user objects
+   </reference/system-users-collection>` has stale data, and if so,
+   clears the cache. If there are no changes to user objects,
+   :program:`mongos` will not clear the cache.
+
+   This parameter has a minimum value of ``1`` second and a maximum
+   value of ``86400`` seconds (24 hours).
+
+   .. versionchanged:: 3.0
+
+      Default value has changed to ``30`` seconds, and the minimum
+      value allowed has changed to ``1`` second. :program:`mongos`
+      only clears the user cache if there are changes.
+
+General Parameters
+~~~~~~~~~~~~~~~~~~
+
+.. parameter:: connPoolMaxShardedConnsPerHost
+
    .. versionadded:: 2.6
 
-   *Default*: 600.
+   *Default*: 200
 
-   On a :program:`mongos` instance, this specifies the amount of time in
-   seconds to allow before the :program:`mongos` instance purges the
-   in-memory cache of user objects. The cache includes the users'
-   credentials and roles.
+   |both|
 
-   This parameter has a minimum value of ``30`` seconds and a maximum
-   value of ``86400`` seconds (24 hours).
+   Set the maximum size of the connection pools for communication to the
+   shards. The size of a pool does not prevent the creation of
+   additional connections, but *does* prevent the connection pools from
+   retaining connections above this limit.
+
+   Increase the :parameter:`connPoolMaxShardedConnsPerHost` value
+   **only** if the number of connections in a connection pool has a
+   high level of churn or if the total number of created connections
+   increase.
+
+   You can only set :parameter:`connPoolMaxShardedConnsPerHost` during
+   startup in the config file or on the command line, as follows to
+   increase the size of the connection pool:
+
+   .. code-block:: sh
+
+      mongos --setParameter connPoolMaxShardedConnsPerHost=250
+
+.. parameter:: connPoolMaxConnsPerHost
+
+   .. versionadded:: 2.6
+
+   *Default*: 200
+
+   |both|
+
+   Set the maximum size of the connection pools for outgoing connections
+   to other :program:`mongod` instances. The size
+   of a pool does not prevent the creation of additional connections,
+   but *does* prevent a connection pool from retaining connections in
+   excess of the value of :parameter:`connPoolMaxConnsPerHost`.
+
+   **Only** adjust this setting if your driver does *not* pool
+   connections and you're using authentication in the
+   context of a sharded cluster.
+
+   You can only set :parameter:`connPoolMaxConnsPerHost` during startup
+   in the config file or on the command line, as in the following
+   example:
+
+   .. code-block:: sh
+
+      mongod --setParameter connPoolMaxConnsPerHost=250
+
+.. parameter:: enableTestCommands
+
+   .. versionadded:: 2.4
+
+   |both|
+
+   :parameter:`enableTestCommands` enables a set of internal commands
+   useful for internal testing operations.
+   :parameter:`enableTestCommands` is only available at startup and you
+   cannot use :dbcommand:`setParameter` to modify this parameter.
+   Consider the following :program:`mongod` invocation, which sets
+   :parameter:`enableTestCommands`:
+
+   .. code-block:: sh
+
+      mongod --setParameter enableTestCommands=1
+
+   :parameter:`enableTestCommands` provides access to the following
+   internal commands:
+
+   - :dbcommand:`captrunc`
+   - :dbcommand:`configureFailPoint`
+   - :dbcommand:`emptycapped`
+   - :dbcommand:`godinsert`
+   - :dbcommand:`_hashBSONElement`
+   - :dbcommand:`journalLatencyTest`
+   - :dbcommand:`replSetTest`
+   - :dbcommand:`_skewClockCommand`
+   - :dbcommand:`sleep`
+   - :dbcommand:`_testDistLockWithSkew`
+   - :dbcommand:`_testDistLockWithSyncCluster`
 
 .. parameter:: failIndexKeyTooLong
 
    .. versionadded:: 2.6
+
+   |mongod-only|
 
    In MongoDB 2.6, if you attempt to insert or update a document so
    that the value of an indexed field is longer than the
@@ -605,8 +376,607 @@ Parameters
       db.getSiblingDB('admin').runCommand( { setParameter: 1, failIndexKeyTooLong: false } )
 
    You can also set :parameter:`failIndexKeyTooLong`  at
-   run-time with the following operation.
+   startup time with the following option:
 
    .. code-block:: sh
 
       mongod --setParameter failIndexKeyTooLong=false
+
+.. parameter:: newCollectionsUsePowerOf2Sizes
+
+   .. deprecated:: 3.0.0
+
+      MongoDB deprecates the
+      :parameter:`newCollectionsUsePowerOf2Sizes` parameter such that
+      you cannot set the :parameter:`newCollectionsUsePowerOf2Sizes` to
+      ``false`` and :parameter:`newCollectionsUsePowerOf2Sizes` set to
+      ``true`` is a no-op. To disable the :ref:`power of 2 allocation
+      <power-of-2-allocation>` for a collection, use the
+      :dbcommand:`collMod` command with the :collflag:`noPadding` flag
+      or the :method:`db.createCollection()` method with the
+      ``noPadding`` option.
+
+   *Default*: ``true``.
+
+   |mongod-only|
+
+   Available for the MMAPv1 storage engine only.
+
+.. parameter:: notablescan
+
+   |mongod-only|
+
+   Specify whether **all** queries must use indexes. If ``1``, MongoDB
+   will not execute queries that require a table scan and will return an
+   error.
+
+   Consider the following example which sets :parameter:`notablescan` to ``1``
+   or true:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").runCommand( { setParameter: 1, notablescan: 1 } )
+
+   Setting :parameter:`notablescan` to ``1`` can be useful for testing
+   application queries, for example, to identify queries that scan an
+   entire collection and cannot use an index.
+
+   To detect unindexed queries without ``notablescan``, consider reading
+   the :doc:`/tutorial/evaluate-operation-performance` and
+   :doc:`/tutorial/optimize-query-performance-with-indexes-and-projections`
+   sections and using the :parameter:`logLevel` parameter,
+   :doc:`/reference/program/mongostat` and :ref:`profiling
+   <database-profiling>`.
+
+   Don't run production :program:`mongod` instances with
+   :parameter:`notablescan` because preventing table scans can potentially
+   affect queries in all databases, including administrative queries.
+
+.. parameter:: textSearchEnabled
+
+   .. deprecated:: 2.6
+      MongoDB enables the text search feature by default.
+      Manual enabling of this feature is unnecessary.
+
+   |both|
+
+   Enables the :doc:`text search </core/index-text>` feature. When
+   manually enabling, you must enable on **each and every**
+   :program:`mongod` for replica sets.
+
+.. parameter:: ttlMonitorEnabled
+
+   .. versionadded:: 2.4.6
+
+   |mongod-only|
+
+   To support :doc:`TTL Indexes </core/index-ttl>`, :program:`mongod`
+   instances have a background thread that is responsible for deleting
+   documents from collections with TTL indexes.
+
+   To disable this worker thread for a :program:`mongod`, set
+   :parameter:`ttlMonitorEnabled` to ``false``, as in the following
+   operations:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, ttlMonitorEnabled: false } )
+
+   Alternately, you may disable the thread at startup time by starting the
+   :program:`mongod` instance with the following option:
+
+   .. code-block:: sh
+
+      mongod --setParameter ttlMonitorEnabled=false
+
+
+.. parameter:: disableJavaScriptJIT
+
+   .. versionadded:: 3.2
+
+   |mongod-only|
+
+   The MongoDB JavaScript engine uses SpiderMonkey, which implements
+   Just-in-Time (JIT) compilation for improved performance when running scripts.
+
+   To disable the JIT, set :parameter:`disableJavaScriptJIT` to ``true``, as in
+   the following example:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, disableJavaScriptJIT: true } )
+
+   Be aware that :dbcommand:`group` and :query:`$where` will reuse existing
+   JavaScript interpreter contexts, so changes to
+   :parameter:`disableJavaScriptJIT` may not take effect immediately for these
+   operations.
+
+   Alternately, you may disable the JIT at startup time by starting the
+   :program:`mongod` instance with the following option:
+
+   .. code-block:: sh
+
+      mongod --setParameter disableJavaScriptJIT=true
+
+Logging Parameters
+~~~~~~~~~~~~~~~~~~
+
+.. parameter:: logLevel
+
+   |both|
+
+   Specify an integer between ``0`` and ``5`` signifying the verbosity
+   of the logging, where ``5`` is the most verbose.
+
+   Consider the following example which sets the
+   :parameter:`logLevel` to ``2``:
+
+   .. code-block:: javascript
+
+      use admin
+      db.runCommand( { setParameter: 1, logLevel: 2 } )
+
+   The default :parameter:`logLevel` is ``0``.
+
+   .. seealso::
+
+      :setting:`~systemLog.verbosity`.
+
+.. parameter:: logComponentVerbosity
+
+   .. versionadded:: 3.0.0
+
+   |both|
+
+   Sets the verbosity levels of various :ref:`components
+   <log-message-components>` for :doc:`log messages
+   </reference/log-messages>`. The verbosity level determines the
+   amount of :ref:`Informational and Debug <log-severity-levels>`
+   messages MongoDB outputs.
+
+   .. include:: /includes/log-verbosity-levels.rst
+
+   For a component, you can also specify ``-1`` to inherit the parent's
+   verbosity level.
+
+   To specify the verbosity level, use a document similar to the
+   following:
+
+   .. code-block:: none
+
+      {
+        verbosity: <int>,
+        <component1>: { verbosity: <int> },
+        <component2>: {
+           verbosity: <int>,
+           <component3>: { verbosity: <int> }
+        },
+        ...
+      }
+
+   For the components, you can specify just the ``<component>: <int>``
+   in the document, unless you are setting both the parent verbosity
+   level and that of the child component(s) as well:
+
+   .. code-block:: none
+
+      {
+        verbosity: <int>,
+        <component1>: <int> ,
+        <component2>: {
+           verbosity: <int>,
+           <component3>: <int>
+        }
+        ...
+      }
+
+   The top-level ``verbosity`` field corresponds to
+   :setting:`systemLog.verbosity` which sets the default level for all
+   components. The default value of :setting:`systemLog.verbosity` is
+   ``0``.
+
+   The components correspond to the following settings:
+
+   .. include:: /includes/list-log-component-setting-correspondence.rst
+
+   Unless explicitly set, the component has the verbosity level of its
+   parent. For example, ``storage`` is the parent of
+   ``storage.journal``. That is, if you specify a :setting:`storage
+   <systemLog.component.storage.verbosity>` verbosity level, this level
+   also applies to :setting:`storage.journal
+   <systemLog.component.storage.journal.verbosity>` components
+   *unless* you specify the verbosity level for
+   :setting:`storage.journal
+   <systemLog.component.storage.journal.verbosity>`.
+
+   For example, the following sets the :setting:`default verbosity
+   level <systemLog.verbosity>` to ``1``, the :setting:`query
+   <systemLog.component.query.verbosity>` to ``2``, the
+   :setting:`storage <systemLog.component.storage.verbosity>` to ``2``,
+   and the :setting:`storage.journal
+   <systemLog.component.storage.journal.verbosity>` to ``1``.
+
+   .. code-block:: javascript
+
+      use admin
+      db.runCommand( {
+         setParameter: 1,
+         logComponentVerbosity: {
+            verbosity: 1,
+            query: { verbosity: 2 },
+            storage: {
+               verbosity: 2,
+               journal: {
+                  verbosity: 1
+               }
+            }
+         }
+      } )
+
+   You can also set parameter :parameter:`logComponentVerbosity` at
+   startup time, passing the verbosity level document as a string.
+
+   :program:`mongo` shell also provides the :method:`db.setLogLevel()`
+   to set the log level for a single component. For various ways to set
+   the log verbosity level, see :ref:`log-messages-configure-verbosity`.
+
+.. parameter:: logUserIds
+
+   .. versionadded:: 2.4
+
+   |both|
+
+   Specify ``1`` to enable logging of userids.
+
+   Disabled by default.
+
+.. parameter:: quiet
+
+   |both|
+
+   Sets quiet logging mode. If
+   ``1``, :program:`mongod` will go into a quiet logging
+   mode which will not log the following events/activities:
+
+   - connection events;
+
+   - the :dbcommand:`drop` command, the
+     :dbcommand:`dropIndexes` command, the
+     :dbcommand:`diagLogging` command, the
+     :dbcommand:`validate` command, and the
+     :dbcommand:`clean` command; and
+
+   - replication synchronization activities.
+
+   Consider the following example which sets the
+   ``quiet`` to ``1``:
+
+   .. code-block:: javascript
+
+      db = db.getSiblingDB("admin")
+      db.runCommand( { setParameter: 1, quiet: 1 } )
+
+   .. seealso:: :setting:`~systemLog.quiet`
+
+.. parameter:: traceExceptions
+
+   |both|
+
+   Configures :program:`mongod` to log full source code stack traces
+   for every database and socket C++ exception, for use with debugging.
+   If ``true``, :program:`mongod` will log full stack traces.
+
+   Consider the following example which sets the
+   ``traceExceptions`` to ``true``:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").runCommand( { setParameter: 1, traceExceptions: true } )
+
+   .. seealso:: :setting:`systemLog.traceAllExceptions`
+
+Diagnostic Parameters
+---------------------
+
+To support the :ref:`diagnostic data capture
+<3.2-diagnostic-data-capture>`, MongoDB introduces the following
+parameters:
+
+.. note::
+
+   The default values for the diagnostic data capture interval and the
+   maximum sizes are chosen to provide useful data to MongoDB engineers
+   with minimal impact on performance and storage size. Typically, these
+   values will only need modifications as requested by MongoDB engineers
+   for specific diagnostic purposes.
+
+   Diagnostic data files are stored in the ``diagnostic.data`` directory
+   under the :program:`mongod` instance's ``--dbpath`` or
+   :setting:`storage.dbPath`.
+
+.. parameter:: diagnosticDataCollectionEnabled
+
+   .. versionadded:: 3.2
+
+   *Type*: boolean
+
+   *Default*: true
+
+   |mongod-only|
+
+   Determines whether to enable the collecting and logging of data for
+   diagnostic purposes. Diagnostic logging is enabled by default.
+
+   For example, the following disables the diagnostic collection:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionEnabled=false
+
+.. parameter:: diagnosticDataCollectionDirectorySizeMB
+
+   .. versionadded:: 3.2
+
+   *Type*: integer
+
+   *Default*: 100
+
+   |mongod-only|
+
+   Specifies the maximum size, in megabytes, of the ``diagnostic.data``
+   directory . If directory size exceeds this number, the oldest
+   :ref:`diagnostic files in the directory
+   <3.2-diagnostic-data-capture>` are automatically deleted based on
+   the timestamp in the file name.
+
+   For example, the following sets the maximum size of the directory to
+   ``200`` megabytes:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionDirectorySizeMB=200
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionDirectorySizeMB` is ``10``
+   megabytes. :parameter:`diagnosticDataCollectionDirectorySizeMB` must
+   be greater than maximum diagnostic file size
+   :parameter:`diagnosticDataCollectionFileSizeMB`.
+
+.. parameter:: diagnosticDataCollectionFileSizeMB
+
+   .. versionadded:: 3.2
+
+   *Type*: integer
+
+   *Default*: 10
+
+   |mongod-only|
+
+   Specifies the maximum size, in megabytes, of each :ref:`diagnostic
+   file <3.2-diagnostic-data-capture>`. If the file exceeds the maximum
+   file size, MongoDB creates a new file.
+
+   For example, the following sets the maximum size of each diagnostic
+   file to ``20`` megabytes:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionFileSizeMB=20
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionFileSizeMB` is ``1`` megabyte.
+
+.. parameter:: diagnosticDataCollectionPeriodMillis
+
+   .. versionadded:: 3.2
+
+   *Type*: integer
+
+   *Default*: 1000
+
+   |mongod-only|
+
+   Specifies the interval, in milliseconds, at which to collect
+   diagnostic data.
+
+   For example, the following sets the interval to
+   ``5000`` milliseconds or 5 seconds:
+
+   .. code-block:: sh
+
+      mongod --setParameter diagnosticDataCollectionPeriodMillis=5000
+
+   The minimum value for
+   :parameter:`diagnosticDataCollectionPeriodMillis` is ``100``
+   milliseconds.
+
+Replication Parameters
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: replApplyBatchSize
+
+   |mongod-only|
+
+   Specify the number of oplog entries to apply as a single batch.
+   :parameter:`replApplyBatchSize` must be an integer between 1 and
+   1024. The default value is 1. This option only applies to
+   master/slave configurations and is valid only on a :program:`mongod`
+   started with the ``--slave`` command line option.
+
+   Batch sizes must be ``1`` for members with
+   :option:`slavedelay <mongod --slavedelay>` configured.
+
+.. parameter:: replIndexPrefetch
+
+   |mongod-only|
+
+   Use :parameter:`replIndexPrefetch` in conjunction with
+   :setting:`~replication.replSetName` when configuring a replica
+   set. The default value is ``all`` and available
+   options are:
+
+   - ``none``
+   - ``all``
+   - ``_id_only``
+
+   By default :term:`secondary` members of a :term:`replica set` will
+   load all indexes related to an operation into memory before
+   applying operations from the oplog. You can modify this behavior so
+   that the secondaries will only load the ``_id`` index. Specify
+   ``_id_only`` or ``none`` to prevent the :program:`mongod` from
+   loading *any* index into memory.
+
+.. parameter:: replWriterThreadCount
+
+   .. versionadded:: 3.2
+
+   *Type*: integer
+
+   *Default*: 16
+
+   |mongod-only|
+
+   Number of threads to use to apply replicated operations in parallel.
+   Values can range from 1 to 256 inclusive. You can only set
+   :parameter:`replWriterThreadCount` at startup and cannot change this
+   setting with the :dbcommand:`setParameter` command.
+
+Sharding Parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: recoverShardingState
+
+   |mongod-only|
+
+   Specify a boolean to check or ignore sharding state recovery
+   information. Default is ``true`` to check the sharding state
+   recovery information.
+
+Storage Parameters
+~~~~~~~~~~~~~~~~~~
+
+.. parameter:: journalCommitInterval
+
+   |mongod-only|
+
+   Specify an integer between ``1`` and ``500`` signifying the number
+   of milliseconds (ms) between journal commits.
+
+   Consider the following example which sets the
+   :parameter:`journalCommitInterval` to ``200`` ms:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").runCommand( { setParameter: 1, journalCommitInterval: 200 } )
+
+   .. seealso:: :setting:`storage.journal.commitIntervalMs`
+
+.. parameter:: syncdelay
+
+   |mongod-only|
+
+   Specify the interval in seconds between :term:`fsync` operations
+   where :program:`mongod` flushes its working memory to disk. By
+   default, :program:`mongod` flushes memory to disk every 60
+   seconds. In almost every situation you should not set this value
+   and use the default setting.
+
+   Consider the following example which sets the ``syncdelay`` to
+   ``60`` seconds:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").runCommand( { setParameter: 1, syncdelay: 60 } )
+
+   .. seealso:: :setting:`~storage.syncPeriodSecs` and
+      :parameter:`journalCommitInterval`.
+
+WiredTiger Parameters
+~~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: wiredTigerConcurrentReadTransactions
+
+   .. versionadded:: 3.0.0
+
+   |mongod-only|
+
+   Available for the WiredTiger storage engine only.
+
+   Specify the maximum number of concurrent read transactions allowed
+   into the WiredTiger storage engine.
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, wiredTigerConcurrentReadTransactions: <num> } )
+
+   .. seealso:: :data:`serverStatus.wiredTiger.concurrentTransactions`
+
+.. parameter:: wiredTigerConcurrentWriteTransactions
+
+   .. versionadded:: 3.0.0
+
+   |mongod-only|
+
+   Available for the WiredTiger storage engine only.
+
+   Specify the maximum number of concurrent write transactions allowed
+   into the WiredTiger storage engine.
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, wiredTigerConcurrentWriteTransactions: <num> } )
+
+   .. seealso:: :data:`serverStatus.wiredTiger.concurrentTransactions`
+
+.. parameter:: wiredTigerEngineRuntimeConfig
+
+   .. versionadded:: 3.0.0
+
+   |mongod-only|
+
+   Specify ``wiredTiger`` storage engine configuration options for a
+   running :program:`mongod` instance. You can *only* set this
+   parameter using the :dbcommand:`setParameter` command and *not*
+   using the command line or configuration file option.
+
+   Consider the following operation prototype:
+
+   .. code-block:: javascript
+
+      db.adminCommand({
+         "setParameter": 1,
+         "wiredTigerEngineRuntimeConfig": "<option>=<setting>,<option>=<setting>"
+      })
+
+   See the WiredTiger documentation for all available `WiredTiger
+   configuration options <http://source.wiredtiger.com/2.4.1/struct_w_t___c_o_n_n_e_c_t_i_o_n.html#a579141678af06217b22869cbc604c6d4>`_.
+
+Auditing Parameters
+~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: auditAuthorizationSuccess
+
+   .. versionadded:: 2.6.5
+
+   *Default*: ``false``
+
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+   |both|
+
+   Enables the :doc:`auditing </core/auditing>` of authorization
+   successes for the :ref:`authCheck <audit-action-details-results>`
+   action.
+
+   When :parameter:`auditAuthorizationSuccess` is ``false``, the
+   :doc:`audit system </core/auditing>` only logs the authorization
+   failures for ``authCheck``.
+
+   To enable the audit of authorization successes, issue the following
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, auditAuthorizationSuccess: true } )
+
+   .. include:: /includes/fact-auditAuthorizationSuccess-performance-impact.rst

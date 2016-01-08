@@ -12,12 +12,18 @@ Read Preference
 
 .. include:: /includes/introduction-read-preference.rst
 
-.. important:: You must exercise care when specifying read preferences:
-   modes other than :readmode:`primary` can *and will* return stale data
-   because the secondary queries will not include the most recent write
-   operations to the replica set's :term:`primary`.
+.. important::
+   Exercise care when specifying read preferences: Modes other than
+   :readmode:`primary` may return stale data because with
+   :ref:`asynchronous replication <asynchronous-replication>`, data in
+   the secondary may not reflect the most recent write operations.
+   [#edge-cases-2-primaries]_
 
-.. include:: /images/replica-set-read-preference.rst
+.. note:: The read preference does not affect the visibility of data;
+   i.e, clients can see the results of writes before they are acknowledged
+   or have propagated to a majority of replica set members:
+
+   .. include:: /includes/list-visibility-of-data.rst
 
 Use Cases
 ---------
@@ -52,7 +58,7 @@ read preference modes:
 
   Use :readmode:`primaryPreferred` if you want an application to
   read from the primary under normal circumstances, but to
-  allow stale reads from secondaries in an emergency. This provides a
+  allow stale reads from secondaries when the primary is unavailable. This provides a
   "read-only mode" for your application during a failover.
 
 Counter-Indications
@@ -62,22 +68,25 @@ In general, do *not* use :readmode:`secondary` and
 :readmode:`secondaryPreferred` to provide extra capacity for
 reads, because:
 
-- All members of a replica have roughly equivalent write traffic, as a
-  result secondaries will service reads at roughly the same rate as
+- All members of a replica have roughly equivalent write traffic; as a
+  result, secondaries will service reads at roughly the same rate as
   the primary.
 
-- Because replication is asynchronous and there is some amount of
+- Replication is asynchronous and there is some amount of
   delay between a successful write operation and its replication to
-  secondaries, reading from a secondary can return out-of-date data.
+  secondaries. Reading from a secondary can return out-of-date data;
+  reading from different secondaries may result in non-monotonic reads.
 
 - Distributing read operations to secondaries can compromise availability
-  if *any* members of the set are unavailable because the remaining
+  if *any* members of the set become unavailable because the remaining
   members of the set will need to be able to handle all application
   requests.
 
-- For queries of sharded collections that *do not* include the shard
-  key, secondaries may return stale results with missing or duplicated
-  data because of incomplete or terminated migrations.
+- For queries of sharded collections, for clusters with the
+  :ref:`balancer <sharding-internals-balancing>` active, secondaries
+  may return stale
+  results with missing or duplicated data because of incomplete or
+  terminated chunk migrations.
 
 :doc:`Sharding </sharding>` increases read and write capacity by
 distributing read and write operations across a group of machines,
@@ -89,15 +98,13 @@ about the internal application of read preferences.
 Read Preference Modes
 ---------------------
 
-.. versionadded:: 2.2
-
 .. important::
 
    All read preference modes except :readmode:`primary` may return
-   stale data because :term:`secondaries <secondary>` replicate operations
-   from the primary with some delay. Ensure that your application can
-   tolerate stale data if you choose to use a non-:readmode:`primary`
-   mode.
+   stale data because :term:`secondaries <secondary>` replicate
+   operations from the primary with some delay.
+   [#edge-cases-2-primaries]_ Ensure that your application can tolerate
+   stale data if you choose to use a non-:readmode:`primary` mode.
 
 MongoDB :doc:`drivers </applications/drivers>` support five
 read preference modes.
@@ -132,7 +139,7 @@ Tag Sets
 Tag sets allow you to target read operations to specific members of a
 replica set.
 
-Custom read preferences and write concerns evaluate tags sets in
+Custom read preferences and write concerns evaluate tag sets in
 different ways. Read preferences consider the value of a tag when
 selecting a member to read from. Write concerns ignore the value
 of a tag to when selecting a member, *except* to consider whether or not
@@ -163,3 +170,7 @@ For information on configuring tag sets, see the
 For more information on how read preference :ref:`modes
 <replica-set-read-preference-modes>` interact with tag sets, see the
 :doc:`documentation for each read preference mode </reference/read-preference>`.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst

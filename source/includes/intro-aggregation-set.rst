@@ -6,6 +6,4 @@ If the set operation returns a set, the operation filters out
 duplicates in the result to output an array that contains only unique
 entries. The order of the elements in the output array is unspecified.
 
-.. |exp| replace:: the set expression
-
-.. include:: /includes/fact-agg-top-level-expressions.rst
+.. include:: /includes/extracts/fact-agg-top-level-expressions-setExpression.rst

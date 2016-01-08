@@ -4,6 +4,13 @@ Backup a Sharded Cluster with Database Dumps
 
 .. default-domain:: mongodb
 
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, the following procedure can be used with the
+   :doc:`MMAPv1 </core/mmapv1>` and the :doc:`WiredTiger
+   </core/wiredtiger>` storage engines. With previous versions of
+   MongoDB, the procedure applied to :doc:`MMAPv1 </core/mmapv1>` only.
+
 Overview
 --------
 
@@ -12,39 +19,44 @@ components of a sharded cluster. This procedure
 uses :program:`mongodump` to create dumps of the :program:`mongod`
 instance. An alternate procedure uses file system snapshots to capture
 the backup data, and may be more efficient in some situations if your
-system configuration allows file system backups. See
-:doc:`/administration/backup-sharded-clusters` for more
-information.
+system configuration allows file system backups.
 
-See :doc:`/core/backups` and
-:doc:`/administration/backup-sharded-clusters` for complete
-information on backups in MongoDB and backups of sharded clusters
-in particular.
+For more information on backups in MongoDB and backups of sharded
+clusters in particular, see :doc:`/core/backups` and
+:doc:`/administration/backup-sharded-clusters`.
 
 Prerequisites
 -------------
 
 .. include:: /includes/note-shard-cluster-backup.rst
 
-.. include:: /includes/access-mongodump-collections.rst
+Access Control
+~~~~~~~~~~~~~~
 
-.. include:: /includes/access-mongodump-users.rst
+The :authrole:`backup` role provides the required privileges to perform
+backup on a sharded cluster that has enabled access control but not
+:ref:`database profiling <database-profiling>`.
+
+If the cluster has also enabled database profiling, you must also have
+privileges to read the :data:`system.profile
+<<database>.system.profile>` collection. Several roles provide this
+access, including the :authrole:`clusterAdmin` and :authrole:`dbAdmin`
+roles.
 
 Consideration
 -------------
 
 To create these backups of a sharded cluster, you will stop the
-cluster balancer and take a backup up of the :term:`config database`,
+cluster balancer and take a backup of the :term:`config database`,
 and then take backups of each shard in the cluster using
 :program:`mongodump` to capture the backup data. To capture a more
 exact moment-in-time snapshot of the system, you will need to stop all
 application writes before taking the filesystem snapshots; otherwise
 the snapshot will only approximate a moment in time.
 
-For approximate point-in-time snapshots, taking the backup from a
-single offline secondary member of the replica set that provides each
-shard can improve the quality of the backup while minimizing impact on
-the cluster.
+For approximate point-in-time snapshots, you can minimize the impact on
+the cluster by taking the backup from a secondary member of each
+replica set shard.
 
 Procedure
 ---------

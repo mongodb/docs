@@ -10,13 +10,13 @@ Index Creation
 
 MongoDB provides several options that *only* affect the creation of
 the index. Specify these options in a document as the second argument
-to the :method:`db.collection.ensureIndex()` method. This section
+to the :method:`db.collection.createIndex()` method. This section
 describes the uses of these creation options and their behavior.
 
 .. related::
 
    Some options that you can specify to
-   :method:`~db.collection.ensureIndex()` options control the
+   :method:`~db.collection.createIndex()` options control the
    :doc:`properties of the index </core/index-properties>`, which are
    *not* index creation options. For example, the :doc:`unique
    </core/index-unique>` option affects the behavior of the index
@@ -47,7 +47,7 @@ issue the following:
 
 .. code-block:: javascript
 
-   db.people.ensureIndex( { zipcode: 1}, {background: true} )
+   db.people.createIndex( { zipcode: 1}, {background: true} )
 
 By default, ``background`` is ``false`` for building MongoDB indexes.
 
@@ -56,7 +56,7 @@ following:
 
 .. code-block:: javascript
 
-   db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
+   db.people.createIndex( { zipcode: 1}, {background: true, sparse: true } )
 
 Behavior
 ~~~~~~~~
@@ -91,6 +91,7 @@ usable once the index build is complete.
    :dbcommand:`compact`. These operations will return an error during
    background index builds.
 
+
 Performance
 ~~~~~~~~~~~
 
@@ -100,7 +101,7 @@ larger than the available RAM, then the incremental process can take
 *much* longer than the foreground build.
 
 If your application
-includes :method:`ensureIndex() <db.collection.ensureIndex()>`
+includes :method:`~db.collection.createIndex()`
 operations, and an index *doesn't* exist for other operational
 concerns, building the index can have a severe impact on the
 performance of the database.
@@ -112,6 +113,18 @@ method for your driver <>` and terminates if the proper indexes do not
 exist. Always build indexes in production instances using separate
 application code, during designated maintenance windows.
 
+Interrupted Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a background index build is in progress when the :program:`mongod`
+process terminates, when the instance restarts the index build will
+restart as foreground index build. If the index build encounters any
+errors, such as a duplicate key error, the :program:`mongod` will exit
+with an error.
+
+To start the :program:`mongod` after a failed index build, use the
+:setting:`storage.indexBuildRetry` or :option:`--noIndexBuildRetry
+<mongod --noIndexBuildRetry>` to skip the index build on start up.
 .. _index-creation-building-indexes-on-secondaries:
 
 Building Indexes on Secondaries
@@ -146,45 +159,6 @@ the foreground to allow them to catch up as soon as possible.
 See :ref:`index-building-replica-sets` for a complete procedure for
 building indexes on secondaries.
 
-.. index:: index; duplicates
-.. index:: index; drop duplicates
-.. _index-creation-duplicate-dropping:
-
-Drop Duplicates
----------------
-
-MongoDB cannot create a :ref:`unique index <index-type-unique>` on a
-field that has duplicate values. To force the creation of a unique
-index, you can specify the ``dropDups`` option, which will only index
-the first occurrence of a value for the key, and delete all subsequent
-values.
-
-.. important::
-
-   As in all unique indexes, if a document does not have the indexed
-   field, MongoDB will include it in the index with a "null" value.
-
-   If subsequent fields *do not* have the indexed field, and you have
-   set ``{dropDups: true}``, MongoDB will remove these documents from
-   the collection when creating the index. If you combine ``dropDups``
-   with the :ref:`sparse <index-type-sparse>` option, this index will
-   only include documents in the index that have the value, and the
-   documents without the field will remain in the database.
-
-To create a unique index that drops duplicates on the ``username``
-field of the ``accounts`` collection, use a command in the following form:
-
-.. code-block:: javascript
-
-   db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
-
-.. warning::
-
-   Specifying ``{ dropDups: true }`` will delete data from your
-   database. Use with extreme caution.
-
-By default, ``dropDups`` is ``false``.
-
 .. index:: index; name
 .. _index-names:
 
@@ -201,7 +175,7 @@ and each key's direction in the index, 1 or -1.
 
    .. code-block:: javascript
 
-      db.products.ensureIndex( { item: 1, quantity: -1 } )
+      db.products.createIndex( { item: 1, quantity: -1 } )
 
    The resulting index is named: ``item_1_quantity_-1``.
 
@@ -213,7 +187,7 @@ default name.
 
    .. code-block:: javascript
 
-      db.products.ensureIndex( { item: 1, quantity: -1 } , { name: "inventory" } )
+      db.products.createIndex( { item: 1, quantity: -1 } , { name: "inventory" } )
 
    The resulting index has the name ``inventory``.
 

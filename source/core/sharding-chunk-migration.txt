@@ -30,6 +30,11 @@ either:
   a sharded collection's chunks across the shards. See :ref:`Migration
   Thresholds <sharding-migration-thresholds>` for more details.
 
+.. _chunk-migration-procedure:
+
+Chunk Migration Procedure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 All chunk migrations use the following procedure:
 
 #. The balancer process sends the :dbcommand:`moveChunk` command to
@@ -39,6 +44,9 @@ All chunk migrations use the following procedure:
    command. During the migration process, operations to the chunk
    route to the source shard. The source shard is responsible for
    incoming write operations for the chunk.
+
+#. The destination shard builds any indexes required by the source
+   that do not exist on the destination.
 
 #. The destination shard begins requesting documents in the chunk and
    starts receiving copies of the data.
@@ -55,13 +63,17 @@ All chunk migrations use the following procedure:
    and once there are no open cursors on the chunk, the source shard
    deletes its copy of the documents.
 
-   .. versionchanged:: 2.4
+   .. note::
 
       If the balancer needs to perform additional chunk migrations from
-      the source shard, the balancer can start the next chunk
-      migration without waiting for the current
-      migration process to finish this deletion step. See
-      :ref:`chunk-migration-queuing`.
+      the source shard, the balancer can start the next chunk migration
+      without waiting for the current migration process to finish this
+      deletion step. See :ref:`chunk-migration-queuing`.
+
+   .. versionchanged:: 2.6
+      
+      The source shard automatically archives the migrated documents by
+      default. For more information, see :ref:`moveChunk-directory`.
 
 The migration process ensures consistency and maximizes the availability of
 chunks during balancing.
@@ -70,8 +82,6 @@ chunks during balancing.
 
 Chunk Migration Queuing
 ~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.4
 
 To migrate multiple chunks from a shard, the balancer migrates the
 chunks one at a time. However, the balancer does not wait for the
@@ -91,19 +101,42 @@ In some cases, the delete phases may persist longer. If multiple delete
 phases are queued but not yet complete, a crash of the replica set's
 primary can orphan data from multiple migrations.
 
+The ``_waitForDelete``, available as a setting for the balancer as well
+as the :dbcommand:`moveChunk` command, can alter the behavior so that
+the delete phase of the current migration blocks the start of the next
+chunk migration. The ``_waitForDelete`` is generally for internal
+testing purposes. For more information, see
+:ref:`wait-for-delete-setting`.
+
 .. _chunk-migration-replication:
 
 Chunk Migration and Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 3.0
+
+   The default value ``secondaryThrottle`` became ``true`` for all
+   chunk migrations.
+
+   The new ``writeConcern`` field in the balancer configuration
+   document allows you to specify a :doc:`write concern
+   </reference/write-concern>` semantics with the
+   ``_secondaryThrottle`` option.
+
 By default, each document operation during chunk migration propagates to at
 least one secondary before the balancer proceeds with the next
-document.
+document, which is equivalent to a write concern of ``{ w: 2 }``. You
+can set the ``writeConcern`` option on the balancer configuration to
+set different write concern semantics.
 
 To override this behavior and allow the balancer to continue without
-waiting for replication to a secondary, set the ``_secondaryThrottle`` parameter
-to ``false``. See :ref:`sharded-cluster-config-secondary-throttle` to
-update the ``_secondaryThrottle`` parameter for the balancer.
+waiting for replication to a secondary, set the ``_secondaryThrottle``
+parameter to ``false``. See :ref:`sharded-cluster-config-secondary-throttle`
+to update the ``_secondaryThrottle`` parameter for the balancer.
+
+For the :dbcommand:`moveChunk` command, the ``secondaryThrottle``
+parameter is independent of the ``_secondaryThrottle`` parameter for
+the balancer.
 
 Independent of the ``secondaryThrottle`` setting, certain phases of
 the chunk migration have the following replication policy:
@@ -120,9 +153,26 @@ the chunk migration have the following replication policy:
   cleanup (from other outgoing migrations) or new incoming migrations
   can proceed.
 
-.. versionchanged:: 2.4
+.. _moveChunk-directory:
 
-   In previous versions, the balancer did not wait for the document
-   move to replicate to a secondary. For details, see :v2.2:`Secondary
-   Throttle in the v2.2 Manual
-   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
+``moveChunk`` directory
+-----------------------
+
+Starting in MongoDB 2.6, :setting:`sharding.archiveMovedChunks` is
+enabled by default. With :setting:`sharding.archiveMovedChunks`
+enabled, the source shard archives the documents in the migrated chunks
+in a directory named after the collection namespace under the
+``moveChunk`` directory in the :setting:`storage.dbPath`.
+
+.. _jumbo-chunks:
+
+Jumbo Chunks
+------------
+
+During chunk migration, if the chunk exceeds the :ref:`specified chunk
+size <sharding-chunk-size>` or if the number of documents in the chunk
+exceeds :limit:`Maximum Number of Documents Per Chunk to Migrate`,
+MongoDB does not migrate the chunk. Instead, MongoDB attempts to
+:doc:`split </core/sharding-chunk-splitting>` the chunk. If the split
+is unsuccessful, MongoDB labels the chunk as *jumbo* to avoid repeated
+attempts to migrate the chunk.

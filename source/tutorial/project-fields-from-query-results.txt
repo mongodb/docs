@@ -53,14 +53,14 @@ match the query.
    db.inventory.find( { type: 'food' } )
 
 This operation will return all documents in the ``inventory``
-collection where the value of the ``type`` field is ``'food'``. The
-returned documents contain all its fields.
+collection where the value of the ``type`` field is ``'food'``.
+The returned documents contain all fields.
 
 Return the Specified Fields and the ``_id`` Field Only
 ------------------------------------------------------
 
 A projection can explicitly include several fields. In the following
-operation, :method:`find() <db.collection.find()>` method returns all
+operation, the :method:`find() <db.collection.find()>` method returns all
 documents that match the query. In the result set, only the ``item``
 and ``qty`` fields and, by default, the ``_id`` field return in the
 matching documents.
@@ -100,6 +100,137 @@ return in the matching documents.
 With the exception of the ``_id`` field you cannot combine inclusion
 and exclusion statements in projection documents.
 
+Return Specific Fields in Embedded Documents
+--------------------------------------------
+
+Use the :ref:`dot notation <document-dot-notation>` to return specific
+fields inside an embedded document. For example, the ``inventory``
+collection contains the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 3,
+     "type" : "food",
+     "item" : "aaa", 
+     "classification": { dept: "grocery", category: "chocolate"  }
+   }
+
+The following operation returns all documents that match the query. The
+specified projection returns only the ``category`` field in the
+``classification`` document. The returned ``category`` field remains
+inside the ``classification`` document.
+
+.. code-block:: javascript
+
+   db.inventory.find(
+      { type: 'food', _id: 3 },
+      { "classification.category": 1, _id: 0 }
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "classification" : { "category" : "chocolate" } }
+   
+Suppress Specific Fields in Embedded Documents
+----------------------------------------------
+
+Use :ref:`dot notation <document-dot-notation>` to suppress specific
+fields inside an embedded document using a ``0`` instead of ``1``.
+For example, the ``inventory`` collection contains the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery", "category" : "chocolate"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Marsupial Vending Co",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza",
+            "delivery" : ["Sa"]
+         }
+      } 
+   }
+
+The following operation returns all documents where the value of the 
+``type`` field is ``food`` and the ``_id`` field is ``3``.
+The projection suppresses only the ``category`` field in the
+``classification`` document. The ``dept`` field remains
+inside the ``classification`` document.
+
+.. code-block:: javascript
+
+   db.inventory.find(
+      { type: 'food', _id: 3 },
+      { "classification.category": 0}
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Bobs Vending",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza",
+            "delivery" : ["Sa"]
+         }
+      } 
+   }
+
+You can suppress nested subdocuments at any depth using :ref:`dot notation <document-dot-notation>`. 
+The following specifies a projection to suppress the ``delivery`` array only for the ``secondary`` document.
+
+.. code-block:: javascript
+
+   db.inventory.find(
+      { "type" : "food" },
+      { "vendor.secondary.delivery" : 0 }
+   )
+   
+This returns all documents except the ``delivery`` array in the ``secondary`` document
+
+.. code-block:: javascript
+    
+   {
+      "_id" : 3,
+      "type" : "food",
+      "item" : "Super Dark Chocolate", 
+      "classification" : { "dept" : "grocery", "category" : "chocolate"},
+      "vendor" : {
+         "primary" : {
+            "name" : "Bobs Vending",
+            "address" : "Wallaby Rd",
+            "delivery" : ["M","W","F"]
+         },
+         "secondary":{
+            "name" : "Intl. Chocolatiers",
+            "address" : "Cocoa Plaza"
+         }
+      } 
+   }
+   
+
 Projection for Array Fields
 ---------------------------
 
@@ -126,3 +257,5 @@ the *only* way to project *portions* of an array. For instance, you
 *cannot* project a portion of an array using the array index; e.g. ``{
 "ratings.0": 1 }`` projection will *not* project the array with the
 first element.
+
+.. seealso:: :doc:`/tutorial/query-documents`

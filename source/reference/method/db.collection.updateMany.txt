@@ -1,0 +1,273 @@
+==========================
+db.collection.updateMany()
+==========================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. method:: db.collection.updateMany(filter, update, options)
+
+   .. versionadded:: 3.2
+   
+   Updates multiple documents within the collection based on the filter.
+   
+   The :method:`~db.collection.updateMany()` method has the following form:
+
+   .. code-block:: javascript
+
+      db.collection.updateMany(
+         <filter>,
+         <update>,
+         {
+           upsert: <boolean>,
+           writeConcern: <document>
+         }
+      )
+
+   The :method:`~db.collection.updateMany()` method takes the following
+   parameters:
+
+   .. include:: /includes/apiargs/method-db.collection.updateMany-param.rst
+
+
+   :returns:
+      
+      A document containing:
+      
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled
+       
+      - ``matchedCount`` containing the number of matched documents
+      
+      - ``modifiedCount`` containing the number of modified documents
+      
+      - ``upsertedId`` containing the ``_id`` for the upserted document
+
+Behavior
+--------
+
+:method:`~db.collection.updateMany()` updates all matching documents in 
+the collection that match the ``filter``, using the ``update`` criteria 
+to apply modifications.
+
+If ``upsert: true`` and no documents match the ``filter``, 
+:method:`~db.collection.updateMany()` creates a new 
+document based on the ``filter`` and ``update`` parameters. See 
+:ref:`updateMany-example-update-multiple-documents-with-upsert`.
+
+.. _updateMany-capped-collections:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+:method:`~db.collection.updateMany()` throws a ``WriteError`` if the 
+``update`` criteria increases the size of any matching document in a 
+:term:`capped collection`.
+
+.. TBD - need to test more thoroughly to pin down func.
+.. Sharded Collections
+.. ~~~~~~~~~~~~~~~~~~~
+
+
+Explainability
+~~~~~~~~~~~~~~
+
+.. |write-method| replace:: :method:`~db.collection.updateMany()`
+.. |old-write-method| replace:: :method:`~db.collection.update()`
+
+.. include:: /includes/fact-bulkwrite-explainable.rst
+
+.. _updateMany-method-examples:
+
+Examples
+--------
+
+.. _updateMany-example-update-multiple-documents:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``restaurant`` collection contains the  following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : "2" },
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : "5" },
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : "8" }
+
+The following operation updates all documents where ``violations`` are 
+greater than ``4`` and :update:`$set` a flag for review:
+
+.. code-block:: javascript
+
+   try {
+      db.inventory.updateMany( 
+         { violations: { $gt: 4 } }, 
+         { $set: { "Review" : true } } 
+      );
+   }
+   catch (e) {
+      print(e);
+   }
+  
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+   
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 },
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : "2" },
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : "5", "Review" : true },
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : "8", "Review" : true }
+
+If no matches were found, the operation instead returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+
+Setting ``upsert: true`` would insert a document if no match was found.
+
+.. _updateMany-example-update-multiple-documents-with-upsert:
+
+Update Multiple Documents with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``inspectors`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false }
+
+The following operation updates all documents with ``violations`` that 
+are greater than ``10``:
+
+.. code-block:: javascript
+
+   try {
+      db.inspectors.updateMany( 
+         { "inspector" : "J. Clouseau", "Sector" : 4 }, 
+         { $set: { "Patrolling" : false } }, 
+         { upsert: true }
+      );
+   }
+   catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : 92416
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
+   { "_id" : 92416, "inspector" : "J. Clouseau", "Sector" : 4, "Patrolling" : false }
+
+No documents in the collection matched the ``filter``, so a new document was 
+created.
+
+The following operation updates all documents with ``Sector`` greater than 4 
+for ``inspector : "R. Coltrane"``:
+
+.. code-block:: javascript
+
+   try {
+      db.inspectors.updateMany(
+         { "Sector" : { $gt : 4 }, "inspector" : "R. Coltrane" },
+         { $set: { "Patrolling" : false } },
+         { upsert: true }
+   	);
+   }
+   catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "matchedCount" : 0,
+      "modifiedCount" : 0,
+      "upsertedId" : 92417
+   }
+
+The collection now contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
+   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
+   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
+   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
+   { "_id" : 92416, "inspector" : "J. Clouseau", "Sector" : 4, "Patrolling" : false },
+   { "_id" : 92417, "inspector" : "R. Coltrane", "Patrolling" : false }
+
+Since no documents matched the filter, and ``upsert`` was ``true``, 
+:method:`~db.collection.updateMany` inserted the document with a generated 
+``_id``, the equality operator from ``filter``, and the ``update`` modifiers.
+
+.. _updateMany-example-update-with-write-concern:
+
+Update with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.restaurant.updateMany(
+          { "name" : "Pizza Rat's Pizzaria" },
+          { $inc: { "violations" : 3}, $set: { "Closed" : true } },
+          { w: "majority", wtimeout: 100 }
+      );
+   }
+   catch (e) {
+      print(e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errInfo" : {
+         "wtimeout" : true
+      },
+      "errmsg" : "waiting for replication timed out"
+   }) :
+   undefined
+
+The ``wtimeout`` error only indicates that the operation did not complete on 
+time. The write operation itself can still succeed outside of the set time 
+limit.
+

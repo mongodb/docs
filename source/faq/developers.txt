@@ -42,21 +42,6 @@ perspective of MongoDB between ``acme``, ``acme.users``, and
 .. [#ns-limit] MongoDB database have a configurable limit on the
    :limit:`number of namespaces <Number of Namespaces>` in a database.
 
-How do you copy all objects from one collection to another?
------------------------------------------------------------
-
-In the :program:`mongo` shell, you can use the following operation to
-duplicate the entire collection:
-
-.. code-block:: javascript
-
-   db.source.copyTo(newCollection)
-
-.. include:: /includes/warning-copyto-loss-of-type-fidelity.rst
-
-Also consider the :dbcommand:`cloneCollection` :term:`command
-<database command>` that may provide some of this functionality.
-
 If you remove a document, does MongoDB remove it from disk?
 -----------------------------------------------------------
 
@@ -68,25 +53,18 @@ exist in MongoDB's on-disk data storage.
 When does MongoDB write updates to disk?
 ----------------------------------------
 
-MongoDB flushes writes to disk on a regular interval. In the default
-configuration, MongoDB writes data to the main data files on disk
-every 60 seconds and commits the :term:`journal` roughly every 100
-milliseconds. These values are configurable with the
-:setting:`~storage.journal.commitIntervalMs` and :setting:`~storage.syncPeriodSecs`.
+MongoDB flushes writes to disk on a regular interval. 
 
-These values represent the *maximum* amount of time between the
-completion of a write operation and the point when the write is
-durable in the journal, if enabled, and when MongoDB flushes data to
-the disk. In many cases MongoDB and the operating system flush data to
-disk more frequently, so that the above values represents a
-theoretical maximum.
+MMAPv1
+   .. include:: /includes/fact-mmapv1-write-to-disk.rst
 
-However, by default, MongoDB uses a "lazy" strategy to write to
-disk. This is advantageous in situations where the database receives a
-thousand increments to an object within one second, MongoDB only needs
-to flush this data to disk once. In addition to the aforementioned
-configuration options, you can also use :dbcommand:`fsync` and
-:doc:`/reference/write-concern` to modify this strategy.
+WiredTiger
+   For the data files, MongoDB
+   creates checkpoints (i.e. write the snapshot data to disk) at
+   intervals of 60 seconds or 2 gigabytes of data to write, depending
+   on which occurs first. For the journal data,
+
+   .. include:: /includes/extracts/wt-journal-sync-list.rst
 
 How do I do transactions and locking in MongoDB?
 ------------------------------------------------
@@ -103,7 +81,7 @@ MongoDB *does* have support for atomic operations *within* a single
 document. Given the possibilities provided by nested documents, this
 feature provides support for a large number of use-cases.
 
-.. seealso:: The :doc:`/tutorial/isolate-sequence-of-operations` page.
+.. seealso:: The :doc:`/core/write-operations-atomicity` page.
 
 How do you aggregate data with MongoDB?
 ---------------------------------------
@@ -296,7 +274,6 @@ All of the following MongoDB operations permit you to run arbitrary JavaScript
 expressions directly on the server:
 
 - :query:`$where`
-- :method:`db.eval()`
 - :dbcommand:`mapReduce`
 - :dbcommand:`group`
 
@@ -309,23 +286,10 @@ JavaScript and non-JavaScript in a single query. Place all the
 user-supplied fields directly in a :term:`BSON` field and pass
 JavaScript code to the :query:`$where` field.
 
-- If you need to pass user-supplied values in a :query:`$where`
-  clause, you may escape these values with the ``CodeWScope``
-  mechanism. When you set user-submitted values as variables in the
-  scope document,  you can avoid evaluating them on the database
-  server.
-
-- If you need to use :method:`db.eval()` with user supplied values, you can
-  either use a ``CodeWScope`` or you can supply extra arguments to your
-  function. For instance:
-
-  .. code-block:: sh
-
-     db.eval(function(userVal){...},
-             user_value);
-
-  This will ensure that your application sends ``user_value`` to the
-  database server as data rather than code.
+If you need to pass user-supplied values in a :query:`$where` clause,
+you may escape these values with the ``CodeWScope`` mechanism. When you
+set user-submitted values as variables in the scope document, you can
+avoid evaluating them on the database server.
 
 .. _faq-dollar-sign-escaping:
 
@@ -388,17 +352,18 @@ driver documentation for more information
 How does MongoDB provide concurrency?
 -------------------------------------
 
-MongoDB implements a readers-writer lock. This means that
-at any one time, only one client may be writing or any number
-of clients may be reading, but that reading and writing cannot
-occur simultaneously.
+.. include:: /includes/extracts/lock-general.rst
 
-In standalone and :term:`replica sets <replica set>` the lock's scope
-applies to a single :program:`mongod` instance or :term:`primary`
-instance. In a sharded cluster, locks apply to each individual shard,
-not to the whole cluster.
+.. include:: /includes/extracts/lock-replica-set-primary.rst
+
+.. include:: /includes/extracts/lock-sharding.rst
 
 For more information, see :doc:`/faq/concurrency`.
+
+.. [#mgl-ref] See the Wikipedia page on
+   `Multiple granularity locking
+   <http://en.wikipedia.org/wiki/Multiple_granularity_locking>`_ for
+   more information.
 
 .. _faq-dev-compare-order-for-BSON-types:
 
@@ -495,59 +460,78 @@ apply:
 How do I query for fields that have null values?
 ------------------------------------------------
 
-Fields in a document may store ``null`` values, as in a notional
-collection, ``test``, with the following documents:
+Different query operators treat ``null`` values differently.
+
+Consider the collection ``test`` with the following documents:
 
 .. code-block:: javascript
 
    { _id: 1, cancelDate: null }
    { _id: 2 }
 
-Different query operators treat ``null`` values differently:
+.. _faq-comparison-with-null:
 
-- The ``{ cancelDate : null }`` query matches documents that either
-  contains the ``cancelDate`` field whose value is ``null`` *or* that
-  do not contain the ``cancelDate`` field:
+Comparison with Null
+~~~~~~~~~~~~~~~~~~~~
 
-  .. code-block:: javascript
+The ``{ cancelDate : null }`` query matches documents that either
+contain the ``cancelDate`` field whose value is ``null`` *or* that
+do not contain the ``cancelDate`` field. If the queried index is
+:ref:`sparse <index-type-sparse>`, however, then the query will only match
+``null`` values, not missing fields.
 
-     db.test.find( { cancelDate: null } )
+.. versionchanged:: 2.6
+   If using the sparse index results in an incomplete result, MongoDB will not
+   use the index unless a :method:`~cursor.hint()` explicitly specifies the
+   index. See :ref:`index-type-sparse` for more information.
 
-  The query returns both documents:
+Given the following query:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     { "_id" : 1, "cancelDate" : null }
-     { "_id" : 2 }
+   db.test.find( { cancelDate: null } )
 
-- The ``{ cancelDate : { $type: 10 } }`` query matches documents that
-  contains the ``cancelDate`` field whose value is ``null`` *only*;
-  i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
-  (i.e. ``10``) :
+The query returns both documents:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.test.find( { cancelDate : { $type: 10 } } )
+   { "_id" : 1, "cancelDate" : null }
+   { "_id" : 2 }
 
-  The query returns only the document that contains the ``null`` value:
+Type Check
+~~~~~~~~~~
 
-  .. code-block:: javascript
+The ``{ cancelDate : { $type: 10 } }`` query matches documents that
+contains the ``cancelDate`` field whose value is ``null`` *only*;
+i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
+(i.e. ``10``) :
 
-     { "_id" : 1, "cancelDate" : null }
+.. code-block:: javascript
 
-- The ``{ cancelDate : { $exists: false } }`` query matches documents
-  that do not contain the ``cancelDate`` field:
+   db.test.find( { cancelDate : { $type: 10 } } )
 
-  .. code-block:: javascript
+The query returns only the document that contains the ``null`` value:
 
-     db.test.find( { cancelDate : { $exists: false } } )
+.. code-block:: javascript
 
-  The query returns only the document that does *not* contain the
-  ``cancelDate`` field:
+   { "_id" : 1, "cancelDate" : null }
 
-  .. code-block:: javascript
+Existence Check
+~~~~~~~~~~~~~~~
 
-     { "_id" : 2 }
+The ``{ cancelDate : { $exists: false } }`` query matches documents
+that do not contain the ``cancelDate`` field:
+
+.. code-block:: javascript
+
+   db.test.find( { cancelDate : { $exists: false } } )
+
+The query returns only the document that does *not* contain the
+``cancelDate`` field:
+
+.. code-block:: javascript
+
+   { "_id" : 2 }
 
 .. seealso:: The reference documentation for the :query:`$type` and
    :query:`$exists` operators.
@@ -570,12 +554,12 @@ exceptions:
 
 - Do not name a collection using the ``system.`` prefix. MongoDB
   reserves ``system.``
-  for system collections, such as the
-  ``system.indexes`` collection.
+  for system collections.
 
-- The maximum size of a collection name is 128 characters, including
-  the name of the database. However, for maximum flexibility,
-  collections should have names less than 80 characters.
+- .. include:: /includes/fact-collection-namespace-limit.rst
+
+  However, for maximum flexibility, collections should have names less
+  than 80 characters.
 
 If your collection name includes special characters, such as the
 underscore character, then to access the collection use the
@@ -601,10 +585,11 @@ driver <>`.
 How do I isolate cursors from intervening write operations?
 -----------------------------------------------------------
 
-MongoDB cursors can return the same document more than once in some
-situations. [#duplicate-document-in-result-set]_ You can use the
-:method:`~cursor.snapshot()` method on a cursor to isolate
-the operation for a very specific case.
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, MongoDB cursors
+can return the same document more than once in some situations.
+[#duplicate-document-in-result-set]_ You can use the
+:method:`~cursor.snapshot()` method on a cursor to isolate the
+operation for a very specific case.
 
 :method:`~cursor.snapshot()` traverses the index on the ``_id`` field
 and guarantees that the query will return each document (with respect to
@@ -622,20 +607,20 @@ provide isolation from insert or delete operations.
    - You **cannot** use :method:`~cursor.snapshot()` with
      :method:`~cursor.sort()` or :method:`~cursor.hint()` cursor methods.
 
-
 As an alternative, if your collection has a field or fields that are
 never modified, you can use a *unique* index on this field or these
 fields to achieve a similar result as the :method:`~cursor.snapshot()`.
 Query with :method:`~cursor.hint()` to explicitly force the query to use
 that index.
 
-.. [#duplicate-document-in-result-set] As a cursor returns documents other
-   operations may interleave with the query: if some of these
-   operations are :doc:`updates </core/write-operations>` that cause the
-   document to move (in the case of a table scan, caused by document
-   growth) or that change the indexed field on the index used by the
-   query; then the cursor will return the same document more than
-   once.
+.. [#duplicate-document-in-result-set] 
+   As a cursor returns documents other operations may interleave with
+   the query: with :doc:`MMAPv1 storage engine </core/mmapv1>`, if some
+   of these operations are :doc:`updates </core/write-operations>` that
+   cause the document to move (in the case of a table scan, caused by
+   document growth) or that change the indexed field on the index used
+   by the query; then the cursor will return the same document more
+   than once.
 
 .. [#id-is-immutable] MongoDB does not permit changes to the value of the
    ``_id`` field; it is not possible for a cursor that transverses
@@ -662,7 +647,7 @@ then you should maintain that model.
 If, however, you can group these small documents by some logical
 relationship *and* you frequently retrieve the documents by this
 grouping, you might consider "rolling-up" the small documents into
-larger documents that contain an array of subdocuments. Keep in mind
+larger documents that contain an array of embedded documents. Keep in mind
 that if you often only need to retrieve a subset of the documents
 within the group, then "rolling-up" the documents may not provide
 better performance.
@@ -705,7 +690,7 @@ additional examples:
 
 .. `Document Design for MongoDB <http://oreilly.com/catalog/0636920018391>`_
 
-- `Schema Design by Example <http://www.10gen.com/presentations/mongodb-melbourne-2012/schema-design-example>`_
+- `Schema Design by Example <http://www.mongodb.com/presentations/mongodb-melbourne-2012/schema-design-example>`_
 
 - `Dynamic Schema Blog Post
   <http://dmerr.tumblr.com/post/6633338010/schemaless>`_
@@ -726,20 +711,19 @@ additional examples:
 Can I manually pad documents to prevent moves during updates?
 -------------------------------------------------------------
 
-An update can cause a document to move on disk if the document grows in
-size. To *minimize* document movements, MongoDB uses
-:term:`padding`.
+.. versionchanged:: 3.0.0
 
-You should not have to pad manually because MongoDB adds
-:ref:`padding automatically <record-allocation-strategies>` and can
-adaptively adjust the amount of padding added to documents to prevent
-document relocations following updates.
-You can change the default :data:`~collStats.paddingFactor`
-calculation by using the :dbcommand:`collMod` command with the
-:collflag:`usePowerOf2Sizes` flag. The :collflag:`usePowerOf2Sizes`
-flag ensures that MongoDB allocates document space in sizes that are
-powers of 2, which helps ensure that MongoDB can efficiently reuse
-free space created by document deletion or relocation.
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, an update can
+cause a document to move on disk if the document grows in size. To
+*minimize* document movements, MongoDB uses :term:`padding`.
+
+You should not have to pad manually because by default, MongoDB uses
+:ref:`power-of-2-allocation` to add :ref:`padding automatically
+<record-allocation-strategies>`. The :ref:`power-of-2-allocation`
+ensures that MongoDB allocates document space in sizes that are powers
+of 2, which helps ensure that MongoDB can efficiently reuse free space
+created by document deletion or relocation as well as reduce the
+occurrences of reallocations in many cases.
 
 However, *if you must* pad a document manually, you can add a
 temporary field to the document and then :update:`$unset` the field,

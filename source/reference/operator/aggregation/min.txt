@@ -4,20 +4,42 @@ $min (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. group:: $min
 
-   Returns the lowest value that results from applying an expression to
-   each document in a group of documents that share the same group by
-   key.
+   Returns the minimum value. :group:`$min` compares both value and
+   type, using the :ref:`specified BSON comparison order
+   <bson-types-comparison-order>` for values of different types.
 
-   .. |accumulator| replace:: :group:`$min`
-   .. include:: /includes/fact-aggregation-accumulator.rst
+   .. include:: /includes/extracts/fact-aggregation-accumulator-min.rst
 
-   :expression:`$min` has the following syntax:
+   When used in the :pipeline:`$group` stage, :expression:`$min` has the
+   following syntax and returns the minimum value that results
+   from applying an expression to each document in a group of documents
+   that share the same group by key:
 
    .. code-block:: javascript
 
       { $min: <expression> }
+
+   When used in the :pipeline:`$project` stage, :expression:`$min` returns the
+   minimum of the specified expression or list of expressions for each
+   document and has one of two syntaxes:
+
+   - :expression:`$min` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $min: <expression> }
+
+   - :expression:`$min` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $min: [ <expression1>, <expression2> ... ]  }
 
    For more information on expressions, see
    :ref:`aggregation-expressions`.
@@ -25,7 +47,8 @@ $min (aggregation)
 Behavior
 --------
 
-.. versionchanged:: 2.4
+Null or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~
 
 If some, **but not all**, documents for the :group:`$min`
 operation have either a ``null`` value for the field or are
@@ -36,13 +59,20 @@ If **all** documents for the :group:`$min` operation have ``null``
 value for the field or are missing the field, the :group:`$min`
 operator returns ``null`` for the minimum value.
 
-Before 2.4, if any of the documents for the :group:`$min` operation
-were missing the field, the :group:`$min` operator would not return any
-value. If any of the documents for the :group:`$min` had the value
-``null``, the :group:`$min` operator would return a ``null``.
+Array Operand
+~~~~~~~~~~~~~
 
-Example
--------
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$min` does not traverse the array and compares the array
+as a whole.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-min.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider a ``sales`` collection with the following documents:
 
@@ -79,3 +109,40 @@ The operation returns the following results:
    { "_id" : "xyz", "minQuantity" : 5 }
    { "_id" : "jkl", "minQuantity" : 1 }
    { "_id" : "abc", "minQuantity" : 2 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$min` in the
+:pipeline:`$project` stage to calculate the minimum quiz scores, the
+minimum lab scores, and the minimum of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      { 
+        $project: {
+          quizMin: { $min: "$quizzes"},
+          labMin: { $min: "$labs" },
+          examMin: { $min: [ "$final", "$midterm" ] }
+        }
+      }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "quizMin" : 6, "labMin" : 5, "examMin" : 75 }
+   { "_id" : 2, "quizMin" : 9, "labMin" : 8, "examMin" : 80 }
+   { "_id" : 3, "quizMin" : 4, "labMin" : 5, "examMin" : 70 }
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-min.rst

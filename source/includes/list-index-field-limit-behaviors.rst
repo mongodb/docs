@@ -1,4 +1,4 @@
-MongoDB 2.6 implements a stronger enforcement of the limit on
+MongoDB versions 2.6 and greater implement a stronger enforcement of the limit on
 :limit:`index key <Index Key Limit>`:
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst

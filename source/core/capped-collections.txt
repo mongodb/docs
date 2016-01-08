@@ -4,9 +4,12 @@ Capped Collections
 
 .. default-domain:: mongodb
 
+Overview
+--------
+
 :term:`Capped collections <capped collection>` are fixed-size
-collections that support high-throughput operations that insert,
-retrieve, and delete documents based on insertion order. Capped
+collections that support high-throughput operations that insert
+and retrieve documents based on insertion order. Capped
 collections work in a way similar to circular buffers: once a
 collection fills its allocated space, it makes room for new documents
 by overwriting the oldest documents in the collection.
@@ -14,21 +17,23 @@ by overwriting the oldest documents in the collection.
 See :method:`~db.createCollection()` or :dbcommand:`create`
 for more information on creating capped collections.
 
-Capped collections have the following behaviors:
+Behavior
+--------
 
-- Capped collections guarantee preservation of the insertion order. As
-  a result, queries do not need an index to return documents in
-  insertion order. Without this indexing overhead, they can
-  support higher insertion throughput.
+Insertion Order
+~~~~~~~~~~~~~~~
 
-- Capped collections guarantee that insertion order is identical to the
-  order on disk (:term:`natural order`) and do so by prohibiting updates
-  that increase document size. Capped collections only allow updates
-  that fit the original document size, which ensures a document does not
-  change its location on disk.
+Capped collections guarantee preservation of the insertion order. As a
+result, queries do not need an index to return documents in insertion
+order. Without this indexing overhead, capped collections can support
+higher insertion throughput.
 
-- Capped collections automatically remove the oldest documents in the
-  collection without requiring scripts or explicit remove operations.
+Automatic Removal of Oldest Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To make room for new documents, capped collections automatically remove
+the oldest documents in the collection without requiring scripts or
+explicit remove operations.
 
 For example, the :term:`oplog.rs <oplog>` collection that stores a log
 of the operations in a :term:`replica set` uses a capped
@@ -47,66 +52,79 @@ collections:
   RAM) *or* accept some write penalty for the required index or
   indexes.
 
+``_id`` Index
+~~~~~~~~~~~~~
+
+.. versionchanged:: 2.4
+
+Capped collections have an ``_id`` field and an index on the ``_id``
+field by default.
+  
 .. _capped-collections-recommendations-and-restrictions:
 
-Recommendations and Restrictions
+Restrictions and Recommendations
 --------------------------------
 
-- You can only make in-place updates of documents. If the update operation
-  causes the document to grow beyond their original size, the update
-  operation will fail.
+Updates
+~~~~~~~
 
-  If you plan to update documents in a capped collection, create an
-  index so that these update operations do not require a table scan.
+If you plan to update documents in a capped collection, create an index
+so that these update operations do not require a table scan.
 
-- If you update a document in a capped collection to a size smaller than
-  its original size, and then a secondary resyncs from the primary, the
-  secondary will replicate and allocate space based on the current smaller
-  document size. If the primary then receives an update which increases
-  the document back to its original size, the primary will accept
-  the update but the secondary will fail with a ``failing update: objects
-  in a capped ns cannot grow`` error message.
+With MMAPv1, you can only make in-place updates of documents. If the
+update operation causes a document to grow beyond the document's
+original size, the update operation will fail.
 
-  To prevent this error, create your secondary from a snapshot of one
-  of the other up-to-date members of the replica set. Follow :doc:`our
-  tutorial on filesystem snapshots
-  </tutorial/backup-with-filesystem-snapshots>` to seed your new secondary.
+Replica Sets with MMAPv1 Secondaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Seeding the secondary with a filesystem snapshot is the only way to
-  guarantee the primary and secondary binary files are compatible.
-  MMS Backup snapshots are insufficient in this situation since you
-  need more than the content of the secondary to match the primary.
+If you update a document in a capped collection to a size smaller than
+its original size and a secondary resyncs from the primary, the
+secondary will replicate and allocate space based on the current
+smaller document size. 
 
-- You cannot delete documents from a capped collection. To remove all
-  records from a capped collection, use the 'emptycapped' command. To
-  remove the collection entirely, use the :method:`~db.collection.drop()`
-  method.
+If the primary then receives an update which increases the document
+back to its original size, the primary will accept the update. However,
+for MMAPv1, the secondary will fail with a ``failing update: objects in
+a capped ns cannot grow`` error message.
 
-- You cannot shard a capped collection.
+To prevent this error, create your secondary from a snapshot of one of
+the other up-to-date members of the replica set. Follow the :doc:`
+tutorial on filesystem snapshots
+</tutorial/backup-with-filesystem-snapshots>` to seed your new
+secondary.
 
-- Capped collections created after 2.2 have an ``_id`` field and an
-  index on the ``_id`` field by default. Capped collections created
-  before 2.2 do not have an index on the ``_id`` field by default. If
-  you are using capped collections with replication prior to 2.2, you
-  should explicitly create an index on the ``_id`` field.
+Seeding the secondary with a filesystem snapshot is the only way to
+guarantee the primary and secondary binary files are compatible.
+|MMS| Backup snapshots are insufficient in this situation since you
+need more than the content of the secondary to match the primary.
 
-  .. warning::
+Document Deletion
+~~~~~~~~~~~~~~~~~
 
-     If you have a capped collection in a :term:`replica set` outside
-     of the ``local`` database, before 2.2, you should create a
-     unique index on ``_id``. Ensure uniqueness using the ``unique:
-     true`` option to the :method:`~db.collection.ensureIndex()`
-     method or by using an :term:`ObjectId` for the ``_id`` field.
-     Alternately, you can use the ``autoIndexId`` option to
-     :dbcommand:`create` when creating the capped collection, as in the
-     :ref:`capped-collections-options` procedure.
+You cannot delete documents from a capped collection. To remove all
+documents from a collection, use the :method:`~db.collection.drop()`
+method to drop the collection and recreate the capped collection.
 
-- Use natural ordering to retrieve the most recently inserted elements
-  from the collection efficiently. This is (somewhat) analogous to
-  tail on a log file.
+Sharding
+~~~~~~~~
 
-- The aggregation pipeline operator :pipeline:`$out` cannot write
-  results to a capped collection.
+You cannot shard a capped collection.
+
+Query Efficiency
+~~~~~~~~~~~~~~~~
+
+Use natural ordering to retrieve the most recently inserted elements
+from the collection efficiently. This is (somewhat) analogous to tail
+on a log file.
+
+Aggregation ``$out``
+~~~~~~~~~~~~~~~~~~~~
+
+The aggregation pipeline operator :pipeline:`$out` cannot write results
+to a capped collection.
+
+.. include:: /includes/replacement-mms.rst
 
 Procedures
 ----------
@@ -125,6 +143,10 @@ internal overhead.
 .. code-block:: javascript
 
    db.createCollection( "log", { capped: true, size: 100000 } )
+
+If the ``size`` field is less than or equal to 4096, then the collection will
+have a cap of 4096 bytes. Otherwise, MongoDB will raise the provided size to
+make it an integer multiple of 256.
 
 Additionally, you may also specify a maximum number of documents for the
 collection using the ``max`` field as in the following document:

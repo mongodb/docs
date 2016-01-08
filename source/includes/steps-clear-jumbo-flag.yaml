@@ -1,0 +1,92 @@
+title: Stop the balancer.
+ref: disable-balancer
+level: 4
+content: |
+  Disable the cluster balancer process temporarily, following the steps
+  outlined in :ref:`sharding-balancing-disable-temporarily`.
+---
+title: Create a backup of ``config`` database.
+ref: backup-config
+level: 4
+pre: |
+  Use :program:`mongodump` against a config server to create a backup
+  of the ``config`` database. For example:
+action:
+    language: none
+    code: |
+      mongodump --db config --port <config server port> --out <output file>
+---
+title: Connect to ``mongos``.
+ref: connect-mongos
+level: 4
+content: |
+   Connect a :program:`mongo` shell to a :program:`mongos`.
+---
+title: Find the ``jumbo`` Chunk.
+ref: find-jumbo
+level: 4
+pre: |
+   Run :method:`sh.status(true) <sh.status>` to find the chunk labeled
+   ``jumbo``.
+action:
+   - pre: ""
+     language: javascript
+     code: |
+      sh.status(true)
+   - pre: |
+      For example, the following output from sh.status(true) shows that
+      chunk with shard key range ``{ "x" : 2 } -->> { "x" : 3 }`` is
+      ``jumbo``.
+     language: none
+     code: |
+       --- Sharding Status ---
+         sharding version: {
+            ...
+         }
+         shards:
+            ...
+         databases:
+            ...
+               test.foo
+                  shard key: { "x" : 1 }
+               chunks:
+                    shard-b  2
+                    shard-a  2
+               { "x" : { "$minKey" : 1 } } -->> { "x" : 1 } on : shard-b Timestamp(2, 0) 
+               { "x" : 1 } -->> { "x" : 2 } on : shard-a Timestamp(3, 1) 
+               { "x" : 2 } -->> { "x" : 3 } on : shard-a Timestamp(2, 2) jumbo 
+               { "x" : 3 } -->> { "x" : { "$maxKey" : 1 } } on : shard-b Timestamp(3, 0)
+---
+title: Update ``chunks`` collection.
+ref: update-collection
+level: 4
+pre: |
+   In the ``chunks`` collection of the ``config`` database, unset the
+   ``jumbo`` flag for the chunk. For example, 
+action:
+   language: javascript
+   code: |
+     db.getSiblingDB("config").chunks.update(
+        { ns: "test.foo", min: { x: 2 }, jumbo: true },
+        { $unset: { jumbo: "" } }
+     )
+---
+title: Restart the balancer.
+ref: restart-balancer
+level: 4
+content: |
+   Restart the balancer, following the steps in
+   :ref:`sharding-balancing-enable`.
+---
+title: Optional. Clear current cluster meta information.
+ref: flush-router-config
+level: 4
+pre: |
+   To ensure that :program:`mongos` instances update their cluster
+   information cache, run :dbcommand:`flushRouterConfig` in the
+   ``admin`` database.
+action:
+   language: javascript
+   code: |
+     db.adminCommand({ flushRouterConfig: 1 } )
+...

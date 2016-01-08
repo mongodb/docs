@@ -55,11 +55,13 @@ sub-quadrants would be (clockwise from the top left): ``1101``,
 Multi-location Documents for ``2d`` Indexes
 -------------------------------------------
 
-.. versionadded:: 2.0
-   Support for multiple locations in a document.
+.. note::
+   :doc:`2dsphere </core/2dsphere>` indexes can cover multiple geospatial fields
+   in a document, and can express lists of points using
+   :ref:`geojson-multipoint` embedded documents.
 
-While ``2d`` geospatial indexes do not support more than one set of
-coordinates in a document, you can use a :ref:`multi-key index
+While ``2d`` geospatial indexes do not support more than one geospatial field
+in a document, you can use a :ref:`multi-key index
 <index-type-multi-key>` to index multiple coordinate pairs in
 a single document. In the simplest example you may have a field (e.g.
 ``locs``) that holds an array of coordinates, as in the following
@@ -67,11 +69,11 @@ example:
 
 .. code-block:: javascript
 
-   { _id : ObjectId(...),
+   db.places.save( {
      locs : [ [ 55.5 , 42.3 ] ,
               [ -74 , 44.74 ] ,
               { lng : 55.5 , lat : 42.3 } ]
-   }
+   } )
 
 The values of the array may be either arrays, as in ``[ 55.5, 42.3 ]``,
 or embedded documents, as in ``{ lng : 55.5 , lat : 42.3 }``.
@@ -81,35 +83,35 @@ the following:
 
 .. code-block:: javascript
 
-   db.places.ensureIndex( { "locs": "2d" } )
+   db.places.createIndex( { "locs": "2d" } )
 
-You may also model the location data as a field inside of a
-sub-document. In this case, the document would contain a field
+You may also model the location data as a field inside of an
+embedded document. In this case, the document would contain a field
 (e.g. ``addresses``) that holds an array of documents where each
 document has a field (e.g. ``loc:``) that holds location
 coordinates. For example:
 
 .. code-block:: javascript
 
-   { _id : ObjectId(...),
-     name : "...",
+   db.records.save( {
+     name : "John Smith",
      addresses : [ {
                     context : "home" ,
                     loc : [ 55.5, 42.3 ]
                    } ,
                    {
-                    context : "home",
+                    context : "work",
                     loc : [ -74 , 44.74 ]
                    }
                  ]
-   }
+   } )
 
 You could then create the geospatial index on the ``addresses.loc`` field as
 in the following example:
 
 .. code-block:: javascript
 
-   db.records.ensureIndex( { "addresses.loc": "2d" } )
+   db.records.createIndex( { "addresses.loc": "2d" } )
 
 To include the location field with the distance field in multi-location
 document queries, specify ``includeLocs: true`` in the

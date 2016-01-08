@@ -66,15 +66,17 @@ default: |
 directive: option
 description: |
   .. versionchanged:: 2.6.0
-     The ``deb`` and ``rpm`` packages include a default
-     configuration file that sets {{role}} to ``127.0.0.1``.
+     The ``deb`` and ``rpm`` packages include a default configuration
+     file (``/etc/mongod.conf``) that sets {{role}} to ``127.0.0.1``.
 
-  Specifies the IP address that {{program}} binds to in order to listen
+  {{intro}} IP address that {{program}} binds to in order to listen
   for connections from applications. You may attach {{program}} to any
   interface. When attaching {{program}} to a publicly accessible
   interface, ensure that you have implemented proper authentication and
   firewall restrictions to protect the integrity of your database.
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: maxConns
@@ -85,8 +87,10 @@ description: |
   accept. This setting has no effect if it is higher than your operating
   system's configured maximum connection tracking threshold.
 
-  .. versionchanged:: 2.6
-     MongoDB removed the upward limit on the :setting:`~net.maxIncomingConnections` setting.
+  Do not assign too low of a value to this option, or you will encounter errors
+  during normal application operation.
+post: |
+  .. include:: /includes/note-max-conns-max.rst
 optional: true
 ---
 program: mongod
@@ -126,9 +130,8 @@ description: |
   standard output or to the host's :term:`syslog` system. MongoDB creates
   the log file at the path you specify.
 
-  By default, MongoDB overwrites the log file when the process restarts.
-  To instead append to the log file, set the :option:`--logappend` option.
-# todo:: Is the above still true about overwriting?
+  By default, MongoDB will move any existing log file rather than overwrite
+  it. To instead append to the log file, set the :option:`--logappend` option.
 optional: true
 ---
 program: mongod
@@ -136,9 +139,35 @@ name: logappend
 args: null
 directive: option
 description: |
-  Appends new entries to the end of the log file rather than overwriting
-  the content of the log when the {{program}} instance restarts.
+  {{intro}} new entries to the end of the existing log file when the {{program}}
+  instance restarts. Without this option, :program:`mongod` will back up the
+  existing log and create a new file.
 optional: true
+replacement:
+  intro: "Appends"
+---
+program: mongod
+name: logRotate
+args: <string>
+directive: option
+default: "rename"
+description: |
+
+  .. versionadded:: 3.0.0
+
+  {{intro}} behavior for the :dbcommand:`logRotate` command.
+  Specify either ``rename`` or ``reopen``:
+
+  - ``rename`` renames the log file.
+
+  - ``reopen`` closes and reopens the log file following the typical
+    Linux/Unix log rotate behavior. Use ``reopen`` when using the
+    Linux/Unix logrotate utility to avoid log loss.
+
+    If you specify ``reopen``, you must also {{logappend}}.
+replacement:
+   intro: "Determines the"
+   logappend: "use :option:`--logappend`"
 ---
 program: mongod
 name: timeStampFormat
@@ -172,7 +201,7 @@ description: |
 
        - Displays timestamps in local time in the ISO-8601
          format. For example, for New York at the start of the Epoch:
-         ``1969-12-31T19:00:00.000+0500``
+         ``1969-12-31T19:00:00.000-0500``
 optional: true
 ---
 program: mongod
@@ -192,35 +221,41 @@ args: <string>
 default: user
 directive: option
 description: |
-  Specifies the facility level used when logging messages to syslog.
+  {{verb}} facility level used when logging messages to syslog.
   The value you specify must be supported by your
   operating system's implementation of syslog. To use this option, you
   must enable the :option:`--syslog` option.
 optional: true
+replacement:
+  verb: "Specifies the"
 ---
 program: mongod
 name: pidfilepath
 args: <path>
 directive: option
 description: |
-  Specifies a file location to hold the process ID of the {{program}}
-  process. This is useful for tracking the {{program}} process in
-  combination with the :option:`--fork` option. Without a specified
-  {{role}} option, the process creates no PID file.
+  {{intro}} file location to hold the process ID of the {{program}}
+  process where {{program}} will write its PID. This is useful for
+  tracking the {{program}} process in combination with the
+  :option:`--fork` option. Without a specified {{role}} option, the
+  process creates no PID file.
 optional: true
+replacement:
+  intro: "Specifies a"
 ---
 program: mongod
 name: keyFile
 args: <file>
 directive: option
 description: |
-  Specifies the path to a key file to that stores the shared secret
+  {{intro}} path to a key file that stores the shared secret
   that MongoDB instances use to authenticate to each other in a
   :term:`sharded cluster` or :term:`replica set`. {{role}} implies
   {{auth_option}}. See :ref:`inter-process-auth` for more
   information.
 replacement:
   auth_option: ":option:`--auth`"
+  intro: "Specifies the"
 optional: true
 ---
 program: mongod
@@ -228,19 +263,24 @@ name: nounixsocket
 args: null
 directive: option
 description: |
-  Disables listening on the UNIX domain socket. The {{program}} process
+  {{intro}} listening on the UNIX domain socket. {{role}} applies only
+  to Unix-based systems.
+post: |
+  The {{program}} process
   always listens on the UNIX socket unless one of the following is true:
 
   - {{role}} is set
 
-  - :setting:`~net.bindIp` is not set
+  - :setting:`net.bindIp` is not set
 
-  - :setting:`~net.bindIp` does not specify ``127.0.0.1``
+  - :setting:`net.bindIp` does not specify ``127.0.0.1``
 
   .. |mongodb-package| replace:: {{program}}
 
   .. include:: /includes/note-deb-and-rpm-default-to-localhost.rst
 optional: true
+replacement:
+  intro: "Disables"
 ---
 program: mongod
 name: unixSocketPrefix
@@ -248,15 +288,31 @@ args: <path>
 default: /tmp
 directive: option
 description: |
-  The path for the UNIX socket. If this option has no value, the
+  The path for the UNIX socket. {{role}} applies only
+  to Unix-based systems.
+
+  If this option has no value, the
   {{program}} process creates a socket with ``/tmp`` as a prefix. MongoDB
   creates and listens on a UNIX socket unless one of the following is true:
 
+  - :setting:`net.unixDomainSocket.enabled` is ``false``
+
   - :option:`--nounixsocket` is set
 
-  - :setting:`~net.bindIp` is not set
+  - :setting:`net.bindIp` is not set
 
-  - :setting:`~net.bindIp` does not specify ``127.0.0.1``
+  - :setting:`net.bindIp` does not specify ``127.0.0.1``
+optional: true
+---
+program: mongod
+name: filePermissions
+args: <path>
+default: "``0700``"
+directive: option
+description: |
+  Sets the permission for the UNIX domain socket file.
+
+  {{role}} applies only to Unix-based systems.
 optional: true
 ---
 program: mongod
@@ -264,12 +320,14 @@ name: fork
 args: null
 directive: option
 description: |
-  Enables a :term:`daemon` mode that runs the {{program}} process in the
+  {{verb}} a :term:`daemon` mode that runs the {{program}} process in the
   background. By default {{program}} does not run as a daemon:
   typically you will run {{program}} as a daemon, either by using
   {{role}} or by using a controlling process that handles the
   daemonization process (e.g. as with ``upstart`` and ``systemd``).
 optional: true
+replacement:
+  verb: "Enables"
 ---
 program: mongod
 name: auth
@@ -289,7 +347,7 @@ description: |
   will continue to have access to the database until you create
   the first user.
 
-  See :doc:`Security </core/security-introduction>`
+  See :doc:`Security </security>`
   for more information.
 optional: true
 ---
@@ -300,9 +358,7 @@ args: null
 directive: option
 description: |
   Forces the {{program}} process to report the percentage of CPU time in
-  write lock. The process generates output every four seconds and writes
-  the data to standard output or, if you are using the :setting:`systemLog.path`
-  option, to the log file.
+  write lock, every four seconds.
 optional: true
 ---
 program: mongod
@@ -312,11 +368,21 @@ default: |
   ``/data/db`` on Linux and OS X, ``\data\db`` on Windows
 directive: option
 description: |
-  The directory where the {{program}} instance stores its data. If you
+  The directory where the {{program}} instance stores its data.
+
+  If you
   installed MongoDB using a package management system, check the
-  ``/etc/mongodb.conf`` file provided by your packages to see which
+  ``/etc/mongod.conf`` file provided by your packages to see the
   directory is specified.
+post: |
+  .. versionchanged:: 3.0
+     The files in {{role}} must correspond to the storage engine
+     specified in {{storage_engine}}. If the data files do not
+     correspond to {{storage_engine}}, {{program}} will refuse to
+     start.
 optional: true
+replacement:
+  storage_engine: :option:`--storageEngine`
 ---
 program: mongod
 name: diaglog
@@ -373,14 +439,14 @@ description: |
 
      mongosniff --source DIAGLOG /data/db/diaglog.4f76a58c
 
-   .. warning::
+  .. warning::
 
-      Setting the diagnostic level to ``0`` will cause :program:`mongod`
-      to stop writing data to the :term:`diagnostic log` file. However,
-      the :program:`mongod` instance will continue to keep the file open,
-      even if it is no longer writing data to the file. If you want to
-      rename, move, or delete the diagnostic log you must cleanly shut
-      down the :program:`mongod` instance before doing so.
+     Setting the diagnostic level to ``0`` will cause :program:`mongod`
+     to stop writing data to the :term:`diagnostic log` file. However,
+     the :program:`mongod` instance will continue to keep the file open,
+     even if it is no longer writing data to the file. If you want to
+     rename, move, or delete the diagnostic log you must cleanly shut
+     down the :program:`mongod` instance before doing so.
 optional: true
 ---
 program: mongod
@@ -388,48 +454,34 @@ name: directoryperdb
 args: null
 directive: option
 description: |
-  Stores each database's files in its own folder in the :term:`data
-  directory`. When applied to an existing system, the
-  :setting:`~storage.directoryPerDB` option alters the storage pattern of the data
-  directory.
+  {{intro}} a separate directory to store data for each database. The
+  directories are under the {{dbpath}} directory, and each subdirectory
+  name corresponds to the database name.
 
-  Use this option in conjunction with your file system and device
-  configuration so that MongoDB will store data on a number of distinct
-  disk devices to increase write throughput or disk capacity.
+  .. versionchanged:: 3.0
 
-  .. warning::
+     To change the {{role}} option for existing deployments, you must
+     restart the :program:`mongod` instances with the new {{role}}
+     value **and** a new data directory ({{newdbpath}}), and then
+     repopulate the data.
 
-     To enable this option for an **existing** system, migrate the
-     database-specific data files to the new directory structure before
-     enabling :setting:`~storage.directoryPerDB`. Database-specific data files
-     begin with the name of an existing database and end with either
-     "``ns``" or a number. For example, the following data directory
-     includes files for the ``local`` and ``test`` databases:
+     - For standalone instances, you can use :program:`mongodump` on
+       the existing instance, stop the instance, restart with the new
+       {{role}} value **and** a new data directory, and use
+       :program:`mongorestore` to populate the new data directory.
 
-     .. code-block:: none
+     - For replica sets, you can update in a rolling manner by stopping
+       a secondary member, restart with the new {{role}} value **and**
+       a new data directory, and use :ref:`initial sync
+       <replica-set-initial-sync>` to populate the new data directory.
+       To update all members, start with the secondary members first.
+       Then step down the primary, and update the stepped-down member.
 
-        journal
-        mongod.lock
-        local.0
-        local.1
-        local.ns
-        test.0
-        test.1
-        test.ns
-
-     After migration, the data directory would have the following structure:
-
-     .. code-block:: none
-
-        journal
-        mongod.lock
-        local/local.0
-        local/local.1
-        local/local.ns
-        test/test.0
-        test/test.1
-        test/test.ns
 optional: true
+replacement:
+  intro: "Uses"
+  dbpath: :option:`--dbpath`
+  newdbpath: :option:`--dbpath \<new path\> <--dbpath>`
 ---
 program: mongod
 name: journal
@@ -453,22 +505,26 @@ args: <value>
 default: 100 or 30
 directive: option
 description: |
-  The maximum amount of time the {{program}} process allows between
-  journal operations. Values can range from 2 to 300 milliseconds. Lower
+
+  {{versiondirective}}
+
+  The maximum amount of time in milliseconds that
+  the {{program}} process allows between
+  journal operations. Values can range from 1 to 500 milliseconds. Lower
   values increase the durability of the journal, at the expense of disk
-  performance.
+  performance.  The default journal commit interval is 100 milliseconds.
 
-  The default journal commit interval is 100 milliseconds if a single
-  block device (e.g. physical volume, RAID device, or LVM volume) contains
-  both the journal and the data files.
+  On MMAPv1, if the journal is on a different block device (e.g. physical
+  volume, RAID device, or LVM volume) than the data files, the default journal
+  commit interval is 30 milliseconds. Additionally, on MMAPv1, when a write
+  operation with ``j:true`` is pending, {{program}} will reduce
+  :setting:`~storage.journal.commitIntervalMs` to a third of the set value.
 
-  If the journal is on a different block device than the data files the
-  default journal commit interval is 30 milliseconds.
+  On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
+  a write with ``j:true`` will cause an immediate sync of the journal.
 
-  To force :program:`mongod` to commit to the journal more frequently, you
-  can specify ``j:true``. When a write operation with ``j:true`` is
-  pending, :program:`mongod` will reduce :setting:`~storage.journal.commitIntervalMs`
-  to a third of the set value.
+replacement:
+   versiondirective: ".. versionchanged:: 3.2"
 optional: true
 ---
 program: mongod
@@ -483,11 +539,13 @@ name: jsonp
 args: null
 directive: option
 description: |
-  Permits :term:`JSONP` access via an HTTP interface. Enabling the
+  {{verb}} :term:`JSONP` access via an HTTP interface. Enabling the
   interface can increase network exposure. The {{role}} option enables the
   HTTP interface, even if the :setting:`HTTP interface <net.http.enabled>`
   option is disabled.
 optional: true
+replacement:
+  verb: "Permits"
 ---
 program: mongod
 name: noauth
@@ -510,7 +568,10 @@ description: |
 
   Do not use in conjunction with :option:`--rest` or :option:`--jsonp`.
 
-  .. include:: /includes/note-kerberos-unsupported-in-http-console.rst
+  .. note::
+
+     - .. include:: /includes/fact-http-interface-kerberos.rst
+
 optional: true
 ---
 program: mongod
@@ -520,15 +581,20 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Enables the HTTP interface. Enabling the interface can increase
+  {{intro}} the HTTP interface. Enabling the interface can increase
   network exposure.
 
   Leave the HTTP interface *disabled* for production deployments. If you
   *do* enable this interface, you should only allow trusted clients to
   access this port. See :ref:`security-firewalls`.
 
-  .. include:: /includes/note-kerberos-unsupported-in-http-console.rst
+  .. note::
+
+     - .. include:: /includes/fact-http-interface-kerberos.rst
+
 optional: true
+replacement:
+  intro: "Enables"
 ---
 program: mongod
 name: clusterAuthMode
@@ -572,8 +638,7 @@ description: |
        - Recommended. Send the x.509 certificate for authentication and
          accept only x.509 certificates.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: mongod
@@ -590,10 +655,12 @@ name: noprealloc
 args: null
 directive: option
 description: |
-  Disables the preallocation of data files. This shortens the
-  start up time in some cases and can cause significant performance
-  penalties during normal operations.
-optional: true
+  .. deprecated:: 2.6
+
+  {{verb}} the preallocation of data files. Currently the default.
+  Exists for future compatibility and clarity.
+replacement:
+  verb: "Disables"
 ---
 program: mongod
 name: noscripting
@@ -617,7 +684,7 @@ args: <value>
 default: 16
 directive: option
 description: |
-  Specifies the default size for namespace files, which are files that end
+  {{verb}} default size for namespace files, which are files that end
   in ``.ns``. Each collection and index counts as a namespace.
 
   Use this setting to control size for newly created namespace files. This
@@ -625,6 +692,8 @@ description: |
   file is 2047 megabytes. The default value of 16 megabytes provides for
   approximately 24,000 namespaces.
 optional: true
+replacement:
+  verb: "Specifies the"
 ---
 program: mongod
 name: profile
@@ -633,7 +702,7 @@ default: 0
 directive: option
 description: |
   Changes the level of database profiling, which inserts information about
-  operation performance into standard output or a log file. Specify one
+  operation performance into the ``system.profile`` collection. Specify one
   of the following levels:
 
   .. list-table::
@@ -666,8 +735,8 @@ args: <level>
 default: "off"
 directive: option
 description: |
-  Changes the level of database profiling, which inserts information about
-  operation performance into standard output or a log file. Specify one
+  {{intro}} level of database profiling, which inserts information about
+  operation performance into the ``system.profile`` collection. Specify one
   of the following levels:
 
   .. list-table::
@@ -693,19 +762,22 @@ description: |
   Database profiling can impact database
   performance. Enable this option only after careful consideration.
 optional: true
+replacement:
+  intro: "Changes the"
 ---
 program: mongod
 name: quota
 args: null
 directive: option
 description: |
-  Enables a maximum limit for the number data files each database can
+  {{verb}} a maximum limit for the number data files each database can
   have. When running with the {{role}} option, MongoDB has a maximum of 8
   data files per database. Adjust the quota with
   {{quota_files}}.
 optional: true
 replacement:
   quota_files: :option:`--quotaFiles`
+  verb: "Enables"
 ---
 program: mongod
 name: quotaFiles
@@ -713,22 +785,25 @@ args: <number>
 default: 8
 directive: option
 description: |
-  Modifies the limit on the number of data files per database. {{role}}
+  {{verb}} limit on the number of data files per database. {{role}}
   option requires that you set {{quota_flag}}.
 optional: true
 replacement:
   quota_flag: :option:`--quota`
+  verb: "Modifies the"
 ---
 program: mongod
 name: rest
 args: null
 directive: option
 description: |
-  Enables the simple :term:`REST` API. Enabling the :term:`REST` API
+  {{verb}} the simple :term:`REST` API. Enabling the :term:`REST` API
   enables the HTTP interface, even if the :setting:`HTTP interface
   <net.http.enabled>` option is disabled, and as a result can increase
   network exposure.
 optional: true
+replacement:
+  verb: "Enables"
 ---
 program: mongod
 name: repair
@@ -755,9 +830,7 @@ description: |
 
   The {{role}} option copies data from the source data files into new data
   files in the :setting:`~storage.repairPath` and then replaces the original data
-  files with the repaired data files. If :setting:`~storage.repairPath` is on the
-  same device as :setting:`~storage.dbPath`, you may interrupt a {{program}}
-  running the {{role}} option without affecting the integrity of the data set.
+  files with the repaired data files.
 optional: true
 ---
 program: mongod
@@ -767,9 +840,20 @@ default: |
   A ``_tmp`` directory within the path specified by the :setting:`~storage.dbPath` option.
 directive: option
 description: |
-  Specifies the root directory containing MongoDB data files to use
-  for the :option:`--repair` operation.
+  {{intro}} working directory that MongoDB will use during the
+  :option:`--repair` operation. After :option:`--repair` completes,
+  the data files in {{dbpath}} and the {{role}}
+  directory is empty.
+post: |
+  The {{role}} must be within the :setting:`~storage.dbPath`. You can
+  specify a symlink to {{role}} to use a path on a different file
+  system.
+
+  .. SEE: SERVER-4266
 optional: true
+replacement:
+  intro: "Specifies a"
+  dbpath: "option:`--dbpath`"
 ---
 program: mongod
 name: setParameter
@@ -783,7 +867,7 @@ optional: true
 ---
 program: mongod
 name: slowms
-args: <value>
+args: <integer>
 default: 100
 directive: option
 description: |
@@ -799,7 +883,7 @@ name: smallfiles
 args: null
 directive: option
 description: |
-  Sets MongoDB to use a smaller default file size. The {{role}} option
+  {{intro}} a smaller default file size. The {{role}} option
   reduces the initial size for data files and limits the maximum size to
   512 megabytes. {{role}} also reduces the size of each :term:`journal`
   file from 1 gigabyte to 128 megabytes. Use {{role}} if you have a large
@@ -808,17 +892,19 @@ description: |
   The {{role}} option can lead the {{program}} instance to create a large
   number of files, which can affect performance for larger databases.
 optional: true
+replacement:
+  intro: "Sets MongoDB to use"
 ---
 program: mongod
 name: shutdown
 args: null
 directive: option
 description: |
-  Used in :term:`control scripts <control script>`, the {{role}} option
-  cleanly and safely terminates the {{program}} process. When invoking
-  {{program}} with this option you must set the :option:`--dbpath` option
-  either directly or by way of the :doc:`configuration file
-  </reference/configuration-options>` and the :option:`--config` option.
+  The {{role}} option cleanly and safely terminates the {{program}}
+  process. When invoking {{program}} with this option you must set the
+  :option:`--dbpath` option either directly or by way of the
+  :doc:`configuration file </reference/configuration-options>` and the
+  :option:`--config` option.
 
   The {{role}} option is available only on Linux systems.
 optional: true
@@ -829,8 +915,10 @@ args: <value>
 default: 60
 directive: option
 description: |
-  Controls how much time can pass before MongoDB flushes data to the data
-  files via an :term:`fsync` operation. **Do not set this value on
+  {{intro}} can pass before MongoDB flushes data to the data
+  files via an :term:`fsync` operation.
+
+  **Do not set this value on
   production systems.** In almost every situation, you should use the
   default setting.
 
@@ -840,12 +928,14 @@ description: |
      memory mapped files to disk.
 
   The {{program}} process writes data very quickly to the journal and
-  lazily to the data files. :setting:`~storage.syncPeriodSecs` has no effect on the
+  lazily to the data files. {{role}} has no effect on the
   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`.
 
   The :dbcommand:`serverStatus` command reports the background flush
   thread's status via the :data:`~serverStatus.backgroundFlushing` field.
 optional: true
+replacement:
+  intro: "Controls how much time"
 ---
 program: mongod
 name: sysinfo
@@ -919,13 +1009,17 @@ name: oplogSize
 args: <value>
 directive: option
 description: |
-  Specifies a maximum size in megabytes for the replication operation log
+  {{intro}} maximum size in megabytes for the replication operation log
   (i.e., the :term:`oplog`). The {{program}} process creates an
   :term:`oplog` based on the maximum amount of space available. For 64-bit
   systems, the oplog is typically 5% of available disk space. Once the
   {{program}} has created the oplog for the first time, changing the
   {{role}} option will not affect the size of the oplog.
+
+  See :ref:`replica-set-oplog-sizing` for more information.
 optional: true
+replacement:
+  intro: "Specifies a"
 ---
 program: mongod
 name: fastsync
@@ -951,13 +1045,15 @@ args: null
 default: all
 directive: option
 description: |
-  .. versionadded:: 2.2
+  .. |feature| replace:: {{role}}
+  .. include:: /includes/fact-feature-is-mmapv1-only.rst
 
-  Determines which indexes :term:`secondary` members of a :term:`replica
+  {{intro}} :term:`secondary` members of a :term:`replica
   set` load into memory before applying operations from the oplog. By
   default secondaries load all indexes related to an operation into memory
-  before applying operations from the oplog. This option can have one of
-  the following values:
+  before applying operations from the oplog.
+
+  Set this {{directive}} to one of the following:
 
   .. list-table::
      :header-rows: 1
@@ -980,6 +1076,9 @@ description: |
        - Secondaries load no additional indexes into memory beyond the
          already existing ``_id`` index.
 optional: true
+replacement:
+  intro: "Determines which indexes"
+  directive: option
 ---
 program: mongod
 name: master
@@ -1050,21 +1149,26 @@ directive: option
 description: |
   Declares that this {{program}} instance serves as the
   :term:`config database` of a sharded cluster. When running with
-  this option, clients will not be able to write data to any database
-  other than ``config`` and ``admin``. The default port for a
-  {{program}} with this option is ``27019`` and the default
-  :option:`--dbpath` directory is ``/data/configdb``, unless
-  specified.
+  this option, clients (i.e. other cluster components) will not be
+  able to write data to any database other than ``config`` and
+  ``admin``. The default port for a {{program}} with this option is
+  ``27019`` and the default :option:`--dbpath` directory is
+  ``/data/configdb``, unless specified.
 
-  .. versionchanged:: 2.2
-     The {{role}} option also sets :option:`--smallfiles`.
+  If using :doc:`/core/mmapv1`, {{role}} option also sets :option:`--smallfiles`.
 
-  .. versionchanged:: 2.4
-     The {{role}} option creates a local :term:`oplog`.
+  The {{role}} option creates a local :term:`oplog`.
 
-  Do not use the {{role}} option with :option:`--replSet` or
-  :option:`--shardsvr`. Config servers cannot be a shard
-  server or part of a :term:`replica set`.
+  Do not use the {{role}} option with :option:`--shardsvr`. Config
+  servers cannot be a shard server.
+
+  .. versionchanged:: 3.2
+
+     .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+     In previous versions, {{role}} could not be used in conjunction with
+     :option:`--replSet`.
+   
 optional: true
 ---
 program: mongod
@@ -1079,104 +1183,90 @@ description: |
 optional: true
 ---
 program: mongod
-name: moveParanoia
-args: null
-directive: option
-description: |
-  .. versionadded:: 2.4
-
-  During chunk migrations, the {{role}} option forces the
-  :program:`mongod` instances to save to the ``moveChunk`` directory of
-  the :setting:`storage.dbPath` all the documents migrated from this
-  shard. MongoDB does not delete data stored in ``moveChunk``.
-
-  Prior to 2.4, {{role}} was the default behavior of MongoDB.
-optional: true
----
-program: mongod
 name: sslOnNormalPorts
 args: null
 directive: option
 description: |
   .. deprecated:: 2.6
 
-  Enables SSL for {{program}}.
+  {{verb}} TLS/SSL for {{program}}.
 
-  With {{role}}, a {{program}} requires SSL encryption for all
+  With {{role}}, a {{program}} requires TLS/SSL encryption for all
   connections on the default MongoDB port, or the port specified by
   :option:`--port`. By default, :option:`--sslOnNormalPorts` is
   disabled.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  verb: "Enables"
 ---
 program: mongod
 name: sslMode
 args: <mode>
 directive: option
 description: |
-   .. versionadded:: 2.6
+  .. versionadded:: 2.6
 
-   Enables SSL or mixed SSL on a port. The argument to the {{role}} option
-   can be one of the following:
+  {{verb}} TLS/SSL or mixed TLS/SSL used for all network connections. The
+  argument to the {{role}} {{directive}} can be one of the following:
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 40
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
 
-      * - Value
+     * - Value
 
-        - Description
+       - Description
 
-      * - ``disabled``
+     * - ``disabled``
 
-        - The server does not use SSL.
+       - The server does not use TLS/SSL.
 
-      * - ``allowSSL``
+     * - ``allowSSL``
 
-        - Connections between servers do not use SSL. For incoming
-          connections, the server accepts both SSL and non-SSL.
+       - Connections between servers do not use TLS/SSL. For incoming
+         connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
 
-      * - ``preferSSL``
+     * - ``preferSSL``
 
-        - Connections between servers use SSL. For incoming
-          connections, the server accepts both SSL and non-SSL.
+       - Connections between servers use TLS/SSL. For incoming
+         connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
 
-      * - ``requireSSL``
+     * - ``requireSSL``
 
-        - The server uses and accepts only SSL encrypted connections.
+       - The server uses and accepts only TLS/SSL encrypted connections.
 
-   The default distribution of MongoDB does not contain support for SSL.
-   For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
+
 optional: true
+replacement:
+  verb: "Enables"
+  directive: "option"
 ---
 program: mongod
 name: sslPEMKeyFile
 args: <filename>
 directive: option
 description: |
-  .. versionadded:: 2.2
-
-  Specifies the :file:`.pem` file that contains both the SSL certificate
+  {{intro}} :file:`.pem` file that contains both the TLS/SSL certificate
   and key. Specify the file name of the :file:`.pem` file using relative
   or absolute paths.
 
-  When SSL is enabled, you must specify {{role}}.
+  You must specify {{role}} when TLS/SSL is enabled.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: sslPEMKeyPassword
 args: <value>
 directive: option
 description: |
-  .. versionadded:: 2.2
-
-  Specifies the password to de-crypt the certificate-key file (i.e.
-  ``--sslPEMKeyFile``). Use the {{role}} option only if the
+  {{intro}} password to de-crypt the certificate-key file (i.e.
+  {{pemKeyOption}}). Use the {{role}} option only if the
   certificate-key file is encrypted. In all cases, the {{program}} will
   redact the password from all logging and reporting output.
 
@@ -1185,9 +1275,11 @@ description: |
      specify the {{role}} option, the {{program}} will prompt for a
      passphrase. See :ref:`ssl-certificate-password`.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  intro: "Specifies the"
+  pemKeyOption: ":option:`--sslPEMKeyFile`"
 ---
 program: mongod
 name: sslClusterFile
@@ -1196,19 +1288,20 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the :file:`.pem` file that contains the x.509 certificate-key
+  {{intro}} :file:`.pem` file that contains the x.509 certificate-key
   file for :ref:`membership authentication <x509-internal-authentication>`
   for the cluster or replica set.
 
   If {{role}} does not specify the ``.pem`` file for internal cluster
   authentication, the cluster uses the ``.pem`` file specified in the
-  {{pemKeyOption}} option.
+  {{pemKeyOption}} {{directive}}.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 replacement:
-  pemKeyOption: :option:`--sslPEMKeyFile`
+  pemKeyOption: ":option:`--sslPEMKeyFile`"
+  intro: "Specifies the"
+  directive: "option"
 ---
 program: mongod
 name: sslClusterPassword
@@ -1217,7 +1310,7 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the password to de-crypt the x.509 certificate-key file
+  {{intro}} password to de-crypt the x.509 certificate-key file
   specified with ``--sslClusterFile``. Use the {{role}} option only
   if the certificate-key file is encrypted. In all cases, the {{program}}
   will redact the password from all logging and reporting output.
@@ -1226,9 +1319,10 @@ description: |
   {{role}} option, the {{program}} will prompt for a passphrase. See
   :ref:`ssl-certificate-password`.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: sslCAFile
@@ -1237,15 +1331,16 @@ directive: option
 description: |
   .. versionadded:: 2.4
 
-  Specifies the :file:`.pem` file that contains the root certificate chain
+  {{intro}} :file:`.pem` file that contains the root certificate chain
   from the Certificate Authority. Specify the file name of the
   :file:`.pem` file using relative or absolute paths.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 
   .. include:: /includes/warning-x509-requires-sslCAfile.rst
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: sslCRLFile
@@ -1254,13 +1349,14 @@ directive: option
 description: |
   .. versionadded:: 2.4
 
-  Specifies the :file:`.pem` file that contains the Certificate Revocation
+  {{intro}} the :file:`.pem` file that contains the Certificate Revocation
   List. Specify the file name of the :file:`.pem` file using relative or
   absolute paths.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: sslAllowInvalidCertificates
@@ -1269,37 +1365,88 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Bypasses the validation checks for SSL certificates on other servers
-  in the cluster and allows the use of invalid certificates. When using
-  the :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB
-  logs as a warning the use of the invalid certificate.
+  {{verb}} the validation checks for TLS/SSL certificates on other servers
+  in the cluster and allows the use of invalid certificates.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  When using
+  the {{role}} setting, MongoDB
+  logs a warning regarding the use of the invalid certificate.
+
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
+replacement:
+  verb: "Bypasses"
 ---
 program: mongod
-name: sslWeakCertificateValidation
+name: sslAllowConnectionsWithoutCertificates
 args: null
 directive: option
-description: |
+pre: |
   .. versionadded:: 2.4
 
-  Disables the requirement for SSL certificate validation that
-  ``--sslCAFile`` enables. With the {{role}} option, the {{program}}
+  .. versionchanged:: 3.0.0
+     {{old_name}} became {{role}}. For
+     compatibility, MongoDB processes continue to accept
+     {{old_name}}, but all users should
+     update their configuration files.
+description: |
+  {{verb}} the requirement for TLS/SSL certificate validation that
+  {{sslCA_option}} enables. With the {{role}} option, the {{program}}
   will accept connections when the client does not present a certificate
   when establishing the connection.
 
   If the client presents a certificate and the {{program}} has {{role}}
   enabled, the {{program}} will validate the certificate using the root
-  certificate chain specified by ``--sslCAFile`` and reject clients
+  certificate chain specified by {{sslCA_option}} and reject clients
   with invalid certificates.
 
   Use the {{role}} option if you have a mixed deployment that includes
   clients that do not or cannot present certificates to the {{program}}.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
+replacement:
+  verb: "Disables"
+  old_name: "``--sslWeakCertificateValidation``"
+  sslCA_option: "``--sslCAFile``"
+optional: true
+---
+program: mongod
+name: sslAllowInvalidHostnames
+args: null
+directive: option
+description: |
+  .. versionadded:: 3.0
+
+  Disables the validation of the hostnames in TLS/SSL certificates, when
+  connecting to other {{program}} instances for inter-process
+  authentication. This allows {{program}} to connect to other
+  {{program}} instances if the hostnames in their certificates do not
+  match their configured hostname.
+
+  .. include:: /includes/fact-ssl-supported.rst
+optional: true
+---
+program: mongod
+name: sslDisabledProtocols
+args: <protocol(s)>
+directive: option
+description: |
+  .. versionadded:: 3.0.7
+
+  Prevents a MongoDB server running with SSL from accepting incoming
+  connections that use a specific protocol or protocols. {{role}}
+  recognizes the following protocols: ``TLS1_0``, ``TLS1_1``, and
+  ``TLS1_2``. Specifying an unrecognized protocol will prevent the
+  server from starting.
+
+  To specify multiple protocols, use a comma separated list of
+  protocols.
+
+  Members of replica sets and sharded clusters must speak at least one
+  protocol in common.
+
+  .. seealso:: :ref:`ssl-disallow-protocols`
+
 optional: true
 ---
 program: mongod
@@ -1309,22 +1456,29 @@ directive: option
 description: |
   .. versionadded:: 2.4
 
-  Directs the {{program}} to use the FIPS mode of the installed OpenSSL
-  library. Your system must have a FIPS compliant OpenSSL library to use
-  the {{role}} option.
+  {{intro}} the FIPS mode of the installed OpenSSL
+  library{{setting_continuation}}. Your system must have a FIPS
+  compliant OpenSSL library to use the {{role}} option.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/note-fips-is-enterprise-only.rst
 optional: true
+replacement:
+  intro: "Directs the {{program}} to use"
+  setting_continuation: ""
 ---
 program: mongod
 name: auditDestination
 args: null
 directive: option
-description: |
+replacement:
+  intro: "Enables"
+pre: |
   .. versionadded:: 2.6
 
-  Enables auditing. The {{role}} option can have one of the following values:
+  Enables :doc:`auditing </core/auditing>` and specifies where
+  {{program}} sends all audit events.
+description: |
+  {{role}} can have one of the following values:
 
   .. list-table::
      :header-rows: 1
@@ -1364,8 +1518,9 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the format of the output file if :option:`--auditDestination`
-  is ``file``. The {{role}} option can have one of the following values:
+  {{intro}} format of the output file for :doc:`auditing
+  </core/auditing>` if {{destination}} is ``file``. The
+  {{role}} option can have one of the following values:
 
   .. list-table::
      :header-rows: 1
@@ -1390,6 +1545,9 @@ description: |
 
   .. include:: /includes/note-audit-in-enterprise-only.rst
 optional: true
+replacement:
+  intro: "Specifies the"
+  destination: ":option:`--auditDestination`"
 ---
 program: mongod
 name: auditPath
@@ -1398,12 +1556,15 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the output file for auditing if :option:`--auditDestination`
-  has value of ``file``. The {{role}} option can take either a full path
-  name or a relative path name.
+  {{intro}} output file for :doc:`auditing </core/auditing>` if
+  {{destination}} has value of ``file``. The {{role}}
+  option can take either a full path name or a relative path name.
 
   .. include:: /includes/note-audit-in-enterprise-only.rst
 optional: true
+replacement:
+  intro: "Specifies the"
+  destination: ":option:`--auditDestination`"
 ---
 program: mongod
 name: auditFilter
@@ -1412,38 +1573,527 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the filter to limit the :ref:`types of operations
-  <audit-action-details-results>` the audit system records. The option
-  takes a document of the form:
+  {{intro}} filter to limit the :ref:`types of operations
+  <audit-action-details-results>` the :doc:`audit system
+  </core/auditing>` records. The option takes a string representation
+  of a query document of the form:
 
   .. code-block:: javascript
 
-     { atype: <expression> }
+     { <field1>: <expression1>, ... }
 
-  For authentication operations, the option can also take a document of
-  the form:
+  The ``<field>`` can be :doc:`any field in the audit message
+  </reference/audit-message>`, including fields returned in the
+  :ref:`param <audit-action-details-results>` document. The
+  ``<expression>`` is a :ref:`query condition expression
+  <query-selectors>`.
 
-  .. code-block:: javascript
+  .. include:: /includes/fact-audit-filter-single-quotes.rst
 
-    { atype: <expression>, "param.db": <database> }
+  .. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
   .. include:: /includes/note-audit-in-enterprise-only.rst
+
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: mongod
 name: snmp-subagent
 args: null
 directive: option
 description: |
-  Runs SNMP as a subagent. For more information, see
+  {{intro}} as a subagent. For more information, see
   :doc:`/tutorial/monitor-with-snmp`.
 optional: true
+replacement:
+  intro: "Runs SNMP"
 ---
 program: mongod
 name: snmp-master
 args: null
 directive: option
 description: |
-  Runs SNMP as a master. For more information, see
+  {{intro}} as a master. For more information, see
   :doc:`/tutorial/monitor-with-snmp`.
 optional: true
+replacement:
+  intro: "Runs SNMP"
+---
+program: mongod
+name: wiredTigerEngineConfigString
+args: "<option>=<setting>"
+directive: option
+description: |
+  .. versionadded:: 3.0.0
+
+  Specifies the WiredTiger storage engine configuration at start up
+  time. See the `WiredTiger storage engine options
+  <http://source.wiredtiger.com/2.4.1/group__wt.html#ga9e6adae3fc6964ef837a62795c7840ed>`_.
+optional: true
+---
+program: mongod
+name: wiredTigerCollectionConfigString
+args: "<option>=<setting>"
+directive: option
+description: |
+  .. versionadded:: 3.0.0
+
+  {{intro}} WiredTiger settings for all new collections.
+  See the `WiredTiger collection-level options
+  <http://source.wiredtiger.com/2.4.1/struct_w_t___s_e_s_s_i_o_n.html#a358ca4141d59c345f401c58501276bbb>`_.
+optional: true
+replacement:
+  intro: "Changes"
+---
+program: mongod
+name: wiredTigerIndexConfigString
+args: "<option>=<setting>"
+directive: option
+description: |
+  .. versionadded:: 3.0.0
+
+  {{intro}} WiredTiger settings for all new indexes.
+  See the `WiredTiger collection-level options
+  <http://source.wiredtiger.com/2.4.1/struct_w_t___s_e_s_s_i_o_n.html#a358ca4141d59c345f401c58501276bbb>`_.
+optional: true
+replacement:
+  intro: "Changes"
+---
+program: mongod
+name: wiredTigerDirectoryForIndexes
+directive: option
+args: null
+description: |
+  .. versionadded:: 3.0.0
+
+  {{intro}}, {{program}} stores indexes and collections in separate
+  subdirectories under the data (i.e. {{dbpath}}) directory.
+  Specifically, {{program}} stores the indexes in a subdirectory named
+  ``index`` and the collection data in a subdirectory named
+  ``collection``.
+
+  By using a symbolic link, you can specify a different location for
+  the indexes. Specifically, when :program:`mongod` instance is **not**
+  running, move the ``index`` subdirectory to the destination and
+  create a symbolic link named ``index`` under the data directory to
+  the new destination.
+
+optional: true
+replacement:
+  intro: "When you start {{program}} with {{role}}"
+  dbpath: ":option:`--dbpath``"
+---
+program: mongod
+name: storageEngine
+args: string
+directive: option
+description: |
+  .. versionadded:: 3.0
+
+  .. versionchanged:: 3.2
+
+     Starting in MongoDB 3.2, ``wiredTiger`` is the default.
+
+  {{intro}} storage engine for the {{program}} database. Valid
+  options include ``mmapv1`` and ``wiredTiger``.
+post: |
+  If you attempt to start a {{program}} with a
+  :option:`storage.dbPath` that contains data files produced by a
+  storage engine other than the one specified by {{role}}, {{program}}
+  will refuse to start.
+optional: true
+default: "``wiredTiger``"
+replacement:
+  intro: "Specifies the"
+---
+program: mongod
+name: wiredTigerCacheSizeGB
+directive: option
+optional: true
+args: "number"
+description: |
+
+  .. versionadded:: 3.0
+
+  {{intro}} maximum size of the cache that WiredTiger will use for all
+  data. 
+
+  .. include:: /includes/extracts/wt-cache-default-setting.rst
+
+  Avoid increasing the WiredTiger cache size above its default
+  value.
+
+post: |
+  .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-cmdline-option.rst
+replacement:
+  intro: "Defines the"
+---
+program: mongod
+name: wiredTigerJournalCompressor
+directive: option
+optional: true
+default: "snappy"
+args: "<compressor>"
+description: |
+
+  .. versionadded:: 3.0.0
+
+  {{intro}} type of compression to use to compress WiredTiger
+  journal data.
+
+  Available compressors are:
+
+  - ``none``
+
+  - :term:`snappy`
+
+  - :term:`zlib`
+replacement:
+  intro: "Specifies the"
+---
+program: mongod
+name: wiredTigerStatisticsLogDelaySecs
+directive: option
+optional: true
+default: "0"
+args: "<seconds>"
+description: |
+
+  .. versionadded:: 3.0.0
+
+  {{intro}} interval, in seconds, at which WiredTiger logs statistics to
+  the file specified in the :setting:`~storage.dbPath` or :option:`--dbpath`.
+  When {{role}} is set to ``0``, WiredTiger does not log statistics.
+replacement:
+  intro: "Specifies the"
+---
+program: mongod
+name: wiredTigerCollectionBlockCompressor
+directive: option
+optional: true
+default: "snappy"
+args: "<compressor>"
+description: |
+
+  .. versionadded:: 3.0.0
+
+  {{intro}} default type of compression to use to compress collection
+  data. You can override this on a per-collection basis when creating
+  collections.
+
+  Available compressors are:
+
+  - ``none``
+
+  - :term:`snappy`
+
+  - :term:`zlib`
+
+  {{role}} affects all collections created. If you change
+  the value of {{role}} on an existing MongoDB deployment, all new
+  collections will use the specified compressor. Existing collections
+  will continue to use the compressor specified when they were
+  created, or the default compressor at that time.
+replacement:
+  intro: "Specifies the"
+---
+program: mongod
+name: wiredTigerIndexPrefixCompression
+directive: option
+optional: true
+args: "<boolean>"
+default: "true"
+description: |
+
+  .. versionadded:: 3.0.0
+
+  Enables or disables :term:`prefix compression` for index data.
+
+  Specify ``true`` for {{role}} to enable :term:`prefix compression` for
+  index data, or ``false`` to disable prefix compression for index data.
+
+  The {{role}} setting affects all indexes created. If you change
+  the value of {{role}} on an existing MongoDB deployment, all new
+  indexes will use prefix compression. Existing indexes
+  are not affected.
+---
+program: mongod
+name: basisTechRootDirectory
+directive: option
+optional: true
+args: "<path>"
+description: |
+
+  .. versionadded:: 3.2
+
+  Specify the root directory of the Basis Technology Rosette
+  Linguistics Platform installation to support additional languages for
+  text search operations.
+
+  .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: enableEncryption
+directive: option
+optional: true
+args: <boolean>
+default:  false
+description: |
+
+   .. versionadded:: 3.2
+
+   Enables encryption for the WiredTiger storage engine. You must set
+   to ``true`` to pass in encryption keys and configurations.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: encryptionCipherMode
+directive: option
+optional: true
+args: <string>
+default: "AES256-CBC"
+description: |
+
+   .. versionadded:: 3.2
+
+   The cipher mode to use for encryption at rest:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+
+      * - Mode
+        - Description
+
+      * - ``AES256-CBC``
+        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
+          Mode
+
+      * - ``AES256-GCM``
+
+        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: encryptionKeyFile
+directive: option
+optional: true
+args: <string>
+description: |
+
+   .. versionadded:: 3.2
+
+   The path to the local keyfile when managing keys via process *other
+   than* KMIP. Only set when managing keys via process other than KMIP.
+   If data is already encrypted using KMIP, MongoDB will throw an error.
+
+   Requires :setting:`enableEncryption` to be ``true``.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: kmipKeyIdentifier
+directive: option
+optional: true
+args: <string>
+description: |
+
+   .. versionadded:: 3.2
+
+   Unique KMIP identifier for an existing key within the KMIP server.
+   Include to use the key associated with the identifier as the system
+   key. You can only use the setting the first time you enable
+   encryption for the :program:`mongod` instance. Requires
+   :setting:`enableEncryption` to be true.
+   
+   If unspecified, MongoDB will request that the KMIP server create a
+   new key to utilize as the system key.
+
+   If the KMIP server cannot locate a key with the specified identifier
+   or the data is already encrypted with a key, MongoDB will throw an
+   error
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: kmipRotateMasterKey
+directive: option
+optional: true
+args: <boolean>
+default:  false
+description: |
+
+   .. versionadded:: 3.2
+
+   If true, rotate the master key and re-encrypt the internal
+   keystore.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+   .. seealso:: :ref:`kmip-master-key-rotation`
+---
+program: mongod
+name: kmipServerName
+directive: option
+optional: true
+args:  <string>
+description: |
+
+   .. versionadded:: 3.2
+
+   Hostname or IP address of key management solution running a KMIP
+   server. Requires :setting:`enableEncryption` to be true.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: mongod
+name: kmipPort
+directive: option
+optional: true
+args: <number>
+default:  5696
+description: |
+
+   .. versionadded:: 3.2
+ 
+   Port number the KMIP server is listening on. Requires that a
+   :setting:`kmipServerName` be provided. Requires
+   :setting:`enableEncryption` to be true.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+---
+program: mongod
+name: kmipClientCertificateFile
+directive: option
+optional: true
+args:  <string>
+description: |
+
+   .. versionadded:: 3.2
+ 
+   String containing the path to the client certificate used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipServerName` be provided.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+---
+program: mongod
+name: kmipClientCertificatePassword
+directive: option
+optional: true
+args:  <string>
+description: |
+
+   .. versionadded:: 3.2
+
+   The password (if one exists) for the client certificate passed into
+   :setting:`kmipClientCertificateFile`. Is used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`kmipClientCertificateFile` be provided.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+---
+program: mongod
+name: kmipServerCAFile
+directive: option
+optional: true
+args:  <string>
+description: |
+
+   .. versionadded:: 3.2
+
+   Path to CA File. Used for validating secure client connection to
+   KMIP server.
+---
+program: mongod
+name: enableMajorityReadConcern
+directive: option
+optional: true
+args: null
+description: |
+
+   .. versionadded:: 3.2
+
+   Enables :doc:`readConcern </reference/readConcern>` level of
+   ``"majority"``. By default, ``"majority"`` level is not enabled.
+---
+program: mongod
+name: configsvrMode
+optional: true
+args: <string>
+description: |
+   .. versionadded:: 3.2
+
+   If set to ``sccc``, indicates that the config servers are deployed
+   as three mirrored :program:`mongod` instances, even if one or more
+   config servers is also a member of a replica set. ``configsvrMode``
+   only accepts the value ``sccc``.
+
+   If unset, config servers running as replica sets expect to use the
+   "config server replica set" protocol for writing to config servers,
+   rather than the "mirrored mongod" write protocol.
+
+directive: option
+---
+program: mongod
+name: inMemorySizeGB
+optional: true
+args: <integer>
+default: |
+   60% of physical RAM less 1 GB
+directive: option
+description: |
+   .. versionadded:: 3.2
+
+   Maximum amount of memory to allocate for :doc:`/core/inmemory` data and indexes.
+---
+program: mongod
+name: inMemoryStatisticsLogDelaySecs
+optional: true
+args: <integer>
+default: |
+   0, do not log statistics.
+directive: option
+description: |
+   .. versionadded:: 3.2
+
+   Seconds to wait between each write to a :doc:`/core/inmemory` statistics file in the :option:`--dbpath`.
+---
+program: mongod
+name: moveParanoia
+args: null
+directive: option
+description: |
+  If specified, during chunk migration, a shard saves,
+  to the ``moveChunk`` directory of the {{dbpath}}, all documents
+  migrated from that shard.
+
+  MongoDB does not automatically delete the data saved in the
+  ``moveChunk`` directory.
+
+optional: true
+replacement:
+   dbpath: "``--dbpath``"
+---
+program: mongod
+name: noMoveParanoia
+args: null
+directive: option
+description: |
+  .. versionchanged:: 3.2
+     Starting in 3.2, MongoDB uses {{defaultParanoia}} as the default.
+
+  During chunk migration, a shard does not save documents migrated from
+  the shard.
+
+optional: true
+replacement:
+   dbpath: "``--dbpath``"
+   defaultParanoia: "``--noMoveParanoia``"
 ...

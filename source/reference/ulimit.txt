@@ -73,7 +73,6 @@ For :program:`mongos`, consider the following behaviors:
 
 - You can limit the number of incoming connections using
   the :setting:`~net.maxIncomingConnections` run-time option.
-
   By restricting the number of incoming connections you can prevent a
   cascade effect where the :program:`mongos` creates too many
   connections on the :program:`mongod` instances.
@@ -85,21 +84,6 @@ Review and Set Resource Limits
 
 ``ulimit``
 ~~~~~~~~~~
-
-.. note::
-
-   Both the "hard" and the "soft" ``ulimit`` affect MongoDB's
-   performance. The "hard" ``ulimit`` refers to the maximum number of
-   processes that a user can have active at any time. This is the
-   ceiling: no non-root process can increase the "hard" ``ulimit``. In
-   contrast, the "soft" ``ulimit`` is the limit that is actually
-   enforced for a session or process, but any process can increase it
-   up to "hard" ``ulimit`` maximum.
-
-   A low "soft" ``ulimit`` can cause ``can't create new thread,
-   closing connection`` errors if the number of connections
-   grows too high. For this reason, it is extremely important to set
-   *both* ``ulimit`` values to the recommended values.
 
 You can use the ``ulimit`` command at the system prompt to check
 system limits, as in the following example:
@@ -139,23 +123,129 @@ following form:
 
    ulimit -n <value>
 
+There are both "hard" and the "soft" ``ulimit``\ s that affect MongoDB's
+performance. The "hard" ``ulimit`` refers to the maximum number of
+processes that a user can have active at any time. This is the
+ceiling: no non-root process can increase the "hard" ``ulimit``. In
+contrast, the "soft" ``ulimit`` is the limit that is actually
+enforced for a session or process, but any process can increase it
+up to "hard" ``ulimit`` maximum.
+
+A low "soft" ``ulimit`` can cause ``can't create new thread,
+closing connection`` errors if the number of connections
+grows too high. For this reason, it is extremely important to set
+*both* ``ulimit`` values to the recommended values.
+
+``ulimit`` will modify both "hard" and "soft" values unless the
+:setting:`-H` or :setting:`-S` modifiers are specified when
+modifying limit values.
+
 For many distributions of Linux you can change values by substituting
 the ``-n`` option for any possible value in the output of ``ulimit
 -a``. On OS X, use the ``launchctl limit`` command.  See your
 operating system documentation for the precise procedure for changing
 system limits on running systems.
 
-.. note::
+After changing the ``ulimit`` settings, you *must* restart the
+process to take advantage of the modified settings. You can use the
+``/proc`` file system to see the current limitations on a running
+process.
 
-   After changing the ``ulimit`` settings, you *must* restart the
-   process to take advantage of the modified settings. You can use the
-   ``/proc`` file system to see the current limitations on a running
-   process.
+Depending on your system's configuration, and default settings, any
+change to system limits made using ``ulimit`` may revert following
+system a system restart. Check your distribution and operating
+system documentation for more information.
 
-   Depending on your system's configuration, and default settings, any
-   change to system limits made using ``ulimit`` may revert following
-   system a system restart. Check your distribution and operating
-   system documentation for more information.
+.. include:: /includes/note-suse-ulimit.rst
+
+.. _recommended-ulimit-settings:
+
+Recommended ``ulimit`` Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every deployment may have unique requirements and settings; however,
+the following thresholds and settings are particularly important for
+:program:`mongod` and :program:`mongos` deployments:
+
+- ``-f`` (file size): ``unlimited``
+- ``-t`` (cpu time): ``unlimited``
+- ``-v`` (virtual memory): ``unlimited`` [#memory-size]_
+- ``-n`` (open files): ``64000``
+- ``-m`` (memory size): ``unlimited`` [#memory-size]_ [#rss-linux]_
+- ``-u`` (processes/threads): ``64000``
+
+Always remember to restart your :program:`mongod` and
+:program:`mongos` instances after changing the ``ulimit`` settings to
+ensure that the changes take effect.
+
+Linux distributions using Upstart
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For Linux distributions that use Upstart, you can specify limits
+within service scripts if you start :program:`mongod` and/or
+:program:`mongos` instances as Upstart services. You can do this by
+using ``limit`` `stanzas <http://upstart.ubuntu.com/wiki/Stanzas#limit>`_.
+
+Specify the :ref:`recommended-ulimit-settings`, as in the following
+example:
+
+.. code-block:: sh
+
+   limit fsize unlimited unlimited  # (file size)
+   limit cpu unlimited unlimited    # (cpu time)
+   limit as unlimited unlimited     # (virtual memory size)
+   limit nofile 64000 64000         # (open files)
+   limit nproc 64000 64000          # (processes/threads)
+
+Each ``limit`` stanza sets the "soft" limit to the first value specified and the "hard"
+limit to the second.
+
+After changing ``limit`` stanzas, ensure that the changes take
+effect by restarting the application services, using the following
+form:
+
+.. code-block:: sh
+
+   restart <service name>
+
+Linux distributions using ``systemd``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For Linux distributions that use ``systemd``, you can specify
+limits within the ``[Service]`` sections of service scripts if you
+start :program:`mongod` and/or
+:program:`mongos` instances as ``systemd`` services. You can do this
+by using `resource limit directives
+<http://www.freedesktop.org/software/systemd/man/systemd.exec.html#LimitCPU=>`_.
+
+Specify the :ref:`recommended-ulimit-settings`, as in the following
+example:
+
+.. code-block:: sh
+
+   [Service]
+   # Other directives omitted
+   # (file size)
+   LimitFSIZE=infinity
+   # (cpu time)
+   LimitCPU=infinity
+   # (virtual memory size)
+   LimitAS=infinity
+   # (open files)
+   LimitNOFILE=64000
+   # (processes/threads)
+   LimitNPROC=64000
+
+Each ``systemd`` limit directive sets both the "hard" and "soft" limits to the value
+specified.
+
+After changing ``limit`` stanzas, ensure that the changes take
+effect by restarting the application services, using the following
+form:
+
+.. code-block:: sh
+
+   systemctl restart <service name>
 
 .. _proc-file-system:
 
@@ -202,24 +292,10 @@ invocations:
    return-limits mongos
    return-limits mongod mongos
 
-Recommended Settings
---------------------
-
-Every deployment may have unique requirements and settings; however,
-the following thresholds and settings are particularly important for
-:program:`mongod` and :program:`mongos` deployments:
-
-- ``-f`` (file size): ``unlimited``
-- ``-t`` (cpu time): ``unlimited``
-- ``-v`` (virtual memory): ``unlimited`` [#memory-size]_
-- ``-n`` (open files): ``64000``
-- ``-m`` (memory size): ``unlimited`` [#memory-size]_
-- ``-u`` (processes/threads): ``64000``
-
-Always remember to restart your :program:`mongod` and
-:program:`mongos` instances after changing the ``ulimit`` settings to
-make sure that the settings change takes effect.
-
 .. [#memory-size] If you limit virtual or resident memory size on a
    system running MongoDB the operating system will refuse to honor
    additional allocation requests.
+
+.. [#rss-linux] The ``-m`` parameter to ``ulimit`` has no effect on
+   Linux systems with kernel versions more recent than 2.4.30. You may
+   omit ``-m`` if you wish.

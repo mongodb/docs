@@ -25,7 +25,7 @@ Definition
    distances in the same units as those of the processed documents'
    coordinate system:
 
-   .. include:: /reference/operator/aggregation/geoNear-field.rst
+   .. include:: /includes/apiargs/pipeline-geoNear-field.rst
 
 Behavior
 --------
@@ -45,6 +45,12 @@ When using :pipeline:`$geoNear`, consider that:
 - The :pipeline:`$geoNear` requires that a collection have *at most*
   only one :doc:`2d index </core/2d>` and/or only one
   :doc:`2dsphere index </core/2dsphere>`.
+
+- You do not need to specify which field in
+  the documents hold the coordinate pair or point. Because
+  :pipeline:`$geoNear` requires that the collection have a single
+  geospatial index, :pipeline:`$geoNear` implicitly uses the indexed
+  field.
 
 - If using a :doc:`2dsphere index </core/2dsphere>`, you must specify
   ``spherical: true``.
@@ -115,3 +121,29 @@ The matching document contains two new fields:
 
 - ``dist.location`` field that contains the location used in the
   calculation.
+
+Minimum Distance
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+The following example uses the option ``minDistance`` to specify
+the minimum distance from the center point that the documents can be.
+MongoDB limits the results to those documents that fall outside the
+specified distance from the center point.
+
+.. code-block:: javascript
+
+   db.places.aggregate([ 
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.99279 , 40.719296 ] },
+           distanceField: "dist.calculated",
+           minDistance: 2,
+           query: { type: "public" },
+           includeLocs: "dist.location",
+           num: 5,
+           spherical: true
+        }
+      }
+   ])

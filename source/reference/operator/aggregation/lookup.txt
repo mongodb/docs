@@ -1,0 +1,150 @@
+=====================
+$lookup (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. pipeline:: $lookup
+
+   .. versionadded:: 3.2
+
+   Performs a left outer join to an unsharded collection in the *same*
+   database to filter in documents from the "joined" collection for
+   processing. The :pipeline:`$lookup` stage does an equality match
+   between a field from the input documents with a field from the
+   documents of the "joined" collection.
+
+   To each input document, the :pipeline:`$lookup` stage adds a new
+   array field whose elements are the matching documents from the
+   "joined" collection. The :pipeline:`$lookup` stage passes these
+   reshaped documents to the next stage.
+
+   The :pipeline:`$lookup` stage has the following syntax: 
+
+   .. code-block:: none
+
+      {
+         $lookup:
+           {
+             from: <collection to join>,
+             localField: <field from the input documents>,
+             foreignField: <field from the documents of the "from" collection>,
+             as: <output array field>
+           }
+      }
+
+   The :pipeline:`$lookup` takes a document with the following fields:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``from``
+
+        - Specifies the collection in the *same* database to perform
+          the join with. The ``from`` collection cannot be sharded.
+
+      * - ``localField``
+
+        - Specifies the field from the documents input to the
+          :pipeline:`$lookup` stage. :pipeline:`$lookup` performs an
+          equality match on the ``localField`` to the
+          ``foreignField`` from the documents of the ``from``
+          collection. If an input document does not contain the
+          ``localField``, the :pipeline:`$lookup` treats the
+          field as having a value of ``null`` for matching purposes.
+
+      * - ``foreignField``
+
+        - Specifies the field from the documents in the ``from``
+          collection. :pipeline:`$lookup` performs an equality match on
+          the ``foreignField`` to the ``localField`` from the input
+          documents. If a document in the ``from`` collection does not
+          contain the ``foreignField``, the :pipeline:`$lookup` treats
+          the value as ``null`` for matching purposes.
+
+      * - ``as``
+
+        - Specifies the name of the new array field to add to the input
+          documents. The new array field contains the matching
+          documents from the ``from`` collection. If the specified name
+          already exists in the input document, the existing field is
+          *overwritten*.
+
+Example
+-------
+
+A collection ``orders`` contains the following documents:
+
+.. code-block:: javascript
+
+  { "_id" : 1, "item" : "abc", "price" : 12, "quantity" : 2 }
+  { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1 }
+  { "_id" : 3  }
+
+Another collection ``inventory`` contains the following documents:
+
+.. code-block:: javascript
+
+  { "_id" : 1, "sku" : "abc", description: "product 1", "instock" : 120 }
+  { "_id" : 2, "sku" : "def", description: "product 2", "instock" : 80 }
+  { "_id" : 3, "sku" : "ijk", description: "product 3", "instock" : 60 }
+  { "_id" : 4, "sku" : "jkl", description: "product 4", "instock" : 70 }
+  { "_id" : 5, "sku": null, description: "Incomplete" }
+  { "_id" : 6 }
+
+The following aggregation operation on the ``orders`` collection
+joins the documents from ``orders`` with the documents from the
+``inventory`` collection using the fields ``item`` from the
+``orders`` collection and the ``sku`` field from the ``inventory``
+collection:
+
+.. code-block:: javascript
+
+  db.orders.aggregate([
+      {
+        $lookup:
+          {
+            from: "inventory",
+            localField: "item",
+            foreignField: "sku",
+            as: "inventory_docs"
+          }
+     }
+  ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+      "item" : "abc",
+     "price" : 12,
+     "quantity" : 2,
+     "inventory_docs" : [
+       { "_id" : 1, "sku" : "abc", description: "product 1", "instock" : 120 }
+     ]
+   }
+   {
+     "_id" : 2,
+     "item" : "jkl",
+     "price" : 20,
+     "quantity" : 1,
+     "inventory_docs" : [
+       { "_id" : 4, "sku" : "jkl", "description" : "product 4", "instock" : 70 }
+     ]
+   }
+   {
+     "_id" : 3,
+     "inventory_docs" : [
+       { "_id" : 5, "sku" : null, "description" : "Incomplete" },
+       { "_id" : 6 }
+     ]
+   }

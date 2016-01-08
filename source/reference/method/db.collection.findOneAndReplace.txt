@@ -1,0 +1,232 @@
+=================================
+db.collection.findOneAndReplace()
+=================================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. method:: db.collection.findOneAndReplace( filter, replacement, options )
+
+   .. versionadded:: 3.2
+   
+   Modifies and replaces a single document based on the ``filter`` and 
+   ``sort`` criteria.
+   
+   The :method:`~db.collection.findOneAndReplace()` method has the following 
+   form:
+
+   .. code-block:: javascript
+
+      db.collection.findOneAndReplace(
+         <filter>,
+         <replacement>,
+         {
+           projection: <document>,
+           sort: <document>,
+           maxTimeMS: <number>,
+           upsert: <boolean>,
+           returnNewDocument: <boolean>
+         }
+      )
+
+   The :method:`~db.collection.findOneAndReplace()` method takes the following
+   parameters:
+
+   .. include:: /includes/apiargs/method-db.collection.findOneAndReplace-param.rst
+
+   :returns:
+
+      Returns either the original document or, if ``returnNewDocument: true``, 
+      the replacement document.
+      
+Behavior
+--------
+
+:method:`~db.collection.findOneAndReplace()` replaces the first matching 
+document in the collection that matches the ``filter``. 
+The ``sort`` parameter can be used to influence which document is modified.
+
+The ``projection`` parameter takes a document in the following form:
+
+.. code-block:: javascript
+
+   { field1 : < boolean >, field2 : < boolean> ... }
+   
+The ``<boolean>`` value can be any of the following:
+
+- ``1`` or ``true`` to include the field. The method returns the
+  ``_id`` field even if it is not explicitly stated in the projection
+  parameter.
+
+- ``0`` or ``false`` to exclude the field. This can be used on any
+  field, including ``_id``.
+
+.. _findOneAndReplace-examples:
+
+Examples
+~~~~~~~~
+
+.. _findOneAndReplace-example-replace-document:
+
+Replace A Document
+~~~~~~~~~~~~~~~~~~
+
+The ``scores`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1521, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2231, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 4511, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 5331, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 3412, "team" : "Garrulous Bears", "score" : 22300 }
+
+The following operation finds the first document with ``score`` less than 
+``20000`` and replaces it:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace( 
+      { "score" : { $lt : 20000 } }, 
+      { "team" : "Observant Badgers", "score" : 20000 }
+   )
+
+The operation returns the *original* document that has been replaced:
+
+.. code-block:: javascript
+
+   { "_id" : 2512, "team" : "Aquatic Ponies", "score" : 19250 }
+   
+If ``returnNewDocument`` was true, the operation would return the replacement 
+document instead.
+
+.. _findOneAndReplace-example-sort-and-replace-document: 
+
+Sort and Replace A Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``scores`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1521, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2231, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 4511, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 5331, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 3412, "team" : "Garrulous Bears", "score" : 22300 }
+
+Sorting by ``score`` changes the result of the operation. The following 
+operation sorts the result of the ``filter`` by ``score`` ascending, and 
+replaces the lowest scoring document:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace(
+      { "score" : { $lt : 20000 } },
+      { "team" : "Observant Badgers", "score" : 20000 },
+      { sort: { "score" : 1 } }
+   )
+
+The operation returns the *original* document that has been replaced:
+
+.. code-block:: javascript
+
+   { "_id" : 5112, "team" : "Cuddly Zebras", "score" : 15235 }
+
+See :ref:`findOneAndReplace-example-replace-document` for the non-sorted 
+result of this command.
+
+.. _findOneAndReplace-example-project-returned-document:
+
+Project the Returned Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``scores`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1521, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2231, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 4511, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 5331, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 3412, "team" : "Garrulous Bears", "score" : 22300 }
+
+The following operation uses projection to only display the ``team`` field in
+the returned document:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace(
+      { "score" : { $lt : 22250 } },
+      { "team" : "Therapeutic Hamsters", "score" : 22250 },
+      { sort : { "score" : 1 }, project: { "_id" : 0, "team" : 1 } }
+   )
+   
+The operation returns the *original* document with only the ``team`` field: 
+
+.. code-block:: javascript
+
+   { "team" : "Aquatic Ponies"}
+
+.. _findOneAndReplace-example-replace-with-time-limit:
+
+Replace Document with Time Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation sets a 5ms time limit to complete:
+
+.. code-block:: javascript
+
+   try {
+      db.scores.findOneAndReplace(
+         { "score" : { $gt : 25000 } },
+         { "team" : "Emphatic Rhinos", "score" : 25010 },
+         { maxTimeMS: 5 } 
+      );
+   }
+   catch(e){
+      print(e);
+   }
+
+If the operation exceeds the time limit, it returns:
+
+.. code-block:: javascript
+
+   Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+
+
+.. _findOneAndReplace-example-replace-with-upsert:
+
+Replace Document with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the ``upsert`` field to insert the replacement 
+document if nothing matches the ``filter``:
+
+.. code-block:: javascript
+
+   try {
+      db.scores.findOneAndReplace( 
+         { "team" : "Fortified Lobsters" },
+         { "_id" : 6019, "team" : "Fortified Lobsters" , "score" : 32000},
+         { upsert : true, returnNewDocument: true }
+      );
+   }
+   catch (e){
+      print(e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+   	"_id" : 6019,
+   	"team" : "Fortified Lobsters",
+   	"score" : 32000
+   }
+   
+If ``returnNewDocument`` was false, the operation would return ``null`` as 
+there is no original document to return.

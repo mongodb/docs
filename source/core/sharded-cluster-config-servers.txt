@@ -9,91 +9,99 @@ Config Servers
 
 .. default-domain:: mongodb
 
-Config servers are special :program:`mongod` instances that store the
-:doc:`metadata </core/sharded-cluster-metadata>` for a sharded cluster.
-Config servers use a two-phase commit to ensure immediate consistency
-and reliability. Config servers *do not* run as replica sets. All
-config servers must be available to deploy a sharded cluster or to
-make any changes to cluster metadata.
-
-A production sharded cluster has *exactly three* config servers. For
-testing purposes you may deploy a cluster with a single config server.
-But to ensure redundancy and safety in production, you should always
-use three.
+Config servers store the :doc:`metadata </core/sharded-cluster-metadata>`
+for a sharded cluster.
 
 .. warning::
 
-   If your cluster has a single config server, then the config server
-   is a single point of failure. If the config server is inaccessible,
-   the cluster is not accessible. If you cannot recover the data on a
-   config server, the cluster will be inoperable.
+   If the config servers become inaccessible, the cluster is not
+   accessible. If you cannot recover the data on a config server, the
+   cluster will be inoperable.
 
-   **Always** use three config servers for production deployments.
+MongoDB also uses the config servers to manage distributed locks.
+
+
+.. _csrs:
+.. _replset-config-servers:
+
+Replica Set Config Servers
+--------------------------
+
+.. versionchanged:: 3.2
+
+Starting in MongoDB 3.2, config servers for new sharded clusters can be
+deployed as a :doc:`replica set </core/replication-introduction>`. This
+change improves consistency across the config servers, since MongoDB
+can take advantage of the standard replica set read and write protocols
+to replicate the data across the config servers. In addition, using a
+replica set for config servers allows a sharded cluster to have more
+than 3 config servers since a replica set can have up to 50 members.
+
+.. include:: /includes/fact-config-server-replica-set-restrictions.rst
+
+Earlier versions of MongoDB required *exactly three* mirrored
+:program:`mongod` instances to act as the config servers. MongoDB 3.2
+deprecates the use of three mirrored :program:`mongod` instances for
+config servers.
 
 Each sharded cluster must have its own config servers. Do not use the
 same config servers for different sharded clusters.
 
-.. tip::
-
-   .. include:: /includes/fact-use-cnames-for-config-servers.rst
-
 .. index:: config databases
 .. index:: database, config
-
-Config Database
----------------
-
-Config servers store the metadata in the :doc:`config database
-</reference/config-database>`. The :program:`mongos` instances cache
-this data and use it to route reads and writes to shards.
 
 .. _config-server-read-write-ops:
 
 Read and Write Operations on Config Servers
 -------------------------------------------
 
-MongoDB only writes data to the config server in the following cases:
+Config servers store the cluster's metadata in the :doc:`config
+database </reference/config-database>`. The :program:`mongos` instances
+cache this data and use it to route reads and writes to shards.
 
-- To create splits in existing chunks. For more information, see
-  :doc:`chunk splitting </core/sharding-chunk-splitting>`.
+MongoDB only writes data to the config servers when the metadata changes,
+such as
 
-- To migrate a chunk between shards. For more information, see
-  :doc:`chunk migration </core/sharding-chunk-migration>`.
+- after a :doc:`chunk migration </core/sharding-chunk-migration>`, or
 
-MongoDB reads data from the config server data in the following
-cases:
+- after a :doc:`chunk split </core/sharding-chunk-splitting>`.
+
+When writing to the replica set config servers, MongoDB uses a
+:ref:`write concern <wc-w>` of ``"majority"``.
+
+MongoDB reads data from the config server in the following cases:
 
 - A new :program:`mongos` starts for the first time, or an existing
   :program:`mongos` restarts.
 
-- After a chunk migration, the :program:`mongos` instances update
-  themselves with the new cluster metadata.
+- After change in the cluster metadata, such as after a chunk
+  migration.
 
-MongoDB also uses the config server to manage distributed locks.
+When reading from the replica set config servers, MongoDB uses
+a :doc:`readConcern </reference/readConcern>` level of
+:readconcern:`"majority"`.
 
 Config Server Availability
 --------------------------
 
-If one or two config servers become unavailable, the cluster's metadata
-becomes *read only*. You can still read and write data from the shards,
-but no chunk migrations or splits will occur until all three servers
-are available.
+If the config server replica set loses its primary and cannot elect a
+primary, the cluster's metadata becomes *read only*. You can still read
+and write data from the shards, but no chunk migration or chunk splits
+will occur until the replica set can elect a primary. If all config
+databases become unavailable, the cluster can become inoperable.
 
-If all three config servers are unavailable, you can still use the
-cluster if you do not restart the :program:`mongos` instances until
-after the config servers are accessible again. If you restart the
-:program:`mongos` instances before the config servers are available,
-the :program:`mongos` will be unable to route reads and writes.
+The :program:`mongos` instances cache the metadata from the config
+servers. As such, if all config server members become unavailable, you
+can still use the cluster if you do not restart the :program:`mongos`
+instances until after the config servers are accessible again. If you
+restart the :program:`mongos` instances before the config servers are
+available, the :program:`mongos` will be unable to route reads and writes.
 
-Clusters become inoperable without the cluster metadata. *Always,*
-ensure that the config servers remain available and intact. As such,
-backups of config servers are critical. The data on the config server
-is small compared to the data stored in a cluster. This means the
-config server has a relatively low activity load, and the config
-server does not need to be always available to support a sharded
-cluster. As a result, it is easy to back up the config servers.
-
-.. include:: /includes/fact-rename-config-servers-requires-cluster-restart.rst
+Clusters become inoperable without the cluster metadata. To ensure that
+the config servers remain available and intact, backups of config
+servers are critical. The data on the config server is small compared
+to the data stored in a cluster, and the config server has a relatively
+low activity load.
 
 See :ref:`sharding-config-servers-and-availability` for more
 information.

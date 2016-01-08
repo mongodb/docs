@@ -1,0 +1,184 @@
+====================
+Configure Encryption
+====================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 3.2
+
+Overview
+--------
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+.. important::
+
+   Available for the WiredTiger Storage Engine Only.
+
+MongoDB Enterprise 3.2 introduces a native encryption option for the
+WiredTiger storage engine. With storage encryption, the secure
+management of the encryption keys is critical.
+
+Only the system key is external to the server and requires external
+management. To manage the system key, MongoDB's encrypted storage
+engine supports two key management options:
+
+- Integration with a third party key management appliance via the Key
+  Management Interoperability Protocol (KMIP). **Recommended**
+
+- Use of local key management via a keyfile.
+
+The following tutorial outlines the procedures to configure MongoDB for
+encryption and key management.
+
+Key Manager
+-----------
+
+MongoDB Enterprise supports secure transfer of keys with compatible key
+management appliances. Using a key manager allows for the keys to be
+stored in the key manager.
+
+MongoDB Enterprise supports secure transfer of keys with Key Management
+Interoperability Protocol (KMIP) compliant key management appliances.
+While any appliance vendor that provides support for KMIP is expected
+to be compatible, MongoDB has certified against SafeNet KeySecure and
+Vormetric Data Security Manager (DSM).
+
+.. admonition:: Recommended
+
+   Using a key manager meets regulatory key management guidelines, such
+   as HIPAA, PCI-DSS, and FERPA, and is recommended over the local key
+   management.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- Your key manager must support the KMIP communication protocol, such
+  as Vormetric DSM and Safenet KeySecure.
+
+- For Vormetric or Safenet, you must have a valid certificates issued
+  by the specific appliance vendor in order to authenticate MongoDB to
+  the KMIP server.
+
+.. _encrypt-with-new-key:
+
+Encrypt Using a New Key
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a new key, connect :program:`mongod` to the key manager by starting
+:program:`mongod` with the following options:
+
+- ``--enableEncryption``,
+
+- ``--kmipServerName <KMIP Server Hostname>``,
+
+- ``--kmipServerCAFile <path to KMIP Server's CA File>``, and
+
+- ``--kmipClientCertificateFile <path to valid client certificate>``.
+
+Include any other options specific to your configuration.
+
+.. code-block:: sh
+
+   mongod --enableEncryption --kmipServerName <KMIP Server HostName> \
+     --kmipServerCAFile ca.pem --kmipClientCertificateFile client.pem
+
+This operation creates a new system key in your key manager for use by
+the :program:`mongod` to wrap the keys :program:`mongod` generates for
+each database.
+
+To verify that the key creation and usage was successful, check the log
+file. If successful, the process will log the following messages:
+
+.. code-block:: sh
+
+   [initandlisten] Created KMIP key with id: <UID>
+   [initandlisten] Encryption key manager initialized using system key with id: <UID>
+
+.. seealso:: :ref:`encryption-key-management-options`, 
+
+.. _encrypt-with-existing-key:
+
+Encrypt Using an Existing Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use an existing system key created and managed by your KMIP. To
+use an existing key, connect :program:`mongod` to the key manager by
+starting :program:`mongod` with the following options:
+
+- ``--enableEncryption``,
+
+- ``--kmipServerName <KMIP Server Hostname``,
+
+- ``--kmipServerCAFile <path to KMIP Server's CA File>``,
+
+- ``--kmipClientCertificateFile <path to valid client certificate>``, and
+
+- ``--kmipKeyIdentifier <UID>``.
+
+Include any other options specific to your configuration.
+
+.. code-block:: sh
+
+   mongod --enableEncryption --kmipServerName <KMIP Server HostName> \
+     --kmipServerCAFile ca.pem --kmipClientCertificateFile client.pem \
+     --kmipKeyIdentifier <UID>
+
+.. important::
+
+   If data is already encrypted with a key, you must specify that key's
+   ``<UID>`` for the ``--kmipKeyIdentifier`` option. Otherwise, MongoDB
+   will not start and log an error.
+
+.. seealso:: :ref:`encryption-key-management-options`
+
+Local Key Management
+--------------------
+
+.. important::
+
+   Using the keyfile method does not meet most regulatory key
+   management guidelines and requires users to securely manage their
+   own keys.
+
+   The safe management of the keyfile is critical.
+
+To encrypt using a keyfile, you must have a base64 encoded keyfile that
+contains a 16 or 32 character string. The keyfile must only be
+accessible by the owner of the :program:`mongod` process.
+
+#. Create the base64 encoded keyfile with the 16 or 32 character
+   string. You can generate the encoded keyfile using any method you
+   prefer. For example,
+
+   .. code-block:: sh
+
+      openssl rand -base64 32 > mongodb-keyfile
+
+#. Update the file permissions.
+
+   .. code-block:: sh
+
+      chmod 600 mongodb-keyfile
+
+#. To use the key file, start :program:`mongod` with the following
+   options:
+
+   - ``--enableEncryption``,
+
+   - ``--encryptionKeyFile <path to keyfile>``,
+
+   .. code-block:: sh
+
+      mongod --enableEncryption --encryptionKeyFile  mongodb-keyfile
+
+#. Verify if the encryption key manager successfully initialized with
+   the keyfile. If the operation was successful, the process will log the
+   following message:
+
+   .. code-block:: sh
+
+      [initandlisten] Encryption key manager initialized using system key with id:
+
+.. seealso:: :ref:`encryption-key-management-options`
+

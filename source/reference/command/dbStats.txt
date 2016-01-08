@@ -27,15 +27,26 @@ Definition
 
    .. note::
 
-      Because scaling rounds values to whole numbers, scaling may return
-      unlikely or unexpected results.
-
-   The time required to run the command depends on the total size of the
-   database. Because the command must touch all data files, the command
-   may take several seconds to run.
-
+      Scaling rounds values to whole numbers.
+   
    In the :program:`mongo` shell, the :method:`db.stats()` function
    provides a wrapper around :dbcommand:`dbStats`.
+
+Behavior
+--------
+
+The time required to run the command depends on the total size of the
+database. Because the command must touch all data files, the command
+may take several seconds to run.
+
+For MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
+storage engine, after an unclean shutdown, statistics on size and count
+may off by up to 1000 documents as reported by :dbcommand:`collStats`,
+:dbcommand:`dbStats`, :dbcommand:`count`. To restore the correct
+statistics for the collection, run :dbcommand:`validate` on the
+collection.
+
+.. _dbstats-output:
 
 Output
 ------
@@ -101,7 +112,8 @@ Output
    value of :data:`~dbStats.fileSize` only reflects the size of the data files
    for the database and not the namespace file.
 
-   The ``scale`` argument affects this value.
+   The ``scale`` argument affects this value. Only present when using
+   the ``mmapv1`` storage engine.
 
 .. data:: dbStats.nsSizeMB
 
@@ -111,6 +123,9 @@ Output
    default size for all new namespace files with the
    :setting:`~storage.nsSize` runtime option.
 
+   Only present when using
+   the ``mmapv1`` storage engine.
+
    .. seealso:: The :setting:`~storage.nsSize` option, and :ref:`Maximum Namespace File Size <limit-size-of-namespace-file>`
 
 .. data:: dbStats.dataFileVersion
@@ -118,18 +133,38 @@ Output
    .. versionadded:: 2.4
 
    Document that contains information about the on-disk format of the data
-   files for the database.
+   files for the database. Only present when using the ``mmapv1`` storage engine.
 
 .. data:: dbStats.dataFileVersion.major
 
    .. versionadded:: 2.4
 
    The major version number for the on-disk format of the data files for
-   the database.
+   the database. Only present when using the ``mmapv1`` storage engine.
 
 .. data:: dbStats.dataFileVersion.minor
 
    .. versionadded:: 2.4
 
-   The minor version number for the on-disk format of the data files for
-   the database.
+   The minor version number for the on-disk format of the data files
+   for the database. Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.extentFreeList
+
+   .. versionadded:: 3.0.0
+
+.. data:: dbStats.extentFreeList.num
+
+   .. versionadded:: 3.0.0
+
+   Number of extents in the freelist. Only present when using the
+   ``mmapv1`` storage engine.
+
+.. data:: dbStats.extentFreeList.size
+
+   .. versionadded:: 3.0.0
+
+   Total size of the extents on the freelist.
+
+   The ``scale`` argument affects this value. Only present when using
+   the ``mmapv1`` storage engine.

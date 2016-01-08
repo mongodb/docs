@@ -7,88 +7,135 @@ db.copyDatabase()
 Definition
 ----------
 
-.. method:: db.copyDatabase(fromdb, todb, fromhost, username, password)
+.. method:: db.copyDatabase(fromdb, todb, fromhost, username, password, mechanism)
 
-   Copies a database from a remote host to the current host or copies a
-   database to another database within the current host.
-   :method:`db.copyDatabase()` wraps the :dbcommand:`copydb` command
-   and takes the following arguments:
+   .. versionchanged:: 3.0
 
-   .. include:: /reference/method/db.copyDatabase-param.rst
+      .. include:: /includes/extracts/fact-copydb-method-authentication-mechanism-change.rst
+
+   Copies a database either from one :program:`mongod` instance to the
+   current :program:`mongod` instance or within the current
+   :program:`mongod`. :method:`db.copyDatabase()` wraps the
+   :dbcommand:`copydb` command and takes the following arguments:
+
+   .. include:: /includes/apiargs/method-db.copyDatabase-param.rst
 
 Behavior
 --------
 
-.. |copydb| replace:: :method:`db.copyDatabase()`
+Destination
+~~~~~~~~~~~
 
-.. include:: /includes/fact-copydb-behavior.rst
+.. include:: /includes/extracts/fact-copydb-method-behavior-destination.rst
+
+.. _copyDatabase-access-control:
+
+Authentication to Source ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-behavior-fromhost-authentication.rst
+
+Concurrency
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-behavior-concurrency.rst
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+- Do not use :method:`db.copyDatabase()` from a :program:`mongos` instance.
+
+- Do not use :method:`db.copyDatabase()` to copy databases that contain sharded
+  collections.
+
+.. _copyDatabases-requiredAccess:
 
 Required Access
 ---------------
 
 .. versionchanged:: 2.6
 
-The :dbcommand:`copydb` command requires the following authorization on
-the target and source databases.
+.. _copyDatabase-fromdb-access:
 
 Source Database (``fromdb``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If the :program:`mongod` instance of the *source* database (``fromdb``)
+enforces :setting:`access control <security.authorization>`, you must
+have proper authorization for the *source* database.
+
+.. include:: /includes/extracts/fact-copydb-method-fromhost-authentication.rst
+.. include:: /includes/extracts/fact-copydb-method-authentication-mechanism.rst
+
 Source is non-``admin`` Database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: /includes/access-copydb.rst
-   :start-after: .. source-not-admin
-   :end-before: .. source-admin
+.. include:: /includes/extracts/access-copydb-source-not-admin.rst
 
 Source is ``admin`` Database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: /includes/access-copydb.rst
-   :start-after: .. source-admin
+.. include:: /includes/extracts/access-copydb-source-admin.rst
 
-Source Database is on a Remote Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If copying from a remote server and the remote server has
-authentication enabled, you must authenticate to the remote host as a
-user with the proper authorization. See
-:ref:`copyDatabases-authentication`.
+.. _copyDatabase-todb-access:
 
 Target Database (``todb``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If the :program:`mongod` instance of the *target* database (``todb``)
+enforces :setting:`access control <security.authorization>`, you must
+have proper authorization for the *target* database.
+
 Copy from non-``admin`` Database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. include:: /includes/access-copydb.rst
-   :start-after: .. target-non-admin-source
-   :end-before: .. target-admin-source
+
+.. include:: /includes/extracts/access-copydb-target-non-admin-source.rst
 
 Copy from ``admin`` Database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: /includes/access-copydb.rst
-   :start-after: .. target-admin-source
-   :end-before: .. source-not-admin
-
-.. _copyDatabases-authentication:
-
-Authentication
---------------
-
-If copying from a remote server and the remote server has
-authentication enabled, then you must include the ``<username>`` and
-``<password>``. The method does not transmit the password in plaintext.
+.. include:: /includes/extracts/access-copydb-target-admin-source.rst
 
 Example
 -------
 
-To copy a database named ``records`` into a database named
-``archive_records``, use the following invocation of
-:method:`db.copyDatabase()`:
+Copy from the Same ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy within the same :program:`mongod` instance, omit the
+``fromhost``.
+
+The following operation copies a database named ``records`` into a
+database named ``archive_records``:
 
 .. code-block:: javascript
 
    db.copyDatabase('records', 'archive_records')
+
+.. _example-copyDatabase-from-2.6:
+
+Copy Database from a ``mongod`` Instances that Enforce Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-method-fromhost-authentication.rst
+
+.. versionchanged:: 3.0
+
+   MongoDB 3.0 supports passing the authentication mechanism to use for the ``fromhost``.
+
+The following operation copies a database named ``reporting`` from a
+version 2.6 :program:`mongod` instance that runs on ``example.net`` and enforces
+access control.
+
+.. code-block:: javascript
+
+    db.copyDatabase(
+      "reporting",
+      "reporting_copy",
+      "example.net",
+      "reportUser",
+      "abc123",
+      "MONGODB-CR"
+   )
 
 .. seealso:: :dbcommand:`clone`

@@ -8,21 +8,28 @@ GridFS
 
 :term:`GridFS` is a specification for storing and retrieving files
 that exceed the :term:`BSON`\-document :ref:`size limit
-<limit-bson-document-size>` of 16MB.
+<limit-bson-document-size>` of 16 MB.
 
 Instead of storing a file in a single document, GridFS divides a file
-into parts, or chunks, [#chunk-disambiguation]_ and stores each of
-those chunks as a separate document. By default GridFS limits chunk
-size to 255k. GridFS uses two collections to store files. One
-collection stores the file chunks, and the other stores file metadata.
+into parts, or chunks [#chunk-disambiguation]_, and stores each chunk as
+a separate document. By default, GridFS uses a chunk size of 255 KB;
+that is, GridFS divides a file into chunks of 255 KB with the exception
+of the last chunk. The last chunk is only as large as necessary.
+Similarly, files that are no larger than the chunk size only have a
+final chunk, using only as much space as needed plus some additional
+metadata.
+
+GridFS uses two collections to store files. One collection stores the
+file chunks, and the other stores file metadata. For more information,
+refer to :ref:`gridfs-collections`.
 
 When you query a GridFS store for a file, the driver or client will
 reassemble the chunks as needed. You can perform range queries on
-files stored through GridFS.  You also can access information from
+files stored through GridFS. You also can access information from
 arbitrary sections of files, which allows you to "skip" into the
 middle of a video or audio file.
 
-GridFS is useful not only for storing files that exceed 16MB but also
+GridFS is useful not only for storing files that exceed 16 MB but also
 for storing any files for which you want access without having to load
 the entire file into memory. For more information on the indications
 of GridFS, see :ref:`faq-developers-when-to-use-gridfs`.
@@ -32,7 +39,7 @@ of GridFS, see :ref:`faq-developers-when-to-use-gridfs`.
    the context of sharding.
 
 .. versionchanged:: 2.4.10
-   The default chunk size changed from 256k to 255k.
+   The default chunk size changed from 256 KB to 255 KB.
 
 .. index:: GridFS; initialize
 .. _gridfs-implement:
@@ -46,7 +53,9 @@ To store and retrieve files using :term:`GridFS`, use either of the following:
   documentation for information on using GridFS with your driver.
 
 - The :program:`mongofiles` command-line tool in the :program:`mongo`
-  shell. See :doc:`/reference/program/mongofiles`.
+  shell. See the :program:`mongofiles` reference for complete documentation.
+
+.. _gridfs-collections:
 
 GridFS Collections
 ------------------
@@ -104,36 +113,4 @@ does not create this index, issue the following operation using the
 
 .. code-block:: javascript
 
-   db.fs.chunks.ensureIndex( { files_id: 1, n: 1 }, { unique: true } );
-
-Example Interface
------------------
-
-The following is an example of the GridFS interface in Java. The example
-is for demonstration purposes only. For API specifics, see the relevant
-:doc:`driver </applications/drivers>` documentation.
-
-By default, the interface must support the default GridFS bucket, named
-``fs``, as in the following:
-
-.. code-block:: java
-
-   // returns default GridFS bucket (i.e. "fs" collection)
-   GridFS myFS = new GridFS(myDatabase);
-
-   // saves the file to "fs" GridFS bucket
-   myFS.createFile(new File("/tmp/largething.mpg"));
-
-Optionally, interfaces may support other additional GridFS buckets as
-in the following example:
-
-.. code-block:: java
-
-   // returns GridFS bucket named "contracts"
-   GridFS myContracts = new GridFS(myDatabase, "contracts");
-
-   // retrieve GridFS object "smithco"
-   GridFSDBFile file = myContracts.findOne("smithco");
-
-   // saves the GridFS file to the file system
-   file.writeTo(new File("/tmp/smithco.pdf"));
+   db.fs.chunks.createIndex( { files_id: 1, n: 1 }, { unique: true } );

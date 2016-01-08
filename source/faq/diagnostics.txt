@@ -29,74 +29,63 @@ following commands:
 
 .. _faq-keepalive:
 
-Does TCP ``keepalive`` time affect sharded clusters and replica sets?
----------------------------------------------------------------------
+Does TCP ``keepalive`` time affect MongoDB Deployments?
+-------------------------------------------------------
 
-If you experience socket errors between members of a sharded cluster
-or replica set, that do not have other reasonable causes, check the
-TCP keep alive value, which Linux systems store as the
-``tcp_keepalive_time`` value. A common keep alive period is ``7200``
-seconds (2 hours); however, different distributions and OS X may have
-different settings. For MongoDB, you will have better experiences with
-shorter keepalive periods, on the order of ``300`` seconds (five minutes).
+If you experience socket errors between clients and servers or between
+members of a sharded cluster or replica set that do not have other
+reasonable causes, check the TCP keepalive value (e.g. on Linux systems
+store, the ``tcp_keepalive_time`` value). A common keepalive period is
+``7200`` seconds (2 hours); however, different distributions and OS X
+may have different settings.
 
-On Linux systems you can use the following operation to check the
-value of ``tcp_keepalive_time``:
+For MongoDB, you will have better results with shorter keepalive
+periods, on the order of ``120`` seconds (two minutes).
 
-.. code-block:: sh
+If your MongoDB deployment experiences keepalive-related issues, you
+must alter the keep alive value on *all* machines hosting MongoDB
+processes. This includes all machines hosting :program:`mongos` or
+:program:`mongod` servers and all machines hosting client processes
+that connect to MongoDB.
 
-   cat /proc/sys/net/ipv4/tcp_keepalive_time
+.. note:: 
+   
+   For non-Linux systems, values greater than or equal to 600 seconds
+   (10 minutes) will be ignored by :program:`mongod` and
+   :program:`mongos`. For Linux, values greater than 300 seconds (5
+   minutes) will be overridden on the :program:`mongod` and
+   :program:`mongos` sockets with a maximum of 300 seconds.
 
-You can change the ``tcp_keepalive_time`` value with the following
-operation:
+.. include:: /includes/fact-tcp-keepalive-linux.rst
 
-.. code-block:: sh
+.. include:: /includes/fact-tcp-keepalive-osx.rst
 
-   echo 300 > /proc/sys/net/ipv4/tcp_keepalive_time
+.. include:: /includes/fact-tcp-keepalive-windows.rst
 
-The new ``tcp_keepalive_time`` value takes effect without requiring
-you to restart the :program:`mongod` or :program:`mongos`
-servers. When you reboot or restart your system you will need to set
-the new ``tcp_keepalive_time`` value, or see your operating system's
-documentation for setting the TCP keepalive value persistently.
-
-For OS X systems, issue the following command to view the keep alive
-setting:
-
-.. code-block:: sh
-
-   sysctl net.inet.tcp.keepinit
-
-To set a shorter keep alive period use the following invocation:
-
-.. code-block:: sh
-
-   sysctl -w net.inet.tcp.keepinit=300
-
-If your replica set or sharded cluster experiences keepalive-related
-issues, you must alter the ``tcp_keepalive_time`` value on all machines
-hosting MongoDB processes. This includes all machines hosting
-:program:`mongos` or :program:`mongod` servers.
-
-Windows users should consider the `Windows Server Technet Article on
-KeepAliveTime configuration
-<http://technet.microsoft.com/en-us/library/dd349797.aspx#BKMK_2>`_
-for more information on setting keep alive for MongoDB deployments on
-Windows systems.
+You will need to restart :program:`mongod` and :program:`mongos`
+servers for new system-wide keepalive settings to take effect.
 
 What tools are available for monitoring MongoDB?
 ------------------------------------------------
 
-The `MongoDB Management Services <http://mms.mongodb.com>`_ includes
-monitoring. MMS Monitoring is a free, hosted services for monitoring
-MongoDB deployments. A full list of third-party tools is available as
-part of the :doc:`/administration/monitoring/` documentation. Also
-consider the `MMS Documentation <http://mms.mongodb.com/help/>`_.
+The |mms-home| and
+:products:`Ops Manager, an on-premise solution available in MongoDB
+Enterprise Advanced </mongodb-enterprise-advanced?jmp=docs>` include
+monitoring functionality, which collects data from running MongoDB
+deployments and provides visualization and alerts based on that data.
+
+For more information, see also the |mms-docs| and
+:opsmgr:`Ops Manager documentation </application>`.
+
+A full list of third-party tools is available as part of the
+:doc:`/administration/monitoring/` documentation.
+
+.. include:: /includes/replacement-mms.rst
 
 .. _faq-memory:
 
-Memory Diagnostics
-------------------
+Memory Diagnostics for the MMAPv1 Storage Engine
+------------------------------------------------
 
 Do I need to configure swap space?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,19 +108,11 @@ system.
 
 .. _faq-fundamentals-working-set:
 
-What is "working set" and how can I estimate its size?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What is a "working set"?
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-The *working set* for a MongoDB database is the portion of your data
-that clients access most often. You can estimate size of the working
-set, using the :data:`~serverStatus.workingSet` document in the output
-of :dbcommand:`serverStatus`. To return :dbcommand:`serverStatus` with
-the :data:`~serverStatus.workingSet` document, issue a command in the
-following form:
-
-.. code-block:: javascript
-
-   db.runCommand( { serverStatus: 1, workingSet: 1 } )
+The *working set* is the portion of your data that clients access most
+often.
 
 Must my working set size fit RAM?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,38 +132,6 @@ index pages will be much smaller.
 
 It is fine if databases and thus virtual size are much larger than RAM.
 
-.. todo Commenting out for now:
-
-   .. _faq-fundamentals-working-set-size:
-
-   How can I measure working set size?
-   -----------------------------------
-
-   Measuring working set size can be difficult; even if it is much
-   smaller than total RAM. If the database is much larger than RAM in
-   total, all memory will be indicated as in use for the cache. Thus you
-   need a different way to estimate the working set size.
-
-   One technique is to use the `eatmem.cpp
-   <https://github.com/mongodb/mongo-snippets/blob/master/cpp/eatmem.cpp>`_.
-   utility, which reserves a certain amount of system memory for itself.
-   You can run the utility with a certain amount specified and see if
-   the server continues to perform well. If not, the working set is
-   larger than the total RAM minus the consumed RAM. The test will eject
-   some data from the file system cache, which might take time to page
-   back in after the utility is terminated.
-
-   Running eatmem.cpp continuously with a small percentage of total RAM,
-   such as 20%, is a good technique to get an early warning if memory is
-   too low. If disk I/O activity increases significantly, terminate
-   eatmem.cpp to mitigate the problem for the moment until further steps
-   can be taken.
-
-   In :term:`replica sets <replica set>`, if one server is underpowered
-   the eatmem.cpp utility could help as an early warning mechanism for
-   server capacity. Of course, the server must be receiving
-   representative traffic to get an indication.
-
 How do I calculate how much RAM I need for my application?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -197,8 +146,10 @@ limited to:
 
 - The impact of :doc:`journaling </core/journaling>`
 
-- The number or rate of page faults and other MMS gauges to detect when
+- The number or rate of page faults and other |MMS| gauges to detect when
   you need more RAM
+
+- Each database connection thread will need up to 1 MB of RAM.
 
 MongoDB defers to the operating system when loading data into memory
 from disk. It simply :ref:`memory maps <faq-storage-memory-mapped-files>` all
@@ -211,7 +162,8 @@ your particular usage.
 To calculate how much RAM you need, you must calculate your working set
 size, or the portion of your data that clients use most often. This
 depends on your access patterns, what indexes you have, and the size of
-your documents.
+your documents. Because MongoDB uses a thread per connection model, each
+database connection also will need up to 1 MB of RAM, whether active or idle.
 
 If page faults are infrequent, your
 working set fits in RAM. If fault rates rise higher than that, you risk
@@ -231,6 +183,23 @@ file system cache contents.
 
 For Linux systems, use the ``vmstat`` command to help determine how
 the system uses memory. On OS X systems use ``vm_stat``.
+
+.. _faq-memory-wt:
+
+Memory Diagnostics for the WiredTiger Storage Engine
+----------------------------------------------------
+
+Must my working set size fit RAM?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No.
+
+.. include:: /includes/extracts/wt-cache-size.rst
+
+How do I calculate how much RAM I need for my application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/wt-configure-cache.rst
 
 Sharded Cluster Diagnostics
 ---------------------------

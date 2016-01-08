@@ -4,120 +4,341 @@ $type
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. query:: $type
 
-   *Syntax*: ``{ field: { $type: <BSON type> } }``
-
    :query:`$type` selects the documents where the *value* of the
-   ``field`` is the specified :term:`BSON` type.
+   ``field`` is an instance of the specified :term:`BSON` type.
+   Querying by data type is useful when dealing with highly
+   unstructured data where data types are not predictable.
 
-   Consider the following example:
+   A :query:`$type` expression has the following syntax:
 
-   .. code-block:: javascript
-
-      db.inventory.find( { price: { $type : 1 } } )
-
-   This query will select all documents in the ``inventory`` collection
-   where the ``price`` field value is a Double.
-
-   If the ``field`` holds an array, the :query:`$type` operator
-   performs the type check against the array elements and **not** the
-   ``field``.
-
-   Consider the following example where the ``tags`` field holds an array:
+   .. versionchanged:: 3.2
 
    .. code-block:: javascript
 
-      db.inventory.find( { tags: { $type : 4 } } )
+     { field: { $type: <BSON type number> | <String alias> } }
 
-   This query will select all documents in the ``inventory`` collection
-   where the ``tags`` array contains an element that is itself an array.
+   :ref:`document-type-available-types` describes the BSON types and
+   their corresponding numeric and string aliases.
 
-   If instead you want to determine whether the ``tags`` field is an
-   array type, use the :query:`$where` operator:
+Behavior
+--------
 
-   .. code-block:: javascript
+:query:`$type` returns documents where the BSON type of the ``field``
+matches the BSON type passed to :query:`$type`.
 
-      db.inventory.find( { $where : "Array.isArray(this.tags)" } )
+.. _document-type-available-types:
 
-   See the :issue:`SERVER-1475` for more information about the
-   array type.
+Available Types
+~~~~~~~~~~~~~~~
 
-   Refer to the following table for the available :term:`BSON` types
-   and their corresponding numbers.
+.. versionchanged:: 3.2
+   :query:`$type` operator accepts string aliases for the BSON types
+   in addition to the numbers corresponding to the BSON types.
+   Previous versions only accepted the numbers corresponding to the
+   BSON type.
 
-   =======================  ==========
-   **Type**                 **Number**
-   -----------------------  ----------
-   Double                       1
-   String                       2
-   Object                       3
-   Array                        4
-   Binary data                  5
-   Undefined (deprecated)       6
-   Object id                    7
-   Boolean                      8
-   Date                         9
-   Null                        10
-   Regular Expression          11
-   JavaScript                  13
-   Symbol                      14
-   JavaScript (with scope)     15
-   32-bit integer              16
-   Timestamp                   17
-   64-bit integer              18
-   Min key                    255
-   Max key                    127
-   =======================  ==========
+.. include:: /includes/fact-bson-types.rst
 
-   ``MinKey`` and ``MaxKey`` compare less than and greater than all
-   other possible :term:`BSON` element values, respectively, and exist
-   primarily for internal use.
+:query:`$type` supports the ``number`` alias, which will match against the 
+following :term:`BSON` types:
 
-   .. note::
+- double
 
-      To query if a field value is a ``MinKey``, you must use the :query:`$type` with
-      ``-1`` as in the following example:
+- 32-bit integer
 
-      .. code-block:: javascript
+- 64-bit integer
 
-         db.collection.find( { field: { $type: -1 } } )
+See :ref:`document-querying-by-data-type`
 
-   .. example::
+Arrays
+~~~~~~
 
-      Consider the following example operation sequence that
-      demonstrates both type comparison *and* the special ``MinKey``
-      and ``MaxKey`` values:
+When applied to arrays, :query:`$type` matches any **inner** element that is 
+of the specified :term:`BSON` type. For example, when matching for 
+``$type : 'array'``, the document will match if the field has a nested array. 
+It will not return results where the field itself is an ``array``.
 
-      .. code-block:: javascript
+See :ref:`document-querying-by-array-type` for an example.
 
-         db.test.insert( {x : 3});
-         db.test.insert( {x : 2.9} );
-         db.test.insert( {x : new Date()} );
-         db.test.insert( {x : true } );
-         db.test.insert( {x : MaxKey } )
-         db.test.insert( {x : MinKey } )
 
-         db.test.find().sort({x:1})
-         { "_id" : ObjectId("4b04094b7c65b846e2090112"), "x" : { $minKey : 1 } }
-         { "_id" : ObjectId("4b03155dce8de6586fb002c7"), "x" : 2.9 }
-         { "_id" : ObjectId("4b03154cce8de6586fb002c6"), "x" : 3 }
-         { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
-         { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Jul 25 2012 18:42:03 GMT-0500 (EST)" }
-         { "_id" : ObjectId("4b0409487c65b846e2090111"), "x" : { $maxKey : 1 } }
+MinKey and MaxKey
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To query for the minimum value of a :term:`shard key` of a
-      :term:`sharded cluster`, use the following operation when
-      connected to the :program:`mongos`:
+:bsontype:`MinKey <data_minkey>` and :bsontype:`MaxKey <data_maxkey>` 
+are used in comparison operations and exist primarily for internal use. 
+For all possible :term:`BSON` element values, ``MinKey`` will always be the 
+smallest value while ``MaxKey`` will always be the greatest value.
 
-      .. code-block:: javascript
+Querying for  ``minKey`` or ``maxKey`` with :query:`$type` 
+will only return fields that match 
+the special ``MinKey`` or ``MaxKey`` values.
 
-         use config
-         db.chunks.find( { "min.shardKey": { $type: -1 } } )
+Suppose that the ``data`` collection has two documents 
+with ``MinKey`` and ``MaxKey``:
 
-   .. include:: /includes/warning-mixing-types.rst
+.. code-block:: javascript
 
-   .. seealso::
+   { "_id" : 1, x : { "$minKey" : 1 } }
+   { "_id" : 2, y : { "$maxKey" : 1 } }
+   
+The following query will return the document with ``_id: 1``:
 
-      :method:`~db.collection.find()`, :method:`~db.collection.insert()`, :query:`$where`, :term:`BSON`,
-      :term:`shard key`, :term:`sharded cluster` .
+.. code-block:: javascript
+
+   db.data.find( { x: { $type: "minKey" } } )
+   
+The following query will return the document with ``_id: 2``:
+
+.. code-block:: javascript
+
+      db.data.find( { y: { $type: "maxKey" } } )
+
+Examples
+--------
+
+.. _document-querying-by-data-type:
+
+Querying by Data Type
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``addressBook`` contains addresses and zipcodes, where 
+``zipCode`` has ``string``, ``int``, ``double``, and ``long`` 
+values:
+
+.. code-block:: javascript
+
+   db.addressBook.insertMany(
+      [
+         { "_id" : 1, address : "2030 Martian Way", zipCode : "90698345" },
+         { "_id" : 2, address: "156 Lunar Place", zipCode : 43339374 },
+         { "_id" : 3, address : "2324 Pluto Place", zipCode: NumberLong(3921412) },
+         { "_id" : 4, address : "55 Saturn Ring" , zipCode : NumberInt(88602117) }
+      ]
+   )
+
+The following queries return all documents where ``zipCode`` is the 
+:term:`BSON` type ``string``:
+
+
+.. code-block:: javascript
+
+   db.addressBook.find( { "zipCode" : { $type : 2 } } );
+   db.addressBook.find( { "zipCode" : { $type : "string" } } );
+   
+These queries return:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "address" : "2030 Martian Way", "zipCode" : "90698345" }
+
+The following queries return all documents where ``zipCode`` is the 
+:term:`BSON` type ``double``:
+
+.. code-block:: javascript
+
+   db.addressBook.find( { "zipCode" : { $type : 1 } } )
+   db.addressBook.find( { "zipCode" : { $type : "double" } } )
+   
+These queries return:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "address" : "156 Lunar Place", "zip" : 43339374 }
+
+The following query uses the ``number`` alias to return documents where 
+``zipCode`` is the :term:`BSON` type ``double``, ``int``, or ``long``:
+
+.. code-block:: javascript
+
+   db.addressBook.find( { "zipCode" : { $type : "number" } } )
+   
+These queries return:
+
+.. code-block:: javascript
+
+   { "_id" : 2, address : "156 Lunar Place", zipCode : 43339374 }
+   { "_id" : 3, address : "2324 Pluto Place", zipCode: NumberLong(3921412) }
+   { "_id" : 4, address : "55 Saturn Ring" , zipCode : 88602117 }
+
+.. _document-querying-by-MinKey-And-MaxKey:
+
+Querying by MinKey and MaxKey
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``restaurants`` collection uses ``minKey`` for any grade that is a 
+failing grade:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "address": {
+         "building": "230",
+         "coord": [ -73.996089, 40.675018 ],
+         "street": "Huntington St",
+         "zipcode": "11231"
+      },
+      "borough": "Brooklyn",
+      "cuisine": "Bakery",
+      "grades": [
+         { "date": { "$date": 1393804800000 }, "grade": "C", "score": 15 },
+         { "date": { "$date": 1378857600000 }, "grade": "C", "score": 16 },
+         { "date": { "$date": 1358985600000 }, "grade": { "$minKey" : 1 }, "score": 30 },
+         { "date": { "$date": 1322006400000 }, "grade": "C", "score": 15 }
+      ],
+      "name": "Dirty Dan's Donuts",
+      "restaurant_id": "30075445"
+   }
+
+And ``maxKey`` for any grade that is the highest passing grade:
+
+.. code-block:: javascript
+
+   {
+      "_id": 2,
+      "address": {
+         "building": "1166",
+         "coord": [ -73.955184, 40.738589 ],
+         "street": "Manhattan Ave",
+         "zipcode": "11222"
+      },
+      "borough": "Brooklyn",
+      "cuisine": "Bakery",
+      "grades": [
+         { "date": { "$date": 1393804800000 }, "grade": { "$maxKey" : 1 }, "score": 2 },
+         { "date": { "$date": 1378857600000 }, "grade": "B", "score": 6 },
+         { "date": { "$date": 1358985600000 }, "grade": { "$maxKey" : 1 }, "score": 3 },
+         { "date": { "$date": 1322006400000 }, "grade": "B", "score": 5 }
+      ],
+      "name": "Dainty Daisey's Donuts",
+      "restaurant_id": "30075449"
+   }
+
+The following query returns any restaurant whose ``grades.grade`` field 
+contains  ``minKey``:
+
+.. code-block:: javascript
+
+   db.restaurant.find( 
+      { "grades.grade" : { $type : "minKey" } }
+   )
+   
+This returns
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "address": {
+         "building": "230",
+         "coord": [ -73.996089, 40.675018 ],
+         "street": "Huntington St",
+         "zipcode": "11231"
+      },
+      "borough": "Brooklyn",
+      "cuisine": "Bakery",
+      "grades": [
+         { "date": { "$date": 1393804800000 }, "grade": "C", "score": 15 },
+         { "date": { "$date": 1378857600000 }, "grade": "C", "score": 16 },
+         { "date": { "$date": 1358985600000 }, "grade": { "$minKey" : 1 }, "score": 30 },
+         { "date": { "$date": 1322006400000 }, "grade": "C", "score": 15 }
+      ],
+      "name": "Dirty Dan's Donuts",
+      "restaurant_id": "30075445"
+   }
+   
+The following query returns any restaurant whose ``grades.grade`` field 
+contains ``maxKey``:
+
+
+.. code-block:: javascript
+
+   db.restaurant.find( 
+      { "grades.grade" : { $type : "maxKey" } }
+   )
+   
+This returns
+
+.. code-block:: javascript
+
+   {
+      "_id": 2,
+      "address": {
+         "building": "1166",
+         "coord": [ -73.955184, 40.738589 ],
+         "street": "Manhattan Ave",
+         "zipcode": "11222"
+      },
+      "borough": "Brooklyn",
+      "cuisine": "Bakery",
+      "grades": [
+         { "date": { "$date": 1393804800000 }, "grade": { "$maxKey" : 1 }, "score": 2 },
+         { "date": { "$date": 1378857600000 }, "grade": "B", "score": 6 },
+         { "date": { "$date": 1358985600000 }, "grade": { "$maxKey" : 1 }, "score": 3 },
+         { "date": { "$date": 1322006400000 }, "grade": "B", "score": 5 }
+      ],
+      "name": "Dainty Daisey's Donuts",
+      "restaurant_id": "30075449"
+   }
+   
+.. _document-querying-by-array-type:
+
+Querying by Array Type
+----------------------
+
+The ``SensorReading`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "readings": [
+         25,
+         23,
+         [ "Warn: High Temp!", 55 ],
+         [ "ERROR: SYSTEM SHUTDOWN!", 66 ]
+      ]
+   },
+   {
+      "_id": 2,
+      "readings": [
+         25,
+         25,
+         24,
+         23
+      ]
+   }
+	
+The following query returns any document where ``readings`` has an element of 
+:term:`BSON` type ``array``:
+
+.. code-block:: javascript
+
+   db.SensorReading.find( "readings" : { $type: "array" } )
+
+This returns
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "readings": [
+         25,
+         23,
+         [ "Warn: High Temp!", 55 ],
+         [ "ERROR: SYSTEM SHUTDOWN!", 66 ]
+      ]
+   }
+
+Since the ``readings`` field has at least one array as an element, 
+the :query:`$type` will return the first document.
+
+Additional Information
+----------------------
+
+:method:`~db.collection.find()`, :doc:`BSON Types </reference/bson-types>`.

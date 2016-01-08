@@ -8,6 +8,16 @@ Read Preference Reference
 
 .. include:: /includes/read-preference-modes-table.rst
 
+.. note::
+
+   The read preference does not affect the visibility of data; i.e,
+   clients can see the results of writes before they are made :term:`durable`:
+
+   .. include:: /includes/list-visibility-of-data.rst
+
+   For more information on read isolation level in MongoDB, see
+   :doc:`/core/read-isolation-consistency-recency`.
+
 .. index:: read preference; semantics
 .. _replica-set-read-preference-semantics:
 .. index:: read preference; modes
@@ -18,9 +28,10 @@ Read Preference Modes
 
 .. readmode:: primary
 
-   All read operations use only the current replica set :term:`primary`.
-   This is the default. If the primary is unavailable,
-   read operations produce an error or throw an exception.
+   All read operations use only the current replica set
+   :term:`primary`. [#edge-cases-2-primaries]_ This is the default read
+   mode. If the primary is unavailable, read operations produce an
+   error or throw an exception.
 
    The :readmode:`primary` read preference mode is not compatible with
    read preference modes that use :ref:`tag sets
@@ -126,15 +137,6 @@ Read Preference Modes
       latency. See :ref:`replica-set-read-preference-behavior-nearest`
       for more information.
 
-.. [#capacity-planning] If your set has more than one secondary, and
-   you use the :readmode:`secondary` read preference mode, consider
-   the following effect. If you have a :ref:`three member replica set
-   <replica-set-three-members>` with a primary and two secondaries,
-   and if one secondary becomes unavailable, all :readmode:`secondary`
-   queries must target the remaining secondary. This will double the
-   load on this secondary. Plan and provide capacity to support this
-   as needed.
-
 Use Cases
 ---------
 
@@ -144,21 +146,56 @@ different read preferences, or use different read preferences for different
 queries in the same application. Consider the following applications
 for different read preference strategies.
 
+.. _maximize-consistency:
+
 Maximize Consistency
 ~~~~~~~~~~~~~~~~~~~~
 
-To avoid *stale* reads under all circumstances, use
-:readmode:`primary`. This prevents all queries when the set has no
-:term:`primary`, which happens during elections, or when a majority of
-the replica set is not accessible.
+To avoid *stale* reads, use :readmode:`primary` read preference and
+:readconcern:`"majority"` ``readConcern``. If the primary is
+unavailable, e.g. during elections or when a majority of the replica
+set is not accessible, read operations using :readmode:`primary` read
+preference produce an error or throw an exception.
+
+.. _edge-cases:
+
+In some circumstances, it may be possible for a replica set to
+temporarily have two primaries; however, only one primary will be
+capable of confirming writes with the :writeconcern:`"majority"` write
+concern.
+
+- A partial :term:`network partition` may segregate a primary (``p``\
+  :sub:`old`) into a partition with a minority of the nodes, while the
+  other side of the partition contains a majority of nodes. The
+  partition with the majority will elect a new primary (``P``\
+  :sub:`new`), but for a brief period, the old primary (``p``\
+  :sub:`old`) may still continue to serve reads and writes, as it has
+  not yet detected that it can only see a minority of nodes in the
+  replica set. During this period, if the old primary (``p``\
+  :sub:`old`) is still visible to clients as a primary, reads from this
+  primary may reflect stale data.
+
+- A primary (``p``\ :sub:`old`) may become unresponsive, which will
+  trigger an election and a new primary (``P``\ :sub:`new`) can be
+  elected, serving reads and writes. If the unresponsive primary
+  (``p``\ :sub:`old`) starts responding again, two primaries will be
+  visible for a brief period. The brief period will end when ``p``\
+  :sub:`old` steps down. However, during the brief period, clients
+  might read from the old primary ``p``\ :sub:`old`, which can provide
+  stale data.
+
+To increase consistency, you can disable automatic :term:`failover`;
+however, disabling automatic failover sacrifices availability.
 
 Maximize Availability
 ~~~~~~~~~~~~~~~~~~~~~
 
-To permit read operations when possible, Use
+To permit read operations when possible, use
 :readmode:`primaryPreferred`. When there's a primary you will get
-consistent reads, but if there is no primary you can still query
-:term:`secondaries <secondary>`.
+consistent reads [#edge-cases-2-primaries]_, but if there is no primary
+you can still query :term:`secondaries <secondary>`. However, when
+using this read mode, consider the situation described in
+:ref:`caveat-secondaryPreferred`.
 
 Minimize Latency
 ~~~~~~~~~~~~~~~~
@@ -172,11 +209,6 @@ further away than the nearest member.
 member to your application server is a secondary with some replication
 lag, queries could return stale data. :readmode:`nearest` only
 reflects network distance and does not reflect I/O or CPU load.
-
-.. [#secondary-acceptable-latency] This threshold is configurable. See
-   :setting:`~replication.localPingThresholdMs` for :program:`mongos` or your driver
-   documentation for the appropriate setting.
-
 
 Query From Geographically Distributed Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -197,6 +229,8 @@ from nearby members with the following read preference:
 
 Although :readmode:`nearest` already favors members with low network latency,
 including the tag makes the choice more predictable.
+
+.. _caveat-secondaryPreferred:
 
 Reduce load on the primary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,6 +269,19 @@ for the following commands:
    read preferences. Previously :program:`mongos` sent all commands to
    shards' primaries.
 
+.. [#capacity-planning] If your set has more than one secondary, and
+   you use the :readmode:`secondary` read preference mode, consider
+   the following effect. If you have a :ref:`three member replica set
+   <replica-set-three-members>` with a primary and two secondaries,
+   and one secondary becomes unavailable, all :readmode:`secondary`
+   queries must target the remaining secondary. This will double the
+   load on this secondary. Plan and provide capacity to support this
+   as needed.
+
+.. [#secondary-acceptable-latency] This threshold is configurable. See
+   :setting:`~replication.localPingThresholdMs` for :program:`mongos` or your driver
+   documentation for the appropriate setting.
+
 .. [#inline-map-reduce] Only "inline" :dbcommand:`mapReduce`
    operations that do not write data support read preference,
    otherwise these operations must run on the :term:`primary`
@@ -242,3 +289,7 @@ for the following commands:
 
 .. [#aggregation-out] Using the ``$out`` pipeline operator forces the
    aggregation pipeline to run on the primary.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst

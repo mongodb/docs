@@ -1,11 +1,5 @@
-.. note::
+.. versionchanged:: 3.0.0
 
-   .. deprecated:: 2.6
-      :data:`~local.system.replset.members[n].votes` values greater
-      than ``1``.
-
-   Earlier versions of MongoDB allowed a member
-   to have more than ``1`` vote by setting
-   :data:`~local.system.replset.members[n].votes` to a value greater
-   than ``1``. Setting :data:`~local.system.replset.members[n].votes`
-   to value greater than ``1`` now produces a warning message.
+   Members cannot have :rsconf:`members[n].votes`
+   greater than ``1``. For details, see
+   :ref:`3.0-compatibility-repl-set-config`.

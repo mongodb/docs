@@ -23,7 +23,7 @@ Definition
 
    :dbcommand:`count` has the following fields:
 
-   .. include:: /reference/command/count-field.rst
+   .. include:: /includes/apiargs/dbcommand-count-field.rst
 
    MongoDB also provides the :method:`~cursor.count()` and
    :method:`db.collection.count()` wrapper methods in the
@@ -32,9 +32,14 @@ Definition
 Behavior
 --------
 
-.. |count-op| replace:: :dbcommand:`count`
+.. include:: /includes/extracts/fact-count-on-sharded-clusters-cmd-count.rst
 
-.. include:: /includes/fact-count-on-sharded-clusters.rst
+For MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
+storage engine, after an unclean shutdown, statistics on size and count
+may off by up to 1000 documents as reported by :dbcommand:`collStats`,
+:dbcommand:`dbStats`, :dbcommand:`count`. To restore the correct
+statistics for the collection, run :dbcommand:`validate` on the
+collection.
 
 Examples
 --------
@@ -127,3 +132,30 @@ the command status ``ok`` is ``1``:
 .. code-block:: javascript
 
    { "n" : 1, "ok" : 1 }
+   
+Override Default ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation on a replica set specifies a
+:doc:`/reference/readConcern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - To use the ``readConcern`` level of ``"majority"``, you must specify
+     a nonempty ``query`` condition.
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        count: "restaurants",
+        query: { rating: { $gte: 4 } },
+        readConcern: { level: "majority" }
+      }
+   )

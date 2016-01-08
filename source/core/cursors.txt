@@ -41,11 +41,10 @@ Closure of Inactive Cursors
 
 By default, the server will automatically close the cursor after 10
 minutes of inactivity or if client has exhausted the cursor. To
-override this behavior, you can specify the ``noTimeout``
-:meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in
-your query; however, you should either close the cursor manually or
-exhaust the cursor. In the :program:`mongo` shell, you can set the
-``noTimeout`` flag:
+override this behavior, you can specify the ``noTimeout`` flag in your
+query using :method:`cursor.addOption()`; however, you should either
+close the cursor manually or exhaust the cursor. In the
+:program:`mongo` shell, you can set the ``noTimeout`` flag:
 
 .. code-block:: javascript
 
@@ -56,10 +55,13 @@ information on setting the ``noTimeout`` flag. For the :program:`mongo`
 shell, see :method:`cursor.addOption()` for a complete list of
 available cursor flags.
 
+.. _cursor-isolation:
+
 Cursor Isolation
 ~~~~~~~~~~~~~~~~
 
-Because the cursor is not isolated during its lifetime, intervening
+As a cursor returns documents, other operations may interleave with the
+query. For the :doc:`MMAPv1 </core/mmapv1>` storage engine, intervening
 write operations on a document may result in a cursor that returns a
 document more than once if that document has changed. To handle this
 situation, see the information on :ref:`snapshot mode
@@ -79,8 +81,8 @@ the batch, see :method:`~cursor.batchSize()` and
 :method:`~cursor.limit()`.
 
 For queries that include a sort operation *without* an index, the
-server must load all the documents in memory to perform the sort and
-will return all documents in the first batch.
+server must load all the documents in memory to perform the sort
+before returning any results.
 
 As you iterate through the cursor and reach the end of the returned
 batch, if there are more results, :method:`cursor.next()` will perform

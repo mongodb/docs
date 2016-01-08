@@ -13,8 +13,17 @@ Definition
    documents from nearest to farthest. The :query:`$near` operator can
    specify either a :term:`GeoJSON` point or legacy coordinate point.
 
-   To specify a :term:`GeoJSON` point, :query:`$near` operator requires a
-   :doc:`2dsphere </core/2dsphere>` index and has the following syntax:
+   :query:`$near` requires a geospatial index:
+
+   - :doc:`2dsphere </core/2dsphere>` index if specifying a
+     :term:`GeoJSON` point,
+
+   - :doc:`2d </core/2d>` index if specifying a point using legacy
+     coordinates.
+
+   To specify a :term:`GeoJSON` point, :query:`$near` operator requires
+   a :doc:`2dsphere </core/2dsphere>` index and has the following
+   syntax:
 
    .. code-block:: javascript
 
@@ -30,8 +39,8 @@ Definition
       }
 
    When specifying a :term:`GeoJSON` point, you can use the *optional*
-   :query:`$minDistance` and :query:`$maxDistance` specifications to limit
-   the :query:`$near` results by distance in *meters*:
+   :query:`$minDistance` and :query:`$maxDistance` specifications to
+   limit the :query:`$near` results by distance in *meters*:
 
    - :query:`$minDistance` limits the results to those documents that
      are *at least* the specified distance from the center point.
@@ -49,7 +58,7 @@ Definition
    .. code-block:: javascript
 
       {
-        $near: [ <x>, <y> ], 
+        $near: [ <x>, <y> ],
         $maxDistance: <distance in radians>
       }
 
@@ -57,33 +66,32 @@ Definition
    the longitude first, then latitude.
 
    When specifying a legacy coordinate, you can use the *optional*
-   :query:`$maxDistance` specification to limit the :query:`$near` results
-   by distance in *radians*. :query:`$maxDistance` limits the results to
-   those documents that are *at most* the specified distance from the
-   center point.
+   :query:`$maxDistance` specification to limit the :query:`$near`
+   results by distance in *radians*. :query:`$maxDistance` limits the
+   results to those documents that are *at most* the specified distance
+   from the center point.
 
-Considerations
---------------
+Behavior
+--------
 
-- :query:`$near` queries that use a :doc:`2d </core/2d>` index return a
-  limit of 100 documents.
-   
-- You cannot combine the :query:`$near` operator, which requires a
-  special :ref:`geospatial index <index-feature-geospatial>`, with a
-  query operator or command that uses a different type of special
-  index. For example you cannot combine :query:`$near` with the
-  :query:`$text` query.
+Special Indexes Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- If using a ``2d`` index for :query:`$near`, specifying a batch size
-  (i.e. :method:`~cursor.batchSize()`) in conjunction with
-  :query:`$near` queries that use a :doc:`2d </core/2d>` index is
-  undefined. See :issue:`SERVER-5236` for more information.
+.. include:: /includes/fact-geo-near-special-indexes.rst
 
-- .. include:: /includes/fact-near-sharded-cluster.rst
+Sharded Collections Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- .. include:: /includes/fact-geo-near-returns-sorted-results.rst
+.. include:: /includes/fact-near-sharded-cluster.rst
 
-.. |geo-operation| replace:: :dbcommand:`geoNear`
+Sort Operation
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-geo-near-returns-sorted-results.rst
+
+.. |geo-operation| replace:: :query:`$near`
+
+.. seealso:: :ref:`3.0-geo-near-compatibility`
 
 Examples
 --------
@@ -110,5 +118,3 @@ to farthest:
    db.legacy2d.find(
       { location : { $near : [ -73.9667, 40.78 ], $maxDistance: 0.10 } }
    )
-
-The result set contains at most 100 documents.

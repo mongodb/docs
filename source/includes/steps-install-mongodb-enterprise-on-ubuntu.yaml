@@ -1,4 +1,5 @@
 stepnum: 1
+ref: import-deb-key
 source:
   file: steps-install-mongodb-on-ubuntu.yaml
   ref: import-key
@@ -8,10 +9,21 @@ stepnum: 2
 ref: sources-list
 action:
   - pre: |
-      Create the list file using the following command:
-    language: sh
-    code: |
-      echo 'deb http://repo.mongodb.com/apt/ubuntu precise/mongodb-enterprise/stable multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+      Create the list file using the command appropriate for your version of
+      Ubuntu:
+
+      Ubuntu 12.04
+
+      .. code-block:: sh
+
+          echo "deb http://repo.mongodb.com/apt/ubuntu precise/mongodb-enterprise/stable multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+      Ubuntu 14.04
+
+      .. code-block:: sh
+
+         echo "deb http://repo.mongodb.com/apt/ubuntu trusty/mongodb-enterprise/stable multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
   - pre: |
       If you'd like to install MongoDB Enterprise packages from a
       particular :ref:`release series <release-version-numbers>`, such as
@@ -20,7 +32,8 @@ action:
       release series, add the following repository:
     language: sh
     code: |
-      echo 'deb http://repo.mongodb.com/apt/ubuntu precise/mongodb-enterprise/2.6 multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-2.6.list
+      echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/2.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-2.6.list
+  - pre: |
 ---
 stepnum: 3
 source:
@@ -31,29 +44,32 @@ title: Install the MongoDB Enterprise packages.
 stepnum: 4
 ref: install
 pre: |
-  When you install the packages, you choose whether to install the current
-  release or a previous one. This step provides instructions for both.
+  You can install either the latest stable version of MongoDB or a
+  specific version of MongoDB.
 action:
-  - pre: |
-      To install the latest stable version of MongoDB Enterprise, issue
-      the following command:
+  - heading:
+      text: Install the latest stable version of MongoDB Enterprise.
+      character: "'"
+    pre: "Issue the following command:"
     language: sh
     code: |
-      sudo apt-get install mongodb-enterprise
-  - pre: |
-      To install a specific release of MongoDB Enterprise, specify
-      each component package individually and append the version number to
-      the package name, as in the following example that installs the
-      `2.6.1`` release of MongoDB Enterprise:
-    language: sh
-    code: |
-      apt-get install mongodb-enterprise=2.6.1 mongodb-enterprise-server=2.6.1 mongodb-enterprise-shell=2.6.1 mongodb-enterprise-mongos=2.6.1 mongodb-enterprise-tools=2.6.1
-  - pre: |
-      You can specify any available version of MongoDB Enterprise. However
-      ``apt-get`` will upgrade the packages when a newer version becomes
-      available. To prevent unintended upgrades, pin the package. To pin
-      the version of MongoDB Enterprise at the currently installed
-      version, issue the following command sequence:
+      sudo apt-get install -y mongodb-enterprise
+  - heading:
+      text: Install a specific release of MongoDB Enterprise.
+      character: "'"
+    pre: |
+      .. include:: /includes/release/pin-version-intro.rst
+      .. include:: /includes/release/pin-repo-to-version-deb-enterprise.rst
+      .. include:: /includes/release/pin-version-outro-enterprise.rst
+  - heading:
+      text: Pin a specific version of MongoDB Enterprise.
+      character: "'"
+    pre: |
+      Although you can specify any available version of MongoDB,
+      ``apt-get`` will upgrade the packages when a newer version
+      becomes available. To prevent unintended upgrades, pin the
+      package. To pin the version of MongoDB at the currently
+      installed version, issue the following command sequence:
     language: sh
     code: |
       echo "mongodb-enterprise hold" | sudo dpkg --set-selections
@@ -62,7 +78,7 @@ action:
       echo "mongodb-enterprise-mongos hold" | sudo dpkg --set-selections
       echo "mongodb-enterprise-tools hold" | sudo dpkg --set-selections
 post: |
-  Previous versions of MongoDB Enterprise packages use different naming
-  conventions. See the :v2.4:`2.4 version of documentation
-  </tutorial/install-mongodb-enterprise>` for more information.
+  Versions of the MongoDB packages before 2.6 use a different repository
+  location. Refer to the version of the documentation appropriate for
+  your MongoDB version.
 ...

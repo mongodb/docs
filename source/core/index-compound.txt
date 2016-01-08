@@ -45,7 +45,7 @@ Compound indexes can support queries that match on multiple fields.
 
    .. code-block:: javascript
 
-      db.products.ensureIndex( { "item": 1, "stock": 1 } )
+      db.products.createIndex( { "item": 1, "stock": 1 } )
 
 .. important:: You may not create compound indexes that have
    ``hashed`` index fields. You will receive an error if you attempt to
@@ -95,7 +95,7 @@ The following index can support both these sort operations:
 
 .. code-block:: javascript
 
-   db.events.ensureIndex( { "username" : 1, "date" : -1 } )
+   db.events.createIndex( { "username" : 1, "date" : -1 } )
 
 However, the above index **cannot** support sorting by ascending
 ``username`` values and then by ascending ``date`` values, such as the
@@ -105,44 +105,55 @@ following:
 
    db.events.find().sort( { username: 1, date: 1 } )
 
+For more information on sort order and compound indexes, see
+:doc:`/tutorial/sort-results-with-indexes`.
+
 .. _compound-index-prefix:
 
 Prefixes
 --------
 
-Compound indexes support queries on any prefix of the index
-fields. Index prefixes are the beginning subset of indexed fields. For
-example, given the index ``{ a: 1, b: 1, c: 1 }``, both ``{ a: 1 }``
-and ``{ a: 1, b: 1 }`` are prefixes of the index.
-
-If you have a collection that has a compound index on ``{ a: 1, b:
-1 }``, as well as an index that consists of the prefix of that index,
-i.e. ``{ a: 1 }``, assuming none of the index has a sparse or unique
-constraints, then you can drop the ``{ a: 1 }`` index. MongoDB will be
-able to use the compound index in all of situations that it would have
-used the ``{ a: 1 }`` index.
-
-For example, given the following index:
+Index prefixes are the *beginning* subsets of indexed fields. For
+example, consider the following compound index:
 
 .. code-block:: javascript
 
    { "item": 1, "location": 1, "stock": 1 }
 
-MongoDB **can** use this index to support queries that include:
+The index has the following index prefixes:
+
+- ``{ item: 1 }``
+
+- ``{ item: 1, location: 1 }``
+
+For a compound index, MongoDB can use the index to support queries on
+the index prefixes. As such, MongoDB can use the index for queries on
+the following fields:
 
 - the ``item`` field,
 - the ``item`` field *and* the ``location`` field,
-- the ``item`` field *and* the ``location`` field *and* the
-  ``stock`` field, or
-- only the ``item`` *and* ``stock`` fields; however, this index
-  would be less efficient than an index on only ``item`` and
-  ``stock``.
+- the ``item`` field *and* the ``location`` field *and* the ``stock`` field.
 
-MongoDB **cannot** use this index to support queries that include:
+MongoDB can also use the index to support a query on ``item`` and
+``stock`` fields since ``item`` field corresponds to a prefix. However,
+the index would not be as efficient in supporting the query as would be
+an index on only ``item`` and ``stock``.
 
-- only the ``location`` field,
-- only the ``stock`` field, or
-- only the ``location`` *and* ``stock`` fields.
+However, MongoDB cannot use the index to support queries that include
+the following fields since without the ``item`` field, none of the
+listed fields correspond to a prefix index:
+
+- the ``location`` field,
+
+- the ``stock`` field, or
+
+- the ``location`` and ``stock`` fields.
+
+If you have a collection that has both a compound index and an index on
+its prefix (e.g. ``{ a: 1, b: 1 }`` and ``{ a: 1 }``), if neither index
+has a sparse or unique constraint, then you can remove the index on the
+prefix (e.g. ``{ a: 1 }``). MongoDB will use the compound index in all
+of the situations that it would have used the prefix index.
 
 Index Intersection
 ------------------

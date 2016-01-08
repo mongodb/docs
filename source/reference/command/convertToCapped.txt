@@ -14,17 +14,17 @@ convertToCapped
 
    .. code-block:: javascript
 
-      {convertToCapped: <collection>, size: <capped size> }
+      { convertToCapped: <collection>, size: <capped size> }
 
    :dbcommand:`convertToCapped` takes an existing collection
    (``<collection>``) and transforms it into a capped collection with
-   a maximum size in bytes, specified to the ``size`` argument
+   a maximum size in bytes, specified by the ``size`` argument
    (``<capped size>``).
 
    During the conversion process, the :dbcommand:`convertToCapped`
-   command exhibit the following behavior:
+   command exhibits the following behavior:
 
-   - MongoDB transverses the documents in the original collection in
+   - MongoDB traverses the documents in the original collection in
      :term:`natural order` and loads the documents into a new
      capped collection.
 
@@ -51,12 +51,55 @@ convertToCapped
 
    .. warning::
 
-      The :dbcommand:`convertToCapped` will not recreate indexes from
-      the original collection on the new collection, other than the
-      index on the ``_id`` field. If you need indexes on this
-      collection you will need to create these indexes after the
-      conversion is complete.
+      .. include:: /includes/fact-convertToCapped-indexes.rst
 
-   .. seealso:: :dbcommand:`create`
+Example
+-------
 
-   .. include:: /includes/warning-blocking-global.rst
+Convert a Collection
+~~~~~~~~~~~~~~~~~~~~
+
+The following example uses a :method:`db.collection.save()` operation to create
+an ``events`` collection, and :method:`db.collection.stats()` to obtain
+information about the collection:
+
+.. code-block:: javascript
+
+   db.events.save( { click: 'button-1', time: new Date() } )
+   db.events.stats()
+
+MongoDB will return the following:
+
+.. code-block:: javascript
+
+   {
+           "ns" : "test.events",
+           ...
+           "capped" : false,
+           ...
+   }
+
+To convert the ``events`` collection into a capped collection and view the
+updated collection information, run the following commands:
+
+.. code-block:: javascript
+
+   db.runCommand( { convertToCapped: 'events', size: 8192 } )
+   db.events.stats()
+
+MongoDB will return the following:
+
+.. code-block:: javascript
+
+   {
+        "ns" : "test.events",
+        ...
+        "capped" : true,
+        "max" : NumberLong("9223372036854775807"),
+        "maxSize" : 8192,
+        ...
+   }
+
+.. include:: /includes/fact-convertToCapped-indexes.rst
+
+.. seealso:: :dbcommand:`create`

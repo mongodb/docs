@@ -118,6 +118,8 @@ Glossary
       and storage. :term:`Drivers <driver>` provide the interface
       level between the application layer and the database server.
 
+      Client can also refer to a single thread or process.
+
    cluster
       See :term:`sharded cluster`.
 
@@ -140,6 +142,18 @@ Glossary
       An :term:`index` consisting of two or more keys. See
       :ref:`index-type-compound`.
 
+   concurrency control
+      Concurrency control ensures that database operations can be
+      executed concurrently without compromising correctness.
+      Pessimistic concurrency control, such as used in systems
+      with :term:`locks <lock>`, will block any potentially
+      conflicting operations even if they may not turn out to
+      actually conflict. Optimistic concurrency control, the approach
+      used by :ref:`WiredTiger <storage-wiredtiger>`,  will delay
+      checking until after a conflict may have occurred, aborting and
+      retrying one of the operations involved in any :term:`write
+      conflict` that arises.
+
    config database
       An internal database that holds the metadata associated with a
       :term:`sharded cluster`. Applications and administrators should
@@ -148,11 +162,10 @@ Glossary
 
    config server
       A :program:`mongod` instance that stores all the metadata
-      associated with a :term:`sharded cluster`. A production sharded
-      cluster requires three config servers, each on a separate machine.
+      associated with a :term:`sharded cluster`.
       See :ref:`sharding-config-server`.
 
-   control script
+   init script
       A simple shell script, typically located in the ``/etc/rc.d`` or
       ``/etc/init.d`` directory, and used by the system's initialization
       process to start, restart or stop a :term:`daemon` process.
@@ -233,7 +246,7 @@ Glossary
 
    dot notation
       MongoDB uses the dot notation to access the elements of an array
-      and to access the fields of a subdocument. See
+      and to access the fields of an embedded document. See
       :ref:`document-dot-notation`.
 
    draining
@@ -246,18 +259,34 @@ Glossary
       A client library for interacting with MongoDB in a particular
       language. See :doc:`/applications/drivers`.
 
+   durable
+      A write operation is durable when it will persist across a
+      shutdown (or crash) and restart of one or more server processes.
+      For a single :program:`mongod` server, a write operation is
+      considered durable when it has been written to the server's
+      :term:`journal` file. For a :doc:`replica set
+      </core/replication-introduction>`, a write operation is
+      considerable durable once the write operation is durable on a
+      :writeconcern:`majority of voting nodes <"majority">` in the
+      replica set; i.e. written to a majority of voting nodes' journal
+      files.
+
    election
       The process by which members of a :term:`replica set` select a
       :term:`primary` on startup and in the event of a failure. See
       :ref:`replica-set-elections`.
 
+   unix epoch
+      January 1st, 1970 at 00:00:00 UTC. Commonly used in expressing time,
+      where the number of seconds or milliseconds since this point is counted.
+
    eventual consistency
       A property of a distributed system that allows changes to the
       system to propagate gradually. In a database system, this means
       that readable members are not required to reflect the latest
-      writes at all times. In MongoDB, reads to a primary have
-      :term:`strict consistency`; reads to secondaries have *eventual
-      consistency*.
+      writes at all times.
+
+      .. include:: /includes/extracts/replica-read-consistency-single-primary.rst
 
    expression
       In the context of :term:`aggregation framework`, expressions are
@@ -339,6 +368,14 @@ Glossary
       existing replica set member to a new or restored replica set
       member. See :ref:`replica-set-initial-sync`.
 
+   intent lock
+      A :term:`lock` on a resource that indicates that the holder
+      of the lock will read (intent shared) or write (intent
+      exclusive) the resource using :term:`concurrency control` at
+      a finer granularity than that of the resource with the intent
+      lock. Intent locks allow concurrent readers and writers of a
+      resource.  See :ref:`faq-concurrency-locking`.
+
    IPv6
       A revision to the IP (Internet Protocol) standard that
       provides a significantly larger address space to more effectively
@@ -405,9 +442,10 @@ Glossary
       :ref:`geospatial-indexes-store-geojson`.
 
    lock
-      MongoDB uses locks to ensure :doc:`concurrency </faq/concurrency>`.
-      MongoDB uses both :term:`read locks <read lock>` and :term:`write
-      locks <write lock>`. For more information, see
+      MongoDB uses locks to ensure that :doc:`concurrency </faq/concurrency>`
+      does not affect correctness.  MongoDB uses :term:`read locks
+      <read lock>`, :term:`write locks <write lock>` and
+      :term:`intent locks <intent lock>`. For more information, see
       :ref:`faq-concurrency-locking`.
 
    LVM
@@ -494,18 +532,27 @@ Glossary
       belong to a namespace. See :ref:`faq-dev-namespace`.
 
    natural order
-      The order that a database stores documents on disk. Typically,
-      the order of documents on disks reflects insertion order, except
-      when a document moves internally because an update operation
-      increases its size. In :term:`capped collections <capped
-      collection>`, insertion order and natural order are identical
-      because documents do not move internally. MongoDB returns
-      documents in forward natural order for a
-      :method:`~db.collection.find()` query with no parameters.
-      MongoDB returns documents in reverse natural order for a
-      :method:`~db.collection.find()` query :method:`sorted
-      <cursor.sort()>` with a parameter of ``$natural:-1``. See
-      :operator:`$natural`.
+      The order in which the database refers to documents on disk. This is the
+      default sort order. See :operator:`$natural` and
+      :ref:`return-natural-order`.
+
+   network partition
+      A network failure that separates a distributed system into
+      partitions such that nodes in one partition cannot communicate
+      with the nodes in the other partition.
+
+      Sometimes, partitions are partial or asymmetric. An example of a
+      partial partition would be a division of the nodes of a network
+      into three sets, where members of the first set cannot
+      communicate with members of the second set, and vice versa, but
+      all nodes can communicate with members of the third set. In an
+      asymmetric partition, communication may be possible only when it
+      originates with certain nodes. For example, nodes on one side of
+      the partition can communicate to the other side only if they
+      originate the communications channel.
+
+   storage order
+      See :term:`natural order`.
 
    ObjectId
       A special 12-byte :term:`BSON` type that guarantees uniqueness
@@ -544,7 +591,7 @@ Glossary
       moving a document when it grows as the result of
       :method:`~db.collection.update()`
       operations. See :ref:`record-allocation-strategies`.
-      
+
    padding factor
       An automatically-calibrated constant used to determine how much
       extra space MongoDB should allocate per document container on disk.
@@ -567,7 +614,7 @@ Glossary
 
    passive member
       A member of a :term:`replica set` that cannot become primary
-      because its :data:`~local.system.replset.members[n].priority` is
+      because its :rsconf:`members[n].priority` is
       ``0``. See :doc:`/core/replica-set-priority-0-member`.
 
    pcap
@@ -617,6 +664,12 @@ Glossary
       :doc:`/reference/command/collMod` and
       :collflag:`usePowerOf2Sizes`.
 
+   prefix compression
+      Reduces memory and disk consumption by storing any identical index
+      key prefixes only once, per page of memory. See:
+      :ref:`storage-wiredtiger-compression` for more about WiredTiger's
+      compression behavior.
+
    pre-splitting
       An operation performed before inserting data that divides the
       range of possible shard key values into chunks to facilitate easy
@@ -644,7 +697,7 @@ Glossary
    priority
       A configurable value that helps determine which members in
       a :term:`replica set` are most likely to become :term:`primary`.
-      See :data:`~local.system.replset.members[n].priority`.
+      See :rsconf:`members[n].priority`.
 
    privilege
       A combination of specified :term:`resource <resource>` and
@@ -684,19 +737,24 @@ Glossary
       type: 'food' }`` is equivalent to the query predicate ``{ type:
       'utensil' }`` for a query shape.
 
+   read concern
+      Specifies a level of isolation for read operations. For example,
+      you can use read concern to only read data that has propagated to
+      a majority of nodes in a :term:`replica set`. See
+      :doc:`Read Concern </reference/readConcern>`.
+
    read preference
-      A setting that determines how clients direct read operations. Read
-      preference affects all replica sets, including shards. By default,
-      MongoDB directs reads to :term:`primaries <primary>` for
-      :term:`strict consistency`. However, you may also direct reads to
-      secondaries for :term:`eventually consistent <eventual
-      consistency>` reads. See :doc:`Read Preference
-      </core/read-preference>`.
+      A setting that determines how clients direct read operations.
+      Read preference affects all replica sets, including shard replica
+      sets. By default, MongoDB directs reads to :term:`primaries
+      <primary>`. However, you may also direct reads to secondaries for
+      :term:`eventually consistent <eventual consistency>` reads. See
+      :doc:`Read Preference </core/read-preference>`.
 
    read lock
-      In the context of a reader-writer lock, a lock that while held
-      allows concurrent readers but no writers. See
-      :ref:`faq-concurrency-locking`.
+      A shared :term:`lock` on a resource such as a collection or
+      database that, while held, allows concurrent readers but no
+      writers. See :ref:`faq-concurrency-locking`.
 
    RDBMS
       Relational Database Management System. A database management
@@ -750,13 +808,13 @@ Glossary
      :term:`CRUD` operations that apply to them. Typically REST is
      implemented over HTTP. MongoDB provides a simple HTTP REST
      interface that allows HTTP clients to run commands against the
-     server. See :ref:`rest-interface` and :ref:`rest-api`.
+     server. See :ref:`rest-api`.
 
    role
      A set of privileges that permit :term:`actions <action>` on
      specified :term:`resources <resource>`. Roles assigned to a user
      determine the user's access to resources and operations. See
-     :doc:`/core/security-introduction`.
+     :doc:`/security`.
 
    rollback
       A process that reverts writes operations to ensure the consistency
@@ -790,8 +848,8 @@ Glossary
 
    sharded cluster
       The set of nodes comprising a :term:`sharded <sharding>` MongoDB
-      deployment. A sharded cluster consists of three config processes,
-      one or more replica sets, and one or more :program:`mongos`
+      deployment. A sharded cluster consists of config servers,
+      shards, and one or more :program:`mongos`
       routing processes. See :doc:`/core/sharded-cluster-components`.
 
    sharding
@@ -818,6 +876,16 @@ Glossary
       master/slave replication for most use cases. However, for
       information on master/slave replication, see
       :doc:`/core/master-slave`.
+
+   snappy
+      A compression/decompression library designed to balance
+      efficient computation requirements with reasonable compression rates.
+      Snappy is the default compression
+      library for MongoDB's use of :ref:`WiredTiger
+      <storage-wiredtiger>`. See `Snappy
+      <https://google.github.io/snappy/>`_ and the `WiredTiger compression
+      documentation <http://source.wiredtiger.com/2.4.1/compression.html>`_
+      for more information.
 
    split
       The division between :term:`chunks <chunk>` in a :term:`sharded
@@ -850,9 +918,9 @@ Glossary
       A property of a distributed system requiring that all members
       always reflect the latest changes to the system. In a database
       system, this means that any system that can provide data must
-      reflect the latest writes at all times. In MongoDB, reads from a
-      primary have :term:`strict consistency`; reads from secondary
-      members have :term:`eventual consistency`.
+      reflect the latest writes at all times. 
+
+      .. include:: /includes/extracts/replica-read-consistency-single-primary.rst
 
    stale
       Refers to the amount of time a :term:`secondary` member of a
@@ -883,12 +951,22 @@ Glossary
      sections of this manual: :ref:`replica-set-read-preference-tag-sets`
      and :ref:`shards-tag-sets`.
 
+   tag set
+     A document containing zero or more :term:`tags <tag>`.
+
    tailable cursor
      For a :term:`capped collection`, a tailable cursor is a cursor that
      remains open after the client exhausts the results in the initial
      cursor. As clients insert new documents into the capped collection,
      the tailable cursor continues to retrieve documents. See
      :doc:`/tutorial/create-tailable-cursor`.
+
+   topology
+     The state of a deployment of MongoDB instances, including
+     the type of deployment (i.e. standalone, replica set, or sharded
+     cluster) as well as the availability of servers, and the role of
+     each server (i.e. :term:`primary`, :term:`secondary`,
+     :term:`config server`, or :program:`mongos`.)
 
    TSV
       A text-based data format consisting of tab-separated values.
@@ -913,13 +991,13 @@ Glossary
       See :ref:`read-operations-query-optimization`.
 
    upsert
-      An option for update operations. If set to true, the update
-      operation will either update the first document matched by a
-      query or insert a new document if none matches. The new document
-      will have the fields implied by the operation. The
-      :method:`~db.collection.update()` and
-      :method:`~db.collection.findAndModify()` have the option. See
-      :ref:`upsert-parameter`.
+      An option for update operations; e.g.
+      :method:`~db.collection.update()`,
+      :method:`~db.collection.findAndModify()`. If set to true, the
+      update operation will either update the document(s) matched by
+      the specified query or if no documents match, insert a new
+      document. The new document will have the fields indicated in the
+      operation. See :ref:`upsert-parameter`.
 
    virtual memory
       An application's working memory, typically residing on both
@@ -942,13 +1020,21 @@ Glossary
       allows your application to detect insertion errors or unavailable
       :program:`mongod` instances. For :term:`replica sets <replica
       set>`, you can configure write concern to confirm replication to a
-      specified number of members. See :doc:`/core/write-concern`.
+      specified number of members. See :doc:`/reference/write-concern`.
+
+   write conflict
+      A situation in which two concurrent operations, at least
+      one of which is a write, attempt to use a resource in a way
+      that would violate constraints imposed by a storage engine
+      using optimistic :term:`concurrency control`. MongoDB will abort
+      and transparently retry one of the conflicting operations.
 
    write lock
-      A lock on the database for a given writer. When a process writes
-      to the database, it takes an exclusive write lock to prevent other
-      processes from writing or reading. For more information on locks,
-      see :doc:`/faq/concurrency`.
+      An exclusive :term:`lock` on a resource such as a collection
+      or database. When a process writes to a resource, it takes
+      an exclusive write lock to prevent other processes from writing
+      to or reading from that resource. For more information on
+      locks, see :doc:`/faq/concurrency`.
 
    writeBacks
       The process within the sharding system that ensures that writes
@@ -956,3 +1042,16 @@ Glossary
       relevant chunk get applied to the proper shard. For related
       information, see :ref:`faq-writebacklisten` and
       :ref:`server-status-writebacksqueued`.
+
+   zlib
+      A data compression library that provides higher compression rates
+      at the cost of more CPU, compared to MongoDB's use of
+      :term:`snappy`. You can configure :ref:`WiredTiger
+      <storage-wiredtiger>` to use zlib as its compression library. See
+      http://www.zlib.net and the `WiredTiger compression documentation
+      <http://source.wiredtiger.com/2.4.1/compression.html>`_ for more
+      information.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst

@@ -1,11 +1,12 @@
-title: Start the MongoDB instance without authentication.
+title: Start MongoDB without access control.
 stepnum: 1
+level: 4
 ref: start-without-auth
 pre: |
-  Start the :program:`mongod` or :program:`mongos` instance *without* the
-  :setting:`~security.authorization` or :setting:`~security.keyFile` setting. For example:
+  For example, the following starts a standalone :program:`mongod` instance
+  without access control.
 action:
-  language: javascript
+  language: sh
   code: |
     mongod --port 27017 --dbpath /data/db1
 post: |
@@ -14,31 +15,85 @@ post: |
   :doc:`/tutorial/deploy-shard-cluster`.
 ---
 stepnum: 2
-source:
-  file: steps-add-user-administrator.yaml
-  ref: create-site-user-admin
----
-title: Re-start the MongoDB instance with authentication enabled.
-stepnum: 3
-ref: restart-with-auth
+title: Connect to the instance.
+level: 4
+ref: connect
 pre: |
-  Re-start the :program:`mongod` or :program:`mongos` instance with
-  the :setting:`~security.authorization` or :setting:`~security.keyFile` setting. Use
-  :setting:`~security.authorization` on a standalone instance. Use :setting:`~security.keyFile` on
-  an instance in a :term:`replica set` or :term:`sharded cluster`.
+   For example, connect a :program:`mongo` shell to the instance.
+action:
+  language: sh
+  code: |
+    mongo --port 27017 
+post: |
+   Specify additional command line options as appropriate to connect the
+   :program:`mongo` shell to your deployment, such as ``--host``.
+---
+stepnum: 3
+title: Create the user administrator.
+level: 4
+ref: create-user-admin
+pre: |
+  Add a user with the :authrole:`userAdminAnyDatabase` role.
+  For example, the following creates the user ``myUserAdmin`` on the
+  ``admin`` database:
 action:
   pre: |
-    The following example enables authentication on a standalone
-    :program:`mongod` using the :setting:`~security.authorization` command-line option:
+    
   language: javascript
   code: |
-    mongod --auth --config /etc/mongodb/mongodb.conf
+    use admin
+    db.createUser(
+      {
+        user: "myUserAdmin",
+        pwd: "abc123",
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+      }
+    )
 ---
-title: Create additional users.
+title: Re-start the MongoDB instance with access control.
+level: 4
 stepnum: 4
-ref: create-additonal-users
+ref: restart-with-auth
+pre: |
+  Re-start the :program:`mongod` instance with the ``--auth`` command
+  line option or, if using a configuration file, the
+  :setting:`security.authorization` setting.
+  
 action:
-  pre: |
-    Log in with the user administrator's credentials and create
-    additional users. See :doc:`/tutorial/add-user-to-database`.
+  language: sh
+  code: |
+    mongod --auth --port 27017 --dbpath /data/db1
+---
+title: Authenticate as the user administrator.
+level: 4
+stepnum: 5
+ref: auth-as-admin
+action:
+  - pre: |
+      Either connect a new :program:`mongo` shell to the MongoDB
+      instance with the ``-u <username>``, ``-p <password>``, and
+      the ``--authenticationDatabase <database>``:
+    language: sh
+    code: |
+      mongo --port 27017 -u "myUserAdmin" -p "abc123" --authenticationDatabase "admin"
+    post: |
+      The :program:`mongo` shell executes a number of commands at start
+      up. As a result, when you log in as the user administrator, you may
+      see authentication errors from one or more commands. You may ignore
+      these errors, which are expected, because the
+      :authrole:`userAdminAnyDatabase` role does not have permissions to
+      run some of the start up commands.
+  - pre: |
+      Or, in the :program:`mongo` shell connected without authentication,
+      switch to the authentication database, and use :method:`db.auth()`
+      method to authenticate:
+    language: javascript
+    code: |
+         use admin
+         db.auth("myUserAdmin", "abc123" )
+---
+title: Create additional users as needed for your deployment.
+level: 4
+stepnum: 5
+ref: create-additionalusers
 ...

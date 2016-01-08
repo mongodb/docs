@@ -2,6 +2,13 @@
 #
 # This file uses {{program}} to refer to the tool and {{role}} to refer to the option.
 #
+program: _mongoimport
+name: csv_only
+post: |
+  If you attempt to include {{role}} when importing JSON data,
+  {{program}} will return an error. {{role}} is only for :term:`csv`
+  or :term:`tsv` imports.
+---
 program: _shared
 name: help
 args: null
@@ -26,10 +33,10 @@ name: quiet
 args: null
 directive: option
 description: |
-  Runs the {{program}} in a quiet mode that attempts to limit the amount
+  {{verb}} the {{program}} in a quiet mode that attempts to limit the amount
   of output.
 post: |
-  This option suppresses:
+  This {{directive}} suppresses:
 
   - output from :term:`database commands <database command>`
 
@@ -39,6 +46,9 @@ post: |
 
   - connection closed events
 optional: true
+replacement:
+  directive: "option"
+  verb: "Runs"
 ---
 program: _shared
 name: version
@@ -48,6 +58,7 @@ description: |
   Returns the {{program}} release number.
 optional: true
 ---
+#### mongostat overrides the description
 program: _shared
 name: host
 aliases: -h
@@ -60,9 +71,9 @@ description: |
   connect. By default, the {{program}} attempts to connect to a MongoDB
   instance running on the localhost on port number ``27017``.
 
-  To connect to a replica set, specify the :setting:`replica set name
-  <~replication.replSetName>` and a seed list of set members. Use the
-  following form:
+  To connect to a replica set, specify the
+  :setting:`~replication.replSetName` and a seed list of set members, as in
+  the following:
 
   .. code-block:: none
 
@@ -70,6 +81,11 @@ description: |
 
   You can always connect directly to a single MongoDB instance by
   specifying the host and port number directly.
+
+  .. versionchanged:: 3.0.0
+     If you use IPv6 and use the ``<address>:<port>`` format, you must
+     enclose the portion of an address and port combination in
+     brackets (e.g. ``[<address>]``).
 optional: false
 ---
 program: _shared
@@ -78,19 +94,23 @@ args: <port>
 default: 27017
 directive: option
 description: |
-   Specifies the TCP port on which the MongoDB instance listens for
+   {{intro}} TCP port on which the MongoDB instance listens for
    client connections.
 optional: true
+replacement:
+  intro: "Specifies the"
 ---
 program: _shared
 name: ipv6
 args: null
 directive: option
 description: |
-  Enables IPv6 support and allows the {{program}} to connect to the
+  {{verb}} IPv6 support and allows the {{program}} to connect to the
   MongoDB instance using an IPv6 network. All MongoDB programs and
   processes disable IPv6 support by default.
 optional: true
+replacement:
+  verb: "Enables"
 ---
 program: _shared
 name: ssl
@@ -101,10 +121,9 @@ description: |
   .. versionadded:: 2.6
 
   Enables connection to a :program:`mongod` or :program:`mongos` that has
-  SSL support enabled.
+  TLS/SSL support enabled.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: _shared
@@ -119,10 +138,20 @@ description: |
   from the Certificate Authority. Specify the file name of the
   :file:`.pem` file using relative or absolute paths.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 
-  .. include:: /includes/warning-always-use-sslCAFile-for-mongo.rst
+  .. warning::
+
+     For SSL connections (``--ssl``) to :program:`mongod` and
+     :program:`mongos`, if the {{program}} runs without the
+     {{role}}, {{program}} will not attempt
+     to validate the server certificates. This creates a vulnerability
+     to expired :program:`mongod` and :program:`mongos` certificates as
+     well as to foreign processes posing as valid :program:`mongod` or
+     :program:`mongos` instances. Ensure that you *always* specify the
+     CA file to validate the server certificates in cases where
+     intrusion is a possibility.
+
 optional: true
 ---
 program: _shared
@@ -133,17 +162,16 @@ directive: option
 description: |
   .. versionadded:: 2.6
 
-  Specifies the :file:`.pem` file that contains both the SSL certificate
+  Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
   and key. Specify the file name of the :file:`.pem` file using relative
   or absolute paths.
 
   This option is required when using the :option:`--ssl` option to connect
   to a :program:`mongod` or :program:`mongos` that has
   :setting:`~net.ssl.CAFile` enabled *without*
-  :setting:`~net.ssl.weakCertificateValidation`.
+  :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: _shared
@@ -163,8 +191,7 @@ description: |
   the {{role}} option, the {{program}} will prompt for a passphrase. See
   :ref:`ssl-certificate-password`.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: _shared
@@ -179,8 +206,7 @@ description: |
   List. Specify the file name of the :file:`.pem` file using relative or
   absolute paths.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: _shared
@@ -198,13 +224,27 @@ description: |
   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
   warning the use of the invalid certificate.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/fact-ssl-supported.rst
+optional: true
+---
+program: _shared
+name: sslAllowInvalidHostnames
+# These are for the tools -- do not use these for mongod/mongos
+args: null
+directive: option
+description: |
+  .. versionadded:: 3.0
+
+  Disables the validation of the hostnames in TLS/SSL certificates. Allows
+  {{program}} to connect to MongoDB instances if the hostname their
+  certificates do not match the specified hostname.
+
+  .. include:: /includes/fact-ssl-supported.rst
 optional: true
 ---
 program: _shared
 name: sslFIPSMode
-# These are for the tools -- do not use these for the mongod/mongos/mongo shell
+# These are for the tools -- do not use these for the mongod/mongos programs
 args: null
 directive: option
 description: |
@@ -214,8 +254,7 @@ description: |
   library. Your system must have a FIPS compliant OpenSSL library to use
   the {{role}} option.
 
-  The default distribution of MongoDB does not contain support for SSL.
-  For more information on MongoDB and SSL, see :doc:`/tutorial/configure-ssl`.
+  .. include:: /includes/note-fips-is-enterprise-only.rst
 optional: true
 ---
 program: _shared
@@ -238,6 +277,19 @@ description: |
   Specifies a password with which to authenticate to a MongoDB database
   that uses authentication. Use in conjunction with the ``--username`` and
   ``--authenticationDatabase`` options.
+
+  .. versionchanged:: 3.0.0
+
+     If you do not specify an argument for {{role}}, {{program}} returns
+     an error.
+
+  .. versionchanged:: 3.0.2
+
+     If you wish {{program}} to prompt the user
+     for the password, pass the :option:`--username` option without
+     {{role}} or specify an empty string as the {{role}} value,
+     as in ``--password ""`` .
+
 optional: true
 ---
 program: _shared
@@ -245,28 +297,18 @@ name: authenticationDatabase
 args: <dbname>
 directive: option
 description: |
-  .. versionadded:: 2.4
-
-  Specifies the database that holds the user's credentials. If you do not
-  specify an authentication database, the {{program}} assumes that the
-  database specified as the argument to the :option:`--db` option holds
-  the user's credentials.
+  Specifies the database in which the user is created.
+  See :ref:`user-authentication-database`.
 optional: true
 ---
 program: _shared
-name: authenticationMechanism
+name: _authenticationMechanism
 # This describes the authenticationMechanism option that is used by the
 # various client tools.
 args: <name>
-default: MONGODB-CR
+default: SCRAM-SHA-1
 directive: option
 description: |
-  .. versionadded:: 2.4
-
-  .. versionchanged:: 2.6
-     Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
-     mechanisms.
-
   Specifies the authentication mechanism the {{program}} instance uses to
   authenticate to the :program:`mongod` or :program:`mongos`.
 
@@ -278,27 +320,34 @@ description: |
 
        - Description
 
-     * - MONGODB-CR
+     * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+
+       - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+         Salted Challenge Response Authentication Mechanism using the SHA1
+         hash function.
+
+     * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
 
        - MongoDB challenge/response authentication.
 
-     * - MONGODB-X509
+     * - :ref:`MONGODB-X509 <security-auth-x509>`
 
-       - MongoDB SSL certificate authentication.
+       - MongoDB TLS/SSL certificate authentication.
 
-     * - PLAIN
+     * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+
+       - External authentication using Kerberos. This mechanism is
+         available only in `MongoDB Enterprise
+         <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+
+     * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
        - External authentication using LDAP. You can also use ``PLAIN``
          for authenticating in-database users. ``PLAIN`` transmits
          passwords in plain text. This mechanism is available only in
          `MongoDB Enterprise
-         <http://www.mongodb.com/products/mongodb-enterprise>`_.
+         <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
 
-     * - GSSAPI
-
-       - External authentication using Kerberos. This mechanism is
-         available only in `MongoDB Enterprise
-         <http://www.mongodb.com/products/mongodb-enterprise>`_.
 # Per DOCS-2940, combine this with similar info in
 #   /includes/options-conf
 #   /reference/connection-string
@@ -306,6 +355,21 @@ description: |
 #   /tutorial/control-access-to-mongodb-windows-with-kerberos-authentication
 #   /tutorial/control-access-to-mongodb-with-kerberos-authentication.txt
 optional: true
+---
+program: _shared
+name: authenticationMechanism
+inherit:
+  name: _authenticationMechanism
+  program: _shared
+  file: options-shared.yaml
+pre: |
+  .. versionchanged:: 2.6
+     Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
+     mechanisms.
+
+  .. versionchanged:: 3.0
+     Added support for the ``SCRAM-SHA-1`` authentication mechanism. Changed
+     default mechanism to ``SCRAM-SHA-1``.
 ---
 program: _shared
 name: dbpath
@@ -332,15 +396,40 @@ description: |
 optional: true
 ---
 program: _shared
+name: writeConcern
+args: <document>
+directive: option
+description: |
+  Specifies the :term:`write concern` for each write operation that {{program}}
+  writes to the target database.
+
+  Specify the write concern as a document with :ref:`w options <wc-w>`.
+default: majority
+optional: true
+---
+program: _shared
+name: maintainInsertionOrder
+args: null
+directive: option
+description : |
+  If specified, {{program}} inserts the documents in the order of
+  their appearance in the input source, otherwise {{program}} may
+  perform the insertions in an arbitrary order.
+default: false
+optional: true
+---
+program: _shared
 name: journal
 args: null
 directive: option
 description: |
-  Enables the durability :term:`journal` to ensure data files remain valid
+  {{intro}} the durability :term:`journal` to ensure data files remain valid
   and recoverable. This option applies only when you specify the
   :option:`--dbpath` option. The {{program}} enables journaling by default
   on 64-bit builds of versions after 2.0.
 optional: true
+replacement:
+  intro: "Enables"
 ---
 program: _shared
 name: db
@@ -349,5 +438,69 @@ args: <database>
 directive: option
 description: |
   Specifies the name of the database on which to run the {{program}}.
+optional: true
+---
+program: _shared
+name: gssapiServiceName
+args: null
+directive: option
+description: |
+  .. versionadded:: 2.6
+
+  Specify the name of the service using :doc:`GSSAPI/Kerberos
+  </core/kerberos>`. Only required if the service does not use the
+  default name of ``mongodb``.
+
+  This option is available only in MongoDB Enterprise.
+optional: true
+---
+program: _shared
+name: gssapiHostName
+args: null
+directive: option
+description: |
+  .. versionadded:: 2.6
+
+  Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+  </core/kerberos>`. *Only* required if the hostname of a machine does
+  not match the hostname resolved by DNS.
+
+  This option is available only in MongoDB Enterprise.
+optional: true
+---
+program: _shared
+name: json
+args: null
+optional: true
+directive: option
+description: |
+
+  .. versionadded:: 3.0.0
+
+  Returns output for {{program}} in :term:`JSON` format.
+---
+program: _shared
+name: pretty
+args: null
+directive: option
+description: |
+
+  .. versionadded:: 3.0.0
+
+  Outputs documents in a pretty-printed format JSON.
+optional: true
+---
+program: _shared
+name: systemLog.component.name.verbosity
+type: integer
+default: 0
+directive: setting
+description: |
+  .. versionadded:: 3.0
+
+  The log message verbosity level for components related to
+  {{component_type}}. See {{component_data}} components.
+post: |
+  .. include:: /includes/log-verbosity-levels.rst
 optional: true
 ...

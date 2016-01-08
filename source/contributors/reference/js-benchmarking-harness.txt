@@ -1,0 +1,241 @@
+.. _js-benchmarking-harness:
+
+=======================
+JS Benchmarking Harness
+=======================
+
+.. default-domain:: mongodb
+
+This ``benchRun`` command is designed as a QA baseline performance measurement
+tool; it is *not* designed to be a "benchmark".
+
+.. code-block:: javascript
+
+   db.foo.drop();
+   db.foo.insert( { _id : 1 } )
+
+   ops = [{op: "findOne", ns: "test.foo", query: {_id: 1}},
+          {op: "update", ns: "test.foo", query: {_id: 1}, update: {$inc: {x: 1}}}]
+
+   for ( var x = 1; x <= 128; x *= 2) {
+       res = benchRun( {
+           parallel : x ,
+           seconds : 5 ,
+           ops : ops
+       } );
+       print( "threads: " + x + "\t queries/sec: " + res.query );
+   }
+
+Dynamic Values
+~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   // benchmark updates using the $inc operator
+   res = benchRun( {
+       ops : [ {
+           ns : "test.foo" ,
+           op : "update" ,
+           query : { _id : { "#RAND_INT" : [ 0 , 100 ] } } ,
+           update : { $inc : { x : 1 } }
+       } ] ,
+       parallel : 2 ,
+       seconds : 1 ,
+       totals : true
+   } );
+   print( "threads: 2\t update/sec: " + res.update );
+   // benchmark inserts with random strings
+   res = benchRun( {
+       ops : [ {
+           ns : "test.foo" ,
+           op : "insert" ,
+           doc : { y : { "#RAND_STRING" : [ 10 ] } }
+       } ] ,
+       parallel : 2 ,
+       seconds : 1 ,
+       totals : true
+   } );
+   print( "threads: 2\t insert/sec: " + res.insert );
+
+Options
+~~~~~~~
+
+.. option:: host
+
+   The hostname of the machine :program:`mongod` is running on
+   (defaults to localhost).
+
+.. option:: username
+
+   The username to use when authenticating to :program:`mongod` (only
+   use if running with ``auth``).
+
+.. option:: password
+
+   The password to use when authenticating to :program:`mongod` (only
+   use if running with ``auth``).
+
+.. option:: db
+
+   The database to authenticate to (only necessary if running with
+   ``auth``).
+
+.. option:: ops 
+
+   A list of objects describing the operations to run (documented below).
+
+.. option:: parallel
+
+   The number of threads to run (defaults to single thread).
+
+.. option:: seconds
+
+   The amount of time to run the tests for (defaults to one second).
+
+.. option:: hideResults
+
+   Prevents results from each operation executed from being logged.
+   Default value is ``true``. Overridden by setting ``showResult`` on a
+   specific operation. 
+
+.. option:: handleErrors
+
+   Prevents a thread from stopping on error. Default value is ``false``.
+   Overridden by setting ``handleError`` on a specific operation.
+
+.. option:: hideErrors
+
+   Prevents errors from being logged. Default value is ``false``. 
+   Overridden by setting ``showError`` for a specific operation.
+
+.. option:: throwGLE
+
+   Causes ``benchRun`` to actually throw an exception on errors in
+   updates/inserts/deletes rather than handling them. Default value is
+   ``false`` to have ``benchRun`` to handle the errors itself.
+   ``throwGLE`` can also be set on specific operations.
+
+Operation Options
+~~~~~~~~~~~~~~~~~
+
+.. option:: ns
+
+   The namespace of the collection you are running the operation on,
+   should be of the form ``"db.collection"``.
+
+.. option:: op
+   
+   The type of operation can be ``"findOne"``, ``"find"``, ``"insert"``,
+   ``"update"``, ``"remove"``, ``"createIndex"``, ``"dropIndex"`` or
+   ``"command"``.
+
+.. option:: query
+
+   The query object to use when querying or updating documents.
+
+.. option:: update
+
+   The update object (same as 2nd argument of ``update()`` function).
+
+.. option:: doc
+
+   The document to insert into the database (only for insert and
+   remove).
+
+.. option:: safe
+
+   ``boolean`` specifies whether to use safe writes (only for update and
+   insert).
+
+.. option:: delay
+
+   ``integer`` specifies the time to wait between executing the 
+   operation.
+
+.. option:: skip
+
+   Only applies to find operations. ``integer`` specifies the number of
+   documents to skip in a query.
+
+.. option:: limit
+
+   Only applies to find operations. ``integer`` specifies the number 
+   of elements a query should return. 
+
+.. option:: batchSize
+
+   Only applies to find operations. ``integer`` specifies the number of
+   elements the returned cursor should cache.
+
+.. option:: filter
+
+   Only applies to find operations. Document specifies which fields 
+   should be returned. 
+
+.. option:: expected
+
+   Only applies to find operations. ``integer`` specifies the expected 
+   number of elements returned. If the count is not as expected the 
+   operation will throw an error. Turning on the ``handleErrors`` option
+   allows ``benchRun`` to continue if the count was not as expected.
+
+.. option:: multi
+    
+    ``boolean`` specifies whether or not the update or delete should 
+    apply to multiple documents. Default value is ``false``.
+
+.. option:: upsert
+
+    ``boolean`` specifies whether or not an update operation should 
+    be run as an upsert. Default value is ``false``.
+
+.. option:: key
+
+    Only works for and is required by the ``createIndex`` and 
+    ``dropIndex`` operations. The definition for the index to create or 
+    drop. 
+
+.. option:: showResult
+
+   ``boolean`` specifies whether to log the result of each call 
+   of the operation.
+
+Dynamic Operators
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   { "#RAND_INT" : [ min , max , <multiplier> ] }
+
+- ``[ 0 , 10 , 4 ]`` would produce random numbers between ``0`` and
+  ``10`` and then multiply by ``4``.
+
+.. code-block:: javascript
+
+   { "#RAND_STRING" : [ length ] }
+
+- ``[ 3 ]`` would produce a string of ``3`` random characters.
+
+Dynamic operators generate random strings, random ints, etc but don't
+work in second level objects, just main level.
+
+- This is fine:
+
+  .. code-block:: javascript
+
+     var complexDoc3 = { info: "#RAND_STRING": [30] } }
+
+- This is only going to insert a value called ``"#RAND_STRING"`` with
+  an array as a key:
+
+  .. code-block:: javascript
+
+     var complexDoc3 = { info: { inner_field: { "#RAND_STRING": [30] } } }
+
+More info: 
+
+- `<http://github.com/mongodb/mongo/blob/master/jstests/core/bench_test1.js>`_
+
+- `<http://github.com/mongodb/mongo/blob/master/jstests/core/bench_test2.js>`_
+
+- `<http://github.com/mongodb/mongo/blob/master/jstests/core/bench_test3.js>`_

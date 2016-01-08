@@ -4,27 +4,67 @@ $avg (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. group:: $avg
 
-   Returns the average value of the numeric values that result from
-   applying a specified expression to each document in a group of
-   documents that share the same group by key. :group:`$avg` ignores
-   non-numeric values.
-  
-   .. |accumulator| replace:: :group:`$avg`
-   .. include:: /includes/fact-aggregation-accumulator.rst
+   Returns the average value of the numeric values. :group:`$avg`
+   ignores non-numeric values.
 
-   :expression:`$avg` has the following syntax:
+   .. include:: /includes/extracts/fact-aggregation-accumulator-avg.rst
+
+   When used in the :pipeline:`$group` stage, :expression:`$avg` has the
+   following syntax and returns the collective average of all the numeric
+   values that result from applying a specified expression to each
+   document in a group of documents that share the same group by key:
 
    .. code-block:: javascript
 
       { $avg: <expression> }
 
+   When used in the :pipeline:`$project` stage, :expression:`$avg`
+   returns the average of the specified expression or list of
+   expressions for each document and has one of two syntaxes:
+
+   - :expression:`$avg` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $avg: <expression> }
+
+   - :expression:`$avg` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $avg: [ <expression1>, <expression2> ... ]  }
+
    For more information on expressions, see
    :ref:`aggregation-expressions`.
 
-Example
--------
+Behavior
+--------
+
+Non-numeric Values
+~~~~~~~~~~~~~~~~~~
+
+:group:`$avg` ignores non-numeric values. If all operands for the
+average are non-numeric, :group:`$avg` returns ``null``.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$avg` treats the operand as a non-numerical value.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-avg.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider a ``sales`` collection with the following documents:
 
@@ -62,3 +102,40 @@ The operation returns the following results:
    { "_id" : "xyz", "avgAmount" : 37.5, "avgQuantity" : 7.5 }
    { "_id" : "jkl", "avgAmount" : 20, "avgQuantity" : 1 }
    { "_id" : "abc", "avgAmount" : 60, "avgQuantity" : 6 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$avg` in the
+:pipeline:`$project` stage to calculate the average quiz scores, the
+average lab scores, and the average of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      { 
+        $project: {
+          quizAvg: { $avg: "$quizzes"},
+          labAvg: { $avg: "$labs" },
+          examAvg: { $avg: [ "$final", "$midterm" ] }
+        }
+      }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "quizAvg" : 7.666666666666667, "labAvg" : 6.5, "examAvg" : 77.5 }
+   { "_id" : 2, "quizAvg" : 9.5, "labAvg" : 8, "examAvg" : 87.5 }
+   { "_id" : 3, "quizAvg" : 4.666666666666667, "labAvg" : 5.5, "examAvg" : 74 }
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-avg.rst

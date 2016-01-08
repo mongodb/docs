@@ -10,21 +10,64 @@ geoSearch
    MongoDB's :term:`haystack index` functionality. These indexes are
    useful for returning results based on location coordinates *after*
    collecting results based on some other query (i.e. a "haystack.")
-   Consider the following example:
 
-   .. code-block:: javascript
+   The :dbcommand:`geoSearch` command accepts a :term:`document` that
+   contains the following fields.
+   
+   .. include:: /includes/apiargs/dbcommand-geoSearch-field.rst
 
-      { geoSearch : "places", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
+Behavior
+--------
 
-   The above command returns all documents with a ``type`` of
-   ``restaurant`` having a maximum distance of 6 units from the
-   coordinates ``[30,33]`` in the collection ``places`` up to a
-   maximum of 30 results.
+Unless specified otherwise, the :dbcommand:`geoSearch` command
+limits results to 50 documents.
 
-   Unless specified otherwise, the :dbcommand:`geoSearch` command
-   limits results to 50 documents.
+.. important:: :dbcommand:`geoSearch` is not supported for sharded
+   clusters.
 
-   .. important:: :dbcommand:`geoSearch` is not supported for sharded
-      clusters.
+Examples
+--------
 
-   .. read-lock, slave-ok
+Consider the following example:
+
+.. code-block:: javascript
+
+   {
+      geoSearch : "places", 
+      near : [33, 33],
+      maxDistance : 6,
+      search : { type : "restaurant" },
+      limit : 30
+   }
+
+The above command returns all documents with a ``type`` of
+``restaurant`` having a maximum distance of 6 units from the
+coordinates ``[30,33]`` in the collection ``places`` up to a
+maximum of 30 results.
+
+Override Default ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation on a replica set specifies a
+:doc:`/reference/readConcern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         geoSearch: "places",
+         near: [ -73.9667, 40.78 ],
+         search : { type : "restaurant" },
+         readConcern: { level: "majority" }
+       }
+   )
+
+.. read-lock, slave-ok

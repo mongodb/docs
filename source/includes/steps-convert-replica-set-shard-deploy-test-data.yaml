@@ -1,0 +1,76 @@
+stepnum: 1
+title: 
+  text: Start each member of the replica set with the appropriate options.
+  character: "`"
+ref: start-mongod
+pre: |
+  For each member, start a :program:`mongod`, specifying the replica set
+  name through the :setting:`replSet` option. Include any other parameters
+  specific to your deployment. For replication-specific parameters, see
+  :ref:`cli-mongod-replica-set`.
+action:
+    language: javascript
+    code: |
+      mongod --replSet "rs0"
+post: |
+  Repeat this step for the other two members of the ``rs0`` replica set.
+---
+title: 
+  text: Connect a :program:`mongo` shell to a replica set member.
+  character: "`"
+stepnum: 2
+ref: open-shell
+pre: |
+  Connect a :program:`mongo` shell to *one* member of the replica set
+  (e.g. ``mongodb0.example.net``)
+action:
+  language: javascript
+  code: |
+    mongo mongodb0.example.net
+---
+stepnum: 3
+inherit:
+  file: steps-deploy-replica-set.yaml
+  ref: initiate-rs
+pre: |
+  From the :program:`mongo` shell, run :method:`rs.initiate()` to
+  initiate a replica set that consists of the current member.
+post: ""
+---
+stepnum: 4
+title: 
+  text: Add the remaining members to the replica set.
+  character: "`"
+ref: add-remaining-members
+action:
+  language: javascript
+  code: |
+    rs.add("mongodb1.example.net")
+    rs.add("mongodb2.example.net")
+---
+title:
+  text: Create and populate a new collection.
+  character: "`"
+stepnum: 5
+ref: create-populate-collection
+
+pre: |
+   The following step adds one million documents to the collection
+   ``test_collection`` and can take several minutes depending on
+   your system.
+action:
+  - pre: |
+       Issue the following operations on the primary of the replica set:
+    language: javascript
+    code: |
+       use test
+       var bulk = db.test_collection.initializeUnorderedBulkOp();
+       people = ["Marc", "Bill", "George", "Eliot", "Matt", "Trey", "Tracy", "Greg", "Steve", "Kristina", "Katie", "Jeff"];
+       for(var i=0; i<1000000; i++){
+          user_id = i;
+          name = people[Math.floor(Math.random()*people.length)];
+          number = Math.floor(Math.random()*10001);
+          bulk.insert( { "user_id":user_id, "name":name, "number":number });
+       }
+       bulk.execute(); 
+...

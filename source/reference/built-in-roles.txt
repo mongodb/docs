@@ -51,6 +51,8 @@ Every database includes the following client roles:
    - :authaction:`dbStats`
    - :authaction:`find`
    - :authaction:`killCursors`
+   - :authaction:`listIndexes`
+   - :authaction:`listCollections`
 
 .. authrole:: readWrite
 
@@ -71,6 +73,8 @@ Every database includes the following client roles:
    - :authaction:`find`
    - :authaction:`insert`
    - :authaction:`killCursors`
+   - :authaction:`listIndexes`
+   - :authaction:`listCollections`
    - :authaction:`remove`
    - :authaction:`renameCollectionSameDB`
    - :authaction:`update`
@@ -94,12 +98,22 @@ Every database includes the following database administration roles:
    - :authaction:`dbStats`
    - :authaction:`find`
    - :authaction:`killCursors`
-   - :authaction:`dropCollection` on :data:`system.profile
-     <<database>.system.profile>` *only*
+   - :authaction:`listIndexes`
+   - :authaction:`listCollections`
+   - :authaction:`dropCollection` and :authaction:`createCollection`
+     on :data:`system.profile <<database>.system.profile>` *only*
 
-   Provides the following actions on all *non*-system collections. This role
-   *does not* include full read access on non-system collections:
+   .. versionchanged:: 2.6.4
+      :authrole:`dbAdmin` added the :authaction:`createCollection`
+      for the :data:`system.profile <<database>.system.profile>`
+      collection. Previous versions only had the
+      :authaction:`dropCollection` on the :data:`system.profile
+      <<database>.system.profile>` collection.
 
+   Provides the following actions on all *non*-system
+   collections. This role *does not* include full read access on non-system collections:
+
+   - :authaction:`bypassDocumentValidation`
    - :authaction:`collMod`
    - :authaction:`collStats`
    - :authaction:`compact`
@@ -218,8 +232,9 @@ functions.
 
 .. authrole:: clusterMonitor
 
-   Provides read-only access to monitoring tools, such as the `MongoDB
-   Management Service (MMS) <http://mms.mongodb.com/help/>`_ monitoring agent.
+   Provides read-only access to monitoring tools, such as the
+   |mms-home| and :opsmgr:`Ops Manager
+   </>` monitoring agent.
 
    Provides the following actions on the cluster as a whole:
 
@@ -261,7 +276,7 @@ functions.
 
 .. authrole:: hostManager
 
-   Provides the ability to monitor and manager servers.
+   Provides the ability to monitor and manage servers.
 
    Provides the following actions on the cluster as a whole:
 
@@ -296,11 +311,10 @@ restoring data:
 
 .. authrole:: backup
 
-   Provides minimal privileges needed for backing up data.
-   This role provides sufficient privileges to use the
-   `MongoDB Management Service (MMS) <http://mms.mongodb.com/help/>`_
-   backup agent, or to use :program:`mongodump` to back up an entire
-   :program:`mongod` instance.
+   Provides minimal privileges needed for backing up data. This role
+   provides sufficient privileges to use the |mms-home| backup agent,
+   :opsmgr:`Ops Manager </>` backup agent, or to use
+   :program:`mongodump` to back up an entire :program:`mongod` instance.
 
    .. todo: should we document the mms.backup collection in the
             system-collections document?
@@ -312,6 +326,13 @@ restoring data:
    - :authaction:`update`
 
    Provides the :authaction:`listDatabases` action on the cluster as a whole.
+
+   Provides the :authaction:`listCollections` action on all databases.
+
+   Provides the :authaction:`listIndexes` action for all collections.
+
+   Provides the :authaction:`bypassDocumentValidation` action for
+   collections that have :doc:`document validation </core/document-validation>`.
 
    Provides the :authaction:`find` action on the following:
 
@@ -332,12 +353,25 @@ restoring data:
              - system.version
             Do we want to document these?
 
+   .. include:: /includes/fact-required-access-for-backup-profiling.rst
+
 .. authrole:: restore
 
-   Provides minimal privileges needed for restoring data from backups.
-   This role provides sufficient privileges to use the :program:`mongorestore` tool
-   to restore an entire :program:`mongod` instance.
+   Provides privileges needed to restore data from backups. This role
+   is sufficient when restoring data with :program:`mongorestore`
+   without the :option:`--oplogReplay` option. If running
+   :program:`mongorestore` with :option:`--oplogReplay`, however, the
+   :authrole:`restore` role is insufficient to replay the oplog. To
+   replay the oplog, create a :ref:`user-defined role
+   <create-user-defined-role>` that has :authaction:`anyAction` on
+   :ref:`resource-anyresource` and grant only to users who must run
+   :program:`mongorestore` with :option:`--oplogReplay`.
 
+   .. COMMENT per the following commit, choosing the anyAction/anyResource
+      over the __system role.
+
+   .. https://github.com/mongodb/docs/commit/237c44cd3b6e4b7dbe0c9077b7571c8b7ec5d7a5
+   
    Provides the following actions on all *non*-system collections and
    :data:`system.js <<database>.system.js>` collections in the cluster; on
    the :data:`admin.system.users` and :data:`admin.system.roles`
@@ -353,6 +387,8 @@ restoring data:
    .. todo: Also provides the above actions on system.new_users,
             system.backup_users, system.version
 
+   Provides the :authaction:`listCollections` action on all databases.
+
    Provides the following *additional* actions on :data:`admin.system.users`
    and legacy ``system.users`` collections:
 
@@ -367,6 +403,8 @@ restoring data:
    documents in the :data:`admin.system.users` collection using normal
    modification operations, *only* modify these data using the
    :ref:`user management methods <user-management-methods>`.
+
+.. include:: /includes/replacement-mms.rst
 
 .. _auth-any-database-roles:
 
@@ -412,6 +450,14 @@ single-database equivalents:
    - :authaction:`killCursors`
    - :authaction:`planCacheRead`
 
+   .. versionchanged:: 2.6.4
+      :authrole:`userAdminAnyDatabase` added the following permissions
+      on the :data:`admin.system.users` and
+      :data:`admin.system.roles` collections:
+
+      - :authaction:`createIndex`
+      - :authaction:`dropIndex`
+
    The :authrole:`userAdminAnyDatabase` role does not restrict the permissions
    that a user can grant. As a result, :authrole:`userAdminAnyDatabase` users
    can grant themselves privileges in excess of their current
@@ -455,12 +501,19 @@ The following role provides full privileges on all resources:
    :authrole:`userAdminAnyDatabase` and :authrole:`clusterAdmin` roles
    *combined*.
 
-   :authrole:`root` does **not** include the ability to insert data
-   directly into the :data:`system.users <admin.system.users>` and
+   .. versionchanged:: 3.0.7
+
+      The :authrole:`root` has :authaction:`validate` action on
+      ``system.`` collections. Previously, :authrole:`root` does
+      **not** include any access to collections that begin with the
+      ``system.`` prefix.
+
+   For example, without the ability to insert data directly into
+   the :data:`system.users <admin.system.users>` and
    :data:`system.roles <admin.system.roles>` collections in the
-   ``admin`` database. Therefore, :authrole:`root` is not suitable for
-   restoring data that have these collections with
-   :program:`mongorestore`. To perform these kinds of restore
+   ``admin`` database. :authrole:`root` is not suitable for
+   writing or restoring data that have these collections (e.g. with
+   :program:`mongorestore`.) To perform these kinds of restore
    operations, provision users with the :authrole:`restore` role.
 
 Internal Role
@@ -475,9 +528,9 @@ Internal Role
    **Do not** assign this role to user objects representing applications or
    human administrators, other than in exceptional circumstances.
 
-   If you need access to all actions on all resources, for example to run
-   the :dbcommand:`eval` or :dbcommand:`applyOps` commands, do not
-   assign this role. Instead, :ref:`create a user-defined role
-   <define-roles>` that grants :authaction:`anyAction` on
-   :ref:`resource-anyresource` and ensure that only the users who
-   needs access to these operations has this access.
+   If you need access to all actions on all resources, for example to
+   run :dbcommand:`applyOps` commands, do not assign this role.
+   Instead, :ref:`create a user-defined role <create-user-defined-role>` that
+   grants :authaction:`anyAction` on :ref:`resource-anyresource` and
+   ensure that only the users who need access to these operations have
+   this access.

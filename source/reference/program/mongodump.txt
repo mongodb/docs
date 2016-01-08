@@ -12,18 +12,20 @@ Synopsis
 --------
 
 :program:`mongodump` is a utility for creating a binary export of the
-contents of a database. Consider using this utility as part an
+contents of a database. Consider using this utility as part of an
 effective :doc:`backup strategy </core/backups>`. Use
 :program:`mongodump` in conjunction with :program:`mongorestore` to
-restore databases.
+restore databases. For an overview of :program:`mongodump` usage, see
+:doc:`/tutorial/backup-and-restore-tools`
 
 :program:`mongodump` can read data from either :program:`mongod` or :program:`mongos`
-instances, in addition to reading directly from MongoDB data files
-without an active :program:`mongod`.
+instances.
 
 .. seealso:: :program:`mongorestore`,
    :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
    and :doc:`/core/backups`.
+
+.. _mongodump-behavior:
 
 Behavior
 --------
@@ -32,10 +34,11 @@ Behavior
 
 .. include:: /includes/warning-mongodump-compatibility-2.2.rst
 
-When running :program:`mongodump` against a :program:`mongos` instance
-where the :term:`sharded cluster` consists of :term:`replica sets <replica
-set>`, the :term:`read preference` of the operation will prefer reads
-from :term:`secondary` members of the set.
+.. versionchanged:: 3.0.5
+
+   For a sharded cluster where the shards are replica sets,
+   :program:`mongodump`, when run against the :program:`mongos`
+   instance, no longer prefers reads from secondary members.
 
 .. include:: /includes/warning-fsync-lock-mongodump.rst
 
@@ -44,18 +47,20 @@ from :term:`secondary` members of the set.
 Required Access
 ---------------
 
-Backup Collections
-~~~~~~~~~~~~~~~~~~
+Back Up Collections
+~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/access-mongodump-collections.rst
 
-Backup Users
-~~~~~~~~~~~~
+Back Up Users
+~~~~~~~~~~~~~
 
 .. include:: /includes/access-mongodump-users.rst
 
 Options
 -------
+
+.. include:: /includes/extracts/fact-3.0-tools-drop-dbpath-support-mongodump.rst
 
 .. binary:: mongodump
 
@@ -87,6 +92,8 @@ Options
 
 .. include:: /includes/option/option-mongodump-sslAllowInvalidCertificates.rst
 
+.. include:: /includes/option/option-mongodump-sslAllowInvalidHostnames.rst
+
 .. include:: /includes/option/option-mongodump-sslFIPSMode.rst
 
 .. include:: /includes/option/option-mongodump-username.rst
@@ -97,36 +104,42 @@ Options
 
 .. include:: /includes/option/option-mongodump-authenticationMechanism.rst
 
-.. include:: /includes/option/option-mongodump-dbpath.rst
+.. include:: /includes/option/option-mongodump-gssapiServiceName.rst
 
-.. include:: /includes/option/option-mongodump-directoryperdb.rst
-
-.. include:: /includes/option/option-mongodump-journal.rst
+.. include:: /includes/option/option-mongodump-gssapiHostName.rst
 
 .. include:: /includes/option/option-mongodump-db.rst
 
 .. include:: /includes/option/option-mongodump-collection.rst
 
-.. include:: /includes/option/option-mongodump-out.rst
-
 .. include:: /includes/option/option-mongodump-query.rst
 
-.. include:: /includes/option/option-mongodump-oplog.rst
-
-.. include:: /includes/option/option-mongodump-repair.rst
+.. include:: /includes/option/option-mongodump-queryFile.rst
 
 .. include:: /includes/option/option-mongodump-forceTableScan.rst
 
+.. include:: /includes/option/option-mongodump-gzip.rst
+
+.. include:: /includes/option/option-mongodump-out.rst
+
+.. include:: /includes/option/option-mongodump-archive.rst
+
+.. include:: /includes/option/option-mongodump-repair.rst
+
+.. include:: /includes/option/option-mongodump-oplog.rst
+
 .. include:: /includes/option/option-mongodump-dumpDbUsersAndRoles.rst
 
-Use
----
+.. include:: /includes/option/option-mongodump-excludeCollection.rst
 
-See the :doc:`/tutorial/backup-with-mongodump`
-for a larger overview of :program:`mongodump` usage. Also see the
-:doc:`mongorestore` document for an overview of the
-:program:`mongorestore`, which provides the related inverse
-functionality.
+.. include:: /includes/option/option-mongodump-excludeCollectionsWithPrefix.rst
+
+
+Examples
+--------
+
+``mongodump`` a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following command creates a dump file that contains only the
 collection named ``collection`` in the database named ``test``. In
@@ -135,18 +148,12 @@ this case the database is running on the local interface on port
 
 .. code-block:: sh
 
-   mongodump --collection collection --db test
+   mongodump  --db test --collection collection
 
-In the next example, :program:`mongodump` creates a backup of the
-database instance stored in the ``/srv/mongodb`` directory on the
-local machine. This requires that no :program:`mongod` instance is
-using the ``/srv/mongodb`` directory.
+``mongodump`` with Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: sh
-
-   mongodump --dbpath /srv/mongodb
-
-In the final example, :program:`mongodump` creates a database dump
+In the next example, :program:`mongodump` creates a database dump
 located at ``/opt/backup/mongodump-2011-10-24``, from a database
 running on port ``37017`` on the host ``mongodb1.example.net`` and
 authenticating using the username ``user`` and the password
@@ -156,4 +163,60 @@ authenticating using the username ``user`` and the password
 
    mongodump --host mongodb1.example.net --port 37017 --username user --password pass --out /opt/backup/mongodump-2011-10-24
 
-.. _mongodump-behavior:
+.. _mongodump-example-archive-file:
+
+Output to an Archive File
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To output the dump to an archive file, run :program:`mongodump` with the
+``--archive`` option and the archive filename. For example, the following
+operation creates a file ``test.20150715.archive`` that contains the dump
+of the ``test`` database.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.archive --db test
+
+.. _mongodump-example-archive-stdout:
+
+Output an Archive to Standard Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To output the archive to the standard output stream in order to pipe to
+another process, run :program:`mongodump` with the ``archive``
+option but *omit* the filename:
+
+.. code-block:: sh
+
+   mongodump --archive --db test --port 27017 | mongorestore --archive --port 27018
+
+.. note::
+
+   You cannot use the ``--archive`` option with the
+   :option:`--out` option.
+
+.. _mongodump-example-gzip:
+
+Compress the Output
+~~~~~~~~~~~~~~~~~~~
+
+To compress the files in the output dump directory, run
+:program:`mongodump` with the new ``--gzip`` option. For example,
+the following operation outputs compressed files into the default
+``dump`` directory.
+
+.. code-block:: sh
+
+   mongodump --gzip --db test
+
+To compress the archive file output by :program:`mongodump`, use the
+``--gzip`` option in conjunction with the :option:`--archive`
+option, specifying the name of the compressed file.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.gz --gzip --db test

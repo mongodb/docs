@@ -6,8 +6,6 @@ aggregate
 
 .. dbcommand:: aggregate
 
-   .. versionadded:: 2.2
-
    Performs aggregation operation using the :doc:`aggregation pipeline
    </reference/operator/aggregation-pipeline>`. The pipeline allows
    users to process data from a collection with a sequence of
@@ -15,20 +13,9 @@ aggregate
 
    .. TODO will undergo a thorough rewrite during the agg doc rewrite
 
-   .. versionchanged:: 2.6
-
-   - The :dbcommand:`aggregate` command adds support for returning a
-     cursor, supports the ``explain`` option, and enhances its sort
-     operations with an external sort facility.
-
-   - :doc:`aggregation pipeline
-     </reference/operator/aggregation-pipeline>` introduces the
-     :pipeline:`$out` operator to allow :dbcommand:`aggregate`
-     command to store results to a collection.
-
    The command has following syntax:
 
-   .. versionchanged:: 2.6
+   .. versionchanged:: 3.2
 
    .. code-block:: javascript
 
@@ -37,13 +24,21 @@ aggregate
         pipeline: [ <stage>, <...> ],
         explain: <boolean>,
         allowDiskUse: <boolean>,
-        cursor: <document>
+        cursor: <document>,
+        bypassDocumentValidation: <boolean>,
+        readConcern: <document>
       }
 
    The :dbcommand:`aggregate` command takes the following fields as
    arguments:
 
-   .. include:: /reference/command/aggregate-field.rst
+   .. include:: /includes/apiargs/dbcommand-aggregate-field.rst
+
+.. versionchanged:: 2.6
+
+   :doc:`aggregation pipeline </reference/operator/aggregation-pipeline>`
+   introduces the :pipeline:`$out` operator to allow
+   :dbcommand:`aggregate` command to store results to a collection.
 
 For more information about the aggregation pipeline
 :doc:`/core/aggregation-pipeline`, :doc:`/reference/aggregation`, and
@@ -201,5 +196,34 @@ batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 ``batchSize`` of ``0`` means an empty first batch and is useful if you
 want to quickly get back a cursor or failure message, without doing
 significant server-side work.
+
+Override Default ``readConcern``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation on a replica set specifies a
+:doc:`/reference/readConcern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/fact-aggregate-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+   - The :dbcommand:`getMore` command uses the ``readConcern`` level
+     specified in the originating :dbcommand:`aggregate` command.
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+         aggregate: "orders",
+         pipeline: [ { $match: { status: "A" } } ],
+         readConcern: { level: "majority" }
+      }
+   )
 
 .. seealso:: :method:`db.collection.aggregate()`

@@ -51,8 +51,21 @@ Restrictions
 Examples
 --------
 
+The examples use a collection named ``articles`` with the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+
 Equality Match
---------------
+~~~~~~~~~~~~~~
 
 The following operation uses :pipeline:`$match` to perform a
 simple equality match:
@@ -68,25 +81,13 @@ field equals ``dave``, and the aggregation returns the following:
 
 .. code-block:: javascript
 
-   {
-     "result" : [
-                  {
-                    "_id" : ObjectId("512bc95fe835e68f199c8686"),
-                    "author": "dave",
-                    "score" : 80
-                  },
-                  { "_id" : ObjectId("512bc962e835e68f199c8687"),
-                    "author" : "dave",
-                    "score" : 85
-                  }
-                ],
-     "ok" : 1
-   }
+   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
 
 .. _match-perform-a-count:
 
 Perform a Count
----------------
+~~~~~~~~~~~~~~~
 
 The following example selects documents to process using the
 :pipeline:`$match` pipeline operator and then pipes the results
@@ -96,25 +97,20 @@ the documents:
 .. code-block:: javascript
 
   db.articles.aggregate( [
-                          { $match : { score : { $gt : 70, $lte : 90 } } },
-                          { $group: { _id: null, count: { $sum: 1 } } }
-                         ] );
+    { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
+    { $group: { _id: null, count: { $sum: 1 } } }
+  ] );
 
-In the aggregation pipeline, :pipeline:`$match` selects the
-documents where the ``score`` is greater than ``70`` and less
-than or equal to ``90``. These documents are then piped to the
-:pipeline:`$group` to perform a count. The aggregation returns
-the following:
+In the aggregation pipeline, :pipeline:`$match` selects the documents
+where either the ``score`` is greater than ``70`` and less than ``90``
+or the ``views`` is greater than or equal to ``1000``. These documents
+are then piped to the :pipeline:`$group` to perform a count. The
+aggregation returns the following:
 
 .. code-block:: javascript
 
-   {
-     "result" : [
-                  {
-                    "_id" : null,
-                    "count" : 3
-                  }
-                ],
-     "ok" : 1
-   }
+   { "_id" : null, "count" : 5 }
 
+.. seealso::
+   :doc:`/tutorial/aggregation-zip-code-data-set`,
+   :doc:`/tutorial/aggregation-with-user-preference-data`

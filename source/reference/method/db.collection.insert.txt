@@ -26,7 +26,7 @@ Definition
          }
       )
 
-   .. include:: /reference/method/db.collection.insert-param.rst
+   .. include:: /includes/apiargs/method-db.collection.insert-param.rst
 
    .. versionchanged:: 2.6
       The :method:`~db.collection.insert()` returns an object that
@@ -40,17 +40,17 @@ Definition
 Behaviors
 ---------
 
-.. _insert-safe-writes:
+.. _insert-wc:
 
-Safe Writes
-~~~~~~~~~~~
+Write Concern
+~~~~~~~~~~~~~
 
 .. versionchanged:: 2.6
 
 The :method:`~db.collection.insert()` method uses the
-:dbcommand:`insert` command, which uses the default write concern. To
-specify a different write concern, include the write concern in the
-options parameter.
+:dbcommand:`insert` command, which uses the default :doc:`write concern
+</reference/write-concern>`. To specify a different write concern,
+include the write concern in the options parameter.
 
 Create Collection
 ~~~~~~~~~~~~~~~~~
@@ -123,7 +123,10 @@ Insert Multiple Documents
 
 The following example performs a bulk insert of three documents by
 passing an array of documents to the :method:`~db.collection.insert()`
-method.
+method. By default, MongoDB performs an *ordered* insert. With
+*ordered* inserts, if an error occurs during an insert of one of the
+documents, MongoDB returns on error without processing the remaining
+documents in the array.
 
 The documents in the array do not need to have the same fields. For
 instance, the first document in the array has an ``_id`` field and a
@@ -149,12 +152,13 @@ The operation inserted the following three documents:
    { "_id" : ObjectId("51e0373c6f35bd826f47e9a0"), "item" : "pen", "qty" : 20 }
    { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }
 
-Perform an Ordered Insert
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Perform an Unordered Insert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example performs an *ordered* insert of four documents.
-Unlike *unordered* inserts which continue on error, *ordered* inserts
-return on error without processing the remaining documents in the array.
+The following example performs an *unordered* insert of three
+documents. With *unordered* inserts, if an error occurs during an
+insert of one of the documents, MongoDB continues to insert the
+remaining documents in the array.
 
 .. code-block:: javascript
 
@@ -164,7 +168,7 @@ return on error without processing the remaining documents in the array.
         { _id: 21, item: "lamp", qty: 20, type: "floor" },
         { _id: 22, item: "bulk", qty: 100 }
       ],
-      { ordered: true }
+      { ordered: false }
    )
 
 Override Default Write Concern
@@ -173,8 +177,10 @@ Override Default Write Concern
 The following operation to a replica set specifies a :doc:`write
 concern </reference/write-concern>` of ``"w: majority"`` with a
 ``wtimeout`` of 5000 milliseconds such that the method returns after
-the write propagates to a majority of the replica set members or the
-method times out after 5 seconds.
+the write propagates to a majority of the voting replica set members or
+the method times out after 5 seconds.
+
+.. include:: /includes/fact-majority-write-concern-change.rst
 
 .. code-block:: javascript
 

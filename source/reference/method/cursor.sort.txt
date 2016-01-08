@@ -15,7 +15,7 @@ Definition
 
    The :method:`~cursor.sort()` method has the following parameter:
 
-   .. include:: /reference/method/cursor.sort-param.rst
+   .. include:: /includes/apiargs/method-cursor.sort-param.rst
 
    The ``sort`` parameter contains field and value pairs, in the
    following form:
@@ -76,37 +76,52 @@ The specified metadata determines the sort order. For example, the
 ``"textScore"`` metadata sorts in descending order. See
 :projection:`$meta` for details.
 
+Restrictions
+~~~~~~~~~~~~
+
+When unable to obtain the sort order from an index, MongoDB will sort
+the results in memory, which requires that the result set being sorted
+is less than 32 megabytes.
+
+When the sort operation consumes more than 32 megabytes, MongoDB
+returns an error. To avoid this error, either create an index
+supporting the sort operation (see :ref:`sort-index-use`) or use
+:method:`~cursor.sort()` in conjunction with :method:`~cursor.limit()`
+(see :ref:`sort-limit-results`).
+
+.. _sort-index-use:
+
+Sort and Index Use
+~~~~~~~~~~~~~~~~~~
+
+The sort can sometimes be satisfied by scanning an index in order. If
+the query plan uses an index to provide the requested sort order,
+MongoDB does not perform an in-memory sorting of the result set. For
+more information, see :doc:`/tutorial/sort-results-with-indexes`.
+
+.. _sort-limit-results:
+
 Limit Results
 ~~~~~~~~~~~~~
 
-The sort operation requires that the entire sort be able to complete
-within 32 megabytes.
+You can use :method:`~cursor.sort()` in conjunction with
+:method:`~cursor.limit()` to return the first (in terms of the sort
+order) ``k`` documents, where ``k`` is the specified limit.
 
-When the sort operation consumes more than 32 megabytes, MongoDB
-returns an error. To avoid this error, either create an index to
-support the sort operation or use :method:`~cursor.sort()` in
-conjunction with :method:`~cursor.limit()`. The specified limit must
-result in a number of documents that fall within the 32 megabyte limit.
+If MongoDB cannot obtain the sort order via an index scan, then MongoDB
+uses a top-k sort algorithm. This algorithm buffers the first ``k``
+results (or last, depending on the sort order) seen so far by the
+underlying index or collection access. If at any point the memory
+footprint of these ``k`` results exceeds 32 megabytes, the query will
+fail.
 
-For example, if the following sort operation ``stocks_quotes`` exceeds
-the 32 megabyte limit:
+.. _sort-with-projection:
 
-.. code-block:: javascript
+Interaction with :term:`Projection`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.stocks.find().sort( { ticker: 1, date: -1 } )
-
-Either create an index to support the sort operation:
-
-.. code-block:: javascript
-
-   db.stocks.ensureIndex( { ticker: 1, date: -1 } )
-
-Or use :method:`~cursor.sort()` in conjunction with
-:method:`~cursor.limit()`:
-
-.. code-block:: javascript
-
-   db.stocks.find().sort( { ticker: 1, date: -1 } ).limit(100)
+When a set of results are both sorted and projected, the MongoDB query engine
+will always apply the sorting **first**.
 
 Examples
 --------
@@ -159,8 +174,8 @@ The query returns the following documents, in descending order of
    { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
    { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
 
-The following query specifies the sort order using the fields from a
-sub-document ``item``. The query sorts first by the ``category`` field
+The following query specifies the sort order using the fields from an
+embedded document ``item``. The query sorts first by the ``category`` field
 in ascending order, and then within each ``category``, by the ``type``
 field in ascending order.
 
@@ -180,18 +195,36 @@ The query returns the following documents, ordered first by the
    { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
    { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
 
-Return in Storage Order
+.. _return-storage-order:
+.. _return-natural-order:
+
+Return in Natural Order
 -----------------------
 
 The :operator:`$natural` parameter returns items according to their
-storage order within the collection level extents.
+:term:`natural order` within the database. This ordering is an internal
+implementation feature, and you should not rely on any particular structure
+within it.
 
-Typically, the storage order reflects insertion order, *except* when
-documents relocate because of :ref:`document growth due to updates
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/fact-natural-parameter.rst
+
+MMAPv1
+~~~~~~
+
+Typically, the natural order reflects insertion order with the
+following exception for the MMAPv1 storage engine. For the MMAPv1
+storage engine, the natural order does not reflect insertion order if
+the documents relocate because of :ref:`document growth
 <data-model-document-growth>` or remove operations free up space which
 are then taken up by newly inserted documents.
 
-Consider the sequence of insert operations to the ``trees`` collection:
+Consider to following example which uses the MMAPv1 storage engine.
+
+The following sequence of operations inserts documents into the
+``trees`` collection:
 
 .. code-block:: javascript
 
@@ -200,7 +233,7 @@ Consider the sequence of insert operations to the ``trees`` collection:
    db.trees.insert( { _id: 3, common_name: "maple", genus: "aceraceae" } )
    db.trees.insert( { _id: 4, common_name: "birch", genus: "betula" } )
 
-The following query returns the documents in the storage order:
+The following query returns the documents in the natural order:
 
 .. code-block:: javascript
 
@@ -215,7 +248,8 @@ The documents return in the following order:
    { "_id" : 3, "common_name" : "maple", "genus" : "aceraceae" }
    { "_id" : 4, "common_name" : "birch", "genus" : "betula" }
 
-Update a document such that the document outgrows its current allotted space:
+Update a document such that the document outgrows its current allotted
+space:
 
 .. code-block:: javascript
 
@@ -224,13 +258,14 @@ Update a document such that the document outgrows its current allotted space:
       { $set: { famous_oaks: [ "Emancipation Oak", "Goethe Oak" ] } }
    )
 
-Rerun the query to returns the documents in the storage order:
+Rerun the query to returns the documents in natural order:
 
 .. code-block:: javascript
 
    db.trees.find().sort( { $natural: 1 } )
 
-The documents return in the following storage order:
+For MongoDB instances using MMAPv1, the documents return in the
+following natural order, which no longer reflects the insertion order:
 
 .. code-block:: javascript
 

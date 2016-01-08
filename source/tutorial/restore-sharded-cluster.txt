@@ -7,66 +7,50 @@ Restore a Sharded Cluster
 Overview
 --------
 
-The procedure outlined in this document addresses how to restore an
-entire sharded cluster. For information on related backup procedures
-consider the following tutorials which describe backup procedures in
-greater detail:
+You can restore a sharded cluster either from :doc:`snapshots
+</tutorial/backup-with-filesystem-snapshots>` or from :term:`BSON`
+:doc:`database dumps
+</tutorial/backup-sharded-cluster-with-database-dumps>` created by the
+:program:`mongodump` tool. This document describes procedures to
 
-- :doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`
-- :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+- :ref:`restore-sharded-cluster-with-snapshots`
 
-The exact procedure used to restore a database depends on the method
-used to capture the backup. See the :doc:`/core/backups`
-document for an overview of backups with MongoDB and
-:doc:`/administration/backup-sharded-clusters` for a complete
-information on backups in MongoDB and backups of sharded clusters in
-particular.
+- :ref:`restore-sh-cl-dmp`
 
-Procedure
----------
+Procedures
+----------
 
-#. Stop all :program:`mongos` and :program:`mongod` processes,
-   including all shards *and* all config servers.
+.. _restore-sharded-cluster-with-snapshots:
 
-#. Restore the following:
+Restore a Sharded Cluster with Filesystem Snapshots
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-   - Data files for each server in each :term:`shard`. Because replica
-     sets provide each production shard, restore all the members of
-     the replica set or use the other standard approaches for
-     restoring a replica set from backup. See the
-     :ref:`backup-restore-snapshot` and :ref:`backup-restore-dump`
-     sections for details on these procedures.
+The following procedure outlines the steps to restore a sharded cluster
+from filesystem snapshots. To create filesystem snapshots of sharded
+clusters, see
+:doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`.
 
-   - Data files for each :ref:`config server <sharding-config-server>`.
+.. include:: /includes/steps/restore-sharded-cluster-with-snapshots.rst
 
-#. Restart all the :ref:`config servers <sharding-config-server>`
-   :program:`mongod` instances by issuing command similar to the
-   following, using values appropriate
-   to your configuration:
+.. _restore-sh-cl-dmp:
 
-   .. code-block:: sh
+Restore a Sharded Cluster with Database Dumps
++++++++++++++++++++++++++++++++++++++++++++++
 
-      mongod --configsvr --dbpath /data/configdb --port 27019
+The following procedure outlines the steps to restore a sharded cluster
+from the BSON database dumps created by :program:`mongodump`. For
+information on using :program:`mongodump` to backup sharded clusters,
+see :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`.
 
-#. If shard hostnames **have changed**:
+.. versionchanged:: 3.0
 
-   a. Start one :program:`mongos` instance, using the updated
-      config string with the new ``configdb`` hostnames and ports.
+   :program:`mongorestore` requires a running MongoDB instances.
+   Earlier versions of :program:`mongorestore` did not require a
+   running MongoDB instances and instead used the ``--dbpath`` option.
+   For instructions specific to your version of
+   :program:`mongorestore`, refer to the appropriate version of the
+   manual.
 
-   #. Update the ``shards`` collection in the :ref:`config-database` to
-      reflect the new hostnames.
+.. include:: /includes/steps/restore-sharded-cluster-database-dump.rst
 
-   #. Stop the :program:`mongos` instance.
-
-#. Restart all the shard :program:`mongod` instances.
-
-#. Restart all the :program:`mongos` instances, making sure to use the updated config string.
-
-#. Connect to a :program:`mongos` instance from a :program:`mongo` shell
-   and use the :method:`db.printShardingStatus()` method to ensure
-   that the cluster is operational, as follows:
-
-   .. code-block:: javascript
-
-      db.printShardingStatus()
-      show collections
+.. seealso:: :doc:`/core/backups`, :doc:`/administration/backup-sharded-clusters` 

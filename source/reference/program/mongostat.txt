@@ -17,13 +17,12 @@ instance. :program:`mongostat` is functionally similar to the
 UNIX/Linux file system utility ``vmstat``, but provides data regarding
 :program:`mongod` and :program:`mongos` instances.
 
-
 .. seealso::
 
    For more information about monitoring MongoDB, see
    :doc:`/administration/monitoring`.
 
-   For more background on various other MongoDB status outputs see:
+   For more background on other MongoDB status outputs see:
 
    - :doc:`/reference/command/serverStatus`
    - :doc:`/reference/command/replSetGetStatus`
@@ -33,17 +32,18 @@ UNIX/Linux file system utility ``vmstat``, but provides data regarding
    For an additional utility that provides MongoDB metrics see
    :doc:`mongotop </reference/program/mongotop>`.
 
-Access Control Requirements
----------------------------
+Required Access
+---------------
 
-In order to connect to a :program:`mongod` that enforces
-authorization with the :option:`--auth <mongod --auth>` option,
-specify the :option:`--username <mongostat --username>` and
-:option:`--password <mongostat --password>` options, and the
-user specified must have the :authaction:`serverStatus` privilege.
+In order to connect to a :program:`mongod` that enforces authorization
+with the :option:`--auth <mongod --auth>` option, specify the
+:option:`--username <mongostat --username>` and :option:`--password
+<mongostat --password>` options, and the connecting user must have the
+:authaction:`serverStatus` privilege action on the cluster resources.
 
-The most appropriate built-in role that has this privilege is
-:authrole:`clusterMonitor`.
+The built-in role :authrole:`clusterMonitor` provides this privilege as
+well as other privileges. To create a role with just the privilege to
+run :program:`mongostat`, see :ref:`create-role-for-mongostat`.
 
 Options
 -------
@@ -76,6 +76,8 @@ Options
 
 .. include:: /includes/option/option-mongostat-sslAllowInvalidCertificates.rst
 
+.. include:: /includes/option/option-mongostat-sslAllowInvalidHostnames.rst
+
 .. include:: /includes/option/option-mongostat-sslFIPSMode.rst
 
 .. include:: /includes/option/option-mongostat-username.rst
@@ -86,6 +88,10 @@ Options
 
 .. include:: /includes/option/option-mongostat-authenticationMechanism.rst
 
+.. include:: /includes/option/option-mongostat-gssapiServiceName.rst
+
+.. include:: /includes/option/option-mongostat-gssapiHostName.rst
+
 .. include:: /includes/option/option-mongostat-noheaders.rst
 
 .. include:: /includes/option/option-mongostat-rowcount.rst
@@ -95,6 +101,8 @@ Options
 .. include:: /includes/option/option-mongostat-discover.rst
 
 .. include:: /includes/option/option-mongostat-all.rst
+
+.. include:: /includes/option/option-mongostat-json.rst
 
 .. include:: /includes/option/option-mongostat-<sleeptime>.rst
 
@@ -141,22 +149,56 @@ average operations per second.
 
 .. describe:: flushes
 
-   The number of :term:`fsync` operations per second.
+   .. versionchanged:: 3.0
+
+   For the :ref:`storage-wiredtiger`, ``flushes`` refers to the number
+   of WiredTiger checkpoints triggered between each polling interval.
+
+   For the :ref:`storage-mmapv1`, ``flushes`` represents the number of
+   :term:`fsync` operations per second.
+
+.. describe:: dirty
+
+   .. versionadded:: 3.0
+
+   Only for :ref:`storage-wiredtiger`. The percentage of the WiredTiger
+   cache with dirty bytes, calculated by
+   :data:`~serverStatus.wiredTiger.cache.tracked dirty bytes in the cache` 
+   / :data:`~serverStatus.wiredTiger.cache.maximum bytes configured`.
+
+.. describe:: used
+
+   .. versionadded:: 3.0
+
+   Only for :ref:`storage-wiredtiger`. The percentage of the WiredTiger
+   cache that is in use, calculated by
+   :data:`~serverStatus.wiredTiger.cache.bytes currently in the cache` /
+   :data:`~serverStatus.wiredTiger.cache.maximum bytes configured`.
 
 .. describe:: mapped
 
-   The total amount of data mapped in megabytes. This is the total
-   data size at the time of the last :program:`mongostat` call.
+   .. versionchanged:: 3.0
 
-.. describe:: size
+   Only for :ref:`storage-mmapv1`. The total amount of data mapped in
+   megabytes. This is the total data size at the time of the last
+   :program:`mongostat` call.
+
+.. describe:: vsize
 
    The amount of virtual memory in megabytes used by the process at
    the time of the last :program:`mongostat` call.
 
 .. describe:: non-mapped
 
-   The total amount of virtual memory excluding all mapped memory at
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`.
+
+   *Optional*. The total amount of virtual memory excluding all mapped memory at
    the time of the last :program:`mongostat` call.
+
+   :program:`mongostat` only returns this value when started with the
+   :option:`--all <mongostat --all>` option.
 
 .. describe:: res
 
@@ -165,14 +207,53 @@ average operations per second.
 
 .. describe:: faults
 
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`. The number of page faults per second.
+
    .. versionchanged:: 2.1
+      Before version 2.1, this value was only provided for MongoDB
+      instances running on Linux hosts.
 
-   The number of page faults per second.
+.. describe:: lr
 
-   Before version 2.1 this value was only provided for MongoDB
-   instances running on Linux hosts.
+   .. versionadded:: 3.2
+   
+   Only for :ref:`storage-mmapv1`. The percentage of read lock
+   acquisitions that had to wait. :program:`mongostat` displays ``lr|lw``
+   if a lock acquisition waited.
+
+.. describe:: lw
+
+   .. versionadded:: 3.2
+   
+   Only for :ref:`storage-mmapv1`. The percentage of write lock
+   acquisitions that had to wait. :program:`mongostat` displays ``lr|lw``
+   if a lock acquisition waited.
+
+.. describe:: lrt
+
+   .. versionadded:: 3.2
+   
+   Only for :ref:`storage-mmapv1`. The average acquire time, in
+   microseconds, of read lock acquisitions that waited.
+   :program:`mongostat` displays ``lrt|lwt`` if a lock acquisition
+   waited.
+
+.. describe:: lwt
+
+   .. versionadded:: 3.2
+   
+   Only for :ref:`storage-mmapv1`. The average acquire time, in
+   microseconds, of write lock acquisitions that waited.
+   :program:`mongostat` displays ``lrt|lwt`` if a lock acquisition
+   waited.
 
 .. describe:: locked
+
+   .. versionchanged:: 3.0
+      Only appears when :program:`mongostat` runs against pre-3.0
+      versions of MongoDB instances.
 
    The percent of time in a global write lock.
 
@@ -181,24 +262,13 @@ average operations per second.
       more appropriate data regarding the database specific locks in
       version 2.2.
 
-.. describe:: locked db
-
-   .. versionadded:: 2.2
-
-   The percent of time in the per-database context-specific
-   lock. :program:`mongostat` will report the database that has spent
-   the most time since the last :program:`mongostat` call with a write
-   lock.
-
-   This value represents the amount of time that the listed database
-   spent in a locked state *combined* with the time that the
-   :program:`mongod` spent in the global lock. Because of this, and
-   the sampling method, you may see some values greater than 100%.
-
 .. describe:: idx miss
 
-   The percent of index access attempts that required a page fault
-   to load a btree node. This is a sampled value.
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`. The percent of index access attempts
+   that required a page fault to load a btree node. This is a sampled
+   value.
 
 .. describe:: qr
 
@@ -251,10 +321,11 @@ average operations per second.
    UNK        unknown
    SLV        :term:`slave`
    RTR        mongos process ("router")
+   ARB        :term:`arbiter`
    =========  =========================
 
-Usage
------
+Use
+---
 
 In the first example, :program:`mongostat` will return data every
 second for 20 seconds. :program:`mongostat` collects data from the

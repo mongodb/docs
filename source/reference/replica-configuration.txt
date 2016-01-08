@@ -4,95 +4,109 @@ Replica Set Configuration
 
 .. default-domain:: mongodb
 
-The configuration for a replica set is stored as a document in the
-:data:`system.replset <local.system.replset>` collection in the
-:doc:`local database </reference/local-database>`.
+You can access the configuration of a :term:`replica set` using the
+:method:`rs.conf()` method or the :dbcommand:`replSetGetConfig` command.
 
-.. _replica-set-configuration-document:
-
-Replica Set Configuration Document
-----------------------------------
-
-The following document provides a representation of a replica set
-configuration document. The configuration of your replica set may
-include only a subset of these settings:
-
-.. code-block:: none
-
-   {
-     _id: <string>,
-     version: <int>,
-     members: [
-       {
-         _id: <int>,
-         host: <string>,
-         arbiterOnly: <boolean>,
-         buildIndexes: <boolean>,
-         hidden: <boolean>,
-         priority: <number>,
-         tags: <document>,
-         slaveDelay: <int>,
-         votes: <number>
-       },
-       ...
-     ],
-     settings: {
-       getLastErrorDefaults : <document>,
-       chainingAllowed : <boolean>,
-       getLastErrorModes : <document>,
-       heartbeatTimeoutSecs: <int>
-     }
-   }
+To modify the configuration for a replica set, use the
+:method:`rs.reconfig()` method, passing a configuration document to the
+method. See :method:`rs.reconfig()` for more information.
 
 .. _replica-set-configuration-settings:
+.. _replica-set-configuration-document:
 
-Configuration Settings
-----------------------
+Example Output
+--------------
 
-.. data:: local.system.replset._id
+.. include:: /includes/replica-set-conf-document-output.rst
+
+.. _replSetGetConfig-output:
+
+Replica Set Configuration Fields
+--------------------------------
+
+.. rsconf::  _id
 
    *Type*: string
 
    The name of the replica set. Once set, you cannot change the
    name of a replica set.
 
+   :rsconf:`_id` *must* be identical to the
+   :setting:`replication.replSetName` or the value of `--replSet`
+   specified to :program:`mongod` on the command line.
+
    .. see::
       :setting:`~replication.replSetName` or :option:`--replSet`
       for information on setting the replica set name.
 
-.. data:: local.system.replset.version
+.. rsconf::  version
+
+   *Type*: int
 
    An incrementing number used to distinguish revisions of the replica
    set configuration object from previous iterations of the
    configuration.
 
-``replset.members``
-~~~~~~~~~~~~~~~~~~~
+.. rsconf:: configsvr
 
-.. data:: local.system.replset.members
+   .. versionadded:: 3.2
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Indicates whether the replica set is used for a sharded cluster's
+   config servers. Set to ``true`` if the replica set is for a sharded
+   cluster's config servers.
+
+   .. seealso:: :ref:`3.2-rel-notes-sharded-cluster`
+
+.. rsconf:: protocolVersion
+
+   .. versionadded:: 3.2
+
+   *Type*: number
+
+   *Default*: 1 for new replica sets
+
+   Version of the :ref:`replica set election protocol
+   <3.2-rel-notes-rs-enhancements>`. 
+
+   Set to ``1`` to enable the :ref:`replication election enhancements
+   <3.2-rel-notes-rs-enhancements>` introduced in MongoDB 3.2. 
+
+   By default, new replica sets in MongoDB 3.2 use ``protocolVersion: 1``.
+   Previous versions of MongoDB use version 0 of the protocol and
+   cannot run as members of a replica set configuration that specifies
+   ``protocolVersion`` 1.
+
+``members``
+~~~~~~~~~~~
+
+.. rsconf::  members
 
    *Type*: array
 
    An array of member configuration documents, one for each member
-   of the replica set. The :data:`~local.system.replset.members` array
+   of the replica set. The :rsconf:`members` array
    is a zero-indexed array.
 
    Each member-specific configuration document can contain the following
    fields:
 
-   .. data:: local.system.replset.members[n]._id
+   .. rsconf::  members[n]._id
 
       *Type*: integer
 
       A numeric identifier of every member in the replica set. Once
       set, you cannot change the
-      :data:`~local.system.replset.members[n]._id` of a member.
+      :rsconf:`members[n]._id` of a member.
 
       .. note::
 
          .. include:: /includes/fact-rs-conf-array-index.rst
 
-   .. data:: local.system.replset.members[n].host
+   .. rsconf::  members[n].host
 
       *Type*: string
 
@@ -104,12 +118,12 @@ Configuration Settings
 
       .. warning::
 
-         :data:`~local.system.replset.members[n].host` cannot hold a
+         :rsconf:`members[n].host` cannot hold a
          value that resolves to ``localhost`` or the local interface
          unless *all* members of the set are on hosts that resolve to
          ``localhost``.
 
-   .. data:: local.system.replset.members[n].arbiterOnly
+   .. rsconf::  members[n].arbiterOnly
 
       *Optional*.
 
@@ -122,10 +136,10 @@ Configuration Settings
 
       When using the :method:`rs.addArb()` method to add an arbiter,
       the method automatically sets
-      :data:`~local.system.replset.members[n].arbiterOnly` to ``true``
+      :rsconf:`members[n].arbiterOnly` to ``true``
       for the added member.
 
-   .. data:: local.system.replset.members[n].buildIndexes
+   .. rsconf::  members[n].buildIndexes
 
       *Optional*.
 
@@ -136,7 +150,7 @@ Configuration Settings
       A boolean that indicates whether the :program:`mongod` builds
       :term:`indexes <index>` on this member. You can only set this
       value when adding a member to a replica set. You cannot change
-      :data:`~local.system.replset.members[n].buildIndexes` field after
+      :rsconf:`members[n].buildIndexes` field after
       the member has been added to the set. To add a member, see
       :method:`rs.add()` and :method:`rs.reconfig()`.
 
@@ -161,23 +175,23 @@ Configuration Settings
       .. warning::
 
          If you set
-         :data:`~local.system.replset.members[n].buildIndexes` to
+         :rsconf:`members[n].buildIndexes` to
          ``false``, you must also set
-         :data:`~local.system.replset.members[n].priority` to ``0``. If
-         :data:`~local.system.replset.members[n].priority` is not
+         :rsconf:`members[n].priority` to ``0``. If
+         :rsconf:`members[n].priority` is not
          ``0``, MongoDB will return an error when attempting to add a
          member with
-         :data:`~local.system.replset.members[n].buildIndexes` equal to
+         :rsconf:`members[n].buildIndexes` equal to
          ``false``.
 
          To ensure the member receives no queries, you should make all
          instances that do not build indexes hidden.
 
          Other secondaries cannot replicate from a member where
-         :data:`~local.system.replset.members[n].buildIndexes` is
+         :rsconf:`members[n].buildIndexes` is
          false.
 
-   .. data:: local.system.replset.members[n].hidden
+   .. rsconf::  members[n].hidden
 
       *Optional*.
 
@@ -194,7 +208,7 @@ Configuration Settings
       .. seealso::
          :ref:`Hidden Replica Set Members <replica-set-hidden-members>`
 
-   .. data:: local.system.replset.members[n].priority
+   .. rsconf::  members[n].priority
 
       *Optional*.
 
@@ -207,18 +221,19 @@ Configuration Settings
 
       Specify higher values to make a member *more* eligible to become
       :term:`primary`, and lower values to make the member *less*
-      eligible. Priorities are only used in comparison to each other.
-      Members of the set will veto election requests from members when
-      another eligible member has a higher priority value. Changing the
-      balance of priority in a replica set will trigger an election.
+      eligible. A member with a :rsconf:`members[n].priority` of ``0`` is
+      ineligible to become primary.
 
-      A :data:`~local.system.replset.members[n].priority` of ``0``
-      makes it impossible for a member to become primary.
+      Changing the balance of priority in a replica set will trigger
+      one or more elections. If a lower priority secondary is elected
+      over a higher priority secondary, replica set members will
+      continue to call elections until the highest priority available
+      member becomes primary.
 
       .. seealso::
          :ref:`Replica Set Elections <replica-set-elections>`.
 
-   .. data:: local.system.replset.members[n].tags
+   .. rsconf::  members[n].tags
 
       *Optional*.
 
@@ -226,16 +241,12 @@ Configuration Settings
 
       *Default*: none
 
-      A document that contains arbitrary field and value pairs for
-      describing or *tagging* members in order to extend :doc:`write
-      concern </reference/write-concern>` and :doc:`read preference
-      </reference/read-preference>` and thereby allowing
-      configurable data center awareness.
+      .. include:: /includes/fact-tag-set-field.rst
 
-      Use :data:`~local.system.replicaset.members[n].tags` to
+      Use :rsconf:`replicaset.members[n].tags` to
       configure write concerns in conjunction with
-      :data:`~local.system.replset.settings.getLastErrorModes` and
-      :data:`~local.system.replset.settings.getLastErrorDefaults`.
+      :rsconf:`settings.getLastErrorModes` and
+      :rsconf:`settings.getLastErrorDefaults`.
 
       .. include:: /includes/fact-tag-sets-must-be-strings.rst
 
@@ -243,7 +254,7 @@ Configuration Settings
       and write concern, see
       :doc:`/tutorial/configure-replica-set-tag-sets`.
 
-   .. data:: local.system.replset.members[n].slaveDelay
+   .. rsconf::  members[n].slaveDelay
 
       *Optional*.
 
@@ -262,7 +273,7 @@ Configuration Settings
       .. seealso::
          :doc:`/core/replica-set-delayed-member`
 
-   .. data:: local.system.replset.members[n].votes
+   .. rsconf::  members[n].votes
 
       *Optional*.
 
@@ -272,19 +283,21 @@ Configuration Settings
 
       The number of votes a server will cast in a :ref:`replica set
       election <replica-set-elections>`. The number of votes each
-      member has can be either ``1`` or ``0``.
+      member has is either ``1`` or ``0``, and :ref:`arbiters
+      <replica-set-arbiters>` always have exactly ``1`` vote.
 
-      A replica set can have up to 12 members, but can have at most
-      only 7 *voting* members. If you need more than 7 members in one
-      replica set, set :data:`~local.system.replset.members[n].votes`
-      to ``0`` for the additional non-voting members.
+      A replica set can have up to :limit:`50 members
+      <Number of Members of a Replica Set>` but only 7 voting members.
+      If you need more than 7 members in one replica set, set
+      :rsconf:`members[n].votes` to ``0`` for the
+      additional non-voting members.
 
       .. include:: /includes/members-used-to-allow-multiple-votes.rst
 
-``replset.settings``
-~~~~~~~~~~~~~~~~~~~~
+``settings``
+~~~~~~~~~~~~
 
-.. data:: local.system.replset.settings
+.. rsconf::  settings
 
    *Optional*.
 
@@ -293,10 +306,10 @@ Configuration Settings
    A document that contains configuration options that apply to the
    whole replica set.
 
-   The :data:`~local.system.replset.settings` document contain the
+   The :rsconf:`settings` document contain the
    following fields:
 
-   .. data:: local.system.replset.settings.chainingAllowed
+   .. rsconf::  settings.chainingAllowed
 
       .. versionadded:: 2.2.4
 
@@ -306,21 +319,15 @@ Configuration Settings
 
       *Default*: true
 
-      When :data:`~local.system.replset.settings.chainingAllowed` is
+      When :rsconf:`settings.chainingAllowed` is
       ``true``, the replica set allows :term:`secondary` members to
       replicate from other secondary members. When
-      :data:`~local.system.replset.settings.chainingAllowed` is
+      :rsconf:`settings.chainingAllowed` is
       ``false``, secondaries can replicate only from the :term:`primary`.
-
-      When you run :method:`rs.conf()` to view a replica set's
-      configuration, the
-      :data:`~local.system.replset.settings.chainingAllowed` field
-      appears only when set to ``false``. If not set,
-      :data:`~local.system.replset.settings.chainingAllowed` is ``true``.
 
       .. seealso:: :doc:`/tutorial/manage-chained-replication`
 
-   .. data:: local.system.replset.settings.getLastErrorDefaults
+   .. rsconf::  settings.getLastErrorDefaults
 
       *Optional*.
 
@@ -332,18 +339,18 @@ Configuration Settings
       operations <write-methods-incompatibility>` or
       :dbcommand:`getLastError` specify no other write concern.
 
-      If :data:`~local.system.replset.settings.getLastErrorDefaults` is
+      If :rsconf:`settings.getLastErrorDefaults` is
       not set, the default write concern for the replica set only
       requires confirmation from the primary.
 
-   .. data:: local.system.replset.settings.getLastErrorModes
+   .. rsconf::  settings.getLastErrorModes
 
       *Optional*.
 
       *Type*: document
 
       A document used to define an extended :term:`write concern`
-      through the use of :data:`~local.system.replset.members[n].tags`.
+      through the use of :rsconf:`members[n].tags`.
       The extended :term:`write concern` can provide :term:`data-center
       awareness`.
 
@@ -361,7 +368,7 @@ Configuration Settings
       See :doc:`/tutorial/configure-replica-set-tag-sets` for more
       information and example.
 
-   .. data:: local.system.replset.settings.heartbeatTimeoutSecs
+   .. rsconf::  settings.heartbeatTimeoutSecs
 
       *Optional*.
 
@@ -374,16 +381,31 @@ Configuration Settings
       respond in time, other members mark the delinquent member as
       inaccessible.
 
-View Replica Set Configuration
-------------------------------
+   .. rsconf::  settings.electionTimeoutMillis
 
-To view the current configuration for a replica set, use the
-:method:`rs.conf()` method. See :method:`rs.conf()` for more
-information.
+      .. versionadded:: 3.2
 
-Modify Replica Set Configuration
---------------------------------
+      *Optional*.
 
-To modify the configuration for a replica set, use the
-:method:`rs.reconfig()` method, passing a configuration document to the
-method. See :method:`rs.reconfig()` for more information.
+      *Type*: int
+
+      *Default*: 10000 (10 seconds)
+
+      The time limit in milliseconds for detecting when a replica set's
+      primary is unreachable:
+
+      - Higher values result in slower failovers but decreased
+        sensitivity to primary node or network slowness or spottiness.
+
+      - Lower values result in faster failover, but increased
+        sensitivity to primary node or network slowness or spottiness.
+
+      The setting only applies when using :rsconf:`protocolVersion: 1`.
+
+   .. rsconf::  settings.heartbeatIntervalMillis
+
+      .. versionadded:: 3.2
+
+      *Internal use only*.
+
+      The frequency in milliseconds of the heartbeats.

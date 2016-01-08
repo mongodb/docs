@@ -9,16 +9,167 @@ program: conf
 name: systemLog.verbosity
 type: integer
 directive: setting
-replacement:
-  program: ":program:`mongos` or :program:`mongod`"
 inherit:
   name: verbose
   program: _shared
   file: options-shared.yaml
+default: 0
 description: |
-  Increases the amount of internal reporting returned on standard output
-  or in log files. To increase the amount of information reported, increase
-  the number.
+  .. versionchanged:: 3.0
+
+  The default :doc:`log message </reference/log-messages>`
+  verbosity level for :ref:`components <log-message-components>`. The
+  verbosity level determines the amount of :ref:`Informational and
+  Debug <log-severity-levels>` messages MongoDB outputs.
+
+  .. include:: /includes/log-verbosity-levels.rst
+
+  To use a different verbosity level for a named component, use the
+  component's verbosity setting. For example, use the
+  :setting:`systemLog.component.accessControl.verbosity` to set the
+  verbosity level specifically for :data:`ACCESS` components.
+
+  See the ``systemLog.component.<name>.verbosity`` settings for
+  specific component verbosity settings.
+
+  For various ways to set the log verbosity level, see
+  :ref:`log-messages-configure-verbosity`.
+
+optional: true
+---
+program: conf
+name: systemLog.component.accessControl.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "access control"
+  component_data: ":data:`ACCESS`"
+---
+program: conf
+name: systemLog.component.command.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "commands"
+  component_data: ":data:`COMMAND`"
+---
+program: conf
+name: systemLog.component.control.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "control operations"
+  component_data: ":data:`CONTROL`"
+---
+program: conf
+name: systemLog.component.geo.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "geospatial parsing operations"
+  component_data: ":data:`GEO`"
+---
+program: conf
+name: systemLog.component.index.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "indexing operations"
+  component_data: ":data:`INDEX`"
+---
+program: conf
+name: systemLog.component.network.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "networking operations"
+  component_data: ":data:`NETWORK`"
+---
+program: conf
+name: systemLog.component.query.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "query operations"
+  component_data: ":data:`QUERY`"
+---
+program: conf
+name: systemLog.component.replication.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "replication"
+  component_data: ":data:`REPL`"
+---
+program: conf
+name: systemLog.component.sharding.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "sharding"
+  component_data: ":data:`SHARDING`"
+---
+program: conf
+name: systemLog.component.storage.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "storage"
+  component_data: ":data:`STORAGE`"
+post: |
+  If :setting:`systemLog.component.storage.journal.verbosity` is unset,
+  :setting:`systemLog.component.storage.verbosity` level also applies to
+  journaling components.
+
+  .. include:: /includes/log-verbosity-levels.rst
+---
+program: conf
+name: systemLog.component.storage.journal.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "journaling"
+  component_data: ":data:`JOURNAL`"
+post: |
+  If :setting:`systemLog.component.storage.journal.verbosity` is
+  unset, the journaling components have the same verbosity level as the
+  parent storage components: i.e. either the
+  :setting:`systemLog.component.storage.verbosity` level if
+  set or the default verbosity level.
+
+  .. include:: /includes/log-verbosity-levels.rst
+---
+program: conf
+name: systemLog.component.write.verbosity
+inherit:
+  name: systemLog.component.name.verbosity
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  component_type: "write operations"
+  component_data: ":data:`WRITE`"
 ---
 program: conf
 name: systemLog.quiet
@@ -26,12 +177,14 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  directive: "setting"
+  verb: "Run"
 inherit:
   name: quiet
   program: _shared
   file: options-shared.yaml
 post: |
-  This option is **not** recommended for production systems as it may make
+  {{role}} is **not** recommended for production systems as it may make
   tracking problems during particular connections much more difficult.
 ---
 program: conf
@@ -39,7 +192,7 @@ name: systemLog.traceAllExceptions
 type: boolean
 directive: setting
 description: |
-  Prints verbose information for debugging. Used for additional logging in
+  Print verbose information for debugging. Use for additional logging for
   support-related troubleshooting.
 ---
 program: conf
@@ -48,6 +201,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: syslogFacility
   program: mongod
@@ -57,12 +211,18 @@ program: conf
 name: systemLog.path
 type: string
 directive: setting
+description: |
+  The path of the log file to which {{program}} should send all diagnostic
+  logging information, rather than the standard output or the host's
+  :term:`syslog`. MongoDB creates the log file at the specified path.
 replacement:
   program: ":program:`mongod` or :program:`mongos`"
 inherit:
     program: mongod
     name: logpath
     file: options-mongod.yaml
+post: |
+  .. include:: /includes/extracts/linux-config-expectations-systemlog-path.rst
 ---
 program: conf
 name: systemLog.logAppend
@@ -71,6 +231,7 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "When ``true``, {{program}} appends"
 inherit:
   name: logappend
   program: mongod
@@ -81,8 +242,12 @@ name: systemLog.destination
 type: string
 directive: setting
 description: |
-  Specify either ``file`` or ``syslog``. If you specify ``file`` you
-  must also specify :setting:`systemLog.path`.
+  The destination to which MongoDB sends all log output. Specify either
+  ``file`` or ``syslog``. If you specify ``file``, you must also specify
+  :setting:`systemLog.path`.
+
+  If you do not specify :setting:`systemLog.destination`, MongoDB sends
+  all log output to standard output.
 ---
 program: conf
 name: systemLog.timeStampFormat
@@ -96,11 +261,24 @@ inherit:
   file: options-mongod.yaml
 ---
 program: conf
+name: systemLog.logRotate
+type: string
+directive: setting
+inherit:
+  name: logRotate
+  program: mongod
+  file: options-mongod.yaml
+replacement:
+   intro: "The"
+   logappend: "set :setting:`systemLog.logAppend` to ``true``"
+---
+program: conf
 name: processManagement.pidFilePath
 type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: pidfilepath
   program: mongod
@@ -113,10 +291,13 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Enable"
 inherit:
   name: fork
   program: mongod
   file: options-mongod.yaml
+post: |
+  .. include:: /includes/extracts/linux-config-expectations-processmanagement-fork.rst
 ---
 program: conf
 name: processManagement.windowsService.serviceName
@@ -125,6 +306,7 @@ default: "MongoDB"
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: serviceName
   program: mongod.exe
@@ -137,6 +319,7 @@ default: "MongoDB"
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: serviceDisplayName
   program: mongod.exe
@@ -149,6 +332,7 @@ default:  "MongoDB Server"
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Run"
 inherit:
   name: serviceDescription
   program: mongod.exe
@@ -160,6 +344,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: serviceUser
   program: mongod.exe
@@ -171,6 +356,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "The"
 inherit:
   name: servicePassword
   program: mongod.exe
@@ -182,10 +368,11 @@ type: integer
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: port
-  program: mongod
-  file: options-mongod.yaml
+  program: _shared
+  file: options-shared.yaml
 ---
 program: conf
 name: net.bindIp
@@ -193,6 +380,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: bind_ip
   program: mongod
@@ -203,7 +391,7 @@ post: |
 program: conf
 name: net.maxIncomingConnections
 type: integer
-default: 1000000
+default: 65536
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
@@ -212,12 +400,8 @@ inherit:
   program: mongod
   file: options-mongod.yaml
 post: |
-  This is particularly useful for a :program:`mongos` if you have a client
-  that creates a number of connections but allows them to timeout rather
-  than close the connections. When you set this option, ensure the value
-  is slightly higher than the size of the connection pool or the total
-  number of connections, to prevent erroneous connection spikes from
-  propagating to the members of a sharded cluster.
+  .. include:: /includes/fact-maxconns-mongos.rst
+
 ---
 program: conf
 name: net.wireObjectCheck
@@ -225,7 +409,7 @@ type: boolean
 default: true
 directive: setting
 description: |
-  Forces the :program:`mongod` or :program:`mongos` instance to validate
+  When ``true``, the :program:`mongod` or :program:`mongos` instance  validates
   all requests from clients upon receipt to prevent clients from inserting
   malformed or invalid BSON into a MongoDB database.
 
@@ -239,6 +423,7 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "Enable or disable"
 inherit:
   name: httpinterface
   program: mongod
@@ -254,14 +439,33 @@ description: |
 program: conf
 name: net.unixDomainSocket.enabled
 type: boolean
-default: false
+default: true
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "Enable or disable"
 inherit:
   name: nounixsocket
   program: mongod
   file: options-mongod.yaml
+post: |
+  When {{role}} is ``true``, {{program}} listens on the UNIX socket.
+
+  The {{program}} process always listens on the UNIX socket unless
+  one of the following is true:
+
+  - {{role}} is ``false``
+
+  - :option:`--nounixsocket` is set. The command
+    line option takes precedence over the configuration file setting.
+
+  - :setting:`net.bindIp` is not set
+
+  - :setting:`net.bindIp` does not specify ``127.0.0.1``
+
+  .. |mongodb-package| replace:: {{program}}
+
+  .. include:: /includes/note-deb-and-rpm-default-to-localhost.rst
 ---
 program: conf
 name: net.unixDomainSocket.pathPrefix
@@ -276,12 +480,22 @@ inherit:
   file: options-mongod.yaml
 ---
 program: conf
+name: net.unixDomainSocket.filePermissions
+type: int
+directive: setting
+inherit:
+  name: filePermissions
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
 name: net.ipv6
 type: boolean
 default: false
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: ipv6
   program: _shared
@@ -294,12 +508,13 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: jsonp
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: net.http.RESTInterfaceEnabled
@@ -308,12 +523,13 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: rest
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: net.ssl.sslOnNormalPorts
@@ -321,6 +537,7 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: sslOnNormalPorts
   program: mongod
@@ -332,6 +549,8 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Enable or disable"
+  directive: "setting"
 inherit:
   name: sslMode
   program: mongod
@@ -343,6 +562,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: sslPEMKeyFile
   program: mongod
@@ -354,6 +574,8 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
+  pemKeyOption: ":setting:`~net.ssl.PEMKeyFile`"
 inherit:
   name: sslPEMKeyPassword
   program: mongod
@@ -366,6 +588,8 @@ directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
   pemKeyOption: ":setting:`~net.ssl.PEMKeyFile`"
+  intro: "The"
+  directive: "setting"
 inherit:
   name: sslClusterFile
   program: mongod
@@ -377,6 +601,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: sslClusterPassword
   program: mongod
@@ -388,6 +613,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: sslCAFile
   program: mongod
@@ -399,19 +625,23 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: sslCRLFile
   program: mongod
   file: options-mongod.yaml
 ---
 program: conf
-name: net.ssl.weakCertificateValidation
+name: net.ssl.allowConnectionsWithoutCertificates
 type: boolean
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  old_name: "``net.ssl.weakCertificateValidation``"
+  verb: "Enable or disable"
+  sslCA_option: ":setting:`~net.ssl.CAFile`"
 inherit:
-  name: sslWeakCertificateValidation
+  name: sslAllowConnectionsWithoutCertificates
   program: mongod
   file: options-mongod.yaml
 ---
@@ -421,8 +651,18 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: sslAllowInvalidCertificates
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.ssl.disabledProtocols
+type: string
+directive: setting
+inherit:
+  name: sslDisabledProtocols
   program: mongod
   file: options-mongod.yaml
 ---
@@ -432,6 +672,8 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "Enable or disable the use of"
+  setting_continuation: " for the {{program}}"
 inherit:
   name: sslFIPSMode
   program: mongod
@@ -439,7 +681,6 @@ inherit:
 ---
 program: conf
 name: setParameter
-type: document
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
@@ -447,6 +688,26 @@ inherit:
   name: setParameter
   program: mongod
   file: options-mongod.yaml
+description: |
+  Set MongoDB parameter or parameters described in
+  :doc:`/reference/parameters`
+
+  To set parameters in the YAML configuration file, use the following
+  format:
+
+  .. code-block:: yaml
+
+     setParameter:
+        <parameter1>: <value1>
+        <parameter2>: <value2>
+
+  For example, to specify the :parameter:`enableLocalhostAuthBypass` in
+  the configuration file:
+
+  .. code-block:: yaml
+
+     setParameter:
+        enableLocalhostAuthBypass: false
 ---
 program: conf
 name: security.keyFile
@@ -456,6 +717,7 @@ replacement:
   program: ":program:`mongos` or :program:`mongod`"
   auth_option: ":setting:`security.authorization`"
   role: ":setting:`~security.keyFile`"
+  intro: "The"
 inherit:
   name: keyFile
   program: mongod
@@ -478,8 +740,8 @@ type: string
 default: disabled
 directive: setting
 description: |
-  Enables Role-Based Access Control (RBAC) to govern each user's access to
-  database resources and operations.
+  Enable or disable Role-Based Access Control (RBAC) to govern each
+  user's access to database resources and operations.
 
   Set this option to one of the following:
 
@@ -502,19 +764,25 @@ description: |
 
   See :doc:`/core/authorization` for more information.
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: security.authenticationMechanisms
 # the equivalent command-line option is set via setParameter.
-type: strings
+# disabled pending server-12892, see /reference/configuration-options.txt
+type: string
+default: SCRAM-SHA-1
 directive: setting
 description: |
   .. versionchanged:: 2.6
      Added support for the ``PLAIN`` and ``MONGODB-X509`` authentication
      mechanisms.
 
-  Specifies the list of authentication mechanisms the server accepts. Set
+  .. versionchanged:: 3.0
+     Added support for the ``SCRAM-SHA-1`` authentication mechanism. Changed
+     default mechanism to ``SCRAM-SHA-1``.
+
+  The list of authentication mechanisms that the server accepts. Set
   this to one or more of the following values. If you specify multiple
   values, use a comma-separated list and no spaces. For descriptions
   of the authentication mechanisms, see :doc:`/core/authentication`.
@@ -527,27 +795,34 @@ description: |
 
        - Description
 
-     * - MONGODB-CR
+     * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+
+       - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
+         Salted Challenge Response Authentication Mechanism using the SHA1
+         hash function.
+
+     * - :ref:`MONGODB-CR <authentication-mongodb-cr>`
 
        - MongoDB challenge/response authentication.
 
-     * - MONGODB-X509
+     * - :ref:`MONGODB-X509 <security-auth-x509>`
 
-       - MongoDB SSL certificate authentication.
+       - MongoDB TLS/SSL certificate authentication.
 
-     * - PLAIN
+     * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
+
+       - External authentication using Kerberos. This mechanism is
+         available only in `MongoDB Enterprise
+         <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
+
+     * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
        - External authentication using LDAP. You can also use ``PLAIN``
          for authenticating in-database users. ``PLAIN`` transmits
          passwords in plain text. This mechanism is available only in
          `MongoDB Enterprise
-         <http://www.mongodb.com/products/mongodb-enterprise>`_.
+         <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
 
-     * - GSSAPI
-
-       - External authentication using Kerberos. This mechanism is
-         available only in `MongoDB Enterprise
-         <http://www.mongodb.com/products/mongodb-enterprise>`_.
 # Per DOCS-2940, combine this with similar info in
 #   /includes/options-shared
 #   /reference/connection-string
@@ -564,9 +839,11 @@ directive: setting
 description: |
   .. versionadded:: 2.6
 
+  Enable or disable localhost authentication bypass.
+
   Specify ``0`` to disable localhost authentication bypass.
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: security.supportCompatibilityFormPrivilegeDocuments
@@ -574,14 +851,16 @@ name: security.supportCompatibilityFormPrivilegeDocuments
 type: string
 directive: setting
 description: |
-  Disables backwards compatibility with the MongoDB 2.2 access control
-  roles. To disable backwards compatibility, set {{role}} to ``0``. In
+  Enable or disable backwards compatibility with the MongoDB 2.2 access control
+  roles.
+
+  To disable backwards compatibility, set {{role}} to ``0``. In
   general, you should set this option if your deployment does not need to
   support legacy user documents. Typically legacy user documents are only
   useful during the upgrade process and while you migrate applications to
   the updated privilege document form.
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: security.authSchemaVersion
@@ -600,6 +879,11 @@ description: |
   A fully qualified server domain name for the purpose of configuring SASL
   and Kerberos authentication. The SASL hostname overrides the hostname
   only for the configuration of SASL and Kerberos.
+
+  For :program:`mongo` shell and other MongoDB tools to connect to
+  the new :setting:`~security.sasl.hostName`, see the
+  ``gssapiHostName`` option in the :program:`mongo` shell and other
+  tools.
 ---
 program: conf
 name: security.sasl.serviceName
@@ -619,7 +903,10 @@ description: |
 
   This option is available only in MongoDB Enterprise.
 
-.. important:: Ensure that your driver supports alternate service names.
+  .. important:: Ensure that your driver supports alternate service names.
+     For :program:`mongo` shell and other MongoDB tools to connect to the
+     new :setting:`~security.sasl.serviceName`, see the
+     ``gssapiServiceName`` option.
 ---
 program: conf
 name: security.sasl.saslauthdSocketPath
@@ -634,10 +921,13 @@ type: boolean
 default: true
 directive: setting
 description: |
-  Enables or disables the JavaScript execution engine. When disabled,
-  :query:`$where`, :dbcommand:`mapReduce`, :dbcommand:`group` and any
-  other operation that requires a :program:`mongod` instance to
-  execute JavaScript.
+  Enables or disables the :doc:`server-side JavaScript execution
+  </core/server-side-javascript>`. When disabled, you cannot use
+  operations that perform server-side execution of JavaScript code,
+  such as the :query:`$where` query operator, :dbcommand:`mapReduce`
+  command and the :method:`db.collection.mapReduce()` method,
+  :dbcommand:`group` command and the :method:`db.collection.group()`
+  method.
 ---
 program: conf
 name: operationProfiling.slowOpThresholdMs
@@ -651,7 +941,7 @@ inherit:
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: operationProfiling.mode
@@ -659,12 +949,13 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "The"
 inherit:
   name: profilingmode
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: storage.dbPath
@@ -672,12 +963,15 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  storage_engine: :setting:`~storage.engine`
 inherit:
   name: dbpath
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
+
+  .. include:: /includes/extracts/linux-config-expectations-storage-dbpath.rst
 ---
 program: conf
 name: storage.directoryPerDB
@@ -686,12 +980,15 @@ default: false
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "When ``true``, MongoDB uses"
+  dbpath: :setting:`storage.dbPath`
+  newdbpath: :setting:`storage.dbPath` value
 inherit:
   name: directoryperdb
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: storage.indexBuildRetry
@@ -699,45 +996,47 @@ type: boolean
 default: true
 directive: setting
 description: |
-  Selects whether :program:`mongod` rebuilds incomplete indexes on the
+  Specifies whether :program:`mongod` rebuilds incomplete indexes on the
   next start up. This applies in cases where :program:`mongod` restarts
   after it has shut down or stopped in the middle of an index build. In
   such cases, :program:`mongod` always removes any incomplete indexes,
   and then, by default, attempts to rebuild them. To stop :program:`mongod`
   from rebuilding indexes, set this option to ``false``.
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
-name: storage.preallocDataFiles
+name: storage.mmapv1.preallocDataFiles
 type: boolean
 default: true
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  verb: "Enable or disable"
 inherit:
   name: noprealloc
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
-name: storage.nsSize
+name: storage.mmapv1.nsSize
 type: integer
 default: 16
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  verb: "The"
 inherit:
   name: nssize
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
-name: storage.quota.enforced
+name: storage.mmapv1.quota.enforced
 type: Boolean
 default: "false"
 directive: setting
@@ -746,12 +1045,13 @@ inherit:
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 replacement:
   quota_files: :setting:`storage.quota.maxFilesPerDB`
+  verb: "Enable or disable the enforcement of"
 ---
 program: conf
-name: storage.quota.maxFilesPerDB
+name: storage.mmapv1.quota.maxFilesPerDB
 type: integer
 default: 8
 directive: setting
@@ -760,23 +1060,25 @@ inherit:
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 replacement:
   quota_flag: :setting:`storage.quota.enforced`
+  verb: "The"
 ---
 program: conf
-name: storage.smallFiles
+name: storage.mmapv1.smallFiles
 type: boolean
 default: false
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "When ``true``, MongoDB uses"
 inherit:
   name: smallfiles
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: storage.syncPeriodSecs
@@ -785,12 +1087,13 @@ default: 60
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "The amount of time that"
 inherit:
   name: syncdelay
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: storage.repairPath
@@ -798,12 +1101,14 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "The"
+  dbpath: ":setting:`~storage.dbPath`"
 inherit:
   name: repairpath
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: storage.journal.enabled
@@ -813,15 +1118,16 @@ default: |
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "Enable or disable"
 inherit:
   name: journal
   program: _shared
   file: options-shared.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
-name: storage.journal.debugFlags
+name: storage.mmapv1.journal.debugFlags
 type: integer
 directive: setting
 replacement:
@@ -834,17 +1140,34 @@ post: |
   The {{role}} option is available only for :program:`mongod`.
 ---
 program: conf
+name: storage.mmapv1.journal.commitIntervalMs
+type: number
+directive: setting
+description: |
+  .. deprecated:: 3.2
+
+     MongoDB 3.2 deprecates the
+     :setting:`storage.mmapv1.journal.commitIntervalMs` setting. Use
+     :setting:`storage.journal.commitIntervalMs` instead. 
+
+     The deprecated setting acts as an alias to the new
+     :setting:`storage.journal.commitIntervalMS` setting and applies to
+     either the MMAPv1 or the WiredTiger storage engine.
+
+---
+program: conf
 name: storage.journal.commitIntervalMs
 type: number
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  versiondirective: ".. versionadded:: 3.2"
 inherit:
   name: journalCommitInterval
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: replication.oplogSizeMB
@@ -852,12 +1175,13 @@ type: integer
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "The"
 inherit:
   name: oplogSize
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: replication.replSetName
@@ -869,8 +1193,13 @@ inherit:
   name: replSet
   program: mongod
   file: options-mongod.yaml
+description: |
+  The name of the replica set that the {{program}} is part of. All hosts
+  in the replica set must have the same set name.
+
+  .. include:: /includes/fact-unique-replica-set-names.rst
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: replication.secondaryIndexPrefetch
@@ -878,20 +1207,22 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "The indexes that"
+  directive: "setting"
 inherit:
   name: replIndexPrefetch
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: sharding.clusterRole
 type: string
 directive: setting
 description: |
-  Selects the role the :program:`mongod` instance has in the sharded
-  cluster. Set this option to one of the following:
+  The role that the :program:`mongod` instance has in the sharded
+  cluster. Set this setting to one of the following:
 
   .. list-table::
      :header-rows: 1
@@ -911,16 +1242,19 @@ description: |
        - Start this instance as a :term:`shard`. The instance starts
          on port ``27018`` by default.
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: sharding.archiveMovedChunks
-type: integer
+type: boolean
 directive: setting
 inherit:
-  name: moveParanoia
+  name: noMoveParanoia
   program: mongod
   file: options-mongod.yaml
+replacement:
+   dbpath: ":setting:`storage.dbPath`"
+   defaultParanoia: "``false``"
 ---
 program: conf
 name: auditLog.destination
@@ -932,6 +1266,11 @@ inherit:
   name: auditDestination
   program: mongod
   file: options-mongod.yaml
+pre: |
+  .. versionadded:: 2.6
+
+  When set, {{role}} enables :doc:`auditing </core/auditing>` and
+  specifies where {{program}} sends all audit events.
 ---
 program: conf
 name: auditLog.format
@@ -939,6 +1278,8 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
+  destination: ":setting:`~auditLog.destination`"
 inherit:
   name: auditFormat
   program: mongod
@@ -950,6 +1291,8 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
+  destination: ":setting:`~auditLog.destination`"
 inherit:
   name: auditPath
   program: mongod
@@ -957,10 +1300,11 @@ inherit:
 ---
 program: conf
 name: auditLog.filter
-type: document
+type: string representation of a document
 directive: setting
 replacement:
   program: ":program:`mongos` or :program:`mongod`"
+  intro: "The"
 inherit:
   name: auditFilter
   program: mongod
@@ -972,12 +1316,13 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "When {{role}} is ``true``, SNMP runs"
 inherit:
   name: snmp-subagent
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: snmp.master
@@ -985,12 +1330,13 @@ type: boolean
 directive: setting
 replacement:
   program: ":program:`mongod`"
+  intro: "When {{role}} is ``true``, SNMP runs"
 inherit:
   name: snmp-master
   program: mongod
   file: options-mongod.yaml
 post: |
-  The {{role}} option is available only for :program:`mongod`.
+  The {{role}} setting is available only for :program:`mongod`.
 ---
 program: conf
 name: replication.localPingThresholdMs
@@ -998,6 +1344,7 @@ type: integer
 directive: setting
 replacement:
   program: ":program:`mongos`"
+  intro: "The"
 inherit:
   name: localThreshold
   program: mongos
@@ -1007,12 +1354,25 @@ program: conf
 name: sharding.autoSplit
 type: boolean
 directive: setting
+default: true
 replacement:
   program: ":program:`mongos`"
-inherit:
-  name: noAutoSplit
-  program: mongos
-  file: options-mongos.yaml
+description: |
+  Enables or disables the automatic splitting of chunks for
+  :term:`sharded collections <sharding>`. If {{role}} is ``false`` on
+  all {{program}} instances, MongoDB does not create new chunks as the
+  data in a collection grows.
+
+  Because any {{program}} in a cluster can create a split,
+  to totally disable splitting in a cluster, you must set {{role}}
+  to ``false`` on all {{program}}.
+post: |
+
+  .. warning::
+
+     With auto-splitting disabled, the data in your sharded
+     cluster may become imbalanced over time. Disable with caution.
+optional: true
 ---
 program: conf
 name: sharding.configDB
@@ -1020,6 +1380,7 @@ type: string
 directive: setting
 replacement:
   program: ":program:`mongos`"
+  intro: "The"
 inherit:
   name: configdb
   program: mongos
@@ -1032,8 +1393,346 @@ default: 64
 directive: setting
 replacement:
   program: ":program:`mongos`"
+  intro: "The"
 inherit:
   name: chunkSize
   program: mongos
   file: options-mongos.yaml
+---
+program: conf
+name: storage.wiredTiger.engineConfig.configString
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+inherit:
+  name: wiredTigerEngineConfigString
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.collectionConfig.configString
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerCollectionConfigString
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.indexConfig.configString
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerIndexConfigString
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.engineConfig.directoryForIndexes
+directive: setting
+default: "false"
+type: "boolean"
+replacement:
+  program: ":program:`mongod`"
+  intro: "When {{role}} is ``true``"
+  dbpath: ":setting:`storage.dbPath`"
+inherit:
+  name: wiredTigerDirectoryForIndexes
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.engineConfig.statisticsLogDelaySecs
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerStatisticsLogDelaySecs
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.engineConfig.cacheSizeGB
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerCacheSizeGB
+  program: mongod
+  file: options-mongod.yaml
+post: |
+  .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-config.rst
+---
+program: conf
+name: storage.wiredTiger.engineConfig.journalCompressor
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerJournalCompressor
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.collectionConfig.blockCompressor
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: wiredTigerCollectionBlockCompressor
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.wiredTiger.indexConfig.prefixCompression
+directive: setting
+default: "true"
+replacement:
+  program: ":program:`mongod`"
+inherit:
+  name: wiredTigerIndexPrefixCompression
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: storage.engine
+directive: setting
+replacement:
+  program: ":program:`mongod`"
+  intro: "The"
+inherit:
+  name: storageEngine
+  program: mongod
+  file: options-mongod.yaml
+---
+program: conf
+name: net.ssl.allowInvalidHostnames
+directive: setting
+type: boolean
+default: false
+description: |
+  .. versionadded:: 3.0
+
+  When {{role}} is ``true``, MongoDB disables the validation of the
+  hostnames in TLS/SSL certificates, allowing {{program}} to connect to
+  MongoDB instances if the hostname their certificates do not match the
+  specified hostname.
+
+  .. include:: /includes/fact-ssl-supported.rst
+
+replacement:
+  program: ":program:`mongod`"
+optional: true
+---
+program: conf
+name: basisTech.rootDirectory
+directive: setting
+type: string
+description: |
+
+  .. versionadded:: 3.2
+
+  Specify the path to the root directory of the Basis Technology
+  Rosette Linguistics Platform installation to support additional
+  languages for text search operations.
+
+  .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.enableEncryption
+directive: setting
+type:  boolean
+default:  false
+description: |
+
+  .. versionadded:: 3.2
+
+   Enables encryption for the WiredTiger storage engine. You must set
+   to ``true`` to pass in encryption keys and configurations.
+
+  .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.encryptionCipherMode
+directive: setting
+type:  string
+default:  "``AES256-CBC``"
+description: |
+
+   .. versionadded:: 3.2
+
+   The cipher mode to use for encryption at rest:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+
+      * - Mode
+        - Description
+
+      * - ``AES256-CBC``
+        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
+          Mode
+
+      * - ``AES256-GCM``
+
+        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.encryptionKeyFile
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   The path to the local keyfile when managing keys via process *other
+   than* KMIP. Only set when managing keys via process other than KMIP.
+   If data is already encrypted using KMIP, MongoDB will throw an error.
+
+   Requires :setting:`security.enableEncryption` to be ``true``.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+---
+program: conf
+name: security.kmip.keyIdentifier
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   Unique KMIP identifier for an existing key within the KMIP server.
+   Include to use the key associated with the identifier as the system
+   key. You can only use the setting the first time you enable
+   encryption for the :program:`mongod` instance. Requires
+   :setting:`security.enableEncryption` to be true.
+   
+   If unspecified, MongoDB will request that the KMIP server create a
+   new key to utilize as the system key.
+
+   If the KMIP server cannot locate a key with the specified identifier
+   or the data is already encrypted with a key, MongoDB will throw an
+   error.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+---
+program: conf
+name: security.kmip.rotateMasterKey
+directive: setting
+type:  boolean
+default:  false
+description: |
+
+   .. versionadded:: 3.2
+
+   If true, rotate the master key and re-encrypt the internal
+   keystore.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+
+   .. seealso:: :ref:`kmip-master-key-rotation`
+---
+program: conf
+name: security.kmip.serverName
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   Hostname or IP address of key management solution running a KMIP
+   server. Requires :setting:`security.enableEncryption` to be true.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.kmip.port
+directive: setting
+type:  string
+default:  5696
+description: |
+
+   .. versionadded:: 3.2
+
+   Port number the KMIP server is listening on. Requires that a
+   :setting:`security.kmip.serverName` be provided. Requires
+   :setting:`security.enableEncryption` to be true.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.kmip.clientCertificateFile
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   String containing the path to the client certificate used for
+   authenticating MongoDB to the KMIP server. Requires that a
+   :setting:`security.kmip.serverName` be provided.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.kmip.clientCertificatePassword
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   The password to decrypt the client certificate (i.e.
+   :setting:`security.kmip.clientCertificateFile`), used to
+   authenticate MongoDB to the KMIP server. Use the option only if the
+   certificate is encrypted.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: security.kmip.serverCAFile
+directive: setting
+type:  string
+description: |
+
+   .. versionadded:: 3.2
+
+   Path to CA File. Used for validating secure client connection to
+   KMIP server.
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+---
+program: conf
+name: replication.enableMajorityReadConcern
+directive: setting
+type:  boolean
+default: false
+description: |
+
+   .. versionadded:: 3.2
+
+   Enables :doc:`readConcern </reference/readConcern>` level of
+   ``"majority"``.
+---
+program: conf
+name: sharding.configsvrMode
+type: string
+directive: setting
+inherit:
+  name: configsvrMode
+  program: mongod
+  file: options-mongod.yaml
 ...

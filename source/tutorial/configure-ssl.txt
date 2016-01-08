@@ -1,20 +1,18 @@
-===========================================
-Configure ``mongod`` and ``mongos`` for SSL
-===========================================
+===============================================
+Configure ``mongod`` and ``mongos`` for TLS/SSL
+===============================================
 
 .. default-domain:: mongodb
 
-This document helps you to configure MongoDB to support SSL. MongoDB
-clients can use SSL to encrypt connections to :program:`mongod` and
-:program:`mongos` instances.
+Overview
+--------
 
-.. note:: The `default distribution of MongoDB`_ does **not** contain
-   support for SSL. To use SSL, you must either build MongoDB locally
-   passing the ``--ssl`` option to ``scons`` or use `MongoDB
-   Enterprise`_.
+This document helps you to configure MongoDB to support TLS/SSL.
+MongoDB clients can use TLS/SSL to encrypt connections to
+:program:`mongod` and :program:`mongos` instances. MongoDB TLS/SSL
+implementation uses OpenSSL libraries.
 
-.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
-.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise
+.. include:: /includes/note-tls-ssl-terminology.rst
 
 These instructions assume that you have already installed a build of
 MongoDB that includes SSL support and that your client driver supports
@@ -22,19 +20,42 @@ SSL. For instructions on upgrading a cluster currently not using SSL to
 using SSL, see :doc:`/tutorial/upgrade-cluster-to-ssl`.
 
 .. versionchanged:: 2.6
+   MongoDB's SSL encryption only allows use of strong SSL ciphers
+   with a minimum of 128-bit key length for all connections.
 
-   - MongoDB's SSL encryption only allows use of strong SSL ciphers
-     with a minimum of 128-bit key length for all connections.
+Prerequisites
+-------------
 
-   - MongoDB Enterprise for Windows includes support for SSL.
+.. important::
 
-.. seealso::
+   .. include:: /includes/extracts/security-prereq-configure-ssl.rst
 
-   :doc:`/tutorial/configure-ssl-clients` to learn about SSL support for
-   Python, Java, Ruby, and other clients.
+MongoDB Support
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.0
+   Most MongoDB distributions now include support for SSL.
+
+Certain `distributions of MongoDB`_ do **not** contain
+support for SSL. To use SSL, be sure to choose a package that supports SSL.
+All `MongoDB Enterprise`_ supported platforms include SSL support.
+
+.. _`distributions of MongoDB`: http://www.mongodb.org/downloads?jmp=docs
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise?jmp=docs
+
+Client Support
+~~~~~~~~~~~~~~
+
+See :doc:`/tutorial/configure-ssl-clients` to learn about SSL support for
+Python, Java, Ruby, and other clients.
+
+Certificate Authorities
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-ssl-certificate-authorities.rst
 
 ``.pem`` File
--------------
+~~~~~~~~~~~~~
 
 Before you can use SSL, you must have a :file:`.pem` file containing a
 public key certificate and its associated private key.
@@ -76,10 +97,13 @@ in the following example:
 
 .. seealso:: :doc:`/tutorial/configure-x509-client-authentication`
 
+Procedures
+----------
+
 .. _ssl-mongod-ssl-cert-key:
 
 Set Up ``mongod`` and ``mongos`` with SSL Certificate and Key
--------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use SSL in your MongoDB deployment, include the following run-time
 options with :program:`mongod` and :program:`mongos`:
@@ -116,13 +140,26 @@ encryption for all connections with the following command:
    - If the private key portion of the ``<pem>`` is encrypted, specify
      the passphrase. See :ref:`ssl-certificate-password`.
 
-   - You may also specify these options in the :doc:`configuration file
-     </reference/configuration-options>`, as in the following example:
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`, as in the following examples:
 
-     .. code-block:: ini
+If using the :doc:`YAML configuration file format
+</reference/configuration-options>`:
 
-        sslMode = requireSSL
-        sslPEMKeyFile = /etc/ssl/mongodb.pem
+.. code-block:: yaml
+
+   net:
+      ssl:
+         mode: requireSSL
+         PEMKeyFile: /etc/ssl/mongodb.pem
+
+Or, if using the older :v2.4:`older configuration file format
+</reference/configuration-options>`:
+
+.. code-block:: ini
+
+   sslMode = requireSSL
+   sslPEMKeyFile = /etc/ssl/mongodb.pem
 
 To connect, to :program:`mongod` and :program:`mongos` instances using
 SSL, the :program:`mongo` shell and MongoDB tools must include the
@@ -134,7 +171,7 @@ connecting to :program:`mongod` and :program:`mongos` running with SSL.
 .. _ssl-mongod-ca-signed-ssl-cert-key:
 
 Set Up ``mongod`` and ``mongos`` with Certificate Validation
-------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To set up :program:`mongod` or :program:`mongos` for SSL encryption
 using an SSL certificate signed by a certificate authority, include the
@@ -174,14 +211,28 @@ encryption as follows:
    - If the ``<pem>`` is encrypted, specify the passphrase. See
      :ref:`ssl-certificate-password`.
 
-   - You may also specify these options in the :doc:`configuration file
-     </reference/configuration-options>`, as in the following example:
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`, as in the following examples:
 
-     .. code-block:: ini
+If using the :doc:`YAML configuration file format
+</reference/configuration-options>`:
 
-        sslMode = requireSSL
-        sslPEMKeyFile = /etc/ssl/mongodb.pem
-        sslCAFile = /etc/ssl/ca.pem
+.. code-block:: yaml
+
+   net:
+      ssl:
+         mode: requireSSL
+         PEMKeyFile: /etc/ssl/mongodb.pem
+         CAFile: /etc/ssl/ca.pem
+
+Or, if using the older :v2.4:`older configuration file format
+</reference/configuration-options>`:
+
+.. code-block:: ini
+
+   sslMode = requireSSL
+   sslPEMKeyFile = /etc/ssl/mongodb.pem
+   sslCAFile = /etc/ssl/ca.pem
 
 To connect, to :program:`mongod` and :program:`mongos` instances using
 SSL, the :program:`mongo` tools must include the both the
@@ -193,7 +244,7 @@ See :ref:`ssl-clients` for more information on connecting to
 .. seealso:: :doc:`/tutorial/upgrade-cluster-to-ssl`
 
 Block Revoked Certificates for Clients
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````````````
 
 To prevent clients with revoked certificates from connecting, include
 the :setting:`sslCRLFile` to specify a :file:`.pem` file that contains
@@ -212,7 +263,7 @@ will not be able to connect to this :program:`mongod` instance.
 .. _ssl-mongod-weak-certification:
 
 Validate Only if a Client Presents a Certificate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````````
 
 In most cases it is important to ensure that clients present valid
 certificates. However, if you have clients that cannot present a
@@ -221,18 +272,18 @@ authority you may only want to validate certificates from clients that
 present a certificate.
 
 If you want to bypass validation for clients that don't present
-certificates, include the :setting:`~net.ssl.weakCertificateValidation`
+certificates, include the :setting:`~net.ssl.allowConnectionsWithoutCertificates`
 run-time option with :program:`mongod` and :program:`mongos`. If the
 client does not present a certificate, no validation occurs. These
 connections, though not validated, are still encrypted using SSL.
 
 For example, consider the following :program:`mongod` with an SSL
-configuration that includes the :setting:`~net.ssl.weakCertificateValidation`
+configuration that includes the :setting:`~net.ssl.allowConnectionsWithoutCertificates`
 setting:
 
 .. code-block:: sh
 
-   mongod --sslMode requireSSL --sslWeakCertificateValidation --sslPEMKeyFile /etc/ssl/mongodb.pem --sslCAFile /etc/ssl/ca.pem
+   mongod --sslMode requireSSL --sslAllowConnectionsWithoutCertificates --sslPEMKeyFile /etc/ssl/mongodb.pem --sslCAFile /etc/ssl/ca.pem
 
 Then, clients can connect either with the option :option:`--ssl <mongo --ssl>`
 and **no** certificate or with the option :option:`--ssl <mongo --ssl>`
@@ -247,10 +298,48 @@ information on SSL connections for clients.
    All connections, including those that have not presented
    certificates are encrypted using SSL.
 
+.. _ssl-disallow-protocols:
+
+Disallow Protocols
+~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.0.7
+
+To prevent MongoDB servers from accepting incoming connections that use
+specific protocols, include the ``--sslDisabledProtocols`` option, or
+if using the :doc:`configuration file
+</reference/configuration-options>` the
+:setting:`net.ssl.disabledProtocols` setting.
+
+For example, the following configuration uses
+``--sslDisabledProtocols`` option to prevent :program:`mongod` from
+accepting incoming connections that use either ``TLS1_0`` or ``TLS1_1``:
+
+.. code-block:: sh
+
+   mongod --sslMode requireSSL --sslDisabledProtocols TLS1_0,TLS1_1 --sslPEMKeyFile /etc/ssl/mongodb.pem --sslCAFile /etc/ssl/ca.pem
+
+If using the :doc:`YAML configuration file format
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   net:
+      ssl:
+         mode: requireSSL
+         PEMKeyFile: /etc/ssl/mongodb.pem
+         CAFile: /etc/ssl/ca.pem
+         disabledProtocols: TLS1_0,TLS1_1
+
+For more information, including the protocols recognized by the option,
+see :setting:`net.ssl.disabledProtocols` or the
+``--sslDisabledProtocols`` option for :program:`mongod` and
+:program:`mongos`.
+
 .. _ssl-certificate-password:
 
 SSL Certificate Passphrase
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The PEM files for :setting:`~net.ssl.PEMKeyfile` and
 :setting:`~net.ssl.ClusterFile` may be encrypted. With encrypted PEM files,
@@ -281,7 +370,8 @@ passphrase as necessary.
 .. _ssl-run-fips-mode:
 
 Run in FIPS Mode
-----------------
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/note-fips-is-enterprise-only.rst
 
 See :doc:`/tutorial/configure-fips` for more details.
-

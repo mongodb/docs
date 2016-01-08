@@ -4,6 +4,9 @@ $project (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. pipeline:: $project
 
    Passes along the documents with only the specified fields to the
@@ -37,8 +40,11 @@ $project (aggregation)
       * - ``<field>: <expression>``
         - Add a new field or reset the value of an existing field.
 
+Considerations
+--------------
+
 Include Existing Fields
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 - The ``_id`` field is, by default, included in the output documents.
   To include the other fields from the input documents in the output
@@ -51,7 +57,7 @@ Include Existing Fields
 
 
 Suppress the ``_id`` Field
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``_id`` field is always included in the output documents by
 default. To exclude the ``_id`` field from the output documents, you
@@ -59,12 +65,11 @@ must explicitly specify the suppression of the ``_id`` field in
 :pipeline:`$project`.
 
 Add New Fields or Reset Existing Fields
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add a new field or to reset the value of an existing field, specify
 the field name and set its value to some expression. For more
-information on expressions, see
-:ref:`aggregation-expressions`.
+information on expressions, see :ref:`aggregation-expressions`.
 
 To set a field value directly to a numeric or boolean literal, as
 opposed to setting the field to an expression that resolves to a
@@ -75,8 +80,16 @@ for including or excluding the field.
 By specifying a new field and setting its value to the field path of an
 existing field, you can effectively rename a field.
 
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, :pipeline:`$project` stage supports using
+   the square brackets ``[]`` to directly create new array fields. If
+   array specification includes fields that are non-existent in a
+   document, the operation substitutes ``null`` as the value for that
+   field. For an example, see :ref:`example-project-new-array-fields`.
+
 Embedded Document Fields
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 When projecting or adding/resetting a field within an embedded
 document, you can either use :term:`dot notation`, as in
@@ -213,9 +226,9 @@ The following :pipeline:`$project` stage adds the new fields
    db.books.aggregate(
       [
          {
-            $project: { 
+            $project: {
                title: 1,
-               isbn: { 
+               isbn: {
                   prefix: { $substr: [ "$isbn", 0, 3 ] },
                   group: { $substr: [ "$isbn", 3, 2 ] },
                   publisher: { $substr: [ "$isbn", 5, 4 ] },
@@ -246,3 +259,49 @@ The operation results in the following document:
       "lastName" : "zzz",
       "copiesSold" : 5
    }
+
+.. _example-project-new-array-fields:
+
+Project New Array Fields
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example, if a collection includes the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "x" : 1, "y" : 1 }
+
+The following operation projects the fields ``x`` and ``y`` as elements
+in a new field ``myArray``:
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y" ] } } ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1 ] }
+
+If array specification includes fields that are non-existent in a
+document, the operation substitutes ``null`` as the value for that
+field.
+
+For example, given the same document as above, the following operation
+projects the fields ``x``, ``y``, and a non-existing field
+``$someField`` as elements in a new field ``myArray``:
+
+.. code-block:: javascript
+
+   db.collection.aggregate( [ { $project: { myArray: [ "$x", "$y", "$someField" ] } } ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
+
+.. seealso:: 
+   :doc:`/tutorial/aggregation-zip-code-data-set`,
+   :doc:`/tutorial/aggregation-with-user-preference-data`

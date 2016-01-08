@@ -13,11 +13,12 @@ the work associated with fulfilling queries within MongoDB.
 Create an Index to Support Read Operations
 ------------------------------------------
 
-If your application queries a collection on a particular field or
-fields, then an index on the queried field or fields can prevent the
-query from scanning the whole collection to find and return the query
-results. For more information about indexes, see the :doc:`complete
-documentation of indexes in MongoDB</core/indexes>`.
+If your application queries a collection on a particular field or set
+of fields, then an index on the queried field or a :doc:`compound index
+</core/index-compound>` on the set of fields can prevent the query from
+scanning the whole collection to find and return the query results. For
+more information about indexes, see the :doc:`complete documentation of
+indexes in MongoDB </core/indexes>`.
 
 .. example:: An application queries the ``inventory`` collection on the
    ``type`` field. The value of the ``type`` field is user-driven.
@@ -27,15 +28,15 @@ documentation of indexes in MongoDB</core/indexes>`.
       var typeValue = <someUserInput>;
       db.inventory.find( { type: typeValue } );
 
-   To improve the performance of this query, add an ascending, or a
-   descending, index to the ``inventory`` collection on the ``type``
+   To improve the performance of this query, add an ascending or a
+   descending index to the ``inventory`` collection on the ``type``
    field. [#ensureIndexOrder]_ In the :program:`mongo` shell, you can
-   create indexes using the :method:`db.collection.ensureIndex()`
+   create indexes using the :method:`db.collection.createIndex()`
    method:
 
    .. code-block:: javascript
 
-      db.inventory.ensureIndex( { type: 1 } )
+      db.inventory.createIndex( { type: 1 } )
 
    This index can prevent the above query on ``type`` from scanning the
    whole collection to return the results.
@@ -45,7 +46,7 @@ To analyze the performance of the query with an index, see
 
 In addition to optimizing read operations, indexes can support sort
 operations and allow for a more efficient storage utilization. See
-:method:`db.collection.ensureIndex()` and
+:method:`db.collection.createIndex()` and
 :doc:`/administration/indexes` for more information about index
 creation.
 
@@ -60,63 +61,127 @@ creation.
 Query Selectivity
 -----------------
 
-Some query operations are not selective. These operations cannot use
-indexes effectively or cannot use indexes at all.
+Query selectivity refers to how well the query predicate excludes or
+filters out documents in a collection. Query selectivity can determine
+whether or not queries can use indexes effectively or even use indexes
+at all.
 
-The inequality operators :query:`$nin` and :query:`$ne` are not
-very selective, as they often match a large portion of the index. As a
-result, in most cases, a :query:`$nin` or :query:`$ne` query with
-an index may perform no better than a :query:`$nin` or
-:query:`$ne` query that must scan all documents in a collection.
+More selective queries match a smaller percentage of documents. For
+instance, an equality match on the unique ``_id`` field is highly
+selective as it can match at most one document.
 
-Queries that specify regular expressions, with inline JavaScript
-regular expressions or :query:`$regex` operator expressions, cannot
-use an index with one exception. Queries that specify regular
-expression *with anchors* at the beginning of a string *can* use an
-index.
+Less selective queries match a larger percentage of documents. Less
+selective queries cannot use indexes effectively or even at all.
 
+.. include:: /includes/extracts/inequality_operators_selectivity.rst
+
+The selectivity of :query:`regular expressions <$regex>` depends on the
+expressions themselves. For details, see :ref:`regular expression and
+index use <regex-index-use>`.
+
+.. _covered-queries:
+.. _indexes-covered-queries:
 .. _read-operations-covered-query:
 
-Covering a Query
-----------------
+Covered Query
+-------------
 
-An index :ref:`covers <indexes-covered-queries>` a query, a *covered
-query*, when:
+An index :ref:`covers <indexes-covered-queries>` a query when both of the
+following apply:
 
 - all the fields in the :ref:`query <read-operations-query-document>`
-  are part of that index, **and**
+  are part of an index, **and**
 
-- all the fields returned in the documents that match the query are in
-  the same index.
+- all the fields returned in the results are in the same index.
 
-For these queries, MongoDB does not need to inspect documents outside
-of the index. This is often more efficient than inspecting entire
-documents.
+For example, a collection ``inventory`` has the following index on the
+``type`` and ``item`` fields:
 
-.. example::
+.. code-block:: javascript
 
-   Given a collection ``inventory`` with the following index on the
-   ``type`` and ``item`` fields:
+  db.inventory.createIndex( { type: 1, item: 1 } )
 
-   .. code-block:: sh
+This index will cover the following operation which queries on the
+``type`` and ``item`` fields and returns only the ``item`` field:
 
-      { type: 1, item: 1 }
+.. code-block:: javascript
 
-   This index will cover the following query on the ``type`` and ``item``
-   fields, which returns only the ``item`` field:
+   db.inventory.find(
+      { type: "food", item:/^c/ },
+      { item: 1, _id: 0 }
+   )
 
-   .. code-block:: javascript
+For the specified index to cover the query, the projection document
+must explicitly specify ``_id: 0`` to exclude the ``_id`` field from
+the result since the index does not include the ``_id`` field.
 
-      db.inventory.find( { type: "food", item:/^c/ },
-                         { item: 1, _id: 0 } )
+Performance
+~~~~~~~~~~~
 
-   However, the index will **not** cover the following query, which
-   returns the ``item`` field **and** the ``_id`` field:
+Because the index contains all fields required by the query, MongoDB can both
+match the :ref:`query conditions <read-operations-query-document>`
+and return the results using only the index.
 
-   .. code-block:: javascript
+Querying *only* the index can be much faster than querying documents
+outside of the index. Index keys are typically smaller than the
+documents they catalog, and indexes are typically available in RAM or
+located sequentially on disk.
 
-      db.inventory.find( { type: "food", item:/^c/ },
-                         { item: 1 } )
+Limitations
+~~~~~~~~~~~
 
-See :ref:`indexes-covered-queries` for more information on the
-behavior and use of covered queries.
+Restrictions on Indexed Fields
+``````````````````````````````
+
+An index **cannot** cover a query if:
+
+- any of the indexed fields in any of the documents in the collection
+  includes an array. If an indexed field is an array, the index becomes
+  a :ref:`multi-key index <index-type-multikey>` and cannot
+  support a covered query.
+
+- any of the indexed fields in the query predicate or returned in the
+  projection are fields in embedded documents.
+  [#index-embedded-document-fields]_ For example, consider a collection
+  ``users`` with documents of the following form:
+
+  .. code-block:: javascript
+
+     { _id: 1, user: { login: "tester" } }
+
+  The collection has the following index:
+
+  .. code-block:: none
+
+     { "user.login": 1 }
+
+  The ``{ "user.login": 1 }`` index does **not** cover the
+  following query:
+
+  .. code-block:: none
+
+     db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
+
+  However, the query can use the ``{ "user.login": 1 }`` index to find
+  matching documents.
+
+.. _covered-index-sharded-collection:
+
+Restrictions on Sharded Collection
+``````````````````````````````````
+
+.. include:: /includes/extracts/fact-covered-query-sharded-collection-cover.rst
+
+``explain``
+~~~~~~~~~~~
+
+To determine whether a query is a covered query, use the
+:method:`db.collection.explain()` or the :method:`~cursor.explain()`
+method and review the :ref:`results <explain-output-covered-queries>`.
+
+.. include:: /includes/fact-explain-collection-method.rst
+
+For more information see :ref:`indexes-measuring-use`.
+
+.. [#index-embedded-document-fields] To index fields
+   in embedded documents, use :term:`dot notation`.

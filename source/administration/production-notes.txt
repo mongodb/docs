@@ -7,68 +7,151 @@ Production Notes
 This page details system configurations that affect MongoDB,
 especially in production.
 
-.. note::
-   `MongoDB Management Service (MMS) <http://mms.mongodb.com>`_ is a hosted monitoring service
-   which collects and aggregates diagnostic data to provide insight into
-   the performance and operation of MongoDB deployments. See the
-   `MMS Website <http://mms.mongodb.com/>`_ and the
-   `MMS documentation <http://mms.mongodb.com/help/>`_ for more
-   information.
+.. include:: /includes/fact-mms-summary.rst
 
-Packages
---------
+MongoDB Binaries
+----------------
 
-MongoDB
-~~~~~~~
+.. _prod-notes-supported-platforms:
+
+Supported Platforms
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-platforms.rst
+
+.. versionchanged:: 3.2
+   MongoDB can now use the :ref:`WiredTiger storage engine <storage-wiredtiger>`
+   on all supported platforms.
+
+.. _prod-notes-recommended-platforms:
+
+Recommended Platforms
+~~~~~~~~~~~~~~~~~~~~~
+
+We recommend the following operating systems for production use:
+
+- Amazon Linux
+- Debian 7.1
+- Red Hat / CentOS 6.2+
+- SLES 11+
+- Ubuntu LTS 12.04
+- Ubuntu LTS 14.04
+- Windows Server 2012 & 2012 R2
+
+.. seealso:: :ref:`prod-notes-platform-considerations`
+
+Use the Latest Stable Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Be sure you have the latest stable release.
+
 All releases are available on the `Downloads
-<http://www.mongodb.org/downloads>`_ page. This is a good place to
-verify what is current, even if you then choose to install via a
-package manager.
+<http://www.mongodb.org/downloads>`_ page. The `Downloads
+<http://www.mongodb.org/downloads>`_ page is a good place to verify the
+current stable release, even if you are installing via a package
+manager.
 
-Always use 64-bit builds for production. The 32-bit build MongoDB
-offers for test and development environments is not suitable for
-production deployments as it can store no more than 2GB of data.
-See the :ref:`32-bit limitations
-<faq-32-bit-limitations>` for more information.
-
-32-bit builds exist to support use on development machines.
-
-Operating Systems
+Use 64-bit Builds
 ~~~~~~~~~~~~~~~~~
 
-MongoDB distributions are currently available for Mac OS X, Linux,
-Windows Server 2008 R2 64bit, Windows 7 (32 bit and 64 bit), Windows
-Vista, and Solaris platforms.
+Always use 64-bit builds for production.
 
-.. include:: /includes/note-minimum-glibc.rst
+Although the 32-bit builds exist, they are **unsuitable** for
+production deployments. 32-bit builds also do **not** support the
+WiredTiger storage engine. For more information, see the :ref:`32-bit
+limitations page <faq-32-bit-limitations>`
+
+.. note::
+   .. include:: /includes/fact-deprecated-32bit.rst
+
+MongoDB ``dbPath``
+------------------
+
+.. versionchanged:: 3.2
+
+   As of MongoDB 3.2, MongoDB uses the :ref:`WiredTiger
+   <storage-wiredtiger>` storage engine by default.
+
+.. versionchanged:: 3.0
+
+   MongoDB includes support for two storage engines: :ref:`MMAPv1
+   <storage-mmapv1>`, the storage engine available in previous versions
+   of MongoDB, and :ref:`WiredTiger <storage-wiredtiger>`.
+
+The files in the :setting:`~storage.dbPath` directory must correspond
+to the configured storage engine. :program:`mongod` will not start if
+:setting:`~storage.dbPath` contains data files created by a storage
+engine other than the one specified by :option:`--storageEngine`.
+
+.. _prod-notes-concurrency:
 
 Concurrency
 -----------
 
-In earlier versions of MongoDB, all write operations contended for a
-single readers-writer lock on the MongoDB instance. As of version 2.2,
-each database has a readers-writer lock that allows concurrent reads
-access to a database, but gives exclusive access to a single write
-operation per database. See the :doc:`Concurrency </faq/concurrency/>`
-page for more information.
+MMAPv1
+~~~~~~
 
-.. In future, Concurrency should perhaps go with a section detailing bulk
-   inserts & write throughput.
+.. versionchanged:: 3.0
+
+   Beginning with MongoDB 3.0, :ref:`MMAPv1 <storage-mmapv1>` provides
+   *collection-level locking*: All collections have a unique
+   readers-writer lock that allows multiple clients to modify documents
+   in different collections at the same time.
+
+   For MongoDB versions 2.2 through 2.6 series, each database has a
+   readers-writer lock that allows concurrent read access to a
+   database, but gives exclusive access to a single write operation per
+   database. See the :doc:`Concurrency </faq/concurrency>` page for
+   more information. In earlier versions of MongoDB, all write
+   operations contended for a single readers-writer lock for the entire
+   :program:`mongod` instance.
+
+.. _prod-notes-wired-tiger-concurrency:
+
+WiredTiger
+~~~~~~~~~~
+
+:ref:`WiredTiger <storage-wiredtiger>` supports concurrent access by
+readers and writers to the documents in a collection. Clients can read
+documents while write operations are in progress, and multiple threads
+can modify different documents in a collection at the same time.
+
+.. seealso:: :ref:`prod-notes-ram`
+
+Data Consistency
+----------------
 
 Journaling
-----------
+~~~~~~~~~~
 
-MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee that MongoDB is able to quickly recover the
-:doc:`write operations </core/write-operations>`
-following a crash or other serious failure.
+MongoDB uses *write ahead logging* to an on-disk :term:`journal`.
+Journaling guarantees that MongoDB can quickly recover :doc:`write
+operations </core/write-operations>` that were written to the journal
+but not written to data files in cases where :program:`mongod`
+terminated as a result of a crash or other serious failure.
 
-In order to ensure that :program:`mongod` will be able to recover its
-data files and keep the data files in a valid state following a crash,
-leave journaling enabled. See :doc:`Journaling </core/journaling/>` for
+Leave journaling enabled in order to ensure that :program:`mongod` will
+be able to recover its data files and keep the data files in a valid
+state following a crash. See :doc:`Journaling </core/journaling/>` for
 more information.
+
+readConcern
+~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+If using :readconcern:`"majority"` readConcern, write operations should
+use :writeconcern:`{ w: "majority" } <"majority">` write concern to
+ensure that a single thread can read its own writes.
+
+Write Concern
+~~~~~~~~~~~~~
+
+.. include:: /includes/introduction-write-concern.rst
+
+See the :doc:`Write Concern </reference/write-concern>` document for more
+information about choosing an appropriate write concern level for your
+deployment.
 
 Networking
 ----------
@@ -78,40 +161,56 @@ Use Trusted Networking Environments
 
 Always run MongoDB in a *trusted environment*, with network rules that
 prevent access from *all* unknown machines, systems, and networks. As
-with any sensitive system dependent on network access, your MongoDB
-deployment should only be accessible to specific systems that require
-access, such as application servers, monitoring services, and other MongoDB
-components.
+with any sensitive system that is dependent on network access, your
+MongoDB deployment should only be accessible to specific systems that
+require access, such as application servers, monitoring services, and
+other MongoDB components.
 
 .. note::
-   By default, :setting:`~security.authorization` is not enabled and
-   :program:`mongod` assumes a trusted environment. You can enable
-   :doc:`security/auth </core/security>` mode if you need it.
+   By default, :doc:`authorization </core/authorization>` is not
+   enabled, and :program:`mongod` assumes a trusted environment. Enable
+   :setting:`~security.authorization` mode as needed. For more
+   information on authentication mechanisms supported in MongoDB as
+   well as authorization in MongoDB, see :doc:`/core/authentication`
+   and :doc:`/core/authorization`.
 
-See documents in the :doc:`Security Section </security>` for additional
-information, specifically:
+For additional information and considerations on security, refer to the
+documents in the :doc:`Security Section </security>`, specifically:
 
-- :ref:`security-port-numbers`
-- :ref:`security-firewalls`
+- :doc:`/administration/security-checklist`
+- :doc:`/core/security-mongodb-configuration`
+- :doc:`/core/security-network`
 - :doc:`Network Security Tutorials </administration/security-network>`
 
 For Windows users, consider the `Windows Server Technet Article on TCP
 Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
 when deploying MongoDB on Windows.
 
-Connection Pools
-~~~~~~~~~~~~~~~~
+Disable HTTP Interfaces
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides interfaces to check the status of the server and,
+optionally, run queries on it, over HTTP. In production environments,
+disable the HTTP interfaces.
+
+See :ref:`http-interface-security`.
+
+.. _prod-notes-connection-pools:
+
+Manage Connection Pool Sizes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To avoid overloading the connection resources of a single
 :program:`mongod` or :program:`mongos` instance, ensure that clients
-maintain reasonable connection pool sizes.
+maintain reasonable connection pool sizes. Adjust the connection pool
+size to suit your use case, beginning at 110-115% of the typical number
+of concurrent database requests.
 
-.. TODO: explain how to maintain reasonable pool sizes
+The :dbcommand:`connPoolStats` command returns information regarding
+the number of open connections to the current database for
+:program:`mongos` and :program:`mongod` instances in sharded clusters.
 
-The :dbcommand:`connPoolStats` database
-command returns information regarding the number of open connections
-to the current database for :program:`mongos` instances and
-:program:`mongod` instances in sharded clusters.
+See also :ref:`prod-notes-ram`.
 
 Hardware Considerations
 -----------------------
@@ -121,94 +220,115 @@ has few hardware requirements or limitations. MongoDB's core components
 run on little-endian hardware, primarily x86/x86_64 processors. Client
 libraries (i.e. drivers) can run on big or little endian systems.
 
-Hardware Requirements and Limitations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The hardware for the most effective MongoDB deployments have the
-following properties:
+.. _prod-notes-ram:
 
 Allocate Sufficient RAM and CPU
-```````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As with all software, more RAM and a faster CPU clock speed are
-important for performance.
+MMAPv1
+``````
 
-In general, databases are not CPU bound. As such, increasing the
-number of cores can help, but does not provide significant marginal
-return.
+Due to its concurrency model, the MMAPv1 storage engine does not
+require many CPU cores . As such, increasing the number of cores can
+help but does not provide significant return.
+
+Increasing the amount of RAM accessible to MongoDB may help reduce the
+frequency of page faults.
+
+WiredTiger
+``````````
+
+The WiredTiger storage engine is multithreaded and can take advantage
+of many CPU cores. Specifically, the total number of active threads
+(i.e. concurrent operations) relative to the number of CPUs can impact
+performance:
+
+- Throughput *increases* as the number of concurrent active operations
+  increases up to the number of CPUs.
+
+- Throughput *decreases* as the number of concurrent active operations
+  exceeds the number of CPUs by some threshold amount.
+
+The threshold amount depends on your application. You can determine the
+optimum number of concurrent active operations for your application by
+experimenting and measuring throughput. The output from
+:program:`mongostat` provides statistics on the number of active
+reads/writes in the (``ar|aw``) column.
+
+.. include:: /includes/extracts/wt-configure-cache.rst
+
+.. seealso:: :ref:`prod-notes-concurrency`
 
 Use Solid State Disks (SSDs)
-````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB has good results and a good price-performance ratio with SATA
-SSD (Solid State Disk).
+MongoDB has good results and a good price-performance ratio with
+SATA SSD (Solid State Disk).
 
-Use SSD if available and economical. Spinning disks can be performant, but
-SSDs' capacity for random I/O operations works well with the update
-model of :program:`mongod`.
+Use SSD if available and economical. Spinning disks can be
+performant, but SSDs' capacity for random I/O operations works well
+with the update model of MMAPv1.
 
 Commodity (SATA) spinning drives are often a good option, as the
-random I/O performance increase with more expensive spinning drives is not that
-dramatic (only on the order of 2x). Using SSDs or increasing RAM may
-be more effective in increasing I/O throughput.
-
-Avoid Remote File Systems
-`````````````````````````
-
-- Remote file storage can create performance problems in MongoDB. See
-  :ref:`production-nfs` for more information about storage and MongoDB.
+random I/O performance increase with more expensive spinning drives
+is not that dramatic (only on the order of 2x). Using SSDs or
+increasing RAM may be more effective in increasing I/O throughput.
 
 .. _production-numa:
 
 MongoDB and NUMA Hardware
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. important::
-   The discussion of NUMA in this section only applies to Linux systems
-   with *multiple* physical processors, and therefore does *not affect*
-   deployments where :program:`mongod` instances run on other UNIX-like
-   systems, on Windows, or on a Linux system with only one physical
-   processor.
-
 Running MongoDB on a system with Non-Uniform Access Memory (NUMA) can
 cause a number of operational problems, including slow performance for
-periods of time or high system process usage.
+periods of time and high system process usage.
 
-When running MongoDB on NUMA hardware, you should disable NUMA for
-MongoDB and instead set an interleave memory policy.
+When running MongoDB servers and clients on NUMA hardware, you should configure
+a memory interleave policy so that the host behaves in a non-NUMA fashion.
+MongoDB checks NUMA settings on start up when deployed on Linux (since version
+2.0) and Windows (since version 2.6) machines. If the
+NUMA configuration may degrade performance, MongoDB prints a warning.
 
-.. note::
+.. seealso::
 
-   MongoDB version 2.0 and greater checks these settings on start up
-   when deployed on a Linux-based system, and prints a warning if the
-   system is NUMA-based.
+   - `The MySQL "swap insanity" problem and the effects of NUMA
+     <http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
+     post, which describes the effects of
+     NUMA on databases. The post introduces NUMA and its goals, and
+     illustrates how these goals are not compatible with production
+     databases. Although the blog post addresses the impact of NUMA for
+     MySQL, the issues for MongoDB are similar.
 
-To disable NUMA for MongoDB and set an interleave memory policy, use
-the ``numactl`` command and start :program:`mongod` in the following
-manner:
+   - `NUMA: An Overview <https://queue.acm.org/detail.cfm?id=2513149>`_.
+
+Configuring NUMA on Windows
+```````````````````````````
+
+On Windows, memory interleaving must be enabled through the machine's BIOS.
+Please consult your system documentation for details.
+
+Configuring NUMA on Linux
+`````````````````````````
+
+When running MongoDB on Linux, you may instead use the ``numactl``
+command and start the MongoDB programs (:program:`mongod`, including
+the :doc:`config servers </core/sharded-cluster-config-servers>`;
+:program:`mongos`; or clients) in the following manner:
 
 .. code-block:: sh
 
-   numactl --interleave=all /usr/bin/local/mongod
+   numactl --interleave=all <path>
 
-Then, disable *zone reclaim* in the ``proc`` settings using the following
-command:
+where ``<path>`` is the path to the program you are starting. Then,
+disable *zone reclaim* in the ``proc`` settings using the following command:
 
 .. code-block:: sh
 
    echo 0 > /proc/sys/vm/zone_reclaim_mode
 
-To fully disable NUMA, you must perform both operations. For more
+To fully disable NUMA behavior, you must perform both operations. For more
 information, see the `Documentation for /proc/sys/vm/*
 <http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
-
-See `The MySQL "swap insanity" problem and the effects of NUMA
-<http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the
--nu ma-architecture/>`_ post, which describes the effects of NUMA on
-databases. This blog post addresses the impact of NUMA for MySQL,
-but the issues for MongoDB are similar. The post introduces NUMA and
-its goals, and illustrates how these goals are not compatible with
-production databases.
 
 Disk and Storage Systems
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,8 +340,14 @@ Assign swap space for your systems. Allocating swap space can avoid issues
 with memory contention and can prevent the OOM Killer on Linux systems
 from killing :program:`mongod`.
 
-The method :program:`mongod` uses to map memory files to memory ensures
-that the operating system will never store MongoDB data in swap space.
+For the MMAPv1 storage engine, the method :program:`mongod` uses
+to map files to memory ensures that the operating system will never
+store MongoDB data in swap space.  On Windows systems, using MMAPv1
+requires extra swap space due to commitment limits. For details,
+see :ref:`MongoDB on Windows <production-windows-pagefile>`.
+
+For the WiredTiger storage engine, given sufficient memory pressure,
+WiredTiger may store data in swap space .
 
 RAID
 ````
@@ -241,14 +367,20 @@ Amazon's EBS volumes.
 Remote Filesystems
 ``````````````````
 
-The Network File System protocol (NFS) is not recommended for use with
-MongoDB as some versions perform poorly.
+With the MMAPv1 storage engine, the Network File System protocol (NFS)
+is not recommended as you may see performance problems when both the
+data files and the journal files are hosted on NFS. You may experience
+better performance if you place the journal on local or ``iscsi``
+volumes.
 
-Performance problems arise when both
-the data files and the journal files are hosted on NFS. You may
-experience better performance if you place the journal on local or
-``iscsi`` volumes. If you must use NFS, add the following NFS options
-to your ``/etc/fstab`` file: ``bg``, ``nolock``, and ``noatime``.
+With the WiredTiger storage engine, WiredTiger objects may be stored on
+remote file systems if the remote file system conforms to ISO/IEC
+9945-1:1996 (POSIX.1). Because remote file systems are often slower
+than local file systems, using a remote file system for storage may
+degrade performance.
+
+If you decide to use NFS, add the following NFS options to your
+``/etc/fstab`` file: ``bg``, ``nolock``, and ``noatime``.
 
 Separate Components onto Different Storage Devices
 ``````````````````````````````````````````````````
@@ -257,10 +389,15 @@ For improved performance, consider separating your database's data,
 journal, and logs onto different storage devices, based on your application's
 access and write pattern.
 
+For the WiredTiger storage engine, you can also store the indexes on a
+different storage device. See
+:setting:`storage.wiredTiger.engineConfig.directoryForIndexes`.
+
 .. note::
 
-   This will affect your ability to create snapshot-style backups of
-   your data, since the files will be on different devices and volumes.
+   Using different storage devices will affect your ability to create
+   snapshot-style backups of your data, since the files will be on
+   different devices and volumes.
 
 .. _virtualized-disks-scheduling:
 
@@ -272,18 +409,8 @@ hypervisor should use a *noop* scheduler for best performance. The
 *noop* scheduler allows the operating system to defer I/O scheduling to
 the underlying hypervisor.
 
-
 Architecture
 ------------
-
-Write Concern
-~~~~~~~~~~~~~
-
-.. include:: /includes/introduction-write-concern.rst
-
-See the :doc:`Write Concern </core/write-concern>` document for more
-information about choosing an appropriate write concern level for your
-deployment.
 
 Replica Sets
 ~~~~~~~~~~~~
@@ -295,48 +422,78 @@ set deployments.
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
 
-See the
-:doc:`Sharded Cluster Production Architecture </core/sharded-cluster-architectures-production>`
-document for an overview of recommended sharded cluster architectures for production
+See the :doc:`Sharded Cluster Production Architecture
+</core/sharded-cluster-architectures-production>` document for an
+overview of recommended sharded cluster architectures for production
 deployments.
 
-Platforms
----------
+.. seealso:: :doc:`/applications/design-notes`
+
+Compression
+-----------
+
+WiredTiger can compress collection data using either :term:`snappy` or
+:term:`zlib` compression library. :term:`snappy` provides a lower
+compression rate but has little performance cost, whereas ``zlib``
+provides better compression rate but has a higher performance cost.
+
+By default, WiredTiger uses :term:`snappy` compression library. To
+change the compression setting, see
+:setting:`storage.wiredTiger.collectionConfig.blockCompressor`.
+
+WiredTiger uses :term:`prefix compression` on all indexes by default.
+
+.. _prod-notes-platform-considerations:
+
+Platform Specific Considerations
+--------------------------------
+
+.. include:: /includes/note-minimum-glibc.rst
 
 MongoDB on Linux
 ~~~~~~~~~~~~~~~~
 
-.. important:: The following discussion only applies to
-   Linux, and therefore does not affect deployments where :program:`mongod`
-   instances run other UNIX-like systems or on Windows.
-
 Kernel and File Systems
 ```````````````````````
 
-When running MongoDB in production on Linux, it is recommended that you use
-Linux kernel version 2.6.36 or later.
+When running MongoDB in production on Linux, it is recommended that
+you use Linux kernel version 2.6.36 or later.
 
-MongoDB preallocates its database files before using them and
-often creates large files. As such, you should
-use the Ext4 and XFS file systems:
+With the MMAPv1 storage engine, MongoDB preallocates its database files
+before using them and often creates large files. As such, you should
+use the XFS and EXT4 file systems. If possible, use XFS as it generally
+performs better with MongoDB.
 
-- In general, if you use the Ext4 file system, use at least version ``2.6.23`` of the
-  Linux Kernel.
+With the WiredTiger storage engine, use of XFS is **strongly
+recommended** to avoid performance issues that have been observed when
+using EXT4 with WiredTiger.
 
-- In general, if you use the XFS file system, use at least version ``2.6.25`` of the
-  Linux Kernel.
+- In general, if you use the XFS file system, use at least version
+  ``2.6.25`` of the Linux Kernel.
+
+- In general, if you use the EXT4 file system, use at least version
+  ``2.6.23`` of the Linux Kernel.
 
 - Some Linux distributions require different versions of the kernel to
-  support using ext4 and/or xfs:
+  support using XFS and/or EXT4:
 
   .. include:: /includes/table/linux-kernel-version-production.rst
 
-.. important:: MongoDB requires a filesystem that supports ``fsync()``
+``fsync()`` on Directories
+``````````````````````````
+
+.. important::
+   MongoDB requires a filesystem that supports ``fsync()``
    *on directories*. For example, HGFS and Virtual Box's shared
    folders do *not* support this operation.
 
+.. _linux-recommended-configuration:
+
 Recommended Configuration
 `````````````````````````
+
+For the MMAPv1 storage engine and the WiredTiger storage engines,
+consider the following recommendations:
 
 - Turn off ``atime`` for the storage volume containing the :term:`database
   files <dbpath>`.
@@ -347,58 +504,198 @@ Recommended Configuration
   MongoDB when under heavy use and can produce errors and lead to
   failed connections to MongoDB processes and loss of service.
 
-- Disable ``transparent huge pages`` as MongoDB performs
-  better with normal (4096 bytes) virtual memory pages.
+- Disable Transparent Huge Pages, as MongoDB performs better with
+  normal (4096 bytes) virtual memory pages. See :doc:`Transparent Huge
+  Pages Settings </tutorial/transparent-huge-pages>`.
 
-- Disable NUMA in your BIOS. If that is not possible see 
+- Disable NUMA in your BIOS. If that is not possible, see
   :ref:`MongoDB on NUMA Hardware <production-numa>`.
+
+- Configure SELinux on Red Hat. For more information, see
+  :ref:`Configure SELinux for MongoDB <install-rhel-configure-selinux>`
+  and :ref:`Configure SELinux for MongoDB Enterprise
+  <install-enterprise-rhel-configure-selinux>`.
+
+For the MMAPv1 storage engine:
+
+.. _readahead:
 
 - Ensure that readahead settings for the block devices that store the
   database files are appropriate. For random access use patterns, set
-  low readahead values. A readahead of 32 (16kb) often works well.
+  low readahead values. A readahead of 32 (16 KB) often works well.
 
   For a standard block device, you can run ``sudo blockdev --report``
   to get the readahead settings and ``sudo blockdev --setra <value>
   <device>`` to change the readahead settings. Refer to your specific
   operating system manual for more information.
 
+For all MongoDB deployments:
+
 - Use the Network Time Protocol (NTP) to synchronize time among
   your hosts. This is especially important in sharded clusters.
 
-.. _readahead:
+MongoDB and TLS/SSL Libraries
+`````````````````````````````
 
-.. TODO update with updated readahead documentation when DOCS-164 closes
+On Linux platforms, you may observe one of the following statements in
+the MongoDB log:
 
+.. code-block:: none
+
+   <path to SSL libs>/libssl.so.<version>: no version information available (required by /usr/bin/mongod)
+   <path to SSL libs>/libcrypto.so.<version>: no version information available (required by /usr/bin/mongod)
+
+These warnings indicate that the system's TLS/SSL libraries are different
+from the TLS/SSL libraries that the :program:`mongod` was compiled against.
+Typically these messages do not require intervention; however, you can
+use the following operations to determine the symbol versions that
+:program:`mongod` expects:
+
+.. code-block:: sh
+
+   objdump -T <path to mongod>/mongod | grep " SSL_"
+   objdump -T <path to mongod>/mongod | grep " CRYPTO_"
+
+These operations will return output that resembles one the of the
+following lines:
+
+.. code-block:: none
+
+   0000000000000000      DF *UND*       0000000000000000  libssl.so.10 SSL_write
+   0000000000000000      DF *UND*       0000000000000000  OPENSSL_1.0.0 SSL_write
+
+The last two strings in this output are the symbol version and symbol
+name. Compare these values with the values returned by the following
+operations to detect symbol version mismatches:
+
+.. code-block:: sh
+
+   objdump -T <path to TLS/SSL libs>/libssl.so.1*
+   objdump -T <path to TLS/SSL libs>/libcrypto.so.1*
+
+This procedure is neither exact nor exhaustive: many symbols used by
+:program:`mongod` from the ``libcrypto`` library do not begin with
+``CRYPTO_``.
 
 .. _production-virtualization:
+
+MongoDB on Windows
+~~~~~~~~~~~~~~~~~~
+
+MongoDB Using MMAPv1
+````````````````````
+
+Install Hotfix for MongoDB 2.6.6 and Later
+++++++++++++++++++++++++++++++++++++++++++
+
+Microsoft has released a hotfix for Windows 7 and Windows Server 2008
+R2, `KB2731284 <http://support.microsoft.com/kb/2731284>`_, that repairs a bug
+in these operating systems' use of memory-mapped files that adversely affects
+the performance of MongoDB using the MMAPv1 storage engine.
+
+Install this hotfix to obtain significant performance improvements on MongoDB
+2.6.6 and later releases in the 2.6 series, which use MMAPv1 exclusively,
+and on 3.0 and later when using MMAPv1 as the storage engine.
+
+.. _production-windows-pagefile:
+
+Configure Windows Page File For MMAPv1
+++++++++++++++++++++++++++++++++++++++
+
+Configure the page file such that the minimum and maximum page file
+size are equal and at least 32 GB. Use a multiple of this size if,
+during peak usage, you expect concurrent writes to many databases or
+collections. However, the page file size does not need to exceed the
+maximum size of the database.
+
+A large page file is needed as Windows requires enough space to
+accommodate all regions of memory mapped files made writable during
+peak usage, regardless of whether writes actually occur.
+
+The page file is not used for database storage and will not receive
+writes during normal MongoDB operation. As such, the page file will not
+affect performance, but it must exist and be large enough to
+accommodate Windows' commitment rules during peak database use.
+
+.. note::
+
+   Dynamic page file sizing is too slow to accommodate the rapidly
+   fluctuating commit charge of an active MongoDB deployment. This can
+   result in transient overcommitment situations that may lead to
+   abrupt server shutdown with a VirtualProtect error 1455.
+
+MongoDB 3.0 Using WiredTiger
+````````````````````````````
+
+For MongoDB instances using the WiredTiger storage engine, performance
+on Windows is comparable to performance on Linux.
 
 MongoDB on Virtual Environments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The section describes considerations when running MongoDB in some of the
+This section describes considerations when running MongoDB in some of the
 more common virtual environments.
 
-For all platforms, consider :ref:`virtualized-disks-scheduling`. 
+For all platforms, consider :ref:`virtualized-disks-scheduling`.
 
 EC2
 ```
 
-MongoDB is compatible with EC2 and requires no configuration changes
-specific to the environment.
+MongoDB is compatible with EC2.
+|mms-home| provides
+integration with Amazon Web Services (AWS) and lets you deploy new EC2
+instances directly from |MMS|. See :mms-docs:`Configure AWS Integration
+</tutorial/configure-aws-settings/>` for more details.
 
-You may alternately choose to obtain a set of
-Amazon Machine Images (AMI) that bundle together MongoDB and Amazon's
-Provisioned IOPS storage volumes. Provisioned IOPS can greatly increase
-MongoDB's performance and ease of use. For more information, see
-`this blog post
-<http://www.mongodb.com/blog/post/provisioned-iops-aws-marketplace-significantly-boosts-mongodb-performance-ease-use>`_.
+Azure
+`````
+
+For all MongoDB deployments using Azure, you **must** mount the volume
+that hosts the :program:`mongod` instance's :setting:`~storage.dbPath`
+with the *Host Cache Preference* ``READ/WRITE``.
+
+This applies to all Azure deployments, using any guest operating
+system.
+
+If your volumes have inappropriate cache settings, MongoDB may
+eventually shut down with the following error:
+
+.. code-block:: none
+
+   [DataFileSync] FlushViewOfFile for <data file> failed with error 1 ...
+   [DataFileSync] Fatal Assertion 16387
+
+These shut downs do not produce data loss when
+:setting:`storage.journal.enabled` is set to ``true``. You can safely
+restart :program:`mongod` at any time following this event.
+
+The performance characteristics of MongoDB may change with
+``READ/WRITE`` caching enabled.
+
+The TCP keepalive on the Azure load balancer is 240 seconds by
+default, which can cause it to silently drop connections if the TCP
+keepalive on your Azure systems is greater than this value.  You
+should set ``tcp_keepalive_time`` to 120 to ameliorate this problem.
+
+.. include:: /includes/fact-tcp-keepalive-linux.rst
+
+.. include:: /includes/fact-tcp-keepalive-windows.rst
 
 VMWare
 ``````
 
-MongoDB is compatible with VMWare. As some users have
-run into issues with VMWare's memory overcommit feature,
-disabling the feature is recommended.
+MongoDB is compatible with VMWare.
+
+As some users have run into issues with VMWare's memory overcommit
+feature, you should disable the feature.
+
+Further, MongoDB is known to run poorly with VMWare's balloon driver
+(``vmmemctl``), so you should disable this as well. VMWare uses the
+balloon driver to reduce physical memory usage on the host hardware by
+allowing the hypervisor to swap to disk while hiding this fact from
+the guest, which continues to see the same amount of (virtual)
+physical memory. This interferes with MongoDB's memory management,
+and you are likely to experience significant performance degradation.
 
 It is possible to clone a virtual machine running MongoDB.
 You might use this function to
@@ -406,16 +703,6 @@ spin up a new virtual host to add as a member of a replica
 set. If you clone a VM with journaling enabled, the clone snapshot will
 be valid. If not using journaling, first stop :program:`mongod`,
 then clone the VM, and finally, restart :program:`mongod`.
-
-OpenVZ
-``````
-
-Some users have had issues when running MongoDB on some older version
-of OpenVZ due to its handling of virtual memory, as with VMWare.
-
-This issue seems to have been resolved in the more recent versions of
-OpenVZ.
-
 
 Performance Monitoring
 ----------------------
@@ -456,3 +743,5 @@ Backups
 
 To make backups of your MongoDB database, please refer to
 :doc:`MongoDB Backup Methods Overview </core/backups>`.
+
+.. include:: /includes/unicode-checkmark.rst

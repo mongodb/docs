@@ -20,17 +20,18 @@ Definition
 
    The command has the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: none
 
       {
-        findAndModify: <string>,
+        findAndModify: <collection-name>,
         query: <document>,
         sort: <document>,
         remove: <boolean>,
         update: <document>,
         new: <boolean>,
         fields: <document>,
-        upsert: <boolean>
+        upsert: <boolean>,
+        bypassDocumentValidation: <boolean>
       }
 
    The :dbcommand:`findAndModify` command takes the following
@@ -38,67 +39,48 @@ Definition
 
    .. |operation| replace:: :dbcommand:`findAndModify`
 
-   .. include:: /reference/command/findAndModify-field.rst
+   .. include:: /includes/apiargs/dbcommand-findAndModify-field.rst
 
 Output
 ------
 
-The return document contains the following fields:
+The :dbcommand:`findAndModify` command returns a document with the
+following fields:
 
-- The ``lastErrorObject`` field that returns the details of the
-  command:
+.. include:: /includes/apiargs/dbcommand-findAndModify-return.rst
 
-  - The ``updatedExisting`` field **only** appears if the command
-    specifies an ``update`` or an ``update`` with ``upsert: true``;
-    i.e. the field does not appear for a ``remove``.
+.. _findandmodify-lastErrorObject:
 
-  - The ``upserted`` field **only** appears if the ``update`` with the
-    ``upsert: true`` operation results in an insertion.
+``lastErrorObject``
+~~~~~~~~~~~~~~~~~~~
 
-- The ``value`` field that returns either:
+The ``lastErrorObject`` embedded document contains the following fields:
 
-  - the original (i.e. pre-modification) document if ``new`` is
-    false, or
+.. include:: /includes/apiargs/dbcommand-findAndModify-lastErrorObject.rst
 
-  - the modified or inserted document if ``new: true``.
+.. _findandmodify-value-field:
 
-- The ``ok`` field that returns the status of the command.
+``value``
+~~~~~~~~~
 
-.. note::
+For ``remove`` operations, ``value`` contains the removed document if
+the query matches a document. If the query does not match a document to
+remove, ``value`` contains ``null``.
 
-   If the :dbcommand:`findAndModify` finds no matching document,
-   then:
+For ``update`` operations, the ``value`` embedded document contains the
+following:
 
-   - for ``update`` or ``remove`` operations, ``lastErrorObject`` does
-     not appear in the return document and the ``value`` field holds a
-     ``null``.
-
-     .. code-block:: javascript
-
-        { "value" : null, "ok" : 1 }
-
-   - for ``update`` with ``upsert: true`` operation that results in an
-     insertion, if the command also specifies ``new`` is ``false``
-     **and** specifies a ``sort``, the return document has a
-     ``lastErrorObject``, ``value``, and ``ok`` fields, but the
-     ``value`` field holds an empty document ``{}``.
-
-   - for ``update`` with ``upsert: true`` operation that results in an
-     insertion, if the command also specifies ``new`` is ``false`` but
-     does **not** specify a ``sort``, the return document has a
-     ``lastErrorObject``, ``value``, and ``ok`` fields, but the
-     ``value`` field holds a ``null``.
+.. include:: /includes/extracts/fact-findandmodify-command-return.rst
 
 Behavior
 --------
 
+Upsert and Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
 When the :dbcommand:`findAndModify` command includes the ``upsert:
 true`` option **and** the query field(s) is not uniquely indexed, the
 command could insert a document multiple times in certain circumstances.
-For instance, if multiple clients issue the :dbcommand:`findAndModify`
-command and these commands complete the ``find`` phase before any one
-starts the ``modify`` phase, these commands could insert the same
-document.
 
 Consider an example where no document with the name ``Andy`` exists and
 multiple clients issue the following command:
@@ -117,20 +99,23 @@ multiple clients issue the following command:
 
 If all the commands finish the ``query`` phase before any command
 starts the ``modify`` phase, **and** there is no unique index on the
-``name`` field, the commands may all result in an insert. To prevent
-this condition, create a :ref:`unique index <index-type-unique>` on
+``name`` field, the commands may each perform an upsert, creating
+multiple duplicate documents.
+
+To prevent the creation of multiple duplicate documents,
+create a :ref:`unique index <index-type-unique>` on
 the ``name`` field. With the unique index in place, then the multiple
-:dbcommand:`findAndModify` commands would observe one of the
+:dbcommand:`findAndModify` commands will exhibit one of the
 following behaviors:
 
-- Exactly one :dbcommand:`findAndModify` would successfully insert a
+- Exactly one :dbcommand:`findAndModify` successfully inserts a
   new document.
 
-- Zero or more :dbcommand:`findAndModify` commands would update the
+- Zero or more :dbcommand:`findAndModify` commands update the
   newly inserted document.
 
-- Zero or more :dbcommand:`findAndModify` commands would fail when
-  they attempted to insert a duplicate. If the command fails due to
+- Zero or more :dbcommand:`findAndModify` commands fail when
+  they attempt to insert a duplicate. If the command fails due to
   a unique index constraint violation, you can retry the command.
   Absent a delete of the document, the retry should not fail.
 
@@ -144,13 +129,10 @@ cluster. :dbcommand:`findAndModify` operations issued against
 :program:`mongos` instances for non-sharded collections function
 normally.
 
-Concurrency
-~~~~~~~~~~~
+Document Validation
+~~~~~~~~~~~~~~~~~~~
 
-This command obtains a write lock on the affected database and
-will block other operations until it has completed; however,
-typically the write lock is short lived and equivalent to other
-similar :method:`~db.collection.update()` operations.
+.. include:: /includes/extracts/bypassDocumentValidation-findAndModify.rst
 
 .. _findAndModify-command-and-update:
 
@@ -211,18 +193,20 @@ This command performs the following actions:
 
         {
           "lastErrorObject" : {
+             "connectionId" : 1,
              "updatedExisting" : true,
              "n" : 1,
-             "connectionId" : 1,
+             "syncMillis" : 0,
+             "writtenTo" : null,
              "err" : null,
              "ok" : 1
           },
-          "value" : {
-             "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
-             "name" : "Tom",
-             "state" : "active",
-             "rating" : 100,
-             "score" : 5
+          value" : {
+            "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
+            "name" : "Tom",
+            "state" : "active",
+            "rating" : 100,
+            "score" : 5
           },
           "ok" : 1
         }
@@ -258,7 +242,7 @@ method returns only the unmodified document, or if ``new`` is
 .. code-block:: javascript
 
   {
-     "_id" : ObjectId("50f1d54e9beb36a0f45c6452"),
+     "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
      "name" : "Tom",
      "state" : "active",
      "rating" : 100,
@@ -294,28 +278,7 @@ and returns a document with the following fields:
   command, including the field ``upserted`` that contains the
   ``ObjectId`` of the newly inserted document, and
 
-- The ``value`` field that contains an empty document ``{}`` as the
-  original document because the command included the ``sort`` option:
-
-.. code-block:: sh
-
-   {
-     "lastErrorObject" : {
-        "updatedExisting" : false,
-        "upserted" : ObjectId("50f2329d0092b46dae1dc98e"),
-        "n" : 1,
-        "connectionId" : 1,
-        "err" : null,
-        "ok" : 1
-     },
-     "value" : {
-
-     },
-     "ok" : 1
-   }
-
-If the command did **not** include the ``sort`` option, the ``value`` field
-would contain ``null``:
+- The ``value`` field containing ``null``.
 
 .. code-block:: sh
 
@@ -324,7 +287,7 @@ would contain ``null``:
      "lastErrorObject" : {
         "updatedExisting" : false,
         "n" : 1,
-        "upserted" : ObjectId("5102f7540cb5c8be998c2e99")
+        "upserted" : ObjectId("54f62c8bc85d4472eadea26f")
      },
      "ok" : 1
    }
@@ -360,19 +323,63 @@ The command returns the newly inserted document in the ``value`` field:
 
    {
      "lastErrorObject" : {
-        "updatedExisting" : false,
-        "upserted" : ObjectId("50f47909444c11ac2448a5ce"),
-        "n" : 1,
         "connectionId" : 1,
+        "updatedExisting" : false,
+        "upserted" : ObjectId("54f62bbfc85d4472eadea26d"),
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
         "err" : null,
         "ok" : 1
      },
      "value" : {
-        "_id" : ObjectId("50f47909444c11ac2448a5ce"),
+        "_id" : ObjectId("54f62bbfc85d4472eadea26d"),
         "name" : "Pascal",
         "rating" : 25,
+        "state" : "active",
+        "score" : 1
+     },
+     "ok" : 1
+   }
+
+Sort and Remove
+~~~~~~~~~~~~~~~
+
+By including a ``sort`` specification on the ``rating`` field, the
+following example removes from the ``people`` collection a single
+document with the ``state`` value of ``active`` and the lowest
+``rating`` among the matching documents:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { state: "active" },
+        sort: { rating: 1 },
+        remove: true
+      }
+   )
+
+The method returns the deleted document:
+
+.. code-block:: sh
+
+   {
+     "lastErrorObject" : {
+        "connectionId" : 1,
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
+        "_id" : ObjectId("54f62a6785e4be1f982b9c9b"),
+        "name" : "XYZ123",
         "score" : 1,
-        "state" : "active"
+        "state" : "active",
+        "rating" : 3
      },
      "ok" : 1
    }

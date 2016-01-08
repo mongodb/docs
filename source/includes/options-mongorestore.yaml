@@ -94,6 +94,13 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongorestore
+name: sslAllowInvalidHostnames
+inherit:
+  name: sslAllowInvalidHostnames
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongorestore
 name: sslFIPSMode
 inherit:
   name: sslFIPSMode
@@ -129,9 +136,16 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongorestore
-name: dbpath
+name: gssapiServiceName
 inherit:
-  name: dbpath
+  name: gssapiServiceName
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongorestore
+name: gssapiHostName
+inherit:
+  name: gssapiHostName
   program: _shared
   file: options-shared.yaml
 ---
@@ -150,21 +164,35 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongorestore
+name: maintainInsertionOrder
+inherit:
+  name: maintainInsertionOrder
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongorestore
+name: writeConcern
+inherit:
+  name: writeConcern
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongorestore
 name: db
 aliases: -d
 directive: option
 args:  <database>
 description: |
-  Specifies a database for :program:`mongorestore` to restore data *into*.
-  If the database does not exist, :program:`mongorestore` creates the
-  database. If you do not specify a ``<db>``, :program:`mongorestore`
+  Specifies a database for {{program}} to restore data *into*.
+  If the database does not exist, {{program}} creates the
+  database. If you do not specify a ``<db>``, {{program}}
   creates new databases that correspond to the databases where data
   originated and data may be overwritten. Use this option to restore data
   into a MongoDB instance that already has data.
 
   {{role}} does *not* control which :term:`BSON` files
-  :program:`mongorestore` restores. You must use the
-  :program:`mongorestore` :ref:`path option <mongorestore-path-option>` to
+  {{program}} restores. You must use the
+  {{program}} :ref:`path option <mongorestore-path-option>` to
   limit that restored data.
 optional: true
 ---
@@ -174,8 +202,8 @@ aliases: -c
 directive: option
 args: <collection>
 description: |
-  Specifies a single collection for :program:`mongorestore` to restore. If
-  you do not specify {{role}}, :program:`mongorestore` takes
+  Specifies a single collection for {{program}} to restore. If
+  you do not specify {{role}}, {{program}} takes
   the collection name from the input filename. If the input file has an
   extension, MongoDB omits the extension of the file from the collection
   name.
@@ -186,11 +214,10 @@ name: objcheck
 directive: option
 args: null
 description: |
-  Forces :program:`mongorestore` to validate all requests from clients
+  Forces {{program}} to validate all requests from clients
   upon receipt to ensure that clients never insert invalid documents into
   the database. For objects with a high degree of sub-document nesting,
-  {{role}} can have a small impact on performance. You can set
-  :option:`--noobjcheck` to disable object checking at run-time.
+  {{role}} can have a small impact on performance.
 
   .. versionchanged:: 2.4
      MongoDB enables {{role}} by default, to prevent any
@@ -199,31 +226,23 @@ description: |
 optional: true
 ---
 program: mongorestore
-name: noobjcheck
-inherit:
-  name: noobjcheck
-  program: mongod
-  file: options-mongod.yaml
----
-program: mongorestore
-name: filter
-directive: option
-args: '<JSON>'
-description: |
-  Limits the documents that :program:`mongorestore` imports to only those
-  documents that match the JSON document specified as ``'<JSON>'``. Be
-  sure to include the document in single quotes to avoid interaction with
-  your system's shell environment. For an example of {{role}},
-  see :ref:`backup-restore-filter`.
-optional: true
----
-program: mongorestore
 name: drop
 directive: option
 args: null
 description: |
-  Modifies the restoration procedure to drop every collection from the
-  target database before restoring the collection from the dumped backup.
+  Before restoring the collections from the dumped backup, drops the
+  collections from the target database. {{role}} does not drop
+  collections that are not in the backup.
+
+  When the restore includes the ``admin`` database, {{program}} with
+  {{role}} removes all user credentials and replaces them with the
+  users defined in the dump file. Therefore, in systems with
+  :setting:`~security.authorization` enabled, {{program}} must be able
+  to authenticate to an existing user *and* to a user defined in the
+  dump file. If {{program}} can't authenticate to a user defined in the
+  dump file, the restoration process will fail, leaving an empty
+  database.
+
 optional: true
 ---
 program: mongorestore
@@ -231,10 +250,23 @@ name: oplogReplay
 directive: option
 args: null
 description: |
-  Replays the :term:`oplog` after restoring the dump to ensure that the
-  current state of the database reflects the point-in-time backup captured
-  with the ":option:`mongodump --oplog`" command. For an example of
-  {{role}}, see :ref:`backup-restore-oplogreplay`.
+  After restoring the database dump, replays the :term:`oplog` entries
+  from the :file:`oplog.bson` file located in the top level of the dump
+  directory. When used in conjunction with :option:`mongodump --oplog
+  <--oplog>`, :program:`mongorestore --oplogReplay <mongorestore>`
+  restores the database to the point-in-time backup captured with the
+  ``mongodump --oplog`` command. For an example of {{role}}, see
+  :ref:`backup-restore-oplogreplay`.
+
+  :program:`mongorestore --oplogReplay <mongorestore>` replays any
+  valid :file:`oplog.bson` file found in the top level of the dump
+  directory. That is, if you have a bson file that contains valid oplog
+  entries, you can name the file ``oplog.bson`` and move it to the top
+  level of the dump directory for :program:`mongorestore --oplogReplay
+  <mongorestore>` to replay.
+
+  .. seealso:: :ref:`mongorestore Required Access <mongorestore-required-access>`
+
 optional: true
 ---
 program: mongorestore
@@ -244,7 +276,7 @@ args: <timestamp>
 description: |
   .. versionadded:: 2.2
 
-  Prevents :program:`mongorestore` from applying :term:`oplog` entries
+  Prevents {{program}} from applying :term:`oplog` entries
   with timestamp newer than or equal to ``<timestamp>``. Specify
   ``<timestamp>`` values in the form of ``<time_t>:<ordinal>``, where
   ``<time_t>`` is the seconds since the UNIX epoch, and ``<ordinal>``
@@ -260,7 +292,7 @@ name: keepIndexVersion
 directive: option
 args: null
 description: |
-  Prevents :program:`mongorestore` from upgrading the index to the latest
+  Prevents {{program}} from upgrading the index to the latest
   version during the restoration process.
 optional: true
 ---
@@ -271,7 +303,7 @@ args: null
 description: |
   .. versionadded:: 2.2
 
-  Prevents :program:`mongorestore` from restoring and building indexes as
+  Prevents {{program}} from restoring and building indexes as
   specified in the corresponding :program:`mongodump` output.
 optional: true
 ---
@@ -282,7 +314,7 @@ args: null
 description: |
   .. versionadded:: 2.2
 
-  Prevents :program:`mongorestore` from setting the collection options,
+  Prevents {{program}} from setting the collection options,
   such as those specified by the :dbcommand:`collMod` :term:`database
   command`, on restored collections.
 optional: true
@@ -305,9 +337,9 @@ description: |
   .. versionadded:: 2.2
 
   Specifies the :term:`write concern` for each write operation that
-  :program:`mongorestore` writes to the target database. By default,
-  :program:`mongorestore` does not wait for a response for :ref:`write
-  acknowledgment <write-concern-acknowledged>`.
+  {{program}} writes to the target database. By default,
+  {{program}} does not wait for a :doc:`write
+  acknowledgment </reference/write-concern>`.
 optional: true
 ---
 program: mongorestore
@@ -315,8 +347,105 @@ name: <path>
 directive: option
 args: null
 description: |
-  The final argument of the :program:`mongorestore` command is a
+  The final argument of the {{program}} command is a
   directory path. This argument specifies the location of the
   database dump from which to restore.
+
+  You cannot specify both the ``<path>`` argument and the ``--dir``
+  option, which also specifies the dump directory, to {{program}}.
+
+optional: true
+---
+program: mongorestore
+name: dir
+directive: option
+args: string
+description: |
+  Specifies the dump directory.
+
+  - You cannot specify both the ``--dir`` option and the ``<path>``
+    argument, which also specifies the dump directory, to {{program}}.
+
+  - You cannot use the ``--archive`` option with the ``--dir`` option.
+
+optional: true
+---
+program: mongorestore
+name: numInsertionWorkersPerCollection
+inherit:
+  name: numInsertionWorkers
+  program: mongoimport
+  file: options-mongoimport.yaml
+description: |
+  .. versionadded:: 3.0.0
+
+  Specifies the number of insertion workers to run concurrently per collection.
+default: 1
+---
+program: mongorestore
+name: numParallelCollections
+aliases: -j
+args: int
+directive: option
+description: |
+  Number of collections {{program}} should restore
+  in parallel.
+
+  If you specify ``-j`` when restoring a *single* collection, ``-j``
+  maps to the :option:`--numInsertionWorkersPerCollection` option rather than
+  {{role}}.
+optional: true
+default: 4
+---
+program: mongorestore
+name: stopOnError
+directive: option
+args: null
+description: |
+  .. versionadded:: 3.0
+
+  Forces {{program}} to halt the restore when it encounters an
+  error.
+optional: true
+---
+program: mongorestore
+name: archive
+directive: option
+args: <file or null>
+description: |
+  .. versionadded:: 3.2
+
+  Restores from an archive file or from the standard input (``stdin``).
+
+  To restore from an archive file, run {{program}} with the ``--archive``
+  option and the archive filename.
+
+  To restore from the standard input, run {{program}} with the
+  ``archive`` option but *omit* the filename.
+
+  .. note::
+
+     - You cannot use the ``--archive`` option with the ``--dir`` option.
+
+     - {{program}} still supports the positional ``-`` parameter to
+       restore a *single* collection from the standard input.
+
+optional: true
+---
+program: mongorestore
+name: gzip
+directive: option
+args: null
+description: |
+  .. versionadded:: 3.2
+
+  Restores from compressed files or data stream created by
+  :program:`mongodump --archive <mongodump>`
+
+  To restore from a dump directory that contains compressed files, run
+  :program:`mongorestore` with the new ``--gzip`` option. 
+
+  To restore from a compressed archive file, run :program:`mongorestore` with
+  the ``--gzip`` option in conjunction with the ``--archive`` option.
 optional: true
 ...

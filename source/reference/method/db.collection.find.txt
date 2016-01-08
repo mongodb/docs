@@ -7,13 +7,12 @@ db.collection.find()
 Definition
 ----------
 
-.. method:: db.collection.find( <criteria>, <projection>)
+.. method:: db.collection.find(query, projection)
 
-   Selects documents
-   in a collection and returns a :term:`cursor` to the selected
-   documents. [#formal-query-structure]_
+   Selects documents in a collection and returns a :term:`cursor` to the selected
+   documents.
 
-   .. include:: /reference/method/db.collection.find-param.rst
+   .. include:: /includes/apiargs/method-db.collection.find-param.rst
 
    :returns:
 
@@ -22,7 +21,7 @@ Definition
       "returns documents," the method is actually returning a cursor to
       the documents.
 
-      If the ``projection`` argument is specified, the
+      If :method:`~db.collection.find()` includes a ``projection`` argument, the
       matching documents contain only the ``projection`` fields and
       the ``_id`` field. You can optionally exclude the ``_id``
       field.
@@ -56,9 +55,6 @@ specifications, except for the exclusion of the ``_id`` field. In
 projections that *explicitly include* fields, the ``_id`` field is the
 only field that you can *explicitly exclude*.
 
-.. [#formal-query-structure] :method:`db.collection.find()` is a
-   wrapper for the more formal query structure that uses the
-   :operator:`$query` operator.
 
 Examples
 --------
@@ -159,6 +155,10 @@ In the document with ``_id`` equal to ``2``, the ``score: [ 1, 5 ]``
 meets the conditions because the element ``1`` meets both the ``$lt: 2``
 condition and the ``$gt: 0`` condition.
 
+.. seealso:: :ref:`specify-multiple-criteria-for-array-elements`
+
+.. COMMENT  The next subsections on Query Arrays and Query Embedded Documents need to be reworked.  We already started to show people how to query array with the above example.
+
 Query Arrays
 ~~~~~~~~~~~~
 
@@ -177,8 +177,8 @@ Query an Array of Documents
 ```````````````````````````
 
 The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where ``awards`` array contains a
-subdocument element that contains the ``award`` field equal to ``"Turing
+</reference/bios-example-collection>` where ``awards`` array contains an
+embedded document element that contains the ``award`` field equal to ``"Turing
 Award"`` and the ``year`` field greater than 1980:
 
 .. code-block:: javascript
@@ -195,15 +195,16 @@ Award"`` and the ``year`` field greater than 1980:
    )
 
 .. _query-subdocuments:
+.. _query-embedded-documents:
 
-Query Subdocuments
-~~~~~~~~~~~~~~~~~~
+Query Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Query Exact Matches on Subdocuments
-```````````````````````````````````
+Query Exact Matches on Embedded Documents
+`````````````````````````````````````````
 
 The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where the subdocument ``name`` is
+</reference/bios-example-collection>` where the embedded document ``name`` is
 *exactly* ``{ first: "Yukihiro", last: "Matsumoto" }``, including the
 order:
 
@@ -218,7 +219,7 @@ order:
        }
    )
 
-The ``name`` field must match the sub-document exactly. The query does
+The ``name`` field must match the embedded document exactly. The query does
 **not** match documents with the following ``name`` fields:
 
 .. code-block:: javascript
@@ -234,14 +235,14 @@ The ``name`` field must match the sub-document exactly. The query does
       first: "Yukihiro"
    }
 
-Query Fields of a Subdocument
-`````````````````````````````
+Query Fields of an Embedded Document
+````````````````````````````````````
 
 The following operation returns documents in the :doc:`bios collection
-</reference/bios-example-collection>` where the subdocument ``name``
+</reference/bios-example-collection>` where the embedded document ``name``
 contains a field ``first`` with the value ``"Yukihiro"`` and a field
 ``last`` with the value ``"Matsumoto"``. The query uses :term:`dot
-notation` to access fields in a subdocument:
+notation` to access fields in an embedded document:
 
 .. code-block:: javascript
 
@@ -252,8 +253,8 @@ notation` to access fields in a subdocument:
       }
    )
 
-The query matches the document where the ``name`` field contains a
-subdocument with the field ``first`` with the value ``"Yukihiro"`` and a
+The query matches the document where the ``name`` field contains an
+embedded document with the field ``first`` with the value ``"Yukihiro"`` and a
 field ``last`` with the value ``"Matsumoto"``. For instance, the query
 would match documents with ``name`` fields that held either of the
 following values:
@@ -310,7 +311,7 @@ Explicitly Excluded Fields
 
 The following operation queries the :doc:`bios collection
 </reference/bios-example-collection>` and returns all fields *except*
-the ``first`` field in the ``name`` subdocument and the ``birth``
+the ``first`` field in the ``name`` embedded document and the ``birth``
 field:
 
 .. code-block:: javascript
@@ -350,12 +351,12 @@ field and the ``contribs`` field:
       { name: 1, contribs: 1, _id: 0 }
    )
 
-On Arrays and Subdocuments
-``````````````````````````
+On Arrays and Embedded Documents
+````````````````````````````````
 
 The following operation queries the :doc:`bios collection
 </reference/bios-example-collection>` and returns the ``last`` field in
-the ``name`` subdocument and the first two elements in the ``contribs``
+the ``name`` embedded document and the first two elements in the ``contribs``
 array:
 
 .. code-block:: javascript
@@ -486,17 +487,15 @@ returns all remaining documents:
 Combine Cursor Methods
 ``````````````````````
 
-The following example chains cursor methods:
+The following statements chain cursor methods :method:`~cursor.limit()`
+and :method:`~cursor.sort()`:
 
 .. code-block:: javascript
 
    db.bios.find().sort( { name: 1 } ).limit( 5 )
    db.bios.find().limit( 5 ).sort( { name: 1 } )
 
-Regardless of the order you chain the :method:`~cursor.limit()` and the
-:method:`~cursor.sort()`, the request to the server has the structure
-that treats the query and the :method:`~cursor.sort()` modifier as a
-single object. Therefore, the :method:`~cursor.limit()` operation method
-is always applied after the :method:`~cursor.sort()` regardless of the
-specified order of the operations in the chain. See the :doc:`meta query
-operators </reference/operator/query-modifier>`.
+The two statements are equivalent; i.e. the order in which you chain
+the :method:`~cursor.limit()` and the :method:`~cursor.sort()` methods
+is not significant. Both statements return the first five documents, as
+determined by the ascending sort order on 'name'.

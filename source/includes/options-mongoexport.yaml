@@ -93,6 +93,13 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongoexport
+name: sslAllowInvalidHostnames
+inherit:
+  name: sslAllowInvalidHostnames
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongoexport
 name: sslFIPSMode
 inherit:
   name: sslFIPSMode
@@ -119,6 +126,9 @@ inherit:
   name: authenticationDatabase
   program: _shared
   file: options-shared.yaml
+description: |
+  If you do not specify an authentication database, {{program}}
+  assumes that the database specified to export holds the user's credentials.
 ---
 program: mongoexport
 name: authenticationMechanism
@@ -128,28 +138,16 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongoexport
-name: dbpath
+name: gssapiServiceName
 inherit:
-  name: dbpath
+  name: gssapiServiceName
   program: _shared
   file: options-shared.yaml
 ---
 program: mongoexport
-name: directoryperdb
-directive: option
-args: null
-description: |
-  When used in conjunction with the corresponding option in
-  :program:`mongod`, allows :program:`mongoexport` to export data from
-  MongoDB instances that have every database's files saved in discrete
-  directories on the disk. This option is only relevant when specifying
-  the :option:`--dbpath` option.
-optional: true
----
-program: mongoexport
-name: journal
+name: gssapiHostName
 inherit:
-  name: journal
+  name: gssapiHostName
   program: _shared
   file: options-shared.yaml
 ---
@@ -178,7 +176,7 @@ description: |
   Specifies a field or fields to *include* in the export. Use a comma
   separated list of fields to specify multiple fields.
 
-  For :option:`--csv <mongoexport --csv>` output formats,
+  For :option:`csv <mongoexport --type>` output formats,
   :program:`mongoexport` includes only the specified field(s), and the
   specified field(s) can be a field within a sub-document.
 
@@ -197,7 +195,8 @@ description: |
   An alternative to :option:`--fields <mongoexport --fields>`. The
   {{role}} option allows you to
   specify in a file the field or fields to *include* in the export and is
-  **only valid** with the :option:`--csv <mongoexport --csv>` option. The
+  **only valid** with the :option:`--type <mongoexport --type>` option
+  with value ``csv``. The
   file must have only one field per line, and the line(s) must end with
   the LF character (``0x0A``).
 
@@ -214,6 +213,8 @@ description: |
   Provides a :term:`JSON document` as a query that optionally limits
   the documents returned in the export. Specify JSON in :doc:`strict
   format </reference/mongodb-extended-json>`.
+
+  .. include:: /includes/fact-quote-command-line-query.rst
 
   For example, given a collection named ``records`` in the database
   ``test`` with the following documents:
@@ -232,7 +233,7 @@ description: |
 
   .. code:: bash
 
-     mongoexport -d test -c records -q "{ a: { \$gte: 3 } }" --out exportdir/myRecords.json
+     mongoexport -d test -c records -q '{ a: { $gte: 3 } }' --out exportdir/myRecords.json
 
   The resulting file contains the following documents:
 
@@ -246,18 +247,21 @@ description: |
 optional: true
 ---
 program: mongoexport
-name: csv
+name: type
 directive: option
-args: null
+args: <string>
 description: |
-  Changes the export format to a comma-separated-values (CSV)
-  format. By default :program:`mongoexport` writes data using one
-  :term:`JSON` document for every MongoDB document.
 
-  If you specify {{role}}, then you must also use either
+  .. versionadded:: 3.0.0
+
+  Specifies the file type to export. Specify ``csv`` for :term:`CSV`
+  format or ``json`` for :term:`JSON` format.
+
+  If you specify ``csv``, then you must also use either
   the :option:`--fields` or the :option:`--fieldFile` option to
   declare the fields to export from the collection.
 optional: true
+default: json
 ---
 program: mongoexport
 name: out
@@ -303,21 +307,19 @@ args: null
 description: |
   .. versionadded:: 2.2
 
-  Forces :program:`mongoexport` to scan the data store directly:
-  typically, :program:`mongoexport` saves entries as they appear in the
-  index of the ``_id`` field. Use {{role}} to skip
-  the index and scan the data directly. Typically there are two cases
-  where this behavior is preferable to the default:
+  Forces :program:`mongoexport` to scan the data store directly instead
+  of traversing the ``_id`` field index. Use {{role}} to skip the
+  index. Typically there are two cases where this behavior is
+  preferable to the default:
 
   1. If you have key sizes over 800 bytes that would not be present
      in the ``_id`` index.
 
   2. Your database uses a custom ``_id`` field.
 
-  When you run with {{role}}, :program:`mongoexport`
-  does not use :operator:`$snapshot`. As a result, the export produced
-  by :program:`mongoexport` can reflect the state of the database at
-  many different points in time.
+  When you run with {{role}}, :program:`mongoexport` may return a
+  document more than once if a write operation interleaves with the
+  operation to cause the document to move.
 
   .. warning:: Use {{role}} with extreme caution
      and consideration.
@@ -364,4 +366,11 @@ description: |
   See :method:`~cursor.sort()` for information about the underlying
   operation.
 optional: true
+---
+program: mongoexport
+name: pretty
+inherit:
+  name: pretty
+  program: _shared
+  file: options-shared.yaml
 ...

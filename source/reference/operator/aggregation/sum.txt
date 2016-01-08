@@ -4,27 +4,67 @@ $sum (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. group:: $sum
 
-   Calculates and returns the sum of all the numeric values that result
-   from applying a specified expression to each document in a group of
-   documents that share the same group by key. :group:`$sum` ignores
-   non-numeric values.
-  
-   .. |accumulator| replace:: :group:`$sum`
-   .. include:: /includes/fact-aggregation-accumulator.rst
+   Calculates and returns the sum of numeric values. :group:`$sum`
+   ignores non-numeric values.
 
-   :expression:`$sum` has the following syntax:
+   .. include:: /includes/extracts/fact-aggregation-accumulator-sum.rst
+
+   When used in the :pipeline:`$group` stage, :expression:`$sum` has the
+   following syntax and returns the collective sum of all the numeric
+   values that result from applying a specified expression to each
+   document in a group of documents that share the same group by key:
 
    .. code-block:: javascript
 
       { $sum: <expression> }
 
+   When used in the :pipeline:`$project` stage, :expression:`$sum` returns the
+   sum of the specified expression or list of expressions for each
+   document and has one of two syntaxes:
+
+   - :expression:`$sum` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $sum: <expression> }
+
+   - :expression:`$sum` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $sum: [ <expression1>, <expression2> ... ]  }
+
    For more information on expressions, see
    :ref:`aggregation-expressions`.
 
-Example
--------
+Behavior
+--------
+
+Non-numeric Values
+~~~~~~~~~~~~~~~~~~
+
+:group:`$sum` ignores non-numeric values. If all operands are
+non-numeric, :group:`$sum` returns zero.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$sum` treats the operand as a non-numerical value.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider a ``sales`` collection with the following documents:
 
@@ -62,3 +102,40 @@ The operation returns the following results:
    { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 150, "count" : 2 }
    { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 45, "count" : 2 }
    { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 20, "count" : 1 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$sum` in the
+:pipeline:`$project` stage to calculate the total quiz scores, the
+total lab scores, and the total of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      { 
+        $project: {
+          quizTotal: { $sum: "$quizzes"},
+          labTotal: { $sum: "$labs" },
+          examTotal: { $sum: [ "$final", "$midterm" ] }
+        }
+      }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "quizTotal" : 23, "labTotal" : 13, "examTotal" : 155 }
+   { "_id" : 2, "quizTotal" : 19, "labTotal" : 16, "examTotal" : 175 }
+   { "_id" : 3, "quizTotal" : 14, "labTotal" : 11, "examTotal" : 148 }
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst

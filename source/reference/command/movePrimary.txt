@@ -6,38 +6,40 @@ movePrimary
 
 .. dbcommand:: movePrimary
 
-   In a :term:`sharded cluster`, this command reassigns the database's
-   :term:`primary shard`, which holds all un-sharded collections in
-   the database. :dbcommand:`movePrimary` is an administrative command
-   that is only available for :program:`mongos` instances. Only use
-   :dbcommand:`movePrimary` when removing a shard from a sharded
-   cluster.
-
-   :dbcommand:`movePrimary` changes the primary shard for a
-   database in the cluster metadata, and migrates all un-sharded
-   collections to the specified shard. Use the command with the
-   following form:
+   In a :term:`sharded cluster`, :dbcommand:`movePrimary` reassigns the
+   :term:`primary shard` which holds all un-sharded collections in
+   the database.  :dbcommand:`movePrimary` first changes the primary shard in
+   the cluster metadata, and then migrates all un-sharded collections to the
+   specified :term:`shard`. Use the command with the following form:
 
    .. code-block:: javascript
 
       { movePrimary : "test", to : "shard0001" }
 
    When the command returns, the database's primary location will
-   shift to the designated :term:`shard`. To fully decommission a
+   shift to the designated shard. To fully decommission a
    shard, use the :dbcommand:`removeShard` command.
+
+   :dbcommand:`movePrimary` is an administrative command that is only available
+   for :program:`mongos` instances.
 
 Considerations
 --------------
 
-Limitations
-~~~~~~~~~~~
+Behavior
+~~~~~~~~
 
-Only use :dbcommand:`movePrimary` when:
+Avoid accessing an un-sharded collection during migration.
+:dbcommand:`movePrimary` does not prevent reading and writing during its
+operation, and such actions yield undefined behavior.
 
-- the database does not contain any collections, *or*
+:dbcommand:`movePrimary` may take significant time to complete, and
+you should plan for this unavailability.
 
-- you have drained all sharded collections using the
-  :dbcommand:`removeShard` command.
+:dbcommand:`movePrimary` will fail if the destination shard contains a
+conflicting collection name.  This may occur if documents are written to an
+un-sharded collection while the collection is moved away, and later the original
+primary shard is restored.
 
 Use
 ~~~
@@ -51,7 +53,7 @@ for the database.
 
 If you do not update the :program:`mongos` instances' metadata cache
 after using :dbcommand:`movePrimary`, the :program:`mongos` may not
-write data to the correct shard, to recover you must manually
+write data to the correct shard. To recover, you must manually
 intervene.
 
 Additional Information

@@ -1,0 +1,135 @@
+==================
+Encryption At Rest
+==================
+
+.. default-domain:: mongodb
+
+Encryption at rest, when used in conjunction with transport encryption
+and good security policies that protect relevant accounts, passwords,
+and encryption keys, can help ensure compliance with security and
+privacy standards, including HIPAA, PCI-DSS, and FERPA.
+
+.. _encrypted-storage-engine:
+
+Encrypted Storage Engine
+------------------------
+
+.. versionadded:: 3.2
+
+.. include:: /includes/fact-enterprise-only-admonition.rst
+
+.. important:: Available for the WiredTiger Storage Engine only.
+
+MongoDB Enterprise 3.2 introduces a native encryption option for the
+WiredTiger storage engine. This feature allows MongoDB to encrypt data
+files such that only parties with the decryption key can decode and
+read the data.
+
+Encryption Process
+~~~~~~~~~~~~~~~~~~
+
+If encryption is enabled, the default encryption mode that MongoDB
+Enterprise uses is the ``AES256-CBC`` (or 256-bit Advanced Encryption
+Standard in Cipher Block Chaining mode) via OpenSSL. AES-256 uses a
+symmetric key; i.e. the same key to encrypt and decrypt text. MongoDB
+Enterprise also supports authenticated encryption ``AES256-GCM`` (or
+256-bit Advanced Encryption Standard in Galois/Counter Mode). FIPS mode
+encryption is also available.
+
+The data encryption includes:
+
+- Generating an system key.
+
+- Generating keys for each database.
+
+- Encrypting data with the database keys.
+
+- Encrypting the database keys with the system key.
+
+The encryption occur transparently in the storage layer; i.e. all data
+files are fully encrypted from a filesystem perspective, and data only
+exists in an unencrypted state in memory and during transmission.
+
+To encrypt all of MongoDB's network traffic, you can use TLS/SSL
+(Transport Layer Security/Secure Sockets Layer). See
+:doc:`/tutorial/configure-ssl` and
+:doc:`/tutorial/configure-ssl-clients`.
+
+Key Management
+~~~~~~~~~~~~~~
+
+.. important:: Secure management of the encryption keys is critical.
+
+The database keys are internal to the server and are only paged to disk
+in an encrypted format. MongoDB never pages the system key to disk
+under any circumstances.
+
+Only the system key is external to the server (i.e. kept separate from
+the data and the database keys), and requires external management. To
+manage the system key, MongoDB's encrypted storage engine supports two
+key management options:
+
+- Integration with a third party key management appliance via the Key
+  Management Interoperability Protocol (KMIP). **Recommended**
+
+- Local key management via a keyfile.
+
+To configure MongoDB for encryption and use one of the two key
+management options, see
+:doc:`/tutorial/configure-encryption`.
+
+Encryption and Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Encryption is not a part of replication:
+
+- System keys and database keys are not replicated, and 
+
+- Data is not natively encrypted over the wire.
+
+Although you could reuse the same key for the nodes, MongoDB recommends
+the use of individual keys for each node as well as the use of
+transport encryption.
+
+For details, see :ref:`rotate-encryption-keys`.
+
+.. _app-level-encryption:
+
+Application Level Encryption
+----------------------------
+
+Application Level Encryption provides encryption on a per-field or
+per-document basis within the application layer. To encrypt document or
+field level data, write custom encryption and decryption routines or
+use a commercial solution such as the `Vormetric Data Security
+Platform
+<http://www.vormetric.com/sites/default/files/sb-MongoDB-Letter-2014-0611.pdf>`_.
+
+.. _third-party-storage-encryption:
+
+Third Party Storage Encryption
+------------------------------
+
+A number of third-party libraries can integrate with the operating
+system to provide transparent disk-level encryption. For example:
+
+- Linux Unified Key Setup (LUKS)
+    LUKS is available for most Linux distributions. For configuration
+    explanation, see the `LUKS documentation from Red Hat`_.
+
+- IBM Guardium Data Encryption
+    `IBM Guardium Data Encryption`_ provides support for disk-level
+    encryption for Linux and Windows operating systems.
+
+- Vormetric Data Security Platform
+    The `Vormetric Data Security Platform`_ provides disk and
+    file-level encryption in addition to application level encryption.
+
+- Bitlocker Drive Encryption
+    `Bitlocker Drive Encryption`_ is a feature available on Windows
+    Server 2008 and 2012 that provides disk encryption.
+
+.. _`LUKS documentation from Red Hat`: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Security_Guide/sec-Encryption.html
+.. _`Vormetric Data Security Platform`: http://www.vormetric.com/sites/default/files/sb-MongoDB-Letter-2014-0611.pdf
+.. _`IBM Guardium Data Encryption`: http://www-03.ibm.com/software/products/en/infosphere-guardium-data-encryption
+.. _`Bitlocker Drive Encryption`: http://technet.microsoft.com/en-us/library/hh831713.aspx

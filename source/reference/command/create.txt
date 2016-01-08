@@ -12,22 +12,27 @@ Definition
    Explicitly creates a collection. :dbcommand:`create` has the
    following form:
 
+   .. versionchanged:: 3.2
+
    .. code-block:: javascript
 
-      { create: <collection_name>,
+      {
+        create: <collection_name>,
         capped: <true|false>,
         autoIndexId: <true|false>,
         size: <max_size>,
         max: <max_documents>,
-        flags: <0|1>
+        flags: <0|1|2|3>,
+        storageEngine: <document>,
+        validator: <document>,
+        validationLevel: <string>,
+        validationAction: <string>,
+        indexOptionDefaults: <document>
       }
 
    :dbcommand:`create` has the following fields:
 
-   .. include:: /reference/command/create-field.rst
-
-   For more information on the ``autoIndexId`` field in versions before
-   2.2, see :ref:`2.2-id-indexes-capped-collections`.
+   .. include:: /includes/apiargs/dbcommand-create-field.rst
 
    The :method:`db.createCollection()` method wraps the
    :dbcommand:`create` command.
@@ -41,8 +46,11 @@ completed. The write lock for this operation is typically short
 lived. However, allocations for large capped collections may take
 longer.
 
-Example
--------
+Examples
+--------
+
+Create a Capped Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create a :term:`capped collection` limited to 64 kilobytes, issue
 the command in the following form:
@@ -50,3 +58,25 @@ the command in the following form:
 .. code-block:: javascript
 
    db.runCommand( { create: "collection", capped: true, size: 64 * 1024 } )
+
+Specify Storage Engine Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.0
+
+You can specify collection-specific storage engine configuration
+options when you create a collection with
+:method:`db.createCollection()`. Consider the following operation:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+       create: "users",
+       storageEngine: { wiredTiger: { configString: "<option>=<setting>" } }
+   } )
+
+This operation creates a new collection named ``users`` with a
+specific configuration string that MongoDB will pass to the
+``wiredTiger`` storage engine. See the `WiredTiger documentation of
+collection level options <http://source.wiredtiger.com/2.4.1/struct_w_t___s_e_s_s_i_o_n.html#a358ca4141d59c345f401c58501276bbb>`_
+for specific ``wiredTiger`` options.
