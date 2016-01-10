@@ -6,7 +6,7 @@ database ``test``:
    {
        "_id": ObjectId("....")
        "close": 7.45,
-       "detail": { "a": 2, "b":3}
+       "detail": { "a": 2, "b": 3 }
    }
 
 You can use :program:`mongodrdl` to generate a schema based on this collection
