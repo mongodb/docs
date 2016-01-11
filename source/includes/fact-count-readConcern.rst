@@ -1,2 +1,2 @@
-To use a :doc:`/reference/readConcern` level of :readconcern:`"majority"`, you
-must specify a nonempty ``query`` condition.
+To use a :term:`read concern` level of :readconcern:`"majority"`, you must
+specify a nonempty ``query`` condition.
