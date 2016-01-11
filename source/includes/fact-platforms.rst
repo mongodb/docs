@@ -39,12 +39,18 @@
      - |checkmark|
      -
      -
-   * - SLES 11+
+   * - SLES 11
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - SLES 12
+     - |checkmark|
+     -
+     -
+     -
+     -
    * - Solaris 64-bit
      - |checkmark|
      - |checkmark|
