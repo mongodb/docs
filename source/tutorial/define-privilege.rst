@@ -8,6 +8,12 @@ Define a Privilege
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 MongoDB privileges exist within roles. Defining a privilege as part of
 role creation.
 
