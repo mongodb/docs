@@ -4,19 +4,24 @@ Perform Quorum Reads on Replica Sets
 
 .. default-domain:: mongodb
 
+.. versionadded:: 3.2
+
 Overview
 --------
 
-When reading from replica sets, in some edge cases, clients can
-read stale data even when specifying a :readmode:`primary` read
-preference. [#edge-cases-2-primaries]_ Clients may also see results of
-writes before they are made durable and before they have propagated to
-enough replica set members to avoid rollbacks.
+When reading from the primary of a replica set, it is possible to read
+data that is stale or not durable, depending on the read concern used
+[#edge-cases-2-primaries]_. With a read concern level of
+:readconcern:`"local"`, a client can read data before it is
+:term:`durable`; that is, before they have propagated to enough replica
+set members to avoid a rollback. A read concern level of
+:readconcern:`"majority"` guarantees durable reads but may return stale
+data that has been overwritten by another write operation.
 
 This tutorial outlines a procedure that uses
 :method:`db.collection.findAndModify()` to read data that is not stale
 and cannot be rolled back. To do so, the procedure uses the
-:method:`db.collection.findAndModify()` method with a :ref:`write
+:method:`~db.collection.findAndModify()` method with a :ref:`write
 concern <write-concern>` to modify a dummy field in a document.
 Specifically, the procedure requires that:
 
@@ -24,11 +29,18 @@ Specifically, the procedure requires that:
   and a :doc:`unique index </core/index-unique>` **must exist** to
   satisfy the query.
 
-- :method:`db.collection.findAndModify()` must actually modify a
+- :method:`~db.collection.findAndModify()` must actually modify a
   document; i.e. result in a change to the document.
 
-- :method:`db.collection.findAndModify()` must use the write concern
+- :method:`~db.collection.findAndModify()` must use the write concern
   :writeconcern:`{ w: "majority" } <"majority">`.
+
+.. important::
+
+   The "quorum read" procedure has a substantial cost over simply using
+   a read concern of :readconcern:`"majority"` because it incurs write
+   latency rather than read latency. This technique should only be used
+   if staleness is absolutely intolerable.
 
 Prerequisites
 -------------
