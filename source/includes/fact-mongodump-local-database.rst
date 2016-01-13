@@ -1,1 +1,1 @@
-:program:`mongodump` does *not* dump the content of the ``local`` database.
+:program:`mongodump` excludes the content of the ``local`` database in its output.
