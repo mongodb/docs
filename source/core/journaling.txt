@@ -17,19 +17,19 @@ ahead logging* to on-disk :term:`journal` files.
 
 .. _journaling-wiredTiger:
 
-Journaling and WiredTiger
--------------------------
+Journaling and the WiredTiger Storage Engine
+--------------------------------------------
 
 .. important::
 
    The ``log`` mentioned in this section refers to the WiredTiger
    write-ahead log and not the MongoDB log file.
 
-WiredTiger uses :ref:`checkpoints <storage-wiredtiger-checkpoints>` to
-provide a consistent view of data on disk and allow MongoDB to recover
-from the last checkpoint. However, if MongoDB exits unexpectedly in
-between checkpoints, journaling is required to recover information that
-occurred after the last checkpoint.
+:doc:`WiredTiger </core/wiredtiger>` uses :ref:`checkpoints
+<storage-wiredtiger-checkpoints>` to provide a consistent view of data
+on disk and allow MongoDB to recover from the last checkpoint. However,
+if MongoDB exits unexpectedly in between checkpoints, journaling is
+required to recover information that occurred after the last checkpoint.
 
 With journaling, the recovery process:
 
@@ -62,8 +62,8 @@ following intervals or conditions:
   interval of 60 seconds or when 2 GB of journal data has been written,
   whichever occurs first.
 
-- If the write operation includes a write concern of ``j:true``,
-  WiredTiger forces a sync of the WiredTiger log files.
+- If the write operation includes a write concern of :writeconcern:`j:
+  true <j>`, WiredTiger forces a sync of the WiredTiger log files.
 
 - Because MongoDB uses a log file size limit of 100 MB, WiredTiger
   creates a new journal file approximately every 100 MB of data. When
@@ -109,15 +109,15 @@ WiredTiger will pre-allocate log files.
 
 .. _journaling-mmapv1:
 
-Journaling and MMAPv1
----------------------
+Journaling and the MMAPv1 Storage Engine
+----------------------------------------
 
-With MMAPv1, when a write operation occurs, MongoDB updates the
-in-memory view. With journaling enabled, MongoDB writes the in-memory
-changes first to on-disk journal files. If MongoDB should terminate or
-encounter an error before committing the changes to the data files,
-MongoDB can use the journal files to apply the write operation to the
-data files and maintain a consistent state.
+With :doc:`MMAPv1 </core/mmapv1>`, when a write operation occurs,
+MongoDB updates the in-memory view. With journaling enabled, MongoDB
+writes the in-memory changes first to on-disk journal files. If MongoDB
+should terminate or encounter an error before committing the changes to
+the data files, MongoDB can use the journal files to apply the write
+operation to the data files and maintain a consistent state.
 
 .. _journaling-storage-views:
 .. _journaling-record-write-operation:
@@ -239,3 +239,17 @@ the database. This is a one-time preallocation and does not occur with
 future invocations.
 
 To avoid preallocation lag, see :ref:`journaling-avoid-preallocation-lag`.
+
+.. _journaling-inMemory:
+
+Journaling and the In-Memory Storage Engine
+-------------------------------------------
+
+.. include:: /includes/fact-inmemory-beta.rst
+
+The :doc:`In-Memory Storage Engine </core/inmemory>` is available in
+MongoDB Enterprise 3.2 and later. Because its data is kept in memory,
+there is no separate journal. Write operations with a write concern of
+:writeconcern:`j: true <j>` are immediately acknowledged.
+
+.. seealso:: :ref:`In-Memory Storage Engine: Durability <inmemory-durability>`
