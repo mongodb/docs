@@ -1,6 +1,6 @@
-===================================
-Configure Multiple Backup Databases
-===================================
+==================================
+Configure Multiple Snapshot Stores
+==================================
 
 .. default-domain:: mongodb
 
@@ -13,43 +13,41 @@ Configure Multiple Backup Databases
 Overview
 --------
 
-If you use the :term:`Backup Blockstore Database` for snapshot storage, then
-you can :ref:`add new blockstores <add-blockstore>` to your
-data center if existing ones have reached capacity. 
+Additional Snapshot Stores can be deployed to one or more data centers if existing stores have reached capacity. 
 
-If you use a file system store for snapshot storage, then
-you can :ref:`add new file system stores <add-filestore>` to your
-data center if existing ones have reached capacity. 
+- If you use a :term:`Backup Blockstore Database` for snapshot storage, 
+  then you can :ref:`add new blockstores <add-blockstore>`.
 
-If needed, you can also deploy blockstores or filestores in multiple data
-centers and assign backups of particular MongoDB deployments to particular
-data centers, as described in the following sections. You assign backups to data centers by
-attaching specific |onprem| :term:`groups <group>` to specific blockstores.
+- If you use a file system store for snapshot storage, then you can 
+  :ref:`add new file system stores <add-filestore>`.
+
+You can bind specific |onprem| :term:`groups <group>` to specific snapshot
+stores and particular data centers. This assigns the backups of particular
+MongoDB deployments to specific data centers.
 
 Deploy snapshot stores to multiple data centers when:
 
 - Two sets of backed up data cannot have co-located storage for
   regulatory reasons.
 
-- You have multiple data centers and want to reduce cross-data center
-  network traffic by keeping each snapshot store in the data center it
-  backs.
+- You want to reduce cross-data center network traffic by keeping each
+  snapshot store in the data center it backs.
 
-This tutorial sets up two blockstores in two separate data centers and
-attaches a separate group to each.
+This tutorial sets up two snapshot stores, one in each of two separate data
+centers and attaches a separate group to each.
 
 Prerequisites
 -------------
 
-If a :term:`Backup Blockstore Database` is used:
-
-Each data center hosts a :term:`Backup Blockstore Database`
-and requires its own :ref:`application`,
-:ref:`backup-daemon`, and :doc:`Backup Agent </tutorial/nav/install-backup-agent>`
-
 The two |application| instances must share a single dedicated
 :ref:`mms-application-database`. You can put members of the |application|
 Database replica set in each data center.
+
+.. If a :term:`Backup Blockstore Database` is used:
+
+Each data center hosts a :term:`Backup Blockstore Database`
+and requires its own :ref:`application` and 
+:doc:`Backup Agent </tutorial/nav/install-backup-agent>`.
 
 Configure each Backup Agent to use the URL for its local
 |application|. You can configure each |application| to use a different
@@ -86,49 +84,19 @@ find the correct install procedure for your operating system.
 
 To run replica sets for the |application| Database and Blockstore Databases, see :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the MongoDB manual.
 
-Install the |application|
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Install and Start the |application|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install the |application| in each data center but **do not** perform the
-step to *start* the service. See :doc:`/tutorial/nav/install-application`
-to find the procedure for your operating system.
-
-In the step for configuring the ``conf-mms.properties`` file, use the same
-|application| URL. For example, in both data centers,
-set :setting:`mms.centralUrl` to point to the server in Data Center 1:
-
-.. code-block:: sh
-
-   mms.centralUrl = <application-server-in-data-center-1>:<8080>
-
-Start the |application|
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The |application| creates a ``gen.key`` file on initial startup. You
-must start the |application| in one data center and copy its ``gen.key``
-file **before** starting the other |application|. |onprem| uses the same
-``gen.key`` file for **all** servers in both data centers.
-
-The ``gen.key`` file is binary. You cannot copy the contents: you must
-copy the file using something like SCP.
-
-|onprem| uses the ``gen.key`` to encrypt data at rest in the databases and
-to encrypt credentials via the :ref:`credentials tool
-<encrypt-mongodb-user-credentials>`. 
-
-.. note::
-   See the :ref:`gen-key` in the :doc:`/tutorial/configure-application-high-availability` page.
-
-.. include:: /includes/steps/configure-backup-data-locality-start-application.rst
-
-Install the Backup Daemon
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Install and start the Backup Daemon in each data center. 
+Install the |application| in each data center.
 
 .. note::
    See :doc:`/tutorial/nav/install-application` for instructions for your
    operating system.
+
+.. important::
+   Each set of installation instructions for each operating system covers how
+   to create a multiple instances of an |application|. These activities need
+   to be completed before a
 
 Bind Groups to Backup Resources
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
