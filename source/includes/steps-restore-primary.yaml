@@ -41,8 +41,8 @@ action:
     used previously. The following are example commands:
   language: sh
   code: |
-    tar -xvf <backup-restore-name>.tar.gz
-    mv <backup-restore-name> /data
+    tar -xvf <backupRestoreName>.tar.gz
+    mv <backupRestoreName> /data
 ---
 title: "Start the primary with the new :setting:`dbpath`."
 stepnum: 3
@@ -52,7 +52,7 @@ action:
     For example:
   language: sh
   code: |
-    mongod --dbpath <path-to-data> --replSet <replica-set-name> --logpath <path-to-data>/mongodb.log --fork
+    mongod --dbpath <pathToData> --replSet <replicaSetName> --logpath <pathToData>/mongodb.log --fork
 ---
 title: "Connect to the primary and initiate the replica set."
 stepnum: 4
@@ -99,7 +99,7 @@ pre: |
 
      .. code-block:: javascript
 
-        mongod --dbpath /<path-to-data> --logpath /<path-to-data>/mongodb.log --fork
+        mongod --dbpath /<pathToData> --logpath /<pathToData>/mongodb.log --fork
 ---
 title: "Connect to the primary and drop the :term:`oplog`."
 stepnum: 6
@@ -117,29 +117,61 @@ action:
       use local
       db.oplog.rs.drop()
 ---
-title: "Run the ``seedSecondary.sh`` or ``seedSecondary.bat`` script on the primary."
+title: "Run the ``seedSecondary`` script on the primary."
 stepnum: 7
 ref: seed
-pre: |
-  The ``seedSecondary.sh`` script for Unix-based systems and 
-  ``seedSecondary.bat`` script for Windows re-create the oplog collection and seed it
-  with the timestamp of the snapshot's creation. This allows the secondary
-  to come back up to time without requiring a full initial sync. The script
-  is customized by |mms| for this particular snapshot and is included in the
-  backup restore file.
-action:
-  pre: |
-    To run the script, issue the following command,
-    where ``<mongod-port>`` is the port of the :program:`mongod` process,
-    ``<oplog-size-in-gigabytes>`` is the size of the replica set's oplog,
-    ``<replica-set-name>`` is the name of the replica set, and ``<primary-host-and-port>``
-    is the hostname:port combination for the replica set's primary:
-  language: sh
-  code: |
-    ./seedSecondary.sh <mongod-port> <oplog-size-in-gigabytes> <replica-set-name> <primary-host-and-port>
-    ./seedSecondary.sh 27018 2 rs-1 primary-host.example.com:27017
-    .\seedSecondary.bat <mongod-port> <oplog-size-in-gigabytes> <replica-set-name> <primary-host-and-port>
-    .\seedSecondary.sh 27018 2 rs-1 primary-host.example.com:27017  
+action: 
+  - pre: |
+      Use the appropriate script for your operating system:
+
+      .. list-table::
+         :widths: 40 60
+
+         * - UNIX-based
+           - ``seedSecondary.sh``
+
+         * - Windows
+           - ``seedSecondary.bat``
+
+      This script recreates the oplog collection and seeds it with the
+      timestamp of the snapshot's creation. This allows the secondary to come
+      back up to time without requiring a full initial sync. |mms| customizes
+      this script for this particular snapshot and is included in the backup
+      restore file.
+
+  - pre: |
+      To run the script, issue the following command, where:
+
+      .. list-table::
+         :widths: 40 60
+
+         * - ``<mongodPort>``
+           - The port of the :program:`mongod` process
+
+         * - ``<oplogSizeInGigabytes>``
+           - The size of the replica set's oplog
+
+         * - ``<replicaSetName>``
+           - The name of the replica set
+
+         * - ``<primaryHost:primaryPort>``
+           - The ``hostname:port`` combination for the replica set's primary
+
+      - For **UNIX-based** systems:
+
+        .. code-block:: sh
+
+           ./seedSecondary.sh <mongodPort> <oplogSizeInGigabytes> <replicaSetName> <primaryHost:primaryPort>
+           ./seedSecondary.sh 27018 2 rs-1 primaryHost.example.com:27017
+
+      - For **Windows-based** systems:
+
+        .. code-block:: sh
+
+           .\seedSecondary.bat <mongodPort> <oplogSizeInGigabytes> <replicaSetName> <primaryHost:primaryPort>
+           .\seedSecondary.bat 27018 2 rs-1 primaryHost.example.com:27017
+
+
 ---
 title: "Restart the primary as part of a replica set."
 stepnum: 8
@@ -171,6 +203,6 @@ pre: |
 
      .. code-block:: javascript
 
-        mongod --dbpath /<path-to-data> --replSet <replica-set-name>
+        mongod --dbpath /<pathToData> --replSet <replicaSetName>
 
 ...

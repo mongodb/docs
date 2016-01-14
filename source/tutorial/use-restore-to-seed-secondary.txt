@@ -13,10 +13,9 @@ Seed a New Secondary from Backup Restore
 Overview
 --------
 
-When a natural synchronization of a new secondary host costs too much time or
-resources, seeding a secondary from a Backup restore is a better
-alternative. Seeding also does not impact an active MongoDB process
-to retrieve data.
+When a new secondary member is added to a replica set, MongoDB will synchronize data to that new secondary as it would with any member of the replica set. This can be very resource or time intensive if the database is large. 
+
+As an alternative to the regular synchronization, the new secondary member can first be "seeded" with data from an existing backup. This limits performance impact to the new secondary and allows the active MongoDB process to continue storing and retrieving data. 
 
 Prerequisites
 -------------
@@ -28,12 +27,14 @@ To seed a secondary from a backup restore file, you must have:
 - The :file:`seedSecondary.sh` and :file:`seedSecondary.bat` scripts
   included in the backup restore file.
 
-When you run the :file:`seedSecondary.sh` script on a Unix-based system
-or :file:`seedSecondary.bat` script on a Windows-based system as part of this tutorial,
-you must provide the replica set's oplog size, in gigabytes. If you do not
-have the size, see the section titled "Check the Size of the Oplog" on the
-:manual:`Troubleshoot Replica Sets </tutorial/troubleshoot-replica-sets>`
-page of the MongoDB manual.
+When you run the :file:`seedSecondary.sh` script on a Unix-based system or
+:file:`seedSecondary.bat` script on a Windows-based system as part of this
+tutorial, you must provide the replica set's oplog size in gigabytes. 
+
+.. see-also::
+   See **Check the Size of the Oplog** on 
+   :manual:`Troubleshoot Replica Sets </tutorial/troubleshoot-replica-sets>` 
+   if you do not have the size.
 
 .. _seed-secondary-considerations:
 
@@ -46,11 +47,21 @@ restore you must redistribute the files to the different databases. |mms|
 Backup does not provide restoration artifacts that use the
 ``directoryPerDb`` option.
 
-The seedSecondary.sh file will not be in the backup restore if you have
-blacklisted dbs or collections or have resynced your backup after the snapshot
-(or for config servers). In these cases, including the script would cause an
-inconsistent secondary. In the case of a blacklist, your secondary would not
-include some collections which would cause problems for your deployment.
+.. important::
+   The ``seedSecondary`` script is omitted from the restore files if you
+   have:
+
+   - Blacklisted databases or collections or 
+   - The legacy sync cluster connection configuration servers for a sharded
+     cluster
+
+     Deployments using replica set configuration servers are unaffected.
+  
+   If you were to have received the script as part of the restore files, then
+   tried to apply it, the secondary would become inconsistent with the other
+   members.
+     
+.. seealso:: :manual:`Upgrade Config Servers to Replica Set </tutorial/upgrade-config-servers-to-replica-set/>`.
 
 Seeding a new secondary from a backup restore requires an oplog window on the
 current primary that spans back to the snapshot's timestamp.
