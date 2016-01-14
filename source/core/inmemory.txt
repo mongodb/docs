@@ -16,9 +16,10 @@ In-Memory Storage Engine
 
 Starting in MongoDB Enterprise 3.2, an in-memory storage engine is
 available in the 64-bit builds for beta-testing purposes. Other than
-some metadata, the in-memory storage engine does not maintain any
-on-disk data. By avoiding disk I/O, the in-memory storage engine allows
-for more predictable latency of database operations.
+some metadata and diagnoistic data, the in-memory storage engine does
+not maintain any on-disk data. By avoiding disk I/O, the in-memory
+storage engine allows for more predictable latency of database
+operations.
 
 .. _inmemory-specify-storage-engine:
 
@@ -27,22 +28,34 @@ Specify In-Memory Storage Engine
 
 To select the in-memory storage engine, specify:
 
-- ``inMemory`` for the :option:`--storageEngine` option or the
-  :setting:`storage.engine` setting.
+- ``inMemory`` for the :option:`--storageEngine` option, or the
+  :setting:`storage.engine` setting if using a configuration file.
 
-- ``--dbpath``. Although the in-memory storage engine does not write
-  data to the filesystem, it maintains small metadata files in the
-  ``--dbpath``.
+- ``--dbpath``, or :setting:`storage.dbPath` if using a configuration
+  file. Although the in-memory storage engine does not write data to
+  the filesystem, it maintains in the ``--dbpath`` small metadata files
+  and diagnostic data as well temporary files for building large
+  indexes.
+
+For example, from the command line:
 
 .. code-block:: sh
 
    mongod --storageEngine inMemory --dbpath <path>
 
+Or, if using the :doc:`YAML configuration file format
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   storage:
+      engine: inMemory
+      dbPath: <path>
+
 See :ref:`cli-mongod-inmemory` for configuration options specific to this storage engine.
 
 .. warning::
-   The in-memory storage engine is non-persistent, and all data will be lost when
-   the :program:`mongod` instance shuts down.
+   The in-memory storage engine does not persist data after process shutdown.
 
 .. _inmemory-concurrency:
 
@@ -58,10 +71,12 @@ documents of a collection at the same time.
 Durability
 ----------
 
-The in-memory storage engine is non-persistent and does not write data to persistent
-storage.  As such, the concept of :term:`journal` or waiting for data to become
-:term:`durable` does not apply to the in-memory storage engine.
-Write operations that specify a write concern :writeconcern:`journaled <j>` are
-acknowledged immediately. When an :program:`mongod` instance shuts down, either as
-result of the :dbcommand:`shutdown` command or due to a system error, recovery is
-impossible.
+The in-memory storage engine is non-persistent and does not write data
+to a persistent storage. As such, the concept of :term:`journal` or
+waiting for data to become :term:`durable` does not apply to the
+in-memory storage engine. 
+
+Write operations that specify a write concern :writeconcern:`journaled
+<j>` are acknowledged immediately. When an :program:`mongod` instance
+shuts down, either as result of the :dbcommand:`shutdown` command or
+due to a system error, recovery of in-memory data is impossible.
