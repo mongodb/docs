@@ -6,26 +6,21 @@ Test the MongoDB Server
 
 .. default-domain:: mongodb
 
-As you work, you should periodically run the existing test suites to
+As you work, you should periodically run the existing test suite to
 ensure that you have not unintentionally broken anything. If you intend
 to make a change that will break an existing test, update the test
 appropriately.
 
-We have three main "categories" of tests [#style-checking]_: 
+We have three main "categories" of tests [#style-checking]_: JavaScript
+tests, (new-style) C++ unit tests, and (old-style) C++ db tests. Avoid
+writing new db tests whenever possible as we are moving towards
+deprecating and deleting all db tests in favor of unit tests.
 
-- JavaScript tests for `integration
-  testing <http://en.wikipedia.org/wiki/Integration_testing>`_.
-   
-- (new-style) C++ unit tests for `unit tests
-  <http://en.wikipedia.org/wiki/Unit_testing>`_.
-
-- (old-style) C++ dbtests for `unit tests
-  <http://en.wikipedia.org/wiki/Unit_testing>`_. Avoid writing new
-  dbtests whenever possible as we are moving towards deprecating and
-  deleting all dbtests in favor of unit tests.
-
-When changing a component of the codebase, you will likely want to run
-a combination of the C++ and JavaScript tests.
+JavaScript tests are mainly for `integration testing
+<http://en.wikipedia.org/wiki/Integration_testing>`_, while C++ tests
+are for `unit tests <http://en.wikipedia.org/wiki/Unit_testing>`_.
+Therefore, when changing a component of the codebase, you will likely
+want to run a combination of C++ and JavaScript tests.
 
 For more information on writing your own tests, refer to
 :ref:`writing-tests-for-server-code`.
@@ -47,9 +42,6 @@ different test suites, grouped roughly by what they test. The
 ``jstests/core`` directory is the "default" directory for
 general-purpose tests.
 
-Test Using ``mongo`` Shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Execute the JavaScript tests using the :program:`mongo` shell, as in:
 
 .. code-block:: sh
@@ -58,143 +50,86 @@ Execute the JavaScript tests using the :program:`mongo` shell, as in:
    mongo jstests/core/count.js
 
 Different tests assume different environments. For instance, some tests
-may require authentication and access control; others may require SSL
+may require authentication and access control, others require SSL
 encrypted connections.
 
-The :program:`mongo` shell has helpers to spawn new processes. For
+The program:`mongo` shell has helpers to spawn new processes. For
 example, certain JavaScript tests set up a sharded and/or replicated
-environment or run other MongoDB binaries. For details, see
-:ref:`writing-tests-for-server-code`.
+environment or run other Mongo binaries. For more information on how
+that happens, see :ref:`writing-tests-for-server-code`.
 
 During development, you may wish to run a small selection of tests
-instead of the full suite. Often, the names of the test files can help
-you determine which tests to run as the names of these files can often
-indicate what they test. Alternatively, to get a targeted subset of
-test files to run, you can run the following operation in the
-``jstests`` directory; the ``<command>`` is the shell helper
-corresponding to the code path you're changing:
+instead of the full suite. Often, the names of the test files give a
+good clue as to what they test. Alternatively, to get a targeted subset
+of test files to run, you can also run the following in the ``jstests``
+directory where ``<command>`` is the shell helper corresponding to the
+code path you’re changing:
 
 .. code-block:: sh
 
    git grep -l <command>
 
-.. _test-using-resmoke:
+``smoke.py``
+~~~~~~~~~~~~
 
-Test Using ``resmoke.py``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+With :file:`smoke.py`, you can run a subsets of the tests in
+:file:`jstests/`. You can find :file:`smoke.py` in the ``buildscripts``
+directory.
 
-The ``buildscripts`` directory contains the file :file:`resmoke.py`.
-With :file:`resmoke.py`, you can run a subset of the tests in
-:file:`jstests/`.
-
-For most test suites, :file:`resmoke.py` starts up an instance of
-:program:`mongod`, runs the tests, and then shuts down the
-:program:`mongod`. You can run :file:`resmoke.py` while running other
-instances of :program:`mongod` on the same machine; :file:`resmoke.py`
-will find unused ports for any :program:`mongod` instances it starts
-and provide them with their own data directories.
+When :file:`smoke.py` runs tests, for most suites, it starts up an
+instance of :program:`mongod`, runs the tests, and then shuts down the
+:program:`mongod`. You can run :file:`smoke.py` while running other
+instances of MongoDB on the same machine; it uses ports in the 30000
+range and its own data directories.
 
 .. note::
 
-   - Tests which use shell helpers to spawn new processes do not
-     acquire unused ports, but instead use ports in the 29000+ range.
-     As such, they may conflict with other processes.
+   By default, :file:`smoke.py` will run tests that create data in a subdirectory of
+   :file:`/data/db`, which may interfere with other MongoDB instances
+   you are running. To change the directory in which the smoke tests
+   create databases, use ``--smoke-db-prefix=/some/other/path``.
 
-   - By default, :file:`resmoke.py` will use a subdirectory of
-     :file:`/data/db` for the dbpath of any :program:`mongod` processes
-     it starts; this may interfere with other MongoDB instances you are
-     running. To change the directory in which :file:`resmoke.py` will
-     create databases, use ``--dbpathPrefix=/some/other/path``.
-
-You must run :file:`resmoke.py` from the top-level directory of a
-MongoDB source repository. At minimum, this directory must contain the
+You must run :file:`smoke.py` from the top-level directory of a MongoDB
+source repository. This directory must contain at least the
 :program:`mongo` and :program:`mongod` binaries. For certain tests, you
-will also need to build the tools (see
-:doc:`/contributors/tutorial/build-tools-from-source`) and the
-:program:`mongos` binary, and put them in this directory as well.
+will also need to build the tools and :program:`mongos`.
 
-To run :file:`resmoke.py`, you need a recent version of `PyMongo
-<http://api.mongodb.org/python/current/installation.html>`_ and `PyYaml
-<http://pyyaml.org>`_.
+To run :file:`smoke.py`, you need a recent version of `PyMongo
+<http://api.mongodb.org/python/current/installation.html>`_.
 
-To see the possible options for :file:`resmoke.py`, run:
+To see the possible options for :file:`smoke.py`, run:
 
 .. code-block:: sh
 
-   python buildscripts/resmoke.py --help
+   python buildscripts/smoke.py --help
 
-To run specific tests, simply list them:
+To run specific tests, use the :option:`--mode=files` option:
 
 .. code-block:: sh
 
-   python buildscripts/resmoke.py jstests/core/find1.js jstests/core/explain*.js
+   python buildscripts/smoke.py --mode=files jstests/core/find1.js
 
 You can specify as many files as you want.
 
-We have also defined test suite configurations in the
-:file:`buildscripts/resmokeconfig/suites` directory. To see which
-suites are available, run:
+Running C++ DB Tests
+--------------------
 
-.. code-block:: sh
-
-    python buildscripts/resmoke.py --listSuites
-
-To run a specific suite, use:
-
-.. code-block:: sh
-
-    python buildscripts/resmoke.py --suites=<SUITE>
-
-You can also run multiple suites by specifying a comma-separated list:
-
-.. code-block:: sh
-
-    python buildscripts/resmoke.py --suites=<SUITE1>,<SUITE2>
-
-Suites that start their own MongoDB processes, such as ``sharding`` and
-``replica_sets``, cannot be run in parallel. This is because tests that
-start their own processes will always try to use the same set of ports
-for their processes.
-
-Other suites **can**, however, be run in parallel; e.g. ``core`` (and
-all variants, such as ``core_auth`` and ``core_small_oplog_rs``),
-``unittests``, and ``dbtest``.
-
-To run the tests in parallel, specify the number of jobs using the
-``--jobs`` option:
-
-.. code-block:: sh
-
-    python buildscripts/resmoke.py --suites=<SUITE> --jobs=<N>
-
-.. note::
-
-    Although running the tests in parallel can, in some cases,
-    significantly decrease execution time, use with caution. When
-    :file:`resmoke.py` needs to start a :program:`mongod` or any other
-    MongoDB deployment, it will set up one per job, which can be
-    resource intensive.
-
-Running dbtests
----------------
-
-
-All dbtests are in the `dbtests directory
+All db tests are in `the dbtests directory
 <https://github.com/mongodb/mongo/tree/master/src/mongo/dbtests>`_.
-These tests are "heavy": they link against a large portion of the kernel
+These tests are "heavy": they depend on a large portion of the kernel
 code. In this sense, the old-style "unit tests" are closer to
-integration tests than to true unit tests. Running a dbtest requires a
+integration tests than true unit tests. Running a db test requires a
 great deal of setup; for example, initializing the global authorization
 manager and creating at least one thread.
 
-Compile C++ dbtests by calling from the root directory:
+Compile C++ db tests by calling from the root directory:
 
 .. code-block:: sh
 
    scons dbtest
 
-This compiles the source for all dbtests into a single executable called
-``dbtest``. To list the available old style unit tests, call:
+This compiles the source for all db tests into a single executable
+called ``dbtest``. To list the available old style unit tests, call:
 
 .. code-block:: sh
 
@@ -206,8 +141,6 @@ To run a specific test, call:
 
    ./dbtest <testname>
 
-.. _run-unit-tests:
-
 Running C++ Unit Tests
 ----------------------
 
@@ -215,29 +148,19 @@ New-style unit tests are in the same directory as the files they test.
 The test files take their name from the files that they test but
 include ``_test``; e.g. ``foo_test.cpp`` to test ``foo.cpp``.
 
-Unlike dbtests, the new-style tests are standalone: each one is an
+Unlike db tests, the new-style tests are standalone: each one is an
 independent SCons target. These tests are enumerated in
-``build/unittests.txt``, which is generated by SCons upon building the
-unittests target.
+``build/unittests.txt``.
 
-To run all new-style C++ unit tests:
+To run all new-style C++ unit tests, you can use SCons:
 
-#. Build the tests:
+.. code-block:: sh
 
-   .. code-block:: sh
-
-      scons unittests
-
-#. Use :file:`resmoke.py` to run all of them. To decrease the execution
-   time, specify multiple jobs:
-
-   .. code-block:: sh
-
-      python buildscripts/resmoke.py --suites=unittests --jobs=<N>
+   scons smokeCppUnittests
 
 In some cases, you may just want to run one or two of the unit tests.
-For example, the following explicitly builds and runs a single C++ unit
-test ``mutable_bson_test``:
+Here is an example of explicitly building and running a single C++ unit
+test:
 
 .. code-block:: sh
 
