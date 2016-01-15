@@ -6,12 +6,6 @@ Test the MongoDB Server
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
-
 As you work, you should periodically run the existing test suites to
 ensure that you have not unintentionally broken anything. If you intend
 to make a change that will break an existing test, update the test
@@ -97,14 +91,14 @@ For most test suites, :file:`resmoke.py` starts up an instance of
 :program:`mongod`, runs the tests, and then shuts down the
 :program:`mongod`. You can run :file:`resmoke.py` while running other
 instances of :program:`mongod` on the same machine; :file:`resmoke.py`
-will use ports in a configurable range for any :program:`mongod` instances it
-starts and provide them with their own data directories.
+will find unused ports for any :program:`mongod` instances it starts
+and provide them with their own data directories.
 
 .. note::
 
-   - By default, :file:`resmoke.py` will use ports in the 20000+ range. If you
-     have other programs running in that port range, the starting port is
-     configurable via the ``--basePort`` option to :file:`resmoke.py`
+   - Tests which use shell helpers to spawn new processes do not
+     acquire unused ports, but instead use ports in the 29000+ range.
+     As such, they may conflict with other processes.
 
    - By default, :file:`resmoke.py` will use a subdirectory of
      :file:`/data/db` for the dbpath of any :program:`mongod` processes
@@ -157,15 +151,17 @@ You can also run multiple suites by specifying a comma-separated list:
 
     python buildscripts/resmoke.py --suites=<SUITE1>,<SUITE2>
 
-To run specific tests from a suite, include the ``--executor`` option in order
-to use the suite's configuration:
+Suites that start their own MongoDB processes, such as ``sharding`` and
+``replica_sets``, cannot be run in parallel. This is because tests that
+start their own processes will always try to use the same set of ports
+for their processes.
 
-.. code-block:: sh
+Other suites **can**, however, be run in parallel; e.g. ``core`` (and
+all variants, such as ``core_auth`` and ``core_small_oplog_rs``),
+``unittests``, and ``dbtest``.
 
-    python buildscripts/resmoke.py --executor=<SUITE> path/to/tests/*.js
-
-To run the tests in parallel, specify the number of jobs using the ``--jobs``
-option:
+To run the tests in parallel, specify the number of jobs using the
+``--jobs`` option:
 
 .. code-block:: sh
 
@@ -198,19 +194,13 @@ Compile C++ dbtests by calling from the root directory:
    scons dbtest
 
 This compiles the source for all dbtests into a single executable called
-``dbtest``. You can run all the dbtests in parallel by using :file:`resmoke.py`:
-
-.. code-block:: sh
-
-   python buildscripts/resmoke.py --suites=dbtest --jobs=<N>
-
-To list the available dbtests, call:
+``dbtest``. To list the available old style unit tests, call:
 
 .. code-block:: sh
 
    ./dbtest --list
 
-To run a specific dbtest, call:
+To run a specific test, call:
 
 .. code-block:: sh
 
