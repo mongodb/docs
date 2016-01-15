@@ -1,0 +1,109 @@
+stepnum: 1
+level: 4
+ref: sharded-cluster-deploy-config-server
+pre: |
+  Running a :program:`mongod` with the ``keyFile`` parameter enforces both 
+  :doc:`/core/security-internal-authentication` and 
+  :doc:`/core/authorization`.
+
+  Start *each* :program:`mongod` in the replica set using either 
+  a configuration file or the command line.
+action:
+  - pre: |
+      **Configuration File**
+      
+      If using a configuration file, set :setting:`security.keyFile` to the
+      keyfile's path, :setting:`sharding.clusterRole` to ``configsvr``, 
+      and :setting:`replication.replSetName` to the desired name of the 
+      config server replica set.
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      sharding:
+        clusterRole: configsvr
+      replication:
+        replSetName: <setname>
+  - pre: |
+      Start the :program:`mongod` specifying the ``--config`` option and the 
+      path to the configuration file.
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+  - pre: |
+      **Command Line**
+      
+      If using the command line parameters, start the :program:`mongod` with 
+      the ``-keyFile``, ``--configsvr``, and ``--replSetName`` parameters.
+    language: sh
+    code: |
+       mongod --keyFile <path-to-keyfile> --configsvr --replSetName <setname> --dbPath <path>
+    post: |
+       For more information on startup parameters, 
+       see the :program:`mongod` reference page.
+post: |
+  Include additional settings as appropriate to your deployment.
+---
+stepnum: 2
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-connect-to-member
+pre: |
+  The :ref:`localhost-exception` allows clients connected over the 
+  localhost interface to create users on a :program:`mongod` 
+  enforcing access control. After creating the first user, 
+  the :ref:`localhost-exception` closes.
+
+  Connect a :program:`mongo` shell to one of the config server 
+  :program:`mongod` instances over the 
+  :ref:`localhost interface<localhost-exception>`. You must run 
+  the :program:`mongo` shell on the same physical machine as the 
+  target :program:`mongod`.
+---
+stepnum: 3
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-initiate
+pre: |
+  The :method:`rs.initiate()` method initiates the replica set, and 
+  can take an optional configuration document that describes 
+  each member of the replica set.
+  
+  The configuration document requires at minimum the 
+  :rsconf:`_id` and :rsconf:`members` fields. The :rsconf:`members` 
+  field is an array, and requires a document per member of the replica 
+  set containing the :rsconf:`members[n]._id` and 
+  :rsconf:`members[n].host` fields. 
+  
+  The :rsconf:`_id` *must* match the ``--replSet`` parameter 
+  passed to the :program:`mongod`.
+  
+  See :doc:`/reference/replica-configuration` for more information on 
+  replica set configuration documents.
+action:
+  - pre: |
+      Pass a configuration document to the :method:`rs.initiate()` method:
+    language: javascript
+    code: |
+      rs.initiate(
+        {
+          _id: "<replSetName>",
+          configsvr: true,
+          members: [
+            { _id : 0, host : "cfg1.example.net:27017" },
+            { _id : 1, host : "cfg2.example.net:27017" },
+            { _id : 2, host : "cfg3.example.net:27017" }
+          ]
+        }
+      )
+post: |
+  .. important::
+
+     You must include the ``configsvr : true`` option for the config server 
+     replica set to start correctly.
+...
