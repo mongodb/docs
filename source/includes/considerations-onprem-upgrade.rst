@@ -19,6 +19,11 @@
      You must configure the new port for any **manually installed** Backup Agents,
      or the agents will have no access to |onprem|.
 
+- **Agent Updates**: Do not update the agents before upgrade. If you use
+  Automation, |onprem| prompts you to update the agents after you upgrade.
+  Follow the prompts to update the agents through the |onprem| UI. Do *not*
+  update the agents manually.
+
 - **conf-mms.properties**: Beginning in 2.0, |onprem| stores global configuration settings in the
   |onprem| Application Database and stores only local settings in the |onprem|
   server's ``conf-mms.properties`` file. The upgrade procedure uses the
