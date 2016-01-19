@@ -39,8 +39,7 @@ MongoDB deployment to import.
       }
    )
 
-To find the password for the |mms| group's Automation Agent user, if you have
-enabled the Public API for this group, you can use the
+To find the password for the |mms| group's Automation Agent user, use the
 :doc:`/reference/api/automation-config` endpoint to retrieve the
 current configuration and find the ``autoPwd`` value:
 
