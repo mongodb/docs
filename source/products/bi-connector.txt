@@ -132,6 +132,15 @@ Timestamps
   The connector will treat any field of type :bsontype:`data_timestamp` as a
   ``varchar`` string type.
 
+Geospatial
+  .. versionadded:: 1.1.0
+
+  If a collection contains a
+  :doc:`geospatial index </applications/geospatial-indexes>`, the connector will
+  map the indexed field into an array of numeric longitude-latitude coordinates.
+
+  See :ref:`bi-geospatial` for an example.
+
 Heterogeneous Fields
   If a field can contain multiple types, :program:`mongodrdl` will pick the type
   that appears most frequently.
@@ -362,5 +371,55 @@ has the following pipeline:
 This pipeline uses :pipeline:`$unwind` to create a new record for each member of
 ``familyMembers``. The schema will track the array index in the field
 ``familyMembers_idx``.
+
+.. _bi-geospatial:
+
+Geospatial Data
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1.0
+
+If a collection contains a
+:doc:`geospatial index </applications/geospatial-indexes>`, the connector will
+map the indexed field into an array of numeric longitude-latitude coordinates.
+
+For example, given the following collection:
+
+.. code-block:: javascript
+
+   db.points.createIndex( { pos : "2dsphere" } )
+   db.points.insert({
+       pos : { type: "Point", coordinates: [ -73.97, 40.77 ] },
+       name: "Central Park",
+       category : "Parks"
+   })
+
+:program:`mongodrdl` will generate the following schema:
+
+.. code-block:: yaml
+
+   schema:
+   - db: test
+     tables:
+     - table: points
+       collection: points
+       pipeline: []
+       columns:
+       - name: _id
+         mongotype: bson.ObjectId
+         sqlname: _id
+         sqltype: varchar
+       - name: category
+         mongotype: string
+         sqlname: category
+         sqltype: varchar
+       - name: name
+         mongotype: string
+         sqlname: name
+         sqltype: varchar
+       - name: pos.coordinates
+         mongotype: geo.2darray
+         sqlname: pos.coordinates
+         sqltype: numeric[]
 
 .. seealso:: :program:`mongodrdl`, :program:`mongobiuser`, :program:`mongobischema`
