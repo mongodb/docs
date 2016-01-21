@@ -61,6 +61,7 @@ rst_epilog = '\n'.join([
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
+    '.. |bi| replace:: MongoDB Connector for BI',
 ])
 
 pygments_style = 'sphinx'
