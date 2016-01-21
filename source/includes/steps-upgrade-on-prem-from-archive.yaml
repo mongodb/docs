@@ -4,19 +4,21 @@ source:
   file: steps-source-upgrade-onprem.yaml
   ref: backup
 ---
-title: "Stop all existing |onprem| services and Backup Daemon services."
+title: "Stop all existing |onprem| services."
 stepnum: 2
 level: 4
 ref: shutdown
 action:
   - pre: |
-      To shut down the |onprem| Application, issue the following:
+      Shut down the |onprem| Application:
     language: sh
     code: |
       <install_dir>/bin/mongodb-mms stop
-  - pre: |
-      To shut down the Backup Daemon, issue the following:
-    language: sh
+  - pre: | 
+      If you are upgrading from a pre-2.0 Ops Manager Application,
+      and you are also running a Backup Daemon on the machine, shut down
+      the Backup Daemon service: 
+    language: sh 
     code: |
       <install_dir>/bin/mongodb-mms-backup-daemon stop
 ---
@@ -40,16 +42,15 @@ action:
     cp -a <install_dir>/conf ~/mms_conf.backup
     cp -a <install_dir>/logs ~/mms_logs.backup
 ---
-title: "On each Backup Daemon server, back up the configuration file and then uninstall the Backup Daemon package."
+title: "Remove the installed |application| and Backup Daemon (Pre-2.0 only) packages."
 stepnum: 4
 level: 4
 ref: uninstall-daemon
 content: |
-  Do the following on **every server** where the Backup Daemon is installed:
 
-  a. Create a backup copy of each ``conf-daemon.properties`` file to preserve the existing configuration.
-
-  b. Uninstall the Backup Daemon package.
+  On servers where there is an existing |onprem| Application or Backup
+  Daemon, first remove the existing application or daemon. **Do not
+  remove your backups of the configuration files.**
 
 ---
 stepnum: 5
@@ -64,25 +65,19 @@ stepnum: 6
 level: 4
 ref: install
 content: |
-  a. On servers where there is an existing |onprem| Application or Backup Daemon, first remove
-     the existing application or daemon. **Do not remove your backups of the configuration files.**
 
-  b. Navigate to the directory to which to install |onprem|. Extract the archive to that directory:
+  Navigate to the directory to which to install |onprem|. Extract the
+  archive to that directory:
 
      .. code-block:: sh
 
         tar -zxf mongodb-mms-<version>.x86_64.tar.gz
 ---
-title: "Copy the connection string to the new properties file."
 stepnum: 7
 level: 4
-ref: connection-string
-content: |
-  Copy the connection string from the backed-up ``conf-mms.properties`` file
-  to the new ``conf-mms.properties`` file. The connection string is found in
-  the :setting:`mongo.mongoUri` field. On servers where there was only a
-  Backup Daemon, copy the connection string from another server's backed-up
-  ``conf-mms.properties`` file.
+source:
+  file: steps-source-upgrade-onprem.yaml
+  ref: replace-connection-string
 ---
 title: "Start |onprem| on every server."
 stepnum: 8
