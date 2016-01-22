@@ -15,32 +15,57 @@ Introduction
 
 When you restore a deployment from a backup, you select a restore point
 and |mms| provides you with one or more restore files. If you use |mms|
-automation, |mms| can automatically restore the files for you. Otherwise,
-you manually restore the files by copying them yourself to the servers you
-choose.
+automation, |mms| can automatically restore the files for you.
+Otherwise, you manually restore the files by copying them yourself to
+the servers you choose.
 
-You can restore a single MongoDB process or an entire :term:`replica set`
-or :term:`sharded cluster`. You select whether to restore from an existing
-snapshot or a restore point between snapshots. For the latter, |mms|
-builds a custom snapshot based on the restore point you choose. Installing
-from a custom snapshot takes longer as |mms| must build the snapshot by
-applying the :manual:`oplog </core/replica-set-oplog/>` to the previous
-regular snapshot. For sharded clusters, you must :ref:`enable checkpoints
-<enable-cluster-checkpoints>` before you can restore to a point between
-snapshots.
+You can restore a single MongoDB process or an entire :term:`replica set` 
+or :term:`sharded cluster`. You select whether to restore from an
+existing snapshot or a restore point between snapshots. For the latter,
+|mms| builds a custom snapshot based on the restore point you choose.
+Installing from a custom snapshot takes longer as |mms| must build the
+snapshot by applying the :manual:`oplog </core/replica-set-oplog/>` to
+the previous regular snapshot. For sharded clusters, you must
+:ref:`enable checkpoints <enable-cluster-checkpoints>` before you can
+restore to a point between snapshots.
 
 .. COMMENT: can you only restore to a point-in-time "in the last 24 hours"?
 
 You can restore to either new hardware or existing hardware. If you use
-existing hardware and perform the restore manually, create a new path for
-the MongoDB data directory. Do not use existing data directories.
+existing hardware and perform the restore manually, create a new path
+for the MongoDB data directory. Do not use existing data directories.
 
 Automated Restore
 -----------------
 
-If you choose to have |mms| automatically restore your backup, |mms| will
-clear out all existing data for the chosen servers and replace them with
-the data from your backup.
+If you choose to have |mms| automatically restore your backup, |mms|
+will clear out all existing data for the chosen servers and replace
+them with the data from your backup.
+
+.. important::
+
+   Under certain conditions, an automated restore fails because either:
+
+   1. The backup and destination databases' storage engines do not
+      match.
+   2. The destination database uses settings that are not currently
+      preserved in the backup itself.
+
+   If the backup and destination database storage engines do not match,
+   ``mongod`` cannot start once the backup is restored. At this time,
+   you can either:
+
+   1. Not restore this snapshot.
+   2. Change the storage engine of the destination sharded cluster or
+      replica set to match the configuration of the snapshot.
+
+   If the destination database uses any of the following settings, an
+   automated restore fails:
+
+   * :setting:`storage.directoryPerDB`
+   * :setting:`security.enableEncryption` (WiredTiger only)
+   * :setting:`storage.wiredTiger.engineConfig.directoryForIndexes`
+     (WiredTiger only)
 
 .. COMMENT: can you install over a running MongoDB?
 
@@ -49,20 +74,20 @@ the data from your backup.
 Manual Restore
 --------------
 
-For a manual restore, |mms| provides each restore file as ``.tar.gz`` file
-containing a complete copy of the process's data directory. For a replica
-set, |mms| provides a single ``.tar.gz`` file that you copy to each
-replica set member. For a sharded cluster, |mms| provides one ``.tar.gz``
-file for the :term:`config servers <config server>` and separate
-``.tar.gz`` files for each :term:`shard`.
+For a manual restore, |mms| provides each restore file as ``.tar.gz``
+file containing a complete copy of the process's data directory. For a
+replica set, |mms| provides a single ``.tar.gz`` file that you copy to
+each replica set member. For a sharded cluster, |mms| provides one
+``.tar.gz`` file for the :term:`config servers <config server>` and
+separate ``.tar.gz`` files for each :term:`shard`.
 
 |mms| delivers the files through either ``HTTP`` or ``SCP``. You select
 whether |mms| provides a download link for the restore files or uses
 ``SCP`` to copy the files directly to your system. The ``SCP`` method
-requires you to :doc:`generate a key pair
-</tutorial/generate-key-pair-for-scp-restores>` ahead of time but provides
-faster delivery. Windows machines do not come with ``SCP`` and require
-additional setup outside the scope of this manual.
+requires you to :doc:`generate a key pair </tutorial/generate-key-pair-for-scp-restores>`
+ahead of time but provides faster delivery. Windows machines do not
+come with ``SCP`` and require additional setup outside the scope of
+this manual.
 
 For ``SCP`` delivery, you can choose to receive individual data files
 instead of ``tar.gz`` files. |mms| transmits the data files directly to
@@ -71,6 +96,6 @@ for the data files.
 
 If you choose to receive ``tar.gz`` files, you must extract each file
 before reconstructing your data. This is generally faster than the
-data-files option but requires temporary space on the server hosting the
-Backup Daemon and sufficient space on the destination server for both the
-archive file and the extracted contents.
+data-files option but requires temporary space on the server hosting
+the Backup Daemon and sufficient space on the destination server for
+both the archive file and the extracted contents.
