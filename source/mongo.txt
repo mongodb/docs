@@ -1,0 +1,388 @@
+===================
+The ``mongo`` Shell
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Introduction
+------------
+
+The :program:`mongo` shell is an interactive JavaScript interface to
+MongoDB. You can use the :program:`mongo` shell to query and update
+data as well as perform administrative operations.
+
+The :program:`mongo` shell is a component of the `MongoDB distributions
+<http://www.mongodb.org/downloads>`_. Once you have :doc:`installed and
+have started MongoDB </installation>`, connect the :program:`mongo`
+shell to your running MongoDB instance.
+
+Ensure that MongoDB is running before attempting to start the
+:program:`mongo` shell.
+
+.. note:: Most examples in the :doc:`MongoDB Manual </contents>` use
+   the :program:`mongo` shell; however, many :doc:`drivers
+   </applications/drivers>` provide similar interfaces to MongoDB.
+
+Start the ``mongo`` Shell
+-------------------------
+
+To start the :program:`mongo` shell and connect to your :doc:`MongoDB
+</reference/program/mongod>` instance running on **localhost** with
+**default port**:
+
+#. At a prompt in a terminal window (or a command prompt for Windows),
+   go to your ``<mongodb installation dir>``:
+
+   .. code-block:: sh
+
+      cd <mongodb installation dir>
+
+#. Type ``./bin/mongo`` to start :program:`mongo`:
+
+   .. code-block:: sh
+
+      ./bin/mongo
+
+   If you have added the ``<mongodb installation dir>/bin`` to the
+   ``PATH`` environment variable, you can just type ``mongo`` instead
+   of ``./bin/mongo``.
+
+   When you run :program:`mongo` without any arguments, the
+   :program:`mongo` shell will attempt to connect to the MongoDB instance
+   running on the ``localhost`` interface on port ``27017``. To start the
+   :program:`mongo` shell with other options, see :ref:`examples of
+   starting up mongo <mongo-usage-examples>` and :doc:`mongo reference
+   </reference/program/mongo>` which provides details on the available
+   options.
+
+#. To display the database you are using, type ``db``:
+
+   .. code-block:: sh
+
+      db
+
+   The operation should return ``test``, which is the default database.
+   To switch databases, issue the ``use <db>`` helper, as in the
+   following example:
+
+   .. code-block:: javascript
+
+      use <database>
+
+   To list the available databases, use the helper ``show dbs``. See
+   also :method:`db.getSiblingDB()` method to access a different database
+   from the current database without switching your current database
+   context (i.e. ``db.``.)
+
+.. note::
+
+   When starting, :program:`mongo` checks the user's :envvar:`HOME`
+   directory for a JavaScript file named :ref:`.mongorc.js
+   <mongo-mongorc-file>`. If found, :program:`mongo` interprets the
+   content of :file:`.mongorc.js` before displaying the prompt for the
+   first time. If you use the shell to evaluate a JavaScript file or
+   expression, either by using the :option:`--eval <mongo --eval>` option on the
+   command line or by specifying :ref:`a .js file to mongo
+   <mongo-shell-file>`, :program:`mongo` will read the ``.mongorc.js``
+   file *after* the JavaScript has finished processing. You can prevent
+   ``.mongorc.js`` from being loaded by using the :option:`--norc` option.
+
+.. _mongo-shell-executing-queries:
+
+Executing Queries
+-----------------
+
+From the :program:`mongo` shell, you can use the :doc:`shell methods
+</reference/method>` to run queries, as in the following example:
+
+.. code-block:: javascript
+
+   db.<collection>.find()
+
+- The ``db`` refers to the current database.
+
+- The ``<collection>`` is the name of the collection to query. See
+  :ref:`mongo-shell-help-collection` to list the available collections.
+
+  If the :program:`mongo` shell does not accept the name of the
+  collection, for instance if the name contains a space, hyphen, or
+  starts with a number, you can use an alternate syntax to refer to
+  the collection, as in the following:
+
+  .. code-block:: javascript
+
+     db["3test"].find()
+
+     db.getCollection("3test").find()
+
+For more documentation of basic MongoDB operations in the
+:program:`mongo` shell, see:
+
+- :gettingstarted:`Getting Started Guide </shell>`
+- :doc:`/tutorial/insert-documents`
+- :doc:`/tutorial/query-documents`
+- :doc:`/tutorial/modify-documents`
+- :doc:`/tutorial/remove-documents`
+- :doc:`/reference/method`
+- :doc:`/core/read-operations`
+- :doc:`/core/write-operations`
+
+Print Results
+-------------
+
+The :method:`~db.collection.find()` method is the JavaScript method to
+retrieve documents from ``<collection>``. The
+:method:`~db.collection.find()` method returns a :term:`cursor` to the
+results; however, in the :program:`mongo` shell, if the returned cursor
+is not assigned to a variable using the ``var`` keyword, then the
+cursor is automatically iterated up to 20 times to print up to the
+first 20 documents that match the query. The :program:`mongo` shell
+will prompt ``Type it`` to iterate another 20 times.
+
+You can set the ``DBQuery.shellBatchSize`` attribute to change the
+number of documents from the default value of ``20``, as in the
+following example which sets it to ``10``:
+
+.. code-block:: javascript
+
+   DBQuery.shellBatchSize = 10;
+
+To format the printed result, you can add the ``.pretty()`` to the
+operation, as in the following:
+
+.. code-block:: javascript
+
+   db.<collection>.find().pretty()
+
+In addition, you can use the following explicit print methods in the
+:program:`mongo` shell:
+
+- ``print()`` to print without formatting
+
+- ``print(tojson(<obj>))`` to print with :term:`JSON` formatting and
+  equivalent to ``printjson()``
+
+- ``printjson()`` to print with :term:`JSON` formatting and equivalent
+  to ``print(tojson(<obj>))``
+
+For more information and examples on cursor handling in the
+:program:`mongo` shell, see :doc:`/core/cursors`. See also
+:ref:`mongo-shell-help-cursor` for list of cursor help in the
+:program:`mongo` shell.
+
+Multi-line Operations in the ``mongo`` Shell
+--------------------------------------------
+
+If you end a line with an open parenthesis (``'('``), an open brace
+(``'{'``), or an open bracket (``'['``), then the subsequent lines start
+with ellipsis (``"..."``) until you enter the corresponding closing
+parenthesis (``')'``), the closing brace (``'}'``) or the closing
+bracket (``']'``). The :program:`mongo` shell waits for the closing
+parenthesis, closing brace, or the closing bracket before evaluating
+the code, as in the following example:
+
+.. code-block:: javascript
+
+   > if ( x > 0 ) {
+   ... count++;
+   ... print (x);
+   ... }
+
+You can exit the line continuation mode if you enter two blank
+lines, as in the following example:
+
+.. code-block:: javascript
+
+   > if (x > 0
+   ...
+   ...
+   >
+
+.. _shell-use-a-custom-prompt:
+
+Customize the Prompt
+--------------------
+
+You may modify the content of the prompt by setting the variable
+``prompt`` in the :program:`mongo` shell. The ``prompt`` variable can
+hold strings as well as JavaScript code. If ``prompt`` holds a function
+that returns a string, :program:`mongo` can display dynamic information
+in each prompt.
+
+You can add the logic for the prompt in the :ref:`.mongorc.js
+<mongo-mongorc-file>` file to set the prompt each time you start up the
+:program:`mongo` shell.
+
+Customize Prompt to Display Number of Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example,to create a :program:`mongo` shell prompt with the number
+of operations issued in the current session, define the following
+variables in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cmdCount = 1;
+   prompt = function() {
+                return (cmdCount++) + "> ";
+            }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+   1>
+   2>
+   3>
+
+Customize Prompt to Display Database and Hostname
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :program:`mongo` shell prompt in the form of
+``<database>@<hostname>$``, define the following variables:
+
+.. code-block:: javascript
+
+    host = db.serverStatus().host;
+
+    prompt = function() {
+                 return db+"@"+host+"$ ";
+             }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+   test@myHost1$
+
+Customize Prompt to Display Up Time and Document Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a :program:`mongo` shell prompt that contains the system
+up time *and* the number of documents in the current database,
+define the following ``prompt`` variable in the :program:`mongo`
+shell:
+
+.. code-block:: javascript
+
+   prompt = function() {
+              return "Uptime:"+db.serverStatus().uptime+" Documents:"+db.stats().objects+" > ";
+            }
+
+The prompt would then resemble the following:
+
+.. code-block:: javascript
+
+    Uptime:5897 Documents:6 >
+
+Use an External Editor in the ``mongo`` Shell
+---------------------------------------------
+
+You can use your own editor in the :program:`mongo` shell by setting
+the :envvar:`EDITOR` environment variable *before* starting the
+:program:`mongo` shell.
+
+.. code-block:: bash
+
+   export EDITOR=vim
+   mongo
+
+Once in the :program:`mongo` shell, you can edit with the specified
+editor by typing ``edit <variable>`` or ``edit <function>``, as in the
+following example:
+
+#. Define a function ``myFunction``:
+
+   .. code-block:: javascript
+
+      function myFunction () { }
+
+#. Edit the function using your editor:
+
+   .. code-block:: javascript
+
+      edit myFunction
+
+   The command should open the ``vim`` edit session. When finished
+   with the edits, save and exit ``vim`` edit session.
+
+#. In the :program:`mongo` shell, type ``myFunction`` to see the
+   function definition:
+
+   .. code-block:: javascript
+
+      myFunction
+
+   The result should be the changes from your saved edit:
+
+   .. code-block:: javascript
+
+      function myFunction() {
+          print("This was edited");
+      }
+
+.. note::
+
+   As :program:`mongo` shell interprets code edited in an external
+   editor, it may modify code in functions, depending on the
+   JavaScript compiler. For :program:`mongo` may convert ``1+1`` to
+   ``2`` or remove comments. The actual changes affect only the
+   appearance of the code and will vary based on the version of
+   JavaScript used but will not affect the semantics of the code.
+
+Tab Completion and Other Keyboard Shortcuts
+-------------------------------------------
+
+The :program:`mongo` shell supports keyboard shortcuts. For example,
+
+- Use the up/down arrow keys to scroll through command history. See
+  :ref:`.dbshell <mongo-dbshell-file>` documentation for more
+  information on the ``.dbshell`` file.
+
+- Use ``<Tab>`` to autocomplete or to list the completion
+  possibilities, as in the following example which uses ``<Tab>`` to
+  complete the method name starting with the letter ``'c'``:
+
+  .. code-block:: javascript
+
+     db.myCollection.c<Tab>
+
+  Because there are many collection methods starting with the letter
+  ``'c'``, the ``<Tab>`` will list the various methods that start with
+  ``'c'``.
+
+For a full list of the shortcuts, see :ref:`Shell Keyboard Shortcuts
+<mongo-keyboard-shortcuts>`
+
+Evaluate a JavaScript File
+--------------------------
+
+.. include:: /includes/fact-execute-javascript-from-shell.rst
+
+.. _mongo-shell-exit:
+
+Exit the Shell
+--------------
+
+To exit the shell, type ``quit()`` or use the ``<Ctrl-c>`` shortcut.
+
+.. seealso::
+   - :gettingstarted:`Getting Started Guide </shell>`
+   - :doc:`/reference/method`
+   - :doc:`/reference/mongo-shell`
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly: 
+
+      /tutorial/access-mongo-shell-help
+      /core/shell-types
+      /tutorial/write-scripts-for-the-mongo-shell
+      /reference/mongo-shell
