@@ -278,6 +278,9 @@ comments above each key.
       # Ensure all times are UTC in the app side. (default: false)
       use_utc: false
 
+      # Set the Mongoid and Ruby driver log levels. (default: :info)
+      level_level: :info
+
 Logging
 *******
 
@@ -1402,10 +1405,22 @@ A potential gotcha with this is persisting a document via with and then immediat
   band.update_attribute(likes: 1000) # This will not save - tries the collection "bands"
   band.with(collection: "artists").update_attribute(likes: 1000) # This will update the document.
 
-Also note that because a new client is created, it's important not to change any options that would
-cause a cluster configuration change and instantiate a client that would *never* get garbage collected
-due to the new cluster's monitor threads. To avoid this, *only* use ``with`` when changing the
-following options:
+Also note another important gotcha that could result in the number of connections continually growing
+with each use of #with. Because a new client is created under the covers in #with, any options that would
+cause a driver cluster configuration change will instantiate a client that would *never* get garbage collected
+due to the new cluster's monitor threads.
+There are two ways to avoid opening up new connections via the driver that are never closed. 
+As of Mongoid 5.1, you can pass a block to #with. If a new cluster is created, then its monitoring threads
+will be stopped and the client will be closed when the block completes.
+
+.. code-block:: ruby
+  Band.with(connect_timeout: 2) do |klass|
+    klass.where(name: 'emily').to_a
+  end
+  # The new cluster's monitoring threads are stopped and the client is closed.
+
+The second way to avoid this is to *only* use ``with`` when changing the following options, as a new cluster
+will not be created:
 
 - ``database``
 - ``collection``
