@@ -12,134 +12,190 @@ Example Deployment Topologies
    :depth: 1
    :class: singlecol
 
-Overview
---------
+The following examples illustrate some possible MongoDB and |onprem| deployments.
 
-The following diagrams show example |onprem| deployments.
+Considerations
+--------------
+
+For best performance on any of these installs, configure each Backup
+server with two disk partitions: one for the Backup Database or File
+System Store and one for the head databases.
 
 .. _on-prem-minimal-deployment-diagram:
 
 Test Install on a Single Server
 -------------------------------
 
-For a test deployment, you can deploy all of the |onprem|
-components to a single server, as described in
-:doc:`/tutorial/install-simple-test-deployment`. Ensure you :ref:`configure
-the appropriate ulimits <onprem-config-ulimits>` for the deployment.
+For a test deployment, you can deploy all of the |onprem| components to
+a single server, as described in
+:doc:`/tutorial/install-simple-test-deployment`. 
 
 .. include:: /images/opsmanager-test.rst
 
-The :term:`head databases <head database>` are dynamically created and maintained
-by the Backup Daemon. They reside on the disk partition specified
-in the ``conf-daemon.properties`` file.
+.. note::
+   If you would like to test backup services, you can configure them
+   using the |application|. During configuration, you can specify the
+   :term:`head directory <head directory>`. The Backup Daemon service
+   creates the :term:`head databases <head database>` dynamically in
+   that directory. The Backup Daemon service then manages these head
+   databases.
 
-Production Install with Redundant Metadata and Snapshots
---------------------------------------------------------
+Production Installs
+-------------------
+
+Redundant Metadata and Snapshots
+++++++++++++++++++++++++++++++++
 
 This deployment provides redundancy for the
-:ref:`mms-application-database` and :ref:`backup-database`, in the event
-of server failure. The deployment keeps a redundant copy of each database
-by running each as a MongoDB :term:`replica set` with two
+:ref:`mms-application-database` and :ref:`backup-database`, in the
+event of server failure. The deployment keeps a redundant copy of each
+database by running each as a MongoDB :term:`replica set` with two
 data-bearing members and an arbiter.
 
 .. important::
 
-   This deployment does not provide high availability for the |onprem|
-   application. |onprem| uses ``w:2`` :manual:`write concern
-   </reference/write-concern>`, which requires acknowledgement from both
-   data-bearing members to write to the database.
-   
-   The loss of one data-bearing node from the
-   :ref:`mms-application-database` must be remedied before |onprem|
-   can resume healthy operation.
+   This deployment does not provide high availability for the
+   |application|. |onprem| uses ``w:2`` :manual:`write concern </reference/write-concern>`, 
+   which requests acknowledgement of a write operation from both
+   data-bearing members. If you lose one data-bearing node from the
+   :ref:`mms-application-database` must be remedied before |onprem| can
+   resume healthy operation. To make the deployment durable, run each with three data-bearing members and
+   enable journaling.
 
 .. include:: /images/opsmanager-medium.rst
 
-**Server 1** must satisfy the combined :doc:`hardware and software
-requirements </core/requirements>` for the |application| hardware and
-|application| Database hardware.
+.. note::
 
-**Server 2** must satisfy the combined hardware and software
-requirements for the |application| and Backup
-Database hardware. The Backup Daemon automatically creates and
-maintains the :term:`head databases <head database>`, which reside on the
-disk partition specified in the ``conf-daemon.properties`` file.
-Do not place the head databases on the same disk partition
-as the Backup Database, as this will reduce the Backup feature's
-performance.
+   All servers must satisfy the combined 
+   :doc:`hardware and software requirements </core/requirements>` for
+   both the systems specified in the **Meets System Requirements
+   for** column.
 
-**Server 3** hosts replica set members for the |application| Database
-and Backup Database. Replica sets provide data redundancy and
-are strongly recommended, but are not required for |onprem|.
-Server 3 must satisfy the combined hardware and software
-requirements for the |application| Database hardware and Backup
-Database hardware.
+.. list-table::
+   :widths: 5 45 50
+   :header-rows: 1
+
+   * - Server
+     - Meets System Requirements for
+     - Purpose
+
+   * - **1** 
+
+     - 
+       - |application|
+
+       - |application| database
+          
+     - Hosts the primary |application| database and the arbiter for the
+       backup database.
+
+   * - **2** 
+
+     - 
+       - |application|
+
+       - Backup database
+
+     - Hosts the primary backup database and the arbiter for the
+       |application| database.
+
+   * - **3** 
+
+     - 
+       - |application| database 
+
+       - Backup database
+
+     - Hosts replica set members for the |application| Database and
+       Backup Database. 
+
+       Replica sets provide data redundancy and are
+       strongly recommended, but are not required for |onprem|.
 
 For an example tutorial on installing the minimally viable |onprem|
-installation on RHEL 6+ or Amazon Linux, see
-:doc:`/tutorial/install-basic-deployment`.
-
-.. note:: **Durable Metadata and Snapshots**
-
-   To make the |application| and Backup Databases durable, run each
-   three-member with three data-bearing members and ensure journaling is
-   enabled.
+installation, see :doc:`/tutorial/install-basic-deployment`.
 
 .. _highly-available-deployment:
 
-Production Install with a Highly Available |application| and Multiple Backup Databases
---------------------------------------------------------------------------------------
+Highly Available |application| and Multiple Backup Databases
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This |onprem| deployment provides high availability for the |application|
-by running multiple instances behind a load balancer. This deployment
-scales out to add an additional Backup Database.
+This |onprem| deployment provides high availability for the
+|application| by running multiple instances behind a load balancer.
+This deployment scales out to add an additional Backup Database.
 
 .. include:: /images/opsmanager-large.rst
 
-The deployment
-includes two servers that host the |application| and the |application|
-Database, four servers that host |application| with Backup Daemon
-enabled and Backup Databases, and
-additional servers to host the remaining members of each
-replica set.
+The deployment includes:
+
+- two servers that host the |application| and the |application|
+  Database
+
+- four servers that host |application| with Backup enabled and Backup
+  Databases
+
+- additional servers to host the remaining members of each replica set
 
 Deploy an HTTP Load Balancer to balance the HTTP traffic for the
-|http-service|. |onprem| does not supply
-an HTTP Load Balancer: you must deploy and configure it yourself.
-A load balancer placed in front of the |application| servers
-must not return cached content.
+|application|. |onprem| does not supply an HTTP Load Balancer: you
+must deploy and configure it yourself. A load balancer placed in front
+of the |application| servers must not return cached content.
 
 All of the software services need to be able to communicate with
 the |application| Databases and the Backup Databases.
 Configure your firewalls to allow traffic between these servers
 on the :doc:`appropriate ports </reference/firewall-configuration>`.
 
-- **Server 1** and **Server 2** must satisfy the combined :doc:`hardware
-  and software requirements </core/requirements>` for the |application|
-  hardware and |application| Database hardware.
+.. note::
 
-- **Server 3**, **Server 4**, **Server 5**, and **Server 6** must
-  satisfy the combined :doc:`hardware and software requirements
-  </core/requirements>` for the |application| hardware with Backup
-  Daemon and Backup Database hardware.
+   All servers must satisfy the combined 
+   :doc:`hardware and software requirements </core/requirements>` for
+   both the systems specified in the **System Requirements** column.
 
-  The Backup Daemon creates and maintains the :term:`head databases <head database>`,
-  which reside on the disk partition specified in the
-  ``conf-daemon.properties`` file. Only the Backup Daemon needs to
-  communicate with the head databases. As such, their :setting:`net.bindIp` value
-  is ``127.0.0.1`` to prevent external communication.
-  :setting:`net.bindIp` specifies the IP address that
-  :program:`mongod` and :program:`mongos` listens to for connections
-  coming from applications.
+.. list-table::
+   :widths: 5 45 50
+   :header-rows: 1
 
-  For best performance, each Backup server should have 2 partitions. One
-  for the Backup Database, and one for the head
-  databases.
+   * - Server
+     - Meets System Requirements for
+     - Purpose
 
-- **Server 7** and **Server 8** host the remaining replica set members for
-  the |application| Database and for the two Backup
-  Databases. Server 7 and Server 8 must meet the combined :doc:`hardware
-  and software requirements </core/requirements>` for the databases.
+   * - **1 & 2** 
+   
+     - 
+       - |application|
+
+       - |application| Database
+
+     - Hosts the primary and secondary for the |application| database.
+
+   * - **3**, **4**, **5** & **6** 
+
+     - 
+       - |application|
+
+       - Backup Database
+
+     - Hosts the primary and secondary for the two backup databases.  
+
+       Only the
+       Backup Daemon needs to communicate with the head databases. As
+       such, their :setting:`net.bindIp` value is ``127.0.0.1`` to
+       prevent external communication. :setting:`net.bindIp` specifies
+       the IP address that :program:`mongod` and :program:`mongos`
+       listens to for connections coming from applications.
+
+
+   * - **7** & **8**
+
+     -  
+
+       - |application| database
+
+       - Backup database
+
+     - Host the remaining replica set members for the |application|
+       Database and for the two Backup Databases.
 
 For the procedure to install |onprem| with high availability, see
 :doc:`/tutorial/configure-application-high-availability`.

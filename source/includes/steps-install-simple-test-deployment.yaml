@@ -4,14 +4,17 @@ level: 4
 ref: set-up-server
 content: |
 
-  **15 GB memory and 50 GB disk space**:
-  The server must have 15 GB of memory and 50 GB of disk space for the
-  root partition. You can meet the size requirements by using an Amazon
-  Web Services EC2 ``m3.xlarge`` instance and changing the size of the
-  root partition to 50 GB. When you log into the instance,
-  execute ``df -h`` to verify the root partition has 50 GB of space.
+  15 GB memory and 50 GB disk space:
+    The server must have 15 GB of memory and 50 GB of disk space for
+    the root partition. You can meet the size requirements by using an
+    Amazon Web Services EC2 ``m3.xlarge`` instance and changing the
+    size of the root partition to 50 GB. When you log into the
+    instance, execute ``df -h`` to verify the root partition has 50 GB
+    of space.
 
-  **Root access**: You must have root access to the server.
+  Root access:
+    You must have root access to the server.
+
 ---
 title: "Configure the ``yum`` package management system to install the latest stable release of MongoDB."
 stepnum: 2
@@ -22,11 +25,11 @@ pre: |
 action:
   language: sh
   code: |
-    echo "[MongoDB]
+    [mongodb-org-3.2]
     name=MongoDB Repository
-    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
+    baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.2/x86_64/
     gpgcheck=0
-    enabled=1" | sudo tee /etc/yum.repos.d/mongodb.repo
+    enabled=1
 ---
 title: "Install MongoDB."
 stepnum: 3
@@ -51,61 +54,88 @@ action:
     code: |
       sudo mkdir -p /data/appdb
       sudo chown -R mongod:mongod /data
+---
+title: "Create the backup directory. (Optional)"
+stepnum: 5
+level: 4
+ref: create-backup-dir
+action: 
   - pre: |
-      **OPTIONAL:** To also install the Backup feature, issue following
+      To also configure the Backup feature, issue following
       additional commands for the Backup Database:
     language: sh
     code: |
       sudo mkdir -p /data/backup
       sudo chown mongod:mongod /data/backup
 ---
-title: "Start MongoDB for the Application Database and optionally for the Backup Database."
-stepnum: 5
+title: "Start MongoDB for the Application Database."
+stepnum: 6
 level: 4
 ref: start-mongod-instance
 action: 
   - pre: |
-      Issue the following command to start MongoDB as the ``mongod`` user.
-      Start MongoDB on port ``27017`` and specify the ``/data/appdb`` for
-      both data files and logs. Include the ``--fork`` option to run the
-      process in the background and maintain control of the terminal.
+
+      Start MongoDB as the ``mongod`` user, specifying:
+
+      * Port ``27017``
+      * The ``/data/appdb`` path for data files (``--dbpath``)
+      * The ``/data/appdb/mongodb.log`` path for logs (``--logpath``)
+      * The ``--fork`` option to run the process in the background 
+        and maintain control of the terminal.
+
     language: sh
     code: |
       sudo -u mongod mongod --port 27017 --dbpath /data/appdb --logpath /data/appdb/mongodb.log --fork
+---
+title: "Start MongoDB for the Backup Database. (Optional)"
+stepnum: 6
+level: 4
+ref: start-mongod-backup-instance
+action: 
   - pre: |
-      **OPTIONAL:** To also install the Backup feature, issue following
-      command to start MongoDB for the Backup Database. Use port ``27018``
-      and the ``/data/backup`` directory:
+
+      Start MongoDB as the ``mongod`` user, specifying:
+
+      * Port ``27018``
+      * The ``/data/backup`` path for data files (``--dbpath``)
+      * The ``/data/backup/mongodb.log`` path for logs (``--logpath``)
+      * The ``--fork`` option to run the process in the background 
+        and maintain control of the terminal.
+
     language: sh
     code: |
       sudo -u mongod mongod --port 27018 --dbpath /data/backup --logpath /data/backup/mongodb.log --fork
 ---
 title: "Download the |onprem| package."
-stepnum: 6
+stepnum: 7
 level: 4
 ref: application-package-download
 content: |
-  a. In a browser, go to `http://www.mongodb.com/download
-     <http://www.mongodb.com/download>`_.
+  a. In a browser, go to `http://www.mongodb.com
+     <https://www.mongodb.com/>`_ and click on the `Download
+     <https://www.mongodb.com/lp/download/mongodb-enterprise>`_ button.
 
-  b. On the :guilabel:`MongoDB Ops Manager Downloads` page, copy the link
-     address of the :guilabel:`RPM` link.
+  b. Complete the form.
 
-  c. Open a system prompt.
+  c. On the :guilabel:`MongoDB Download Center` page, click on the
+     :guilabel:`Ops Manager` tab.
 
-  d. Download the |onprem| package by issuing a ``curl`` command that uses
-     the copied link address:
+  d. Select ``RedHat 5+ / CentOS 5+ / SUSE 11+ / Amazon Linux`` from
+     the :guilabel:`Platforms` dropdown menu.
 
-     .. code-block:: sh
+  e. Select ``RPM`` from the :guilabel:`Packages` dropdown menu.
 
-        curl -OL <link-address-for-ops-manager-rpm>
+  f. Click :guilabel:`Download`.
 
-     The downloaded package is named ``mongodb-mms-<version>.x86_64.rpm``,
-     where ``<version>`` is the version number.
+  .. note::
+  
+     The downloaded package is named
+     ``mongodb-mms-<version>.x86_64.rpm``, where ``<version>`` is the
+     version number.
 
 ---
 title: "Install |onprem|."
-stepnum: 7
+stepnum: 8
 level: 4
 ref: install
 pre: |
@@ -127,7 +157,7 @@ post: |
   - The ``/opt/mongodb/mms/conf/conf-mms.properties`` file, which contains the connection string to access the Application Database. The default is ``locahost``, port ``27017``, so no changes are necessary.
 
 ---
-stepnum: 8
+stepnum: 9
 level: 4
 # Note: This step is borrowed from the rpm install procedure, not from steps-source-upgrade.
 source:
@@ -135,7 +165,7 @@ source:
   ref: workaround-rhel
 ---
 title: "Start |onprem|."
-stepnum: 9
+stepnum: 10
 level: 4
 ref: start-the-application
 pre: |
@@ -146,7 +176,7 @@ action:
     sudo service mongodb-mms start
 ---
 title: "Get your server's host name."
-stepnum: 10
+stepnum: 11
 level: 4
 ref: public-host-name
 pre: |
@@ -161,7 +191,7 @@ action:
     curl -s http://whatismijnip.nl |cut -d " " -f 5
 ---
 title: "Open the |onprem| home page and register the first user."
-stepnum: 11
+stepnum: 12
 level: 4
 ref: home-page
 content: |
@@ -173,51 +203,55 @@ content: |
         http://<host_name>:8080
 
   b. Click the :guilabel:`Register` link and follow the prompts to
-     register the first user and create the first group. The first user is
-     automatically assigned the :ref:`Global Owner <global-owner-role>`
-     role.
+     register the first user and create the first group. The first user
+     is automatically assigned the :ref:`Global Owner
+     <global-owner-role>` role.
 
 ---
 title: "Configure |onprem|."
-stepnum: 12
+stepnum: 13
 level: 4
 ref: configure-app
-content: |
-  |onprem| walks you through several configuration pages. Required
-  settings are marked with an asterisk. Enter information as appropriate.
-  When configuration is complete, |onprem| opens the
+content: | 
+  |onprem| walks you through several configuration pages.
+  Required settings are marked with an asterisk. Enter information as
+  appropriate. When configuration is complete, |onprem| opens the
   :guilabel:`Deployment` page.
 ---
-title: "If you will use the Backup feature, configure the Backup Daemon and Backup Storage."
-stepnum: 13
+title: "If you will backup your instance, configure the backup capabilities. (Optional)"
+stepnum: 14
 level: 4
 ref: configure-backup-feature
 content: |
-  a. Create the following directory to store the :term:`head databases
-     <head database>`. Do not use this directory for any other purpose:
+  a. Create a directory to store the :term:`head databases <head database>`. 
+
+     .. important::
+       Do not use this directory for any other purpose:
 
      .. code-block:: sh
 
-        /data/backupDaemon
+        mkdir /data/backupDaemon
 
-  b. Issue the following to make the directory writable by the ``mongodb-mms`` user:
+  b. Make the directory writable by the ``mongodb-mms`` user:
 
      .. code-block:: sh
 
         sudo chown mongodb-mms:mongodb-mms /data/backupDaemon
 
-  c. In |onprem|, while logged in as the user you registered during installation,
-     click the :guilabel:`Admin` link at the top right of the page.
+  c. In |onprem|, while logged in as the user you registered during
+     installation, click the :guilabel:`Admin` link at the top right of the
+     page.
 
   d. Click the :guilabel:`Backup` tab.
 
-  e. Follow the prompts to configure the Backup Daemon and Backup storage.
-     |onprem| walks you through the configuration. For :term:`snapshot
-     storage <snapshot>`, select either the local filesystem or the Backup
-     Database. Whichever choice you make, |onprem| still uses the Backup
-     Database for :term:`oplog storage <Oplog Store Database>`. At the
-     prompt to configure the connection string to the Backup Database,
-     enter the following:
+  e. Follow the prompts to configure the Backup storage.
+     |onprem| walks you through the configuration. 
+
+     For :term:`snapshot storage <snapshot>`, select either the local
+     filesystem or the Backup Database. If you use a File System Store,
+     you still need a small MongoDB database for :term:`oplog storage
+     <Oplog Store Database>`. At the prompt to configure the connection
+     string to the Backup Database, enter the following:
 
      .. code-block:: sh
 
@@ -225,11 +259,14 @@ content: |
 
 ---
 title: "Set up your first deployment."
-stepnum: 14
+stepnum: 15
 level: 4
 ref: deploy
 content: |
-  To return to the :guilabel:`Deployment` page, click :guilabel:`mongoDB
-  Ops Manager` in the upper left corner of the page. Use the
-  :guilabel:`Add` button to deploy MongoDB.
+
+  a. Click :guilabel:`MongoDB Ops Manager` in the upper left corner of the
+     page to return to the :guilabel:`Deployment` page.
+
+  b. Click :guilabel:`Add` to deploy a MongoDB instance.
+
 ...
