@@ -1,34 +1,41 @@
-.. list-table::
-   :widths: 30 70
+.. only:: onprem
 
-   * - :guilabel:`My Time Zone`
+   .. list-table::
+      :widths: 30 70
 
-     - Select your time zone.
+      * - :guilabel:`My Time Zone`
 
-   * - :guilabel:`My Date Format`
+        - Select your time zone.
 
-     - Select your preferred date format.
+      * - :guilabel:`My Date Format`
 
-   * - :guilabel:`Page Shown When Switching Groups`
+        - Select your preferred date format.
 
-     - Select which page of the |mms| console you will see when you select a
-       different group. If you select :guilabel:`Current`, |mms| will not
-       change pages when you select a different group.
+      * - :guilabel:`Receive Newsletters`
 
-   * - :guilabel:`Display Opcounters On Separate Charts`
+        - Select whether to receive email newsletters about |mms|.
 
-     - Select how to present opcounter charts. If this option is enabled,
-       |mms| charts each opcounter type separately. Otherwise, each opcounter
-       type is overlaid together in a single chart. For more information on opcounters, see
-       :manual:`Server Status Output </reference/command/serverStatus>` in the MongoDB manual.
+.. only:: cloud
 
-   * - :guilabel:`Display Chart Annotations`
+   .. list-table::
+      :widths: 30 70
 
-     - Toggles the presence of chart annotations. Chart annotations overlay
-       information about significant system events on the charts. For example,
-       with chart annotations |mms| will draw a red vertical line over the
-       charts.
+      * - :guilabel:`My Time Zone`
 
-   * - :guilabel:`Receive Newsletters`
+        - Select your time zone.
 
-     - Select whether to receive email newsletters about |mms|.
+      * - :guilabel:`My Date Format`
+
+        - Select your preferred date format.
+
+      * - :guilabel:`Receive Newsletters`
+
+        - Select whether to receive email newsletters about |mms|.
+
+      * - :guilabel:`Receive Health Score Update`
+
+        - Select whether to receive a weekly email on the health of each |mms|
+          group to which you belong.
+
+          .. note::
+             You will receive one email per group per week.
