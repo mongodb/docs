@@ -1,0 +1,48 @@
+=====================
+Text Search Operators
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Query Framework
+---------------
+
+.. include:: /includes/fact-use-text-operator.rst
+
+Use the :projection:`$meta` query operator to obtain and sort by the
+relevance score of each matching document. For example, to order a
+list of coffee shops in order of relevance, run the following:
+
+.. code-block:: javascript
+
+   db.stores.find(
+      { $text: { $search: "coffee shop cake" } },
+      { score: { $meta: "textScore" } }
+   ).sort( { score: { $meta: "textScore" } } )
+
+Aggregation Framework
+---------------------
+
+When working with the :doc:`/aggregation` framework, use
+:pipeline:`$match` with a :query:`$text` expression to execute a text
+search query. To sort the results in order of relevance score, you must
+explicitly project the :projection:`$meta` ``textScore`` field and sort
+on it.
+
+For example, to order a list of coffee shops in order of relevance using
+the aggregation framework, run the following:
+
+.. code-block:: javascript
+
+   db.stores.aggregate(
+      [
+        { $match: { $text: { $search: "coffee shop cake" } } },
+        { $sort: { score: { $meta: "textScore" } } },
+        { $project: { name: 1, _id: 0, score: { $meta: "textScore" } } },
+      ])
