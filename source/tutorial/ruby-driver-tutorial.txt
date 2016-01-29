@@ -1198,14 +1198,135 @@ GridFS
 ------
 
 The driver provides a clean and extremely simple interface to work with storage of
-chunked files in the database, also known as the pattern "GridFS".
+chunked files in the database, also known as the pattern "GridFS". The API allows you to either
+work with Grid::File objects or with read and write 'streams'.
 
-Files
-`````
+Creating a GridFS object ("Grid::FSBucket")
+``````````````````````````````````````````
 
-The core object when working with GridFS in Ruby is a ``Mongo::Grid::File`` object.
-This is the object that must be inserted into the database, and when retrieving
-files this is the object that is returned.
+You can create a GridFS object by calling #fs on a database, possibly with options. The object returned will be a
+``Grid::FSBucket``.
+
+The options that the GridFS bucket supports are:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 80
+
+   * - Option
+     - Description
+   * - ``:bucket_name``
+     - The name of the GridFS Bucket. Default is ``fs``.
+   * - ``:fs_name``
+     - The name of the GridFS Bucket. Takes precedence over ``bucket_name``. Default is ``fs``.
+   * - ``:chunk_size``
+     - Specifies the size of each file chunk in the database.
+   * - ``:write``
+     - The write concern used when uploading files.
+   * - ``:read``
+     - The read preference used when downloading files.
+
+
+For example, you can create a GridFS bucket object with a particular read preference:
+
+.. code-block:: ruby
+
+  fs_bucket = database.fs(read: { mode: :secondary })
+
+
+Working with write 'streams'
+````````````````````````````
+
+To upload a file to GridFS using a write stream, you can either open a stream and write to it directly or write the
+entire contents of an IO object to GridFS all at once.
+
+To open an upload stream and write to it:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-file.txt', 'r')
+  fs_bucket.open_upload_stream('my-file.txt') do |stream|
+    stream.write(file)
+  end
+  file.close
+
+To upload the entire contents of an IO object in one call:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-file.txt', 'r')
+  fs_bucket.upload_from_stream('my-file.txt', file)
+  file.close
+
+
+Working with read 'streams'
+```````````````````````````
+
+To download a file from GridFS using a read stream, you can either open a read stream and read from it directly or
+download the entire file all at once.
+
+To open a download stream and read from it:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-output-file.txt', 'w')
+  fs_bucket.open_download_stream(file_id) do |stream|
+    file.write(stream.read)
+  end
+  file.close
+
+To download the file all at once and write it to an IO object:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-output-file.txt', 'w')
+  fs_bucket.download_from_stream(file_id, file)
+  file.close
+
+You can also download a file specified by a name and optionally revision number. Revision numbers are used to distinguish
+between files sharing the same name, ordered by date of upload. The revision number passed to
+#open_download_stream_by_name can be positive or negative.
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-output-file.txt', 'w')
+  fs_bucket.open_download_stream_by_name('my-file.txt', revision: -2) do |stream|
+    file.write(stream.read)
+  end
+  file.close
+
+To download the entire contents fo the file specified by name and optionally revision number:
+
+.. code-block:: ruby
+
+  file = File.open('/path/to/my-output-file.txt', 'w')
+  fs_bucket.download_to_stream_by_name('my-file.txt', file, revision: -2)
+  file.close
+
+
+Finding file metadata
+`````````````````````
+
+You can retrieve documents containing metadata about files in the GridFS files collection.
+
+.. code-block:: ruby
+
+  fs_bucket.find(filename: 'my-file.txt')
+
+Deleting files
+``````````````
+
+You can delete a file by id.
+
+.. code-block:: ruby
+
+  fs_bucket.delete(file_id)
+
+
+Working with Grid::File objects
+```````````````````````````````
+
+This object can be used to wrap a file to be inserted into the database using GridFS and the object that is retrieved.
 
 To create a file with raw data:
 
