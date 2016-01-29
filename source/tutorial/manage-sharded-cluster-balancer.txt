@@ -22,12 +22,12 @@ to balancing. For an introduction to balancing, see
 Check the Balancer State
 ------------------------
 
-The following command checks if the balancer is enabled (i.e. that the
-balancer is allowed to run). The command does not check if the balancer
-is active (i.e. if it is actively balancing chunks).
+:method:`sh.getBalancerState()` checks if the balancer is enabled (i.e. that the
+balancer is permitted to run). :method:`sh.getBalancerState()` does not check if the balancer
+is actively balancing chunks.
 
-To see if the balancer is enabled in your :term:`cluster <sharded
-cluster>`, issue the following command, which returns a boolean:
+To see if the balancer is enabled in your :term:`sharded cluster`,
+issue the following command, which returns a boolean:
 
 .. code-block:: javascript
 
@@ -64,26 +64,26 @@ To see if the balancer process is active in your :term:`cluster
 
       db.locks.find( { _id : "balancer" } ).pretty()
 
-When this command returns, you will see output like the following:
-
-.. code-block:: javascript
-
-   {   "_id" : "balancer",
-   "process" : "mongos0.example.net:1292810611:1804289383",
-     "state" : 2,
-        "ts" : ObjectId("4d0f872630c42d1978be8a2e"),
-      "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)",
-       "who" : "mongos0.example.net:1292810611:1804289383:Balancer:846930886",
-       "why" : "doing balance round" }
-
-This output confirms that:
-
-- The balancer originates from the :program:`mongos` running on the
-  system with the hostname ``mongos0.example.net``.
-
-- The value in the ``state`` field indicates that a :program:`mongos`
-  has the lock. For version 2.0 and later, the value of an active lock
-  is ``2``; for earlier versions the value is ``1``.
+   When this command returns, you will see output like the following:
+   
+   .. code-block:: javascript
+   
+      {   "_id" : "balancer",
+      "process" : "mongos0.example.net:1292810611:1804289383",
+        "state" : 2,
+           "ts" : ObjectId("4d0f872630c42d1978be8a2e"),
+         "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)",
+          "who" : "mongos0.example.net:1292810611:1804289383:Balancer:846930886",
+          "why" : "doing balance round" }
+   
+   This output confirms that:
+   
+   - The balancer originates from the :program:`mongos` running on the
+     system with the hostname ``mongos0.example.net``.
+   
+   - The value in the ``state`` field indicates that a :program:`mongos`
+     has the lock. For version 2.0 and later, the value of an active lock
+     is ``2``; for earlier versions the value is ``1``.
 
 .. _sharding-schedule-balancing-window:
 
@@ -91,77 +91,13 @@ Schedule the Balancing Window
 -----------------------------
 
 In some situations, particularly when your data set grows slowly and a
-migration can impact performance, it's useful to be able to ensure
-that the balancer is active only at certain times.  Use the following
-procedure to specify a window during which the :term:`balancer` will
+migration can impact performance, it is useful to ensure
+that the balancer is active only at certain times. The following
+procedure specifies the ``activeWindow``, 
+which is the timeframe during which the :term:`balancer` will
 be able to migrate chunks:
 
-#. Connect to any :program:`mongos` in the cluster using the
-   :program:`mongo` shell.
-
-#. Issue the following command to switch to the :ref:`config-database`:
-
-   .. code-block:: javascript
-
-      use config
-
-#. Issue the following operation to ensure the balancer is not in the
-   ``stopped`` state:
-
-   .. code-block:: sh
-
-      sh.setBalancerState( true )
-
-   The balancer will not activate if in the ``stopped`` state or
-   outside the ``activeWindow`` timeframe.
-
-#. Use an operation modeled on the following
-   :method:`~db.collection.update()` operation to modify the balancer's
-   window:
-
-   .. code-block:: javascript
-
-      db.settings.update(
-         { _id: "balancer" },
-         { $set: { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } },
-         { upsert: true }
-      )
-
-   Replace ``<start-time>`` and ``<end-time>`` with time values using
-   two digit hour and minute values (i.e. ``HH:MM``) that specify the
-   beginning and end boundaries of the balancing window.
-
-   - For ``HH`` values, use hour values ranging from ``00`` - ``23``.
-   - For ``MM`` value, use minute values ranging from ``00`` - ``59``.
-
-   The start and stop times will be evaluated relative to the time zone
-   of each individual :program:`mongos` instance in the sharded
-   cluster. If your :program:`mongos` instances are physically located
-   in different time zones, use a common time zone (e.g. GMT) to ensure
-   that the balancer window is interpreted correctly.
-
-   For instance, running the following
-   will force the balancer to run between 11PM and 6AM local time only:
-
-   .. code-block:: javascript
-
-      db.settings.update(
-         { _id: "balancer" },
-         { $set: { activeWindow : { start: "23:00", stop: "6:00" } } },
-         { upsert: true }
-      )
-
-.. note::
-
-   The balancer window must be sufficient to *complete* the migration
-   of all data inserted during the day.
-
-   As data insert rates can change based on activity and usage
-   patterns, it is important to ensure that the balancing window you
-   select will be sufficient to support the needs of your deployment.
-
-   Do not use the :method:`sh.startBalancer()` method when you have set an
-   ``activeWindow``.
+.. include:: /includes/steps/schedule-balancer-window.rst
 
 .. _sharding-balancing-remove-window:
 
@@ -170,8 +106,8 @@ Remove a Balancing Window Schedule
 
 If you have :ref:`set the balancing window
 <sharding-schedule-balancing-window>` and wish to remove the schedule
-so that the balancer is always running, issue the following sequence
-of operations:
+so that the balancer is always running, use :update:`$unset` to clear
+the ``activeWindow``, as in the following:
 
 .. code-block:: javascript
 
@@ -184,7 +120,7 @@ of operations:
 Disable the Balancer
 --------------------
 
-By default the balancer may run at any time and only moves chunks as
+By default, the balancer may run at any time and only moves chunks as
 needed. To disable the balancer for a short period of time and prevent
 all migration, use the following procedure:
 
