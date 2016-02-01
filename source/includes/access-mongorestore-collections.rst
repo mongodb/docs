@@ -1,5 +1,5 @@
-To restore data to a MongoDB deployment that has enabled :doc:`access
-control </core/authorization>`, the :authrole:`restore` role provides
+To restore data to a MongoDB deployment that has :doc:`access control
+</core/authorization>` enabled, the :authrole:`restore` role provides
 access to restore any database if the backup data does not include
 :data:`system.profile <<database>.system.profile>` collection data.
 
