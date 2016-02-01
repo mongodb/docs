@@ -22,7 +22,7 @@ events. There are several ways to back up MongoDB clusters:
 .. _backup-with-file-copies:
 
 Backup by Copying Underlying Data Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 You can create a backup by copying MongoDB's underlying data
 files.
@@ -70,44 +70,59 @@ complete instructions on using LVM to create snapshots. Also see
 .. _backup-with-mongodump:
 
 Backup with ``mongodump``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 The :program:`mongodump` tool reads data from a MongoDB database and
-creates high fidelity BSON files. The :program:`mongorestore`
-tool can populate a MongoDB database with the data from these BSON
-files. These tools are simple and efficient for backing up small
-MongoDB deployments, but are not ideal for capturing backups of larger
-systems.
+creates high fidelity BSON files. The :program:`mongorestore` tool can
+populate a MongoDB database with the data from these BSON files.
 
-:program:`mongodump` and :program:`mongorestore` operate against a
-running :program:`mongod` process, and can manipulate the underlying
-data files directly. By default, :program:`mongodump` does not
-capture the contents of the :doc:`local database </reference/local-database>`.
+Use Cases
+~~~~~~~~~
 
-:program:`mongodump` only captures the documents in the database. The
-resulting backup is space efficient, but :program:`mongorestore` or
-:program:`mongod` must rebuild the indexes after restoring data.
+:program:`mongodump` and :program:`mongorestore` are simple and
+efficient for backing up small MongoDB deployments, for partial backup
+and restores based on a query, syncing from production to staging or
+development environment, or changing the storage engine of a standalone.
 
-When connected to a MongoDB instance, :program:`mongodump` can
-adversely affect :program:`mongod` performance. If your data is larger
-than system memory, the queries will push the working set out of
-memory.
+However, these tools can be problematic for capturing backups of larger
+systems, sharded clusters, or replica sets. For alternatives, see
+:ref:`backup-with-mms` or :ref:`backup-with-mms-onprem`.
 
-To mitigate the impact of :program:`mongodump` on the performance of
-a replica set, use :program:`mongodump` to capture backups from a
-:doc:`secondary </core/replica-set-secondary>` member of the replica set.
+Data Exclusion
+~~~~~~~~~~~~~~
 
-For replica sets, :program:`mongodump` also supports a point in time
-feature with the :option:`--oplog <mongodump --oplog>`
-option. Applications may continue modifying data while
-:program:`mongodump` captures the output. To restore a point in time
-backup created with :option:`--oplog <mongodump --oplog>`, use
-:program:`mongorestore` with the :option:`--oplogReplay
-<mongorestore --oplogReplay>` option.
+.. include:: /includes/fact-mongodump-local-database.rst
+
+:program:`mongodump` only captures the documents in the database in its
+backup data and does not include index data. :program:`mongorestore` or
+:program:`mongod` must then rebuild the indexes after restoring data.
+
+Performance
+~~~~~~~~~~~
+
+:program:`mongodump` can adversely affect the performance of the
+:program:`mongod`. If your data is larger than system memory, the
+:program:`mongodump` will push the working set out of memory.
 
 If applications modify data while :program:`mongodump` is creating a
-backup, :program:`mongodump` will compete for resources with
-those applications.
+backup, :program:`mongodump` will compete for resources with those
+applications.
+
+To mitigate the impact of :program:`mongodump` on the performance of
+the replica set, use :program:`mongodump` to capture backups from a
+:doc:`secondary </core/replica-set-secondary>` member of a replica set.
+
+Applications can continue to modify data while :program:`mongodump`
+captures the output. For replica sets, :program:`mongodump` provides
+the :option:`--oplog <mongodump --oplog>` option to include in its
+output :term:`oplog` entries that occur during the :program:`mongodump`
+operation. This allows the corresponding :program:`mongorestore`
+operation to replay the captured oplog. To restore a backup created
+with :option:`--oplog <mongodump --oplog>`, use :program:`mongorestore`
+with the :option:`--oplogReplay <mongorestore --oplogReplay>` option.
+
+However, for replica sets, consider :ref:`backup-with-mms` or
+:ref:`backup-with-mms-onprem`.
 
 See :doc:`/tutorial/backup-and-restore-tools`,
 :doc:`/tutorial/backup-small-sharded-cluster-with-mongodump`,
@@ -117,7 +132,7 @@ for more information.
 .. _backup-with-mms:
 
 |MMS| Backup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 The |mms-home|
 supports the backing up and restoring of MongoDB deployments.
@@ -146,7 +161,7 @@ documentation on |MMS|, see the |mms-docs|.
 .. _backup-with-mms-onprem:
 
 Ops Manager Backup Software
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 MongoDB Subscribers can install and run the same core software that
 powers :ref:`backup-with-mms` on their own infrastructure. Ops Manager,
