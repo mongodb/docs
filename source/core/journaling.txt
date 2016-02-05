@@ -41,6 +41,8 @@ With journaling, the recovery process:
 
 #. Apply the operations in the journal files since the last checkpoint.
 
+.. _journal-process:
+
 Journaling Process
 ~~~~~~~~~~~~~~~~~~
 
@@ -56,19 +58,7 @@ buffered.
 WiredTiger syncs the buffered log records to disk according to the
 following intervals or conditions:
 
-- Every 100 milliseconds.
-
-- MongoDB sets checkpoints to occur in WiredTiger on user data at an
-  interval of 60 seconds or when 2 GB of journal data has been written,
-  whichever occurs first.
-
-- If the write operation includes a write concern of :writeconcern:`j:
-  true <j>`, WiredTiger forces a sync of the WiredTiger log files.
-
-- Because MongoDB uses a log file size limit of 100 MB, WiredTiger
-  creates a new journal file approximately every 100 MB of data. When
-  WiredTiger creates a new journal file, WiredTiger syncs the previous
-  journal file.
+.. include:: /includes/extracts/wt-journal-frequency.rst
 
 .. important::
 
@@ -131,25 +121,27 @@ the *shared view*, used to write to the data files:
 
 #. MongoDB first applies write operations to the private view.
 
-#. MongoDB then applies the changes in the private view to the
+#. MongoDB then applies the changes in the private view to the on-disk
    :ref:`journal files <journaling-journal-files>` in the ``journal``
-   directory. MongoDB records the write operations to the journal in
-   batches called group commits. Grouping the commits help minimize the
-   performance impact of journaling since these commits must block all
-   writers during the commit. Writes to the journal are atomic,
-   ensuring the consistency of the on-disk journal files. 
-   For information on the frequency of the commit interval, see
-   :setting:`storage.journal.commitIntervalMs`
+   directory roughly every 100 milliseconds. MongoDB records the
+   write operations to the on-disk journal files in batches called
+   *group commits*. Grouping the commits help minimize the performance
+   impact of journaling since these commits must block all writers
+   during the commit. Writes to the journal are atomic, ensuring the
+   consistency of the on-disk journal files. For information on the
+   frequency of the commit interval, see
+   :setting:`storage.journal.commitIntervalMs`.
 
 #. Upon a journal commit, MongoDB applies the changes from the journal
    to the shared view.
 
-#. Finally, MongoDB applies the changes in the shared view to the
-   data files. More precisely, at default intervals of 60 seconds,
-   MongoDB asks the operating system to flush the shared view to
-   the data files. The operating system may choose to flush the
-   shared view to disk at a higher frequency than 60 seconds,
-   particularly if the system is low on free memory.
+#. Finally, MongoDB applies the changes in the shared view to the data
+   files. More precisely, at default intervals of 60 seconds, MongoDB
+   asks the operating system to flush the shared view to the data
+   files. The operating system may choose to flush the shared view to
+   disk at a higher frequency than 60 seconds, particularly if the
+   system is low on free memory. To change the interval for writing to
+   the data files, use the :setting:`storage.syncPeriodSecs` setting.
 
 If the :program:`mongod` instance were to crash without having applied
 the writes to the data files, the journal could replay the writes to
@@ -164,8 +156,8 @@ Once the journal operations have been applied to the shared view and
 flushed to disk (i.e. pages in the shared view and  private view are in
 sync), MongoDB asks the operating system to remap the shared view to
 the private view in order to save physical RAM. MongoDB routinely asks
-the operating system to remap the shared view to the ``private
-view`` in order to save physical RAM. Upon a new remapping, the
+the operating system to remap the shared view to the private
+view in order to save physical RAM. Upon a new remapping, the
 operating system knows that physical memory pages can be shared between
 the shared view and the private view mappings.
 
