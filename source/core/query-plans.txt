@@ -1,5 +1,6 @@
 .. index:: query optimizer
 .. _read-operations-query-optimization:
+.. _query-plans-query-optimization:
 
 ===========
 Query Plans
@@ -21,9 +22,25 @@ system then uses this query plan each time the query runs.
 
 .. include:: /includes/fact-query-optimizer-cache-behavior.rst
 
-The query optimizer occasionally reevaluates query plans as the content
-of the collection changes to ensure optimal query plans. You can also
-specify which indexes the optimizer evaluates with :ref:`index-filters`.
+For each query, the query planner searches the query plan cache for an entry
+that fits the :term:`query shape`. If there are no matching entries, the
+query planner generates candidate plans for evaluation over a trial period.
+The query planner chooses a winning plan, creates a cache entry containing
+the winning plan, and uses it to generate the result documents.
+
+If a matching entry exists, the query planner generates a plan based on that
+entry and evaluates its performance through a ``replanning`` mechanism. This
+mechanism makes a ``pass/fail`` decision based on the plan performance and
+either keeps or evicts the cache entry. On eviction, the query planner selects
+a new plan using the normal planning process and caches it. The query planner
+executes the plan and returns the result documents for the query.
+
+The following diagram illustrates the query planner logic:
+
+.. include:: /images/query-planner-diagram.rst
+
+See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
+changes to the plan cache.
 
 You can use the :method:`db.collection.explain()` or the
 :method:`cursor.explain()` method to view statistics about the query
@@ -32,85 +49,28 @@ plan for a given query. This information can help as you develop
 
 .. include:: /includes/fact-explain-collection-method.rst
 
-.. _query-plans-query-optimization:
-
-Query Optimization
-------------------
-
-To create a new query plan, the query optimizer:
-
-1. runs the query against several candidate indexes in parallel.
-
-#. records the matches in a common results buffer
-   or buffers.
-
-   - If the candidate plans include only :term:`ordered query plans
-     <ordered query plan>`, there is a single common results buffer.
-
-   - If the candidate plans include only :term:`unordered query plans
-     <unordered query plan>`, there is a single common results buffer.
-
-   - If the candidate plans include *both* :term:`ordered query plans
-     <ordered query plan>` and :term:`unordered query plans
-     <unordered query plan>`, there are two common results buffers, one
-     for the ordered plans and the other for the unordered plans.
-
-   If an index returns a result already returned by another index, the
-   optimizer skips the duplicate match. In the case of the two buffers,
-   both buffers are de-duped.
-
-#. stops the testing of candidate plans and selects an index when one of
-   the following events occur:
-
-   - An :term:`unordered query plan` has returned all the matching results; *or*
-
-   - An :term:`ordered query plan` has returned all the matching results; *or*
-
-   - An :term:`ordered query plan` has returned a threshold number of
-     matching results:
-
-     - Version 2.0: Threshold is the query batch size. The default
-       batch size is 101.
-
-     - Version 2.2: Threshold is 101.
-
-The selected index becomes the index specified in the query plan;
-future iterations of this query or queries with the same query
-pattern will use this index. Query pattern refers to query select
-conditions that differ only in the values, as in the following two
-queries with the same query pattern:
-
-.. code-block:: javascript
-
-   db.inventory.find( { type: 'food' } )
-   db.inventory.find( { type: 'utensil' } )
-
-Query Plan Revision
--------------------
-
-As collections change over time, the query optimizer deletes the query
-plan and re-evaluates after any of the following events:
-
-- The collection receives 1,000 write operations.
-
-- The :dbcommand:`reIndex` rebuilds the index.
-
-- You add or drop an index.
-
-- The :program:`mongod` process restarts.
-
 .. versionchanged:: 2.6
 
-   ``explain()`` operations no longer read from or write to the query
-   planner cache.
+   :method:`~db.collection.explain()` operations no longer read from or write
+   to the query planner cache.
 
-Cached Query Plan Interface
----------------------------
+.. _query-plans-query-revision:
+
+.. _query-plans-plan-cache-flushes:
+
+Plan Cache Flushes
+------------------
+
+Catalog operations like index or collection drops flush the plan cache.
+
+The plan cache does not persist if a :program:`mongod` restarts or shuts down.
 
 .. versionadded:: 2.6
 
-MongoDB provides :doc:`/reference/method/js-plan-cache` to view and
-modify the cached query plans.
+   MongoDB provides :doc:`/reference/method/js-plan-cache` to view and modify
+   the cached query plans. The :method:`PlanCache.clear()` method flushes the
+   entire plan cache. Users can also clear particular plan cache entries using
+   :method:`PlanCache.clearPlansByQuery()`.
 
 .. _index-filters:
 
