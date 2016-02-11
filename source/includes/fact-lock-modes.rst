@@ -1,7 +1,22 @@
-- ``R`` represents Shared (S) lock.
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   
+   * - Lock Mode
+     - Description
 
-- ``W`` represents Exclusive (X) lock.
+   * - ``R``
 
-- ``r`` represents Intent Shared (IS) lock.
+     - Represents Shared (S) lock.
 
-- ``w`` represents Intent Exclusive (IX) lock.
+   * - ``W``
+
+     - Represents Exclusive (X) lock.
+
+   * - ``r``
+
+     - Represents Intent Shared (IS) lock.
+
+   * - ``w``
+
+     - Represents Intent Exclusive (IX) lock.
