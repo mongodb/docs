@@ -13,14 +13,13 @@ Hosts
 Overview
 --------
 
-You can typically access a host using a variety of names. DNS records
-and entries in the ``/etc/hosts`` file determine what names you can use to
-access a given host.
-
-When you add a host to |mms|, |mms| automatically discovers various valid
-hostname and port combinations for each monitored ``mongod`` and
-``mongos`` process. |mms| then ranks the hostnames to choose a "primary"
-hostname. Hostnames with the most periods are ranked highest, while the
+The ``hosts`` resource defines the ``mongod`` and ``mongos`` processes in your
+deployment. Each process is identified by a unique hostname and port combination.
+When you add a ``mongod`` and ``mongos`` to |mms|, |mms| automatically
+discovers various valid hostname and port combinations for the process. DNS
+records and entries in the ``/etc/hosts`` file determine what names you can
+use to access a given host. |mms| ranks the hostnames to choose a "primary"
+hostname. Hostnames with the most periods rank highest, while the
 loopback address (``127.0.0.1``) and ``localhost`` lowest. |mms|
 treats the "losing" hostnames as host aliases.
 
@@ -36,8 +35,8 @@ Endpoints
 Get All Hosts in a Group
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Get all hosts in a group. Use the ``clusterId`` query parameter to only
-get the hosts that belong to the specified cluster. The resulting list
+Get all MongoDB processes in a group. Use the ``clusterId`` query parameter to only
+get the processes that belong to the specified cluster. The resulting list
 is sorted alphabetically by ``hostname:port``.
 
 .. code-block:: none
@@ -54,7 +53,7 @@ Get a Host by ID
 Get a Host By Name and Port
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Get a single host by its hostname and port combination. You can specify
+Get a single MongoDB process by its hostname and port combination. You can specify
 either the primary hostname or an alias.
 
 .. code-block:: none
@@ -64,7 +63,7 @@ either the primary hostname or an alias.
 Create a Host
 ~~~~~~~~~~~~~
 
-Create a new host in the group. When you create a new host, |mms| only
+Create a new MongoDB instance in the group. When you create a new host, |mms| only
 knows the information that you provided. Thus, the document returned in
 the response document will include blank values while |mms| discovers
 the missing values.
@@ -73,7 +72,7 @@ the missing values.
 
    POST /api/public/v1.0/groups/GROUP-ID/hosts
 
-You may specify the following fields when creating a host:
+You may specify the following fields when creating a new MongoDB instance:
 
 - ``hostname`` - Required.
 - ``port`` - Required.
@@ -131,6 +130,7 @@ Sample Entity
    {
      "id": "680ab316473d6b28f966364b947134fc",
      "groupId": "2847387cd717dabc348a",
+     "clusterId" : "56bcbef1e4b010e0058b711e",
      "hostname": "localhost",
      "port": 27017,
      "typeName": "SHARD_SECONDARY",
@@ -178,11 +178,15 @@ Entity Fields
 
    * - ``groupId``
      - string
-     - ID of the group that owns this host.
+     - ID of the group that owns this MongoDB process.
+
+   * - ``clusterId``
+     - string
+     - The ID of the cluster to which the MongoDB process belongs.
 
    * - ``hostname``
      - string
-     - Primary hostname. A host typically has several aliases, so the primary is
+     - Primary hostname. A MongoDB process typically has several aliases, so the primary is
        the best available name as decided by |mms|.
 
    * - ``port``
@@ -191,7 +195,7 @@ Entity Fields
 
    * - ``typeName``
      - string
-     - Type for this host. Possible values are:
+     - Type for this MongoDB process. Possible values are:
 
        - ``STANDALONE``
        - ``REPLICA_PRIMARY``
@@ -207,118 +211,118 @@ Entity Fields
        - ``SHARD_SECONDARY``
        - ``NO_DATA``
 
-       The host's type for new hosts added to |mms| will be ``NO_DATA``
+       The type for new hosts added to |mms| will be ``NO_DATA``
        until the Monitoring Agent receives its first ping.
 
    * - ``lastPing``
      - date
-     - When the last ping for this host was received.
+     - When the last ping for this MongoDB process was received.
 
    * - ``ipAddress``
      - string
-     - IP address of this host.
+     - IP address of this MongoDB process.
 
    * - ``version``
      - string
-     - Version of MongoDB running on this host.
+     - Version of MongoDB running for this process.
 
    * - ``hasStartupWarnings``
      - boolean
-     - Are there startup warnings for this host?
+     - Are there startup warnings for this MongoDB process?
 
    * - ``sslEnabled``
      - boolean
-     - Is SSL enabled for this host? Must be ``true`` if the
+     - Is SSL enabled for this MongoDB process? Must be ``true`` if the
        ``authMechanismName`` is ``MONGODB_X509``.
 
    * - ``logsEnabled``
      - boolean
-     - Is |mms| collecting logs for this host?
+     - Is |mms| collecting logs for this MongoDB process?
 
    * - ``uptimeMsec``
      - long
-     - Number of milliseconds since this host's last restart.
+     - Number of milliseconds since this process last restarted.
 
    * - ``lastRestart``
      - date
-     - Date this host was last restarted.
+     - Date this process last restarted.
 
    * - ``shardName``
      - string
-     - Name of the shard this host belongs to. Only present if the host is part
+     - Name of the shard this process belongs to. Only present if the process is part
        of a sharded cluster.
 
    * - ``replicaSetName``
      - string
-     - Name of the replica set this host belongs to. Only present if this host is
+     - Name of the replica set this process belongs to. Only present if this process is
        part of a replica set.
 
    * - ``replicaStateName``
      - string
-     - Current state of this host within a replica set. Only present if this
-       host is part of a replica set. See :manual:`Replica Set Member States
+     - Current state of this MongoDB process within a replica set. Only present if this
+       process is part of a replica set. See :manual:`Replica Set Member States
        </reference/replica-states>` for possible values.
 
    * - ``created``
      - date
-     - Date this host was created or first discovered by |mms|.
+     - Date this MongoDB process was created or first discovered by |mms|.
 
    * - ``hostEnabled``
      - boolean
-     - Is this host currently enabled? Hosts can be manually disabled in the |mms|
+     - Is this process currently enabled? MongoDB processes can be manually disabled in the |mms|
        UI.
 
    * - ``journalingEnabled``
      - boolean
-     - Is journaling enabled for this host?
+     - Is journaling enabled for this MongoDB process?
 
    * - ``alertsEnabled``
      - boolean
-     - Are alerts enabled for this host?
+     - Are alerts enabled for this MongoDB process?
 
    * - ``muninEnabled``
      - boolean
-     - Are Munin stats being collected for this host?
+     - Are Munin stats being collected for this MongoDB process?
 
    * - ``profilerEnabled``
      - boolean
-     - Is |mms| collecting profile information from this host?
+     - Is |mms| collecting profile information from this MongoDB process?
 
    * - ``lowUlimit``
      - boolean
-     - Does this host have a low ``ulimit`` setting?
+     - Does this MongoDB process's server have a low ``ulimit`` setting?
 
    * - ``muninPort``
      - integer
-     - What port should be used to collect Munin stats from this host?
+     - What port should be used to collect Munin stats from this MongoDB process?
 
    * - ``authMechanismName``
      - string
-     - The authentication mechanism used to connect to this host. Possible values
+     - The authentication mechanism used to connect to this MongoDB process. Possible values
        are:
 
        .. include:: /includes/possibleValues-api-authMechanismName.rst
 
    * - ``username``
      - string
-     - Username for connecting to this host. Only present when the
+     - Username for connecting to this MongoDB process. Only present when the
        ``authMechanismName`` is ``MONGODB_CR``.
 
    * - ``password``
      - string
-     - Password for connecting to this host. If a host's ``authMechanismName``
+     - Password for connecting to this MongoDB process. If the process's ``authMechanismName``
        is ``MONGODB_CR``, then you must include this field when creating the
-       host or updating its credentials. However, it will never be exposed when
+       process or updating its credentials. However, it will never be exposed when
        a host entity is returned.
 
    * - ``aliases``
      - array of strings
      - A list of alternate hostname:port combinations that |mms| has discovered for
-       the host.
+       the MongoDB process.
 
    * - ``displayName``
      - string
-     - The host's display name in |mms|. If this is not set, |mms|
+     - The MongoDB process's display name in |mms|. If this is not set, |mms|
        displays the hostname instead. To unset this, use an empty string
        (``""``) as the value of this field.
 
@@ -333,21 +337,21 @@ Links
    * - ``self``
      - Me
    * - ``http://mms.mongodb.com/cluster``
-     - The cluster this host belongs to. Only present if the host is part of a
+     - The cluster this MongoDB process belongs to. Only present if the process is part of a
        replica set or master/slave.
    * - ``http://mms.mongodb.com/parentCluster``
-     - The parent cluster. Only present if the host is part of a sharded cluster.
+     - The parent cluster. Only present if the MongoDB process is part of a sharded cluster.
    * - ``http://mms.mongodb.com/group``
-     - The group that this host belongs to.
+     - The group that this MongoDB process belongs to.
    * - ``http://mms.mongodb.com/metrics``
-     - All available metrics for the host.
+     - All available metrics for the MongoDB process.
    * - ``http://mms.mongodb.com/snapshots``
      - All snapshots for the :term:`config server`. Only present if the
-       host is a config server and if the config server is running as a
+       MongoDB process is a config server and if the config server is running as a
        standalone, not as a replica set.
    * - ``http://mms.mongodb.com/restoreJobs``
      - All restore jobs for the :term:`config server`. Only present if the
-       host is a config server and if the config server is running as a
+       MongoDB process is a config server and if the config server is running as a
        standalone, not as a replica set.
 
 Examples
@@ -420,6 +424,7 @@ Response
    {
      "id" : "680ab316473d6b28f966364b947134fc",
      "groupId" : "533c5895b91030606f21033a",
+     "clusterId" : "45cbedf1e4b010e0058b532e",
      "hostname" : "localhost",
      "port" : 26000,
      "hasStartupWarnings" : false,
@@ -458,6 +463,7 @@ Response
    {
      "id" : "56e9378f601dc49360a40949c8a6df6c",
      "groupId" : "533c5895b91030606f21033a",
+     "clusterId" : "4b0bedf1e10e0058b532e45c",
      "hostname" : "mymongo.test.com",
      "port" : 26000,
      "hasStartupWarnings" : false,
@@ -501,6 +507,7 @@ Response
        {
          "id" : "56e9378f601dc49360a40949c8a6df6c",
          "groupId" : "533c5895b91030606f21033a",
+         "clusterId" : "4b0bedf1e10e0058b532e45c",
          "hostname" : "mymongo.test.com",
          "port" : 26000,
          "hasStartupWarnings" : false,
