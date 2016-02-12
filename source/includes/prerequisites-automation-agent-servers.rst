@@ -8,6 +8,6 @@ connected to the server. Each server must be able to reach every other
 server through the FQDN.
 
 Ensure that your network configuration allows each Automation Agent to
-connect to every MongoDB process listed on the :guilabel:`Deployment` tab.
+connect to every MongoDB process listed on the :guilabel:`Deployment` page.
 Ensure that the network and security systems, including all interfaces and
 firewalls, allow these connections.
