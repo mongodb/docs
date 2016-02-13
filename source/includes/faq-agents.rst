@@ -89,8 +89,8 @@ the agent cannot connect by resolving a hostname, you can force the Monitoring
 Agent to prefer an IP address over its corresponding hostname for a specific
 IP address.
 
-To create a preferred hostname, select the :guilabel:`Settings` tab, then the
-:guilabel:`Group Settings` page, and then click the :guilabel:`Add` button for
+To create a preferred hostname, click :guilabel:`Settings`, then
+:guilabel:`Group Settings`, then the :guilabel:`Add` button for
 the :guilabel:`Preferred Hostnames` setting. If your IP addresses have a common
 prefix, create a preferred hostname with the :guilabel:`ends-with` button or
 click the :guilabel:`regexp` button to use a regular expression.
@@ -102,8 +102,7 @@ under different names in the |mms| interface.
 How do I download the Monitoring Agent?
 +++++++++++++++++++++++++++++++++++++++
 
-You can update the Monitoring Agent from the :guilabel:`Agents` page of the
-:guilabel:`Settings` tab.
+You can update the Monitoring Agent from the :guilabel:`Agents` page in :guilabel:`Settings`.
 
 How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++
