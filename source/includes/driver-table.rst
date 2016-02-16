@@ -16,10 +16,17 @@
      - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`_
      -
 
-   * - `C++ <https://github.com/mongodb/mongo-cxx-driver>`_
+   * - `C++11 <https://github.com/mongodb/mongo-cxx-driver>`_
      - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `API <http://api.mongodb.org/cplusplus/current/>`_
+     - `API <http://api.mongodb.org/cxx11/current/>`_
+     - `JIRA <https://jira.mongodb.org/browse/CXX>`_
+     -
+
+   * - `C++ (legacy) <https://github.com/mongodb/mongo-cxx-driver/tree/legacy>`_
+     - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
+     - `Source <https://github.com/mongodb/mongo-cxx-driver/tree/legacy>`_
+     - `API <http://api.mongodb.org/cxx/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CXX>`_
      -
 
