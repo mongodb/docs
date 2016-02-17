@@ -89,11 +89,16 @@ the agent cannot connect by resolving a hostname, you can force the Monitoring
 Agent to prefer an IP address over its corresponding hostname for a specific
 IP address.
 
-To create a preferred hostname, click :guilabel:`Settings`, then
-:guilabel:`Group Settings`, then the :guilabel:`Add` button for
-the :guilabel:`Preferred Hostnames` setting. If your IP addresses have a common
-prefix, create a preferred hostname with the :guilabel:`ends-with` button or
-click the :guilabel:`regexp` button to use a regular expression.
+To create a preferred hostname:
+
+1. Click :guilabel:`Settings`.
+
+2. Click :guilabel:`Group Settings`.
+
+3. Click the :guilabel:`Add` button for the :guilabel:`Preferred Hostnames` setting.
+   If your IP addresses have a common
+   prefix, create a preferred hostname with the :guilabel:`ends-with` button or
+   click the :guilabel:`regexp` button to use a regular expression.
 
 Preferred hostnames also allow you to specify the hostname to use for servers
 with multiple aliases. This prevents servers from appearing multiple times
