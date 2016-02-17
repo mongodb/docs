@@ -175,7 +175,7 @@ latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper',
-    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2015 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
+    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2016 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
 }
 
 latex_paper_size = 'letter'
@@ -199,7 +199,7 @@ if 'manpages' in conf.system.files.data:
 epub_title = conf.project.title
 epub_author = u'MongoDB, Inc.'
 epub_publisher = u'MongoDB, Inc.'
-epub_copyright = u'MongoDB, Inc. 2008 - 2015'
+epub_copyright = u'MongoDB, Inc. 2008 - 2016'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
