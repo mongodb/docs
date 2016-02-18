@@ -4,8 +4,7 @@ MongoDB Connector for Business Intelligence Documentation
 
 This repository contains documentation regarding components of the
 the MongoDB Connector for BI (Business Intelligence). This documentation
-builds on the work of the `MongoDB
-Manual <http://docs.mongodb.org/manual/>`.
+builds on the work of the `MongoDB Manual <http://docs.mongodb.org/manual/>`_.
 
 If you already have `giza <https://pypi.python.org/pypi/giza/>`_
 installed, you can download and build this documentation locally with
