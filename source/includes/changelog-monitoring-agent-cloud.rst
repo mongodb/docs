@@ -1,3 +1,12 @@
+Monitoring Agent ``4.1.0.251``
+------------------------------
+
+*Released 2016-02-18*
+
+- Use systemD management on RHEL7 and Ubuntu 16.04.
+
+- Set ``ulimits`` in the packaged builds.
+
 Monitoring Agent ``4.0.0.242``
 ------------------------------
 

@@ -1,3 +1,12 @@
+Backup Agent ``4.1.0.347``
+--------------------------
+
+*Released 2016-02-18*
+
+- Use systemD management on RHEL7 and Ubuntu 16.04
+
+- Set ``ulimits`` in the packaged builds
+
 Backup Agent ``4.0.0.343``
 --------------------------
 
