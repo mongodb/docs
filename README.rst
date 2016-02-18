@@ -1,39 +1,31 @@
-===============================
-MongoDB Ecosystem Documentation
-===============================
+=========================================================
+MongoDB Connector for Business Intelligence Documentation
+=========================================================
 
 This repository contains documentation regarding components of the
-MongoDB ecosystem that lay outside of the core server
-functionality. This documentation builds on the work of the `MongoDB
-Manual <http://docs.mongodb.org/manual/>`. You can download and build
-this documentation locally if you already have `Sphinx
-<http://sphinx.pocoo.org/>`_ installed, with the following command: ::
+the MongoDB Connector for BI (Business Intelligence). This documentation
+builds on the work of the `MongoDB
+Manual <http://docs.mongodb.org/manual/>`.
 
-     git clone git://github.com/mongodb/docs-ecosystem
-     cd docs-ecosystem/
-     make html
+If you already have `giza <https://pypi.python.org/pypi/giza/>`_
+installed, you can download and build this documentation locally with
+the following command: ::
 
-To build on Windows (using Cygwin):
+     git clone git://github.com/mongodb/docs-bi-connector
+     cd docs-bi-connector/
+     giza make html
 
-- Ensure you have python installed
-- install Sphinx using ``easy_install -U Sphinx``
-- install pyyamml using ``pip install pyyaml``
-- Build the docs using ``sphinx-build  -b html -d build/doctrees-html -c ./ source build/html``
-
-Visit ``docs/mongodb/build/html/index.html`` to view the current state
-of the documentation. You may also wish to install `Pygments
-<http://pygments.org>`_ to provide syntax highlighting for code
-examples.
+View ``build/html/index.html`` to view your current build of the
+documentation.
 
 To contribute to the documentation, please fork this repository on
 GitHub and issue a pull request. If you have not done so already,
 please sign the `MongoDB/10gen Contributor Agreement
-<http://www.10gen.com/contributor>`_.
+<https://www.mongodb.com/legal/contributor-agreement>`_.
 
-See the following documents
-within this repository that provide a more thorough overview of the
-documentation style, and process. These links point back to the MongoDB
-Manual materials:
+See the following documents within this repository that provide a more
+thorough overview of the documentation style, and process. These links
+point back to the MongoDB Manual materials:
 
 - `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
 - `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
@@ -41,15 +33,16 @@ Manual materials:
 - `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
 
 File issue reports or requests at the `Documentation Jira Project
-<https://jira.mongodb.org/browse/DOCS>`_. 
+<https://jira.mongodb.org/browse/DOCS>`_.
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
 
 The MongoDB Documentation Project is governed by the terms of the
-`MongoDB/10gen Contributor Agreement <http://www.10gen.com/contributor>`_.
+`MongoDB/10gen Contributor Agreement
+<https://www.mongodb.com/legal/contributor-agreement>`_.
 
-If you have any questions, please contact `docs@10gen.com
-<mailto:docs@10gen.com>`_.
+If you have any questions, please contact `docs@mongodb.com
+<mailto:docs@mongodb.com>`_.
 
 -- The MongoDB/10gen Docs Team
