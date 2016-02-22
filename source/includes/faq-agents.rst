@@ -104,11 +104,6 @@ Preferred hostnames also allow you to specify the hostname to use for servers
 with multiple aliases. This prevents servers from appearing multiple times
 under different names in the |mms| interface.
 
-How do I download the Monitoring Agent?
-+++++++++++++++++++++++++++++++++++++++
-
-You can update the Monitoring Agent from the :guilabel:`Agents` page in :guilabel:`Settings`.
-
 How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++
 
