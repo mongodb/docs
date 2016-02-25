@@ -40,31 +40,35 @@ Install and run the latest version of MongoDB. In
 addition, the MongoDB commands should be in your system search path
 (i.e. ``$PATH``).
 
-If your :program:`mongod` requires authorization [#authrequired]_, the user account
-used by the Hadoop connector must have the :authaction:`splitVector` privilege.
-   
-To run the examples in this document, use a user 
-that has the :authrole:`clusterManager` role. Add these privileges to
-an existing ``reportsUser`` user with the following operation:
+If your :program:`mongod` requires authorization [#authrequired]_, the user
+account used by the Hadoop connector must be able to run the
+:authaction:`splitVector` command on the input database. You can either give the
+user the :authrole:`clusterManager` role, or create a custom role for this:
 
 .. code-block:: javascript
 
-   use mongo_hadoop
+   db.createRole({
+     role: "hadoopSplitVector",
+     privileges: [{
+       resource: {
+         db: "myDatabase",
+         collection: "myCollection"
+       },
+       actions: ["splitVector"]
+     }],
+     roles:[]
+   });
+   db.createUser({
+     user: "hadoopUser",
+     pwd: "secret",
+     roles: ["hadoopSplitVector", "readWrite"]
+   });
 
-   db.updateUser( "reportsUser",
-    {
-     roles : [
-              { role: "readWrite", db: "mongo_hadoop" },
-              { role : "clusterManager", db : "admin" }
-             ]
-    }
-   )
-
-In practice, you should create a custom role with appropriate privileges for
-the user account used by the Hadoop connector, as the
-:authrole:`clusterManager` role provides additional privileges. See
-:manual:`User and Role Management Tutorials 
-</administration/security-user-role-management>`. 
+Note that the ``splitVector`` command cannot be run through a ``mongos``, so the
+Hadoop connector will automatically connect to the primary shard in order to run
+the command. If your input collection is unsharded and the connector reads
+through a ``mongos``, make sure that your MongoDB Hadoop user is created on the
+primary shard as well.
 
 .. [#authrequired] :program:`mongod` requires clients to
    authenticate as user when you specify the
@@ -72,43 +76,11 @@ the user account used by the Hadoop connector, as the
    settings or the corresponding :option:`--auth <mongod --auth>` or
    :option:`--keyFile <mongod --keyFile>` command line options.
 
-If your :program:`mongod` has authorization enforcement turned on (i.e. is
-running with the option :setting:`--auth` and/or :setting:`--keyFile <file>`
-specified), the user account used by the Hadoop connector must have the
-``splitVector`` privilege.
-   
-For the purpose of running the examples, this may be accomplished by adding
-the ``clusterManager`` role to the user ``reportsUser``:
-
-.. code-block:: javascript
-
-   use mongo_hadoop
-
-   db.updateUser( "reportsUser",
-    {
-     roles : [
-              { role: "readWrite", db: "mongo_hadoop" },
-              { role : "clusterManager", db : "admin" }
-             ]
-    }
-   )
-
-In practice, you should create a custom role with appropriate privileges for
-the user account used by the Hadoop connector, as ``clusterManager`` has
-elevated privileges. See `User and Role Management Tutorials <http://docs.mongodb.org/manual/administration/security-user-role-management/>`_.
-
 Miscellaneous
 ~~~~~~~~~~~~~
 
 In addition to Hadoop, you should also have ``git``, ``python``, and Java 7 or
 greater installed.
-
-Getting the Hadoop Connector
-----------------------------
-
-The MongoDB Connector for Hadoop source code and pre-built JARs are all available
-on its `Github page <https://github.com/mongodb/mongo-hadoop>`_ along with specific
-installation instructions in the `wiki <https://github.com/mongodb/mongo-hadoop/wiki#using-the-connector>`_.
 
 Examples
 --------
@@ -155,4 +127,3 @@ Read the full documentation on the MongoDB Connector for Hadoop
 To modify configuration options, you can put additional lines in the ``historicalYield`` task to set
 properties passed to hadoop at runtime. Read the full comments of the script to see details on
 using these options to read/write from BSON as well as mongoDB collections.
-
