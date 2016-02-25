@@ -22,8 +22,8 @@ Journaling and the WiredTiger Storage Engine
 
 .. important::
 
-   The ``log`` mentioned in this section refers to the WiredTiger
-   write-ahead log and not the MongoDB log file.
+   The *log* mentioned in this section refers to the WiredTiger
+   write-ahead log (i.e. the journal) and not the MongoDB log file.
 
 :doc:`WiredTiger </core/wiredtiger>` uses :ref:`checkpoints
 <storage-wiredtiger-checkpoints>` to provide a consistent view of data
@@ -36,8 +36,8 @@ With journaling, the recovery process:
 #. Looks in the data files to find the identifier of the last
    checkpoint.
 
-#. Searches in the journal files for the log record that match that
-   identifier of the last checkpoint.
+#. Searches in the journal files for the record that
+   matches the identifier of the last checkpoint.
 
 #. Apply the operations in the journal files since the last checkpoint.
 
@@ -48,28 +48,33 @@ Journaling Process
 
 .. versionchanged:: 3.2
 
-With journaling, WiredTiger creates a log record per transaction.
+With journaling, WiredTiger creates one journal record for each client
+initiated write operation. The journal record includes any internal
+write operations caused by the initial write. For example, an update to
+a document in a collection may result in modifications to the indexes;
+WiredTiger creates a single journal record that includes both the
+update operation and its associated index modifications.
 
 MongoDB configures WiredTiger to use in-memory buffering for storing
-the write-ahead log records. Threads coordinate to allocate and copy
-into their portion of the buffer. All log records up to 128 kB are
-buffered.
+the journal records. Threads coordinate to allocate and copy
+into their portion of the buffer. All journal records up to 128
+kB are buffered.
 
-WiredTiger syncs the buffered log records to disk according to the
+WiredTiger syncs the buffered journal records to disk according to the
 following intervals or conditions:
 
 .. include:: /includes/extracts/wt-journal-frequency.rst
 
 .. important::
 
-   In between write operations, while the log records remain in the
-   WiredTiger buffers, updates can be lost following a hard shutdown of
-   :program:`mongod`.
+   In between write operations, while the journal records
+   remain in the WiredTiger buffers, updates can be lost following a
+   hard shutdown of :program:`mongod`.
 
 .. seealso::
    The :dbcommand:`serverStatus` command returns information on the
-   WiredTiger log statistics in the :data:`wiredTiger.log <data::
-   serverStatus.wiredTiger.log>` field.
+   WiredTiger journal statistics in the :data:`wiredTiger.log
+   <data:: serverStatus.wiredTiger.log>` field.
 
 Journal Files
 ~~~~~~~~~~~~~
@@ -80,8 +85,8 @@ files have names with the following format ``WiredTigerLog.<sequence>``
 where ``<sequence>`` is a zero-padded number starting from
 ``0000000001``.
 
-Journal files contain the log records. Each log record has a unique
-identifier.
+Journal files contain a record per each write operation. Each record
+has a unique identifier.
 
 MongoDB configures WiredTiger to use snappy compression for the
 journaling data.
@@ -92,10 +97,10 @@ WiredTiger journal files for MongoDB have a maximum size limit of
 approximately 100 MB. Once the file exceeds that limit, WiredTiger
 creates a new journal file.
 
-WiredTiger automatically removes old log files to maintain only the
+WiredTiger automatically removes old journal files to maintain only the
 files needed to recover from last checkpoint.
 
-WiredTiger will pre-allocate log files.
+WiredTiger will pre-allocate journal files.
 
 .. _journaling-mmapv1:
 
