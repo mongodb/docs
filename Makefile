@@ -3,7 +3,7 @@ USER=`whoami`
 URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PREFIX=landing
 
-.PHONY: help stage fake-deploy build
+.PHONY: help stage fake-deploy build-temp
 
 help:
 	@echo 'Targets'
@@ -14,15 +14,15 @@ help:
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
-stage: build
-	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --stage ${ARGS}
+stage: build-temp
+	mut-publish build-temp/ docs-mongodb-org-staging --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy: build
+fake-deploy: build-temp
 	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${URL}/${PREFIX}/index.html"
 
-build:
+build-temp:
 	rm -rf $@
-	mkdir build
-	cp -p index.html mongodb-logo.png style.css *webfont* ./build
+	mkdir $@
+	cp -p index.html mongodb-logo.png style.css *webfont* $@/
