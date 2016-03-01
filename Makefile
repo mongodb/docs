@@ -1,3 +1,6 @@
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+USER=`whoami`
+
 .PHONY: help stage build
 
 help:
@@ -7,7 +10,7 @@ help:
 
 stage: build
 	mut-publish build/ docs-mongodb-org-staging --prefix='landing' --verbose --stage
-	@echo "Hosted at https://docs-mongodborg-staging.corp.mongodb.com/landing/`whoami`/`git rev-parse --abbrev-ref HEAD`/index.html"
+	@echo "Hosted at https://docs-mongodborg-staging.corp.mongodb.com/landing/${USER}/${GIT_BRANCH}/index.html"
 
 build:
 	rm -rf $@
