@@ -3,13 +3,17 @@ USER=`whoami`
 URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PREFIX=landing
 
-.PHONY: help stage fake-deploy build-temp
+.PHONY: help stage fake-deploy build-temp lint
+
+CSS_ERRORS=errors,empty-rules,duplicate-properties,selector-max-approaching
+CSS_WARNINGS=regex-selectors,unqualified-attributes,text-indent
 
 help:
 	@echo 'Targets'
 	@echo '  help         - Show this help message'
 	@echo '  stage        - Host online for review'
 	@echo '  fake-deploy  - Create a fake deployment in the staging bucket'
+	@echo '  lint         - Check the CSS'
 	@echo ''
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
@@ -19,10 +23,21 @@ stage: build-temp
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build-temp
-	mut-publish build/ docs-mongodb-org-staging --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build-temp/ docs-mongodb-org-staging --prefix=${PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${URL}/${PREFIX}/index.html"
 
-build-temp:
+build-temp: style.min.css
 	rm -rf $@
 	mkdir $@
-	cp -p index.html mongodb-logo.png style.css *webfont* $@/
+	cp -p index.html mongodb-logo.png style.min.css *webfont* $@/
+
+# Don't grab node_modules unless we have to
+style.min.css: style.css
+	$(MAKE) node_modules lint
+	./node_modules/.bin/cleancss --skip-rebase --semantic-merging -o $@ $^
+
+lint: | node_modules
+	./node_modules/.bin/csslint --quiet --format=compact --errors=$(ERRORS) --warnings=$(CSS_WARNINGS) style.css
+
+node_modules:
+	npm update
