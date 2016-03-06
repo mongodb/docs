@@ -549,3 +549,88 @@ The query returns the following documents:
    }
 
 .. seealso:: :doc:`/tutorial/project-fields-from-query-results`
+
+.. _faq-developers-query-for-nulls:
+
+Null or Missing Fields
+----------------------
+
+Different query operators in MongoDB treat ``null`` values differently.
+
+Given the collection ``inventory`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 900, "item" : null }
+   { "_id" : 901 }
+
+.. _faq-comparison-with-null:
+
+Equality Filter
+~~~~~~~~~~~~~~~
+
+The ``{ item : null }`` query matches documents that either
+contain the ``item`` field whose value is ``null`` *or* that
+do not contain the ``item`` field.
+
+Given the following query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { item: null } )
+
+The query returns both documents:
+
+.. code-block:: javascript
+
+   { "_id" : 900, "item" : null }
+   { "_id" : 901 }
+
+If the query uses an index that is :ref:`sparse <index-type-sparse>`,
+however, then the query will only match ``null`` values, not missing
+fields.
+
+.. versionchanged:: 2.6
+   If using the sparse index results in an incomplete result, MongoDB will not
+   use the index unless a :method:`~cursor.hint()` explicitly specifies the
+   index. See :ref:`index-type-sparse` for more information.
+
+Type Check
+~~~~~~~~~~
+
+The ``{ item : { $type: 10 } }`` query matches documents that
+contains the ``item`` field whose value is ``null`` *only*;
+i.e. the value of the ``item`` field is of BSON Type ``Null``
+(i.e. ``10``) :
+
+.. code-block:: javascript
+
+   db.inventory.find( { item : { $type: 10 } } )
+
+The query returns only the document where the ``item`` field has a
+``null`` value:
+
+.. code-block:: javascript
+
+   { "_id" : 900, "item" : null }
+
+Existence Check
+~~~~~~~~~~~~~~~
+
+The ``{ item : { $exists: false } }`` query matches documents
+that do not contain the ``item`` field:
+
+.. code-block:: javascript
+
+   db.inventory.find( { item : { $exists: false } } )
+
+The query returns only the document that does *not* contain the
+``item`` field:
+
+.. code-block:: javascript
+
+   { "_id" : 901 }
+
+.. seealso:: The reference documentation for the :query:`$type` and
+   :query:`$exists` operators.
+

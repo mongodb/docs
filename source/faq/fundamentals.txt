@@ -12,6 +12,12 @@ FAQ: MongoDB Fundamentals
 
 This document answers some common questions about MongoDB.
 
+What platforms does MongoDB support?
+------------------------------------
+
+For the list of supported platforms, see
+:ref:`prod-notes-supported-platforms`.
+
 How does a collection differ from a table?
 ------------------------------------------
 
@@ -119,3 +125,59 @@ results for identical queries.
 For more information on MongoDB and memory use, see :ref:`WiredTiger
 and Memory Use <wiredtiger-RAM>` and :ref:`MMAPv1 and Memory Use
 <mmapv1-RAM>`.
+
+.. _faq-dollar-sign-escaping:
+
+How does MongoDB address SQL or Query injection?
+------------------------------------------------
+
+BSON
+~~~~
+
+As a client program assembles a query in MongoDB, it builds a BSON
+object, not a string. Thus traditional SQL injection attacks are not a
+problem. More details and some nuances are covered below.
+
+MongoDB represents queries as :term:`BSON` objects. Typically
+:doc:`client libraries </applications/drivers>` provide a convenient,
+injection free, process to build these objects. Consider the following
+C++ example:
+
+.. code-block:: cpp
+
+   BSONObj my_query = BSON( "name" << a_name );
+   auto_ptr<DBClientCursor> cursor = c.query("tutorial.persons", my_query);
+
+Here, ``my_query`` then will have a value such as ``{ name : "Joe"
+}``. If ``my_query`` contained special characters, for example
+``,``, ``:``, and ``{``, the query simply wouldn't match any
+documents. For example, users cannot hijack a query and convert it to
+a delete.
+
+JavaScript
+~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/fact-disable-javascript-with-noscript.rst
+
+All of the following MongoDB operations permit you to run arbitrary JavaScript
+expressions directly on the server:
+
+- :query:`$where`
+- :dbcommand:`mapReduce`
+- :dbcommand:`group`
+
+You must exercise care in these cases to prevent users from
+submitting malicious JavaScript.
+
+Fortunately, you can express most queries in MongoDB without
+JavaScript and for queries that require JavaScript, you can mix
+JavaScript and non-JavaScript in a single query. Place all the
+user-supplied fields directly in a :term:`BSON` field and pass
+JavaScript code to the :query:`$where` field.
+
+If you need to pass user-supplied values in a :query:`$where` clause,
+you may escape these values with the ``CodeWScope`` mechanism. When you
+set user-submitted values as variables in the scope document, you can
+avoid evaluating them on the database server.

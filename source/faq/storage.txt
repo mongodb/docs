@@ -284,6 +284,57 @@ operating system file cache.
 
 See :ref:`administration-monitoring-page-faults` for more information.
 
+.. TODO consider removing manual padding question in v3.4
+
+.. _faq-developers-manual-padding:
+
+Can I manually pad documents to prevent moves during updates?
+-------------------------------------------------------------
+
+.. versionchanged:: 3.0.0
+
+With the :doc:`MMAPv1 storage engine </core/mmapv1>`, an update can
+cause a document to move on disk if the document grows in size. To
+*minimize* document movements, MongoDB uses :term:`padding`.
+
+You should not have to pad manually because by default, MongoDB uses
+:ref:`power-of-2-allocation` to add :ref:`padding automatically
+<record-allocation-strategies>`. The :ref:`power-of-2-allocation`
+ensures that MongoDB allocates document space in sizes that are powers
+of 2, which helps ensure that MongoDB can efficiently reuse free space
+created by document deletion or relocation as well as reduce the
+occurrences of reallocations in many cases.
+
+However, *if you must* pad a document manually, you can add a
+temporary field to the document and then :update:`$unset` the field,
+as in the following example.
+
+.. warning:: Do not manually pad documents in a capped
+   collection. Applying manual padding to a document in a capped
+   collection can break replication. Also, the padding is not
+   preserved if you re-sync the MongoDB instance.
+
+.. code-block:: javascript
+
+   var myTempPadding = [ "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"];
+
+   db.myCollection.insert( { _id: 5, paddingField: myTempPadding } );
+
+   db.myCollection.update( { _id: 5 },
+                           { $unset: { paddingField: "" } }
+                         )
+
+   db.myCollection.update( { _id: 5 },
+                           { $set: { realField: "Some text that I might have needed padding for" } }
+                         )
+
+.. seealso::
+
+   :ref:`record-allocation-strategies`
+
 Data Storage Diagnostics
 ------------------------
 
