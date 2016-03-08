@@ -47,7 +47,7 @@
    * - :doc:`Node.js </drivers/node-js>`
      - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`_
      - `Source <https://github.com/mongodb/node-mongodb-native>`_
-     - `API <http://mongodb.github.io/node-mongodb-native>`_
+     - `API <https://mongodb.github.io/node-mongodb-native/>`_
      - `JIRA <https://jira.mongodb.org/browse/NODE>`_
      - `Course <https://university.mongodb.com/courses/M101JS/about>`_
 
@@ -87,9 +87,9 @@
      -
 
    * - :doc:`Scala </drivers/scala>`
-     - `Releases <http://mongodb.github.io/mongo-scala-driver/>`_
+     - `Releases <https://mongodb.github.io/mongo-scala-driver/>`_
      - `Source <https://github.com/mongodb/mongo-scala-driver>`_
-     - `API <http://mongodb.github.io/mongo-scala-driver/>`_
+     - `API <https://mongodb.github.io/mongo-scala-driver/>`_
      - `JIRA <https://jira.mongodb.org/browse/SCALA>`_
      -
 
