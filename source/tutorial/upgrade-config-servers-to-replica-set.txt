@@ -25,6 +25,14 @@ The following procedure upgrades three mirrored config servers to a
 procedure, all the sharded cluter binaries must be at least version
 3.2.4.
 
+Please note that during this procedure there will be a brief window where 
+the config servers will be read-only.  This means that certain catalog
+operations will not be possible during this window.  Operations that will
+not be available include adding and dropping shards, creating and dropping
+databases, creating and dropping sharded collections, and migrating chunks
+(both manually and via the balancer process).  Normal read and write
+operations to existing collections will not be affected.
+
 .. seealso:: :doc:`/tutorial/upgrade-config-servers-to-replica-set-downtime`
 
 Prerequisites
@@ -210,6 +218,9 @@ Procedure
 #. Shut down one of the other non-replica set config servers; i.e.
    either the second and third config server listed in the
    :setting:`~sharding.configDB` setting of the :program:`mongos`.
+   At this point the config servers will go read-only, meaning certain
+   operations - such as creating and dropping databases and sharded
+   collections - will not be available.
 
 #. Reconfigure the replica set to allow all members to vote and have
    default priority of ``1``.
@@ -264,6 +275,10 @@ Procedure
 
    If the first config server uses the MMAPv1 storage engine, the
    member will transition to ``"REMOVED"`` state.
+   
+   At this point the config server data will return to being writeable and all
+   catalog operations - including creating and dropping databases and 
+   sharded collections - will once again be possible.
 
 #. Restart :program:`mongos` instances with updated :option:`--configdb` or
    :setting:`sharding.configDB` setting. 
