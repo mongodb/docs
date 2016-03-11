@@ -141,70 +141,9 @@ html_theme_options = {
 
 html_sidebars = sconf.sidebars
 
-# -- Options for LaTeX output --------------------------------------------------
-
-latex_documents = []
-if 'pdfs' in conf.system.files.data:
-    for pdf in conf.system.files.data.pdfs:
-        latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
-
-latex_preamble_elements = [r'\DeclareUnicodeCharacter{FF04}{\$}',
-                           r'\DeclareUnicodeCharacter{FF0E}{.}',
-                           r'\PassOptionsToPackage{hyphens}{url}',
-                           r'\usepackage{upquote}',
-                           r'\pagestyle{plain}',
-                           r'\pagenumbering{arabic}']
-latex_elements = {
-    'preamble': '\n'.join(latex_preamble_elements),
-    'pointsize': '10pt',
-    'papersize': 'letterpaper'
-}
-
-latex_paper_size = 'letter'
-latex_use_parts = False
-latex_show_pagerefs = True
-latex_show_urls = 'footnote'
-latex_domain_indices = False
-latex_logo = None
-latex_appendices = []
-
 # -- Options for manual page output --------------------------------------------
 
 man_pages = []
 if 'manpages' in conf.system.files.data:
     for mp in conf.system.files.data.manpages:
         man_pages.apend((mp.file, mp.name, mp.title, mp.authors, mp.section))
-
-# -- Options for Epub output ---------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = conf.project.title
-epub_author = u'MongoDB Documentation Project'
-epub_publisher = u'MongoDB, Inc.'
-epub_copyright = copyright
-epub_theme = 'epub_mongodb'
-epub_tocdup = True
-epub_tocdepth = 3
-epub_language = language
-epub_scheme = 'url'
-epub_identifier = '/'.join([conf.project.url, conf.git.branches.current])
-epub_exclude_files = []
-
-epub_pre_files = []
-epub_post_files = []
-
-# put it into your conf.py
-
-
-def setup(app):
-    # disable versioning for speed
-    from sphinx.builders.gettext import I18nBuilder
-    I18nBuilder.versioning_method = 'none'
-
-    def doctree_read(app, doctree):
-        if not isinstance(app.builder, I18nBuilder):
-            return
-        from docutils import nodes
-        from sphinx.versioning import add_uids
-        list(add_uids(doctree, nodes.TextElement))
-    app.connect('doctree-read', doctree_read)
