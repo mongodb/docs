@@ -1,3 +1,5 @@
+.. _bson-document-format:
+
 =========
 Documents
 =========
@@ -10,43 +12,10 @@ Documents
    :depth: 1
    :class: singlecol
 
-MongoDB stores all data in documents, which are JSON-style data
-structures composed of field-and-value pairs:
-
-.. code-block:: javascript
-
-   { "item": "pencil", "qty": 500, "type": "no.2" }
-
-Most user-accessible data structures in MongoDB are documents,
-including:
-
-- All database records.
-
-- :doc:`Query selectors </core/read-operations>`, which define what records to
-  select for read, update, and delete operations.
-
-- :doc:`Update definitions </core/write-operations>`, which define what fields
-  to modify during an update.
-
-- :doc:`Index specifications </core/indexes>`, which define what
-  fields to index.
-
-- Data output by MongoDB for reporting and configuration, such as the
-  output of the :dbcommand:`serverStatus` and the :ref:`replica set
-  configuration document <replica-set-configuration-document>`.
-
-Document Format
----------------
-
-MongoDB stores documents on disk in the :term:`BSON` serialization
-format. BSON is a binary representation of :term:`JSON` documents,
-though it contains more data types than JSON. For the BSON spec, see
-`bsonspec.org <http://bsonspec.org/>`_. See also
-:doc:`/reference/bson-types`.
-
-The :program:`mongo` JavaScript shell and the :doc:`MongoDB language
-drivers </applications/drivers>` translate between BSON and the
-language-specific document representation.
+MongoDB stores data records as BSON documents. BSON is a binary
+representation of :term:`JSON` documents, though it contains more data
+types than JSON. For the BSON spec, see `bsonspec.org
+<http://bsonspec.org/>`_. See also :doc:`/reference/bson-types`.
 
 .. _document-structure:
 
@@ -68,7 +37,7 @@ following structure:
 
 The value of a field can be any of the BSON :doc:`data types
 </reference/bson-types>`, including other documents, arrays, and arrays
-of documents. The following document contains values of varying types:
+of documents. For example, the following document contains values of varying types:
 
 .. code-block:: javascript
 
@@ -83,7 +52,7 @@ of documents. The following document contains values of varying types:
 
 The above fields have the following data types:
 
-- ``_id`` holds an *ObjectId*.
+- ``_id`` holds an :ref:`objectid`.
 
 - ``name`` holds an *embedded document* that contains the fields
   ``first`` and ``last``.
@@ -95,7 +64,7 @@ The above fields have the following data types:
 - ``views`` holds a value of the *NumberLong* type.
 
 Field Names
------------
+~~~~~~~~~~~
 
 Field names are strings.
 
@@ -113,12 +82,82 @@ fields, but *no* MongoDB process will *ever* add duplicate fields to an
 existing user document.
 
 Field Value Limit
------------------
+~~~~~~~~~~~~~~~~~
 
 For :doc:`indexed collections </core/indexes-introduction>`, the values
 for the indexed fields have a
 :limit:`Maximum Index Key Length <Index Key Limit>` limit. See
 :limit:`Maximum Index Key Length <Index Key Limit>` for details.
+
+.. _document-dot-notation:
+
+Dot Notation
+------------
+
+MongoDB uses the *dot notation* to access the elements of an array and
+to access the fields of an embedded document.
+
+Arrays
+~~~~~~
+
+To specify or access an element of an array by the zero-based index
+position, concatenate the array name with the dot (``.``) and
+zero-based index position, and enclose in quotes:
+
+.. code-block:: javascript
+
+   "<array>.<index>"
+
+For example, given the following field in a document:
+
+.. code-block:: javascript
+
+   {
+      ...
+      contribs: [ "Turing machine", "Turing test", "Turingery" ],
+      ...
+   }
+
+To specify the third element in the ``contribs`` array, use the dot
+notation ``"contribs.2"``.
+
+.. seealso::
+
+   - :update:`$` positional operator for update operations,
+
+   - :projection:`$` projection operator when array index position is
+     unknown
+
+   - :ref:`read-operations-arrays` for dot notation examples with arrays.
+
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
+
+To specify or access a field of an embedded document with dot notation,
+concatenate the embedded document name with the dot (``.``) and
+the field name, and enclose in quotes:
+
+.. code-block:: javascript
+
+   "<embedded document>.<field>"
+
+For example, given the following field in a document:
+
+.. code-block:: javascript
+
+   {
+      ...
+      name: { first: "Alan", last: "Turing" },
+      ...
+   }
+
+To specify the field named ``last`` in the ``name`` field, use the dot
+notation ``"name.last"``.
+
+.. seealso::
+
+   :ref:`read-operations-embedded-documents` for dot notation examples
+   with embedded documents.
 
 Document Limitations
 --------------------
@@ -139,7 +178,7 @@ Document Field Order
 .. _document-id-field:
 
 The ``_id`` Field
------------------
+~~~~~~~~~~~~~~~~~
 
 The ``_id`` field has the following behavior and constraints:
 
@@ -161,7 +200,7 @@ The ``_id`` field has the following behavior and constraints:
 
 The following are common options for storing values for ``_id``:
 
-- Use an :doc:`ObjectId </reference/object-id>`.
+- Use an :ref:`objectid`.
 
 - Use a natural unique identifier, if available. This saves space and
   avoids an additional index.
@@ -183,17 +222,48 @@ The following are common options for storing values for ``_id``:
 
 .. include:: /includes/note-insert-id-field.rst
 
-.. _document-dot-notation:
+Other Uses of the Document Structure
+------------------------------------
 
-Dot Notation
-------------
+In addition to defining data records, MongoDB uses the document
+structure throughout, including but not limited to:
 
-.. include:: /includes/fact-dot-notation.rst
+- :ref:`Query filters or specifications
+  <read-operations-query-argument>`. Query filter documents specify the
+  conditions that determine which records to select for read, update,
+  and delete operations.
 
-.. seealso::
+  You can use ``<field>:<value>`` expressions to specify
+  the equality condition and :doc:`query operator
+  </reference/operator/query>` expressions.
 
-   - :ref:`read-operations-embedded-documents` for dot notation examples
-     with embedded documents.
+  .. code-block:: javascript
 
-   - :ref:`read-operations-arrays` for dot notation examples with
-     arrays.
+     {
+        <field1>: <value1>,
+        <field2>: { <operator>: <value> },
+        ...
+     }
+ 
+  For examples, see :ref:`Query
+  filters or specifications <read-operations-query-argument>`.
+
+- :ref:`Update specifications <update-documents-modifiers>`. Update
+  specifications documents use :ref:`update operators
+  <update-operators>` to specify the data modifications to perform on
+  specific fields during an :method:`db.collection.update()` operation.
+
+  .. code-block:: javascript
+
+     {
+        <operator1>: { <field1>: <value1>, ... },
+        <operator2>: { <field2>: <value2>, ... },
+        ...
+     }
+
+- :doc:`Index specifications </core/indexes-introduction>`. Index
+  specifications document define the field to index and the index type:
+
+  .. code-block:: javascript
+
+     { <field1>: <type1>, <field2>: <type2>, ...  }
