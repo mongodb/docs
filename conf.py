@@ -50,6 +50,7 @@ release = conf.version.release
 rst_epilog = [
     '.. include:: {0}/hash.rst'.format(conf.paths.includes[len(conf.paths.source):]),
     '.. |copy| unicode:: U+000A9',
+    '.. |service| replace:: M'
 ]
 
 rst_epilog.extend(get_replacements(conf))
@@ -59,17 +60,7 @@ pygments_style = 'sphinx'
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub': ('http://github.com/mongodb/docs/blob/{0}/%s'.format(conf.git.branches.current),
-                   ''),
-    'hardlink': ('http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
-    'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'mms': ('https://mms.mongodb.com/help%s', ''),
-    'mms-hosted': ('https://mms.mongodb.org/help-hosted%s', ''),
-    'about': ('http://www.mongodb.org/about%s', '')
+    'manual': ('http://docs.mongodb.org/manual%s', '')
 }
 
 # add `extlinks` for each published version.
@@ -140,10 +131,3 @@ html_theme_options = {
 }
 
 html_sidebars = sconf.sidebars
-
-# -- Options for manual page output --------------------------------------------
-
-man_pages = []
-if 'manpages' in conf.system.files.data:
-    for mp in conf.system.files.data.manpages:
-        man_pages.apend((mp.file, mp.name, mp.title, mp.authors, mp.section))
