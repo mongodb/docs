@@ -1,0 +1,75 @@
+title: Start each member of the shard replica set.
+level: 4
+stepnum: 1
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-start-members
+pre: |
+  Start *each* :program:`mongod` in the replica set using either 
+  a configuration file or the command line.
+action:
+  - pre: |
+      **Configuration File**
+      
+      If using a configuration file, set the :setting:`replication.replSetName`
+      to the desired name of the replica set, and the 
+      :setting:`sharding.clusterRole` option to ``shardsvr``.
+    language: yaml
+    code: |
+      sharding:
+        clusterRole: shardsvr
+      replication:
+        replSetName: <replSetName>
+    post: |
+      Include any other options as appropriate for your deployment. See
+      :doc:`/reference/configuration-options` for settings available.
+  - pre: |
+       Start the :program:`mongod` specifying the ``--config`` option
+       and the path to the configuration file.
+    language: sh
+    code: |
+       mongod --config <path-to-config-file>
+  - pre: |
+      **Command Line**
+      
+      If using the command line option, when starting the component, specify 
+      the ``replSet``, and ``--shardsvr`` parameters, as in the
+      following example:
+    language: sh
+    code: |
+       mongod --shardsvr --replSet <replSetname>
+    post: |
+       Include any other options as appropriate for your deployment.
+---
+title: Connect to a member of the shard replica set.
+stepnum: 2
+level: 4
+ref: deploy-repset-connect
+pre: |
+  Connect a :program:`mongo` shell to one of the replica set members.
+action:
+  language: sh
+  code: |
+    mongo --host <hostname> --port <port>
+---
+stepnum: 3
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-initiate
+action:
+  - pre: |
+      The following example initates a three member replica set.
+    language: javascript
+    code: |
+      rs.initiate(
+        {
+          _id : <replicaSetName>,
+          members: [
+            { _id : 0, host : "s1-mongo1.example.net:27017" },
+            { _id : 1, host : "s1-mongo2.example.net:27017" },
+            { _id : 2, host : "s1-mongo3.example.net:27017" }
+          ]
+        }
+      )
+...

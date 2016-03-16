@@ -297,24 +297,7 @@ Sharding Operational Restrictions
 
 .. limit:: Operations Unavailable in Sharded Environments
 
-   The :dbcommand:`group` does not work with sharding. Use
-   :dbcommand:`mapReduce` or :dbcommand:`aggregate` instead.
-
-   :method:`db.eval()` is incompatible with sharded collections. You may
-   use :method:`db.eval()` with un-sharded collections in a shard
-   cluster.
-
-   :query:`$where` does not permit references to the ``db`` object
-   from the :query:`$where` function. This is uncommon in
-   un-sharded collections.
-
-   The :update:`$isolated` update modifier does not work in sharded
-   environments.
-
-   :operator:`$snapshot` queries do not work in sharded environments.
-
-   The :dbcommand:`geoSearch` command is not supported in sharded
-   environments.
+   .. include:: /includes/limits-sharding-unavailable-operations.rst
 
 .. limit:: Covered Queries in Sharded Clusters
 
@@ -322,74 +305,7 @@ Sharding Operational Restrictions
 
 .. limit:: Sharding Existing Collection Data Size
 
-   An existing collection can only be sharded if its size does not exceed
-   specific limits. These limits can be estimated based on the average size of
-   all :term:`shard key` values, and the configured :term:`chunk` size.
-   
-   .. important:: 
-      
-      These limits only apply for the initial sharding operation. Sharded
-      collections can grow to *any* size after successfully enabling sharding.
-   
-   Use the following formulas to calculate the *theoretical* maximum
-   collection size. 
-   
-   .. code-block:: javascript
-   
-      maxSplits = 16777216 (bytes) / <average size of shard key values in bytes>
-      maxCollectionSize (MB) = maxSplits * (chunkSize / 2)
-   
-   .. note::
-      
-      The maximum :term:`BSON` document size is 16MB or ``16777216`` bytes.
-      
-      All conversions should use base-2 scale, e.g. 1024 kilobytes = 1
-      megabyte.
-   
-   If ``maxCollectionSize`` is less than or nearly equal to the target
-   collection, increase the chunk size to ensure sucessful initial sharding.
-   If there is doubt as to whether the result of the calculation is too
-   'close' to the target collection size, it is likely better to increase the
-   chunk size.
-   
-   After successful initial sharding, you can reduce the chunk size as needed.
-   If you later reduce the chunk size, it may take time for all chunks to
-   split to the new size. See
-   :doc:`/tutorial/modify-chunk-size-in-sharded-cluster` for instructions on
-   modifying chunk size.
-   
-   This table illustrates the approximate maximum collection sizes
-   using the formulas described above:
-
-   .. list-table::
-      :header-rows: 1
-      :stub-columns: 1
-
-      * - Average Size of Shard Key Values
-        - 512 bytes
-        - 256 bytes
-        - 128 bytes
-        - 64 bytes
-      * - Maximum Number of Splits
-        - 32,768
-        - 65,536
-        - 131,072
-        - 262,144
-      * - Max Collection Size (64 MB Chunk Size)
-        - 1 TB
-        - 2 TB
-        - 4 TB
-        - 8 TB
-      * - Max Collection Size (128 MB Chunk Size)
-        - 2 TB
-        - 4 TB
-        - 8 TB
-        - 16 TB
-      * - Max Collection Size (256 MB Chunk Size)
-        - 4 TB
-        - 8 TB
-        - 16 TB
-        - 32 TB
+   .. include:: /includes/limits-sharding-existing-collection-data-size.rst
 
 .. limit:: Single Document Modification Operations in Sharded Collections
 
@@ -402,22 +318,13 @@ Sharding Operational Restrictions
 
 .. limit:: Unique Indexes in Sharded Collections
 
-   MongoDB does not support unique indexes across shards, except when
-   the unique index contains the full shard key as a prefix of the
-   index. In these situations MongoDB will enforce uniqueness across
-   the full key, not a single field.
-
-   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
-      for an alternate approach.
+   .. include:: /includes/limits-sharding-unique-indexes.rst
 
 .. _limit-balancer-migration-document-limit:
 
 .. limit:: Maximum Number of Documents Per Chunk to Migrate
 
-   MongoDB cannot move a chunk if the number of documents in the chunk
-   exceeds either 250000 documents or 1.3 times the number of average
-   sized documents that the :ref:`maximum chunk size
-   <sharding-chunk-size>` can hold.
+   .. include:: /includes/limits-sharding-maximum-documents-chunk.rst
 
 .. _limits-shard-keys:
 
@@ -426,70 +333,23 @@ Shard Key Limitations
 
 .. limit:: Shard Key Size
 
-   A shard key cannot exceed 512 bytes.
+   .. include:: /includes/limits-sharding-keysize.rst
 
 .. limit:: Shard Key Index Type
 
-   A :term:`shard key` index can be an ascending index on the shard
-   key, a compound index that start with the shard key and specify
-   ascending order for the shard key, or a :doc:`hashed index
-   </core/index-hashed>`.
-
-   A :term:`shard key` index cannot be an index that specifies a
-   :doc:`multikey index </core/index-multikey>`, a :doc:`text index
-   </core/index-text>` or a :ref:`geospatial index
-   <index-feature-geospatial>` on the :term:`shard key` fields.
+   .. include:: /includes/limits-sharding-index-type.rst
 
 .. limit:: Shard Key is Immutable
 
-   You cannot change a shard key after sharding the collection. If
-   you must change a shard key:
-
-   - Dump all data from MongoDB into an external format.
-
-   - Drop the original sharded collection.
-
-   - Configure sharding using the new shard key.
-
-   - :doc:`Pre-split </tutorial/create-chunks-in-sharded-cluster>` the shard
-     key range to ensure initial even distribution.
-
-   - Restore the dumped data into MongoDB.
+   .. include:: /includes/limits-sharding-shardkey-immutable.rst
 
 .. limit:: Shard Key Value in a Document is Immutable
 
-   After you insert a document into a sharded collection, you cannot
-   change the document's value for the field or fields that comprise
-   the shard key. The :method:`~db.collection.update()` operation will
-   not modify the value of a shard key in an existing document.
+   .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
 
 .. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
 
-   For clusters with high insert volumes, a shard keys with
-   monotonically increasing and decreasing keys can affect insert
-   throughput. If your shard key is the ``_id`` field, be aware that
-   the default values of the ``_id`` fields are :term:`ObjectIds
-   <ObjectId>` which have generally increasing values.
-
-   When inserting documents with monotonically increasing shard keys, all
-   inserts belong to the same :term:`chunk` on a single
-   :term:`shard`. The system will eventually divide the
-   chunk range that receives all write operations
-   and migrate its contents to distribute data more evenly. However, at any
-   moment the cluster can direct insert operations only to a single
-   shard, which creates an insert throughput bottleneck.
-
-   If the operations on the cluster are predominately read operations
-   and updates, this limitation may not affect the cluster.
-
-   To avoid this constraint, use a :ref:`hashed shard key
-   <sharding-hashed-sharding>` or select a field that does not
-   increase or decrease monotonically.
-
-   .. versionchanged:: 2.4
-      :ref:`Hashed shard keys <sharding-hashed-sharding>` and
-      :ref:`hashed indexes <index-type-hashed>` store hashes of keys
-      with ascending values.
+   .. include:: /includes/limits-sharding-shardkey-monotonic-throughput.rst
 
 Operations
 ----------

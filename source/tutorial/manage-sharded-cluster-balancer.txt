@@ -1,4 +1,5 @@
 .. index:: balancing; operations
+.. index:: balancing; configure
 
 ===============================
 Manage Sharded Cluster Balancer
@@ -85,7 +86,25 @@ To see if the balancer process is active in your :term:`cluster
      has the lock. For version 2.0 and later, the value of an active lock
      is ``2``; for earlier versions the value is ``1``.
 
+.. _sharded-cluster-config-default-chunk-size:
+
+Configure Default Chunk Size
+----------------------------
+
+The default chunk size for a sharded cluster is 64 megabytes. In most
+situations, the default size is appropriate for splitting and migrating
+chunks. For information on how chunk size affects deployments, see
+details, see :ref:`sharding-chunk-size`.
+
+Changing the default chunk size affects chunks that are processes during
+migrations and auto-splits but does not retroactively affect all chunks.
+
+To configure default chunk size, see
+:doc:`modify-chunk-size-in-sharded-cluster`.
+
+
 .. _sharding-schedule-balancing-window:
+.. _sharded-cluster-config-balancing-window:
 
 Schedule the Balancing Window
 -----------------------------
@@ -301,3 +320,155 @@ This operation will return a null error, ``true``, ``false``, or no output:
    :method:`sh.status()`. The
    :data:`~sh.status.balancer.currently-enabled` field indicates if the
    balancer is enabled.
+
+.. index:: balancing; secondary throttle
+.. index:: secondary throttle
+.. _sharded-cluster-config-secondary-throttle:
+
+Change Replication Behavior for Chunk Migration
+-----------------------------------------------
+
+Secondary Throttle
+~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.0.0
+   The balancer configuration document added configurable
+   ``writeConcern`` to control the semantics of the
+   ``_secondaryThrottle`` option.
+
+The ``_secondaryThrottle`` parameter of the balancer and the
+:dbcommand:`moveChunk` command affects the replication behavior during
+:ref:`chunk migration <chunk-migration-replication>`. By default,
+``_secondaryThrottle`` is ``true``, which means each document move
+during chunk migration propagates to at least one secondary before the
+balancer proceeds with the next document: this is equivalent to a write
+concern of ``{ w: 2 }``.
+
+You can also configure the ``writeConcern`` for the
+``_secondaryThrottle`` operation, to configure how migrations will
+wait for replication to complete.  For more information on the
+replication behavior during various steps of chunk migration,
+see :ref:`chunk-migration-replication`.
+
+To change the balancer's ``_secondaryThrottle`` and ``writeConcern``
+values, connect to a :program:`mongos` instance and directly update
+the ``_secondaryThrottle`` value in the :data:`~config.settings`
+collection of the :ref:`config database <config-database>`. For
+example, from a :program:`mongo` shell connected to a
+:program:`mongos`, issue the following command:
+
+.. code-block:: javascript
+
+   use config
+   db.settings.update(
+      { "_id" : "balancer" },
+      { $set : { "_secondaryThrottle" : false ,
+                 "writeConcern": { "w": "majority" } } },
+      { upsert : true }
+   )
+
+The effects of changing the ``_secondaryThrottle`` and
+``writeConcern`` value may not be
+immediate. To ensure an immediate effect, stop and restart the balancer
+to enable the selected value of ``_secondaryThrottle``. See
+:doc:`/tutorial/manage-sharded-cluster-balancer` for details.
+
+.. _wait-for-delete-setting:
+
+Wait for Delete
+~~~~~~~~~~~~~~~
+
+The ``_waitForDelete`` setting of the balancer and the
+:dbcommand:`moveChunk` command affects how the balancer migrates
+multiple chunks from a shard. By default, the balancer does not wait
+for the on-going migration's delete phase to complete before starting
+the next chunk migration. To have the delete phase **block** the start
+of the next chunk migration, you can set the ``_waitForDelete`` to
+true.
+
+For details on chunk migration, see :ref:`sharding-chunk-migration`.
+For details on the chunk migration queuing behavior, see
+:ref:`chunk-migration-queuing`.
+
+The ``_waitForDelete`` is generally for internal testing purposes. To
+change the balancer's ``_waitForDelete`` value:
+
+#. Connect to a :program:`mongos` instance.
+
+#. Update the ``_waitForDelete`` value in the :data:`~config.settings`
+   collection of the :ref:`config database <config-database>`. For
+   example:
+
+   .. code-block:: javascript
+
+      use config
+      db.settings.update(
+         { "_id" : "balancer" },
+         { $set : { "_waitForDelete" : true } },
+         { upsert : true }
+      )
+
+Once set to ``true``, to revert to the default behavior:
+
+#. Connect to a :program:`mongos` instance.
+
+#. Update or unset the ``_waitForDelete`` field in the
+   :data:`~config.settings` collection of the :ref:`config database
+   <config-database>`:
+
+   .. code-block:: javascript
+
+      use config
+      db.settings.update(
+         { "_id" : "balancer", "_waitForDelete": true },
+         { $unset : { "_waitForDelete" : "" } }
+      )
+
+.. _sharded-cluster-config-max-shard-size:
+
+Change the Maximum Storage Size for a Given Shard
+-------------------------------------------------
+
+By default shards have no constraints in storage size. However, you can set a
+maximum storage size for a given shard in the sharded cluster. When 
+selecting potential destination shards, the balancer ignores shards 
+where a migration would exceed the configured maximum storage size.
+
+The :data:`~config.shards` collection in the :ref:`config
+database<config-database>` stores configuration data related to shards. 
+
+.. code-block:: javascript
+
+   { "_id" : "shard0000", "host" : "shard1.example.com:27100" }
+   { "_id" : "shard0001", "host" : "shard2.example.com:27200" }
+   
+To limit the storage size for a given shard, use the
+:method:`db.collection.updateOne()` method with the :update:`$set` operator to
+create the ``maxSize`` field and assign it an ``integer`` value. The
+``maxSize`` field represents the maximum storage size for the shard in
+``megabytes``.
+
+The following operation sets a maximum size on a shard of ``1024 megabytes``:
+
+.. code-block:: javascript
+
+   config = db.getSiblingDB("config")
+   config.shards.updateOne( { "_id" : "<shard>"}, { $set : { "maxSize" : 1024 } } )
+
+This value includes the mapped size of *all* data files on the
+shard, including the ``local`` and ``admin`` databases.
+
+By default, ``maxSize`` is not specified, allowing shards to consume the
+total amount of available space on their machines if necessary.
+
+You can also set ``maxSize`` when adding a shard.
+
+To set ``maxSize`` when adding a shard, set the :dbcommand:`addShard`
+command's ``maxSize`` parameter to the maximum size in ``megabytes``. The
+following command run in the :program:`mongo` shell adds a shard with a
+maximum size of 125 megabytes:
+
+.. code-block:: javascript
+
+   config = db.getSiblingDB("config")
+   config.runCommand( { addshard : "example.net:34008", maxSize : 125 } )

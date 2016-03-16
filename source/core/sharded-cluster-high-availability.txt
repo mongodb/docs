@@ -1,8 +1,8 @@
 .. _sharding-high-availability:
 
-=================================
-Sharded Cluster High Availability
-=================================
+=============================
+Troubleshoot Sharded Clusters
+=============================
 
 .. default-domain:: mongodb
 
@@ -130,3 +130,42 @@ Furthermore:
 In essence, this concern for reliability simply underscores the
 importance of choosing a shard key that isolates query operations to a
 single shard.
+
+.. _config-database-string-error:
+
+Config Database String Error
+----------------------------
+
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, config servers can be deployed as replica sets
+   by default. The :program:`mongos` instances for the sharded cluster
+   must specify the same config server replica set name but can specify
+   hostname and port of different members of the replica set.
+
+   If using the deprecated topology of three mirrored :program:`mongod`
+   instances for config servers, :program:`mongos` instances in a sharded
+   cluster must specify identical :setting:`~sharding.configDB` string.
+
+Cursor Fails Because of Stale Config Data
+-----------------------------------------
+
+.. DOCS-425
+
+A query returns the following warning when one or more of the
+:program:`mongos` instances has not yet updated its cache of the
+cluster's metadata from the :term:`config database`:
+
+.. code-block:: none
+
+   could not initialize cursor across all shards because : stale config detected
+
+This warning *should* not propagate back to your application. The
+warning will repeat until all the :program:`mongos` instances refresh
+their caches. To force an instance to refresh its cache, run the
+:dbcommand:`flushRouterConfig` command.
+
+Avoid Downtime when Moving Config Servers
+-----------------------------------------
+
+.. include:: /includes/fact-use-cnames-for-config-servers.rst
