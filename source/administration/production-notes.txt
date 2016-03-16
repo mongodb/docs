@@ -319,21 +319,28 @@ Please consult your system documentation for details.
 Configuring NUMA on Linux
 `````````````````````````
 
-When running MongoDB on Linux, you may instead use the ``numactl``
-command and start the MongoDB programs (:program:`mongod`, including
-the :doc:`config servers </core/sharded-cluster-config-servers>`;
-:program:`mongos`; or clients) in the following manner:
+When running MongoDB on Linux, you should disable *zone reclaim* in the
+``sysctl`` settings using one of the following commands:
 
 .. code-block:: sh
 
-   numactl --interleave=all <path>
-
-where ``<path>`` is the path to the program you are starting. Then,
-disable *zone reclaim* in the ``proc`` settings using the following command:
+   echo 0 | sudo tee /proc/sys/vm/zone_reclaim_mode
 
 .. code-block:: sh
 
-   echo 0 > /proc/sys/vm/zone_reclaim_mode
+   sudo sysctl -w vm.zone_reclaim_mode=0
+
+Then, you should use the ``numactl`` command to start the MongoDB programs
+(:program:`mongod`, including the :doc:`config servers
+</core/sharded-cluster-config-servers>`; :program:`mongos`; and clients) in
+the following manner:
+
+.. code-block:: sh
+
+   numactl --interleave=all <path> <options>
+
+where ``<path>`` is the path to the program you are starting, and ``<options>``
+are any optional arguments to pass to the program.
 
 To fully disable NUMA behavior, you must perform both operations. For more
 information, see the `Documentation for /proc/sys/vm/*
