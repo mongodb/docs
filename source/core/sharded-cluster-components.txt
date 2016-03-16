@@ -1,6 +1,8 @@
 .. index:: sharding; shards
 .. index:: shards
 .. _sharding-shards:
+.. _sharding-production-architecture:
+
 
 ==========================
 Sharded Cluster Components
@@ -14,45 +16,67 @@ Sharded Cluster Components
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/extracts/master-slave-deprecated-for-sharded-cluster-warning-directive.rst
+A MongoDB :term:`sharded cluster` consists of the following components:
 
-:term:`Sharded clusters <sharded cluster>` implement
-:term:`sharding`. A sharded cluster consists of the following
-components:
+* :doc:`shard </core/sharded-cluster-shards>`: Each shard contains a
+  subset of the sharded data. Each shard can be deployed as a :term:`replica
+  set`.
 
-Shards
-   A shard is a MongoDB instance that holds a subset of a collection’s
-   data. Each shard is either a single :program:`mongod` instance or a
-   :term:`replica set`. In production, all shards are replica
-   sets. For more information see :doc:`/core/sharded-cluster-shards`.
+* :doc:`/core/sharded-cluster-query-router`: The ``mongos`` acts as a
+  query router, providing an interface between client applications and the
+  sharded cluster.
 
-Config Servers
-   :ref:`Config servers <sharding-config-server>` hold metadata about
-   the sharded cluster. The metadata maps :term:`chunks <chunk>` to
-   shards.
+* :doc:`config servers </core/sharded-cluster-config-servers>`: Config servers
+  store metadata and configuration settings for the cluster. As of MongoDB
+  3.2, config servers can be deployed as a replica set.
 
-   .. versionchanged:: 3.2
+Production Configuration
+------------------------
 
-      .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+In a production cluster, ensure that data is redundant and
+that your systems are highly available. Consider the following
+for a production sharded cluster deployment:
 
-   For more information, see :doc:`/core/sharded-cluster-config-servers`.
+- Deploy Config Servers as a 3 member :term:`replica set`
+- Deploy each Shard as a 3 member :term:`replica set`
+- Deploy one or more :program:`mongos` routers
 
-``mongos`` Instances
-   :program:`mongos` instances route the reads
-   and writes from applications to the shards.  Applications do not
-   access the shards directly. For more information see
-   :doc:`/core/sharded-cluster-query-router`.
+Where possible, consider deploying one member of each replica set 
+in a site suitable for being a disaster recovery location.
 
-.. include:: /images/sharded-cluster.rst
+Sharding requires at least two shards to distribute sharded data. Single 
+shard sharded clusters may be useful if you plan on enabling sharding in the 
+near future, but do not need to at the time of deployment.
 
-.. only:: website
+You can deploy a :program:`mongos` router on each application server to ensure
+each server has consistent access to the sharded cluster. Alternatively, 
+deploy a group of :program:`mongos` routers and use a proxy or load balancer 
+between the application and the :program:`mongos` group. In these deployments,
+you *must* configure the load balancer for *client affinity* such that every
+connection from a single client reaches the same :program:`mongos`.
 
-   Further Reading
-   ---------------
+.. include:: /images/sharded-cluster-production-architecture.rst
 
-   .. include:: /includes/toc/dfn-list-sharded-cluster-components.rst
+Development Configuration
+-------------------------
 
-To deploy a sharded cluster, see :doc:`/tutorial/deploy-shard-cluster`.
+For testing and development, you can deploy a sharded cluster with a
+minimum number of components. These **non-production** clusters have the
+following components:
+
+- A replica set :ref:`config server <sharding-config-server>` with one
+  member.
+
+- At least one shard as a single-member :term:`replica set`.
+
+- One :program:`mongos` instance.
+
+.. include:: /images/sharded-cluster-test-architecture.rst
+
+.. warning:: Use the test cluster architecture for testing and
+   development only.
+
+.. seealso:: :doc:`/tutorial/deploy-shard-cluster/`
 
 .. class:: hidden
 

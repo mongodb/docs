@@ -15,14 +15,36 @@ Config Servers
    :depth: 1
    :class: singlecol
 
-Config servers store the :doc:`metadata </core/sharded-cluster-metadata>`
-for a sharded cluster.
+Config servers store the metadata for a :term:`sharded cluster`. The metadata
+reflects state and organization for all data and components within the
+sharded cluster. The metadata includes the list of chunks on every shard and
+the ranges that define the chunks.
+
+In MongoDB 3.2+, you can deploy config servers as a :term:`replica set` (CSRS).
+See :ref:`Replica Set Config Servers <csrs>`.
+
+The :program:`mongos` instances cache this
+data and use it to route read and write operations to the correct shards.
+:program:`mongos` updates the cache when there are metadata changes for the
+cluster, such as :ref:`sharding-chunk-splits` or
+:doc:`adding a shard</tutorial/add-shards-to-shard-cluster>`.
+
+The config servers store :doc:`authentication` configuration information such
+as :doc:`Role-Based Access Control</core/authorization>` or :doc:`internal
+authentication</core/security-internal-authentication>` settings for the
+cluster.
+
+A single :term:`sharded cluster` must have *exclusive* use of its :ref:`config
+servers <sharding-config-server>`. If you have multiple sharded clusters, each
+cluster must have its own CSRS.
+
 
 .. warning::
 
-   If the config servers become inaccessible, the cluster is not
-   accessible. If you cannot recover the data on a config server, the
-   cluster will be inoperable.
+   Administrative operations conducted on config servers may have significant
+   impact on sharded cluster performance and availability. Depending on the
+   number of config servers impacted, the cluster may be read-only or
+   offline for a period of time.
 
 MongoDB also uses the config servers to manage distributed locks.
 
@@ -72,7 +94,7 @@ such as
 
 - after a :doc:`chunk split </core/sharding-chunk-splitting>`.
 
-When writing to the replica set config servers, MongoDB uses a
+When writing to a replica set config server deployment, MongoDB uses a
 :ref:`write concern <wc-w>` of ``"majority"``.
 
 MongoDB reads data from the config server in the following cases:
@@ -85,6 +107,8 @@ MongoDB reads data from the config server in the following cases:
 
 When reading from the replica set config servers, MongoDB uses a
 :doc:`/reference/read-concern` level of :readconcern:`"majority"`.
+
+.. _config-server-availability:
 
 Config Server Availability
 --------------------------
@@ -100,7 +124,7 @@ servers. As such, if all config server members become unavailable, you
 can still use the cluster if you do not restart the :program:`mongos`
 instances until after the config servers are accessible again. If you
 restart the :program:`mongos` instances before the config servers are
-available, the :program:`mongos` will be unable to route reads and writes.
+available, the :program:`mongos` cannot route reads and writes.
 
 Clusters become inoperable without the cluster metadata. To ensure that
 the config servers remain available and intact, backups of config
@@ -110,3 +134,51 @@ low activity load.
 
 See :ref:`sharding-config-servers-and-availability` for more
 information.
+
+.. _sharding-internals-config-database:
+
+Sharded Cluster Metadata
+------------------------
+
+Config servers store metadata in the :doc:`/reference/config-database`.
+
+.. important:: Always back up the ``config`` database before doing any
+   maintenance on the config server.
+
+To access the ``config`` database, issue the following command from the
+:program:`mongo` shell:
+
+.. code-block:: javascript
+
+   use config
+
+In general, you should *never* edit the content of the ``config``
+database directly. The ``config`` database contains the following
+collections:
+
+- :data:`~config.changelog`
+- :data:`~config.chunks`
+- :data:`~config.collections`
+- :data:`~config.databases`
+- :data:`~config.lockpings`
+- :data:`~config.locks`
+- :data:`~config.mongos`
+- :data:`~config.settings`
+- :data:`~config.shards`
+- :data:`~config.version`
+
+For more information on these collections and their role in sharded
+clusters, see :doc:`/reference/config-database`. See
+:ref:`config-server-read-write-ops` for more information about reads
+and updates to the metadata.
+
+Sharded Cluster Security
+------------------------
+
+Use :doc:`/core/security-internal-authentication` to enforce intra-cluster
+security and prevent unauthorized cluster components from accessing the
+cluster. You must start each :program:`mongod` in the cluster with the
+appropriate security settings in order to enforce internal authentication.
+
+See :doc:`/tutorial/deploy-sharded-cluster-with-keyfile-access-control` for a
+tutorial on deploying a secured sharded cluster.
