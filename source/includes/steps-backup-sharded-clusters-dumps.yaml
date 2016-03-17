@@ -46,35 +46,50 @@ action:
       :method:`db.fsyncUnlock()`.
   - heading: Lock config server replica set secondary.
     pre: |
-      If locking a secondary of the CSRS, confirm that the member
-      recognizes that the balancer is disabled and the last migration has
-      finished.
-      Connect a :program:`mongo` shell to the secondary member's
-      :program:`mongod` instance. To confirm that the member recognizes
-      that the balancer is disabled:
+      If locking a secondary of the CSRS, confirm that the member has
+      replicated data up to some control point. To verify, first connect a
+      :program:`mongo` shell to the CSRS primary and perform a write
+      operation with :writeconcern:`"majority"` write concern on a
+      control collection:
     language: javascript
     code: |
-         use config
-         rs.slaveOk()
-         db.settings.find({ "_id" : "balancer", "stopped" : true })
-    post: |
-       If the member recognizes that the balancer is disabled, the query 
-       should return a document.  Otherwise, wait until the query returns
-       a document.
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 } }
+         }
+      );
   - pre: |
-      To confirm that the CSRS secondary member has replicated past the
-      last completed migration, check the ``changelog`` collection in the ``config`` database.
-      The last logged ``moveChunk`` operation should be a commit.
+      The operation should return either the newly inserted document or the
+      updated document:
     language: javascript
     code: |
-         use config;
-         db.changelog.find({what:/^moveChunk/}).sort({time:-1}).next().what"
-    post: |
-      The query should return ``"moveChunk.commit"``.  If not, wait until
-      the chunk migration completes.
+       { "_id" : "BackupControlDocument", "counter" : 1 }
   - pre: |
-       If the secondary member recognizes that the balancer is disabled
-       and the last migration is complete, lock the member.
+      Query the CSRS secondary member for the returned control
+      document. Connect a :program:`mongo` shell to the CSRS secondary
+      to lock and use :method:`db.collection.find()` to query for the
+      control document:
+    language: javascript
+    code: |
+      rs.slaveOk();
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+       If the secondary member contains the latest control document, it
+       is safe to lock the member. Otherwise, wait until the member
+       contains the document or select a different secondary member
+       that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
     language: javascript
     code: |
        db.fsyncLock()

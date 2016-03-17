@@ -52,8 +52,50 @@ action:
       :method:`db.fsyncUnlock()`.
   - heading: Lock config server replica set secondary.
     pre: |
-       Connect a :program:`mongo` shell to the secondary member's 
-       :program:`mongod` instance.
+      If locking a secondary of the CSRS, confirm that the member has
+      replicated data up to some control point. To verify, first connect a
+      :program:`mongo` shell to the CSRS primary and perform a write
+      operation with :writeconcern:`"majority"` write concern on a
+      control collection:
+    language: javascript
+    code: |
+      use config
+      db.BackupControl.findAndModify(
+         {
+           query: { _id: 'BackupControlDocument' },
+           update: { $inc: { counter : 1 } },
+           new: true,
+           upsert: true,
+           writeConcern: { w: 'majority', wtimeout: 15000 } }
+         }
+      );
+  - pre: |
+      The operation should return the modified (or inserted) control
+      document:
+    language: javascript
+    code: |
+       { "_id" : "BackupControlDocument", "counter" : 1 }
+  - pre: |
+      Query the CSRS secondary member for the returned control
+      document. Connect a :program:`mongo` shell to the CSRS secondary
+      to lock and use :method:`db.collection.find()` to query for the
+      control document:
+    language: javascript
+    code: |
+      rs.slaveOk();
+      use config;
+
+      db.BackupControl.find(
+         { "_id" : "BackupControlDocument", "counter" : 1 }
+      ).readConcern('majority');
+  - post: |
+         If the secondary member contains the latest control document, it
+         is safe to lock the member. Otherwise, wait until the member
+         contains the document or select a different secondary member
+         that contains the latest control document.
+  - pre: |
+       To lock the secondary member, run :method:`db.fsyncLock()` on
+       the member:
     language: javascript
     code: |
        db.fsyncLock()
@@ -64,43 +106,18 @@ action:
 title: Back up one of the config servers.
 stepnum: 3
 ref: backup-config-server
-pre: |
-  Backing up a :ref:`config server <sharding-config-server>` backs
-  up the sharded cluster's metadata. You only need to back up one
-  config server, as they all hold the same data. If you are using
-  CSRS config servers, perform this step against the locked config
-  server.
-action:
-  - heading: "If the sharded cluster uses ``CSRS``"
-    pre: |
-      Confirm that the locked secondary member of
-      the CSRS recognizes that the balancer is disabled. In 
-      a :program:`mongo` shell connected to the secondary member's 
-      :program:`mongod` instance, perform the following.
-    language: javascript
-    code: |
-         use config
-         rs.slaveOk()
-         db.settings.find({ "_id" : "balancer", "stopped" : true })
-    post: |
-       If the member recognizes that the balancer is disabled, the query 
-       should return a document.  Otherwise, wait until the query returns
-       a document.
-  - pre: |
-      To confirm that the CSRS secondary member has replicated past the
-      last completed migration, check the ``changelog`` collection in the ``config`` database.
-      The last logged ``moveChunk`` operation should be a commit.
-    language: javascript
-    code: |
-         use config;
-         db.changelog.find({what:/^moveChunk/}).sort({time:-1}).next().what"
-    post: |
-      The query should return ``"moveChunk.commit"``.  If not, wait until
-      the chunk migration completes.
-  - heading: Take a file-system snapshot of the config server.
-    pre: |
-      To create a file-system snapshot of the config server, follow the
-      procedure in :ref:`lvm-backup-operation`.
+content: |
+  
+  .. note::
+
+     Backing up a :ref:`config server <sharding-config-server>` backs
+     up the sharded cluster's metadata. You only need to back up one
+     config server, as they all hold the same data. If you are using
+     CSRS config servers, perform this step against the locked config
+     server.
+  
+  To create a file-system snapshot of the config server, follow the
+  procedure in :ref:`lvm-backup-operation`.
 ---
 title: Back up a replica set member for each shard.
 stepnum: 4
