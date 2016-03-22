@@ -59,7 +59,7 @@
      -
 
    * - :doc:`PHP </drivers/php>`
-     - `Releases <http://pecl.php.net/package/mongo>`_
+     - `Releases <http://pecl.php.net/package/mongodb>`_
      - `Source <https://github.com/mongodb/mongo-php-driver>`_
      - `API <http://php.net/mongo>`_
      - `JIRA <https://jira.mongodb.org/browse/PHP>`_
