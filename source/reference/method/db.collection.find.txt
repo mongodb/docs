@@ -84,33 +84,42 @@ method.
 Type Bracketing
 ~~~~~~~~~~~~~~~
 
-Queries which use a comparison operator only consider documents in 
-which the type of the specified field value matches the type of the 
-field in the query document. Consider the following collection:
+:doc:`Comparison operators</reference/operator/query-comparison>` only 
+perform comparisons on documents where the :term:`BSON` type of the 
+target field matches the type of the query operand. Consider the 
+following collection:
 
 .. code-block:: javascript
 
-	{ "_id": 1, "field1": 5 }
-	{ "_id": 2, "field1": 7 }
-	{ "_id": 3, "field1": "apple" }
-	{ "_id": 4, "field1": "thirteen" }
-	{ "_id": 5, "field1": { "a" : 9 } }
+	{ "_id": "apples", "qty": 5 }
+	{ "_id": "bananas", "qty": 7 }
+	{ "_id": "oranges", "qty": { "in stock": 8, "ordered": 12 } }
+	{ "_id": "avocados", "qty": "fourteen" }
 	
-A query such as:
+The following query uses :query:`$gt` to return documents where the
+value of ``qty`` is greater than ``4``.
 
 .. code-block:: javascript
 
-	db.collection.find( { field1: { $gt: 4 } } )
+	db.collection.find( { qty: { $gt: 4 } } )
 	
-Matches the following documents:
+The query returns the following documents:
 
 .. code-block:: javascript
 
-	{ "_id": 1, "field1": 5 }
-	{ "_id": 2, "field1": 7 }
+	{ "_id": "apples", "qty": 5 }
+	{ "_id": "bananas", "qty": 7 }
 	
-The other documents are not considered because "field1" contains
-a value which is not an integer.
+The document with ``_id`` equal to ``"avocados"`` is not 
+returned because its value is type ``string`` while the :query:`$gt` is 
+querying for integers.	
+
+The document with ``_id`` equal to ``"oranges"`` is not returned 
+because its value is type ``object``. 
+
+.. note::
+   To enforce data types in a collection, use 
+   :doc:`/core/document-validation`.
 
 Examples
 --------
