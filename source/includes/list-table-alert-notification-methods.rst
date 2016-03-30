@@ -115,3 +115,11 @@
           Sends the alert to the email address specified in the
           :guilabel:`Admin Email Address` field in the |onprem|
           :doc:`configuration options </reference/configuration>`.
+
+   * - .. only:: onprem
+
+          Global Alerts Summary Email *(global alerts only)*
+
+     - .. only:: onprem
+
+          Sends a summary email of all global alerts to the specified email address.
