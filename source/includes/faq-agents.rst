@@ -1,46 +1,25 @@
 Monitoring Agent
 ~~~~~~~~~~~~~~~~
 
-Do I need a Monitoring Agent for every MongoDB Instance?
+Do I need a Monitoring Agent for every MongoDB instance?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-No. A single Monitoring Agent can connect to all MongoDB databases
-in your |mms| group. Unless you have multiple groups, complete your
-initial Monitoring Agent setup with a single agent.
+No. In your |mms| group, a single Monitoring Agent connects to all
+MongoDB databases. Configure firewalls to allow the
+Monitoring Agent to connect across data centers and servers. Unless you
+have multiple groups, complete your initial Monitoring Agent setup with
+a single agent.
 
-For redundancy, you may wish to run a second Monitoring Agent. See the
-:ref:`monitoring-agent-redundancy` for more information.
-
-Can I use two Monitoring Agents to connect MongoDBs in different data centers?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-No, not within the same group. The group's Monitoring Agent must connect to
-every server in the MongoDB
-deployment. Configure firewalls to allow the Monitoring Agent to connect across
-data centers and servers.
-
-Use multiple Monitoring Agents within a single |mms| group *only* :ref:`to
-provide redundancy <monitoring-agent-redundancy>`. For each |mms| group, the
-agent must be able to connect
-to every monitored MongoDB. Unless you have multiple groups,
-complete your initial Monitoring Agent setup with a single agent.
-
-What happens if a Monitoring Agent becomes unavailable? How can I ensure my MongoDBs are always monitored?
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-You can run multiple Monitoring Agents. If one Monitoring Agent fails,
-another starts monitoring. As long as at least one Monitoring Agent is
-available, |mms| will not trigger a *Monitoring Agent Down* alert. To run multiple
-Monitoring Agents, see :ref:`monitoring-agent-redundancy`.
-
-You can :ref:`create an alert <create-alert-configuration>` to notify you when an
-agent is down.
+For redundancy, you may wish to run a second Monitoring Agent. If one
+Monitoring Agent fails, another starts monitoring. As long as a
+Monitoring Agent is running, |mms| will not trigger a *Monitoring
+Agent Down* alert. See the :ref:`monitoring-agent-redundancy` section.
 
 Where should I run the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++
 
 The amount of resources the Monitoring Agent requires varies depending on
-infrastructure size, the number of servers and the databases it's monitoring. Run
+infrastructure size, the number of servers and the databases it is monitoring. Run
 the agent on an existing machine with additional capacity that *does not* run a
 :program:`mongod` instance. You may also run the Monitoring Agent
 on a smaller dedicated instance.
@@ -50,9 +29,9 @@ The Monitoring Agent load scales with the number of monitored ``mongod`` plus
 
 Never install the Monitoring Agent on the same server as a
 data bearing :program:`mongod` instance. This will allow you to
-perform maintenance on a the :program:`mongod` and its host without
-affecting the monitoring for your deployment. Additionally a
-Monitoring Agent may contend for resources with the :program:`mongod`
+perform maintenance on the :program:`mongod` and its host without
+affecting the monitoring for your deployment. Additionally, a
+Monitoring Agent may contend for resources with the :program:`mongod`.
 
 You can install the Monitoring Agent on the same system as an
 :term:`arbiter`, a :program:`mongos`, or an application server
@@ -74,12 +53,12 @@ hostname of the server. Check DNS and the ``/etc/hosts`` file.
 The second most common problem is that there are firewall rules in
 place that prohibit access to the server from the agent.
 
-To test the connection, login to the server running the agent and run:
-``mongo hostname:port/test`` If you are unable to connect, the agent
-will not be able to connect.
+To test the connection, login to the server running the agent and try
+to connect using the ``mongo`` shell: 
 
-In addition, |mms| supports monitoring for
-Kerberos-enabled instances.
+.. code-block:: sh
+
+   mongo hostname:port/test
 
 Why does the Monitoring Agent connect with hostnames instead of IP addresses?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -87,22 +66,14 @@ Why does the Monitoring Agent connect with hostnames instead of IP addresses?
 By default, the Monitoring Agent tries to connect by resolving hostnames. If
 the agent cannot connect by resolving a hostname, you can force the Monitoring
 Agent to prefer an IP address over its corresponding hostname for a specific
-IP address.
+IP address. Preferred hostnames also allow you to specify the hostname to use for
+servers with multiple aliases. This prevents servers from appearing
+multiple times under different names in the |mms| interface.
 
-To create a preferred hostname:
-
-1. Click :guilabel:`Settings`.
-
-2. Click :guilabel:`Group Settings`.
-
-3. Click the :guilabel:`Add` button for the :guilabel:`Preferred Hostnames` setting.
-   If your IP addresses have a common
-   prefix, create a preferred hostname with the :guilabel:`ends-with` button or
-   click the :guilabel:`regexp` button to use a regular expression.
-
-Preferred hostnames also allow you to specify the hostname to use for servers
-with multiple aliases. This prevents servers from appearing multiple times
-under different names in the |mms| interface.
+To create a preferred hostname, go to :doc:`Group Settings
+</tutorial/manage-group-settings>` and add a :guilabel:`Preferred
+Hostnames` entry. For details, see
+:doc:`/tutorial/manage-group-settings`
 
 How do I setup and configure the agent?
 +++++++++++++++++++++++++++++++++++++++
@@ -112,7 +83,7 @@ See the ``README`` file included in the agent download.
 How do I delete a Monitoring Agent from |mms|?
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-Monitoring Agents report their status to the |mms|. When an agent does not
+Monitoring Agents report their status to |mms|. When an agent does not
 report for more than 24 hours, the agent no longer appears in |mms|.
 
 For more details, see :doc:`/tutorial/delete-monitoring-agent`.

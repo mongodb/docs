@@ -12,7 +12,7 @@ Frequently Asked Questions
 
 This document addresses common questions about |mms| and its use.
 
-What versions of MongoDB does |mms| Manage?
+What versions of MongoDB does |mms| manage?
 -------------------------------------------
 
 For specific |mms| functions and supported MongoDB versions, see
@@ -29,22 +29,27 @@ through the |mms| interface.
 
 |mms| Automation can run only on 64-bit architectures.
 
-Can |mms| Manage an Existing MongoDB Deployment?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Yes. See :doc:`/tutorial/nav/manage-hosts`. The deployments must run on
-64-bit architectures.
-
-How does |mms| Manage MongoDB deployments?
+How does |mms| manage MongoDB deployments?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you provision servers in |mms| or deploy the Automation Agent in
-the environment of the MongoDB deployment, each agent periodically
-communicates with |mms| and performs any required the work.
+.. TODO This information should be incorporated into the main content of
+   the manual and not hidden in an FAQ.
+
+.. only:: onprem
+
+   After you deploy the Automation Agent in the environment of the
+   MongoDB deployment, each agent periodically communicates with |mms|
+   and performs any required work.
+   
+.. only:: cloud
+
+   After you provision servers in |mms| or deploy the Automation Agent
+   in the environment of the MongoDB deployment, each agent
+   periodically communicates with |mms| and performs any required work.
 
 Agents constantly reassess their environment to adapt their work as
 necessary. If an agent encounters an issue, such as
-network connectivity problems, |mms| failure, or server failure, the agents adjust
+network connectivity problems or |mms| failure, the agents adjust
 their work to compensate and safely arrive at their goal state.
 
 Agents create plans to move from their current state to a goal state. Plans
@@ -66,8 +71,9 @@ a managed MongoDB instance runs.
 Is any MongoDB data transferred by the Automation Agent?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Agents do *not* transmit any data from a MongoDB deployment. The
-agents only communicate deployment configuration information.
+Agents do *not* transmit any data records from a MongoDB deployment.
+The agents only communicate deployment configuration information and
+MongoDB logs.
 
 Will |mms| handle failures during an upgrade, such as |mms| going down or a network partition?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,21 +270,14 @@ Can I run the Backup and Monitoring Agents on a Single System?
 There is no technical restriction that prevents the Backup Agent and
 the Monitoring Agent from running on a single system or host. However,
 both agents have resource requirements, and running both on a single
-system can affect the ability of these agents support your deployment
+system can affect the ability of these agents to support your deployment
 in |mms|.
 
 The resources required by the Backup Agent depend on rate and size
-of new oplog entries (i.e. total oplog gigabyte/per-hour produced.)
+of new oplog entries (i.e. total oplog gigabyte/hour produced.)
 The resources required by the Monitoring Agent depend on the number of
 monitored :program:`mongod` instances and the total number of
 :term:`databases <database>` provided by the :program:`mongod` instances.
-
-How can I verify that I'm running the latest version of the Backup Agent?
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Click :guilabel:`Deployment`, then the :guilabel:`Agents` tab, then
-:guilabel:`All Agents`. If your Backup Agent is out of date, it will be
-highlighted in red.
 
 Can I run multiple Backup Agents to achieve high availability?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -286,20 +285,20 @@ Can I run multiple Backup Agents to achieve high availability?
 You can run multiple Backup Agents for high availability. If you do, the
 Backup Agents must run on different hosts.
 
-When you run multiple Backup Agents, only one agent per group or
-environment is the **primary agent**. The primary agent performs the
-backups. The remaining agents are completely idle, except to log their
-status as standbys and to periodically ask |mms| whether they should
-become the primary.
+When you run multiple Backup Agents, only one agent per group is the
+**primary agent**. The primary agent performs the backups. The
+remaining agents are completely idle, except to log their status as
+standbys and to periodically ask |mms| whether they should become the
+primary.
 
 Does the Backup Agent modify my database?
 +++++++++++++++++++++++++++++++++++++++++
 
-The Backup Agent writes a small token called a “checkpoint" into the oplog
-of the source database at a regular interval. These tokens provide a
-heartbeat for backups and have no effect on the source deployment. Each
-token is less than 100 bytes. See: :ref:`checkpoint` for more about
-checkpoints.
+The Backup Agent writes a small token called a “checkpoint" into the
+oplog of the source database at a regular interval. These tokens
+provide a heartbeat for backups and have no effect on the source
+deployment. Each token is less than 100 bytes. See: :ref:`checkpoint`
+for more information about checkpoints.
 
 Will Backup impact my production databases?
 +++++++++++++++++++++++++++++++++++++++++++
@@ -350,23 +349,29 @@ resync:
 
 - Changing any data while the instance is running as a :term:`standalone`.
 
-- Using :dbcommand:`compact` or :dbcommand:`repairDatabase` to reclaim a
-  significant amount of space. This is not strictly necessary but will
-  ensure that the |mms| copy of the data is resized, which means quicker
-  restores and lower costs.
+- Rolling index builds.
+
+- Using :dbcommand:`compact` or :dbcommand:`repairDatabase` to reclaim
+  a significant amount of space.
+  
+  .. only:: cloud
+  
+     Resync is not strictly necessary after :dbcommand:`compact` or
+     :dbcommand:`repairDatabase` operations but will ensure that the
+     |mms| copy of the data is resized, which means quicker restores
+     and lower cost.
+
+  .. only:: onprem
+
+     Resync is not strictly necessary after :dbcommand:`compact` or
+     :dbcommand:`repairDatabase` operations but will ensure that the
+     |mms| copy of the data is resized, which means quicker restores.
 
 .. seealso:: :manual:`Maintenance Operations for Replica Set Members </tutorial/perform-maintence-on-replica-set-members>`.
 
 .. "Does the Backup Agent Support SSL":
 
 .. include:: /includes/extracts/faq-backup-agent-and-ssl.rst
-
-How Do I Delete a Backup Snapshot?
-++++++++++++++++++++++++++++++++++
-
-You can delete replica set backup snapshots and snapshots for replica sets in a
-sharded cluster set if the snapshots are not needed for point-in-time restores.
-See :doc:`/tutorial/delete-backup-snapshots` for details.
 
 Configuration
 ~~~~~~~~~~~~~
@@ -391,12 +396,6 @@ If so, |mms| handles the resync.
 .. "How do I resolve applyOps errors during backups":
 
 .. include:: /includes/extracts/faq-applyops-errors.rst
-
-Can I convert a standalone to a replica set?
-++++++++++++++++++++++++++++++++++++++++++++
-
-To convert a standalone deployment to a replica set, see
-:doc:`/tutorial/convert-standalone-to-replica-set`.
 
 Restoration
 ~~~~~~~~~~~
@@ -443,10 +442,6 @@ Administrators can change the :ref:`snapshot frequency and retention
 policy <snapshot-frequency-and-retention>` through the
 :doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in the API.
 
-For example, you may choose to capture more frequent snapshots for the
-most mission critical data, and capture snapshots less frequently for less
-critical data.
-
 .. include:: /includes/extracts/faq-backup-costs.rst
 
 .. "How many copies of my data does Cloud Manager store":
@@ -475,7 +470,7 @@ Does the Backup feature perform any data validation?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Backup conducts basic corruption checks and provides an alert if any
-component (e.g., the agent) is down or broken, but does not perform
+component (e.g. the agent) is down or broken, but does not perform
 explicit data validation. When it detects corruption, |mms| errs on
 the side of caution and invalidates the current backup and sends an
 alert.
@@ -484,36 +479,32 @@ How do I restore? What do I get when I restore?
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 You can request a restore via |mms|, where you can then choose which
-snapshot to restore and how you want |mms| to deliver the
-restore. All restores require
-2-factor authentication. |mms| will send an authorization code via SMS
-code to your administrator. You must enter the authorization code into
-the backup interface to begin the restore process.
+snapshot to restore and how you want |mms| to deliver the restore. All
+restores require 2-factor authentication. If you have SMS set up, |mms|
+will send an authorization code via SMS. You must enter the
+authorization code into the backup interface to begin the restore
+process.
 
 .. include:: /includes/fact-two-factor-auth-India-limit.rst
 
 |mms| delivers restores as ``tar.gz`` archives of
 MongoDB data files.
 
-Restore delivery options are:
-
-- **SCP to your Infrastructure**: |mms| will transmit the
-  backup to your infrastructure over a secure channel.  You must
-  provide connection information for a host in your deployment.
-
-- **Download**: |mms| will make your restore data
-  available using a custom, one-time-use URL.
+For more information, see
+:doc:`/tutorial/nav/backup-restore-deployments`.
 
 .. _backup-faq-scp-validation:
 
 How do I know an SCP restore push has completed and is correct?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+.. COMMENT  This should be a step in the /tutorial/restore-sharded-cluster
+
 When you receive restoration files through an SCP push, |mms| sends SHA-1
 hash files, also called checksum files, along with the restore files. The
-hash files have the ``.sha1`` extension,
+hash files have the ``.sha1`` extension.
 
-To ensure the restore files are complete and correct, use the Unix shasum
+To ensure the restore files are complete and correct, use the Unix ``shasum``
 utility:
 
 .. code-block:: sh
@@ -569,7 +560,7 @@ This scenario might occur, for example, if:
   in a timely manner. For more information on oplog size, see :manual:`Replica
   Set Oplog </core/replica-set-oplog>` in the MongoDB manual.
 
-- If all you delete all replica set data and deploy a new replica set with the
+- If you delete all replica set data and deploy a new replica set with the
   same name, as might happen in a test environment where deployments are
   regularly torn down and rebuilt.
 
@@ -588,141 +579,47 @@ This scenario might occur, for example, if:
 Administration FAQs
 -------------------
 
-User and Group Management
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Can I reset my password?
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-How do I reset my password?
-+++++++++++++++++++++++++++
+Yes, in the login screen, use the link to reset your password.
 
-You can reset your password using the `password reset form
-<https://cloud.mongodb.com/user/resetPassword>`_.
-
-How do I change my password?
-++++++++++++++++++++++++++++
-
-You can change your password by `resetting your password
-<https://cloud.mongodb.com/user/resetPassword>`_.
-
-.. _password-requirements:
-
-What are the password requirements?
-+++++++++++++++++++++++++++++++++++
-
-Passwords must be at least 8 characters long and contain at least one
-letter, one digit, and one special character.
-
-.. only:: cloud
-
-   Passwords for the `MongoDB Jira`_ instance and |mms| are the same,
-   although the length and character requirements are different for Jira
-   and |mms|.
-
-.. _MongoDB Jira: jira.mongodb.com
+To change your password, log in with your current password and
+:doc:`access your user account </core/settings>`.
 
 How do I add a user to my company/group?
-++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. only:: cloud
+For instructions on adding users to your company/group, see
+:doc:`/tutorial/manage-users`.
 
-   If the user already has a `MongoDB Jira`_ or |mms| account, you can add
-   their username to your group on the admin page.
-
-   If the user does not have a Jira account then they can create a new
-   account through `<https://cloud.mongodb.com/>`_
-
-.. only:: onprem
-
-   Instruct the user to create a new account through the URL for your
-   |onprem| installation.
-
-After they have created an account, you can add their username to the
-company/group on the admin page.
-
-How do I remove my company/group?
-+++++++++++++++++++++++++++++++++
-
-See :ref:`remove-group`.
 
 How can I configure multiple Google Authenticator apps to use the same account?
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By selecting the :guilabel:`Can't scan the barcode?` option during the
 procedure to :ref:`two-factor-google-authenticator`. The option provides a
 common key that multiple Google Authenticator apps can use.
 
-Alerts
-~~~~~~
-
 .. _exposed-hosts-alert:
 
-My alert email says my host(s) are exposed to the public Internet. What does that mean?
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+What do the alert conditions mean?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/faq-host-exposed-to-public-internet.rst
+For a reference on the alert conditions, see :doc:`/reference/alerts/`.
 
-.. COMMENT/QUESTION: Is there still a non-canonical host identifier? The Deployment page has no Name field.
+What alerts are configured by default?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See :doc:`/tutorial/manage-alerts-and-events` to disable or modify the
-exposed host alerts.
+See :doc:`/tutorial/manage-alert-configurations` for the default alert
+configurations as well as steps to add new alerts or modify existing
+alerts, including modifying the alert frequency.
 
-How do I modify my alert settings?
-++++++++++++++++++++++++++++++++++
-
-To enable, disable, or modify alerts, see
-:doc:`/tutorial/manage-alert-configurations`.
-
-How frequently can alerts be set?
-+++++++++++++++++++++++++++++++++
-
-.. only:: onprem
-
-   |mms| processes alerts on a 1-minute interval. Therefore, the minimum frequency
-   for an alert is 1 minute.
-
-.. only:: cloud
-
-   |mms| processes alerts on a 5-minute interval. Therefore, the minimum frequency
-   for an alert is 5 minutes.
-
-Operations
-~~~~~~~~~~
-
-Do Web or Database Hosting Companies Integrate with |mms|?
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Web hosting companies can offer the ability to use |mms| with their hosted
-MongoDB databases, for example, to set up software agents to monitor and backup
-databases hosted on their servers. MongoDB has confirmed compatability with
-MongoHQ, MongoLab, and Heroku. Implementation details depend on each
-hosting company.
-
-`MongoHQ`_ offers |mms| upon request as part of their Database as a Service
-(DaaS) business.
-
-`MongoLab`_ offers |mms| as part of their Database as a Service (DaaS) business.
-MongoLab offers the service on their dedicated plans and shared replica set
-plan. They also provide `instructions to tune MongoDB performance`_ with |mms| on
-their servers.
-
-MongoHQ and MongoLab are MongoDB Advanced Partners.
-
-`Heroku`_ offers web hosting with a `MongoHQ add-on`_ and `MongoLab add-on`_ to
-use MongoDB databases from these database hosting companies. Heroku also offers
-|mms| monitoring of those databases with `detailed setup instructions`_.
-
-.. _`Heroku`: http://www.heroku.com
-.. _`MongoHQ add-on`: https://devcenter.heroku.com/articles/mongohq
-.. _`MongoLab add-on`: https://devcenter.heroku.com/articles/mongolab
-.. _`detailed setup instructions`: https://devcenter.heroku.com/articles/mongolab#setting-up-mongodb-monitoring-system-mms
-.. _`MongoHQ`: http://www.mongohq.com
-.. _`MongoLab`: http://www.mongolab.com
-.. _`instructions to tune MongoDB performance`: http://blog.mongolab.com/2013/12/tuning-mongodb-performance-with-mms/
-
-About |mms|
-~~~~~~~~~~~
+Miscellaneous
+-------------
 
 What open source projects does |mms| use?
-+++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Database: `MongoDB <http://mongodb.org>`_
 - App framework: `Google Guice <http://code.google.com/p/google-guice/>`_
