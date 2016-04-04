@@ -29,11 +29,11 @@ fake-deploy: build-temp
 	@echo "Hosted at ${URL}/${PREFIX}/index.html"
 
 deploy: build-temp
-	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --dry-run ${ARGS}
+	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix='/' --deploy --dry-run --verbose ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous"
-	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix='/' --deploy ${ARGS}
 
 	@echo "Deployed"
 
