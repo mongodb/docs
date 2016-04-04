@@ -13,6 +13,7 @@ help:
 	@echo '  help         - Show this help message'
 	@echo '  stage        - Host online for review'
 	@echo '  fake-deploy  - Create a fake deployment in the staging bucket'
+	@echo '  deploy       - Deploy into production'
 	@echo '  lint         - Check the CSS'
 	@echo ''
 	@echo 'Variables'
@@ -25,6 +26,15 @@ stage: build-temp
 fake-deploy: build-temp
 	mut-publish build-temp/ docs-mongodb-org-staging --prefix=${PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${URL}/${PREFIX}/index.html"
+
+deploy: build-temp
+	mut-publish build-temp/ docs-mongodb-org --prefix=${PREFIX} --deploy --dry-run ${ARGS}
+
+	@echo ''
+	read -p "Press any key to perform the previous"
+	mut-publish build-temp/ docs-mongodb-org --prefix=${PREFIX} --deploy ${ARGS}
+
+	@echo "Deployed"
 
 build-temp: style.min.css
 	rm -rf $@
