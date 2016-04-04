@@ -11,10 +11,6 @@
 
         - Select your preferred date format.
 
-      * - :guilabel:`Receive Newsletters`
-
-        - Select whether to receive email newsletters about |mms|.
-
 .. only:: cloud
 
    .. list-table::
@@ -27,10 +23,6 @@
       * - :guilabel:`My Date Format`
 
         - Select your preferred date format.
-
-      * - :guilabel:`Receive Newsletters`
-
-        - Select whether to receive email newsletters about |mms|.
 
       * - :guilabel:`Receive Health Score Update`
 
