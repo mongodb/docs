@@ -492,19 +492,22 @@ When running MongoDB in production on Linux, you should use Linux
 kernel version 2.6.36 or later, with either the XFS or EXT4 filesystem.
 If possible, use XFS as it generally performs better with MongoDB.
 
-With the WiredTiger storage engine in particular, use of XFS is
-**strongly recommended** to avoid performance issues that have been
-observed when using EXT4 with WiredTiger.
+With the :ref:`WiredTiger storage engine <storage-wiredtiger>`, use of
+XFS is **strongly recommended** to avoid performance issues that may
+occur when using EXT4 with WiredTiger.
 
-- If you use the XFS file system, use at least version
+With the :ref:`MMAPv1 storage engine <storage-mmapv1>`, MongoDB
+preallocates its database files before using them and often creates
+large files. As such, you should use the XFS or EXT4 file systems. If
+possible, use XFS as it generally performs better with MongoDB.
+
+- In general, if you use the XFS file system, use at least version
   ``2.6.25`` of the Linux Kernel.
 
   .. Required for fallocate()
 
 - If you use the EXT4 file system, use at least version
   ``2.6.28`` of the Linux Kernel.
-
-  .. Initial stable release
 
 - On Red Hat Enterprise Linux and CentOS, use at least version
   ``2.6.18-194`` of the Linux kernel.
@@ -522,7 +525,12 @@ observed when using EXT4 with WiredTiger.
 Recommended Configuration
 `````````````````````````
 
-For the WiredTiger and MMAPv1 storage engines,
+For **all** MongoDB deployments:
+
+- Use the Network Time Protocol (NTP) to synchronize time among
+  your hosts. This is especially important in sharded clusters.
+
+For the **WiredTiger and MMAPv1** storage engines,
 consider the following recommendations:
 
 - Turn off ``atime`` for the storage volume containing the :term:`database
@@ -530,23 +538,30 @@ consider the following recommendations:
 
 - Set the file descriptor limit, ``-n``, and the user process limit
   (ulimit), ``-u``, above 20,000, according to the suggestions in the
-  :doc:`ulimit </reference/ulimit>` document. A low ulimit will affect
+  :doc:`ulimit </reference/ulimit>` reference. A low ulimit will affect
   MongoDB when under heavy use and can produce errors and lead to
   failed connections to MongoDB processes and loss of service.
 
-- Disable Transparent Huge Pages, as MongoDB performs better with
+- Disable Transparent Huge Pages. MongoDB performs better with
   normal (4096 bytes) virtual memory pages. See :doc:`Transparent Huge
   Pages Settings </tutorial/transparent-huge-pages>`.
 
 - Disable NUMA in your BIOS. If that is not possible, see
   :ref:`MongoDB on NUMA Hardware <production-numa>`.
 
-- Configure SELinux on Red Hat. For more information, see
+- Problems have been reported when using MongoDB with SELinux enabled.
+  To avoid issues, disable SELinux when possible. 
+  
+  If you are using SELinux on Red Hat, you must configure SELinux
+  to be able to run MongoDB. See: 
   :ref:`Configure SELinux for MongoDB <install-rhel-configure-selinux>`
   and :ref:`Configure SELinux for MongoDB Enterprise
-  <install-enterprise-rhel-configure-selinux>`.
+  <install-enterprise-rhel-configure-selinux>` for the required
+  configuration.
 
-For the MMAPv1 storage engine:
+  .. include:: /includes/fact-selinux-server-side-js.rst
+
+For the **MMAPv1** storage engine:
 
 .. _readahead:
 
@@ -558,11 +573,6 @@ For the MMAPv1 storage engine:
   to get the readahead settings and ``sudo blockdev --setra <value>
   <device>`` to change the readahead settings. Refer to your specific
   operating system manual for more information.
-
-For **all** MongoDB deployments:
-
-- Use the Network Time Protocol (NTP) to synchronize time among
-  your hosts. This is especially important in sharded clusters.
 
 MongoDB and TLS/SSL Libraries
 `````````````````````````````
@@ -680,11 +690,18 @@ instances directly from |MMS|. See :mms-docs:`Configure AWS Integration
 Azure
 `````
 
-For all MongoDB deployments using Azure, you **must** mount the volume
+Use `Premium Storage 
+<https://azure.microsoft.com/en-us/documentation/articles/storage-premium-storage/>`_. 
+Microsoft Azure offers two general types of storage:
+Standard storage, and Premium storage. MongoDB on Azure has better
+performance when using Premium storage than it does with Standard
+storage.
+
+For all :ref:`MMAPv1 <storage-mmapv1>` MongoDB deployments using Azure,
+you **must** mount the volume
 that hosts the :program:`mongod` instance's :setting:`~storage.dbPath`
 with the *Host Cache Preference* ``READ/WRITE``.
-
-This applies to all Azure deployments, using any guest operating
+This applies to all Azure deployments running MMAPv1, using any guest operating
 system.
 
 If your volumes have inappropriate cache settings, MongoDB may
