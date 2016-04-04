@@ -1,6 +1,7 @@
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
 URL="https://docs-mongodborg-staging.corp.mongodb.com"
+PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=landing
 
 .PHONY: help stage fake-deploy build-temp lint
@@ -28,11 +29,11 @@ fake-deploy: build-temp
 	@echo "Hosted at ${URL}/${PREFIX}/index.html"
 
 deploy: build-temp
-	mut-publish build-temp/ docs-mongodb-org --prefix=${PREFIX} --deploy --dry-run ${ARGS}
+	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous"
-	mut-publish build-temp/ docs-mongodb-org --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build-temp/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 
 	@echo "Deployed"
 
