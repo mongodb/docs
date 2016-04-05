@@ -30,14 +30,25 @@ Determine the Number of Members
 
 Add members in a replica set according to these strategies.
 
+Maximum Number of Voting Members
+````````````````````````````````
+
+A replica set can have up to
+:limit:`50 members <Number of Members of a Replica Set>`, but only 
+:limit:`7 voting members <Number of Voting Members of a Replica Set>`.
+[#master-slave]_ If the replica set already has 7
+voting members, additional members must be :ref:`non-voting members
+<replica-set-non-voting-members>`.
+
 Deploy an Odd Number of Members
 ```````````````````````````````
 
-An odd number of members ensures that the replica set is always able
-to elect a primary. If you have an even number of members, add an
-arbiter to get an odd number. :term:`Arbiters <arbiter>` do not store
-a copy of the data and require fewer resources. As a result, you may
-run an arbiter on an application server or other shared process.
+Ensure that the replica set has an odd number of voting members. If you
+have an *even* number of voting members, deploy an :ref:`arbiter
+<replica-set-arbiters>` so that the set has an odd number of voting
+members. :term:`Arbiters <arbiter>` do not store a copy of the data and
+require fewer resources. As a result, you may run an arbiter on an
+application server or other shared process.
 
 .. _replica-set-architectures-consider-fault-tolerance:
 
@@ -45,9 +56,9 @@ Consider Fault Tolerance
 ````````````````````````
 
 *Fault tolerance* for a replica set is the number of members that can
-become unavailable and still leave enough members in the set to
-elect a primary. In other words, it is the difference between the
-number of members in the set and the majority needed to elect a
+become unavailable and still leave enough members in the set to elect a
+primary. In other words, it is the difference between the number of
+members in the set and the majority of voting members needed to elect a
 primary. Without a primary, a replica set cannot accept write
 operations. Fault tolerance is an effect of replica set size, but the
 relationship is not direct. See the following table:
@@ -56,11 +67,11 @@ relationship is not direct. See the following table:
    :header-rows: 1
    :widths: 15 25 15
 
-   * - Number of Members.
+   * - Number of Members
 
-     - Majority Required to Elect a New Primary.
+     - Majority Required to Elect a New Primary
 
-     - Fault Tolerance.
+     - Fault Tolerance
 
    * - 3
 
@@ -116,35 +127,31 @@ current demand saturates the capacity of the set.
 
 .. _determine-geographic-distribution:
 
-Determine the Distribution of Members
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Distribute Members Geographically
-`````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To protect your data if your main data center fails, keep at least one
-member in an alternate data center. Set these members'
-:data:`~replSetGetConfig.members[n].priority` to 0 to prevent them
-from becoming primary.
+To protect your data in case of a data center failure, keep at least
+one member in an alternate data center. If possible, use an odd number
+of data centers, and choose a distribution of members that maximizes
+the likelihood that even with a loss of a data center, the remaining
+replica set members can form a majority or at minimum, provide a copy
+of your data.
 
-Keep a Majority of Members in One Location
-``````````````````````````````````````````
+To ensure that the members in your main data center be elected primary
+before the members in the alternate data center, set the
+:data:`~replSetGetConfig.members[n].priority` of the members in the
+alternate data center to be lower than that of the members in the
+primary data center.
 
-When a replica set has members in multiple data centers, network
-partitions can prevent communication between data centers. To
-replicate data, members must be able to communicate to other members.
-
-In an election, members must see each other to create a
-majority. To ensure that the replica set members can confirm a
-majority and elect a primary, keep a majority of the set’s members in
-one location.
+For more information, see
+:doc:`/core/replica-set-architecture-geographically-distributed`
 
 Target Operations with Tag Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use :ref:`replica set tag sets <replica-set-configuration-tag-sets>` to
-ensure that operations replicate to specific data centers. Tag sets also
-allow the routing of read operations to specific machines.
+target read operations to specific members or to customize write
+concern to request acknowledgement from specific members.
 
 .. seealso:: :doc:`/data-center-awareness` and
    :doc:`/core/operational-segregation`.
@@ -152,12 +159,9 @@ allow the routing of read operations to specific machines.
 Use Journaling to Protect Against Power Failures
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Enable journaling to protect data against service interruptions.
-Without journaling MongoDB cannot recover data after unexpected
-shutdowns, including power failures and unexpected reboots.
-
-All 64-bit versions of MongoDB after version 2.0 have journaling
-enabled by default.
+MongoDB enables :doc:`journaling </core/journaling>` by default.
+Journaling protects against data loss in the event of service
+interruptions, such as power failures and unexpected reboots.
 
 Replica Set Naming
 ------------------
@@ -175,3 +179,6 @@ architecture in your own deployment:
 .. include:: /includes/toc/dfn-list-replica-set-architectures.rst
 
 .. include:: /includes/toc/replica-set-architectures.rst
+
+.. [#master-slave]
+   .. include:: /includes/fact-master-slave-workaround.rst
