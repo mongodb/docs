@@ -1,4 +1,4 @@
-The |application| and Backup Daemon must authenticate to the backing
+|onprem| must authenticate to the backing
 databases as a MongoDB user with appropriate access. The user must have
 the following roles:
 
