@@ -24,9 +24,10 @@ For some deployments, implementing a custom replication sync topology may
 be more effective than the default sync target selection logic. MongoDB
 provides the ability to specify a host to use as a sync target.
 
-To override the default sync target selection logic, you may manually
-configure a :term:`secondary` member's sync target to temporarily pull
-:term:`oplog` entries. The following provide access to this functionality:
+To temporarily override the default sync target selection logic, you
+may manually configure a :term:`secondary` member's sync target to
+temporarily pull :term:`oplog` entries. The following provide access to
+this functionality:
 
 - :dbcommand:`replSetSyncFrom` command, or
 
@@ -35,60 +36,7 @@ configure a :term:`secondary` member's sync target to temporarily pull
 Considerations
 --------------
 
-Sync Logic
-~~~~~~~~~~
-
-Only modify the default sync logic as needed, and always exercise
-caution.  :method:`rs.syncFrom()` will not affect an in-progress
-initial sync operation. To affect the sync target for the initial sync, run
-:method:`rs.syncFrom()` operation *before* initial sync.
-
-If you run :method:`rs.syncFrom()` during initial sync, MongoDB
-produces no error messages, but the sync target will not change until
-after the initial sync operation.
-
-Persistence
-~~~~~~~~~~~
-
-:dbcommand:`replSetSyncFrom` and :method:`rs.syncFrom()` provide a
-temporary override of default behavior. :program:`mongod` will revert
-to the default sync behavior in the following situations:
-
-- The :program:`mongod` instance restarts.
-
-- The connection between the :program:`mongod` and the sync target
-  closes.
-
-.. versionchanged:: 2.4
-   The sync target falls more than 30 seconds behind another member of
-   the replica set; the :program:`mongod` will revert to the default
-   sync target.
-
-Target
-~~~~~~
-
-The member to sync from must be a valid source for data in the set.
-To sync from a member, the member must:
-
-- Have data. It cannot be an arbiter, in startup or recovering mode, and
-  must be able to answer data queries.
-
-- Be accessible.
-
-- Be a member of the same set in the replica set configuration.
-
-- Build indexes with the
-  :rsconf:`members[n].buildIndexes` setting.
-
-- A different member of the set, to prevent syncing from itself.
-
-If you attempt to replicate from a member that is more than 10 seconds
-behind the current member, :program:`mongod` will log a warning but will
-still replicate from the lagging member.
-
-If you run :dbcommand:`replSetSyncFrom` during initial sync, MongoDB
-produces no error messages, but the sync target will not change until
-after the initial sync operation.
+.. include:: /includes/extracts/rsSyncFrom-behavior-both.rst
 
 Procedure
 ---------
