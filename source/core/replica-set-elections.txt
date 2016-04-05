@@ -88,16 +88,28 @@ majority of the set's members. If the remaining member is a
 :term:`primary` and two members become unavailable, the primary steps
 down and becomes a secondary.
 
-Network Partitions
-~~~~~~~~~~~~~~~~~~
+Loss of a Data Center
+~~~~~~~~~~~~~~~~~~~~~
 
-Network partitions affect the formation of a majority for an
-election. If a primary steps down and neither portion of the replica
-set has a majority the set will **not** elect a new primary. The
-replica set becomes read-only.
+With a distributed replica set, the loss of a data center may affect
+the ability of the remaining members in other data center or data
+centers to elect a primary.
 
-To avoid this situation, place a majority of instances in one data
-center and a minority of instances in any other data centers combined.
+If possible, distribute the replica set members across data centers to
+maximize the likelihood that even with a loss of a data center, one of
+the remaining replica set members can become the new primary.
+
+.. seealso:: :doc:`/core/replica-set-architecture-geographically-distributed`
+
+Network Partition
+~~~~~~~~~~~~~~~~~
+
+A :term:`network partition` may segregate a primary into a partition
+with a minority of nodes. When the primary detects that it can only see
+a minority of nodes in the replica set, the primary steps down as
+primary and becomes a secondary. Independently, a member in the
+partition that can communicate with a majority of the nodes (including
+itself) holds an election to become the new primary.
 
 Election Mechanics
 ------------------
@@ -208,25 +220,18 @@ will veto an election:
   <replSetGetStatus.members.optime>`) than the member seeking
   election.
 
-.. [#imply-secondary-only] Remember that :ref:`hidden
-   <replica-set-hidden-members>` and :ref:`delayed
-   <replica-set-delayed-members>` imply :ref:`priority 0
+.. [#imply-secondary-only] Remember that 
+   :ref:`hidden <replica-set-hidden-members>` and
+   :ref:`delayed<replica-set-delayed-members>` imply :ref:`priority 0
    <replica-set-secondary-only-members>` configuration.
 
 .. index:: replica set members; non-voting
+
 .. _replica-set-non-voting-configuration:
 .. _replica-set-non-voting-members:
 
 Non-Voting Members
 ------------------
-
-.. default-domain:: mongodb
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
 
 Non-voting members hold copies of the replica set's data and can
 accept read operations from client applications. Non-voting members

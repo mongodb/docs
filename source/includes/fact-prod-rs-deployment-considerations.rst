@@ -17,10 +17,6 @@
 
 .. end-nondist-dns
 
-  For a geographically distributed replica set, you should ensure that
-  one system (e.g. ``mongodb2.example.net``) resides in each secondary
-  site (e.g. Site B), while the remaining systems are in Site A.
-
 .. begin-nondist-routing
 
 - Ensure that network traffic can pass between all members in the

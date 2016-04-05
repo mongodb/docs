@@ -17,7 +17,7 @@ a. Issue the following command to determine the
    .. code-block:: javascript
 
       cfg = rs.conf()
-      cfg.members[2].priority = 0
+      cfg.members[2].priority = 0.5
       rs.reconfig(cfg)
 
    When the operations return, ``mongodb2.example.net`` has a priority
