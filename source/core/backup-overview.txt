@@ -15,9 +15,10 @@ Introduction
 
 |mms| Backup's process for keeping a backup in sync with your
 deployment is analogous to the process used by a secondary to replicate
-data in a :term:`replica set`. Backup first performs an :term:`initial sync` to catch up
-with your deployment and then tails the :term:`oplog` to stay caught up. Backup
-takes scheduled snapshots to keep a history of the data.
+data in a :term:`replica set`. Backup first performs an :term:`initial
+sync` to catch up with your deployment and then tails the :term:`oplog`
+to stay caught up. Backup takes scheduled snapshots to keep a history
+of the data.
 
 Blockstore Storage
 ~~~~~~~~~~~~~~~~~~
@@ -37,15 +38,17 @@ standard filesystem utilities, rather than having to retrieve them
 through the |mms| interface.
 
 With filesystem storage, you can select any mountable filesystem to
-which |mms| will write the snapshots. In addition, an :term:`oplog store
-<Oplog Store Database>` database stores your :term:`oplog` for
-processing. When you add a filesystem store |mms| prompts you to specify
-the database for your oplogs.
+which |mms| writes the snapshots. 
 
-If you use file system snapshot storage and use multiple |onprem| instances
-(including those activated as Backup Daemons), all |onprem| instances
-must have the same view of the file system snapshot storage. You can achieve
-this through a Network File System (NFS) application or something similar.
+In addition, an :term:`oplog store <Oplog Store Database>` database
+stores your :term:`oplog` for processing. When you add a filesystem
+store |mms| prompts you to specify the database for your oplogs.
+
+If you use file system snapshot storage and use multiple |onprem|
+instances (including those activated as Backup Daemons), all |onprem|
+instances must have the same view of the file system snapshot storage.
+You can achieve this through a Network File System (NFS) application or
+something similar.
 
 .. include:: /includes/important-multiple-instances-share-view-filesystem-snapshots.rst
 
@@ -61,30 +64,106 @@ Transfer of Data and Oplog Entries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you start a backup, the Backup Agent streams your deployment's
-existing data to the |http-service| in batches of documents
-totaling roughly 10MB. The batches are called "slices" and contain
-only the data as it existed when you started the backup. 
+existing data to |mms| in batches of documents, totaling roughly 10 MB
+each, called **slices**. Slices contain only the data as it existed
+when you started the backup.
 
-While transferring the data, the Backup Agent tails the
-:term:`oplog` and streams the oplog updates to the |http-service|.
-|mms| then stores the oplog entries in the oplog database
-for later processing offline.
+While transferring the data, the Backup Agent tails the :term:`oplog`
+and streams the oplog updates to |mms|. |mms| then stores the oplog
+entries in the oplog database for later processing offline.
 
 Building the Backup
 ~~~~~~~~~~~~~~~~~~~
 
-When the |http-service| has received all of the slices, a Backup
-Daemon creates a local database on its server and inserts the documents
-that were captured as slices during the initial sync. The Daemon then
-applies the oplog entries from the oplog store.
+When |mms| has received all of the slices, it creates a local database
+on its server and inserts the documents that were captured as slices
+during the initial sync. |mms| then applies the oplog entries from
+the oplog store.
 
-The Backup Daemon then validates the data. If there are missing
-documents, |mms| queries the deployment for the documents and the Backup
-Daemon inserts them. A missing document could occur because of an update
-that caused a document to move during the initial sync.
+|mms| then validates the data. If there are missing documents, |mms|
+queries the deployment for the documents and inserts them. A missing
+document could occur because of an update that caused a document to
+move during the initial sync.
 
-Once the Backup Daemon validates the accuracy of the data directory, it
-has completed the initial sync process and proceeds to routine operation.
+Once |mms| validates the accuracy of the data directory, it has
+completed the initial sync process and proceeds to routine operation.
+
+Initial Sync Phases
+~~~~~~~~~~~~~~~~~~~
+
+Backups go through a series of phases during backup. The first backup
+is called the initial synchronization (``initialSync``). If you click
+the :guilabel:`Backup` button, you are presented with the list of
+backup jobs in progress. During ``initialSync``, they proceed through
+these phases in the following order:
+
+.. list-table::
+   :widths: 20 50 30
+   :header-rows: 1
+
+   * - State
+
+     - Description
+
+     - Measure of Progress
+
+   * - ``starting``
+
+     - Waiting phase until |mms| receives sync slices.
+
+     - None
+
+   * - ``transferring``
+
+     - Shows progress one namespace at a time. 
+
+     - 
+       * A ratio of ingested documents to total documents.
+
+       * A percentage of documents ingested. 
+
+   * - ``building``
+
+     - |mms| has started building the deployment ``HEAD`` database. 
+
+       .. note:: 
+          For recent agent or |mms| deployments, this happens in the
+          background during the ``transferring`` phase, but the UI
+          shows the ``transferring`` phase until all slices are
+          received.
+
+     - The percentage of the entire ``HEAD`` database that has been
+       built.
+
+   * - ``applying oplogs``
+
+     - |mms| has completed building the ``HEAD`` database. |mms| is
+       applying the oplog entries to catch up with the customer's oplog
+       at the point that the previous phase completed.
+
+     - The percentage of slices currently applied. 
+
+   * - ``fetching missing documents``
+
+     - |mms| queries the customers deployment for documents missed
+       during the ``building`` and ``applying oplogs`` phases.
+
+     - The percentage of slices currently applied.
+
+   * - ``creating indexes``
+
+     - |mms| creates all the indexes of the customer's deployment.
+
+     - 
+       * The index currently being processed.
+       * A percentage of total indexes processed so far.
+
+   * - ``complete``
+
+     - The backup ``initialSync`` job has completed.
+
+     -
+
 
 Routine Operation
 -----------------
@@ -108,14 +187,15 @@ each shard and of the config servers. The daemon can also use
 servers for custom snapshots. You must first :ref:`enable checkpoints
 <enable-cluster-checkpoints>`.
 
-When a user requests a snapshot, a Backup Daemon retrieves the data from
-the snapshot storage and delivers it to the
-requested destination. For an overview of the restore process, see
-:doc:`/core/restore-overview`.
+When a user requests a snapshot, a Backup Daemon retrieves the data
+from the snapshot storage and delivers it to the requested destination.
+
+.. seealso::
+   :doc:`/core/restore-overview` for an overview of the restore process.
 
 Grooms
 ------
 
-Groom jobs perform periodic "garbage collection" on the snapshot storage
-to reclaim space from deleted snapshots. A scheduling
-process determines when grooms are necessary.
+Groom jobs perform periodic "garbage collection" on the snapshot
+storage to reclaim space from deleted snapshots. A scheduling process
+determines when grooms are necessary.
