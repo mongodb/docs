@@ -1,8 +1,8 @@
 .. _replica-set-geographical-distribution:
 
-=======================================
-Geographically Distributed Replica Sets
-=======================================
+========================================================
+Replica Sets Distributed Across Two or More Data Centers
+========================================================
 
 .. default-domain:: mongodb
 
@@ -12,42 +12,110 @@ Geographically Distributed Replica Sets
    :depth: 1
    :class: singlecol
 
-Adding members to a replica set in multiple data centers adds
-redundancy and provides fault tolerance if one data center is
-unavailable. Members in additional data centers should have a
-:doc:`priority of 0 </core/replica-set-priority-0-member>` to prevent
-them from becoming primary.
+Overview
+--------
 
-For example: the architecture of a geographically distributed replica
-set may be:
+While :term:`replica sets <replica set>` provide basic protection
+against single-instance failure, replica sets whose members are all
+located in a single data center are susceptible to data center
+failures. Power outages, network interruptions, and natural disasters
+are all issues that can affect replica sets whose members are located
+in a single facility.
 
-- One :term:`primary <primary>` in the main data center.
+Distributing replica set members across geographically distincts data
+centers adds redundancy and provides fault tolerance if one of the data
+centers is unavailable.
 
-- One :term:`secondary <secondary>` member in the main data center. This
-  member can become primary at any time.
+Distribution of the Members
+---------------------------
 
-- One :doc:`priority 0 </core/replica-set-priority-0-member>` member in
-  a second data center. This member cannot become primary.
+To protect your data in case of a data center failure, keep at least
+one member in an alternate data center. If possible, use an odd number
+of data centers, and choose a distribution of members that maximizes
+the likelihood that even with a loss of a data center, the remaining
+replica set members can form a majority or at minimum, provide a copy
+of your data.
 
-In the following replica set, the primary and one secondary are in *Data
-Center 1*, while *Data Center 2* has a :doc:`priority 0
-</core/replica-set-priority-0-member>` secondary that cannot become a
-primary.
+Examples
+~~~~~~~~
 
-.. include:: /images/replica-set-three-members-geographically-distributed.rst
+Three-member Replica Set
+````````````````````````
 
-If the primary is unavailable, the replica set will elect a new
-primary from *Data Center 1*. If the data centers cannot connect to
-each other, the member in *Data Center 2* will not become the primary.
+For example, for a three-member replica set, some possible
+distributions of members include:
 
-If *Data Center 1* becomes unavailable, you can manually recover the
-data set from *Data Center 2* with minimal downtime.
+- Two data centers: two members to Data Center 1 and one member to Data
+  Center 2. If one of the members of the replica set is an arbiter,
+  distribute the arbiter to Data Center 1 with a data-bearing member.
 
-To facilitate elections, the main data center should hold a majority
-of members. Also ensure that the set has an odd number of members. If
-adding a member in another data center results in a set with an even
-number of members, deploy an :ref:`arbiter
-<replica-set-arbiters>`. For more information on elections, see
-:doc:`/core/replica-set-elections`.
+  - If Data Center 1 goes down, the replica set becomes read-only.
 
-.. seealso:: :doc:`/tutorial/deploy-geographically-distributed-replica-set`.
+  - If Data Center 2 goes down, the replica set remains writeable as
+    the members in Data Center 1 can hold an election.
+
+- Three data centers: one members to Data Center 1, one member to Data
+  Center 2, and one member to Data Center 3.
+
+  - If any Data Center goes down, the replica set remains writeable as
+    the remaining members can hold an election.
+
+Five-member Replica Set
+```````````````````````
+
+For a replica set with 5 members, some possible
+distributions of members include:
+
+- Two data centers: three members to Data Center 1 and two members to
+  Data Center 2.
+
+  - If Data Center 1 goes down, the replica set becomes read-only.
+
+  - If Data Center 2 goes down, the replica set remains writeable as
+    the members in Data Center 1 can create a majority.
+
+- Three data centers: two member to Data Center 1, two members to Data
+  Center 2, and one member to site Data Center 3.
+
+  - If any Data Center goes down, the replica set remains writeable as
+    the remaining members can hold an election.
+
+For example, the following 5 member replica set distributes its members
+across three data centers.
+
+.. include:: /images/replica-set-three-data-centers.rst
+
+Electability of Members
+-----------------------
+
+Some members of the replica set, such as members that have networking
+restraint or limited resources, should not be able to become primary in
+a :term:`failover`. Configure members that should not become primary to
+have :ref:`priority 0 <replica-set-secondary-only-members>`. 
+
+In some cases, you may prefer that the members in one data center be
+elected primary before the members in the other data centers. You can
+modify the :rsconf:`~members[n].priority` of the members such that the
+members in the one data center has higher
+:rsconf:`~members[n].priority` than the members in the other data
+centers.
+
+In the following example, the replica set members in
+Data Center 1 have a higher priority than the members in Data Center 2
+and 3; the members in Data Center 2 have a higher priority than the
+member in Data Center 3:
+
+.. include:: /images/replica-set-three-data-centers-priority.rst
+
+Connectivity
+------------
+
+Verify that your network configuration allows communication among all
+members; i.e. each member must be able to connect to every other member.
+
+.. seealso::
+   :doc:`/tutorial/deploy-geographically-distributed-replica-set`,
+   :doc:`/tutorial/deploy-replica-set`,
+   :doc:`/tutorial/add-replica-set-arbiter`, and
+   :doc:`/tutorial/expand-replica-set`.
+

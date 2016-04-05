@@ -6,10 +6,6 @@ and if possible bind to the standard MongoDB port of ``27017``. Use the
 :setting:`bind_ip` option to ensure that MongoDB listens for connections
 from applications on configured addresses.
 
-For a geographically distributed replica sets, ensure that the
-majority of the set's :program:`mongod` instances reside in the
-primary site.
-
 See :doc:`/core/replica-set-architectures` for more information.
 
 Connectivity
