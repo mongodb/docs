@@ -17,7 +17,7 @@ b. Copy the replica set configuration object to a variable (to ``cfg`` in
    .. code-block:: javascript
 
       cfg = rs.conf()
-      cfg.members[2].priority = 0
+      cfg.members[2].priority = 0.5
       rs.reconfig(cfg)
 
    .. note::
