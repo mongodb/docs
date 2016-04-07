@@ -37,10 +37,10 @@ deploy: build-temp
 
 	@echo "Deployed"
 
-build-temp: style.min.css
+build-temp: style.min.css header.css header.js
 	rm -rf $@
 	mkdir $@
-	cp -p index.html mongodb-logo.png style.min.css *webfont* $@/
+	cp -p index.html mongodb-logo.png style.min.css header.css header.js *webfont* $@/
 
 # Don't grab node_modules unless we have to
 style.min.css: style.css
