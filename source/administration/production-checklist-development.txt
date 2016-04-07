@@ -1,6 +1,6 @@
-===========
-Development
-===========
+=====================
+Development Checklist
+=====================
 
 .. default-domain:: mongodb
 
@@ -9,8 +9,6 @@ Development
    :backlinks: none
    :depth: 1
    :class: singlecol
-
-.. COMMENT This file is included in another file.  Keep the subtitle levels as is.
 
 The following checklist, along with the
 :doc:`/administration/production-checklist-operations`, provides
@@ -34,16 +32,49 @@ Data Durability
 Schema Design
 ~~~~~~~~~~~~~
 
+Data in MongoDB has a *dynamic schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This
+facilitates iterative development and polymorphism. Nevertheless,
+collections often hold documents with highly homogeneous
+structures. See :doc:`/core/data-models` for more information.
+
 .. cssclass:: checklist
+
+   - Determine the set of collections that you will need and the
+     indexes required to support your queries. With the exception of
+     the ``_id`` index, you must create all indexes explicitly: MongoDB
+     does not automatically create any indexes other than ``_id``.
+   
+   - Ensure that your schema design supports your deployment type: if
+     you planning to use :term:`sharded clusters <sharded cluster>` for
+     horizontal scaling, design your schema to include a strong shard
+     key. The shard key affects read and write performance by
+     determining how MongoDB partitions data. See: :doc:`Impacts of
+     Shard Keys on Cluster Operations </core/sharding-shard-key>`
+     for information about what qualities a shard key should possess.
+     You cannot change the shard key once it is set.
 
    - Ensure that your schema design does not rely on indexed arrays that
      grow in length without bound. Typically, best performance can
      be achieved when such indexed arrays have fewer than 1000 elements.
 
+   - Consider the document size limits when designing your schema.
+     The :limit:`BSON Document Size` limit is 16MB per document. If
+     you require larger documents, use :doc:`GridFS </core/gridfs>`.
+
 Replication
 ~~~~~~~~~~~
 
 .. cssclass:: checklist
+
+   - Use an odd number of replica set members to ensure that elections
+     proceed successfully. If you have an even number of members, use
+     an :term:`arbiter` to ensure an odd number of votes.
+
+   - Ensure that your secondaries remain up-to-date by using
+     :doc:`monitoring tools </administration/monitoring>` and by
+     specifying appropriate :doc:`write concern
+     </reference/write-concern>`.
 
    - Do not use secondary reads to scale overall read throughput. See:
      `Can I use more replica nodes to scale`_ for an overview of read
