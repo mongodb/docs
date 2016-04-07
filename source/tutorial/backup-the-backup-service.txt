@@ -39,20 +39,20 @@ be.
 Back Up with the Public API
 ---------------------------
 
-The |mms| Public API provides the ability to programmatically restore
-snapshots on your desired schedule, and store them offline. Ideally,
-you should save the backups to a tape drive, appending the new
-snapshots daily until the drive is full, and then store the drive offsite.
+The |mms| Public API allows you to programmatically restore 
+based snapshots on your desired schedule, and store them offline.
+Ideally, you should save the backups to a tape drive, appending the new
+snapshots daily until the drive is full, and then store the drive
+offsite.
 
-Programmatically restoring snapshots has the same impact on the Backup
-Blockstore database as a typical restore.
+Programmatically restoring snapshots has the same impact on a
+snapshot as a typical restore.
 
-You can then :doc:`restore your MongoDB instance from the stored
-snapshots </tutorial/nav/backup-restore-deployments>`. 
+See :doc:`the API documentation </reference/api/restore-jobs>` for how
+to restore jobs using this method.
 
-This method backs up the snapshots only: you **cannot** use the
-backups to restore |onprem| in the event that the Blockstore 
-is lost.
+This method backs up the snapshots only: you **cannot** use the backups
+to restore |onprem| in the event that a Blockstore database is lost.
 
 Shut Down and Back Up
 ---------------------
@@ -66,9 +66,10 @@ including the point-in-time restores:
 4. If you backed up using blockstores, back up the file systems that
    store the application and backup databases (and/or files) while they
    are offline.
-5. If you backed up using file system stores, backup the file system.
+5. If you backed up using file system stores, backup the snapshot files
+   on the file system.
 
-The 'Shut Down and Back Up' approach has the advantage of providing all
+The *Shut Down and Back Up* approach has the advantage of providing all
 of |onprem|'s backup snapshots *and* the point-in-time restores that it
 stores. However, the process involves significant downtime and during
 the shut down, |onprem| is completely unavailable as are monitoring and
@@ -76,27 +77,3 @@ automation capabilities. As such, if a failure occurs in one of your
 MongoDB instances, you may lose the data that |onprem| did not back up
 prior to shutdown nor are you alerted of that fact because monitoring
 is unavailable.
-
-Online Backup
--------------
-
-Online backup is the riskiest option, as it involves backing up the
-databases while |onprem| is running. If done correctly, this provides
-you with all of the backup snapshots contained in |onprem|, as well as
-the point-in-time restores for the period leading up to the backup.
-
-However, the process is complex and there is high potential for errors.
-To perform the online backup for databases using either the **MMAPv1**
-or **WiredTiger** (starting with MongoDB 3.2 or later) storage engines,
-you must run ``db.fsyncLock()`` on each :program:`mongod` process that
-is part of the Application and Backup Blockstore replica sets in the
-correct order, back up the underlying file system, and then call
-``db.fsyncUnlock()``. If you forget to call ``db.fsyncUnlock()`` on a
-:program:`mongod` instance, you risk significant long-term problems and
-failures.
-
-.. note::
-
-   In previous MongoDB versions, db.fsyncLock() could not guarantee a consistent set of files for low-level backups (e.g. via file copy cp, scp, tar) for the **WiredTiger** storage engine. See
-   :manual:`db.fsyncLock() </reference/method/db.fsyncLock>` in the
-   MongoDB manual.
