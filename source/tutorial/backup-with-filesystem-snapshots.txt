@@ -1,6 +1,6 @@
-============================================
-Backup and Restore with Filesystem Snapshots
-============================================
+=============================================
+Back Up and Restore with Filesystem Snapshots
+=============================================
 
 .. default-domain:: mongodb
 
@@ -21,12 +21,14 @@ additional system configuration outside of MongoDB.
 
 .. versionchanged:: 3.2
 
-   Starting in MongoDB 3.2, the data files as well as the journal files
-   can reside on separate volumes to create volume-level backup of
-   MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
-   storage engine. With previous versions, for the purpose of
-   volume-level backup of MongoDB instances using WiredTiger, the data
-   files and the journal must reside on a single volume.
+   MongoDB 3.2 added support for volume-level back up of MongoDB instances
+   using the :doc:`WiredTiger </core/wiredtiger>` storage engine when
+   the MongoDB instance's data files and journal files reside on separate
+   volumes.
+   
+   Prior to MongoDB 3.2, creating volume-level backups
+   of MongoDB instances using WiredTiger required that the data files and journal
+   reside on the same volume.
 
 .. seealso:: :doc:`/core/backups` and
    :doc:`/tutorial/backup-and-restore-tools`.
@@ -39,7 +41,7 @@ Snapshots Overview
 Snapshots work by creating pointers between the live data and a
 special snapshot volume. These pointers are theoretically equivalent
 to "hard links." As the working data diverges from the snapshot,
-the snapshot process uses a copy-on-write strategy. As a result the snapshot
+the snapshot process uses a copy-on-write strategy. As a result, the snapshot
 only stores modified data.
 
 After making the snapshot, you mount the snapshot image on your
@@ -56,21 +58,21 @@ The database must be valid when the snapshot takes place. This means
 that all writes accepted by the database need to be fully written to
 disk: either to the :term:`journal` or to data files.
 
-If all writes are not on disk when the backup occurs, the backup
+If there are writes that are not on disk when the backup occurs, the backup
 will not reflect these changes. 
 
 For the :doc:`MMAPv1 storage engine </core/mmapv1>`, if writes are
 *in progress* when the backup occurs, the data files will reflect an
 inconsistent state. With :ref:`journaling <journaling-mmapv1>`, all
-data-file states resulting from in-progress writes are recoverable;
+data file states resulting from in-progress writes are recoverable;
 without journaling, you must flush all pending writes to disk before
-running the backup operation and must ensure that no writes occur
-during the entire backup procedure. If you do use journaling, the
+running the back up operation and must ensure that no writes occur
+during the entire back up procedure. If you do use journaling, the
 journal **must** reside on the same volume as the data.
 
 For the :doc:`WiredTiger storage engine </core/wiredtiger>`, the data
 files reflect a consistent state as of the last :ref:`checkpoint
-<storage-wiredtiger-checkpoints>`, which occurs with every 2 GB of
+<storage-wiredtiger-checkpoints>`. Checkpoints occur with every 2 GB of
 data or every minute.
 
 Entire Disk Image
@@ -94,7 +96,7 @@ No Incremental Backups
 ``````````````````````
 
 This tutorial does not include procedures for incremental backups.
-Although different snapshots methods provide different capability, the
+Although different snapshot methods provide different features, the
 LVM method outlined below does not provide any capacity for capturing
 incremental backups.
 
@@ -138,7 +140,7 @@ an alternative, you can do one of the following:
 
 .. _lvm-backup-and-restore:
 
-Back up and Restore Using LVM on Linux
+Back Up and Restore Using LVM on Linux
 --------------------------------------
 
 This section provides an overview of a simple backup process
@@ -199,7 +201,7 @@ The snapshot will exist when the command returns. You can restore
 directly from the snapshot at any time or by creating a new logical
 volume and restoring from this snapshot to the alternate image.
 
-While snapshots are great for creating high quality backups very
+While snapshots are great for creating high quality backups
 quickly, they are not ideal as a format for storing backup
 data. Snapshots typically depend and reside on the same storage
 infrastructure as the original disk images. Therefore, it's crucial
@@ -239,7 +241,7 @@ The above command sequence does the following:
 Restore a Snapshot
 ~~~~~~~~~~~~~~~~~~
 
-To restore a snapshot created with the above method, issue the following
+To restore a snapshot created with :term:`LVM`, issue the following
 sequence of commands:
 
 .. code-block:: sh
