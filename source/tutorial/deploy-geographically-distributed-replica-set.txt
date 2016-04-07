@@ -33,30 +33,13 @@ members in a geographically distinct facility or data center.
 Requirements
 ------------
 
-For a three-member replica set you need two instances in a
-primary facility (hereafter, "Site A") and one member in a secondary
-facility (hereafter, "Site B".) Site A should be the same facility or
-very close to your primary application infrastructure
-(i.e. application servers, caching layer, users, etc.)
+If possible, use an odd number of data centers, and choose a
+distribution of members that maximizes the likelihood that even with a
+loss of a data center, the remaining replica set members can form a
+majority or at minimum, provide a copy of your data.
 
-For a four-member replica set you need two members in Site A,
-two members in Site B (or one member in Site B and one member in Site
-C,) and a single :term:`arbiter` in Site A.
-
-For replica sets with additional members in the secondary facility or with
-multiple secondary facilities, the requirements are the same as above but with the
-following notes:
-
-- Ensure that a majority of the :ref:`voting members
-  <replica-set-non-voting-members>` are within Site A. This includes
-  :ref:`secondary-only members <replica-set-secondary-only-members>` and
-  :ref:`arbiters <replica-set-arbiters>` For more information on the
-  need to keep the voting majority on one site, see
-  :ref:`replica-set-elections-and-network-partitions`.
-
-- If you deploy a replica set with an uneven number of members, deploy
-  an :ref:`arbiter <replica-set-arbiters>` on Site A. The arbiter must
-  be on site A to keep the majority there.
+If you deploy a replica set with an uneven number of members, add an
+:ref:`arbiter <replica-set-arbiters>`.
 
 For all configurations in this tutorial, deploy each replica set member
 on a separate system. Although you may deploy more than one replica set member on a
@@ -87,9 +70,7 @@ features:
   - ``mongodb2.example.net``
 
   Configure DNS names appropriately, *or* set up your systems'
-  ``/etc/hosts`` file to reflect this configuration. Ensure that one
-  system (e.g. ``mongodb2.example.net``) resides in Site B. Host all
-  other systems in Site A.
+  ``/etc/hosts`` file to reflect this configuration.
 
 - Ensure that network traffic can pass between all members in the
   network securely and efficiently. Consider the following:
@@ -197,9 +178,9 @@ To deploy a geographically distributed three-member set:
       rs.add("mongodb1.example.net")
       rs.add("mongodb2.example.net")
 
-#. Make sure that you have configured the member located in Site B
-   (i.e. ``mongodb2.example.net``) as a :ref:`secondary-only member
-   <replica-set-secondary-only-members>`:
+#. Optional. Configure the member eligibility for becoming primary.
+   In some cases, you may prefer that the members in one data center be
+   elected primary before the members in the other data centers.
 
    a. Issue the following command to determine the
       :data:`~local.system.replset.members[n]._id` value for
@@ -209,8 +190,8 @@ To deploy a geographically distributed three-member set:
 
          rs.conf()
 
-   #. In the :data:`~local.system.replset.members` array, save the
-      :data:`~local.system.replset.members[n]._id` value. The example in
+   #. In the :data:`~local.system.replset.members` array, find the array
+      index of the member to configure. The example in
       the next step assumes this value is ``2``.
 
    #. In the :program:`mongo` shell connected to the replica set's
@@ -265,9 +246,7 @@ features:
   - ``mongodb3.example.net``
 
   Configure DNS names appropriately, *or* set up your systems'
-  ``/etc/host`` file to reflect this configuration. Ensure that one
-  system (e.g. ``mongodb2.example.net``) resides in Site B. Host all
-  other systems in Site A.
+  ``/etc/host`` file to reflect this configuration.
 
 - One host (e.g. ``mongodb3.example.net``) will be an :term:`arbiter`
   and can run on a system that is also used for an application server
@@ -400,9 +379,9 @@ To deploy a geographically distributed four-member set:
 
       rs.addArb("mongodb4.example.net")
 
-#. Make sure that you have configured each member located in Site B
-   (e.g. ``mongodb3.example.net``) as a :ref:`secondary-only member
-   <replica-set-secondary-only-members>`:
+#. Optional. Configure the member eligibility for becoming primary.
+   In some cases, you may prefer that the members in one data center be
+   elected primary before the members in the other data centers.
 
    a. Issue the following command to determine the
       :data:`~local.system.replset.members[n]._id` value for the member:
@@ -411,8 +390,8 @@ To deploy a geographically distributed four-member set:
 
          rs.conf()
 
-   #. In the :data:`~local.system.replset.members` array, save the
-      :data:`~local.system.replset.members[n]._id` value. The example in
+   #. In the :data:`~local.system.replset.members` array, find the array
+      index of the member to configure. The example in
       the next step assumes this value is ``2``.
 
    #. In the :program:`mongo` shell connected to the replica set's
@@ -449,26 +428,12 @@ To deploy a geographically distributed four-member set:
 Deploy a Distributed Set with More than Four Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The procedure for deploying a geographically distributed set with more
-than four members is similar to the above procedures, with the following
-differences:
+The above procedures detail the steps necessary for deploying a
+geographically redundant replica set. Larger replica set deployments
+generally follow the same steps, but have additional considerations:
 
 - Never deploy more than seven voting members.
 
-- Use the procedure for a four-member set if you have an even number of
-  members (see :ref:`replica-set-deploy-distributed-four-member`).
-  Ensure that Site A always has a majority of the members by deploying
-  the :term:`arbiter` within Site A. For six member sets, deploy at
-  least three voting members in addition to the arbiter in Site A, the
-  remaining members in alternate sites.
-
-- Use the procedure for a three-member set if you have an odd number of
-  members (see :ref:`replica-set-deploy-distributed-three-member`).
-  Ensure that Site A always has a majority of the members of the set.
-  For example, if a set has five members, deploy three members within
-  the primary facility and two members in other facilities.
-
-- If you have a majority of the members of the set *outside* of Site A
-  and the network partitions to prevent communication between sites,
-  the current primary in Site A will step down, even if none of the
-  members outside of Site A are eligible to become primary.
+- If you have an even number of members, similar to :ref:`the procedure
+  for a four-member set <replica-set-deploy-distributed-four-member>`,
+  deploy an arbiter.
