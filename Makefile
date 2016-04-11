@@ -37,13 +37,13 @@ deploy: build-temp
 
 	@echo "Deployed"
 
-build-temp: style.min.css header.css header.js
+build-temp: style.min.css header.js
 	rm -rf $@
 	mkdir $@
-	cp -p index.html mongodb-logo.png style.min.css header.css header.js *webfont* $@/
+	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/
 
 # Don't grab node_modules unless we have to
-style.min.css: style.css
+style.min.css: style.css header.css
 	$(MAKE) node_modules lint
 	./node_modules/.bin/cleancss --skip-rebase --semantic-merging -o $@ $^
 
