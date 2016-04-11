@@ -237,43 +237,45 @@ content: |
         |  |  |-- mongostat
         |  |  |-- mongotop
 
+  .. _troubleshoot-insufficient-oplog-size-error:
+
   Insufficient Oplog Size Error
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   When using the |mms| interface to back up a MongoDB cluster, |mms|
   checks to see if the cluster's oplogs are, based on their recent
   usage, large enough to hold a minimum of 3 hours worth of data based
-  on the last 24 hours of usage patterns. 
+  on the last 24 hours of usage patterns. If the oplogs are not large
+  enough, it may be possible that the oplogs may have turned over
+  multiple times, creating a gap between where a backup
+  ends and an oplog starts.
 
-  .. important::
-     This usage pattern is important. Oplogs are fixed in size. This
-     means that if a large number of transactions occur in a short
-     period of time, the oplog may have turned over multiple times.
-     This can create a gap between where a backup ends and an oplog
-     starts. If the backup and oplog do not overlap, the chances of a
-     successful restore are reduced. This is why there is a sanity
-     check to avoid starting backup jobs that are unlikely to have all
-     of the data necessary for a restore.
+  If the oplog size check fails, the user cannot enable backups and is
+  shown the warning:
+
+  .. code-block:: none
+
+     Insufficient oplog size: The oplog window must be at least 3 hours
+     over the last 24 hours for all members of replica set <name>.
+     Please increase the oplog.
 
   If possible, wait to start a backup until the oplog has had
-  sufficient time to build a better data profile to create the proper
-  size of oplog. If the sanity check fails, the user cannot enable
-  backups and is shown the warning:
-
-    Insufficient oplog size: The oplog window must be at least 3 hours
-    over the last 24 hours for all members of replica set <name>.
-    Please increase the oplog.
-
+  sufficient time to meet the size requirement.
+ 
   If this is not possible, the minimum oplog size value can be changed.
   See :setting:`mms.backup.minimumOplogWindowHours` for how to set this
   value. 
 
-  .. warning::
+  .. warning:: 
+     Do not change the minimum oplog size unless you are certain
+     smaller backups still provide useful backups.
+
+  .. important::
      MongoDB recommends only changing this value temporarily to permit
      a test backup job to execute. The minimum oplog size value should
      be reset to the default as soon as possible. If an oplog is set to
      too small of a value, it can result in a gap between a backup job
-     and an oplog which makes the backup usuable for restores. Stale
+     and an oplog which makes the backup unusuable for restores. Stale
      backup jobs must be resynchronized before it can be used for
      restores.
 
@@ -281,10 +283,6 @@ content: |
   changed minimum value. Once you pass the 24 hour mark, you should
   reset this minimum value to preserve the sanity check for the global
   Ops Manager installation going forward.
-
-  .. warning:: 
-     Do not change the minimum oplog size unless you are certain
-     smaller backups still provide useful backups.
 
 ---
 ref: troubleshooting-backup
