@@ -14,9 +14,9 @@ Overview
 --------
 
 The Public API provides the ``automationConfig`` endpoint to let you
-manipulate your group’s :doc:`deployment configuration
-</reference/cluster-configuration>`. The configuration, also referred to as
-the "automation configuration," defines the various MongoDB clusters, replica
+manipulate your group’s :doc:`automation configuration
+</reference/cluster-configuration>`. The configuration
+defines the various MongoDB clusters, replica
 sets and standalones in the deployment and defines how each process runs. The
 Automation Agents build the deployment according to the goals specified. Each
 Automation Agent is responsible for the MongoDB processes that run on its
@@ -28,7 +28,7 @@ When a running MongoDB process matches its defined configuration, the process is
 state." When all processes on all hosts are in goal state, the deployment
 itself is in goal state.
 
-For example deployment configurations, please see the following page on GitHub:
+For example automation configurations, please see the following page on GitHub:
 `<https://github.com/10gen-labs/mms-api-examples/tree/master/automation/>`_.
 
 Endpoints
@@ -46,18 +46,13 @@ Retrieve the current automation configuration for a group.
 Update the Automation Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Update a group's automation configuration. For steps for updating an
-automation configuration, see :doc:`/tutorial/create-cluster-with-api`.
+Use ``PUT`` to update a group's automation configuration.
+**Do not** ``PATCH``. For steps for updating an
+automation configuration, see :doc:`/tutorial/update-automation-configuration`.
 
 .. code-block:: none
 
    PUT /api/public/v1.0/groups/GROUP-ID/automationConfig
-
-To update the configuration through the ``automationConfig`` endpoint,
-send an object that :ref:`contains a specific subset of the
-configuration's fields <automation-configuration-sample-entity>`. This is
-the same subset as you receive when you retrieve the configuration through
-the endpoint.
 
 When you submit updates, |mms| makes internal modifications to the data
 and then saves your new configuration version. For example, |mms| might
@@ -66,9 +61,7 @@ version to indicate where the agents download them from.
 
 The Automation Agents continuously poll |mms| for changes to the
 configuration and fetch configuration updates when they occur. The agents
-then adjust the states of their live processes to match. For a tutorial on
-updating a deployment using the API, see
-:doc:`/tutorial/create-cluster-with-api`.
+then adjust the states of their live processes to match.
 
 .. _concurrent-cluster-config:
 
@@ -79,23 +72,25 @@ updating a deployment using the API, see
    modifications, and then submit their modifications, the later
    modification wins.
 
+.. _other-representations-automation-configuration:
+
 Other Representations of the Automation Configuration
 -----------------------------------------------------
-
-.. only:: onprem
-
-   Users with the :ref:`global role <global-roles>` can view the internal
-   representation of the configuration. In |mms|, click
-   :guilabel:`Deployment`, then the :guilabel:`More` drop-down list, then
-   :guilabel:`Raw AutomationConfig`. The raw configuration shows the internal
-   representation of the configuration that |mms| stores, including fields
-   that should **not** be updated through the API.
 
 The Automation Agent stores a copy of the configuration in the
 ``mms-cluster-config-backup.json`` file. The agent stores the most recent
 version of configuration **with which the agent was able to reach goal
 state**. If an agent is not able to process configuration changes, it
 continues to store an older version of the configuration.
+
+.. only:: onprem
+
+   Users with :ref:`global roles <global-roles>` can view |mms|'s internal
+   representation of the deployment configuration, which is much larger than
+   the automation configuration and includes additional fields used only
+   internally. **Never** use this representation to update the automation
+   configuration. The representation is called the ``Raw AutomationConfig`` is
+   viewable through the :guilabel:`Deployment` page.
 
 .. _automation-configuration-sample-entity:
 
@@ -186,3 +181,216 @@ Indexes
 ~~~~~~~
 
 .. include:: /includes/automation-configuration-indexConfigs.rst
+
+Examples
+--------
+
+Get the Automation Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+       <automation configuration>
+   }
+
+Update the Automation Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+The following replaces the automation configuration with the updated
+configuration saved in ``Users/admin/updated-conf.json``. For an example of an
+updated configuration document, see :ref:`example-updated-configuration`.
+
+.. code-block:: none
+
+   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" -X PUT --data @/Users/admin/updated-conf.json
+
+
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {}
+
+.. _example-updated-configuration:
+
+Example Automation Configuration
+````````````````````````````````
+
+The following is an example entity passed through the ``--data @<configuration>``
+option. The exact fields included in an automation configuration depend on the
+|mms| group.
+
+The example uses ``...`` when a field has multiple entries and also in place
+of some field values. For detailed information on a field, see the
+:ref:`automation-configuration-sample-entity` section on this page.
+
+.. code-block:: cfg
+
+   {
+       "options" : {
+           "downloadBase" : "/var/lib/mongodb-mms-automation",
+           "downloadBaseWindows" : "C :\\MMSAutomation\\versions"
+       },
+       "mongoDbVersions" : [
+           {
+               "name" : "3.2.0",
+               "builds" : [
+                   {
+                       "platform" : "windows",
+                       "url" : "https ://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-3.2.0.zip",
+                       "gitVersion" : "45d947729a0315accb6d4f15a6b06be6d9c19fe7",
+                       "bits" : 64,
+                       "win2008plus" : true
+                   },
+                   ...
+               ],
+           },
+           ...
+       ],
+       "agentVersion" : {
+         "directoryUrl" : "https://s3.amazonaws.com/mongodb-mms-build-agent/releases/prod/",
+         "name" : "2.6.4.1612-1"
+       },
+       "monitoringVersions" : [
+           {
+               "name" : "4.1.0.251-1",
+               "hostname" : "example.net",
+               "baseUrl" : null
+           },
+           ...
+       ],
+       "backupVersions" : [
+           {
+               "name" : "4.1.0.347-1",
+               "hostname" : "example.net",
+               "baseUrl" : null
+           },
+           ...
+       ],
+       "processes" : [
+           {
+               "name" : "MyCLUSTER_MySHARD_0_0",
+               "processType" : "mongod",
+               "version" : "2.6.7",
+               "hostname" : "testAutoAPI-0.dns.placeholder",
+               "logRotate" : {
+                   "sizeThresholdMB" : 1000,
+                   "timeThresholdHrs" : 24
+               },
+               "authSchemaVersion" : 1,
+               "args2_6" : {
+                   "net" : {
+                       "port" : 27017
+                   },
+                   "storage" : {
+                       "dbPath" : "/data/MyCLUSTER_MySHARD_0_0"
+                   },
+                   "systemLog" : {
+                       "path" : "/data/MyCLUSTER_MySHARD_0_0/mongodb.log",
+                       "destination" : "file"
+                   },
+                   "replication" : {
+                       "replSetName" : "MySHARD_0"
+                   },
+                   "operationProfiling" : {}
+               }
+           },
+           ...
+       ],
+       "replicaSets" : [
+           {
+               "_id" : "MySHARD_0",
+               "members" : [
+                   {
+                       "_id" : 0,
+                       "host" : "MyCLUSTER_MySHARD_0_0",
+                       "priority" : 1,
+                       "votes" : 1,
+                       "slaveDelay" : 0,
+                       "hidden" : false,
+                       "arbiterOnly" : false
+                   },
+                   {
+                       "_id" : 1,
+                       "host" : "MyCLUSTER_MySHARD_0_1",
+                       "priority" : 1,
+                       "votes" : 1,
+                       "slaveDelay" : 0,
+                       "hidden" : false,
+                       "arbiterOnly" : false
+                   },
+                   {
+                       "_id" : 2,
+                       "host" : "MyCLUSTER_MySHARD_0_2",
+                       "priority" : 1,
+                       "votes" : 1,
+                       "slaveDelay" : 0,
+                       "hidden" : false,
+                       "arbiterOnly" : false
+                   }
+               ]
+           },
+           ...
+       ],
+       "sharding" : [
+           {
+               "name" : "myShardedCluster",
+               "configServer" : [
+                   "MyCLUSTER_MyCONFIG_SERVER_6",
+                   "MyCLUSTER_MyCONFIG_SERVER_7",
+                   "MyCLUSTER_MyCONFIG_SERVER_8"
+               ],
+               "shards" : [
+                   {
+                       "_id" : "MySHARD_0",
+                       "rs" : "MySHARD_0"
+                   },
+                   {
+                       "_id" : "MySHARD_1",
+                       "rs" : "MySHARD_1"
+                   }
+               ]
+           }
+       ],
+       "balancer" : { ... },
+       "auth" : {
+           "authoritativeSet" : false,
+           "disabled" : true
+           "usersDeleted" : [ ],
+           "usersWanted" : [ ]
+       },
+       "ssl" : { ... },
+       "roles" : [
+           {
+               "role" : ... ,
+               "db" : ... ,
+               "privileges" : [ ... ],
+               "roles" : [ ... ]
+           },
+           ...
+       ],
+       "kerberos" : {
+           "serviceName" : ...
+       },
+       "indexConfigs" : [ ]
+   }

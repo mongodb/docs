@@ -24,7 +24,7 @@ The ``backupVersions`` array is optional and specifies the version of the Backup
            }
        },
        ...
-   ],
+   ]
 
 .. list-table::
    :widths: 30 10 80

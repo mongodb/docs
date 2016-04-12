@@ -1,0 +1,107 @@
+title: "Retrieve the snapshot ID."
+stepnum: 1
+level: 4
+ref: snapshot-id
+pre: |
+  Use the :doc:`snapshots </reference/api/snapshots>` resource to get the
+  snapshot ID. Issue the following command, replacing ``<username>`` and
+  ``<apiKey>`` with your :doc:`API credentials
+  </tutorial/configure-public-api-access>`, ``<url>`` with the URL of |mms|,
+  ``<group_id>`` with the group ID from your :doc:`Group Settings
+  <manage-group-settings>`, and ``<cluster_id>`` with the cluster ID.
+action:
+  language: none
+  code: |
+    curl -i -u "username:apiKey" --digest "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/snapshots"
+---
+title: "Create a restore job for the snapshot."
+stepnum: 2
+level: 4
+ref: create-restore-job
+pre: |
+  Use the :doc:`restoreJobs </reference/api/restore-jobs>` resource to request
+  an HTTP restore of the snapshot, which will provide a link to a downloadable
+  ``tar.gz`` file. Issue the following command, replacing the username, API
+  key, URL, group ID, and cluster ID as in the previous step. Replace
+  ``<snapshot_id>`` with the snapshot ID you retrieved.
+action:
+  language: none
+  code: |
+    curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/restoreJobs" --data '
+    {
+      "snapshotId": "<snapshot_id>"
+    }'
+  post: |
+    For an example, see :ref:`examples-create-restore-jobs`.
+---
+title: "Retrieve the restore link."
+stepnum: 3
+level: 4
+ref: retrieve-restore-link
+pre: |
+  Use the :doc:`restoreJobs </reference/api/restore-jobs>` resource to
+  retrieve the restore link. Issue the following command, replacing the
+  username, API key, URL, group ID, and cluster ID as in the previous step.
+action:
+  language: none
+  code: |
+    curl -i -u "username:apiKey" --digest "http://<url>/api/public/v1.0/groups/<group_id>/clusters/<cluster_id>/restoreJobs"
+post: |
+  Copy the restore link from the ``delivery.url`` field.
+---
+title: "Retrieve the automation configuration."
+stepnum: 4
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: check-automation-config
+---
+title: "Add the restore link to the automation configuration."
+stepnum: 5
+level: 4
+ref: add-restore-link
+pre: |
+  In the ``processes`` array, add the ``backupRestoreUrl`` field to each
+  :program:`mongod` to be restored. Enter the restore link as the field's
+  value.
+action:
+  pre: |
+    For example:
+  language: none
+  code: |
+    "processes" : [
+      {
+        ... ,
+        "hostname" : "example.mongodbdns.com",
+        "backupRestoreUrl" : "https://api-backup.mongodb.com/backup/restore/v2/pull/abc123abc123/def456def456/ghi789ghi789/rs-1440499848-570d78dfe4b0d7519182cc42.tar.gz",
+        ... 
+      },
+      ...
+    ]
+---
+stepnum: 6
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: send-updated-configuration
+---
+stepnum: 7
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: confirm-update-of-config
+---
+stepnum: 8
+level: 4
+source:
+  file: steps-source-update-automation-configuration.yaml
+  ref: check-deployment-status
+---
+title: "Remove ``processes.backupRestoreUrl``."
+stepnum: 9
+level: 4
+ref: resend
+content: |
+  When Goal State is achieved, remove the ``processes.backupRestoreUrl``
+  field and resend the automation configuration.
+...
