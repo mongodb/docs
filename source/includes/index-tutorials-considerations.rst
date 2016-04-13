@@ -1,9 +1,7 @@
 If your collection holds a large amount of data, and your application
 needs to be able to access the data while building the index, consider
 building the index in the background, as described in
-:ref:`index-creation-background`. To build indexes on replica sets,
-see the :ref:`index-build-on-replica-sets` section for more
-information.
+:ref:`index-creation-background`.
 
 .. include:: /includes/note-build-indexes-on-replica-sets.rst
 

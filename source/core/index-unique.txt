@@ -13,27 +13,66 @@ Unique Indexes
    :depth: 1
    :class: singlecol
 
-A unique index causes MongoDB to reject all documents that contain a
-duplicate value for the indexed field. 
+A unique index ensures that the indexed fields do not store duplicate
+values; i.e. enforces uniqueness for the indexed fields. By default,
+MongoDB creates a unique index on the :ref:`_id <document-id-field>`
+field during the creation of a collection.
+
+Create a Unique Index
+---------------------
 
 To create a unique index, use the :method:`db.collection.createIndex()`
-method with the ``unique`` option set to ``true``. For example, to
-create a unique index on the ``user_id`` field of the ``members``
-collection, use the following operation in the :program:`mongo` shell:
+method with the ``unique`` option set to ``true``. 
+
+.. code-block:: javascript
+
+   db.collection.createIndex( <key and index type specification>, { unique: true } )
+
+.. index:: index; unique
+.. _index-unique-index:
+
+Unique Index on a Single Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example, to create a unique index on the ``user_id`` field of the
+``members`` collection, use the following operation in the
+:program:`mongo` shell:
 
 .. code-block:: javascript
 
    db.members.createIndex( { "user_id": 1 }, { unique: true } )
 
-By default, ``unique`` is ``false`` on MongoDB indexes.
+Unique Compound Index
+~~~~~~~~~~~~~~~~~~~~~
 
-If you use the unique constraint on a :ref:`compound index
-<index-type-compound>`, then MongoDB will enforce uniqueness on the
-*combination* of values rather than the individual value for any or all
-values of the key.
+You can also enforce a unique constraint on :ref:`compound indexes
+<index-type-compound>`. If you use the unique constraint on a
+:ref:`compound index <index-type-compound>`, then MongoDB will enforce
+uniqueness on the *combination* of the index key values.
+
+For example, to create a unique index on ``groupNumber``, ``lastname``,
+and ``firstname`` fields of the ``members`` collection, use the
+following operation in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { groupNumber: 1, lastname: 1, firstname: 1 }, { unique: true } )
+
+The created index enforces uniqueness for the *combination* of
+``groupNumber``, ``lastname``, and ``firstname`` values.
 
 Behavior
 --------
+
+Restrictions
+~~~~~~~~~~~~~
+
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on the
+specified index field(s) if the collection already contains data that
+would violate the unique constraint for the index.
+
+You may not specify a unique constraint on a :ref:`hashed
+index <index-type-hashed>`.
 
 Unique Constraint Across Separate Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,9 +146,9 @@ the unique constraint on the value of the field ``x``:
       }
    })
 
-You can combine the unique constraint with the :ref:`sparse index
-<index-type-sparse>` to filter these null values from the unique index
-and avoid the error.
+.. seealso:: :ref:`unique-partial-indexes`
+
+.. _unique-partial-indexes:
 
 Unique Partial Indexes
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -120,16 +159,9 @@ Partial indexes only index the documents in a collection that meet a
 specified filter expression. If you specify both the
 ``partialFilterExpression`` and a :ref:`unique constraint
 <index-type-unique>`, the unique constraint only applies to the
-documents that meet the filter expression. A partial index with a
-unique constraint does not prevent the insertion of documents that do
-not meet the unique constraint if the documents do not meet the filter
-criteria. For an example, see
+documents that meet the filter expression.
+
+A partial index with a unique constraint does not prevent the insertion
+of documents that do not meet the unique constraint if the documents do
+not meet the filter criteria. For an example, see
 :ref:`partial-index-with-unique-constraints`.
-
-Restrictions
-~~~~~~~~~~~~
-
-You may not specify a unique constraint on a :ref:`hashed
-index <index-type-hashed>`.
-
-.. seealso:: :doc:`/tutorial/create-a-unique-index`

@@ -27,46 +27,61 @@ example of a compound index on two fields:
 
 Compound indexes can support queries that match on multiple fields.
 
-.. example::
+Create a Compound Index
+-----------------------
 
-   Consider a collection named
-   ``products`` that holds documents that resemble the following
-   document:
+To create a :ref:`compound index <index-type-compound>` use an
+operation that resembles the following prototype:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {
-       "_id": ObjectId(...),
-       "item": "Banana",
-       "category": ["food", "produce", "grocery"],
-       "location": "4th Street Store",
-       "stock": 4,
-       "type": "cases",
-       "arrival": Date(...)
-      }
+   db.collection.createIndex( { <field1>: <type>, <field2>: <type2>, ... } )
 
-   If applications query on the ``item`` field as well as query on both
-   the ``item`` field and the ``stock`` field, you can specify a single
-   compound index to support both of these queries:
-
-   .. code-block:: javascript
-
-      db.products.createIndex( { "item": 1, "stock": 1 } )
+.. include:: /includes/fact-index-specification-field-value.rst
 
 .. important:: You may not create compound indexes that have
-   ``hashed`` index fields. You will receive an error if you attempt to
+   ``hashed`` index type. You will receive an error if you attempt to
    create a compound index that includes :doc:`a hashed index
-   </core/index-hashed>`.
+   field </core/index-hashed>`.
 
-The order of the fields in a compound index is very important. In the
-previous example, the index will contain references to documents sorted
-first by the values of the ``item`` field and, within each value of the
-``item`` field, sorted by values of the ``stock`` field. See
-:ref:`index-ascending-and-descending` for more information.
+Consider a collection named ``products`` that holds documents that
+resemble the following document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "item": "Banana",
+    "category": ["food", "produce", "grocery"],
+    "location": "4th Street Store",
+    "stock": 4,
+    "type": "cases"
+   }
+
+The following operation creates an ascending index on the ``item`` and
+``stock`` fields:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "item": 1, "stock": 1 } )
+
+The order of the fields listed in a compound index is important. The
+index will contain references to documents sorted first by the values
+of the ``item`` field and, within each value of the ``item`` field, sorted by
+values of the stock field. See :ref:`index-ascending-and-descending`
+for more information.
 
 In addition to supporting queries that match on all the index fields,
 compound indexes can support queries that match on the prefix of the
-index fields. For details, see :ref:`compound-index-prefix`.
+index fields. That is, the index supports queries on the ``item`` field
+as well as both ``item`` and ``stock`` fields:
+
+.. code-block:: javascript
+
+   db.products.find( { item: "Banana" } )
+   db.products.find( { item: "Banana", stock: { gt: 5 } } )
+
+For details, see :ref:`compound-index-prefix`.
 
 .. index:: index; sort order
 .. _index-ascending-and-descending:
@@ -165,3 +180,9 @@ Index Intersection
 ------------------
 
 .. include:: /includes/fact-index-intersection-vs-compound-indexes.rst
+
+Additional Considerations
+-------------------------
+
+.. include:: /includes/index-tutorials-considerations.rst
+

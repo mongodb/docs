@@ -11,93 +11,53 @@ Single Field Indexes
    :class: singlecol
 
 MongoDB provides complete support for indexes on any field in a
-:term:`collection` of :term:`documents <document>`. By default, all collections
-have an index on the :ref:`_id field <index-type-id>`, and
+:term:`collection` of :term:`documents <document>`. By default, all
+collections have an index on the :ref:`_id field <index-type-id>`, and
 applications and users may add additional indexes to support important
 queries and operations.
 
-MongoDB supports indexes that contain either a single field *or*
-multiple fields depending on the operations that this index-type
-supports. This document describes ascending/descending indexes that
-contain a single field. Consider the following illustration of a single
-field index.
+This document describes ascending/descending indexes on a single field.
 
 .. include:: /images/index-ascending.rst
 
-.. seealso:: :doc:`/core/index-compound` for information about indexes
-   that include multiple fields, and :doc:`/core/indexes-introduction`
-   for a higher level introduction to indexing in MongoDB.
+Create an Ascending Index on a Single Field
+-------------------------------------------
 
-Example
--------
-
-Given the following document in the ``friends`` collection:
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
 
 .. code-block:: javascript
 
-   { "_id" : ObjectId(...),
-     "name" : "Alice",
-     "age" : 27
+   {
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
    }
 
-The following command creates an index on the ``name`` field:
+The following operation creates an ascending index on the ``score``
+field of the ``records`` collection:
 
-.. code-block:: sh
+.. code-block:: javascript
 
-   db.friends.createIndex( { "name" : 1 } )
+   db.records.createIndex( { score: 1 } )
 
-Cases
------
+.. include:: /includes/fact-index-specification-field-value.rst
 
-.. index:: _id index
-.. index:: _id
-.. index:: index; _id
-.. index:: index types; primary key
-.. _index-type-id:
+The created index will support queries that select on the field
+``score``, such as the following:
 
-``_id`` Field Index
-~~~~~~~~~~~~~~~~~~~
+.. code-block:: javascript
 
-MongoDB creates the ``_id`` index, which is an ascending :ref:`unique
-index <index-type-unique>` on the ``_id`` field, for all collections when
-the collection is created. You cannot remove the index on the ``_id``
-field.
-
-Think of the ``_id`` field as the :term:`primary key` for a collection.
-Every document *must* have a unique ``_id`` field. You may store any
-unique value in the ``_id`` field. The default value of ``_id`` is an
-:term:`ObjectId` which is generated when the client inserts the document. An
-:term:`ObjectId` is a 12-byte unique identifier suitable for use
-as the value of an ``_id`` field.
-
-.. note::
-
-   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
-   the ``_id`` field as the :term:`shard key`, then your application
-   **must** ensure the uniqueness of the values in the ``_id`` field
-   to prevent errors.  This is most-often done by using a standard
-   auto-generated :term:`ObjectId`.
-
-   Before version 2.2, :term:`capped collections <capped collection>`
-   did not have an ``_id`` field. In version 2.2 and newer, capped
-   collections do have an ``_id`` field, except those in the ``local``
-   :term:`database`. See :ref:`Capped Collections Recommendations
-   and Restrictions <capped-collections-recommendations-and-restrictions>`
-   for more information.
+   db.records.find( { score: 2 } )
+   db.records.find( { score: { $gt: 10 } } )
 
 .. index:: index; embedded fields
 .. _index-embedded-fields:
+.. _index-subdocuments:
+.. _index-embedded-documents:
 
-Indexes on Embedded Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. default-domain:: mongodb
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
+Create an Index on an Embedded Field
+------------------------------------
 
 You can create indexes on fields within embedded documents, just as you
 can index top-level fields in documents. Indexes on embedded fields
@@ -107,82 +67,69 @@ which include the full content up to the maximum :limit:`index size
 embedded fields allow you to use a "dot notation," to introspect into
 embedded documents.
 
-Consider a collection named ``people`` that holds documents that resemble
-the following example document:
-
-.. code-block:: javascript
-
-   {"_id": ObjectId(...),
-    "name": "John Doe",
-    "address": {
-           "street": "Main",
-           "zipcode": "53511",
-           "state": "WI"
-           }
-   }
-
-You can create an index on the ``address.zipcode`` field, using the
-following specification:
-
-.. code-block:: javascript
-
-   db.people.createIndex( { "address.zipcode": 1 } )
-
-.. index:: index; subdocuments
-.. _index-subdocuments:
-.. _index-embedded-documents:
-.. _index-subdocument:
-.. _index-embedded-document:
-
-Indexes on Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. default-domain:: mongodb
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
-
-You can also create indexes on embedded documents.
-
-For example, the ``factories`` collection contains documents that
-contain a ``metro`` field, such as:
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
 
 .. code-block:: javascript
 
    {
-     _id: ObjectId(...),
-     metro: {
-              city: "New York",
-              state: "NY"
-            },
-     name: "Giant Factory"
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
    }
 
-The ``metro`` field is an embedded document, containing the embedded fields
-``city`` and ``state``. The following command creates an index on the ``metro``
+The following operation creates an index on the ``location.state``
+field:
+
+.. code-block:: javascript
+
+   db.records.createIndex( { "location.state": 1 } )
+
+The created index will support queries that select on the field
+``location.state``, such as the following:
+
+.. code-block:: javascript
+
+   db.records.find( { "location.state": "CA" } )
+   db.records.find( { "location.city": "Albany", "location.state": "NY" } )
+
+Create an Index on Embedded Document
+------------------------------------
+
+You can also create indexes on embedded document as a whole.
+
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
+   }
+
+The ``location`` field is an embedded document, containing the embedded fields
+``city`` and ``state``. The following command creates an index on the ``location``
 field as a whole:
 
 .. code-block:: javascript
 
-   db.factories.createIndex( { metro: 1 } )
+   db.records.createIndex( { location: 1 } )
 
-The following query can use the index on the ``metro`` field:
-
-.. code-block:: javascript
-
-   db.factories.find( { metro: { city: "New York", state: "NY" } } )
-
-This query returns the above document. When performing equality matches
-on embedded documents, field order matters and the embedded documents must match
-exactly. For example, the following query does not match the above
-document:
+The following query can use the index on the ``location`` field:
 
 .. code-block:: javascript
 
-   db.factories.find( { metro: { state: "NY", city: "New York" } } )
+   db.records.find( { location: { city: "New York", state: "NY" } } )
 
-See :ref:`query-embedded-documents` for more information regarding querying
-on embedded documents.
+.. note:: Although the query can use the index, the result set does not
+   include the sample document above. When performing equality matches on
+   embedded documents, field order matters and the embedded documents
+   must match exactly. See :ref:`query-embedded-documents` for more
+   information regarding querying on embedded documents.
+
+Additional Considerations
+-------------------------
+
+.. include:: /includes/index-tutorials-considerations.rst
