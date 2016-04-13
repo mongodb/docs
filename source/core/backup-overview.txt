@@ -13,20 +13,46 @@ Backup Flows
 Introduction
 ------------
 
-|mms| Backup's process for keeping a backup in sync with your
-deployment is analogous to the process used by a secondary to replicate
-data in a :term:`replica set`. Backup first performs an :term:`initial
-sync` to catch up with your deployment and then tails the :term:`oplog`
-to remain current. Backup takes scheduled snapshots to keep a history
-of the data.
+|mms| backups, once started, are an ongoing and continuous process.
+Data is continually backed up as long as the backup remains
+synchronized with the database. This process works like the process
+used to replicate data in a :term:`replica set` to secondary. The
+Backup process:
 
-Blockstore Storage
-~~~~~~~~~~~~~~~~~~
+1. Performs an :term:`initial sync` to back up all of the data in its
+   current state.
+
+2. Takes scheduled snapshots to keep the database backup current.
+
+3. Constantly monitors the :term:`oplog` and adds its operations to the
+   latest backup to keep its copy of the data current.
+
+The backup process works in this manner using either database-based
+(blockstore) or file-based (file system) backup storage.
+
+Snapshot Storage
+----------------
+
+Snapshots
+~~~~~~~~~
+
+The backup process takes a snapshot of the data directory of the
+backed-up deployment as often as specified by the 
+:ref:`snapshot schedule <snapshot-frequency-and-retention>`. This
+snapshot is transferred to snapshot storage.
+
+For a sharded cluster, the backup process takes a snapshot of each
+shard and of the config servers. The backup process can also use
+:ref:`checkpoints <checkpoint>` to permit restores at moments between
+snapshots. You must first :ref:`enable checkpoints <enable-cluster-checkpoints>`.
+
+Blockstores
+~~~~~~~~~~~
 
 .. include:: /images/backup-flow-blockstore.rst
 
-File System Storage
-~~~~~~~~~~~~~~~~~~~
+File Systems
+~~~~~~~~~~~~
 
 .. include:: /images/backup-flow-filesystem-storage.rst
 
@@ -46,24 +72,113 @@ instances must have the same view of the file system snapshot storage.
 You can achieve this through a Network File System (NFS) application or
 something similar.
 
-Operation Log Storage
-~~~~~~~~~~~~~~~~~~~~~
-
-With either a Blockstore or File System Store, you must create an
-:term:`oplog store <Oplog Store Database>` database. It stores your
-:term:`oplog` for processing. When you add either a blockstore or a
-filesystem store, |mms| prompts you to specify the database for your
-oplogs.
-
 .. include:: /includes/important-multiple-instances-share-view-filesystem-snapshots.rst
 
 .. TODO: link to the installation tutorial where it talks about
    picking the snapshot store.
 
+Operation Logs
+~~~~~~~~~~~~~~
+
+When a new Blockstore is added, that Blockstore integrates an
+:term:`oplog store <Oplog Store Database>` into its database.
+
+When a new file system store is created, you are prompted to
+create an :term:`oplog store <Oplog Store Database>`.
+
+Once an oplog has been created for a snapshot store, adding any
+additional snapshot stores does not require another :term:`oplog`.
+
+.. _backup-stages:
+
+
+Backup States
+-------------
+
+A backup job defines how much and how often data is backed up. There
+are three states for a backup job: **active**, **inactive** or
+**stopped**.
+
+.. list-table::
+   :widths: 20 27 27 26
+   :header-rows: 1
+
+   * - State
+     - Retain Old Snapshots
+     - Create New Snapshots
+     - Apply Oplogs
+  
+   * - ``Active``
+     - Yes
+     - Yes
+     - Yes
+
+   * - ``Stopped`` 
+     - Yes
+     - No
+     - No
+
+   * - ``Inactive``
+     - No
+     - No
+     - No
+
+Once backups are active for a Group, they run without further
+intervention until they are stopped or terminated. The operator can
+change the state of a backup in the following ways:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Initial State
+
+     - Desired State
+
+     - Method
+
+   * - ``Active``
+
+     - :guilabel:`Active` after ``Initial Sync``
+
+     - Click :guilabel:`Start`.
+
+   * - ``Active``
+
+     - :guilabel:`Stopped`
+
+     - Click :guilabel:`Stop`.
+
+   * - ``Stopped``
+
+     - :guilabel:`Active` after ``Initial Sync``
+
+     - Click :guilabel:`Restart`.
+
+   * - ``Stopped``
+
+     - :guilabel:`Inactive`
+
+     - Click :guilabel:`Terminate`.
+      
+       .. warning::
+          :guilabel:`Terminate` deletes all retained backups.
+
+.. important::
+   You may receive a :alert:`Resync Required <Resync-Required>` alert
+   for your backup jobs. This may require you to :doc:`/tutorial/resync-backup`. 
+   This is not a different state, but a triggering of
+   a new :ref:`backup-initial-sync`. The backup job, once ``Initial
+   Sync`` completes, becomes :guilabel:`Active` again.
+
 .. _backup-initial-sync:
 
 Initial Sync
 ------------
+
+Initial Sync is an interim state between :guilabel:`Inactive` and
+:guilabel:`Active`. Its activities are exposed to the operator to keep
+them informed that the process is in progress.
 
 Transfer of Data and Oplog Entries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -106,7 +221,7 @@ these phases in the following order:
    :widths: 20 50 30
    :header-rows: 1
 
-   * - State
+   * - Phase
 
      - Description
 
@@ -175,24 +290,13 @@ Routine Operation
 
 The Backup Agent tails the deployment's oplog and routinely batches and
 transfers new oplog entries to the |http-service|, which stores them in
-the oplog store. The Backup Daemon applies all
-newly-received oplog entries in batches to its local replica of the
-backed-up deployment.
+the oplog store. The Backup process applies all newly-received oplog
+entries in batches to its local copy of the backed-up deployment.
 
-Snapshots
----------
+Restores
+--------
 
-The Backup Daemon takes a snapshot of the data directory for the
-backed-up deployment regularly, as specified by the :ref:`snapshot
-schedule <snapshot-frequency-and-retention>`. The Backup daemon takes
-the snapshot and transfers it to the snapshot storage.
-For a sharded cluster, the daemon takes a snapshot of
-each shard and of the config servers. The daemon can also use
-:ref:`checkpoints <checkpoint>` to synchronize the shards and config
-servers for custom snapshots. You must first :ref:`enable checkpoints
-<enable-cluster-checkpoints>`.
-
-When a user requests a snapshot, a Backup Daemon retrieves the data
+When a user requests a snapshot, a backup process retrieves the data
 from the snapshot storage and delivers it to the requested destination.
 
 .. seealso::
