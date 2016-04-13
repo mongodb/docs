@@ -17,13 +17,10 @@ the current :term:`primary`, following the example in the
 :ref:`Replica Set Reconfiguration Procedure
 <replica-set-reconfiguration-usage>`.
 
-This document provides the following options for re-configuring a
-replica set when *only* a **minority** of members are accessible:
+This document provides steps for re-configuring a
+replica set when *only* a **minority** of members are accessible.
 
-- :ref:`replica-set-force-reconfiguration`
-- :ref:`replica-set-reconfigure-by-replacing`
-
-You may need to use one of these procedures, for example, in a
+You may need to use the procedure, for example, in a
 geographically distributed replica set, where *no* local group of
 members can reach a majority. See :ref:`replica-set-elections` for more
 information on this situation.
@@ -33,8 +30,6 @@ information on this situation.
 
 Reconfigure by Forcing the Reconfiguration
 ------------------------------------------
-
-.. versionchanged:: 2.0
 
 This procedure lets you recover while a majority of :term:`replica set`
 members are down or unreachable. You connect to any surviving member and
@@ -91,113 +86,5 @@ To force reconfiguration:
 
 #. If the failure or partition was only temporary, shut down or
    decommission the removed members as soon as possible.
-
-.. _replica-set-reconfigure-by-replacing:
-
-Reconfigure by Replacing the Replica Set
-----------------------------------------
-
-Use the following procedure **only** for versions of MongoDB prior to
-version 2.0. If you're running MongoDB 2.0 or later, use the above
-procedure, :ref:`replica-set-force-reconfiguration`.
-
-These procedures are for situations where a *majority* of the
-:term:`replica set` members are down or unreachable. If a majority is
-*running*, then skip these procedures and instead use the
-:method:`rs.reconfig()` command according to the examples in
-:ref:`replica-set-reconfiguration-usage`.
-
-If you run a pre-2.0 version and a majority of your replica set is down,
-you have the two options described here. Both involve replacing the
-replica set.
-
-Reconfigure by Turning Off Replication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This option replaces the :term:`replica set` with a :term:`standalone` server.
-
-1. Stop the surviving :program:`mongod` instances. To ensure a clean shutdown, use
-   an existing :term:`init script` or use the :method:`db.shutdownServer()` method.
-
-   For example, to use the :method:`db.shutdownServer()` method, connect
-   to the server using the :program:`mongo` shell and issue the
-   following sequence of commands:
-
-   .. code-block:: javascript
-
-      use admin
-      db.shutdownServer()
-
-#. Create a backup of the data directory (i.e. :setting:`~storage.dbPath`) of
-   the surviving members of the set.
-
-   .. optional:: If you have a backup of the database you may instead remove
-      this data.
-
-#. Restart one of the :program:`mongod` instances *without* the
-   :option:`--replSet <mongod --replSet>` parameter.
-
-   The data is now accessible and provided by a single server that is
-   not a replica set member. Clients can use this server for both
-   reads and writes.
-
-When possible, re-deploy a replica set to provide redundancy and to
-protect your deployment from operational interruption.
-
-.. _replica-set-forcing-resync:
-
-Reconfigure by "Breaking the Mirror"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This option selects a surviving :term:`replica set` member to be the
-new :term:`primary` and to "seed" a new replica set. In the following
-procedure, the new primary is ``db0.example.net``. MongoDB copies the
-data from ``db0.example.net`` to all the other members.
-
-1. Stop the surviving :program:`mongod` instances. To ensure a clean
-   shutdown, use an existing :term:`init script` or use the
-   :method:`db.shutdownServer()` method.
-
-   For example, to use the :method:`db.shutdownServer()` method, connect
-   to the server using the :program:`mongo` shell and issue the
-   following sequence of commands:
-
-   .. code-block:: javascript
-
-      use admin
-      db.shutdownServer()
-
-#. Move the data directories (i.e. :setting:`~storage.dbPath`)
-   for all the members except ``db0.example.net``, so that all the
-   members except ``db0.example.net`` have empty data directories. For
-   example:
-
-   .. code-block:: sh
-
-      mv /data/db /data/db-old
-
-#. Move the data files for ``local`` database (i.e. ``local.*``) so
-   that ``db0.example.net`` has no local database. For example
-
-   .. code-block:: sh
-
-      mkdir /data/local-old
-      mv /data/db/local* /data/local-old/
-
-#. Start each member of the replica set normally.
-
-#. Connect to ``db0.example.net`` in a :program:`mongo` shell and run :method:`rs.initiate()`
-   to initiate the replica set.
-
-#. Add the other set members using :method:`rs.add()`. For example, to
-   add a member running on ``db1.example.net`` at port ``27017``, issue
-   the following command:
-
-   .. code-block:: javascript
-
-      rs.add("db1.example.net:27017")
-
-   MongoDB performs an initial sync on the added members by copying all
-   data from ``db0.example.net`` to the added members.
 
 .. seealso:: :doc:`/tutorial/resync-replica-set-member`

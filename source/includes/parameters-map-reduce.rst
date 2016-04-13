@@ -195,8 +195,6 @@ following parameters:
 
 - ``nonAtomic``:
 
-  .. versionadded:: 2.2
-
   Optional. Specify output operation as non-atomic. This applies **only**
   to the ``merge`` and ``reduce`` output modes, which may take minutes to
   execute.
