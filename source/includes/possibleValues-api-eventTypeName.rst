@@ -1,20 +1,18 @@
-- ``HOST`` alert type. Possible values:
+- Host alerts support these values:
    - ``HOST_DOWN``
    - ``HOST_RECOVERING``
    - ``VERSION_BEHIND``
    - ``HOST_EXPOSED``
-
-- ``HOST_METRIC`` alert type. Possible value:
    - ``OUTSIDE_METRIC_THRESHOLD``
 
-- ``AGENT`` alert type. Possible values:
+- Agent alerts support these values:
    - ``MONITORING_AGENT_DOWN``
    - ``MONITORING_AGENT_VERSION_BEHIND``
    - ``BACKUP_AGENT_DOWN``
    - ``BACKUP_AGENT_VERSION_BEHIND``
    - ``BACKUP_AGENT_CONF_CALL_FAILURE``
 
-- ``BACKUP`` alert type. Possible values:
+- Backup alerts support these values:
    - ``OPLOG_BEHIND``
    - ``CLUSTER_MONGOS_IS_MISSING``
    - ``RESYNC_REQUIRED``
@@ -25,17 +23,20 @@
    - ``BAD_CLUSTERSHOTS``
    - ``SYNC_SLICE_HAS_NOT_PROGRESSED``
 
-- ``GROUP`` alert type. Possible values:
+- Group alerts support these values:
    - ``USERS_AWAITING_APPROVAL``
    - ``USERS_WITHOUT_MULTI_FACTOR_AUTH``
 
-- ``REPLICA_SET`` alert type. Possible values:
+- Replica set alerts support these values:
    - ``CONFIGURATION_CHANGED``
    - ``PRIMARY_ELECTED``
    - ``TOO_FEW_HEALTHY_MEMBERS``
    - ``TOO_MANY_UNHEALTHY_MEMBERS``
    - ``NO_PRIMARY``
 
-- ``USER`` alert type. Possible values:``
+- Sharded cluster alerts support this value:
+   - ``CLUSTER_MONGOS_IS_MISSING``
+
+- User alerts support these values:
    - ``JOINED_GROUP``
    - ``REMOVED_FROM_GROUP``
