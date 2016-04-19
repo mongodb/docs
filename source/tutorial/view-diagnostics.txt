@@ -13,8 +13,41 @@ View Metrics
 Overview
 --------
 
-|mms| provides charts for analyzing the statistics collected by the
-Monitoring Agent for each process, replica set, and cluster.
+|mms| provides charts for analyzing the statistics collected by the Monitoring
+Agent for each cluster, replica set, and MongoDB process. The agent collects
+metrics using several MongoDB diagnostic commands, including
+:manual:`serverStatus </reference/command/serverStatus>` and :manual:`dbStats
+</reference/command/dbStats>`.
+
+|mms| also provides charts for analyzing hardware statistics collected by the
+Automation Agent. The agent collects metrics for the servers running managed
+MongoDB instances. Hardware metrics are available only for automated
+deployments.
+
+You can view metrics at the cluster level, replica set level and process
+level. |mms| provides a breadcrumb to let you navigate up or down through the
+components that comprise a MongoDB instance.
+
+For :term:`sharded clusters <sharded cluster>`, |mms| collects metrics
+separately for :term:`shards <shard>`, :term:`mongos instances <mongos>`, and
+:term:`config servers <config server>`. For :term:`replica sets <replica
+set>`, |mms| collects metrics separately for each replica set member.
+
+For individual MongoDB processes, |mms| collects process and database metrics.
+If you use automation, |mms| also collects hardware metrics for each process.
+
+Considerations
+--------------
+
+When collecting metrics, |mms| scales its request cycle to limit more
+expensive statistics gathering. |mms| updates database statistics every 20
+minutes but will throttle the frequency to reduce the impact on performance.
+Even so, the :manual:`dbStats </reference/command/dbStats>` operation can
+affect database performance when installations have a large number of
+databases and collections. If the collection of database statistics affects
+performance, disable collection of database statistics by clicking
+:guilabel:`Settings`, then :guilabel:`Group Settings`, and then setting
+:guilabel:`Collect Database Specific Statistics` to ``No``.
 
 .. _access-host-statistics:
 
@@ -22,3 +55,182 @@ View Metrics
 ------------
 
 .. include:: /includes/steps/view-diagnostics.rst
+
+.. _metrics-sharded-clusters:
+
+Sharded Cluster Metrics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Displays metrics for the components in a sharded cluster. You choose to
+displays either :term:`shards <shard>`, :term:`mongos instances <mongos>`, or
+:term:`config servers <config server>`. For a shard you can use the buttons
+below the chart to select primaries, secondaries, or both. |mms| displays
+different processes as different lines.
+
+To sum or average the data, click the :guilabel:`Display Data` drop-down list
+and select the desired option. To change charts, click the :guilabel:`Display`
+drop-down list.
+
+.. _metrics-replica-sets:
+
+Replica Set Metrics
+~~~~~~~~~~~~~~~~~~~
+
+Displays metrics for each replica set member. You can narrow the display to
+particular types of members using the :term:`P <primary>`, :term:`S
+<secondary>`, and :term:`A <arbiter>` options.
+
+To add or remove charts, click the :guilabel:`Add Chart` drop-down list or
+click the buttons at the bottom of the page. To remove a chart, deselect it.
+
+.. _metrics-status-tab:
+
+Status Tab
+~~~~~~~~~~
+
+Displays metrics about your :program:`mongod` and :program:`mongos` processes.
+The Monitoring Agent collects the data through the MongoDB ``serverStatus``
+command. The agent collects a subset of ``serverStatus`` output. See
+:manual:`serverStatus </reference/command/serverStatus>` in the MongoDB
+manual.
+
+.. _metrics-hardware-tab:
+
+Hardware Tab
+~~~~~~~~~~~~
+
+Displays hardware metrics the Automation Agent collects for your
+:program:`mongod` and :program:`mongos` processes.
+
+.. important::
+
+   **Munin users:**
+
+   If you run ``munin-node`` on your MongoDB servers and install or upgrade to
+   Automation Agent version 2.7.0 or higher on the servers, |mms| displays the
+   hardware data collected by the Automation Agent, **not by Munin**. The
+   historical hardware data collected by Munin **is not saved**.
+
+   If run Munin but do not run the Automation Agent, |mms| displays the Munin charts.
+
+You can view the following metrics:
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Chart
+
+     - Data
+
+   * - System CPU
+
+     - The CPU usage of all processes (not just MongoDB processes) on the host
+       server. For servers with more than 1 CPU core, this value can exceed
+       100%.
+
+   * - Normalized System CPU
+
+     - The CPU usage of all processes (not just MongoDB processes) on the host
+       server, scaled to a range of 0-100% by dividing by the number of CPU cores.
+
+   * - Process CPU
+
+     - The CPU usage of the MongoDB process. For servers with more than 1 CPU
+       core, this value can exceed 100%.
+
+   * - Normalized Process CPU
+
+     - The CPU usage of the MongoDB process, scaled to a range of 0-100% by
+       dividing by the number of CPU cores.
+
+   * - Disk Space Free - <partition>
+
+     - The total bytes of free disk space on the disk partition used by
+       MongoDB.
+
+   * - Util % - <partition>
+
+     - The percentage of time during which requests are being issued to
+       and serviced by the partition. This includes requests from any process,
+       not just MongoDB processes.
+
+   * - Disk IOPS - <partition>
+
+     - The throughput of I/O operations per second for the disk partition used for MongoDB.
+
+   * - Disk Space Percent Free - <partition>
+
+     - The percent of free disk space on the partition used by MongoDB.
+
+   * - Disk Latency - <partition>
+
+     - The latency in milliseconds of the disk partition used by MongoDB.
+
+   * - Disk Space Used - <partition>
+
+     - The total bytes of used disk space on the partition that runs MongoDB.
+
+.. _metrics-db-stats-tab:
+
+DB Stats Tab
+~~~~~~~~~~~~
+
+Displays database metrics the Monitoring Agent collects from your :program:`mongod`
+processes through the MongoDB ``dbStats`` command. The agent collects a subset
+of ``dbStats`` output. See :manual:`dbStats </reference/command/dbStats>` in
+the MongoDB manual.
+
+To select which database to display, click the :guilabel:`Select Database`
+drop-down list.
+
+.. _metrics-chart-controls:
+
+Chart Controls
+~~~~~~~~~~~~~~
+
+When viewing charts, you can do the following:
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Task
+
+     - Action
+
+   * - View a chart's description.
+
+     - Click the :guilabel:`i` icon next to the chart name. (Not available for
+       cluster-level chart)
+
+   * - Expand a chart.
+
+     - Click the two-way arrow at the top right of the chart.
+
+   * - Expand a section.
+
+     - Click and drag the mouse pointer over a portion of the chart. To reset,
+       double-click the chart.
+
+   * - View point-in-time statistics.
+
+     - Hover the mouse pointer over a point on the chart.
+
+   * - Move a chart.
+
+     - Click and hold the grabber in the upper left corner of the chart, and
+       drag the chart to the new position.
+
+   * - Export the charts.
+
+     - Click the :guilabel:`Export` drop-down list and select the format.
+
+   * - Link to a chart.
+
+     - Click the curved arrow on the chart and select :guilabel:`Chart
+       Permalink`.
+
+   * - Email the chart.
+
+     - Click the curved arrow on the chart and select :guilabel:`Email Chart`.
