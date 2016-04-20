@@ -1,3 +1,12 @@
+Monitoring Agnet ``4.2.0.263``
+------------------------------
+
+*Released 2016-04-20*
+
+- Added support for log rotation.
+
+- Added a sticky header to log files.
+
 Monitoring Agent ``4.1.0.251``
 ------------------------------
 

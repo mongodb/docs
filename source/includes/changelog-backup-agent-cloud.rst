@@ -1,3 +1,12 @@
+Backup Agent ``4.2.0.373``
+--------------------------
+
+*Released 2016-04-20*
+
+- Added support for log rotation.
+
+- Added a sticky header to log files.
+
 Backup Agent ``4.1.0.347``
 --------------------------
 
