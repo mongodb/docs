@@ -50,7 +50,7 @@ release = conf.version.release
 rst_epilog = [
     '.. include:: {0}/hash.rst'.format(conf.paths.includes[len(conf.paths.source):]),
     '.. |copy| unicode:: U+000A9',
-    '.. |service| replace:: Atlas'
+    '.. |service| replace:: MongoDB Atlas'
 ]
 
 rst_epilog.extend(get_replacements(conf))
