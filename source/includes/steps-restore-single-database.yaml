@@ -1,26 +1,104 @@
-title: Use the mongodump command to dump a single database.
+title: "Restore the snapshot data files to the server."
 stepnum: 1
-ref: dump-database
-pre: |
-  Use the unpacked snapshot restore directory as the :setting:`dpath` switch
-  and the single database name as the :option:`--db <mongodump --db>` switch in the
-  :program:`mongodump` command:
-action:
-  language: sh
-  code: |
-    mongodump --dbpath <path> --db <database-name>
+ref: copy
+content: | 
+  Extract the snapshot archive to a temporary location where the
+  :program:`mongod` process can access the archive contents. Use a
+  different data directory than any other database running on the
+  server.
+
+  For example:
+
+  .. code-block:: sh
+
+     tar -xvf <backupRestoreName>.tar.gz
+     mv <backupRestoreName> <temp-database-path>
+
 ---
-title: "Use the mongorestore command to import the single database dump."
+title: "Start a new, temporary MongoDB process on a new port using the extracted backup snaphot as the :setting:`dbpath`."
 stepnum: 2
+ref: start-with-new-path
+content: | 
+  Ensure the user executing the :program:`mongod` can read, write and
+  execute code in the directory specified with :setting:`dbpath`.
+
+  For example:
+
+  .. code-block:: sh
+
+     mongod --port 27018 --dbpath <temp-database-path> --logpath <temp-database-path>/mongodb.log --fork
+
+---
+title: Use the ``mongodump`` command to export a single database or collection from the temporary running ``mongod`` process.
+stepnum: 3
+ref: dump-database
+content: |
+
+  Specify the single database name using :option:`--db <mongodump
+  --db>` and, if needed, a :option:`--collection <mongodump
+  --collection>` for a single collection.
+
+  The :option:`--out <mongodump --out>` option specifies where the
+  :program:`mongodump` extracts the target database. Choose an empty
+  directory the user executing :program:`mongodump` can access.
+
+  .. code-block:: sh
+
+     mongodump --port 27018 --db <single-database> --out <new-database-path>
+
+  It also possible to export only a single collection:
+
+  .. code-block:: sh
+
+     mongodump --port 27018 --db <single-database> --collection <collection-name> --out <new-database-path>
+
+---
+title: "Use the ``mongorestore`` command to import the single database or collection."
+stepnum: 4
 ref: import-database
-pre: |
-  Enter this :program:`mongorestore` command:
-action:
-  language: sh
-  code: |
-    mongorestore --db <database-name> --drop
-post: |
-  You also may specify the :option:`--drop <mongorestore --drop>`
-  switch to drop all collections from the target database before you
-  restore them from the ``bson`` file created with :program:`mongodump`.
+content: |
+  Restore the single database to the desired instance using this :program:`mongorestore` command:
+
+  .. code-block:: sh
+
+     mongorestore --port 27017 --db <single-database> <temp-database-path> --drop
+
+  If you are restoring a single collection, be sure to designate the
+  collection:
+
+  .. code-block:: sh
+
+     mongorestore --port 27017 --db <single-database> --collection <collection-name> <temp-database-path> --drop
+
+  Any existing databases matching the name given for the :option:`--db`
+  option should be dropped using the :option:`--drop` option. If you
+  choose not to use the :option:`--drop <mongorestore --drop>` option,
+  the restore may produce errors for any documents with duplicate `_id`
+  fields.
+
+---
+title: "Shutdown the temporary MongoDB instance and remove the temporary database."
+stepnum: 5
+ref: clean-temp-database
+content: |
+
+  a. Start the ``mongo`` shell.
+
+     .. code-block:: sh
+
+        mongo <port>
+
+  b. Drop the database and shutdown the process.
+
+     .. code-block:: javascript
+
+        admin = db.getSiblingDB("admin")
+        admin.shutdownServer()
+        exit
+
+  c. Delete the temporary database directory
+
+     .. code-block:: sh
+
+        rm -rf <temp-database-path>
 ...
