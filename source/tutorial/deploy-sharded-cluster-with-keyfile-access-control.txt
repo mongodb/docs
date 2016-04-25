@@ -63,36 +63,15 @@ development environments. For production environments we recommend using
 Access Control
 ~~~~~~~~~~~~~~
 
-The users created in this tutorial are best suited for learning or evaluation
-environments, and should *not* be used in development or production
-environments. See :ref:`security-checklist-role-based-access-control` for best
-practices for user creation and management.
-
-This tutorial covers creating the minimum number of administrative
-users on the ``admin`` database *only*. See the
-:doc:`/tutorial/manage-users-and-roles` tutorial for instructions on
-creating additional users for administrative or client access.
-
-This tutorial uses the default :doc:`/core/security-scram-sha-1`
-authentication mechanism. Challenge-response security mechanisms are
-bare-minimum forms of security and are best suited for testing or
-development environments. For production environments we recommend using
-:doc:`x.509 certificates</core/security-x.509>`.
-
+.. include:: /includes/internal-authentication-tutorials-access-control-consideration.rst
 
 Users
 ~~~~~
 
-Cluster users exist in the cluster and perform cluster-level operations. You
-cannot use a cluster user to connect to an individual shard.
+.. include:: /includes/sharded-clusters-users.rst
 
-Shard-local users exist in each individual shard and perform shard-level
-operations. You cannot connect to the cluster or perform cluster-level
-operations with shard-local users. Shard-local users are primarily for
-maintenance operations within the shard.
-
-This tutorial requires creating cluster users, but includes optional steps for
-adding shard-local users.
+This tutorial requires creating sharded cluster users, but includes
+optional steps for adding shard-local users.
 
 See the :doc:`/core/security-users` security documentation for more
 information.
@@ -100,8 +79,9 @@ information.
 Operating System
 ~~~~~~~~~~~~~~~~
 
-This tutorial primarily refers to the :program:`mongod` process.
-Windows users should use the :program:`mongod.exe` program instead.
+This tutorial uses the :program:`mongod` and :program:`mongos`
+programs. Windows users should use the :program:`mongod.exe` and
+:program:`mongos.exe` programs instead.
 
 .. _security-shard-deploy-sharded-cluster-with-access-control:
 
@@ -111,28 +91,15 @@ Deploy Sharded Cluster with Keyfile Access Control
 The following procedures involve creating a new sharded cluster that consists
 of a :program:`mongos`, the config servers, and two shards.
 
-The exact network layout, infrastructure, or machine hardware that
-may be necessary for any given deployment is out of scope of this tutorial.
-
 Create the Keyfile
 ~~~~~~~~~~~~~~~~~~
 
-The contents of the keyfile serves as the shared password for the members
-of the replica set. The content of the keyfile must be the same for all
-:program:`mongod` instances in the replica set.
-
-You can generate a keyfile using any method you choose. The contents of
-the keyfile must be between 6 and 1024 characters long. The keyfile must have
-read permission for the file owner, and no group or world permissions.
-
-The following operation uses ``openssl`` to generate a complex 
-pseudo-random 1024 character string to use for a keyfile. It then uses 
-``chmod`` to apply user read permissions for the file owner only:
+.. include:: /includes/extracts/keyfile-intro-sharded-cluster.rst
 
 .. code-block:: shell
 
     openssl rand -base64 755 > <path-to-keyfile>
-    chmod 400 mongodb-keyfile
+    chmod 400 <path-to-keyfile>
 
 See :ref:`internal-auth-keyfile` for additional details  and requirements
 for using keyfiles.
@@ -140,82 +107,59 @@ for using keyfiles.
 Distribute the Keyfile
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Copy the keyfile to each server hosting a replica set member. Use a
-consistent location for each server.
-
-.. important::
-   If a component of the sharded cluster cannot access the keyfile, the
-   cluster may fail. Do not use shared network locations or storage mediums
-   such as USB drives for storing the keyfile.
-
-Ensure the appropriate read/write permissions to the file so that the
-user running the :program:`mongod` or :program:`mongos` can access it.
+.. include:: /includes/extracts/keyfile-distribution-sharded-cluster.rst
 
 .. _deploy-auth-cluster-create-config-server-replica-set:
 
 Create the Config Server Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first step to deploying a sharded cluster enforcing access control is
-creating the config server replica set. For testing purposes, you can
-create a single-member replica set. The recommended minimum number
-of replica set members for a production deployment is three_.
+THe following steps deploys a config server replica set. To use the
+deprecated mirrored config server deployment topology, see
+:ref:`deploy-mirrored-config-servers` instead.
+
+For a production deployment, deploys a config server replica set with at
+least three members. For testing purposes, you can create a
+single-member replica set.
 
 .. include:: /includes/steps/deploy-sharded-cluster-config-server.rst
 
-Once the Config Server Replica Set is online, you can proceed to creating
-the shard replica sets.
-
-Create Mirrored Config Servers (Deprecated)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 3.2
-
-   Starting in MongoDB 3.2, config servers for sharded clusters can be
-   deployed as a :term:`replica set`. MongoDB 3.2 deprecates the use of
-   mirrored :program:`mongod` instances for config servers.
-
-In production deployments, if using mirrored config servers, you must deploy
-exactly *three* config server instances, each running on different servers to
-assure good uptime and data safety. In test environments, you can run all three
-instances on a single server.
-
-.. note::
-
-   If using MongoDB 3.2, consider using Replica Set Config Server deployments
-   over mirrored config servers.
-
-.. include:: /includes/steps/deploy-sharded-cluster-mirrored-config.rst
+Once the config server replica set (CSRS) is initiated and up, proceed
+to creating the shard replica sets.
 
 Create the Shard Replica Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For testing purposes, you can create a single-member replica set. However,
-the recommended minimum number of replica set members for a production
-deployment is three_.
+For a production deployment, use a replica set with at least three
+members. For testing purposes, you can create a single-member replica
+set.
 
 These steps include optional procedures for adding shard-local users.
-Executing them now ensures that there are users
-available for each shard for performing shard-level maintenance.
+Executing them now ensures that there are users available for each
+shard to perform shard-level maintenance.
 
 .. include:: /includes/steps/deploy-sharded-cluster-shard-replica.rst
 
-
-Connect a <mongos> to the Sharded Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connect a ``mongos`` to the Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/steps/deploy-sharded-cluster-connect.rst
 
 Add Shards to the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must be authenticated as the cluster administrator in order to
-proceed.
+To proceed, you must be connected to the :program:`mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
 
-Add each shard to the cluster using the :method:`sh.addShard()` method.
-Use :method:`sh.addShard()` seperately for each shard. If the shard is a
-replica set, specify the name of the replica set and specify a member of the
-set. In production deployments, *all* shards should be replica sets.
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
+
+To add each shard to the cluster, use the :method:`sh.addShard()`
+method. If the shard is a replica set, specify the name of the replica
+set and specify a member of the set. In production deployments, *all*
+shards should be replica sets.
 
 The following operation adds a single shard replica set to the cluster:
 
@@ -230,34 +174,40 @@ shard to the cluster:
 
    sh.addShard( "s1-mongo1.example.net:27017")
 
-Repeat these steps until the cluster includes all shards. At this point the
-cluster is online and is enforcing access controls for accessing the cluster
-as well as for internal communications between each cluster component.
+Repeat these steps until the cluster includes all shards. At this
+point, the sharded cluster enforces access control for the cluster as
+well as for internal communications between each sharded cluster
+component.
 
 Enable Sharding for a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must be authenticated as the cluster administrator in order to
-proceed.
+To proceed, you must be connected to the :program:`mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
+
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
 
 Enabling sharding on a database makes it possible to shard collections
-within the database. It does not distribute data across the shards -
-only sharding at the collection level results in data distribution.
-
-Sharding is disabled per database by default.
-
-Use the :method:`sh.enableSharding()` method to enable sharding on
-the target database.
+within the database. Use the :method:`sh.enableSharding()` method to
+enable sharding on the target database.
 
 .. code-block:: javascript
 
    sh.enableSharding("<database>")
 
-Enable Sharding for a Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Shard a Collection
+~~~~~~~~~~~~~~~~~~
 
-You must be authenticated as the cluster administrator in order to
-proceed.
+To proceed, you must be connected to the :program:`mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
+
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
 
 To shard a collection, use the :method:`sh.shardCollection()` method.
 You must specify the full namespace of the collection and a document containing
@@ -306,4 +256,25 @@ authentication, see
 
    :doc:`/core/sharded-cluster-requirements`
 
-.. _three: https://en.wikipedia.org/wiki/Rabbit_of_Caerbannog#Holy_Hand_Grenade_of_Antioch
+.. _deploy-mirrored-config-servers:
+
+Create Mirrored Config Servers (Deprecated)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, config servers for sharded clusters can be
+   deployed as a :term:`replica set`. MongoDB 3.2 deprecates the use of
+   mirrored :program:`mongod` instances for config servers.
+
+In production deployments, if using mirrored config servers, you must deploy
+exactly *three* config server instances, each running on different servers to
+assure good uptime and data safety. In test environments, you can run all three
+instances on a single server.
+
+.. note::
+
+   If using MongoDB 3.2, consider using Replica Set Config Server deployments
+   over mirrored config servers.
+
+.. include:: /includes/steps/deploy-sharded-cluster-mirrored-config.rst

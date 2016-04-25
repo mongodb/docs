@@ -39,9 +39,10 @@ action:
       
       .. versionchanged:: 3.2 MongoDB deprecates mirrored config server configurations
          
-      If using a mirrored configuration, pass all of the config 
-      servers in ``<host>:<port>`` format to the ``configDB`` option. 
-      
+      If using a :ref:`mirrored configuration for config servers
+      <deploy-mirrored-config-servers>`, pass all of the config servers
+      in ``<host>:<port>`` format to the ``configDB`` option.
+
       If using a configuration file:
     language: yaml
     code: |
@@ -59,16 +60,11 @@ stepnum: 2
 title: Connect to a :program:`mongos` over the localhost interface.
 level: 4
 ref: deploy-cluster-connect-mongo
-pre: |
-  The :ref:`localhost-exception` allows clients connected over the 
-  localhost interface to create users on a :program:`mongod` 
-  enforcing access control. After creating the first user, 
-  the :ref:`localhost-exception` closes. 
-
-  Connect to one of the replica set members over the 
-  :ref:`localhost interface<localhost-exception>`. You must run the
-  :program:`mongo` shell on the same physical machine as the target
-  :program:`mongos`.
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-connect-to-member
+replacement:
+  program: :program:`mongos`
 ---
 title: Create the user administrator.
 stepnum: 3
@@ -85,32 +81,29 @@ pre: |
      closes. 
      
      If at least one user does *not* have privileges to create users, 
-     once the localhost exception closes you may be unable to create
-     or modify users with new privileges, and therefore unable to 
-     access necessary operations.
-  
+     once the localhost exception closes you cannot create
+     or modify users, and therefore may be unable to 
+     perform necessary operations.
+
   Add a user using the :method:`db.createUser()` method. The user should
   have at minimum the :authrole:`userAdminAnyDatabase` role on the 
   ``admin`` database. 
-  
-  The following example creates the user ``userAdmin`` on the
-  ``admin`` database. Change the ``pwd`` field to be a password of your
-  own choosing:
-
+ 
   .. important::
      Passwords should be random, long, and complex to ensure system security
      and to prevent or delay malicious access. 
 
 action:
   pre: |
-  
+     The following example creates the user ``fred`` on the
+     ``admin`` database:
   language: javascript
   code: |
     admin = db.getSiblingDB("admin")
     admin.createUser(
       {
-        user: "userAdmin",
-        pwd: "<password>",
+        user: "fred",
+        pwd: "changeme1",
         roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
       }
     )
@@ -124,11 +117,11 @@ level: 4
 ref: auth-as-admin
 action:
   - pre: |
-      Use :method:`db.auth()` to authenticate as the user administrator:
+      Use :method:`db.auth()` to authenticate as the user administrator
+      to create additional users:
     language: javascript
     code: |
-      admin = db.getSiblingDB("admin")
-      admin.auth("userAdmin", "<password>" )
+      db.getSiblingDB("admin").auth("fred", "changeme1" )
   - pre: |
       Alternatively, connect a new :program:`mongo` shell to the target 
       replica set member using the ``-u <username>``, ``-p <password>``, and
@@ -136,7 +129,7 @@ action:
       the :ref:`localhost-exception` to connect to the :program:`mongos`.
     language: sh
     code: |
-      mongo -u "userAdmin" -p "<password>" --authenticationDatabase "admin"
+      mongo -u "fred" -p "changeme1" --authenticationDatabase "admin"
 ---
 title: Create Administrative User for Cluster Management
 stepnum: 5
@@ -145,24 +138,23 @@ ref: add-user-cluster
 pre: |
   The cluster administrator user has the :authrole:`clusterAdmin` role, 
   which grants access to replication and sharding operations.
-  
-  The following example creates the user ``myUserAdmin`` on the
-  ``admin`` database. Change the ``pwd`` field to be a password of your
-  own choosing:
-
-  .. important::
-     Passwords should be random, long, and complex to ensure system security
-     and to prevent or delay malicious access.
+ 
+  Create a :authrole:`clusterAdmin` user in the ``admin`` database.
 action:
   - pre: |
-      Create a :authrole:`clusterAdmin` user in the ``admin`` database:
+      The following example creates the user ``ravi`` on the ``admin``
+      database.
+
+      .. important::
+         Passwords should be random, long, and complex to ensure system
+         security and to prevent or delay malicious access.
+
     language: sh
     code: |
-      admin = db.getSiblingDB("admin")
-      admin.createUser(
+      db.getSiblingDB("admin").createUser(
         {
-          "user" : "clusterAdmin",
-          "pwd" : "<password>",
+          "user" : "ravi",
+          "pwd" : "changeme2",
           roles: [ { "role" : "clusterAdmin", "db" : "admin" } ] 
         }
       )
@@ -170,31 +162,17 @@ post: |
   See :ref:`cluster-admin-roles` for a full list of built-in roles related to 
   replica set and sharded cluster operations.
 ---
-stepnum: 6
-title: Authenticate as cluster admin.
-ref: auth-user-cluster
-level: 4
-pre: |
-  You cannot perform sharding operations using the ``userAdmin`` user.
-  The underlying :authrole:`userAdminAnyDatabase`
-  role does not have the required privileges.
-  
-  Authenticate as the ``clusterAdmin`` using either the 
-  :method:`db.auth()` method or a new :program:`mongo` shell with the 
-  ``username``, ``password``, and ``authenticationDatabase`` parameters.
----
 stepnum: 7
 title: Create additional users (Optional).
 ref: deploy-cluster-create-users
 level: 4
 pre: |
-  Create users to allow clients to connect and interact with the replica set. 
-  See :ref:`database-user-roles` for basic built-in roles to use in creating 
-  read-only and read-write users. 
-  
-  You must authenticate as the ``userAdmin`` user, or as a user with
-  user creation privileges, in order to add additional users.
-  
+  Create users to allow clients to connect and access the
+  sharded cluster. See :ref:`database-user-roles` for available built-in
+  roles, such as :authrole:`read` and :authrole:`readWrite`.
   You may also want additional administrative users.
-  See :doc:`/core/security-users`.
+  For more information on users, see :doc:`/core/security-users`.
+  
+  To create additional users, you must authenticate as a user with
+  :authrole:`userAdminAnyDatabase` or :authrole:`userAdmin` roles.
 ...

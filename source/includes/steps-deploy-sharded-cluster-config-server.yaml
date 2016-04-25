@@ -2,12 +2,14 @@ stepnum: 1
 level: 4
 ref: sharded-cluster-deploy-config-server
 pre: |
-  Running a :program:`mongod` with the ``keyFile`` parameter enforces both 
-  :doc:`/core/security-internal-authentication` and 
-  :doc:`/core/authorization`.
+   Start *each* :program:`mongod` in the config server replica set.
+   Include the ``keyFile`` setting. The ``keyFile`` setting
+   enforces both :doc:`/core/security-internal-authentication` and
+   :doc:`/core/authorization`.
 
-  Start *each* :program:`mongod` in the replica set using either 
-  a configuration file or the command line.
+   You can specify the :program:`mongod` settings either via a
+   configuration file or the command line.
+
 action:
   - pre: |
       **Configuration File**
@@ -24,70 +26,62 @@ action:
         clusterRole: configsvr
       replication:
         replSetName: <setname>
+    post: |
+       Include additional settings as appropriate to your deployment.
+       For more information on the configuration file, see
+       :doc:`configuration options</reference/configuration-options>`.
+
   - pre: |
       Start the :program:`mongod` specifying the ``--config`` option and the 
       path to the configuration file.
     language: shell
     code: |
       mongod --config <path-to-config-file>
-    post: |
-      For more information on the configuration file, see 
-      :doc:`configuration options</reference/configuration-options>`.
+     
   - pre: |
       **Command Line**
       
       If using the command line parameters, start the :program:`mongod` with 
-      the ``-keyFile``, ``--configsvr``, and ``--replSetName`` parameters.
+      the ``--keyFile``, ``--configsvr``, and ``--replSetName`` parameters.
     language: sh
     code: |
        mongod --keyFile <path-to-keyfile> --configsvr --replSetName <setname> --dbPath <path>
     post: |
-       For more information on startup parameters, 
-       see the :program:`mongod` reference page.
-post: |
-  Include additional settings as appropriate to your deployment.
+       Include additional settings as appropriate to your deployment.
+       For more information on startup parameters, see the
+       :program:`mongod` reference page.
 ---
 stepnum: 2
 level: 4
 source:
   file: steps-deploy-replica-set-with-auth.yaml
   ref: deploy-repset-connect-to-member
-pre: |
-  The :ref:`localhost-exception` allows clients connected over the 
-  localhost interface to create users on a :program:`mongod` 
-  enforcing access control. After creating the first user, 
-  the :ref:`localhost-exception` closes.
-
-  Connect a :program:`mongo` shell to one of the config server 
-  :program:`mongod` instances over the 
-  :ref:`localhost interface<localhost-exception>`. You must run 
-  the :program:`mongo` shell on the same physical machine as the 
-  target :program:`mongod`.
 ---
 stepnum: 3
 level: 4
-source:
-  file: steps-deploy-replica-set-with-auth.yaml
-  ref: deploy-repset-initiate
+ref: csrs-initiate
 pre: |
-  The :method:`rs.initiate()` method initiates the replica set, and 
-  can take an optional configuration document that describes 
-  each member of the replica set.
-  
-  The configuration document requires at minimum the 
-  :rsconf:`_id` and :rsconf:`members` fields. The :rsconf:`members` 
-  field is an array, and requires a document per member of the replica 
-  set containing the :rsconf:`members[n]._id` and 
-  :rsconf:`members[n].host` fields. 
-  
-  The :rsconf:`_id` *must* match the ``--replSet`` parameter 
-  passed to the :program:`mongod`.
-  
+
+  The :method:`rs.initiate()` method initiates the replica set and can
+  take an optional :doc:`replica set configuration document
+  </reference/replica-configuration>`. In the :doc:`replica set
+  configuration document </reference/replica-configuration>`, include:
+
+  - The :rsconf:`_id`. The :rsconf:`_id` *must* match the ``--replSet``
+    parameter passed to the :program:`mongod`.
+    
+  - The :rsconf:`members` field. The :rsconf:`members` field is an
+    array and requires a document per each member of the replica set.
+    
+  - The :rsconf:`configsvr` field. The :rsconf:`configsvr` field must
+    be set to ``true`` for the config server replica set.
+
   See :doc:`/reference/replica-configuration` for more information on 
   replica set configuration documents.
 action:
   - pre: |
-      Pass a configuration document to the :method:`rs.initiate()` method:
+      Initiate the replica set using the :method:`rs.initiate()` method
+      and a configuration document:
     language: javascript
     code: |
       rs.initiate(
@@ -101,9 +95,4 @@ action:
           ]
         }
       )
-post: |
-  .. important::
-
-     You must include the ``configsvr : true`` option for the config server 
-     replica set to start correctly.
 ...

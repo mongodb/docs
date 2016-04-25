@@ -17,8 +17,7 @@ action:
       If using a configuration file, set the :setting:`security.keyFile` option
       to the keyfile's path, the :setting:`replication.replSetName` to the 
       desired name of the replica set, and the :setting:`sharding.clusterRole` 
-      option to ``shardsvr``. Start the component, as in the following
-      example:
+      option to ``shardsvr``.
     language: yaml
     code: |
       security:
@@ -27,9 +26,17 @@ action:
         clusterRole: shardsvr
       replication:
         replSetName: <replSetName>
+      storage:
+         dbpath: <path>
     post: |
-       See :doc:`/reference/configuration-options` for information on 
-       using a configuration file.
+      Include any other options as appropriate for your deployment. See
+      :doc:`/reference/configuration-options` for settings available.
+  - pre: |
+       Start the :program:`mongod` specifying the ``--config`` option
+       and the path to the configuration file.
+    language: sh
+    code: |
+       mongod --config <path-to-config-file>
   - pre: |
       **Command Line**
       
@@ -38,7 +45,7 @@ action:
       following example:
     language: sh
     code: |
-       mongod --keyFile <path-to-keyfile> --shardsvr --replSet <replSetname>
+       mongod --keyFile <path-to-keyfile> --shardsvr --replSet <replSetname>  --dbPath <path>
     post: |
        Include any other options as appropriate for your deployment.
 ---
@@ -47,46 +54,18 @@ level: 4
 source:
   file: steps-deploy-replica-set-with-auth.yaml
   ref: deploy-repset-connect-to-member
-pre: |
-  The :ref:`localhost-exception` allows clients connected over the 
-  localhost interface to create users on a :program:`mongod` 
-  enforcing access control. After creating the first user, 
-  the :ref:`localhost-exception` closes.
-
-  Connect a :program:`mongo` shell to one of the replica set member 
-  :program:`mongod` instances over the 
-  :ref:`localhost interface<localhost-exception>`. You 
-  must run the :program:`mongo` shell on the same physical machine as the 
-  target :program:`mongod`.
 ---
 stepnum: 3
 level: 4
 source:
   file: steps-deploy-replica-set-with-auth.yaml
   ref: deploy-repset-initiate
-pre: |
-  The :method:`rs.initiate()` method initiates the replica set, and 
-  can take an optional configuration document that describes 
-  each member of the replica set.
-  
-  The configuration document requires at minimum the 
-  :rsconf:`_id` and :rsconf:`members` fields. The :rsconf:`members` 
-  field is an array, and requires a document per member of the replica 
-  set containing the :rsconf:`members[n]._id` and 
-  :rsconf:`members[n].host` fields. 
-  
-  The :rsconf:`_id` *must* match the ``--replSet`` parameter 
-  passed to the :program:`mongod`.
-  
-  See :doc:`/reference/replica-configuration` for more information on 
-  replica set configuration documents.
 action:
   - pre: |
-      The following example initates a three member replica set. 
-  - pre: |
+      The following example initates a three member replica set.
     language: javascript
     code: |
-      rs.initiate( 
+      rs.initiate(
         {
           _id : <replicaSetName>,
           members: [
@@ -118,10 +97,10 @@ source:
   file: steps-deploy-replica-set-with-auth.yaml
   ref: deploy-repset-add-user-cluster
 pre: |
-  The cluster administrator user has priviledges that allow access to 
-  replication operations.
-  
-  This step uses the :authrole:`clusterAdmin` role. For a full list of 
-  roles related to replica set operations see 
+  The shard-local cluster administrator user has the
+  :authrole:`clusterAdmin` role, which provides privileges that allow
+  access to replication operations.
+
+  For a full list of roles related to replica set operations see
   :ref:`cluster-admin-roles`.
 ...
