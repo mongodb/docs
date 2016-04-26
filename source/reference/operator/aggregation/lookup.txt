@@ -83,8 +83,17 @@ Definition
           already exists in the input document, the existing field is
           *overwritten*.
 
-Example
--------
+.. note::
+
+   If your ``localField`` is an array, you'll need to add an
+   :pipeline:`$unwind` stage to your pipeline. See the
+   :ref:`example <unwind-example>` on this page.
+
+Examples
+--------
+
+Perform a Join with ``$lookup``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A collection ``orders`` contains the following documents:
 
@@ -153,4 +162,79 @@ The operation returns the following documents:
        { "_id" : 5, "sku" : null, "description" : "Incomplete" },
        { "_id" : 6 }
      ]
+   }
+
+.. _unwind-example:
+
+Use ``$lookup`` with an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your ``localField`` is an array and you'd like to match the elements
+inside it against a ``foreignField`` which is a single element, you'll
+need to :pipeline:`$unwind` the array as one stage of the aggregation
+pipline.
+
+Consider a collection ``orders`` with the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "MON1003", "price" : 350, "quantity" : 2, "specs" :
+   [ "27 inch", "Retina display", "1920x1080" ], "type" : "Monitor" }
+
+Another collection ``inventory`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "sku" : "MON1003", "type" : "Monitor", "instock" : 120,
+   "size" : "27 inch", "resolution" : "1920x1080" }
+   { "_id" : 2, "sku" : "MON1012", "type" : "Monitor", "instock" : 85,
+   "size" : "23 inch", "resolution" : "1280x800" }
+   { "_id" : 3, "sku" : "MON1031", "type" : "Monitor", "instock" : 60,
+   "size" : "23 inch", "display_type" : "LED" }
+
+The following aggregation operation performs a join on documents in the
+``orders`` collection which match a particular element of the ``specs``
+array to the ``size`` field in the ``inventory`` collection.
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      {
+         $unwind: "$specs"
+      },
+      {
+         $lookup:
+            {
+               from: "inventory",
+               localField: "specs",
+               foreignField: "size",
+               as: "inventory_docs"
+           }
+      },
+      {
+         $match: { "inventory_docs": { $ne: [] } }
+      }
+   ])
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "item" : "MON1003",
+      "price" : 350,
+      "quantity" : 2,
+      "specs" : "27 inch",
+      "type" : "Monitor",
+      "inventory_docs" : [
+         {
+            "_id" : 1,
+            "sku" : "MON1003",
+            "type" : "Monitor",
+            "instock" : 120,
+            "size" : "27 inch",
+            "resolution" : "1920x1080"
+         }
+      ]
    }
