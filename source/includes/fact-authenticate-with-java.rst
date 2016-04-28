@@ -20,4 +20,4 @@ or in the connection string:
 
 MongoDB supports various different authentication mechanisms. See the `access control tutorials`_ for more information.
 
-.. _`access control tutorials`: http://docs.mongodb.org/manual/administration/security-access-control
+.. _`access control tutorials`: http://docs.mongodb.com/manual/administration/security-access-control
