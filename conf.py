@@ -52,25 +52,16 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: http://docs.mongodb.org/bi-connector/',
+    '.. |hardlink| replace:: http://docs.mongodb.com/bi-connector/',
     '.. |compass| replace:: MongoDB Compass',
     '.. |checkmark| unicode:: U+2713'
 ])
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
     'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
-    'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'about': ('http://www.mongodb.org/about%s', ''),
-    'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
-    'mms-home': ('https://cloud.mongodb.com%s', ''),
 }
 
 intersphinx_mapping = {}
@@ -160,7 +151,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/bi-connector/'
+epub_identifier = 'http://docs.mongodb.com/bi-connector/'
 epub_exclude_files = []
 epub_pre_files = []
 epub_post_files = []
