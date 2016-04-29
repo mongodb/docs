@@ -50,18 +50,9 @@ pygments_style = 'sphinx'
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
-    'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'v2.2': ('http://docs.mongodb.org/v2.2%s', ''),
-    'v2.4': ('http://docs.mongodb.org/v2.4%s', ''),
-    'v2.6': {'http://docs.mongodb.org/v2.6%s', ''},
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'about': ('http://www.mongodb.org/about%s', '')
+    'manual': ('http://docs.mongodb.com/manual%s', ''),
+    'v2.2': ('http://docs.mongodb.com/v2.2%s', ''),
+    'v2.4': ('http://docs.mongodb.com/v2.4%s', ''),
 }
 
 languages = [
