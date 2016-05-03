@@ -67,18 +67,15 @@ rst_epilog = '\n'.join([
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('https://api.mongodb.org/%s', ''),
+    'api': ('https://api.mongodb.com/%s', ''),
+    'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
     'manual': ('https://docs.mongodb.org/manual%s', ''),
-    'gettingstarted': ('https://docs.mongodb.org/getting-started%s', ''),
-    'ecosystem': ('https://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
-    'about': ('https://www.mongodb.org/about%s', ''),
     'products': ('https://www.mongodb.com/products%s', '')
 }
 
