@@ -12,7 +12,12 @@
 
    * - :guilabel:`Region`
 
-     - The physical location of your MongoDB cluster.
+     - The physical location of your MongoDB cluster. The region you choose
+       can affect network latency for clients accessing your databases.
+
+       Pricing for cluster configuration settings vary by region. You can make
+       configuration choices and then try different region selections to
+       compare costs before creating the cluster.
 
    * - :guilabel:`Instance Size`
 
@@ -26,20 +31,22 @@
        - :guilabel:`Custom Storage Speed`: The input/output operations per
          second (IOPS) the system can perform.
 
-       - :guilabel:`Use encrypted storage volumes`: Use simple encryption on
-         your root volume for for data at rest and disk I/O.
+       - :guilabel:`Use encrypted storage volumes`: Uses simple encryption on
+         your root volume for data at rest and disk I/O.
 
    * - :guilabel:`Replication Factor`
 
      - The number of :term:`replica set` members. Each member keeps a copy of
-       your database. For more information, see
-       :manual:`Replication </replication>` in the MongoDB manual.
+       your database, providing high availability and data redundancy. For
+       more information, see :manual:`Replication </replication>` in the
+       MongoDB manual.
 
    * - :guilabel:`Do you want a sharded cluster?`
 
-     - If the cluster will handle high throughput or contain large data sets,
-       you can shard the cluster, which partitions the databases over multiple
-       replica sets. Each replica set comprises the number of servers
+     - Sharded clusters support horizontal scaling, allowing expansion of
+       throughput and storage size as operational requirements increase.
+       Sharded clusters consist of multiple shards, each a replica set. Each
+       replica set consists of the number of servers
        specified by the replication factor. For more information on sharded
        clusters, see :manual:`Sharding </sharding>` in the MongoDB manual.
 
@@ -51,10 +58,15 @@
 
    * - :guilabel:`Admin Username & Password`
 
-     - Creates a MongoDB admin user for the cluster. The admin user has read
-       and write access to any database in the cluster. Be sure to keep a copy
-       of your password.
+     - Creates a MongoDB admin user. This field appears only if you are
+       creating the first cluster in a |service| group.
 
-       You can click :guilabel:`Generate Secure Password` to have |service| can
-       generate the password for you. If you do, **copy** the password now.
-       |service| displays it only once.
+       The admin user has read and write access on any MongoDB database
+       created in any cluster in your |service| group. The admin user can also
+       enable sharding on any database.
+
+       **When creating a new admin user, be sure to save the credentials.**
+
+       To optionally have |service| generate the password, click
+       :guilabel:`Generate Secure Password` . If you do, *copy the
+       password*. |service| displays it only once.
