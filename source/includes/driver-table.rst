@@ -12,35 +12,35 @@
    * - :doc:`C </drivers/c>`
      - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-c-driver>`_
-     - `API <http://api.mongodb.org/c/current/>`_
+     - `API <http://api.mongodb.com/c/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`_
      -
 
    * - `C++11 <https://github.com/mongodb/mongo-cxx-driver>`_
      - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `API <http://api.mongodb.org/cxx11/current/>`_
+     - `API <http://api.mongodb.com/cxx11/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CXX>`_
      -
 
    * - `C++ (legacy) <https://github.com/mongodb/mongo-cxx-driver/tree/legacy>`_
      - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-cxx-driver/tree/legacy>`_
-     - `API <http://api.mongodb.org/cxx/current/>`_
+     - `API <http://api.mongodb.com/cxx/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CXX>`_
      -
 
    * - :doc:`C# </drivers/csharp>`
      - `Releases <https://github.com/mongodb/mongo-csharp-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-csharp-driver>`_
-     - `API <http://api.mongodb.org/csharp/current/>`_
+     - `API <http://api.mongodb.com/csharp/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/CSHARP>`_
      - `Course <https://university.mongodb.com/courses/M101N/about>`_
 
    * - :doc:`Java </drivers/java>`
      - `Releases <https://github.com/mongodb/mongo-java-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-java-driver>`_
-     - `API <http://api.mongodb.org/java/current>`_
+     - `API <http://api.mongodb.com/java/current>`_
      - `JIRA <https://jira.mongodb.org/browse/JAVA>`_
      - `Course <https://university.mongodb.com/courses/M101J/about>`_
 
@@ -68,7 +68,7 @@
    * - :doc:`Python </drivers/python>`
      - `Releases <https://pypi.python.org/pypi/pymongo/>`_
      - `Source <https://github.com/mongodb/mongo-python-driver>`_
-     - `API <http://api.mongodb.org/python/current>`_
+     - `API <http://api.mongodb.com/python/current>`_
      - `JIRA <https://jira.mongodb.org/browse/PYTHON>`_
      - `Course <https://university.mongodb.com/courses/M101P/about>`_
 
@@ -82,7 +82,7 @@
    * - :doc:`Ruby </drivers/ruby>`
      - `Releases <https://rubygems.org/gems/mongo>`_
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`_
-     - `API <http://api.mongodb.org/ruby/current/>`_
+     - `API <http://api.mongodb.com/ruby/current/>`_
      - `JIRA <https://jira.mongodb.org/browse/RUBY>`_
      -
 
@@ -96,5 +96,5 @@
 ..
    * - :doc:`Haskell </drivers/haskell>`
      - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`_
-     - `API <http://api.mongodb.org/haskell/>`_
+     - `API <http://api.mongodb.com/haskell/>`_
      - `JIRA <https://jira.mongodb.org/browse/HASKELL>`_
