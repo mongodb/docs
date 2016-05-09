@@ -2,7 +2,9 @@ GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
 STAGING_URL="https://mmsdocs-staging.corp.mongodb.com"
 STAGING_BUCKET=mms-docs-staging
-PREFIX=fullymanaged
+PRODUCTION_URL="https://mmsdocs.corp.mongodb.com"
+PRODUCTION_BUCKET=mmsdocs
+PREFIX=atlas
 
 .PHONY: help stage fake-deploy deploy
 
@@ -24,3 +26,12 @@ fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
 
+deploy: build/public
+	@echo "Doing a dry-run"
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
+
+	@echo ''
+	read -p "Press any key to perform the previous"
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
+
+	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
