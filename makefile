@@ -3,7 +3,7 @@ USER=`whoami`
 STAGING_URL="https://mmsdocs-staging.corp.mongodb.com"
 STAGING_BUCKET=mms-docs-staging
 PRODUCTION_URL="https://mmsdocs.corp.mongodb.com"
-PRODUCTION_BUCKET=mmsdocs
+PRODUCTION_BUCKET=mms-docs-prod
 PREFIX=atlas
 
 .PHONY: help stage fake-deploy deploy
