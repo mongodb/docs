@@ -58,15 +58,18 @@
 
    * - :guilabel:`Admin Username & Password`
 
-     - Creates a MongoDB admin user. This field appears only if you are
-       creating the first cluster in a |service| group.
+     - Creates a MongoDB admin user with the specified username and
+       password. These fields appears only if you are creating the
+       first cluster in a |service| group.
+       
+       **When creating a new admin user, be sure to save the
+       credentials.**
 
-       The admin user has read and write access on any MongoDB database
-       created in any cluster in your |service| group. The admin user can also
-       enable sharding on any database.
+       The admin user has read and write access to any MongoDB database
+       in any cluster in your |service| group. The admin user can also
+       enable sharding.
 
-       **When creating a new admin user, be sure to save the credentials.**
-
-       To optionally have |service| generate the password, click
-       :guilabel:`Generate Secure Password` . If you do, *copy the
-       password*. |service| displays it only once.
+       To have |service| generate the password for the admin user,
+       click :guilabel:`Generate Secure Password`. If you choose to
+       have |service| generate the password, |service| displays it only
+       once.
