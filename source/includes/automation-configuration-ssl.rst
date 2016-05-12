@@ -1,6 +1,3 @@
-SSL is available only in `MongoDB Enterprise
-<http://www.mongodb.com/products/mongodb-enterprise>`_ or a build of MongoDB
-:about:`compiled with SSL support </contributors/tutorial/build-mongodb-from-source>`.
 The ``ssl`` object is optional and enables SSL for encrypting connections.
 
 .. code-block:: cfg
@@ -19,11 +16,15 @@ The ``ssl`` object is optional and enables SSL for encrypting connections.
 
    * - ``ssl``
      - object
-     - *Optional*. Enables SSL for encrypting connections. SSL is
-       available only in `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise>`_ or a build
-       of MongoDB :about:`compiled with SSL support
-       </contributors/tutorial/build-mongodb-from-source>`.
+     - *Optional*. Enables SSL for encrypting connections. To use SSL,
+       be sure to choose a package that supports SSL.
+
+       Starting in MongoDB 3.0, most MongoDB distributions now include
+       support for SSL. 
+
+       All `MongoDB Enterprise
+       <http://www.mongodb.com/products/mongodb-enterprise>`_ supported
+       platforms include SSL support.
 
    * - ``ssl.CAFilePath``
      - string
