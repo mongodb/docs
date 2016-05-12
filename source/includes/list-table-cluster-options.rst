@@ -21,10 +21,10 @@
 
    * - :guilabel:`Instance Size`
 
-     - The combination of memory, storage, and IOPS of the servers that run
-       your MongoDB cluster. Each instance size comes with a default set of
-       resources, but you can customize the servers to meet your use case. You
-       can modify the following, which changes the cost:
+     - The memory, storage, and IOPS specification for each server for
+       your MongoDB cluster. Each instance size comes with a default
+       set of resources, but you can customize the servers to meet your
+       use case. You can modify the following, which changes the cost:
 
        - :guilabel:`Custom Storage Capacity`: The size of the server root volume.
 
@@ -43,12 +43,13 @@
 
    * - :guilabel:`Do you want a sharded cluster?`
 
-     - Sharded clusters support horizontal scaling, allowing expansion of
-       throughput and storage size as operational requirements increase.
-       Sharded clusters consist of multiple shards, each a replica set. Each
-       replica set consists of the number of servers
-       specified by the replication factor. For more information on sharded
-       clusters, see :manual:`Sharding </sharding>` in the MongoDB manual.
+     - :term:`Sharded clusters <sharded cluster>` support horizontal
+       scaling.
+
+       Each shard in the sharded cluster is a replica set, consisting
+       of the number of members specified by the replication factor.
+       For more information on sharded clusters, see :manual:`Sharding
+       </sharding>` in the MongoDB manual.
 
    * - :guilabel:`Do you want to enable backup?`
 
