@@ -13,8 +13,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        "usersDeleted" : [
            {
                "user" : <string>,
-               "dbs" : [ <string>, ... ],
-               "allDbs" : <Boolean>
+               "dbs" : [ <string>, ... ]
            }
        ],
        "usersWanted" : [
@@ -88,8 +87,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
      - *Optional*. Objects that define the authenticated users to be
        deleted from specified databases or from all databases. This array
        must contain two fields: the ``auth.usersDeleted.user`` field
-       and then either the ``auth.usersDeleted.dbs`` or the
-       ``auth.usersDeleted.allDbs`` field.
+       and the ``auth.usersDeleted.dbs`` field.
 
    * - ``auth.usersDeleted.user``
      - string
@@ -98,14 +96,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
    * - ``auth.usersDeleted.dbs``
      - array
      - String values that list the names of the databases from which the
-       authenticated user is to be deleted. If you use this field, **do
-       not** use the ``auth.usersDeleted.allDbs`` field.
-
-   * - ``auth.usersDeleted.allDbs``
-     - Boolean
-     - If set to ``true``, the authenticated user is deleted from all
-       databases. If you use this field, **do not** use the
-       ``auth.usersDeleted.dbs`` field.
+       authenticated user is to be deleted.
 
    * - ``auth.usersWanted``
      - array of objects
