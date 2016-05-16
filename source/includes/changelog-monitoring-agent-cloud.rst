@@ -1,3 +1,11 @@
+Monitoring Agent ``4.3.0.265``
+------------------------------
+
+*Released 2016-05-16*
+
+- Retrieve information on mongos in a cluster by querying the config
+  servers.
+
 Monitoring Agnet ``4.2.0.263``
 ------------------------------
 
