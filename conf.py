@@ -52,7 +52,7 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: http://docs.mongodb.com/bi-connector/',
+    '.. |hardlink| replace:: http://docs.mongodb.com/compass/',
     '.. |compass| replace:: MongoDB Compass',
     '.. |checkmark| unicode:: U+2713'
 ])
@@ -125,14 +125,11 @@ html_theme_options = {
     'branch': conf.git.branches.current,
     'translations': languages,
     'language': language,
-    'manual_path': "bi-connector",
-    'repo_name': 'docs-bi-connector',
+    'manual_path': "compass",
+    'repo_name': 'docs-compass',
     'jira_project': 'DOCS',
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.project,
-    'epubpath': manual_edition_path.format(conf.project.url,
-                                           conf.project.basepath,
-                                           'mongodb-bi-connector', 'epub'),
     'nav_excluded': sconf.theme.nav_excluded,
 }
 
@@ -151,7 +148,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.com/bi-connector/'
+epub_identifier = 'http://docs.mongodb.com/compass/'
 epub_exclude_files = []
 epub_pre_files = []
 epub_post_files = []
