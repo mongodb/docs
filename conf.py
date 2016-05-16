@@ -18,6 +18,9 @@ logging.basicConfig(level=logging.INFO)
 conf = fetch_config(RuntimeStateConfig())
 sconf = conf.system.files.data.sphinx_local
 
+project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(project_root)
+
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration ----------------------------------------------------
