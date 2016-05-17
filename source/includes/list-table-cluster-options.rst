@@ -48,6 +48,10 @@
 
        Each shard in the sharded cluster is a replica set, consisting
        of the number of members specified by the replication factor.
+
+       |service| runs the :ref:`config servers
+       <sharding-config-server>` as a three-member replica set.
+       
        For more information on sharded clusters, see :manual:`Sharding
        </sharding>` in the MongoDB manual.
 
