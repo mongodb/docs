@@ -6,4 +6,4 @@
 
 - :ref:`SUSE <install-suse-from-tarball>`
 
-- :ref:`Amazon AMI <amazon-tarball-prerequisites>`
+- :ref:`Amazon AMI <install-amazon-from-tarball>`
