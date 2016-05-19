@@ -1,3 +1,13 @@
+.. _backup-3.9.1.382:
+
+Backup Agent ``3.9.0.336``
+--------------------------
+
+*Released with Ops Manager 2.0.4 on 2016-05-20*
+
+- Fixed crash that could occur if a collection was deleted during an
+  initial sync.
+
 .. _backup-3.9.0.336:
 
 Backup Agent ``3.9.0.336``
