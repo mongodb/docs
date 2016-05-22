@@ -17,7 +17,6 @@ from giza.config.helper import fetch_config, get_versions, get_manual_path
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
-pdfs = conf.system.files.data.pdfs
 sconf = conf.system.files.data.sphinx_local
 
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
@@ -52,21 +51,14 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: http://docs.mongodb.org/ecosystem/'
+    '.. |hardlink| replace:: http://docs.mongodb.com/ecosystem/'
 ])
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
+    'api': ('http://api.mongodb.com/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'about': ('http://www.mongodb.org/about%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
 }
@@ -137,58 +129,7 @@ html_theme_options = {
     'jira_project': 'DOCS',
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.project,
-    'epubpath': manual_edition_path.format(conf.project.url,
-                                           conf.project.basepath,
-                                           'mongodb-ecosystem', 'epub'),
-    'pdfpath': manual_edition_path.format(conf.project.url,
-                                          conf.project.basepath,
-                                          'MongoDB-Ecosystem-guide', 'pdf'),
     'nav_excluded': sconf.theme.nav_excluded,
 }
 
 html_sidebars = sconf.sidebars
-
-
-# -- Options for LaTeX output --------------------------------------------------
-
-latex_documents = []
-
-try:
-    for pdf in pdfs:
-        _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
-        latex_documents.append( _latex_document )
-except:
-    for pdf in pdfs:
-        _latex_document = (pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class)
-        latex_documents.append( _latex_document )
-
-latex_elements = {
-    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
-    'pointsize': '10pt',
-    'papersize': 'letterpaper'
-}
-
-latex_paper_size = 'letter'
-latex_use_parts = True
-latex_show_pagerefs = True
-latex_show_urls = False
-latex_domain_indices = True
-latex_logo = None
-latex_appendices = []
-
-# -- Options for Epub output ---------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = conf.project.title
-epub_author = u'MongoDB Documentation Project'
-epub_publisher = u'MongoDB, Inc.'
-epub_copyright = copyright
-epub_theme = 'epub_mongodb'
-epub_tocdup = True
-epub_tocdepth = 3
-epub_language = 'en'
-epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/ecosystem/'
-epub_exclude_files = []
-epub_pre_files = []
-epub_post_files = []
