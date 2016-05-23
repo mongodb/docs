@@ -20,9 +20,7 @@ defines the various MongoDB clusters, replica
 sets and standalones in the deployment and defines how each process runs. The
 Automation Agents build the deployment according to the goals specified. Each
 Automation Agent is responsible for the MongoDB processes that run on its
-host. The configuration also defines the deployment's Monitoring and Backup
-Agents and can optionally specify which version of the Automation Agent to
-run.
+host. The configuration also specifies settings for the deployment's agents.
 
 When a running MongoDB process matches its defined configuration, the process is in "goal
 state." When all processes on all hosts are in goal state, the deployment
@@ -43,16 +41,22 @@ Retrieve the current automation configuration for a group.
    
    GET /api/public/v1.0/groups/GROUP-ID/automationConfig
 
+.. _update-automation-configuration-via-api:
+
 Update the Automation Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use ``PUT`` to update a group's automation configuration.
-**Do not** ``PATCH``. For steps for updating an
-automation configuration, see :doc:`/tutorial/update-automation-configuration`.
 
 .. code-block:: none
 
    PUT /api/public/v1.0/groups/GROUP-ID/automationConfig
+
+Use ``PUT`` to update a group's automation configuration. **Do not** use
+``PATCH``. For steps for updating an automation configuration, see
+:doc:`/tutorial/update-automation-configuration`.
+
+If you will make updates to the Monitoring Agent or Backup Agent *other than*
+``hostname``, you must do so through a different endpoint. See
+:ref:`update-monitoring-or-backup-agent-via-api`.
 
 When you submit updates, |mms| makes internal modifications to the data
 and then saves your new configuration version. For example, |mms| might
@@ -71,6 +75,55 @@ then adjust the states of their live processes to match.
    configuration based on the current version, make their own
    modifications, and then submit their modifications, the later
    modification wins.
+
+.. _update-monitoring-or-backup-agent-via-api:
+
+Update the Monitoring Agent or Backup Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some attributes of the `monitoringVersions` and `backupVersions` objects
+cannot be updated through the ``automationConfig`` endpoint.
+|mms| provides the following endpoints to update these fields.
+
+.. important::
+
+   Do **not** use these endpoints to update the agent's host. To update
+   ``monitoringVersions.hostname`` or ``backupVersions.hostname``, use the
+   endpoint to :ref:`update the entire configuration
+   <update-automation-configuration-via-api>`.
+
+Update Monitoring Agent attributes:
+
+.. code-block:: none
+
+   PUT /api/public/v1.0/groups/GROUP-ID/automationConfig/monitoringAgentConfig
+
+Update Backup Agent attributes:
+
+.. code-block:: none
+
+   PUT /api/public/v1.0/groups/GROUP-ID/automationConfig/backupAgentConfig
+
+The endpoints update the following agent attributes. Pass an object with all
+the attributes *that you use*, whether or not the value is changing. If you do
+not use a field, do not include it:
+
+- ``logPath`` (required for non-Windows operating systems)
+- ``logPathWindows`` (required for Windows operating systems)
+- ``logRotate``
+
+  - ``logRotate.sizeThresholdMB``
+  - ``logRotate.timeThresholdHrs``
+  - ``logRotate.numUncompressed``
+  - ``logRotate.percentOfDiskspace``
+
+- ``username``
+- ``password``
+- ``kerberosPrincipal``
+- ``kerberosKeytab``
+- ``sslPEMKeyFile``
+- ``sslPEMKeyFileWindows`` (only required if deployment contains Windows processes)
+- ``sslPEMKeyPwd``
 
 .. _other-representations-automation-configuration:
 
@@ -218,7 +271,7 @@ updated configuration document, see :ref:`example-updated-configuration`.
 
 .. code-block:: none
 
-   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" -X PUT --data @/Users/admin/updated-conf.json
+   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PUT "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig" --data @/Users/admin/updated-conf.json
 
 
 
@@ -394,3 +447,55 @@ of some field values. For detailed information on a field, see the
        },
        "indexConfigs" : [ ]
    }
+
+Update the Monitoring Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PUT https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/monitoringAgentConfig --data '
+   {
+     "logPath": "/var/log/mongodb-mms-automation/monitoring-agent.log",
+     "logRotate": {
+       "sizeThresholdMB": 1000,
+       "timeThresholdHrs": 12
+     }
+   }'
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {}
+
+Update the Backup Agent
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PUT https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/automationConfig/backupAgentConfig --data '
+   {
+     "logPath": "/var/log/mongodb-mms-automation/backup-agent.log",
+     "logRotate": {
+       "sizeThresholdMB": 1000,
+       "timeThresholdHrs": 36
+     }
+   }'
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {}

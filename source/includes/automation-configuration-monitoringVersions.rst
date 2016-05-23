@@ -73,21 +73,27 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
    * - ``monitoringVersions.logPath``
      - string
      - *Optional*. The directory where the agent stores its logs. The
-       default is to store logs in ``/dev/null``.
+       default is to store logs in ``/dev/null``. To update, see the
+       :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``monitoringVersions.logRotate``
      - object
      - *Optional*. Enables log rotation for the MongoDB logs for a
-       process.
+       process. To update, see the :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``monitoringVersions.logRotate.sizeThresholdMB``
      - number
      - The maximum size in MB for an individual log file before rotation.
+       To update, see the :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``monitoringVersions.logRotate.timeThresholdHrs``
      - integer
      - The maximum time in hours for an individual log file before
-       rotation.
+       rotation. To update, see the :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``monitoringVersions.logRotate.numUncompressed``
      - integer
@@ -95,9 +101,13 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
        uncompressed, including the current log file. The default is ``5``.
        In earlier versions of |mms|, this field was named
        ``maxUncompressed``. The earlier name is still recognized, though
-       the new version is preferred.
+       the new version is preferred. To update, see the
+       :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``monitoringVersions.logRotate.percentOfDiskspace``
      - number
      - *Optional*. The maximum percentage of total disk space all log
        files should take up before deletion. The default is ``.02``.
+       To update, see the :ref:`monitoringAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.

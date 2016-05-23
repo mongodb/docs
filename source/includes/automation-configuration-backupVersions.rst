@@ -74,28 +74,38 @@ The ``backupVersions`` array is optional and specifies the version of the Backup
    * - ``backupVersions.logPath``
      - string
      - *Optional*. The directory where the agent stores its logs. The
-       default is to store logs in ``/dev/null``.
+       default is to store logs in ``/dev/null``. To update, see the
+       :ref:`backupAgentConfig <update-monitoring-or-backup-agent-via-api>`
+       endpoint.
 
    * - ``backupVersions.logRotate``
      - object
      - *Optional*. Enables log rotation for the MongoDB logs for a
-       process.
+       process. To update, see the :ref:`backupAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``backupVersions.logRotate.sizeThresholdMB``
      - number
      - The maximum size in MB for an individual log file before rotation.
+       To update, see the :ref:`backupAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``backupVersions.logRotate.timeThresholdHrs``
      - integer
      - The maximum time in hours for an individual log file before
-       rotation.
+       rotation. To update, see the :ref:`backupAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``backupVersions.logRotate.numUncompressed``
      - integer
      - *Optional*. The maximum number of total log files to leave
        uncompressed, including the current log file. The default is ``5``.
+       To update, see the :ref:`backupAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
 
    * - ``backupVersions.logRotate.percentOfDiskspace``
      - number
      - *Optional*. The maximum percentage of total disk space all log
        files should take up before deletion. The default is ``.02``.
+       To update, see the :ref:`backupAgentConfig
+       <update-monitoring-or-backup-agent-via-api>` endpoint.
