@@ -44,14 +44,19 @@
    * - :guilabel:`Do you want a sharded cluster?`
 
      - :term:`Sharded clusters <sharded cluster>` support horizontal
-       scaling.
+       scaling and consists of shards, :ref:`config servers
+       <sharding-config-server>` and router programs.
 
-       Each shard in the sharded cluster is a replica set, consisting
-       of the number of members specified by the replication factor.
+       - |service| deploys each shard as a replica set, consisting of
+         the number of members specified by the replication factor.
 
-       |service| runs the :ref:`config servers
-       <sharding-config-server>` as a three-member replica set.
-       
+       - |service| deploys the :ref:`config servers
+         <sharding-config-server>` as a three-member replica set.
+
+       - |service| deploys six routers (:program:`mongos` programs) for
+         a sharded cluster. |service| runs the routers on the shard
+         servers.
+
        For more information on sharded clusters, see :manual:`Sharding
        </sharding>` in the MongoDB manual.
 
