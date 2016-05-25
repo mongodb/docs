@@ -1,5 +1,7 @@
+.. _write-op-delete:
+
 ================
-Remove Documents
+Delete Documents
 ================
 
 .. default-domain:: mongodb
@@ -10,63 +12,304 @@ Remove Documents
    :depth: 1
    :class: singlecol
 
-In MongoDB, the :method:`db.collection.remove()` method removes
-documents from a collection. You can remove all documents from a
-collection, remove all documents that match a condition, or limit the
-operation to remove just a single document.
+Delete Methods
+--------------
 
-This tutorial provides examples of remove operations using the
-:method:`db.collection.remove()` method in the :program:`mongo` shell.
-
-Remove All Documents
---------------------
-
-To remove all documents from a collection, pass an empty query document
-``{}`` to the :method:`~db.collection.remove()` method. The
-:method:`~db.collection.remove()` method does not remove the indexes.
-
-The following example removes all documents from the ``inventory``
+MongoDB provides the following methods to delete documents of a
 collection:
+
+.. list-table::
+   :widths: 35 65
+
+   * - :method:`db.collection.remove()`
+     - Delete a single document or all documents that match a specified filter.
+
+   * - :method:`db.collection.deleteOne()`
+
+     - Delete at most a single document that match a specified filter
+       even though multiple documents may match the specified filter.
+
+       .. versionadded:: 3.2
+
+   * - :method:`db.collection.deleteMany()`
+
+     - Delete all documents that match a specified fileter.
+
+       .. versionadded:: 3.2
+
+You can specify criteria, or filters, that identify the documents to
+update. These :ref:`filters <document-query-filter>` use the same
+syntax as read operations:
+
+- .. include:: /includes/extracts/filter-equality.rst
+
+- .. include:: /includes/extracts/filter-query-operators.rst
+
+.. _write-op-delete-behavior:
+.. _write-op-remove-behavior:
+
+Delete Behavior
+---------------
+
+Indexes
+~~~~~~~
+
+Delete operations do not drop indexes, even if deleting all documents
+from a collection.
+
+Atomicity
+~~~~~~~~~
+
+All write operations in MongoDB are atomic on the level of a single
+document. For more information on MongoDB and atomicity, see
+:doc:`/core/write-operations-atomicity`
+
+Example Collection
+------------------
+
+This page provides examples of remove operations in the
+:program:`mongo` shell. To populate the ``users`` collection referenced
+in the examples, run the following in :program:`mongo` shell:
+
+.. note:: 
+
+   If the ``users`` collection already contains documents with the same
+   ``_id`` values, you need to :method:`drop <db.collection.drop()>`
+   the collection (``db.users.drop()``) before inserting the example
+   documents.
 
 .. code-block:: javascript
 
-   db.inventory.remove({})
+   db.users.insertMany(
+     [
+        {
+          _id: 1,
+          name: "sue",
+          age: 19, 
+          type: 1,
+          status: "P",
+          favorites: { artist: "Picasso", food: "pizza" },
+          finished: [ 17, 3 ],
+          badges: [ "blue", "black" ],
+          points: [
+             { points: 85, bonus: 20 },
+             { points: 85, bonus: 10 } 
+          ]
+        },
+        {
+          _id: 2,
+          name: "bob",
+          age: 42,
+          type: 1,
+          status: "A",
+          favorites: { artist: "Miro", food: "meringue" },
+          finished: [ 11, 25 ],
+          badges: [ "green" ],
+          points: [
+             { points: 85, bonus: 20 },
+             { points: 64, bonus: 12 } 
+          ]
+        },
+        {
+          _id: 3,
+          name: "ahn",
+          age: 22,
+          type: 2,
+          status: "A",
+          favorites: { artist: "Cassatt", food: "cake" },
+          finished: [ 6 ],
+          badges: [ "blue", "red" ],
+          points: [
+             { points: 81, bonus: 8 },
+             { points: 55, bonus: 20 } 
+          ]
+        },
+        {
+          _id: 4,
+          name: "xi",
+          age: 34,
+          type: 2,
+          status: "D",
+          favorites: { artist: "Chagall", food: "chocolate" },
+          finished: [ 5, 11 ],
+          badges: [ "red", "black" ],
+          points: [
+             { points: 53, bonus: 15 },
+             { points: 51, bonus: 15 } 
+          ]
+        },
+        {
+          _id: 5,
+          name: "xyz",
+          age: 23,
+          type: 2,
+          status: "D",
+          favorites: { artist: "Noguchi", food: "nougat" },
+          finished: [ 14, 6 ],
+          badges: [ "orange" ],
+          points: [
+             { points: 71, bonus: 20 }
+          ]
+        },
+        {
+          _id: 6,
+          name: "abc",
+          age: 43,
+          type: 1,
+          status: "A",
+          favorites: { food: "pizza", artist: "Picasso" },
+          finished: [ 18, 12 ],
+          badges: [ "black", "blue" ],
+          points: [
+             { points: 78, bonus: 8 },
+             { points: 57, bonus: 7 } 
+          ]
+        }
+     ]
+   )
 
-To remove all documents from a collection, it may be more efficient to
-use the :method:`~db.collection.drop()` method to drop the entire
+.. _write-op-deleteMany:
+
+Delete All Documents
+--------------------
+
+To remove all documents from a collection, pass an empty :ref:`filter
+<document-query-filter>` document ``{}`` to either the
+:method:`db.collection.deleteMany()` or the
+:method:`db.collection.remove()` method.
+
+``db.collection.deleteMany()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the :method:`db.collection.deleteMany()`
+method to delete *all* documents from the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.users.deleteMany({})
+
+The method returns a document with the status of the operation:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 7 }
+
+For more information and examples, see :method:`db.collection.deleteMany()`.
+
+``db.collection.remove()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, the following example uses the
+:method:`db.collection.remove()` method to delete *all* documents from
+the ``users`` collection:
+
+.. code-block:: javascript
+
+   db.users.remove({})
+
+To delete all documents from a collection, it may be more efficient to
+use the :method:`db.collection.drop()` method to drop the entire
 collection, including the indexes, and then recreate the collection and
 rebuild the indexes.
 
-Remove Documents that Match a Condition
----------------------------------------
+Delete All Documents that Match a Condition
+-------------------------------------------
 
-To remove the documents that match a deletion criteria, call the
-:method:`~db.collection.remove()` method with the ``<query>``
-parameter.
+To delete all documents that match a deletion criteria, pass a
+:ref:`filter <document-query-filter>` parameter to either
+:method:`db.collection.deleteMany()` method or the
+:method:`db.collection.remove()` method.
 
-The following example removes all documents from the ``inventory``
-collection where the ``type`` field equals ``food``:
+``db.collection.deleteMany()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses :method:`db.collection.deleteMany()` to
+remove all documents from the ``users`` collection where the ``status``
+field equals ``"A"``:
 
 .. code-block:: javascript
 
-   db.inventory.remove( { type : "food" } )
+   db.users.deleteMany({ status : "A" })
+
+The method returns a document with the status of the operation:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 3 }
+
+``db.collection.remove()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, the following example uses
+:method:`db.collection.remove()` to remove all documents from the
+``users`` collection where the ``status`` field equals ``"P"``:
+
+.. code-block:: javascript
+
+   db.users.remove( { status : "P" } )
 
 For large deletion operations, it may be more efficient to copy the
 documents that you want to keep to a new collection and then use
-:method:`~db.collection.drop()` on the original collection.
+:method:`db.collection.drop()` on the original collection.
 
-Remove a Single Document that Matches a Condition
+
+Remove Only One Document that Matches a Condition
 -------------------------------------------------
 
-To remove a single document, call the :method:`~db.collection.remove()`
-method with the ``justOne`` parameter set to ``true`` or ``1``.
+To delete at most a single document that match a specified filter,even
+though multiple documents may match the specified filter, use either
+the :method:`db.collection.deleteOne()` method or the
+:method:`db.collection.remove()` method with the ``<justOne>``
+parameter set to ``true`` or ``1``.
 
-The following example removes one document from the ``inventory``
-collection where the ``type`` field equals ``food``:
+``db.collection.deleteOne()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses :method:`db.collection.deleteOne()` to
+delete the *first* document where ``status`` is ``"D"``.
 
 .. code-block:: javascript
 
-   db.inventory.remove( { type : "food" }, 1 )
+   db.users.deleteOne( { status: "D" } )
 
-To delete a single document sorted by some specified order, use the
-:ref:`findAndModify() <findAndModify-wrapper-sorted-remove>` method.
+``db.collection.remove()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, the following example uses the
+:method:`db.collection.remove()` with the ``<justOne>`` parameter set
+to ``1`` to delete the *first* document where ``status`` is
+``"D"``:
+
+.. code-block:: javascript
+
+   db.users.remove( { status: "D" }, 1)
+
+.. seealso:: :ref:`delete-additional-methods`
+
+.. _delete-additional-methods:
+
+Additional Methods
+------------------
+
+The following methods can also delete documents from a collection:
+
+- :method:`db.collection.findOneAndDelete()`.
+
+  :ref:`findOneAndDelete() <findAndModify-wrapper-sorted-remove>`
+  provides a sort option. The option allows for the deletion of the
+  first document sorted by the specified order.
+
+- :method:`db.collection.findOneAndModify()`.
+
+  :method:`db.collection.findOneAndModify()` provides a sort option.
+  The option allows for the deletion of the first document sorted by
+  the specified order.
+
+- :method:`db.collection.bulkWrite()`.
+
+Write Acknowledgement
+---------------------
+
+With write concerns, you can specify the level of acknowledgement
+requested from MongoDB for write operations. For details, see
+:doc:`/reference/write-concern`.

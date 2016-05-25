@@ -1,3 +1,5 @@
+.. _write-op-insert:
+
 ================
 Insert Documents
 ================
@@ -10,41 +12,255 @@ Insert Documents
    :depth: 1
    :class: singlecol
 
-In MongoDB, the :method:`db.collection.insert()` method adds new
-documents into a collection.
+Insert Methods
+--------------
 
-Insert a Document
------------------
+MongoDB provides the following methods for inserting :ref:`documents
+<bson-document-format>` into a collection:
 
-.. include:: /includes/steps/getting-started-insert.rst
+- :ref:`write-op-insertOne`
 
-Insert an Array of Documents
-----------------------------
+- :ref:`write-op-insertMany`
 
-You can pass an array of documents to the
-:method:`db.collection.insert()` method to insert multiple documents.
+- :ref:`write-op-insert-method`
 
-.. include:: /includes/steps/getting-started-insert-an-array.rst
+This page provides examples of insert operations in the
+:program:`mongo` shell.
 
-Insert Multiple Documents with ``Bulk``
----------------------------------------
+.. _write-op-insert-behavior:
 
-.. versionadded:: 2.6
+Insert Behavior
+---------------
 
-MongoDB provides a :method:`Bulk()` API that you can use to perform
-multiple write operations in bulk. The following sequence of operations
-describes how you would use the :method:`Bulk()` API to insert a group
-of documents into a MongoDB collection.
+Collection Creation
+~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/steps/getting-started-insert-bulk.rst
+If the collection does not currently exist, insert operations will
+create the collection.
 
-Additional Examples and Methods
--------------------------------
+``_id`` Field
+~~~~~~~~~~~~~
 
-For more examples, see :method:`db.collection.insert()`.
+.. include:: /includes/fact-id-field.rst
 
-The :method:`db.collection.update()` method, the
-:method:`db.collection.findAndModify()`, and the
-:method:`db.collection.save()` method can also add new documents. See
-the individual reference pages for the methods for more information and
-examples.
+Atomicity
+~~~~~~~~~
+
+All write operations in MongoDB are atomic on the level of a single
+document. For more information on MongoDB and atomicity, see
+:doc:`/core/write-operations-atomicity`
+
+.. _write-op-insertOne:
+
+``db.collection.insertOne()``
+-----------------------------
+
+.. versionadded:: 3.2
+
+:method:`db.collection.insertOne()` inserts a *single* :ref:`document
+<bson-document-format>` into a collection.
+
+The following example inserts a new document into the ``users``
+collection. The new document has three fields ``name``, ``age``, and
+``status``. Since the document does not specify an ``_id`` field,
+MongoDB adds the ``_id`` field with an ObjectId value to the new
+document. See :ref:`write-op-insert-behavior`.
+
+.. code-block:: javascript
+
+   db.users.insertOne(
+      {
+         name: "sue",
+         age: 19, 
+         status: "P"
+      }
+   )
+
+The method returns a document with the status of the operation:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "insertedId" : ObjectId("5742045ecacf0ba0c3fa82b0")
+   }
+
+To verify the inserted document, :ref:`query the collection
+<document-query-filter>` by specifying a query filter on the
+``_id`` field:
+
+.. code-block:: javascript
+
+   db.users.find( { _id: ObjectId("5742045ecacf0ba0c3fa82b0") } )
+
+For more information and examples, see
+:method:`db.collection.insertOne()`.
+
+.. _write-op-insertMany:
+
+``db.collection.insertMany()``
+------------------------------
+
+.. versionadded:: 3.2
+
+:method:`db.collection.insertMany()` inserts *multiple* :ref:`documents
+<bson-document-format>` into a collection.
+
+The following example inserts three new documents into the ``users``
+collection. Each document has three fields ``name``, ``age``, and
+``status``. Since the documents do not specify an ``_id`` field,
+MongoDB adds the ``_id`` field with an ObjectId value to each document.
+See :ref:`write-op-insert-behavior`.
+
+.. code-block:: javascript
+
+   db.users.insertMany( 
+      [
+        { name: "bob", age: 42, status: "A", },
+        { name: "ahn", age: 22, status: "A", },
+        { name: "xi", age: 34, status: "D", }
+      ]
+   )
+
+The method returns a document with the status of the operation:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "insertedIds" : [
+         ObjectId("57420d48cacf0ba0c3fa82b1"),
+         ObjectId("57420d48cacf0ba0c3fa82b2"),
+         ObjectId("57420d48cacf0ba0c3fa82b3")
+      ]
+   }
+
+To verify the inserted document, :ref:`query the collection
+<read-operations-query-document>` by specifying a query filter on the
+``_id`` field:
+
+.. code-block:: javascript
+
+   db.users.find( 
+      { _id: 
+         { $in:
+            [
+               ObjectId("57420d48cacf0ba0c3fa82b1"),
+               ObjectId("57420d48cacf0ba0c3fa82b2"),
+               ObjectId("57420d48cacf0ba0c3fa82b3")
+            ]
+         }
+      }
+   )
+
+For more information and examples, see
+:method:`db.collection.insertMany()`.
+
+.. _write-op-insert-method:
+
+``db.collection.insert()``
+--------------------------
+
+:method:`db.collection.insert()` inserts a single document or multiple
+documents into a collection. To insert a single document, pass a
+document to the method; to insert multiple documents, pass an array of
+documents to the method.
+
+The following example inserts a new document into the ``users``
+collection. The new document has three fields ``name``, ``age``, and
+``status``. Since the document does not specify an ``_id`` field,
+MongoDB adds the ``_id`` field with an ObjectId value to the document.
+See :ref:`write-op-insert-behavior`.
+
+.. code-block:: javascript
+
+   db.users.insert(
+      {
+         name: "sue",
+         age: 19, 
+         status: "P"
+      }
+   )
+
+The operation returns a :method:`WriteResult` object with the status of
+the operation. A successful insert of the document returns the
+following :method:`WriteResult` object:
+
+.. code-block:: javascript 
+
+   WriteResult({ "nInserted" : 1 })
+
+The :data:`~WriteResult.nInserted` field specifies the number of
+documents inserted. If the operation encounters an error, the
+:method:`WriteResult` object will contain the error information.
+
+The following example inserts multiple documents into the ``users``
+collection. Since the documents do not specify an ``_id`` field,
+MongoDB adds the ``_id`` field with an ObjectId value to each document.
+See :ref:`write-op-insert-behavior`.
+
+.. code-block:: javascript
+
+   db.users.insert(
+      [
+        { name: "bob", age: 42, status: "A", },
+        { name: "ahn", age: 22, status: "A", },
+        { name: "xi", age: 34, status: "D", }
+      ]
+   )
+
+The method returns a :method:`BulkWriteResult` object with the status
+of the operation. A successful insert of the documents returns the
+following :method:`BulkWriteResult` object:
+
+.. code-block:: javascript
+
+   BulkWriteResult({
+      "writeErrors" : [ ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 3,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+For more information and examples, see :method:`db.collection.insert()`.
+
+Additional Methods
+------------------
+
+The following methods can also add new documents to a collection:
+
+- :method:`db.collection.update()` when used with the ``upsert: true``
+  option.
+
+- :method:`db.collection.updateOne()` when used with the ``upsert:
+  true`` option.
+
+- :method:`db.collection.updateMany()` when used with the ``upsert:
+  true`` option.
+
+- :method:`db.collection.findAndModify()` when used with the ``upsert:
+  true`` option.
+
+- :method:`db.collection.findOneAndUpdate()` when used with the
+  ``upsert: true`` option.
+
+- :method:`db.collection.findOneAndReplace()` when used with the
+  ``upsert: true`` option.
+
+- :method:`db.collection.save()`.
+
+- :method:`db.collection.bulkWrite()`.
+
+See the individual reference pages for the methods for more information
+and examples.
+
+Write Acknowledgement
+---------------------
+
+With write concerns, you can specify the level of acknowledgement
+requested from MongoDB for write operations. For details, see
+:doc:`/reference/write-concern`.

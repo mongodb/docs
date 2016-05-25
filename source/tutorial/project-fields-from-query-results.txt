@@ -1,8 +1,9 @@
 .. _read-operations-projection:
 .. _projection:
+.. _projections:
 
 ===================================
-Limit Fields to Return from a Query
+Project Fields to Return from Query
 ===================================
 
 .. default-domain:: mongodb
@@ -13,67 +14,222 @@ Limit Fields to Return from a Query
    :depth: 1
    :class: singlecol
 
-The :term:`projection` document limits the fields to return for all
+By default, queries in MongoDB return all fields in matching documents.
+To limit the amount of data that MongoDB sends to applications, you can
+include a :term:`projection` document in the query operation.
+
+Projection Document
+-------------------
+
+The projection document limits the fields to return for all
 matching documents. The projection document can specify the inclusion
-of fields or the exclusion of fields.
+of fields or the exclusion of field and has the following form:
 
-The specifications have the following forms:
+.. code-block:: javascript
 
-.. list-table::
-   :header-rows: 1
+   { field1: <value>, field2: <value> ... }
 
-   * - Syntax
-     - Description
+The ``<value>`` can be any of the following:
 
-   * - ``<field>: <1 or true>``
+- ``1`` or ``true`` to include the field in the return documents.
 
-     - Specify the inclusion of a field.
+- ``0`` or ``false`` to exclude the field.
 
-   * - ``<field>: <0 or false>``
-     - Specify the suppression of the field.
+- Expression using a :doc:`/reference/operator/projection`.
 
-.. important:: The ``_id`` field is, by default, included in the result
-   set. To suppress the ``_id`` field from the result set, specify
-   ``_id: 0`` in the projection document.
+.. note::
 
-You cannot combine inclusion and exclusion semantics in a single
-projection with the *exception* of the ``_id`` field.
+   For the ``_id`` field, you do not have to explicitly specify ``_id:
+   1`` to return the ``_id`` field. The :method:`db.collection.find()`
+   method always returns the :term:`_id` field unless you specify
+   ``_id: 0`` to suppress the field.
 
-This tutorial offers various query examples that limit the fields to
-return for all matching documents. The examples in this tutorial use a
-collection ``inventory`` and use the :method:`db.collection.find()`
-method in the :program:`mongo` shell. The
-:method:`db.collection.find()` method returns a :doc:`cursor
-</core/cursors>` to the retrieved documents. For examples on query
-selection criteria, see :doc:`/tutorial/query-documents`.
+A ``projection`` *cannot* contain *both* include and exclude
+specifications, except for the exclusion of the ``_id`` field. In
+projections that *explicitly include* fields, the ``_id`` field is the
+only field that you can *explicitly exclude*.
+
+Example Collection
+------------------
+
+The examples on this page use the :method:`db.collection.find()` method
+in the :program:`mongo` shell. In the :program:`mongo`
+shell, if the returned cursor is not assigned to a variable using the
+``var`` keyword, then the cursor is automatically iterated up to 20
+times [#set-shell-batch-size]_ to print up to the first 20 documents in
+the results.
+
+To populate the ``users`` collection referenced in the examples,
+run the following in :program:`mongo` shell:
+
+.. note:: 
+
+   If the ``users`` collection already contains documents with the same
+   ``_id`` values, you need to :method:`drop <db.collection.drop()>`
+   the collection (``db.users.drop()``) before inserting the example
+   documents.
+
+.. code-block:: javascript
+
+   db.users.insertMany(
+     [
+        {
+          _id: 1,
+          name: "sue",
+          age: 19, 
+          type: 1,
+          status: "P",
+          favorites: { artist: "Picasso", food: "pizza" },
+          finished: [ 17, 3 ],
+          badges: [ "blue", "black" ],
+          points: [
+             { points: 85, bonus: 20 },
+             { points: 85, bonus: 10 } 
+          ]
+        },
+        {
+          _id: 2,
+          name: "bob",
+          age: 42,
+          type: 1,
+          status: "A",
+          favorites: { artist: "Miro", food: "meringue" },
+          finished: [ 11, 25 ],
+          badges: [ "green" ],
+          points: [
+             { points: 85, bonus: 20 },
+             { points: 64, bonus: 12 } 
+          ]
+        },
+        {
+          _id: 3,
+          name: "ahn",
+          age: 22,
+          type: 2,
+          status: "A",
+          favorites: { artist: "Cassatt", food: "cake" },
+          finished: [ 6 ],
+          badges: [ "blue", "red" ],
+          points: [
+             { points: 81, bonus: 8 },
+             { points: 55, bonus: 20 } 
+          ]
+        },
+        {
+          _id: 4,
+          name: "xi",
+          age: 34,
+          type: 2,
+          status: "D",
+          favorites: { artist: "Chagall", food: "chocolate" },
+          finished: [ 5, 11 ],
+          badges: [ "red", "black" ],
+          points: [
+             { points: 53, bonus: 15 },
+             { points: 51, bonus: 15 } 
+          ]
+        },
+        {
+          _id: 5,
+          name: "xyz",
+          age: 23,
+          type: 2,
+          status: "D",
+          favorites: { artist: "Noguchi", food: "nougat" },
+          finished: [ 14, 6 ],
+          badges: [ "orange" ],
+          points: [
+             { points: 71, bonus: 20 }
+          ]
+        },
+        {
+          _id: 6,
+          name: "abc",
+          age: 43,
+          type: 1,
+          status: "A",
+          favorites: { food: "pizza", artist: "Picasso" },
+          finished: [ 18, 12 ],
+          badges: [ "black", "blue" ],
+          points: [
+             { points: 78, bonus: 8 },
+             { points: 57, bonus: 7 } 
+          ]
+        }
+     ]
+   )
 
 Return All Fields in Matching Documents
 ---------------------------------------
 
-If you specify no projection, the :method:`find()
-<db.collection.find()>` method returns all fields of all documents that
-match the query.
+If you specify no projection, the :method:`db.collection.find()` method
+returns all fields of all documents that match the query.
+
+The following example retrieves from the ``users`` collection all
+documents where the ``status`` equals ``"A"``:
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food' } )
+   db.users.find( { status: "A" } )
 
-This operation will return all documents in the ``inventory``
-collection where the value of the ``type`` field is ``'food'``.
-The returned documents contain all fields.
+The matching documents includes all their fields:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 2,
+      "name" : "bob",
+      "age" : 42,
+      "type" : 1,
+      "status" : "A",
+      "favorites" : { "artist" : "Miro", "food" : "meringue" },
+      "finished" : [ 11, 25 ],
+      "badges" : [ "green" ],
+      "points" : [ { "points" : 85, "bonus" : 20 }, { "points" : 64, "bonus" : 12 } ]
+   }
+   {
+      "_id" : 3,
+      "name" : "ahn",
+      "age" : 22,
+      "type" : 2,
+      "status" : "A",
+      "favorites" : { "artist" : "Cassatt", "food" : "cake" },
+      "finished" : [ 6 ],
+      "badges" : [ "blue", "red" ],
+      "points" : [ { "points" : 81, "bonus" : 8 }, { "points" : 55, "bonus" : 20 } ]
+   }
+   {
+      "_id" : 6,
+      "name" : "abc",
+      "age" : 43,
+      "type" : 1,
+      "status" : "A",
+      "favorites" : { "food" : "pizza", "artist" : "Picasso" },
+      "finished" : [ 18, 12 ],
+      "badges" : [ "black", "blue" ],
+      "points" : [ { "points" : 78, "bonus" : 8 }, { "points" : 57, "bonus" : 7 } ]
+   }
 
 Return the Specified Fields and the ``_id`` Field Only
 ------------------------------------------------------
 
 A projection can explicitly include several fields. In the following
-operation, the :method:`find() <db.collection.find()>` method returns all
-documents that match the query. In the result set, only the ``item``
-and ``qty`` fields and, by default, the ``_id`` field return in the
+operation, the :method:`db.collection.find()` method returns all
+documents that match the query. In the result set, only the ``name``,
+``status`` and, by default, the ``_id`` fields return in the
 matching documents.
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food' }, { item: 1, qty: 1 } )
+   db.users.find( { status: "A" }, { name: 1, status: 1 } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "name" : "bob", "status" : "A" }
+   { "_id" : 3, "name" : "ahn", "status" : "A" }
+   { "_id" : 6, "name" : "abc", "status" : "A" }
 
 Return Specified Fields Only
 ----------------------------
@@ -83,26 +239,61 @@ exclusion in the projection, as in the following example:
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food' }, { item: 1, qty: 1, _id:0 } )
+   db.users.find( { status: "A" }, { name: 1, status: 1, _id: 0 } )
 
-This operation returns all documents that match the query. In the
-result set, *only* the ``item`` and ``qty`` fields return in the
-matching documents.
+In the result set, *only* the ``name`` and ``status`` fields return in
+the matching documents:
+
+.. code-block:: javascript
+
+   { "name" : "bob", "status" : "A" }
+   { "name" : "ahn", "status" : "A" }
+   { "name" : "abc", "status" : "A" }
 
 Return All But the Excluded Field
 ---------------------------------
 
-To exclude a single field or group of fields you can use a projection
-in the following form:
+To exclude a field or multiple fields, instead of listing the fields to
+include in the matching document, you can use a projection to exclude
+specific fields as in the following example:
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food' }, { type:0 } )
+   db.users.find( { status: "A" }, { favorites: 0, points: 0 } )
 
-This operation returns all documents where the value of the ``type``
-field is ``food``. In the result set, the ``type`` field does not
-return in the matching documents.
+In the result set, the ``favorites`` and the ``points`` fields do not
+return in the matching documents:
 
+.. code-block:: javascript
+
+   {
+      "_id" : 2,
+      "name" : "bob",
+      "age" : 42,
+      "type" : 1,
+      "status" : "A",
+      "finished" : [ 11, 25 ],
+      "badges" : [ "green" ]
+   }
+   {
+      "_id" : 3,
+      "name" : "ahn",
+      "age" : 22,
+      "type" : 2,
+      "status" : "A",
+      "finished" : [ 6 ],
+      "badges" : [ "blue", "red" ]
+   }
+   {
+      "_id" : 6,
+      "name" : "abc",
+      "age" : 43,
+      "type" : 1,
+      "status" : "A",
+      "finished" : [ 18, 12 ],
+      "badges" : [ "black", "blue" ]
+   }
+   
 With the exception of the ``_id`` field you cannot combine inclusion
 and exclusion statements in projection documents.
 
@@ -110,75 +301,43 @@ Return Specific Fields in Embedded Documents
 --------------------------------------------
 
 Use the :ref:`dot notation <document-dot-notation>` to return specific
-fields inside an embedded document. For example, the ``inventory``
-collection contains the following document:
+fields in an embedded document.
+
+The following example specifies a projection to return: the ``_id``
+field, ``name`` field, ``status`` field, and the ``food`` field inside
+the ``favorites`` document; the ``food`` field remains embedded in the
+``favorites`` document.
 
 .. code-block:: javascript
 
-   {
-     "_id" : 3,
-     "type" : "food",
-     "item" : "aaa", 
-     "classification": { dept: "grocery", category: "chocolate"  }
-   }
-
-The following operation returns all documents that match the query. The
-specified projection returns only the ``category`` field in the
-``classification`` document. The returned ``category`` field remains
-inside the ``classification`` document.
-
-.. code-block:: javascript
-
-   db.inventory.find(
-      { type: 'food', _id: 3 },
-      { "classification.category": 1, _id: 0 }
+   db.users.find(
+      { status: "A" },
+      { name: 1, status: 1, "favorites.food": 1 }
    )
 
-The operation returns the following document:
+The operation returns the following documents:
 
 .. code-block:: javascript
 
-   { "classification" : { "category" : "chocolate" } }
-   
+   { "_id" : 2, "name" : "bob", "status" : "A", "favorites" : { "food" : "meringue" } }
+   { "_id" : 3, "name" : "ahn", "status" : "A", "favorites" : { "food" : "cake" } }
+   { "_id" : 6, "name" : "abc", "status" : "A", "favorites" : { "food" : "pizza" } }
+
 Suppress Specific Fields in Embedded Documents
 ----------------------------------------------
 
 Use :ref:`dot notation <document-dot-notation>` to suppress specific
-fields inside an embedded document using a ``0`` instead of ``1``.
-For example, the ``inventory`` collection contains the following document:
+fields of an embedded document using a ``0`` instead of ``1``.
+
+The following example specifies a projection to exclude the ``food``
+field inside the ``favorites`` document. All other fields are returned in
+the matching documents:
 
 .. code-block:: javascript
 
-   {
-      "_id" : 3,
-      "type" : "food",
-      "item" : "Super Dark Chocolate", 
-      "classification" : { "dept" : "grocery", "category" : "chocolate"},
-      "vendor" : {
-         "primary" : {
-            "name" : "Marsupial Vending Co",
-            "address" : "Wallaby Rd",
-            "delivery" : ["M","W","F"]
-         },
-         "secondary":{
-            "name" : "Intl. Chocolatiers",
-            "address" : "Cocoa Plaza",
-            "delivery" : ["Sa"]
-         }
-      } 
-   }
-
-The following operation returns all documents where the value of the 
-``type`` field is ``food`` and the ``_id`` field is ``3``.
-The projection suppresses only the ``category`` field in the
-``classification`` document. The ``dept`` field remains
-inside the ``classification`` document.
-
-.. code-block:: javascript
-
-   db.inventory.find(
-      { type: 'food', _id: 3 },
-      { "classification.category": 0}
+   db.users.find(
+      { status: "A" },
+      { "favorites.food": 0 }
    )
 
 The operation returns the following document:
@@ -186,82 +345,89 @@ The operation returns the following document:
 .. code-block:: javascript
 
    {
-      "_id" : 3,
-      "type" : "food",
-      "item" : "Super Dark Chocolate", 
-      "classification" : { "dept" : "grocery"},
-      "vendor" : {
-         "primary" : {
-            "name" : "Bobs Vending",
-            "address" : "Wallaby Rd",
-            "delivery" : ["M","W","F"]
-         },
-         "secondary":{
-            "name" : "Intl. Chocolatiers",
-            "address" : "Cocoa Plaza",
-            "delivery" : ["Sa"]
-         }
-      } 
+      "_id" : 2,
+      "name" : "bob",
+      "age" : 42,
+      "type" : 1,
+      "status" : "A",
+      "favorites" : { "artist" : "Miro" },
+      "finished" : [ 11, 25 ],
+      "badges" : [ "green" ],
+      "points" : [ { "points" : 85, "bonus" : 20 }, { "points" : 64, "bonus" : 12 } ]
    }
-
-You can suppress nested subdocuments at any depth using :ref:`dot notation <document-dot-notation>`. 
-The following specifies a projection to suppress the ``delivery`` array only for the ``secondary`` document.
-
-.. code-block:: javascript
-
-   db.inventory.find(
-      { "type" : "food" },
-      { "vendor.secondary.delivery" : 0 }
-   )
-   
-This returns all documents except the ``delivery`` array in the ``secondary`` document
-
-.. code-block:: javascript
-    
    {
       "_id" : 3,
-      "type" : "food",
-      "item" : "Super Dark Chocolate", 
-      "classification" : { "dept" : "grocery", "category" : "chocolate"},
-      "vendor" : {
-         "primary" : {
-            "name" : "Bobs Vending",
-            "address" : "Wallaby Rd",
-            "delivery" : ["M","W","F"]
-         },
-         "secondary":{
-            "name" : "Intl. Chocolatiers",
-            "address" : "Cocoa Plaza"
-         }
-      } 
+      "name" : "ahn",
+      "age" : 22,
+      "type" : 2,
+      "status" : "A",
+      "favorites" : { "artist" : "Cassatt" },
+      "finished" : [ 6 ],
+      "badges" : [ "blue", "red" ],
+      "points" : [ { "points" : 81, "bonus" : 8 }, { "points" : 55, "bonus" : 20 } ]
    }
-   
+   {
+      "_id" : 6,
+      "name" : "abc",
+      "age" : 43,
+      "type" : 1,
+      "status" : "A",
+      "favorites" : { "artist" : "Picasso" },
+      "finished" : [ 18, 12 ],
+      "badges" : [ "black", "blue" ],
+      "points" : [ { "points" : 78, "bonus" : 8 }, { "points" : 57, "bonus" : 7 } ]
+   }
 
-Projection for Array Fields
----------------------------
+Projection on Embedded Documents in an Array
+--------------------------------------------
+
+Use :ref:`dot notation <document-dot-notation>` to project specific
+fields inside documents embedded in an array.
+
+The following example specifies a projection to return the ``name``
+field, ``status`` field, and just the ``bonus`` field in the documents
+in the ``points`` array. The ``_id`` field is returned by default.
+
+.. code-block:: javascript
+
+   db.users.find( { status: "A" }, { name: 1, status: 1, "points.bonus": 1 } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "name" : "bob", "status" : "A", "points" : [ { "bonus" : 20 }, { "bonus" : 12 } ] }
+   { "_id" : 3, "name" : "ahn", "status" : "A", "points" : [ { "bonus" : 8 }, { "bonus" : 20 } ] }
+   { "_id" : 6, "name" : "abc", "status" : "A", "points" : [ { "bonus" : 8 }, { "bonus" : 7 } ] }
+
+Project Specific Array Elements in the Returned Array
+-----------------------------------------------------
 
 For fields that contain arrays, MongoDB provides the following
 projection operators: :projection:`$elemMatch`, :projection:`$slice`,
 and :projection:`$`.
 
-For example, the ``inventory`` collection contains the following
-document:
+The following example uses the :projection:`$slice` projection operator
+to return just the last element in the ``scores`` array.
 
 .. code-block:: javascript
 
-   { "_id" : 5, "type" : "food", "item" : "aaa", "ratings" : [ 5, 8, 9 ] }
+   db.users.find( { status: "A" }, { name: 1, status: 1, points: { $slice: -1 } } )
 
-Then the following operation uses the :projection:`$slice` projection
-operator to return just the first two elements in the ``ratings`` array.
+The operation returns the following documents:
 
 .. code-block:: javascript
 
-   db.inventory.find( { _id: 5 }, { ratings: { $slice: 2 } } )
+   { "_id" : 2, "name" : "bob", "status" : "A", "points" : [ { "points" : 64, "bonus" : 12 } ] }
+   { "_id" : 3, "name" : "ahn", "status" : "A", "points" : [ { "points" : 55, "bonus" : 20 } ] }
+   { "_id" : 6, "name" : "abc", "status" : "A", "points" : [ { "points" : 57, "bonus" : 7 } ] }
 
 :projection:`$elemMatch`, :projection:`$slice`, and :projection:`$` are
-the *only* way to project *portions* of an array. For instance, you
-*cannot* project a portion of an array using the array index; e.g. ``{
-"ratings.0": 1 }`` projection will *not* project the array with the
-first element.
+the *only* way to project specific elements to include in the returned
+array. For instance, you *cannot* project specific array elements using
+the array index; e.g. ``{ "ratings.0": 1 }`` projection will *not*
+project the array with the first element.
 
 .. seealso:: :doc:`/tutorial/query-documents`
+
+.. include:: /includes/footnote-set-shell-batch-size.rst
