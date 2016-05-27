@@ -12,12 +12,12 @@ Amazon EC2
    :depth: 1
    :class: twocols
 
-MongoDB runs well on `Amazon EC2 <http://aws.amazon.com/ec2/>`_. To
-deploy MongoDB on EC2, you can either set up a new instance manually
-(refer to :ref:`deploy-mongodb-ec2`) or :mms-docs:`provision machines
-on EC2 </tutorial/provision-aws-servers/>` using :mms-docs:`Automation
-</tutorial/nav/automation/>`. Use of Amazon EC2 is subject to Amazon's
-pricing policy.
+To deploy MongoDB on `Amazon EC2 <http://aws.amazon.com/ec2/>`_, you
+can either:
+
+* :ref:`Set up a new instance manually <deploy-mongodb-ec2>`, or
+* :mms-docs:`Provision machines on EC2 </tutorial/provision-aws-servers/>`
+  using :mms-docs:`Automation </tutorial/nav/automation/>`.
 
 .. seealso::
 
@@ -72,7 +72,8 @@ instances will be configured with the following characteristics:
 
 * Amazon Linux
 * MongoDB installed via ``yum``
-* Individual PIOPS EBS volumes for data (1000 IOPS), journal (250 IOPS), and log (100 IOPS)
+* Individual PIOPS EBS volumes for data (1000 IOPS), journal (250 IOPS),
+  and log (100 IOPS)
 * Updated read-ahead values for each block device
 * Update ulimit settings
 
@@ -92,102 +93,103 @@ for more information on devices and parameters.:
 
 .. code-block:: sh
 
-    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xvdf=:200:false:io1:1000" -b "/dev/xvdg=:25:false:io1:250" -b "/dev/xvdh=:10:false:io1:100" --ebs-optimized true
+   ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xvdf=:200:false:io1:1000" -b "/dev/xvdg=:25:false:io1:250" -b "/dev/xvdh=:10:false:io1:100" --ebs-optimized true
 
-You can use the instance-id returned to ascertain the IP Address or DNS information for the instance:
+You can use the returned instance-id to ascertain the IP Address or
+DNS information for the instance:
 
 .. code-block:: sh
 
-    $ ec2-describe-instances [INSTANCE-ID]
+   ec2-describe-instances [INSTANCE-ID]
 
 Now SSH into the instance:
 
 .. code-block:: sh
 
-    $ ssh -i /path/to/keypair.pem ec2-user@ec2-1-2-3-4.amazonaws.com
+   ssh -i /path/to/keypair.pem ec2-user@ec2-1-2-3-4.amazonaws.com
 
 After login, update installed packages, add the MongoDB yum repo, and install MongoDB:
 
 .. code-block:: sh
 
-    $ sudo yum -y update
+   echo "[mongodb-org-3.2]
+   name=MongoDB Repository
+   baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.2/x86_64/
+   gpgcheck=1
+   enabled=1
+   gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc" |
+     sudo tee -a /etc/yum.repos.d/mongodb-org-3.2.repo
 
-    $ echo "[MongoDB]
-    name=MongoDB Repository
-    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
-    gpgcheck=0
-    enabled=1" | sudo tee -a /etc/yum/repos.d/mongodb.repo
+.. code-block:: sh
 
-    $ sudo yum install -y mongodb-org-server mongodb-org-shell mongodb-org-tools
+   sudo yum -y update && sudo yum install -y mongodb-org-server \
+       mongodb-org-shell mongodb-org-tools
 
 Next, create/configure the mount points, mount each volume, set ownership (MongoDB runs under the :setting:`mongod` user/group), and set the :file:`/journal` link:
 
 .. code-block:: sh
 
-    $ sudo mkdir /data /log /journal
+   sudo mkdir /data /log /journal
 
-    $ sudo mkfs.ext4 /dev/xvdf
-    $ sudo mkfs.ext4 /dev/xvdg
-    $ sudo mkfs.ext4 /dev/xvdh
+   sudo mkfs.ext4 /dev/xvdf
+   sudo mkfs.ext4 /dev/xvdg
+   sudo mkfs.ext4 /dev/xvdh
 
-    $ echo '/dev/xvdf /data ext4 defaults,auto,noatime,noexec 0 0
-    /dev/xvdg /journal ext4 defaults,auto,noatime,noexec 0 0
-    /dev/xvdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+   echo '/dev/xvdf /data ext4 defaults,auto,noatime,noexec 0 0
+   /dev/xvdg /journal ext4 defaults,auto,noatime,noexec 0 0
+   /dev/xvdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
 
-    $ sudo mount /data
-    $ sudo mount /journal
-    $ sudo mount /log
+   sudo mount /data
+   sudo mount /journal
+   sudo mount /log
 
-    $ sudo chown mongod:mongod /data /journal /log
+   sudo chown mongod:mongod /data /journal /log
 
-    $ sudo ln -s /journal /data/journal
+   sudo ln -s /journal /data/journal
 
-Now configure the following MongoDB parameters by editing the configuration file :file:`/etc/mongod.conf`:
+Now configure the following MongoDB parameters by editing the configuration file :file:`/etc/mongod.conf` so that it contains the following:
+
+.. code-block:: ini
+
+   dbpath = /data
+   logpath = /log/mongod.log
+
+If you don't want MongoDB to start at boot, you can issue the following
+command:
 
 .. code-block:: sh
 
-    dbpath = /data
-    logpath = /log/mongod.log
-
-Optionally, if you don't want MongoDB to start at boot you can issue the following command:
-
-.. code-block:: sh
-
-    $ sudo chkconfig mongod off
+   sudo chkconfig mongod off
 
 By default Amazon Linux uses :program:`ulimit` settings that are not
 appropriate for MongoDB. To setup :program:`ulimit` to match the
-documented :manual:`ulimit settings </reference/ulimit>` use the
-following steps:
+documented :manual:`ulimit settings </reference/ulimit>`, run the
+following command:
 
 .. code-block:: sh
 
-    $ sudo nano /etc/security/limits.conf
-    * soft nofile 64000
-    * hard nofile 64000
-    * soft nproc 32000
-    * hard nproc 32000
-
-    $ sudo nano /etc/security/limits.d/90-nproc.conf
-    * soft nproc 32000
-    * hard nproc 32000
+   echo '* soft nofile 64000
+   * hard nofile 64000
+   * soft nproc 64000
+   * hard nproc 64000' | sudo tee /etc/security/limits.d/90-mongodb.conf
 
 Additionally, default read ahead settings on EC2 are not optimized for
 MongoDB. As noted in the read-ahead settings from :manual:`Production
-Notes </administration/production-notes>`, the settings should be
-adjusted to read approximately 32 blocks (or 16 KB) of data. The
+Notes </administration/production-notes>`, you should adjust the settings
+to read approximately 32 blocks (or 16 KB) of data. The
 following command will set the readahead appropriately (repeat for
-necessary volumes):
+additional volumes):
 
 .. code-block:: sh
 
-    $ sudo blockdev --setra 32 /dev/xvdf
+   sudo blockdev --setra 32 /dev/xvdf
 
-To make this change persistent across system boot you can issue the following command:
+To make this change persistent across system boot, issue the following
+command:
 
 .. code-block:: sh
 
-    $ echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
+   echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
 
 Once again, repeat the above command for all required volumes (note:
 the device we created was named :file:`/dev/xvdf` but the name used by
@@ -197,22 +199,19 @@ To start :program:`mongod`, issue the following command:
 
 .. code-block:: sh
 
-    $ sudo service mongod start
+   sudo service mongod start
 
 Then connect to the MongoDB instance using the :program:`mongo` shell:
 
 .. code-block:: sh
 
-    $ mongo
-    MongoDB shell version: 2.4.8
-    connecting to: test
-    >
+   mongo
 
 To have MongoDB startup automatically at boot issue the following command:
 
 .. code-block:: sh
 
-    $ sudo chkconfig mongod on
+   sudo chkconfig mongod on
 
 For production deployments consider using :manual:`Replica Sets
 </replication/>` or :manual:`Sharding </sharding/>`.
@@ -249,9 +248,10 @@ storage volume. Alternatively, you may want to use `Elastic Block Store
 point.
 
 Mounting the filesystem with the :option:`noatime <mount -o noatime>`
-attribute can improve disk performance. For example:
+attribute can improve disk performance. For example, the following is
+an example of an ``/etc/fstab`` stanza with this option:
 
-.. code-block:: sh
+.. code::
 
    /dev/mapper/my_vol /var/lib/mongodb xfs noatime,noexec 0 0
 
@@ -350,14 +350,14 @@ For example one solution is following, on each server:
 
 * add a zone for your domain, say "myorg.com", and add the CNAMEs for all your servers
 
-.. code-block:: sh
+.. code::
 
    server1          IN     CNAME   ec2-50-19-237-42.compute-1.amazonaws.com.
    server2          IN     CNAME   ec2-50-18-157-87.us-west-1.compute.amazonaws.com.
 
 * restart bind and modify /etc/resolv.conf to use the local bind
 
-.. code-block:: sh
+.. code::
 
    search myorg.conf
    nameserver 127.0.0.1
