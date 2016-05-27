@@ -7,10 +7,9 @@ To add an existing MongoDB deployment to automation:
   become the group's Automation Agent user.
 
 - If the |mms| group has authentication settings enabled, add the |mms|
-  group's automation agent user to the MongoDB process. To find the
-  Automation Agent user for the |mms|, in :guilabel:`Deployments`, from the
-  :guilabel:`More` drop-down list, select :guilabel:`Authentication &
-  Users`.
+  group's Automation Agent user to the MongoDB process. To find the
+  Automation Agent user, click :guilabel:`Deployments`, then
+  :guilabel:`Security`, then :guilabel:`Users`.
 
 .. important::
 
