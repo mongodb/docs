@@ -15,7 +15,7 @@ To build the documentation locally,
 - Run the following to download and build this documentation locally::
 
      git clone git@github.com:mongodb/docs-ruby.git
-     cd docs-compass/
+     cd docs-ruby/
      giza make html
 
 Contribute
