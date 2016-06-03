@@ -55,7 +55,8 @@ rst_epilog = '\n'.join([
 ])
 
 extlinks = {
-    'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'manual': ('https://docs.mongodb.com/manual%s', ''),
+    'mongo-spark': ('https://github.com/mongodb/mongo-spark%s', ''),
 }
 
 intersphinx_mapping = {}
