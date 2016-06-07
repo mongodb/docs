@@ -40,7 +40,10 @@ deploy: build-temp
 build-temp: style.min.css header.js
 	rm -rf $@
 	mkdir $@
-	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/
+	cp -p index.html mongodb-logo.png style.min.css build/nav/header.js *webfont* $@/
+
+header.js:
+	giza generate assets
 
 # Don't grab node_modules unless we have to
 style.min.css: normalize.css style.css header.css
