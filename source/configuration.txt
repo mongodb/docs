@@ -1,0 +1,234 @@
+=====================
+Configuration Options
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Various configuration options are available for the MongoDB Spark
+Connector.
+
+Specify Configuration
+---------------------
+
+You can specify these options using the ``--conf`` setting or the
+``$SPARK_HOME/conf/spark-default.conf`` file to set ``SparkConf``.
+
+MongoDB Spark Connector will use the settings in ``SparkConf`` as the
+defaults.
+
+``ReadConfig`` and ``WriteConfig``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the values in ``SparkConf``, various methods in the MongoDB
+Connector API accept an optional :mongo-spark:`ReadConfig
+</blob/master/src/main/scala/com/mongodb/spark/config/ReadConfig.scala>` or a
+:mongo-spark:`WriteConfig
+</blob/master/src/main/scala/com/mongodb/spark/config/WriteConfig.scala>` object.
+
+For examples, see :ref:`gs-read-config` and :ref:`gs-write-config`. For
+more details, refer to the source for these methods.
+
+Options Map
+~~~~~~~~~~~
+
+In the Spark API, some methods (e.g. ``DataFrameReader`` and
+``DataFrameWriter``) accept options in the form of a ``Map[String,
+String]``.
+
+You can convert custom ``ReadConfig`` or ``WriteConfig`` settings into
+a ``Map`` via the ``asOptions()`` method.
+
+.. tip::
+
+   When passing input configurations via an options Map, the prefix
+   ``spark.mongodb.input.`` is not needed.
+
+.. _spark-input-conf:
+
+Input Configuration
+--------------------
+
+The following options for reading from MongoDB are available on the
+``SparkConf`` object:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 45
+
+   * - Property name
+     - Description
+
+   * - .. setting:: spark.mongodb.input.uri
+
+     - Required. The connection string of the form
+       ``mongodb://host:port/`` where ``host`` can be a hostname, IP
+       address, or UNIX domain socket. If ``:port`` is unspecified, the
+       connection uses the default MongoDB port 27017.
+
+       .. note::
+
+          The other remaining options may be appended to the
+          ``spark.mongodb.input.uri`` setting. See :ref:`configure-uri`.
+
+   * - .. setting:: spark.mongodb.input.database
+
+     - Required. The database name from which to read data.
+
+   * - .. setting:: spark.mongodb.input.collection
+
+     - Required. The collection name from which to read data.
+
+   * - .. setting:: spark.mongodb.input.localThreshold
+
+     - The threshold (in milliseconds) for choosing a server from
+       multiple MongoDB servers.
+
+       *Default*: 15 ms
+
+   * - .. setting:: spark.mongodb.input.readPreference.name
+
+     - The :ref:`Read Preference <replica-set-read-preference-modes>` to
+       use.
+
+       *Default*: Primary
+
+   * - .. setting:: spark.mongodb.input.readPreference.tagSets
+
+     - The `ReadPreference` TagSets to use.
+
+   * - .. setting:: spark.mongodb.input.readConcern.level
+
+     - The :manual:`Read Concern </reference/read-concern>` level to use.
+
+   * - .. setting:: spark.mongodb.input.sampleSize
+
+     - The sample size to use when inferring the schema.
+
+       *Default*: 1000
+
+   * - .. setting:: spark.mongodb.input.splitKey
+
+     - The partition key to split the data.
+
+       *Default*: ``_id``
+
+   * - .. setting:: spark.mongodb.input.maxChunkSize
+
+     - The maximum chunk size for partitioning an unsharded collection.
+
+       *Default*: 64 MB
+
+.. _spark-output-conf:
+
+Output Configuration
+--------------------
+
+The following options for writing to MongoDB are available on the
+``SparkConf`` object:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - Property name
+     - Description
+
+   * - .. setting:: spark.mongodb.output.uri
+
+     - Required. The connection string of the form ``mongodb://host:port/``
+       where ``host`` can be a hostname, IP address, or UNIX domain
+       socket. If ``:port`` is unspecified, the connection uses the
+       default MongoDB port 27017.
+
+       .. note:: 
+
+          The other remaining options may be appended to the
+          ``spark.mongodb.output.uri`` setting. See
+          :ref:`configure-uri`.
+
+   * - .. setting:: spark.mongodb.output.database
+
+     - Required. The database name to write data.
+
+   * - .. setting:: spark.mongodb.output.collection
+
+     - Required. The collection name to write data to
+
+   * - .. setting:: spark.mongodb.input.localThreshold
+
+     - The threshold (milliseconds) for choosing a server from multiple
+       MongoDB servers.
+
+       *Default*: 15 ms
+       
+   * - .. setting:: spark.mongodb.output.writeConcern.w
+     - The write concern `w` value.
+
+       *Default* ``w: 1``
+   
+   * - .. setting:: spark.mongodb.output.writeConcern.journal
+     - The write concern journal value.
+
+   * - .. setting:: spark.mongodb.output.writeConcern.wTimeoutMS
+     - The write concern ``wTimeout`` value
+
+.. note::
+
+   When passing output configurations via an options Map then the
+   prefix ``spark.mongodb.output.`` is not needed.
+
+Cache Configuration
+-------------------
+
+The MongoConnector includes a cache for MongoClients, so workers can
+share the MongoClient across threads.
+
+.. important::
+
+   As the cache is setup before the Spark Configuration is available,
+   the cache can only be configured via a System Property.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 45
+
+   * - System Property name
+     - Description
+
+   * - .. setting:: spark.mongodb.keep_alive_ms
+     - The length of time to keep a MongoClient available for sharing.
+
+       *Default*: 5000
+
+.. _configure-uri:
+
+Configure via the ``uri``
+-------------------------
+
+You can set all :ref:`spark-input-conf` via the
+:setting:`spark.mongodb.input.uri` and all :ref:`spark-output-conf` via
+:setting:`spark.mongodb.output.uri`.
+
+
+For example, consider the following :setting:`spark.mongodb.input.uri`
+setting.
+
+.. code:: cfg
+
+   spark.mongodb.input.uri=mongodb://127.0.0.1/databaseName.collectionName?readPreference=primaryPreferred
+
+The configuration corresponds to the following separate configuration:
+
+.. code:: cfg
+
+   spark.mongodb.input.uri=mongodb://127.0.0.1/
+   spark.mongodb.input.database=databaseName
+   spark.mongodb.input.collection=collectionName
+   spark.mongodb.input.readPreference.name=primaryPreferred
+
