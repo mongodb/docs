@@ -30,7 +30,7 @@
    * - :ecosystem:`Node.js </drivers/node-js?jmp=docs>`
      - `Node.js Driver Releases <https://github.com/mongodb/node-mongodb-native/releases?jmp=docs>`_
      - `Node.js Driver Source Code <https://github.com/mongodb/node-mongodb-native?jmp=docs>`_
-     - `Node.js Driver API <http://mongodb.github.io/node-mongodb-native?jmp=docs>`_
+     - `Node.js Driver API <http://mongodb.github.io/node-mongodb-native/?jmp=docs>`_
 
    * - :ecosystem:`Perl </drivers/perl?jmp=docs>`
      - `Perl Driver Releases <http://search.cpan.org/dist/MongoDB/?jmp=docs>`_
