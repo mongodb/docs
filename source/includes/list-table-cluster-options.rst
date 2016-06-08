@@ -12,12 +12,13 @@
 
    * - :guilabel:`Region`
 
-     - The physical location of your MongoDB cluster. The region you choose
-       can affect network latency for clients accessing your databases.
+     - The physical location of your MongoDB cluster. The region you
+       choose can affect network latency for clients accessing your
+       databases.
 
-       Pricing for cluster configuration settings vary by region. You can make
-       configuration choices and then try different region selections to
-       compare costs before creating the cluster.
+       Pricing for cluster configuration settings vary by region. You
+       can make configuration choices and then try different region
+       selections to compare costs before creating the cluster.
 
    * - :guilabel:`Instance Size`
 
@@ -26,20 +27,23 @@
        set of resources, but you can customize the servers to meet your
        use case. You can modify the following, which changes the cost:
 
-       - :guilabel:`Custom Storage Capacity`: The size of the server root volume.
+       - :guilabel:`Custom Storage Capacity`: The size of the server
+         root volume.
 
-       - :guilabel:`Custom Storage Speed`: The input/output operations per
-         second (IOPS) the system can perform.
+       - :guilabel:`Custom Storage Speed`: The input/output operations
+         per second (IOPS) the system can perform.
 
-       - :guilabel:`Use encrypted storage volumes`: Uses simple encryption on
-         your root volume for data at rest and disk I/O.
+       - :guilabel:`Use encrypted storage volumes`: Encrypts root
+         volume using Amazon EBS encryption for data at rest inside the
+         volume and all data moving between the volume and the
+         instance.
 
    * - :guilabel:`Replication Factor`
 
-     - The number of :term:`replica set` members. Each member keeps a copy of
-       your database, providing high availability and data redundancy. For
-       more information, see :manual:`Replication </replication>` in the
-       MongoDB manual.
+     - The number of :term:`replica set` members. Each member keeps a
+       copy of your database, providing high availability and data
+       redundancy. For more information, see :manual:`Replication
+       </replication>` in the MongoDB manual.
 
    * - :guilabel:`Do you want a sharded cluster?`
 
@@ -57,9 +61,9 @@
 
    * - :guilabel:`Do you want to enable backup?`
 
-     - If enabled, |service| takes snapshots of your databases at regular
-       intervals and retains them according to your group's :ref:`retention
-       policy <retention-policy>`.
+     - If enabled, |service| takes snapshots of your databases at
+       regular intervals and retains them according to your group's
+       :ref:`retention policy <retention-policy>`.
 
    * - :guilabel:`Admin Username & Password`
 
