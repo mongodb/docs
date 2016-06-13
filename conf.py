@@ -78,6 +78,7 @@ except:
         intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
                                                               conf.paths.output,
                                                               i.path))
+pygments_style = 'default'
 highlight_language = 'php'
 highlight_options = {"startinline": "True"}
 
