@@ -69,6 +69,12 @@
      - |checkmark|
      -
      -
+   * - Ubuntu 16.04
+     - |checkmark|
+     -
+     -
+     -
+     -
    * - Microsoft Azure
      - |checkmark|
      - |checkmark|
