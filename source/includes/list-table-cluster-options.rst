@@ -65,9 +65,10 @@
    * - :guilabel:`Admin Username & Password`
 
      - Creates a MongoDB admin user with the specified username and
-       password. These fields appears only if you are creating the
-       first cluster in a |service| group.
-       
+       password. These fields appear only if no MongoDB user exists for
+       your |service| group, such as if you are creating the first
+       cluster in the group.
+
        **When creating a new admin user, be sure to save the
        credentials.**
 
