@@ -1,10 +1,10 @@
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
 STAGING_URL="https://mmsdocs-staging.corp.mongodb.com"
-STAGING_BUCKET=mms-docs-staging
+STAGING_BUCKET=docs-atlas-staging
 PRODUCTION_URL="https://mmsdocs.corp.mongodb.com"
-PRODUCTION_BUCKET=mms-docs-prod
-PREFIX=atlas
+PRODUCTION_BUCKET=docs-atlas-prod
+PREFIX=
 
 .PHONY: help stage fake-deploy deploy
 
