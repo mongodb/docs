@@ -1,0 +1,269 @@
+title: "Disable the balancer."
+ref: change-wt-config-svr-disable-balancer
+content: |
+  Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+  sharded cluster, as described in
+  :ref:`sharding-balancing-disable-temporarily`. 
+action:
+  language: sh
+  code: |
+    sh.disableBalancer()
+---
+title: "Shut down the **third** config server to ensure read-only metadata."
+ref: change-wt-config-svr-shutdown-3
+pre: |
+  Connect a :program:`mongo` shell to the **third** config server and
+  use :method:`db.shutdownServer()` to shut down the **third** config
+  server.
+
+  The **third** config server is the last one listed in the
+  :program:`mongos` :setting:`~sharding.configDB` setting.
+action:
+  language: sh
+  code: |
+    db.shutdownServer()
+---
+title: "Export the data of the **second** config server with ``mongodump``."
+ref: change-wt-config-svr-export-2
+pre: |
+  While the **third** config server is down to ensure the config servers
+  are read-only, prepare to upgrade the **second** config server to use
+  WiredTiger. The **second** config server is the second server listed in the
+  :program:`mongos` setting :setting:`~sharding.configDB`.
+
+  Export the data of the **second** config server with :program:`mongodump`. 
+action:
+  language: sh
+  code: |
+    mongodump --out <exportDataDestination>
+post: |
+  Specify additional options as appropriate, such as username and
+  password if running with authorization enabled. See
+  :program:`mongodump` for available options.
+---
+title: "For the **second** config server, create a new data directory for use with WiredTiger."
+ref: change-wt-config-svr-create-dir-2
+content: |
+  Create a data directory in preparation for having the **second** config
+  server run with WiredTiger. ``mongod`` will not start
+  if the :option:`--dbpath` directory contains data files created with
+  a different storage engine.
+
+  ``mongod`` must have read and write permissions for the new directory.
+---
+title: "Stop the **second** config server."
+ref: change-wt-config-svr-stop-2
+pre: |
+  Connect a :program:`mongo` shell to the **second** config server and use
+  :method:`db.shutdownServer()` to shut down the **second** config server.
+action:
+  language: sh
+  code: |
+    db.shutdownServer()
+---
+title: "Start the **second** config server ``mongod`` with the WiredTiger storage engine option."
+ref: change-wt-config-svr-restart-w-wiredtiger-2
+pre: |
+  Start :program:`mongod` as a config server, specifying ``wiredTiger``
+  as the :option:`--storageEngine` and the newly created data directory
+  for WiredTiger as the :option:`--dbpath`. Specify additional options
+  as appropriate.
+action:
+  language: sh
+  code: |
+     mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --configsvr
+post: |
+
+  .. include:: /includes/fact-storage-engine-configuration-file-setting.rst
+---
+title: "Upload the exported data using ``mongorestore`` to the **second** config server."
+ref: change-wt-config-svr-upload-data-2
+pre: |
+  Use :program:`mongorestore` to upload the exported data. Specify
+  additional options as appropriate. See :program:`mongorestore` for
+  available options.
+action:
+  language: sh
+  code: |
+    mongorestore <exportDataDestination>
+post: |
+  When the :program:`mongorestore` finishes, the **second** config server
+  upgrade to use WiredTiger is complete.
+---
+title: "Shut down the **second** config server to ensure read-only metadata."
+ref: change-wt-config-svr-shutdown-2
+pre: |
+  When the **second** config server upgrade is complete, shut down the
+  **second** config server in preparation to upgrade the other config
+  servers. This is necessary to maintain at most only two active config
+  servers and keep the sharded cluster's metadata read-only.
+
+  Connect a :program:`mongo` shell to the **second** config server and use
+  :method:`db.shutdownServer()` to shut down the **second** config server.
+action:
+  language: sh
+  code: |
+    db.shutdownServer()
+---
+title: "Restart the **third** config server to prepare for its upgrade."
+ref: change-wt-config-svr-restart-3
+pre: |
+  Restart the **third** config server with its original startup
+  options. **Do not** change its options to use the WiredTiger storage engine
+  at this point.
+action:
+  language: sh
+  code: |
+    mongod --configsvr --dbpath <existingDBPath> 
+post: |
+  Include any other options in use for the third config server.
+---
+title: "Export the data of the **third** config server with ``mongodump``."
+ref: change-wt-config-svr-export-3
+action:
+  language: sh
+  code: |
+    mongodump --out <exportDataDestination>
+post: |
+  Specify additional options as appropriate, such as username and
+  password if running with authorization enabled. See
+  :program:`mongodump` for available options.
+---
+title: "For the **third** config server, create a new data directory for use with WiredTiger."
+ref: change-wt-config-svr-create-dir-3
+content: |
+  Create a data directory in preparation for having the **third** config
+  server run with WiredTiger. ``mongod`` will not start
+  if the :option:`--dbpath` directory contains data files created with
+  a different storage engine.
+
+  ``mongod`` must have read and write permissions for the new directory.
+---
+title: "Stop the **third** config server."
+ref: change-wt-config-svr-stop-3-prep-for-restart
+pre: |
+  Connect a :program:`mongo` shell to the **third** config server and use
+  :method:`db.shutdownServer()` to shut down the **third** config server.
+action:
+  language: sh
+  code: |
+    db.shutdownServer()
+---
+title: "Start the **third** config server with the WiredTiger storage engine option."
+ref: change-wt-config-svr-restart-w-wiredtiger-3
+pre: |
+  Start :program:`mongod` as a config server, specifying ``wiredTiger``
+  as the :option:`--storageEngine` and the newly created data directory
+  for WiredTiger as the :option:`--dbpath`. Specify additional options
+  as appropriate.
+action:
+  language: sh
+  code: |
+     mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --configsvr
+post: |
+  .. include:: /includes/fact-storage-engine-configuration-file-setting.rst
+---
+title: "Upload the exported data using ``mongorestore`` to the **third** config server."
+ref: change-wt-config-svr-upload-data-3
+pre: |
+  Use :program:`mongorestore` to upload the exported data. Specify
+  additional options as appropriate. See :program:`mongorestore` for
+  available options.
+action:
+  language: sh
+  code: |
+    mongorestore <exportDataDestination>
+post: |
+  When the :program:`mongorestore` finishes, the **third** config server
+  upgrade to use WiredTiger is complete.
+---
+title: "Export data of the **first** config server with ``mongodump``."
+ref: change-wt-config-svr-export-1
+pre: |
+  To prepare for the upgrade of the **first** config server to use
+  WiredTiger, export the data of the **first** config server with
+  :program:`mongodump`.
+action:
+  language: sh
+  code: |
+    mongodump --out <exportDataDestination>
+post: |
+  Specify additional options as appropriate, such as username and
+  password if running with authorization enabled. See
+  :program:`mongodump` for available options.
+---
+title: "For the **first** config server, create a new data directory for use with WiredTiger."
+ref: change-wt-config-svr-create-dir-1
+content: |
+  Create a data directory in preparation for having the **first** config
+  server run with WiredTiger. ``mongod`` will not start if the
+  :option:`--dbpath` directory contains data files created with a
+  different storage engine.
+
+  ``mongod`` must have read and write permissions for the new directory.
+---
+title: "Stop the **first** config server."
+ref: change-wt-config-svr-stop-1-prep-for-restart
+pre: |
+  Connect a :program:`mongo` shell to the **first** config server and use
+  :method:`db.shutdownServer()` to shut down the **first** config server.
+action:
+  language: sh
+  code: |
+    db.shutdownServer()
+---
+title: "Start the **first** config server with the WiredTiger storage engine option."
+ref: change-wt-config-svr-restart-w-wiredtiger-1
+pre: |
+  Start :program:`mongod` as a config server, specifying ``wiredTiger``
+  as the :option:`--storageEngine` and the newly created data directory
+  for WiredTiger as the :option:`--dbpath`. Specify additional options
+  as appropriate.
+action:
+  language: sh
+  code: |
+     mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --configsvr
+post: |
+  .. include:: /includes/fact-storage-engine-configuration-file-setting.rst
+---
+title: "Upload the exported data using ``mongorestore`` to the **first** config server."
+ref: change-wt-config-svr-upload-data-1
+pre: |
+  Use :program:`mongorestore` to upload the exported data. Specify
+  additional options as appropriate. See :program:`mongorestore` for
+  available options.
+action:
+  language: sh
+  code: |
+    mongorestore <exportDataDestination>
+post: |
+  When the :program:`mongorestore` finishes, the **first** config server
+  upgrade to use WiredTiger is complete.
+---
+title: "Restart the **second** config server to enable writes to the sharded cluster's metadata."
+ref: change-wt-config-svr-start-2
+pre: |
+  Restart the **second** config server, specifying WiredTiger as the
+  :option:`--storageEngine` and the newly created WiredTiger data
+  directory as the :option:`--dbpath`. Specify additional options as
+  appropriate.
+action:
+  language: sh
+  code: |
+     mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --configsvr
+post: |
+   .. include:: /includes/fact-storage-engine-configuration-file-setting.rst
+
+   Once all three config servers are up, the sharded cluster's metadata
+   is available for writes.
+---
+title: "Re-enable the balancer."
+ref: change-wt-config-svr-reenable-balancer
+pre: |
+  Once all three config servers are up and running with WiredTiger,
+  :ref:`re-enable the balancer <sharding-balancing-enable>`.
+action:
+  language: sh
+  code: |
+    sh.startBalancer()
+...

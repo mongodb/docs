@@ -8,6 +8,12 @@ Multikey Indexes
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 To index a field that holds an array value, MongoDB creates an index
 key for each element in the array. These *multikey* indexes support
 efficient queries against array fields. Multikey indexes can be
@@ -94,6 +100,46 @@ Covered Queries
 ~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-multikey-index-covered-query.rst
+
+Query on the Array Field as a Whole
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a query filter specifies an :ref:`exact match for an array as a
+whole <array-match-exact>`, MongoDB can use the multikey index to look
+up the first element of the query array but cannot use the multikey
+index scan to find the whole array. Instead, after using the multikey
+index to look up the first element of the query array, MongoDB
+retrieves the associated documents and filters for documents whose
+array matches the array in the query.
+
+For example, consider an ``inventory`` collection that contains the
+following documents:
+
+.. code-block:: javascript
+
+   { _id: 5, type: "food", item: "aaa", ratings: [ 5, 8, 9 ] }
+   { _id: 6, type: "food", item: "bbb", ratings: [ 5, 9 ] }
+   { _id: 7, type: "food", item: "ccc", ratings: [ 9, 5, 8 ] }
+   { _id: 8, type: "food", item: "ddd", ratings: [ 9, 5 ] }
+   { _id: 9, type: "food", item: "eee", ratings: [ 5, 9, 5 ] }
+
+The collection has a multikey index on the ``ratings`` field:
+
+.. code-block:: javascript
+
+   db.inventory.createIndex( { ratings: 1 } )
+
+The following query looks for documents where the ``ratings`` field is
+the array ``[ 5, 9 ]``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { ratings: [ 5, 9 ] } )
+
+MongoDB can use the multikey index to find documents that have ``5`` at
+any position in the ``ratings`` array. Then, MongoDB retrieves these
+documents and filters for documents whose ``ratings`` array equals the
+query array ``[ 5, 9 ]``.
 
 Examples
 --------
@@ -196,3 +242,11 @@ the following examples:
 
 For more information on behavior of compound indexes and sort
 operations, see :doc:`/tutorial/sort-results-with-indexes`.
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /core/multikey-index-bounds
+

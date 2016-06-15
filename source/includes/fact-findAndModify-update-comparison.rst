@@ -13,7 +13,7 @@ When updating a document, |operation| and the
   method, you cannot specify which single document to update when
   multiple documents match.
 
-- By default, |operation| method returns |return-object|. To
+- By default, |operation| returns |return-object|. To
   obtain the updated document, use the ``new`` option.
 
   The :method:`~db.collection.update()` method returns a
@@ -23,11 +23,6 @@ When updating a document, |operation| and the
   your update and the document retrieval. Also, if the update modified
   only a single document but multiple documents matched, you will need to
   use additional logic to identify the updated document.
-
-- You cannot specify a :doc:`write concern </reference/write-concern>` to
-  |operation| to override the default write concern whereas, starting
-  in MongoDB 2.6, you can specify a write concern to the
-  :method:`~db.collection.update()` method.
 
 When modifying a *single* document, both |operation| and the
 :method:`~db.collection.update()` method *atomically* update the

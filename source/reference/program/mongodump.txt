@@ -6,20 +6,32 @@
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 .. |tool-binary| replace:: mongodump
 
 Synopsis
 --------
 
 :program:`mongodump` is a utility for creating a binary export of the
-contents of a database. Consider using this utility as part of an
-effective :doc:`backup strategy </core/backups>`. Use
-:program:`mongodump` in conjunction with :program:`mongorestore` to
-restore databases. For an overview of :program:`mongodump` usage, see
-:doc:`/tutorial/backup-and-restore-tools`
+contents of a database. :program:`mongodump` can export data from
+either :program:`mongod` or :program:`mongos` instances.
 
-:program:`mongodump` can read data from either :program:`mongod` or :program:`mongos`
-instances.
+:program:`mongodump` can be a part of a :ref:`backup strategy
+<backup-with-mongodump>` with :program:`mongorestore` for partial
+backups based on a query, syncing from production to staging or
+development environments, or changing the storage engine of a
+standalone. However, the use of :program:`mongodump` and
+:program:`mongorestore` as a backup strategy can be problematic for
+sharded clusters and replica sets.
+
+For an overview of :program:`mongodump` in conjunction with
+:program:`mongorestore` part of a backup and recovery strategy, see
+:doc:`/tutorial/backup-and-restore-tools`.
 
 .. seealso:: :program:`mongorestore`,
    :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
@@ -30,9 +42,24 @@ instances.
 Behavior
 --------
 
+Data Exclusion
+~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-mongodump-local-database.rst
 
+:program:`mongodump` only captures the documents in the database in its
+backup data and does not include index data. :program:`mongorestore` or
+:program:`mongod` must then rebuild the indexes after restoring data.
+
+Version Compatibility
+~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/warning-mongodump-compatibility-2.2.rst
+
+.. _mongodump-read-preference:
+
+Read Preference
+~~~~~~~~~~~~~~~
 
 .. versionchanged:: 3.0.5
 
@@ -40,22 +67,29 @@ Behavior
    :program:`mongodump`, when run against the :program:`mongos`
    instance, no longer prefers reads from secondary members.
 
-.. include:: /includes/warning-fsync-lock-mongodump.rst
+Overwrite Files
+~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-mongodump-overwrite-files.rst
+
+Data Compression Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When run against a :program:`mongod` instance that uses the
+:doc:`WiredTiger </core/wiredtiger>` storage engine,
+:program:`mongodump` outputs uncompressed data.
+
+Working Set
+~~~~~~~~~~~
+
+:program:`mongodump` can adversely affect performance of the
+:program:`mongod`. If your data is larger than system memory, the
+:program:`mongodump` will push the working set out of memory.
 
 Required Access
 ---------------
 
-Back Up Collections
-~~~~~~~~~~~~~~~~~~~
-
 .. include:: /includes/access-mongodump-collections.rst
-
-Back Up Users
-~~~~~~~~~~~~~
-
-.. include:: /includes/access-mongodump-users.rst
 
 Options
 -------
@@ -134,6 +168,9 @@ Options
 
 .. include:: /includes/option/option-mongodump-excludeCollectionsWithPrefix.rst
 
+.. include:: /includes/option/option-mongodump-numParallelCollections.rst
+
+.. include:: /includes/option/option-mongodump-readPreference.rst
 
 Examples
 --------
@@ -141,7 +178,7 @@ Examples
 ``mongodump`` a Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following command creates a dump file that contains only the
+The following operation creates a dump file that contains only the
 collection named ``collection`` in the database named ``test``. In
 this case the database is running on the local interface on port
 ``27017``:
@@ -149,6 +186,17 @@ this case the database is running on the local interface on port
 .. code-block:: sh
 
    mongodump  --db test --collection collection
+
+
+``mongodump`` a Database Excluding Specified Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation dumps all collections in the ``test`` database
+except for ``users`` and ``salaries``:
+
+.. code-block:: sh
+
+   mongodump  --db test --excludeCollection=users --excludeCollection=salaries
 
 ``mongodump`` with Access Control
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

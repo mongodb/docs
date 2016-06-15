@@ -4,6 +4,12 @@ db.collection.updateMany()
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 Definition
 ----------
 
@@ -62,9 +68,7 @@ document based on the ``filter`` and ``update`` parameters. See
 Capped Collections
 ~~~~~~~~~~~~~~~~~~
 
-:method:`~db.collection.updateMany()` throws a ``WriteError`` if the 
-``update`` criteria increases the size of any matching document in a 
-:term:`capped collection`.
+.. include:: /includes/extracts/capped-collection-immutable-document-size-update.rst
 
 .. TBD - need to test more thoroughly to pin down func.
 .. Sharded Collections
@@ -93,10 +97,10 @@ The ``restaurant`` collection contains the  following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 },
-   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : "2" },
-   { "_id" : 3, "name" : "Empire State Sub", "violations" : "5" },
-   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : "8" }
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5 }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8 }
 
 The following operation updates all documents where ``violations`` are 
 greater than ``4`` and :update:`$set` a flag for review:
@@ -104,12 +108,11 @@ greater than ``4`` and :update:`$set` a flag for review:
 .. code-block:: javascript
 
    try {
-      db.inventory.updateMany( 
+      db.restaurant.updateMany( 
          { violations: { $gt: 4 } }, 
          { $set: { "Review" : true } } 
       );
-   }
-   catch (e) {
+   } catch (e) {
       print(e);
    }
   
@@ -123,10 +126,10 @@ The collection now contains the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 },
-   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : "2" },
-   { "_id" : 3, "name" : "Empire State Sub", "violations" : "5", "Review" : true },
-   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : "8", "Review" : true }
+   { "_id" : 1, "name" : "Central Perk Cafe", "violations" : 3 }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "violations" : 2 }
+   { "_id" : 3, "name" : "Empire State Sub", "violations" : 5, "Review" : true }
+   { "_id" : 4, "name" : "Pizza Rat's Pizzaria", "violations" : 8, "Review" : true }
 
 If no matches were found, the operation instead returns:
 
@@ -150,48 +153,8 @@ The ``inspectors`` collection contains the following documents:
    { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
    { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false }
 
-The following operation updates all documents with ``violations`` that 
-are greater than ``10``:
-
-.. code-block:: javascript
-
-   try {
-      db.inspectors.updateMany( 
-         { "inspector" : "J. Clouseau", "Sector" : 4 }, 
-         { $set: { "Patrolling" : false } }, 
-         { upsert: true }
-      );
-   }
-   catch (e) {
-      print(e);
-   }
-
-The operation returns:
-
-.. code-block:: javascript
-
-   {
-      "acknowledged" : true,
-      "matchedCount" : 0,
-      "modifiedCount" : 0,
-      "upsertedId" : 92416
-   }
-
-The collection now contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 92412, "inspector" : "F. Drebin", "Sector" : 1, "Patrolling" : true },
-   { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
-   { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
-   { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
-   { "_id" : 92416, "inspector" : "J. Clouseau", "Sector" : 4, "Patrolling" : false }
-
-No documents in the collection matched the ``filter``, so a new document was 
-created.
-
-The following operation updates all documents with ``Sector`` greater than 4 
-for ``inspector : "R. Coltrane"``:
+The following operation updates all documents with ``Sector`` greater
+than 4 and ``inspector`` equal to ``"R. Coltrane"``:
 
 .. code-block:: javascript
 
@@ -200,9 +163,8 @@ for ``inspector : "R. Coltrane"``:
          { "Sector" : { $gt : 4 }, "inspector" : "R. Coltrane" },
          { $set: { "Patrolling" : false } },
          { upsert: true }
-   	);
-   }
-   catch (e) {
+      );
+   } catch (e) {
       print(e);
    }
 
@@ -214,7 +176,7 @@ The operation returns:
       "acknowledged" : true,
       "matchedCount" : 0,
       "modifiedCount" : 0,
-      "upsertedId" : 92417
+      "upsertedId" : ObjectId("56fc5dcb39ee682bdc609b02")
    }
 
 The collection now contains the following documents:
@@ -225,12 +187,12 @@ The collection now contains the following documents:
    { "_id" : 92413, "inspector" : "J. Clouseau", "Sector" : 2, "Patrolling" : false },
    { "_id" : 92414, "inspector" : "J. Clouseau", "Sector" : 3, "Patrolling" : true },
    { "_id" : 92415, "inspector" : "R. Coltrane", "Sector" : 3, "Patrolling" : false },
-   { "_id" : 92416, "inspector" : "J. Clouseau", "Sector" : 4, "Patrolling" : false },
-   { "_id" : 92417, "inspector" : "R. Coltrane", "Patrolling" : false }
+   { "_id" : ObjectId("56fc5dcb39ee682bdc609b02"), "inspector" : "R. Coltrane", "Patrolling" : false }
 
-Since no documents matched the filter, and ``upsert`` was ``true``, 
-:method:`~db.collection.updateMany` inserted the document with a generated 
-``_id``, the equality operator from ``filter``, and the ``update`` modifiers.
+Since no documents matched the filter, and ``upsert`` was ``true``,
+:method:`~db.collection.updateMany` inserted the document with a
+generated ``_id``, the equality conditions from the ``filter``, and the
+``update`` modifiers.
 
 .. _updateMany-example-update-with-write-concern:
 
@@ -248,8 +210,7 @@ Given a three member replica set, the following operation specifies a
           { $inc: { "violations" : 3}, $set: { "Closed" : true } },
           { w: "majority", wtimeout: 100 }
       );
-   }
-   catch (e) {
+   } catch (e) {
       print(e);
    }
 

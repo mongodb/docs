@@ -2,35 +2,17 @@
 .. _index-creation-operations:
 .. _index-operations:
 
-==============
-Index Creation
-==============
+===========
+Index Build
+===========
 
 .. default-domain:: mongodb
 
-MongoDB provides several options that *only* affect the creation of
-the index. Specify these options in a document as the second argument
-to the :method:`db.collection.createIndex()` method. This section
-describes the uses of these creation options and their behavior.
-
-.. related::
-
-   Some options that you can specify to
-   :method:`~db.collection.createIndex()` options control the
-   :doc:`properties of the index </core/index-properties>`, which are
-   *not* index creation options. For example, the :doc:`unique
-   </core/index-unique>` option affects the behavior of the index
-   after creation.
-
-   For a detailed description of MongoDB's index types, see
-   :doc:`/core/index-types` and :doc:`/core/index-properties` for
-   related documentation.
-
-.. index:: index; background creation
-.. _index-creation-background:
-
-Background Construction
------------------------
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 By default, creating an index blocks all other operations on a
 database. When building an index on a collection, the database that
@@ -38,6 +20,12 @@ holds the collection is unavailable for read or write operations until
 the index build completes. Any operation that requires a read or write
 lock on all databases (e.g. :command:`listDatabases`) will wait for the
 foreground index build to complete.
+
+.. index:: index; background creation
+.. _index-creation-background:
+
+Background Construction
+-----------------------
 
 For potentially long running index building operations, consider the
 ``background`` operation so that the MongoDB database remains available
@@ -67,10 +55,6 @@ than one index in the background concurrently.
 .. versionchanged:: 2.4
    Before 2.4, a :program:`mongod` instance could only build one
    background index per database at a time.
-
-.. versionchanged:: 2.2
-   Before 2.2, a single :program:`mongod` instance could only build
-   one index at a time.
 
 Background indexing operations run in the background so that other database
 operations can run while creating the index. However, the :program:`mongo`
@@ -125,6 +109,7 @@ with an error.
 To start the :program:`mongod` after a failed index build, use the
 :setting:`storage.indexBuildRetry` or :option:`--noIndexBuildRetry
 <mongod --noIndexBuildRetry>` to skip the index build on start up.
+
 .. _index-creation-building-indexes-on-secondaries:
 
 Building Indexes on Secondaries
@@ -165,8 +150,6 @@ building indexes on secondaries.
 Index Names
 -----------
 
-.. default-domain:: mongodb
-
 The default name for an index is the concatenation of the indexed keys
 and each key's direction in the index, 1 or -1.
 
@@ -193,3 +176,42 @@ default name.
 
 To view the name of an index, use the :method:`getIndexes()
 <db.collection.getIndexes()>` method.
+
+View Index Build Operations
+---------------------------
+
+To see the status of an index build operation, you can use the
+:method:`db.currentOp()` method in the :program:`mongo` shell. To
+filter the current operations for index creation operations, see
+:ref:`currentOp-index-creation` for an example.
+
+The :data:`~currentOp.msg` field will include the percent of the build
+that is complete.
+
+Terminate Index Build Operation
+-------------------------------
+
+To terminate an ongoing index build, use the :method:`db.killOp()`
+method in the :program:`mongo` shell. For index builds, the effects of
+:method:`db.killOp()` may not be immediate and may occur well after
+much of the index build operation has completed.
+
+You cannot terminate a *replicated* index build on secondary members
+of a replica set. To minimize the impact of building an index on
+replica sets, see :doc:`/tutorial/build-indexes-on-replica-sets`.
+
+.. versionchanged:: 2.4
+
+   Before MongoDB 2.4, you could *only* terminate *background* index
+   builds. After 2.4, you can terminate both *background* index builds
+   and foreground index builds.
+
+.. seealso::
+   :method:`db.currentOp()`, :method:`db.killOp()`
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/build-indexes-on-replica-sets

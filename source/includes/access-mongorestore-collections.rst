@@ -1,14 +1,15 @@
-On systems running with :setting:`~security.authorization`, a user must
-have access that includes the :authrole:`readWrite` role for each
-database being restored.
+To restore data to a MongoDB deployment that has :doc:`access control
+</core/authorization>` enabled, the :authrole:`restore` role provides
+access to restore any database if the backup data does not include
+:data:`system.profile <<database>.system.profile>` collection data.
 
-The :authrole:`readWriteAnyDatabase` role and the :authrole:`restore`
-role each provide access to restore any database. If running
-:program:`mongorestore` with :option:`--oplogReplay`, however, neither
-role is sufficient. Instead, create a :ref:`user-defined role
-<create-user-defined-role>` that has :authaction:`anyAction` on
-:ref:`resource-anyresource` and grant only to users who must run
-:program:`mongorestore` with :option:`--oplogReplay`.
+.. include:: /includes/fact-restore-role-system.profile.rst
+
+If running :program:`mongorestore` with :option:`--oplogReplay`,
+additional privilege :ref:`user-defined role <create-user-defined-role>` that
+has :authaction:`anyAction` on :ref:`resource-anyresource` and grant
+only to users who must run :program:`mongorestore` with
+:option:`--oplogReplay`.
 
 .. COMMENT per the following commit, choosing the anyAction/anyResource
    over the __system role.

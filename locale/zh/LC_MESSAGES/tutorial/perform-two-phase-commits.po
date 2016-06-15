@@ -16,11 +16,11 @@ msgstr ""
 msgid "Perform Two Phase Commits"
 msgstr "执行两个阶段的提交"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:8
+#: ../source/tutorial/perform-two-phase-commits.txt:14
 msgid "Synopsis"
 msgstr "概要"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:10
+#: ../source/tutorial/perform-two-phase-commits.txt:16
 msgid ""
 "This document provides a pattern for doing multi-document updates or \"multi-"
 "document transactions\" using a two-phase commit approach for writing data "
@@ -31,11 +31,11 @@ msgstr ""
 "阶段提交方法把数据写到多个文档中。除此之外，你可以扩展这个过程以提供一个 :"
 "ref:`rollback-like <2-phase-commits-rollback>` f功能。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:17
+#: ../source/tutorial/perform-two-phase-commits.txt:23
 msgid "Background"
 msgstr "背景"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:19
+#: ../source/tutorial/perform-two-phase-commits.txt:25
 msgid ""
 "Operations on a single :term:`document` are always atomic with MongoDB "
 "databases; however, operations that involve multiple documents, which are "
@@ -48,7 +48,7 @@ msgstr ""
 "档事务\" 的包含多个文档的操作并不是原子的。由于文档可能会相当复杂并且包含多"
 "个 \"嵌套的\" 文档，单文档原子性为许多使用情况提供了必要的支持。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:26
+#: ../source/tutorial/perform-two-phase-commits.txt:32
 msgid ""
 "Despite the power of single-document atomic operations, there are cases that "
 "require multi-document transactions. When executing a transaction composed "
@@ -57,7 +57,7 @@ msgstr ""
 "尽管当文档原子操作很强大，但是仍然有需要多文档事务的情况。当执行一个由连续操"
 "作组成的事务时，某些问题出现了，比如："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:30
+#: ../source/tutorial/perform-two-phase-commits.txt:36
 msgid ""
 "Atomicity: if one operation fails, the previous operation within the "
 "transaction must \"rollback\" to the previous state (i.e. the \"nothing,\" "
@@ -66,7 +66,7 @@ msgstr ""
 "原子性：如果一个操作失败，事务内的之前的操作必须 \" 回滚 \"到之前的状态（就"
 "是 \"all or nothing\" 里面的 \"nothing\"）。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:34
+#: ../source/tutorial/perform-two-phase-commits.txt:40
 msgid ""
 "Consistency: if a major failure (i.e. network, hardware) interrupts the "
 "transaction, the database must be able to recover a consistent state."
@@ -74,7 +74,7 @@ msgstr ""
 "一致性：如果一个严重的故障（比如网络或者硬件）打断了事务，数据库必须可以恢复"
 "到一致的状态。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:38
+#: ../source/tutorial/perform-two-phase-commits.txt:44
 msgid ""
 "For situations that require multi-document transactions, you can implement "
 "two-phase commit in your application to provide support for these kinds of "
@@ -88,7 +88,7 @@ msgstr ""
 "前的状态是 :ref:`recoverable （可恢复的）<2-phase-commits-rollback>` 。然而，"
 "在执行过程中，文档可以展示未确定的（事务提交之前的）数据和状态。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:48
+#: ../source/tutorial/perform-two-phase-commits.txt:54
 msgid ""
 "Because only single-document operations are atomic with MongoDB, two-phase "
 "commits can only offer transaction-*like* semantics. It is possible for "
@@ -99,15 +99,15 @@ msgstr ""
 "* 事务的语义。对于应用来说在两阶段提交期间在中间点返回中间的数据或者回滚是有"
 "可能的。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:54
+#: ../source/tutorial/perform-two-phase-commits.txt:60
 msgid "Pattern"
 msgstr "模型"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:57
+#: ../source/tutorial/perform-two-phase-commits.txt:63
 msgid "Overview"
 msgstr "概述"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:59
+#: ../source/tutorial/perform-two-phase-commits.txt:65
 msgid ""
 "Consider a scenario where you want to transfer funds from account ``A`` to "
 "account ``B``. In a relational database system, you can subtract the funds "
@@ -119,31 +119,31 @@ msgstr ""
 "以在一个多语句事务内从 ``A`` 账户上减去钱并且为 ``B`` 账户添加上钱。在MongoDB"
 "里，你可以模仿两阶段提交以达到一个类似的结果。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:65
+#: ../source/tutorial/perform-two-phase-commits.txt:71
 msgid "The examples in this tutorial use the following two collections:"
 msgstr "这个教程里的例子使用下面的两个集合："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:67
+#: ../source/tutorial/perform-two-phase-commits.txt:73
 msgid "A collection named ``accounts`` to store account information."
 msgstr "命名为 ``accounts`` 的集合存储账户信息。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:69
+#: ../source/tutorial/perform-two-phase-commits.txt:75
 msgid ""
 "A collection named ``transactions`` to store information on the fund "
 "transfer transactions."
 msgstr "命名为 ``transactions`` 的集合存储有关转账事务的信息。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:73
+#: ../source/tutorial/perform-two-phase-commits.txt:79
 msgid "Initialize Source and Destination Accounts"
 msgstr "初始化源账户和目的账户"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:75
+#: ../source/tutorial/perform-two-phase-commits.txt:81
 msgid ""
 "Insert into the ``accounts`` collection a document for account ``A`` and a "
 "document for account ``B``."
 msgstr "在  ``accounts`` 集合里分别为账户 ``A`` 和账户 ``B`` 插入一个文档。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:87
+#: ../source/tutorial/perform-two-phase-commits.txt:93
 msgid ""
 "The operation returns a :method:`BulkWriteResult()` object with the status "
 "of the operation. Upon successful insert, the :method:`BulkWriteResult()` "
@@ -153,11 +153,11 @@ msgstr ""
 "后， :method:`BulkWriteResult()` 的 :data:`~BulkWriteResult.nInserted` 字段设"
 "置为 ``2`` 。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:95
+#: ../source/tutorial/perform-two-phase-commits.txt:101
 msgid "Initialize Transfer Record"
 msgstr "初始化转账记录"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:97
+#: ../source/tutorial/perform-two-phase-commits.txt:103
 msgid ""
 "For each fund transfer to perform, insert into the ``transactions`` "
 "collection a document with the transfer information. The document contains "
@@ -166,7 +166,7 @@ msgstr ""
 "对于每一次转账的完成，往 ``transactions`` 集合里插入一条包含转账信息的文档。"
 "这个文档包含如下字段："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:101
+#: ../source/tutorial/perform-two-phase-commits.txt:107
 msgid ""
 "``source`` and ``destination`` fields, which refer to the ``_id`` fields "
 "from the ``accounts`` collection,"
@@ -174,7 +174,7 @@ msgstr ""
 "``source`` 和 ``destination`` 字段，与 ``accounts`` 集合里的 ``_id`` 字段相关"
 "联的。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:104
+#: ../source/tutorial/perform-two-phase-commits.txt:110
 msgid ""
 "``value`` field, which specifies the amount of transfer affecting the "
 "``balance`` of the ``source`` and ``destination`` accounts,"
@@ -182,7 +182,7 @@ msgstr ""
 "``value`` 字段，指定影响 ``source`` 账户和 ``destination`` 账户 ``balance`` "
 "的传输量，"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:107
+#: ../source/tutorial/perform-two-phase-commits.txt:113
 msgid ""
 "``state`` field, which reflects the current state of the transfer. The "
 "``state`` field can have the value of ``initial``, ``pending``, ``applied``, "
@@ -191,11 +191,11 @@ msgstr ""
 "``state`` 字段，反应传输的当前状态。``state`` 字段可以具有值 ``initial`` ， "
 "``pending`` ， ``applied`` ， ``done`` ， ``canceling`` 和 ``canceled`` 。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:111
+#: ../source/tutorial/perform-two-phase-commits.txt:117
 msgid "``lastModified`` field, which reflects last modification date."
 msgstr "``lastModified`` 字段，反映了最后修改的日期。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:113
+#: ../source/tutorial/perform-two-phase-commits.txt:119
 msgid ""
 "To initialize the transfer of ``100`` from account ``A`` to account ``B``, "
 "insert into the ``transactions`` collection a document with the transfer "
@@ -206,7 +206,7 @@ msgstr ""
 "合里插入一个包含转账信息的文档，设置交易 ``state`` 为 ``\"initial\"``，并且 "
 "``lastModified`` 字段设置为当前日期："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:124
+#: ../source/tutorial/perform-two-phase-commits.txt:130
 msgid ""
 "The operation returns a :method:`WriteResult()` object with the status of "
 "the operation. Upon successful insert, the :method:`WriteResult()` object "
@@ -216,15 +216,15 @@ msgstr ""
 "method:`WriteResult()` 对象的 :data:`~WriteResult.nInserted` 被设置为 "
 "``1``  。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:129
+#: ../source/tutorial/perform-two-phase-commits.txt:135
 msgid "Transfer Funds Between Accounts Using Two-Phase Commit"
 msgstr "使用两阶段提交在账户之间转移资金"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:136
+#: ../source/tutorial/perform-two-phase-commits.txt:142
 msgid "Recovering from Failure Scenarios"
 msgstr "从失败场景中恢复"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:138
+#: ../source/tutorial/perform-two-phase-commits.txt:144
 msgid ""
 "The most important part of the transaction procedure is not the prototypical "
 "example above, but rather the possibility for recovering from the various "
@@ -236,11 +236,11 @@ msgstr ""
 "各样的失败场景中恢复的可能性。这一部分展现了可能的失败的概述并且提供从这些种"
 "事件中恢复的步骤。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:145
+#: ../source/tutorial/perform-two-phase-commits.txt:151
 msgid "Recovery Operations"
 msgstr "恢复操作"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:147
+#: ../source/tutorial/perform-two-phase-commits.txt:153
 msgid ""
 "The two-phase commit pattern allows applications running the sequence to "
 "resume the transaction and arrive at a consistent state. Run the recovery "
@@ -250,13 +250,13 @@ msgstr ""
 "两阶段提交模式允许应用运行序列以恢复事务，并且达到一致的状态。在应用启动的时"
 "候运行恢复操作，并且如果可能的话每隔一段时间，捕捉一些未完成的事务。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:152
+#: ../source/tutorial/perform-two-phase-commits.txt:158
 msgid ""
 "The time required to reach a consistent state depends on how long the "
 "application needs to recover each transaction."
 msgstr "需要达到一致状态的时间取决于这个应用恢复每一个事务花费的时间。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:155
+#: ../source/tutorial/perform-two-phase-commits.txt:161
 msgid ""
 "The following recovery procedures uses the ``lastModified`` date as an "
 "indicator of whether the pending transaction requires recovery; "
@@ -269,12 +269,12 @@ msgstr ""
 "识；特别地，如果 pending 或者 applied 事务在最后的30分钟内还没有被更新，程序"
 "将判定这些事务需要恢复。你可以使用不同的条件来做这个判断。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:163
-#: ../source/tutorial/perform-two-phase-commits.txt:216
+#: ../source/tutorial/perform-two-phase-commits.txt:169
+#: ../source/tutorial/perform-two-phase-commits.txt:222
 msgid "Transactions in Pending State"
 msgstr "处于 Pending 状态的事务"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:165
+#: ../source/tutorial/perform-two-phase-commits.txt:171
 msgid ""
 "To recover from failures that occur after step \"`Update transaction state "
 "to pending.`_\" but before \"`Update transaction state to applied.`_\" step,"
@@ -285,16 +285,16 @@ msgstr ""
 "transaction state to applied.`_\" 步骤之前发生的错误恢复，请从 "
 "``transactions`` 集合中检索出一个 pending 的事务来恢复："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:177
+#: ../source/tutorial/perform-two-phase-commits.txt:183
 msgid "And resume from step \"`Apply the transaction to both accounts.`_\""
 msgstr "从步骤 \"`Apply the transaction to both accounts.`_\" 重新开始执行"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:180
-#: ../source/tutorial/perform-two-phase-commits.txt:207
+#: ../source/tutorial/perform-two-phase-commits.txt:186
+#: ../source/tutorial/perform-two-phase-commits.txt:213
 msgid "Transactions in Applied State"
 msgstr "处于 Applied 状态的事务"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:182
+#: ../source/tutorial/perform-two-phase-commits.txt:188
 msgid ""
 "To recover from failures that occur after step \"`Update transaction state "
 "to applied.`_\" but before \"`Update transaction state to done.`_\" step, "
@@ -305,18 +305,19 @@ msgstr ""
 "transaction state to done.`_\" 步骤之前发生的错误恢复，请从 ``transactions`` "
 "集合中检索出一个 applied 的事务来恢复："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:194
-msgid ""
-"And resume from \"`Update both accounts' list of pending transactions.`_\""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:200
+msgid "And resume from \"`Update both accounts' list of pending transactions.`_\""
+
 msgstr ""
 "从步骤  \"`Update both accounts' list of pending transactions.`_\"重新开始执"
 "行"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:200
+#: ../source/tutorial/perform-two-phase-commits.txt:206
 msgid "Rollback Operations"
 msgstr "回滚操作"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:202
+#: ../source/tutorial/perform-two-phase-commits.txt:208
 msgid ""
 "In some cases, you may need to \"roll back\" or undo a transaction; e.g., if "
 "the application needs to \"cancel\" the transaction or if one of the "
@@ -326,7 +327,7 @@ msgstr ""
 "中一个账户不存在或者停止在交易过程中存在（感觉不太贴切，贴出原文：or if one "
 "of the accounts does not exist or stops existing during the transaction.）。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:209
+#: ../source/tutorial/perform-two-phase-commits.txt:215
 msgid ""
 "After the \"`Update transaction state to applied.`_\" step, you should "
 "**not** roll back the transaction. Instead, complete that transaction and "
@@ -338,7 +339,7 @@ msgstr ""
 "务。取而代之地，完成那个事务并且创建一个新的事务并通过切换源字段和目的字段的"
 "值来冲销交易记录。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:218
+#: ../source/tutorial/perform-two-phase-commits.txt:224
 msgid ""
 "After the \"`Update transaction state to pending.`_\" step, but before the "
 "\"`Update transaction state to applied.`_\" step, you can rollback the "
@@ -347,11 +348,11 @@ msgstr ""
 "在 \"`Update transaction state to pending.`_\" 步骤之后并且 \"`Update "
 "transaction state to applied.`_\" 步骤之前，你可以使用下面的步骤回滚事务："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:227
+#: ../source/tutorial/perform-two-phase-commits.txt:233
 msgid "Multiple Applications"
 msgstr "多个应用"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:229
+#: ../source/tutorial/perform-two-phase-commits.txt:235
 msgid ""
 "Transactions exist, in part, so that multiple applications can create and "
 "run operations concurrently without causing data inconsistency or conflicts. "
@@ -363,7 +364,7 @@ msgstr ""
 "或者冲突。在我们的过程中，想要更新或者检索交易文档，更新条件则包含一个关于 "
 "``state`` 字段的条件以避免被多个应用重复应用交易记录。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:236
+#: ../source/tutorial/perform-two-phase-commits.txt:242
 msgid ""
 "For example, applications ``App1`` and ``App2`` both grab the same "
 "transaction, which is in the ``initial`` state. ``App1`` applies the whole "
@@ -381,7 +382,7 @@ msgstr ""
 "data:`~WriteResult.nModified` 的值将是 ``0`` 。这是向 ``App2`` 发出一个信号："
 "返回到第一步对不同的交易记录重新开始这个过程。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:246
+#: ../source/tutorial/perform-two-phase-commits.txt:252
 msgid ""
 "When multiple applications are running, it is crucial that only one "
 "application can handle a given transaction at any point in time. As such, in "
@@ -397,7 +398,7 @@ msgstr ""
 "method:`~db.collection.findAndModify()` 方法在一步内修改交易记录并且获取此记"
 "录。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:268
+#: ../source/tutorial/perform-two-phase-commits.txt:274
 msgid ""
 "Amend the transaction operations to ensure that only applications that match "
 "the identifier in the ``application`` field apply the transaction."
@@ -405,7 +406,7 @@ msgstr ""
 "改进交易操作以保证仅仅与 ``application`` 字段中标识符相匹配的应用程序才能应用"
 "该交易记录。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:271
+#: ../source/tutorial/perform-two-phase-commits.txt:277
 msgid ""
 "If the application ``App1`` fails during transaction execution, you can use "
 "the :ref:`recovery procedures <2-phase-commits-recovery>`, but applications "
@@ -418,11 +419,11 @@ msgstr ""
 "易之前 \"拥有\" 这个交易记录。例如查找并且继续挂起的工作，使用一个类似于下面"
 "的查询："
 
-#: ../source/tutorial/perform-two-phase-commits.txt:293
+#: ../source/tutorial/perform-two-phase-commits.txt:299
 msgid "Using Two-Phase Commits in Production Applications"
 msgstr "在生产应用中使用两阶段提交"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:295
+#: ../source/tutorial/perform-two-phase-commits.txt:301
 msgid ""
 "The example transaction above is intentionally simple. For example, it "
 "assumes that it is always possible to roll back operations to an account and "
@@ -431,7 +432,7 @@ msgstr ""
 "上面的交易记录是有意的简单。例如，假设总是对一个账户进行回滚操作，账户余额有"
 "可能为负值。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:299
+#: ../source/tutorial/perform-two-phase-commits.txt:305
 msgid ""
 "Production implementations would likely be more complex. Typically, accounts "
 "need information about current balance, pending credits, and pending debits."
@@ -439,9 +440,19 @@ msgstr ""
 "生产实现可能会更复杂。通常情况下，账户需要当前余额，待定积分（pending "
 "credit）和挂起的借方（pending debits）信息等。"
 
-#: ../source/tutorial/perform-two-phase-commits.txt:303
+#: ../source/tutorial/perform-two-phase-commits.txt:0
+msgid "On this page"
+msgstr ""
+
+#: ../source/tutorial/perform-two-phase-commits.txt:309
 msgid ""
 "For all transactions, ensure that you use the appropriate level of "
-":doc:`write concern </core/write-concern>` for your deployment."
+":doc:`write concern </reference/write-concern>` for your deployment."
 msgstr ""
-"对于所有的交易，确保为你的部署使用一个级别的合适的 :term:`write concern` 。"
+
+
+#~ msgid ""
+#~ "For all transactions, ensure that you use the appropriate level of "
+#~ ":doc:`write concern </core/write-concern>` for your deployment."
+#~ msgstr ""
+

@@ -1,0 +1,145 @@
+==============
+Manage Indexes
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following procedures provides some common procedures for managing
+existing indexes. For instructions on creating indexes, refer to the
+specific index type pages.
+
+View Existing Indexes
+---------------------
+
+.. index:: index; list indexes
+.. _index-list-indexes-for-collection:
+
+List all Indexes on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return a list of all indexes on a collection, use the
+:method:`db.collection.getIndexes()` method or a similar
+:api:`method for your driver <>`.
+
+For example, to view all indexes on the ``people`` collection:
+
+.. code-block:: javascript
+
+   db.people.getIndexes()
+
+.. index:: index; list indexes
+.. _index-list-indexes-for-database:
+
+List all Indexes for a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To list all indexes on all collections in a database, you
+can use the following operation in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   db.getCollectionNames().forEach(function(collection) {
+      indexes = db[collection].getIndexes();
+      print("Indexes for " + collection + ":");
+      printjson(indexes);
+   });
+
+MongoDB 3.0 deprecates direct access to the ``system.indexes``
+collection.
+
+.. |things| replace:: collections and indexes
+.. |method| replace:: :method:`db.getCollectionNames()` and :method:`db.collection.getIndexes()`
+
+.. include:: /includes/fact-wiredtiger-compatibility-with-old-shells.rst
+
+Remove Indexes
+--------------
+
+To remove an index from a collection, you can use the
+:method:`db.collection.dropIndex()` method. To rebuild indexes,
+see :ref:`rebuild-indexes` instead.
+
+Remove a Specific Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove an index, use the :method:`db.collection.dropIndex()` method.
+
+For example, the following operation removes an ascending index on the
+``tax-id`` field in the ``accounts`` collection:
+
+.. code-block:: javascript
+
+   db.accounts.dropIndex( { "tax-id": 1 } )
+
+The operation returns a document with the status of the operation:
+
+.. code-block:: javascript
+
+   { "nIndexesWas" : 3, "ok" : 1 }
+
+Where the value of ``nIndexesWas`` reflects the number of indexes
+*before* removing this index. 
+
+For :doc:`text </core/index-text>` indexes, pass the index name to the
+:method:`db.collection.dropIndex()` method. See :ref:`drop-text-index`
+for details.
+
+Remove All Indexes
+~~~~~~~~~~~~~~~~~~
+
+You can also use the :method:`db.collection.dropIndexes()` to remove
+*all* indexes, except for the :ref:`_id index <index-type-id>` from a
+collection.
+
+These shell helpers provide wrappers around the
+:dbcommand:`dropIndexes` :term:`database command`. Your :doc:`client
+library </applications/drivers>` may have a different or additional
+interface for these operations.
+
+Modify an Index
+---------------
+
+To modify an existing index, you need to drop and recreate the index
+with the exception of m TTL indexes.  
+
+If you need to rebuild indexes for a collection you can use the
+:method:`db.collection.reIndex()` method to rebuild all indexes on a
+collection in a single operation.  This operation drops all indexes,
+including the :ref:`_id index <index-type-id>`, and then rebuilds all
+indexes.
+
+.. _rebuild-indexes:
+
+Rebuild Indexes
+---------------
+
+If you need to rebuild indexes for a collection you can use the
+:method:`db.collection.reIndex()` method to rebuild all indexes on a
+collection in a single operation. This operation drops all indexes for
+a collection, including the ``_id`` index, and then rebuilds all
+indexes.
+
+.. |cmd-name| replace:: :method:`db.collection.reIndex()`
+
+.. include:: /includes/note-reindex-impact-on-replica-sets.rst
+
+.. include:: /includes/important-reindex-locking.rst
+
+.. |limit| replace:: :limit:`Maximum Index Key Length <Index Key>`
+
+.. code-block:: javascript
+
+   db.accounts.reIndex()
+
+This shell helper provides a wrapper around the :dbcommand:`reIndex`
+:term:`database command`. Your :doc:`client library </applications/drivers>`
+may have a different or additional interface for this operation.
+
+.. include:: /includes/note-build-indexes-on-replica-sets.rst
+

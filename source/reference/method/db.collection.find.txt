@@ -4,6 +4,12 @@ db.collection.find()
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 Definition
 ----------
 
@@ -21,40 +27,105 @@ Definition
       "returns documents," the method is actually returning a cursor to
       the documents.
 
-      If :method:`~db.collection.find()` includes a ``projection`` argument, the
-      matching documents contain only the ``projection`` fields and
-      the ``_id`` field. You can optionally exclude the ``_id``
-      field.
+Behavior
+--------
 
-      Executing :method:`find() <db.collection.find()>` directly in the
-      :program:`mongo` shell automatically iterates the cursor to
-      display up to the first 20 documents. Type ``it`` to continue
-      iteration.
+.. _find-projection:
 
-      To access the returned documents with a driver, use the
-      appropriate cursor handling mechanism for the :doc:`driver
-      language </applications/drivers>`.
+Projection
+~~~~~~~~~~
 
-The ``projection`` parameter takes a document of the following form:
+The ``projection`` parameter determines which fields are returned in
+the matching documents. The ``projection`` parameter takes a document
+of the following form:
 
 .. code-block:: javascript
 
-   { field1: <boolean>, field2: <boolean> ... }
+   { field1: <value>, field2: <value> ... }
 
-The ``<boolean>`` value can be any of the following:
+The ``<value>`` can be any of the following:
 
-- ``1`` or ``true`` to include the field. The :method:`find()
-  <db.collection.find()>` method always includes the :term:`_id` field
-  even if the field is not explicitly stated to return in the
-  :term:`projection` parameter.
+- ``1`` or ``true`` to include the field in the return documents.
 
 - ``0`` or ``false`` to exclude the field.
+
+- Expression using a :doc:`/reference/operator/projection`.
+
+.. note::
+
+   For the ``_id`` field, you do not have to explicitly specify ``_id:
+   1`` to return the ``_id`` field. The :method:`find()
+   <db.collection.find()>` method always returns the :term:`_id` field
+   unless you specify ``_id: 0`` to suppress the field.
 
 A ``projection`` *cannot* contain *both* include and exclude
 specifications, except for the exclusion of the ``_id`` field. In
 projections that *explicitly include* fields, the ``_id`` field is the
 only field that you can *explicitly exclude*.
 
+Cursor Handling
+~~~~~~~~~~~~~~~
+
+Executing :method:`db.collection.find()` in the :program:`mongo` shell
+automatically iterates the cursor to display up to the first 20
+documents. Type ``it`` to continue iteration.
+
+To access the returned documents with a driver, use the appropriate
+cursor handling mechanism for the :doc:`driver language
+</applications/drivers>`.
+
+Read Concern
+~~~~~~~~~~~~
+
+To specify the :doc:`read concern </reference/read-concern>` for
+:method:`db.collection.find()`, use the :method:`cursor.readConcern()`
+method.
+
+.. _type-bracketing:
+
+Type Bracketing
+~~~~~~~~~~~~~~~
+
+MongoDB treats some data types as equivalent for comparison purposes.
+For instance, numeric types undergo conversion before comparison. For 
+most data types, however,
+:doc:`comparison operators</reference/operator/query-comparison>` only 
+perform comparisons on documents where the 
+:ref:`BSON type <bson-types-comparison-order>` of the 
+target field matches the type of the query operand. Consider the 
+following collection:
+
+.. code-block:: javascript
+
+   { "_id": "apples", "qty": 5 }
+   { "_id": "bananas", "qty": 7 }
+   { "_id": "oranges", "qty": { "in stock": 8, "ordered": 12 } }
+   { "_id": "avocados", "qty": "fourteen" }
+	
+The following query uses :query:`$gt` to return documents where the
+value of ``qty`` is greater than ``4``.
+
+.. code-block:: javascript
+
+   db.collection.find( { qty: { $gt: 4 } } )
+
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id": "apples", "qty": 5 }
+   { "_id": "bananas", "qty": 7 }
+	
+The document with ``_id`` equal to ``"avocados"`` is not 
+returned because its ``qty`` value is of type ``string`` while the 
+:query:`$gt` operand is of type ``integer``.
+
+The document with ``_id`` equal to ``"oranges"`` is not returned 
+because its ``qty`` value is of type ``object``. 
+
+.. note::
+   To enforce data types in a collection, use 
+   :doc:`/core/document-validation`.
 
 Examples
 --------
@@ -375,14 +446,17 @@ array:
 Iterate the Returned Cursor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :method:`~db.collection.find()` method returns a :term:`cursor` to
-the results. In the :program:`mongo` shell, if the returned cursor is
-not assigned to a variable using the ``var`` keyword, the cursor is
-automatically iterated up to 20 times to access up to the first 20
-documents that match the query. You can use the
-``DBQuery.shellBatchSize`` to change the number of iterations. See
-:ref:`cursor-flags` and :ref:`cursor-behaviors`. To iterate manually,
-assign the returned cursor to a variable using the ``var`` keyword.
+The :method:`~db.collection.find()` method returns a
+:ref:`cursor <read-operations-cursors>` to the results.
+
+In the :program:`mongo` shell, if the returned cursor is not assigned to a
+variable using the ``var`` keyword, the cursor is automatically iterated to
+access up to the first 20 documents that match the query. You can set the
+``DBQuery.shellBatchSize`` variable to change the number of automatically
+iterated documents.
+
+To manually iterate over the results, assign the returned cursor to a variable
+with the ``var`` keyword, as shown in the following sections.
 
 With Variable Name
 ``````````````````

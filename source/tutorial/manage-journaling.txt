@@ -4,174 +4,31 @@ Manage Journaling
 
 .. default-domain:: mongodb
 
-MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
-guarantee :doc:`write operation </core/write-operations>` durability.
-The MMAPv1 storage engine also requires the `journal` in order to provide
-crash resiliency.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
-The WiredTiger storage engine does not require journaling to guarantee a
-consistent state after a crash. The database will be restored to the last
-consistent :ref:`checkpoint <storage-wiredtiger-checkpoints>` during recovery.
-However, if MongoDB exits unexpectedly in between checkpoints, journaling is
-required to recover writes that occurred after the last checkpoint.
-
-With journaling enabled, if :program:`mongod` stops unexpectedly, the program
-can recover everything written to the journal. MongoDB will re-apply the write
-operations on restart and maintain a consistent state. By default, the greatest
-extent of lost writes, i.e., those not made to the journal, are those made in
-the last 100 milliseconds, plus the time it takes to perform the actual journal
-writes. See :setting:`~storage.journal.commitIntervalMs` for more information
-on the default.
+.. include:: /includes/extracts/journaling-intro.rst
 
 Procedures
 ----------
 
-Enable Journaling
-~~~~~~~~~~~~~~~~~
+.. include:: /includes/extracts/journaling-enable-journaling.rst
 
-.. versionchanged:: 2.0
-   For 64-bit builds of :program:`mongod`, journaling is enabled by default.
+.. include:: /includes/extracts/journaling-disable-journaling.rst
 
-To enable journaling, start :program:`mongod` with the
-:option:`--journal <mongod --journal>` command line option.
-
-Disable Journaling
-~~~~~~~~~~~~~~~~~~
-
-.. warning::
-
-   Do not disable journaling on production systems. When using the
-   MMAPv1 storage engine *without* a journal, if your
-   :program:`mongod` instance stops without shutting down cleanly
-   unexpectedly for any reason, (e.g. power failure) and you are
-   not running with journaling, then you must recover from an
-   unaffected :term:`replica set` member or backup, as described in
-   :doc:`repair  </tutorial/recover-data-following-unexpected-shutdown>`.
-
-To disable journaling, start :program:`mongod` with the
-:option:`--nojournal <mongod --nojournal>` command line option.
-
-Get Commit Acknowledgment
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can get commit acknowledgment with the
-:ref:`write-concern` and the ``j`` option. For details, see
-:ref:`write-concern-operation`.
+.. include:: /includes/extracts/journaling-get-commit-acknowledgment.rst
 
 .. _journaling-avoid-preallocation-lag:
 
-Avoid Preallocation Lag for MMAPv1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/extracts/journaling-avoid-preallocation-lag-mmapv1.rst
 
-With the :doc:`MMAPv1 storage engine </core/mmapv1>`, MongoDB may
-preallocate journal files if the :program:`mongod` process determines
-that it is more efficient to preallocate journal files than create new
-journal files as needed.
-
-Depending on your filesystem, you might experience a preallocation lag
-the first time you start a :program:`mongod` instance with journaling
-enabled. The amount of time required to pre-allocate files might last
-several minutes; during this time, you will not be able to connect to
-the database. This is a one-time preallocation and does not occur with
-future invocations.
-
-To avoid :ref:`preallocation lag <journaling-journal-files>`, you can
-preallocate files in the journal directory by copying them from another
-instance of :program:`mongod`.
-
-Preallocated files do not contain data. It is safe to later remove them.
-But if you restart :program:`mongod` with journaling, :program:`mongod`
-will create them again.
-
-.. example:: The following sequence preallocates journal files for an
-   instance of :program:`mongod` running on port ``27017`` with a database
-   path of ``/data/db``.
-
-   For demonstration purposes, the sequence starts by creating a set of
-   journal files in the usual way.
-
-   1. Create a temporary directory into which to create a set of journal
-      files:
-
-      .. code-block:: sh
-
-         mkdir ~/tmpDbpath
-
-   #. Create a set of journal files by staring a :program:`mongod`
-      instance that uses the temporary directory:
-
-      .. code-block:: sh
-
-         mongod --port 10000 --dbpath ~/tmpDbpath --journal
-
-   #. When you see the following log output, indicating
-      :program:`mongod` has the files, press CONTROL+C to stop the
-      :program:`mongod` instance:
-
-      .. code-block:: sh
-
-         [initandlisten] waiting for connections on port 10000
-
-   #. Preallocate journal files for the new instance of
-      :program:`mongod` by moving the journal files from the data directory
-      of the existing instance to the data directory of the new instance:
-
-      .. code-block:: sh
-
-         mv ~/tmpDbpath/journal /data/db/
-
-   #. Start the new :program:`mongod` instance:
-
-      .. code-block:: sh
-
-         mongod --port 27017 --dbpath /data/db --journal
-
-Monitor Journal Status
-~~~~~~~~~~~~~~~~~~~~~~
-
-Use the following commands and methods to monitor journal status:
-
-- :dbcommand:`serverStatus`
-
-  The :dbcommand:`serverStatus` command returns database status
-  information that is useful for assessing performance.
-
-- :dbcommand:`journalLatencyTest`
-
-  Use :dbcommand:`journalLatencyTest` to measure how long it takes on
-  your volume to write to the disk in an append-only fashion. You can
-  run this command on an idle system to get a baseline sync time for
-  journaling. You can also run this command on a busy system to see the
-  sync time on a busy system, which may be higher if the journal
-  directory is on the same volume as the data files.
-
-  The :dbcommand:`journalLatencyTest` command also provides a way to
-  check if your disk drive is buffering writes in its local cache. If
-  the number is very low (i.e., less than 2 milliseconds) and the drive
-  is non-SSD, the drive is probably buffering writes. In that case,
-  enable cache write-through for the device in your operating system,
-  unless you have a disk controller card with battery backed RAM.
+.. include:: /includes/extracts/journaling-monitor-journal-status.rst
 
 .. _journaling-journal-commit-interval:
 
-Change the Group Commit Interval for MMAPv1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/extracts/journaling-change-group-commit-interval-mmapv1.rst
 
-For the :doc:`MMAPv1 storage engine </core/mmapv1>`, you can set the
-group commit interval using the :option:`--journalCommitInterval
-<mongod --journalCommitInterval>` command line option. The allowed
-range is ``2`` to ``300`` milliseconds.
-
-Lower values increase the durability of the journal at the expense of
-disk performance.
-
-Recover Data After Unexpected Shutdown
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On a restart after a crash, MongoDB replays all journal files in the
-journal directory before the server becomes available. If MongoDB must
-replay journal files, :program:`mongod` notes these events in the log
-output.
-
-There is no reason to run :dbcommand:`repairDatabase` in these
-situations.
+.. include:: /includes/extracts/journaling-recover-data-unexpected-shutdown.rst

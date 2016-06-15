@@ -25,12 +25,3 @@ Access Control
 .. versionchanged:: 2.6
 
 .. include:: /includes/extracts/access-eval-eval.rst
-
-JavaScript Engine
-~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 2.4
-
-The V8 JavaScript engine, which became the default in 2.4, allows
-multiple JavaScript operations to execute at the same time. Prior to
-2.4, |object| executed in a single thread.

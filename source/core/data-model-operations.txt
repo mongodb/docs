@@ -4,6 +4,12 @@ Operational Factors and Data Models
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 Modeling application data for MongoDB depends on both the data itself,
 as well as the characteristics of MongoDB itself. For example,
 different data models may allow applications to use more efficient
@@ -13,9 +19,8 @@ distribute activity to a sharded cluster more effectively.
 These factors are *operational* or address requirements that arise
 outside of the application but impact the performance of MongoDB based
 applications. When developing a data model, analyze all of your
-application's :doc:`read operations </core/read-operations>` and
-:doc:`write operations </core/write-operations>` in conjunction with
-the following considerations.
+application's :doc:`read and write operations </crud>` in conjunction
+with the following considerations.
 
 .. _data-model-document-growth:
 
@@ -110,7 +115,7 @@ sorted results. MongoDB automatically creates a unique index on the
 
 As you create indexes, consider the following behaviors of indexes:
 
-- Each index requires at least 8 KB of data space.
+- Each index requires at least 8 kB of data space.
 
 - Adding an index has some negative performance impact for write
   operations. For collections with high write-to-read ratio, indexes
@@ -160,7 +165,7 @@ the following behaviors:
 
 - Each collection has a certain minimum overhead of a few kilobytes.
 
-- Each index, including the index on ``_id``, requires at least 8 KB of
+- Each index, including the index on ``_id``, requires at least 8 kB of
   data space.
 
 - For each :term:`database`, a single namespace file (i.e.
@@ -190,6 +195,99 @@ the following behaviors:
   from the :program:`mongo` shell. For impacts and considerations on
   running :method:`db.repairDatabase()`, see
   :dbcommand:`repairDatabase`.
+
+.. _faq-developers-embed-documents:
+
+Collection Contains Large Number of Small Documents
+---------------------------------------------------
+
+You should consider embedding for performance reasons if you have a
+collection with a large number of small documents. If you can group
+these small documents by some logical relationship *and* you frequently
+retrieve the documents by this grouping, you might consider
+"rolling-up" the small documents into larger documents that contain an
+array of embedded documents.
+
+"Rolling up" these small documents into logical groupings means that
+queries to retrieve a group of documents involve sequential reads and
+fewer random disk accesses. Additionally, "rolling up" documents and
+moving common fields to the larger document benefit the index on these
+fields. There would be fewer copies of the common fields *and* there
+would be fewer associated key entries in the corresponding index. See
+:doc:`/indexes` for more information on indexes.
+
+However, if you often only need to retrieve a subset of the documents
+within the group, then "rolling-up" the documents may not provide
+better performance. Furthermore, if small, separate documents represent
+the natural model for the data, you should maintain that model.
+
+.. _faq-small-documents:
+
+Storage Optimization for Small Documents
+----------------------------------------
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if all
+documents are just a few bytes, as might be the case if the documents
+in your collection only have one or two fields.
+
+Consider the following suggestions and strategies for optimizing
+storage utilization for these collections:
+
+- Use the ``_id`` field explicitly.
+
+  MongoDB clients automatically add an ``_id`` field to each document
+  and generate a unique 12-byte :term:`ObjectId` for the ``_id``
+  field. Furthermore, MongoDB always indexes the ``_id`` field. For
+  smaller documents this may account for a significant amount of
+  space.
+
+  To optimize storage use, users can specify a value for the ``_id`` field
+  explicitly when inserting documents into the collection. This
+  strategy allows applications to store a value in the ``_id`` field
+  that would have occupied space in another portion of the document.
+
+  You can store any value in the ``_id`` field, but because this value
+  serves as a primary key for documents in the collection, it must
+  uniquely identify them. If the field's value is not unique, then it
+  cannot serve as a primary key as there would be collisions in the
+  collection.
+
+- Use shorter field names.
+
+  .. note::
+
+     Shortening field names reduces expressiveness and does not provide
+     considerable benefit for larger documents and where document
+     overhead is not of significant concern. Shorter field names do not
+     reduce the size of indexes, because indexes have a predefined
+     structure.
+
+     In general, it is not necessary to use short field names.
+
+  MongoDB stores all field names in every document. For most
+  documents, this represents a small fraction of the space used by a
+  document; however, for small documents the field names may represent
+  a proportionally large amount of space. Consider a collection of
+  small documents that resemble the following:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  If you shorten the field named ``last_name`` to ``lname`` and the
+  field named ``best_score`` to ``score``, as follows, you could save 9
+  bytes per document.
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+- Embed documents.
+
+  In some cases you may want to embed documents in other documents and
+  save on the per-document overhead. See
+  :ref:`faq-developers-embed-documents`.
 
 Data Lifecycle Management
 -------------------------

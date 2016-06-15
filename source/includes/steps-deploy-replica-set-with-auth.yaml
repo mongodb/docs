@@ -1,156 +1,238 @@
-title: Start one member of the replica set.
 stepnum: 1
+title: Create a keyfile.
+ref: deploy-repset-generate-keyfile
 level: 4
-ref: start-first-replica-set-member
-content: |
-  This :program:`mongod`  should *not* enable :setting:`auth`.
----
-title: Create administrative users.
-stepnum: 2
-level: 4
-ref: create-administrative-users
 pre: |
-  The following operations will create two users: a user administrator
-  that will be able to create and modify users (``myUserAdmin``),
-  and a :authrole:`root` user (``siteRootAdmin``) that you will use to
-  complete the remainder of the tutorial:
+  .. include:: /includes/extracts/keyfile-intro-replica-set.rst
 action:
-  language: javascript
+  language: sh
   code: |
-    use admin
-    db.createUser( {
-        user: "myUserAdmin",
-        pwd: "<password>",
-        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
-      });
-    db.createUser( {
-        user: "siteRootAdmin",
-        pwd: "<password>",
-        roles: [ { role: "root", db: "admin" } ]
-      });
----
-title: Stop the ``mongod`` instance.
-stepnum: 3
-level: 4
-ref: stop-first-replica-set-member
----
-title: Create the key file to be used by each member of the replica set.
-stepnum: 4
-level: 4
-ref: generate-keyfile
-source:
-  file: steps-generate-key-file.yaml
-  ref: generate
----
-title: Copy the key file to each member of the replica set.
-stepnum: 5
-level: 4
-ref: copy-key-file
-content: |
-  Copy the ``mongodb-keyfile`` to all hosts where components of a
-  MongoDB deployment run. Set the permissions of these files to
-  ``600`` so that only the *owner* of the file can read or write this
-  file to prevent other users on the system from accessing the shared
-  secret.
----
-title: Start each member of the replica set with the appropriate options.
-level: 4
-stepnum: 6
-ref: start-mongod
-pre: |
-  For each member, start a :program:`mongod` and specify the key file and
-  the name of the replica set. Also specify other parameters as needed for
-  your deployment. For replication-specific parameters, see
-  :ref:`cli-mongod-replica-set` required by your deployment.
-
-  .. include:: /includes/fact-unique-replica-set-names.rst
-action:
-  - pre: |
-      The following example specifies parameters through the :option:`--keyFile`
-      and :option:`--replSet` command-line options:
-    language: javascript
-    code: |
-      mongod --keyFile /mysecretdirectory/mongodb-keyfile --replSet "rs0"
-  - pre: |
-      The following example specifies parameters through a configuration file:
-    language: javascript
-    code: |
-      mongod --config $HOME/.mongodb/config
+    openssl rand -base64 755 > <path-to-keyfile>
+    chmod 400 <path-to-keyfile>
 post: |
-  In production deployments, you can configure a :term:`init script` to
-  manage this process. Init scripts are beyond the scope of this document.
+  See :ref:`internal-auth-keyfile` for additional details  and requirements
+  for using keyfiles.
 ---
-title: "Connect to the member of the replica set where you created the administrative users."
+stepnum: 2
+title: Copy the keyfile to each replica set member.
+ref: deploy-repset-copy-keyfile
 level: 4
-stepnum: 7
-ref: connect-and-auth
 pre: |
-  Connect to the replica set member you started and authenticate as
-  the ``siteRootAdmin`` user. From the :program:`mongo` shell, use the
-  following operation to authenticate:
+  .. include:: /includes/extracts/keyfile-distribution-replica-set.rst
+---
+stepnum: 3
+title: Enforce access control on each member of the replica set.
+level: 4
+ref: deploy-repset-start-members
+pre: |
+  Running a :program:`mongod` with the ``keyFile`` parameter enforces both 
+  :doc:`/core/security-internal-authentication` and 
+  :doc:`/core/authorization`.
+
+  For *each* :program:`mongod` in the replica set, start the 
+  :program:`mongod` using either a configuration file or the command line.
+  
+  .. important::
+     You cannot change the name of a replica set after initiating it. 
+     Choose an appropriate replica set name at this stage to reduce 
+     complications later.
+  
+action:
+  - pre: |
+      **Configuration File**
+      
+      If using a configuration file, set the :setting:`security.keyFile` option
+      to the keyfile's path, and the :setting:`replication.replSetName` option 
+      to the replica set name:
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      replication:
+        replSetName: <replicaSetName>
+  - pre: |
+      Start the :program:`mongod` using the configuration file:
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see 
+      :doc:`configuration options</reference/configuration-options>`.
+  - pre: |
+      **Command Line**
+      
+      If using the command line option, start the :program:`mongod` with the
+      ``--keyFile`` and ``--replSet`` parameters:
+    language: sh
+    code: |
+       mongod --keyFile <path-to-keyfile> --replSet <replicaSetName>
+post: |
+  For more information on startup parameters, 
+  see the :program:`mongod` reference page. 
+  
+  Include additional settings as appropriate to your deployment.
+---
+stepnum: 4
+title: Connect to a member of the replica set over the localhost interface.
+level: 4
+ref: deploy-repset-connect-to-member
+pre: |
+  Connect a :program:`mongo` shell to one of the config server
+  {{program}} instances over the :ref:`localhost
+  interface<localhost-exception>`. You must run the :program:`mongo`
+  shell on the same physical machine as the :program:`mongod` instance.
+
+  The :ref:`localhost interface<localhost-exception>` is only available
+  since no users have been created for the deployment. The
+  :ref:`localhost interface<localhost-exception>` closes after the
+  creation of the first user.
+replacement:
+  program: :program:`mongod`
+---
+stepnum: 5
+title: Initiate the replica set.
+level: 4
+ref: deploy-repset-initiate
+pre: | 
+  The :method:`rs.initiate()` method initiates the replica set and can
+  take an optional :doc:`replica set configuration document
+  </reference/replica-configuration>`.
+
+  In the :doc:`replica set configuration document
+  </reference/replica-configuration>`, include:
+
+  - The :rsconf:`_id` field. The :rsconf:`_id` *must* match the
+    ``--replSet`` parameter passed to the :program:`mongod`.
+
+  - The :rsconf:`members` field. The :rsconf:`members` field is an
+    array and requires a document per each member of the replica set.
+  
+  See :doc:`/reference/replica-configuration` for more information on 
+  replica set configuration documents.
+action:
+  - pre: |
+      The following example initates a three member replica set. 
+    language: javascript
+    code: |
+      rs.initiate( 
+        {
+          _id : <replicaSetName>,
+          members: [
+            { _id : 0, host : "mongo1.example.net:27017" },
+            { _id : 1, host : "mongo2.example.net:27017" },
+            { _id : 2, host : "mongo3.example.net:27017" }
+          ]
+        }
+      )
+post: |
+  :method:`rs.initiate()` triggers an :term:`election` and 
+  elects one of the members to be the :term:`primary`.
+ 
+  Connect to the primary before continuing. Use :method:`rs.status()` to 
+  locate the primary member.
+---
+stepnum: 6
+title: Create the user administrator.
+level: 4
+ref: deploy-repset-user-admin
+pre: |
+  .. important::
+     After you create the first user, the :ref:`localhost exception
+     <localhost-exception>` is no longer available.
+     
+     The first user must have privileges to create other users, such 
+     as a user with the :authrole:`userAdminAnyDatabase`. This ensures 
+     that you can create additional users after the :ref:`localhost-exception`
+     closes. 
+     
+     If at least one user does *not* have privileges to create users, 
+     once the localhost exception closes you may be unable to create
+     or modify users with new privileges, and therefore unable to 
+     access necessary operations.
+  
+  Add a user using the :method:`db.createUser()` method. The user should
+  have at minimum the :authrole:`userAdminAnyDatabase` role on the 
+  ``admin`` database. 
+
+  You must be connected to the :term:`primary` to create users.
+
+  The following example creates the user ``fred`` with the
+  :authrole:`userAdminAnyDatabase` role on the ``admin`` database.
+
+  .. important::
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access. 
+
 action:
   language: javascript
   code: |
-    use admin
-    db.auth("siteRootAdmin", "<password>");
----
-stepnum: 8
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: initiate-rs
----
-stepnum: 9
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: verify-rsconf
----
-stepnum: 10
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: add-remaining-members
----
-stepnum: 11
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: check-status
----
-title: Create additional users to address operational requirements.
-level: 4
-stepnum: 12
-ref: create-records-db-owner
-pre: |
-  You can use :doc:`built-in roles </reference/built-in-roles>` to create
-  common types of database users, such as the :authrole:`dbOwner` role to
-  create a database administrator, the :authrole:`readWrite` role to
-  create a user who can update data, or the :authrole:`read` role to
-  create user who can search data but no more. You also can define
-  :ref:`custom roles <user-defined-roles>`.
-action:
-  pre: |
-    For example, the following creates a database administrator for the
-    ``products`` database:
-  language: javascript
-  code: |
-    use products
-    db.createUser(
+    admin = db.getSiblingDB("admin")
+    admin.createUser(
       {
-        user: "productsDBAdmin",
-        pwd: "password",
-        roles:
-        [
-          {
-            role: "dbOwner",
-            db: "products"
-          }
-        ]
+        user: "fred",
+        pwd: "changeme1",
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
       }
     )
 post: |
-  For an overview of roles and privileges, see :ref:`authorization`. For
-  more information on adding users, see
-  :doc:`/tutorial/manage-users-and-roles`.
+  See :ref:`database-user-roles` for a full list of built-in roles and
+  related to database administration operations.
+---
+stepnum: 7
+title: Authenticate as the user administrator.
+ref: deploy-repset-auth-user
+level: 4
+pre: |
+  Authenticate to the ``admin`` database.
+action:
+  - pre: |
+      In the :program:`mongo` shell, use :method:`db.auth()` to
+      authenticate. For example, the following authenticate as the user
+      administrator ``fred``:
+    language: javascript
+    code: |
+      db.getSiblingDB("admin").auth("fred", "changeme1" )
+  - pre: |
+      Alternatively, connect a new :program:`mongo` shell to the primary 
+      replica set member using the ``-u <username>``, ``-p <password>``, and
+      the ``--authenticationDatabase`` parameters.
+    language: sh
+    code: |
+      mongo -u "fred" -p "changeme1" --authenticationDatabase "admin"
+---
+stepnum: 8
+title: Create the cluster administrator.
+level: 4
+ref: deploy-repset-add-user-cluster
+pre: |
+  The :authrole:`clusterAdmin` role grants access to replication
+  operations, such as configuring the replica set.
+action:
+  - pre: |
+      Create a cluster administrator user and assign the 
+      :authrole:`clusterAdmin` role in the ``admin`` database:
+    language: sh
+    code: |
+      db.getSiblingDB("admin").createUser(
+        {
+          "user" : "ravi",
+          "pwd" : "changeme2",
+          roles: [ { "role" : "clusterAdmin", "db" : "admin" } ] 
+        }
+      )
+post: |
+  See :ref:`cluster-admin-roles` for a full list of built-in roles related to 
+  replica set and sharded cluster operations.
+---
+stepnum: 9
+title: Create additional users (Optional).
+ref: deploy-repset-add-addtl-users
+level: 4
+pre: |
+  Create users to allow clients to connect and interact with the replica set. 
+  See :ref:`database-user-roles` for basic built-in roles to use in creating 
+  read-only and read-write users.
+  
+  You may also want additional administrative users.
+  For more information on users, see :doc:`/core/security-users`.
 ...

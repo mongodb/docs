@@ -1,0 +1,55 @@
+title: Create a unique index.
+stepnum: 1
+ref: quorum-read-unique-index
+pre: |
+  Create a unique index on the fields that will be used to specify an
+  exact match in the :method:`db.collection.findAndModify()` operation.
+
+  This tutorial will use an exact match on the ``sku`` field. As such,
+  create a unique index on the ``sku`` field.
+action:
+  language: javascript
+  code: |
+    db.products.createIndex( { sku: 1 }, { unique: true } )
+---
+title: Use ``findAndModify`` to read committed data.
+stepnum: 2
+ref: quorum-read-findAndModify
+pre: |
+  Use the :method:`db.collection.findAndModify()` method to make a
+  trivial update to the document you want to read and return the
+  modified document. A write concern of :writeconcern:`{ w: "majority" }
+  <"majority">` is required. To specify the document to read, you must
+  use an exact match query that is supported by a unique index.
+
+  The following :method:`~db.collection.findAndModify()` operation
+  specifies an exact match on the uniquely indexed field ``sku`` and
+  increments the field named ``_dummy_field`` in the matching document.
+  While not necessary, the write concern for this command also includes
+  a :ref:`wc-wtimeout` value of ``5000`` milliseconds to prevent the
+  operation from blocking forever if the write cannot propagate to a
+  majority of voting members.
+action:
+  language: javascript
+  code: |
+    var updatedDocument = db.products.findAndModify(
+       {
+         query: { sku: "abc123" },
+         update: { $inc: { _dummy_field: 1 } },
+         new: true,
+         writeConcern: { w: "majority", wtimeout: 5000 }
+       }
+    );
+post: |
+  Even in situations where two nodes in the replica set believe that
+  they are the primary, only one will be able to complete the write with
+  :writeconcern:`w: "majority" <"majority">`. As such, the
+  :method:`~db.collection.findAndModify()` method with
+  :writeconcern:`"majority"` write concern will be successful only when
+  the client has connected to the true primary to perform the operation.
+
+  Since the quorum read procedure only increments a dummy field in the
+  document, you can safely repeat invocations of
+  :method:`~db.collection.findAndModify()`, adjusting the
+  :ref:`wc-wtimeout` as necessary.
+...

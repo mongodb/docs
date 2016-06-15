@@ -4,6 +4,12 @@ $sum (aggregation)
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 Definition
 ----------
 
@@ -46,11 +52,38 @@ Definition
 Behavior
 --------
 
-Non-numeric Values
-~~~~~~~~~~~~~~~~~~
+Non-Numeric or Non-Existent Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:group:`$sum` ignores non-numeric values. If all operands are
-non-numeric, :group:`$sum` returns zero.
+If used on a field that contains both numeric and non-numeric values,
+:group:`$sum` ignores the non-numeric values and returns the sum of the
+numeric values.
+
+If used on a field that does not exist in any document in the collection,
+:group:`$sum` returns ``0`` for that field.
+
+If all operands are non-numeric, :group:`$sum` returns ``0``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 39 33
+
+   * - Example
+     - Field Values
+     - Results
+
+   * - ``{ $sum : <field> }``
+     - ``Numeric``
+     - ``Sum of Values``
+
+   * - ``{ $sum : <field> }``
+     - ``Numeric and Non-Numeric``
+     - ``Sum of Numeric Values``
+
+   * - ``{ $sum : <field> }``
+     - ``Non-Numeric or Non-Existent``
+     - ``0``
+
 
 Array Operand
 ~~~~~~~~~~~~~
@@ -103,6 +136,32 @@ The operation returns the following results:
    { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 45, "count" : 2 }
    { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 20, "count" : 1 }
 
+Using :group:`$sum` on a non-existent field returns a value of ``0``.
+The following operation attempts to :group:`$sum` on ``qty``:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: { day: { $dayOfYear: "$date"}, year: { $year: "$date" } },
+              totalAmount: { $sum: "$qty" },
+              count: { $sum: 1 }
+            }
+        }
+      ]
+   )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
+   { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
+   { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 0, "count" : 1 }
+
 Use in ``$project`` Stage
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -121,7 +180,7 @@ total lab scores, and the total of the final and the midterm:
 .. code-block:: javascript
 
    db.students.aggregate([
-      { 
+      {
         $project: {
           quizTotal: { $sum: "$quizzes"},
           labTotal: { $sum: "$labs" },

@@ -1,0 +1,101 @@
+title: Create a keyfile.
+stepnum: 1
+ref: generate-keyfile
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-generate-keyfile
+---
+stepnum: 2
+ref: copy-keyfile
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-copy-keyfile
+---
+stepnum: 3
+title: Shut down all members of the replica set.
+ref: shutdown-repset
+level: 4
+pre: |
+  Shut down each :program:`mongod` in the replica set, starting with the 
+  :term:`secondaries<secondary>`. Continue until *all* members of the 
+  replica set are offline, including any :term:`arbiters<arbiter>`. 
+  The :term:`primary` must be the *last* member shut down to avoid 
+  potential rollbacks.
+
+  To shut down a :program:`mongod`, connect each :program:`mongod` using a
+  :program:`mongo` shell and issue the :method:`db.shutdownServer()` on the 
+  ``admin`` database:
+action:
+  language: sh
+  code: |
+    use admin
+    db.shutdownServer()
+post: |
+  At the end of this step, *all* members of the replica set should be offline.
+---
+stepnum: 4
+title: Restart each member of the replica set with access control enforced. 
+ref: enable-auth
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-start-members
+pre: |
+  Running a :program:`mongod` with the ``keyFile`` parameter enforces both 
+  :doc:`/core/security-internal-authentication` and 
+  :doc:`/core/authorization`.
+
+  Start *each* :program:`mongod` in the replica set using either 
+  a configuration file or the command line.
+  
+  Use the original replica set name for ``replSetName`` when starting each 
+  member. You cannot change the name of a replica set, and attempting to do 
+  so results in errors.
+---
+stepnum: 5
+level: 4
+ref: connect-via-localhost
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-connect-to-member
+---
+stepnum: 6
+title: Create the user administrator.
+level: 4
+ref: add-user
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-user-admin
+---
+stepnum: 7
+title: Authenticate as the User Administrator.
+ref: enable-replset-auth-user
+level: 4
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-auth-user
+---
+stepnum: 8
+title: Create the cluster administrator (Optional).
+level: 4
+ref: add-user-cluster
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-add-user-cluster
+pre: |
+  The cluster administrator user has the :authrole:`clusterAdmin` role, 
+  which grants access to replication operations.
+post: |
+  See :ref:`cluster-admin-roles` for a full list of built-in roles related to 
+  replica set operations.
+---
+stepnum: 9
+title: Create additional users (Optional).
+level: 4
+ref: add-replica-set-users
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-add-addtl-users
+...

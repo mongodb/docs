@@ -4,6 +4,12 @@ db.collection.insertOne()
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 Definition
 ----------
 
@@ -33,8 +39,8 @@ Definition
 
       - A boolean ``acknowledged`` as ``true`` if the operation ran with 
         :term:`write concern` or ``false`` if write concern was disabled.
-       
-      - A single element ``insertedId`` with the ``_id`` of the 
+
+      - A field ``insertedId`` with the ``_id`` value of the 
         inserted document.
 
 Behaviors
@@ -51,7 +57,7 @@ If the collection does not exist, then the
 
 If the document does not specify an :term:`_id` field, then :program:`mongod` 
 will add the ``_id`` field and assign a unique
-:doc:`/reference/object-id` for the document before inserting. Most
+:method:`ObjectId` for the document before inserting. Most
 drivers create an ObjectId and insert the ``_id`` field, but the
 :program:`mongod` will create and populate the ``_id`` if the driver or
 application does not.
@@ -89,8 +95,7 @@ field:
 
    try {
       db.products.insertOne( { item: "card", qty: 15 } );
-   };
-   catch (e) {
+   } catch (e) {
       print (e);
    };
 
@@ -100,15 +105,13 @@ The operation returns the following document:
 
    {
       "acknowledged" : true,
-      "insertedIds" : [
-         ObjectId("562a94d381cb9f1cd6eb0e1a"),
-      ]
+      "insertedId" : ObjectId("56fc40f9d735c28df206d078")
    }
-
+   
 
 Because the documents did not include ``_id``, 
 :program:`mongod` creates and adds the ``_id`` field and
-assigns it a unique :doc:`/reference/object-id` value.
+assigns it a unique :method:`ObjectId` value.
 
 .. include:: /includes/fact-object-id-may-differ.rst
 
@@ -124,8 +127,7 @@ duplicate key error.
 
    try {
       db.products.insertOne( { _id: 10, item: "box", qty: 20 } );
-   }
-   catch (e) {
+   } catch (e) {
       print (e);
    }
 
@@ -133,10 +135,7 @@ The operation returns the following:
 
 .. code-block:: javascript
 
-   {
-      "acknowledged" : true,
-      "insertedIds" : ObjectId("562a94d381cb9f1cd6eb0e1a")
-   }
+   { "acknowledged" : true, "insertedId" : 10 }
    
 Inserting an duplicate value for any key that is part of a :term:`unique 
 index`, such as ``_id``, throws an exception. The following attempts to insert 
@@ -146,8 +145,7 @@ a document with a ``_id`` value that already exists:
 
    try {
       db.products.insertOne( { _id: 10, "item" : "packing peanuts", "qty" : 200 } );
-   }
-   catch (e) {
+   } catch (e) {
       print (e);
    }
 
@@ -158,7 +156,7 @@ Since ``_id: 10`` already exists, the following exception is thrown:
    WriteError({
       "index" : 0,
       "code" : 11000,
-      "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 1.0 }",
+      "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 10.0 }",
       "op" : {
          "_id" : 10,
          "item" : "packing peanuts",
@@ -168,8 +166,8 @@ Since ``_id: 10`` already exists, the following exception is thrown:
 
 .. _insertOne-override-write-concern:
 
-Increasing Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~
+Increase Write Concern
+~~~~~~~~~~~~~~~~~~~~~~
 
 Given a three member replica set, the following operation specifies a 
 ``w`` of ``majority``, ``wtimeout`` of ``100``:
@@ -179,10 +177,9 @@ Given a three member replica set, the following operation specifies a
    try {
       db.products.insertOne(
           { "item": "envelopes", "qty": 100, type: "Self-Sealing" },
-          { writeConcern: { w : "majority", wtimeout : 100 } };
-      )
-   }
-   catch (e) {
+          { writeConcern: { w : "majority", wtimeout : 100 } }
+      );
+   } catch (e) {
       print (e);
    }
 

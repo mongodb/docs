@@ -477,6 +477,9 @@ description: |
        To update all members, start with the secondary members first.
        Then step down the primary, and update the stepped-down member.
 
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
 optional: true
 replacement:
   intro: "Uses"
@@ -489,6 +492,8 @@ inherit:
   name: journal
   program: _shared
   file: options-shared.yaml
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
 ---
 program: mongod
 name: journalOptions
@@ -497,6 +502,9 @@ directive: option
 description: |
   Provides functionality for testing. Not for general use, and will affect data
   file integrity in the case of abnormal system shutdown.
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
 optional: true
 ---
 program: mongod
@@ -523,6 +531,9 @@ description: |
   On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
   a write with ``j:true`` will cause an immediate sync of the journal.
 
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
 replacement:
    versiondirective: ".. versionchanged:: 3.2"
 optional: true
@@ -543,6 +554,9 @@ description: |
   interface can increase network exposure. The {{role}} option enables the
   HTTP interface, even if the :setting:`HTTP interface <net.http.enabled>`
   option is disabled.
+
+  .. include:: /includes/fact-deprecated-http-interface.rst
+
 optional: true
 replacement:
   verb: "Permits"
@@ -579,7 +593,8 @@ name: httpinterface
 args: null
 directive: option
 description: |
-  .. versionadded:: 2.6
+
+  .. include:: /includes/fact-deprecated-http-interface.rst
 
   {{intro}} the HTTP interface. Enabling the interface can increase
   network exposure.
@@ -591,6 +606,8 @@ description: |
   .. note::
 
      - .. include:: /includes/fact-http-interface-kerberos.rst
+
+  .. versionadded:: 2.6
 
 optional: true
 replacement:
@@ -648,6 +665,8 @@ directive: option
 description: |
   Disables the durability journaling. The {{program}} instance
   enables journaling by default in 64-bit versions after v2.0.
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
 optional: true
 ---
 program: mongod
@@ -675,7 +694,7 @@ name: notablescan
 args: null
 directive: option
 description: |
-  Forbids operations that require a table scan. See :parameter:`notablescan` for additional information.
+  Forbids operations that require a collection scan. See :parameter:`notablescan` for additional information.
 optional: true
 ---
 program: mongod
@@ -801,6 +820,9 @@ description: |
   enables the HTTP interface, even if the :setting:`HTTP interface
   <net.http.enabled>` option is disabled, and as a result can increase
   network exposure.
+
+  .. include:: /includes/fact-deprecated-http-interface.rst
+
 optional: true
 replacement:
   verb: "Enables"
@@ -848,6 +870,8 @@ post: |
   The {{role}} must be within the :setting:`~storage.dbPath`. You can
   specify a symlink to {{role}} to use a path on a different file
   system.
+
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
 
   .. SEE: SERVER-4266
 optional: true
@@ -932,7 +956,10 @@ description: |
   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`.
 
   The :dbcommand:`serverStatus` command reports the background flush
-  thread's status via the :data:`~serverStatus.backgroundFlushing` field.
+  thread's status via the :serverstatus:`backgroundFlushing` field.
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
 optional: true
 replacement:
   intro: "Controls how much time"
@@ -991,6 +1018,9 @@ description: |
   default, attempts to rebuild them. To stop the {{program}} from
   rebuilding incomplete indexes on start up, include this option on the
   command-line.
+post: |
+  .. include:: /includes/not-available-for-inmemory-storage-engine.rst
+
 optional: true
 ---
 program: mongod
@@ -1695,17 +1725,39 @@ description: |
 
      Starting in MongoDB 3.2, ``wiredTiger`` is the default.
 
-  {{intro}} storage engine for the {{program}} database. Valid
-  options include ``mmapv1`` and ``wiredTiger``.
+  {{intro}} storage engine for the {{program}} database. Available
+  values include:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 80
+
+     * - Value
+       - Description
+
+     * - ``mmapv1``
+       - To specify the :doc:`/core/mmapv1`.
+
+     * - ``wiredTiger``
+       - To specify the :doc:`/core/wiredtiger`.
+
+     * - ``inMemory``
+  
+       - To specify the :doc:`/core/inmemory`.
+
+         .. versionadded:: 3.2
+            Available in MongoDB Enterprise only.
+
 post: |
   If you attempt to start a {{program}} with a
-  :option:`storage.dbPath` that contains data files produced by a
+  {{dbpath}} that contains data files produced by a
   storage engine other than the one specified by {{role}}, {{program}}
   will refuse to start.
 optional: true
 default: "``wiredTiger``"
 replacement:
   intro: "Specifies the"
+  dbpath: ":option:`--dbpath`"
 ---
 program: mongod
 name: wiredTigerCacheSizeGB
@@ -1749,22 +1801,6 @@ description: |
   - :term:`snappy`
 
   - :term:`zlib`
-replacement:
-  intro: "Specifies the"
----
-program: mongod
-name: wiredTigerStatisticsLogDelaySecs
-directive: option
-optional: true
-default: "0"
-args: "<seconds>"
-description: |
-
-  .. versionadded:: 3.0.0
-
-  {{intro}} interval, in seconds, at which WiredTiger logs statistics to
-  the file specified in the :setting:`~storage.dbPath` or :option:`--dbpath`.
-  When {{role}} is set to ``0``, WiredTiger does not log statistics.
 replacement:
   intro: "Specifies the"
 ---
@@ -2020,8 +2056,8 @@ description: |
 
    .. versionadded:: 3.2
 
-   Enables :doc:`readConcern </reference/readConcern>` level of
-   ``"majority"``. By default, ``"majority"`` level is not enabled.
+   Enables :term:`read concern` level of ``"majority"``. By default,
+   ``"majority"`` level is not enabled.
 ---
 program: mongod
 name: configsvrMode
@@ -2044,26 +2080,21 @@ directive: option
 program: mongod
 name: inMemorySizeGB
 optional: true
-args: <integer>
+args: <number>
 default: |
-   60% of physical RAM less 1 GB
+   50% of physical RAM less 1 GB
 directive: option
 description: |
    .. versionadded:: 3.2
 
-   Maximum amount of memory to allocate for :doc:`/core/inmemory` data and indexes.
----
-program: mongod
-name: inMemoryStatisticsLogDelaySecs
-optional: true
-args: <integer>
-default: |
-   0, do not log statistics.
-directive: option
-description: |
-   .. versionadded:: 3.2
+   Maximum amount of memory to allocate for :doc:`in-memory storage
+   engine </core/inmemory>` data, including indexes, oplog if the
+   :program:`mongod` is part of replica set, replica set or sharded
+   cluster metadata, etc.
 
-   Seconds to wait between each write to a :doc:`/core/inmemory` statistics file in the :option:`--dbpath`.
+   .. include:: /includes/fact-inmemory-storage-engine-default-ram.rst
+
+   .. include:: /includes/fact-enterprise-only-admonition.rst
 ---
 program: mongod
 name: moveParanoia

@@ -60,7 +60,7 @@ content: |
 
    To see statistics on the cache and eviction, use the
    :dbcommand:`serverStatus` command. The
-   :data:`~serverStatus.wiredTiger.cache` field holds the information on
+   :serverstatus:`wiredTiger.cache` field holds the information on
    the cache and eviction.
 
    .. code-block:: none
@@ -104,9 +104,9 @@ content: |
          ...
 
    For an explanation of some key cache and eviction statistics, such
-   as :data:`~serverStatus.wiredTiger.cache.bytes currently in the
-   cache` and :data:`~serverStatus.wiredTiger.cache.tracked dirty bytes
-   in the cache`, see :data:`serverStatus.wiredTiger.cache`.
+   as :serverstatus:`wiredTiger.cache.bytes currently in the
+   cache` and :serverstatus:`wiredTiger.cache.tracked dirty bytes
+   in the cache`, see :serverstatus:`wiredTiger.cache`.
 
    .. include:: /includes/extracts/wt-cache-setting.rst
 ---
@@ -119,7 +119,7 @@ content: |
    .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-config.rst
 
    To view statistics on the cache and eviction rate, see the
-   :data:`wiredTiger.cache <serverStatus.wiredTiger.cache>` field
+   :serverstatus:`wiredTiger.cache` field
    returned from the :dbcommand:`serverStatus` command.
 
 ---
@@ -139,16 +139,50 @@ replacement:
 ---
 ref: wt-cache-default-setting
 content: |
+   With WiredTiger, MongoDB utilizes both the WiredTiger cache and the
+   filesystem cache.
+
    .. versionchanged:: 3.2
 
-      With WiredTiger, MongoDB utilizes both the filesystem cache and
-      WiredTiger cache. By default, starting in MongoDB 3.2, the
-      WiredTiger cache will use 60% of RAM minus 1 GB or it will use 1
-      GB, whichever is larger. For systems with up to 10 GB of RAM,
-      this is less than or equal to the 3.0 setting. For systems with
-      more than 10 GB of RAM, the configuration is greater than the 3.0
-      setting.
+      Starting in MongoDB 3.2, the WiredTiger cache, by default, will use
+      the larger of either:
 
-      In MongoDB 3.0, the WiredTiger cache, by default, uses either 1 GB
-      or half of the installed physical RAM, whichever is larger.
+      - 60% of RAM minus 1 GB, or
+
+      - 1 GB.
+
+      For systems with up to 10 GB of RAM, the new default setting is
+      less than or equal to the 3.0 default setting (For
+      MongoDB 3.0, the WiredTiger cache uses either 1 GB or half of the
+      installed physical RAM, whichever is larger).
+
+      For systems with more than 10 GB of RAM, the new default setting
+      is greater than the 3.0 setting.
+
+   Via the filesystem cache, MongoDB automatically uses all free memory
+   that is not used by the WiredTiger cache or by other processes. Data
+   in the filesystem cache is compressed.
+---
+ref: wt-snapshot-frequency
+content: |
+   MongoDB configures WiredTiger to create checkpoints (i.e. write the
+   snapshot data to disk) at intervals of 60 seconds or 2 gigabytes of
+   journal data.
+---
+ref: wt-journal-frequency
+content: |
+   - .. versionadded:: 3.2
+        Every 50 milliseconds.
+
+   - MongoDB sets checkpoints to occur in WiredTiger on user data at an
+     interval of 60 seconds or when 2 GB of journal data has been written,
+     whichever occurs first.
+
+   - If the write operation includes a write concern of :writeconcern:`j:
+     true <j>`, WiredTiger forces a sync of the WiredTiger journal files.
+
+   - Because MongoDB uses a journal file size limit of 100 MB, WiredTiger
+     creates a new journal file approximately every 100 MB of data. When
+     WiredTiger creates a new journal file, WiredTiger syncs the previous
+     journal file.
 ...

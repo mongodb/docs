@@ -61,23 +61,21 @@ rst_epilog = '\n'.join([
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
+    '.. |bi| replace:: MongoDB Connector for BI',
 ])
 
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.org/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('https://api.mongodb.org/%s', ''),
+    'api': ('https://api.mongodb.com/%s', ''),
+    'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
     'manual': ('https://docs.mongodb.org/manual%s', ''),
-    'gettingstarted': ('https://docs.mongodb.org/getting-started%s', ''),
-    'ecosystem': ('https://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
-    'about': ('https://www.mongodb.org/about%s', ''),
     'products': ('https://www.mongodb.com/products%s', '')
 }
 
@@ -173,7 +171,7 @@ latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper',
-    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2015 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
+    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2016 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
 }
 
 latex_paper_size = 'letter'
@@ -197,7 +195,7 @@ if 'manpages' in conf.system.files.data:
 epub_title = conf.project.title
 epub_author = u'MongoDB, Inc.'
 epub_publisher = u'MongoDB, Inc.'
-epub_copyright = u'MongoDB, Inc. 2008 - 2015'
+epub_copyright = u'MongoDB, Inc. 2008 - 2016'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3

@@ -4,235 +4,180 @@ FAQ: MongoDB Fundamentals
 
 .. default-domain:: mongodb
 
-This document addresses basic high level questions about MongoDB and
-its use.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
-If you don't find the answer you're looking for, check
-the :doc:`complete list of FAQs </faq>` or post your question to the
-`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+This document answers some common questions about MongoDB.
 
-What kind of database is MongoDB?
----------------------------------
+What platforms does MongoDB support?
+------------------------------------
 
-MongoDB is a :term:`document`\-oriented DBMS. Think of MySQL but with
-:term:`JSON`-like objects comprising the data model, rather than RDBMS tables.
-Significantly, MongoDB supports neither joins nor transactions. However, it
-features secondary indexes, an expressive query language, and atomic writes on
-a per-document level.
+For the list of supported platforms, see
+:ref:`prod-notes-supported-platforms`.
 
-Operationally, MongoDB features master-slave replication with automated
-failover and built-in horizontal scaling via automated range-based
-partitioning.
-
-.. note::
-
-   MongoDB uses :term:`BSON`, a binary object format similar
-   to, but more expressive than :term:`JSON`.
-
-Do MongoDB databases have tables?
----------------------------------
+How does a collection differ from a table?
+------------------------------------------
 
 Instead of tables, a MongoDB database stores its data in
-:term:`collections <collection>`, which are the rough equivalent of
-RDBMS tables. A collection holds one or more :term:`documents
-<document>`. Documents are analogous to records or rows in a relational
-database table. Each document has one or more fields; fields are similar
-to the columns in a relational database table.
+:term:`collections <collection>`. A collection holds one or more
+:ref:`BSON documents <bson-document-format>`. Documents are analogous
+to records or rows in a relational database table. Each document has
+:ref:`one or more fields <document-structure>`; fields are similar to
+the columns in a relational database table.
 
-Collections have important differences from RDBMS tables. Documents in a
-single collection may have a unique combination and set of fields.
-Documents need not have identical fields. You can add a field to some
-documents in a collection without adding that field to all documents in
-the collection.
+.. seealso:: :doc:`/reference/sql-comparison`, :doc:`/introduction`
 
-.. see:: :doc:`/reference/sql-comparison`
+How do I create a database and a collection?
+--------------------------------------------
+
+If a database does not exist, MongoDB creates the database when you
+first store data for that database.
+
+If a collection does not exist, MongoDB creates the collection when you
+first store data for that collection. [#explicit-creation]_
+
+As such, you can switch to a non-existent database (``use <dbname>``)
+and perform the following operation:
+
+.. code-block:: javascript
+
+   use myNewDB
+
+   db.myNewCollection1.insert( { x: 1 } )
+   db.myNewCollection2.createIndex( { a: 1 } )
+
+The ``insert`` operation creates both the database ``myNewDB`` and the
+collection ``myNewCollection1`` if they do not already exist. 
+
+The ``createIndex`` operation, which occurs after the ``myNewDB`` has
+been created, creates the index and the collection ``myNewCollection2``
+if the collection does not exist. If ``myNewDb`` did not exist, the
+``createIndex`` operation would have also created the ``myNewDB``.
+
+.. [#explicit-creation]
+
+   You can also create a collection explicitly using
+   :method:`db.createCollection` if you want to specify specific
+   options, such as maximum size or document validation rules.
 
 .. _faq-schema-free:
 
-Do MongoDB databases have schemas?
-----------------------------------
+How do I define or alter the collection schema?
+-----------------------------------------------
 
-MongoDB uses dynamic schemas. You can create collections without
-defining the structure, i.e. the fields or the types of their values,
-of the documents in the collection. You can change the structure of
-documents simply by adding new fields or deleting existing ones.
-Documents in a collection need not have an identical set of fields.
+You do not need to specify a schema for a collection in MongoDB.
+Although it is common for the documents in a collection to have a
+largely homogeneous structure, it is not a requirement; i.e. documents
+in a single collection do not need to have the same set of fields. The
+data type for a field can differ across documents in a collection as
+well.
 
-In practice, it is common for the documents in a collection to have
-a largely homogeneous structure; however, this is not a
-requirement. MongoDB's flexible schemas mean that schema migration and
-augmentation are very easy in practice, and you will rarely, if ever,
-need to write scripts that perform "alter table" type operations,
-which simplifies and facilitates iterative software development with
-MongoDB.
+To change the structure of the documents in a collection, update the
+documents to the new structure. For instance, add new fields, remove
+existing ones, or update the value of a field to a new type.
 
-.. see:: :doc:`/reference/sql-comparison`
+.. versionchanged:: 3.2
 
-What languages can I use to work with MongoDB?
-----------------------------------------------
+   Starting in MongoDB 3.2, however, you can enforce :doc:`document
+   validation rules </core/document-validation>` for a collection
+   during update and insert operations.
 
-MongoDB :term:`client drivers <driver>` exist for
-all of the most popular programming languages, and many
-other ones. See the :ecosystem:`latest list of
-drivers </drivers>`
-for details.
-
-.. seealso:: :doc:`/applications/drivers`.
+Some collection properties, such as specifying a maximum size, can be
+specified during the explicit creation of a collection and be modified.
+See :method:`db.createCollection` and :dbcommand:`collMod`. If you are
+not specifying these properties, you do not need to explicitly create
+the collection since MongoDB creates new collections when you first
+store data for the collections.
 
 Does MongoDB support SQL?
 -------------------------
 
-No.
+No. However, MongoDB does support a rich query language of its own. For
+examples on using MongoDB's query language, see
+:doc:`/crud`
 
-However, MongoDB does support a rich, ad-hoc query language
-of its own.
-
-.. seealso:: :doc:`/reference/operator`
-
-What are typical uses for MongoDB?
-----------------------------------
-
-MongoDB has a general-purpose design, making it appropriate for a large
-number of use cases. Examples include content management
-systems, mobile applications, gaming, e-commerce, analytics,
-archiving, and logging.
-
-Do not use MongoDB for systems that require SQL,
-joins, and multi-object transactions.
+.. seealso:: :doc:`/reference/sql-comparison`
 
 Does MongoDB support transactions?
 ----------------------------------
 
-MongoDB does not support multi-document transactions. However, MongoDB does
-provide atomic operations on a single document.
+MongoDB does not support multi-document transactions. However, MongoDB
+does provide atomic operations on a single document.
 
-For more details on MongoDB's isolation guarantees and behavior under concurrency,
-see :doc:`/faq/concurrency`.
-
-Does MongoDB require a lot of RAM?
-----------------------------------
-
-MMAPv1
-   Not necessarily. It's certainly possible to run MongoDB
-   on a machine with a small amount of free RAM.
-
-   MongoDB automatically uses all free memory on the machine as its
-   cache. System resource monitors show that MongoDB uses a lot of
-   memory, but its usage is dynamic. If another process suddenly needs
-   half the server's RAM, MongoDB will yield cached memory to the other process.
-
-   Technically, the operating system's virtual memory subsystem manages
-   MongoDB's memory. This means that MongoDB will use as much free memory
-   as it can, swapping to disk as needed. Deployments with enough memory
-   to fit the application's working data set in RAM will achieve the best
-   performance.
-
-WiredTiger
-   .. include:: /includes/extracts/wt-cache-default-setting.rst
-
-   MongoDB also automatically uses all free memory on the machine via
-   the filesystem cache (data in the filesystem cache is compressed).
-
-.. seealso:: :ref:`faq-configure-cache-size`, :doc:`/faq/diagnostics`
-
-.. _faq-configure-cache-size:
-
-How do I configure the cache size?
-----------------------------------
-
-MMAPv1
-  MongoDB has no configurable cache for the :doc:`MMAPv1 storage engine
-  </core/mmapv1>`. MongoDB uses all *free* memory on the system
-  automatically by way of memory-mapped files. Operating systems use
-  the same approach with their file system caches.
-
-WiredTiger
-  For the :doc:`WiredTiger storage engine </core/wiredtiger>` storage
-  engine, you can specify the maximum size of the cache that WiredTiger
-  will use for all data.
-
-  .. include:: /includes/extracts/wt-cache-setting.rst
+For more details on MongoDB's isolation guarantees and behavior under
+concurrency, see :doc:`/faq/concurrency`.
 
 .. _faq-database-and-caching:
-
-Does MongoDB require a separate caching layer for application-level caching?
-----------------------------------------------------------------------------
-
-No. In MongoDB, a document's representation in the database is similar
-to its representation in application memory. This means the database
-already stores the usable form of data, making the data usable in both
-the persistent store and in the application cache. This eliminates the
-need for a separate caching layer in the application.
-
-This differs from relational databases, where caching data is more
-expensive. Relational databases must transform data into object
-representations that applications can read and must store the
-transformed data in a separate cache: if these transformation from
-data to application objects require joins, this process increases the
-overhead related to using the database which increases the importance
-of the caching layer.
 
 Does MongoDB handle caching?
 ----------------------------
 
-Yes. MongoDB keeps all of the most recently used data in RAM. If you
-have created indexes for your queries and your working data set fits
-in RAM, MongoDB serves all queries from memory.
+Yes. MongoDB keeps most recently used data in RAM. If you have created
+indexes for your queries and your working data set fits in RAM, MongoDB
+serves all queries from memory.
 
-MongoDB does not implement a query cache; i.e. MongoDB does not cache
-the query results in order to return the cached results for identical
-queries.
+MongoDB does not cache the query results in order to return the cached
+results for identical queries.
 
-Are writes written to disk immediately or lazily?
---------------------------------------------------
+For more information on MongoDB and memory use, see :ref:`WiredTiger
+and Memory Use <wiredtiger-RAM>` and :ref:`MMAPv1 and Memory Use
+<mmapv1-RAM>`.
 
-MMAPv1
-  .. include:: /includes/fact-mmapv1-write-to-disk.rst
+.. _faq-dollar-sign-escaping:
 
-WiredTiger
-   For the data files, MongoDB
-   creates checkpoints (i.e. write the snapshot data to disk) at
-   intervals of 60 seconds or 2 gigabytes of data to write, depending
-   on which occurs first. For the journal data,
+How does MongoDB address SQL or Query injection?
+------------------------------------------------
 
-   .. include:: /includes/extracts/wt-journal-sync-list.rst
+BSON
+~~~~
 
-What language is MongoDB written in?
-------------------------------------
+As a client program assembles a query in MongoDB, it builds a BSON
+object, not a string. Thus traditional SQL injection attacks are not a
+problem. More details and some nuances are covered below.
 
-MongoDB is implemented in C++. :term:`Drivers <driver>` and client libraries
-are typically written in their respective languages, although some
-drivers use C extensions for better performance.
+MongoDB represents queries as :term:`BSON` objects. Typically
+:doc:`client libraries </applications/drivers>` provide a convenient,
+injection free, process to build these objects. Consider the following
+C++ example:
 
-.. _faq-32-bit-limitations:
+.. code-block:: cpp
 
-What are the limitations of 32-bit versions of MongoDB?
--------------------------------------------------------
+   BSONObj my_query = BSON( "name" << a_name );
+   auto_ptr<DBClientCursor> cursor = c.query("tutorial.persons", my_query);
 
-.. versionchanged:: 3.0
+Here, ``my_query`` then will have a value such as ``{ name : "Joe"
+}``. If ``my_query`` contained special characters, for example
+``,``, ``:``, and ``{``, the query simply wouldn't match any
+documents. For example, users cannot hijack a query and convert it to
+a delete.
 
-   Commercial support is no longer provided for MongoDB on 32-bit
-   platforms (Linux and Windows). See
-   :ref:`3.0-compatibility-platform-support`.
-
-.. note::
-   .. include:: /includes/fact-deprecated-32bit.rst
-
-32-bit versions of MongoDB do **not** support the WiredTiger storage
-engine.
-
-When running a 32-bit build of MongoDB, the total storage size for the
-server, including data and indexes, is 2 gigabytes. For this reason, do
-not deploy MongoDB to production on 32-bit machines.
-
-If you're running a 64-bit build of MongoDB, there's virtually no
-limit to storage size. For production deployments, 64-bit builds and
-operating systems are strongly recommended.
-
-.. seealso:: "`Blog Post: 32-bit Limitations <http://blog.mongodb.org/post/137788967/32-bit-limitations>`_"
+JavaScript
+~~~~~~~~~~
 
 .. note::
 
-   32-bit builds disable :term:`journaling <journal>` by default
-   because journaling further limits the maximum amount of data that
-   the database can store.
+   .. include:: /includes/fact-disable-javascript-with-noscript.rst
+
+All of the following MongoDB operations permit you to run arbitrary JavaScript
+expressions directly on the server:
+
+- :query:`$where`
+- :dbcommand:`mapReduce`
+- :dbcommand:`group`
+
+You must exercise care in these cases to prevent users from
+submitting malicious JavaScript.
+
+Fortunately, you can express most queries in MongoDB without
+JavaScript and for queries that require JavaScript, you can mix
+JavaScript and non-JavaScript in a single query. Place all the
+user-supplied fields directly in a :term:`BSON` field and pass
+JavaScript code to the :query:`$where` field.
+
+If you need to pass user-supplied values in a :query:`$where` clause,
+you may escape these values with the ``CodeWScope`` mechanism. When you
+set user-submitted values as variables in the scope document, you can
+avoid evaluating them on the database server.

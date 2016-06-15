@@ -21,10 +21,10 @@ content: |
    if a write is updating multiple fields in the document, a reader
    will never see the document with only some of the fields updated.
 
-   With a single :program:`mongod` instance, a set of read and write
-   operations to a single document is serializable. With replica sets,
-   *only* in the absence of a rollback, is a set of read and write
-   operations to a single document serializable.
+   With a standalone :program:`mongod` instance, a set of read and write
+   operations to a single document is serializable. With a replica set,
+   a set of read and write operations to a single document is serializable
+   *only* in the absence of a rollback.
 ---
 ref: concurrent-operations-multi-document-writes
 content: |
@@ -57,10 +57,8 @@ content: |
       write operation in a serializable schedule. There is a dependency
       cycle which makes serializability impossible.
 
-   #. Dropped results for MMAPv1. For MMAPv1, reads may miss matching
-      documents that are updated or deleted during the course of the
-      read operation. However, data that has not been modified during
-      the operation will always be visible.
+   #. Reads may miss matching documents that are updated during the
+      course of the read operation.
 ---
 ref: concurrent-operations-isolate-operator
 content: |
@@ -100,7 +98,7 @@ content: |
    .. versionchanged:: 3.2
 
       For replica sets and sharded clusters, MongoDB provides monotonic
-      reads if read operations specify :doc:`/reference/readConcern`
+      reads if read operations specify :doc:`/reference/read-concern`
       ``"majority"`` and read preference :readmode:`primary`.
 
       In previous versions, MongoDB cannot make monotonic read
@@ -136,61 +134,35 @@ content: |
    MongoDB cursors can return the same document more than once in some
    situations. As a cursor returns documents other operations may
    interleave with the query. If some of these operations are
-   :doc:`updates </core/write-operations>` that cause the document to
+   :doc:`updates </tutorial/update-documents>` that cause the document to
    move (in the case of MMAPv1, caused by document growth) or that
    change the indexed field on the index used by the query; then the
    cursor will return the same document more than once.
 
    In very specific cases, you can isolate the cursor from returning
    the same document more than once by using the
-   :method:`cursor.snapshot()` method. For more information, see
-   :ref:`faq-developers-isolate-cursors`.
+   :method:`cursor.snapshot()` method. :method:`~cursor.snapshot()`
+   guarantees that the query will return each document no more than
+   once.
 
----
-ref: isolate-cursor-snapshot-faq
-content: |
-   MongoDB cursors can return the same document more than once in some
-   situations. [#duplicate-document-in-result-set]_ You can use the
-   :method:`~cursor.snapshot()` method on a cursor to isolate the
-   operation for a very specific case.
+   .. warning::
 
-   :method:`~cursor.snapshot()` traverses the index on the ``_id``
-   field and guarantees that the query will return each document (with
-   respect to the value of the ``_id`` field) no more than once.
-   [#id-is-immutable]_
-
-   The :method:`~cursor.snapshot()` does not guarantee that the data
-   returned by the query will reflect a single moment in time *nor*
-   does it provide isolation from insert or delete operations.
-
-   .. note::
+      - The :method:`~cursor.snapshot()` does not guarantee that the
+        data returned by the query will reflect a single moment in time
+        *nor* does it provide isolation from insert or delete
+        operations.
 
       - You **cannot** use :method:`~cursor.snapshot()` with
         :term:`sharded collections <sharding>`.
 
-      - You **cannot** use :method:`~cursor.snapshot()` with
+      - You **cannot** use :method:`~cursor.snapshot()` with the
         :method:`~cursor.sort()` or :method:`~cursor.hint()` cursor methods.
-
-      - Queries with results of less than 1 megabyte are effectively
-        snapshotted.
 
    As an alternative, if your collection has a field or fields that are
    never modified, you can use a *unique* index on this field or these
    fields to achieve a similar result as the :method:`~cursor.snapshot()`.
    Query with :method:`~cursor.hint()` to explicitly force the query to use
    that index.
-
-   .. [#duplicate-document-in-result-set] As a cursor returns documents
-      other operations may interleave with the query: if some of these
-      operations are :doc:`updates </core/write-operations>` that cause
-      the document to move (in the case of a MMAPv1 collection scan,
-      caused by document growth) or that change the indexed field on
-      the index used by the query; then the cursor will return the same
-      document more than once.
-
-   .. [#id-is-immutable] MongoDB does not permit changes to the value
-      of the ``_id`` field; it is not possible for a cursor that
-      transverses this index to pass the same document more than once.
 ---
 ref: lock-general
 content: |

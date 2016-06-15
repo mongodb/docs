@@ -4,6 +4,12 @@ MongoDB Limits and Thresholds
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 This document provides a collection of hard and soft limitations of
 the MongoDB system.
 
@@ -18,10 +24,76 @@ BSON Documents
 .. _limit-nested-depth:
 .. limit:: Nested Depth for BSON Documents
 
-   .. versionchanged:: 2.2
-
    MongoDB supports no more than 100 levels of nesting for :term:`BSON
    documents <document>`.
+
+.. _restrictions-on-db-names:
+.. _restrictions-on-collection-names:
+.. _faq-restrictions-on-collection-names:
+
+Naming Restrictions
+-------------------
+
+.. limit:: Database Name Case Sensitivity
+
+   Since database names are case *insensitive* in MongoDB, database
+   names cannot differ only by the case of the characters.
+
+.. limit:: Restrictions on Database Names for Windows
+
+   For MongoDB deployments running on Windows, database names cannot
+   contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$*<>:|?
+
+   Also database names cannot contain the null character.
+
+.. limit:: Restrictions on Database Names for Unix and Linux Systems
+
+   For MongoDB deployments running on Unix and Linux systems, database
+   names cannot contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$
+
+   Also database names cannot contain the null character.
+
+.. limit:: Length of Database Names
+
+   Database names cannot be empty and must have fewer than 64 characters.
+
+.. limit:: Restriction on Collection Names
+
+   Collection names should begin with an underscore or a letter
+   character, and *cannot*:
+
+   - contain the ``$``.
+
+   - be an empty string (e.g. ``""``).
+
+   - contain the null character.
+
+   - begin with the ``system.`` prefix. (Reserved for internal use.)
+
+   If your collection name includes special characters, such as the
+   underscore character, then to access the collection use the
+   :method:`db.getCollection()` method in the :program:`mongo` shell or
+   a :api:`similar method for your driver <>`.
+
+   .. include:: /includes/fact-collection-namespace-limit.rst
+
+.. _limit-restrictions-on-field-names:
+
+.. limit:: Restrictions on Field Names
+
+   Field names cannot contain dots (i.e. ``.``) or null characters, and they
+   must not start with a dollar sign (i.e. ``$``). See
+   :ref:`faq-dollar-sign-escaping` for an alternate approach.
+
+.. _faq-dev-namespace:
 
 Namespaces
 ----------
@@ -30,6 +102,8 @@ Namespaces
 .. limit:: Namespace Length
 
    .. include:: /includes/fact-collection-namespace-limit.rst
+
+   .. seealso:: :ref:`faq-restrictions-on-collection-names`
 
 .. _limit-number-of-namespaces:
 .. limit:: Number of Namespaces
@@ -56,6 +130,8 @@ Namespaces
    size using the :setting:`~storage.mmapv1.nsSize` option.
 
    The WiredTiger storage engine is *not* subject to this limitation.
+
+.. seealso:: :ref:`faq-restrictions-on-collection-names`
 
 .. _index-limitations:
 
@@ -246,36 +322,74 @@ Sharding Operational Restrictions
 
 .. limit:: Sharding Existing Collection Data Size
 
-   For existing collections that hold documents, MongoDB supports
-   enabling sharding on *any* collections that contains less than 256
-   gigabytes of data. MongoDB *may* be able to shard collections with as
-   many as 400 gigabytes depending on the distribution of document
-   sizes. The precise size of the limitation is a function of the
-   chunk size and the data size. Consider the following table:
+   An existing collection can only be sharded if its size does not exceed
+   specific limits. These limits can be estimated based on the average size of
+   all :term:`shard key` values, and the configured :term:`chunk` size.
+   
+   .. important:: 
+      
+      These limits only apply for the initial sharding operation. Sharded
+      collections can grow to *any* size after successfully enabling sharding.
+   
+   Use the following formulas to calculate the *theoretical* maximum
+   collection size. 
+   
+   .. code-block:: javascript
+   
+      maxSplits = 16777216 (bytes) / <average size of shard key values in bytes>
+      maxCollectionSize (MB) = maxSplits * (chunkSize / 2)
+   
+   .. note::
+      
+      The maximum :term:`BSON` document size is 16MB or ``16777216`` bytes.
+      
+      All conversions should use base-2 scale, e.g. 1024 kilobytes = 1
+      megabyte.
+   
+   If ``maxCollectionSize`` is less than or nearly equal to the target
+   collection, increase the chunk size to ensure sucessful initial sharding.
+   If there is doubt as to whether the result of the calculation is too
+   'close' to the target collection size, it is likely better to increase the
+   chunk size.
+   
+   After successful initial sharding, you can reduce the chunk size as needed.
+   If you later reduce the chunk size, it may take time for all chunks to
+   split to the new size. See
+   :doc:`/tutorial/modify-chunk-size-in-sharded-cluster` for instructions on
+   modifying chunk size.
+   
+   This table illustrates the approximate maximum collection sizes
+   using the formulas described above:
 
    .. list-table::
       :header-rows: 1
       :stub-columns: 1
 
-      * - Shard Key Size
+      * - Average Size of Shard Key Values
         - 512 bytes
-        - 200 bytes
-      * - Number of Splits
-        - 31,558
-        - 85,196
-      * - Max Collection Size (1 MB Chunk Size)
-        - 31 GB
-        - 83 GB
+        - 256 bytes
+        - 128 bytes
+        - 64 bytes
+      * - Maximum Number of Splits
+        - 32,768
+        - 65,536
+        - 131,072
+        - 262,144
       * - Max Collection Size (64 MB Chunk Size)
-        - 1.9 TB
-        - 5.3 TB
-
-   The data in this chart reflects documents with no
-   data other than the shard key values and therefore represents the
-   smallest possible data size that could reach this limit.
-
-   .. important:: Sharded collections may have *any* size, after
-      successfully enabling sharding.
+        - 1 TB
+        - 2 TB
+        - 4 TB
+        - 8 TB
+      * - Max Collection Size (128 MB Chunk Size)
+        - 2 TB
+        - 4 TB
+        - 8 TB
+        - 16 TB
+      * - Max Collection Size (256 MB Chunk Size)
+        - 4 TB
+        - 8 TB
+        - 16 TB
+        - 32 TB
 
 .. limit:: Single Document Modification Operations in Sharded Collections
 
@@ -409,69 +523,3 @@ Operations
    more than 1000 operations. The :method:`Bulk()` operations in the
    :program:`mongo` shell and comparable methods in the drivers do not
    have this limit.
-
-Naming Restrictions
--------------------
-
-.. limit:: Database Name Case Sensitivity
-
-   MongoDB does not permit database names that differ only by the case
-   of the characters.
-
-.. limit:: Restrictions on Database Names for Windows
-
-   .. versionchanged:: 2.2
-      :ref:`rn-2.2-database-name-restriction-windows`.
-
-   For MongoDB deployments running on Windows, MongoDB will not permit
-   database names that include any of the following characters:
-
-   .. code-block:: none
-
-         /\. "$*<>:|?
-
-   Also, database names cannot contain the null character.
-
-.. limit:: Restrictions on Database Names for Unix and Linux Systems
-
-   For MongoDB deployments running on Unix and Linux systems, MongoDB
-   will not permit database names that include any of the following
-   characters:
-
-   .. code-block:: none
-
-      /\. "$
-
-   Also, database names cannot contain the null character.
-
-.. limit:: Length of Database Names
-
-   Database names cannot be empty and must have fewer than 64
-   characters.
-
-.. limit:: Restriction on Collection Names
-
-   .. versionadded:: 2.2
-
-   Collection names should begin with an underscore or a letter
-   character, and *cannot*:
-
-   - contain the ``$``.
-
-   - be an empty string (e.g. ``""``).
-
-   - contain the null character.
-
-   - begin with the ``system.`` prefix. (Reserved for internal use.)
-
-   In the :program:`mongo` shell, use :method:`db.getCollection()` to
-   specify collection names that might interact with the shell or are
-   not valid JavaScript.
-
-.. _limit-restrictions-on-field-names:
-
-.. limit:: Restrictions on Field Names
-
-   Field names cannot contain dots (i.e. ``.``) or null characters, and they
-   must not start with a dollar sign (i.e. ``$``). See
-   :ref:`faq-dollar-sign-escaping` for an alternate approach.
