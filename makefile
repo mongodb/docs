@@ -1,8 +1,10 @@
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
-STAGING_URL="https://mmsdocs-staging.corp.mongodb.com"
+
+STAGING_URL="https://docs-staging.atlas.mongodb.com"
 STAGING_BUCKET=docs-atlas-staging
-PRODUCTION_URL="https://mmsdocs.corp.mongodb.com"
+
+PRODUCTION_URL="https://docs.atlas.mongodb.com"
 PRODUCTION_BUCKET=docs-atlas-prod
 PREFIX=
 
