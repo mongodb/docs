@@ -16,26 +16,36 @@ Connector.
 Specify Configuration
 ---------------------
 
-You can specify these options using the ``--conf`` setting or the
-``$SPARK_HOME/conf/spark-default.conf`` file to set ``SparkConf``.
+Via ``SparkConf``
+~~~~~~~~~~~~~~~~~
 
+You can specify these options via ``SparkConf`` using the ``--conf``
+setting or the ``$SPARK_HOME/conf/spark-default.conf`` file, and
 MongoDB Spark Connector will use the settings in ``SparkConf`` as the
 defaults.
 
-``ReadConfig`` and ``WriteConfig``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. important::
 
-To override the values in ``SparkConf``, various methods in the MongoDB
-Connector API accept an optional :mongo-spark:`ReadConfig
-</blob/master/src/main/scala/com/mongodb/spark/config/ReadConfig.scala>` or a
-:mongo-spark:`WriteConfig
+   When setting configurations via ``SparkConf``, you must prefix the
+   configuration options. Refer to the configuration sections for the
+   specific prefix.
+
+Via ``ReadConfig`` and ``WriteConfig``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Various methods in the MongoDB Connector API accept an optional
+:mongo-spark:`ReadConfig
+</blob/master/src/main/scala/com/mongodb/spark/config/ReadConfig.scala>`
+or a :mongo-spark:`WriteConfig
 </blob/master/src/main/scala/com/mongodb/spark/config/WriteConfig.scala>` object.
+``ReadConfig`` and ``WriteConfig`` settings override any
+corresponding settings in ``SparkConf``.
 
 For examples, see :ref:`gs-read-config` and :ref:`gs-write-config`. For
 more details, refer to the source for these methods.
 
-Options Map
-~~~~~~~~~~~
+Via Options Map
+~~~~~~~~~~~~~~~
 
 In the Spark API, some methods (e.g. ``DataFrameReader`` and
 ``DataFrameWriter``) accept options in the form of a ``Map[String,
@@ -44,102 +54,353 @@ String]``.
 You can convert custom ``ReadConfig`` or ``WriteConfig`` settings into
 a ``Map`` via the ``asOptions()`` method.
 
-.. tip::
+Via System Property
+~~~~~~~~~~~~~~~~~~~
 
-   When passing input configurations via an options Map, the prefix
-   ``spark.mongodb.input.`` is not needed.
+The connector provides a cache for ``MongoClients`` which can only be
+configured via the System Property. See :ref:`cache-configuration`.
 
 .. _spark-input-conf:
 
 Input Configuration
 --------------------
 
-The following options for reading from MongoDB are available on the
-``SparkConf`` object:
+The following options for reading from MongoDB are available:
+
+.. note::
+   If setting these connector input configurations via ``SparkConf``,
+   prefix these settings with ``spark.mongodb.input.``.
 
 .. list-table::
    :header-rows: 1
-   :widths: 55 45
+   :widths: 35 65
 
    * - Property name
      - Description
 
-   * - .. setting:: spark.mongodb.input.uri
+   * - ``uri``
 
      - Required. The connection string of the form
        ``mongodb://host:port/`` where ``host`` can be a hostname, IP
        address, or UNIX domain socket. If ``:port`` is unspecified, the
        connection uses the default MongoDB port 27017.
 
-       .. note::
+       The other remaining input options may be appended to the ``uri``
+       setting. See :ref:`configure-input-uri`.
 
-          The other remaining options may be appended to the
-          ``spark.mongodb.input.uri`` setting. See :ref:`configure-uri`.
-
-   * - .. setting:: spark.mongodb.input.database
+   * - ``database``
 
      - Required. The database name from which to read data.
 
-   * - .. setting:: spark.mongodb.input.collection
+   * - ``collection``
 
      - Required. The collection name from which to read data.
 
-   * - .. setting:: spark.mongodb.input.localThreshold
+   * - ``localThreshold``
 
      - The threshold (in milliseconds) for choosing a server from
        multiple MongoDB servers.
 
        *Default*: 15 ms
 
-   * - .. setting:: spark.mongodb.input.readPreference.name
+   * - ``readPreference.name``
 
      - The :ref:`Read Preference <replica-set-read-preference-modes>` to
        use.
 
        *Default*: Primary
 
-   * - .. setting:: spark.mongodb.input.readPreference.tagSets
+   * - ``readPreference.tagSets``
 
      - The `ReadPreference` TagSets to use.
 
-   * - .. setting:: spark.mongodb.input.readConcern.level
+   * - ``readConcern.level``
 
      - The :manual:`Read Concern </reference/read-concern>` level to use.
 
-   * - .. setting:: spark.mongodb.input.sampleSize
+   * - ``sampleSize``
 
      - The sample size to use when inferring the schema.
 
        *Default*: 1000
 
-   * - .. setting:: spark.mongodb.input.splitKey
+   * - ``partitioner``
 
-     - The partition key to split the data.
+     - The class name of the partitioner to use to partition the data.
+       The connector provides the following partitioners:
+
+       - ``MongoDefaultPartitioner``
+            **Default**. Wraps the MongoSamplePartitioner and provides
+            help for users of older versions of MongoDB.
+
+       - ``MongoSamplePartitioner``
+             **Requires MongoDB 3.2**. A general purpose partitioner for
+             all deployments. Uses the average document size and random
+             sampling of the collection to determine suitable
+             partitions for the collection. For configuration settings
+             for the MongoSamplePartitioner, see
+             :ref:`conf-mongosamplepartitioner`.
+
+       - ``MongoShardedPartitioner``
+             A partitioner for sharded clusters. Partitions the
+             collection based on the data chunks. Requires read access
+             to the ``config`` database. For configuration settings for
+             the MongoShardedPartitioner, see
+             :ref:`conf-mongoshardedpartitioner`.
+
+       - ``MongoSplitVectorPartitioner``
+             A partitioner for standalone or replica sets. Uses the
+             :dbcommand:`splitVector` command on the standalone or the
+             primary to determine the partitions of the database.
+             Requires privileges to run :dbcommand:`splitVector`
+             command. For configuration settings for the
+             MongoSplitVectorPartitioner, see
+             :ref:`conf-mongoshardedpartitioner`.
+
+       - ``MongoPaginateByCountPartitioner``
+             A slow, general purpose partitioner for all deployments.
+             Creates a specific number of partitions. Requires a query
+             for every partition. For configuration settings for the
+             MongoPaginateByCountPartitioner, see
+             :ref:`conf-mongopaginatebycountpartitioner`.
+
+       - ``MongoPaginateBySizePartitioner``
+             A slow, general purpose partitioner for all deployments.
+             Creates partitions based on data size. Requires a query
+             for every partition. For configuration settings for the
+             MongoPaginateBySizePartitioner, see
+             :ref:`conf-mongopaginatebysizepartitioner`.
+
+       In addition to the provided partitioners, you can also specify a
+       custom partitioner implementation. For custom implementations of
+       the ``MongoPartitioner`` trait, provide the full class name. If
+       no package names are provided, then the default
+       ``com.mongodb.spark.rdd.partitioner`` package is used.
+
+       To configure options for the various partitioner, see
+       :ref:`partitioner-conf`.
+
+       *Default*: MongoDefaultPartitioner
+
+.. _partitioner-conf:
+
+Partitioner Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _conf-mongosamplepartitioner:
+
+``MongoSamplePartitioner`` Configuration
+````````````````````````````````````````
+
+.. note::
+
+   If setting these connector configurations via ``SparkConf``, prefix
+   these configuration settings with
+   ``spark.mongodb.input.partitionerOptions.``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+
+   * - ``partitionKey``
+
+     - The field by which to split the collection data. The field
+       should be indexed and contain unique values.
 
        *Default*: ``_id``
 
-   * - .. setting:: spark.mongodb.input.maxChunkSize
+   * - ``partitionSizeMB``
 
-     - The maximum chunk size for partitioning an unsharded collection.
+     - The size (in MB) for each partition
 
        *Default*: 64 MB
+
+   * - ``samplesPerPartition``
+
+     - The number of sample documents to take for each partition.
+
+       *Default*: 10
+
+.. _conf-mongoshardedpartitioner:
+
+``MongoShardedPartitioner`` Configuration
+`````````````````````````````````````````
+
+.. note::
+
+   If setting these connector configurations via ``SparkConf``, prefix
+   these configuration settings with
+   ``spark.mongodb.input.partitionerOptions.``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+
+   * - ``shardkey``
+
+     - The field by which to split the collection data. The field
+       should be indexed and contain unique values.
+
+       *Default*: ``_id``
+
+.. _conf-mongosplitvectorpartitioner:
+
+``MongoSplitVectorPartitioner`` Configuration
+`````````````````````````````````````````````
+
+.. note::
+
+   If setting these connector configurations via ``SparkConf``, prefix
+   these configuration settings with
+   ``spark.mongodb.input.partitionerOptions.``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+
+   * - ``partitionKey``
+
+     - The field by which to split the collection data. The field
+       should be indexed and contain unique values.
+
+       *Default*: ``_id``
+
+   * - ``partitionSizeMB``
+
+     - The size (in MB) for each partition
+
+       *Default*: 64 MB
+
+.. _conf-mongopaginatebycountpartitioner:
+
+``MongoPaginateByCountPartitioner`` Configuration
+`````````````````````````````````````````````````
+
+.. note::
+
+   If setting these connector configurations via ``SparkConf``, prefix
+   these configuration settings with
+   ``spark.mongodb.input.partitionerOptions.``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+
+   * - ``partitionKey``
+
+     - The field by which to split the collection data. The field
+       should be indexed and contain unique values.
+
+       *Default*: ``_id``
+
+   * - ``numberOfPartitions``
+
+     - The number of partitions to create.
+
+       *Default*: 64
+
+.. _conf-mongopaginatebysizepartitioner:
+
+``MongoPaginateBySizePartitioner`` Configuration
+````````````````````````````````````````````````
+
+.. note::
+
+   If setting these connector configurations via ``SparkConf``, prefix
+   these configuration settings with
+   ``spark.mongodb.input.partitionerOptions.``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+
+   * - ``partitionKey``
+
+     - The field by which to split the collection data. The field
+       should be indexed and contain unique values.
+
+       *Default*: ``_id``
+
+   * - ``partitionSizeMB``
+
+     - The size (in MB) for each partition
+
+       *Default*: 64 MB
+
+.. _configure-input-uri:
+
+``uri`` Configuration Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set all :ref:`spark-input-conf` via the input ``uri`` setting.
+
+For example, consider the following example which sets the input
+``uri`` setting via ``SparkConf``:
+
+.. note::
+
+   If configuring the MongoDB Spark input settings via ``SparkConf``,
+   prefix the setting with ``spark.mongodb.input.``.
+
+.. code:: cfg
+
+   spark.mongodb.input.uri=mongodb://127.0.0.1/databaseName.collectionName?readPreference=primaryPreferred
+
+The configuration corresponds to the following separate configuration
+settings:
+
+.. code:: cfg
+
+   spark.mongodb.input.uri=mongodb://127.0.0.1/
+   spark.mongodb.input.database=databaseName
+   spark.mongodb.input.collection=collectionName
+   spark.mongodb.input.readPreference.name=primaryPreferred
+
+If you specify a setting both in the ``uri`` and in a separate
+configuration, the ``uri`` setting overrides the separate
+setting. For example, given the following configuration, the input
+database for the connection is ``foobar``:
+
+.. code:: cfg
+
+   spark.mongodb.input.uri=mongodb://127.0.0.1/foobar
+   spark.mongodb.input.database=bar
 
 .. _spark-output-conf:
 
 Output Configuration
 --------------------
 
-The following options for writing to MongoDB are available on the
-``SparkConf`` object:
+The following options for writing to MongoDB are available:
+
+.. note::
+
+   If setting these connector output configurations via ``SparkConf``,
+   prefix these settings with: ``spark.mongodb.output.``.
 
 .. list-table::
    :header-rows: 1
-   :widths: 45 55
+   :widths: 35 65
 
    * - Property name
      - Description
 
-   * - .. setting:: spark.mongodb.output.uri
+   * - ``uri``
 
      - Required. The connection string of the form ``mongodb://host:port/``
        where ``host`` can be a hostname, IP address, or UNIX domain
@@ -148,40 +409,75 @@ The following options for writing to MongoDB are available on the
 
        .. note:: 
 
-          The other remaining options may be appended to the
-          ``spark.mongodb.output.uri`` setting. See
-          :ref:`configure-uri`.
+          The other remaining options may be appended to the ``uri``
+          setting. See :ref:`configure-output-uri`.
 
-   * - .. setting:: spark.mongodb.output.database
+   * - ``database``
 
      - Required. The database name to write data.
 
-   * - .. setting:: spark.mongodb.output.collection
+   * - ``collection``
 
      - Required. The collection name to write data to
 
-   * - .. setting:: spark.mongodb.input.localThreshold
+   * - ``localThreshold``
 
      - The threshold (milliseconds) for choosing a server from multiple
        MongoDB servers.
 
        *Default*: 15 ms
-       
-   * - .. setting:: spark.mongodb.output.writeConcern.w
-     - The write concern `w` value.
+
+   * - ``writeConcern.w``
+     - The write concern :ref:`w <wc-w>` value.
 
        *Default* ``w: 1``
    
-   * - .. setting:: spark.mongodb.output.writeConcern.journal
-     - The write concern journal value.
+   * - ``writeConcern.journal``
+     - The write concern :ref:`journal <wc-j>` value.
 
-   * - .. setting:: spark.mongodb.output.writeConcern.wTimeoutMS
-     - The write concern ``wTimeout`` value
+   * - ``writeConcern.wTimeoutMS``
+
+     - The write concern :ref:`wTimeout <wc-wtimeout>` value.
+
+.. _configure-output-uri:
+
+``uri`` Configuration Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set all :ref:`spark-output-conf` via the output ``uri``.
+
+For example, consider the following example which sets the input
+``uri`` setting via ``SparkConf``:
 
 .. note::
 
-   When passing output configurations via an options Map then the
-   prefix ``spark.mongodb.output.`` is not needed.
+   If configuring the configuration output settings via ``SparkConf``,
+   prefix the setting with ``spark.mongodb.output.``.
+
+.. code:: cfg
+
+   spark.mongodb.output.uri=mongodb://127.0.0.1/test.myCollection"
+
+The configuration corresponds to the following separate configuration
+settings:
+
+.. code:: cfg
+
+   spark.mongodb.output.uri=mongodb://127.0.0.1/
+   spark.mongodb.output.database=test
+   spark.mongodb.output.collection=myCollection
+
+If you specify a setting both in the ``uri`` and in a separate
+configuration, the ``uri`` setting overrides the separate
+setting. For example, given the following configuration, the output
+database for the connection is ``foobar``:
+
+.. code:: cfg
+
+   spark.mongodb.output.uri=mongodb://127.0.0.1/foobar
+   spark.mongodb.output.database=bar
+
+.. _cache-configuration:
 
 Cache Configuration
 -------------------
@@ -201,34 +497,7 @@ share the MongoClient across threads.
    * - System Property name
      - Description
 
-   * - .. setting:: spark.mongodb.keep_alive_ms
+   * - ``spark.mongodb.keep_alive_ms``
      - The length of time to keep a MongoClient available for sharing.
 
        *Default*: 5000
-
-.. _configure-uri:
-
-Configure via the ``uri``
--------------------------
-
-You can set all :ref:`spark-input-conf` via the
-:setting:`spark.mongodb.input.uri` and all :ref:`spark-output-conf` via
-:setting:`spark.mongodb.output.uri`.
-
-
-For example, consider the following :setting:`spark.mongodb.input.uri`
-setting.
-
-.. code:: cfg
-
-   spark.mongodb.input.uri=mongodb://127.0.0.1/databaseName.collectionName?readPreference=primaryPreferred
-
-The configuration corresponds to the following separate configuration:
-
-.. code:: cfg
-
-   spark.mongodb.input.uri=mongodb://127.0.0.1/
-   spark.mongodb.input.database=databaseName
-   spark.mongodb.input.collection=collectionName
-   spark.mongodb.input.readPreference.name=primaryPreferred
-
