@@ -769,23 +769,6 @@ Other Authentication Options
 
    Corresponds to configuration file setting: ``mms.session.maxHours``
 
-.. setting:: mms.monitoring.agent.session.timeoutMillis
-
-   To set this, click :guilabel:`Config` and then click the
-   :guilabel:`Custom` tab.
-
-   *Type*: number
-
-   *Default*: 300000
-
-   *Minimum*: 90000
-
-   The Monitoring Agent failover time, in milliseconds. If |mms| does
-   not receive a deployment status from the primary Monitoring Agent in
-   the time specified, |mms| will make a standby Monitoring Agent the
-   new primary. Configuring the timeout below `90000` (90 seconds) will
-   cause |mms| to fail at startup with a configuration error.
-
 HTTP/HTTPS Proxy Settings
 -------------------------
 
@@ -993,18 +976,29 @@ Config` page, and then the :guilabel:`Custom` section.
    its value to ``false``.
 
 .. _config-monitoring-agent-failover:
+.. _standby-monitoring-agent:
 
 Monitoring Agent Session Failover
 ---------------------------------
 
-If you have multiple monitoring agents for a group, only one Monitoring
-Agent is the **primary agent**. The primary agent reports the cluster's
-status to |onprem|. The remaining agents are completely idle, except to
-log their status as standby agents and to periodically ask |onprem|
-whether they should become the primary. The following settings tune the
-frequency with which the standby agents poll |onprem| to determine if
-they have become the primary agent, and the interval that |onprem| uses
-to determine if the primary agent is unaccessible.
+**Beginning with Monitoring Agent version 5.0.0**, |mms| can distribute
+monitoring assignments among up to 100 running Monitoring Agents. One agent is
+the primary agent and the others share in monitoring responsibilities. If an
+agent fails, |mms| redistributes that agent's monitoring assignments.
+If you run more than 100
+Monitoring Agents, the additional agents run as standby agents that are
+completely idle, except to log their status as standby agents and to
+periodically ask |onprem| whether they should receive monitoring assignments.
+
+.. note:: Also beginning with version 5.0.0, the Monitoring Agent stores monitoring
+          metrics at 10-second granularity.
+
+**Prior to Monitoring Agent 5.0.0**, only the primary Monitoring Agent handles
+monitoring assignments. All additional running agents are standby agents.
+
+The following settings tune the interval |onprem| uses to determine if a
+Monitoring Agent is unaccessible and the frequency with which standby agents
+poll |onprem| to determine if they should receive monitoring assignments.
 
 To add the following settings, click the :guilabel:`Admin` link, then
 the :guilabel:`General` tab, then the :guilabel:`Ops Manager Config`
@@ -1016,12 +1010,11 @@ page, and then the :guilabel:`Custom` section.
 
    *Default*: ``90000``
 
-   The interval that |mms| uses to determine if a secondary agent
-   should be promoted to primary. If |mms| does not hear from the
-   primary agent for the duration specifies in
-   :setting:`mms.monitoring.agent.session.timeoutMillis`, |mms|
-   promotes a secondary agent to primary. The minimum supported value
-   is ``90000``.
+   The interval that |mms| uses to determine if a standby agent
+   should start monitoring. If |mms| does not hear from a
+   Monitoring Agent for the duration specified, |mms|
+   promotes a standby agent. Configuring the timeout below `90000` (90
+   seconds) will cause |mms| to fail at startup with a configuration error.
 
 .. setting:: mms.monitoring.agent.standbyCollectionFactor
 
@@ -1029,8 +1022,8 @@ page, and then the :guilabel:`Custom` section.
    
    *Default*: ``4``
 
-   Specifies how frequently standby agents check in with |mms| to see
-   if they have become the primary agent. The following values are
+   Specifies how frequently a standby agent checks in with |mms| to see
+   if it should start monitoring. The following values are
    permitted:
 
    - ``1``: the standby agents check every 55 seconds.

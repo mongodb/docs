@@ -6,14 +6,19 @@ Do I need a Monitoring Agent for every MongoDB instance?
 
 No. In your |mms| group, a single Monitoring Agent connects to all
 MongoDB databases. Configure firewalls to allow the
-Monitoring Agent to connect across data centers and servers. Unless you
-have multiple groups, complete your initial Monitoring Agent setup with
-a single agent.
+Monitoring Agent to connect across data centers and servers.
 
-For redundancy, you may wish to run a second Monitoring Agent. If one
-Monitoring Agent fails, another starts monitoring. As long as a
-Monitoring Agent is running, |mms| will not trigger a *Monitoring
-Agent Down* alert. See the :ref:`monitoring-agent-redundancy` section.
+Beginning with Monitoring Agent version 5.0.0, you can run multiple agents to
+to distribute monitoring assignments and provide failover. |mms| distributes
+monitoring assignments among up to 100 running Monitoring Agents. If you run
+more than 100 Monitoring Agents, the additional agents behave as "standby"
+agents. For more information, see :ref:`multiple-monitoring-agents`.
+
+.. only:: cloud
+
+   .. note:: Also beginning with Monitoring Agent version 5.0.0,
+             **Cloud Manager Premium** uses 10-second granularity
+             for monitoring metrics.
 
 Where should I run the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++
