@@ -16,16 +16,19 @@
        choose can affect network latency for clients accessing your
        databases.
 
-       Pricing for cluster configuration settings vary by region. You
-       can make configuration choices and then try different region
-       selections to compare costs before creating the cluster.
+       .. include:: /includes/fact-group-region-association.rst
+ 
+       Pricing for cluster configuration settings :ref:`vary by region
+       <region-costs>`.
 
    * - :guilabel:`Instance Size`
 
-     - The memory, storage, and IOPS specification for each server for
-       your MongoDB cluster. Each instance size comes with a default
-       set of resources, but you can customize the servers to meet your
-       use case. You can modify the following, which changes the cost:
+     - The memory, storage, and IOPS specification for each
+       data-bearing server [#data-bearing]_ for your |service| cluster.
+       Each instance size comes with a default set of resources, but
+       you can customize the servers to meet your use case. You can
+       modify the following; modifying the capacity and storage speed
+       :ref:`affects the cost <instance-size-costs>`.
 
        - :guilabel:`Custom Storage Capacity`: The size of the server
          root volume.
@@ -37,6 +40,8 @@
          volume using Amazon EBS encryption for data at rest inside the
          volume and all data moving between the volume and the
          instance.
+
+       .. include:: /includes/enable-sharding-requirements.rst
 
    * - :guilabel:`Replication Factor`
 
@@ -50,6 +55,8 @@
      - :term:`Sharded clusters <sharded cluster>` support horizontal
        scaling and consists of shards, :ref:`config servers
        <sharding-config-server>` and router programs.
+
+       .. include:: /includes/enable-sharding-requirements.rst
 
        .. include:: /includes/list-sharded-cluster-components.rst
 
@@ -67,7 +74,8 @@
      - Creates a MongoDB admin user with the specified username and
        password. These fields appear only if no MongoDB user exists for
        your |service| group, such as if you are creating the first
-       cluster in the group.
+       cluster in the group and have not set up MongoDB users
+       beforehand.
 
        **When creating a new admin user, be sure to save the
        credentials.**
