@@ -47,7 +47,18 @@
 
      - The number of :term:`replica set` members. Each member keeps a
        copy of your database, providing high availability and data
-       redundancy. For more information, see :manual:`Replication
+       redundancy.
+
+       The replica set spans a minimum of three availability zones, and
+       each member of the replica set runs on a separate instance. For
+       details on how the number of server instances affects cost, see
+       :ref:`server-number-costs`.
+       
+       If your deployment is a sharded cluster, each shard is a
+       replica set, and the replica factor determines the number of
+       members in each shard replica set.
+
+       For more information on replica sets, see :manual:`Replication
        </replication>` in the MongoDB manual.
 
    * - :guilabel:`Do you want a sharded cluster?`
@@ -59,6 +70,9 @@
        .. include:: /includes/enable-sharding-requirements.rst
 
        .. include:: /includes/list-sharded-cluster-components.rst
+
+       For details on how the number of server instances affects cost,
+       see :ref:`server-number-costs`.
 
        For more information on sharded clusters, see :manual:`Sharding
        </sharding>` in the MongoDB manual.
