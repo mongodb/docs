@@ -133,7 +133,6 @@ html_theme_options = {
     'version': version,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'active_branches': ['none']
 }
 
 html_sidebars = sconf.sidebars
