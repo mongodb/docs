@@ -1,3 +1,14 @@
+Monitoring Agent ``5.0.0.304``
+------------------------------
+
+*Released 2016-06-22*
+
+- Support for high resolution monitoring for Cloud Manager Premium Plans.
+
+- Support for multiple active monitoring agents.
+
+- Explicit monitoring of arbiters.
+
 Monitoring Agent ``4.3.0.265``
 ------------------------------
 
