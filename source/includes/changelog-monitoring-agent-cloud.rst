@@ -1,4 +1,4 @@
-Monitoring Agent ``5.0.0.304``
+Monitoring Agent ``5.0.0.309``
 ------------------------------
 
 *Released 2016-06-22*
