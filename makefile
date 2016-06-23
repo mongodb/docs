@@ -25,7 +25,7 @@ stage:
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public
-	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --all-subdirectories  ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/index.html"
 
 deploy: build/public  build/landing
