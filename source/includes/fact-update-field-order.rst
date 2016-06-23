@@ -1,7 +1,3 @@
-When performing update operations that increase the document size
-beyond the allocated space for that document, the update operation
-relocates the document on disk.
-
 .. order-of-document-fields
 
 MongoDB preserves the order of the document fields following write
