@@ -99,6 +99,6 @@
        enable sharding.
 
        To have |service| generate the password for the admin user,
-       click :guilabel:`Generate Secure Password`. If you choose to
+       click :guilabel:`Autogenerate Secure Password`. If you choose to
        have |service| generate the password, |service| displays it only
        once.
