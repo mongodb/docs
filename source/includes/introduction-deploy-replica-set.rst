@@ -20,7 +20,7 @@ read operations. Replica sets should always have an odd number of
 members. This ensures that :doc:`elections
 </core/replica-set-elections>` will proceed smoothly. For more about
 designing replica sets, see :doc:`the Replication overview
-</core/replication-introduction>`.
+</replication>`.
 
 The basic procedure is to start the :program:`mongod` instances that
 will become members of the replica set, configure the

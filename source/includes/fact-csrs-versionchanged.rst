@@ -1,5 +1,5 @@
 Starting in MongoDB 3.2, config servers for sharded clusters can be
-deployed as a :doc:`replica set </core/replication-introduction>`.
+deployed as a :doc:`replica set </replication>`.
 Using a replica set for the config servers improves consistency across
 the config servers, since MongoDB can take advantage of the standard
 replica set read and write protocols for the config data. In addition,
