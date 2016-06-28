@@ -36,7 +36,12 @@ stage-cloud:
 	@echo "Hosted at ${STAGING_URL_CLOUDMGR}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy-cloud: build/public/cloud
-	mut-publish build/public/cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy ${ARGS}
+	@echo "Copying over landing page"
+	cp -p build/landing/landing.html build/public/cloud/
+	cp -p build/landing/style.min.css build/public/cloud/_static/
+	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
+
+	mut-publish build/public/cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX}  --all-subdirectories --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL_CLOUDMGR}/index.html"
 
 deploy-cloud: build/public/cloud build/landing
