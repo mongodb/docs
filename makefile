@@ -25,19 +25,10 @@ stage:
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public
-	@echo "Copying over landing page"
-	cp -p build/landing/landing.html build/public/
-	cp -p build/landing/style.min.css build/public/_static/
-	cp -p build/landing/*webfont* build/public/_static/fonts
-
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --all-subdirectories  ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/index.html"
 
-deploy: build/public  build/landing
-	@echo "Copying over landing page"
-	cp -p build/landing/landing.html build/public/
-	cp -p build/landing/style.min.css build/public/_static/
-	cp -p build/landing/*webfont* build/public/_static/fonts
+deploy: build/public
 	@echo "Doing a dry-run"
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --all-subdirectories  --dry-run ${ARGS}
 
