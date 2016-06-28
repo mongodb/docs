@@ -74,7 +74,7 @@ extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
     'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
-    'mms-home': ('https://cloud.mongodb.com%s', ''),
+    'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
     'products': ('https://www.mongodb.com/products%s', '')
 }
