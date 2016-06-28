@@ -50,7 +50,7 @@ deploy-cloud: build/public/cloud
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
 
 stage-opsmgr:
-	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --stage ${ARGS}
+	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --stage --all-subdirectories ${ARGS}
 	@echo "Hosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy-opsmgr: build/public/onprem
