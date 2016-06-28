@@ -83,16 +83,18 @@ deploy-opsmgr: build/public/onprem
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
+## Revisit decision to call make or just having the steps in the deploy-opsmgr rule
 ifeq (${GIT_BRANCH}, master)
+	@echo ''
 	$(MAKE) deploy-opsmgr-upcoming
-else
-	ifeq (${GIT_BRANCH}, ${CURRENT_V})
-		$(MAKE) deploy-opsmgr-current
-		endif
+else ifeq (${GIT_BRANCH}, ${CURRENT_V})
+	@echo ''
+	$(MAKE) deploy-opsmgr-current
 endif
 
 deploy-opsmgr-current: build/public/onprem
-	@echo "Doing a dry-run for current symlink to ${PRODUCTION_BUCKET_OPSMGR}"
+	@echo ''
+	@echo "Doing a dry-run for CURRENT symlink to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
@@ -102,7 +104,8 @@ deploy-opsmgr-current: build/public/onprem
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/current/index.html"
 
 deploy-opsmgr-upcoming: build/public/onprem/master
-	@echo "Doing a dry-run of upcoming symlink to ${PRODUCTION_BUCKET_OPSMGR}"
+	@echo ''
+	@echo "Doing a dry-run of UPCOMING symlink to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
