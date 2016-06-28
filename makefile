@@ -66,3 +66,23 @@ deploy-opsmgr: build/public/onprem
 	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
+
+deploy-opsmgr-current: build/public/onprem
+	@echo "Doing a dry-run"
+	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
+
+	@echo ''
+	read -p "Press any key to perform the previous"
+	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
+
+	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/current/index.html"
+
+deploy-opsmgr-upcoming: build/public/onprem
+	@echo "Doing a dry-run"
+	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
+
+	@echo ''
+	read -p "Press any key to perform the previous"
+	mut-publish build/public/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
+
+	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/upcoming/index.html"
