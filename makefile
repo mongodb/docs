@@ -1,4 +1,5 @@
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
 USER=`whoami`
 
 STAGING_URL_CLOUDMGR="https://docs-staging.cloudmanager.mongodb.com"
@@ -15,7 +16,12 @@ PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prod
 
 PREFIX=
 
-.PHONY: help stage-cloud fake-deploy-cloud deploy-cloud
+### Must Change when we update the current version of OpsMgr
+CURRENT_V=v2.0
+
+
+##  I doubt that we'll ever have files named stage-cloud, fake-deploy-cloud, ... but eh
+.PHONY: help stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming
 
 help:
 	@echo 'Targets'
@@ -50,11 +56,11 @@ deploy-cloud: build/public/cloud build/landing
 	cp -p build/landing/style.min.css build/public/cloud/_static/
 	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
 
-	@echo "Doing a dry-run"
+	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_CLOUDMGR}"
 	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
 
 	@echo ''
-	read -p "Press any key to perform the previous"
+	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_CLOUDMGR}"
 	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
@@ -68,31 +74,39 @@ fake-deploy-opsmgr: build/public/onprem
 	@echo "Hosted at ${STAGING_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
 deploy-opsmgr: build/public/onprem
-	@echo "Doing a dry-run"
+	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
-	read -p "Press any key to perform the previous"
+	read -p "Press any key to publish preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
+ifeq (${GIT_BRANCH}, master)
+	$(MAKE) deploy-opsmgr-upcoming
+else
+	ifeq (${GIT_BRANCH}, ${CURRENT_V})
+		$(MAKE) deploy-opsmgr-current
+		endif
+endif
+
 deploy-opsmgr-current: build/public/onprem
-	@echo "Doing a dry-run"
+	@echo "Doing a dry-run for current symlink to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
-	read -p "Press any key to perform the previous"
+	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/current/index.html"
 
-deploy-opsmgr-upcoming: build/public/onprem
-	@echo "Doing a dry-run"
+deploy-opsmgr-upcoming: build/public/onprem/master
+	@echo "Doing a dry-run of upcoming symlink to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
-	read -p "Press any key to perform the previous"
-	mut-publish build/public/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
+	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
+	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/upcoming/index.html"
