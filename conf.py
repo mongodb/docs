@@ -55,7 +55,8 @@ rst_epilog = [
     '.. |copy| unicode:: U+000A9',
     '.. |service-fullname| replace:: MongoDB Atlas',
     '.. |service| replace:: Atlas',
-    '.. |mms| replace:: MongoDB Cloud Manager',
+    '.. |mms-full| replace:: MongoDB Cloud Manager',
+    '.. |mms| replace:: Cloud Manager',
 ]
 
 rst_epilog.extend(get_replacements(conf))
