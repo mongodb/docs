@@ -23,6 +23,36 @@ member can first be "seeded" with data from an existing backup. This
 limits performance impact to the new secondary and allows the active
 MongoDB process to continue storing and retrieving data.
 
+.. _seed-secondary-considerations:
+
+Considerations
+--------------
+
+If the format of your backup differs from the format you want for your
+restored database, such as when you want to restore a backup of a
+deployment that uses the MMAPv1 storage engine to a deployment that
+uses the WiredTiger storage engine, then use ``mongodump`` to create
+the backup and ``mongorestore`` to restore the data to the new database.
+
+.. important::
+   The ``seedSecondary`` script is omitted from the restore files if
+   you have:
+
+   - Blacklisted databases or collections or 
+   - The legacy sync cluster connection configuration servers for a
+     sharded cluster
+
+     Deployments using replica set configuration servers are unaffected.
+  
+   If you were to have received the script as part of the restore
+   files, then tried to apply it, the secondary would become
+   inconsistent with the other members.
+     
+.. seealso:: :manual:`Upgrade Config Servers to Replica Set </tutorial/upgrade-config-servers-to-replica-set/>`.
+
+Seeding a new secondary from a backup restore requires an oplog window
+on the current primary that spans back to the snapshot's timestamp.
+
 Prerequisites
 -------------
 
@@ -69,36 +99,6 @@ gigabytes.
    See **Check the Size of the Oplog** on 
    :manual:`Troubleshoot Replica Sets </tutorial/troubleshoot-replica-sets>` 
    if you do not have the size.
-
-.. _seed-secondary-considerations:
-
-Considerations
---------------
-
-If the format of your backup differs from the format you want for your
-restored database, such as when you want to restore a backup of a
-deployment that uses the MMAPv1 storage engine to a deployment that
-uses the WiredTiger storage engine, then use ``mongodump`` to create
-the backup and ``mongorestore`` to restore the data to the new database.
-
-.. important::
-   The ``seedSecondary`` script is omitted from the restore files if
-   you have:
-
-   - Blacklisted databases or collections or 
-   - The legacy sync cluster connection configuration servers for a
-     sharded cluster
-
-     Deployments using replica set configuration servers are unaffected.
-  
-   If you were to have received the script as part of the restore
-   files, then tried to apply it, the secondary would become
-   inconsistent with the other members.
-     
-.. seealso:: :manual:`Upgrade Config Servers to Replica Set </tutorial/upgrade-config-servers-to-replica-set/>`.
-
-Seeding a new secondary from a backup restore requires an oplog window
-on the current primary that spans back to the snapshot's timestamp.
 
 Procedure
 ---------
