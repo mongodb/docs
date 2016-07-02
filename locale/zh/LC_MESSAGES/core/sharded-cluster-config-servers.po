@@ -13,13 +13,17 @@ msgstr ""
 
 #: ../source/core/sharded-cluster-config-servers.txt:8
 msgid "Config Servers"
-msgstr ""
+msgstr "配置服务器"
 
 #: ../source/core/sharded-cluster-config-servers.txt:53
 msgid ""
 "Each sharded cluster must have its own config servers. Do not use the same "
 "config servers for different sharded clusters."
 msgstr ""
+"配置服务器是保存集群中 :doc:`元信息 </core/sharded-cluster-metadata>` 的特"
+"殊 :program:`mongod` . 配置服务器使用两段提交的方法来保证即时一致性和可靠性."
+"配置服务器 **并不** 以复制集的方式运行,所有的配置服务器都可用是部署一个集群或者"
+"修改集群元信息的前提."
 
 #: ../source/core/sharded-cluster-config-servers.txt:62
 msgid "Read and Write Operations on Config Servers"
@@ -31,6 +35,8 @@ msgid ""
 "</reference/config-database>`. The :program:`mongos` instances cache this "
 "data and use it to route reads and writes to shards."
 msgstr ""
+"生产环境中的集群有 **精确的三个** 配置服务器,在测试环境中,你可以只使用一个配置"
+"服务器来部署一个集群,但在生产环境中,为确保冗余与安全,应该总是使用三个."
 
 #: ../source/core/sharded-cluster-config-servers.txt:71
 msgid "after a :doc:`chunk migration </core/sharding-chunk-migration>`, or"
@@ -39,16 +45,22 @@ msgstr ""
 #: ../source/core/sharded-cluster-config-servers.txt:73
 msgid "after a :doc:`chunk split </core/sharding-chunk-splitting>`."
 msgstr ""
+"如果你的集群只有一个配置服务器,那这个配置服务是单点服务,如果这个配置服务器不"
+"能被访问,集群将不可服务,如果你不能将配置服务器的数据恢复,整个集群将不能再被使"
+"用."
+
 
 #: ../source/core/sharded-cluster-config-servers.txt:78
 msgid "MongoDB reads data from the config server in the following cases:"
 msgstr ""
+
 
 #: ../source/core/sharded-cluster-config-servers.txt:80
 msgid ""
 "A new :program:`mongos` starts for the first time, or an existing "
 ":program:`mongos` restarts."
 msgstr ""
+
 
 #: ../source/core/sharded-cluster-config-servers.txt:83
 msgid "After change in the cluster metadata, such as after a chunk migration."
@@ -58,10 +70,13 @@ msgstr ""
 msgid "Config Server Availability"
 msgstr ""
 
+
 #: ../source/core/sharded-cluster-config-servers.txt:111
 msgid ""
 "See :ref:`sharding-config-servers-and-availability` for more information."
 msgstr ""
+"使用CNAMEs标记你的配置服务器,这样可以在重命名或者改变配置服务器的顺序时不需要"
+"停机."
 
 #: ../source/core/sharded-cluster-config-servers.txt:1
 msgid "sharding"
@@ -71,6 +86,8 @@ msgstr ""
 #: ../source/core/sharded-cluster-config-servers.txt:2
 msgid "config servers"
 msgstr ""
+"配置服务器在 :doc:`config 数据库 </reference/config-database>` 中存储了集群的"
+"元信息, :program:`mongos` 缓存了这个数据库用来做读写的路由分发."
 
 #: ../source/core/sharded-cluster-config-servers.txt:56
 msgid "config databases"
@@ -83,10 +100,14 @@ msgstr ""
 #: ../source/core/sharded-cluster-config-servers.txt:57
 msgid "config"
 msgstr ""
+"对存在的数据块进行分裂,详细信息可以参见 :doc:`数据块分裂 </core/sharding-"
+"chunk-splitting>`. "
 
 #: ../source/core/sharded-cluster-config-servers.txt:0
 msgid "On this page"
 msgstr ""
+"在分片间进行数据块的迁移,详细信息可以参见 :doc:`数据块的迁移 </core/sharding-"
+"chunk-migration>`."
 
 #: ../source/core/sharded-cluster-config-servers.txt:18
 msgid ""
@@ -96,14 +117,17 @@ msgstr ""
 
 #: ../source/core/sharded-cluster-config-servers.txt:23
 msgid ""
+
 "If the config servers become inaccessible, the cluster is not accessible. If"
 " you cannot recover the data on a config server, the cluster will be "
 "inoperable."
 msgstr ""
 
+
 #: ../source/core/sharded-cluster-config-servers.txt:27
 msgid "MongoDB also uses the config servers to manage distributed locks."
 msgstr ""
+
 
 #: ../source/core/sharded-cluster-config-servers.txt:34
 msgid "Replica Set Config Servers"
@@ -122,11 +146,15 @@ msgid ""
 "</core/wiredtiger>`."
 msgstr ""
 
+
 #: ../source/includes/fact-config-server-replica-set-restrictions.rst:1
 msgid ""
 "The following restrictions apply to a replica set configuration when used "
 "for config servers:"
 msgstr ""
+"如果集群中一个或者两个配置服务器不可用,集群的元信息将变为 **可读** ,你还可以从"
+"分片中读写信息,但是数据块的迁移以及数据块的分裂在所有配置服务器都恢复可用之前"
+"不能够进行."
 
 #: ../source/includes/fact-config-server-replica-set-restrictions.rst:4
 msgid "Must have zero :doc:`arbiters </core/replica-set-arbiter>`."
@@ -134,17 +162,26 @@ msgstr ""
 
 #: ../source/includes/fact-config-server-replica-set-restrictions.rst:6
 msgid ""
+
 "Must have no :doc:`delayed members </core/replica-set-delayed-member>`."
+
 msgstr ""
+"如果所有的三个配置服务器都不可用,在重启 :program:`mongos` 之前集群依然可用. 但"
+"是一旦试图重启 :program:`mongos` ,集群将不能提供任何服务."
 
 #: ../source/includes/fact-config-server-replica-set-restrictions.rst:9
 msgid ""
 "Must build indexes (i.e. no member should have "
 ":data:`~replSetGetConfig.members[n].buildIndexes` setting set to false)."
 msgstr ""
+"没有集群的元信息,集群将不能正常工作,因此,要 *时刻* 保持配置服务器的可用和完整."
+"因此,配置服务器的备份是很重要的.与分片中的数据相比,配置服务器存储的信息要小很"
+"多.这意味着配置服务器有相对较小的请求负载,而且对于集群的正常运行,并不需要所有"
+"配置服务器任意时刻都可用,所以,备份配置服务器是一件容易的事情."
 
 #: ../source/core/sharded-cluster-config-servers.txt:42
 msgid ""
+
 "Earlier versions of MongoDB required *exactly three* mirrored "
 ":program:`mongod` instances to act as the config servers. If you are using "
 "*mirrored* config servers, each server's system clock must be within 30 "
@@ -153,10 +190,14 @@ msgid ""
 " network time protocol (NTP) ``ntpd`` on your servers. MongoDB 3.2 "
 "deprecates the use of three mirrored :program:`mongod` instances for config "
 "servers."
+
 msgstr ""
+"如果集群使用的配置服务器变换了ip或者域名,你需要重启 **所有** 的 :program:"
+"`mongod` 和 :program:`mongos` .可以在集群部署时使用CNAMEs避免重启."
 
 #: ../source/core/sharded-cluster-config-servers.txt:50
 msgid ""
+
 "With replica set config servers, clock skew does not affect distributed lock"
 " management."
 msgstr ""
@@ -187,6 +228,7 @@ msgid ""
 "occur until the replica set can elect a primary. If all config databases "
 "become unavailable, the cluster can become inoperable."
 msgstr ""
+
 
 #: ../source/core/sharded-cluster-config-servers.txt:98
 msgid ""
