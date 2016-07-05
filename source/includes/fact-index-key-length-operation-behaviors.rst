@@ -60,5 +60,5 @@ corresponding index entry exceeds the |limit|.
 .. index-field-limit-chunk-migration
 
 For existing sharded collections, :doc:`chunk migration
-</core/sharding-chunk-migration>` will fail if the chunk has a document
+</core/sharding-balancer-administration>` will fail if the chunk has a document
 that contains an indexed field whose index entry exceeds the |limit|.
