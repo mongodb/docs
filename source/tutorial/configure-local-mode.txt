@@ -19,7 +19,7 @@ must manually provide the MongoDB binaries and :term:`version manifest
 <version manifest>`. As MongoDB Inc. releases new versions, you must update
 the binaries and manifest.
 
-The Automation Agents require MongoDB binaries in order to install MongoDB on
+The Automation Agents require MongoDB binaries to install MongoDB on
 new deployments and to change MongoDB versions on existing ones. The Backup
 Daemons require the binaries in order to run the correct versions of
 MongoDB for the databases being backed up.
@@ -89,7 +89,7 @@ following versions of MongoDB:
 - If you use both the MongoDB Community edition and the MongoDB Enterprise
   subscription edition, you must include the required versions of both.
 
-The following table describes the archives required for specific versions:
+The archives required for specific versions include:
 
 .. list-table::
    :widths: 30 30 60
@@ -108,13 +108,22 @@ The following table describes the archives required for specific versions:
      - 3.2+, 3.0+, 2.6+, 2.4+
      - Platform-specific archive available from `<http://mongodb.com/download>`_.
 
+.. warning::
+
+   Uncheck every version you do not plan to deploy before enabling
+   Local Mode. If you leave unused versions checked and did not
+   download their associated binaries, |onprem| fails a pre-flight
+   check when it starts.
+
+   If you did not uncheck unused versions or download the associated binaries, you can bypass the |onprem| pre-flight check. See :ref:`Start |onprem| When All Versions Are Not Downloaded <fix-local-mode-start-failure>` for the procedure. 
+
 Download Binaries Before Importing a Deployment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Populate the :ref:`versions directory <versions-directory>` with all required
-MongoDB versions **before you import any existing MongoDB deployments** into
-|onprem|. If a version is missing, the Automation Agent cannot take control of
-the deployment.
+Populate the :ref:`versions directory <versions-directory>` with all
+required MongoDB versions **before you import any existing MongoDB
+deployments** into |onprem|. If a version is missing, the Automation
+Agent cannot manage the deployment.
 
 Install Enterprise Dependencies (MongoDB Enterprise Only)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,7 +135,65 @@ See the link for the server's operating system:
 
 .. include:: /includes/list-links-per-os-for-enterprise-dependencies.rst
 
-Procedure
----------
+Configure Local Mode
+--------------------
 
 .. include:: /includes/steps/configure-local-mode.rst
+
+.. _fix-local-mode-start-failure:
+
+Start |onprem| When All Versions Are Not Downloaded
+---------------------------------------------------
+
+By default, |onprem| enables you to install all versions of MongoDB.
+This is because |onprem| also sets the default source of MongoDB
+installers to be over the Internet from MongoDB.
+
+Once you set |onprem| to *Local Mode*, |onprem| checks to see if the
+installers for all of the versions you set in Version Manager can be
+found on the |onprem| server. If these installers are not found,
+|onprem| fails this "pre-flight" check and stops.
+
+To allow you to start |onprem|, you can either install all of the
+installers for every version of MongoDB or change the configuration of
+|onprem| temporarily to allow it to start and let you change the
+versions of MongoDB your |onprem| server supports.
+
+To change the |onprem| configuration temporarily:
+
+1. Login to the |onprem| server. 
+
+2. Open the |onprem| configuration properties file.
+  
+   .. code-block:: sh
+
+      sudo vi /opt/mongodb/mms/conf/conf-mms.properties
+
+   .. note::
+      This path is for :doc:`RPM </tutorial/install-on-prem-with-rpm-packages>` 
+      and :doc:`DEB </tutorial/install-on-prem-with-deb-packages>` 
+      package installs. 
+      The :doc:`Linux archive </tutorial/install-on-prem-from-archive>` 
+      and :doc:`Windows </tutorial/install-on-prem-from-archive>` installs install in different paths.
+
+3. Add a line changing the source of MongoDB versions to be MongoDB,
+   Inc. via the Internet.
+
+   .. code-block:: ini
+
+      automation.versions.source=mongodb
+
+4. Save and close the file.
+
+5. If you run |onprem| with high availability, you must repeat steps
+   1-4 on each |onprem| server.
+
+6. Start the |onprem| service on each |onprem| server.
+
+   .. code-block:: sh
+
+      sudo service mongodb-mms start
+
+7. Change the versions of MongoDB that Automation Agents can install.
+   See :doc:`how to set the MongoDB versions that automation can install </tutorial/configure-available-mongodb-version/>` for
+   details.
