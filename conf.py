@@ -184,7 +184,7 @@ latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper',
-    'tableofcontents': '\\clearpage\\textcopyright{ MongoDB, Inc. 2008 - 2015 }\\clearpage\\tableofcontents'
+    'tableofcontents': '\\clearpage\\textcopyright{ MongoDB, Inc. 2008 - 2016 }\\clearpage\\tableofcontents'
 }
 
 latex_logo = None
