@@ -30,4 +30,4 @@ You must ensure that your network configuration (all interfaces and
 firewalls) allows each Automation Agent to connect to every MongoDB
 deployment listed on the :guilabel:`Deployment` page.
 
-.. include:: /includes/prerequisites-automation-agent-servers.rst
+.. include:: /includes/fact-port-forwarding-unsupported.rst
