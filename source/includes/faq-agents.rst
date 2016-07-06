@@ -65,6 +65,10 @@ to connect using the ``mongo`` shell:
 
    mongo hostname:port/test
 
+.. note::
+
+   .. include:: /includes/fact-port-forwarding-unsupported.rst
+
 Why does the Monitoring Agent connect with hostnames instead of IP addresses?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
