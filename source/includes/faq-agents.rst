@@ -92,7 +92,4 @@ See the ``README`` file included in the agent download.
 How do I delete a Monitoring Agent from |mms|?
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-Monitoring Agents report their status to |mms|. When an agent does not
-report for more than 24 hours, the agent no longer appears in |mms|.
-
-For more details, see :doc:`/tutorial/delete-monitoring-agent`.
+See :doc:`/tutorial/delete-monitoring-agent`.
