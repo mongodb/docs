@@ -128,7 +128,6 @@ try:
 
         html_theme = 'mms-onprem'
         html_theme_options['pdfpath'] = '/'.join([conf.project.url,
-                                                  conf.project.basepath,
                                                   conf.git.branches.current,
                                                   'opsmanager-manual.pdf'])
         html_theme_options['edition'] = 'hosted'
