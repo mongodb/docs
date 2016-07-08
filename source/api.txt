@@ -1,6 +1,6 @@
-==========
-Public API
-==========
+===
+API
+===
 
 .. default-domain:: mongodb
 
@@ -8,22 +8,415 @@ Public API
    :local:
    :backlinks: none
    :depth: 1
-   :class: singlecol
+   :class: twocols
 
-Basically the vetted content from existing
-`<https://docs.cloud.mongodb.com/core/api/>`_.
+The |service| API follows the principles of the REST architectural style to
+expose a number of internal resources which enable programmatic access to
+|service|'s features.
+
+As with changes made through the |service| web interface, changes made through
+the API are subject to |service| :doc:`billing </billing>`. If you incur
+charges, you must have a valid credit card on file with |service| or risk
+having your account locked.
+
+The API has the following features:
+
+- **JSON entities** - All entities are expressed in JSON.
+
+- **Digest authentication** - To ensure that your API key is never sent over the
+  network, API requests are authenticated using `HTTP Digest Authentication`_.
+
+- **Browsable interface** - Using a consistent linking mechanism, you can
+  browse the entire API by starting at the root resource and following links
+  to related resources.
+
+- **Security** - In addition to Digest Authentication, the API is only
+  accessible via HTTPS, and certain calls requiring even more security are
+  protected by a user-defined whitelist. Further, an API user's capabilities
+  are restricted by their assigned role(s). For example, a user with the
+  ``Read Only`` role within a particular group is not allowed to modify
+  any resources within that group.
+
+.. _HTTP Digest Authentication: http://en.wikipedia.org/wiki/Digest_access_authentication
+
+HTTP Methods
+------------
+
+All resources support a subset of these common HTTP Methods:
+
+- ``GET`` - Retrieve the JSON representation of a resource.
+
+- ``POST`` - Create a new resource using the provided JSON representation.
+
+- ``PUT`` - Replace a resource with the provided JSON representation.
+
+- ``PATCH`` - Update the specified fields in a resource using the provided
+  JSON representation.
+
+- ``DELETE`` - Remove a resource.
+
+JSON
+----
+
+All entities are represented in JSON. The following rules and conventions apply:
+
+- **Content Type Request Header**
+
+  When sending JSON to the server via ``POST`` or ``PUT``, make sure to
+  specify the correct content type request header: ``Content-Type:
+  application/json``
+
+- **Invalid Fields**
+
+  Invalid fields are *rejected* rather than *ignored*. If, for example, you
+  attempt to create a new entity and misspell one of the fields, or if you
+  attempt to update an existing entity and include a field that cannot be
+  modified, the server responds with a 400 status code and an error message
+  stating which field was invalid.
+
+- **ISO-8601-Formatted Dates**
+
+  All dates are returned as `ISO-8601`_-formatted strings designated in UTC.
+  When sending dates to the server (i.e., as query parameters or fields in
+  ``POST`` or ``PATCH`` request entities), use ISO-8601-formatted dates. If you
+  do not specify a time zone, UTC is assumed. However, it is highly recommended
+  that you include a time zone designator to avoid any ambiguity.
+
+- **BSON Timestamps**
+
+  In some cases, a timestamp is returned as a `BSON timestamp`_, most notably
+  in the backup resources. These are represented in JSON documents as an
+  object with two fields: ``date``, which is an ISO-8601-formatted date string
+  in UTC with granularity to the second, and ``increment`` a 32-bit integer.
+
+- **Field Names for Fields with Numbers**
+
+  Fields that contain numeric values in a particular unit will be named so as
+  to disambiguate the unit being used. For example, a host's uptime is
+  returned in milliseconds, so the name of the host entity field is
+  ``uptimeMsec``.
+
+- **Empty Fields**
+
+  Fields that do not have a current value are returned with an appropriate
+  default value. For example, |service| will not have any statistics for a
+  newly discovered host, so any statistics-related fields will have a value of
+  zero.
+
+  Fields that do not have a sensible default value are omitted from the
+  entity. For example, a host that is not using authentication will omit the
+  ``username`` field from the returned entity.
+
+- **Field Order**
+
+  The fields in the JSON documents returned by the server are in no particular
+  order, and the order may change. Do not depend on the order of the fields.
+
+.. _ISO-8601: http://en.wikipedia.org/wiki/ISO8601
+
+.. _BSON timestamp: http://docs.mongodb.org/manual/reference/bson-types/#timestamps
+
+Linking
+-------
+
+Each resource includes one or more links to sub-resources and/or related
+resources.
+
+.. Do we need a different example here:
+
+For example, a host has a link to the group it belongs to, the replica set it
+belongs to, and so on. Links are placed in the ``links`` field of an entity,
+which is an array of link relation objects. Each link relation has two fields:
+
+- ``rel`` - Name (or type) of the relation. Many of these are considered
+  Extension Relation Types and are prefixed by ``http://mms.mongodb.com``.
+
+- ``href`` - The target URL.
+
+All entities include at least one link relation called ``self``, which is
+simply its own URL. When an entity is part of a list (e.g., when requesting
+all hosts in a group), then it only includes the ``self`` link relation.
+Here's an example of a portion of a **host** resource with a few links:
+
+.. Do we need a different example here:
+
+.. code:: javascript
+
+   {
+     "id": "xxx",
+     "groupId": "yyy",
+     "hostname": "mongodb.foo.com",
+     "port": 27017,
+     // additional host properties...
+     "links": [
+       {
+         "rel": "self",
+         "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/xxx/hosts/yyy"
+       },
+       {
+         "rel": "http://mms.mongodb.com/group",
+         "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/xxx"
+       }
+     ]
+   }
+
+For more information, refer to the `Web Linking Specification
+<http://tools.ietf.org/html/rfc5988>`_. Note that although the specification
+describes a format for including links in the HTTP response headers, doing so
+is not a requirement. To make the API easily browsable, it includes the links
+in the response body rather than in the response headers.
+
+Lists
+-----
+
+Some resources return a list of entities. For example, you can request a list
+of all **hosts** in a **group**. When a list of entities is expected in a
+response, the results are returned in batches bounded by two query parameters:
+
+- ``pageNum`` - Page number (1-based). Defaults to ``1`` if not specified.
+
+- ``itemsPerPage`` - Maximum number of items to return, up to a maximum of
+  100. Defaults to ``100`` if not specified.
+
+The response entity contains three fields:
+
+- ``totalCount`` - The total number of items in the entire result set. For
+  example, if a group has a total of 57 hosts, and you make a request with
+  ``pageNum=6`` and ``itemsPerPage=10``, then ``totalCount`` will be 57.
+
+- ``results`` - The result set, which is an array of entity documents.
+
+- ``links`` - Contains one to three link relations: ``previous`` for the
+  previous page of results (omitted for the first page); ``next`` for the next
+  page of results (omitted for the last page); and ``self`` for the current
+  page (always present).
+
+If you make a request for a list of entities and there are no results, then
+the API responds with a 200 status code and the ``results`` array is empty. It
+does *not* respond with a 404 in this case, since the list of entities may not
+be empty at some point in the future. However, if you request a list of
+entities in a context that does not exist (e.g., the list of hosts for a
+non-existent group), then this *does* result in a 404 response status.
+
+.. Do we need a different example here:
+
+Here's an example response for the second page of 10 hosts in a group with a
+total of 57 hosts:
+
+.. code:: javascript
+
+  {
+
+    "totalCount": 57,
+    "results": [
+      {
+        "id": "yyy",
+        "groupId": "xxx",
+        // additional host properties...
+      },
+      // additional host documents...
+    ],
+    "links": [
+      {
+        "rel": "previous",
+        "href": "https://www.mongodb.com/api/atlas/v1.0/groups/xxx/hosts?itemsPerPage=10&pageNum=1"
+      },
+      {
+        "rel": "next",
+        "href": "https://www.mongodb.com/api/atlas/v1.0/groups/xxx/hosts?itemsPerPage=10&pageNum=3"
+      }
+    ]
+  }
+
+Envelopes
+---------
+
+Some clients might not be able to access the HTTP response headers and/or
+status code. In that case, you can request that the response include an
+"envelope," which is simply an extra layer of information in the JSON document
+and contains any relevant details that would normally be in the response
+headers. By default, the API does *not* include the response in an envelope.
+To request one, simply add the query parameter ``envelope=true``.
+
+For responses that contain a single entity, the envelope contains two fields:
+
+- ``status`` - The HTTP status code.
+
+- ``content`` - The requested entity.
+
+For responses that contain a list of entities, there is already an envelope
+that wraps the results, so specifying ``envelope=true`` only adds the
+``status`` field to the existing envelope.
+
+Pretty Printing
+---------------
+
+By default, extraneous whitespace is stripped from the JSON returned by the
+server. To ask for pretty-printed JSON, simply append the ``pretty=true``
+query parameter to any request:
+
+.. code-block:: none
+
+   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0?pretty=true"
 
 .. note::
-   Not sure to keep API at the topmost level for |service| or to move
-   it under reference.
 
-The section will have additional API reference/tutorials as needed.
+   All the examples in this document show pretty-printed JavaScript for clarity.
+   **The example URLs do not contain this additional query parameter.**
 
-.. class:: hidden
+Response Codes
+--------------
 
-   .. toctree::
-      :titlesonly: 
+Responses use the standard HTTP response codes, including:
 
-      /enable-public-api
-      /reference/public-api-resources
+.. list-table::
+  :widths: 5 20 75
+  :header-rows: 1
 
+  * - Code
+    - Meaning
+    - Notes
+
+  * - 200
+    - OK
+    - The request was successful. This is typically the response to a successful
+      ``GET`` request.
+
+  * - 201
+    - Created
+    - A new resource was created. This is typically the response to a
+      successful ``POST`` request.
+
+  * - 202
+    - Accepted
+    - A request for an asynchronous operation was accepted.
+
+  * - 400
+    - Bad Request
+    - Something was wrong with the client request.
+
+  * - 401
+    - Unauthorized
+    - Authentication is required but was not present in the request. Typically
+      this means that the digest authentication information was omitted from the
+      request.
+
+  * - 403
+    - Forbidden
+    - Access to the specified resource is not permitted. Usually means that the
+      user associated with the given API key is not allowed to access the
+      requested resource.
+
+  * - 404
+    - Not Found
+    - The requested resource does not exist.
+
+  * - 405
+    - Method Not Allowed
+    - The HTTP method is not supported for the specified resource. Keep in mind
+      that each resource may only support a subset of HTTP methods. For example,
+      you are not allowed to ``DELETE`` the root resource.
+
+  * - 409
+    - Conflict
+    - This is typically the response to a request to create or modify a property
+      of an entity that is unique when an existing entity already exists with
+      the same value for that property. For example, attempting to create a group
+      with the same name as an existing group is not allowed.
+
+  * - 5xx
+    - Various server errors
+    - Something unexpected went wrong. Try again later and consider notifying
+      |service| Support.
+
+
+Errors
+------
+
+When a request results in an error, the response body contains a document with
+additional details about what went wrong. The document contains three fields:
+
+- ``error`` - The error code, which is simply the HTTP status code.
+
+- ``reason`` - A short description of the error, which is simply the HTTP status phrase.
+
+- ``detail`` - A more detailed description of the error.
+
+.. Do we need a different example here:
+
+For example, here is the response body for a request for a host that does not exist:
+
+.. code:: javascript
+
+   {
+     "error": 404,
+     "reason": "Not Found",
+     "detail": "No host exists with ID yyy in group xxx."
+   }
+
+
+Authentication
+--------------
+
+As previously mentioned, the |service| API uses HTTP Digest Authentication.
+The details of digest authentication are beyond the scope of this document,
+but it essentially requires a username and a password which are hashed using a
+unique server-generated value called a **nonce**. The username is the username
+of a registered |service| account, and the password is an API key associated
+with that account.
+
+Keep the following points in mind:
+
+- The server-generated nonce is used by the client to hash the username and
+  password before sending them back to the server to authenticate a request.
+  The nonce is only valid for a short amount of time as per the digest
+  authentication specification. This is to prevent replay attacks, so you
+  can't cache a nonce and use it forever.
+
+- Using digest authentication in combination with HTTPS provides an extra layer
+  of security by ensuring that a password is never transmitted back to the
+  server.
+
+- Some resource methods require even more security and are additionally
+  protected by whitelists that allow access to the resource only from the IP
+  addresses listed. Each user configures their own whitelist of IP addresses
+  that allow them access to the resource, in combination with their API keys.
+  A user can access a whitelisted resource only when the API key and
+  whitelisted IP address come from the same |service| user account.
+
+- |service| roles allow more fine-grained control of the operations a user is
+  allowed to perform. The API resources enforce the same authorization rules,
+  so the resources and methods that can be accessed by an API key are governed
+  by the roles granted to the associated user. For example, to ``DELETE`` a
+  host, the user that owns the API key used to make the request must be a
+  ``Monitoring Admin`` or ``Owner`` in the group that the host belongs to.
+
+.. Above, do we need a different example than DELETE host?
+
+- Many resources are tied to a group, as evidenced by URLs of the form
+  ``.../api/atlas/v1.0/groups/<GROUP-ID>/...``. For these resources, the user
+  tied to the API key must be a member of the group. Otherwise the server will
+  respond with a 403 (Forbidden) status.
+
+.. _api-rate-limiting:
+
+Rate Limiting
+-------------
+
+Certain resources are subject to rate limiting.
+
+For resources that are rate limited, |service| allows up to 100 requests per
+minute *per group*. Keep in mind that an API key is assigned to a user, but
+that user may access multiple groups. Consider two users: A and B. User A
+belongs to group X, and user B belongs to groups X and Y. At 1:00:00pm, User A
+makes 50 requests to a rate limited resource in group X, all of which are
+complete by 1:00:20pm. At 1:00:30pm, User B attempts to make 60 requests to a
+rate limited resource in group X. Since User A has already used up 50 requests
+within the 1:00pm minute for group X, the last 10 requests User B attempts to
+make are rejected. However, User B can make requests to a rate limited
+resource in group Y, since each group maintains a separate request counter. At
+1:01pm, requests to group X may proceed, because the request counter used for
+rate limiting resets each minute.
+
+If you exceed the rate limit, the API returns a ``429 Too Many Requests``
+response code.

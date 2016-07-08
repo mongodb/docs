@@ -71,5 +71,5 @@
 
      - Sends an HTTP POST request to an endpoint for programmatic processing.
        The request body contains a JSON document that uses the same format as
-       the Public API's ``Alerts`` resource. This option is available only if
+       the |service| API's ``Alerts`` resource. This option is available only if
        you have configured Webhook settings on the ``Group Settings`` page.
