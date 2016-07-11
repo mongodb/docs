@@ -22,10 +22,26 @@ For an existing |service| cluster in your group, you can modify:
 - the enabling or disabling of backup.
 
 Some configuration changes require migration to new servers; e.g.
-changing the instance size. To provide continuous availability, scaling
-migrations are performed in a rolling fashion. However, depending on
+changing the instance size. To provide continuous availability, |service| migrates
+the cluster in a rolling fashion, one piece of hardware at a time. Depending on
 the amount of data to migrate, migrations can take a significant amount
 of time.
+
+Migrating to new servers causes downtime when |service| migrates the replica
+set :term:`primary`. The replica set elects a new primary and is down during
+the election, usually for under a minute. For more information, see `this FAQ
+<https://docs.mongodb.com/manual/faq/replica-sets/#how-long-does-replica-set-failover-take>`_
+in the MongoDB manual.
+
+Migration can affect performance if your primary is already reaching
+operational capacity: each newly migrated replica set member must
+:term:`initial sync` from the primary, adding to the operational load.
+Migrations can also affect performance if :manual:`read preferences
+</core/read-preference>` are set to read from secondaries: the replica set is
+down one secondary during the migration.
+
+.. Note to writers: beginning in v20160712, an instance size change with no disk
+   change does not require an initial sync
 
 Scale an Existing Cluster
 -------------------------
