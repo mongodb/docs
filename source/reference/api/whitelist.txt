@@ -12,16 +12,11 @@ Group Whitelist
 
 Retrieves and updates your group's :ref:`whitelist <whitelist>`.
 
-.. TRUE???:
-   The ``POST`` and ``DELETE`` operations are themselves whitelisted. To add
-   or remove entries from the group's whitelist, you must initiate the request
-   from an IP address currently on the group's whitelist.
-
 Endpoints
 ---------
 
-Gets all the Group's Whitelisted IP Addresses
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get a Group's Whitelist
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
 
@@ -47,17 +42,15 @@ Add Entries to the Group's Whitelist
 The entity body must be an array of entry objects, even if you are adding only
 one entry.
 
-.. TRUE???
-   You must initiate this request from an IP address currently on the whitelist.
-   If an IP address is already in the whitelist, it is ignored.
+If an IP address is already in the whitelist, you will get an error.
 
 When setting ``ipAddress``, if you specify a single IP address and add the
 ``/32`` subnet mask, |service| does not store the ``/32`` because a ``/32``
 subnet mask does not change the address. For example, an address of
 ``12.34.56.78/32`` is the same as ``12.34.56.78``.
 
-Delete an Entry from the Group's Whitelist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Delete an Entry from a Group's Whitelist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
 
@@ -65,10 +58,6 @@ Delete an Entry from the Group's Whitelist
 
 If the entry includes a subnet mask, use the URL-encoded value for the forward
 slash (/). For example, for an entry of ``1.2.3.4/5``, use ``1.2.3.4%2F5``.
-
-.. TRUE???
-   You must initiate this request from an IP address currently on your whitelist.
-   You cannot remove your current IP address from the whitelist.
 
 Sample Entity
 -------------
@@ -94,11 +83,12 @@ Entity Fields
 
    * - ``cidrBlock``
      - string
-     - The whitelist entry that contains this IP Address.
+     - The whitelist entry in CIDR notation.
 
    * - ``ipAddress``
      - string
-     - The whitelisted IP address.
+     - The whitelisted IP address. This attribute will not be present if the
+       whitelist entry is a CIDR block (e.g., ``1.2.3.4/28``).
 
    * - ``groupId``
      - string
@@ -117,19 +107,14 @@ Links
    * - ``http://mms.mongodb.com/group``
      - The group containing the whitelist entry.
 
-.. DOUBLE-CHECKING ABOVE: group, not groups?
-
 Examples
 --------
 
-Gets all the Group's Whitelisted IP Addresses
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get a Group's Whitelist
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Request
 ```````
-
-.. code-block:: none
-
 
 .. code-block:: none
 
@@ -183,23 +168,20 @@ Response
 Add Entries to the Group's Whitelist
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-   POST /api/atlas/v1.0/groups/GROUP-ID/whitelist
-
 Request
 ```````
 
 .. code-block:: none
 
-
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST 
-   "https://cloud.mongodb.com/api/atlas/v1.0/groups/5759c4a4e4b0b1f3902bb6c9/whitelist" --data '
-   [ {
+   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5759c4a4e4b0b1f3902bb6c9/whitelist" --data '
+   [
+     {
        "ipAddress" : "76.54.32.10"
+
      }, {
-       "ipAddress" : "72.53.34.15"
-   } ]'
+       "cidrBlock": "72.53.34.15/28"
+     }
+   ]'
 
 Response
 ````````
@@ -208,8 +190,6 @@ Response
    HTTP/1.1 201 Created
 
 .. code-block:: none
-
-   HTTP/1.1 200 OK
 
    {
      "links" : [ ... ],
@@ -221,9 +201,8 @@ Response
           "links" : [ ... ]
         },
         {
-          "cidrBlock" : "72.53.34.15/32",
+          "cidrBlock" : "72.53.34.15/28",
           "groupId" : "5356823b3794dee37132bb7b",
-          "ipAddress" : "72.53.34.15",
           "links" : [ ... ]
         },
         ...,
@@ -231,8 +210,8 @@ Response
      "totalCount" : 6
    }
 
-Delete an Entry from a User's Whitelist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Delete an Entry from a Group's Whitelist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Request
 ```````
