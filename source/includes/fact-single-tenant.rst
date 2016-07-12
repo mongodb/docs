@@ -1,2 +1,1 @@
-All |service| clusters are single-tenant and deployed on servers
-allocated specifically to the cluster.
+Each |service| cluster get its own AWS instances.
