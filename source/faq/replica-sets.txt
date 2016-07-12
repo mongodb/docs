@@ -8,67 +8,27 @@ FAQ: Replication and Replica Sets
    :local:
    :backlinks: none
    :depth: 1
-   :class: twocols
+   :class: singlecol
 
-This document answers common questions about database replication
-in MongoDB.
+This document answers common questions about replication in MongoDB.
+See also the :doc:`/replication` section in the manual, which provides
+an :doc:`overview of replication </replication>`, including details on:
 
-If you don't find the answer you're looking for, check
-the :doc:`complete list of FAQs </faq>` or post your question to the
-`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+- :doc:`/core/replica-set-members`
+
+- :doc:`/core/replica-set-architectures`
+
+- :doc:`/core/replica-set-elections`
 
 What kinds of replication does MongoDB support?
 -----------------------------------------------
 
-MongoDB supports :doc:`replica sets </replication>`.
-
-.. versionchanged:: 3.0.0
-
-   In MongoDB 3.0.0, replica sets can have up to :ref:`50 nodes
-   <3.0-replica-sets-max-members>`. Previous versions limited the
-   maximum number of replica set members to 12.
+MongoDB supports :doc:`replica sets </replication>`, which can have up
+to :ref:`50 nodes <3.0-replica-sets-max-members>`.
 
 MongoDB also supports master-slave replication; however, replica sets
 are the recommended replication topology. However, if your deployment
 requires more than 50 nodes, you must use master/slave replication.
-
-What does the term "primary" mean?
-----------------------------------
-
-:term:`Primary` is a :doc:`replica set
-</replication>` member that can accept writes. Only
-the primary can accept write operations. [#edge-cases-2-primaries]_
-
-.. [#edge-cases-2-primaries]
-
-   .. include:: /includes/footnote-two-primaries-edge-cases.rst
-
-What does the term "secondary" mean?
-------------------------------------
-
-:term:`Secondary` nodes are the read-only nodes in :doc:`replica sets
-</replication>`. 
-
-How long does replica set failover take?
-----------------------------------------
-
-It varies, but a replica set will generally select a new primary within
-a minute.
-
-For instance, it may take 10-30 seconds for the members of a
-:term:`replica set` to declare a :term:`primary` inaccessible (see
-:rsconf:`~settings.electionTimeoutMillis`). One of the remaining
-secondaries holds an :term:`election` to elect itself as a new primary.
-During the election, the cluster is unavailable for writes.
-
-The election itself may take another 10-30 seconds.
-
-.. versionchanged:: 3.2
-
-   Starting in MongoDB 3.2, with the :ref:`replication election
-   enhancements <3.2-rel-notes-rs-enhancements>`, MongoDB reduces
-   replica set failover time. See :ref:`replication election
-   enhancements <3.2-rel-notes-rs-enhancements>` for details.
 
 Does replication work over the Internet and WAN connections?
 ------------------------------------------------------------
@@ -92,9 +52,7 @@ administrator intervention. However, if the network connections
 among the nodes in the replica set are very slow, it might not be
 possible for the members of the node to keep up with the replication.
 
-If the TCP connection between the secondaries and the :term:`primary`
-instance breaks, a :term:`replica set` will automatically
-elect one of the :term:`secondary` members of the set as primary.
+.. seealso::  :doc:`/core/replica-set-elections`
 
 Why use journaling if replication already provides data redundancy?
 -------------------------------------------------------------------
@@ -107,8 +65,8 @@ Journaling is particularly useful for protection
 against power failures, especially if your replica set resides in a single data
 center or power circuit.
 
-When a :term:`replica set` runs with journaling, :program:`mongod`
-instances can safely restart without any administrator intervention.
+When a :term:`replica set` runs with journaling, you can safely restart
+:program:`mongod` instances without additional intervention.
 
 .. note::
 
@@ -118,98 +76,28 @@ instances can safely restart without any administrator intervention.
    Journaling is enabled by default on all 64-bit
    builds of MongoDB v2.0 and greater.
 
-How many arbiters do replica sets need?
----------------------------------------
-
-Some configurations do not require any :term:`arbiter`
-instances. Arbiters vote in :term:`elections <election>`
-for :term:`primary` but do not replicate the data like
-:term:`secondary` members.
-
-:term:`Replica sets <replica set>` require a majority of the
-remaining nodes present to elect a primary. Arbiters allow you
-to construct this majority without the overhead of adding replicating
-nodes to the system.
-
-There are many possible replica set :doc:`architectures
-</core/replica-set-architectures>`.
-
-A replica set with an odd number of voting nodes does not need an arbiter.
-
-A common configuration consists of two replicating nodes that include a
-:term:`primary` and a :term:`secondary`, as well as an :term:`arbiter`
-for the third node. This configuration makes it possible for the set
-to elect a primary in the event of failure, without requiring three
-replicating nodes.
-
-You may also consider adding an arbiter to a set if it has an equal
-number of nodes in two facilities and network partitions between the
-facilities are possible. In these cases, the arbiter will break
-the tie between the two facilities and allow the set to elect a new
-primary.
-
-.. seealso:: :doc:`/core/replica-set-architectures`
-
 What information do arbiters exchange with the rest of the replica set?
 -----------------------------------------------------------------------
 
 Arbiters never receive the contents of a collection but do exchange the
 following data with the rest of the replica set:
 
-- Credentials used to authenticate the arbiter with the replica set. All
-  MongoDB processes within a replica set use keyfiles. These exchanges
-  are encrypted.
+- Credentials used to authenticate the arbiter with the replica set.
+  These exchanges are encrypted.
 
 - Replica set configuration data and voting data. This information is
   not encrypted. Only credential exchanges are encrypted.
 
 If your MongoDB deployment uses TLS/SSL, then all communications
 between arbiters and the other members of the replica set are secure.
+
 See the documentation for :doc:`/tutorial/configure-ssl` for more
-information. Run all arbiters on secure networks, as with all MongoDB
-components.
+information. As with all MongoDB components, run arbiters on secure
+networks.
 
 .. see:: The overview of 
    :ref:`Arbiter Members of Replica Sets
    <replica-set-arbiters>`.
-
-Which members of a replica set vote in elections?
--------------------------------------------------
-
-All members of a replica set, unless the value of :rsconf:`votes
-<members[n].votes>` is equal to ``0``, vote in
-elections. This includes all :ref:`delayed
-<replica-set-delayed-members>`, :ref:`hidden
-<replica-set-hidden-members>` and :ref:`secondary-only
-<replica-set-secondary-only-members>` members.
-:ref:`Arbiters <replica-set-arbiters>` always vote in elections and
-always have ``1`` vote.
-
-Additionally, the :data:`~replSetGetStatus.members.state` of the voting
-members also determine whether the member can vote. Only voting members
-in the following states are eligible to vote:
-
-- ``PRIMARY``
-
-- ``SECONDARY``
-
-- ``RECOVERING``
-
-- ``ARBITER``
-
-- ``ROLLBACK``
-
-.. seealso:: :ref:`replica-set-elections`
-
-Do hidden members vote in replica set elections?
-------------------------------------------------
-
-:ref:`Hidden members <replica-set-hidden-members>` of :term:`replica
-sets <replica set>` *do* vote in elections. To exclude a member from voting in an
-:term:`election`, change the value of the member's
-:rsconf:`members[n].votes` configuration to ``0``.
-
-.. seealso:: :ref:`replica-set-elections`
 
 Is it normal for replica set members to use different amounts of disk space?
 ----------------------------------------------------------------------------
@@ -225,10 +113,9 @@ times.
 Can I rename a replica set?
 ---------------------------
 
-As of MongoDB 2.6 there are no tools or functions designed specifically to
-rename a replica set.
+No.
 
 You can use the backup and restore procedure described in the
 :doc:`/tutorial/restore-replica-set-from-backup` tutorial to create a
-new replica set with the desired name. Downtime may be necessary in order to
-ensure parity between the original replica set and the new one.
+new replica set with the desired name. Downtime may be necessary in
+order to ensure parity between the original replica set and the new one.

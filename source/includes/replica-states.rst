@@ -1,28 +1,40 @@
 .. list-table::
    :header-rows: 1
-   :widths: 15,25,60
+   :widths: 15 25 60
 
-   * - **Number**
-     - **Name**
-     - **State Description**
+   * - Number
+     - Name
+     - State Description
 
    * - 0
      - :replstate:`STARTUP`
-     - Not yet an active member of any set. All members start up in this state. The
-       :program:`mongod` parses the :doc:`replica set configuration document </administration/replica-set-member-configuration>` while in :replstate:`STARTUP`.
+
+     - Not yet an active member of any set. All members start up in
+       this state. The :program:`mongod` parses the :doc:`replica set
+       configuration document
+       </administration/replica-set-member-configuration>` while in
+       :replstate:`STARTUP`.
 
    * - 1
      - :replstate:`PRIMARY`
-     - The member in state :doc:`primary </core/replica-set-primary>` is the only member that can accept write operations.
+     
+     - The member in state :doc:`primary </core/replica-set-primary>`
+       is the only member that can accept write operations. Eligible to
+       vote.
 
    * - 2
      - :replstate:`SECONDARY`
-     - A member in state :doc:`secondary </core/replica-set-secondary>` is replicating the data store.  Data is available for reads, although they may be stale.
+
+     - A member in state :doc:`secondary </core/replica-set-secondary>`
+       is replicating the data store. Eligible to vote.
 
    * - 3
      - :replstate:`RECOVERING`
-     - Can vote. Members either perform startup self-checks, or transition
-       from completing a :doc:`rollback </core/replica-set-rollbacks>` or :doc:`resync </tutorial/resync-replica-set-member>`.
+
+     - Members either perform startup self-checks, or transition from
+       completing a :doc:`rollback </core/replica-set-rollbacks>` or
+       :doc:`resync </tutorial/resync-replica-set-member>`. Eligible to
+       vote.
 
    * - 5
      - :replstate:`STARTUP2`
