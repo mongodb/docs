@@ -1,1 +1,1 @@
-Each |service| cluster get its own AWS instances.
+Each group has its own AWS instances and :ref:`security-vpc`.
