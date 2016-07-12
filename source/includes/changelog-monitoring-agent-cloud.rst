@@ -1,3 +1,12 @@
+Monitoring Agent ``5.1.0.323``
+------------------------------
+
+*Released 2016-07-12*
+
+- Support for automatically backing off of monitoring interval for
+  auto-scaled mongos deployments.
+
+
 Monitoring Agent ``5.0.0.309``
 ------------------------------
 

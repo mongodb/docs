@@ -1,3 +1,10 @@
+Backup Agent ``4.4.0.396``
+--------------------------
+
+*Released 2016-07-12*
+
+- Agent support for restarting incremental initial syncs.
+
 Backup Agent ``4.3.0.384``
 --------------------------
 
