@@ -69,43 +69,75 @@ To deploy the replica set that hosts the |application| Database, see
 The ``gen.key`` File
 ~~~~~~~~~~~~~~~~~~~~
 
-|onprem| requires an identical ``gen.key`` file be stored on each server
-hosting |onprem|, including |onprem| instances with activated Backup Daemons.
-The ``gen.key`` is a binary file
-of 24 random bytes. |onprem| uses the file to encrypt data at rest in the
-databases and to encrypt credentials via the :ref:`credentials tool
-<encrypt-mongodb-user-credentials>`.
+All servers running |onprem| use an identical ``gen.key`` keyfile to
+encrypt and decrypt |onprem|\'s backing database and user credentials.
+The ``gen.key`` file is a 24-byte binary file. This file must be stored
+on every server that is part of a highly available |onprem| deployment.
 
-You can create the ``gen.key`` ahead of time and distribute it to each
-server, or you can let the |application| create the file for you. If you
-choose the latter, you must start one |application| and copy the generated
-``gen.key`` to the other servers **before** starting the other
-|application|\ s. An |application| will create a ``gen.key`` upon initial
-startup if no ``gen.key`` exists.
+.. important::
 
-If you choose to create the ``gen.key`` ahead of time, before starting any
-of the |application|\ s, you can use the OpenSSL ``rand`` command. For
-example:
+   The ``gen.key`` file should not be stored on a shared network location. This file should be stored on each |onprem| server.
 
-.. code-block:: sh
+|onprem| generates the keyfile automatically the first time it runs.
+You can choose to manually generate the ``gen.key`` file before
+starting |onprem| using a utility like ``openssl rand``.
+   
+This example uses ``openssl rand`` to generate the key file. 
 
-   openssl rand 24 > /etc/mongodb-mms/gen.key
+.. note:: 
 
-The ``gen.key`` file is located in ``/etc/mongodb-mms/`` for installations
-from a package manager and in ``${HOME}/.mongodb-mms/`` for installations
-from an archive.
+   The ``openssl`` library is not a MongoDB product. Support and usage
+   are out of scope for this tutorial beyond the limited examples
+   provided.
+
+.. example::
+
+   .. code-block:: sh
+
+      openssl rand 24 > /etc/mongodb-mms/gen.key
+
+   .. note:: 
+
+      OpenSSL must be installed before trying to create this key file.
+      Run ``openssl -v`` in a Linux shell or Windows Powershell or
+      ``openssl version`` on Mac OS X terminal to see if it is
+      installed.
+
+   The ``gen.key``, in this example, is stored in the ``/etc/mongodb-
+   mms/`` directory on a Red Hat Enterprise Linux system.
+
+However you create the ``gen.key`` file, copy the file from the server
+on which it was created to every server that is part of the highly
+available |onprem| instance in the appropriate directory:
+
+* ``/etc/mongodb-mms/`` for RPM or Ubuntu installations
+
+* ``<installPath>/.mongodb-mms/`` for an archive (``.tar``) file
+  installations
+
+* ``<installPath>\MMSData\Secrets`` for Microsoft Windows Server
+  installations
+
+.. warning::
+
+   Any |onprem| server that does not have the ``gen.key`` file
+   installed cannot connect to the backing databases and
+   become part of an HA |onprem| instance.
+
+   Once you have generated the ``gen.key`` for your |onprem| instance
+   on the first |onprem| server, back up the ``gen.key`` file to a
+   secure location.
 
 Prerequisites
 -------------
 
-Deploy the replica set that hosts the
-:ref:`mms-application-database`. To deploy a replica set,
-see :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the
+Deploy the replica set that hosts the :ref:`mms-application-database`.
+To deploy a replica set, see 
+:manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the
 MongoDB manual.
 
 Procedure
 ---------
-
 
 The following procedure assumes you will let one of the |application|\ s
 create the ``gen.key``. If you instead create your own ``gen.key``,
