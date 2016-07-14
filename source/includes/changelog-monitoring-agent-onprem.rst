@@ -1,3 +1,13 @@
+.. _monitoring-3.9.1.326
+
+Monitoring Agent ``3.9.1.326``
+------------------------------
+
+*Released with Ops Manager 2.0.5 on 2016-07-13*
+
+- Fixed expired code-signing certificate in MSI. This is a packaging
+  change only, the agent version did not change.
+
 .. _monitoring-3.9.1.238:
 
 Monitoring Agent ``3.9.1.238``
