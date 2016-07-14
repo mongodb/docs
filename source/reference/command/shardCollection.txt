@@ -15,15 +15,26 @@ Definition
 
 .. dbcommand:: shardCollection
 
-   Enables a collection for sharding and allows MongoDB to begin
-   distributing data among shards. You must run
-   :dbcommand:`enableSharding` on a database before running the
-   :dbcommand:`shardCollection` command. :dbcommand:`shardCollection`
-   has the following form:
+   :doc:`Shards </sharding>` a collection to distribute its documents
+   across shards. You must run :dbcommand:`enableSharding` on a
+   database before running the :dbcommand:`shardCollection` command.
+   The :dbcommand:`shardCollection` command must be run against the
+   ``admin`` database.
+
+   .. |command| replace:: :dbcommand:`shardCollection`
+
+   .. include:: /includes/fact-dbcommand.rst
+
+   :dbcommand:`shardCollection` has the following form:
 
    .. code-block:: javascript
 
-      { shardCollection: "<database>.<collection>", key: <shardkey> }
+      {
+         shardCollection: "<database>.<collection>",
+         key: <shardkey>,
+         unique: <boolean>,
+         numInitialChunks: <integer>
+      }
 
    :dbcommand:`shardCollection` has the following fields:
 
@@ -35,6 +46,8 @@ Considerations
 Use
 ~~~
 
+You can only shard a collection once.
+
 Do **not** run more than one :dbcommand:`shardCollection` command on
 the same collection at the same time.
 
@@ -45,17 +58,30 @@ Shard Keys
 
 Choosing the best shard key to effectively distribute load among your
 shards requires some planning. Review :ref:`sharding-shard-key`
-regarding choosing a shard key.
+regarding choosing a shard key and restrictions.
 
 Hashed Shard Keys
 ~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.4
-
 :ref:`Hashed shard keys <sharding-hashed-sharding>` use a
 hashed index of a single field as the shard key.
 
+Use the form ``{field: "hashed"}`` to specify a hashed shard key.
+Hashed shard keys may not be compound indexes.
+
 .. include:: /includes/note-hashed-shard-key-during-chunk-migration.rst
+
+.. seealso:: :doc:`/core/hashed-sharding`
+
+Uniqueness
+~~~~~~~~~~
+
+If specifying ``unique: true``:
+
+.. include:: /includes/extracts/shard-collection-unique-restriction-command.rst
+
+See also :ref:`Sharded Collection and Unique Indexes
+<sharding-shard-key-unique>`
 
 Example
 -------
@@ -66,8 +92,7 @@ in the ``records`` database and uses the ``zipcode`` field as the
 
 .. code-block:: javascript
 
+   use admin
    db.runCommand( { shardCollection: "records.people", key: { zipcode: 1 } } )
 
-.. seealso::
-
-   :doc:`/sharding` and :doc:`/tutorial/deploy-shard-cluster`.
+.. seealso::  :doc:`/sharding`

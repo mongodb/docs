@@ -41,31 +41,22 @@ distribution. See :ref:`sharding-shard-key-selection`.
 
 .. _sharding-shard-key-creation:
 
-Creating a Shard Key
---------------------
+Shard Key Specification
+-----------------------
 
-The :method:`sh.shardCollection()` method shards the target collection 
-based on the indexed fields passed to the ``key`` parameter.
+To shard a collection, you must specify the target collection and the
+shard key to the :method:`sh.shardCollection()` method:
 
 .. code-block:: javascript
 
    sh.shardCollection( namespace, key )
 
-The ``namespace`` parameter consists of a string ``<database>.<collection>`` 
-specifying the full :term:`namespace` of the target collection.
-The ``key`` parameter consists of a document containing a field and the 
-traversal direction for that field. 
-   
-If the collection is empty, :method:`sh.shardCollection()` creates indexes
-based on the specified fields and the traversal direction. If the collection
-is *not* empty, create the indexes first using
-:method:`db.collection.createIndex()`. The fields and travesal directions
-passed to ``key`` must match the target indexes.
+- The ``namespace`` parameter consists of a string
+  ``<database>.<collection>`` specifying the full :term:`namespace` of
+  the target collection.
 
-You cannot create a shard key using non-indexed field or fields. 
-
-See :ref:`sharding-shard-key-indexes` for information on restrictions 
-and requirements related to shard key indexes.
+- The ``key`` parameter consists of a document containing a field and
+  the index traversal direction for that field.
 
 For instructions specific to sharding a collection using the
 :ref:`hashed sharding <sharding-hashed>` strategy, see
@@ -75,78 +66,52 @@ For instructions specific to sharding a collection using the
 :ref:`ranged sharding <sharding-ranged>` strategy, see
 :ref:`deploy-ranged-sharded-cluster-shard-collection`.
 
-.. _sharding-shard-key-requirements:
-
-Shard Key Requirements
-----------------------
-
-Key Size
-~~~~~~~~
-
-.. include:: /includes/limits-sharding-keysize.rst
-
-When sharding an existing collection, the shard key can constrain the 
-maximum supported collection size for the initial sharding operation only. 
-See :limit:`Sharding Existing Collection Data Size`. 
-
-.. important::
-
-   A sharded collection can grow to any size after successful sharding
-
-.. ToDo: Pending DOCS-7145, include a table showing split points at a few
-   byte sizes.
-
 .. _sharding-internals-shard-key-indexes:
 .. _sharding-shard-key-indexes:
 
 Shard Key Indexes
-~~~~~~~~~~~~~~~~~
+-----------------
 
-.. include:: /includes/limits-sharding-index-type.rst
-
-All sharded collections **must** have an index that starts with the
+All sharded collections **must** have an index that supports the
 :term:`shard key`; i.e. the index can be an index on the shard key or a
-:term:`compound index` where the shard key is a prefix of the index.
+:term:`compound index` where the shard key is a :ref:`prefix
+<compound-index-prefix>` of the index.
 
-The index on the shard key **cannot** be a :ref:`multikey index
-<index-type-multikey>`.
+- If the collection is empty, :method:`sh.shardCollection()` creates
+  the index on the shard key if such an index does not already exists.
 
-If you shard a collection without any documents and
-*without* such an index, :method:`sh.shardCollection()`
-creates the index on the shard key. If the collection already has
-documents, you must create the index before using
-:method:`sh.shardCollection()`.
+- If the collection is not empty, you must create the index first
+  before using :method:`sh.shardCollection()`.
 
 If you drop the last valid index for the shard key, recover by
 recreating an index on just the shard key.
 
-For restrictions on shard key indexes, see :ref:`limits-shard-keys`.
+.. _sharding-shard-key-unique:
 
 Unique Indexes
 ~~~~~~~~~~~~~~
 
-Sharded collections cannot enforce :ref:`unique indexes
-<limit-sharding-unique-indexes>`. MongoDB does *not* support creating
-new unique indexes and does *not* allow sharding collections with unique
-indexes on fields other than ``_id``.
+For a sharded collection, only the ``_id`` field index and the index on
+the shard key or a :term:`compound index` where the shard key is a
+:ref:`prefix <compound-index-prefix>` can be :doc:`unique
+</core/index-unique>`:
 
-MongoDB *can* enforce uniqueness on the :term:`shard key`. MongoDB
-enforces uniqueness on the *entire* key combination, and not specific
-components of the shard key. You cannot specify a unique constraint
-on a :ref:`hashed index <index-type-hashed>`. To enforce uniqueness
-on the shard key, pass the ``unique`` parameter as ``true`` to the
-:method:`sh.shardCollection()` method.
+- You cannot shard a collection that has unique indexes on other fields.
 
-The best way to ensure a field has unique values is to generate
-universally unique identifiers (UUID,) such as MongoDB's '``ObjectId``
-values.
+- You cannot create unique indexes on other fields for a sharded
+  collection.
 
-For collections where ``_id`` is *not* part of the shard key, the
-application is responsible for ensuring that the ``_id`` field is
-unique.
+Through the use of the unique index on the shard key, MongoDB *can*
+enforce uniqueness on the shard key values. MongoDB enforces uniqueness
+on the *entire* key combination, and not individual components of the
+shard key. To enforce uniqueness on the shard key values, pass the
+``unique`` parameter as ``true`` to the :method:`sh.shardCollection()`
+method:
 
-See :ref:`shard-key-arbitrary-uniqueness` if enforcing uniqueness
-on an arbitrary field is necessary.
+.. include:: /includes/extracts/shard-collection-unique-restriction-method.rst
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
 
 .. index:: shard key; cardinality
 
@@ -154,6 +119,7 @@ on an arbitrary field is necessary.
 .. _sharding-internals-operations-and-reliability:
 .. _sharding-shard-key-selection:
 .. _sharding-internals-choose-shard-key:
+.. _sharding-shard-key-requirements:
 
 Choosing a Shard Key
 --------------------
@@ -174,6 +140,23 @@ the cluster.
 At minimum, consider the consequences of the
 :ref:`cardinality<shard-key-range>`, :ref:`frequency<shard-key-frequency>`, and
 rate of :ref:`change<shard-key-monotonic>` of a potential shard key.
+
+Restrictions
+~~~~~~~~~~~~
+
+For restrictions on shard key, see :ref:`limits-shard-keys`.
+
+Collection Size
+~~~~~~~~~~~~~~~
+
+When sharding a collection that is not empty, the shard key can
+constrain the maximum supported collection size for the initial
+sharding operation only. See :limit:`Sharding Existing Collection Data
+Size`.
+
+.. important::
+
+   A sharded collection can grow to any size after successful sharding.
 
 .. _shard-key-range:
 .. _sharding-shard-key-cardinality:
@@ -277,86 +260,3 @@ data distribution. Consider each factor when choosing a shard key.
 
 If your data model requires sharding on a key that changes
 monotonically, consider using :doc:`/core/hashed-sharding`.
-
-.. _shard-key-arbitrary-uniqueness:
-
-Unique Constraints on Arbitrary Fields
---------------------------------------
-
-If you cannot use a unique field as the shard key or if you need to
-enforce uniqueness over multiple fields, you must create another
-:term:`collection` to act as a "proxy collection". This collection
-must contain both a reference to the original document (i.e. its
-``ObjectId``) and the unique key.
-
-Consider a collection ``records`` that stores user information. The
-field ``email`` is not the shard key, but needs to be unique.
-
-The ``proxy`` collection then would contain the following:
-
-.. code-block:: javascript
-
-   {
-     "_id" : ObjectId("...")
-     "parent_id" : "<ID>"
-     "email" : "<string>"
-   }
-
-Use the following command to create a unique index on the ``email`` field:
-
-.. code-block:: javascript
-
-   db.proxy.createIndex( { "email" : 1 }, { unique : true } )
-
-The following example first attempts to insert a document containing the
-target field and a generated Unique ID into the ``proxy`` collection. If the
-operation is successful, then it inserts the full document into the
-``records`` collection.
-
-.. code-block:: javascript
-
-   records = db.getSiblingDB('records');
-   proxy = db.getSiblingDB('proxy');
-
-   var primary_id = ObjectId();
-
-   proxy.insertOne({
-      "_id" : primary_id
-      "email" : "example@example.net"
-   })
-
-   // if: the above operation returns successfully,
-   // then continue:
-
-   records.insertOne({
-      "_id" : primary_id
-      "email": "example@example.net"
-      // additional information...
-   })
-
-Note that this methodology requires creating a unique ID for the
-``primary_id`` field rather than letting MongoDB automatically create
-it on document insertion.
-
-If you need to enforce uniqueness on multiple fields, then
-each field would require its own proxy collection.
-
-.. see:: The full documentation of: :method:`~db.collection.createIndex()`
-   and :dbcommand:`shardCollection`.
-
-Considerations
-~~~~~~~~~~~~~~
-
-- Your application must catch errors when inserting documents into the
-  "proxy" collection and must enforce consistency between the two
-  collections.
-
-- If the proxy collection requires sharding, you must shard on the
-  single field on which you want to enforce uniqueness.
-
-- To enforce uniqueness on more than one field using sharded proxy
-  collections, you must have *one* proxy collection for *every* field
-  for which to enforce uniqueness. If you create multiple unique
-  indexes on a single proxy collection, you *cannot* be able to
-  shard proxy collections.
-
