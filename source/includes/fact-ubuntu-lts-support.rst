@@ -1,4 +1,3 @@
-MongoDB only provides packages for 64-bit long-term support Ubuntu releases.
-Currently, this means 12.04 LTS (Precise Pangolin) and 14.04 LTS (Trusty Tahr).
-While the packages may work with other Ubuntu releases, this is not a supported
-configuration.
+MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
+For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
+These packages may work with other Ubuntu releases, however, they are not supported.
