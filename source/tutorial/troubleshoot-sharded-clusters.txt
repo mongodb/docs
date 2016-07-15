@@ -1,8 +1,8 @@
-:orphan:
+.. _sharding-high-availability:
 
-============
-Troubleshoot
-============
+=============================
+Troubleshoot Sharded Clusters
+=============================
 
 .. default-domain:: mongodb
 
@@ -12,5 +12,182 @@ Troubleshoot
    :depth: 1
    :class: singlecol
 
-This section describes common strategies for troubleshooting
+This page describes common strategies for troubleshooting
 :term:`sharded cluster` deployments.
+
+Application Servers or :program:`mongos` Instances Become Unavailable
+---------------------------------------------------------------------
+
+If each application server has its own :program:`mongos` instance, other
+application servers can continue to access the database. Furthermore,
+:program:`mongos` instances do not maintain persistent state, and they
+can restart and become unavailable without losing any state or data.
+When a :program:`mongos` instance starts, it retrieves a copy of the
+:term:`config database` and can begin routing queries.
+
+A Single :program:`mongod` Becomes Unavailable in a Shard
+---------------------------------------------------------
+
+:doc:`Replica sets </replication>` provide high availability for shards.
+If the unavailable :program:`mongod` is a :term:`primary`, then the
+replica set will :ref:`elect <replica-set-elections>` a new primary. If
+the unavailable :program:`mongod` is a :term:`secondary`, and it
+disconnects the primary and secondary will continue to hold all data. In
+a three member replica set, even if a single member of the set
+experiences catastrophic failure, two other members have full copies of
+the data. [#recovery-window]_
+
+Always investigate availability interruptions and failures. If a system
+is unrecoverable, replace it and create a new member of the replica set
+as soon as possible to replace the lost redundancy.
+
+.. [#recovery-window] If an unavailable secondary becomes available
+   while it still has current oplog entries, it can catch up to the
+   latest state of the set using the normal :term:`replication process
+   <sync>`; otherwise, it must perform an :term:`initial sync`.
+
+All Members of a Shard Become Unavailable
+-----------------------------------------
+
+If all members of a replica set shard are unavailable, all data
+held in that shard is unavailable. However, the data on all other shards
+will remain available, and it is possible to read and write data to the
+other shards. However, your application must be able to deal with
+partial results, and you should investigate the cause of the
+interruption and attempt to recover the shard as soon as possible.
+
+.. _sharding-config-servers-and-availability:
+
+A Config Server Replica Set Member Become Unavailable
+-----------------------------------------------------
+
+.. versionchanged:: 3.2
+
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+
+:doc:`Replica sets </replication>` provide high availability for the
+config servers. If an unavailable config server is a :term:`primary`,
+then the replica set will :ref:`elect <replica-set-elections>` a new
+primary.
+
+If the replica set config server loses its primary and cannot elect a
+primary, the cluster's metadata becomes *read only*. You can still read
+and write data from the shards, but no :ref:`chunk migration
+<sharding-balancing>` or :doc:`chunk splits
+</tutorial/split-chunks-in-sharded-cluster>` will occur until a primary
+is available. If all config databases become unavailable, the cluster can
+become inoperable.
+
+.. include:: /includes/note-config-server-startup.rst
+
+Renaming Mirrored Config Servers and Cluster Availability
+---------------------------------------------------------
+
+.. include:: /includes/fact-rename-config-servers-requires-cluster-restart.rst
+
+To avoid downtime when renaming config servers, use DNS names
+unrelated to physical or virtual hostnames to refer to your
+:ref:`config servers <sharding-config-server>`.
+
+Generally, refer to each config server using the DNS alias (e.g. a
+CNAME record). When specifying the config server connection string to
+:program:`mongos`, use these names. These records make it possible to
+change the IP address or rename config servers without changing the
+connection string and without having to restart the entire cluster.
+
+Cursor Fails Because of Stale Config Data
+-----------------------------------------
+
+.. DOCS-425
+
+A query returns the following warning when one or more of the
+:program:`mongos` instances has not yet updated its cache of the
+cluster's metadata from the :term:`config database`:
+
+.. code-block:: none
+
+   could not initialize cursor across all shards because : stale config detected
+
+This warning *should* not propagate back to your application. The
+warning will repeat until all the :program:`mongos` instances refresh
+their caches. To force an instance to refresh its cache, run the
+:dbcommand:`flushRouterConfig` command.
+
+Shard Keys and Cluster Availability
+-----------------------------------
+
+The most important consideration when choosing a :term:`shard key`
+are:
+
+- to ensure that MongoDB will be able to distribute data evenly among
+  shards, and
+
+- to scale writes across the cluster, and
+
+- to ensure that :program:`mongos` can isolate most queries to a specific
+  :program:`mongod`.
+
+Furthermore:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :program:`mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :program:`mongos` to isolate most
+  operations to a single shard, then the failure of a single shard
+  will only render *some* data unavailable.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable.
+
+In essence, this concern for reliability simply underscores the
+importance of choosing a shard key that isolates query operations to a
+single shard.
+
+.. _config-database-string-error:
+
+Config Database String Error
+----------------------------
+
+.. versionchanged:: 3.2
+
+   Starting in MongoDB 3.2, config servers can be deployed as replica sets
+   by default. The :program:`mongos` instances for the sharded cluster
+   must specify the same config server replica set name but can specify
+   hostname and port of different members of the replica set.
+
+   If using the deprecated topology of three mirrored :program:`mongod`
+   instances for config servers, :program:`mongos` instances in a sharded
+   cluster must specify identical :setting:`~sharding.configDB` string.
+
+Avoid Downtime when Moving Config Servers
+-----------------------------------------
+
+.. include:: /includes/fact-use-cnames-for-config-servers.rst
+
+``moveChunk commit failed`` Error
+---------------------------------
+
+At the end of a :ref:`chunk migration <sharding-chunk-migration>`, the
+:term:`shard` must connect to the :term:`config database` to update the
+chunk's record in the cluster metadata. If the :term:`shard` fails to
+connect to the :term:`config database`, MongoDB reports the following
+error:
+
+.. code-block:: none
+
+   ERROR: moveChunk commit failed: version is at <n>|<nn> instead of
+   <N>|<NN>" and "ERROR: TERMINATING"
+
+When this happens, the :term:`primary` member of the shard's replica
+set then terminates to protect data consistency. If a :term:`secondary`
+member can access the config database, data on the shard becomes
+accessible again after an election.
+
+The user will need to resolve the chunk migration failure
+independently. If you encounter this issue, contact the `MongoDB
+User Group <http://groups.google.com/group/mongodb-user>`_ or
+:doc:`MongoDB Support </support>` to address this issue.

@@ -1,6 +1,6 @@
-Shard key fields and values are immutable. Attempting to modify a 
-shard key field or value throws an exception.
-   
-You cannot change a shard key after sharding the collection.
+Once you shard a collection, the shard key and the shard key values are
+immutable; i.e.
 
-Once inserted, a document's shard key value cannot be changed. 
+- You cannot select a different shard key for that collection.
+
+- You cannot update the values of the shard key fields.
