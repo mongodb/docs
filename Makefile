@@ -1,6 +1,6 @@
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
-STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
+STAGING_URL="https://docs-mongodbcom-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.org"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
