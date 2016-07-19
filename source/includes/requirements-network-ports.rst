@@ -1,8 +1,9 @@
 Accessible Ports
 ~~~~~~~~~~~~~~~~
 
-The |mms| application must be able to connect to users and |mms| agents over HTTP(S). |mms| agents must be able to connect to MongoDB
-client databases using MongoDB connections.
+The |mms| application must be able to connect to users and |mms| agents
+over HTTP(S). |mms| agents must be able to connect to MongoDB client
+databases.
 
 Though |mms| only requires HTTP(S) and MongoDB network ports for these
 two services, what ports are opened on a firewall depend upon what
