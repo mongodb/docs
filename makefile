@@ -27,4 +27,3 @@ stage:
 fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
-
