@@ -14,13 +14,13 @@ systems.
 
 .. important:: 
    To run |mms| without an Internet connection, see
-   :doc:`/tutorial/configure-local-mode/` to ensure you have all of the
+   :doc:`/tutorial/configure-local-mode` to ensure you have all of the
    necessary binaries to run |mms| without an Internet connection.
 
 Ports Required to Use |mms|
   * Both the |mms| application users and |mms| agents must be able to
     connect to |mms| over HTTP or Secure HTTP. 
-    See :doc:`/tutorial/manage-ports/` to set a non-default port for 
+    See :doc:`/tutorial/manage-ports` to set a non-default port for 
     |mms|.
   * For each |mms| group, |mms| and the |mms| agents must be able to
     connect to all MongoDB processes (``mongod`` or ``mongos``).
@@ -148,7 +148,7 @@ Ports Needed to Integrate |mms| with SNMP
 
 Ports Needed to Authenticate with |mms|
   MongoDB Enterprise users 
-  :doc:`can use LDAP </tutorial/configure-for-ldap-authentication/>` 
+  :doc:`can use LDAP </tutorial/configure-for-ldap-authentication>` 
   to authenticate |mms| users. To authenticate using LDAP, open the
   following ports on |mms| and your LDAP server.
 
