@@ -53,7 +53,7 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: http://docs.mongodb.com/compass/',
+    '.. |hardlink| replace:: http://docs.mongodb.com/php-library/',
     '.. |checkmark| unicode:: U+2713',
     '.. |php-library| replace:: MongoDB PHP Library'
 ])
@@ -129,8 +129,8 @@ html_theme_options = {
     'branch': conf.git.branches.current,
     'translations': languages,
     'language': language,
-    'manual_path': "compass",
-    'repo_name': 'docs-compass',
+    'manual_path': "php-library",
+    'repo_name': 'docs-php-library',
     'jira_project': 'DOCS',
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.project,
