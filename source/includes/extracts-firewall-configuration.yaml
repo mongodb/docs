@@ -110,61 +110,257 @@ content: |
 ref: firewall-configuration
 edition: onprem
 content: |
-  Overview
-  --------
 
-  |onprem| components use the default ports and health-check endpoints
-  described here.
+  .. important:: 
+     To run |mms| without an Internet connection, see
+     :doc:`/tutorial/configure-local-mode/` to ensure you have all of
+     the necessary binaries to run |mms| without an Internet 
+     connection.
 
-  |http-service|
-  --------------
+  Ports Required to Use |mms|
+  ```````````````````````````
 
-  .. describe:: 8080
+  * Both |mms| users and |mms| agents must be able to connect to |mms|
+    application over HTTP(S). See :doc:`/tutorial/manage-ports/` to set a
+    non-default port for |mms|.
+  * |mms| must be able to connect to the backing MongoDB databases
+    running ``mongod``.
+  * For each |mms| group, |mms| agents must be able to connect to all
+    client MongoDB processes (``mongod`` or ``mongos``).
+  * The |mms| application must also be able to send email to |mms| users.
 
-     Web server, available from browsers. The Monitoring Agent and Backup
-     Agent must be able to access this port.
+  To use |mms|, open the following ports to the specified servers. 
 
-  .. describe:: 8090
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
 
-     Provides a health-check endpoint for monitoring |onprem| components
-     through a standard monitoring service, such as Zabbix or Nagios. The
-     endpoint is
-     disabled by default. To enable it, see :ref:`enable-debug-endpoints`.
-     When enabled, you can access the endpoint at:
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - HTTP
+       - 8080
+       - TCP
+       - Inbound
+       - Web connection to |mms| from users and |mms| agents.
+       - No
 
-     .. code-block:: sh
+     * - HTTPS
+       - 8443
+       - TCP
+       - Inbound
+       - Web connection to |mms| from users and |mms| agents.
+       - Yes
 
-        http://localhost:8090/health
+     * - HTTP(S)
+       - 8090
+       - TCP
+       - Inbound
+       - Provides a health-check endpoint for monitoring |mms|
+         through a monitoring service like Zabbix or Nagios. This is
+         disabled by default. 
 
-     The endpoint checks the connections from the |http-service| to the
-     :ref:`mms-application-database` and the
-     :ref:`mms-backup-blockstore-database`. A successful response returns
-     the following:
+         To enable it, see :ref:`enable-debug-endpoints`. When enabled,
+         you can access the endpoint at:
+         
+         .. code-block:: http
 
-     .. code-block:: sh
+            http://<opsmanagerhost>:8090/health
 
-        {
-          "mms_db": "OK",
-          "backup_db": "OK"
-        }
+         The API endpoint provides the ability to check connections
+         from the HTTP Service to the 
+         :ref:`Ops Manager Application Database <mms-application-database>` 
+         and the :ref:`Backup Snapshot Storage <mms-backup-blockstore-database>`.
 
-  Backup Daemon
-  -------------
+         A successful response returns the following:
 
-  .. describe:: 8091
+         .. code-block:: json
 
-     Provides a web page with debug information. You can access the page
-     at:
+           {
+             "mms_db": "OK",
+             "backup_db": "OK"
+           }
+       - Optional
 
-     .. code-block:: sh
+     * - MongoDB
+       - 27000 - 28000
+       - TCP
+       - Both
+       - Connect to MongoDB application, backup and client databases.
+       - Optional
 
-        http://<backup-daemon-server>:8091
+     * - SMTP
+       - 25
+       - TCP
+       - Outbound
+       - Send emails from |mms|.
+       - No
 
-  .. describe:: 27500-27503
+     * - SMTPS
+       - 465
+       - TCP
+       - Outbound
+       - Send emails from |mms|.
+       - Yes
 
-     The Backup Daemon uses this port range on the localhost interface to
-     run the :program:`mongod` instances that keep local copies of the
-     backed-up databases. The daemon applies oplog entries to maintain the
-     local backups.
+  Ports Needed to Administer |mms|
+  ````````````````````````````````
+
+  Most |mms| administration can be performed through the user interface.
+  Some procedures require access to the operating system. To permit your
+  administrators to access your |mms| and MongoDB servers, open the
+  following ports to those servers.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - Secure Shell (``ssh``)
+       - 22
+       - TCP
+       - Inbound
+       - Linux System administration.
+       - Yes
+       
+     * - Remote Desktop Connection (RDP)
+       - 3389
+       - TCP
+       - Inbound
+       - Windows System administration.
+       - No
+
+  Ports Needed to Integrate |mms| with SNMP
+  `````````````````````````````````````````
+
+  To send and receive SNMP messages to and from your MongoDB deployments
+  must open the following ports between |mms| and your SNMP Manager.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - SNMP
+       - 162
+       - UDP
+       - Outbound
+       - Send Traps to SNMP Manager.
+       - No
+
+     * - SNMP
+       - 11611
+       - UDP
+       - Inbound
+       - Receive requests from SNMP Manager.
+       - No
+
+  See :ref:`snmp-heartbeat-configure` to set SNMP to use non-standard
+  ports.
+
+  Ports Needed to Authenticate with |mms|
+  ```````````````````````````````````````
+
+  MongoDB Enterprise users 
+  :doc:`can use LDAP </tutorial/configure-for-ldap-authentication/>` 
+  to authenticate |mms| users. To authenticate using LDAP, open the
+  following ports on |mms| and your LDAP server.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - LDAP
+       - 389
+       - UDP
+       - Both
+       - Authenticate and/or authorize |mms| users against LDAP server.
+       - No
+
+     * - LDAPS
+       - 636
+       - UDP
+       - Both
+       - Authenticate and/or authorize |mms| users against LDAP server.
+       - Yes
+
+  See :ref:`ldap-settings` to configure LDAP URI strings including ports.
+
+  Ports Needed to Authenticate with MongoDB
+  `````````````````````````````````````````
+
+  MongoDB Enterprise users can use Kerberos or LDAP to authenticate
+  MongoDB users. To authenticate using LDAP or Kerberos, open the
+  following ports between the MongoDB client databases, |mms| and the
+  Kerberos or LDAP server(s).
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - Kerberos
+       - 88
+       - TCP / UDP
+       - Outbound
+       - Request authentication for MongoDB users against Kerberos
+         server.
+       - No
+
+     * - Kerberos
+       - 88
+       - UDP
+       - Inbound
+       - Receive authentication for MongoDB users against Kerberos
+         server.
+       - No
+
+     * - LDAP
+       - 389
+       - UDP
+       - Both
+       - Authenticate and/or authorize MongoDB users against LDAP
+         server.
+       - No
+
+     * - LDAPS
+       - 636
+       - UDP
+       - Both
+       - Authenticate and/or authorize MongoDB users against LDAP
+         server.
+       - Yes
+
+  See :ref:`configuration-kerberos-settings` to configure Kerberos
+  for authentication to the |mms| application database.
 
 ...
