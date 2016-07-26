@@ -47,7 +47,7 @@ There are two types of messages, client requests and database responses.
 
    - The types used in this document (``cstring``, ``int32``, etc.) are
      the same as those defined in the `BSON specification
-     <http://bsonspec.org/#/specification>`_. 
+     <http://bsonspec.org/#/specification>`_.
 
    - To denote repetition, the document uses the asterisk notation from
      the `BSON specification <http://bsonspec.org/#/specification>`_.
@@ -117,13 +117,22 @@ follows:
 Request Opcodes
 ~~~~~~~~~~~~~~~
 
-.. note:: 
-   Starting with MongoDB 2.6 and :data:`~isMaster.maxWireVersion` ``3``, 
-   MongoDB drivers use the :ref:`database commands<collection-commands>` 
-   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete` 
-   instead of ``OP_INSERT``, ``OP_UPDATE``, and ``OP_DELETE`` for 
-   acknowledged writes. Most drivers continue to use opcodes for 
+.. note::
+   Starting with MongoDB 2.6 and :data:`~isMaster.maxWireVersion` ``3``,
+   MongoDB drivers use the :ref:`database commands<collection-commands>`
+   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`
+   instead of ``OP_INSERT``, ``OP_UPDATE``, and ``OP_DELETE`` for
+   acknowledged writes. Most drivers continue to use opcodes for
    unacknowledged writes.
+   
+.. important::
+
+   ``OP_COMMAND`` and ``OP_COMMANDREPLY`` are cluster internal and should not
+   be implemented by clients or drivers.
+
+   The ``OP_COMMAND`` and ``OP_COMMANDREPLY`` format and protocol are not
+   stable and may change between releases without maintaining backwards
+   compatibility.
 
 The following are the supported ``opCode``:
 
@@ -161,6 +170,12 @@ The following are the supported ``opCode``:
    * - ``OP_KILL_CURSORS``
      - 2007
      - Notify database that the client has finished with the cursor.
+   * - ``OP_COMMAND``
+     - 2010
+     - Cluster internal protocol representing a command request.
+   * - ``OP_COMMANDREPLY``
+     - 2011
+     - Cluster internal protocol representing a reply to an ``OP_COMMAND``.
 
 Client Request Messages
 -----------------------
@@ -203,7 +218,7 @@ format of a OP_UPDATE message is the following:
      - Description
 
    * - ``header``
-   
+
      - Message header, as described in :ref:`wp-message-header`.
 
    * - ``ZERO``
@@ -234,7 +249,7 @@ format of a OP_UPDATE message is the following:
        - ``2``-``31`` are reserved. Must be set to 0.
 
    * - ``selector``
-   
+
      - BSON document that specifies the query for selection of the
        document to update.
 
@@ -272,7 +287,7 @@ collection. The format of the OP_INSERT message is
      - Description
 
    * - ``header``
-   
+
      - Message header, as described in :ref:`wp-message-header`.
 
    * - ``flags``
@@ -337,7 +352,7 @@ collection. The format of the OP_QUERY message is:
      - Description
 
    * - ``header``
-   
+
      - Message header, as described in :ref:`wp-message-header`.
 
    * - ``flags``
@@ -461,7 +476,7 @@ collection. The format of the OP_GET_MORE message is:
      - Description
 
    * - ``header``
-   
+
      - Message header, as described in :ref:`wp-message-header`.
 
    * - ``ZERO``
@@ -522,7 +537,7 @@ collection. The format of the OP_DELETE message is:
      - Description
 
    * - ``header``
-   
+
      - Message header, as described in :ref:`wp-message-header`.
 
    * - ``ZERO``
@@ -544,8 +559,8 @@ collection. The format of the OP_DELETE message is:
 
        - ``0`` corresponds to SingleRemove. If set, the database will
          remove only the first matching document in the collection.
-         Otherwise all matching documents will be removed. 
-         
+         Otherwise all matching documents will be removed.
+
        - ``1``-``31`` are reserved. Must be set to 0.
 
    * - ``selector``
@@ -596,7 +611,7 @@ message is:
      - The number of cursor IDs that are in the message.
 
    * - ``cursorIDs``
-   
+
      - "Array" of cursor IDs to be closed. If there are more than one,
        they are written to the socket in sequence, one after another.
 
@@ -621,6 +636,74 @@ sends back a fixed response. The format is:
        cstring   message; // message for the database
    }
 
+.. _wire-op-command:
+
+OP_COMMAND
+~~~~~~~~~~
+
+.. warning::
+
+   ``OP_COMMAND`` is cluster internal and should not be implemented
+   by clients or drivers.
+
+   The ``OP_COMMAND`` format and protocol is not stable and may change between
+   releases without maintaining backwards compatibility. 
+
+``OP_COMMAND`` is a wire protocol message used internally for intra-cluster
+database command requests issued by one MongoDB server to another. The
+receiving database sends back an :ref:`OP_COMMANDREPLY <wire-op-commandreply>`
+as a response to a ``OP_COMMAND``.
+
+.. code-block:: sh
+
+   struct {
+      MsgHeader header;     // standard message header
+      cstring database;     // the name of the database to run the command on
+      cstring commandName;  // the name of the command
+      document metadata;    // a BSON document containing any metadata  
+      document commandArgs; // a BSON document containing the command arguments
+      inputDocs;            // a set of zero or more documents
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Standard message header, as described in :ref:`wp-message-header`.
+
+   * - ``database``
+
+     - The name of the database to run the command on.
+
+   * - ``commandName``
+
+     - The name of the command. See :ref:`database-commands` for a list of
+       database commands.
+
+   * - ``metadata``
+
+     - Available for the system to attach any metadata to internal commands
+       that is not part of the command parameters proper, as supplied by the
+       client driver
+
+   * - ``commandArgs``
+
+     - A BSON document containing the command arguments.
+
+       See the documentation for the specified ``commandName`` for information
+       its arguments
+
+   * - ``inputDocs``
+
+     - Zero or more documents acting as input to the command. Useful for 
+       commands that can require a large amount of data sent from the client,
+       such as a batch insert.
+
 Database Response Messages
 --------------------------
 
@@ -640,6 +723,7 @@ The ``OP_REPLY`` message is sent by the database in response to an
        int32     responseFlags;  // bit vector - see details below
        int64     cursorID;       // cursor id if client needs to do get more's
        int32     startingFrom;   // where in the cursor this reply is starting
+       int32     numberReturned; // number of documents in the reply
        int32     numberReturned; // number of documents in the reply
        document* documents;      // documents
    }
@@ -681,7 +765,7 @@ The ``OP_REPLY`` message is sent by the database in response to an
        - ``4``-``31`` are reserved. Ignore.
 
    * - ``cursorID``
-   
+
      - The ``cursorID`` that this OP_REPLY is a part of. In the event
        that the result set of the query fits into one OP_REPLY message,
        ``cursorID`` will be 0. This ``cursorID`` must be used in any
@@ -701,3 +785,60 @@ The ``OP_REPLY`` message is sent by the database in response to an
    * - ``documents``
 
      - Returned documents.
+
+.. _wire-op-commandreply:
+
+OP_COMMANDREPLY
+~~~~~~~~~~~~~~~
+
+.. warning::
+
+   ``OP_COMMANDREPLY`` is cluster internal and should not be implemented
+   by clients or drivers.
+
+   The ``OP_COMMANDREPLY``  format and protocol is not stable and may change between
+   releases without maintaining backwards compatibility.
+
+The ``OP_COMMANDREPLY`` is a wire protocol message used internally for
+replying to intra-cluster :ref:`OP_COMMAND <wire-op-command>` requests issued
+by one MongoDB server to another. 
+
+The format of an ``OP_COMMANDREPLY`` is:
+
+.. code-block:: sh
+
+   struct {
+      MsgHeader header;       // A standard wire protocol header
+      document metadata;      // A BSON document containing any required metadata
+      document commandReply;  // A BSON document containing the command reply
+      document outputDocs;    // A variable number of BSON documents
+   }
+   
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   
+   * - Field
+     - Description
+   
+   * - ``header``
+   
+     - Standard message header, as described in :ref:`wp-message-header`.
+     
+   * - ``metadata``
+   
+     - Available for the system to attach any metadata to internal commands
+       that is not part of the command parameters proper, as supplied by the
+       client driver.
+     
+   * - ``commandReply``
+   
+     - A BSON document containing the command reply.
+     
+   * - ``outputDocs``
+   
+     - Useful for commands that can return a large amount of data, such as
+       find or aggregate.
+       
+       This field is not currently in use.
+   
