@@ -64,7 +64,7 @@ Required Inbound Access
 Auto-Provisioning
 ~~~~~~~~~~~~~~~~~
 
-If you use |mms| :ref:`provisioning <provision-cloud-servers>`,
+If you use |mms| :doc:`provisioning </tutorial/nav/provision-cloud-servers>`,
 you must grant SSH access to the following ranges at minimum:
 
 - ``4.71.186.128/25``
@@ -76,7 +76,7 @@ you must grant SSH access to the following ranges at minimum:
    MongoDB reserves the right to change these IP addresses at any
    time without user notice.
 
-For additional information, see :ref:`Provision Cloud Servers <provision-cloud-servers>`.
+For additional information, see :doc:`/tutorial/nav/provision-cloud-servers`.
 
 Backup SCP Restores
 ~~~~~~~~~~~~~~~~~~~
