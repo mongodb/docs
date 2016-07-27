@@ -32,10 +32,10 @@ fake-deploy: build/public/${GIT_BRANCH}
 
 deploy: build/public/${GIT_BRANCH}
 	@echo "Doing a dry-run"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
+	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous upload to ${PRODUCTION_BUCKET}"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories  ${ARGS}
+	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories  --redirects build/public/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}"
