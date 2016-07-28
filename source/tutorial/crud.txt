@@ -7,7 +7,7 @@ CRUD Operations
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 
@@ -33,7 +33,7 @@ The :phpmethod:`MongoDB\\Collection::insertOne` method inserts a single
 document into MongoDB and returns an instance of ``MongoDB\InsertOneResult``,
 which you can use to access the IDs of the inserted document.
 
-.. basic insert one example:
+.. basic insertOne example:
 
 .. include:: /includes/example-insertOne.rst
 
@@ -48,6 +48,8 @@ key error.
 The following example inserts a document while specifying the value for the ``_id``:
 
 .. code-block:: php
+
+   <?php
 
    $collection = (new MongoDB\Client)->demo->users;
 
@@ -69,35 +71,14 @@ Insert Many Documents
 
 The :phpmethod:`MongoDB\\Collection::insertMany` method allows you to
 insert multiple documents in one write operation and returns an instance
-of ``MongODB\InsertManyResult``, which you can use to access the
+of ``MongoDB\InsertManyResult``, which you can use to access the
 IDs of the inserted documents.
 
-.. code-block:: php
+.. this uses the insertMany example from the method reference:
 
-   $collection = (new MongoDB\Client)->demo->users;
-   $collection->drop();
-
-   $insertManyResult = $collection->insertMany([
-       ['name' => 'Bob'],
-       ['_id' => 1, 'name' => 'Alice'],
-   ]);
-
-   printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
-   var_dump($insertManyResult->getInsertedIds());
-
-
-The output would then resemble similar to::
-
-   Inserted 2 document(s)
-   array(2) {
-     [0]=>
-     object(MongoDB\BSON\ObjectID)#10 (1) {
-       ["oid"]=>
-       string(24) "5750927b6118fd1ed64eb141"
-     }
-     [1]=>
-     int(1)
-   }
+.. include:: /reference/method/MongoDBCollection-insertMany.txt
+   :start-after: start-crud-include
+   :end-before: end-crud-include
 
 .. seealso:: :phpmethod:`MongoDB\\Collection::insertMany` reference.
 
@@ -161,7 +142,7 @@ Find Many Documents
 ~~~~~~~~~~~~~~~~~~~
 
 :phpmethod:`MongoDB\\Collection::find` returns a
-:php:`MongoDB\Driver\Cursor <mongodb-driver-cursor` object, which you
+:php:`MongoDB\\Driver\\Cursor <mongodb-driver-cursor>` object, which you
 can iterate upon to access all matched documents.
 
 The following example lists the documents in the ``zips`` collection
@@ -211,7 +192,9 @@ The following example finds restaurants based on the ``cuisine`` and
 that are returned. It also limits the results to 5 documents.
 
 .. code-block:: php
-                
+
+   <?php
+
    $database = new MongoDB\Client;
 
    $collection = $database->selectCollection('example','restaurants');
@@ -225,7 +208,6 @@ that are returned. It also limits the results to 5 documents.
        ]
    );
 
-   echo "<pre>";
    foreach($restaurants as $restaurant) {
       var_dump($restaurant);
    };
@@ -305,7 +287,7 @@ In addition to :ref:`projection criteria <php-query-projection>`,
 you can specify options to limit, sort, and skip documents during queries.
 
 The following example uses the ``limit`` and ``sort`` options to query
-for the five most populous zipcodes in the United States:
+for the five most populous zip codes in the United States:
 
 .. code-block:: php
 
@@ -392,9 +374,10 @@ that specifies what updates to perform. The :phpmethod:`MongoDB\\Collection::upd
 reference describes each parameter in detail.
 
 The following example inserts two documents into an empty ``users`` collection
-in the ``demo`` database using the :php:`MongoDB\\Collection::insertOne`
-method, and then updates the documents with ``state: ny`` to include
-a ``country`` field set to ``us``:
+in the ``demo`` database using the :phpmethod:`MongoDB\\Collection::insertOne`
+method, and then updates the documents where the value for the ``state``
+field is ``"ny"`` to include
+a ``country`` field set to ``"us"``:
 
 .. code-block:: php
 
@@ -468,7 +451,7 @@ reference describes each parameter in detail.
 The following example inserts three documents into an empty ``users``
 collection in the ``demo`` database and then uses the :query:`$set`
 operator to update the documents matching the filter criteria to
-include the ``country`` field with value ``ny``:
+include the ``country`` field with value ``"us"``:
 
 .. code-block:: php
 
@@ -491,13 +474,13 @@ include the ``country`` field with value ``ny``:
 If an update operation results in no change to a document, such as
 setting the value of the field to its current value, the number of
 modified documents can be less than the number of *matched* documents.
-Since the update document with ``name: Bob`` results in no changes
+Since the update document with ``name`` of ``"Bob"`` results in no changes
 to the document, the output of the operation therefore resembles::
 
    Matched 3 document(s)
    Modified 2 document(s)
 
-.. seealso:: :phpmethod:`MongoDB\\Collection:updateMany` reference
+.. seealso:: :phpmethod:`MongoDB\\Collection::updateMany` reference
 
 Replace Documents
 ~~~~~~~~~~~~~~~~~
@@ -523,8 +506,8 @@ reference describes each parameter in detail.
    Replacement operations replace all of the fields in a document
    except the ``_id`` value. To avoid accidentally overwriting or
    deleting desired fields, use the
-   :phpmethod:`MongoDB\\Collection:updateOne` or
-   :phpmethod:`MongoDB\\Collection:updateMany` methods to update
+   :phpmethod:`MongoDB\\Collection::updateOne` or
+   :phpmethod:`MongoDB\\Collection::updateMany` methods to update
    individual fields in a document rather than replacing the entire
    document.
 
@@ -562,7 +545,7 @@ Upsert
 
 Update and replace operations support an :manual:`upsert
 </tutorial/update-documents/#upsert-option>` option. When ``upsert`` is
-``true`` **and** no documents match the specified filter, then the
+``true`` *and* no documents match the specified filter, then the
 operation creates a new document and inserts it. If there *are* matching
 documents, then the operation modifies or replaces the matching
 document or documents.
@@ -618,20 +601,20 @@ Delete One Document
 ~~~~~~~~~~~~~~~~~~~
 
 
-The :phpmethod:`MongoDB\\Collection:deleteOne` method deletes a single
+The :phpmethod:`MongoDB\\Collection::deleteOne` method deletes a single
 document that matches the filter criteria and returns a
 ``MongoDB\DeleteResult`` object that you can use to access statistics
 about the delete operation. If multiple documents match the filter
-criteria, :phpmethod:`MongoDB\\Collection:deleteOne` deletes the
+criteria, :phpmethod:`MongoDB\\Collection::deleteOne` deletes the
 :term:`first <natural order>` matching document.
 
-:phpmethod:`MongoDB\\Collection:deleteOne` has one required parameter:
+:phpmethod:`MongoDB\\Collection::deleteOne` has one required parameter:
 a query filter that specifies the document to delete. Refer to the
-:phpmethod:`MongoDB\\Collection:deleteOne` reference for full method documentation.
+:phpmethod:`MongoDB\\Collection::deleteOne` reference for full method documentation.
 
 
-The following operation deletes the first document that matches the
-``state: ny`` filter:
+The following operation deletes the first document where the ``state``
+value is ``ny``:
 
 .. code-block:: php
 
@@ -650,7 +633,7 @@ The output would then resemble::
 
    Deleted 1 document(s)
 
-.. seealso:: :phpmethod:`MongoDB\\Collection:deleteOne` reference.
+.. seealso:: :phpmethod:`MongoDB\\Collection::deleteOne` reference.
 
 Delete Many Documents
 ~~~~~~~~~~~~~~~~~~~~~
@@ -666,7 +649,8 @@ to the :phpmethod:`MongoDB\\Collection::deleteMany` reference for full
 method documentation.
 
 
-The following operation deletes all of the documents where ``state: ny``:
+The following operation deletes all of the documents where the
+``state`` field has value ``"ny"``:
 
 .. code-block:: php
 

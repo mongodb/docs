@@ -15,15 +15,15 @@ Overview
 
 MongoDB stores data records as BSON documents. BSON is a binary
 representation of :term:`JSON` documents, though it contains more data
-types than JSON. For the BSON spec, see bsonspec.org.
+types than JSON. For the BSON spec, see `bsonspec.org <http://bsonspec.org/>`_.
 
 By default, the |php-library| returns BSON documents as
 ``MongoDB\Model\BSONDocument`` objects and BSON arrays as
 ``MongoDB\Model\BSONArray`` objects. ``MongoDB\Model\BSONDocument`` and 
 ``MongoDB\Model\BSONArray`` extend PHP's
 :php:`ArrayObject <arrayobject>` class and implement the MongoDB PHP
-driver's :php:`MongoDB\BSON\Serializable <mongodb-bson-serializable>`
-and :php:`MongoDB\BSON\Unserializable <mongodb-bson-unserializable>`
+driver's :php:`MongoDB\\BSON\\Serializable <mongodb-bson-serializable>`
+and :php:`MongoDB\\BSON\\Unserializable <mongodb-bson-unserializable>`
 interfaces.
 
 Type Maps
@@ -47,15 +47,16 @@ default:
        'root' => 'MongoDB\Model\BSONDocument',
    ]
 
-Serialisation and deserialisation of PHP variables into MongoDB
+Serialization and deserialization of PHP variables into MongoDB
+---------------------------------------------------------------
 
 ``Persistable`` Classes
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
-The PHP driver's :php:`persistence <mongodb.persistence` specification
-specifies how classes implementing :php:`MongoDB\BSON\Persistable
+The PHP driver's :php:`persistence <mongodb.persistence>` specification
+specifies how classes implementing :php:`MongoDB\\BSON\\Persistable
 <mongodb-bson-persistable>` are serialized and deserialized, and is
-analogous to PHP's :php:`serializable interface <class.serializable>`.
+analogous to PHP's :php:`Serializable interface <class.serializable>`.
 
 The PHP :php:`driver <mongodb>` automatically handles serialization and
 deserialization for classes implementing ``MongoDB\BSON\Persistable``
@@ -69,35 +70,35 @@ Consider the following class definition:
 
    class Person implements MongoDB\BSON\Persistable
    {
-     private $id;
-     private $name;
-     private $createdAt;
-
-     public function __construct($name)
-     {
-         $this->id = new MongoDB\BSON\ObjectID;
-         $this->name = (string) $name;
-
-         // Get current time in milliseconds since the epoch
-         $msec = floor(microtime(true) * 1000);
-         $this->createdAt = new MongoDB\BSON\UTCDateTime($msec);
-     }
-
-     function bsonSerialize()
-     {
-         return [
-             '_id' => $this->id,
-             'name' => $this->name,
-             'createdAt' => $this->createdAt,
-         ];
-     }
-
-     function bsonUnserialize(array $data)
-     {
-         $this->id = $data['_id'];
-         $this->name = $data['name'];
-         $this->createdAt = $data['createdAt'];
-     }
+       private $id;
+       private $name;
+       private $createdAt;
+       
+       public function __construct($name)
+       {
+           $this->id = new MongoDB\BSON\ObjectID;
+           $this->name = (string) $name;
+       
+           // Get current time in milliseconds since the epoch
+           $msec = floor(microtime(true) * 1000);
+           $this->createdAt = new MongoDB\BSON\UTCDateTime($msec);
+       }
+       
+       function bsonSerialize()
+       {
+           return [
+               '_id' => $this->id,
+               'name' => $this->name,
+               'createdAt' => $this->createdAt,
+           ];
+       }
+       
+       function bsonUnserialize(array $data)
+       {
+           $this->id = $data['_id'];
+           $this->name = $data['name'];
+           $this->createdAt = $data['createdAt'];
+       }
    }
 
 The following constructs a ``Person`` object, inserts it into the
@@ -147,11 +148,11 @@ The same document in the MongoDB shell might display as:
 
 .. note::
 
-   :php:`\BSON\Persistable <mongodb-bson-persistable>` may only be used
+   :php:`MongoDB\\BSON\\Persistable <mongodb-bson-persistable>` may only be used
    for root and embedded BSON documents. BSON arrays are not supported.
 
 Emulating the Legacy Driver
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The legacy :php:`mongo extension <mongo>` returned both BSON
 documents and arrays as PHP arrays. While PHP arrays are convenient to
@@ -180,12 +181,18 @@ the library return everything as a PHP array:
    $client = new MongoDB\Client(
        null,
        [],
-       ['typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array']]
+       ['typeMap' => [
+           'root' => 'array', 'document' => 'array', 'array' => 'array'
+           ],
+       ]
    );
 
    $document = $client->demo->zips->findOne(
        ['_id' => '94301'],
-       ['typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array']]
+       ['typeMap' => [
+            'root' => 'array', 'document' => 'array', 'array' => 'array'
+            ],
+       ]
    );
 
    var_dump($document);

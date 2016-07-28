@@ -14,10 +14,10 @@ sys.path.append(project_root)
 
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
+from giza.config.project import get_current_path
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
-pdfs = conf.system.files.data.pdfs
 sconf = conf.system.files.data.sphinx_local
 
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
@@ -31,8 +31,7 @@ extensions = [
     'sphinx.ext.todo',
     'mongodb',
     'directives',
-    'intermanual',
-    'sphinxcontrib.phpdomain'
+    'intermanual'
 ]
 
 templates_path = ['.templates']
@@ -60,27 +59,18 @@ rst_epilog = '\n'.join([
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'php': ('http://php.net/%s', '')
 }
 
+# Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {}
+for i in intersphinx_libs:
+    intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                        conf.paths.output,
+                                                        i.path))
 
-try:
-    for i in intersphinx_libs:
-        intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i['path']))
-except:
-    for i in intersphinx_libs:
-        intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i.path))
 pygments_style = 'default'
-highlight_language = 'php'
-highlight_options = {"startinline": "True"}
 
 languages = [
     ("ar", "Arabic"),
