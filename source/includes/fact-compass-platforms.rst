@@ -12,6 +12,6 @@
      - |checkmark|
      -
    * - OS Version
-     - 10.10+ (64-bit)
-     - 7+ (64-bit)
+     - 10.10 and above
+     - 7 and above
      - N/A

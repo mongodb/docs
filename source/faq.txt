@@ -1,8 +1,8 @@
 .. _compass-faq:
 
-===================
-MongoDB Compass FAQ
-===================
+===
+FAQ
+===
 
 .. default-domain:: mongodb
 
@@ -15,68 +15,31 @@ MongoDB Compass FAQ
 What is the performance impact of running this tool?
 ----------------------------------------------------
 
-Testing has shown that |compass| has minimal impact in prototype
-deployments, though additional performance testing and monitoring is in
-progress.
-
-For best results, use MongoDB 3.2, which includes the
-:pipeline:`$sample` operator for efficient sampling on a collection. On
-older versions of MongoDB, |compass| falls back on a :ref:`less
-efficient sampling method <compass_fallback_sampling>`.
-
-You should only execute queries that are appropriately indexed in the
-database to avoid scanning the entire collection.
+Our tests have shown minimal performance impact on our test
+database instances. We are
+actively testing and monitoring performance profiles and
+we will publish our findings and recommendations with the public
+release later this year. It is not recommended to run Compass
+in production or on mission-critical data.
 
 .. _compass-faq-sampling:
-
-What is sampling and why is it used?
-------------------------------------
-
-Sampling in |compass| is the procedure of selecting a subset of data
-from a particular collection and analyzing the documents within the
-sample set.
-
-Sampling is a common technique in statistical analysis because analyzing
-a subset of the data gives similar results to analyzing all of it. In
-addition, sampling allows results to be generated quickly rather than
-performing a computationally-expensive collection scan.
 
 How does sampling work?
 -----------------------
 
-|compass| employs two distinct sampling mechanisms.
+We are currently experimenting with multiple sampling implementations.
+So far,
+`Reservoir Sampling <https://en.wikipedia.org/wiki/Reservoir_sampling>`_
+is the method that produces the best results.
+Interested developers should join the discussion on the
+:issue:`SERVER-533` JIRA ticket.
 
-In MongoDB 3.2, collections are sampled with the :pipeline:`$sample`
-operator via the :manual:`/core/aggregation-pipeline`. This provides
-efficient random sampling without replacement over the entire
-collection, or over the subset of documents specified by a query.
+Won't sampling miss things?
+---------------------------
 
-.. _compass_fallback_sampling:
-
-In MongoDB 3.0 and 2.6, collections are sampled via a
-backwards-compatible algorithm executed entirely within |compass|. It
-takes place in three stages:
-
-1. |compass| opens a cursor on the desired collection, limited to at
-   most 10000 documents sorted in descending order of the ``_id`` field.
-2. ``sampleSize`` documents are randomly selected from the stream. To
-   do this efficiently, |compass| employs `reservoir sampling
-   <http://en.wikipedia.org/wiki/Reservoir_sampling>`_.
-3. |compass| performs a query to select the chosen documents directly
-   via ``_id``.
-
-``sampleSize`` is set to 100 documents.
-
-Note that the choice of sampling method is done transparently in the
-background, with no changes required by the user.
-
-Won't sampling miss documents?
-------------------------------
-
-Sampling is chosen for its efficiency: the amount of time required to
-perform a sample is minimal, on the order of a few seconds. Increasing
-the sample confidence will demand more processing power and time.
-Furthermore, sophisticated outlier detection requires an inspection of
-every document in a MongoDB deployment, which would be unfeasible for
-large data sets. The MongoDB team is in the process of conducting user
-tests on large data sets to find a reasonable balance.
+The amount of time required to collect a data sample is usually only
+a few seconds. Real outlier detection would
+require an inspection of every document in the MongoDB
+deployment, which could be prohibitively computationally expensive
+on large datasets. We are in the process of conducting tests
+to find the right balance of cost and confidence.
