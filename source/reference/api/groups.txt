@@ -20,16 +20,16 @@ Get All Groups for the Current User
 
    GET /api/public/v1.0/groups
 
-Create a Group
-~~~~~~~~~~~~~~
+.. only:: onprem
 
-Specify only the ``name`` field.
+   To query by group tags, use the ``tag`` query parameter, as shown below. If
+   you specify multiple tag values, the group must have all the specified
+   values. You must have the ``Global Read Only`` or ``Global Owner``
+   :doc:`role </reference/user-roles>` to view tags.
 
-.. code-block:: none
+   .. code-block:: none
 
-   POST /api/public/v1.0/groups
-
-The response includes the ``agentApiKey`` for the group.
+      GET /api/public/v1.0/groups?tag=ABC&tag=DEF
 
 Get a Group by ID
 ~~~~~~~~~~~~~~~~~
@@ -55,23 +55,30 @@ interface, click :guilabel:`Settings`, then :guilabel:`Group Settings`.
 
    GET /api/public/v1.0/groups/byAgentApiKey/AGENT-API-KEY
 
-Delete a Group
-~~~~~~~~~~~~~~
-
-Once a group is deleted, its name cannot be reclaimed.
-Thus, if you create a group named **My Group** and then delete it, you
-will not be able to create another group named **My Group**.
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/groups/GROUP-ID
-
 Get All Users in a Group
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
 
    GET /api/public/v1.0/groups/GROUP-ID/users
+
+Create a Group
+~~~~~~~~~~~~~~
+
+Specify only the ``name`` field.
+
+.. code-block:: none
+
+   POST /api/public/v1.0/groups
+
+The response includes the ``agentApiKey`` for the group.
+
+.. only:: onprem
+
+   If you include the ``tags`` field when creating a group, |onprem| will check
+   whether you have the ``Global Owner`` :doc:`role </reference/user-roles>`,
+   which gives permission to create tags. If you do not, the entire ``POST``
+   request will be rejected.
 
 Add Users to a Group
 ~~~~~~~~~~~~~~~~~~~~
@@ -89,6 +96,20 @@ user. For each user that you wish to add, specify the user ID and the
 If you specify a user that is already a member of the group, their existing
 roles will be overwritten with the specified permissions.
 
+.. only:: onprem
+
+   Add or Remove Tags from a Group
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Add or remove tags by using ``PATCH`` to replace the entire ``tags`` array
+   with a new set of tags. The command overwrites all existing tags. You must
+   have the ``global owner`` :doc:`role </reference/user-roles>` to add or
+   remove tags.
+
+   .. code-block:: none
+
+      PATCH /api/public/v1.0/groups/GROUP-ID/
+
 Remove a User from a Group
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -96,32 +117,70 @@ Remove a User from a Group
 
    DELETE /api/public/v1.0/groups/GROUP-ID/users/USER-ID
 
+Delete a Group
+~~~~~~~~~~~~~~
+
+Once a group is deleted, its name cannot be reclaimed.
+Thus, if you create a group named **My Group** and then delete it, you
+will not be able to create another group named **My Group**.
+
+.. code-block:: none
+
+   DELETE /api/public/v1.0/groups/GROUP-ID
+
 Sample Entity
 -------------
 
-.. code-block:: javascript
+.. only:: cloud
 
-   {
-     "id": "xxx",
-     "name": "My Group",
-     "hostCounts": {
-       "arbiter": 2,
-       "config": 1,
-       "primary": 4,
-       "secondary": 8,
-       "mongos": 2.
-       "master": 0,
-       "slave": 0
-     },
-     "lastActiveAgent": ISODate("2016-02-05T07:23:34Z"),
-     "activeAgentCount": 1,
-     "replicaSetCount": 3,
-     "shardCount": 2,
-     "publicApiEnabled": true,
-     "agentApiKey": "cbd728abd6a6d6c6b6d7826345dbcff0e",
-     "links": [ ... ]
-   }
+   .. code-block:: javascript
 
+      {
+        "id": "xxx",
+        "name": "My Group",
+        "hostCounts": {
+          "arbiter": 2,
+          "config": 1,
+          "primary": 4,
+          "secondary": 8,
+          "mongos": 2.
+          "master": 0,
+          "slave": 0
+        },
+        "lastActiveAgent": ISODate("2016-08-05T07:23:34Z"),
+        "activeAgentCount": 1,
+        "replicaSetCount": 3,
+        "shardCount": 2,
+        "publicApiEnabled": true,
+        "agentApiKey": "cbd728abd6a6d6c6b6d7826345dbcff0e",
+        "links": [ ... ]
+      }
+
+.. only:: onprem
+
+   .. code-block:: javascript
+
+      {
+        "id": "xxx",
+        "name": "My Group",
+        "hostCounts": {
+          "arbiter": 2,
+          "config": 1,
+          "primary": 4,
+          "secondary": 8,
+          "mongos": 2.
+          "master": 0,
+          "slave": 0
+        },
+        "lastActiveAgent": ISODate("2016-08-05T07:23:34Z"),
+        "activeAgentCount": 1,
+        "replicaSetCount": 3,
+        "shardCount": 2,
+        "publicApiEnabled": true,
+        "agentApiKey": "cbd728abd6a6d6c6b6d7826345dbcff0e",
+        "tags": [ "DEV", "PRODUCT" ],
+        "links": [ ... ]
+      }
 
 Entity Fields
 -------------
@@ -174,6 +233,23 @@ Entity Fields
           You must have the **Owner** or **Global Read Only** :doc:`role
           </reference/user-roles>` to view this field.
 
+   * - .. only:: onprem
+
+          ``tags``
+
+     - .. only:: onprem
+
+          string array
+
+     - .. only:: onprem
+
+          Tags assigned to the group for use in programmatically identifying
+          the group. To view tags you must have either the ``Global Read
+          Only`` or ``Global Owner`` :doc:`role </reference/user-roles>`. To
+          create or edit tags, you must be a ``Global Owner``.
+
+          .. include:: /includes/requirements-tag-names.rst
+
 Links
 -----
 
@@ -201,6 +277,58 @@ Links
 
 Examples
 --------
+
+Get All Groups for the Current User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. only:: cloud
+
+   .. code-block:: none
+
+      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups"
+
+.. only:: onprem
+
+   .. code-block:: none
+
+      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "totalCount" : 6,
+     "results" : [ {
+       "id" : "5196d3628d022db4cbc26d9e",
+       "name" : "API Example",
+       "hostCounts" : {
+         "arbiter" : 0,
+         "config" : 1,
+         "primary" : 3,
+         "secondary" : 4,
+         "mongos" : 2,
+         "master" : 0,
+         "slave" : 0
+       },
+       "lastActiveAgent" : "2016-02-03T18:18:12Z",
+       "activeAgentCount" : 1,
+       "replicaSetCount" : 3,
+       "shardCount" : 2,
+       "publicApiEnabled" : true,
+       "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
+       "links" : [ ... ]
+     }, {
+       // etc.
+     } ],
+     "links" : [ ... ]
+   }
 
 Get a Group by ID
 ~~~~~~~~~~~~~~~~~
@@ -294,8 +422,8 @@ Response
      "links" : [ ... ]
    }
 
-Get All Groups for Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get All Users in a Group
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Request
 ```````
@@ -304,13 +432,13 @@ Request
 
    .. code-block:: none
 
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups"
+      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
 
 .. only:: onprem
 
    .. code-block:: none
 
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups"
+      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
 
 Response
 ````````
@@ -320,28 +448,32 @@ Response
    HTTP/1.1 200 OK
 
    {
-     "totalCount" : 6,
+     "totalCount" : 2,
      "results" : [ {
-       "id" : "5196d3628d022db4cbc26d9e",
-       "name" : "API Example",
-       "hostCounts" : {
-         "arbiter" : 0,
-         "config" : 1,
-         "primary" : 3,
-         "secondary" : 4,
-         "mongos" : 2,
-         "master" : 0,
-         "slave" : 0
-       },
-       "lastActiveAgent" : "2016-02-03T18:18:12Z",
-       "activeAgentCount" : 1,
-       "replicaSetCount" : 3,
-       "shardCount" : 2,
-       "publicApiEnabled" : true,
-       "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
+       "id" : "5357e25a300490374243f425",
+       "username" : "user1@example.com",
+       "emailAddress" : "user1@example.com",
+       "firstName" : "User",
+       "lastName" : "One",
+       "roles" : [ {
+         "groupId" : "5356823bc0edc2788a835ed0",
+         "roleName" : "GROUP_USER_ADMIN"
+       } ],
        "links" : [ ... ]
      }, {
-       // etc.
+       "id" : "5356823b3004dee37132bb7b",
+       "username" : "user2@example.com",
+       "emailAddress" : "user2@example.com",
+       "firstName" : "User",
+       "lastName" : "Deux",
+       "roles" : [ {
+         "groupId" : "5356823bc0edc2788a835ed0",
+         "roleName" : "GROUP_OWNER"
+       }, {
+         "groupId" : "5356823bc0edc2788a835ecd",
+         "roleName" : "GROUP_OWNER"
+       } ],
+       "links" : [ ... ]
      } ],
      "links" : [ ... ]
    }
@@ -454,6 +586,79 @@ Response
 
    HTTP/1.1 200 OK
 
+.. only:: onprem
+
+   Add or Remove Tags from a Group
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The following command adds and removes tags by replacing the group's
+   ``tags`` array with the new set of desired tags. The command overwrites the
+   existing array.
+
+   Request
+   ```````
+
+   .. code-block:: none
+
+      curl -u "username:apiKey" --digest -i -H "Content-Type: application/json" -X PATCH "https://<ops-manager-host>/api/public/v1.0/groups/533daa30879bb2da07807696" --data '
+      {
+        "tags": [ "DEV", "PROD", "WEB" ]
+      }'
+
+   Response
+   ````````
+
+   .. code-block:: none
+
+      HTTP/1.1 200 OK
+
+      {
+        "id" : "5196d3628d022db4cbc26d9e",
+        "name" : "API Example",
+        "hostCounts" : {
+          "arbiter" : 0,
+          "config" : 1,
+          "primary" : 3,
+          "secondary" : 4,
+          "mongos" : 2,
+          "master" : 0,
+          "slave" : 0
+        },
+        "lastActiveAgent" : "2016-08-04T14:12:11Z",
+        "activeAgentCount" : 1,
+        "replicaSetCount" : 3,
+        "shardCount" : 2,
+        "publicApiEnabled" : true,
+        "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
+        "tags": [ "DEV", "PROD", "WEB" ],
+        "links" : [ ... ]
+      }
+
+Remove a User from a Group
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. only:: cloud
+
+   .. code-block:: none
+
+      curl -u "username:apiKey" --digest -i -X DELETE "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
+
+.. only:: onprem
+
+   .. code-block:: none
+
+      curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
 Delete a Group
 ~~~~~~~~~~~~~~
 
@@ -471,87 +676,6 @@ Request
    .. code-block:: none
 
       curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/533daa30879bb2da07807696"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-Get Users in a Group
-~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount" : 2,
-     "results" : [ {
-       "id" : "5357e25a300490374243f425",
-       "username" : "user1@example.com",
-       "emailAddress" : "user1@example.com",
-       "firstName" : "User",
-       "lastName" : "One",
-       "roles" : [ {
-         "groupId" : "5356823bc0edc2788a835ed0",
-         "roleName" : "GROUP_USER_ADMIN"
-       } ],
-       "links" : [ ... ]
-     }, {
-       "id" : "5356823b3004dee37132bb7b",
-       "username" : "user2@example.com",
-       "emailAddress" : "user2@example.com",
-       "firstName" : "User",
-       "lastName" : "Deux",
-       "roles" : [ {
-         "groupId" : "5356823bc0edc2788a835ed0",
-         "roleName" : "GROUP_OWNER"
-       }, {
-         "groupId" : "5356823bc0edc2788a835ecd",
-         "roleName" : "GROUP_OWNER"
-       } ],
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Delete a User from a Group
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
 
 Response
 ````````
