@@ -97,12 +97,21 @@ You can also use the array to restore an instance.
 
    * - ``processes.logRotate.sizeThresholdMB``
      - number
-     - The maximum size in MB for an individual log file before rotation.
+
+     - The maximum size in MB for an individual log file before
+       rotation. The file rotates immediately if the file meets either
+       this ``sizeThresholdMB`` or the
+       ``processes.logRotate.timeThresholdHrs`` limit.
 
    * - ``processes.logRotate.timeThresholdHrs``
      - integer
-     - The maximum time in hours for an individual log file before
-       rotation.
+     
+     - The maximum time in hours for an individual log file before the
+       next rotation. The time is since the last rotation.
+
+       The log file rotates immediately if the file meets either this
+       ``timeThresholdHrs`` or the
+       ``processes.logRotate.sizeThresholdMB`` limit.
 
    * - ``processes.logRotate.numUncompressed``
      - integer
@@ -111,8 +120,13 @@ You can also use the array to restore an instance.
 
    * - ``processes.logRotate.percentOfDiskspace``
      - number
-     - *Optional*. The maximum percentage of total disk space all log
-       files should take up before deletion. The default is ``.02``.
+
+     - *Optional*. The maximum percentage of total disk space that can
+       be used to store the log files. If this limit is exceeded, the
+       compressed log files are deleted to meet this limit, starting
+       with the oldest log files first.
+
+       The default is ``.02``.
 
    * - ``processes.authSchemaVersion``
      - integer
