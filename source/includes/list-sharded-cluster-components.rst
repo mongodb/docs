@@ -6,5 +6,5 @@
   as a three-member replica set. The config servers run on
   M30 instances.
 
-- |service| deploys six routers (:program:`mongos` programs) for a
+- |service| deploys six routers (:program:`mongos <bin.mongos>` programs) for a
   sharded cluster. |service| runs the routers on the shard servers.
