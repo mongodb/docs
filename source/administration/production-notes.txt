@@ -281,6 +281,15 @@ reads/writes in the (``ar|aw``) column.
 
 .. include:: /includes/extracts/wt-configure-cache.rst
 
+Compression and Encryption
+``````````````````````````
+
+When using encryption, CPUs equipped with AES-NI instruction-set
+extensions show significant performance advantages.
+If you are using MongoDB Enterprise with the
+:ref:`encrypted-storage-engine`, choose a CPU that supports AES-NI for
+better performance.
+
 .. seealso:: :ref:`prod-notes-concurrency`
 
 Use Solid State Disks (SSDs)
@@ -288,7 +297,6 @@ Use Solid State Disks (SSDs)
 
 MongoDB has good results and a good price-performance ratio with
 SATA SSD (Solid State Disk).
-
 
 Use SSD if available and economical. Spinning disks can be
 performant, but SSDs' capacity for random I/O operations works well
@@ -346,16 +354,20 @@ When running MongoDB on Linux, you should disable *zone reclaim* in the
 
    sudo sysctl -w vm.zone_reclaim_mode=0
 
-Then, you should use the ``numactl`` command to start the MongoDB programs
-(:program:`mongod`, including the :doc:`config servers
-</core/sharded-cluster-config-servers>`; :program:`mongos`; and clients) in
-the following manner:
+Then, you should use ``numactl`` to start your
+:program:`mongod` instances, including the :doc:`config servers
+</core/sharded-cluster-config-servers>`, :program:`mongos` instances, and any clients.
+If you do not have the ``numactl`` command, refer to the documentation for
+your operating system to install the ``numactl`` package.
+
+The following operation demonstrates how to start a MongoDB instance
+using ``numactl``:
 
 .. code-block:: sh
 
    numactl --interleave=all <path> <options>
 
-where ``<path>`` is the path to the program you are starting, and ``<options>``
+The ``<path>`` is the path to the program you are starting and the ``<options>``
 are any optional arguments to pass to the program.
 
 To fully disable NUMA behavior, you must perform both operations. For more
@@ -419,7 +431,9 @@ Separate Components onto Different Storage Devices
 
 For improved performance, consider separating your database's data,
 journal, and logs onto different storage devices, based on your application's
-access and write pattern.
+access and write pattern. Mount the components as separate filesystems
+and use symbolic links to map each component's path to the device
+storing it.
 
 For the WiredTiger storage engine, you can also store the indexes on a
 different storage device. See
@@ -433,13 +447,25 @@ different storage device. See
 
 .. _virtualized-disks-scheduling:
 
-Scheduling for Virtual Devices
-``````````````````````````````
+Scheduling
+``````````
 
-Local block devices attached to virtual machine instances via the
-hypervisor should use a *noop* scheduler for best performance. The
+Scheduling for Virtual or Cloud Hosted Devices
+++++++++++++++++++++++++++++++++++++++++++++++
+
+For local block devices attached to a virtual machine instance via
+the hypervisor or hosted by a cloud hosting provider, the guest operating system
+should use a *noop* scheduler for best performance. The
 *noop* scheduler allows the operating system to defer I/O scheduling to
 the underlying hypervisor.
+
+Scheduling for Physical Servers
++++++++++++++++++++++++++++++++
+
+For physical servers, the operating system should use a *deadline*
+scheduler. The *deadline* scheduler caps maximum latency per request
+and maintains a good disk throughput that is best for disk-intensive
+database applications.
 
 Architecture
 ------------
@@ -561,9 +587,17 @@ consider the following recommendations:
 
   .. include:: /includes/fact-selinux-server-side-js.rst
 
-For the **MMAPv1** storage engine:
-
 .. _readahead:
+
+For the **WiredTiger** storage engine:
+
+- Set the readahead setting to 0 or 16. Setting a higher readahead
+  benefits sequential I/O operations. However, since MongoDB disk
+  access patterns are generally random, setting a higher readahead
+  provides limited benefit. As such, for most workloads, a readahead of
+  0 or 16 provides optimal MongoDB performance.
+
+For the **MMAPv1** storage engine:
 
 - Ensure that readahead settings for the block devices that store the
   database files are appropriate. For random access use patterns, set
