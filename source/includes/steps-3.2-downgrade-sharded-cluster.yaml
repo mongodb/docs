@@ -7,6 +7,39 @@ content: |
   sharded cluster, as described in
   :ref:`sharding-balancing-disable-temporarily`.
 ---
+title: "Check the ``minOpTimeUpdaters`` value."
+level: 4
+ref: 3.2-downgrade-minoptimerecovery
+content: |
+    If the sharded cluster uses :doc:`CSRS
+    </core/sharded-cluster-config-servers>`, for *each* shard, check
+    the ``minOpTimeUpdaters`` value to see if it is zero. A
+    ``minOpTimeUpdaters`` value of zero indicates that there are no
+    migrations in progress. A non-zero value indicates either that a
+    migration is in progress or that a previously completed migration
+    has somehow failed to clear the ``minOpTimeUpdaters`` value and
+    should be cleared.
+
+    To check the value, for each shard, connect to the primary member
+    (or if a shard is a standalone, connect to the standalone) and
+    query the ``system.version`` collection in the ``admin`` database
+    for the ``minOpTimeRecovery`` document:
+
+    .. code-block:: javascript
+
+       use admin
+       db.system.version.findOne( { _id: "minOpTimeRecovery" }, { minOpTimeUpdaters: 1 } )
+
+    If ``minOpTimeUpdaters`` is non-zero, clear the value by stepping
+    down the current primary. The value is cleared when a new primary
+    gets elected.
+
+    .. code-block:: javascript
+
+       rs.stepDown()
+
+    If the shard is a standalone, restart the shard to clear the value.
+---
 title: "Prepare CSRS Config Servers for downgrade."
 level: 4
 ref: 3.2-downgrade-csrs
@@ -125,6 +158,19 @@ level: 4
 ref: 3.2-downgrade-shard
 content: |
 
+  For each shard, remove the ``minOpTimeRecovery`` document from the
+  ``admin.system.version`` collection using the following remove
+  operation. If the shard is a replica set, issue the remove operation
+  on the primary of the replica set for each shard:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.remove(
+        { _id: "minOpTimeRecovery" },
+        { writeConcern: { w: "majority", wtimeout: 30000 } }
+     )
+
   For each replica set shard, downgrade the :program:`mongod` binaries
   and restart. If your :program:`mongod` instance is using the
   :doc:`WiredTiger </core/wiredtiger>` storage engine, you must include
@@ -135,7 +181,7 @@ content: |
      the primary.
 
   #. To downgrade the primary, run :dbcommand:`replSetStepDown` and then downgrade.
- 
+
   For details on downgrading a replica set, see :ref:`3.2-downgrade-replica-set`.
 
 ---
