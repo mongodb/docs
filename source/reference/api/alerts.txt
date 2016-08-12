@@ -1,0 +1,406 @@
+======
+Alerts
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The ``alerts`` resource allows you to retrieve and acknowledge alerts. You can
+also retrieve the :doc:`configuration </configure-alerts>` that defines an
+alert.
+
+.. _api-alert-status:
+
+Alert Status
+------------
+
+An alert can have a status of ``TRACKING``, ``OPEN``, ``CLOSED`` or ``CANCELLED``.
+If an alert's :doc:`configuration </configure-alerts>` specifies a notification
+delay, |service| assigns the alert the ``TRACKING`` status until the delay
+period ends. After the delay, |service| sets the status to ``OPEN``, if the
+condition persists.
+
+If an alert's configuration has multiple notifications, each with its own
+notification delay, |service| uses the smallest delay value to determine when
+to move the alert from ``TRACKING`` to ``OPEN``.
+
+Endpoints
+---------
+
+Get All Alerts
+~~~~~~~~~~~~~~
+
+Retrieves all alerts except cancelled alerts.
+
+.. code-block:: none
+
+   GET /api/atlas/v1.0/groups/GROUP-ID/alerts
+
+To specify alert status, use the ``status`` query parameter with one of these
+possible values: ``TRACKING``, ``OPEN``, or ``CLOSED``. The ``status``
+parameter **cannot** retrieve ``CANCELLED`` alerts.
+
+.. code-block:: none
+
+   GET /api/atlas/v1.0/groups/GROUP-ID/alerts?status=STATUS
+
+Get an Alert
+~~~~~~~~~~~~
+
+You can retrieve an alert by its ID.
+
+.. code-block:: none
+
+   GET /api/atlas/v1.0/groups/GROUP-ID/alerts/ALERT-ID
+
+Acknowledge an Alert
+~~~~~~~~~~~~~~~~~~~~
+
+To acknowledge an alert, use ``PATCH`` to update the alert's ``acknowledgedUntil``
+field. You can optionally update the ``acknowledgementComment`` field with a
+comment. Do not include any other field in the ``PATCH`` request.
+
+.. code-block:: none
+
+   PATCH /api/atlas/v1.0/groups/GROUP-ID/alerts/ALERT-ID
+
+To acknowledge an alert "forever", set the field value to 100 years in the
+future. To unacknowledge a previously acknowledged alert, set the field value
+to the past.
+
+If you add a comment in the ``acknowledgementComment`` field, |service| displays
+the comment next to the message that the alert has been acknowledged.
+
+Sample Entity
+-------------
+
+The fields in the return document depend on the alert type. The
+fields shown here are common to all alert types.
+
+.. code-block:: javascript
+
+   {
+     "id" : "578d2e30e4b0b6c04262c80a",
+     "groupId" : "535683b3794d371327b,
+     "alertConfigId" : "5744e1f6e4b090d8f0b34f0d",
+     "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+     "status" : "CLOSED",
+     "created" : "2016-08-18T19:29:52Z",
+     "updated" : "2016-08-19T23:07:34Z",
+     "lastNotified" : "2016-08-19T23:07:34Z",
+     "resolved" : "2016-08-19T23:07:34Z",
+
+     // Additional fields, depending on the type of alert:
+     //   acknowledgementComment
+     //   acknowledgingUsername
+     //   hostnameAndPort
+     //   hostId
+     //   replicaSetName
+     //   metricName
+     //   currentValue
+     //   currentValue.number
+     //   currentValue.units
+     //   clusterName
+     //   sourceTypeName
+
+     "links": [ ... ]
+   }
+
+Entity Fields
+-------------
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``id``
+     - string
+     - Unique identifier.
+
+   * - ``groupId``
+     - string
+     - ID of the group that this alert was opened for.
+
+   * - ``alertConfigId``
+     - string
+     - ID of the alert configuration that triggered this alert.
+
+   * - ``eventTypeName``
+     - string
+     - The name of the event that triggered the alert. The possible values
+       depend on the alert type.
+
+       .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+   * - ``status``
+     - string
+     - The current state of the alert. Possible values are:
+
+       - ``TRACKING``
+
+         The alert condition exists but has not persisted beyond the defined
+         notification delay. For details, see :ref:`api-alert-status`.
+
+       - ``OPEN``
+
+       - ``CLOSED``
+
+       - ``CANCELLED``
+
+   * - ``created``
+     - date
+     - When the alert was opened.
+
+   * - ``updated``
+     - date
+     - When the alert was last updated.
+
+   * - ``lastNotified``
+     - date
+     - When the last notification was sent for this alert. Only present if
+       notifications have been sent.
+
+   * - ``resolved``
+     - date
+     - When the alert was closed. Only present if the status is ``CLOSED``.
+
+   * - ``acknowledgedUntil``
+     - date
+     - The date through which the alert has been acknowledged. This is not
+       present if the alert has never been acknowledged.
+
+   * - ``acknowledgementComment``
+     - string
+     - The comment left by the user who acknowledged the alert. This is not
+       present if the alert has never been acknowledged.
+
+   * - ``acknowledgingUsername``
+     - string
+     - The username of the user who acknowledged the alert. This is not
+       present if the alert has never been acknowledged.
+
+   * - ``hostnameAndPort``
+     - string
+     - The hostname and port of the host to which the alert applies.
+
+   * - ``metricName``
+     - string
+     - The name of the metric whose value went outside the threshold. Only
+       present if ``eventTypeName`` is ``OUTSIDE_METRIC_THRESHOLD``. Possible
+       values are:
+
+       - ``ASSERT_MSG``
+       - ``ASSERT_REGULAR``
+       - ``ASSERT_USER``
+       - ``ASSERT_WARNING``
+       - ``BACKGROUND_FLUSH_AVG``
+       - ``CACHE_BYTES_READ_INTO``
+       - ``CACHE_BYTES_WRITTEN_FROM``
+       - ``CACHE_USAGE_DIRTY``
+       - ``CACHE_USAGE_USED``
+       - ``COMPUTED_MEMORY``
+       - ``CONNECTIONS``
+       - ``CURSORS_TOTAL_CLIENT_CURSORS_SIZE``
+       - ``CURSORS_TOTAL_OPEN``
+       - ``CURSORS_TOTAL_TIMED_OUT``
+       - ``DB_DATA_SIZE_TOTAL``
+       - ``DB_STORAGE_TOTAL``
+       - ``DISK_PARTITION_SPACE_USED_DATA``
+       - ``DISK_PARTITION_SPACE_USED_INDEX``
+       - ``DISK_PARTITION_SPACE_USED_JOURNAL``
+       - ``DISK_PARTITION_UTILIZATION_DATA``
+       - ``DISK_PARTITION_UTILIZATION_INDEX``
+       - ``DISK_PARTITION_UTILIZATION_JOURNAL``
+       - ``EXTRA_INFO_PAGE_FAULTS``
+       - ``GLOBAL_ACCESSES_NOT_IN_MEMORY``
+       - ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
+       - ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
+       - ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
+       - ``GLOBAL_LOCK_PERCENTAGE``
+       - ``GLOBAL_PAGE_FAULT_EXCEPTIONS_THROWN``
+       - ``INDEX_COUNTERS_BTREE_ACCESSES``
+       - ``INDEX_COUNTERS_BTREE_HITS``
+       - ``INDEX_COUNTERS_BTREE_MISS_RATIO``
+       - ``INDEX_COUNTERS_BTREE_MISSES``
+       - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
+       - ``JOURNALING_MB``
+       - ``JOURNALING_WRITE_DATA_FILES_MB``
+       - ``MEMORY_RESIDENT``
+       - ``MEMORY_VIRTUAL``
+       - ``MEMORY_MAPPED``
+       - ``NETWORK_BYTES_IN``
+       - ``NETWORK_BYTES_OUT``
+       - ``NETWORK_NUM_REQUESTS``
+       - ``NORMALIZED_SYSTEM_CPU_USER``
+       - ``OPCOUNTER_CMD``
+       - ``OPCOUNTER_DELETE``
+       - ``OPCOUNTER_INSERT``
+       - ``OPCOUNTER_QUERY``
+       - ``OPCOUNTER_REPL_UPDATE``
+       - ``OPCOUNTER_REPL_DELETE``
+       - ``OPCOUNTER_REPL_INSERT``
+       - ``OPCOUNTER_UPDATE``
+       - ``OPLOG_MASTER_LAG_TIME_DIFF``
+       - ``OPLOG_MASTER_TIME``
+       - ``OPLOG_RATE_GB_PER_HOUR``
+       - ``OPLOG_SLAVE_LAG_MASTER_TIME``
+       - ``TICKETS_AVAILABLE_READS``
+       - ``TICKETS_AVAILABLE_WRITES``
+
+   * - ``currentValue``
+     - object
+     - The current value of the metric that triggered the alert. Only present
+       if ``eventTypeName`` is ``OUTSIDE_METRIC_THRESHOLD``.
+
+   * - ``currentValue.number``
+     - float
+     - The value.
+
+   * - ``currentValue.units``
+     - string
+     - The units for the value. Possible units are:
+
+       .. include:: /includes/possibleValues-api-units.rst
+
+   * - ``replicaSetName``
+     - string
+     - Name of the replica set, if applicable.
+
+   * - ``clusterName``
+     - string
+     - The name the cluster to which this alert applies.
+
+Links
+-----
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``Relation``
+     - Description
+
+   * - ``self``
+     - Me
+
+   * - ``http://mms.mongodb.com/alertConfig``
+     - The alert configuration that triggered this alert.
+
+Examples
+--------
+
+Get an Alert
+~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alerts/533cb4b8e4b0f1820cdabc7f"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "id" : "578d2e30e4b0b6c04262c80a",
+     "groupId" : "535683b3794d371327b,
+     "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+     "status" : "CLOSED",
+     "created" : "2016-08-18T19:29:52Z",
+     "updated" : "2016-08-19T23:07:34Z",
+     "resolved" : "2016-08-19T23:07:34Z",
+     "links" : [ ... ]
+   }
+
+Get All ``OPEN`` Alerts
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alerts?status=OPEN"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "totalCount": 1,
+     "results": [ {
+       "id" : "533dc45ee4b00835ff81ec2a",
+       "groupId" : "535683b3794d371327b",
+       "alertConfigId" : "55e756a6e4b0f0c695a2",
+       "hostId" : "51714c7fa22cbe4573d3629ff53c",
+       "hostnameAndPort" : "example.test.4182.mongodbdns.com:27017",
+       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+       "status" : "OPEN",
+       "created" : "2016-08-23T20:28:14Z",
+       "updated" : "2016-08-23T20:28:14Z",
+       "lastNotified" : "2016-08-23T20:28:23Z",
+       "metricName" : "ASSERT_REGULAR",
+       "currentValue" : {
+         "number" : 0.0,
+         "units" : "RAW"
+       },
+       "links" : [ ... ]
+     } ],
+     "links" : [ ... ]
+   }
+
+Acknowledge an Alert
+~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alerts/524dc45ee4b835ff81ec2a" --data '
+   {
+     "acknowledgedUntil" : "2016-10-01T00:00:00-0400",
+     "acknowledgementComment" : "This is normal. Please ignore."
+   }'
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "id" : "524dc45ee4b835ff81ec2a",
+     "groupId" : "535683b3794d371327b",
+     "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+     "status" : "OPEN",
+     "acknowledgedUntil" : "2016-10-01T04:00:00Z",
+     "acknowledgementComment" : "This is normal. Please ignore.",
+     "acknowledgingUsername" : "someuser@example.com",
+     "created" : "2016-08-23T20:28:14Z",
+     "updated" : "2016-08-23T20:33:14Z",
+     "lastNotified" : "2016-08-23T20:33:23Z",
+     "metricName" : "ASSERTS_REGULAR",
+     "currentValue" : {
+       "number" : 0.0,
+       "units" : "RAW"
+     },
+     "links" : [ ... ]
+   }

@@ -52,10 +52,9 @@
        in the URL string.
 
        :guilabel:`Flow Name`: The flow name in lower-case letters. The flow
-       name appears after the org name in the URL string:
-       ``www.flowdock.com/app/orgname/flowname``. The flow name also appears
-       in the "flow email address" setting in Flowdock. For example:
-       ``flowname@example.flowdock.com``.
+       name appears after the organization name in the URL string:
+
+       ``www.flowdock.com/app/<organization-name>/<flow-name>``
 
        :guilabel:`User API Token`: Your Flowdock "personal API token" found on
        the `<https://www.flowdock.com/account/tokens>`_ page of your Flowdock
