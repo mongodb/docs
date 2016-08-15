@@ -43,6 +43,8 @@
 
        .. include:: /includes/enable-sharding-requirements.rst
 
+       .. seealso:: :ref:`connection-limits`
+
    * - :guilabel:`Replication Factor`
 
      - The number of :term:`replica set` members. Each member keeps a
