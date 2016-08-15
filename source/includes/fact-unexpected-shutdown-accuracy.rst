@@ -6,8 +6,10 @@ The amount of drift depends on the number of insert, update, or delete
 operations performed between the last :ref:`checkpoint
 <storage-wiredtiger-checkpoints>` and the unclean shutdown. Checkpoints
 usually occur every 60 seconds. However, :program:`mongod` instances running
-with non-default :option:`syncDelay` settings may have more or less frequent
+with non-default :option:`--syncdelay` settings may have more or less frequent
 checkpoints.
 
 Run :dbcommand:`validate` on each collection on the :program:`mongod` to
-to restore the correct statistics after an unclean shutdown.
+to restore the correct statistics after an unclean shutdown. If multiple
+:program:`mongod` instances experienced an unclean shutdown, perform the
+validation procedure on each :program:`mongod`. 
