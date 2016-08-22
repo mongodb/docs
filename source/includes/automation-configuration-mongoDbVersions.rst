@@ -14,6 +14,7 @@ in this array.
                    "url" : <string>,
                    "gitVersion" : <string>,
                    "modules" : [ <string>, ... ],
+                   "architecture" : <string>,
                    "bits" : <integer>,
                    "win2008plus" : <Boolean>,
                    "winVCRedistUrl" : <string>,
@@ -72,9 +73,15 @@ in this array.
      - The list of modules for this version. Corresponds to the
        ``modules`` field returned by MongoDB 3.2+ ``buildInfo`` command.
 
+   * - ``mongoDbVersions.builds.architecture``
+     - string
+     - The processor's architecture. Possible values are ``amd64`` or
+       ``ppc64le``.
+
    * - ``mongoDbVersions.builds.bits``
      - integer
-     - The processor's bus width. Specify either ``64`` or ``32``.
+     - *Deprecated*. The processor's bus width. Do not remove or make
+       modifications to this field.
 
    * - ``mongoDbVersions.builds.win2008plus``
      - Boolean
