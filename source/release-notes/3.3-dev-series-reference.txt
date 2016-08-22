@@ -339,6 +339,480 @@ MongoDB 3.3 development series introduces the following new
 
    .. seealso:: :ref:`agg-memory-restrictions`
 
+.. pipeline:: $sortByCount
+   
+   Categorizes or groups incoming documents by a specified expression
+   to compute the count for each group and outputs a document for each
+   distinct grouping. Each output document contains an ``_id`` field,
+   which contains the distinct grouping value, and a ``count`` field
+   that contains the number of documents that have that facet or
+   categorization. The documents are sorted by the count in descending
+   order. The :pipeline:`$sortByCount` stage is equivalent to the
+   following :pipeline:`$group` + :pipeline:`$sort` sequence:
+   
+   .. code-block:: javascript
+   
+      { $group: { _id: <expression>, count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    
+   The :pipeline:`$sortByCount` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $sortByCount:  <expression> }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``expression``
+
+        - :ref:`Expression <aggregation-expressions>` to group by. To
+          specify a :ref:`field path <agg-quick-ref-field-paths>`,
+          prefix the field name with a dollar sign ``$`` and enclose in
+          quotes.
+
+   Consider a collection ``exhibits`` with the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, title: "The Pillars of Society", "artist" : "Grosz", year: 1926,
+        tags: [ "painting", "satire", "Expressionism", "caricature" ] }
+      { _id: 2, title: "Melancholy III", "artist" : "Munch", year: 1902,
+        tags: [ "woodcut", "Expressionism" ] },
+      { _id: 3, title: "Dancer", "artist" : "Miro", year: 1925,
+        tags: [ "oil", "Surrealism", "painting" ] }
+      { _id: 4, title: "The Great Wave off Kanagawa", artist: "Hokusai", 
+         tags: [ "woodblock", "ukiyo-e" ] }
+
+   The following operation :pipeline:`unwinds <$unwind>` the ``tags``
+   array and uses the :pipeline:`$sortByCount` stage to count the
+   number of documents associated with each tag:
+  
+   .. code-block:: javascript
+  
+      db.exhibits.aggregate( [ { $unwind: "$tags" },  { $sortByCount: "$tags" } ] )   
+   
+   The operation returns the following documents, sorted in descending
+   order by count:
+
+   .. code-block:: javascript
+   
+      { "_id" : "Expressionism", "count" : 2 }
+      { "_id" : "painting", "count" : 2 }
+      { "_id" : "woodblock", "count" : 1 }
+      { "_id" : "Surrealism", "count" : 1 }
+      { "_id" : "oil", "count" : 1 }
+      { "_id" : "woodcut", "count" : 1 }
+      { "_id" : "ukiyo-e", "count" : 1 }
+      { "_id" : "satire", "count" : 1 }
+      { "_id" : "caricature", "count" : 1 }
+
+.. pipeline:: $bucket
+
+   Categorizes or groups incoming documents into buckets that represent
+   a range of values for a specified expression. Each output document
+   contains an ``_id`` field, whose value is the inclusive lower bound
+   of the bucket range, and by default, a ``count`` field that contains
+   the number of documents that fall into the bucket.
+   
+   :pipeline:`$bucket` only outputs documents for non-empty buckets
+   (i.e. buckets with ``count`` greater than or equal to one).
+
+   .. code-block:: javascript
+
+      { 
+        $bucket: {
+            groupBy: <expression>,
+            boundaries: [ <lowerbound1>, <lowerbound2>, ... ],
+            default: <literal>,
+            output: {
+               <output1>: { <$accumulator expression> },
+               ...
+            }
+         }
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``groupBy``
+
+        - :ref:`Expression <aggregation-expressions>` to group by. To
+          specify a :ref:`field path <agg-quick-ref-field-paths>`,
+          prefix the field name with a dollar sign ``$`` and enclose in
+          quotes.
+          
+          Unless :pipeline:`$bucket` includes a ``default``
+          specification, each input document must resolve the
+          ``groupBy`` field path or expression to a value that falls
+          within one of the ranges specified by the ``boundaries``.
+
+      * - ``boundaries``
+
+        - An array that specifies the boundaries for the bucket, or the
+          range of values, for the ``groupBy`` expression. Each
+          adjacent pair of values acts as the inclusive lower boundary
+          and the exclusive upper boundary for the bucket.
+
+          For example, an array of ``[ 0, 5, 10 ]`` creates two buckets:
+
+          - [0, 5) with inclusive lowerbound ``0`` and exclusive upper bound ``5``.
+
+          - [5, 10) with inclusive lowerbound ``5`` and exclusive upper bound ``10``.
+
+          The boundaries must be of the same type and in ascending
+          order.
+
+          Unless :pipeline:`$bucket` includes a ``default``
+          specification, each input document must resolve the
+          ``groupBy`` field path or expression to a value that falls
+          within one of the ranges specified by the ``boundaries``.
+
+          You must specify at least two boundaries.
+          
+      * - ``default``
+      
+        - Optional. A literal that specifies the default bucket for any document
+          whose ``groupBy`` expression does not fall into one of the
+          buckets as specified by the ``boundaries``.
+          
+          The ``default`` value cannot overlap with a bucket; i.e. must
+          be less than the lowest boundary or greater than the highest
+          boundary.
+          
+          If ``default`` is unspecified, each input document must
+          resolve the ``groupBy`` field path or expression to a value
+          that falls within one of the ranges specified by the
+          ``boundaries``.
+   
+      * - ``output``
+      
+        - Optional. A document that specifies the fields to include in the output
+          documents in addition to the ``_id`` field. To specify the
+          field to include, you must use :ref:`accumulator expressions
+          <agg-quick-reference-accumulators>`.
+
+          .. code-block:: javascript
+           
+             <outputfield1>: { <accumulator>: <expression1> },
+             ...
+           
+          By default, the output documents include the ``count`` field
+          that contains the number of documents that fall into the
+          bucket. The default is equivalent to explicitly specifying:
+           
+          .. code-block:: javascript
+           
+             output: { count: { $sum: 1 } }
+           
+   Consider a collection ``exhibits`` with the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, title: "The Pillars of Society", "artist" : "Grosz", year: 1926,
+        tags: [ "painting", "satire", "Expressionism", "caricature" ] }
+      { _id: 2, title: "Melancholy III", "artist" : "Munch", year: 1902,
+        tags: [ "woodcut", "Expressionism" ] },
+      { _id: 3, title: "Dancer", "artist" : "Miro", year: 1925,
+        tags: [ "oil", "Surrealism", "painting" ] }
+      { _id: 4, title: "The Great Wave off Kanagawa", artist: "Hokusai", 
+         tags: [ "woodblock", "ukiyo-e" ] }
+ 
+   The following operation groups the input documents by the ``year``
+   field and categorizes the documents by the ``year`` value into 4
+   buckets (three user-specified buckets and one default bucket).
+  
+   .. code-block:: javascript
+               
+      db.exhibits.aggregate( [ 
+         { $bucket: { 
+               groupBy: "$year",
+               boundaries: [ 1900, 1920, 1950 ],
+               default: "Unknown",
+               output: { years: { $push: "$year" }, count: { $sum: 1 } } } }
+      ] )
+
+   The operation returns the following documents that correspond to
+   non-empty buckets:
+
+   .. code-block:: javascript
+   
+      { "_id" : 1900, "years" : [ 1902 ], "count" : 1 }
+      { "_id" : 1920, "years" : [ 1926, 1925 ], "count" : 2 }
+      { "_id" : "Unknown", "years" : [ ], "count" : 1 }
+
+.. pipeline:: $bucketAuto
+
+   Categorizes or groups incoming documents into buckets that represent
+   a range of values for a specified expression.
+   :pipeline:`$bucketAuto` automatically determines the bucket ranges
+   in its attempt to distribute the documents evenly into a specified
+   number of buckets. Depending on the input documents, the number of
+   buckets may be less than the specified number of buckets.
+   
+   Each output document contains an ``_id`` field, whose value is a
+   document that specifies the inclusive lower bound and the exclusive
+   upper bound for the bucket, and by default, a ``count`` field that
+   contains the number of documents that fall into the bucket.
+
+   The :pipeline:`$bucketAuto` stage has the following form:
+
+   .. code-block:: javascript
+
+      { 
+        $bucketAuto: {
+            groupBy: <expression>,
+            buckets: <number>,
+            output: {
+               <output1>: { <$accumulator expression> },
+               ...
+            }
+            granularity: <string>
+        }
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``groupBy``
+
+        - :ref:`Expression <aggregation-expressions>` to group by. To
+          specify a :ref:`field path <agg-quick-ref-field-paths>`,
+          prefix the field name with a dollar sign ``$`` and enclose in
+          quotes.
+
+      * - ``buckets``
+
+        - A positive 32-bit integral number; i.e. a number whose value
+          can be represented as a 32-bit integer.
+                       
+      * - ``output``
+      
+        - Optional. A document that specifies the fields to include in
+          the output documents in addition to the ``_id`` field. To
+          specify the field to include, you must use :ref:`accumulator
+          expressions <agg-quick-reference-accumulators>`.
+
+          .. code-block:: javascript
+           
+             <outputfield1>: { <accumulator>: <expression1> },
+             ...
+           
+          By default, the output documents include the ``count`` field
+          that contains the number of documents that fall into the
+          bucket. The default is equivalent to explicitly specifying:
+           
+          .. code-block:: javascript
+           
+             output: { count: { $sum: 1 } }
+
+      * - ``granularity``
+
+        - Optional. String that specifies the `preferred number series
+          <https://en.wikipedia.org/wiki/Preferred_number>`_ to use to
+          ensure that the calculated boundary edges end on preferred
+          round numbers.
+
+          Available only if the all ``groupBy`` values are numeric and
+          none of them are NaN.
+
+          The suppported values of ``granularity`` are:
+
+          .. list-table::
+             :class: index-table
+
+             * - 
+                 - ``"R5"``
+
+                 - ``"R10"``
+
+                 - ``"R20"``
+
+                 - ``"R40"``
+
+                 - ``"R80"``
+
+                 - ``"1-2-5"``
+
+               - - ``"E6"``
+
+                 - ``"E12"``
+
+                 - ``"E24"``
+
+                 - ``"E48"``
+
+                 - ``"E96"``
+
+                 - ``"E192"``
+
+                 - ``"POWERSOF2"``
+
+   Consider a collection ``exhibits`` with the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, title: "The Pillars of Society", "artist" : "Grosz", year: 1926,
+        tags: [ "painting", "satire", "Expressionism", "caricature" ] }
+      { _id: 2, title: "Melancholy III", "artist" : "Munch", year: 1902,
+        tags: [ "woodcut", "Expressionism" ] }
+      { _id: 3, title: "Dancer", "artist" : "Miro", year: 1925,
+        tags: [ "oil", "Surrealism", "painting" ] }
+      { _id: 4, title: "The Great Wave off Kanagawa", artist: "Hokusai", 
+         tags: [ "woodblock", "ukiyo-e" ] }
+
+   The following operation groups the input documents by the ``year``
+   field and autobuckets the year values into at most ``4`` buckets:
+    
+   .. code-block:: javascript
+               
+      db.exhibits.aggregate( [ 
+         { 
+           $bucketAuto: { 
+               groupBy: "$year",
+               buckets: 4
+           }
+         }
+      ] )
+
+   The operation returns the following documents:
+   
+   .. code-block:: javascript
+   
+      { "_id" : { "min" : null, "max" : 1902 }, "count" : 1 }
+      { "_id" : { "min" : 1902, "max" : 1925 }, "count" : 1 }
+      { "_id" : { "min" : 1925, "max" : 1926 }, "count" : 1 }
+      { "_id" : { "min" : 1926, "max" : 1926 }, "count" : 1 }
+
+   The following operation groups the input documents by the ``year``
+   field and autobuckets the year values into at most ``4`` buckets:
+
+   .. code-block:: javascript
+               
+      db.exhibits.aggregate( [ 
+         { 
+           $bucketAuto: { 
+               groupBy: "$year",
+               buckets: 4,
+               output: { 
+                  years: { $push: "$year" },
+                  count: { $sum: 1 }  
+               } 
+           }
+         }
+      ] )
+   
+   The operation returns the following documents:
+
+   .. code-block:: javascript
+   
+      { "_id" : { "min" : null, "max" : 1902 }, "years" : [ ], "count" : 1 }
+      { "_id" : { "min" : 1902, "max" : 1925 }, "years" : [ 1902 ], "count" : 1 }
+      { "_id" : { "min" : 1925, "max" : 1926 }, "years" : [ 1925 ], "count" : 1 }
+      { "_id" : { "min" : 1926, "max" : 1926 }, "years" : [ 1926 ], "count" : 1 }
+
+.. pipeline:: $facet
+
+   Provides the ability to process multiple :ref:`pipelines
+   <aggregation-pipeline>` on the input documents and outputs a
+   document that contains the results of these pipelines. By specifying
+   facet-related stages (:pipeline:`$bucket`, :pipeline:`$bucketAuto`,
+   and :pipeline:`$sortByCount`) in these pipelines, :pipeline:`$facet`
+   allows for multi-faceted search.
+
+   The :pipeline:`$facet` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $facet:
+         {
+            <outputField1>: [ <stage1>, <stage2>, ... ],
+            ...
+
+         }
+      }
+
+   For the ``<stage>`` values, you cannot specify any one of the
+   following stages:
+
+   - :pipeline:`$facet`
+   - :pipeline:`$out`
+   - :pipeline:`$geoNear`
+   - :pipeline:`$indexStats`
+   - :pipeline:`$collStats`
+
+   Specify the output field name for each specified pipeline.
+
+   Consider a collection ``exhibits`` with the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, title: "The Pillars of Society", "artist" : "Grosz", year: 1926,
+        tags: [ "painting", "satire", "Expressionism", "caricature" ] }
+      { _id: 2, title: "Melancholy III", "artist" : "Munch", year: 1902,
+        tags: [ "woodcut", "Expressionism" ] },
+      { _id: 3, title: "Dancer", "artist" : "Miro", year: 1925,
+        tags: [ "oil", "Surrealism", "painting" ] }
+      { _id: 4, title: "The Great Wave off Kanagawa", artist: "Hokusai", 
+         tags: [ "woodblock", "ukiyo-e" ] }
+
+   .. code-block:: javascript
+  
+      db.exhibits.aggregate( [
+         {
+            $facet: {
+               
+               "categorizedByTags": [  { $unwind: "$tags" },  { $sortByCount: "$tags" } ], 
+               "categorizedByYears": [ 
+                  { $match: { year: {$exists: 1 } } },
+                  { $bucket: { groupBy: "$year", boundaries: [ 1900, 1920, 1950 ] } }
+               ],
+               "categorizedByYears(Auto)": [ { $bucketAuto: { groupBy: "$year", buckets: 4 } } ]
+                     
+            }
+         }
+      ])   
+   
+   The operation outputs the following documents:
+   
+   .. code-block:: javascript
+   
+      {
+         "categorizedByYears(Auto)" : [
+            { "_id" : { "min" : null, "max" : 1902 }, "count" : 1 },
+            { "_id" : { "min" : 1902, "max" : 1925 }, "count" : 1 },
+            { "_id" : { "min" : 1925, "max" : 1926 }, "count" : 1 },
+            { "_id" : { "min" : 1926, "max" : 1926 }, "count" : 1 }
+         ],
+         "categorizedByYears" : [
+            { "_id" : 1900, "count" : 1 },
+            { "_id" : 1920, "count" : 2 }
+         ],
+         "categorizedByTags" : [
+            { "_id" : "Expressionism", "count" : 2 },
+            { "_id" : "painting", "count" : 2 },
+            { "_id" : "woodblock", "count" : 1 },
+            { "_id" : "Surrealism", "count" : 1 },
+            { "_id" : "oil", "count" : 1 },
+            { "_id" : "woodcut", "count" : 1 },
+            { "_id" : "ukiyo-e", "count" : 1 },
+            { "_id" : "satire", "count" : 1 },
+            { "_id" : "caricature", "count" : 1 }
+         ]
+      }
+
 New Array Operators
 ~~~~~~~~~~~~~~~~~~~~
 
