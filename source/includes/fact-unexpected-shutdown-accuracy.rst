@@ -10,6 +10,4 @@ with non-default :option:`--syncdelay` settings may have more or less frequent
 checkpoints.
 
 Run :dbcommand:`validate` on each collection on the :program:`mongod` to
-to restore the correct statistics after an unclean shutdown. If multiple
-:program:`mongod` instances experienced an unclean shutdown, perform the
-validation procedure on each :program:`mongod`. 
+to restore the correct statistics after an unclean shutdown.
