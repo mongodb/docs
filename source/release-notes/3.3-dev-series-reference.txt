@@ -1972,3 +1972,189 @@ Additional Aggregation Operator
 
           See :ref:`operator expression syntax forms
           <agg-quick-ref-operator-expressions>` for more information.
+
+.. _3.4-reference-views:
+
+Read-only Views
+---------------
+
+To support the creation of :ref:`read-only views <3.4-relnotes-views>`,
+MongoDB 3.3.x introduces:
+
+- the ``viewOn`` and ``pipeline`` options to the existing
+  :dbcommand:`create` command:
+
+  .. code-block:: javascript
+
+     db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline> } )
+
+- and a corresponding :program:`mongo` shell helper
+  :method:`db.createView()`:
+
+  .. code-block:: javascript
+
+     db.createView(<view>, <source>, <pipeline>)
+
+.. method:: db.createView()
+
+   Creates a view as the result of the applying the specified
+   :ref:`aggregation pipeline <aggregation-pipeline>` to the
+   ``<source>``. Views act as read-only collections, and are computed
+   on demand during read operations. MongoDB executes read operations
+   on views as part of the underlying aggregation pipeline.
+
+   The :method:`db.createView` has the following syntax:
+   
+   .. code-block:: javascript
+
+      db.createView(<view>, <source>, <pipeline>)
+
+   The method accepts the following parameters:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Parameter
+        - Description
+
+      * - ``<view>``
+
+        - A string that specifies the name of the view to create.
+
+      * - ``<source>``
+
+        - A string that specifies the name of the collection or a view
+          from which to create the new view. The ``<source>`` is not
+          the full namespace of the collection or view; i.e. does not
+          include the database name and implies the same database as
+          the view to create.
+
+      * - ``<pipeline>``
+
+        - An array that consists of the :ref:`aggregation pipeline
+          stage <aggregation-pipeline>`. :method:`db.createView`
+          creates the view by applying the specified ``<pipeline>`` to
+          the ``<source>``.
+
+   The :method:`db.createView()` method wraps the following
+   :dbcommand:`create` command operation:
+
+   .. code-block:: javascript
+
+      db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline> } )
+
+   Operations that lists collections, such as
+   :method:`db.getCollection()`, :method:`db.getCollectionInfos()`, and
+   :method:`db.getCollectionNames()`, includes views in their outputs.
+
+   To remove a view, use the :method:`~db.collection.drop()` method on
+   the view.
+
+   Views exhibit the following behavior:
+
+   - Views are read-only; write operations on views will error.
+
+   - Views use indexes of the underlying collection.
+
+   - Views are considered sharded if their underlying collection is
+     sharded. As such, you cannot specify a sharded view for the
+     ``from`` field in :pipeline:`$lookup` and :pipeline:`$graphLookup`
+     operations.
+
+   - Views are computed on demand during read operations, and MongoDB
+     executes read operations on views as part of the underlying
+     aggregation pipeline. As such, views do not support operations
+     such as:
+
+     - :method:`db.collection.mapReduce()`,
+
+     - :query:`$text` operator, since ``$text`` operation in
+       aggregation is valid only for the first stage,
+
+     - :method:`db.collection.geoNear()` operations.
+
+   - :method:`~db.collection.find()` operations on views do not support
+     the following :doc:`projection </reference/operator/projection>` operators:
+
+     - :projection:`$`
+     - :projection:`$elemMatch`
+     - :projection:`$slice`
+     - :projection:`$meta`
+
+   - If the aggregation pipeline used to create the view suppresses the
+     ``_id`` field, documents in the view do not have the ``_id`` field.
+
+   Consider a collection ``survey`` with the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, empNumber: "abc123", feedback: { management: 3, environment: 3 }, department: "A" }
+      { _id: 2, empNumber: "xyz987", feedback: { management: 2, environment: 3 }, department: "B" }
+      { _id: 3, empNumber: "ijk555", feedback: { management: 3, environment: 4 }, department: "A" }
+
+   The following operation creates a ``managementRatings`` view with
+   the ``_id``, ``feedback.management``, and ``department`` fields:
+
+   .. code-block:: javascript
+
+      db.createView(
+         "managementFeedback",
+         "survey",
+         [ { $project: { "management": "$feedback.management", department: 1 } } ]
+      )
+
+   To query the view, you can use :method:`~db.collection.find()` on
+   the view:
+
+   .. code-block:: javascript
+
+      db.managementFeedback.find()
+
+   The operation returns the following:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "department" : "A", "management" : 3 }
+      { "_id" : 2, "department" : "B", "management" : 2 }
+      { "_id" : 3, "department" : "A", "management" : 3 }
+
+   The following operation performs an aggregation on the
+   ``managementFeedback`` view to group by the department:
+
+   .. code-block:: javascript
+
+      db.managementFeedback.aggregate([ { $group: { _id: "$department", count: { $sum: 1 } } } ] )
+
+   For the next example, consider the following two collections:
+
+   - The ``orders`` collection:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "item" : "abc", "price" : 12, "quantity" : 2 }
+        { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1 }
+
+   - The ``inventory`` collection:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "sku" : "abc", description: "product 1", "instock" : 120 }
+        { "_id" : 2, "sku" : "def", description: "product 2", "instock" : 80 }
+        { "_id" : 3, "sku" : "ijk", description: "product 3", "instock" : 60 }
+        { "_id" : 4, "sku" : "jkl", description: "product 4", "instock" : 70 }
+
+   The following :method:`db.createView()` example specifies a
+   :pipeline:`$lookup` stage to create a view from the join of the two
+   collections:
+
+   .. code-block:: javascript
+   
+      db.createView (
+         "orderDetails",
+         "orders",
+         [
+           { $lookup: {from: "inventory", localField: "item", foreignField: "sku", as: "inventory_docs" } },
+           { $project: { "inventory_docs._id": 0, "inventory_docs.sku": 0 } }
+         ]
+      )
