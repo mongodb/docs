@@ -1,3 +1,10 @@
+Backup Agent ``4.5.0.412``
+--------------------------
+
+*Released 2016-08-24*
+
+- Support for Power Linux.
+
 Backup Agent ``4.4.0.396``
 --------------------------
 

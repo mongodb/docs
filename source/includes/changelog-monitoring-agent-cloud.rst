@@ -1,3 +1,10 @@
+Monitoring Agent ``5.2.0.331``
+------------------------------
+
+*Released 2016-08-24*
+
+- Support for Power Linux.
+
 Monitoring Agent ``5.1.0.323``
 ------------------------------
 
