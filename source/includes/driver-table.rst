@@ -9,7 +9,7 @@
      - JIRA
      - Online Course
 
-   * - :doc:`C </drivers/c>`
+   * - `C <http://mongoc.org/>`_
      - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-c-driver>`_
      - `API <http://mongoc.org/>`_
