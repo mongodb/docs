@@ -5,7 +5,7 @@
      - Project Documentation
 
    * - `C Driver <https://github.com/mongodb/mongo-c-driver>`_
-     - `C Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/c/>`_
+     - `C Driver Documentation <http://mongoc.org/>`_
 
    * - `C++ Driver <https://github.com/mongodb/mongo-cxx-driver/>`_
      - `C++ Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/cpp/>`_
