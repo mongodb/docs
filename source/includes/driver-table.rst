@@ -12,7 +12,7 @@
    * - :doc:`C </drivers/c>`
      - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`_
      - `Source <https://github.com/mongodb/mongo-c-driver>`_
-     - `API <http://api.mongodb.com/c/current/>`_
+     - `API <http://mongoc.org/>`_
      - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`_
      -
 
