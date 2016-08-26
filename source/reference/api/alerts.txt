@@ -10,6 +10,8 @@ Alerts
    :depth: 1
    :class: twocols
 
+.. _api-alert-status:
+
 Overview
 --------
 
@@ -41,9 +43,9 @@ Gets all alerts regardless of status.
 
    GET /api/public/v1.0/groups/GROUP-ID/alerts
 
-Use the ``status`` query parameter with one of these possible values:
-``TRACKING``, ``OPEN``, or ``CLOSED`` to get all alerts with the
-specified status.
+To specify alert status, use the ``status`` query parameter with one of these
+possible values: ``TRACKING``, ``OPEN``, or ``CLOSED``. The ``status``
+parameter **cannot** retrieve ``CANCELLED`` alerts.
 
 .. code-block:: none
 
@@ -58,28 +60,23 @@ Gets a single alert by ID.
 
    GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
 
-Get Alert Configurations that Triggered an Alert
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Gets the alert configuration(s) that triggered the specified alert.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID/alertConfigs
-
 Acknowledge an Alert
 ~~~~~~~~~~~~~~~~~~~~
 
-Updates an existing alert. The only field you may modify is the
-``acknowledgedUntil`` field.
+To acknowledge an alert, use ``PATCH`` to update the alert's ``acknowledgedUntil``
+field. You can optionally update the ``acknowledgementComment`` field with a
+comment. Do not include any other field in the ``PATCH`` request.
 
 .. code-block:: none
 
    PATCH /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
 
-To acknowledge an alert "forever", set the date to 100 years in the future.
+To acknowledge an alert "forever", set the field value to 100 years in the
+future. To unacknowledge a previously acknowledged alert, set the field value
+to the past.
 
-To unacknowledge a previously acknowledged alert, set the date in the past.
+If you add a comment in the ``acknowledgementComment`` field, |mms| displays
+the comment next to the message that the alert has been acknowledged.
 
 Sample Entity
 -------------
@@ -101,7 +98,19 @@ fields shown here are common to all alert types.
      "resolved": null,
      "lastNotified": "2014-02-04T02:43:13Z",
 
-     // Additional fields follow, depending on the type of alert
+     // Additional fields, depending on the type of alert:
+     //   acknowledgementComment
+     //   acknowledgingUsername
+     //   hostnameAndPort
+     //   hostId
+     //   replicaSetName
+     //   metricName
+     //   currentValue
+     //   currentValue.number
+     //   currentValue.units
+     //   clusterId
+     //   clusterName
+     //   sourceTypeName
 
      "links": [ ... ]
    }
@@ -125,9 +134,6 @@ Entity Fields
    * - ``alertConfigId``
      - string
      - ID of the alert configuration that triggered this alert.
-   * - ``typeName``
-     - string
-     - *This field is deprecated and will be ignored.*
 
    * - ``eventTypeName``
      - string
@@ -135,13 +141,22 @@ Entity Fields
 
        .. include:: /includes/possibleValues-api-eventTypeName.rst
 
+   * - ``typeName``
+     - string
+     - *This field is deprecated and will be ignored.*
+
    * - ``status``
      - string
      - The current state of the alert. Possible values are:
 
        - ``TRACKING``
+
+         The alert condition exists but has not persisted beyond the defined
+         notification delay. For details, see :ref:`api-alert-status`.
+
        - ``OPEN``
        - ``CLOSED``
+       - ``CANCELLED``
 
    * - ``acknowledgedUntil``
      - date
@@ -186,55 +201,11 @@ Entity Fields
 
    * - ``metricName``
      - string
-     - The name of the metric whose value went outside the threshold. Only
-       present for alerts of type ``HOST_METRIC``. Possible values are:
+     - The name of the measurement whose value went outside the threshold. Only
+       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
 
-       - ``ASSERT_MSG``
-       - ``ASSERT_REGULAR``
-       - ``ASSERT_USER``
-       - ``ASSERT_WARNING``
-       - ``BACKGROUND_FLUSH_AVG``
-       - ``CACHE_BYTES_READ_INTO``
-       - ``CACHE_BYTES_WRITTEN_FROM``
-       - ``CACHE_DIRTY_BYTES``
-       - ``CACHE_USED_BYTES``
-       - ``COMPUTED_MEMORY``
-       - ``CONNECTIONS``
-       - ``CURSORS_TOTAL_CLIENT_CURSORS_SIZE``
-       - ``CURSORS_TOTAL_OPEN``
-       - ``CURSORS_TOTAL_TIMED_OUT``
-       - ``DB_STORAGE_TOTAL``
-       - ``EXTRA_INFO_PAGE_FAULTS``
-       - ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
-       - ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
-       - ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
-       - ``GLOBAL_LOCK_PERCENTAGE``
-       - ``INDEX_COUNTERS_BTREE_ACCESSES``
-       - ``INDEX_COUNTERS_BTREE_HITS``
-       - ``INDEX_COUNTERS_BTREE_MISS_RATIO``
-       - ``INDEX_COUNTERS_BTREE_MISSES``
-       - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
-       - ``JOURNALING_MB``
-       - ``JOURNALING_WRITE_DATA_FILES_MB``
-       - ``MEMORY_RESIDENT``
-       - ``MEMORY_VIRTUAL``
-       - ``MEMORY_MAPPED``
-       - ``NETWORK_BYTES_IN``
-       - ``NETWORK_BYTES_OUT``
-       - ``NETWORK_NUM_REQUESTS``
-       - ``OPCOUNTER_CMD``
-       - ``OPCOUNTER_DELETE``
-       - ``OPCOUNTER_INSERT``
-       - ``OPCOUNTER_QUERY``
-       - ``OPCOUNTER_REPL_UPDATE``
-       - ``OPCOUNTER_REPL_DELETE``
-       - ``OPCOUNTER_REPL_INSERT``
-       - ``OPCOUNTER_UPDATE``
-       - ``OPLOG_MASTER_LAG_TIME_DIFF``
-       - ``OPLOG_MASTER_TIME``
-       - ``OPLOG_SLAVE_LAG_MASTER_TIME``
-       - ``TICKETS_AVAILABLE_READS``
-       - ``TICKETS_AVAILABLE_WRITES``
+       For possible values, see :ref:`measurement-types-for-alerts-api` on
+       this page.
 
    * - ``currentValue``
      - object
@@ -270,6 +241,17 @@ Entity Fields
        - ``REPLICA_SET``
        - ``SHARDED_CLUSTER``
        - ``CONFIG_SERVER``
+
+.. _measurement-types-for-alerts-api:
+
+Measurement Types for Alerts
+----------------------------
+
+The ``alerts`` resource returns measurement types in the ``metricName`` field.
+The field is present only if ``eventTypeName`` is set to
+``OUTSIDE_METRIC_THRESHOLD``.
+
+.. include:: /includes/possibleValues-api-measurements-host.rst
 
 Links
 -----
@@ -379,52 +361,6 @@ Response
          "number" : 0.0,
          "units" : "RAW"
        },
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Get Alert Configurations that Triggered an Alert
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f/alertConfigs"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f/alertConfigs"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount": 3,
-     "results": [ {
-       "id" : "5271259ee4b00ece6b4754ef",
-       "groupId" : "5196d3628d022db4cbc26d9e",
-       "eventTypeName" : "RESYNC_REQUIRED",
-       "created" : "2013-10-30T15:28:30Z",
-       "updated" : "2014-02-12T16:11:05Z",
-       "enabled" : true,
-       "matchers" : [ ],
-       "notifications" : [ {
-         "typeName" : "EMAIL",
-         "intervalMin" : 60,
-         "delayMin" : 0,
-         "emailAddress" : "somebody@example.com"
-       } ],
        "links" : [ ... ]
      } ],
      "links" : [ ... ]

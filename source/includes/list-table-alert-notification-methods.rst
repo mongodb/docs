@@ -78,9 +78,6 @@
          flow name appears after the org name in the URL string:
          ``www.flowdock.com/app/orgname/flowname``.
 
-         The flow name also appears in the "flow email address" setting in
-         Flowdock. For example: ``flowname@example.flowdock.com``.
-
        - :guilabel:`User API Token`: Your Flowdock "personal API token"
          found on the `<https://www.flowdock.com/account/tokens>`_ page of
          your Flowdock account.

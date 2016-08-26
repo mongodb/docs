@@ -46,11 +46,26 @@ Get all open alerts that were triggered by an alert configuration.
 Create an Alert Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All fields are required except ``created`` and ``updated``.
-
 .. code-block:: none
 
    POST /api/public/v1.0/groups/GROUP-ID/alertConfigs
+
+The ``eventTypeName`` and ``notifications`` fields are required.
+
+The ``metricThreshold`` field is required if ``eventTypeName`` is set to
+``OUTSIDE_METRIC_THRESHOLD``.
+
+The ``threshold`` field is required if ``eventTypeName`` is set to either
+of the following:
+
+- ``TOO_FEW_HEALTHY_MEMBERS``
+- ``TOO_MANY_UNHEALTHY_MEMBERS``
+
+To enable the alert configuration, set the ``enabled`` field to ``true``.
+
+.. important::
+   If the ``enabled`` field is not specified, |mms| sets its value to
+   ``false`` by default, and the alert configuration is not enabled.
 
 Update an Alert Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,8 +122,6 @@ Sample Entity
        "typeName": "GROUP",
        "intervalMin": 5,
        "delayMin": 0,
-       "groupId": "2847387cd717dabc348a",
-       "groupName": "test1",
        "emailEnabled": true,
        "smsEnabled": true
      }, {
@@ -163,7 +176,7 @@ Sample Entity
        "operator": "GREATER_THAN",
        "threshold": 7,
        "units": "GIGABYTES",
-       "mode": "TOTAL"
+       "mode": "AVERAGE"
      },
      "links": [ ... ]
    }
@@ -187,15 +200,15 @@ Entity Fields
      - string
      - ID of the group that owns this alert configuration.
 
-   * - ``typeName``
-     - string
-     - *This field is deprecated and will be ignored.*
-
    * - ``eventTypeName``
      - string
      - The type of event that will trigger an alert.
 
        .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+   * - ``typeName``
+     - string
+     - *This field is deprecated and will be ignored.*
 
    * - ``created``
      - date
@@ -258,9 +271,10 @@ Entity Fields
 
    * - ``matchers.value``
      - string
-     - The value to test with the specified operator. When matching on the
-       ``TYPE_NAME`` field for a ``HOST`` or ``HOST_METRIC`` alert, the possible
-       typeName values are:
+     - The value to test with the specified operator.
+
+       If ``matchers.fieldName`` is set to ``TYPE_NAME``, you can match on
+       the following values:
 
        - ``PRIMARY``
        - ``SECONDARY``
@@ -295,14 +309,6 @@ Entity Fields
      - number
      - The number of minutes to wait after an alert condition is detected before
        sending out the first notification.
-
-   * - ``notifications.groupID``
-     - string
-     - ID of the group to which to send the notification.
-
-   * - ``notifications.groupName``
-     - string
-     - Name of the group to which to send the notification.
 
    * - ``notifications.emailEnabled``
      - boolean
@@ -380,8 +386,11 @@ Entity Fields
 
    * - ``notifications.flowName``
      - string
-     - The flow name as it appears in the "flow email address" setting in
-       Flowdock. For example: ``flowname@example.flowdock.com``.
+     - The flow name, in lower-case letters. Only present for ``FLOWDOCK``
+       notifications. The flow name appears after the organization name in the
+       URL string:
+
+       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
 
    * - ``notifications.flowdockApiToken``
      - string
@@ -397,8 +406,8 @@ Entity Fields
 
    * - ``metricThreshold``
      - object
-     - The threshold that will cause an alert to be triggered. Only present for
-       alerts of the ``HOST_METRIC``.
+     - The threshold that will cause an alert to be triggered. Only present
+       if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
 
    * - ``metricThreshold.metricName``
      - string
@@ -428,11 +437,27 @@ Entity Fields
 
    * - ``metricThreshold.mode``
      - string
-     - The mode to use when computing the current metric value. Possible values
-       are:
+     - This is set to ``AVERAGE`` and computes the current metric value as an average.
 
-       - ``AVERAGE``
-       - ``TOTAL``
+   * - ``threshold``
+     - object
+     - The threshold that will cause an alert to be triggered. Only present
+       if ``eventTypeName`` is set to one of the following:
+
+       - ``TOO_FEW_HEALTHY_MEMBERS``
+       - ``TOO_MANY_UNHEALTHY_MEMBERS``
+
+   * - ``threshold.operator``
+     - string
+     - The operator to apply when checking the current metric value against the
+       threshold value.
+
+       - ``GREATER_THAN``
+       - ``LESS_THAN``
+
+   * - ``threshold.threshold``
+     - number
+     - The threshold value outside of which an alert will be triggered.
 
 Links
 -----
