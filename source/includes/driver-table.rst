@@ -10,7 +10,7 @@
    * - :ecosystem:`C </drivers/c?jmp=docs>`
      - `C Driver Releases <https://github.com/mongodb/mongo-c-driver/releases?jmp=docs>`_
      - `C Driver Source Code <https://github.com/mongodb/mongo-c-driver?jmp=docs>`_
-     - `C Driver API <http://api.mongodb.org/c/current/?jmp=docs>`_
+     - `C Driver API <http://mongoc.org/>`_
 
    * - `C++ <https://github.com/mongodb/mongo-cxx-driver?jmp=docs>`_
      - `C++ Driver Releases <https://github.com/mongodb/mongo-cxx-driver/releases?jmp=docs>`_
