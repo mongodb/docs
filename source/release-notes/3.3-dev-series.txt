@@ -77,6 +77,60 @@ To upgrade your config servers from SCCC to CSRS, see
 
 .. COMMENT TO DOCS TEAM: in 3.4 manual, need to remove instances wehre we blurb about setting up SCCC.  Instead should point users to earlier versions of manual.  
 
+.. _3.4-decimal:
+
+Decimal Type
+------------
+
+3.3.x adds support for the `decimal128 format
+<https://en.wikipedia.org/wiki/Decimal128_floating-point_format>`_ with
+the new ``decimal`` data type. The decimal128 format supports numbers with
+up to 34 decimal digits (i.e. significant digits) and an exponent range
+of −6143 to +6144.
+
+.. COMMENT DocsTeam: Add a page for NumberDecimal
+
+The :program:`mongo` shell adds the :method:`NumberDecimal` wrapper.
+
+.. code-block:: javascript
+
+   db.inventory.insert( {_id: 1, item: "The Scream", price: NumberDecimal(9.99), quantity: 4 } )
+
+To perform an equality match on a decimal value, both the numeric
+value and the type must also match. For example, the following
+operation matches the previously inserted document:
+
+.. code-block:: javascript
+
+   db.inventory.find( { price: NumberDecimal(9.9900) } )
+
+However, the following operation which specifies an equality match with
+a float does not match the document since the types do not match:
+
+.. code-block:: javascript
+
+   db.inventory.find( { price: 9.99 } )
+
+As with other numeric types, for non-equality :ref:`comparison
+<bson-types-comparison-order>` matches, such as less than or equals
+(:query:`$lte`), the ``decimal`` type undergoes a conversion before
+comparison. For example, the following operation returns the inserted
+document:
+
+.. code-block:: javascript
+
+   db.inventory.find( { price: { $lt: 10 } } )
+
+To test for ``decimal`` type, use the :query:`$type` operator with the
+literal ``"decimal"`` or ``19``.
+ 
+.. code-block:: javascript
+
+   db.inventory.find( { price: { $type: "decimal" } } )
+
+To use the new ``decimal`` data type with a MongoDB driver, an upgrade
+to a driver version that supports the feature is necessary.
+
 .. _3.4-rel-notes-aggregation-cluster:
 
 Aggregation
