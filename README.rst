@@ -6,16 +6,23 @@ This repository contains documentation regarding components of the
 the MongoDB Connector for BI (Business Intelligence). This documentation
 builds on the work of the `MongoDB Manual <http://docs.mongodb.org/manual/>`_.
 
-If you already have `giza <https://pypi.python.org/pypi/giza/>`_
-installed, you can download and build this documentation locally with
-the following command: ::
+Building
+--------
 
-     git clone git://github.com/mongodb/docs-bi-connector
-     cd docs-bi-connector/
-     giza make html
+First install `mut <https://github.com/mongodb/mut>`_.
 
-View ``build/html/index.html`` to view your current build of the
+Then you can download and build this documentation locally with
+the following command:
+
+    git clone https://github.com/mongodb/docs-bi-connector.git
+    cd docs-bi-connector/
+    make build
+
+View ``build/master/html/index.html`` to view your current build of the
 documentation.
+
+Contributing
+------------
 
 To contribute to the documentation, please fork this repository on
 GitHub and issue a pull request. If you have not done so already,

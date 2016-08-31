@@ -1,49 +1,36 @@
+title: Uninstall old versions of the |bi| (optional).
+ref: uninstall-old-bi
+level: 4
+pre: |
+  If you have an older version of the |bi| installed, uninstall it.
+
+  Red Hat Enterprise Linux and CentOS
+    .. code-block:: sh
+
+       sudo yum remove mongodb-bi*
+
+  Debian and Ubuntu
+    .. code-block:: sh
+
+       sudo apt-get remove mongodb-bi*
+---
 title: Install the |bi|.
-stepnum: 1
 ref: install-bi-server
 level: 4
 pre: |
-  Download the |bi| for your version of Linux from the
+  Download the |bi| for your operating system from the
   `MongoDB Download Center <https://www.mongodb.com/download-center>`_.
-action:
-  - heading: Red Hat Enterprise Linux and CentOS
-    pre: |
-      You can check your operating system version with the following command:
 
-      .. code-block:: sh
+  Extract the tarball you downloaded and install the programs within the
+  ``bin/`` directory into a directory listed in your system ``PATH``.
 
-         cat /etc/redhat-release
-
-      Extract the tarball you downloaded, and install the contained RPM packages:
-    language: sh
-    code: |
-      sudo yum install *.rpm
-  - heading: Debian and Ubuntu
-    pre: |
-      Extract the tarball you downloaded, and install the contained debian packages:
-    language: sh
-    code: |
-      sudo dpkg -i *.deb
-      sudo apt-get install -f
----
-title: Create at least one |bi| user.
-stepnum: 2
-ref: create-users
-level: 4
-pre: |
-  Replace ``biuser`` in the following command with your desired Business
-  Intelligence username, and fill in the :ref:`connection string <mongodb-uri>`
-  that points to your MongoDB instance.
+  For example, on Unix-like operating systems, run the following:
 action:
   language: sh
   code: |
-     mongobiuser create biuser mongodb://your.mongodbhost.com:27017/db1
-post: |
-  :program:`mongobiuser` will prompt you to set a password for ``biuser`` by
-  default.
+    sudo install -m755 bin/mongo* /usr/local/bin/
 ---
 title: Generate your schema definition file.
-stepnum: 3
 ref: generate-schema
 level: 4
 pre: |
@@ -54,38 +41,20 @@ pre: |
 action:
   language: sh
   code: |
-    mongodrdl --host your.mongohost.com -d dbname [-c collname] -o schema.drdl
+    mongodrdl --host example.com -d dbname [-c collname] -o schema.drdl
 post: |
   You can examine the generated ``schema.drdl`` file, and remove any fields or
   tables that are not part of your intended schema.
 ---
-title: Load the generated schema into the |bi|.
-stepnum: 4
-ref: load-schema
+title: Start ``mongosqld``
+ref: start-mongosqld
 level: 4
 action:
   language: sh
   code: |
-    mongobischema import biuser schema.drdl
-post: |
-    When prompted, you must provide the password you set with
-    ``mongobiuser create``. You can also provide the ``--password`` flag to
-    :program:`mongobischema` on the command line.
----
-title: Install business intelligence PostgreSQL drivers.
-stepnum: 5
-level: 4
-ref: install-tableau-postgresql
-content: |
-  On the Windows or OSX machine where you will be running your business
-  intelligence tool, install the appropriate PostgreSQL driver for that tool.
-
-  If you are using Tableau for example, you can install the PostgreSQL driver
-  from their `drivers download page <https://www.tableau.com/support/drivers>`_,
-  and follow the instructions there.
+    mongosqld --schema schema.drdl --mongo-uri <your.mongohost.com>
 ---
 title: Connect to the |bi|
-stepnum: 6
 level: 4
 ref: connect-to-bi-server
 content: |
@@ -102,19 +71,5 @@ content: |
 
      * - Port
 
-       - ``27032`` by default.
-
-     * - Username
-
-       - The username you specified when creating your |bi| user with
-         :program:`mongobiuser` in step 2.
-
-     * - Password
-
-       - The password you specified when creating your |bi| user with
-         :program:`mongobiuser` in step 2.
-
-     * - Database
-
-       - Same as your username.
+       - ``3307`` by default.
 ...

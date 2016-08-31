@@ -70,10 +70,10 @@ Intelligence tools.
        pipeline:
        - <optional pipeline elements>
        columns:
-       - name: <MongoDB field name>
-         sqlname: <mapped SQL column name>
-         mongotype: <MongoDB field type>
-         sqltype: <mapped SQL column type>
+       - Name: <MongoDB field name>
+         MongoType: <MongoDB field type>
+         SqlName: <mapped SQL column name>
+         SqlType: <mapped SQL column type>
 
 Example
 ```````
@@ -103,17 +103,16 @@ Geospatial
 
   See :ref:`bi-geospatial` for an example.
 
+  .. include:: /includes/fact-geospatial-views.rst
+
 .. _drdl-heterogeneous:
 
 Heterogeneous Fields
-  If a field can contain multiple types, :program:`mongodrdl` will pick the type
-  that appears most frequently. If a value does not match the type specified in
-  the :ref:`DRDL <drdl>` schema, the |bi| will report an error. However, in the
-  case where schema specifies a string, the |bi| can convert the value into a
-  string.
+  If a field contains inconsistent types, the |bi| has undefined behavior
+  when dealing with that field.
 
-  If a field can contain either a string or an array of strings, the generated
-  schema will always specify that the field contains an array of strings.
+  If a field can contain either a type or an array of that type, the
+  generated schema will always specify that the field contains an array.
 
   .. seealso::
 
@@ -186,8 +185,8 @@ Arrays
 ~~~~~~
 
 |bi| exposes arrays to business intelligence tools using two
-collections: one without the array, and the other with the array
-"pre-joined" to its parent.
+collections: one without the array, and the other having one document
+per array element.
 
 For example, consider the following document in the collection
 ``families``:
@@ -261,22 +260,10 @@ This will result in the following three tables:
 
        - ``numeric``
 
-     * - ``familyName``
-
-       - ``varchar``
-
-     * - ``hometown``
-
-       - ``varchar``
-
 ``families_familyMembers_attributes``
   .. list-table::
 
      * - ``_id``
-
-       - ``numeric``
-
-     * - ``familyMembers.age``
 
        - ``numeric``
 
@@ -289,6 +276,38 @@ This will result in the following three tables:
        - ``varchar``
 
      * - ``familyMembers.attributes_idx``
+
+       - ``numeric``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+Pre-Joining
+```````````
+
+If you provide the :option:`--preJoined` option to :program:`mongodrdl`,
+then the |bi| will add the fields in the containing document to each
+array element's document, thus "pre-joining" the table.
+
+In the previous example, the tables would contain the following
+additional columns:
+
+``families_familyMembers``
+  .. list-table::
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+``families_familyMembers_attributes``
+  .. list-table::
+
+     * - ``familyMembers.age``
 
        - ``numeric``
 
@@ -308,10 +327,64 @@ This will result in the following three tables:
 
        - ``varchar``
 
+Custom Filters
+~~~~~~~~~~~~~~
+
+You can add a column of type ``mongo.Filter`` to a collection in your
+``DRDL`` file. This column type allows you to perform a custom
+:manual:`$match </reference/operator/aggregation/$match>` query.
+
+For example, given the following schema describing a cloud of points with
+up to three components:
+
+.. code-block:: yaml
+
+   schema:
+   - db: test
+     tables:
+     - table: points
+       collection: points
+       pipeline: []
+       columns:
+       - Name: _id
+         MongoType: bson.ObjectId
+         SqlName: _id
+         SqlType: varchar
+       - Name: x
+         MongoType: float64
+         SqlName: x
+         SqlType: numeric
+       - Name: "y"
+         MongoType: float64
+         SqlName: "y"
+         SqlType: numeric
+       - Name: z
+         MongoType: float64
+         SqlName: z
+         SqlType: numeric
+       - Name: filter
+         MongoType: mongo.Filter
+         SqlName: filter
+         SqlType: varchar
+
+You can select only three-dimensional points using the following query:
+
+.. code-block:: sql
+
+   SELECT x, y, z FROM points WHERE filter='{"z": {"$exists": true}}';
+
 .. _bi-pipeline:
 
 Aggregation Pipelines
 ~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation Pipelines using Views
+`````````````````````````````````
+
+.. include:: /includes/fact-pipeline-views.rst
+
+Aggregation Pipelines in DRDL
+`````````````````````````````
 
 The |bi| can use :ref:`aggregation pipelines <aggregation-pipeline>` as
 part of the schema to transform documents from the collection into the
@@ -380,19 +453,21 @@ For example, given the following collection:
        collection: points
        pipeline: []
        columns:
-       - name: _id
-         mongotype: bson.ObjectId
-         sqlname: _id
-         sqltype: varchar
-       - name: category
-         mongotype: string
-         sqlname: category
-         sqltype: varchar
-       - name: name
-         mongotype: string
-         sqlname: name
-         sqltype: varchar
-       - name: pos.coordinates
-         mongotype: geo.2darray
-         sqlname: pos.coordinates
-         sqltype: numeric[]
+       - Name: _id
+         MongoType: bson.ObjectId
+         SqlName: _id
+         SqlType: varchar
+       - Name: category
+         MongoType: string
+         SqlName: category
+         SqlType: varchar
+       - Name: name
+         MongoType: string
+         SqlName: name
+         SqlType: varchar
+       - Name: pos.coordinates
+         MongoType: geo.2darray
+         SqlName: pos.coordinates
+         SqlType: numeric[]
+
+.. include:: /includes/fact-geospatial-views.rst

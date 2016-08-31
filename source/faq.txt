@@ -10,49 +10,53 @@ FAQ: The MongoDB Connector for BI
    :depth: 1
    :class: singlecol
 
+How do I authenticate with the |bi|?
+------------------------------------
+
+.. versionchanged:: 2.0
+
+   Versions of the |bi| prior to 2.0 used an authentication system
+   separate from your MongoDB deployment.
+
+   .. include:: /includes/fact-upgrade.rst
+
+When connecting to a MongoDB deployment using
+:manual:`authentication </tutorial/enable-authentication>`, you can
+authenticate as the users and roles configured in that deployment.
+
 Does the |bi| store any data?
 -----------------------------
 
-No. The |bi| is an interface into your MongoDB database. It stores only user
-information and :ref:`MongoDB connection string <mongodb-uri>` information
-imparted by :program:`mongobiuser`, and the schema defined by a
-:ref:`DRDL <drdl>` file.
+The :program:`mongosqld` instance only transforms SQL queries into
+MongoDB queries, and does not store any data itself.
 
-In what order does query processing happen?
--------------------------------------------
+However, when starting :program:`mongosqld`, you provide it a
+:doc:`DRDL </schema-configuration>` file describing the schema of your
+data.
 
-.. versionchanged:: 1.1.1
+How are queries processed?
+--------------------------
 
-   The |bi| now processes ``ORDER BY`` clauses.
+The |bi| constructs an :ref:`aggregation <aggregation-framework>`
+pipeline that allows the MongoDB server to execute many SQL
+expressions.
 
-The |bi| will process a query in the following order:
-
-- The :pipeline:`$match` stage from a
-  :ref:`custom filter <mongodrdl-custom-filters>`,
-- The :ref:`aggregation pipeline <bi-pipeline>` from the
-  :ref:`DRDL <drdl>` file,
-- Any :pipeline:`$match` stages from the ``WHERE`` clause,
-- Any :pipeline:`$sort` stages from the ``ORDER BY`` clause,
-- The :pipeline:`$project` stage from the ``SELECT`` clause.
-
-What SQL statements get pushed down to MongoDB?
------------------------------------------------
-
-.. versionchanged:: 1.1.1
-
-   The |bi| now pushes ``ORDER BY`` clauses down to MongoDB.
-
-The |bi| will push ``SELECT`` projection terms, ``WHERE`` conditions including
-the ``IN`` operator, and the ``ORDER BY`` clause down to MongoDB.
-
-You can push ``JOIN``, ``GROUP BY``, and other clauses down to MongoDB
-using the ``pipeline`` field of your :ref:`DRDL <drdl>` file and
-:ref:`custom filters <mongodrdl-custom-filters>`.
+However, the |bi| cannot map some supported SQL constructs into an
+aggregation equivalent. In this case, the |bi| will execute those
+constructs in memory.
 
 .. _bi-skip-incompatible-types:
 
 How do I skip data incompatible with my DRDL type definition?
 -------------------------------------------------------------
+
+Using MongoDB 3.4 Views
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-pipeline-views.rst
+
+Using a DRDL Filter
+~~~~~~~~~~~~~~~~~~~
 
 If documents in a collection contain different data types for a field, you may
 wish to filter for a specific data type. To accomplish this, you can include a
@@ -69,6 +73,8 @@ use the following pipeline stage:
 If you are :pipeline:`unwinding <$unwind>` an array field that contains
 different data types, then to filter the array for a specific data type, put
 the :pipeline:`$match` stage after the :pipeline:`$unwind`.
+
+
 
 .. seealso::
 
@@ -101,43 +107,43 @@ rather than as a date. For example, |bi| will treat the following as a string:
 How do I use TLS with the |bi|?
 -------------------------------
 
+The connection between :program:`mongosqld` and your MongoDB deployment
+has TLS configured separately from the connection between your MySQL
+client and :program:`mongosqld`.
+
+Connecting ``mongosqld`` to MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If the MongoDB instance you are connecting to uses
-:manual:`SSL/TLS </core/security-transport-encryption>`, you must use
-the ``ssl=true`` option in the
-`PyMongo connection string <https://api.mongodb.org/python/current/examples/tls.html>`_.
+:manual:`TLS/SSL </core/security-transport-encryption>`, you must provide
+the :option:`--mongo-ssl` option to :program:`mongosqld`.
 
-For example, when using :program:`mongobiuser`:
-
-.. code-block:: sh
-
-   mongobiuser create bradbi \
-               'mongodb://brad:password@localhost:27017/?ssl=true'
-
-To specify a TLS CA root certificate, use the ``ssl_ca_certs`` option. To
-specify a client certificate, use the ``ssl_certfile`` option. For example:
+For example:
 
 .. code-block:: sh
 
-   mongobiuser create bradbi \
-               'mongodb://localhost:17017/?ssl=true&ssl_ca_certs=/certs/ca.pem&ssl_certfile=/certs/mongodb_client.pem'
+   mongosqld --schema=schema.drdl --mongo-ssl
 
-How do I use LDAP authentication with the |bi|?
------------------------------------------------
-
-If you are connecting to a MongoDB instance that uses
-:manual:`LDAP </tutorial/configure-ldap-sasl-openldap>` for user authentication,
-you must specify the :data:`authMechanism=PLAIN <uri.authMechanism>` and
-:data:`authSource=$external <uri.authSource>`
-:ref:`connection string <mongodb-uri>` options. For example:
-
+To specify a TLS/SSL CA root certificate, use the :option:`--mongo-sslCAFile`
+option. To specify a client certificate, use the :option:`--mongo-sslPEMKeyFile`
+option. For example:
 
 .. code-block:: sh
 
-   mongobiuser create bradbi \
-               'mongodb://USERNAME:PASSWORD@localhost:27017/?authMechanism=PLAIN&authSource=$external'
+   mongosqld --schema=schema.drdl \
+             --mongo-ssl \
+             --mongo-sslCAFile=/certs/ca.pem \
+             --mongo-sslPEMKeyFile=/certs/mongodb_client.pem
 
-.. important::
+Connecting a client to ``mongosqld``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   You must surround your connection string in single quotes, as in the example.
-   This prevents your shell from trying to expand ``$external`` with an empty
-   string.
+To specify a TLS/SSL CA root certificate, use the :option:`--sslCAFile`
+option. To specify a client certificate, use the :option:`--sslPEMKeyFile`
+option. For example:
+
+.. code-block:: sh
+
+   mongosqld --schema=schema.drdl \
+             --sslCAFile=/certs/ca.pem \
+             --sslPEMKeyFile=/certs/mysql_client.pem

@@ -5,6 +5,7 @@
 #
 # This file is execfile()d with the current directory set to its containing dir.
 
+import base64
 import sys
 import os.path
 import datetime
@@ -59,22 +60,13 @@ rst_epilog = '\n'.join([
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
-
+    'v3.4': ('http://docs.mongodb.com/v3.4%s', ''),
 }
 
 intersphinx_mapping = {}
-
-try:
-    for i in intersphinx_libs:
-        intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i['path']))
-except:
-    for i in intersphinx_libs:
-        intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
-                                                              conf.paths.output,
-                                                              i.path))
-
+for i in intersphinx_libs:
+    intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                       conf.paths.output, i.path))
 
 languages = [
     ("ar", "Arabic"),

@@ -4,7 +4,7 @@ database ``test``:
 .. code-block:: javascript
 
    {
-       "_id": ObjectId("....")
+       "_id": ObjectId(),
        "close": 7.45,
        "detail": { "a": 2, "b": 3 }
    }
@@ -27,15 +27,19 @@ The generated schema file ``schema.drdl`` will look similar to the following:
        collection: abc
        pipeline: []
        columns:
-       - name: _id
-         mongotype: float64
-         sqltype: numeric
-       - name: close
-         mongotype: float64
-         sqltype: numeric
-       - name: detail.a
-         mongotype: float64
-         sqltype: numeric
-       - name: detail.b
-         mongotype: float64
-         sqltype: numeric
+       - Name: _id
+         MongoType: bson.ObjectId
+         SqlName: _id
+         SqlType: varchar
+       - Name: close
+         MongoType: float64
+         SqlName: close
+         SqlType: numeric
+       - Name: detail.a
+         MongoType: float64
+         SqlName: detail.a
+         SqlType: numeric
+       - Name: detail.b
+         MongoType: float64
+         SqlName: detail.b
+         SqlType: numeric
