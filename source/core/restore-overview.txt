@@ -38,35 +38,36 @@ for the MongoDB data directory. Do not use existing data directories.
 Automated Restore
 -----------------
 
-If you choose to have |mms| automatically restore your backup, |mms|
-clears out all existing data for the chosen servers and replaces them
-with the data from your backup. For an automated restore, only the
-system restoring and receiving the backup data needs to have Automation
-Agents installed.
+If you choose to have |mms| automatically restore your backup, |mms| removes
+all existing data from the chosen servers and replaces that data with new
+backup data from your backup. For an automated restore, only the systems
+restoring and receiving the backup data needs to have Automation Agents
+installed.
 
 .. important::
 
    Under certain conditions, an automated restore fails because either:
 
-   1. The backup and destination databases' storage engines do not
-      match.
-   2. The destination database uses settings that are not currently
-      preserved in the backup itself.
+   - The backup and destination databases' storage engines do not match, or
+   
+   - The destination database uses settings that are not currently preserved
+     in the backup itself.
 
    If the backup and destination database storage engines do not match,
    ``mongod`` cannot start once the backup is restored. At this time,
    you can either:
 
-   1. Not restore this snapshot.
-   2. Change the storage engine of the destination sharded cluster or
-      replica set to match the configuration of the snapshot.
+   - Not restore this snapshot, or
+    
+   - Change the storage engine of the destination sharded cluster or replica
+     set to match the configuration of the snapshot.
 
    If the destination database uses any of the following settings, an
    automated restore fails:
 
-   * :setting:`storage.directoryPerDB`
-   * :setting:`security.enableEncryption` (WiredTiger only)
-   * :setting:`storage.wiredTiger.engineConfig.directoryForIndexes`
+   - :setting:`storage.directoryPerDB`
+   - :setting:`security.enableEncryption` (WiredTiger only)
+   - :setting:`storage.wiredTiger.engineConfig.directoryForIndexes`
      (WiredTiger only)
 
 .. COMMENT: can you install over a running MongoDB?
@@ -76,28 +77,35 @@ Agents installed.
 Manual Restore
 --------------
 
-For a manual restore, |mms| provides each restore file as ``.tar.gz``
-file containing a complete copy of the process's data directory. For a
-replica set, |mms| provides a single ``.tar.gz`` file that you copy to
-each replica set member. For a sharded cluster, |mms| provides one
-``.tar.gz`` file for the :term:`config servers <config server>` and
-separate ``.tar.gz`` files for each :term:`shard`.
+For a manual restore, |mms| provides each restore file as an archive (``.tar``
+or ``.tar.gz``) containing the complete copy of the data directory.
 
-|mms| delivers the files through either ``HTTP`` or ``SCP``. You select
-whether |mms| provides a download link for the restore files or uses
-``SCP`` to copy the files directly to your system. The ``SCP`` method
-requires you to :doc:`generate a key pair </tutorial/generate-key-pair-for-scp-restores>`
-ahead of time but provides faster delivery. Windows machines do not
-come with ``SCP`` and require additional setup outside the scope of
-this manual.
+- For a replica set, |mms| provides one archive that you copy to each
+  replica set member.
 
-For ``SCP`` delivery, you can choose to receive individual data files
-instead of ``tar.gz`` files. |mms| transmits the data files directly to
-the target directory. The destination server must have sufficient space
-for the data files.
+- For a sharded cluster, |mms| provides one archive for the
+  :term:`config servers <config server>` and separate archives for each
+  :term:`shard`.
 
-If you choose to receive ``tar.gz`` files, you must extract each file
-before reconstructing your data. This is generally faster than the
-data-files option but requires temporary space on the server hosting
-the Backup Daemon and sufficient space on the destination server for
-both the archive file and the extracted contents.
+With a manual restore, |mms| can provide the files in two ways:
+
+Download via ``HTTP``
+   |mms| provides a link to download the restore files.
+
+Transfer via secure copy (``SCP``)
+   |mms| transfers the restore archive(s) or the individual data files to a
+   target directory on a destination server of your choosing.
+
+   .. include:: /includes/note-scp-key-pair-requirement.rst
+
+   .. include:: /includes/note-windows-scp-issue.rst
+
+If you choose to receive archive files, you must extract the contents 
+of each archive, then reconstruct your data. This is generally faster 
+than choosing to download the individual data files but requires:
+
+- Temporary space to store the archive and its extracted files on the server
+  hosting the Backup Daemon.
+
+- Sufficient space on the destination server for both the archive file
+  and the extracted contents.

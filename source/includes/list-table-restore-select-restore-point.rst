@@ -1,32 +1,46 @@
 .. list-table::
-   :widths: 35 65
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Restore Type
+
+     - Description
+
+     - Action
 
    * - :guilabel:`Snapshot`
 
-     - Restores from a :term:`stored snapshot <snapshot>`. Select the
-       snapshot from which to restore.
+     - Allows you to choose one :term:`stored snapshot <snapshot>`.
+
+     - Select an existing :term:`snapshot <snapshot>` to restore.
 
    * - :guilabel:`Point In Time`
 
-     - Creates a custom snapshot based on the time you choose.
-       |mms| includes all operations up to but not
-       including the selected time. For example, if you select 12:00, the
-       last operation in the restore is 11:59:59 or earlier.
+     - Creates a custom snapshot that includes all operations up to
+       but not including the selected time.
 
-       Select a :guilabel:`Date` and :guilabel:`Time` and click
-       :guilabel:`Next`.
+       .. example::
+
+          If you select ``12:00``, the last operation in the restore is
+          ``11:59:59`` or earlier.
+
+     - Select a :guilabel:`Date` and :guilabel:`Time`.
 
    * - :guilabel:`Oplog Timestamp`
 
-     - Creates a custom snapshot based on the timestamp of an entry in the
-       :term:`oplog`, as specified by the entry’s ``ts`` field. |mms| includes all
-       operations up to **and including** the time of the timestamp. An entry's ``ts``
-       field is a :manual:`BSON </reference/bson-types>` timestamp and has
-       two components: the timestamp and the increment.
+     - Creates a custom snapshot based on the timestamp of an 
+       :term:`oplog` entry (its ``ts`` field). |mms| includes all 
+       operations up to *and including* the time of the timestamp.
 
-       Specify the following:
+       The oplog entry's ``ts`` field is a 
+       :manual:`BSON </reference/bson-types>` timestamp and has two 
+       components: the timestamp and the increment.
 
-       - :guilabel:`Timestamp`: The value in seconds since the Unix epoch.
+     -  
+       Type the following:
 
-       - :guilabel:`Increment`: An incrementing ordinal for operations
-         within a given second.
+       :guilabel:`Timestamp`
+         The value in seconds since the Unix epoch.
+
+       :guilabel:`Increment`
+         An incrementing ordinal for operations within a given second.
