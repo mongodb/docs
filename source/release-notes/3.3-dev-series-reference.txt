@@ -17,7 +17,7 @@ New Stages
 ~~~~~~~~~~
 
 MongoDB 3.3 development series introduces the following new
-:ref:`aggregation pipeline stage <aggregation-pipeline>`.
+:ref:`aggregation pipeline stages <aggregation-pipeline>`.
 
 .. pipeline:: $graphLookup
 
@@ -338,6 +338,140 @@ MongoDB 3.3 development series introduces the following new
              { "_id" : 3, "airport" : "PWM", "connects" : [ "BOS", "LHR" ] }
 
    .. seealso:: :ref:`agg-memory-restrictions`
+
+
+.. pipeline:: $addFields
+
+   Adds new fields to documents. The stage outputs documents that
+   contains all existing fields from the input documents and newly
+   added fields.
+
+   The :pipeline:`$addFields` stage is equivalent to a
+   :pipeline:`$project` stage that explicitly specifies all existing
+   fields in the input documents and the new fields.
+
+   The :pipeline:`$addFields` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $addFields: { <newField>: <expression>, ... } }
+
+   Specify the name of the field to add and set its value to an
+   :ref:`aggregation expression <aggregation-expressions>`. For more
+   information on expressions, see :ref:`aggregation-expressions`.
+
+   If the name of the new field corresponds to an existing field name,
+   :pipeline:`$addFields` overwrites the existing value of that field
+   with the specified expression value.
+
+   .. COMMENT to DocsTeam -- need to add a Behavior section to describe
+      the behavior when used with arrays and embedded document. Add
+      examples as well. Refer to existing agg pages for the level of
+      details needed on these pages.s
+
+   Consider a collection ``scores`` with the following documents:
+
+   .. code-block:: javascript
+
+      {
+        _id: 1, 
+        student: "abc",
+        homework: [ 10, 5, 10 ],
+        quiz: [ 10, 8 ],
+        extraCredit: 0
+      }
+      {
+        _id: 2,
+        student: "xyz",
+        homework: [ 5, 6, 5 ],
+        quiz: [ 8, 8 ],
+        extraCredit: 8
+      }
+
+   The following operation uses two :pipeline:`$addFields` stages to
+   include three new fields in the output documents:
+
+   .. code-block:: javascript
+
+      db.scores.aggregate( [
+         {
+           $addFields: {
+             totalHomework: { $sum: "$homework" } ,
+             totalQuiz: { $sum: "$quiz" }
+           }
+         },
+         {
+           $addFields: { totalScore: { $add: [ "$totalHomework", "$totalQuiz", "$extraCredit" ] } }
+         }
+      ] )
+
+   The operation returns the following documents:
+
+   .. code-block:: javascript
+
+      { 
+        "_id" : 1,
+        "student" : "abc",
+        "homework" : [ 10, 5, 10 ],
+        "quiz" : [ 10, 8 ],
+        "extraCredit" : 0, 
+        "totalHomework" : 25,
+        "totalQuiz" : 18,
+        "totalScore" : 43
+      }
+      { 
+        "_id" : 2,
+        "student" : "xyz",
+        "homework" : [ 5, 6, 5 ],
+        "quiz" : [ 8, 8 ],
+        "extraCredit" : 8,
+        "totalHomework" : 16,
+        "totalQuiz" : 16,
+        "totalScore" : 40
+      }
+
+.. pipeline:: $replaceRoot
+
+   Replaces a document with the specified document. The operation
+   replaces all existing fields in the input document, including the
+   ``_id`` field. You can specify a document embedded in the input
+   document to promote the embedded document to the top level.
+
+   The :pipeline:`$replaceRoot` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $replaceRoot: { newRoot: <replacementDocument> } }
+
+   The replacement document can be any valid expression
+   :ref:`expression <aggregation-expressions>` that resolves to a
+   document.
+
+   Consider a collection ``items`` with the following document:
+
+   .. code-block:: javascript
+
+      { _id: 1, item: "ABC1", details: { sku: "CH123", model: "XYZ", quantity: 25 } }
+      { _id: 2, item: "IJK1", details: { sku: "MM012", model: "MNH", quantity: 25, style: { color: "red", size: "M" } } }
+
+   The following operation uses the :pipeline:`$replaceRoot` stage to
+   promote the ``details`` document to the top level, discarding the
+   current top level fields.
+
+   .. code-block:: javascript
+
+      db.items.aggregate( [
+         {
+           $replaceRoot: { newRoot: "$details" }
+         }
+      ] )
+
+   The operation returns the following documents:
+
+   .. code-block:: javascript
+
+      { "sku" : "CH123", "model" : "XYZ", "quantity" : 25 }
+      { "sku" : "MM012", "model" : "MNH", "quantity" : 25, "style" : { "color" : "red", "size" : "M" } }
 
 .. pipeline:: $sortByCount
    
@@ -784,9 +918,9 @@ MongoDB 3.3 development series introduces the following new
             }
          }
       ])   
-   
+
    The operation outputs the following documents:
-   
+
    .. code-block:: javascript
    
       {
@@ -812,6 +946,7 @@ MongoDB 3.3 development series introduces the following new
             { "_id" : "caricature", "count" : 1 }
          ]
       }
+
 
 New Array Operators
 ~~~~~~~~~~~~~~~~~~~~
