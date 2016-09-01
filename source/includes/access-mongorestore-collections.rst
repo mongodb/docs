@@ -5,11 +5,13 @@ access to restore any database if the backup data does not include
 
 .. include:: /includes/fact-restore-role-system.profile.rst
 
-If running :program:`mongorestore` with :option:`--oplogReplay`,
-additional privilege :ref:`user-defined role <create-user-defined-role>` that
-has :authaction:`anyAction` on :ref:`resource-anyresource` and grant
-only to users who must run :program:`mongorestore` with
+If running :program:`mongorestore` with :option:`--oplogReplay`, the
+:authrole:`restore` role is insufficient to replay the oplog. To replay
+the oplog, create a :ref:`user-defined role <create-user-defined-role>`
+that has :authaction:`anyAction` on :ref:`resource-anyresource` and
+grant only to users who must run :program:`mongorestore` with
 :option:`--oplogReplay`.
+
 
 .. COMMENT per the following commit, choosing the anyAction/anyResource
    over the __system role.
