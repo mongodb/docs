@@ -14,7 +14,6 @@ from giza.content.replacements import get_replacements
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
-pdfs = conf.system.files.data.pdfs
 sconf = conf.system.files.data.sphinx_local
 
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))

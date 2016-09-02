@@ -66,14 +66,23 @@ deploy-cloud: build/public/cloud build/landing
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
 
 stage-opsmgr:
+	@echo "Copying over fullsize images "
+	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
+
 	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
 	@echo "Hosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy-opsmgr: build/public/onprem
+	@echo "Copying over fullsize images "
+	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
+
 	mut-publish build/public/onprem/${GIT_BRANCH} ${STAGING_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories ${ARGS}
 	@echo "Hosted at ${STAGING_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
 deploy-opsmgr: build/public/onprem
+	@echo "Copying over fullsize images "
+	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
+
 	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_OPSMGR}"
 	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
