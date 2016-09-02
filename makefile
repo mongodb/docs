@@ -66,9 +66,6 @@ deploy-cloud: build/public/cloud build/landing
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
 
 stage-opsmgr:
-	@echo "Copying over fullsize images "
-	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
-
 	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
 	@echo "Hosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 
