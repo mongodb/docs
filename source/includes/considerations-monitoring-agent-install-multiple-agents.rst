@@ -21,4 +21,7 @@ agent handles monitoring assignments. All other running agents are standby agent
 
 .. include:: /includes/extracts/monitoring-agent-install-multiple-agents.rst
 
+If you install multiple Monitoring Agents, ensure that **all** the Monitoring
+Agents can reach all the :program:`mongod` processes in the deployment.
+
 To install multiple agents, simply repeat the installation process.
