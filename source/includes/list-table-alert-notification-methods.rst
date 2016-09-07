@@ -87,9 +87,17 @@
 
    * - PagerDuty
 
-     - Enter only the service key. Define escalation rules and alert
-       assignments in `PagerDuty
-       <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_.
+     - Sends the alert to a `PagerDuty
+       <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
+       account. Enter only the PagerDuty service key. Define escalation rules
+       and alert assignments directly in PagerDuty.
+
+       This option is available only for alerts that require acknowledgement.
+       Informational alerts, such as the alert that a replica set has elected
+       a new primary, cannot use this notification method.
+
+       Users can acknowledge PagerDuty alerts only from the PagerDuty
+       dashboard.
 
    * - .. only:: cloud
 
