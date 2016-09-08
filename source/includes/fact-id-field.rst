@@ -1,11 +1,7 @@
-In MongoDB, documents stored in a collection require a unique
-:term:`_id` field that acts as a :term:`primary key`. If the ``_id``
-field is unspecified in the documents, MongoDB uses :ref:`ObjectIds
-<objectid>` as the default value for the ``_id`` field; i.e. if a
-document does not contain a top-level ``_id`` field during an insert,
-the MongoDB driver adds the ``_id`` field that holds an :ref:`objectid`.
+In MongoDB, each document stored in a collection requires a unique
+:term:`_id` field that acts as a :term:`primary key`. If an inserted
+document omits the ``_id`` field, the MongoDB driver automatically
+generates an :ref:`objectid` for the ``_id`` field.
 
-In addition, if the :program:`mongod` receives a document to insert
-that does not contain an ``_id`` field (e.g. through an update
-operation with an :ref:`upsert option <upsert-parameter>`)
-:program:`mongod` will add the ``_id`` field that holds an ObjectId.
+This also applies to documents inserted through update
+operations with :ref:`upsert: true <upsert-parameter>`.
