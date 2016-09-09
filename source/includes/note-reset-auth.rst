@@ -1,8 +1,9 @@
-If at any point you wish to reset the authentication settings for your
-group and start again, click :guilabel:`Clear Settings`
-in the :guilabel:`Authentication & SSL Settings` dialog box to clear all
-authentication and security settings, automation users, and automation roles.
-You **cannot** clear the authentication and security settings if there
-are managed processes in your deployment. 
+.. note::
 
-See :doc:`/tutorial/clear-security-settings` for more information.
+   If you are not managing processes in your deployment, you can reset
+   Authentication and SSL settings for your group. Click :guilabel:`Clear
+   Settings` in the :guilabel:`Authentication & SSL Settings` dialog box to
+   clear all authentication and security settings, automation users, and
+   automation roles.
+
+   See :doc:`/tutorial/clear-security-settings` for more information.
