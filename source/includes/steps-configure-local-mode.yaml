@@ -1,8 +1,8 @@
-title: "Configure Local Mode."
+title: "Set |onprem| to :guilabel:`Local Mode`."
 stepnum: 1
 ref: edit-config-file
 content: |
-  a. In |onprem|, click :guilabel:`Admin` in the upper right corner to open system administration.
+  a. Click :guilabel:`Admin` in the upper right corner to open system administration.
 
   b. Click the :guilabel:`General` tab.
 
@@ -10,76 +10,78 @@ content: |
 
   d. Click the :guilabel:`Miscellaneous` button at the top of the page.
 
-  e. Set the :setting:`Version Manifest Source` setting to ``Local``.
+  e. Select ``Local`` as the :setting:`Version Manifest Source` setting.
 
   f. Note the directory specified in :setting:`Versions Directory`. This is the directory on your
      |onprem| servers that stores the MongoDB binaries.
 
 ---
-title: "Populate all the |onprem| servers with the .tgz files for the MongoDB binaries."
+title: "Populate all |onprem| servers with the necessary MongoDB binaries and archives."
 stepnum: 2
 ref: populate-with-binaries
 content: |
   On all your |onprem| servers, including those with enabled Backup Daemons:
 
-  a. Navigate to the versions directory, which is
-     the directory specified in the :setting:`Versions Directory` setting.
+  a. Download the archived binaries for the appropriate platforms and versions.
 
-  b. Populate the versions directory with the necessary versions of MongoDB as
-     determined by the :ref:`local-mode-determine-versions` topic on this page.
+     .. note::
+        See :ref:`local-mode-determine-versions` to review which
+        versions are necessary.
 
-  .. important::
+  b. Copy all of the archived binaries to the versions directory.
 
-     If you have not yet read the :ref:`local-mode-determine-versions` topic
-     on this page, please do so before continuing with this procedure.
+  c. Navigate to the versions directory.
 
-  For example, to download a MongoDB  on Amazon Linux, issue a
-  command similar to the following, replacing ``<download-url.tgz>`` with
-  the download url for the archive:
+  d. Extract all of the archived binaries.
 
-  .. code-block:: sh
-
-     sudo curl -OL <download-url.tgz>
+     .. note:: 
+        Automation uses the archived binaries, but Backup uses the
+        extracted binaries. Both must be available.
 
 ---
-title: Ensure that the ``mongodb-mms`` user has appropriate access to the MongoDB binaries.
+title: Grant the ``mongodb-mms`` user read permissions to the versions directory.
 stepnum: 3
 ref: mongodb-mms-as-owner
 content: |
-  At minimum, the ``mongodb-mms`` user must be able to **read** the .tgz files placed in
-  the directory specified in the :setting:`Versions Directory` setting.
-  If a server with no internet connection has an enabled
-  Backup Daemon, the ``mongodb-mms`` user must also be able to **write** to
-  this directory so that the daemon can extract the .tgz files.
 
-  For example, on a Linux server that runs the Backup Daemon, the
-  directory's long output might look like this:
+  The ``mongodb-mms`` user needs the read permissions to the versions directory.
 
-  .. code-block:: sh
+  .. example::
 
-     -rw-r----- 1 mongodb-mms staff 116513825 Apr 27 15:06 mongodb-linux-x86_64-2.6.9.tgz
-     -rw-r----- 1 mongodb-mms staff  51163601 May 22 10:05 mongodb-linux-x86_64-amazon-3.0.3.tgz
-     -rw-r----- 1 mongodb-mms staff  50972165 May 22 10:06 mongodb-linux-x86_64-suse11-3.0.3.tgz
-     -rw-r----- 1 mongodb-mms staff  95800685 Apr 27 15:05 mongodb-linux-x86_64-enterprise-amzn64-2.6.9.tgz
-     -rw-r----- 1 mongodb-mms staff  50594134 Apr 27 15:04 mongodb-linux-x86_64-enterprise-amzn64-3.0.2.tgz
-     -rw-r----- 1 mongodb-mms staff  50438645 Apr 27 15:04 mongodb-linux-x86_64-enterprise-suse11-3.0.2.tgz
+     On a Linux platform, you should issue the ``chown`` command to change
+     ownership for **all** files in the directory to ``mongodb-mms``:
 
-  If the ``mongodb-mms`` does not have the correct permissions, you must
-  provide them.
+     .. code-block:: sh
 
-  For example, on a Linux platform, you could use the Linux ``chown`` command
-  to change ownership for **all** files in the directory to ``mongodb-mms``:
+        sudo chown -R mongodb-mms:mongodb-mms <path-to-the-versions-directory>
 
-  .. code-block:: sh
+     The resulting listing of the versions directory should look like this:
 
-     sudo chown mongodb-mms:mongodb-mms <path-to-the-versions-directory>
+     .. code-block:: sh
+
+        -rw-r----- 1 mongodb-mms staff 116513825 Apr 27 15:06 mongodb-linux-x86_64-2.6.9.tgz
+        -rw-r----- 1 mongodb-mms staff  51163601 May 22 10:05 mongodb-linux-x86_64-amazon-3.0.3.tgz
+        -rw-r----- 1 mongodb-mms staff  50972165 May 22 10:06 mongodb-linux-x86_64-suse11-3.0.3.tgz
+        -rw-r----- 1 mongodb-mms staff  95800685 Apr 27 15:05 mongodb-linux-x86_64-enterprise-amzn64-2.6.9.tgz
+        -rw-r----- 1 mongodb-mms staff  50594134 Apr 27 15:04 mongodb-linux-x86_64-enterprise-amzn64-3.0.2.tgz
+        -rw-r----- 1 mongodb-mms staff  50438645 Apr 27 15:04 mongodb-linux-x86_64-enterprise-suse11-3.0.2.tgz
 
 ---
-title: "Copy the version manifest to |onprem|."
+title: "Download the version manifest for |onprem|."
 stepnum: 4
+ref: download-version-manifest
+content: |
+
+   From a computer that can access the Internet, download the version
+   manifest from
+   `<https://opsmanager.mongodb.com/static/version_manifest/2.0.json>`_.
+
+---
+title: "Copy the version manifest to each |onprem| server."
+stepnum: 5
 ref: enter-version-manifest
 content: |
-content: |
+
   a. In |onprem|, click :guilabel:`Admin` in the upper right corner to open system administration.
 
   b. Click the :guilabel:`General` tab.
@@ -88,14 +90,11 @@ content: |
 
   d. Click the :guilabel:`Update the MongoDB Version Manifest` button.
 
-     If you cannot access the Internet, you must copy the manifest using a
-     system that can, and you must then paste the manifest here. Copy the
-     manifest from
-     `<https://opsmanager.mongodb.com/static/version_manifest/2.0.json>`_.
+  e. Paste the version manifest.
 
 ---
 title: "For each group, specify which versions are available for download by Automation Agents."
-stepnum: 5
+stepnum: 6
 ref: select-versions
 content: |
 
@@ -106,11 +105,19 @@ content: |
 
   c. Click :guilabel:`Deployment`, then the :guilabel:`More` drop-down list, then :guilabel:`Version Manager`.
 
-  c. Select the checkboxes for the versions of MongoDB that you have made
+  d. Select the checkboxes for the versions of MongoDB that you have made
      available on the |application| server.
 
-  d. Click :guilabel:`Review  & Deploy`.
+---
+title: "Review and approve your changes."
+stepnum: 7
+ref: confirm-deployment
+content: |
 
-  e. Click :guilabel:`Confirm & Deploy`.
+  |mms| displays your proposed changes.
+
+  a. If you are satisfied, click :guilabel:`Confirm & Deploy`.
+  b. Otherwise, click :guilabel:`Cancel` and you can make
+     additional changes.
 
 ...
