@@ -36,8 +36,7 @@
 
        :guilabel:`Individual DB Files`
          Transmits MongoDB data files produced by |mms| directly to the
-         target directory. The data *is* compressed during 
-         transmission.
+         target directory. 
 
        :guilabel:`Archive`
          Delivers database files in a single archive (``tar`` or
