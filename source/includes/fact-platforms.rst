@@ -4,17 +4,23 @@
    :class: compatibility
 
    * - Platform
+     - 3.4
      - 3.2
      - 3.0
      - 2.6
      - 2.4
-     - 2.2
    * - Amazon Linux
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Debian 8
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
    * - Debian 7
      - |checkmark|
      - |checkmark|
