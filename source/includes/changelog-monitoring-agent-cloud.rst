@@ -1,6 +1,17 @@
 Monitoring Agent ``5.2.0.331``
 ------------------------------
 
+* Released 2016-09-14*
+
+- Update of underlying Go driver.
+
+- Partial support for upcoming major release of MongoDB 3.4.0.
+
+- Partial support for Kerberos on Windows.
+
+Monitoring Agent ``5.2.0.331``
+------------------------------
+
 *Released 2016-08-24*
 
 - Support for Power Linux.

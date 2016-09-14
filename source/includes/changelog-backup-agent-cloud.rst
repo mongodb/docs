@@ -1,3 +1,14 @@
+Backup Agent ``4.6.0.425``
+--------------------------
+
+*Released 2016-09-14*
+
+- Update of underlying Go driver.
+
+- Partial support for upcoming major release of MongoDB 3.4.0.
+
+- Partial support for Kerberos on Windows.
+
 Backup Agent ``4.5.0.412``
 --------------------------
 
