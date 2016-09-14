@@ -15,15 +15,17 @@ Definition
 
 .. dbcommand:: create
 
-   Explicitly creates a collection. :dbcommand:`create` has the
-   following form:
+   Explicitly creates a collection or views. :dbcommand:`create` has
+   the following form:
 
-   .. versionchanged:: 3.2
+   .. versionchanged:: 3.4
+      Added options ``viewOn`` and ``pipeline`` to support creation of
+      views. See also :method:`db.createView()`.
 
    .. code-block:: javascript
 
       {
-        create: <collection_name>,
+        create: <collection or view name>,
         capped: <true|false>,
         autoIndexId: <true|false>,
         size: <max_size>,
@@ -33,7 +35,9 @@ Definition
         validator: <document>,
         validationLevel: <string>,
         validationAction: <string>,
-        indexOptionDefaults: <document>
+        indexOptionDefaults: <document>,
+        viewOn: <source>, 
+        pipeline: <pipeline> 
       }
 
    :dbcommand:`create` has the following fields:
@@ -64,6 +68,39 @@ the command in the following form:
 .. code-block:: javascript
 
    db.runCommand( { create: "collection", capped: true, size: 64 * 1024 } )
+
+Create a View
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+To create a :doc:`view </core/views>` using the :dbcommand:`create`
+command, use the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline> } )
+
+For example, given a collection ``survey`` with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, empNumber: "abc123", feedback: { management: 3, environment: 3 }, department: "A" }
+   { _id: 2, empNumber: "xyz987", feedback: { management: 2, environment: 3 }, department: "B" }
+   { _id: 3, empNumber: "ijk555", feedback: { management: 3, environment: 4 }, department: "A" }
+
+The following operation creates a ``managementRatings`` view with the
+``_id``, ``feedback.management``, and ``department`` fields:
+
+.. code-block:: javascript
+
+   db.runCommand ( {
+      create: "managementFeedback",
+      viewOn: "survey",
+      pipeline: [ { $project: { "management": "$feedback.management", department: 1 } } ]
+   } )
+
+.. seealso:: :method:`db.createView()`
 
 Specify Storage Engine Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
