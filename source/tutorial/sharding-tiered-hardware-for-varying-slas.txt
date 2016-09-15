@@ -10,14 +10,11 @@ Tiered Hardware for Varying SLA or SLO
    :depth: 1
    :class: singlecol
 
-MongoDB Tag Aware Sharding allows administrators to define ranges of the
-:term:`shard key` and tag them to one or more shards. Using this feature, data
-can be routed to one or more shards based on the tag. This gives administrators
-control over data distribution in a sharded cluster.
+.. include:: /includes/intro-zone-sharding.rst
 
-This tutorial uses :ref:`tag-aware-sharding` to route documents based on
-creation date either to shards tagged for supporting recent documents, or
-those tagged for supporting archived documents.
+This tutorial uses :ref:`zone-sharding` to route documents based on
+creation date either to shards zoned for supporting recent documents, or
+those zoned for supporting archived documents.
 
 The following are some example use cases for segmenting data based on Service
 Level Agreement (SLA) or Service Level Objective (SLO):
@@ -33,7 +30,7 @@ Level Agreement (SLA) or Service Level Objective (SLO):
   that data
 
 The following diagram illustrates a sharded cluster that uses hardware based
-shard tags to satisfy data access SLAs or SLOs.
+zones to satisfy data access SLAs or SLOs.
 
 .. include:: /images/sharding-tiered-slas-overview.rst
 
@@ -77,7 +74,7 @@ Shard Key
 
 The photo collection uses the ``{ creation_date : 1 }`` index as the shard key.
 
-The ``creation_date`` field in each document allows for creating a tag range
+The ``creation_date`` field in each document allows for creating zones
 on the creation date.
 
 Architecture
@@ -89,10 +86,10 @@ The sharded cluster deployment currently consists of three :term:`shards
 .. include:: /images/sharding-tiered-slas-architecture.rst
 
 
-Tags
-~~~~
+Zones
+~~~~~
 
-The application requires tagging each shard in the cluster based on its
+The application requires adding each shard to a zone based on its
 hardware tier. Each hardware tier represents a specific hardware configuration
 designed to satisfy a given SLA or SLO.
 
@@ -102,7 +99,7 @@ Fast Tier ("recent")
    These are the fastest performing machines, with large
    amounts of RAM, fast SSD disks, and powerful CPUs.
 
-   The tag requires a range with:
+   The zone requires a range with:
 
    * a lower bound of ``{ creation_date : ISODate(YYYY-mm-dd)}``,
      where the Year, Month, and Date specified by ``YYYY-mm-dd`` is within the
@@ -114,7 +111,7 @@ Archival Tier ("archive")
    These machines use less RAM, slower disks, and more basic CPUs. However,
    they have a greater amount of storage per server.
 
-   The tag requires a range with:
+   The zone requires a range with:
 
    * a lower bound of ``{ creation_date : MinKey }``.
 
@@ -127,11 +124,12 @@ Archival Tier ("archive")
    The :bsontype:`MinKey` and :bsontype:`MaxKey` values are reserved special
    values for comparisons.
 
-As performance needs increase, adding additional shards and tagging them
-based on their hardware tier allows for the cluster to scale horizontally.
+As performance needs increase, adding additional shards and associating them
+to the appropriate zone based on their hardware tier allows for the cluster to
+scale horizontally.
 
-When defining tag ranges based on time spans, weigh the benefits of
-infrequent updates to the tag ranges against the amount of data that
+When defining zone ranges based on time spans, weigh the benefits of
+infrequent updates to the zone ranges against the amount of data that
 must be migrated on an update. For example, setting a limit of 1 year for
 data to be considered 'recent' likely covers more data than setting a limit
 of 1 month. While there are more migrations required when rotating on a
@@ -141,16 +139,16 @@ rotating on a 1 year scale.
 Write Operations
 ----------------
 
-With tag-aware sharding, if an inserted or updated document matches a
-configured tag range, it can only be written to a shard with the related tag.
+With zones, if an inserted or updated document matches a
+configured zone, it can only be written to a shard inside that zone.
 
-MongoDB can write documents that do not match a configured tag range to any
+MongoDB can write documents that do not match a configured zone to any
 shard in the cluster.
 
 .. note:: 
 
    The behavior described above requires the cluster to be in a steady state
-   with no chunks violating a configured tag range. See the following section
+   with no chunks violating a configured zone. See the following section
    on the :ref:`balancer <sharding-tiered-hardware-balancing>` for more
    information.
 
@@ -169,10 +167,10 @@ For example, MongoDB can attempt a :ref:`targeted read operation
    photoDB = db.getSiblingDB("photoshare")
    photoDB.data.find( { "creation_date" : ISODate("2015-01-01") } )
    
-If the requested document falls within the tag range assigned to the
-``recent`` storage tier, MongoDB would route this query to the tagged shards,
-ensuring a faster read compared to a cluster-wide :ref:`broadcast read
-operation <sharding-mongos-broadcast>`
+If the requested document falls within the ``recent`` zone range, MongoDB
+would route this query to the shards inside that zone, ensuring a faster read
+compared to a cluster-wide :ref:`broadcast read operation
+<sharding-mongos-broadcast>`
 
 .. _sharding-tiered-hardware-balancing:
 
@@ -180,16 +178,17 @@ Balancer
 --------
 
 The :ref:`balancer <sharding-balancing>` :ref:`migrates
-<sharding-chunk-migration>` the tagged chunks to the appropriate shard. Until
-the migration completes, shards may contain chunks that violate configured tag
-ranges and tags. Once balancing completes, shards should only contain chunks
-whose ranges do not violate its assigned tags and tag ranges.
+<sharding-chunk-migration>` chunks to the appropriate shard respecting any
+configured zones. Until the migration, shards may contain chunks that violate
+configured zones. Once balancing completes, shards should only
+contain chunks whose ranges do not violate its assigned zones.
 
-Adding or removing tags can result in chunk migrations. Depending on the size
-of your data set and the chunks a tag affects, these migrations may impact
-cluster performance. Run your :ref:`balancer <sharding-balancing>` in specific
-scheduled windows. See :ref:`sharding-schedule-balancing-window` for a tutorial
-on how to set a scheduling window.
+Adding or removing zones or zone ranges can result in chunk migrations.
+Depending on the size of your data set and the number of chunks a zone or zone
+range affects, these migrations may impact cluster performance. Consider
+running your :ref:`balancer <sharding-balancing>` during specific scheduled
+windows. See :ref:`sharding-schedule-balancing-window` for a tutorial on how
+to set a scheduling window.
 
 Security
 --------
@@ -200,13 +199,14 @@ with at least the :authrole:`clusterManager` role on the ``admin`` database.
 Procedure
 ---------
 
-You must be connected to a :program:`mongos` to create tags and tag ranges.
-You cannot create tags by connecting directly to a :term:`shard`.
+You must be connected to a :program:`mongos` to create zones or zone ranges.
+You cannot create zone or zone ranges by connecting directly to a
+:term:`shard`.
 
 .. include:: /includes/steps/sharding-tiered-hardware-for-varying-slas.rst
 
-Updating Tag Ranges
-~~~~~~~~~~~~~~~~~~~
+Updating Zone Ranges
+~~~~~~~~~~~~~~~~~~~~
 
 To update the shard ranges, perform the following operations as a part of
 a cron job or other scheduled procedure:

@@ -10,11 +10,9 @@ Segmenting Data by Location
    :depth: 1
    :class: singlecol
 
-MongoDB Tag Aware Sharding allows administrators to control data distribution
-in a sharded cluster by defining ranges of the :term:`shard key` and tagging
-them to one or more shards.
+.. include:: /includes/intro-zone-sharding.rst
 
-This tutorial uses :ref:`tag-aware-sharding` to segment data based on
+This tutorial uses :ref:`zone-sharding` to segment data based on
 geographic area.
 
 The following are some example use cases for segmenting data by geographic
@@ -24,7 +22,7 @@ area:
 * A database that requires resource allocation based on geographic country
 
 The following diagram illustrates a sharded cluster that uses geographic based
-shard tags to manage and satisfy data segmentation requirements.
+zones to manage and satisfy data segmentation requirements.
 
 .. include:: /images/sharding-segmenting-data-by-location-overview.rst
 
@@ -36,7 +34,7 @@ originating user. The application stores the logs in the ``chat`` database
 under the ``messages`` collection. The chats contain information that must be
 segmented by country to have servers local to the country serve read and write
 requests for the country's users. A group of countries can be assigned
-same tag in order to share resources.
+same zone in order to share resources.
 
 The application currently has users in the US, UK, and Germany. The
 ``country`` field represents the user's country based on its
@@ -76,7 +74,7 @@ Shard Key
 The ``messages`` collection uses the ``{ country : 1, userid : 1 }`` compound
 index as the shard key.
 
-The ``country`` field in each document allows for creating a tag range on
+The ``country`` field in each document allows for creating a zone for
 each distinct country value.
 
 The ``userid`` field provides a high :ref:`cardinality <shard-key-cardinality>`
@@ -95,25 +93,25 @@ one in North America.
 .. include:: /images/sharding-segmenting-data-by-location-architecture.rst
 
 
-Tags
-~~~~
+Zones
+~~~~~
 
-This application requires one tag per data center.
+This application requires one zone per data center.
 
 ``EU`` - European data center
-   Shards deployed on this data center are tagged as ``EU``.
+   Shards deployed on this data center are assigned to the ``EU`` zone.
 
    For each country using the ``EU`` data center for local reads and writes,
-   create a tag range with:
+   create a zone range for the ``EU`` zone with:
 
    * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
    * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
 
 ``NA`` - North American data center
-   Shards deployed on this data center are tagged as ``NA``.
+   Shards deployed on this data center are assigned to the ``NA`` zone.
 
    For each country using the ``NA`` data center for local reads and writes,
-   create a tag range with:
+   create a zone range for the ``NA`` zone with:
 
    * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
    * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
@@ -126,13 +124,18 @@ This application requires one tag per data center.
 Write Operations
 ~~~~~~~~~~~~~~~~
 
-With tag-aware sharding, the :program:`mongos` compares incoming documents
-against any configured tag ranges. If a document matches a configured tag
-range, :program:`mongos` routes the document to a shard with the appropriate
-tag.
+With zones, if an inserted or updated document matches a
+configured zone, it can only be written to a shard inside of that zone.
 
-On insert, MongoDB can route documents that do not match a configured tag
-range to any shard in the cluster.
+MongoDB can write documents that do not match a configured zone to any
+shard in the cluster.
+
+.. note::
+
+   The behavior described above requires the cluster to be in a steady state
+   with no chunks violating a configured zone. See the following section on
+   the :ref:`balancer <sharding-segmenting-data-by-location-balancer>` for
+   more information.
 
 Read Operations
 ~~~~~~~~~~~~~~~
@@ -151,21 +154,23 @@ For example, MongoDB can attempt a :ref:`targeted read operation
 Queries without the ``country`` field perform :ref:`broadcast operations
 <sharding-mongos-broadcast>`.
 
+.. _sharding-segmenting-data-by-location-balancer:
+
 Balancer
 ~~~~~~~~
 
 The :ref:`balancer <sharding-balancing>` :ref:`migrates
-<sharding-chunk-migration>` the tagged chunks to the appropriate shard. Until
-the migration, shards may contain chunks that violate configured tag ranges
-and tags. Once balancing completes, shards should only contain chunks whose
-ranges do not violate its assigned tags and tag ranges.
+<sharding-chunk-migration>` chunks to the appropriate shard respecting any
+configured zones. Until the migration, shards may contain chunks that violate
+configured zones. Once balancing completes, shards should only
+contain chunks whose ranges do not violate its assigned zones.
 
-Adding or removing tags or tag ranges can result in chunk migrations.
-Depending on the size of your data set and the number of chunks a tag range
-affects, these migrations may impact cluster performance. Consider running
-your :ref:`balancer <sharding-balancing>` during specific scheduled windows.
-See :ref:`sharding-schedule-balancing-window` for a tutorial on how to set a
-scheduling window.
+Adding or removing zones or zone ranges can result in chunk migrations.
+Depending on the size of your data set and the number of chunks a zone or zone
+range affects, these migrations may impact cluster performance. Consider
+running your :ref:`balancer <sharding-balancing>` during specific scheduled
+windows. See :ref:`sharding-schedule-balancing-window` for a tutorial on how
+to set a scheduling window.
 
 Security
 ~~~~~~~~
@@ -176,13 +181,14 @@ with at least the :authrole:`clusterManager` role on the ``admin`` database.
 Procedure
 ---------
 
-You must be connected to a :program:`mongos` to create tags and tag ranges.
-You cannot create tags by connecting directly to a :term:`shard`.
+You must be connected to a :program:`mongos` to create zones and zone ranges.
+You cannot create zones or zone ranges by connecting directly to a
+:term:`shard`.
 
 .. include:: /includes/steps/sharding-segmenting-data-by-location.rst
 
-Updating Tags
-~~~~~~~~~~~~~
+Updating Zones
+~~~~~~~~~~~~~~
 
 The application requires the following updates:
 
@@ -192,15 +198,15 @@ The application requires the following updates:
 * The chat application now supports users in Mexico. Documents with
   ``country : MX`` must be routed to the ``NA`` data center.
 
-Perform the following procedures to update the tag ranges.
+Perform the following procedures to update the zone ranges.
 
 .. include:: /includes/steps/sharding-segmenting-data-by-location-update.rst
 
 .. seealso::
 
-   :ref:`tag-aware-sharding`
-   
+   :ref:`zone-sharding`
+
    :ref:`sharding-balancing`
-   
+
    :doc:`/tutorial/deploy-shard-cluster`
 

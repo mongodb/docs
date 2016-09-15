@@ -4,7 +4,7 @@ level: 4
 ref: sharding_tiered_storage_stop_balancer
 pre: |
   To reduce performance impacts, the balancer may be disabled on the collection
-  to ensure no migrations take place while configuring the new tags.
+  to ensure no migrations take place while configuring the new zones.
 action:
   - pre: |
       Use :method:`sh.disableBalancing()`, specifying the namespace of the
@@ -19,38 +19,38 @@ post: |
   
 ---
 stepnum: 2
-title: Tag each shard
+title: Add each shard to the appropriate zone
 level: 4
-ref: sharding_pinning-applications-tag-shards
+ref: sharding_pinning-applications-zone-shards
 action:
   - pre: |
-      Tag each shard in the North American data center with the ``NA`` tag.
+      Add each shard in the North American data center to the ``NA`` zone.
     language: javascript
     code: |
       sh.addShardTag(<shard name>, "NA")
   - pre: |
-      Tag each shard in the European data center with the ``EU`` tag.
+      Add each shard in the European data center to the ``EU`` zone.
     language: javascript
     code: |
       sh.addShardTag(<shard name>, "EU")
 post: |
-  You can review the tags assigned to any given shard by running 
+  You can review the zones assigned to any given shard by running 
   :method:`sh.status()`. 
 ---
 stepnum: 3
-title: Define ranges for each tag
+title: Define ranges for each zone
 level: 4
 ref: sharding_pinning-applications-define-ranges
 action:  
   - pre: |
       For shard key values where ``country : US``, define a shard key range
-      and associate it to the ``NA`` tag using the :method:`sh.addTagRange()`
+      and associate it to the ``NA`` zone using the :method:`sh.addTagRange()`
       method. This method requires:
         
       * The full namespace of the target collection. 
       * The inclusive lower bound of the range. 
       * The exclusive upper bound of the range. 
-      * The name of the tag.
+      * The name of the zone.
       
     language: javascript
     code: |
@@ -62,13 +62,13 @@ action:
       )
   - pre: |
       For shard key values where ``country : UK``, define a shard key range
-      and associate it to the ``EU`` tag using the :method:`sh.addTagRange()`
+      and associate it to the ``EU`` zone using the :method:`sh.addTagRange()`
       method. This method requires:
       
       * The full namespace of the target collection. 
       * The inclusive lower bound of the range. 
       * The exclusive upper bound of the range. 
-      * The name of the tag.
+      * The name of the zone.
       
     language: javascript
     code: |
@@ -80,13 +80,13 @@ action:
       )
   - pre: |
       For shard key values where ``country : DE``, define a shard key range
-      and associate it to the ``EU`` tag using the :method:`sh.addTagRange()`
+      and associate it to the ``EU`` zone using the :method:`sh.addTagRange()`
       method. This method requires:
       
       * The full namespace of the target collection. 
       * The inclusive lower bound of the range. 
       * The exclusive upper bound of the range. 
-      * The name of the tag.
+      * The name of the zone.
       
     language: javascript
     code: |
@@ -103,7 +103,7 @@ post: |
   every other possible value. The configured ranges captures every user for
   each ``device``. 
    
-  Both ``country : UK`` and ``country : DE`` are assigned to the ``EU`` tag. 
+  Both ``country : UK`` and ``country : DE`` are assigned to the ``EU`` zone. 
   This associates any document with either ``UK`` or ``DE`` as the value for
   ``country`` to the EU data center.
 
@@ -134,10 +134,10 @@ pre: |
   The next time the :ref:`balancer <sharding-balancing>` runs, it 
   :ref:`splits <sharding-chunk-split>` chunks where necessary and
   :ref:`migrates <sharding-chunk-migration>` chunks across the 
-  shards respecting the tag ranges and tags.
+  shards respecting the configured zones.
   
-  Once balancing finishes, the shards tagged as ``NA`` should only
-  contain documents with ``country : NA``, while shards tagged as ``EU``
+  Once balancing finishes, the shards in the  ``NA`` zone should only
+  contain documents with ``country : NA``, while shards in the ``EU`` zone
   should only contain documents with ``country : UK`` or ``country : DE``. 
   
   A document with a value for ``country`` other than ``NA``, ``UK``, or 

@@ -4,7 +4,7 @@ level: 4
 ref: sharding_tiered_storage_stop_balancer
 pre: |
   The balancer must be disabled on the collection
-  to ensure no migrations take place while configuring the new tags.
+  to ensure no migrations take place while configuring the new zones.
 action:
   - pre: |
       Use :method:`sh.disableBalancing()`, specifying the namespace of the
@@ -18,42 +18,42 @@ post: |
   before proceeding.
 ---
 stepnum: 2
-title: Tag each shard
+title: Add each shard to the appropriate zone
 level: 4
 ref: sharding_tiered_storage_tag_shards
 action:
   - pre: |
-      Tag ``shard0000`` with the ``recent`` tag.
+      Add ``shard0000`` to the ``recent`` zone.
     language: javascript
     code: |
       sh.addShardTag("shard0000", "recent")
   - pre: |
-      Tag ``shard0001`` with the ``recent`` tag.
+      Add ``shard0001`` to the ``recent`` zone.
     language: javascript
     code: |
       sh.addShardTag("shard0001", "recent")
   - pre: |
-      Tag ``shard0002`` with the ``archive`` tag.
+      Add ``shard0002`` to the ``archive`` zone.
     language: javascript
     code: |
       sh.addShardTag("shard0002", "archive")
 post: |
-  You can review the tags assigned to any given shard by running 
+  You can review the zone assigned to any given shard by running 
   :method:`sh.status()`. 
 ---
 stepnum: 3
-title: Define ranges for each tag
+title: Define ranges for each zone
 level: 4
 ref: sharding_tiered_storage_define_ranges
 action:
   - pre: |
-      Define range for recent photos and associate it to the ``recent`` tag 
+      Define range for recent photos and associate it to the ``recent`` zone 
       using the :method:`sh.addTagRange()` method. This method requires:
       
       * the full namespace of the target collection.
       * the inclusive lower bound of the range. 
       * the exclusive upper bound of the range. 
-      * the tag.
+      * the zone.
       
     language: javascript
     code: |
@@ -65,13 +65,13 @@ action:
       )
   - pre: |
       Define range for older photos and associate it to the 
-      ``archive`` tag using the :method:`sh.addTagRange()` method. 
+      ``archive`` zone using the :method:`sh.addTagRange()` method. 
       This method requires:
       
       * the full namespace of the target collection.
       * the inclusive lower bound of the range. 
       * the exclusive upper bound of the range. 
-      * the tag.
+      * the zone.
     language: javascript
     code: |
       sh.addTagRange( 
@@ -109,11 +109,11 @@ pre: |
   The next time the :ref:`balancer <sharding-balancing>` runs, it 
   :ref:`splits <sharding-chunk-split>` and
   :ref:`migrates <sharding-chunk-migration>` chunks across the 
-  shards respecting the tag ranges and tags.
+  shards respecting configured zones.
   
-  Once balancing finishes, the shards tagged as ``recent`` should only
+  Once balancing finishes, the shards in the ``recent`` zone should only
   contain documents with ``creation_date`` greater than or equal to
-  ``ISODate("2016-01-01")``, while shards tagged as ``archive`` should
+  ``ISODate("2016-01-01")``, while shards in the ``archive`` zone should
   only contain documents with ``creation_date`` less than
   ``ISODate("2016-01-01")``.
   
