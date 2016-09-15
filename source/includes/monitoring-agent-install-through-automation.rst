@@ -1,6 +1,3 @@
-If you use |mms| :ref:`Automation <automation>`, install or update the
-Monitoring Agent through |mms|.
-
 To install the agent, click :guilabel:`Deployment`, then :guilabel:`Servers`,
 then click a server's ellipsis icon (:guilabel:`...`) and select
 :guilabel:`Install Monitoring Agent`.
