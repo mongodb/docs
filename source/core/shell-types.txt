@@ -131,9 +131,9 @@ the following operation in the :program:`mongo` shell:
 NumberLong
 ~~~~~~~~~~
 
-By default, the :program:`mongo` shell treats all numbers as
-floating-point values. The :program:`mongo` shell provides the
-``NumberLong()`` wrapper to handle 64-bit integers.
+The :program:`mongo` shell treats all numbers as floating-point values
+by default. The :program:`mongo` shell provides the ``NumberLong()``
+wrapper to handle 64-bit integers.
 
 The ``NumberLong()`` wrapper accepts the long as a string:
 
@@ -195,12 +195,156 @@ to a floating point value, as in the following example:
 NumberInt
 ~~~~~~~~~
 
-By default, the :program:`mongo` shell treats all numbers as
-floating-point values. The :program:`mongo` shell provides the
-``NumberInt()`` constructor to explicitly specify 32-bit integers.
+The :program:`mongo` shell treats all numbers as floating-point values
+by default. The :program:`mongo` shell provides the ``NumberInt()``
+constructor to explicitly specify 32-bit integers.
+
+.. _shell-type-decimal:
+
+NumberDecimal
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+The :program:`mongo` shell treats all numbers as 64-bit floating-point
+``double`` values by default. The :program:`mongo` shell provides the
+``NumberDecimal()`` constructor to explicitly specify 128-bit
+decimal-based floating-point values capable of emulating decimal
+rounding with exact precision. This functionality is intended for
+applications that handle
+:doc:`monetary data </tutorial/model-monetary-data>`, such as
+financial, tax, and scientific computations. 
+
+The ``decimal`` :doc:`BSON type </reference/bson-types>`
+uses the IEEE 754 decimal128 floating-point numbering format which
+supports 34 decimal digits (i.e. significant digits) and an exponent
+range of −6143 to +6144.
+
+The ``NumberDecimal()`` constructor accepts the ``decimal`` value as a
+string:
+
+.. code-block:: javascript
+
+   NumberDecimal("1000.55")
+   
+The value is stored in the database as follows:
+
+.. code-block:: javascript
+
+   NumberDecimal("1000.55")
+
+The ``NumberDecimal()`` constructor also accepts ``double`` values from
+the :program:`mongo` shell (i.e. without quotes), although this is not
+recommended due to the risk of losing precision. The constructor
+creates a binary-based ``double`` precision representation of the
+decimal-based parameter (potentially losing precision), then
+converts that value to a ``decimal`` value with a precision of 15
+digits. The following example passes the value implicitly as a
+``double`` and shows how it is created with a precision of 15 digits:
+
+.. code-block:: javascript
+   
+   NumberDecimal(1000.55)
+   
+The value is stored in the database as follows:
+
+.. code-block:: javascript
+   
+   NumberDecimal("1000.55000000000")
+
+The following example passes the value implicitly as a ``double`` and
+shows how a loss of precision can occur:
+
+.. code-block:: javascript
+   
+   NumberDecimal(9999999.4999999999)
+   
+The value is stored in the database as follows:
+
+.. code-block:: javascript
+   
+   NumberDecimal("9999999.50000000")
+
+
+.. note:: To use the ``decimal`` data type with a
+   :ecosystem:`MongoDB driver </drivers/>`, be sure to use a driver
+   version that supports it.
+
+Equality and Sort Order
+```````````````````````
+
+Values of the ``decimal`` type are compared and sorted with other
+numeric types based on their actual numeric value.  Numeric values
+of the binary-based ``double`` type generally have approximate
+representations of decimal-based values and may not be exactly
+equal to their ``decimal`` representations, so use the
+``NumberDecimal()`` constructor when checking the equality of
+``decimal`` values. Consider the following examples with the following
+documents in the ``numbers`` collection:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "val" : NumberDecimal( "9.99" ), "description" : "Decimal" }
+   { "_id" : 2, "val" : 9.99, "description" : "Double" }
+   { "_id" : 3, "val" : 10, "description" : "Double" }
+   { "_id" : 4, "val" : NumberLong(10), "description" : "Long" }
+   { "_id" : 5, "val" : NumberDecimal( "10.0" ), "description" : "Decimal" }
+
+When the queries from the table below are plugged into the
+``db.numbers.find(<query>)`` method, the following results are
+returned:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Query
+     - Results
+
+   * - **{ "val": 9.99 }**
+     - **{ "_id": 2, "val": 9.99, "description": "Double" }**
+     
+   * - **{ "val": NumberDecimal( "9.99" ) }**
+     - **{ "_id": 1, "val": NumberDecimal( "9.99" ), "description": "Decimal" }**
+
+   * - **{ val: 10 }**
+     - | **{ "_id": 3, "val": 10, "description": "Double" }**
+       | **{ "_id": 4, "val": NumberLong(10), "description": "Long" }**
+       | **{ "_id": 5, "val": NumberDecimal( "10.0" ), "description": "Decimal" }**
+
+   * - **{ val: NumberDecimal( "10" ) }**
+     - | **{ "_id": 3, "val": 10, "description": "Double" }**
+       | **{ "_id": 4, "val": NumberLong(10), "description": "Long" }**
+       | **{ "_id": 5, "val": NumberDecimal( "10.0" ), "description": "Decimal" }**
+
+
+The first query, ``{ "val": 9.99 }``, implicitly searches for the
+``double`` representation of ``9.99`` which is not equal to the
+``decimal`` representation of the value.
+
+The ``NumberDecimal()`` constructor is used to query for the document
+with the ``decimal`` representation of ``9.99``. Values of the
+``double`` type are excluded because they do not match the exact value
+of the ``decimal`` representation of ``9.99``.
+
+Matching values of all numeric types are returned when querying for
+whole numbers. For example, querying for a ``double`` representation of
+``10`` will include a ``decimal`` representation of ``10.0`` in the
+results and vice versa.
+
+Checking for ``decimal`` Type
+`````````````````````````````
+
+To test for ``decimal`` type, use the :query:`$type` operator with the
+string alias ``"decimal"`` or ``19``, the numeric code for the
+``decimal`` type.
+ 
+.. code-block:: javascript
+
+   db.inventory.find( { price: { $type: "decimal" } } )
 
 .. _check-types-in-shell:
-
+      
 Check Types in the ``mongo`` Shell
 ----------------------------------
 

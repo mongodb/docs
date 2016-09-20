@@ -3,7 +3,7 @@ MongoDB uses the following comparison order, from lowest to highest:
 
 #. MinKey (internal type)
 #. Null
-#. Numbers (ints, longs, doubles)
+#. Numbers (ints, longs, doubles, decimals)
 #. Symbol, String
 #. Object
 #. Array

@@ -95,7 +95,12 @@
      - 18
      - "long"
      -
-
+   
+   * - Decimal128
+     - 19
+     - "decimal"
+     -
+   
    * - Min key
      - -1
      - "minKey"
