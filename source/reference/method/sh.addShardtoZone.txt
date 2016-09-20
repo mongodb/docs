@@ -1,0 +1,82 @@
+===================
+sh.addShardToZone()
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: sh.addShardToZone(shard, zone)
+
+   .. versionadded:: 3.4
+
+      Associates a shard with a :term:`zone`. MongoDB associates this shard
+      with the given zone. Chunks that are covered by the zone are assigned to
+      shards associated with the zone.
+
+   .. include:: /includes/apiargs/method-sh.addShardToZone-param.rst
+
+   Only issue :method:`sh.addShardToZone()` when connected to a
+   :program:`mongos` instance.
+
+Behavior
+--------
+
+You can associate a zone with multiple shards, and a shard can associate with
+multiple zones.
+
+See the :ref:`zone <zone-sharding>` manual page for more information on zones
+in sharded clusters.
+
+Ranges
+~~~~~~
+
+MongoDB effectively ignores zones that do not have at least one range of
+shard key values associated with it. 
+
+To associate a range of shard key values with a zone, use the 
+:method:`sh.updateZoneKeyRange()` method.
+
+Security
+--------
+
+For sharded clusters running with :ref:`authentication <authentication>`, you
+must authenticate as a user whose privileges include :authaction:`update` on
+the ``config.shards`` collection or the ``config`` database.
+
+The :authrole:`clusterAdmin` or :authrole:`clusterManager` built-in roles have
+the appropriate permissions for issuing :method:`sh.addShardToZone()`. See the
+:ref:`Role-Based Access Control <authorization>` manual page for more
+information.
+
+Example
+-------
+
+The following example adds three zones, ``NYC``, ``LAX``, and ``NRT``,
+associating each to a shard:
+
+.. code-block:: javascript
+
+   sh.addShardToZone("shard0000", "JFK")
+   sh.addShardToZone("shard0001", "LAX")
+   sh.addShardToZone("shard0002", "NRT")
+
+A shard can associate with multiple zones. The following example associates
+``LGA`` to ``shard0000``:
+
+.. code-block:: javascript
+
+   sh.addShardToZone("shard0000", "LGA")
+
+``shard0000`` associates with both the ``LGA`` zone and the ``JFK`` zone. In a
+balanced cluster, MongoDB routes reads and writes covered by either zone to
+``shard0000``.
+
+.. seealso:: :method:`sh.updateZoneKeyRange()` and :method:`sh.removeShardFromZone()`.
