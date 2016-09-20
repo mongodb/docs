@@ -87,7 +87,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OSX 10.7+
+   * - OS X 10.7+
      - |checkmark|
      - |checkmark|
      - |checkmark|
