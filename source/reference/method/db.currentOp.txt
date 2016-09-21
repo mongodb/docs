@@ -34,34 +34,72 @@ Definition
 Behavior
 --------
 
-If you pass in ``true`` to :method:`db.currentOp()`, the method returns
-information on all operations, including operations on idle
-connections and system operations.
+:method:`db.currentOp()` can accept a filter document or a boolean
+parameter.
+
+If you pass a filter document to :method:`db.currentOp()`, the output
+returns information only for the current operations that match the
+filter. The filter document can contain:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Field
+     - Description
+
+   * - ``"$ownOps"``
+
+     - Boolean. If set to ``true``, returns information on the current user's
+       operations only.
+
+       On :program:`mongod` instances, users can always run
+       ``db.currentOp( { "$ownOps": true } )`` to view their own
+       operations.
+       
+       .. versionadded:: 3.2.9
+
+   * - ``"$all"``
+
+     - Boolean. If set to ``true``, returns information on all operations,
+       including operations on idle connections and system operations.
+
+       If the document includes ``"$all": true`` along with
+       :ref:`currentOp-output-fields` conditions, only the
+       ``"$all":true`` applies.
+
+   * - :ref:`currentOp-output-fields`
+
+     - Specify filter conditions on the :ref:`currentOp-output-fields`.
+       See :ref:`currentOp-examples`.
+       
+       If the document includes ``"$all": true`` along with
+       :ref:`currentOp-output-fields` conditions, only the ``"$all":
+       true`` applies.
+ 
+Passing in ``true`` to :method:`db.currentOp()` is equivalent to
+passing in a document of ``{ "$all": true }``. The following operations
+are equivalent:
 
 .. code-block:: javascript
 
    db.currentOp(true)
-
-Passing in ``true`` is equivalent to passing in a query document of ``{
-'$all': true }``.
-
-If you pass a query document to :method:`db.currentOp()`, the output
-returns information only for the current operations that match the
-query. You can query on the :ref:`currentOp-output-fields`. See
-:ref:`currentOp-examples`.
-
-You can also specify ``{ '$all': true }`` query document to return
-information on all in-progress operations, including operations on idle
-connections and system operations. If the query document includes
-``'$all': true`` as well as other query conditions, only the ``'$all':
-true`` applies.
+   db.currentOp( { "$all": true } )
 
 Access Control
 --------------
 
-On systems running with :setting:`~security.authorization`, a user must
-have access that includes the :authaction:`inprog` action. For example,
-see :ref:`create-role-to-manage-ops`.
+On systems running with :setting:`~security.authorization`, the user
+must have access that includes the :authaction:`inprog` privilege
+action. 
+
+.. versionchanged:: 3.2.9
+
+   On :program:`mongod` instances, users can run ``db.currentOp( {
+   "$ownOps": true } )`` to view their own operations even without the
+   :authaction:`inprog` privilege action.
+
+.. seealso::  :ref:`create-role-to-manage-ops`
 
 .. _currentOp-examples:
 
