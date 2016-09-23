@@ -264,7 +264,7 @@ a paid subscription.
 
      - |MMS| is a cloud-based suite of services for managing MongoDB
        deployments. |MMS| provides monitoring, backup, and automation
-       functionality. For an on-premise solution, see also 
+       functionality. For an on-premise solution, see also
        :products:`Ops Manager, available in MongoDB Enterprise Advanced
        </mongodb-enterprise-advanced?jmp=docs>`.
 
@@ -353,6 +353,61 @@ affect logging:
 
 - :dbcommand:`logRotate`. Rotates the log files for :program:`mongod`
   processes only. See :doc:`/tutorial/rotate-log-files`.
+
+.. _monitoring-log-redaction:
+
+Log Redaction
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.4 Available in MongoDB Enterprise only
+
+A :program:`mongod` running with :setting:`security.redactClientLogData`
+redacts :doc:`messages </reference/log-messages>` associated with any given
+log event before logging, leaving only metadata, source files, or line numbers
+related to the event. :setting:`security.redactClientLogData` prevents
+potentially sensitive information from entering the system log at the cost of
+diagnostic detail.
+
+For example, the following operation inserts a document into a 
+:program:`mongod` running without log redaction. The :program:`mongod` 
+has :setting:`systemLog.component.query.verbosity` set to ``0``:
+
+.. code-block:: javascript
+
+   db.clients.insertOne( { "name" : Joe, "PII" : "Sensitive Information" } )
+   
+This operation produces the following log event:
+
+.. code-block:: text
+
+   2016-09-23T13:51:43.572-0400 I COMMAND  [conn1] command employeeData.directory 
+      appName: "MongoDB Shell" 
+      command: insert {
+         insert: "directory", 
+         documents: [ 
+            { 
+               _id: ObjectId('57e56baf6a71e2b785153aec'), 
+               name: "Joe", 
+               PII: "Sensitive Information" 
+            } 
+         ],
+         ...
+
+A :program:`mongod` running with :setting:`security.redactClientLogData` 
+performing the same insert operation produces the following log event:
+
+.. note:: 
+
+   The exact redacted output may change leading up to the MongoDB 3.4 release.
+   This output is based on the 3.3 development series build.
+
+.. code-block:: text
+
+   2016-09-23T13:51:43.572-0400 I COMMAND  [conn1] ###
+   
+Use :setting:`~security.redactClientLogData` in conjunction with
+:doc:`encryption </core/security-encryption>` to assist compliance with
+regulatory requirements.
 
 Diagnosing Performance Issues
 -----------------------------
@@ -497,7 +552,7 @@ using this lock.
 
    .. toctree::
       :titlesonly:
-      
+
       /tutorial/monitor-with-snmp
       /tutorial/monitor-with-snmp-on-windows
       /tutorial/troubleshoot-snmp
