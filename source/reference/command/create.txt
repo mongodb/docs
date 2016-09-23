@@ -19,8 +19,12 @@ Definition
    the following form:
 
    .. versionchanged:: 3.4
-      Added options ``viewOn`` and ``pipeline`` to support creation of
-      views. See also :method:`db.createView()`.
+      Added options:
+
+      - ``viewOn`` and ``pipeline`` to support creation of views. See
+        also :method:`db.createView()`.
+
+      - ``collation``.
 
    .. code-block:: javascript
 
@@ -37,7 +41,8 @@ Definition
         validationAction: <string>,
         indexOptionDefaults: <document>,
         viewOn: <source>, 
-        pipeline: <pipeline> 
+        pipeline: <pipeline>,
+        collation: <document>
       }
 
    :dbcommand:`create` has the following fields:
@@ -55,6 +60,7 @@ affected database and will block other operations until it has
 completed. The write lock for this operation is typically short
 lived. However, allocations for large capped collections may take
 longer.
+
 
 Examples
 --------
@@ -102,6 +108,58 @@ The following operation creates a ``managementRatings`` view with the
 
 .. seealso:: :method:`db.createView()`
 
+.. _create-collation-example:
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+You can specify :ref:`collation <collation>` at the collection level.
+For example, the following operation creates a collection, specifying a
+collation for the collection (See
+:ref:`collation-document-fields` for descriptions of the collation fields):
+
+.. code-block:: javascript
+
+   db.runCommand ( {
+      create: "myColl",
+      collation: { locale: "fr" }
+   });
+
+This collation will be used by indexes and operations that support
+collation unless they explicitly specify a different collation. For
+example, insert the following documents into ``myColl``:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café" }
+   { _id: 2, category: "cafe" }
+   { _id: 3, category: "cafE" }
+
+The following operation uses the collection's collation:
+
+.. code-block:: javascript
+
+   db.myColl.find().sort( { category: 1 } )
+
+The operation returns documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 3, "category" : "cafE" }
+   { "_id" : 1, "category" : "café" }
+
+The same operation on a collection that uses simple binary collation
+(i.e. no specific collation set) returns documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "category" : "cafE" }
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 1, "category" : "café" }
+
+
+   
 Specify Storage Engine Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

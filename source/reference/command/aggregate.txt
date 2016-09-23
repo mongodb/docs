@@ -21,7 +21,7 @@ aggregate
 
    The command has following syntax:
 
-   .. versionchanged:: 3.2
+   .. versionchanged:: 3.4
 
    .. code-block:: javascript
 
@@ -32,7 +32,8 @@ aggregate
         allowDiskUse: <boolean>,
         cursor: <document>,
         bypassDocumentValidation: <boolean>,
-        readConcern: <document>
+        readConcern: <document>,
+        collation: <document>
       }
 
    The :dbcommand:`aggregate` command takes the following fields as
@@ -202,6 +203,35 @@ batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 ``batchSize`` of ``0`` means an empty first batch and is useful if you
 want to quickly get back a cursor or failure message, without doing
 significant server-side work.
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following aggregation operation includes the :ref:`collation`
+option:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+         aggregate: "myColl",
+         pipeline: [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
+         collation: { locale: "fr", strength: 1 } 
+      }
+   )
+
+For descriptions on the collation fields, see
+:ref:`collation-document-fields`.
 
 Override Default Read Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

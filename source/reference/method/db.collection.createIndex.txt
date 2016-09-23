@@ -35,6 +35,11 @@ The ``options`` document contains a set of options that controls the
 creation of the index. Different index types can have additional
 options specific for that type.
 
+.. versionchanged:: 3.4
+
+   Added support for :ref:`collation option
+   <create-index-collation>`.
+
 Options for All Index Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,6 +49,18 @@ otherwise specified:
 .. include:: /includes/fact-remove-dropDups-option.rst
 
 .. include:: /includes/apiargs/method-db.collection.createIndex-options-param.rst
+
+.. _create-index-collation:
+
+Option for Collation
+~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`collation <collation>` option is available for all index
+types except for ``text`` indexes.
+
+.. include:: /includes/apiargs/method-db.collection.createIndex-option-collation.rst
+
+.. include:: /includes/extracts/collation-index.rst
 
 Options for ``text`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,17 +100,20 @@ Behaviors
 The :method:`~db.collection.createIndex()` method has the behaviors
 described here.
 
-- To add or change index options you must drop the index using the
-  :method:`~db.collection.dropIndex()` method and issue another
-  :method:`~db.collection.createIndex()` operation
-  with the new options.
+- .. versionchanged:: 3.4
 
-  If you create an index with one set of options, and then issue
-  the :method:`~db.collection.createIndex()` method
-  with the same index fields and different options without
-  first dropping the index,
-  :method:`~db.collection.createIndex()` will *not* rebuild the existing
-  index with the new options.
+  To add or change index options, other than collation, you must drop
+  the index using the :method:`~db.collection.dropIndex()` method and
+  issue another :method:`~db.collection.createIndex()` operation with
+  the new options.
+
+  If you create an index with one set of options, and then issue the
+  :method:`~db.collection.createIndex()` method with the same index
+  fields and different options (not including collation) without first
+  dropping the index, :method:`~db.collection.createIndex()` will *not*
+  rebuild the existing index with the new options.
+
+  .. include:: /includes/extracts/collation-index-options.rst
 
 - If you call multiple :method:`~db.collection.createIndex()`
   methods with the same index specification at the same time, only
@@ -146,6 +166,37 @@ component.
 
    The order of an index is important for supporting
    :method:`~cursor.sort()` operations using the index.
+
+Create Indexes with Collation Specified
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an index named ``category_fr``. The
+example creates the index with the :ref:`collation
+<create-index-collation>` that specifies the locale ``fr`` and
+comparison strength ``2``:
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+      { category: 1 },
+      { name: "category_fr", collation: { locale: "fr", strength: 2 } }
+   )
+
+The following example creates a compound index named
+``date_category_fr`` with a :ref:`collation <create-index-collation>`.
+The collation applies only to the index keys with string values.
+
+.. code-block:: javascript
+
+   db.collection.createIndex(
+      { orderDate: 1, category: 1 },
+      { name: "date_category_fr", collation: { locale: "fr", strength: 2 } }
+   )
+
+The collation applies to the indexed keys whose values are string.
+
+For queries or sort operations on the indexed keys that uses the same collation
+rules, MongoDB can use the index.
 
 Additional Information
 ----------------------

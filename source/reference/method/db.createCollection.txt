@@ -15,6 +15,14 @@ Definition
 
 .. method:: db.createCollection(name, options)
 
+   .. versionchanged:: 3.4
+
+      Added support for:
+
+      - Creation of views (see also :method:`db.createView()`).
+
+      - Collation.
+
    Creates a new collection or :doc:`view </core/views>`.
 
    Because MongoDB creates a collection implicitly when the collection
@@ -25,11 +33,11 @@ Definition
    :doc:`document validation </core/document-validation>`. :method:`db.createCollection()` is also
    used to pre-allocate space for an ordinary collection.
 
+   :method:`db.createCollection()` is a wrapper around the database
+   command :dbcommand:`create`.
+
    The :method:`db.createCollection()` method has the following prototype form:
 
-   .. versionchanged:: 3.4
-      Added options ``viewOn`` and ``pipeline`` to support creation of
-      views. To create views, see also :method:`db.createView()`.
 
    .. code-block:: javascript
 
@@ -43,21 +51,16 @@ Definition
                                     validationAction: <string>,
                                     indexOptionDefaults: <document>,
                                     viewOn: <string>,
-                                    pipeline: <pipeline> } )
+                                    pipeline: <pipeline>,
+                                    collation: <document> } )
 
    The :method:`db.createCollection()` method has the following parameters:
 
    .. include:: /includes/apiargs/method-db.createCollection-param.rst
 
-   The ``options`` document creates a capped collection, preallocates
-   space in a new ordinary collection, or specifies :doc:`document validation
-   </core/document-validation>` criteria. The ``options`` document contains
-   the following fields:
+   The ``options`` document contains the following fields:
 
    .. include:: /includes/apiargs/method-db.createCollection-options-param.rst
-
-   :method:`db.createCollection()` is a wrapper around the database
-   command :dbcommand:`create`.
 
 Examples
 --------
@@ -144,6 +147,55 @@ For more information, see :doc:`/core/document-validation`. To view the
 validation specifications for a collection, use the
 :method:`db.getCollectionInfos()` method.
 
+.. _createCollection-collation-example:
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+You can specify :ref:`collation <collation>` at the collection level.
+For example, the following operation creates a collection, specifying a
+collation for the collection (See :ref:`collation-document-fields` for
+descriptions of the collation fields):
+
+.. code-block:: javascript
+
+   db.createCollection( "myColl", { collation: { locale: "fr" } } );
+
+This collation will be used by indexes and operations that support
+collation unless they explicitly specify a different collation. For
+example, insert the following documents into ``myColl``:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café" }
+   { _id: 2, category: "cafe" }
+   { _id: 3, category: "cafE" }
+
+The following operation uses the collection's collation:
+
+.. code-block:: javascript
+
+   db.myColl.find().sort( { category: 1 } )
+
+The operation returns documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 3, "category" : "cafE" }
+   { "_id" : 1, "category" : "café" }
+
+The same operation on a collection that uses simple binary collation
+(i.e. no specific collation set) returns documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "category" : "cafE" }
+   { "_id" : 2, "category" : "cafe" }
+   { "_id" : 1, "category" : "café" }
+
 .. _create-collection-storage-engine-options:
 
 Specify Storage Engine Options
@@ -157,8 +209,8 @@ options when you create a collection with
 
 .. code-block:: javascript
 
-   db.createCollection( 
-      "users", 
+   db.createCollection(
+      "users",
       { storageEngine: { wiredTiger: { configString: "<option>=<setting>" } } }
    )
 
