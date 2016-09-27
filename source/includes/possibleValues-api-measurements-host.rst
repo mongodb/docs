@@ -60,8 +60,8 @@ Host Measurements
        - ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
 
      - Measure operations waiting on locks, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`globalLock` document.
+       :manual:`serverStatus </reference/command/serverStatus>` command.
+       |mms| computes these values based on the type of storage engine.
 
    * - - ``GLOBAL_LOCK_PERCENTAGE``
 
