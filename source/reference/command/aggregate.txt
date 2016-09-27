@@ -41,6 +41,10 @@ aggregate
 
    .. include:: /includes/apiargs/dbcommand-aggregate-field.rst
 
+.. versionchanged:: 3.4
+
+   .. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
 .. versionchanged:: 2.6
 
    :doc:`aggregation pipeline </reference/operator/aggregation-pipeline>`
@@ -53,6 +57,20 @@ For more information about the aggregation pipeline
 
 Example
 -------
+
+.. versionchanged:: 3.4
+
+   .. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+   Rather than run the :dbcommand:`aggregate` command directly, most
+   users should use the :method:`db.collection.aggregate()` helper
+   provided in the :program:`mongo` shell or the equivalent helper in
+   their driver. In 2.6 and later, the
+   :method:`db.collection.aggregate()` helper always returns a cursor.
+
+   Except for the first example which demonstrates the command syntax,
+   the examples in this page use the
+   :method:`db.collection.aggregate()` helper.
 
 Aggregate Data with Multi-Stage Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,42 +92,27 @@ element in the ``tags`` array that appears in the collection.
 
 .. code-block:: javascript
 
-   db.runCommand(
-      { aggregate: "articles",
-        pipeline: [
-                    { $project: { tags: 1 } },
-                    { $unwind: "$tags" },
-                    { $group: {
-                                _id: "$tags",
-                                count: { $sum : 1 }
-                              }
-                    }
-                  ]
-      }
-   )
+   db.runCommand( {
+      aggregate: "articles", 
+      pipeline: [
+         { $project: { tags: 1 } },
+         { $unwind: "$tags" },
+         { $group: { _id: "$tags", count: { $sum : 1 } } }
+      ],
+      cursor: { }
+   } )
 
 In the :program:`mongo` shell, this operation can use the
-:method:`~db.collection.aggregate()` helper as in the following:
+:method:`db.collection.aggregate()` helper as in the following:
 
 .. code-block:: javascript
 
-   db.articles.aggregate(
-                          [
-                             { $project: { tags: 1 } },
-                             { $unwind: "$tags" },
-                             { $group: {
-                                         _id: "$tags",
-                                         count: { $sum : 1 }
-                                       }
-                             }
-                          ]
-   )
-
-.. note:: In 2.6 and later, the :method:`~db.collection.aggregate()`
-   helper always returns a cursor.
-
-.. include:: /includes/fact-agg-helper-exception.rst
-
+   db.articles.aggregate( [
+      { $project: { tags: 1 } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum : 1 } } }
+   ] )
+   
 Return Information on the Aggregation Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -118,18 +121,15 @@ to ``true`` to return information about the aggregation operation.
 
 .. code-block:: javascript
 
-   db.runCommand( { aggregate: "orders",
-                    pipeline: [
-                                { $match: { status: "A" } },
-                                { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-                                { $sort: { total: -1 } }
-                              ],
-                    explain: true
-                 } )
+   db.orders.aggregate([
+         { $match: { status: "A" } },
+         { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+         { $sort: { total: -1 } }
+      ],
+      { explain: true }
+   )
 
-.. note:: The intended readers of the ``explain`` output document are humans, and
-   not machines, and the output format is subject to change between
-   releases.
+.. note:: The ``explain`` output is subject to change between releases.
 
 .. seealso:: :method:`db.collection.aggregate()` method
 
@@ -143,60 +143,32 @@ temporary files, as in the following example:
 
 .. code-block:: javascript
 
-   db.runCommand(
-      { aggregate: "stocks",
-        pipeline: [
-                    { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
-                    { $sort : { cusip : 1, date: 1 } }
-                  ],
-        allowDiskUse: true
-      }
+   db.stocks.aggregate( [
+         { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
+         { $sort : { cusip : 1, date: 1 } }
+      ],
+      { allowDiskUse: true }
    )
 
 .. seealso:: :method:`db.collection.aggregate()`
 
-
-Aggregate Command Returns a Cursor
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-   Using the :dbcommand:`aggregate` command to return a cursor is a
-   low-level operation, intended for authors of drivers. Most users
-   should use the :method:`db.collection.aggregate()` helper provided
-   in the :program:`mongo` shell or in their driver. In 2.6 and
-   later, the :method:`~db.collection.aggregate()` helper always
-   returns a cursor.
-
-The following command returns a document that contains results with
-which to instantiate a cursor object.
-
-.. code-block:: javascript
-
-   db.runCommand(
-      { aggregate: "records",
-        pipeline: [
-           { $project: { name: 1, email: 1, _id: 0 } },
-           { $sort: { name: 1 } }
-        ],
-        cursor: { }
-      }
-   )
+Aggregate Data Specifying Batch Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To specify an *initial* batch size, specify the ``batchSize`` in the
 ``cursor`` field, as in the following example:
 
 .. code-block:: javascript
 
-   db.runCommand(
-      { aggregate: "records",
-        pipeline: [
-           { $project: { name: 1, email: 1, _id: 0 } },
-           { $sort: { name: 1 } }
-        ],
-        cursor: { batchSize: 0 }
-      }
+   db.orders.aggregate( [
+         { $match: { status: "A" } },
+         { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+         { $sort: { total: -1 } },
+         { $limit: 2 }
+      ],
+      { cursor: { batchSize: 0 } }
    )
-
+      
 The ``{batchSize: 0 }`` document specifies the size of the *initial*
 batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 <wire-op-get-more>` operations as with other MongoDB cursors. A
@@ -222,13 +194,10 @@ option:
 
 .. code-block:: javascript
 
-   db.runCommand( 
-      { 
-         aggregate: "myColl",
-         pipeline: [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
-         collation: { locale: "fr", strength: 1 } 
-      }
-   )
+   db.myColl.aggregate(
+      [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
+      { collation: { locale: "fr", strength: 1 } }
+   );
 
 For descriptions on the collation fields, see
 :ref:`collation-document-fields`.
@@ -237,7 +206,9 @@ Override Default Read Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To override the default read concern level of :readconcern:`"local"`,
-use the ``readConcern`` option.
+use the ``readConcern`` option. The :dbcommand:`getMore` command uses
+the ``readConcern`` level specified in the originating
+:dbcommand:`aggregate` command.s
 
 The following operation on a replica set specifies a :doc:`read concern
 </reference/read-concern>` of :readconcern:`"majority"` to read the
@@ -254,17 +225,12 @@ majority of the nodes.
 
 .. code-block:: javascript
 
-   db.runCommand( 
-      { 
-         aggregate: "orders",
-         pipeline: [ { $match: { status: "A" } } ],
-         readConcern: { level: "majority" }
-      }
+   db.restaurants.aggregate(
+      [ { $match: { rating: { $lt: 5 } } } ],
+      { readConcern: { level: "majority" } }
    )
 
 .. include:: /includes/usage-read-concern-majority.rst
 
-The :dbcommand:`getMore` command uses the ``readConcern`` level
-specified in the originating :dbcommand:`aggregate` command.
 
 .. seealso:: :method:`db.collection.aggregate()`
