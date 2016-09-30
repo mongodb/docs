@@ -129,13 +129,25 @@ Options
 
 .. include:: /includes/option/option-mongorestore-collection.rst
 
+.. include:: /includes/option/option-mongorestore-nsExclude.rst
+
+.. include:: /includes/option/option-mongorestore-nsInclude.rst
+
+.. include:: /includes/option/option-mongorestore-nsFrom.rst
+
+.. include:: /includes/option/option-mongorestore-nsTo.rst
+
 .. include:: /includes/option/option-mongorestore-objcheck.rst
 
 .. include:: /includes/option/option-mongorestore-drop.rst
 
+.. include:: /includes/option/option-mongorestore-dryRun.rst
+
 .. include:: /includes/option/option-mongorestore-oplogReplay.rst
 
 .. include:: /includes/option/option-mongorestore-oplogLimit.rst
+
+.. include:: /includes/option/option-mongorestore-oplogFile.rst
 
 .. include:: /includes/option/option-mongorestore-keepIndexVersion.rst
 
@@ -177,13 +189,88 @@ Consider the following example:
 
 .. code-block:: sh
 
-   mongorestore --collection people --db accounts dump/accounts/people.bson
+   mongorestore --collection people --db accounts dump/
 
 Here, :program:`mongorestore` reads the database dump in the ``dump/``
 sub-directory of the current directory, and restores *only* the
 documents in the collection named ``people`` from the database named
 ``accounts``. :program:`mongorestore` restores data to the instance
 running on the localhost interface on port ``27017``.
+
+.. versionadded:: 3.4
+
+You may alternatively use :option:`--nsInclude` to specify the
+canonical name of the collection that you wish to restore rather than
+:option:`--collection`. :option:`--nsInclude` enables you to specify
+the :term:`namespace` of one or more collections that you
+wish to include in the restore operation. The following example
+restores the ``people`` collection from the ``accounts`` database
+in the ``dump/`` sub-directory of the current directory:
+
+.. code-block:: sh
+
+   mongorestore --nsInclude accounts.people dump/
+
+.. _example-basic-wildcard-usage:
+
+Restore Collections Using Wild Cards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:option:`--nsInclude` and :option:`--nsExclude` support specifying
+the :term:`namespaces <namespace>` you wish to include or exclude from a restore operation
+using asterisks as *wild cards*.
+
+The following example restores the documents in the ``dump/``
+sub-directory of the current directory that match the specified
+namespace pattern. The :option:`--nsInclude` statement specifies to
+only restore documents in the ``transactions`` database while
+:option:`--nsExclude` instructs :program:`mongorestore` to exclude
+collections whose names end with ``_dev``. :program:`mongorestore`
+restores data to the :program:`mongod` instance running on the
+localhost interface on port ``27017``.
+
+.. code-block:: sh
+
+   mongorestore --nsInclude 'transactions.*' --nsExclude 'transactions.*_dev' dump/
+
+.. _example-complex-wildcard-usage:
+
+Change Collections' Namespaces during Restore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+MongoDB 3.4 added the :option:`--nsFrom` and :option:`--nsTo` options,
+which enable you to change the namespace of a collection that you are
+restoring. :option:`--nsFrom` and :option:`--nsTo` support using
+asterisks as wild cards *and* support using dollar signs to delimit
+"wild card" variables to use in the replacement.
+
+Consider a database ``data`` that you have exported to a ``dump/``
+directory using :program:`mongodump`. The ``data`` database contains the following
+collections:
+
+- ``sales_customer1``
+- ``sales_customer2``
+- ``sales_customer3``
+- ``users_customer1``
+- ``users_customer2``
+- ``users_customer3``
+
+Using :option:`--nsFrom` and :option:`--nsTo`, you can restore the data
+into different namespaces. The following operation 
+
+- restores the ``sales_<customername>`` collections in the ``data`` database to
+  ``<customerName>`` collections in the ``sales`` database, and
+
+- restores the ``users_<customerName>`` collections to ``<customerName>``
+  collections in the ``users`` database.
+
+.. code-block:: sh
+
+   mongorestore --nsInclude 'data.*' --nsFrom 'data.$prefix$_$customer$' --nsTo '$customer$.$prefix$'
 
 Restore with Access Control
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
