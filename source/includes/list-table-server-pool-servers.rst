@@ -12,9 +12,7 @@
 
    * - ``hostname``
      - string
-     - The name and port that identifies the server.
-
-       .. QUESTION: Is this definition for hostname accurate?
+     - The hostname that identifies the server.
 
    * - ``properties``
      - object of key/value pairs

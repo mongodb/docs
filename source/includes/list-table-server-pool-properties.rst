@@ -12,8 +12,12 @@
 
    * - ``multiSelect``
      - boolean
-     - Specifies whether a server can have multiple values for this property.
-       If set to ``true``, a server can have multiple values.
+
+     - If set to ``true``, a user can specify multiple values for the property
+       when requesting servers. If a user specifies multiple values for the
+       property when requesting multiple servers, |onprem| provisions servers
+       in a round-robin fashion; i.e. |onprem| provisions a server for each
+       value before provisioning a second server for a given value.
 
    * - ``statusName``
      - string

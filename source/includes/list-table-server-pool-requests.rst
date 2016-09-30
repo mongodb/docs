@@ -28,7 +28,7 @@
 
    * - ``cancelDate``
      - date
-     - The date and time the request was canceled.
+     - The date and time the request was cancelled.
 
    * - ``groupId``
      - string
@@ -47,11 +47,11 @@
           * - ``EXECUTING``
             - The request is pending.
 
-          * - ``CANCELING``
-            - The request is in the process of canceling.
+          * - ``CANCELLING``
+            - The request is in the process of cancelling.
 
-          * - ``CANCELED``
-            - The request is canceled.
+          * - ``CANCELLED``
+            - The request is cancelled.
 
           * - ``FAILED``
             - The request failed.
