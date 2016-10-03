@@ -1,6 +1,7 @@
 .. This file is shared by
    the page that documents the "measurements.name" values returned by the "measurements" resource, and
    the page that documents the "metricName" values returned by the "alerts" resource.
+   the page that documents the "metricName" values returned by the "globalAlerts" resource.
 
 Host Measurements
 ~~~~~~~~~~~~~~~~~

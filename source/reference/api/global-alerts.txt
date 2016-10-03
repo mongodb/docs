@@ -1,0 +1,418 @@
+=============
+Global Alerts
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The ``globalAlerts`` resource allows you to retrieve and acknowledge alerts
+that have been triggered by a :doc:`global alert
+</tutorial/manage-global-alerts>` configuration. You must have the
+:ref:`Global Monitoring Admin <global-monitoring-admin-role>` to use this
+resource.
+
+Alert Status
+------------
+
+.. include:: /includes/extracts/alert-status-global-alerts-resource.rst
+
+Endpoints
+---------
+
+Get All Global Alerts
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+
+   GET /api/public/v1.0/globalAlerts
+
+To specify alert status, use the ``status`` query parameter with one of the
+following values:
+
+- ``TRACKING``
+- ``OPEN``
+- ``CLOSED``
+
+.. code-block:: none
+
+   GET /api/public/v1.0/globalAlerts?status=STATUS
+
+The ``status`` parameter cannot retrieve ``CANCELLED`` global alerts.
+
+Get a Specific Global Alert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+
+   GET /api/public/v1.0/globalAlerts/ALERT-ID
+
+Acknowledge an Alert
+~~~~~~~~~~~~~~~~~~~~
+
+To acknowledge a global alert, use ``PATCH`` to update the alert's ``acknowledgedUntil``
+field. You can optionally update the ``acknowledgementComment`` field with a
+comment. Do not include any other field in the ``PATCH`` request.
+
+.. code-block:: none
+
+   PATCH /api/public/v1.0/globalAlerts/GLOBAL-ALERT-ID
+
+To acknowledge an alert "forever", set the field value to 100 years in the
+future. To unacknowledge a previously acknowledged alert, set the field value
+to the past.
+
+If you add a comment in the ``acknowledgementComment`` field, |onprem|
+displays the comment next to the message that the alert has been acknowledged.
+
+Sample Entity
+-------------
+
+The following is an example return document. The fields in a return document
+depend on the alert type.
+
+.. code-block:: javascript
+
+   {
+     "id" : "56e81a12e4b82547f6cd3a7",
+     "groupId" : "56cfafabe4b0391691d7c2a5",
+     "alertConfigId" : "56a104e0e4b00664f588ac8",
+     "created" : "2016-10-15T14:20:02Z",
+     "eventTypeName" : "INCONSISTENT_BACKUP_CONFIGURATION",
+     "lastNotified" : "2016-10-17T15:21:25Z",
+     "replicaSetName" : "testSet",
+     "resolved" : "2016-10-17T15:21:20Z",
+     "sourceTypeName" : "REPLICA_SET",
+     "status" : "CLOSED",
+     "tags" : [ ],
+     "typeName" : "BACKUP",
+     "updated" : "2016-10-17T15:21:20Z"
+     "links": [ ... ]
+   }
+
+Entity Fields
+-------------
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``id``
+     - string
+     - Unique identifier.
+
+   * - ``groupId``
+     - string
+     - ID of the group that this alert was opened for.
+
+   * - ``alertConfigId``
+     - string
+     - ID of the global alert configuration that triggered this alert.
+
+   * - ``created``
+     - date
+     - When the alert was opened.
+
+   * - ``eventTypeName``
+     - string
+     - The name of the event that triggered the alert.
+
+       .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+   * - ``lastNotified``
+     - date
+     - When the last notification was sent for this alert. Only present if
+       notifications have been sent.
+
+   * - ``replicaSetName``
+     - string
+     - Name of the replica set. Only present for global alerts of type
+       ``HOST``, ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
+
+   * - ``resolved``
+     - date
+     - When the alert was closed. Only present if the status is ``CLOSED``.
+
+   * - ``sourceTypeName``
+     - string
+     - For global alerts of the type ``BACKUP``, the type of server being
+       backed up. Possible values are:
+
+       - ``REPLICA_SET``
+       - ``SHARDED_CLUSTER``
+       - ``CONFIG_SERVER``
+
+   * - ``status``
+     - string
+     - The current state of the alert. Possible values are:
+
+       - ``TRACKING``
+       - ``OPEN``
+       - ``CLOSED``
+       - ``CANCELLED``
+
+   * - ``tags``
+     - string array
+     - The tags associated with the alert.
+
+   * - ``typeName``
+     - string
+     - *This field is deprecated and will be ignored.*
+
+   * - ``updated``
+     - date
+     - When the alert was last updated.
+
+   * - ``acknowledgedUntil``
+     - date
+     - The date through which the alert has been acknowledged. Only present if
+       the alert has been acknowledged.
+
+   * - ``acknowledgementComment``
+     - string
+     - The comment left by the user who acknowledged the alert. Only present
+       if the alert has been acknowledged.
+
+   * - ``acknowledgingUsername``
+     - string
+     - The username of the user who acknowledged the alert. Only present if
+       the alert has been acknowledged.
+
+   * - ``hostnameAndPort``
+     - string
+     - The hostname and port of each host to which the alert applies. Only
+       present for alerts of type ``HOST``, ``HOST_METRIC``, and
+       ``REPLICA_SET``.
+
+   * - ``hostId``
+     - string
+     - ID of the host to which the metric pertains. Only present for
+       alerts of type ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``.
+
+   * - ``metricName``
+     - string
+     - The name of the measurement whose value went outside the threshold. Only
+       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
+
+       For possible values, see :ref:`measurement-types-for-global-alerts-api`
+       on this page.
+
+   * - ``currentValue``
+     - object
+     - The current value of the metric that triggered the alert. Only present for
+       alerts of type ``HOST_METRIC``.
+
+   * - ``currentValue.number``
+     - number
+     - The value of the metric.
+
+   * - ``currentValue.units``
+     - string
+     - The units for the value. Depends on the type of metric. For example, a
+       metric that measures memory consumption would have a byte measurement,
+       while a metric that measures time would have a time unit. Possible values
+       are:
+
+       .. include:: /includes/possibleValues-api-units.rst
+
+   * - ``clusterId``
+     - string
+     - The ID of the cluster to which this alert applies. Only present for
+       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+
+   * - ``clusterName``
+     - string
+     - The name the cluster to which this alert applies. Only present for
+       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+
+.. _measurement-types-for-global-alerts-api:
+
+Measurement Types for Global Alerts
+-----------------------------------
+
+The ``globalAlerts`` resource returns measurement types in the ``metricName`` field.
+The field is present only if ``eventTypeName`` is set to
+``OUTSIDE_METRIC_THRESHOLD``.
+
+.. include:: /includes/possibleValues-api-measurements-host.rst
+
+Links
+-----
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``Relation``
+     - Description
+
+   * - ``self``
+     - Me
+
+Examples
+--------
+
+Get All Global Alerts
+~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/globalAlerts"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "links" : [ ... ],
+     "results" : [ {
+       "alertConfigId" : "573b7d12e4b0979a262467c1",
+       "created" : "2016-10-18T08:08:08Z",
+       "currentValue" : {
+         "number" : 143.4739833843463,
+         "units" : "RAW"
+       },
+       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+       "groupId" : "5729fde7e4b0132d250fed5f",
+       "hostId" : "63f42376fb735471fe40ec54a7",
+       "hostnameAndPort" : "replicaset-shard-00-02:27017",
+       "id" : "573b7d2de4b02fd2c93423a6",
+       "links" : [ ... ],
+       "metricName" : "OPCOUNTER_CMD",
+       "lastNotified" : "2016-10-18T19:29:54Z",
+       "replicaSetName" : "replicaSet-shard-0",
+       "resolved" : "2016-10-18T21:30:04Z",
+       "status" : "CLOSED",
+       "tags" : [ ],
+       "typeName" : "HOST_METRIC",
+       "updated" : "2016-10-18T21:30:04Z"
+     }, ... ],
+     "totalCount" : 8
+   }
+
+Get All Open Global Alerts
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/globalAlerts?status=OPEN"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "links" : [ ... ],
+     "results" : [ {
+       "alertConfigId" : "5730f5e1e4b030a9634a3f69",
+       "clusterId" : "572a00f2e4b051814b144e90",
+       "clusterName" : "shardedCluster",
+       "created" : "2016-10-09T06:16:36Z",
+       "eventTypeName" : "OPLOG_BEHIND",
+       "groupId" : "5729fde7e4b0132d250fed5f",
+       "id" : "3b7d2de0a4b02fd2c98146de",
+       "links" : [ ... ],
+       "lastNotified" : "2016-10-10T20:42:32Z",
+       "replicaSetName" : "shardedCluster-shard-0",
+       "sourceTypeName" : "REPLICA_SET",
+       "status" : "OPEN",
+       "tags" : [ ],
+       "typeName" : "BACKUP",
+       "updated" : "2016-10-10T20:42:32Z"
+     }, ... ],
+     "totalCount" : 3
+   }
+
+Get a Specific Global Alert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/globalAlerts/3b7d2de0a4b02fd2c98146de"
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "alertConfigId" : "5730f5e1e4b030a9634a3f69",
+     "clusterId" : "572a00f2e4b051814b144e90",
+     "clusterName" : "shardedCluster",
+     "created" : "2016-10-09T06:16:36Z",
+     "eventTypeName" : "OPLOG_BEHIND",
+     "groupId" : "5729fde7e4b0132d250fed5f",
+     "id" : "3b7d2de0a4b02fd2c98146de",
+     "links" : [ ... ],
+     "lastNotified" : "2016-10-10T20:42:32Z",
+     "replicaSetName" : "shardedCluster-shard-0",
+     "sourceTypeName" : "REPLICA_SET",
+     "status" : "OPEN",
+     "tags" : [ ],
+     "typeName" : "BACKUP",
+     "updated" : "2016-10-10T20:42:32Z"
+   }
+
+Acknowledge an Alert
+~~~~~~~~~~~~~~~~~~~~
+
+Request
+```````
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X PATCH "https://<ops-manager-host>/api/public/v1.0/globalAlerts/3b7d2de0a4b02fd2c98146de" --data '
+   {
+     "acknowledgedUntil": "2016-11-01T00:00:00-0400"
+   }'
+
+Response
+````````
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "alertConfigId" : "5730f5e1e4b030a9634a3f69",
+     "clusterId" : "572a00f2e4b051814b144e90",
+     "clusterName" : "shardedCluster",
+     "created" : "2016-10-09T06:16:36Z",
+     "eventTypeName" : "OPLOG_BEHIND",
+     "groupId" : "5729fde7e4b0132d250fed5f",
+     "id" : "3b7d2de0a4b02fd2c98146de",
+     "links" : [ ... ],
+     "lastNotified" : "2016-10-10T20:42:32Z",
+     "replicaSetName" : "shardedCluster-shard-0",
+     "sourceTypeName" : "REPLICA_SET",
+     "status" : "OPEN",
+     "acknowledgedUntil" : "2016-11-01T00:00:00Z",
+     "acknowledgingUsername" : "admin@example.com",
+     "tags" : [ ],
+     "typeName" : "BACKUP",
+     "updated" : "2016-10-10T22:03:11Z"
+   }

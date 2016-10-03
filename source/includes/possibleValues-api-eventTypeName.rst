@@ -1,3 +1,9 @@
+.. These are the eventTypeName values for the
+   alerts,
+   alertConfigs,
+   globalAlerts, and
+   globalAlertConfigs endpoints.
+
 - Host alerts support these values:
    - ``HOST_DOWN``
    - ``HOST_RECOVERING``
