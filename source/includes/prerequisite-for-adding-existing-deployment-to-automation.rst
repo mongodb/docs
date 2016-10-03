@@ -29,7 +29,7 @@ MongoDB deployment to import.
       {
         user: "mms-automation",
         pwd: <password>,
-        roles: [ 
+        roles: [
            'clusterAdmin',
            'dbAdminAnyDatabase',
            'readWriteAnyDatabase',
@@ -39,9 +39,12 @@ MongoDB deployment to import.
       }
    )
 
-To find the password for the |mms| group's Automation Agent user, use the
-:doc:`/reference/api/automation-config` endpoint to retrieve the
-current configuration and find the ``autoPwd`` value:
+If the |mms| group uses ``Username/Password`` authentication, you can retrieve
+the password for the group's Automation Agent user during the steps to add the
+deployment.
+
+You can also retrieve the password through the
+:doc:`/reference/api/automation-config` endpoint:
 
 .. code-block:: sh
 
