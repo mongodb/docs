@@ -97,7 +97,8 @@ html_theme_options = {
     'manual_branch': conf.git.branches.manual,
     'project': conf.project.name,
     'translations': languages,
-    'nav_excluded': sconf.theme.nav_excluded
+    'nav_excluded': sconf.theme.nav_excluded,
+    'upcoming': '3.3-pre',
 }
 
 onprem_latex_documents = []
