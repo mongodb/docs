@@ -40,21 +40,14 @@
      - Configures additional runtime options. For option descriptions, see
        :doc:`/reference/deployment-advanced-options`.
 
-       New in MongoDB 3.0:
-          You can choose which storage engine to use on all members by adding
-          the :guilabel:`engine` option in :guilabel:`Advanced Options`. For
-          information on storage engines, see :manual:`Storage
-          </core/storage>` in the MongoDB manual.
+       .. include:: /includes/option-in-memory-storage.rst
 
-       New in MongoDB 3.4:
-          You can choose an in-memory storage engine on all members of a
-          deployment by adding the :guilabel:`engine` option and setting it to
-          ``inMemory`` in :guilabel:`Advanced Options`. For more information,
-          see :manual:`In-Memory Storage Engine </core/inmemory>` in the
-          MongoDB manual.
-
-          .. important::
-
-             If you run a deployment with an in-memory storage engine and a
-             replica set member in that deployment fails or is shutdown, that
-             member must be re-synchronized entirely.
+       .. important::
+          All members of a replica set do not need to use the same storage
+          engine. You can deploy a replica set with members that use a mix of
+          storage engines, including the 
+          :manual:`in-memory storage engine </core/inmemory>`. If a member 
+          using an in-memory storage engine fails or is shut down, it loses
+          *all* of its data. When that member is restarted,
+          it needs :ref:`resychronize all of the data <replica-set-initial-sync>`
+          from another member.
