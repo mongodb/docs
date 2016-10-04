@@ -27,6 +27,7 @@ include only a subset of these settings:
        heartbeatIntervalMillis : <int>,
        heartbeatTimeoutSecs: <int>,
        electionTimeoutMillis : <int>,
+       catchUpTimeoutMillis : <int>,
        getLastErrorModes : <document>,
        getLastErrorDefaults : <document>
      }
