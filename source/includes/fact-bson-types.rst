@@ -74,7 +74,7 @@
    * - Symbol
      - 14
      - "symbol"
-     -
+     - Deprecated.
 
    * - JavaScript (with scope)
      - 15
