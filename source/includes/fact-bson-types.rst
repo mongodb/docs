@@ -13,7 +13,7 @@ Date                         9
 Null                        10
 Regular Expression          11
 JavaScript                  13
-Symbol                      14
+Symbol                      14        Deprecated.
 JavaScript (with scope)     15
 32-bit integer              16
 Timestamp                   17
