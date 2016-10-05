@@ -8,7 +8,7 @@
      - `C Driver Documentation <http://mongoc.org/>`_
 
    * - `C++ Driver <https://github.com/mongodb/mongo-cxx-driver/>`_
-     - `C++ Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/cpp/>`_
+     - `C++ Driver Documentation <https://mongodb.github.io/mongo-cxx-driver/>`_
 
    * - `C# Driver <https://github.com/mongodb/mongo-csharp-driver>`_
      - `C# Driver Documentation <http://docs.mongodb.org/ecosystem/drivers/csharp/>`_
