@@ -49,5 +49,5 @@
           :manual:`in-memory storage engine </core/inmemory>`. If a member 
           using an in-memory storage engine fails or is shut down, it loses
           *all* of its data. When that member is restarted,
-          it needs :ref:`resychronize all of the data <replica-set-initial-sync>`
+          it needs to :ref:`resychronize all of the data <replica-set-initial-sync>`
           from another member.
