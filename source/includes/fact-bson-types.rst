@@ -64,7 +64,7 @@
    * - DBPointer
      - 12
      - "dbPointer"
-     -
+     - Deprecated.
 
    * - JavaScript
      - 13
