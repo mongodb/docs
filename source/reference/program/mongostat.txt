@@ -100,6 +100,12 @@ Options
 
 .. include:: /includes/option/option-mongostat-gssapiHostName.rst
 
+.. include:: /includes/option/option-mongostat-humanReadable.rst
+
+.. include:: /includes/option/option-mongostat-Columns.rst
+
+.. include:: /includes/option/option-mongostat-AppendColumns.rst
+
 .. include:: /includes/option/option-mongostat-noheaders.rst
 
 .. include:: /includes/option/option-mongostat-rowcount.rst
@@ -330,6 +336,9 @@ average operations per second.
 Use
 ---
 
+Specify ``mongostat`` Collection Period and Frequency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In the first example, :program:`mongostat` will return data every
 second for 20 seconds. :program:`mongostat` collects data from the
 :program:`mongod` instance running on the localhost interface on
@@ -346,8 +355,8 @@ behavior:
 In the next example, :program:`mongostat` returns data every 5 minutes
 (or 300 seconds) for as long as the program runs. :program:`mongostat`
 collects data from the :program:`mongod` instance running on the
-localhost interface on port ``27017``. Both of the following
-invocations produce identical behavior.
+localhost interface on port ``27017``. The following
+invocations produce identical behavior:
 
 .. code-block:: sh
 
@@ -358,15 +367,136 @@ invocations produce identical behavior.
 In the following example, :program:`mongostat` returns data every 5
 minutes for an hour (12 times.) :program:`mongostat` collects data
 from the :program:`mongod` instance running on the localhost interface
-on port 27017. Both of the following invocations produce identical
-behavior.
+on port 27017. The following invocations produce identical
+behavior:
 
 .. code-block:: sh
 
    mongostat --rowcount 12 300
    mongostat -n 12 300
 
-In many cases, using the :option:`--discover <mongostat --discover>`
+.. _ex-mongostat-append-columns:
+
+Add Fields to :program:`mongostat` Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:option:`-O` allows you to specify fields from
+:dbcommand:`serverStatus` output to add to the default
+:program:`mongostat` output. The following example adds the :serverstatus:`host`
+and :serverstatus:`version` fields as well as the :serverstatus:`network.numRequests` field,
+which will display as "network requests", to the default
+:program:`mongostat` output:
+
+.. code-block:: sh
+
+   mongostat -O 'host,version,network.numRequests=network requests'
+
+The :program:`mongostat` output would then resemble:
+
+.. code-block:: sh
+
+   insert query update delete getmore command dirty used flushes vsize   res qrw arw net_in net_out conn                time            host version network requests
+       *0    *0     *0     *0       0     2|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   158b   39.4k    2 Oct 11 12:14:45.878 localhost:37017  3.3.14               91
+       *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.3k    2 Oct 11 12:14:46.879 localhost:37017  3.3.14               95
+       *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.2k    2 Oct 11 12:14:47.884 localhost:37017  3.3.14               99
+
+.. _ex-mongostat-specify-columns:
+
+Specify :program:`mongostat` Output Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:option:`-o` specifies the columns :program:`mongostat` includes in its
+output. You can specify any :dbcommand:`serverStatus` field as a
+:program:`mongostat` output column. The following example specifies the
+:serverstatus:`host`, :serverstatus:`time <localTime>`, and  :serverstatus:`metrics.document.inserted` fields:
+
+.. code-block:: sh
+
+   mongostat -o 'host,time,metrics.document.inserted'
+
+The :program:`mongostat` output would then resemble:
+
+.. code-block:: sh
+
+              host                time metrics.document.inserted
+   localhost:37017 Oct 11 12:21:17.370                         0
+   localhost:37017 Oct 11 12:21:18.371                         0
+   localhost:37017 Oct 11 12:21:19.371                         0
+   localhost:37017 Oct 11 12:21:20.368                         0
+
+.. _ex-mongostat-rate:
+
+View Rate of Change for a Field with :method:`.rate()`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:method:`.rate()` enables you to view the rate per second at which a
+numerical field has changed from one :program:`mongostat` call to the
+next. For example, you can view the rate at which documents have been
+inserted during an insert operation. :method:`.rate()` can therefore
+help you view the performance of your :program:`mongod` instance.
+
+The following example reports on the rate of change of the
+:serverstatus:`metrics.document.inserted` :dbcommand:`serverStatus` field. The
+invocation uses :option:`-o`'s ability to specify the name of an column
+to label ``metrics.document.inserted.rate()`` as "inserted rate" and
+``metrics.document.inserted`` as "inserted":
+
+.. code-block:: sh
+
+   mongostat -o 'host,mem,bits,metrics.document.inserted.rate()=inserted rate,metrics.document.inserted=inserted' --rowcount 5
+
+The output would then resemble:
+
+.. code-block:: sh
+
+              host mem.bits inserted rate inserted
+   localhost:37017       64           501     3455
+   localhost:37017       64           967    13128
+   localhost:37017       64           972    22851
+   localhost:37017       64           214    25000
+   localhost:37017       64             0    25000
+
+.. _ex-mongostat-diff:
+
+View Field Changes with :method:`.diff()`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:method:`.diff()` returns the difference between the current
+:dbcommand:`serverStatus` field value and the value from the previous
+:program:`mongostat` call. The following example returns statistics on
+the number of documents being inserted into a collection: ``inserted
+diff`` is the difference in the
+:serverstatus:`metrics.document.inserted` field between subsequent
+calls, while ``inserted`` is the value of
+:serverstatus:`metrics.document.inserted`:
+
+.. code-block:: sh
+
+   mongostat -o 'host,mem.bits,metrics.document.inserted.diff()=inserted diff,metrics.document.inserted=inserted' --rowcount 5
+
+The output would then resemble:
+
+.. code-block:: sh
+
+              host mem.bits inserted diff inserted
+   localhost:27017       64             0    25359
+   localhost:27017       64            94    25453
+   localhost:27017       64           938    26391
+   localhost:27017       64           964    27355
+   localhost:27017       64           978    28333
+
+View Statistics for a Replica Set or Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In many cases, using the :option:`--discover <mongostat --discover>` option
 will help provide a more complete snapshot of the state of an entire
 group of machines. If a :program:`mongos` process connected to a
 :term:`sharded cluster` is running on port ``27017`` of the local

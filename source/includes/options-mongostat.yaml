@@ -238,7 +238,7 @@ name: <sleeptime>
 directive: option
 args: null
 description: |
-  The final argument is the length of time, in seconds, that
+  The final {{program}} argument is the length of time, in seconds, that
   :program:`mongostat` waits in between calls. By default :program:`mongostat`
   returns one call every second.
 
@@ -246,5 +246,122 @@ description: |
   over a 1 second period. For values of ``<sleeptime>`` greater
   than 1, :program:`mongostat` averages data to reflect average
   operations per second.
+default: 1
+optional: true
+---
+program: mongostat
+name: humanReadable
+directive: option
+args: boolean
+default: true
+pre: |
+  .. versionadded:: 3.4
+
+description: |
+  When ``true``, {{program}} formats dates and quantity values for 
+  easier reading, as in the following sample output:
+
+  .. code-block:: sh
+
+     insert query update delete getmore command dirty used flushes vsize  res qrw arw net_in net_out conn                time
+        991    *0     *0     *0       0     2|0  3.4% 4.5%       0 2.90G 297M 0|0 0|0  12.9m   84.2k    2 Oct  6 09:45:37.478
+        989    *0     *0     *0       0     2|0  3.6% 4.7%       0 2.91G 310M 0|0 0|0  12.9m   84.1k    2 Oct  6 09:45:38.476
+        988    *0     *0     *0       0     1|0  3.7% 4.8%       0 2.92G 323M 0|0 0|0  12.8m   83.8k    2 Oct  6 09:45:39.481
+        976    *0     *0     *0       0     2|0  3.9% 5.0%       0 2.94G 335M 0|0 0|0  12.7m   83.7k    2 Oct  6 09:45:40.476
+  
+  When ``false``, {{program}} returns the raw data, as in the following
+  sample output:
+    
+  .. code-block:: sh
+  
+     insert query update delete getmore command dirty used flushes      vsize       res qrw arw   net_in net_out conn                      time
+        992    *0     *0     *0       0     2|0   1.3  2.4       0 2941255680 149946368 0|0 0|0 12913607   84271    2 2016-10-06T09:45:25-04:00
+        989    *0     *0     *0       0     1|0   1.5  2.6       0 2974810112 163577856 0|0 0|0 12873225   84087    2 2016-10-06T09:45:26-04:00
+        996    *0     *0     *0       0     1|0   1.6  2.8       0 2972712960 177209344 0|0 0|0 12955423   84345    2 2016-10-06T09:45:27-04:00
+        987    *0     *0     *0       0     1|0   1.8  2.9       0 2989490176 190840832 0|0 0|0 12861852   84008    2 2016-10-06T09:45:28-04:00
+optional: true
+---
+program: mongostat
+name: -O
+filename: AppendColumns
+directive: option
+args: <field list>
+pre: |
+  .. versionadded:: 3.4
+
+description: |
+  When specified, {{program}} includes the specified
+  :dbcommand:`serverStatus` fields after the default {{program}} output.
+
+  Use dot notation to specify
+  :dbcommand:`serverStatus fields <serverStatus>`, as in
+  :serverstatus:`metrics.document.inserted`.
+  
+  To specify a custom name for a field, use ``<field>=<customName>``,
+  as in:
+    
+  .. code-block:: sh
+    
+     mongostat -O host=H,time=T
+  
+  {{program}} supports specifying *either* {{role}} or :option:`-o`:
+  you cannot include both options.
+  
+  See :ref:`ex-mongostat-append-columns` for an example of
+  {{role}}.  
+optional: true
+---
+program: mongostat
+name: -o
+filename: Columns
+directive: option
+args: <field list>
+pre: |
+  .. versionadded:: 3.4
+
+description: |
+  When specified, {{program}} includes **only** the specified fields
+  in the {{program}} output.
+  
+  Use dot notation to specify
+  :dbcommand:`serverStatus fields <serverStatus>`, as in
+  :serverstatus:`metrics.document.inserted`.
+  
+  To specify a custom name for a field, use ``<field>=<customName>``,
+  as in:
+    
+  .. code-block:: sh
+    
+     mongostat -o 'host=H,time=T,version=MongoDB Version'
+
+  {{role}} supports the following methods to modify the information
+  returned for a given serverStatus field:
+
+  .. method:: .rate()
+
+     Use :method:`.rate()` to view the rate per second at which a
+     serverStatus field is changing from :program:`mongostat` call to
+     call.
+   
+     :ref:`ex-mongostat-rate` illustrates how to use
+     :program:`mongostat` with :option:`-o` and the :method:`.rate()`
+     method.
+
+  .. method:: .diff()
+
+     Use :method:`.diff()` to view how much a serverStatus field has
+     changed since the previous :program:`mongostat` call. The interval
+     between calls is specified by ``<sleeptime>``.
+
+     :ref:`ex-mongostat-diff` illustrates how to use
+     :program:`mongostat` with :option:`-o` and the :method:`.diff()`
+     method.
+  
+post: |
+  {{program}} supports specifying *either* {{role}} or :option:`-O`:
+  you cannot include both options.
+  
+  See :ref:`ex-mongostat-specify-columns` for an example of
+  {{role}}.
 optional: true
 ...
