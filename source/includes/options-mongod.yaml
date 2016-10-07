@@ -2146,5 +2146,425 @@ description: |
   
   You can toggle {{role}} on or off using :dbcommand:`setParameter` during
   runtime.
+---
+program: mongod
+name: ldapServers
+args: "<host1>:<port>,<host2>:<port>,...,<hostN>:<port>"
+directive: option
+optional: true
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
   
+  Takes a quote-enclosed comma-separated string of one or more LDAP servers,
+  each in ``host:port`` format. {{program}} executes LDAP operations against
+  these servers to authenticate users or determine what actions a user is
+  authorized to perform on a given database. 
+  
+  This setting can be configured on a running {{program}} using 
+  :dbcommand:`setParameter`.
+  
+  If unset, {{program}} cannot use :doc:`LDAP authentication or authorization
+  </core/security-ldap>`.
+---
+program: mongod
+name: ldapQueryUser
+args: <string>
+directive: option
+optional: true
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  The identity with which {{program}} binds as, when connecting to or
+  performing queries on an LDAP server.
+  
+  Only required if any of the following are true:
+    
+  - Using :ref:`LDAP authorization <security-ldap-external>`.
+  - Using an LDAP query for {{transform}}.
+  - The LDAP server disallows anonymous binds
+  
+  You must use {{role}} with {{queryPassword}}. 
+  
+  If unset, {{program}} will not attempt to bind to the LDAP server.
+  
+  This setting can be configured on a running {{program}} using 
+  :dbcommand:`setParameter`.
+  
+  .. note::
+     
+     Windows MongoDB deployments can use {{bindWithOSDefaults}}
+     instead of {{role}} and {{queryPassword}}. You cannot specify
+     both {{role}} and {{bindWithOSDefaults}} at the same time.
+replacement:
+  queryPassword: ":option:`--ldapQueryPassword`"
+  bindWithOSDefaults: ":option:`--ldapBindWithOSDefaults`"
+  transform: ":option:`username transformation <--ldapUserToDNMapping>`"
+---
+program: mongod
+name: ldapQueryPassword
+args: <string>
+directive: option
+optional: true
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+    The password used to bind to an LDAP server when using
+    {{queryUser}}. You must use {{role}} with
+    {{queryUser}}.
+  
+  If unset, {{program}} will not attempt to bind to the LDAP server.
+  
+  This setting can be configured on a running {{program}} using 
+  :dbcommand:`setParameter`.
+  
+  .. note::
+     
+     Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
+     instead of {{role}} and :option:`--ldapQueryPassword`. You cannot specify
+     both {{role}} and :option:`--ldapBindWithOSDefaults` at the same time.
+replacement:
+  queryUser: ":option:`--ldapQueryUser`"
+---
+program: mongod
+name: ldapBindWithOSDefaults
+args: <bool>
+directive: option
+optional: true
+default: false
+description: |
+  .. versionadded:: 3.4 
+  
+     Available in MongoDB Enterprise for the Windows platform only.
+
+  Allows {{program}} to authenticate, or bind, using your Windows login
+  credentials when connecting to the LDAP server.
+  
+  Only required if:
+    
+  - Using :ref:`LDAP authorization <security-ldap-external>`.
+  - Using an LDAP query for :option:`username transformation 
+    <--ldapUserToDNMapping>`.
+  - The LDAP server disallows anonymous binds
+
+  Use {{role}} to replace :option:`--ldapQueryUser` and
+  :option:`--ldapQueryPassword`.
+replacement:
+  queryUser: ":option:`--ldapQueryUser`"
+  queryPassword: ":option:`--ldapQueryPassword`"
+---
+program: mongod
+name: ldapBindMethod
+args: <string>
+directive: option
+optional: true
+default: simple
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  The method {{program}} uses to authenticate to an LDAP server. 
+  Use with {{queryUser}} and {{queryPassword}} to
+  connect to the LDAP server.
+  
+  {{role}} supports the following values:
+    
+  * ``simple`` - {{program}} uses simple authentication.
+  
+  * ``sasl`` - {{program}} uses SASL protocol for authentication
+  
+  If you specify ``sasl``, you can configure the available SASL mechanisms
+  using {{bindSaslMech}}. {{program}} defaults to
+  using ``DIGEST-MD5`` mechanism.
+replacement:
+  queryUser: ":option:`--ldapQueryUser`"
+  queryPassword: ":option:`--ldapQueryPassword`"
+  bindSASLMech: ":option:`--ldapBindSASLMechanisms`"
+---
+program: mongod
+name: ldapBindSASLMechanisms
+args: <string>
+directive: option
+optional: true
+default: DIGEST-MD5
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  A comma-separated list of SASL mechanisms {{program}} can
+  use when authenticating to the LDAP server. The {{program}} and the
+  LDAP server must agree on at least one mechanism. 
+  
+  Set {{bindMethod}} to ``sasl`` to use this option.
+  
+  .. note::
+  
+     A complete list of SASL mechanisms is out of scope for this
+     documentation. See the IANA list of `SASL mechanisms
+     <http://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml>`_,
+     as well as the documentation for your LDAP service.
+replacement:
+  bindMethod: ":option:`--ldapBindMethod`"
+---
+program: mongod
+name: ldapTransportSecurity
+args: <string>
+directive: option
+optional: true
+default: tls
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  By default, {{program}} creates a TLS/SSL secured connection to the LDAP
+  server.
+  
+  For Linux deployments, you must configure the appropriate TLS Options in
+  ``/etc/openldap/ldap.conf`` file. Your operating system's package manager
+  creates this file as part of the MongoDB Enterprise installation, via the
+  ``libldap`` dependency. See the documentation for ``TLS Options`` in the
+  `ldap.conf OpenLDAP documentation
+  <http://www.openldap.org/software/man.cgi?query=ldap.conf&manpath=OpenLDAP+2.4-Release>`_
+  for more complete instructions.
+  
+  For Windows deployment, you must add the LDAP server CA certificates to the
+  Windows certificate management tool. The exact name and functionality of the
+  tool may vary depending on operating system version. Please see the
+  documentation for your version of Windows for more information on
+  certificate management.
+  
+  Set {{role}} to ``none`` to disable TLS/SSL between {{program}} and the LDAP
+  server.
+  
+  .. warning::
+     
+     Setting {{role}} to ``none`` transmits plaintext information and possibly
+     credentials between {{program}} and the LDAP server.
+
+---
+program: mongod
+name: ldapTimeoutMS
+args: <long>
+directive: option
+optional: true
+default: 10000
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  The amount of time in milliseconds {{program}} should wait for an LDAP server
+  to respond to a request.
+  
+  Increasing the value of {{role}} may prevent connection failure between the
+  MongoDB server and the LDAP server, if the source of the failure is a
+  connection timeout. Decreasing the value of {{role}} reduces the time
+  MongoDB waits for a response from the LDAP server.
+  
+  This setting can be configured on a running {{program}} using 
+  :dbcommand:`setParameter`. 
+  
+---
+program: mongod
+name: ldapUserToDNMapping
+args: <string>
+directive: option
+optional: true
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+
+  Maps the username provided to {{program}} for authentication to a LDAP
+  Distinguished Name (DN). You may need to use {{role}} to transform a
+  username into an LDAP DN in the following scenarios:
+    
+  - Performing LDAP authentication with simple LDAP binding, where users
+    authenticate to MongoDB with usernames that are not full LDAP DNs.
+  
+  - Using an :option:`LDAP authorization query template
+    <--ldapAuthzQueryTemplate>` that requires a DN.
+    
+  - Transforming the usernames of clients authenticating to Mongo DB using
+    different authentication mechanisms (e.g. x.509, kerberos) to a full LDAP
+    DN for authorization.
+  
+  {{role}} expects a quote-enclosed JSON-string representing an ordered array
+  of documents. Each document contains a regular expression ``match`` and
+  either a ``substitution`` or ``ldapQuery`` template used for transforming the
+  incoming username.
+  
+  Each document in the array has the following form:
+    
+  .. code-block:: javascript
+  
+     {
+       match: "<regex>"
+       substitution: "<LDAP DN>" | ldapQuery: "<LDAP Query>"
+     }
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 10 70 20
+
+     * - Field
+       - Description
+       - Example
+       
+     * - ``match``
+       - An ECMAScript-formatted regular expression (regex) to match against a 
+         provided username. Each parenthesis-enclosed section represents a 
+         regex capture group used by ``substitution`` or ``ldapQuery``.
+       - ``"(.+)ENGINEERING"``
+         ``"(.+)DBA"``
+       
+     * - ``substitution``
+     
+       - An LDAP distinguished name (DN) formatting template that converts the
+         authentication name matched by the ``match`` regex into a LDAP DN.
+         Each curly bracket-enclosed numeric value is replaced by the
+         corresponding `regex capture group
+         <http://www.regular-expressions.info/refcapture.html>`_ extracted
+         from the authentication username via the ``match`` regex.
+         
+       - ``"cn={0},ou=engineering,
+         dc=example,dc=com"``
+       
+     * - ``ldapQuery``
+     
+       - A LDAP query formatting template that inserts the authentication
+         name matched by the ``match`` regex into an LDAP query URI encoded
+         respecting RFC4515 and RFC4516. Each curly bracket-enclosed numeric
+         value is replaced by the corresponding `regex capture group
+         <http://www.regular-expressions.info/refcapture.html>`_ extracted
+         from the authentication username via the ``match`` expression. 
+         {{program}} executes the query against the LDAP server to retrieve
+         the LDAP DN for the authenticated user. {{program}} requires
+         exactly one returned result for the transformation to be
+         successful, or {{program}} skips this transformation.
+         
+       - ``"ou=engineering,dc=example,
+         dc=com??one?(user={0})"``
+
+  For each document in the array, you must use either ``substitution`` or
+  ``ldapQuery``. You *cannot* specify both in the same document.
+
+  When performing authentication or authorization, {{program}} steps through
+  each document in the array in the given order, checking the authentication
+  username against the ``match`` filter.  If a match is found,
+  {{program}} applies the transformation and uses the output for 
+  authenticating the user. {{program}} does not check the remaining documents
+  in the array.
+  
+  If the given document does not match the provided authentication name, or
+  the transformation described by the document fails, {{program}} continues
+  through the list of documents to find additional matches. If no matches are
+  found in any document, {{program}} returns an error.
+
+  .. example::
+
+    The following shows two transformation documents. The first
+    document matches against any string ending in ``@ENGINEERING``, placing
+    anything preceeding the suffix into a regex capture group. The
+    second document matches against any string ending in ``@DBA``, placing
+    anything preceeding the suffix into a regex capture group.
+  
+    .. important::  You must pass the array to {{role}} as a string.
+  
+    .. code-block:: text
+    
+       "[
+          {
+             match: "(.+)@ENGINEERING.EXAMPLE.COM",
+             substitution: "cn={0},ou=engineering,dc=example,dc=com"
+          },
+          {
+             match: "(.+)@DBA.EXAMPLE.COM",
+             ldapQuery: "ou=dba,dc=example,dc=com??one?(user={0})"
+                  
+          }
+        
+       ]"
+  
+    A user with username ``alice@ENGINEERING.EXAMPLE.COM`` matches the first
+    document. The regex capture group ``{0}`` corresponds to the string
+    ``alice``. The resulting output is the DN
+    ``"cn=alice,ou=engineering,dc=example,dc=com"``.
+  
+    A user with username ``bob@DBA.EXAMPLE.COM`` matches the second document.
+    The regex capture group ``{0}`` corresponds to the string ``bob``.  The
+    resulting output is the LDAP query
+    ``"ou=dba,dc=example,dc=com??one?(user=bob)"``. {{program}} executes this
+    query against the LDAP server, returning the result
+    ``"cn=bob,ou=dba,dc=example,dc=com"``.
+
+  If {{role}} is unset, {{program}} applies no transformations to the username
+  when attempting to authenticate or authorize a user against the LDAP server.
+
+  This setting can be configured on a running {{program}} using the 
+  :dbcommand:`setParameter` database command.
+
+  .. note:: 
+    
+     An explanation of `RFC4515 <https://tools.ietf.org/search/rfc4515>`_,
+     `RFC4516 <https://tools.ietf.org/html/rfc4516>`_ or LDAP queries is out
+     of scope for the MongoDB Documentation. Please review the RFC directly or
+     use your preferred LDAP resource.
+     
+---
+program: mongod
+name: ldapAuthzQueryTemplate
+args: <string>
+directive: option
+optional: true
+description: |
+  .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+  
+  A relative LDAP query URL formatted conforming to `RFC4515
+  <https://tools.ietf.org/search/rfc4515>`_ and `RFC4516
+  <https://tools.ietf.org/html/rfc4516>`_ that {{program}} executes to obtain
+  the LDAP groups to which the authenticated user belongs to. The query is
+  relative to the host or hosts specified in :option:`--ldapServer`.
+  
+  Use the ``{USER}`` placeholder in the URL to substitute the authenticated
+  username, or the transformed username if a {{mapping}} is specified.
+  
+  When constructing the query URL, ensure that the order of LDAP parameters
+  respects RFC4516:
+    
+  .. code-block:: shell
+    
+    [ dn  [ ? [attributes] [ ? [scope] [ ? [filter] [ ? [Extensions] ] ] ] ] ]
+  
+  If your query includes an attribute, {{program}} assumes that the query
+  retrieves a the DNs which this entity is member of.
+  
+  If your query does not include an attribute, {{program}} assumes
+  the query retrieves all entities which the user is member of.
+  
+  For each LDAP DN returned by the query, {{program}} assigns the authorized
+  user a corresponding role on the ``admin`` database. If a role on the on the
+  ``admin`` database exactly matches the DN, {{program}} grants the user the
+  roles and privileges assigned to that role. See the
+  :method:`db.createRole()` method for more information on creating roles.
+  
+  .. example::
+  
+    This LDAP query returns any groups listed in the LDAP user object's
+    ``memberOf`` attribute.
+  
+    .. code-block:: shell
+  
+       "{USER}?memberOf?base"
+    
+    Your LDAP configuration may not include the ``memberOf`` attribute as part
+    of the user schema, may possess a different attribute for reporting group
+    membership, or may not track group membership through attributes.
+    Configure your query with respect to your own unique LDAP configuration.
+  
+  If unset, {{program}} cannot authorize users using LDAP.
+  
+  This setting can be configured on a running {{program}} using the 
+  :dbcommand:`setParameter` database command.
+  
+  .. note:: 
+    
+     An explanation of `RFC4515 <https://tools.ietf.org/search/rfc4515>`_,
+     `RFC4516 <https://tools.ietf.org/html/rfc4516>`_ or LDAP queries is out
+     of scope for the MongoDB Documentation. Please review the RFC directly or
+     use your preferred LDAP resource.
+replacement:
+  mapping: ":option:`username mapping <--ldapUserToDNMapping>`"
 ...
