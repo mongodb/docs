@@ -1,0 +1,268 @@
+========================
+$collStats (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $collStats
+
+   .. versionadded:: 3.4
+
+   Returns statistics regarding a collection or view.
+
+   The ``$collStats`` stage has the following prototype form:
+
+   .. code-block:: javascript
+
+      {
+        $collStats:
+          {
+            latencyStats: { histograms: <boolean> },
+            storageStats: {}
+          }
+      }
+
+   All of the fields in the argument document are optional.
+
+   * ``latencyStats`` adds latency statistics to the return document.
+
+   * ``latencyStats.histograms`` adds latency histogram information to
+     ``latencyStats`` if ``true``.
+
+   * ``storageStats`` adds storage statistics to the return document.
+
+   The return document includes the following fields:
+
+   .. list-table::
+    :header-rows: 1
+    :widths: 30 70
+
+    * - Field Name
+      - Description
+
+    * - ``ns``
+      - The :term:`namespace` of the requested collection or view.
+
+    * - ``localTime``
+      - The current time on the MongoDB server, expressed as UTC
+        milliseconds since the :term:`Unix epoch`.
+
+    * - ``latencyStats``
+      - A collection of statistics related to request latency for a
+        collection or :doc:`view </core/views>`. See
+        :ref:`latency-stats-document` for details on this document.
+
+        Only exists given the ``latencyStats: {}`` option.
+
+    * - ``storageStats``
+
+      - A collection of statistics related to a collection's storage
+        engine. See :ref:`storage-stats-document` for details on this
+        document.
+
+        Only exists given the ``storageStats: {}`` option. Returns an
+        error if applied to a :doc:`view </core/views>`.
+
+Behavior
+--------
+
+``$collStats`` must be the first stage in an aggregation pipeline, or
+else the pipeline returns an error.
+
+.. _latency-stats-document:
+
+``latencyStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``latencyStats`` embedded document only exists in the output if
+``$collStats`` receives the ``latencyStats`` option.
+
+
+.. list-table::
+    :header-rows: 1
+    :widths: 30 70
+
+    * - Field Name
+      - Description
+
+    * - ``reads``
+      - Latency statistics for read requests.
+
+    * - ``writes``
+      - Latency statistics for write requests.
+
+    * - ``commands``
+      - Latency statistics for database commands.
+
+Each of these fields contains an embedded document bearing the
+following fields:
+
+.. list-table::
+    :header-rows: 1
+    :widths: 30 70
+
+    * - Field Name
+      - Description
+
+    * - ``latency``
+      - A :bsontype:`long <data_numberlong>` giving the total combined
+        latency in microseconds.
+
+    * - ``ops``
+      - A :bsontype:`long <data_numberlong>` giving the total number of
+        operations performed on the collection since startup.
+
+    * - ``histogram``
+      - An array of embedded documents, each representing a latency range.
+        Each document covers twice the previous document's range. For
+        upper values between 2048 microseconds and roughly 1 second,
+        the histogram includes half-steps.
+
+        This field only exists given the
+        ``latencyStats: { histograms: true }`` option. Empty ranges with
+        a zero ``count`` are omitted from the output.
+
+        Each document bears the following fields:
+
+        .. list-table::
+
+           * - Field Name
+             - Description
+
+           * - ``micros``
+             - A :bsontype:`long <data_numberlong>` giving the inclusive
+               upper time bound of the current latency range in
+               microseconds.
+
+               The document's range spans between the previous document's
+               ``micros`` value, exclusive, and this document's
+               ``micros`` value, inclusive.
+
+           * - ``count``
+             - A :bsontype:`long <data_numberlong>` giving the number of
+               operations with latency less than or equal to ``micros``.
+
+        For example, if ``collStats`` returns the following histogram:
+
+        .. code-block:: javascript
+
+           histogram: [
+             { micros: 1, count: 10 },
+             { micros: 2, count: 1 },
+             { micros: 4096, count: 1}
+             { micros: 137438953472, count: 1000 },
+             { micros: 274877906944, count: 100 }
+           ]
+
+        This indicates that there were:
+
+        - 10 operations taking 1 microsecond or less,
+        - 1 operation in the range (1, 2] microseconds,
+        - 1 operation in the range (3072, 4096] microseconds,
+        - 1000 operations in the range (68719476736, 137438953472], and
+        - 100 operations in the range (137438953472, 274877906944].
+
+
+For example, if you run ``$collStats`` with the ``latencyStats: {}`` option
+on a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { latencyStats: { histograms: true } } } ] )
+
+This query will return a result similar to the following:
+
+.. code-block:: javascript
+
+   { "ns" : "test.matrices",
+     "localTime" : ISODate("2016-10-25T21:47:54.233Z"),
+     "latencyStats" :
+       { "reads" :
+           { "histogram" : [
+               { "micros" : NumberLong(16),
+                 "count" : NumberLong(3) },
+               { "micros" : NumberLong(32),
+                 "count" : NumberLong(1) },
+               { "micros" : NumberLong(128),
+                 "count" : NumberLong(1) } ],
+             "latency" : NumberLong(264),
+             "ops" : NumberLong(5) },
+         "writes" :
+           { "histogram" : [
+               { "micros" : NumberLong(32),
+                 "count" : NumberLong(1) },
+               { "micros" : NumberLong(64),
+                 "count" : NumberLong(3) },
+               { "micros" : NumberLong(24576),
+                 "count" : NumberLong(1) } ],
+             "latency" : NumberLong(27659),
+             "ops" : NumberLong(5) },
+         "commands" :
+           { "histogram" : [ ],
+             "latency" : NumberLong(0),
+             "ops" : NumberLong(0) }
+       }
+   }
+
+.. _storage-stats-document:
+
+``storageStats`` Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``storageStats`` embedded document only exists in the output if
+``$collStats`` receives the ``storageStats`` option.
+
+The contents of this document are dependent on the storage engine in use.
+See :ref:`collStats-output` for a reference on this document.
+
+For example, if you run ``$collStats`` with the ``storageStats: {}``
+option on a ``matrices`` collection using the :ref:`storage-mmapv1`:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { storageStats: { } } } ] )
+
+This query will return a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "localTime" : ISODate("2016-10-25T19:43:56.599Z"),
+     "storageStats" : {
+       "size" : 192,
+       "count" : 4,
+       "avgObjSize" : 48,
+       "numExtents" : 1,
+       "storageSize" : 8192,
+       "lastExtentSize" : 8192,
+       "paddingFactor" : 1,
+       "paddingFactorNote" : "paddingFactor is unused and unmaintained in 3.0. It    remains hard coded to 1.0 for compatibility only.",
+       "userFlags" : 1,
+       "capped" : false,
+       "nindexes" : 1,
+       "indexDetails" : {
+
+       },
+       "totalIndexSize" : 8176,
+       "indexSizes" : {
+         "_id_" : 8176
+       }
+     }
+   }
+
+Performing ``$collStats`` with the ``storageStats`` option on a
+:doc:`view </core/views>` results in an error.
+
+.. seealso::
+
+   :dbcommand:`collStats`, :method:`db.collection.stats()`
