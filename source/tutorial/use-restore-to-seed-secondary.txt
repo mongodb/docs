@@ -1,6 +1,6 @@
-========================================
-Seed a New Secondary from Backup Restore
-========================================
+==================================
+Seed a New Secondary from Snapshot
+==================================
 
 .. default-domain:: mongodb
 
@@ -13,73 +13,105 @@ Seed a New Secondary from Backup Restore
 Overview
 --------
 
-When a new secondary member is added to a replica set, MongoDB will
-synchronize data to that new secondary as it would with any member of
-the replica set. This can be very resource or time intensive if the
-database is large.
+When a new :term:`secondary` is added to a replica set, MongoDB synchronizes
+data to that new secondary as it would with any member of the replica set. If
+you need to synchronize a large database, the process may take more time and
+resources than desired for your deployment.
 
-As an alternative to the regular synchronization, the new secondary
-member can first be "seeded" with data from an existing backup. This
-limits performance impact to the new secondary and allows the active
-MongoDB process to continue storing and retrieving data.
+Instead of synchronizing the data, the new secondary can use data from an
+existing backup snapshot to seed itself first. This limits performance impact
+to the new secondary and allows the active MongoDB process to continue storing
+and retrieving data.
 
 .. _seed-secondary-considerations:
 
 Considerations
 --------------
 
-Suspend Automation
-~~~~~~~~~~~~~~~~~~
+Need to Suspend Automation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must :doc:`suspend Automation </tutorial/suspend-automation>` for the
 replica set when performing this procedure. Suspending Automation lets you
 shut down a replica set member without Automation starting it back up again.
 
-Backup Format
-~~~~~~~~~~~~~
+Differences in Backup Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the format of your backup differs from the format you want for your
-restored database, such as when you want to restore a backup of a
-deployment that uses the MMAPv1 storage engine to a deployment that
-uses the WiredTiger storage engine, then use ``mongodump`` to create
-the backup and ``mongorestore`` to restore the data to the new database.
+If your format of the data in your :term:`snapshot` differs from the format 
+you want for your restored database, use 
+:manual:`mongodump </reference/program/mongodump>` 
+to back up the data from the existing database and 
+:manual:`mongorestore </reference/program/mongodump>` 
+to restore the data to the new database.
 
-No ``seedSecondary``
-~~~~~~~~~~~~~~~~~~~~
+.. example::
+   You want to restore a snapshot of a deployment that uses the MMAPv1
+   :term:`storage engine` to a deployment that uses the WiredTiger storage
+   engine. Use :program:`mongodump` to backup the database then
+   :program:`mongorestore` to restore it to a new database.
 
-.. important::
-   The ``seedSecondary`` script is omitted from the restore files if either of
-   the following is true:
+``seedSecondary`` Script is Not Provided
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - If you blacklisted databases or collections when creating the backup.
-   - If you use legacy mirrored :term:`config servers <config server>` (config
-     servers that are not a replica set).
-  
-   If you were to have received the script as part of the restore
-   files, then tried to apply it, the secondary would become
-   inconsistent with the other members.
+The ``seedSecondary`` script is omitted from the snapshot archive if either
+of the following is true:
+
+- If you blacklisted databases or collections when creating the snapshot.
+- If you use legacy mirrored :term:`config servers <config server>` (config
+  servers that are not in a replica set).
+
+If you had received the script in the snapshot archive and then tried to
+apply it, the secondary member would become inconsistent with the other
+members.
      
 .. seealso:: :manual:`Upgrade Config Servers to Replica Set </tutorial/upgrade-config-servers-to-replica-set/>`.
 
+Length of the Oplog
+~~~~~~~~~~~~~~~~~~~
 
-Oplog Window
-~~~~~~~~~~~~
+To seed a new secondary completely, you need both the snapshot and the
+:term:`oplog` from the :term:`primary`. The oplog must includes all database
+operations going back to the time when the snapshot was taken. If the oplog
+length, or window, is not longer than the time since the last snapshot was
+taken, not all data can be restored.
 
-Seeding a new secondary from a backup restore requires an oplog window
-on the current primary that spans back to the snapshot's timestamp.
+To check the oplog length before attempting to restore from a snapshot, run
+the :manual:`rs.printReplicationInfo() </reference/method/rs.printReplicationInfo>` 
+command in the :manual:`mongo </reference/program/mongo>` shell on the primary
+member.
+
+.. seealso:: 
+
+   Review :ref:`Check the Size of the Oplog <replica-set-troubleshooting-check-oplog-size>` 
+   on the 
+   :manual:`Troubleshoot Replica Sets </tutorial/troubleshoot-replica-sets>`
+   page of the MongoDB Manual for guidelines on oplog size.
+
+When you run the ``seedSecondary`` script, you must provide the replica set's
+oplog size in gigabytes.
+
+.. note::
+
+   The :manual:`rs.printReplicationInfo() </reference/method/rs.printReplicationInfo>` 
+   method returns the oplog size in megabytes (MB) and the ``seedSecondary``
+   script takes the value as gigabytes (GB). Divide the oplog size in MB by
+   1,000 to get the value in GB.
 
 Prerequisites
 -------------
 
-To seed a secondary from a backup restore file, you must have the backup restore file. This file includes:
+To seed a secondary from a snapshot, you must have the snapshot archive. This
+archive includes:
 
-- The data files to be restored.
+- The snapshot data files to be restored.
 
-- The :file:`seedSecondary.sh` and :file:`seedSecondary.bat` scripts to perform the seeding activities.
+- The ``seedSecondary.sh`` (Linux/Mac OS X) and ``seedSecondary.bat``
+  (Windows) scripts to perform the seeding activities.
 
 - A human-readable restore metadata file, ``restoreInfo.txt``, to
   provide the data about the snapshot to be restored. This file
-  contains the following information:
+  contains:
 
   - Group name
   - Replica Set name
@@ -91,29 +123,21 @@ To seed a secondary from a backup restore file, you must have the backup restore
   - `mongod` startup options used on the database when the
     snapshot was taken
     
-  An example of the ``restoreInfo.txt`` file would read like this:
+  .. example::
+     The ``restoreInfo.txt`` file should read like this:
 
-  ..  code-block:: json
+     ..  code-block:: json
 
-      Restore Information
-      Group Name: test1
-      Replica Set: config
-      Cluster Id: bar
-      Snapshot timestamp: Thu May 19 20:03:59 GMT 2016
-      Last Oplog Applied: Thu May 19 20:04:45 GMT 2016 (1463688285, 2)
-      MongoDB Version: 3.0.12
-      Storage Engine: wiredTiger
-      Startup Options: { "storage.directoryPerDB" : true }
+         Restore Information
+         Group Name: test1
+         Replica Set: config
+         Cluster Id: bar
+         Snapshot timestamp: Thu May 19 20:03:59 GMT 2016
+         Last Oplog Applied: Thu May 19 20:04:45 GMT 2016 (1463688285, 2)
+         MongoDB Version: 3.0.12
+         Storage Engine: wiredTiger
+         Startup Options: { "storage.directoryPerDB" : true }
 
-When you run the :file:`seedSecondary.sh` script on a Unix-based system
-or :file:`seedSecondary.bat` script on a Windows-based system as part
-of this tutorial, you must provide the replica set's oplog size in
-gigabytes.
-
-.. seealso::
-   See **Check the Size of the Oplog** on 
-   :manual:`Troubleshoot Replica Sets </tutorial/troubleshoot-replica-sets>` 
-   if you do not have the size.
 
 Procedure
 ---------
