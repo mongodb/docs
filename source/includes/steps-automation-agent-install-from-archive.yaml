@@ -159,8 +159,23 @@ ref: create-automation-directory
 action:
   pre: |
 
-    Create the directories for the Automation Agent binaries, the Automation
-    Agent logs, and the MongoDB databases that the Automation Agent creates.
+    Create the directories for the Automation Agent:
+
+    .. list-table::
+       :widths: 40 60
+
+       * - Component
+         - Default Directory
+
+       * - Automation Agent binaries
+         - ``/var/lib/mongodb-mms-automation``
+
+       * - Automation Agent logs
+         - ``/var/log/mongodb-mms-automation``
+
+       * - MongoDB databases created by the Automation Agent
+         - ``/data``
+
     The system user that runs the Automation Agent should own these
     directories.
 
@@ -172,11 +187,14 @@ action:
 
   post: |
 
-    .. topic:: Using a Different Path for the Automation Agent Binaries
+    .. topic:: Using a Different Path than ``/var/lib``
 
-       If you want to store your Automation Agent binaries in a directory
-       other than ``/var/lib/``, you can change where the agent binaries are
-       stored in the |mms| application.
+       By default, the Automation Agent binaries and |onprem| configuration
+       backup file are located in ``/var/lib/mongodb-mms-automation``. If you
+       want to store these files in a different directory, follow these
+       procedures:
+
+       **To change the location of the Automation Agent Binaries:**
 
        a. Click :guilabel:`Settings`, then :guilabel:`Agents`.
 
@@ -187,21 +205,37 @@ action:
 
        d. Click :guilabel:`Save`.
 
-       e. Create the directory that you specified in the |mms| application on
-          the systems hosting Automation Agents as explained above.
+       e. Create the new directory you specified on each host that runs
+          an Automation Agent.
 
-       f. Open the
+          .. code-block:: sh
+
+               sudo mkdir -m 755 -p /<newPath>
+
+          .. important::
+             Make sure the system user that runs the Automation Agent can
+             write to this new directory.
+
+       **To change the location of the Automation Agent configuration backup:**
+
+       a. Open the
           :ref:`Automation Agent configuration file <automation-agent-config-file-location>`
           in your favorite text editor.
 
-       g. Change the :asetting:`mmsConfigBackup` setting to match 
-          the path you set for :guilabel:`Download Directory (Linux/MacOS)`.
+       b. Change the :asetting:`mmsConfigBackup` setting to the new path for
+          the configuration backup file.
 
           .. code-block: ini
 
-             mmsConfigBackup=/path/to/mms-cluster-config-backup.json
+             mmsConfigBackup=/<newPath>/mms-cluster-config-backup.json
 
-       h. Save the Automation Agent configuration file.
+       c. Save the Automation Agent configuration file.
+
+       d. Move the configuration backup file to the new directory.
+
+          .. code-block:: sh
+
+             sudo mv /var/lib/mongodb-mms-automation/mms-cluster-config-backup.json /<newPath>
 
 ---
 title: "Start the Automation Agent."
@@ -209,7 +243,10 @@ stepnum: 6
 ref: start-automation-agent
 action:
   pre: |
-    Issue the following command:
+
+    From the directory in which you installed the Automation Agent, issue the
+    following command:
+
   language: sh
   code: |
     nohup ./mongodb-mms-automation-agent >> automation-agent.log 2>&1 &
