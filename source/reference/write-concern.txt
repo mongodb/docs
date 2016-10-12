@@ -22,19 +22,6 @@ MongoDB for write operations to a standalone :program:`mongod` or to
 sharded clusters, :program:`mongos` instances will pass the write
 concern on to the shards.
 
-.. versionchanged:: 3.2
-
-   For replica sets using :rsconf:`protocolVersion: 1
-   <protocolVersion>` **and** running with the :term:`journal` enabled:
-
-   - :writeconcern:`w: "majority" <"majority">` implies :ref:`j: true
-     <wc-j>`.
-
-   - :term:`Secondary members <secondary>` acknowledge replicated write
-     operations after the secondary members have written to their
-     respective on-disk journals, regardless of the :ref:`j <wc-j>`
-     option used for the write on the :term:`primary`.
-
 .. versionchanged:: 2.6
    A new protocol for :ref:`write operations
    <rel-notes-write-operations>` integrates write concerns with the
@@ -74,19 +61,6 @@ propagated to a specified number of :program:`mongod` instances or to
 Using the ``w`` option, the following ``w: <value>`` write concerns are
 available:
 
-.. note::
-
-   Standalone :program:`mongod` instances and primaries of replica sets
-   acknowledge write operations after applying the write in memory,
-   unless :ref:`j:true <wc-j>`.
-
-   .. versionchanged:: 3.2
-
-      For replica sets using :rsconf:`protocolVersion: 1
-      <protocolVersion>`, secondaries acknowledge write operations after
-      the secondary members have written to their respective on-disk
-      :doc:`journals </core/journaling>`, regardless of the :ref:`j
-      <wc-j>` option.
 
 .. list-table::
    :header-rows: 1
@@ -123,18 +97,21 @@ available:
 
    * - .. writeconcern:: "majority"
 
-     - *Changed in version 3.2*
-
-       Requests acknowledgment that write operations have propagated to
+     - Requests acknowledgment that write operations have propagated to
        the majority of voting nodes [#majority-definition]_, including
-       the primary, and have been written to the on-disk :doc:`journal
-       </core/journaling>` for these nodes.
+       the primary.
 
-       For replica sets using :rsconf:`protocolVersion: 1
-       <protocolVersion>`, :writeconcern:`w: "majority" <"majority">`
-       implies :ref:`j: true <wc-j>`. So, unlike ``w: <number>``, with
-       :writeconcern:`w: "majority" <"majority">`, the primary also
-       writes to the on-disk journal before acknowledging the write.
+       .. versionchanged:: 3.2.6
+
+          For replica sets using :rsconf:`protocolVersion: 1
+          <protocolVersion>`, :writeconcern:`w: "majority"
+          <"majority">` may imply :ref:`j: true <wc-j>` if journaling
+          is enabled. See :rsconf:`writeConcernMajorityJournalDefault`.
+
+       In earlier 3.2 versions, :writeconcern:`w: "majority"
+       <"majority">` implies :ref:`j: true <wc-j>` if journaling is
+       enabled. With earlier versions of MongoDB, :writeconcern:`w:
+       "majority" <"majority">` does not imply journaling.
 
        After the write operation returns with a :writeconcern:`w:
        "majority" <"majority">` acknowledgement to the client, the
@@ -152,9 +129,8 @@ available:
 ``j`` Option
 ~~~~~~~~~~~~
 
-The :ref:`j <wc-j>` option requests acknowledgement from MongoDB that
-the write operation has been written to the :doc:`journal
-</core/journaling>`.
+The ``j`` option requests acknowledgement from MongoDB that the write
+operation has been written to the :doc:`journal </core/journaling>`.
 
 .. list-table::
    :widths: 25 75
@@ -170,11 +146,6 @@ the write operation has been written to the :doc:`journal
        .. versionchanged:: 3.2
 
           .. include:: /includes/note-write-concern-journaled-replication.rst
-
-          For replica sets using :rsconf:`protocolVersion: 1
-          <protocolVersion>`, :writeconcern:`w: "majority"
-          <"majority">` implies :ref:`j: true <wc-j>`,
-          if journaling is enabled. Journaling is enabled by default.
 
 .. versionchanged:: 2.6
    Specifying a write concern that includes ``j: true`` to
@@ -201,6 +172,26 @@ If you do not specify the ``wtimeout`` option and the level of write
 concern is unachievable, the write operation will block indefinitely.
 Specifying a ``wtimeout`` value of ``0`` is equivalent to a write
 concern without the ``wtimeout`` option.
+
+Acknowlegement Behavior
+-----------------------
+
+- Standalone mongod instances acknowledge write operations after
+  applying the write in memory unless ``j:true``.
+
+
+- .. versionchanged:: 3.2.6
+
+     For replica sets using :rsconf:`protocolVersion: 1
+     <protocolVersion>`, :writeconcern:`w: "majority" <"majority">` may
+     imply :ref:`j: true <wc-j>` if journaling is enabled. The
+     :rsconf:`writeConcernMajorityJournalDefault` replica set
+     configuration setting determines the behavior.
+
+     In 3.2-versions earlier than 3.2.6, :writeconcern:`w: "majority"
+     <"majority">` implies :ref:`j: true <wc-j>` if journaling is
+     enabled. With earlier versions of MongoDB, :writeconcern:`w:
+     "majority" <"majority">` does not imply journaling.
 
 .. [#majority-definition]
 
