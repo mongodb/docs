@@ -79,9 +79,6 @@ pre: |
   For replica set config server deployments, shut down the :term:`primary`
   member last.
   
-  For mirrored config server deployments, there is no required order 
-  for shutting down the individual :program:`mongod` instances.
-  
   Use the :method:`db.shutdownServer()` method on the ``admin`` database
   to safely shut down the :program:`mongod`:
 action:
@@ -124,15 +121,6 @@ pre: |
 
    You can specify the :program:`mongod` settings either via a
    configuration file or the command line.
-
-   .. note::
-
-      MongoDB 3.2 deprecates mirrored config servers. The downtime may
-      be an ideal time to upgrade mirrored config servers to a replica
-      set deployment. See the
-      :doc:`/tutorial/upgrade-config-servers-to-replica-set` tutorial
-      for instructions on converting a mirrored config server
-      deployment to a replica set deployment.
 action:
   - pre: |
       **Configuration File**
@@ -157,23 +145,6 @@ action:
       Include additional settings as appropriate to your deployment.
       For more information on the configuration file, see
       :doc:`configuration options</reference/configuration-options>`.
-   
-      If using a mirrored config server deployment, omit the
-      :setting:`replication.replSetName` option.
-      
-      .. code-block:: yaml
-      
-         security:
-           keyFile: <path-to-keyfile>
-         sharding:
-           clusterRole: configsvr
-         storage:
-            dbpath: <path>
-      
-      Include additional settings as appropriate to your deployment.
-      For more information on the configuration file, see
-      :doc:`configuration options</reference/configuration-options>`.
-
   - pre: |
       Start the :program:`mongod` specifying the ``--config`` option and the 
       path to the configuration file.
@@ -190,14 +161,7 @@ action:
       .. code-block:: sh
       
          mongod --keyFile <path-to-keyfile> --configsvr --replSet <setname> --dbpath <path>
-         
-      If using a mirrored config server deployment, omit the
-      ``--replSet`` parameter.
-      
-      .. code-block:: sh
-      
-         mongod --keyFile <path-to-keyfile> --configsvr  --dbpath <path>
-
+   
     post: |
        For more information on startup parameters, 
        see the :program:`mongod` reference page.
@@ -353,27 +317,6 @@ action:
       mongos --keyFile <path-to-keyfile> --configdb <configReplSetName>/cfg1.example.net:27017,cfg2.example.net:27017,...
     post: |
       Include any other options as appropriate for your deployment.
-  - pre: |
-      **Using mirrored config servers**
-      
-      .. versionchanged:: 3.2 MongoDB deprecates mirrored config server configurations
-         
-      If using a mirrored configuration, pass all of the config 
-      servers in ``<host>:<port>`` format to the ``configDB`` option. 
-      
-      If using a configuration file:
-    language: yaml
-    code: |
-      security:
-        keyFile: <path-to-keyfile>
-      sharding:
-        configDB: cfg1.example.net:27017,cfg2.example.net:27017,cfg3.example.net:27017
-  - pre: |
-      If using the command line parameters:
-    language: sh
-    code: |
-      mongos --keyFile <path-to-keyfile> --configdb
-      cfg1.example.net:27017,cfg2.example.net:27017,cfg3.example.net:27017
 post: |
   At this point, the entire sharded cluster is back online and can 
   communicate internally using the keyfile specified. However, external 

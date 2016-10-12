@@ -1178,40 +1178,46 @@ name: configsvr
 args: null
 directive: option
 description: |
-  Declares that this {{program}} instance serves as the
-  :term:`config database` of a sharded cluster. When running with
-  this option, clients (i.e. other cluster components) will not be
-  able to write data to any database other than ``config`` and
-  ``admin``. The default port for a {{program}} with this option is
+  
+  *Required if starting a config server.*
+  
+  Declares that this {{program}} instance serves as the :ref:`config
+  server <sharded-cluster-config-server>` of a sharded cluster. When
+  running with this option, clients (i.e. other cluster components)
+  will not be able to write data to any database other than ``config``
+  and ``admin``. The default port for a {{program}} with this option is
   ``27019`` and the default :option:`--dbpath` directory is
   ``/data/configdb``, unless specified.
 
-  If using :doc:`/core/mmapv1`, {{role}} option also sets :option:`--smallfiles`.
+  .. important::
+
+     Starting in 3.4, you must deploy config servers as a replica set.
+     The use of the deprecated mirrored :program:`mongod` instances as
+     config servers (SCCC) is no longer supported. To convert your
+     config servers from SCCC to CSRS, see
+     :doc:`/tutorial/upgrade-config-servers-to-replica-set`.
+
+     The replica set config servers (CSRS) must run the
+     :doc:`WiredTiger storage engine </core/wiredtiger>`.
 
   The {{role}} option creates a local :term:`oplog`.
 
   Do not use the {{role}} option with :option:`--shardsvr`. Config
   servers cannot be a shard server.
-
-  .. versionchanged:: 3.2
-
-     .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
-
-     In previous versions, {{role}} could not be used in conjunction with
-     :option:`--replSet`.
-   
-optional: true
+optional: false
 ---
 program: mongod
 name: shardsvr
 args: null
 directive: option
 description: |
+  *Required if starting a shard server.*
+  
   Configures this {{program}} instance as a shard in a
-  partitioned cluster. The default port for these instances is
+  sharded cluster. The default port for these instances is
   ``27018``.  The only effect of {{role}} is to change
   the port number.
-optional: true
+optional: false
 ---
 program: mongod
 name: sslOnNormalPorts
@@ -2064,7 +2070,7 @@ name: configsvrMode
 optional: true
 args: <string>
 description: |
-   .. versionadded:: 3.2
+   **Available in MongoDB 3.2 version only**
 
    If set to ``sccc``, indicates that the config servers are deployed
    as three mirrored :program:`mongod` instances, even if one or more

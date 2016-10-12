@@ -64,9 +64,9 @@ A MongoDB :term:`sharded cluster` consists of the following components:
   query router, providing an interface between client applications and the
   sharded cluster.
 
-* :doc:`config servers </core/sharded-cluster-config-servers>`: Config servers
-  store metadata and configuration settings for the cluster. As of MongoDB
-  3.2, config servers can be deployed as a replica set.
+* :doc:`config servers </core/sharded-cluster-config-servers>`: Config
+  servers store metadata and configuration settings for the cluster. As
+  of MongoDB 3.4, config servers must be deployed as a replica set (CSRS).
 
 The following graphic describes the interaction of components within a
 sharded cluster:
@@ -153,10 +153,13 @@ operations even if one or more shards are unavailable. While the subset of
 data on the unavailable shards cannot be accessed during the downtime, reads
 or writes directed at the available shards can still succeed.
 
-MongoDB 3.2 allows you to deploy :term:`config servers <config server>`
-as :term:`replica sets <replica set>`. A sharded cluster with a Config Server
-Replica Set (CSRS) can continue to process reads and writes as long as a
-majority of the replica set is available.
+Starting in MongoDB 3.2, you can deploy :term:`config servers <config
+server>` as :term:`replica sets <replica set>`. A sharded cluster with
+a Config Server Replica Set (CSRS) can continue to process reads and
+writes as long as a majority of the replica set is available. In
+version 3.4, MongoDB removes support for SCCC config servers. To
+upgrade your config servers from SCCC to CSRS, see
+:doc:`/tutorial/upgrade-config-servers-to-replica-set`.
 
 In production environments, individual shards should be deployed as
 :term:`replica sets <replica set>`, providing increased redundancy and
@@ -165,21 +168,23 @@ availability.
 Considerations Before Sharding
 ------------------------------
 
-Sharded cluster infrastructure requirements and complexity requires care in
-planning, execution, and maintenance. Sharding also has certain
-:ref:`operational requirements <sharding-operational-restrictions>`.See
+Sharded cluster infrastructure requirements and complexity require
+careful planning, execution, and maintenance. 
+
+Careful consideration in choosing the shard key is necessary for
+ensuring cluster performance and efficiency. You cannot change the
+shard key after sharding, nor can you unshard a sharded collection. See
+:ref:`sharding-internals-operations-and-reliability`.
+
+Sharding has certain :ref:`operational requirements and
+restrictions <sharding-operational-restrictions>`. See
 :doc:`/core/sharded-cluster-requirements` for more information.
 
-For queries that do *not* include the shard key or the prefix of a
-:term:`compound <compound index>` shard
-key, :program:`mongos` performs a :ref:`broadcast
-operation <sharding-mongos-broadcast>`, querying *all* shards in the sharded
-cluster. These scatter/gather queries can be long running operations.
-
-Careful consideration of shard key is necessary for ensuring cluster
-performance and efficiency. You cannot change the shard key after sharding,
-nor can you unshard a sharded collection. See
-:ref:`sharding-internals-operations-and-reliability`.
+If queries do *not* include the shard key or the prefix of a
+:term:`compound <compound index>` shard key, :program:`mongos` performs
+a :ref:`broadcast operation <sharding-mongos-broadcast>`, querying
+*all* shards in the sharded cluster. These scatter/gather queries can
+be long running operations.
 
 .. note::
 
@@ -208,7 +213,7 @@ perform read or write operations.
 .. include:: /images/sharded-cluster-mixed.rst
 
 You can connect to a :program:`mongos` the same way you connect to a
-:program:`mongod`, such as using the :program:`mongo` shell or a MongoDB
+:program:`mongod`, such as via the :program:`mongo` shell or a MongoDB
 :ecosystem:`driver </drivers?jump=docs>`.
 
 .. _sharding-strategy:
@@ -252,8 +257,8 @@ shard key values.
 
 A range of shard keys whose values are "close" are more likely to reside on
 the same :term:`chunk`. This allows for :ref:`targeted
-operations<sharding-mongos-targeted>`, as a :program:`mongos` can route the
-query to only the shards that contain the required data.
+operations<sharding-mongos-targeted>` as a :program:`mongos` can route the
+operations to only the shards that contain the required data.
 
 The efficiency of ranged sharding depends on the shard key chosen. Poorly
 considered shard keys can result in uneven distribution of data, which can
