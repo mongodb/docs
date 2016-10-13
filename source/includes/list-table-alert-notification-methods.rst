@@ -40,19 +40,24 @@
 
      - Sends the alert to a specified email address.
 
-   * - .. only:: cloud
+   * - SMS
 
-          SMS
+     - Sends the alert to a specified mobile number.
 
-     - .. only:: cloud
+       .. only:: cloud
 
-          Sends the alert to a specified mobile number. |mms| removes all
+          |mms| removes all
           punctuation and letters and uses only the digits. If you are
           outside of the United States or Canada, include '011' and the
           country code. For example, for New Zealand enter '01164' before
           the phone number. As an alternative, use a Google Voice number.
           |mms| uses the U.S.-based `Twilio <https://www.twilio.com>`_ to
           send SMS messages.
+
+       .. only:: onprem
+
+          Available only if |onprem| is configured for :ref:`Twilio
+          integration <twilio-sms-alert-settings>`.
 
    * - HipChat
 
