@@ -18,24 +18,28 @@
    - ``BACKUP_AGENT_VERSION_BEHIND``
    - ``BACKUP_AGENT_CONF_CALL_FAILURE``
 
-- Backup alerts support these values:
-   - ``OPLOG_BEHIND``
-   - ``CLUSTER_MONGOS_IS_MISSING``
-   - ``RESYNC_REQUIRED``
-   - ``BAD_CLUSTERSHOTS``
+- .. only:: cloud
 
-  .. QUESTION: Are these available ONLY for global alerts (the docs currently
-     list them for both):
-     - ``RS_BIND_ERROR``
-     - ``BACKUP_TOO_MANY_RETRIES``
-     - ``BACKUP_IN_UNEXPECTED_STATE``
-     - ``LATE_SNAPSHOT``
-     - ``SYNC_SLICE_HAS_NOT_PROGRESSED``
+     Backup alerts support these values:
+     - ``OPLOG_BEHIND``
+     - ``CLUSTER_MONGOS_IS_MISSING``
+     - ``RESYNC_REQUIRED``
+     - ``BAD_CLUSTERSHOTS``
 
-  .. QUESTION: We don't currently document these, but it looks like they're
-     available for global alerts. Is that correct?
-     - ``BACKUP_JOB_TOO_BUSY``
-     - ``GROUP_TAGS_CHANGED``
+- .. only:: onprem
+
+     Backup alerts support these values:
+     - ``OPLOG_BEHIND``
+     - ``CLUSTER_MONGOS_IS_MISSING``
+     - ``RESYNC_REQUIRED``
+     - ``BAD_CLUSTERSHOTS``
+     - ``RS_BIND_ERROR`` (:doc:`global alerts </tutorial/manage-global-alerts>` only)
+     - ``BACKUP_TOO_MANY_RETRIES`` (global alerts only)
+     - ``BACKUP_IN_UNEXPECTED_STATE`` (global alerts only)
+     - ``LATE_SNAPSHOT`` (global alerts only)
+     - ``SYNC_SLICE_HAS_NOT_PROGRESSED`` (global alerts only)
+     - ``BACKUP_JOB_TOO_BUSY`` (global alerts only)
+     - ``GROUP_TAGS_CHANGED`` (global alerts only)
 
 - Group alerts support these values:
    - ``USERS_AWAITING_APPROVAL``
