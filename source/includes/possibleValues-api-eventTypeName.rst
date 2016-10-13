@@ -22,12 +22,20 @@
    - ``OPLOG_BEHIND``
    - ``CLUSTER_MONGOS_IS_MISSING``
    - ``RESYNC_REQUIRED``
-   - ``RS_BIND_ERROR``
-   - ``BACKUP_TOO_MANY_RETRIES``
-   - ``BACKUP_IN_UNEXPECTED_STATE``
-   - ``LATE_SNAPSHOT``
    - ``BAD_CLUSTERSHOTS``
-   - ``SYNC_SLICE_HAS_NOT_PROGRESSED``
+
+  .. QUESTION: Are these available ONLY for global alerts (the docs currently
+     list them for both):
+     - ``RS_BIND_ERROR``
+     - ``BACKUP_TOO_MANY_RETRIES``
+     - ``BACKUP_IN_UNEXPECTED_STATE``
+     - ``LATE_SNAPSHOT``
+     - ``SYNC_SLICE_HAS_NOT_PROGRESSED``
+
+  .. QUESTION: We don't currently document these, but it looks like they're
+     available for global alerts. Is that correct?
+     - ``BACKUP_JOB_TOO_BUSY``
+     - ``GROUP_TAGS_CHANGED``
 
 - Group alerts support these values:
    - ``USERS_AWAITING_APPROVAL``
