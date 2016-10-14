@@ -113,7 +113,7 @@ Options
 
 .. include:: /includes/option/option-mongoimport-headerline.rst
 
-.. include:: /includes/option/option-mongoimport-upsert.rst
+.. include:: /includes/option/option-mongoimport-mode.rst
 
 .. include:: /includes/option/option-mongoimport-upsertFields.rst
 
@@ -136,4 +136,193 @@ Options
 Use
 ---
 
-.. include:: /includes/fact-mongoimport-usage.rst
+Simple Import
+~~~~~~~~~~~~~
+
+:program:`mongoimport` restores a database from a backup taken with
+:program:`mongoexport`. Most of the arguments to :program:`mongoexport` also
+exist for :program:`mongoimport`.
+
+In the following example, :program:`mongoimport` imports
+the :term:`JSON` data from the ``contacts.json`` file into the collection
+``contacts`` in the ``users`` database.
+
+.. code-block:: sh
+
+   mongoimport --db users --collection contacts --file contacts.json
+
+.. _ex-mongoimport-upsert:
+
+Replace Matching Documents during Import
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+   In MongoDB 3.4, :option:`--mode upsert <--mode>` replaces the
+   deprecated ``--upsert`` option.
+
+With :option:`--mode` ``upsert``, :program:`mongoimport` replaces
+existing documents in the database that match a document in the
+import file with the document from the import file. 
+Documents that do not match an existing document in the database are
+inserted as usual. By default :program:`mongoimport` matches documents
+based on the ``_id`` field. Use :option:`--upsertFields` to specify
+the fields to match against.
+
+Consider the following document in the ``people`` collection in the
+``example`` database:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "name" : "Crystal Duncan",
+      "region" : "United States",
+      "email" : "crystal@example.com"
+   }
+
+The following document exists in a ``people-20160927.json`` JSON file.
+The ``_id`` field of the JSON object matches the ``_id`` field of the
+document in the ``people`` collection.
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+To import the ``people-20160927.json`` file and replace documents in
+the database that match the documents in the import file, specify :option:`--mode`
+``upsert``, as in the following:
+
+.. code-block:: sh
+
+   mongoimport -c people -d example --mode upsert --file people-20160927.json
+
+The document in the ``people`` collection would then contain only
+the fields from the imported document, as in the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+.. _ex-mongoimport-merge:
+
+Merge Matching Documents during Import
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+With :option:`--mode` ``merge``, :program:`mongoimport` enables you to
+merge fields from a new record with an existing document in the
+database. Documents that do not match an existing document in the
+database are inserted as usual. By default :program:`mongoimport`
+matches documents based on the ``_id`` field. Use
+:option:`--upsertFields` to specify the fields to match against.
+
+The ``people`` collection in the ``example`` database contains the
+following document:
+
+.. code-block:: javascript
+
+ {
+    "_id" : ObjectId("580100f4da893943d393e909"),
+    "name" : "Crystal Duncan",
+    "region" : "United States",
+    "email" : "crystal@example.com"
+ }
+
+The following document exists in a ``people-20160927.json`` JSON file.
+The ``_id`` field of the JSON object matches the ``_id`` field of the
+document in the ``people`` collection.
+  
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "username" : "crystal",
+      "email": "crystal.duncan@example.com",
+      "likes" : [ "running", "pandas", "software development" ]
+   }
+
+To import the ``people-20160927.json`` file and merge documents from
+the import file with matching documents in the database, specify
+:option:`--mode` ``merge``, as in the following:
+  
+.. code-block:: sh
+
+   mongoimport -c people -d example --mode merge --file people-20160927.json
+
+The import operation combines the fields from the JSON file with the
+original document in the database, 
+matching the documents based on the ``_id`` field.
+During the import process, :program:`mongoimport` adds the new ``username`` and
+``likes`` fields to the document and updates the ``email`` field with
+the value from the imported document, as in the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("580100f4da893943d393e909"),
+      "name" : "Crystal Duncan",
+      "region" : "United States",
+      "email" : "crystal.duncan@example.com",
+      "username" : "crystal",
+      "likes" : [
+         "running",
+         "pandas",
+         "software development"
+      ]
+   }
+
+Import ``JSON`` to Remote Host Running with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, :program:`mongoimport` imports data from the
+file ``/opt/backups/mdb1-examplenet.json`` into the ``contacts`` collection
+within the database ``marketing`` on a remote MongoDB
+database with authentication enabled.
+
+:program:`mongoimport` connects to the :program:`mongod` instance running on
+the host ``mongodb1.example.net`` over port ``37017``. It authenticates with the
+username ``user`` and the password ``pass``.
+
+.. code-block:: sh
+
+   mongoimport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json
+
+``CSV`` Import
+~~~~~~~~~~~~~~
+
+In the following example, :program:`mongoimport` imports the :term:`csv`
+formatted data in the ``/opt/backups/contacts.csv`` file into the
+collection ``contacts`` in the ``users`` database on the MongoDB
+instance running on the localhost port numbered
+``27017``.
+
+Specifying :option:`--headerline <mongoimport --headerline>` instructs
+:program:`mongoimport` to determine the name of the fields using the first
+line in the CSV file.
+
+.. code-block:: sh
+
+   mongoimport --db users --collection contacts --type csv --headerline --file /opt/backups/contacts.csv
+
+:program:`mongoimport` uses the input file name, without the
+extension, as the collection name if ``-c`` or ``--collection`` is
+unspecified. The following example is therefore equivalent:
+
+.. code-block:: none
+
+   mongoimport --db users --type csv --headerline --file /opt/backups/contacts.csv
+
+Use the ":option:`--ignoreBlanks <mongoimport --ignoreBlanks>`" option
+to ignore blank fields. For :term:`CSV` and :term:`TSV` imports, this
+option provides the desired functionality in most cases because it avoids
+inserting fields with null values into your collection.
+

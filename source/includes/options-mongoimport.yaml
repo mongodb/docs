@@ -293,10 +293,60 @@ inherit:
 optional: true
 ---
 program: mongoimport
+name: mode
+directive: option
+args: insert|upsert|merge
+description: |
+  .. versionadded:: 3.4
+  
+  Specifies how the import process should handle existing documents
+  in the database that match documents in the import file.
+
+  By default, {{program}} uses the ``_id`` field to match documents in
+  the collection with documents in the import file.
+  To specify the fields against which to match existing
+  documents for the ``upsert`` and ``merge`` modes, 
+  use :option:`--upsertFields`.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+     
+     * - Value
+       - Description
+    
+     * - ``insert``
+     
+       - Insert the documents in the import file. {{program}} will log
+         an error if you attempt to import a document that contains a
+         duplicate value for a field with a :ref:`unique index 
+         <index-type-unique>`, such as ``_id``.
+     
+     * - ``upsert``
+     
+       - Replace existing documents in the database with matching
+         documents from the
+         import file. {{program}} will insert all other
+         documents. :ref:`ex-mongoimport-upsert` describes how to
+         use {{role}} ``upsert``.
+    
+     * - ``merge``
+     
+       - Merge existing documents that match a document in the import file with
+         the new document. {{program}} will insert all other documents. 
+         :ref:`ex-mongoimport-merge` describes how to use {{role}}
+         ``merge``.
+
+default: insert  
+optional: true
+---
+program: mongoimport
 name: upsert
 directive: option
 args: null
 description: |
+  .. deprecated:: 3.4 :option:`--mode` replaces {{role}}.  
+
   Modifies the import process to update existing objects in the
   database if they match an imported object, while inserting all
   other objects.
@@ -319,19 +369,20 @@ directive: option
 args: <field1[,field2]>
 description: |
   Specifies a list of fields for the query portion of the
-  :term:`upsert`. Use this option if the ``_id`` fields in the
+  :term:`upsert`.
+  Use this option if the ``_id`` fields in the
   existing documents don't match the field in the document, but
   another field or field combination can uniquely identify
   documents as a basis for performing upsert operations.
 
-  .. versionchanged:: 3.0.0
-    Modifies the import process to update existing objects in the
-    database if they match based on the specified fields, while
-    inserting all other objects. You do not need to use :option:`--upsert`
-    with {{role}}.
-
-    If you do not specify a field, {{role}} will upsert on the basis of
-    the ``_id`` field.
+  .. versionchanged:: 3.4
+     Modifies the import process to update existing objects in the
+     database if they match based on the specified fields, while
+     inserting all other objects. You do not need to use :option:`--mode
+     upsert <--mode>` with {{role}}.
+     
+     If you do not specify a field, {{role}} will upsert on the basis of
+     the ``_id`` field.
 
   To ensure adequate performance, indexes should exist for this
   field or fields.
