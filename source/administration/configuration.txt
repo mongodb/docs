@@ -248,21 +248,21 @@ the file must not have group or "world" permissions on UNIX systems.
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Sharding requires a number of :program:`mongod` instances with
-different configurations. The config servers store the cluster's
-metadata, while the cluster distributes data among one or more shard
-servers.
+Sharding requires :program:`mongod` instances with different
+:program:`mongod` configurations for the :ref:`config servers
+<sharded-cluster-config-server>` and the :doc:`shards
+</core/sharded-cluster-shards>`. The config servers store the cluster's
+metadata, while the shards store the data.
 
-.. note::
+To configure the config server :program:`mongod` instances, in the
+configuration file, specify ``configsvr`` for the
+:setting:`sharding.clusterRole` setting.
 
-   :term:`Config servers <config database>` are not :term:`replica
-   sets <replica set>`.
+.. versionchanged:: 3.2
 
-To set up one or three "config server" instances as :ref:`normal
-<base-config>` :program:`mongod` instances, and then add the following
-configuration option:
-
-In :doc:`YAML format </reference/configuration-options>`
+   Starting in MongoDB 3.2, config servers can be deployed as a replica
+   set. MongoDB 3.2 deprecates the use of the mirrored config servers.
+   See :doc:`/tutorial/upgrade-config-servers-to-replica-set`.
 
 .. code-block:: yaml
 
@@ -271,25 +271,15 @@ In :doc:`YAML format </reference/configuration-options>`
    net:
       bindIp: 10.8.0.12
       port: 27001
+  replication:
+      replSetName: csRS
 
-Or, if using the :v2.4:`older configuration file format
-</reference/configuration-options>`:
+To deploy config servers as a replica set, the config servers must run
+the :ref:`storage-wiredtiger`. :method:`Initiate <rs.initiate()>` the
+replica set and add members.
 
-.. code-block:: ini
-
-   configsvr = true
-
-   bind_ip = 10.8.0.12
-   port = 27001
-
-This creates a config server running on the private IP address
-``10.8.0.12`` on port ``27001``. Make sure that there are no port
-conflicts, and that your config server is accessible from all of your
-:program:`mongos` and :program:`mongod` instances.
-
-To set up shards, configure two or more :program:`mongod` instance using
-your :ref:`base configuration <base-config>`, with the ``shardsvr`` value
-for the :setting:`sharding.clusterRole` setting:
+To configure the shard :program:`mongod` instances, specify
+``shardsvr`` for the :setting:`sharding.clusterRole` setting:
 
 .. code-block:: yaml
 
@@ -303,7 +293,7 @@ Or, if using the :v2.4:`older configuration file format
 
    shardsvr = true
 
-Finally, to establish the cluster, configure at least one
+For the router (i.e. :program:`mongos`), configure at least one
 :program:`mongos` process with the following settings:
 
 In :doc:`YAML format </reference/configuration-options>`:
@@ -311,7 +301,7 @@ In :doc:`YAML format </reference/configuration-options>`:
 .. code-block:: yaml
 
    sharding:
-      configDB: 10.8.0.12:27001
+      configDB: csRS/10.8.0.12:27001
       chunkSize: 64
 
 Or, if using the :v2.4:`older configuration file format
@@ -319,13 +309,11 @@ Or, if using the :v2.4:`older configuration file format
 
 .. code-block:: cfg
 
-   configdb = 10.8.0.12:27001
+   configdb = csRS/10.8.0.12:27001
    chunkSize = 64
 
-.. important:: Always use 3 config servers in production environments.
-
-You can specify multiple :setting:`~sharding.configDB` instances by specifying
-hostnames and ports in the form of a comma separated list.
+You can specify multiple config servers by specifying hostnames and
+ports in the form of a comma separated list.
 
 In general,
 avoid modifying the :setting:`~sharding.chunkSize` from the default value of 64,
