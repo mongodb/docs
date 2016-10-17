@@ -12,9 +12,9 @@
      - `C Driver Source Code <https://github.com/mongodb/mongo-c-driver?jmp=docs>`_
      - `C Driver API <http://mongoc.org/>`_
 
-   * - `C++ <https://mongodb.github.io/mongo-cxx-driver?jmp=docs>`_
-     - `C++ Driver Releases <https://github.com/mongodb/mongo-cxx-driver/releases?jmp=docs>`_
-     - `C++ Driver Source Code <https://github.com/mongodb/mongo-cxx-driver?jmp=docs>`_
+   * - `C++ <https://mongodb.github.io/mongo-cxx-driver>`_
+     - `C++ Driver Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
+     - `C++ Driver Source Code <https://github.com/mongodb/mongo-cxx-driver>`_
      - `C++ Driver API <http://mongodb.github.io/mongo-cxx-driver/api/current?jmp=docs>`_
 
    * - :ecosystem:`C# </drivers/csharp?jmp=docs>`
@@ -57,7 +57,7 @@
      - `Scala Driver Source Code <https://github.com/mongodb/mongo-scala-driver?jmp=docs>`_
      - `Scala Driver API <http://mongodb.github.io/mongo-scala-driver/?jmp=docs>`_
 
-   * - :ecosystem:`Scala </drivers/scala?jmp=docs>`
+   * - :ecosystem:`Casbah (Scala Driver) </drivers/scala/#casbah?jmp=docs>`
      - `Casbah (Scala Driver) Releases <https://github.com/mongodb/casbah/releases?jmp=docs>`_
      - `Casbah (Scala Driver) Source Code <https://github.com/mongodb/casbah?jmp=docs>`_
      - `Casbah (Scala Driver) API <http://mongodb.github.io/casbah/?jmp=docs>`_
