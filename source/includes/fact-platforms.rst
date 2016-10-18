@@ -15,6 +15,12 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Debian 8
+     - |checkmark|
+     -
+     -
+     -
+     -
    * - Debian 7
      - |checkmark|
      - |checkmark|
