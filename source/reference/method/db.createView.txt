@@ -24,21 +24,25 @@ db.createView()
    
    .. code-block:: javascript
 
-      db.createView(<view>, <source>, <pipeline>)
+      db.createView(<view>, <source>, <pipeline>, <options>)
 
    The method accepts the following parameters:
 
    .. include:: /includes/apiargs/method-db.createView-param.rst
+
+   The options document contains the following option field:
+
+   .. include:: /includes/apiargs/method-db.createView-options.rst
 
    The :method:`db.createView()` method wraps the following
    :dbcommand:`create` command operation:
 
    .. code-block:: javascript
 
-      db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline> } )
+      db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline>, collation: <collation> } )
 
    Operations that lists collections, such as
-   :method:`db.getCollection()`, :method:`db.getCollectionInfos()`, and
+   :method:`db.getCollectionInfos()` and
    :method:`db.getCollectionNames()`, includes views in their outputs.
 
    To remove a view, use the :method:`~db.collection.drop()` method on the
@@ -219,3 +223,40 @@ The operation returns the following documents:
    { "_id" : "xyz", "count" : 2 }
    { "_id" : "abc", "count" : 2 }
    { "_id" : "jkl", "count" : 1 }
+
+.. _create-view-w-collation:
+
+Create a View with Default Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given the ``places`` collection with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café" }
+   { _id: 2, category: "cafe" }
+   { _id: 3, category: "cafE" }
+
+The following operation creates a view, specifying :ref:`collation
+<collation>` at the view level:
+
+.. code-block:: javascript
+
+   db.createView(
+      "placesView", 
+      "places",
+      [ { $project: { category: 1 } } ],
+      { collation: { locale: "fr", strength: 1 } } 
+   )
+
+String comparisons on the view use the view's default collation. For
+example, the following operation uses the view's collation:
+
+.. code-block:: javascript
+
+   db.placesView.count( { category: "cafe" } )
+
+The operation returns ``3``.
+
+An operation that attempts to change or override a view's default
+collation will fail with an error.
