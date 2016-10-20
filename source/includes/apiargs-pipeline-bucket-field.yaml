@@ -1,0 +1,107 @@
+name: groupBy
+position: 1
+type: expression
+description: |
+   An :ref:`expression <aggregation-expressions>` to group documents 
+   by. To specify a :ref:`field path<agg-quick-ref-field-paths>`,
+   prefix the field name with a dollar sign ``$`` and enclose it in 
+   quotes.
+   
+   Unless :pipeline:`$bucket` includes a ``default``
+   specification, each input document must resolve the
+   ``groupBy`` field path or expression to a value that falls
+   within one of the ranges specified by the ``boundaries``.
+optional: false
+operation: bucket
+interface: pipeline
+arg_name: field
+---
+name: boundaries
+position: 2
+type: array
+description: |
+   An array of values based on the ``groupBy`` expression that specify
+   the boundaries for each bucket. Each adjacent pair of values acts
+   as the inclusive lower boundary and the exclusive upper boundary 
+   for the bucket. You must specify at least two boundaries.
+   
+   The specified values must be in ascending order and all of the same
+   :doc:`type </reference/bson-types>`. The exception is if the values
+   are of mixed numeric types, such as:
+   
+   ``[ 10, NumberLong(20), NumberInt(30) ]``
+   
+   If the values are documents, they must be wrapped in the 
+   :expression:`$literal` operator.
+  
+   .. example:: 
+      
+      An array of ``[ 0, 5, 10 ]`` creates two buckets:
+   
+      - [0, 5) with inclusive lower bound ``0`` and exclusive upper
+        bound ``5``.
+   
+      - [5, 10) with inclusive lower bound ``5`` and exclusive upper 
+        bound ``10``.
+   
+optional: false
+interface: pipeline
+operation: bucket
+arg_name: field
+---
+name: default
+position: 3
+type: literal
+description: |
+   A literal that specifies the ``_id`` of an additional bucket that
+   contains all documents whose ``groupBy`` expression result does not 
+   fall into a bucket specified by ``boundaries``.
+   
+   If unspecified, each input document must resolve the
+   ``groupBy`` expression to a value within one of the bucket ranges 
+   specified by ``boundaries`` or the operation throws an error.
+
+   The ``default`` value cannot overlap with a bucket; i.e. must
+   be less than the lowest ``boundaries`` value or greater than the
+   highest ``boundaries`` value.
+   
+   The ``default`` value can be of a different
+   :doc:`type </reference/bson-types>` than the entries in 
+   ``boundaries``.
+optional: true
+interface: pipeline
+operation: bucket
+arg_name: field
+---
+name: output
+position: 4
+type: document
+description: |
+   A document that specifies the fields to include in the output
+   documents in addition to the ``_id`` field. To specify the field to
+   include, you must use
+   :ref:`accumulator expressions<agg-quick-reference-accumulators>`.
+   
+   .. code-block:: javascript
+   
+      <outputfield1>: { <accumulator>: <expression1> },
+      ...
+      <outputfieldN>: { <accumulator>: <expressionN> }
+      
+   The default ``count`` field is not included in the output document
+   when ``output`` is specified. Explicitly specify the ``count`` 
+   expression as part of the output document to include it:
+     
+   .. code-block:: javascript
+      
+      output: { 
+        <outputField1>: { <accumulator>: <expression1> },
+        ...
+        "count": { $sum: 1 }
+      }
+      
+optional: true
+interface: pipeline
+operation: bucket
+arg_name: field
+...
