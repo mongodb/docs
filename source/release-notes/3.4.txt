@@ -126,6 +126,44 @@ A new replica set configuration setting
 newly elected primary to catch up with the other replica set members
 that may have more recent writes.
 
+Linearizable Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.4 introduces a read concern level of
+:readconcern:`"linearizable"` to read data that reflects all successful
+writes issued with a :writeconcern:`"majority"` *and* acknowledged
+prior to the start of the read operation. Linearizable read concern
+guarantees only apply if read operations specify a query filter that
+uniquely identifies a single document.
+
+Linearizable read concern is available for all MongoDB supported
+:doc:`storage engines </core/storage-engines>`.
+
+Combined with :writeconcern:`"majority"` write concern,
+:readconcern:`"linearizable"` read concern enables multiple threads to
+perform reads and writes on a single document as if a single thread
+performed these operations in real time; that is, the corresponding
+schedule for these reads and writes is considered linearizable.
+
+Reads with linearizable read concern may be significantly slower than
+reads with :readconcern:`"majority"` or :readconcern:`"local"` read
+concerns. Always use ``maxTimeMS`` with linearizable read concern, in
+case a majority of data bearing members are unavailable. For example:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { _id: 5 } ).readConcern("linearizable").maxTimeMS(10000)
+
+   db.runCommand( {
+        find: "restaurants",
+        filter: { _id: 5 },
+        readConcern: { level: "linearizable" },
+        maxTimeMS: 10000
+   } )
+
+For more information on read concern, including operations that support
+read concerns, see :doc:`/reference/read-concern`.
+
 .. _3.4-decimal:
 
 Decimal Type

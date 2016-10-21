@@ -1,29 +1,41 @@
-====================================
-Perform Quorum Reads on Replica Sets
-====================================
+.. _perform-findAndModify-linearizable-reads:
+
+========================================
+Linearizable Reads via ``findAndModify``
+========================================
 
 .. default-domain:: mongodb
-
-.. versionadded:: 3.2
 
 Overview
 --------
 
-When reading from the primary of a replica set, it is possible to read
-data that is stale or not durable, depending on the read concern used
-[#edge-cases-2-primaries]_. With a read concern level of
-:readconcern:`"local"`, a client can read data before it is
-:term:`durable`; that is, before they have propagated to enough replica
-set members to avoid a rollback. A read concern level of
-:readconcern:`"majority"` guarantees durable reads but may return stale
-data that has been overwritten by another write operation.
+When reading from a replica set, it is possible to read data that is
+stale (i.e. may not reflect all writes that have occurred prior to the
+read operation) or not durable (i.e. the state of the data may reflect
+a write that has not been acknowledged by a majority or the replica set
+members and thus could be rolled back), depending on the read concern
+used.
 
-This tutorial outlines a procedure that uses
+Starting in version 3.4, MongoDB introduces
+:readconcern:`"linearizable"` read concern that returns durable data
+that is not stale. :readconcern:`Linearizable <"linearizable">` read
+concern guarantees only apply if read operations specify a query filter
+that uniquely identifies a single document.
+
+This tutorial outlines an alternative procedure, one using
 :method:`db.collection.findAndModify()` to read data that is not stale
-and cannot be rolled back. To do so, the procedure uses the
-:method:`~db.collection.findAndModify()` method with a :ref:`write
-concern <write-concern>` to modify a dummy field in a document.
-Specifically, the procedure requires that:
+and cannot be rolled back, for deployments using MongoDB 3.2. For
+MongoDB 3.4, although the outlined procedure can be applied, see
+:readconcern:`"linearizable"` read concern instead.
+
+Linearizable Reads via ``findAndModify``
+----------------------------------------
+
+This procedure uses :method:`db.collection.findAndModify()` to read
+data that is not stale and cannot be rolled back. To do so, the
+procedure uses the :method:`~db.collection.findAndModify()` method with
+a :ref:`write concern <write-concern>` to modify a dummy field in a
+document. Specifically, the procedure requires that:
 
 - :method:`db.collection.findAndModify()` use an **exact** match query,
   and a :doc:`unique index </core/index-unique>` **must exist** to
@@ -43,7 +55,7 @@ Specifically, the procedure requires that:
    if staleness is absolutely intolerable.
 
 Prerequisites
--------------
+~~~~~~~~~~~~~
 
 This tutorial reads from a collection named ``products``. Initialize
 the collection using the following operation.
@@ -83,7 +95,7 @@ ensure that the :method:`db.collection.findAndModify()` results in a
 modification to the document.
 
 Procedure
----------
+~~~~~~~~~
 
 .. include:: /includes/steps/findAndModify-quorum-reads.rst
 
