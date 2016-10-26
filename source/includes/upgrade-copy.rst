@@ -39,5 +39,4 @@ environment.
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Once upgraded, you cannot downgrade to a 3.2.7 or earlier version. You
-can only downgrade to a 3.2.8 or later version.
+.. include:: /includes/3.4-downgrade-path.rst
