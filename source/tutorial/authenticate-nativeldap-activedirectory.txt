@@ -1,6 +1,6 @@
-=================================================================================
-Configure MongoDB with Kerberos Authentication and Active Directory Authorization
-=================================================================================
+=======================================================================
+Authenticate and Authorize Users Using Active Directory via Native LDAP
+=======================================================================
 
 .. default-domain:: mongodb
 
@@ -10,33 +10,25 @@ Configure MongoDB with Kerberos Authentication and Active Directory Authorizatio
    :depth: 1
    :class: singlecol
 
-.. versionadded:: 3.4
+.. versionadded:: 3.4 MongoDB Enterprise
 
-   `MongoDB Enterprise
-   <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_ supports
-   querying an LDAP server for the LDAP groups to which an authenticated user
-   belongs. MongoDB maps the LDAP distinguished names (DN) of each returned
-   group to :ref:`roles <roles>` on the ``admin`` database. MongoDB authorizes
-   the user based on the mapped roles and their associated privileges. See
-   :ref:`LDAP Authorization <security-ldap-external>` for more information.
-
-MongoDB Enterprise supports authentication using a :doc:`Kerberos service
-</core/kerberos>`. Kerberos is an industry standard authentication protocol
-for large client/server systems.
+   MongoDB Enterprise provides support via platform LDAP
+   libraries for proxying authentication and authorization requests to a
+   specified Lightweight Directory Access Protocol (LDAP) service such as
+   Active Directory (AD).
 
 This tutorial describes how to configuring MongoDB to perform authentication
-through a Kerberos server and authorization through an Active Directory (AD)
-server via the platform libraries.
+and authorization through an Active Directory (AD) server via the platform
+libraries.
 
 Prerequisites
 -------------
 
 .. important::
 
-   Thoroughly familiarize yourself with the following subjects before
-   proceeding:
+   Thoroughly familiarize yourself with the following subjects before proceeding:
 
-   - :ref:`Kerberos Authentication <security-kerberos>`
+   - :ref:`LDAP Authentication <security-ldap>`
    - :ref:`LDAP Authorization <security-ldap-external>`
    - `Active Directory <https://msdn.microsoft.com/en-us/library/bb742424.aspx>`_
 
@@ -51,27 +43,16 @@ mechanisms, or the specific :abbr:`AD (Active Directory)` configuration
 requirements for a given SASL mechanism are beyond the scope of this tutorial.
 This tutorial assumes prior knowledge of SASL and its related subject matter.
 
-Setting up and configuring a Kerberos deployment is beyond the scope of
-this document. This tutorial assumes you have configured a
-:ref:`Kerberos service principal <kerberos-service-principal>` for each
-:program:`mongod` and :program:`mongos` instance in your MongoDB
-deployment, and you have a valid :ref:`keytab file <keytab-files>` for
-for each :program:`mongod` and :program:`mongos` instance.
-
-.. include:: /includes/fact-kerberos-FQDN-repica-sets.rst
-
-.. include:: /includes/fact-confirm-enterprise-binaries.rst
-
 Considerations
 --------------
 
-This tutorial explains configuring MongoDB for Kerberos authentication and
-:abbr:`AD (Active Directory)` authorization.
+This tutorial explains configuring MongoDB for :abbr:`AD (Active Directory)`
+authentication and authorization.
 
 To perform this procedure on your own MongoDB server, you must modify the
 given procedures with respect to your own specific infrastructure, especially
-Kerberos configurations, constructing :abbr:`AD (Active Directory)` queries,
-or managing users.
+Active Directory configurations, constructing :abbr:`AD (Active Directory)`
+queries, or managing users.
 
 Transport Layer Security
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,7 +67,7 @@ This tutorial provides instructions for the required host configurations.
 This tutorial assumes you have access to the AD server's CA certificates and
 can create a copy of the certificates on the MongoDB server.
 
-.. _kerb-auth-ldap-authz-adschema:
+.. _activedirectory-authauthz-adschema:
 
 Example Active Directory Schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,7 +76,7 @@ This tutorial uses the following example :abbr:`AD (Active Directory)` objects
 as the basis for the provided queries, configurations, and output. Each object
 shows only a subset of the possible attributes.
 
-.. _kerb-auth-ldap-authz-userObj:
+.. _activedirectory-authauthz-userObj:
 
 User Objects
 ++++++++++++
@@ -120,7 +101,7 @@ User Objects
    userPrincipalName: joe@analytics.example.com
    memberof: CN=marketing,CN=Users,DC=example,DC=com
 
-.. _kerb-auth-ldap-authz-groupObj:
+.. _activedirectory-authauthz-groupObj:
 
 Group Objects
 +++++++++++++
@@ -171,7 +152,7 @@ later.
 Procedure
 ---------
 
-.. include:: /includes/steps/kerberos-auth-activedirectory-authz.rst
+.. include:: /includes/steps/configure-ldap-sasl-ActiveDirectory-authentication.rst
 
 This procedure produces the following configuration file:
 
@@ -180,7 +161,7 @@ This procedure produces the following configuration file:
    security:
       authentication: "enabled"
       ldap:
-         servers: activedirectory.example.net"
+         servers: "activedirectory.example.net"
          bind:
             queryUser: "mongodbadmin@dba.example.com"
             queryPassword: "secret123"
@@ -194,14 +175,12 @@ This procedure produces the following configuration file:
          authz:
             queryTemplate: "DC=example,DC=com??sub?(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={USER}))"
    setParameter:
-      authenticationMechanism: "GSSAPI"
+      authenticationMechanism: "PLAIN"
 
-.. important::
-
-   The given sample configuration requires modification to match your :abbr:`AD
-   (Active Directory)` schema, directory structure, and configuration. You may
-   also require additional :doc:`configuration file options
-   </reference/configuration-options>` for your deployment.
+The given sample configuration requires modification to match your Active
+Directory schema, directory structure, and configuration. You may also require
+additional :doc:`configuration file options
+</reference/configuration-options>` for your deployment.
 
 For more information on configuring roles and privileges, see:
 
@@ -209,4 +188,5 @@ For more information on configuring roles and privileges, see:
 
 - :ref:`privilege actions <security-user-actions>`
 
-- :doc:`collection level access control </core/collection-level-access-control>`
+- :doc:`collection level access control
+  </core/collection-level-access-control>`
