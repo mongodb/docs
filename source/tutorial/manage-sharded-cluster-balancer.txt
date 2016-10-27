@@ -13,10 +13,22 @@ Manage Sharded Cluster Balancer
    :depth: 1
    :class: singlecol
 
+.. versionchanged:: 3.4
+
+   The balancer process has moved from the :program:`mongos` instances
+   to the primary member of the config server replica set.
+
 This page describes common administrative procedures related
 to balancing. For an introduction to balancing, see
 :ref:`sharding-balancing`. For lower level information on balancing, see
 :ref:`sharding-balancing-internals`.
+
+.. important::
+
+   Use the version of the :program:`mongo` shell that corresponds to
+   the version of the sharded cluster. For example, do not use a 3.2 or
+   earlier version of :program:`mongo` shell against the 3.4 sharded
+   cluster.
 
 Check the Balancer State
 ------------------------
@@ -40,49 +52,29 @@ issue the following command, which returns a boolean:
    :data:`~sh.status.balancer.currently-running` field indicates if
    the balancer is currently running.   
 
-.. _sharding-balancing-check-lock:
+.. _sharding-balancing-is-running:
 
-Check the Balancer Lock
------------------------
+Check if Balancer is Running
+----------------------------
 
 To see if the balancer process is active in your :term:`cluster
-<sharded cluster>`, do the following:
+<sharded cluster>`:
+
+.. important::
+
+   Use the version of the :program:`mongo` shell that corresponds to
+   the version of the sharded cluster. For example, do not use a 3.2 or
+   earlier version of :program:`mongo` shell against the 3.4 sharded
+   cluster.
 
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the :ref:`config-database`:
+#. Use the following operation to determine if the balancer is running:
 
    .. code-block:: javascript
 
-      use config
-
-#. Use the following query to return the balancer lock:
-
-   .. code-block:: javascript
-
-      db.locks.find( { _id : "balancer" } ).pretty()
-
-   When this command returns, you will see output like the following:
-   
-   .. code-block:: javascript
-   
-      {   "_id" : "balancer",
-      "process" : "mongos0.example.net:1292810611:1804289383",
-        "state" : 2,
-           "ts" : ObjectId("4d0f872630c42d1978be8a2e"),
-         "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)",
-          "who" : "mongos0.example.net:1292810611:1804289383:Balancer:846930886",
-          "why" : "doing balance round" }
-   
-   This output confirms that:
-   
-   - The balancer originates from the :program:`mongos` running on the
-     system with the hostname ``mongos0.example.net``.
-   
-   - The value in the ``state`` field indicates that a :program:`mongos`
-     has the lock. For version 2.0 and later, the value of an active lock
-     is ``2``; for earlier versions the value is ``1``.
+      sh.isBalancerRunning()
 
 .. _sharded-cluster-config-default-chunk-size:
 

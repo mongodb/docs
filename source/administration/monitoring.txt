@@ -533,32 +533,30 @@ database name, and a list of the chunks.
 Stale Locks
 ~~~~~~~~~~~
 
-In nearly every case, all locks used by the balancer are automatically
-released when they become stale. However, because any long lasting
-lock can block future balancing, it's important to ensure that all
-locks are legitimate. To check the lock status of the database,
-connect to a :program:`mongos` instance using the :program:`mongo`
-shell. Issue the following command sequence to switch to the
-``config`` database and display all outstanding locks on the shard database:
+To check the lock status of the database, connect to a
+:program:`mongos` instance using the :program:`mongo` shell. Issue the
+following command sequence to switch to the ``config`` database and
+display all outstanding locks on the shard database:
 
 .. code-block:: javascript
 
    use config
    db.locks.find()
 
-For active deployments, the above query can provide insights.
-The balancing process, which originates on a randomly selected
-:program:`mongos`, takes a special "balancer" lock that prevents other
-balancing activity from transpiring. Use the following command, also
-to the ``config`` database, to check the status of the "balancer"
-lock.
+The balancing process takes a special "balancer" lock that prevents
+other balancing activity from transpiring. In the ``config`` database,
+use the following command to view the "balancer" lock.
 
 .. code-block:: javascript
 
    db.locks.find( { _id : "balancer" } )
 
-If this lock exists, make sure that the balancer process is actively
-using this lock.
+.. versionchanged:: 3.4
+
+   Starting in 3.4, the primary of the CSRS config server holds the
+   "balancer" lock, using a process id named "ConfigServer". This lock
+   is never released. To determine if the balancer is running, see
+   :ref:`sharding-balancing-is-running`.
 
 .. class:: hidden
 
