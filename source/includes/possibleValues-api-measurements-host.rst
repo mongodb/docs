@@ -1,7 +1,7 @@
 .. This file is shared by
-   the page that documents the "measurements.name" values returned by the "measurements" resource, and
-   the page that documents the "metricName" values returned by the "alerts" resource.
-   the page that documents the "metricName" values returned by the "globalAlerts" resource.
+   /reference/api/alerts.txt
+   /reference/api/global-alerts.txt
+   /reference/api/measurements.txt
 
 Host Measurements
 ~~~~~~~~~~~~~~~~~
@@ -139,3 +139,28 @@ Host Measurements
        </reference/command/serverStatus>` command's
        :serverstatus:`opcountersRepl` document.
 
+   * - - ``DOCUMENT_RETURNED``
+       - ``DOCUMENT_INSERTED``
+       - ``DOCUMENT_UPDATED``
+       - ``DOCUMENT_DELETED``
+
+     - The average rate per second of documents returned, inserted, updated,
+       or deleted for a selected time period. These measurements are found on
+       the host's ``Document Metrics`` chart. To view the chart, see
+       :ref:`access-host-statistics`.
+
+   * - - ``OPERATIONS_SCAN_AND_ORDER``
+
+     - For a selected time period, the average rate per second for queries
+       that perform a sort but cannot perform the sort using an index. This
+       measurement is found on the host's ``Scan and Order`` chart. To view
+       the chart, see :ref:`access-host-statistics`.
+
+   * - - ``AVG_READ_EXECUTION_TIME``
+       - ``AVG_WRITE_EXECUTION_TIME``
+       - ``AVG_COMMAND_EXECUTION_TIME``
+
+     - The average execution time in milliseconds per read, write, or command
+       operation over the selected time period. These measurements are found
+       on the host's ``Operation Execution Times`` chart. To view the chart,
+       see :ref:`access-host-statistics`.
