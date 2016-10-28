@@ -6,6 +6,12 @@ Compatibility Changes in 3.4 Release Candidate
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 .. include:: /includes/3.4.rst
 
 See also :doc:`/release-notes/3.4`.
@@ -91,6 +97,53 @@ shell methods:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+Stricter Validation of Index Specifications
+-------------------------------------------
+
+MongoDB 3.4 enforces a stricter validation of index specification
+during :dbcommand:`createIndexes` and
+:method:`db.collection.createIndex()` operations. The enforcement does
+not apply to existing indexes.
+
+Stricter validation include the following:
+
+- Ensuring that the value in the index key pattern ``key: value`` is
+  valid. Specifically, value can be:
+
+  .. list-table::
+     :header-rows: 1
+
+     * - Value
+       - Description
+
+     * - A number greater than 0
+       - For ascending index
+
+     * - A number less than 0 
+       - For descending index
+ 
+     * - String "text", "2dsphere", "2d", or "hashed"
+       - For special index types
+
+  For example, the following operations are no longer valid:
+
+  .. code-block:: javascript
+
+     db.collection.createIndex( { x: 0 } );
+     db.collection.createIndex( { y: "text2d" } );
+     db.collection.createIndex( { z: NaN } );
+     db.collection.createIndex( { x: 1, unique: true } )
+
+- Ensuring that the specified :ref:`index options
+  </core/index-properties>` are valid. Previous versions ignored
+  invalid options. For example, the following operations are no longer
+  valid:
+
+  .. code-block:: javascript
+
+     db.collection.createIndex( { y: 1 }, { uniques2: true} ); 
+     db.collection.createIndex( { z: 1 }, { expireAfterSec: 350 } )
 
 .. _3.4-general-compatibility:
 
