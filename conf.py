@@ -17,14 +17,12 @@ from giza.config.helper import fetch_config, get_versions, get_manual_path
 
 conf = fetch_config(RuntimeStateConfig())
 intersphinx_libs = conf.system.files.data.intersphinx
-pdfs = conf.system.files.data.pdfs
 sconf = conf.system.files.data.sphinx_local
 
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
 
 # -- General configuration ----------------------------------------------------
 
-needs_sphinx = '1.0'
 
 extensions = [
     'sphinx.ext.extlinks',
@@ -44,8 +42,8 @@ language = 'en'
 project = sconf.project
 copyright = u'2008-{0}'.format(datetime.date.today().year)
 
-version = '3.0'
-release = version
+version = conf.version.branch
+release = conf.version.release
 
 rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
@@ -104,7 +102,7 @@ languages = [
 html_theme = sconf.theme.name
 html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
 html_title = conf.project.title
-htmlhelp_basename = 'MongoDBdoc'
+htmlhelp_basename = 'MongoDB'
 
 html_logo = ".static/logo-mongodb.png"
 html_static_path = ['source/.static']
@@ -131,6 +129,10 @@ html_theme_options = {
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.project,
     'nav_excluded': sconf.theme.nav_excluded,
+    'version': version,
+    'version_selector':  get_versions(conf),
+    'active_branches': conf.version.active,
+
 }
 
 html_sidebars = sconf.sidebars
