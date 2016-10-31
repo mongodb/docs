@@ -2,6 +2,7 @@
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility
+   :widths: 10 30 30 30 
 
    * - Platform
      - Mac OS X
