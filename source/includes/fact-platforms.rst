@@ -57,7 +57,7 @@
      -
      -
      -
-   * - Solaris 64-bit
+   * - Solaris 11 64-bit
      - |checkmark|
      - |checkmark|
      - |checkmark|
