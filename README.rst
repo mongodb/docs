@@ -15,9 +15,9 @@ the following command: ::
 
      git clone git://github.com/mongodb/docs-php-library
      cd docs-php-library/
-     giza make html
+     make publish
 
-View ``build/html/index.html`` to view your current build of the
+View ``build/master/html/index.html`` to view your current build of the
 documentation.
 
 If you have not installed giza, you can do so with `pip`.
