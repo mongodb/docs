@@ -11,6 +11,7 @@ PREFIX=php-library
 help:
 	@echo 'Targets'
 	@echo '  help         - Show this help message'
+	@echo '  publish      - Build docs locally'
 	@echo '  stage        - Host online for review'
 	@echo '  fake-deploy  - Create a fake deployment in the staging bucket'
 	@echo '  deploy       - Deploy to the production bucket'
