@@ -350,4 +350,56 @@ description: |
    .. versionadded:: 3.2
 
    Disables use of the JavaScript engine's JIT compiler.
+---
+program: mongo
+name: disableJavaScriptProtection
+directive: option
+optional: true
+args: null
+description: |
+   .. versionadded:: 3.4
+
+   Allows fields of type :ref:`javascript<bson-types>` and
+   :ref:`javascriptWithScope<bson-types>` to be automatically
+   marshalled to JavaScript functions in the :program:`mongo`
+   shell.
+
+   With the ``--disableJavaScriptProtection`` flag set, it is possible
+   to immediately execute JavaScript functions contained in documents.
+   The following example demonstrates this behavior within the shell:
+
+   .. code-block:: javascript
+
+      > db.test.insert({ _id: 1, jsFunc: function(){ print("hello") } } )
+      WriteResult({ "nInserted" : 1 })
+      > var doc = db.test.findOne({ _id: 1 })
+      > doc
+      { "_id" : 1, "jsFunc" : function (){ print ("hello") } }
+      > typeof doc.jsFunc
+      function
+      > doc.jsFunc()
+      hello
+
+   The default behavior (when :program:`mongo` starts *without* the
+   ``--disableJavaScriptProtection`` flag) is to convert embedded
+   JavaScript functions to the non-executable MongoDB shell type
+   ``Code``. The following example demonstrates the default behavior
+   within the shell:
+
+   .. code-block:: javascript
+
+      > db.test.insert({ _id: 1, jsFunc: function(){ print("hello") } } )
+      WriteResult({ "nInserted" : 1 })
+      > var doc = db.test.findOne({ _id: 1 })
+      > doc
+      { "_id" : 1, "jsFunc" : { "code" : "function (){print(\"hello\")}" } }
+      > typeof doc.func
+      object
+      > doc.func instanceof Code
+      true
+      > doc.jsFunc()
+      2016-11-09T12:30:36.808-0800 E QUERY    [thread1] TypeError: doc.jsFunc is
+      not a function :
+      @(shell):1:1
+
 ...
