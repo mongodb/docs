@@ -7,8 +7,6 @@ conjunction with the init scripts. See
 the :doc:`Configuration File </reference/configuration-options>`
 reference for documentation of settings available in the configuration file.
 
-As of version |release|, there are no init scripts for
-:program:`mongos`. The :program:`mongos` process is used only in
-:doc:`sharding </sharding>`. You can use the ``mongod`` init script
-to derive your own :program:`mongos` init script for use in such
+There are no init scripts for :program:`mongos. You can use the ``mongod``
+init script to derive your own :program:`mongos` init script for use in such
 environments. See the :program:`mongos` reference for configuration details.
