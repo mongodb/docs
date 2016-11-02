@@ -9,6 +9,7 @@ include only a subset of these settings:
      version: <int>,
      protocolVersion: <number>,
      writeConcernMajorityJournalDefault: <boolean>,
+     configsvr: <boolean>,
      members: [
        {
          _id: <int>,
@@ -30,6 +31,7 @@ include only a subset of these settings:
        electionTimeoutMillis : <int>,
        catchUpTimeoutMillis : <int>,
        getLastErrorModes : <document>,
-       getLastErrorDefaults : <document>
+       getLastErrorDefaults : <document>,
+       replicaSetId: <ObjectId>
      }
    }

@@ -56,10 +56,29 @@ Consider the following example output:
 
    {
        "set" : "replset",
-       "date" : ISODate("2015-11-19T15:22:32.597Z"),
+       "date" : ISODate("2016-11-02T20:02:16.543Z"),
        "myState" : 1,
-       "term": NumberLong(1),
+       "term" : NumberLong(1),
        "heartbeatIntervalMillis" : NumberLong(2000),
+       "optimes" : {
+             "lastCommittedOpTime" : {
+                "ts" : Timestamp(1478116934, 1),
+                "t" : NumberLong(1)
+             },
+             "readConcernMajorityOpTime" : {
+                "ts" : Timestamp(1478116934, 1),
+                "t" : NumberLong(1)
+             },
+             "appliedOpTime" : {
+                "ts" : Timestamp(1478116934, 1),
+                "t" : NumberLong(1)
+             },
+             "durableOpTime" : {
+                "ts" : Timestamp(1478116934, 1),
+                "t" : NumberLong(1)
+             }
+          },
+       
        "members" : [
            {
                "_id" : 0,
@@ -69,13 +88,13 @@ Consider the following example output:
                "stateStr" : "PRIMARY",
                "uptime" : 269,
                "optime" : {
-                           "ts" : Timestamp(1447946550, 1),
+                           "ts" : Timestamp(1478116934, 1),
                            "t" : NumberLong(1)
-                        },
-               "optimeDate" : ISODate("2015-11-19T15:22:30Z"),
+               },
+               "optimeDate" : ISODate("2016-11-02T20:02:14Z"),
                "infoMessage" : "could not find member to sync from",
-               "electionTime" : Timestamp(1447946549, 1),
-               "electionDate" : ISODate("2015-11-19T15:22:29Z"),
+               "electionTime" : Timestamp(1478116933, 1),
+               "electionDate" : ISODate("2016-11-02T20:02:13Z"),
                "configVersion" : 1,
                "self" : true
            },
@@ -85,15 +104,21 @@ Consider the following example output:
                "health" : 1,
                "state" : 2,
                "stateStr" : "SECONDARY",
-               "uptime" : 13,
-                        "optime" : {
-                           "ts" : Timestamp(1447946539, 1),
-                           "t" : NumberLong(-1)
-                        },
-               "optimeDate" : ISODate("2015-11-19T15:22:19Z"),
-               "lastHeartbeat" : ISODate("2015-11-19T15:22:31.323Z"),
-               "lastHeartbeatRecv" : ISODate("2015-11-19T15:22:32.045Z"),
+               "uptime" : 14,
+               "optime" : {
+                  "ts" : Timestamp(1478116934, 1),
+                  "t" : NumberLong(1)
+               },
+               "optimeDurable" : {
+                  "ts" : Timestamp(1478116934, 1),
+                  "t" : NumberLong(1)
+               },
+               "optimeDate" : ISODate("2016-11-02T20:02:14Z"),
+               "optimeDurableDate" : ISODate("2016-11-02T20:02:14Z"),
+               "lastHeartbeat" : ISODate("2016-11-02T20:02:15.618Z"),
+               "lastHeartbeatRecv" : ISODate("2016-11-02T20:02:14.866Z"),
                "pingMs" : NumberLong(0),
+               "syncingTo" : "m3.example.net:27017",
                "configVersion" : 1
            },
            {
@@ -102,15 +127,21 @@ Consider the following example output:
                "health" : 1,
                "state" : 2,
                "stateStr" : "SECONDARY",
-               "uptime" : 13,
-                        "optime" : {
-                           "ts" : Timestamp(1447946539, 1),
-                           "t" : NumberLong(-1)
-                        },
-               "optimeDate" : ISODate("2015-11-19T15:22:19Z"),
-               "lastHeartbeat" : ISODate("2015-11-19T15:22:31.325Z"),
-               "lastHeartbeatRecv" : ISODate("2015-11-19T15:22:31.971Z"),
+               "uptime" : 14,
+               "optime" : {
+                  "ts" : Timestamp(1478116934, 1),
+                  "t" : NumberLong(1)
+               },
+               "optimeDurable" : {
+                  "ts" : Timestamp(1478116934, 1),
+                  "t" : NumberLong(1)
+               },
+               "optimeDate" : ISODate("2016-11-02T20:02:14Z"),
+               "optimeDurableDate" : ISODate("2016-11-02T20:02:14Z"),
+               "lastHeartbeat" : ISODate("2016-11-02T20:02:15.619Z"),
+               "lastHeartbeatRecv" : ISODate("2016-11-02T20:02:14.787Z"),
                "pingMs" : NumberLong(0),
+               "syncingTo" : "m1.example.net:27018",
                "configVersion" : 1
            }
        ],
@@ -159,6 +190,57 @@ following fields:
    .. versionadded:: 3.2
 
    The frequency in milliseconds of the heartbeats.
+
+.. data:: replSetGetStatus.optimes
+
+   .. versionadded:: 3.4
+
+   The ``optimes`` field holds a document that contains information on
+   various optimes. Optimes are a reference to a position in the
+   replication "oplog", and are reported here to show replication
+   progress for various operations.
+   
+   If using :rsconf:`protocolVersion: 1 <protocolVersion>`, the optime
+   value is a document that contains:
+
+   - ``ts``, the :ref:`Timestamp <document-bson-type-timestamp>` of
+     the operation.
+
+   - ``t``, the :data:`~replSetGetStatus.term` in which the
+     operation was originally generated on the primary.
+
+   If using :rsconf:`protocolVersion: 0 <protocolVersion>`, the optime
+   value is a :ref:`Timestamp <document-bson-type-timestamp>` of the
+   operation.
+
+   .. data:: replSetGetStatus.optimes.lastCommittedOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that has been written to a majority of
+      replica set members.
+
+   .. data:: replSetGetStatus.optimes.readConcernMajorityOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that can fulfill read concern
+      :readconcern:`"majority"` queries; i.e. the most recent
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime` that can
+      fulfill :readconcern:`"majority"` queries.
+      :data:`~replSetGetStatus.optimes.readConcernMajorityOpTime` is
+      either less than or equal to
+      :data:`~replSetGetStatus.optimes.lastCommittedOpTime`.
+
+   .. data:: replSetGetStatus.optimes.appliedOpTime
+
+      Information, from the viewpoint of this member, regarding the
+      most recent operation that has been applied to this member of the
+      replica set.
+   
+   .. data:: replSetGetStatus.optimes.durableOpTime
+   
+      Information,, from the viewpoint of this member, regarding the
+      most recent operation that has been written to the journal of
+      this member of the replica set.
 
 .. data:: replSetGetStatus.members
 
@@ -223,6 +305,26 @@ following fields:
       the last operation applied to this member of the replica set from
       the :term:`oplog`.
 
+   .. data:: replSetGetStatus.members[n].optimeDurable
+
+      .. versionadded:: 3.4
+
+      Information regarding the last operation from the operation log
+      that this member has applied to its journal.
+
+      If using :rsconf:`protocolVersion: 1 <protocolVersion>`,
+      ``optime`` returns a document that contains:
+
+      - ``ts``, the :ref:`Timestamp <document-bson-type-timestamp>` of
+        the operation.
+
+      - ``t``, the :data:`~replSetGetStatus.term` in which this
+        operation was originally generated on the primary.
+
+      If using :rsconf:`protocolVersion: 0 <protocolVersion>`, ``optime``
+      returns the :ref:`Timestamp <document-bson-type-timestamp>` of
+      the operation.
+
    .. data:: replSetGetStatus.members[n].optimeDate
 
       An :term:`ISODate` formatted date string that reflects the last
@@ -232,6 +334,14 @@ following fields:
       either experiencing "replication lag" *or* there have not been any
       new operations since the last update. Compare
       ``members.optimeDate`` between all of the members of the set.
+
+   .. data:: replSetGetStatus.members[n].optimeDurableDate
+
+      .. versionadded:: 3.4
+
+      An :term:`ISODate` formatted date string that reflects the last
+      entry from the :term:`oplog` that this member applied to its
+      journal.
 
    .. data:: replSetGetStatus.members[n].electionTime
 
