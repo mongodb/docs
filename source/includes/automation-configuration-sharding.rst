@@ -98,7 +98,10 @@ The ``sharding`` array is optional and defines the configuration of each sharded
        the same names used in each host's ``processes.name`` field.
 
        Use this field only for legacy mirrored config servers (config servers
-       that are not a replica set). Otherwise use ``sharding.configServerReplica``.
+       that are not a replica set), which are available only with MongoDB 3.2
+       and earlier. Otherwise use ``sharding.configServerReplica``.
+
+       .. important:: MongoDB 3.4 removes support for mirrored config servers.
 
    * - ``sharding.collections``
      - array of objects
