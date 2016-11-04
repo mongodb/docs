@@ -4,13 +4,11 @@
    :class: compatibility
 
    * - Platform
-     - 3.4
-     - 3.2
-     - 3.0
-     - 2.6
-     - 2.4
+     - 3.4 Community & Enterprise
+     - 3.2 Community & Enterprise
+     - 3.0 Community & Enterprise
+     - 2.6 Community & Enterprise
    * - Amazon Linux
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -20,9 +18,7 @@
      - |checkmark|
      -
      -
-     -
    * - Debian 7
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -32,9 +28,7 @@
      -
      - |checkmark|
      - |checkmark|
-     - |checkmark|
    * - RHEL/CentOS 6.2+
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -44,9 +38,7 @@
      - |checkmark|
      - |checkmark|
      -
-     -
    * - SLES 11
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -56,9 +48,7 @@
      -
      -
      -
-     -
    * - Solaris 11 64-bit
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -68,21 +58,17 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
    * - Ubuntu 14.04
      - |checkmark|
      - |checkmark|
      - |checkmark|
      -
-     -
    * - Ubuntu 16.04
      - |checkmark|
-     -
-     -
+     - |checkmark|
      -
      -
    * - Microsoft Azure
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -92,10 +78,8 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
    * - OS X 10.7+
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     -
      -
