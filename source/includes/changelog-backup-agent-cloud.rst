@@ -1,3 +1,10 @@
+Backup Agent ``5.0.1.453``
+--------------------------
+
+*Released 2016-11-07*
+
+- Allow managed Backup Agents to be run as a service on Windows.
+
 Backup Agent ``4.6.0.425``
 --------------------------
 

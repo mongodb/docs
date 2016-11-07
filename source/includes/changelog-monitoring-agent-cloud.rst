@@ -1,7 +1,14 @@
+Monitoring Agent ``5.4.1.350``
+------------------------------
+
+*Released 2016-11-07*
+
+- Allow managed Monitoring Agents to be run as a service on Windows.
+
 Monitoring Agent ``5.2.0.331``
 ------------------------------
 
-* Released 2016-09-14*
+*Released 2016-09-14*
 
 - Update of underlying Go driver.
 
