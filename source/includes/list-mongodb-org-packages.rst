@@ -1,3 +1,6 @@
+.. Only include this file on a page containing the section title
+.. "Run MongoDB Community Edition"
+
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
@@ -24,3 +27,11 @@ repository contains the following packages:
        :program:`mongofiles`, :program:`mongooplog`,
        :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
        and :program:`mongotop`.
+
+The ``mongodb-org-server`` package provides an initialization script
+that starts :program:`mongod` with the ``/etc/mongod.conf``
+configuration file.
+
+.. Links to the section in the including page having this title.
+See `Run MongoDB Community Edition`_ for details on using this
+initialization script.
