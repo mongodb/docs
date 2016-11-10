@@ -13,84 +13,113 @@ Manage System Alerts
 Overview
 --------
 
-System alerts are internal health checks that monitor the health of
-|onprem| itself, including the health of backing databases, Backup
-Daemons, and backed-up deployments. |onprem| runs health checks every 5
+System alerts are internal health checks that monitor the health of |onprem|
+itself, including the health of backing databases, 
+:term:`Backup Daemons <Backup Daemon>`, and backed-up 
+:term:`deployments <deployment>`. |onprem| runs health checks every five
 minutes.
 
-To view system alerts, click the :guilabel:`Admin` link at the top of
-|onprem|, select the :guilabel:`Alerts` tab, and then select the
-:guilabel:`Open Alerts` link under :guilabel:`System Alerts`.
+To view the list of system alerts:
 
-Users with the :ref:`global-owner-role` or
-:ref:`global-monitoring-admin-role` roles can :ref:`modify notification
-settings <edit-system-alert-notification>` or :ref:`disable
-<disable-system-alert>` an alert.
+#. Click the :guilabel:`Admin` link at the top of the |onprem| :abbr:`UI (user interface)`.
+
+#. Click the :guilabel:`Alerts` tab.
+
+#. Click the :guilabel:`Open Alerts` link under :guilabel:`System Alerts`.
+
+Disabled system alerts are grayed out.
+
+If you have the :ref:`global-owner-role` or :ref:`global-monitoring-admin-role`
+roles, you can :ref:`modify notification settings <edit-system-alert-notification>`
+or :ref:`disable <disable-system-alert>` a system alert.
 
 System Alerts
 -------------
 
+When enabled and the trigger condition is met, |onprem| sends an alert to the
+specified recipients using the specified medium for that alert. By default,
+|onprem| enables *all* alerts and sends alerts via *email* to |onprem|
+Administrators. 
+
 |onprem| provides the following system alerts:
 
-.. alert:: Backup oplog TTL was resized
+.. alert:: Blockstore space used exceeds threshold
 
-   Sends an alert if the Backup Daemon has fallen so far behind in
-   applying :term:`oplog` entries that |onprem| has extended the period of
-   time it will store the
-   entries. By default, |onprem| stores oplog entries in the :ref:`Oplog
-   Store <oplog-stores-page>` for 24 hours. If the Daemon has not yet
-   applied an entry an hour before its expiration, |onprem| extends the
-   storage period by three hours. If the entry again reaches an hour from
-   expiration, |onprem| continues to extend the storage period, up to
-   seven days.
+   Sent when the disk space the :term:`blockstore <Backup Blockstore Database>` 
+   uses exceeds the configured
+   :setting:`threshold <mms.alerts.OutsideSpaceUsedThreshold.maximumSpaceUsedPercent>` 
+   setting. The default threshold is 85% of the total disk capacity
+   on which the blockstore is stored, but you can change the
+   :setting:`mms.alerts.OutsideSpaceUsedThreshold.maximumSpaceUsedPercent`
+   value in the |onprem| configuration.
 
-   If you receive this alert, check that your Backup Daemon is running and
-   that it has sufficiently performant hardware to apply oplog entries in a timely
-   manner.
+.. alert:: Blockstore has a running balancer
 
-.. alert:: Backing database startup warnings
+   Sent when the blockstore is running behind a load balancer.
 
-   Sends an alert if the MongoDB process hosting a :ref:`backing database
-   <backing-database>` contains ``startupWarnings`` in its log files.
+.. alert:: Detected startup warnings on a database backing the system
+
+   Sent when the MongoDB :term:`process` hosting a 
+   :ref:`backing database <backing-database>` contains 
+   ``startupWarnings`` in its log files.
+   
    Check the logs on the server running the MongoDB process.
 
-.. alert:: An unhealthy database backing the system
+.. alert:: Detected a problem connecting to a database backing the system
 
-   Sends an alert if |onprem| cannot connect to a backing database and run
+   Sent when |onprem| cannot connect to a backing database and run
    the ping command.
 
-.. alert:: Backup daemon is down
+.. alert:: Backup Daemon free head space percentage is below 10
 
-   Sends an alert the Backup Daemon has not pinged |onprem| for more than
-   15 minutes.
-
-.. alert:: Backup daemon has low free head space
-
-   Sends an alert if the disk partition on which the local copy of a
-   backed-up replica set is stored has less than 1 GB of free space
-   remaining.
-
-   Follow the :ref:`edit-system-alert-notification` procedure to change this
-   space limit.
-
-.. alert:: Backup daemon has low free head space percentage
-
-   Sends an alert if the disk partition on which the local copy of a
-   backed-up replica set is stored has less than 10 percent of free space
-   remaining.
+   Sent when the disk partition on which the local copy of a backed-up
+   replica set is stored has less than 10 percent of free space remaining.
 
    Follow the :ref:`edit-system-alert-notification` procedure to change this
    percentage.
 
+.. alert:: Backup Daemon free head space is below 1 GB
+
+   Sent when the disk partition on which the local copy of a backed-up
+   replica set is stored has less than 1 GB of free space remaining.
+
+   Follow the :ref:`edit-system-alert-notification` procedure to change this
+   space limit.
+
+.. alert:: Backup Daemon is down
+
+   Sent when the Backup Daemon has not pinged |onprem| for more than
+   15 minutes.
+
 .. alert:: Backup was not moved successfully
 
-   Sends an alert if you attempt to move a job to a new Backup Daemon but
-   the move failed. The job will continue to run in its original location.
+   Sent when you try to move a backup job to a new Backup Daemon and
+   that move failed. The backup job continues to run on its original Backup
+   Daemon.
+   
    For more information on moving jobs, see :ref:`jobs-page`.
+
+.. alert:: Backup oplog TTL was resized
+
+   Sent when the Backup Daemon has fallen so far behind in applying
+   :term:`oplog` entries that |onprem| has extended the period of time it
+   stores the oplog entries. By default, |onprem| stores oplog entries in the
+   :ref:`Oplog Store <oplog-stores-page>` for 24 hours. 
+
+   If the Daemon has not yet applied an oplog entry an hour before its
+   expiration, |onprem| extends the storage period for another three hours.
+   |onprem| can continue to extend the storage period up to seven days.
+
+   If you receive this alert:
+
+   #. Check that your Backup Daemon is running.
+   
+   #. Check that your Backup Daemon runs on sufficiently performant hardware
+      to apply oplog entries in a timely manner.
 
 .. .. alert:: Failed integrity check
 ..
-..    Sends an alert if snapshots are potentially corrupt. |onprem| performs
+..    Sent when snapshots are potentially corrupt. |onprem| performs
 ..    a periodic integrity check of a snapshot to make sure that it is
 ..    complete in the blockstore. If that validation fails, the alert is
 ..    triggered. Another result of an integrity failure is that |onprem| no
@@ -98,15 +127,6 @@ System Alerts
 ..    which ensures future snapshots are complete.
 ..
 ..    If you receive this alert, contact MongoDB Support.
-
-.. alert:: Blockstore space used exceeds threshold
-
-   Sent if the disk space used by the blockstore exceeds the configured
-   :setting:`threshold <mms.alerts.OutsideSpaceUsedThreshold.maximumSpaceUsedPercent>` 
-   setting. The default threshold is 85% of the total disk capacity
-   on which the blockstore is stored, but you can change the
-   :setting:`mms.alerts.OutsideSpaceUsedThreshold.maximumSpaceUsedPercent`
-   value in the |onprem| configuration.
 
 .. _edit-system-alert-notification:
 
