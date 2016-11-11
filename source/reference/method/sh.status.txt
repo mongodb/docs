@@ -47,6 +47,22 @@ The :ref:`sharding-status-version-fields` section displays information on the
       "clusterId" : <ObjectId>
    }
 
+The :ref:`sharding-status-mongoses` section displays information on the
+version and count of active :program:`mongos` instances:
+
+.. code-block:: javascript
+
+   active mongoses:
+     <version> : <num>
+
+The :ref:`autosplit-status` displays information on whether autosplit
+is enabled:
+
+.. code-block:: javascript
+
+   autosplit:
+     Currently enabled: <yes|no>
+
 The :ref:`sharding-status-shards-fields` section lists information on
 the shard(s). For each shard, the section displays the name, host, and
 the associated tags, if any.
@@ -75,10 +91,9 @@ the associated tags, if any.
       balancer:
             Currently enabled:  yes
             Currently running:  yes
-                Balancer lock taken at Wed Dec 10 2014 12:00:16 GMT+1100 (AEDT) by
-                Pixl.local:27017:1418172757:16807:Balancer:282475249
+                Balancer lock taken at Fri Nov 11 2016 14:23:24 GMT-0500 (EST) by ConfigServer:Balancer
             Collections with active migrations:
-                test.t2 started at Wed Dec 10 2014 11:54:51 GMT+1100 (AEDT)
+                chat.messages started at Fri Nov 11 2016 14:24:12 GMT-0500 (EST)
             Failed balancer rounds in last 5 attempts:  1
             Last reported error:  tag ranges not valid for: test.t2
             Time of Reported error:  Wed Dec 10 2014 12:00:33 GMT+1100 (AEDT)
@@ -116,6 +131,8 @@ range(s).
 
    <dbname>.<collection>
       shard key: { <shard key> : <1 or hashed> }
+      unique: <boolean>
+      balancing: <boolean>
       chunks:
          <shard name1> <number of chunks>
          <shard name2> <number of chunks>
@@ -128,6 +145,8 @@ range(s).
 
 Output Fields
 -------------
+
+.. COMMENT to DOCS -- opened https://jira.mongodb.org/browse/DOCS-9308 to redo this page.
 
 .. _sharding-status-version-fields:
 
@@ -153,6 +172,26 @@ Sharding Version
 
    The :data:`~sh.status.sharding-version.clusterId` is the
    identification for the sharded cluster.
+
+.. _sharding-status-mongoses:
+
+``mongos`` Version and Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: sh.status.active-mongoses
+
+   :data:`sh.status.active-mongoses` lists the version and count of the
+   :program:`mongos` instances.
+
+.. _autosplit-status:
+
+Autosplit
+~~~~~~~~~
+
+.. data:: sh.status.active-mongoses
+
+   :data:`sh.status.active-mongoses` indicates whehter autosplit is
+   currently enabled.
 
 .. _sharding-status-shards-fields:
 
@@ -193,13 +232,13 @@ Balancer
    balancing the cluster.
 
    If the :term:`balancer` is running,
-   :data:`~sh.status.balancer.currently-running` lists the
-   process that holds the balancer lock, and the date and time that
-   the process obtained the lock.
-
-   If there is an active balancer lock,
-   :data:`~sh.status.balancer.currently-running` also reports the
-   state of the balancer.
+   :data:`~sh.status.balancer.currently-running` prints information on the ``"balancer"`` lock.
+   
+   .. versionchanged:: Starting in 3.4
+      
+      The primary of the CSRS config server holds the ``"balancer"``
+      lock, using a process id named ``"ConfigServer"``, which is never
+      released.
 
 .. data:: sh.status.balancer.collections-with-active-migrations
 
@@ -264,19 +303,30 @@ Databases
 Sharded Collection
 ~~~~~~~~~~~~~~~~~~
 
-.. data:: sh.status.databases.shard-key
+.. data:: sh.status.databases.<collection>.shard-key
 
-   The :data:`~sh.status.databases.shard-key` displays the shard
+   The :data:`~sh.status.databases.collection.shard-key` displays the shard
    key specification document.
 
-.. data:: sh.status.databases.chunks
+.. data:: sh.status.databases.<collection>.unique
 
-   The :data:`~sh.status.databases.chunks` lists all the shards
+   The :data:`~sh.status.databases.<collection>.unique` displays
+   whether MongoDB enforces uniqueness on the shard key values.
+
+.. data:: sh.status.databases.balancing
+
+   The :data:`~sh.status.databases.<collection>.balancing` displays
+   whether balancing is enabled (``true``) or disabled (``false``) for
+   the collection.
+
+.. data:: sh.status.databases.<collection>.chunks
+
+   The :data:`~sh.status.databases.<collection>.chunks` lists all the shards
    and the number of chunks that reside on each shard.
 
-.. data:: sh.status.databases.chunk-details
+.. data:: sh.status.databases.<collection>.chunk-details
 
-   The :data:`~sh.status.databases.chunk-details` lists the details
+   The :data:`~sh.status.databases.<collection>.chunk-details` lists the details
    of the chunks [#chunk-details]_:
 
    - The range of shard key values that define the chunk,
@@ -285,9 +335,9 @@ Sharded Collection
 
    - The last modified timestamp for the chunk.
 
-.. data:: sh.status.databases.tag
+.. data:: sh.status.databases.<collection>.tag
 
-   The :data:`~sh.status.databases.tag` lists the details of
+   The :data:`~sh.status.databases.<collection>.tag` lists the details of
    the tags associated with a range of shard key values.
 
 .. [#chunk-details] The sharded collection section, by default,
