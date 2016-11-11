@@ -151,7 +151,7 @@ Host Measurements
 
    * - - ``OPERATIONS_SCAN_AND_ORDER``
 
-     - For a selected time period, the average rate per second for queries
+     - For a selected time period, the average rate per second for operations
        that perform a sort but cannot perform the sort using an index. This
        measurement is found on the host's ``Scan and Order`` chart. To view
        the chart, see :ref:`access-host-statistics`.
@@ -160,7 +160,8 @@ Host Measurements
        - ``AVG_WRITE_EXECUTION_TIME``
        - ``AVG_COMMAND_EXECUTION_TIME``
 
-     - The average execution time in milliseconds per read, write, or command
-       operation over the selected time period. These measurements are found
+     - Available to hosts running MongoDB v3.4+. The average execution
+       time in milliseconds per read, write, or command operation
+       over the selected time period. These measurements are found
        on the host's ``Operation Execution Times`` chart. To view the chart,
        see :ref:`access-host-statistics`.
