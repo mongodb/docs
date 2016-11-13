@@ -6,6 +6,13 @@
 
      - Description
 
+
+   * - :guilabel:`MongoDB Version`
+
+     - The MongoDB version [#version]_ for your cluster.
+
+       .. include:: /includes/extracts/fact-mongodb-version-create-a-cluster.rst
+
    * - :guilabel:`Cluster Name`
 
      - The name as it will appear in |service|.
