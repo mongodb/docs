@@ -261,55 +261,6 @@ you may escape these values with the ``CodeWScope`` mechanism. When you
 set user-submitted values as variables in the scope document, you can
 avoid evaluating them on the database server.
 
-.. _faq-dollar-sign-escaping:
-
-Dollar Sign Operator Escaping
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Field names in MongoDB's query language have semantic meaning. The
-dollar sign (i.e ``$``) is a reserved character used to represent
-:doc:`operators </reference/operator>` (i.e. :update:`$inc`.) Thus,
-you should ensure that your application's users cannot inject operators
-into their inputs.
-
-In some cases, you may wish to build a BSON object with a
-user-provided key.  In these situations, keys will need to substitute
-the reserved ``$`` and ``.`` characters. Any character is sufficient,
-but consider using the Unicode full width equivalents: ``U+FF04``
-(i.e. "＄") and ``U+FF0E`` (i.e. "．").
-
-Consider the following example:
-
-.. code-block:: cpp
-
-   BSONObj my_object = BSON( a_key << a_name );
-
-The user may have supplied a ``$`` value in the ``a_key`` value. At
-the same time, ``my_object`` might be ``{ $where : "things"
-}``. Consider the following cases:
-
-- **Insert**. Inserting this into the database does no harm. The
-  insert process does not evaluate the object as a query.
-
-  .. note::
-
-     MongoDB client drivers, if properly implemented, check for
-     reserved characters in keys on inserts.
-
-- **Update**.  The :method:`~db.collection.update()` operation permits ``$`` operators
-  in the update argument but does not support the
-  :query:`$where` operator. Still, some users
-  may be able to inject operators that can manipulate a single
-  document only. Therefore your application should escape keys, as
-  mentioned above, if reserved characters are possible.
-
-- **Query** Generally this is not a problem for queries that
-  resemble ``{ x : user_obj }``: dollar signs are not top level and
-  have no effect. Theoretically it may be possible for the user to
-  build a query themselves. But checking the user-submitted content for
-  ``$`` characters in key names may help protect against this kind
-  of injection.
-
 Driver-Specific Issues
 ~~~~~~~~~~~~~~~~~~~~~~
 
