@@ -132,6 +132,7 @@ html_theme_options = {
                                            conf.project.basepath,
                                            'mongodb-bi-connector', 'epub'),
     'nav_excluded': sconf.theme.nav_excluded,
+    'version_selector': get_versions(conf),
 }
 
 html_sidebars = sconf.sidebars
