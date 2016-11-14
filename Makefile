@@ -6,7 +6,7 @@ STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=compass
 
-.PHONY: help stage fake-deploy deploy
+.PHONY: help html stage fake-deploy deploy
 
 help:
 	@echo 'Targets'
@@ -18,9 +18,16 @@ help:
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
+html:
+	giza make html
+
+publish-artifacts:
+	giza make publish
+
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
+
 
 fake-deploy: build/public/${GIT_BRANCH}
 	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
