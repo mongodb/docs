@@ -6,7 +6,7 @@ STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=compass
 
-.PHONY: help html stage fake-deploy deploy
+.PHONY: help html publish-artifacts stage fake-deploy deploy
 
 help:
 	@echo 'Targets'
