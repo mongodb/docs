@@ -1,6 +1,6 @@
-===========================================
-|onprem| Hardware and Software Requirements
-===========================================
+============================
+|onprem| System Requirements
+============================
 
 .. default-domain:: mongodb
 
@@ -10,10 +10,12 @@
    :depth: 1
    :class: singlecol
 
-This page describes the hardware and software requirements for the
-servers that run the :doc:`Ops Manager components
-</core/system-overview>`. Before deploying servers, use the
-:doc:`/core/installation-checklist` to plan your configuration.
+This guide describes the hardware, software and networking requirements for the
+servers that run the :doc:`Ops Manager components </core/system-overview>`.
+
+.. important::
+   Before deploying servers, use the :doc:`/core/installation-checklist` to
+   plan your configuration.
 
 For requirements for the MongoDB instances running as the |onprem|
 Application Database and the Backup Database, see
@@ -24,27 +26,36 @@ Application Database and the Backup Database, see
 Hardware Requirements
 ---------------------
 
-Each server must meet the sum of **RAM** and **disk capacity**
-requirements for all its components. 
+Each server must meet the total *RAM* and *disk capacity*
+requirements for all |onprem| components that it hosts: 
 
-.. example:: 
-   A server that runs |onprem| and hosts the |onprem| Application Database
-   must meet the sum of the RAM and disk capacity required for |onprem| plus the
-   RAM and disk capacity required for the Application Database.
+- |onprem| application
+- |onprem| application databases
+- Backup Daemon application and head database
+- Backup Blockstore databases 
 
-The servers also must meet the MongoDB ports requirements described in
-:doc:`/reference/firewall-configuration`. The firewall rules for each server
-must allow access to the required ports.
+.. example::
 
-If you install on AWS servers, see also :ref:`network-requirements` section
-on this page.
+   You want to host both the |onprem| application and a :term:`Backup Daemon`
+   on one server. This |onprem| configuration will manage and monitor 300
+   MongoDB hosts and back up 200 hosts. The total disk capacity of all
+   databases being backed up is 4 TB. The total requirements would be:
+
+   - |onprem| needs 15 GB of RAM. 
+   - The Backup Daemon also needs:
+   
+     - 15 GB of RAM and 
+     - 2.5 times the 4 TB of backed up databases in disk capacity. 
+
+   This example server would require a minimum of 30 GB of RAM and 10 TB of
+   disk capacity.
 
 .. _application-hardware-requirements:
 
 |onprem| Hardware Requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Every server that runs |onprem| must meet the following hardware
+Every server that runs the |onprem| application must meet the following hardware
 requirements:
 
 .. list-table::
@@ -73,22 +84,20 @@ requirements:
 
 The :ref:`Ops Manager Application Database <mms-application-database>`
 runs as a three-member :term:`replica set` that runs on dedicated servers.
-Each server that hosts a MongoDB process for the Application Database
-**must** comply with the :manual:`Production Notes </administration/production-notes>`
-in the MongoDB manual, which includes information on NUMA, ulimits, and
-other configuration options.
 
 .. warning::
-
-   Failure to configure servers according to the :manual:`MongoDB
-   Production Notes </administration/production-notes>` can lead to
-   production failure.
+   Each server that hosts a MongoDB process for the Application Database
+   **must** comply with the 
+   :manual:`Production Notes </administration/production-notes>` in the 
+   MongoDB manual, which includes information on NUMA, ulimits, and other
+   configuration options. Failure to configure servers according to the 
+   production notes can lead to production failure.
 
 Every server that hosts the |onprem| Application Database must meet the
-following hardware requirements. 
+following hardware requirements:
 
 .. list-table::
-   :widths: 20 40 40
+   :widths: 20 30 50
    :header-rows: 1
 
    * - Number of 
@@ -97,14 +106,14 @@ following hardware requirements.
      - Disk Capacity
      
    * - Up to 400
-     - 8 GB additional RAM beyond the RAM required for Ops Manager
+     - 8 GB RAM plus the RAM required for |onprem|
      - 200 GB plus:
       
        - 35 MB per monitored host for WiredTiger-based databases
        - 250 MB per monitored host for MMAPv1-based databases
 
    * - Up to 2,000
-     - 15 GB additional RAM beyond the RAM required for Ops Manager
+     - 15 GB RAM plus the RAM required for |onprem|
      - 500 GB plus:
      
        - 35 MB per monitored host for WiredTiger-based databases
@@ -120,51 +129,56 @@ For the differences between WiredTiger and MMAPv1 storage engines, see
 :manual:`the types of storage engines </core/storage-engines/>` in the MongoDB
 manual.
 
-Disk space estimates are *approximate*. Factors, such as the number of
-databases and namespaces being monitored for database statistics, may increase
-or decrease this amount of disk capacity needed.
+Disk capacity estimates are *approximate*. The needed disk capacity can
+increase *or* decrease due to the number of databases being monitored.
 
 .. important::
-   Before upgrading to |onprem| 3.4, check the free space on the disk
-   partitions storing your application databases. You need to have sufficient
-   space for the upgraded application database which may increase to twice its
-   current size.
+   During the upgrade to |onprem| 3.4, your |onprem| application database could
+   increase to twice its current size. Make sure you have sufficient free disk
+   capacity on the disk partitions that store your application database so the
+   upgrade can complete.
 
-   .. example::
-      If your backing database is 50 GB on each server of the config server
-      replica set, you need at least another 50 GB on each server before
-      upgrading to |onprem| 3.4.
+   **EXAMPLE:**
+
+   If your application database is 50 GB as a replica set, you need to have at
+   least another 50 GB on each server hosting a replica set before upgrading
+   to |onprem| 3.4.
 
 .. _backup-hardware-requirements:
 
 Backup Daemon Hardware Requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. important::
+   Before getting started with Backup, *contact your MongoDB Account
+   Executive* to help estimate the storage requirements for your Backup Daemon
+   server.
+
 Each server on which you activate the :term:`Backup Daemon` must meet the
-following requirements **in addition to** the :ref:`requirements for Ops
-Manager <application-hardware-requirements>`. Each server also must meet
-the configuration requirements in the :manual:`MongoDB Production Notes
-</administration/production-notes>`.
+following requirements plus the :ref:`requirements for Ops
+Manager <application-hardware-requirements>`. 
 
 .. warning::
-   Failure to configure servers according to the :manual:`MongoDB Production
-   Notes </administration/production-notes>` can lead to production failure.
-
-Before getting started with Backup, **contact your MongoDB Account
-Executive** for assistance in estimating the storage requirements for your
-Backup Daemon server.
+   As each Backup Daemon server also must host a MongoDB database for the
+   :term:`head database`, it also must meet the configuration requirements in
+   the
+   :manual:`MongoDB Production Notes </administration/production-notes>`.
+   Failure to configure servers according to the production notes can 
+   lead to production failure.
 
 The Backup Daemon creates :term:`head databases <head database>` that
 replicate data for each replica set assigned to the Daemon. Typically,
-each server on which you activate the Backup Daemon must be able to store
+each server on which you activate the Backup Daemon needs to store
 2.0 to 2.5 times the sum of the size on disk of all the backed-up replica
-sets. Specifically, each server must have:
+sets. 
 
-- the disk capacity and write capacity to maintain each head database,
+Specifically, each server must have:
+
+- The disk capacity and write capacity to maintain each head database,
   **plus**
 
-- the disk capacity to store an additional copy of the data for each head
-  database in order to support :term:`point-in-time restores
+- The disk capacity to store an additional copy of the data for each head
+  database to support :term:`point-in-time restores
   <point-in-time restore>`.
 
 Each server that hosts an active Backup Daemon has the following hardware
@@ -191,28 +205,28 @@ Backup Database Hardware Requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you use |onprem| Backup, you must provision servers for the Backup
-Database. Server requirements for the Backup Database vary, depending on
-whether you will store your :term:`snapshots <snapshot>` there. The Backup
+Database. 
+
+.. warning::
+   Each server also must meet the configuration requirements in the
+   :manual:`MongoDB Production Notes </administration/production-notes>`.
+   Failure to configure servers according to the production notes can 
+   lead to production failure.
+
+Server requirements for the Backup Database vary, depending on
+whether you use a Blockstore database or file system storage to store 
+your :term:`snapshots <snapshot>`. The Backup
 Database always holds :term:`oplog` data.
 
 If you store snapshots in the Backup Database, its servers typically must
 have enough capacity to store 2 to 3 times the total backed-up production
 data size. Snapshots are compressed and de-duplicated at the block level
-in the :term:`Backup Blockstore Database`. Your specific requirements
-depend on your data compressibility and change rate. **Contact your
-MongoDB Account Manager** for assistance in estimating the use-case and
-workload-dependent storage requirements for your Backup Database servers.
+in the :term:`Blockstore <Backup Blockstore Database>`. 
 
-Each server for the Backup Database **must** comply with the
-:manual:`Production Notes </administration/production-notes>` in the
-MongoDB manual, which include information on NUMA, ulimits, and other
-configuration options.
-
-.. warning::
-
-   Failure to configure servers according to the :manual:`MongoDB
-   Production Notes </administration/production-notes>` can lead to
-   production failure.
+Your specific requirements depend on your data compressibility and change
+rate. **Contact your MongoDB Account Manager** to help estimate
+the use-case and workload-dependent storage requirements for your Backup
+Database servers.
 
 If you store snapshots in the Backup Database, each data-bearing member
 must meet the following requirements:
