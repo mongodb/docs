@@ -25,35 +25,51 @@ Initial Sync
 ------------
 
 Initial sync copies all the data from one member of the replica set to
-another member. A member uses initial sync when the member has no data,
-such as when the member is new, or when the member has data but is
-missing a history of the set's replication.
+another member.
+
+Process
+~~~~~~~
 
 When you perform an initial sync, MongoDB:
 
-#. Clones all databases. To clone, the :program:`mongod` queries every
-   collection in each source database and inserts all data into its
-   own copies of these collections.  At this time, ``_id`` indexes are
-   also built. The clone process only copies valid data, omitting
-   invalid documents.
+#. Clones all databases except the :ref:`local
+   <replica-set-local-database>` database. To clone, the
+   :program:`mongod` scans every collection in each source database and
+   inserts all data into its own copies of these collections.
+
+   .. versionchanged:: 3.4 
+      Initial sync builds all collection indexes as the documents are
+      copied for each collection. In earlier versions of MongoDB, only
+      the ``_id`` indexes are built during this stage.
+
+   .. versionchanged:: 3.4
+      Initial sync pulls newly added oplog records during the data copy. Ensure
+      that the target member has enough disk space in the ``local``
+      database to temporarily store these oplog records for the
+      duration of this data copy stage.
 
 #. Applies all changes to the data set. Using the oplog from the
    source, the :program:`mongod` updates its data set to reflect the
    current state of the replica set.
 
-#. Builds all indexes on all collections (except ``_id`` indexes,
-   which were already completed).
-
-   When the :program:`mongod` finishes building all index builds, the member
-   can transition to a normal state, i.e. :term:`secondary`.
-
-.. versionchanged:: 3.0
-   When the clone process omits an invalid document from the sync,
-   MongoDB writes a message to the logs that begins with ``Cloner:
-   found corrupt document in <collection>``.
+   When the initial sync finishes, the member transitions from
+   :replstate:`STARTUP2` to :replstate:`SECONDARY`.
 
 To perform an initial sync, see
 :doc:`/tutorial/resync-replica-set-member`.
+
+.. _init-sync-retry:
+
+Fault Tolerance
+~~~~~~~~~~~~~~~
+
+To recover from transient network or operation failures, initial sync
+has built-in retry logic.
+
+.. versionchanged:: 3.4
+
+   MongoDB 3.4 improves the retry logic to be more resilient to
+   intermittent failures on the network.
 
 .. _replica-set-replication:
 
@@ -65,9 +81,9 @@ Secondary members copy the :doc:`oplog </core/replica-set-oplog>` from
 their *sync from* source and apply these operations in an asynchronous
 process.
 
-In most cases, secondaries sync from the primary. Secondaries may
-automatically change their *sync from* source if needed based on
-changes in the ping time and state of other members' replication.
+Secondaries may automatically change their *sync from* source as needed
+based on changes in the ping time and state of other members'
+replication.
 
 .. versionchanged:: 3.2
 
