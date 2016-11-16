@@ -43,94 +43,103 @@ Read Preference Modes
 
    The :readmode:`primary` read preference mode is not compatible with
    read preference modes that use :ref:`tag sets
-   <replica-set-read-preference-tag-sets>`. If you specify a tag set
+   <replica-set-read-preference-tag-sets>` or :ref:`maxStalenessSeconds 
+   <replica-set-read-preference-max-staleness>`. 
+   If you specify tag sets or a ``maxStalenessSeconds`` value
    with :readmode:`primary`, the driver will produce an error.
 
 .. readmode:: primaryPreferred
 
    In most situations, operations read from the :term:`primary` member
    of the set. However, if the primary is unavailable, as is the case
-   during :term:`failover` situations, operations read from secondary
-   members.
+   during :term:`failover` situations, operations read from :term:`secondary`
+   members that satisfy the read preference's ``maxStalenessSeconds`` and
+   tag sets.
+   
+   .. include:: /includes/extracts/maxStaleness-primaryPreferred.rst
 
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client reads first from
-   the primary, if available, and then from :term:`secondaries
-   <secondary>` that match the specified tags. If no secondaries have
-   matching tags, the read operation produces an error.
+   .. include:: /includes/extracts/tagSets-primaryPreferred.rst
 
-   Since the application may receive data from a secondary, read
-   operations using the :readmode:`primaryPreferred` mode may return
-   stale data in some situations.
+   .. include:: /includes/extracts/maxStaleness-and-tagSets-general.rst
 
+   .. include:: /includes/extracts/secondary-reads-stale-data-primaryPreferred.rst
+   
 .. readmode:: secondary
 
    Operations read *only* from the :term:`secondary` members of the set.
    If no secondaries are available, then this read operation produces an
    error or exception.
 
-   Most sets have at least one secondary, but there are situations
-   where there may be no available secondary. For example, a set with
-   a primary, a secondary, and an :term:`arbiter` may not have any
+   Most replica sets have at least one secondary, but there are situations
+   where there may be no available secondary. For example, a replica set with
+   a :term:`primary`, a secondary, and an :term:`arbiter` may not have any
    secondaries if a member is in recovering state or unavailable.
 
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client attempts to
-   find secondary members that match the specified tag set and directs
-   reads to a random secondary from among the :ref:`nearest group
-   <replica-set-read-preference-behavior-nearest>`. If no secondaries
-   have matching tags, the read operation produces an
-   error. [#capacity-planning]_
-
-   Read operations using the :readmode:`secondary` mode may return stale data.
+   .. include:: /includes/extracts/maxStaleness-secondary.rst
+   
+   .. include:: /includes/extracts/tagSets-secondary.rst
+   
+   .. include:: /includes/extracts/maxStaleness-and-tagSets-general.rst
+   
+   .. include:: /includes/extracts/secondary-reads-stale-data-secondary.rst
 
 .. readmode:: secondaryPreferred
 
    In most situations, operations read from :term:`secondary` members,
    but in situations where the set consists of a single
    :term:`primary` (and no other members), the read operation will use
-   the set's primary.
+   the replica set's primary.
 
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client attempts to find
-   a secondary member that matches the specified tag set and directs
-   reads to a random secondary from among the :ref:`nearest group
-   <replica-set-read-preference-behavior-nearest>`. If no secondaries
-   have matching tags, the client ignores tags and reads from the primary.
+   .. include:: /includes/extracts/maxStaleness-secondaryPreferred.rst
 
-   Read operations using the :readmode:`secondaryPreferred` mode may
-   return stale data.
+   .. include:: /includes/extracts/tagSets-secondaryPreferred.rst
+
+   .. include:: /includes/extracts/maxStaleness-and-tagSets-general.rst
+
+   .. include:: /includes/extracts/secondary-reads-stale-data-secondaryPreferred.rst
 
 .. readmode:: nearest
 
-   The driver reads from the *nearest* member of the :term:`set <replica
-   set>` according to the :ref:`member selection
-   <replica-set-read-preference-behavior-nearest>` process. Reads in
-   the :readmode:`nearest` mode do not consider the member's
-   *type*. Reads in :readmode:`nearest` mode may read from both
-   primaries and secondaries.
+   The driver reads from a member whose network latency falls within
+   the acceptable latency window. Reads in the :readmode:`nearest` mode
+   do not consider whether a member is a primary or secondary when
+   routing read operations: primaries and secondaries are treated
+   equivalently. The read preference :ref:`member selection
+   <replica-set-read-preference-behavior-nearest>` documentation
+   describes the process in detail.
 
    Set this mode to minimize the effect of network latency
    on read operations without preference for current or stale data.
 
+   When the read preference includes a :ref:`maxStalenessSeconds value
+   <replica-set-read-preference-max-staleness>`, the client estimates
+   how stale each secondary is by comparing the secondary's last write
+   to that of the primary, if available, or to the secondary with the
+   most recent write if there is no primary. The client will then
+   filter out any secondary whose estimated lag is greater than
+   ``maxStalenessSeconds`` and randomly direct the read to a remaining member (primary or secondary)
+   whose network latency falls within the :ref:`acceptable latency
+   window <replica-set-read-preference-behavior-nearest>`.
+
    If you specify a :ref:`tag set
    <replica-set-read-preference-tag-sets>`, the client attempts to
-   find a replica set member that matches the specified tag set and
+   find a replica set member that matches the specified tag sets and
    directs reads to an arbitrary member from among the :ref:`nearest
    group <replica-set-read-preference-behavior-nearest>`.
 
-   Read operations using the :readmode:`nearest` mode may return stale
-   data.
+   .. include:: /includes/extracts/maxStaleness-and-tagSets-nearest.rst
+
+   .. include:: /includes/extracts/secondary-reads-stale-data-nearest.rst
 
    .. note::
 
       All operations read from a member of the nearest group of the
       replica set that matches the specified read preference mode. The
-      :readmode:`nearest` mode prefers low latency reads over a
+      :readmode:`nearest` mode differs in that it prefers low latency reads over a
       member's :term:`primary` or :term:`secondary` status.
 
       For :readmode:`nearest`, the client assembles a list of
-      acceptable hosts based on tag set and then narrows that list to
+      acceptable hosts based on ``maxStalenessSeconds`` and tag sets and then narrows that list to
       the host with the shortest ping time and all other members of
       the set that are within the "local threshold," or acceptable
       latency. See :ref:`replica-set-read-preference-behavior-nearest`
