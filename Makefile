@@ -36,7 +36,7 @@ fake-deploy: build/public
 
 deploy: build/public
 	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous"
