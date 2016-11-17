@@ -20,7 +20,7 @@ help:
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
 publish:
-	git submodule update --init
+	git submodule update --remote
 	rsync -a --delete mongo-php-library/docs/ source/
 	giza -l debug make publish
 
