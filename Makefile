@@ -6,11 +6,12 @@ STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=
 
-.PHONY: help lint stage fake-deploy deploy
+.PHONY: help lint html stage fake-deploy deploy
 
 help:
 	@echo 'Targets'
 	@echo '  help         - Show this help message'
+	@echo '  html         - Builds the html files'
 	@echo '  lint         - Check links'
 	@echo '  stage        - Host online for review'
 	@echo '  fake-deploy  - Create a fake deployment in the staging bucket'
@@ -18,6 +19,9 @@ help:
 	@echo ''
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
+
+html:
+	giza make html
 
 lint:
 	mut-lint --linters=links ./build/master/source/ ${ARGS}
