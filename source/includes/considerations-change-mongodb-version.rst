@@ -26,3 +26,6 @@ For example, if you are running MongoDB version 3.0 with the
 :guilabel:`engine` option set to ``mmapv1``, and you wish to downgrade
 to MongoDB 2.6, you must first remove the :guilabel:`engine` option as
 MongoDB 2.6 does not include that option.
+
+.. note::
+   You may not downgrade a MongoDB deployment from version 3.4 to any version before 3.2.8.
