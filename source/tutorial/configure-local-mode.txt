@@ -28,13 +28,12 @@ determines whether |onprem| runs in :guilabel:`Internet Mode` or
 If the servers running Automation Agents or Backup Daemons do not have
 internet access, you must:
 
-
-* Download the MongoDB binaries for each version and platform you need
+- Download the MongoDB binaries for each version and platform you need
   to support, 
 
-* Configure |onprem| to run in :guilabel:`Local Mode`, and
+- Configure |onprem| to run in :guilabel:`Local Mode`, and
 
-* Update the :term:`version manifest`. 
+- Update the :term:`version manifest`. 
 
 As |company| releases new versions, you must update both the binaries and
 the version manifest.
@@ -45,26 +44,55 @@ Versions Directory
 ~~~~~~~~~~~~~~~~~~
 
 The versions directory stores all of the archived and extracted MongoDB
-binaries Automation and Backup need to install and upgrade MongoDB
-deployments.
+binaries |onprem| needs to install and upgrade MongoDB deployments.
 
-If you run in :guilabel:`Local Mode`, you must:
+By default, the versions directory is found in the following locations on the
+following platforms:
 
-* Download the necessary MongoDB archived binaries manually from |company|
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-* Store the archived MongoDB binaries for each version, edition *and* platform
-  you need to support for Automation in this directory on each of your |onprem|
-  servers.
+   * - Operating System
+     - Versions Directory Default Path
 
-* Extract the MongoDB binaries from these archives for the Backup Daemons. The
-  versions directory must also store the extracted MongoDB binaries for each
+   * - RHEL, Ubuntu
+     - 
+       .. code-block:: sh
+
+          /opt/mongodb/mms/mongodb-releases
+
+   * - Linux Archive
+     - 
+       .. code-block:: sh
+       
+          <userSelected>/mongodb-releases
+
+   * - Windows
+     - 
+       .. code-block:: powershell
+       
+          C:\MMSData\MongoDBReleases
+
+Before you set :setting:`Version Manifest Source` to :guilabel:`Local Mode`,
+you must:
+
+- Download the necessary MongoDB archived binaries manually from |company|
+  into the versions directory.
+
+- Store the archived MongoDB binaries for each version, edition *and* platform
+  you need to support for Automation in the versions directory on each of your
+  |onprem| servers.
+
+- Extract the MongoDB binaries from these archives for the Backup Daemons. The
+  versions directory must store the extracted MongoDB binaries for each
   version, edition *and* platform you need to support for Backup.
 
-* Grant the ``mongodb-mms`` user permission to read the contents of this
-  directory.
+- Grant the ``mongodb-mms`` user permission to read the contents of the
+  versions directory (Linux only).
 
-* Specify this path for this directory in the :setting:`Versions Directory`
-  setting on your |onprem| application
+- Specify the path for your versions directory in the :setting:`Versions
+  Directory` setting on your |onprem| application.
 
 For a given |onprem| :term:`group`, the MongoDB binary for the needed
 version must also be selected in the group's
@@ -79,10 +107,10 @@ The version manifest provides |onprem| with a list of all released MongoDB
 versions available to your |onprem| servers.
 
 In Local Mode:
-  * The version manifest must be downloaded and its contents copied and pasted
+  - The version manifest must be downloaded and its contents copied and pasted
     into each |onprem| server.
 
-  * You must update the version manifest as |company| releases new versions.
+  - You must update the version manifest as |company| releases new versions.
 
 In Internet Mode:
   |onprem| automatically updates the version manifest from |company| 
@@ -93,28 +121,32 @@ Prerequisites
 Required Access
 ~~~~~~~~~~~~~~~
 
-To configure :guilabel:`Local Mode`, you must have 
-:ref:`Global Owner <global-owner-role>` access to |onprem|.
+To configure :guilabel:`Local Mode`:
 
-The ``mongodb-mms`` user needs permission to read the contents of the versions
-directory
+- You must have :ref:`Global Owner <global-owner-role>` access to |onprem|.
 
-Before configuring |onprem| to run in :guilabel:`Local Mode`, you must meet the
-prerequisites described here.
+- For Linux installations, you must grant the ``mongodb-mms`` user ``read``
+  permission for the contents of the versions directory.
 
 .. _local-mode-determine-versions:
 
 Determine which Binaries to Store Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For every edition and version of MongoDB you want to install or upgrade,
-Automation needs an archived MongoDB binary (``.tgz`` for OS X, Linux or
-Solaris or ``.zip`` for Windows) for each operating system. Backup requires an
-extracted MongoDB binary for each platform.
+For every edition and version of MongoDB you want to install or upgrade:
+
+- Automation needs an archived MongoDB binary (``.tgz`` for OS X, Linux or
+  Solaris or ``.zip`` for Windows) for each operating system
+
+- Backup needs an extracted MongoDB binary for each platform.
+
+.. note:: 
+   The MongoDB Community Edition for Microsoft Windows with SSL support is
+   incompatible with :guilabel:`Local Mode`.
 
 These binaries and archives must be stored in the :setting:`Versions Directory`.
 
-You need binaries for each MongoDB version that you: 
+You need binaries for each MongoDB version and platform that you: 
 
 - Have in each existing deployment to be imported into |onprem|.
 
@@ -154,13 +186,19 @@ To locate the required archived binaries for specific versions, editions and pla
      - Select the appropriate platform distribution and version 
        from the :guilabel:`Version` dropdown menu.
 
-     - For the current released version, highlight the link to the current version.
+     - For the current released version
+
+       - Highlight, then copy the link to the current version.
+       
+       - Paste the link in a new browser window to start the download of that
+         version.
 
      - For older versions:
   
        - Click :guilabel:`All Version Binaries`.
   
-       - Locate the version you wish to download, click the link to the appropriate archived binary.
+       - Locate the version you wish to download, then click the link to the
+         appropriate archived binary.
 
    - `Enterprise <https://www.mongodb.com/download-center#enterprise>`_
 
@@ -177,7 +215,7 @@ To locate the required archived binaries for specific versions, editions and pla
          the appropriate platform and version and then click the link to the
          right of the :guilabel:`Archive`.
 
-.. warning:: **Remove Unnecessary Versions**
+.. warning:: **Remove the MongoDB Versions You Are Not Going to Use**
 
    #. Click :guilabel:`Deployment`, then :guilabel:`Version Manager`.
 
@@ -187,11 +225,15 @@ To locate the required archived binaries for specific versions, editions and pla
       If you leave unused versions selected and do not download their
       associated binaries, |onprem| fails a pre-flight check when it starts.
 
-   If you did not clear unused versions or download the associated
-   binaries, you can take |onprem| out of :guilabel:`Local Mode` temporarily to
-   pass the |onprem| pre-flight check. See :ref:`Start Ops Manager When
-   All Versions Are Not Downloaded <fix-local-mode-start-failure>` for
-   the procedure.
+   You must download all MongoDB versions you selected in the
+   :guilabel:`Version Manager` to the versions directory. If you did not
+   download the selected versions or clear those versions in the UI, the
+   |onprem| pre-flight check fails.
+
+   You can override the :guilabel:`Local Mode` setting temporarily to pass the
+   |onprem| pre-flight check. To override :guilabel:`Local Mode`, see
+   :ref:`Start Ops Manager When All Versions Are Not Downloaded 
+   <fix-local-mode-start-failure>`.
 
 Install Enterprise Dependencies (MongoDB Enterprise Only)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,27 +260,28 @@ Configure Local Mode
 Start |onprem| When All Versions Are Not Downloaded
 ---------------------------------------------------
 
-|onprem| sets the default source of MongoDB binaries to be over the
-Internet from MongoDB. This enables you to install all versions of
-MongoDB. This allows |onprem| to deploy any supported version of
-MongoDB.
+|onprem| sets the default source of MongoDB binaries to be over the Internet
+from |company|. This enables you to install and deploy any supported MongoDB
+version.
 
-When you set |onprem| to *Local Mode*, |onprem| checks to see if the
-binaries for all of the versions you set in the :guilabel:`Version
-Manager` can be found in the :setting:`Versions Directory` on the
-|onprem| server. If these binaries are not found, |onprem| fails this
-"pre-flight" check and stops.
+When you start |onprem| after enabling :guilabel:`Local Mode`, |onprem|
+performs a *pre-flight check*. This checks if you downloaded all the MongoDB
+binaries you selected in the :guilabel:`Version Manager` to the
+:setting:`Versions Directory` on the |onprem| server. If these binaries were
+not downloaded, |onprem| fails this check and stops.
 
-To allow you to start |onprem|, you can either install all of the
-binaries for every version of MongoDB or change the configuration of
-|onprem| temporarily to allow it to start and let you change the
-versions of MongoDB your |onprem| server supports.
+To pass the pre-flight check, you can either:
 
+- Install all of the binaries for every version of MongoDB you need in the
+  :setting:`Versions Directory` or
+
+- Reconfigure |onprem| temporarily so it can start, then change the versions
+  of MongoDB your |onprem| server supports.
 
 Change Configuration File to Allow |onprem| to Start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To change the |onprem| configuration temporarily:
+To reconfigure |onprem| temporarily:
 
 .. include:: /includes/steps/fix-preflight-error.rst
 
