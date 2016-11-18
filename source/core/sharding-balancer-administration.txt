@@ -50,7 +50,7 @@ modifying a document in the ``lock`` collection in the
 To address uneven chunk distribution for a sharded collection, the
 balancer :doc:`migrates chunks </core/sharding-balancer-administration>` from
 shards with more chunks to shards with a fewer number of chunks. The
-balancer migrates the chunks, one at a time, until there is an even
+balancer migrates the chunks until there is an even
 distribution of chunks for the collection across the shards. For details
 about chunk migration, see :ref:`chunk-migration-procedure`.
 
@@ -60,8 +60,20 @@ Chunk migrations carry some overhead in terms of bandwidth and
 workload, both of which can impact database performance. The
 :term:`balancer` attempts to minimize the impact by:
 
-- Moving only one chunk at a time. See also
-  :ref:`chunk-migration-queuing`.
+- Restricting a shard to at most one migration at any given time; i.e.
+  a shard cannot participate in multiple chunk migrations at the same
+  time. To migrate multiple chunks from a shard, the balancer migrates
+  the chunks one at a time.
+
+  .. versionchanged:: 3.4
+
+     Starting in MongoDB 3.4, MongoDB can perform parallel chunk
+     migrations. Observing the restriction that a shard can participate
+     in at most one migration at a time, for a sharded cluster with *n*
+     shards, MongoDB can perform at most *n/2* (rounded down)
+     simultaneous chunk migrations.
+
+  See also :ref:`chunk-migration-queuing`.
 
 - Starting a balancing round **only** when the difference in the
   number of chunks between the shard with the greatest number of chunks
@@ -122,7 +134,8 @@ All chunk migrations use the following procedure:
    that do not exist on the destination.
 
 #. The destination shard begins requesting documents in the chunk and
-   starts receiving copies of the data.
+   starts receiving copies of the data. See also
+   :ref:`chunk-migration-replication`.
 
 #. After receiving the final document in the chunk, the destination
    shard starts a synchronization process to ensure that it has the
@@ -219,30 +232,35 @@ testing purposes. For more information, see
 Chunk Migration and Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 3.0
+.. versionchanged:: 3.4
 
-   The default value ``secondaryThrottle`` became ``true`` for all
-   chunk migrations.
+During chunk migration, the ``secondaryThrottle`` value determines when
+the balancer proceeds with the next document in the chunk:
 
-   The new ``writeConcern`` field in the balancer configuration
-   document allows you to specify a :doc:`write concern
-   </reference/write-concern>` semantics with the
-   ``_secondaryThrottle`` option.
+- If ``true``, then by default, each document move during chunk
+  migration propagates to at least one secondary before the balancer
+  proceeds with the next document. This is equivalent to a write
+  concern of :writeconcern:`{ w: 2 } <\<number\>>`.
+ 
+  .. note:: 
 
-By default, each document operation during chunk migration propagates to at
-least one secondary before the balancer proceeds with the next
-document, which is equivalent to a write concern of ``{ w: 2 }``. You
-can set the ``writeConcern`` option on the balancer configuration to
-set different write concern semantics.
+     The ``writeConcern`` field in the balancer configuration document
+     allows you to specify a different :doc:`write concern
+     </reference/write-concern>` semantics with the
+     ``_secondaryThrottle`` option. For an example, see
+     :ref:`sharded-cluster-config-secondary-throttle`.
 
-To override this behavior and allow the balancer to continue without
-waiting for replication to a secondary, set the ``_secondaryThrottle``
-parameter to ``false``. See :ref:`sharded-cluster-config-secondary-throttle`
-to update the ``_secondaryThrottle`` parameter for the balancer.
+- If ``false``, the balancer does not wait for replication to a
+  secondary and instead continues with the next document.
 
-For the :dbcommand:`moveChunk` command, the ``secondaryThrottle``
-parameter is independent of the ``_secondaryThrottle`` parameter for
-the balancer.
+Starting in MongoDB 3.4, for :ref:`WiredTiger <storage-wiredtiger>`,
+the default value ``secondaryThrottle`` is ``false`` for all chunk
+migrations.
+
+The default value remains ``true`` for :ref:`MMAPv1 <storage-mmapv1>`.
+
+To update the ``_secondaryThrottle`` parameter for the balancer, see
+:ref:`sharded-cluster-config-secondary-throttle` for an example.
 
 Independent of the ``secondaryThrottle`` setting, certain phases of
 the chunk migration have the following replication policy:

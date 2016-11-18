@@ -321,24 +321,31 @@ Change Replication Behavior for Chunk Migration
 Secondary Throttle
 ~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 3.0.0
-   The balancer configuration document added configurable
-   ``writeConcern`` to control the semantics of the
-   ``_secondaryThrottle`` option.
+During chunk migration (initiated either automatically via the balancer
+or manually via :dbcommand:`moveChunk` command), the
+``secondaryThrottle`` value determines when the balancer proceeds with
+the next document in the chunk:
 
-The ``_secondaryThrottle`` parameter of the balancer and the
-:dbcommand:`moveChunk` command affects the replication behavior during
-:ref:`chunk migration <chunk-migration-replication>`. By default,
-``_secondaryThrottle`` is ``true``, which means each document move
-during chunk migration propagates to at least one secondary before the
-balancer proceeds with the next document: this is equivalent to a write
-concern of ``{ w: 2 }``.
+- If ``true``, each document move during chunk migration propagates to
+  at least one secondary before the balancer proceeds with the next
+  document. This is equivalent to a write concern of :writeconcern:`{
+  w: 2 } <\<number\>>`.
 
-You can also configure the ``writeConcern`` for the
-``_secondaryThrottle`` operation, to configure how migrations will
-wait for replication to complete.  For more information on the
-replication behavior during various steps of chunk migration,
-see :ref:`chunk-migration-replication`.
+  .. note::
+
+     The ``writeConcern`` field in the balancer configuration document
+     allows you to specify a different :doc:`write concern
+     </reference/write-concern>` semantics with the
+     ``_secondaryThrottle`` option.
+
+- If ``false``, the balancer does not wait for replication to a
+  secondary and instead continues with the next document.
+
+Starting in MongoDB 3.4, for :ref:`WiredTiger <storage-wiredtiger>`,
+the default value ``secondaryThrottle`` is ``false`` for all chunk
+migrations.
+
+The default value remains ``true`` for :ref:`MMAPv1 <storage-mmapv1>`.
 
 To change the balancer's ``_secondaryThrottle`` and ``writeConcern``
 values, connect to a :program:`mongos` instance and directly update
@@ -352,7 +359,7 @@ example, from a :program:`mongo` shell connected to a
    use config
    db.settings.update(
       { "_id" : "balancer" },
-      { $set : { "_secondaryThrottle" : false ,
+      { $set : { "_secondaryThrottle" : true ,
                  "writeConcern": { "w": "majority" } } },
       { upsert : true }
    )
@@ -362,6 +369,9 @@ The effects of changing the ``_secondaryThrottle`` and
 immediate. To ensure an immediate effect, stop and restart the balancer
 to enable the selected value of ``_secondaryThrottle``. See
 :doc:`/tutorial/manage-sharded-cluster-balancer` for details.
+
+For more information on the replication behavior during various steps
+of chunk migration, see :ref:`chunk-migration-replication`.
 
 .. _wait-for-delete-setting:
 
