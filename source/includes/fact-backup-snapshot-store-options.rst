@@ -2,6 +2,6 @@
 :term:`snapshots <snapshot>` to one or more of the following 
 storage options:
 
-- Another database, called a :term:`Blockstore`, stored on a local server, 
+- Another MongoDB database, called a :term:`Blockstore`,
 - As files stored on a local file system, and/or
-- A Blockstore stored in an `AWS <https://aws.amazon.com/>`_ `S3 <https://aws.amazon.com/s3/>`_ bucket.
+- An `AWS S3 <https://aws.amazon.com/s3/>`_ bucket.

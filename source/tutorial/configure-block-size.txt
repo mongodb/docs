@@ -13,34 +13,43 @@ Configure Block Size in a Blockstore
 Overview
 --------
 
-If you use the :term:`Blockstore <Backup Blockstore Database>` or an S3
-Blockstore for snapshot storage, then when you back up a replica set,
-the :term:`Backup Daemon` takes a snapshot of the data directory for
-the backed-up deployment, breaks it into blocks, and transfers the
-blocks to the Blockstore.
+When you back up your deployment to a :term:`Blockstores <Backup
+Blockstore Database>`, the :term:`Backup Daemon` first takes a snapshot
+of the :term:`head database`. It then breaks this snapshot into
+:term:`blocks <block>` and writes these blocks to the blockstore.
 
-By default, each block in a Blockstore is 64 KB, but you can configure
-the blocksize to suit your use case.
+By default, each block in a blockstore is 64 KB. You can change
+the block size to suit your use case.
 
 Considerations
 --------------
 
-In general, increasing blocksize results in faster snapshots and
+In general, increasing block size results in faster snapshots and
 restores, but requires more disk space. These competing factors should
-be considered when determining if you wish to tune the blocksize.
+be considered when determining if you wish to tune the block size.
+There are two types of workloads where performance improves as the
+block size increases without requiring additional disk space:
 
-For users with update and delete-intensive workloads, and thus with a
-poor de-duplication rate, increasing the blocksize improves performance
-*without* requiring extra disk space. With update and delete-intensive
-workloads, no matter how small you make the blocksize the entire block
-file is rewritten. Since the entire file is always rewritten there is
-no difference in storage space if you change the blocksize.
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
 
-Users with insert-only workloads also see the performance benefits of
-increasing blocksize without requiring additional disk space. With an
-insert-only workflow, the existing blocks never change: increasing
-blocksize then simplifies block management and enables the best
-possible performance on snapshot and restore.
+   * - Workload
+
+     - Impact
+
+   * - Update- and Delete-Intensive
+
+     - No matter how small you make the block size, the entire block
+       file is rewritten. Since the entire file is always rewritten,
+       there is no difference in storage space if you change the block
+       size.
+
+   * - Insert-only
+    
+     - The existing blocks never change. As you increase block size,
+       block management is simplified. This enables the best possible
+       performance on snapshot and restore.
 
 Procedure
 ---------

@@ -24,44 +24,44 @@ content: |
 
       * - :guilabel:`<hostname>:<port>`
 
-        - Type in one or more hosts in the ``<hostname:port>`` format that
-          comprise the blockstore database.
+        - Type in one or more hosts in the ``<hostname:port>`` format
+          that comprise the blockstore database.
 
           - If the blockstore database is a Replica Set or Sharded
             Cluster, type a comma-separated list of :program:`mongod`
-            instances (for a Replica Set) or :program:`mongos` instances (for
-            a Sharded Cluster).
+            instances (for a Replica Set) or :program:`mongos`
+            instances (for a Sharded Cluster).
 
             .. example::
-               ``host1.example.com:27017,
-               host2.example.com:27017,
-               host2.example.com:27018``
 
-            .. note::
-               For replica sets, you can enter a
-               :ref:`seed list <replica-set-option>`, but you should 
-               try to include all `mongod` instances in the replica set.
+               .. code-block:: sh
+
+                  host1.example.com:27017,
+                  host2.example.com:27017,
+                  host2.example.com:27018
 
           - If the blockstore database is a standalone MongoDB
             instance, type the ``hostname:port`` of the instance.
 
-
       * - :guilabel:`MongoDB Auth Username` (Optional)
 
-        - If the S3 blockstore database uses Username and Password (SCRAM-SHA-1) 
-          authentication, type the name of the user authorized to access the
-          S3 blockstore database.
+        - If the S3 blockstore database uses Username and Password
+          (SCRAM-SHA-1) authentication, type the name of the user
+          authorized to access the S3 blockstore database.
 
-          To enable Username and Password (SCRAM-SHA-1) authentication on your
-          blockstore database,
-          see :manual:`how to configure your database for SCRAM-SHA-1 authentication 
+          Blockstore databases only support Username and Password
+          (SCRAM-SHA-1) authentication.
+
+          To enable Username and Password (SCRAM-SHA-1) authentication
+          on your blockstore database, see :manual:`how to configure
+          your database for SCRAM-SHA-1 authentication 
           </core/security-scram-sha-1>` in the MongoDB manual.
 
       * - :guilabel:`MongoDB Auth Password` (Optional)
 
         - If the database uses Username and Password (SCRAM-SHA-1)
-          authentication, type the password associated with the username that
-          can access the blockstore database.
+          authentication, type the password associated with the
+          username that can access the blockstore database.
 
       * - :guilabel:`Encrypted Credentials` (Optional)
 
@@ -93,65 +93,87 @@ content: |
 
       * - :guilabel:`Load Factor` (Optional)
 
-        - 
-          .. note::
-             Load Factor depends upon having more than one snapshot 
-             store, particularly when backing up a sharded cluster.
-             If you do not have more than one snapshot store, this
-             setting can be ignored.
+        - Type what proportion of backup work you want this snapshot
+          store to handle. Backup work includes running backups,
+          restoring snapshots or :term:`grooming <groom>` blockstores.
+          The proportion of backup work assigned to a single snapshot
+          store is called its *Load Factor*.
 
-          Type how many backup jobs this snapshot store is assigned.
+          .. important::
+             Only set a :guilabel:`Load Factor` if you are managing the
+             backups for a sharded cluster across more than one
+             snapshot store. If you do not have more than one snapshot
+             store, skip this setting.
 
-          You should distribute backup jobs proportionally among snapshot
-          stores. Snapshots stores with more instances to back up should have
-          a greater number of backup jobs. The number of backup jobs given to
-          a single snapshot store is known as its *Load Factor*.
+          By default, |mms| assigns snapshot stores a :guilabel:`Load
+          Factor` of ``1``. This means the backup workload would be
+          split evenly between all snapshot stores.
 
-          By default, |mms| assigns snapshot stores one shard each.
+          Snapshot stores with greater compute or storage performance
+          should be given a greater :guilabel:`Load Factor`:
 
-          If you assign more than one shard to a snapshot store, this 
-          snapshot store would need to run more backup jobs, usually by a 
-          factor of how many shards it backs up.
+          - A file system store with 16-cores and 128 GB or RAM can
+            back up more databases in less time.
 
-          .. example:: **How the Load Factor affects backups**
+          - A blockstore backed by a 10-node sharded cluster can back
+            up more databases and groom more databases than a
+            blockstore backed by a single replica set.
 
-             You are backing up a five-shard cluster. Your backup storage
-             configuration has filestore (``A``) with one shard and 
-             blockstore (``B``) with four shards. These blockstores should 
-             not get equally distribution of backup jobs, as ``B`` is four 
-             times larger than ``A``. ``B`` should get a Load Factor of 
-             *four* and ``A`` should get a Load Factor of *one*.
+          .. example:: **How the Load Factor affects backup work**
 
-          You should change the Load Factor to change this ratio of backup
-          jobs to match the number of shards being backed up.
+             You are backing up a five-shard cluster. Your backup
+             storage configuration has:
+             
+             - File system store (``A``) running on a two-core server
+               supporting one shard and
 
+             - Blockstore (``B``) running on four shard cluster across four
+               servers with eight cores each supporting a total of four
+               shards.
+
+             ``B`` is four times larger than ``A``. ``B`` should get a
+             Load Factor of ``4``. ``A`` should get a Load Factor
+             of ``1``.
 
       * - :guilabel:`Write Concern`
 
-        - Select the proper :manual:`Write Concern</core/write-concern/>`.
+        - Select your preferred :manual:`Write Concern</core/write-concern/>`:
 
+          - Default
+          - Journaled
+          - Acknowledged
+          - Replica Acknowledged
+          - Majority
 ---
 title: "Select the checkbox in the :guilabel:`Assignment Enabled` column."
 stepnum: 4
 level: 4
 ref: assign-blockstores
+content: |
+
+  Select if you want to assign backup jobs to this blockstore immediately
+  after it has been created. By default, the blockstore can be assigned backup
+  jobs. If you clear this checkbox, the blockstore is created but you cannot
+  assign backups to the blockstore.
+
 ---
 title: "Click :guilabel:`Save`."
 stepnum: 5
 level: 4
 ref: save-blockstore-changes
 --- 
-title: "**Restart** all the |onprem| instances, including those running activated Backup Daemons."
+title: "**Restart** all the |onprem| instances, including those running Backup Daemons."
 stepnum: 6 
 level: 4
 ref: restart-blockstore-after-edits
 content: |
   .. warning::
-     If you change any of the connection string values (:guilabel:`MongoDB
-     Host List`, :guilabel:`MongoDB Hostname`, :guilabel:`MongoDB Port`,
+     If you change any of the connection string values
+     (:guilabel:`MongoDB Host List`, :guilabel:`MongoDB Hostname`,
+     :guilabel:`MongoDB Port`,
      :guilabel:`Username`, :guilabel:`Password`, :guilabel:`Connection
      Options` and/or :guilabel:`Use TLS/SSL`), you must restart all the
-     |onprem| instances, including those running activated Backup Daemons,
+     |onprem| instances, including those running Backup Daemons,
      for the changes to take effect.
 
      .. seealso::

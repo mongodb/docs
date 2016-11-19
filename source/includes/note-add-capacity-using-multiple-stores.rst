@@ -1,5 +1,6 @@
 .. note::
-   Use multiple snapshot stores when you must add capacity or when you must
-   meet data localization or other regulatory requirements. To learn how to
-   assign snapshot stores to different data centers, see
+   You may have issues that require you to use more than one snapshot store
+   like needing more capacity, localizing data, or meeting privacy
+   regulations. To learn how to assign snapshot stores to different data
+   centers, see
    :doc:`/tutorial/assign-snapshot-stores-to-data-center`.
