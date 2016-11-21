@@ -1,4 +1,5 @@
-To verify MongoDB Enterprise binaries:
+To verify MongoDB Enterprise binaries, pass the ``--version`` command line
+option to the :program:`mongod` or :program:`mongos`:
 
 .. code-block:: sh
 
