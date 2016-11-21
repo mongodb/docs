@@ -1,3 +1,12 @@
+Backup Agent ``5.0.3.465``
+--------------------------
+
+*Released 2016-11-21*
+
+- Support for MongoDB 3.4 Views.
+
+- Support for MongoDB 3.4 featureCompatiblityVersion.
+
 Backup Agent ``5.0.1.453``
 --------------------------
 

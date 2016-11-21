@@ -1,3 +1,11 @@
+Monitoring Agent ``5.4.2.354``
+------------------------------
+
+*Released 2016-11-21*
+
+- Fix: Prevent slow collection of database-specific stats from
+  affecting main metrics collection loop.
+
 Monitoring Agent ``5.4.1.350``
 ------------------------------
 
