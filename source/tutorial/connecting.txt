@@ -1,0 +1,120 @@
+======================
+Connecting to the |bi|
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _client-authentication:
+
+Authentication
+---------------
+
+.. versionchanged:: 2.0
+
+   Prior to version 2.0, the |bi| stored its own separate set of
+   credentials.
+
+The |bi| requires authentication when running with :option:`--auth`.
+When the |bi| receives a connection with authentication credentials
+from a client, it passes those credentials through to the underlying
+MongoDB instance.
+
+You can specify the following authentication options after your
+username as URI-style query parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - .. urioption:: source
+
+     - Specify the name of the database which stores the user's
+       credentials. If you do not specify this option, the |bi| will
+       default to the current database associated with the MySQL
+       connection.
+
+       For authentication mechanisms such as ``PLAIN`` (LDAP) that
+       delegate credential storage to other services, set the
+       :urioption:`source` value to ``$external``.
+
+   * - .. urioption:: mechanism
+
+     - Specify the mechanism that the |bi| should use to
+       authenticate the connection. Possible values include:
+
+       - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+       - :ref:`MONGODB-CR <authentication-mongodb-cr>`
+       - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
+
+       The ``PLAIN`` (LDAP) mechanism requires MongoDB Enterprise, and
+       requires that :urioption:`source` be ``$external``.
+
+For example, to authenticate as the user ``grace`` with authentication
+mechanism ``PLAIN`` and using an external source, you would use the
+following username:
+
+.. code::
+
+   grace?mechanism=PLAIN&source=$external
+
+Authentication requires your client to send your password in plain text,
+and you must use TLS/SSL to protect your credentials. See
+:ref:`connect-mysql-auth` for details on how to connect the MySQL
+command line client to the |bi| using authentication.
+
+Connecting with the MySQL Client
+--------------------------------
+
+You can use the command-line MySQL client to connect to the |bi|.
+
+Without Authentication or TLS/SSL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a :program:`mongosqld` instance listening on the MySQL
+default port ``3307``, run the following command:
+
+.. code-block:: sh
+
+   mysql --protocol tcp --port 3307
+
+.. _connect-mysql-auth:
+
+With Authentication and TLS/SSL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a :program:`mongosqld` instance listening on port ``3307``,
+as user ``grace`` using authentication mechanism ``PLAIN``, and using
+specific TLS/SSL CA and x.509 certificates, run the following command:
+
+.. code-block:: sh
+
+   mysql --enable-cleartext-plugin --protocol tcp --port 3307 \
+     -u 'grace?mechanism=PLAIN&source=$external' \
+     --ssl-ca=/path_to_the_CAcert/ca.crt \
+     --ssl-key=/path_to_my_certificate_key/mysql.key \
+     --ssl-cert=/path_to_my_client_certificate/mysql.crt \
+     -p
+
+If using the ``$external`` authentication source, wrap your username in
+single quotes or escape the ``$`` character with a backslash to prevent
+your shell from performing interpolation.
+
+Authentication requires your client to send your password in plain
+text. To send the password in plain text, either:
+
+- Use the ``--enable-cleartext-plugin`` option shown in the
+  previous example, or
+- Set the environment variable ``LIBMYSQL_ENABLE_CLEARTEXT_PLUGIN=1``.
+
+See the
+`MySQL documentation <https://dev.mysql.com/doc/refman/5.7/en/cleartext-authentication-plugin.html>`_
+for additional details on enabling the MySQL cleartext plugin.
