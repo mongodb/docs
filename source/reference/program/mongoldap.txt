@@ -1,0 +1,157 @@
+.. _mongoldap:
+
+=============
+``mongoldap``
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 3.4 MongoDB Enterprise
+
+Synopsis
+--------
+
+MongoDB 3.4 provides :program:`mongoldap` for testing MongoDB's LDAP
+:ref:`configuration options <security.ldap.options>` against a running LDAP
+server or set of servers.
+
+To validate the LDAP options in the configuration file, set the
+:program:`mongoldap` :option:`--config` option to the configuration file's
+path.
+
+To test the LDAP configuration options, you must specify a :option:`--user`
+and ``--password``. :program:`mongoldap` simulates authentication to a
+MongoDB server running with the provided configuration options and credentials.
+
+:program:`mongoldap` returns a report that includes the success or failure of
+any step in the LDAP authentication or authorization procedure. Error messages
+include information on specific errors encountered and potential advice for
+resolving the error.
+
+When configuring options related to :ref:`LDAP authorization
+<security-ldap-external>`, :program:`mongoldap` executes an LDAP query
+constructed using the provided configuration options and username, and returns
+a list of roles on the ``admin`` database which the user is authorized for.
+
+You can use this information when configuring :ref:`LDAP authorization roles
+<security-ldap-external-roles>` for user access control. For example, use
+:program:`mongoldap` to ensure your configuration allows privileged users to
+gain the necessary roles to perform their expected tasks. Similarly, use
+:program:`mongoldap` to ensure your configuration disallows non-privileged
+users from gaining roles for accessing the MongoDB server, or performing
+unauthorized actions. 
+
+When configuring options related to :ref:`LDAP authentication
+<security-ldap>`, use :program:`mongoldap` to ensure that the authentication
+operation works as expected.
+
+This document provides a complete overview of all command line options for
+:program:`mongoldap`.
+
+Usage
+-----
+
+.. note::
+
+   A full description of LDAP or Active Directory is beyond the scope of
+   this documentation.
+
+Consider the following sample configuration file, designed to support
+LDAP authentication and authorization via Active Directory:
+
+.. code-block:: yaml
+
+   security:
+      authentication: "enabled"
+      ldap:
+         servers: "activedirectory.example.net"
+         bind:
+            queryUser: "mongodbadmin@dba.example.com"
+            queryPassword: "secret123"
+         userToDNMapping:
+            '[
+               {
+                  match : "(.+)",
+                  ldapQuery: "DC=example,DC=com??sub?(userPrincipalName={0})"
+               }
+            ]'
+         authz:
+            queryTemplate: "DC=example,DC=com??sub?(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={USER}))"
+   setParameter:
+      authenticationMechanism: "PLAIN"
+      
+You can use :program:`mongoldap` to validate the configuration file, which
+returns a report of the procedure. You must specify a username and password
+for :program:`mongoldap`.
+
+.. code-block:: shell
+
+   mongoldap --config <path-to-config> --username "bob@dba.example.com" --password "secret123" 
+   
+If the provided credentials are valid, and the LDAP options in the
+configuration files are valid, the output might be as follows:
+
+.. code-block:: shell
+
+   Checking that an LDAP server has been specified...
+   [OK] LDAP server found
+   
+   Connecting to LDAP server...
+   [OK] Connected to LDAP server
+   
+   Parsing MongoDB to LDAP DN mappings..
+   [OK] MongoDB to LDAP DN mappings appear to be valid
+   
+   Attempting to authenticate against the LDAP server...
+   [OK] Successful authentication performed
+   
+   Checking if LDAP authorization has been enabled by configuration...
+   [OK] LDAP authorization enabled
+   
+   Parsing LDAP query template..
+   [OK] LDAP query configuration template appears valid
+   
+   Executing query against LDAP server...
+   [OK] Successfully acquired the following roles:
+   ...
+
+Options
+-------
+
+.. only:: (not man)
+
+   .. class:: hidden
+
+      .. binary:: mongod
+
+.. include:: /includes/option/option-mongoldap-config.rst
+
+.. include:: /includes/option/option-mongoldap-user.rst
+
+.. include:: /includes/option/option-mongoldap-password.rst
+
+.. include:: /includes/option/option-mongoldap-ldapServers.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapQueryUser.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapQueryPassword.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapBindWithOSDefaults.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapBindMethod.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapBindSASLMechanisms.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapTransportSecurity.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapTimeoutMS.rst
+                                           
+.. include:: /includes/option/option-mongoldap-ldapUserToDNMapping.rst
+
+.. include:: /includes/option/option-mongoldap-ldapAuthzQueryTemplate.rst
