@@ -14,8 +14,8 @@ Case Insensitive Indexes
 
 .. versionadded:: 3.4
 
-Case insensitive indexes support queries that search for text
-without regard for case.
+Case insensitive indexes support queries that perform string
+comparisons without regard for case.
 
 You can create a case insensitive index with
 :method:`db.collection.createIndex()` by specifying the ``collation``
@@ -30,52 +30,56 @@ parameter as an option. For example:
                                 }
                               } )
 
-The ``collation`` option takes a document with the following keys:
+To specify a collation for a case sensitive index, include:
 
 - ``locale``: specifies language rules. See
   :ref:`Collation Locales<collation-languages-locales>` for a list of
   available locales.
 
 - ``strength``: determines comparison rules. A value of
-  ``1`` or ``2`` indicates a case insensitive collation. Defaults to
-  ``3`` (performs comparisons up to tertiary differences, such as case
-  and letter variants).
+  ``1`` or ``2`` indicates a case insensitive collation.
+
+For additional collation fields, see
+:ref:`Collation<collation-document-fields>`.
 
 Behavior
 --------
 
-The use of a case insensitive :doc:`collation</reference/collation>`
-allows queries to match on document values and do sorting without
-regard for letter case. Using a case insensitive index does not affect
+Using a case insensitive index does not affect
 the results of a query, but it can increase performance; see
 :doc:`Indexes</indexes>` for a detailed discussion of the costs and
 benefits of indexes.
 
-To use a case insensitive index, a query must specify the same
-collation which the index uses, unless there is a collection-wide
-default collation in place.
+To use an index that specifies a collation, query and sort operations
+must specify the same collation as the index. If a collection has
+defined a collation, all queries and indexes inherit that collation
+unless they explictly specify a different collation.
 
 Examples
 --------
 
-Collections with no default collation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _no-default-collation-example:
 
-You can run case insensitive queries against a collection with no
-default collation by specifying a collation at the query level.
-To make use of an index with collation in such a collection, the
-collation specified in the query must be the same as the collation
-on the index.
+Create a Case Insensitive Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use a case insensitive index on a collection with no default
+collation, create an index with a collation and set the ``strength``
+parameter to ``1`` or ``2`` (see
+:ref:`Collation<collation-document-fields>` for a detailed
+description of the ``strength`` parameter). You must specify the same
+collation at the query level in order to use the index-level collation.
 
 The following example creates a collection with no default collation,
-then adds an index with collation on the ``type`` field.
+then adds an index on the ``type`` field with a case insensitive
+collation.
 
 .. code-block:: javascript
 
    db.createCollection("fruit")
 
    db.fruit.createIndex( { type: 1},
-                         { collation: { locale: 'fr_CA', strength: 1 } } )
+                         { collation: { locale: 'en', strength: 2 } } )
 
 To use the index, queries must specify the same collation.
 
@@ -87,20 +91,21 @@ To use the index, queries must specify the same collation.
 
    db.fruit.find( { type: "apple" } ) // does not use index, finds one result
 
-   db.fruit.find( { type: "apple" } ).collation( { locale: 'fr_CA', strength: 1 } )
+   db.fruit.find( { type: "apple" } ).collation( { locale: 'en', strength: 2 } )
    // uses the index, finds three results
 
-   db.fruit.find( { type: "apple" } ).collation( { locale: 'fr_CA', strength: 2 } )
+   db.fruit.find( { type: "apple" } ).collation( { locale: 'en', strength: 1 } )
    // does not use the index, finds three results
 
-Collections with a default collation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _default-collation-example:
 
-One way to create and use case insensitve indexes is to
-create a collection with a default case insensitive collation and
-then add an index to the collection, which inherits the collection's
-default collation. All queries which do not specify a different
-collation also inherit the default collation.
+Case Insensitive Indexes on Collections with a Default Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you create a collection with a default collation, all the indexes
+you create subsequently inherit that collation unless you specify a
+different collation. All queries which do not
+specify a different collation also inherit the default collation.
 
 The following example creates a collection called ``names`` with a
 default collation, then creates an index on the ``first_name`` field.
@@ -126,10 +131,11 @@ and if possible use the index as well.
 
    db.names.find( { first_name: "betsy" } )
    // inherits the default collation: { collation: { locale: 'en_US', strength: 2 } }
+   // finds three results
 
-The operation uses the collection's default collation and finds all three
-documents. It uses the index on the ``first_name`` field for better
-performance.
+The above operation uses the collection's default collation and finds
+all three documents. It uses the index on the ``first_name`` field for
+better performance.
 
 It is still possible to perform case sensitive searches on this
 collection by specifying a different collation in the query:
@@ -137,93 +143,8 @@ collection by specifying a different collation in the query:
 .. code-block:: javascript
 
    db.names.find( { first_name: "betsy" } ).collation( { locale: 'en_US' } )
-   // does not use the collection's default collation
+   // does not use the collection's default collation, finds one result
 
-The operation finds only one document, because it uses a collation with
-no ``strength`` value specified. It does not use the collection's default
-collation or the index.
-
-Ignoring case and special characters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A collection called ``names`` has no default
-collation and contains the following documents:
-
-.. code-block:: javascript
-
-   { "first_name" : "Juan", "last_name" : "Garcia" }
-   { "first_name" : "Enrico", "last_name" : "García" }
-   { "first_name" : "Luis", "last_name" : "garcia" }
-
-The use case for this application calls for queries to ignore
-case and special characters, including accents, umlauts, and other
-diacritical marks, while using an index to improve query performance.
-
-To create an index with a collation, use a collation document
-when creating the index.
-
-.. code-block:: javascript
-
-   db.names.createIndex( { last_name : 1 },
-                         { collation : { locale : 'en_US', strength : 1 } } )
-
-Because this collection has no default collation, you must include
-the a collation document in the query. For the query to use the index,
-the collation document in the query must match exactly the one on
-the index.
-
-.. code-block:: javascript
-
-   db.coll.find( { last_name : 'garcia' },
-                 { collation : { locale : 'en_US', strength : 1 } } )
-
-This query finds all documents where ``last_name`` matches
-``garcia``, regardless of case or diacritical marks, and uses the index
-shown above for better performance. A similar query which uses no
-collation or a different collation does not use the index.
-
-.. _alternate-example:
-
-Ignoring spaces and punctuation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A collection called ``streets`` contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "street" : "Avenue C" }
-   { "_id" : 2, "street" : "Avenue..B" }
-   { "_id" : 3, "street" : "AvenueA" }
-
-The following query has no collation and sorts the documents in
-lexical order:
-
-.. code-block:: javascript
-
-   db.streets.find().sort( { street : 1 } )
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "street" : "Avenue C" }
-   { "_id" : 2, "street" : "Avenue..B" }
-   { "_id" : 3, "street" : "AvenueA" }
-
-The following query uses a collation with the ``alternate`` parameter
-set to ``shifted`` and sorts the documents while ignoring spaces and
-punctuation:
-
-.. code-block:: javascript
-
-   db.streets.find().sort( { street : 1 } ).collation(
-      { locale : "en_US", alternate : "shifted" }
-   )
-
-The operation returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 3, "street" : "AvenueA" }
-   { "_id" : 2, "street" : "Avenue..B" }
-   { "_id" : 1, "street" : "Avenue C" }
+The above operation finds only one document, because it uses a
+collation with no ``strength`` value specified. It does not use the
+collection's default collation or the index.
