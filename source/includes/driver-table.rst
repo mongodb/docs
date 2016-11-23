@@ -12,7 +12,7 @@
      - `C Driver Source Code <https://github.com/mongodb/mongo-c-driver?jmp=docs>`_
      - `C Driver API <http://mongoc.org/>`_
 
-   * - `C++ <https://mongodb.github.io/mongo-cxx-driver/>`_
+   * - `C++ <https://mongodb.github.io/mongo-cxx-driver/?jmp=docs>`_
      - `C++ Driver Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`_
      - `C++ Driver Source Code <https://github.com/mongodb/mongo-cxx-driver>`_
      - `C++ Driver API <http://mongodb.github.io/mongo-cxx-driver/api/current?jmp=docs>`_
