@@ -72,7 +72,7 @@ content: |
       * - :guilabel:`Use TLS/SSL` (Optional)
 
         - Select if the blockstore database only accepts connection
-          encrypted using TLS.
+          encrypted using :abbr:`TLS (Transport Layer Security)`.
 
           To enable TLS on the blockstore database, see 
           :manual:`Configure mongod and mongos for TLS/SSL </tutorial/configure-ssl>`.
@@ -105,15 +105,23 @@ content: |
              snapshot store. If you do not have more than one snapshot
              store, skip this setting.
 
-          By default, |mms| assigns snapshot stores a :guilabel:`Load
-          Factor` of ``1``. This means the backup workload would be
-          split evenly between all snapshot stores.
+          :guilabel:`Load Factor` must be any positive integer,
+          including ``0``. By default, |mms| assigns each snapshot 
+          store a :guilabel:`Load Factor` of ``1``. This means the
+          backup workload would be split evenly among all snapshot
+          stores.
+
+          When one snapshot store's :guilabel:`Load Factor` is set to
+          ``0``, all  jobs or tasks running on that snapshot store are
+          allowed to finish. All future backup work is re-distributed
+          among the remaining snapshot stores.
 
           Snapshot stores with greater compute or storage performance
           should be given a greater :guilabel:`Load Factor`:
 
-          - A file system store with 16-cores and 128 GB or RAM can
-            back up more databases in less time.
+          - A file system store with 16-cores and 128 GB of RAM can
+            back up more databases in less time than a file system
+            store with only 2 cores and 8 GB of RAM.
 
           - A blockstore backed by a 10-node sharded cluster can back
             up more databases and groom more databases than a
@@ -121,29 +129,38 @@ content: |
 
           .. example:: **How the Load Factor affects backup work**
 
-             You are backing up a five-shard cluster. Your backup
-             storage configuration has:
+             Consider a sharded cluster with five shards with the
+             following backup storage configuration:
              
-             - File system store (``A``) running on a two-core server
-               supporting one shard and
+             - File system store (``F``) manages the backup work for
+               one shard in the cluster. ``F`` is running on a single
+               two-core physical server.
 
-             - Blockstore (``B``) running on four shard cluster across four
-               servers with eight cores each supporting a total of four
-               shards.
+             - Blockstore (``B``) manages the backup work for four shards in the cluster. ``B`` is running as a four-node sharded cluster on four physical servers with two cores on each server.
 
-             ``B`` is four times larger than ``A``. ``B`` should get a
-             Load Factor of ``4``. ``A`` should get a Load Factor
-             of ``1``.
+             ``B`` has four times the amount of storage and computing
+             power than ``F``. With this difference in capability,
+             ``B`` should get a Load Factor of ``4``. ``F`` should get
+             a Load Factor of ``1``.
 
       * - :guilabel:`Write Concern`
 
         - Select your preferred :manual:`Write Concern</core/write-concern/>`:
 
-          - Default
-          - Journaled
-          - Acknowledged
-          - Replica Acknowledged
-          - Majority
+          .. list-table::
+             :widths: 30 70
+             :stub-columns: 1
+ 
+             * - Default
+               - 
+             * - Journaled
+               - 
+             * - Acknowledged
+               - 
+             * - Replica Acknowledged
+               - 
+             * - Majority
+               - 
 ---
 title: "Select the checkbox in the :guilabel:`Assignment Enabled` column."
 stepnum: 4
