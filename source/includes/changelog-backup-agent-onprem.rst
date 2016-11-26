@@ -1,3 +1,23 @@
+.. _backup-5.0.3.465:
+
+Backup Agent ``5.0.3.465``
+--------------------------
+
+*Released with Ops Manager 3.4.0 on 2016-11-29*
+
+- Added support for uncompressed WiredTiger snapshots on the filesystem.
+
+- Added support for storing snapshots in S3.
+
+- Added support for WiredTiger encryption at rest.
+
+- Added ability to control the reference time for the snapshot
+  schedule. For example, can now specify that snapshots are taken every
+  6 hours, starting at 12:00:00 AM.
+
+- Added support for all data-format affecting MongoDB configuration
+  options: ``directoryPerDB``, ``smallfiles``, etc.
+
 .. _backup-3.9.1.382:
 
 Backup Agent ``3.9.0.336``

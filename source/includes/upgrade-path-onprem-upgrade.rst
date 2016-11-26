@@ -9,29 +9,23 @@ path. The following table lists upgrade paths per version:
 
      - Upgrade Path
 
-   * - 1.6 or later
+   * - 2.0 or later
 
-     - Use this procedure to upgrade directly to the latest version.
+     - |onprem| supports direct upgrades from version 2.0.x. Use this
+       tutorial to upgrade directly to 3.4.0.
 
-   * - 1.5
+   * - 1.8 or earlier
 
-     - 1. Upgrade to 1.8 using the :v1.8:`upgrade procedure in the v1.8
-          documentation </tutorial/nav/upgrade-application-daemon>`.
+     - 1. Follow the appropriate upgrade path to upgrade your version
+          to 2.0. For the specific upgrade path for your version, refer to
+          :v2.0:`v2.0 upgrade documentation
+          </tutorial/nav/upgrade-application-daemon>`.
 
-       2. Use this procedure to upgrade to the latest version.
-
-   * - 1.4 or earlier
-
-     - 1. Upgrade to 1.6 using the :v1.6:`upgrade procedure in the v1.6
-          documentation </tutorial/nav/upgrade-application-daemon>`.
-
-       2. Upgrade to 1.8 using the :v1.8:`upgrade procedure in the v1.8
-          documentation </tutorial/nav/upgrade-application-daemon>`.
-
-       3. Use this procedure to upgrade to the latest version.
+       #. Once upgraded to 2.0.x, use this tutorial to upgrade to 3.4.0.
 
 There are no supported downgrade paths for |onprem|.
 
-.. important:: It is crucial that you back up the existing
-   configuration because the upgrade process will delete existing
-   data.
+.. important::
+
+   It is crucial that you back up the existing ``conf-mms.properties``
+   file because the upgrade process will delete existing data.

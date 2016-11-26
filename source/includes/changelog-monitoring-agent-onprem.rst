@@ -1,3 +1,23 @@
+.. _monitoring-5.4.2.354:
+
+Monitoring Agent ``5.4.2.354``
+------------------------------
+
+*Released with Ops Manager 3.4.0 on 2016-11-29*
+
+- Added support for monitoring of MongoDB 3.4 deployments
+
+- Added support for monitoring at higher resolutions, including support for gathering of metrics by multiple active Monitoring Agents
+
+- Built using Go 1.6.
+
+- Added ability to run managed Monitoring Agents as a service on Windows.
+
+- Added enhancement to manage appropriate ``ulimits`` in the package.
+
+- Added enhancement to run ``systemd`` management on RHEL7 and Ubuntu
+  16.04.
+
 .. _monitoring-3.9.1.326:
 
 Monitoring Agent ``3.9.1.326``
