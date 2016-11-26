@@ -33,5 +33,6 @@ that starts :program:`mongod` with the ``/etc/mongod.conf``
 configuration file.
 
 .. Links to the section in the including page having this title.
+
 See `Run MongoDB Community Edition`_ for details on using this
 initialization script.
