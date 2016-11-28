@@ -35,3 +35,11 @@ two:
   :program:`mongosqld` requires at least one :ref:`DRDL` file to start.
   You will need to have defined your schema with
   :program:`mongodrdl` before starting :program:`mongosqld`.
+
+SQL Compability
+~~~~~~~~~~~~~~~
+
+|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements. |bi|
+Version 2.0.0 does not yet support ODBC syntax.
+
+.. seealso:: :doc:`/supported-operations`
