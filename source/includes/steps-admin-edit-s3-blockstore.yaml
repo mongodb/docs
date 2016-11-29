@@ -106,11 +106,9 @@ content: |
 
       * - :guilabel:`Load Factor` (Optional)
 
-        - Type what proportion of backup work you want this snapshot
-          store to handle. Backup work includes running backups,
-          restoring snapshots or :term:`grooming <groom>` blockstores.
-          The proportion of backup work assigned to a single snapshot
-          store is called its *Load Factor*.
+        - Type any positive integer that expresses how much backup work
+          you want this snapshot store to perform compared to another
+          snapshot store.
 
           .. important::
              Only set a :guilabel:`Load Factor` if you are managing the
@@ -118,16 +116,42 @@ content: |
              snapshot store. If you do not have more than one snapshot
              store, skip this setting.
 
-          :guilabel:`Load Factor` must be any positive integer,
-          including ``0``. By default, |mms| assigns each snapshot 
-          store a :guilabel:`Load Factor` of ``1``. This means the
-          backup workload would be split evenly among all snapshot
-          stores.
+          Backup work includes running backups, restoring snapshots or
+          :term:`grooming <groom>` blockstores. The term of backup work
+          ratio assigned to a single snapshot store is called its *Load
+          Factor*.
 
-          When one snapshot store's :guilabel:`Load Factor` is set to
-          ``0``, all  jobs or tasks running on that snapshot store are
-          allowed to finish. All future backup work is re-distributed
-          among the remaining snapshot stores.
+          By default, |mms| assigns each snapshot store a
+          :guilabel:`Load Factor` of ``1``. This means each snapshot
+          store would perform the same amount of backup work.
+
+          As a snapshot store's :guilabel:`Load Factor` increases, it
+          performs more backup work compared to another snapshot store.
+          If the :guilabel:`Load Factor` of snapshot store ``A`` is set
+          to ``2`` and the :guilabel:`Load Factor` of snapshot store
+          ``B`` is set to ``1``, ``A`` performs two times the backup
+          work of ``B``.
+
+          .. example:: **How to estimate Load Factor**
+
+             Consider a five-shard sharded cluster with the
+             following backup storage configuration:
+             
+             - File system store (``F``) manages the backup work for
+               one shard in the cluster. ``F`` is running on a single
+               two-core physical server.
+
+             - Blockstore (``B``) manages the backup work for four
+               shards in the cluster. ``B`` is running as a four-node
+               sharded cluster on four physical servers with two cores
+               on each server.
+
+             In this example, ``B`` has four times the capability of
+             ``F``. ``B`` should receive the greater part of the ratio
+             of backup work: ``4:1``. For every one backup task ``F``
+             performs, ``B`` performs ``4``. 
+
+             Set the Load Factors of ``B`` to ``4`` and ``F`` to ``1``.
 
           Snapshot stores with greater compute or storage performance
           should be given a greater :guilabel:`Load Factor`:
@@ -140,22 +164,13 @@ content: |
             up more databases and groom more databases than a
             blockstore backed by a single replica set.
 
-          .. example:: **How the Load Factor affects backup work**
-
-             Consider a sharded cluster with five shards with the
-             following backup storage configuration:
-             
-             - File system store (``F``) manages the backup work for
-               one shard in the cluster. ``F`` is running on a single
-               two-core physical server.
-
-             - Blockstore (``B``) manages the backup work for four shards in the cluster. ``B`` is running as a four-node sharded cluster on four physical servers with two cores on each server.
-
-             ``B`` has four times the amount of storage and computing
-             power than ``F``. With this difference in capability,
-             ``B`` should get a Load Factor of ``4``. ``F`` should get
-             a Load Factor of ``1``.
-
+          :guilabel:`Load Factor` can be set to ``0``. When one 
+          snapshot store's :guilabel:`Load Factor` is set to ``0``, it
+          performs no backup work at all. If a snapshot store's
+          :guilabel:`Load Factor` is changed while backup work is in
+          progress, all jobs or tasks running on that snapshot store
+          are allowed to finish. All future backup work then is re-
+          distributed among the remaining snapshot stores.
 
       * - :guilabel:`Write Concern`
 
