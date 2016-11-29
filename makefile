@@ -17,7 +17,7 @@ PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prod
 PREFIX=
 
 ### Must Change when we update the current version of OpsMgr
-CURRENT_V=v2.0
+CURRENT_V=v3.4
 
 
 ##  I doubt that we'll ever have files named stage-cloud, fake-deploy-cloud, ... but eh
