@@ -3,5 +3,5 @@
 storage options:
 
 - Another MongoDB database, called a :term:`Blockstore`,
-- As files stored on a local file system, and/or
+- As files stored on a local or network-attached file system, and/or
 - An `AWS S3 <https://aws.amazon.com/s3/>`_ bucket.
