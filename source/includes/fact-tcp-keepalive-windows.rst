@@ -12,7 +12,7 @@
 
 - To change the ``KeepAliveTime`` value, use the following command in
   an Administrator :guilabel:`Command Prompt`, where ``<value>`` is
-  expressed in hexadecimal (e.g. ``0x0124c0`` is 120000):
+  expressed in hexadecimal (e.g. 120000 is ``0x1d4c0``):
 
   .. code-block:: powershell
 
