@@ -105,7 +105,9 @@ html_theme_options = {
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.project,
     'nav_excluded': sconf.theme.nav_excluded,
-    'version': version
+    'version': version,
+    'version_selector':  get_versions(conf),
+    'active_branches': conf.version.active,
 }
 
 html_sidebars = sconf.sidebars

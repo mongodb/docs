@@ -4,7 +4,7 @@
 
 - Running MongoDB instance (version 2.6 or later).
 
-- Spark 1.6.x.
+- Spark 2.0.x.
 
 - Scala 2.10.x *if* using the ``mongo-spark-connector_2.10`` package
 
