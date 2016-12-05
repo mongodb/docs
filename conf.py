@@ -98,7 +98,7 @@ html_theme_options = {
     'project': conf.project.name,
     'translations': languages,
     'nav_excluded': sconf.theme.nav_excluded,
-    'upcoming': '3.3-pre',
+    'upcoming': '',
 }
 
 onprem_latex_documents = []
@@ -135,8 +135,14 @@ try:
 
         if release == "Upcoming":
             rst_epilog.append(".. |release-string| replace:: \   ")
+            
+            # If upcoming, pop in the latest stable/current version
+            rst_epilog.append(".. |manifestlink| replace:: https://opsmanager.mongodb.com/static/version_manifest/{0}.json".format(conf.git.branches.current))
+
         else:
             rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+            rst_epilog.append(".. |manifestlink| replace:: https://opsmanager.mongodb.com/static/version_manifest/{0}.json".format(version))
+
 
         ## add `extlinks` for each published version.
         for i in conf.git.branches.published:
@@ -179,7 +185,7 @@ latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
                             r'\usepackage{upquote}',
                             r'\pagestyle{plain}',
                             r'\pagenumbering{arabic}' ]
-869417
+
 latex_elements = {
     'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
