@@ -26,6 +26,9 @@ help:
 html: migrate
 	giza make html
 
+publish-build-only:  
+	giza make publish
+
 publish: migrate 
 	giza make publish
 
