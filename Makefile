@@ -19,19 +19,19 @@ help:
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public
-	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
 
 deploy: build/public
 	@echo "Doing a dry-run"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
+	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories  --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
+	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories  --redirects build/public/.htaccess  ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
