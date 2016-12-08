@@ -119,10 +119,8 @@ members of the replica set. Take the configuration outlined in the
 Traffic to and from a MongoDB Config Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Config servers, host the :term:`config database` that stores metadata
-for sharded clusters. Each production cluster has three config
-servers, initiated using the :option:`mongod --configsvr`
-option. [#config-option]_ Config servers listen for connections on port
+Config servers host the :term:`config database` that stores metadata
+for sharded clusters. Config servers listen for connections on port
 ``27019``. As a result, add the following ``iptables`` rules to the
 config server to allow incoming and outgoing connection on port
 ``27019``, for connection to the other config servers.
@@ -148,18 +146,12 @@ Replace ``<ip-address>`` with the address of the
 :program:`mongos` instances and the shard :program:`mongod`
 instances.
 
-.. [#config-option] You also can run a config server by using the
-   ``configsvr`` value for the :setting:`~sharding.clusterRole` setting in a
-   configuration file.
-
 Traffic to and from a MongoDB Shard Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For shard servers, running as :option:`mongod --shardsvr`
-[#shard-option]_ Because the default port number is ``27018`` when running 
-with the ``shardsvr`` value for the :setting:`~sharding.clusterRole` setting, 
-you must configure the following ``iptables`` rules to allow traffic to and 
-from each shard:
+:ref:`Shard servers <sharding-background>` default to port number
+``27018``. You must configure the following ``iptables`` rules to allow
+traffic to and from each shard:
 
 .. code-block:: sh
 
@@ -187,11 +179,6 @@ Create a rule that resembles the following, and replace the
 
    iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27018 -m state --state ESTABLISHED -j ACCEPT
 
-.. [#shard-option] You can also specify the shard server option with the
-   ``shardsvr`` value for the :setting:`~sharding.clusterRole` setting in the
-   configuration file. Shard members are also often conventional replica sets
-   using the default port.
-
 .. [#migrations] All shards in a cluster need to be able to
    communicate with all other shards to facilitate :term:`chunk` and
    balancing operations.
@@ -204,8 +191,12 @@ Provide Access For Monitoring Systems
    reach all components of a cluster, including the config servers,
    the shard servers, and the :program:`mongos` instances.
 
-#. If your monitoring system needs access the HTTP interface, insert
-   the following rule to the chain:
+#. If your monitoring system needs access to the MongoDB HTTP interface,
+   you must ensure the HTTP interface's port is open. The HTTP interface
+   listens on the :option:`port <--port>` of your :program:`mongod`
+   instance plus ``1000``. By default, this is port ``28017``.
+
+   Insert the following rule to your ``iptables`` chain:
 
    .. code-block:: sh
 
@@ -218,17 +209,15 @@ Provide Access For Monitoring Systems
 
    .. optional::
 
-      For config server :program:`mongod` instances running with
-      the ``shardsvr`` value for the :setting:`~sharding.clusterRole` 
-      setting, the rule would resemble the following:
+      For :doc:`shard server </core/sharded-cluster-shards>`
+      instances, the rule would resemble the following:
 
       .. code-block:: sh
 
          iptables -A INPUT -s <ip-address> -p tcp --destination-port 28018 -m state --state NEW,ESTABLISHED -j ACCEPT
 
-      For config server :program:`mongod` instances running with
-      the ``configsvr`` value for the :setting:`~sharding.clusterRole` 
-      setting, the rule would resemble the following:
+      For :ref:`config server <sharding-config-server>` instances, the
+      rule would resemble the following:
 
       .. code-block:: sh
 
