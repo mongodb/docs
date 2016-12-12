@@ -18,8 +18,8 @@
 
     #. Click :guilabel:`Edit Settings`.
 
-    #. Click :guilabel:`Next` until you see the :guilabel:`Configure
-       |mms| Agents` page.
+    #. Click :guilabel:`Next` until you see the **Configure** 
+       |mms| **Agents** page.
 
     #. Click :guilabel:`Show` to the right of the :guilabel:`Automation
        Agent Password` field.
