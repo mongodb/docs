@@ -1,7 +1,7 @@
 Backup Agent ``5.1.0.467``
 --------------------------
 
-*Released 2016-12-12*
+*Released 2016-12-13*
 
 - Handle capped collections that are capped using a floating point size
 
