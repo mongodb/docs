@@ -19,7 +19,7 @@ help:
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --stage ${ARGS}
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public
