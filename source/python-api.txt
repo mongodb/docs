@@ -1,8 +1,14 @@
-==========================
-Spark Connector Python API
-==========================
+============================
+Spark Connector Python Guide
+============================
 
 .. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
 .. admonition:: Source Code
 
@@ -15,87 +21,61 @@ Prerequisites
 
 .. include:: /includes/list-prerequisites.rst
 
-``pyspark`` Shell
------------------
+.. _pyspark-shell:
 
-This tutorial uses the ``pyspark`` shell. When starting the ``pyspark`` shell, you
-can specify:
+Getting Started
+---------------
+
+Python Spark Shell
+~~~~~~~~~~~~~~~~~~
+
+This tutorial uses the ``pyspark`` shell, but the code works
+with self-contained Python applications as well.
+
+When starting the ``pyspark`` shell, you can specify:
 
 .. include:: /includes/extracts/command-line-start-pyspark.rst
 
-In the ``pyspark`` shell, the SparkContext is available as ``sc``, and
-the SQLContext is available as ``sqlContext``.
+.. _python-basics:
 
-MongoDB Python API Basics
--------------------------
+Create a ``SparkSession`` Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The python API works via DataFrames and uses the underlying Scala
-DataFrame.
+.. note:: 
 
-Write to MongoDB
-~~~~~~~~~~~~~~~~
-
-The Python API works via DataFrames and underlying Scala DataFrame.
-
-To create a DataFrame, use the ``SQLContext.createDataFrame()`` method.
-To save the DataFrame to MongoDB, use the ``DataFrameWriter.save()``
-method. For example:
-
-.. code-block:: python
-
-   charactersRdd = sc.parallelize([("Bilbo Baggins",  50), ("Gandalf", 1000), ("Thorin", 195), ("Balin", 178), ("Kili", 77),
-      ("Dwalin", 169), ("Oin", 167), ("Gloin", 158), ("Fili", 82), ("Bombur", None)])
-   characters = sqlContext.createDataFrame(charactersRdd, ["name", "age"])
-   characters.write.format("com.mongodb.spark.sql.DefaultSource").mode("overwrite").save()
-
-Read from MongoDB
-~~~~~~~~~~~~~~~~~
-
-To load the collection into a DataFrame, use the ``sqlContext.read()``
-method with ``com.mongodb.spark.sql.DefaultSource`` as the format.
+   When you start ``pyspark`` you get a ``SparkSession`` object called
+   ``spark`` by default. In a standalone Python application, you need
+   to create your ``SparkSession`` object explicitly, as show below.
+   
+If you specified the ``spark.mongodb.input.uri``
+and ``spark.mongodb.output.uri`` configuration options when you
+started ``pyspark``, the default ``SparkSession`` object uses them.
+If you'd rather create your own ``SparkSession`` object from within
+``pyspark``, you can use ``SparkSession.builder`` and specify different
+configuration options.
 
 .. code-block:: python
 
-   df = sqlContext.read.format("com.mongodb.spark.sql.DefaultSource").load()
-   df.printSchema()
+   from pyspark.sql import SparkSession
 
-In the ``pyspark`` shell, the operation prints the following output:
+   my_spark = SparkSession \
+       .builder \
+       .appName("myApp") \
+       .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.coll") \
+       .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.coll") \
+       .getOrCreate()
 
-.. code-block:: none
+You can use a ``SparkSession`` object to write data to MongoDB, read
+data from MongoDB, create DataFrames, and perform SQL operations.
 
-   root
-    |-- _id: struct (nullable = true)
-    |    |-- oid: string (nullable = true)
-    |-- age: long (nullable = true)
-    |-- name: string (nullable = true)
+Tutorials
+---------
 
-SQL
-~~~
+.. toctree::
+   :titlesonly:
 
-SQL can be used to filter data. To use SQL, you need to register
-a temporary table first, and then you can run SQL queries over the data.
+   /python/write-to-mongodb
+   /python/read-from-mongodb
+   /python/aggregation
+   /python/filters-and-sql
 
-The following example registers a temporary table ``characters``, then
-uses SQL to filter for characters with ages greater than or equal to
-100:
-
-.. code-block:: python
-
-   df.registerTempTable("characters")
-   centenarians = sqlContext.sql("SELECT name, age FROM characters WHERE age >= 100")
-   centenarians.show()
-
-In the ``pyspark`` shell, the operation prints the following output:
-
-.. code-block:: none
-
-   +-------+----+
-   |   name| age|
-   +-------+----+
-   |Gandalf|1000|
-   | Thorin| 195|
-   |  Balin| 178|
-   | Dwalin| 169|
-   |    Oin| 167|
-   |  Gloin| 158|
-   +-------+----+
