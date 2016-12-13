@@ -1,3 +1,11 @@
+Monitoring Agent ``5.5.0.358``
+------------------------------
+
+*Released 2016-12-12*
+
+- Ensure that replica set members in STARTUP2 can be monitored
+  successfully.
+
 Monitoring Agent ``5.4.2.354``
 ------------------------------
 
