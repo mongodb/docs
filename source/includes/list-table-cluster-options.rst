@@ -32,16 +32,19 @@
 
      - The memory, storage, and IOPS specification for each
        data-bearing server [#data-bearing]_ for your |service| cluster.
+
+       .. include:: /includes/fact-instance-size-groupings.rst
+
        Each instance size comes with a default set of resources, but
-       you can customize the servers to meet your use case. You can
-       modify the following; modifying the capacity and storage speed
-       :ref:`affects the cost <instance-size-costs>`.
+       you can modify the following:
 
        - :guilabel:`Custom Storage Capacity`: The size of the server
-         root volume.
+         root volume. Changes to storage capacity affects :ref:`cost
+         <instance-size-costs>`.
 
        - :guilabel:`Custom Storage Speed`: The input/output operations
-         per second (IOPS) the system can perform.
+         per second (IOPS) the system can perform. Changes to storage
+         speed affects :ref:`cost <instance-size-costs>`.
 
        - :guilabel:`Use encrypted storage volumes`: Encrypts root
          volume using Amazon EBS encryption for data at rest inside the
