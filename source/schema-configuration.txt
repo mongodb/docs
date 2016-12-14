@@ -10,25 +10,27 @@ Schema Configuration
    :depth: 1
    :class: singlecol
 
-Business Intelligence tools connect to a data source and, given a fixed
-tabular schema, allow the user to visually explore their data. However,
-because MongoDB uses a :manual:`flexible schema </data-modeling>`, these tools
+Business intelligence tools connect to a data source and, given a fixed
+tabular schema, allow the user to visually explore their data. As
+MongoDB uses a :manual:`flexible schema </data-modeling>`, these tools
 currently cannot use MongoDB as a native data source.
 
-To use MongoDB with a relational business intelligence tool such as Tableau,
-you must define a relational mapping for your MongoDB data.
+To use MongoDB with a relational business intelligence tool such as
+`Tableau <https://www.tableau.com/>`_, you must define a relational
+mapping for your MongoDB data.
 
-The schema generation tool :program:`mongodrdl` will output such a schema in the
+The schema generation tool :program:`mongodrdl` outputs such a schema in the
 :ref:`Document Relational Definition Language <drdl>` (DRDL) format, but you
 should verify that the schema it proposes matches your data requirements.
-Examine both the table structure and field types to ensure that you will be
-able to generate your desired reports.
+Examine both the table structure and field types to ensure that you can
+generate your intended reports.
 
-You may have to edit the schema definition files by hand to remove unneeded
-fields; add fields that :program:`mongodrdl` did not discover within the subset
-of documents that it sampled; and modify erroneous field types.
+You may have to manually edit the schema definition files to remove
+unneeded fields; add fields that :program:`mongodrdl` did not discover
+within the subset of documents that it sampled; and modify erroneous
+field types.
 
-You may edit DRDL files in the following ways:
+You may edit DRDL files to:
 
 - Add :ref:`aggregation pipeline <aggregation-pipeline>` stages,
 - Add fields,
@@ -55,9 +57,8 @@ query your MongoDB data.
 File Format
 ```````````
 
-Using the `YAML <http://yaml.org/>`_ format, the ``DRDL`` file lists the
-databases, tables, and columns to be "exported" for use in Business
-Intelligence tools.
+The ``DRDL`` file lists your databases, tables, and columns in
+`YAML <http://yaml.org/>`_ format.
 
 .. code-block:: yaml
 
@@ -82,54 +83,78 @@ Example
 Field Types
 ~~~~~~~~~~~
 
-The |bi| will correctly map fields that always contain the same data type into
-the relational model. Schema generation will deal specially with the following cases:
+The |bi| correctly maps fields that always contain the same data
+type into the relational model. Schema generation deals specially
+with the following cases:
 
-Dates
-  The connector will treat any field of type :bsontype:`data_date` as the
-  :term:`SQL` ``timestamp`` type.
+.. list-table::
+   :stub-columns: 1
+   :widths: 20 80
 
-Timestamps
-  The connector will treat any field of type :bsontype:`data_timestamp` as a
-  ``varchar`` string type.
+   * - Numeric
+     - The |bi| uses the most precise numeric type that matches the
+       sampled documents.
 
-Geospatial
-  .. versionadded:: 1.1.0
+       If a field in a collection always has the same data type, the |bi|
+       uses that type.
 
-  If a collection contains a
-  :manual:`geospatial index </applications/geospatial-indexes>`, the connector will
-  map the indexed field into an array of numeric longitude-latitude coordinates.
+       If a field in a collection can contain either floating point
+       values or integers, the |bi| uses type ``numeric``.
 
-  See :ref:`bi-geospatial` for an example.
+   * - Dates
+     - The |bi| treats any field of type :bsontype:`data_date` as the
+       :term:`SQL` ``timestamp`` type.
 
-  .. include:: /includes/fact-geospatial-views.rst
+   * - Timestamps
+     - The |bi| ignores any field of type :bsontype:`data_timestamp`.
 
-.. _drdl-heterogeneous:
+   * - ObjectID
+     - The |bi| treats any field of type :bsontype:`data_oid` as
+       the SQL type ``varchar``.
 
-Heterogeneous Fields
-  If a field contains inconsistent types, the |bi| has undefined behavior
-  when dealing with that field.
+   * - UUID
+     - The |bi| treats any field of type UUID as the SQL type
+       ``varchar``.
 
-  If a field can contain either a type or an array of that type, the
-  generated schema will always specify that the field contains an array.
+   * - Geospatial
+     - If a collection contains a
+       :manual:`geospatial index </applications/geospatial-indexes>`, the
+       connector maps the indexed field into an array of numeric
+       longitude-latitude coordinates.
 
-  .. seealso::
+       See :ref:`bi-geospatial` for an example.
 
-     :ref:`bi-skip-incompatible-types`
+       .. include:: /includes/fact-geospatial-views.rst
+
+   * - Heterogeneous Fields
+     - .. _drdl-heterogeneous:
+
+       If a field contains inconsistent types, the |bi| chooses the most
+       frequently sampled type.
+
+       If a field can contain either a type or an array of that type, the
+       generated schema always specifies that the field contains an array.
+
+       .. seealso::
+
+          :ref:`bi-skip-incompatible-types`
 
 Embedded Documents
 ~~~~~~~~~~~~~~~~~~
 
-The |bi| will map embedded documents to simple fields
+The |bi| maps embedded documents to simple fields
 that have a ``.`` separator character, making them appear similar to the way you
 would reference them using :ref:`dot notation <document-dot-notation>` in a
 MongoDB query.
 
-While Tableau properly quotes identifiers, within "ad-hoc"
+While Tableau properly quotes identifiers, within ad-hoc
 SQL expressions you must double-quote every identifier that contains ``.``
 characters or mixed-case characters.
 
-For example, consider the following document:
+Example
+```````
+
+Consider the following document:
 
 .. code-block:: javascript
 
@@ -144,7 +169,8 @@ For example, consider the following document:
        "members_since" : ISODate("2002-04-12T00:00:00Z")
    }
 
-This will result in the following fields in the generated schema:
+Running :program:`mongodrdl` on a collection containing this document
+results in the following fields in the generated schema:
 
 .. list-table::
 
@@ -183,12 +209,15 @@ This will result in the following fields in the generated schema:
 Arrays
 ~~~~~~
 
-|bi| exposes arrays to business intelligence tools using two
+The |bi| exposes arrays to business intelligence tools using two
 collections: one without the array, and the other having one document
 per array element.
 
-For example, consider the following document in the collection
-``families``:
+Example
+```````
+
+If you run :program:`mongodrdl` on a collection ``families`` with the
+following document:
 
 .. code-block:: javascript
 
@@ -223,7 +252,7 @@ For example, consider the following document in the collection
         }]
    }
 
-This will result in the following three tables:
+This results in the following three tables:
 
 ``families``
   .. list-table::
@@ -294,7 +323,7 @@ Pre-Joining
 ```````````
 
 If you provide the :option:`--preJoined` option to :program:`mongodrdl`,
-then the |bi| will add the fields in the containing document to each
+then the |bi| adds the fields in the containing document to each
 array element's document, thus "pre-joining" the table.
 
 In the previous example, the tables would contain the following
@@ -423,7 +452,7 @@ members, and has the following pipeline:
        path: $familyMembers
 
 This pipeline uses :pipeline:`$unwind` to create a new record for each
-member of ``familyMembers``. The schema will track the array index in
+member of ``familyMembers``. The schema tracks the array index in
 the field ``familyMembers_idx``.
 
 .. _bi-geospatial:
@@ -435,10 +464,13 @@ Geospatial Data
 
 If a collection contains a
 :manual:`geospatial index </applications/geospatial-indexes>`, the
-connector will map the indexed field into an array of numeric
+connector maps the indexed field into an array of numeric
 longitude-latitude coordinates.
 
-For example, given the following collection:
+Example
+```````
+
+Given the following collection:
 
 .. code-block:: javascript
 
@@ -449,7 +481,7 @@ For example, given the following collection:
        category : "Parks"
    })
 
-:program:`mongodrdl` will generate the following schema:
+:program:`mongodrdl` generates the following schema:
 
 .. code-block:: yaml
 
