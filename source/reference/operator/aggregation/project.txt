@@ -15,7 +15,7 @@ Definition
 
 .. pipeline:: $project
 
-   Passes along the documents with only the specified fields to the
+   Passes along the documents with the requested fields to the
    next stage in the pipeline. The specified fields can be existing
    fields from the input documents or newly computed fields.
 
@@ -23,17 +23,20 @@ Definition
 
    .. code-block:: javascript
 
-      { $project: { <specifications> } }
+      { $project: { <specification(s)> } }
 
    The :pipeline:`$project` takes a document that can specify the
    inclusion of fields, the suppression of the ``_id`` field,
-   the addition of new fields, and the resetting the values of existing
-   fields. The specifications have the following forms:
+   the addition of new fields, and the resetting of the values of existing
+   fields. Alternatively, you may specify the *exclusion*
+   of fields.
+   
+   The :pipeline:`$project` specifications have the following forms:
 
    .. list-table::
       :header-rows: 1
 
-      * - Syntax
+      * - Form
         - Description
 
       * - ``<field>: <1 or true>``
@@ -45,6 +48,16 @@ Definition
 
       * - ``<field>: <expression>``
         - Add a new field or reset the value of an existing field.
+      
+      * - ``<field>:<0 or false>``
+        
+        - .. versionadded:: 3.4 
+        
+          Specify the exclusion of a field. 
+          
+          If you specify the exclusion of a field other than ``_id``,
+          you **cannot** employ any other :pipeline:`$project`
+          specification forms.
 
 Considerations
 --------------
@@ -53,22 +66,34 @@ Include Existing Fields
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - The ``_id`` field is, by default, included in the output documents.
-  To include the other fields from the input documents in the output
+  To include any other fields from the input documents in the output
   documents, you must explicitly specify the inclusion in
   :pipeline:`$project`.
 
 - If you specify an inclusion of a field that does not exist in the
-  document, :pipeline:`$project` ignores that field inclusion; i.e.
-  :pipeline:`$project` does not add the field to the document.
-
+  document, :pipeline:`$project` ignores that field inclusion and
+  does not add the field to the document.
 
 Suppress the ``_id`` Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``_id`` field is always included in the output documents by
-default. To exclude the ``_id`` field from the output documents, you
+By default, the ``_id`` field is included in the output documents.
+To exclude the ``_id`` field from the output documents, you
 must explicitly specify the suppression of the ``_id`` field in
 :pipeline:`$project`.
+
+Exclude Fields
+~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+If you specify the exclusion of a field or fields, all other fields are
+returned in the output documents.
+
+If you specify the exclusion of a field other than ``_id``, you cannot
+employ any other :pipeline:`$project` specification forms: i.e. if you
+exclude fields, you cannot also specify the inclusion of fields, reset
+the value of existing fields, or add new fields.
 
 Add New Fields or Reset Existing Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,6 +138,14 @@ Or you can nest the fields:
 When nesting the fields, you *cannot* use dot notation inside the
 embedded document to specify the field, e.g. ``contact: {
 "address.country": <1 or 0 or expression> }`` is *invalid*.
+
+Restrictions
+~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+
+MongoDB 3.4 and later produces an error if the :pipeline:`$project`
+specification is an empty document.
 
 Examples
 --------
@@ -178,6 +211,76 @@ The operation results in the following document:
 .. code-block:: javascript
 
    { "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
+
+Exclude Fields from Output Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+Consider a ``books`` collection with the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     title: "abc123",
+     isbn: "0001122223334",
+     author: { last: "zzz", first: "aaa" },
+     copies: 5,
+     lastModified: "2016-07-28"
+   }
+
+The following :pipeline:`$project` stage excludes the ``lastModified``
+field from the output:
+
+.. code-block:: javascript
+
+   db.books.aggregate( [ { $project : { "lastModified": 0 } } ] )
+
+Exclude Fields from Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+Consider a ``books`` collection with the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     title: "abc123",
+     isbn: "0001122223334",
+     author: { last: "zzz", first: "aaa" },
+     copies: 5,
+     lastModified: "2016-07-28"
+   }
+
+The following :pipeline:`$project` stage excludes the ``author.first``
+and ``lastModified`` fields from the output:
+
+.. code-block:: javascript
+
+   db.books.aggregate( [ { $project : { "author.first" : 0, "lastModified" : 0 } } ] )
+
+Alternatively, you can nest the exclusion specification in a document:
+
+.. code-block:: javascript
+
+   db.bookmarks.aggregate( [ { $project: { "author": { "first": 0}, "lastModified" : 0 } } ] )
+
+Both specifications result in the same output:
+
+.. code-block:: javascript
+
+   {
+   	"_id" : 1,
+   	"title" : "abc123",
+   	"isbn" : "0001122223334",
+   	"author" : {
+   		"last" : "zzz"
+   	},
+   	"copies" : 5,
+   }
 
 Include Specific Fields from Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
