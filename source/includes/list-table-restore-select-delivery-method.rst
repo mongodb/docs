@@ -9,13 +9,14 @@
        
        b. Select from the following options:
 
-         :guilabel:`Pull Restore Usage Limit`
-           Select whether the link can be re-used or used just once. If
-           you select ``No Limit``, the link is re-usable until it
-           expires.
+          :guilabel:`Pull Restore Usage Limit`
+         
+          Select whether the link can be re-used or used just once.
+          If you select ``No Limit``, the link is re-usable until it
+          expires.
 
-         :guilabel:`Restore Link Expiration (in hours)`
-           Select the number of hours until the link expires.
+          :guilabel:`Restore Link Expiration (in hours)`
+            Select the number of hours until the link expires.
 
        .. important::
           You can skip the remainder of this procedure.
