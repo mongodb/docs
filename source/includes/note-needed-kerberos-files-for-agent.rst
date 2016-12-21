@@ -40,12 +40,7 @@ Monitoring or Backup Agent:
          where the Kerberos configuration file is stored.
        
 
-- Make sure `kinit <http://web.mit.edu/KERBEROS/krb5-devel/doc/user/user_commands/kinit.html>`_ 
+- On Linux systems: ensure `kinit <http://web.mit.edu/KERBEROS/krb5-devel/doc/user/user_commands/kinit.html>`_ 
   binary is located at ``/usr/bin/kinit``. ``kinit``
   obtains or renews a Kerberos ticket-granting ticket, which
   authenticates the agent using Kerberos.
-
-  .. note::
-     This file and location may be different on Windows or Mac OS X
-     clients. Refer to the documentation for your Kerberos implemention
-     to find out where the Kerberos ticket management binary is stored.
