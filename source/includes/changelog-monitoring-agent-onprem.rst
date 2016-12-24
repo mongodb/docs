@@ -1,3 +1,12 @@
+.. _monitoring-5.4.3.361:
+
+Monitoring Agent ``5.4.3.361``
+------------------------------
+
+*Released with Ops Manager 3.4.1 on 2016-12-27*
+
+- Fix collecting monitoring information for a MongoD in STARTUP2.
+
 .. _monitoring-5.4.2.354:
 
 Monitoring Agent ``5.4.2.354``

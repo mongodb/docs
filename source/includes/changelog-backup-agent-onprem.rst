@@ -1,3 +1,16 @@
+.. _backup-5.0.4.469:
+
+Backup Agent ``5.0.4.469``
+--------------------------
+
+*Released with Ops Manager 3.4.1 on 2016-12-27*
+
+- Fix initial sync failures in MongoDB 3.4.0+.
+
+- Fix crash causes by initial sync of a large capped collection.
+
+- Added support for MongoDB 3.4 feature compatibility version and views.
+
 .. _backup-5.0.3.465:
 
 Backup Agent ``5.0.3.465``
