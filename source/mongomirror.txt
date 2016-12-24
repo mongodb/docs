@@ -1,0 +1,370 @@
+===========
+mongomirror
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. only:: (not man)
+
+   .. class:: hidden
+
+      .. program:: mongomirror
+
+:program:`mongomirror` is a utility for migrating data from an existing
+MongoDB replica set into MongoDB |service|. :program:`mongomirror` does
+not require you to shut down of your existing replica set or
+applications.
+
+.. important:: :program:`mongomirror` does not import user/role data.
+
+Syntax
+------
+
+To run :program:`mongomirror`, you must specify the source replica set
+and the target |service| cluster. For |service|, you must specify a
+user in the |service| cluster with :ref:`appropriate privileges
+<destination-authorization>` and the corresponding password. If the
+source replica set requires authentication, you must specify a user
+with :ref:`appropriate privileges <source-rs-authorization>`.
+
+.. code-block:: sh
+
+   mongomirror --host <sourceReplSet> \
+      --destination <atlasCluster> \
+      --destinationUsername <atlasAdminUser> \
+      --destinationPassword <atlasPassword> \
+      [Additional options]
+
+For details on the options, see :ref:`options`.
+
+Migration Process
+-----------------
+
+When you start :program:`mongomirror`:
+
+#. First, :program:`mongomirror` performs an initial sync, copying
+   collections from the existing MongoDB replica set to the target cluster
+   in |service|.
+
+#. After the initial sync, :program:`mongomirror` continuously tails the replica
+   set's oplog for incoming changes and replays them on the target cluster
+   in MongoDB |service|.
+
+Once started, :program:`mongomirror` runs continuously until you shut
+down the process.
+
+- If you shut down :program:`mongomirror` during the initial sync stage, you must
+  ensure that the target cluster is empty before you restart
+  :program:`mongomirror`.
+
+- If you shut down :program:`mongomirror` during the oplog tailing
+  stage, you can restart :program:`mongomirror` to continue from the
+  last oplog record processed. See the
+  :mongomirror:option:`--bookmarkFile` option.
+
+Progress Measurement
+~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongomirror` logs its progress to the standard output in the
+terminal:
+
+During the initial sync, :program:`mongomirror` logs a progress bar for
+each collection it copies. For example:
+
+.. code-block:: sh
+
+   2016-12-16T17:54:53.638-0800  [#....................]  park.events  2179/34184    (6.4%)
+   2016-12-16T17:54:53.638-0800  [#############........]  zoo.animals  29000/49778  (58.3%)
+
+When tailing the oplog, :program:`mongomirror` logs the lag time, in seconds,
+between the most recent oplog entry on the source and the last
+processed oplog entry on the target. For example:
+
+.. code-block:: sh
+
+   2016-12-12T16:22:17.027-0800 Current lag from source: 6s
+
+A lag time of 6 seconds means that the last oplog entry :program:`mongomirror`
+processed was 6 seconds behind the most recent one available on the
+source.
+
+.. note::
+
+   The amount of time it takes :program:`mongomirror` to catch up completely may
+   be greater or lesser than 6 seconds, depending on how many entries
+   arrive per second.
+
+A lag time of 0 seconds indicates that :program:`mongomirror` is
+processing entries that arrived less than one second before the latest
+oplog entry.
+
+Performance
+~~~~~~~~~~~
+
+To avoid contention for network and CPU resources, do not run
+:program:`mongomirror` on the same hosts that provide your replica
+set’s mongod instances.
+
+- :program:`mongomirror` must have network access to the source replica set.
+
+- :program:`mongomirror` must have network access to the target cluster.
+
+- :program:`mongomirror` has approximately the same performance impact
+  on your source replica set as a secondary:
+
+  - For the initial sync stage, the load scales with the size of your data set.
+
+  - Once an initial sync completes, the load scales with oplog
+    gigabytes used per hour.
+
+Considerations
+--------------
+
+Source MongoDB Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The source MongoDB deployment must be a replica set. If the source is
+  a standalone MongoDB deployment, convert to a replica set first to
+  use :program:`mongomirror`. See Convert a Standalone to a Replica Set.
+
+- The source replica set must be version 3.0 or greater.
+
+Target |service| Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The target |service| cluster can be either a replica set or a cluster.
+
+- The target |service| cluster must be empty to perform the initial
+  sync stage of :program:`mongomirror`.
+
+- The target |service| cluster must include in its whitelist either
+
+  - The public IP address of the server on which :program:`mongomirror` is running, or
+
+  - If set up for VPC peering, either the peer’s VPC CIDR block (or a
+    subset) or the peer VPC’s Security Group.
+
+- :program:`mongomirror` automatically connects to MongoDB |service| over TLS/SSL.
+
+.. _source-rs-authorization:
+
+Required Access on Source Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the source replica set requires authentication, you must include
+user credentials when running :program:`mongomirror`. You must specify
+a MongoDB user that has the following privileges in the source replica
+set:
+
+- Read any database, including the ``local`` database.
+
+A MongoDB user with the :manual:`backup
+</reference/built-in-roles/#backup>` role in the source provides these
+privileges.
+
+.. _destination-authorization:
+
+Required Access on Destination Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must include user credentials for the |service| cluster when
+running :program:`mongomirror`. You must specify a MongoDB user that
+has the following privileges in the |service| cluster:
+
+- :manual:`readWriteAnyDatabase
+  </reference/built-in-roles/#readWriteAnyDatabase>` and
+
+- :manual:`dbAdminAnyDatabase
+  </reference/built-in-roles/#dbAdminAnyDatabase>`.
+
+A MongoDB user with |service| :ref:`admin role <add-mongodb-users>` in
+the |service| cluster provides these privileges.
+
+.. _options:
+
+Options
+-------
+
+
+.. include:: /includes/option/option-mongomirror-host.rst
+.. include:: /includes/option/option-mongomirror-username.rst
+.. include:: /includes/option/option-mongomirror-password.rst
+.. include:: /includes/option/option-mongomirror-authenticationDatabase.rst
+.. include:: /includes/option/option-mongomirror-authenticationMechanism.rst
+.. include:: /includes/option/option-mongomirror-destination.rst
+.. include:: /includes/option/option-mongomirror-destinationUsername.rst
+.. include:: /includes/option/option-mongomirror-destinationPassword.rst
+.. include:: /includes/option/option-mongomirror-ssl.rst
+.. include:: /includes/option/option-mongomirror-sslPEMKeyFile.rst
+.. include:: /includes/option/option-mongomirror-sslPEMKeyPassword.rst
+.. include:: /includes/option/option-mongomirror-sslCAFile.rst
+.. include:: /includes/option/option-mongomirror-sslCRLFile.rst
+.. include:: /includes/option/option-mongomirror-sslAllowInvalidHostnames.rst
+.. include:: /includes/option/option-mongomirror-sslAllowInvalidCertificates.rst
+.. include:: /includes/option/option-mongomirror-gssapiServiceName.rst
+.. include:: /includes/option/option-mongomirror-gssapiHostName.rst
+.. include:: /includes/option/option-mongomirror-readPreference.rst
+.. include:: /includes/option/option-mongomirror-writeConcern.rst
+.. include:: /includes/option/option-mongomirror-numParallelCollections.rst
+.. include:: /includes/option/option-mongomirror-noIndexRestore.rst
+.. include:: /includes/option/option-mongomirror-noOptionsRestore.rst
+.. include:: /includes/option/option-mongomirror-bypassDocumentValidation.rst
+.. include:: /includes/option/option-mongomirror-tailOnly.rst
+.. include:: /includes/option/option-mongomirror-bookmarkFile.rst
+.. include:: /includes/option/option-mongomirror-forceDump.rst
+
+Examples
+--------
+
+Migrate a Replica Set into Atlas
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that does not
+require authentication:
+
+.. code-block:: sh
+
+   mongomirror --host  sourceRS/source-host1:27017,source-host2:27017 \
+            --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+            --destinationUsername myAtlasUser \
+            --destinationPassword myAtlasPwd
+
+To migrate from a source replica set that does not require
+authentication, run :program:`mongomirror` with the following options:
+
+- :mongomirror:option:`--host` <sourceReplSet/seed list of members>
+- :mongomirror:option:`--destination` <Atlas Cluster>
+- :mongomirror:option:`--destinationUsername` <atlasUser>
+- :mongomirror:option:`--destinationPassword` <atlasPassword>
+
+For the destination, specify either:
+
+- <replSetName/seed list of members> if the cluster is a replica set
+- <list of mongos> if the cluster is a sharded cluster.
+
+The specified Atlas user must have the required privileges for
+Atlas. The ``Atlas admin`` role provides the required privileges.
+
+Source Replica Set Uses SCRAM-SHA1 Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that uses SCRAM-SHA1 authentication:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --user mySourceUser \
+      --password mySourcePassword \
+      --authenticationDatabase admin \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+      --destinationUsername myAtlasUser \
+      --destinationPassword atlasPassw0Rd
+
+To migrate from a source replica set that does not require
+authentication, run :program:`mongomirror` with the following options:
+
+- :mongomirror:option:`--host` <sourceReplSet/seed list of members>
+- :mongomirror:option:`--username` <sourceUser>
+- :mongomirror:option:`--password` <sourcePassword>
+- :mongomirror:option:`--authenticationDatabase` <sourceDatabase>
+- :mongomirror:option:`--destination` <Atlas Cluster>
+- :mongomirror:option:`--destinationUsername` <atlasUser>
+- :mongomirror:option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the destination, specify either:
+
+- <replSetName/seed list of members> if the cluster is a replica set
+- <list of mongos> if the cluster is a sharded cluster.
+
+The specified Atlas user must have the required access on Atlas. The
+``Atlas admin`` role provides the required privileges.
+
+Source Replica Set Requires X509 Client Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that uses X.509 authentication:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --username "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry" \
+      --authenticationDatabase '$external' \
+      --authenticationMechanism MONGODB-X509 \
+      --ssl \
+      --sslPEMKeyFile <path-to-my-client-certificate.pem> \
+      --sslCAFile <path-to-my-certificate-authority-certificate.pem> \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017 \
+      --destinationUsername myAtlasUser \
+      --destinationPassword atlasPassw0Rd
+
+To migrate from a source replica set that uses X.509 authentication,
+run :program:`mongomirror` with the following options:
+
+- :mongomirror:option:`--host` <sourceReplSet/seed list of members>
+- :mongomirror:option:`--username` <subject from the client certificate> 
+- :mongomirror:option:`--authenticationMechanism` ``MONGODB-X509`` 
+- :mongomirror:option:`--authenticationDatabase` ``'$external'`` 
+- :mongomirror:option:`--ssl` 
+- :mongomirror:option:`--sslPEMKeyFile` <path-to-my-client-certificate.pem> 
+- :mongomirror:option:`--sslCAFile` <path to root CA PEM file> 
+- :mongomirror:option:`--destination` <Atlas Cluster>
+- :mongomirror:option:`--destinationUsername` <atlasUser>
+- :mongomirror:option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the destination, specify either:
+
+- <replSetName/seed list of members> if the cluster is a replica set
+- <list of mongos> if the cluster is a sharded cluster.
+
+The specified Atlas user must have the required access on Atlas. The
+``Atlas admin`` role provides the required privileges.
+
+Source Replica Set Requires Kerberos/GSSAPI Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example migrates from a source replica set that uses
+Kerberos authentication:
+
+.. code-block:: sh
+
+   mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+      --username sourceUser/administrator@MYREALM.COM \
+      --authenticationDatabase '$external' \
+      --authenticationMechanism GSSAPI \
+      --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
+      --destinationUsername atlasUser \
+      --destinationPassword atlasPass
+
+To migrate from a source replica set that uses X.509 authentication,
+run :program:`mongomirror` with the following options:
+
+- :mongomirror:option:`--host` <sourceReplSet/seed list of members>
+- :mongomirror:option:`--username` <Kerberos user principal>
+- :mongomirror:option:`--authenticationDatabase` ``'$external'``
+- :mongomirror:option:`--authenticationMechanism` ``GSSAPI`` 
+- :mongomirror:option:`--destination` <Atlas Cluster>
+- :mongomirror:option:`--destinationUsername` <atlasUser>
+- :mongomirror:option:`--destinationPassword` <atlasPassword>
+
+The source replica set user must have the required access on source
+cluster. The ``backup`` role provides the appropriate privileges.
+
+For the destination, specify either:
+
+- <replSetName/seed list of members> if the cluster is a replica set
+- <list of mongos> if the cluster is a sharded cluster.
+
+The specified Atlas user must have the required access on Atlas. The
+``Atlas admin`` role provides the required privileges.
