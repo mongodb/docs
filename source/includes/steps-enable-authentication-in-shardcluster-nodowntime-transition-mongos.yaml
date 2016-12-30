@@ -1,0 +1,79 @@
+stepnum: 1
+level: 4
+title: "Add ``transitionToAuth: true`` to the ``mongos`` configuration file"
+ref: modify-config-files
+pre: |
+  
+  Copy the existing {{program}} configuration file and name the copy to
+  distinguish it, for example, by adding ``-secure`` to the filename. You will
+  use this new configuration file to transition the {{program}} to enforce
+  authentication in the sharded cluster. Retain the original configuration
+  file for backup purposes.
+
+  Add the following settings to the new configuration file.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 30 70
+
+     * - Setting
+       - Value
+
+     * - :setting:`security.transitionToAuth`
+       - ``true``
+
+     * - :setting:`security.keyFile`
+       - Path to the keyfile.
+
+         If using a different internal authentication mechanism, specify that
+         mechanism instead of :setting:`security.keyFile`.
+
+  The new configuration file should contain all of the configuration settings
+  previously used by the {{program}}, as well as the new security
+  settings.
+
+  .. code-block:: yaml
+
+     security:
+        transitionToAuth: true
+        keyFile: <path-to-keyfile>
+replacement:
+  program: :program:`mongos`
+---
+stepnum: 2
+level: 4
+ref: restart-mongos
+title: "Restart the ``mongos`` with the new configuration file."
+pre: |
+
+  Connect to the :program:`mongos` and use the :method:`db.shutdownServer()`
+  method against the ``admin`` database to safely shut down the
+  :program:`mongos`.
+  
+  Restart one :program:`mongos` at a time to ensure that clients
+  can connect to the sharded cluster. If your cluster has only one
+  :program:`mongos`, this step results in downtime while the :program:`mongos`
+  is offline.
+  
+  .. code-block:: javascript
+  
+     db.getSiblingDB("admin").shutdownServer()
+  
+  You can then start the :program:`mongos` with the new configuration
+  file, specifying the path to the config file using :option:`--config`.
+  
+  .. example::
+
+     The following operation starts the :program:`mongos` specifying
+     the updated configuration file, here named ``mongos-secure.conf``.
+     The ``<path>`` represents the system path to the folder containing
+     the configuration file.
+
+     .. code-block:: shell
+     
+        mongos --config <path>/mongos-secure.conf
+
+  .. note::
+    
+     MongoDB deployments running on :abbr:`Windows (Microsoft Windows)` use
+     the ``.cfg`` file extension instead of ``.conf``.
