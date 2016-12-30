@@ -1,0 +1,113 @@
+stepnum: 1
+title: Create the adminstrator user.
+level: 4
+ref: add-user-useradmin
+pre: |
+
+  Clients performing maintenance operations or user administrative
+  operations on the {{CLUSTER}} must authenticate as this user
+  at the completion of this tutorial. Create this user now to ensure
+  that you have seamless access to the cluster after enforcing authentication.
+
+  Create a user with the :method:`db.createUser()` method and assign it the
+  following roles:
+    
+  - :authrole:`clusterAdmin` on the ``admin`` database
+  - :authrole:`userAdmin` roles on the ``admin`` database
+
+action:
+  language: javascript
+  code: |
+    admin = db.getSiblingDB("admin")
+    admin.createUser(
+      {
+        user: "admin",
+        pwd: "<password>",
+        roles: [ 
+          { role: "clusterAdmin", db: "admin" },
+          { role: "userAdmin", db: "admin" } 
+        ]
+      }
+    )
+
+post: |
+
+  .. important::
+    
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access.
+     
+     While this tutorial uses a single administrative user, you should
+     consider applying the `principle of least privilege
+     <https://www.us-cert.gov/bsi/articles/knowledge/principles/least-privilege>`_
+     when configuring MongoDB users in your deployment.
+  
+replacement:
+  CLUSTER: "sharded cluster"
+---
+stepnum: 2
+title: "Create users for client applications to authenticate with."
+optional: true
+pre: |
+
+  You can create users for your client applications to authenticate with prior
+  to enforcing authentication in the sharded cluster. This ensures
+  seamless access to the sharded cluster once you fully enforce authentication.
+  
+  .. example::
+    
+     The following operation creates the user ``joe`` on the ``analytics``
+     database, assigning it the :authrole:`readWrite` :ref:`built-in role
+     <built-in-roles>`.
+  
+     .. code-block:: javascript
+     
+        db.getSiblingDB("marketing").createUser(
+          {
+            "user": "joe",
+            "pwd": "<password>",
+            "roles": [ { "role" : "readWrite", "db" : "analytics" } ]
+          }
+        )
+  
+     Clients authenticating as this user can perform read and write operations
+     on the ``analytics`` database.
+  
+post: |
+  See :ref:`database-user-roles` for basic built-in roles to use
+  in creating users for client applications to authenticate as.
+  
+  See the :ref:`Add Users <add-new-user>` tutorial for more information on
+  adding users. Consider :ref:`security best practices
+  <security-checklist-role-based-access-control>` when adding new users.
+level: 4
+ref: shardcluster-add-clientuser
+---
+stepnum: 3
+title: "Update client applications to specify authentication credentials."
+optional: true
+ref: update-client-apps
+pre: |
+  
+  While the sharded cluster does not currently enforce authentication, you can
+  still update client applications to specify authentication credentials when
+  connecting to the sharded cluster. This may prevent loss of connectivity at
+  the completion of this tutorial.
+  
+  .. example::
+    
+     The following operation connects to the sharded cluster using the 
+     :program:`mongo` shell, authenticating as the user ``joe`` on the
+     ``marketing`` database. 
+     
+     .. code-block:: javascript
+     
+        mongo  --username "joe" --password "<password>" \
+          --authenticationDatabase "marketing" --host mongos1.example.net:27017
+
+     If your application uses a MongoDB driver, see the associated
+     :ecosystem:`driver </drivers>` documentation for instructions on creating
+     an authenticated connection.
+  
+level: 4
+...
