@@ -1,0 +1,94 @@
+stepnum: 1
+level: 4
+title: "Add ``transitionToAuth: true`` to the ``mongod`` configuration file."
+ref: modify-config-files
+pre: |
+  
+  Copy the existing {{program}} configuration file and name the copy to
+  distinguish it, for example, by adding ``-secure`` to the filename. You will
+  use this new configuration file to transition the {{program}} to enforce
+  authentication in the sharded cluster. Retain the original configuration
+  file for backup purposes.
+
+  Add the following settings to the new configuration file.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 30 70
+
+     * - Setting
+       - Value
+
+     * - :setting:`security.transitionToAuth`
+       - ``true``
+
+     * - :setting:`security.keyFile`
+       - Path to the keyfile.
+
+         If using a different internal authentication mechanism, specify that
+         mechanism instead of :setting:`security.keyFile`.
+
+  The new configuration file should contain all of the configuration settings
+  previously used by the {{program}}, as well as the new security
+  settings.
+
+  .. code-block:: yaml
+
+     security:
+        transitionToAuth: true
+        keyFile: <path-to-keyfile>
+replacement:
+  program: :program:`mongod`
+---
+stepnum: 2
+level: 4
+ref: restart-mongod
+title: "Restart the ``mongod`` with the new configuration file."
+pre: |
+
+  Connect to the :program:`mongod` and use the :method:`db.shutdownServer()`
+  method against the ``admin`` database to safely shut down the
+  :program:`mongod`.
+  
+  .. code-block:: javascript
+  
+     db.getSiblingDB("admin").shutdownServer()
+  
+  If you are performing this step on the :term:`primary`, you must first use
+  the :method:`rs.stepDown()` method against the ``admin`` database to step
+  down the primary and trigger an election. You can use the
+  :method:`rs.status()` method to ensure the replica set elected a new primary.
+  
+  Once you step down the primary, you can then shut it down using the
+  :method:`db.shutdownServer()` method against the ``admin`` database.
+  
+  .. code-block:: javascript
+
+     db.getSiblingDB("admin").rs.stepDown()
+     db.getSiblingDB("admin").shutdownServer()
+  
+  You can then restart the :program:`mongod` with the {{status}} configuration
+  file, specifying the path to the config file using :option:`--config`.
+
+  .. example::
+
+     The following operation starts the replica set member specifying
+     the {{status}} configuration file, here named ``mongod-secure.conf``.
+     The ``<path>`` represents the system path to the folder containing
+     the configuration file.
+
+     .. code-block:: shell
+     
+        mongod --config <path>/mongod-secure.conf
+     
+  .. note::
+    
+     MongoDB deployments running on :abbr:`Windows (Microsoft Windows)` use
+     the ``.cfg`` file extension instead of ``.conf``.
+replacement:
+  status: "new"
+post: |
+
+  Include additional settings as appropriate to your deployment. Refer to
+  the :ref:`configuration-options` documentation for a complete list of
+  configuration file options.
