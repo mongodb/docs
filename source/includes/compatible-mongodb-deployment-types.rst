@@ -1,4 +1,4 @@
-You can configure all MongoDB deployment types using |mms|: sharded
+Using |mms|, you can configure all MongoDB deployment types: sharded
 clusters, replica sets, and standalones.
 
 The shards in a sharded cluster **must** be replica sets. That is, a
