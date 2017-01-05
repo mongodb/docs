@@ -70,9 +70,9 @@ following fields:
            histogram: [
              { micros: NumberLong(1), count: NumberLong(10) },
              { micros: NumberLong(2), count: NumberLong(1) },
-             { micros: NumberLong(4096), count: NumberLong(1)}
-             { micros: NumberLong(137438953472), count: NumberLong(1000) },
-             { micros: NumberLong(274877906944), count: NumberLong(100) }
+             { micros: NumberLong(4096), count: NumberLong(1) },
+             { micros: NumberLong(16384), count: NumberLong(1000) },
+             { micros: NumberLong(49152), count: NumberLong(100) }
            ]
 
         This indicates that there were:
@@ -80,5 +80,5 @@ following fields:
         - 10 operations taking 1 microsecond or less,
         - 1 operation in the range (1, 2] microseconds,
         - 1 operation in the range (3072, 4096] microseconds,
-        - 1000 operations in the range (68719476736, 137438953472], and
-        - 100 operations in the range (137438953472, 274877906944].
+        - 1000 operations in the range (12288, 16384], and
+        - 100 operations in the range (32768, 49152].
