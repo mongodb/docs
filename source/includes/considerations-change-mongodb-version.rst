@@ -28,4 +28,8 @@ to MongoDB 2.6, you must first remove the :guilabel:`engine` option as
 MongoDB 2.6 does not include that option.
 
 .. note::
-   You may not downgrade a MongoDB deployment from version 3.4 to any version before 3.2.8.
+
+   You may not downgrade a MongoDB deployment from version 3.4 to any
+   version before 3.2.8. As such, |mms| will block users from attempting to
+   downgrade from ``featureCompatibilityVersion=3.4`` to
+   ``featureCompatiblityVersion=3.2``.
