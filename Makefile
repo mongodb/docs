@@ -20,6 +20,9 @@ help: ## Show this help message
 html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
+publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+	giza make publish
+
 lint: ## Checks URLs in the built corpus underneath build/<branch>/html
 	mut-lint --linters=links ./build/master/source/ ${ARGS}
 
