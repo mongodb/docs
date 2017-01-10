@@ -28,21 +28,21 @@ Definition
 Behavior
 --------
 
-In order to get N random documents:
+:pipeline:`$sample` uses one of two methods to obtain N random
+documents, depending on the size of the collection, the size of N,
+and ``$sample``'s position in the pipeline.
 
-- If N is greater than or equal to 5% of the total documents in the
-  collection, :pipeline:`$sample` performs a collection scan, performs
-  a sort, and then select the top N documents. As such, the
-  :pipeline:`$sample` stage is subject to the :ref:`sort memory
-  restrictions <sort-memory-limit>`.
+If all the following conditions are met, ``$sample`` uses a
+pseudo-random cursor to select documents:
 
-- If N is less than 5% of the total documents in the collection,
+- ``$sample`` is the first stage of the pipeline
+- N is less than 5% of the total documents in the collection
+- The collection contains more than 100 documents
 
-  - If using :doc:`/core/wiredtiger`, :pipeline:`$sample` uses a
-    pseudo-random cursor over the collection to sample N documents.
-
-  - If using :doc:`/core/mmapv1`, :pipeline:`$sample` uses the ``_id``
-    index to randomly select N documents.
+If any of the above conditions are NOT met, ``$sample`` performs a
+collection scan followed by a random sort to select N documents. In
+this case, the :pipeline:`$sample` stage is subject to the
+:ref:`sort memory restrictions <sort-memory-limit>`.
 
 .. warning::
 
