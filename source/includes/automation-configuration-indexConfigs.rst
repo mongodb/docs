@@ -5,7 +5,7 @@ The ``indexConfigs`` array is optional and defines indexes to be built for speci
    "indexConfigs" : [
        {
            "key" : [ 
-               [ <string> : <val> ],
+               [ <string> , <val> ],
                ...
            ],
            "rsName" : <string>,
