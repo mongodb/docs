@@ -2,10 +2,8 @@ ref: firewall-configuration
 edition:
   - cloud
 content: |
-  Overview
-  --------
 
-  |mms| requires access on the ports and IP addresses described here.
+  |mms| requires access on the following ports and IP addresses.
 
   Required Outbound Access
   ------------------------
@@ -114,21 +112,41 @@ ref: firewall-configuration
 edition: onprem
 content: |
 
+  |mms| connects with a number of services. This page explains the ports that
+  must be opened to deploy the various components used with an |onprem|
+  deployment.
+
+  Though |mms| only requires open :abbr:`HTTP (HyperText Transport Protocol)`
+  or :abbr:`HTTPS (HyperText Transport Protocol Secure)` and MongoDB network
+  ports to connect with users and to databases, what ports are opened on 
+  firewalls depend upon what capabilities are enabled: encryption,
+  authentication and monitoring.
+
+  .. include:: /images/network-ports.rst
+
   .. important:: 
+
+     All ports listed in the following sections are either the port specified in
+     the documentation for MongoDB installations or the
+     `known ports <http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.txt>`_ 
+     for the specific service assigned by the
+     :abbr:`IANA (Internet Assigned Numbers Authority)`. If the port number
+     can be changed, it is noted after the table in each section.
+
      To run |onprem| without an Internet connection, see
      :doc:`/tutorial/configure-local-mode/` to ensure you have all of
      the necessary binaries to run |onprem| without an Internet 
      connection.
 
-  Ports Required to Use |onprem|
-  ``````````````````````````````
+  Open Ports to Use |onprem|
+  --------------------------
 
-  * Both |onprem| users and |onprem| agents must be able to connect to
-    |onprem| application over HTTP(S). See :doc:`/tutorial/manage-ports/` to
-    set a non-default port for |onprem|.
+  * Both |onprem| users and |onprem| agents must be able to connect to the
+    |onprem| application over :abbr:`HTTP (HyperText Transport Protocol)` or
+    :abbr:`HTTPS (HyperText Transport Protocol Secure)`.
 
-  * |onprem| must be able to connect to the backing MongoDB databases running
-    ``mongod``.
+  * |onprem| must be able to connect to its application MongoDB databases
+    running ``mongod``.
 
   * For each |onprem| group, |onprem| agents must be able to connect to all
     client MongoDB processes (``mongod`` or ``mongos``).
@@ -149,23 +167,24 @@ content: |
        - Purpose
        - Uses SSL?
        
-     * - HTTP
+     * - :abbr:`HTTP (HyperText Transport Protocol)`
        - 8080
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
        - Web connection to |onprem| from users and |onprem| agents.
        - No
 
-     * - HTTPS
+     * - :abbr:`HTTPS (HyperText Transport Protocol Secure)`
        - 8443
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
        - Web connection to |onprem| from users and |onprem| agents.
        - Yes
 
-     * - HTTP(S)
+     * - :abbr:`HTTP (HyperText Transport Protocol)` or :abbr:`HTTPS
+         (HyperText Transport Protocol Secure)`
        - 8090
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
        - Provides a health-check endpoint for monitoring |onprem|
          through a monitoring service like Zabbix or Nagios. This is
@@ -179,7 +198,7 @@ content: |
             http://<opsmanagerhost>:8090/health
 
          The API endpoint provides the ability to check connections
-         from the HTTP Service to the 
+         from the :abbr:`HTTP (HyperText Transport Protocol)` Service to the 
          :ref:`Ops Manager Application Database <mms-application-database>` 
          and the :ref:`Backup Snapshot Storage <mms-backup-blockstore-database>`.
 
@@ -194,28 +213,33 @@ content: |
        - Optional
 
      * - MongoDB
-       - 27000 - 28000
-       - TCP
-       - Both
+       - 27017
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
        - Connect to MongoDB application, backup and client databases.
        - Optional
 
      * - :abbr:`SMTP (Simple Mail Transport Protocol)`
-       - 25
-       - TCP
+       - 587
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
        - Send emails from |onprem|.
-       - No
+       - Optional
 
-     * - :abbr:`SMTPS (Simple Mail Transport Protocol Secure)`
-       - 465
-       - TCP
-       - Outbound
-       - Send emails from |onprem|.
-       - Yes
+  .. note::
+     - To set a non-default port for |onprem|, see :doc:`/tutorial/manage-ports/`.
 
-  Ports Needed to Administer |onprem| Hosts
-  `````````````````````````````````````````
+     - To configure a different port for the application database, see
+       :setting:`mongo.mongoUri`.
+
+     - To configure a different port for a client database, see
+       :doc:`/tutorial/deploy-standalone`, :doc:`/tutorial/deploy-replica-set`, 
+       or :doc:`/tutorial/deploy-sharded-cluster` for a new deployment
+       or :doc:`/tutorial/add-existing-mongodb-processes` for an existing
+       deployment.
+
+  Open Ports to Administer |onprem| Hosts
+  ---------------------------------------
 
   Most |onprem| administration can be performed through the user interface.
   Some procedures require access to the operating system. To permit your
@@ -235,24 +259,91 @@ content: |
        
      * - :abbr:`ssh (Secure Shell)`
        - 22
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
        - Linux System administration.
        - Yes
        
      * - :abbr:`RDP (Remote Desktop Connection)`
        - 3389
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
        - Windows System administration.
        - No
 
-  Ports Needed to Integrate |onprem| with SNMP
-  ````````````````````````````````````````````
+  Open Ports to Back Up and Restore MongoDB Instances using |onprem|
+  ------------------------------------------------------------------
 
-  To send and receive Simple Network Management Protocol (SNMP) messages to
-  and from your MongoDB deployments must open the following ports between
-  |onprem| and your SNMP Manager.
+  |onprem| can back up MongoDB databases to one or more storage systems: a
+  MongoDB database (:term:`blockstore`), an S3 bucket (S3 blockstore) or a
+  file system (:term:`file system store <File System Store>`. To back up
+  MongoDB servers, open the following ports to the preferred backup hosts.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - MongoDB
+       - 27017
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
+       - Backup snapshots of entire database to Blockstore or snapshot metadata to S3 Blockstore
+         metadata database.
+       - Optional 
+
+     * - :abbr:`HTTPS (HyperText Transport Protocol Secure)`
+       - 443
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
+       - Backup database snapshot data to S3 bucket.
+       - Yes
+
+     * - :abbr:`NFS (Network File System)`
+       - 2049
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
+       - Backup database snapshots to UNIX-/Linux-based file system.
+       - No
+
+     * - :abbr:`CIFS (Common Internet File System)`
+       - 3020
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
+       - Back up database snapshots to Windows-based file system.
+       - No
+
+     * - :abbr:`scp (Secure Copy)`
+       - 22
+       - :abbr:`TCP (Transmission Control Protocol)`
+       - Outbound
+       - Restore snapshot to a server.
+       - Yes
+
+  Snapshots can also be restored using link displayed in the |onprem|
+  application. The same ports needed to use |onprem| would need to be open for
+  the user to download the snapshot.
+
+  .. note::
+     - To configure a different port for the Blockstore, see
+       :doc:`/tutorial/manage-blockstore-storage`. 
+
+     - To configure a different port for the S3 Blockstore metadata database, see
+       :doc:`/tutorial/manage-s3-blockstore-storage`.
+
+  Open Ports to Integrate |onprem| with SNMP
+  --------------------------------------------
+
+  To send and receive :abbr:`SNMP (Simple Network Management Protocol)` trap
+  notifications and hardware updates to and from your MongoDB deployments must
+  open the following ports between |onprem| and your 
+  :abbr:`SNMP (Simple Network Management Protocol)` Manager.
 
   .. list-table::
      :header-rows: 1
@@ -267,28 +358,61 @@ content: |
        
      * - :abbr:`SNMP (Simple Network Management Protocol)`
        - 162
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Outbound
        - Send Traps to SNMP Manager.
        - No
 
      * - :abbr:`SNMP (Simple Network Management Protocol)`
        - 11611
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Inbound
        - Receive requests from SNMP Manager.
        - No
 
-  See :ref:`snmp-heartbeat-configure` to set SNMP to use non-standard
-  ports.
+  .. note::
+     To configure :abbr:`SNMP (Simple Network Management Protocol)` to use
+     non-standard ports, see :ref:`snmp-heartbeat-configure`.
 
-  Ports Needed to Authenticate with |onprem|
-  ``````````````````````````````````````````
+  Open Ports to Provide Additional Monitoring for |onprem|
+  ----------------------------------------------------------
+
+  .. important:: 
+     As of Automation Agent 2.7.0, using Munin to monitor hardware has been
+     deprecated.
+
+  Beyond its built-in monitoring capability, the Munin Graphing Framework can
+  provide additional monitoring on UNIX/Linux-based MongoDB instances and hosts.
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 15,10,10,15,35,15
+
+     * - Service
+       - Default Port
+       - Transport
+       - Direction
+       - Purpose
+       - Uses SSL?
+       
+     * - munin-node
+       - 4949
+       - :abbr:`TCP (Transmission Control Protocol)`, :abbr:`UDP (User Datagram Protocol)`
+       - Outbound
+       - Analyze hardware and network resource trends.
+       - Optional
+
+  To configure the munin-node package, see 
+  :doc:`/tutorial/configure-monitoring-munin-node`.
+
+  Open Ports to Authenticate with |onprem|
+  ------------------------------------------
 
   MongoDB Enterprise users :doc:`can use Lightweight Directory Access Protocol
-  (LDAP) </tutorial/configure-for-ldap-authentication/>` to authenticate |onprem|
-  users. To authenticate using LDAP, open the following ports on |onprem| and
-  your LDAP server.
+  </tutorial/configure-for-ldap-authentication/>` (LDAP) to authenticate
+  |onprem| users. To authenticate using :abbr:`LDAP (Lightweight Directory
+  Access Protocol)`, open the following ports on |onprem| and your :abbr:`LDAP
+  (Lightweight Directory Access Protocol)` server.
 
   .. list-table::
      :header-rows: 1
@@ -303,27 +427,32 @@ content: |
        
      * - :abbr:`LDAP (Lightweight Directory Access Protocol)`
        - 389
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Both
-       - Authenticate and/or authorize |onprem| users against LDAP server.
+       - Authenticate and/or authorize |onprem| users against :abbr:`LDAP
+         (Lightweight Directory Access Protocol)` server.
        - No
 
      * - :abbr:`LDAPS (Lightweight Directory Access Protocol Secure)`
        - 636
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Both
-       - Authenticate and/or authorize |onprem| users against LDAP server.
+       - Authenticate and/or authorize |onprem| users against :abbr:`LDAP
+         (Lightweight Directory Access Protocol)` server.
        - Yes
 
-  See :ref:`ldap-settings` to configure LDAP URI strings including ports.
+  To configure :abbr:`LDAP (Lightweight Directory Access Protocol)` :abbr:`URI
+  (Uniform Resource Identifier)` strings including changing the default port,
+  see :ref:`ldap-settings`.
 
-  Ports Needed to Authenticate with MongoDB
-  `````````````````````````````````````````
+  Open Ports to Authenticate with MongoDB
+  -----------------------------------------
 
-  MongoDB Enterprise users can use Kerberos or LDAP to authenticate
-  MongoDB users. To authenticate using LDAP or Kerberos, open the
-  following ports between the MongoDB client databases, |onprem| and the
-  Kerberos or LDAP server(s).
+  MongoDB Enterprise users can use Kerberos or :abbr:`LDAP (Lightweight
+  Directory Access Protocol)` to authenticate MongoDB users. To authenticate
+  using :abbr:`LDAP (Lightweight Directory Access Protocol)` or Kerberos, open
+  the following ports between the MongoDB client databases, |onprem| and the
+  Kerberos or :abbr:`LDAP (Lightweight Directory Access Protocol)` server(s).
 
   .. list-table::
      :header-rows: 1
@@ -338,7 +467,7 @@ content: |
        
      * - Kerberos
        - 88
-       - TCP / UDP
+       - :abbr:`TCP (Transmission Control Protocol)` / :abbr:`UDP (User Datagram Protocol)`
        - Outbound
        - Request authentication for MongoDB users against Kerberos
          server.
@@ -346,38 +475,39 @@ content: |
 
      * - Kerberos
        - 88
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Inbound
        - Receive authentication for MongoDB users against Kerberos
          server.
        - No
 
-     * - LDAP
+     * - :abbr:`LDAP (Lightweight Directory Access Protocol)`
        - 389
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Both
-       - Authenticate and/or authorize MongoDB users against LDAP
-         server.
+       - Authenticate and/or authorize MongoDB users against :abbr:`LDAP
+         (Lightweight Directory Access Protocol)` server.
        - No
 
-     * - LDAPS
+     * - :abbr:`LDAPS (Lightweight Directory Access Protocol Secure)`
        - 636
-       - UDP
+       - :abbr:`UDP (User Datagram Protocol)`
        - Both
-       - Authenticate and/or authorize MongoDB users against LDAP
-         server.
+       - Authenticate and/or authorize MongoDB users against :abbr:`LDAP
+         (Lightweight Directory Access Protocol)` server.
        - Yes
 
-  See :ref:`configuration-kerberos-settings` to configure Kerberos
-  for authentication to the |onprem| application database.
+  To configure Kerberos for authentication to the |onprem| application
+  database, see :ref:`configuration-kerberos-settings`.
 
-  Ports Needed to Manage Encryption Keys for MongoDB using WiredTiger
-  ```````````````````````````````````````````````````````````````````
+  Open Ports to Manage Encryption Keys for MongoDB using WiredTiger
+  -----------------------------------------------------------------
 
-  MongoDB databases using WiredTiger can be encrypted on disk. The
-  encryption method requires another server to manage the encryption keys. To
-  manage encryption keys using Key Management Interoperability Protocol
-  (KMIP), open the following port between the MongoDB client databases and the
+  MongoDB databases using the WiredTiger storage engine can be encrypted on
+  disk. The encryption method requires another server to manage the encryption
+  keys. To manage encryption keys using Key Management Interoperability
+  Protocol (KMIP), open the following port between the MongoDB client
+  databases and the
   :abbr:`KMIP (Key Management Interoperability Protocol)` server(s).
 
   .. list-table::
@@ -393,10 +523,14 @@ content: |
        
      * - :abbr:`KMIP (Key Management Interoperability Protocol)`
        - 5696
-       - TCP
+       - :abbr:`TCP (Transmission Control Protocol)`
        - Both
        - Send messages between MongoDB databases and 
          :abbr:`KMIP (Key Management Interoperability Protocol)` server.
        - No
+
+  .. note:: 
+     To change the port for the :abbr:`KMIP (Key Management Interoperability
+     Protocol)` server, see :doc:`/tutorial/encrypt-snapshots`.
 
 ...
