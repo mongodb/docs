@@ -3,7 +3,7 @@ edition:
   - cloud
 content: |
 
-  |mms| requires access on the following ports and IP addresses.
+  |mms| requires access on the following ports and whitelisted IP addresses.
 
   Required Outbound Access
   ------------------------
@@ -13,14 +13,12 @@ content: |
   infrastructure to allow outbound connections on port ``443``.
 
   If you wish to restrict outbound access on port ``443`` to specific IP
-  addresses, you must keep open the following addresses and domains.
+  addresses, you must whitelist the following addresses and domains.
 
   IP Addresses for GET and POST
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  You must keep open the following addresses on port ``443`` so that the
-  agents can ``GET`` AND ``POST`` to the ``api-agents.mongodb.com`` and
-  ``api-backup.mongodb.com`` servers:
+  Whitelist the following IP addresses:
 
   - ``54.173.82.137``
 
@@ -28,45 +26,53 @@ content: |
   
   - ``52.21.89.200``
 
+  This allows the agents to ``GET`` and ``POST`` to the 
+  ``api-agents.mongodb.com`` and
+  ``api-backup.mongodb.com`` servers.
+
   Domain for Download of MongoDB Binaries
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  The Automation Agents require outbound access on port ``443`` to the
-  following domains, depending on your MongoDB edition, for downloading
-  MongoDB binaries:
+  The Automation Agents require outbound access to the following domains,
+  depending on your MongoDB edition, for downloading MongoDB binaries:
 
-  - For the MongoDB community edition, the Automation Agents require
-    outbound access on port ``443`` to download binaries from the
-    ``fastdl.mongodb.org`` domain, provided by Amazon CloudFront. The IP
-    ranges for CloudFront change frequently. See `the current list of IP
-    ranges for CloudFront
-    <http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html>`_.
+  .. list-table::
+     :header-rows: 1
+     :widths: 10,20,30,40
 
-  - If you use Automation with `MongoDB Enterprise
-    <http://www.mongodb.com/products/mongodb-enterprise>`_, the
-    Automation Agents require outbound access on port ``443`` to the
-    ``downloads.mongodb.com`` domain in order to download the Enterprise
-    binaries.
+     * - MongoDB Edition
+       - Whitelist Domain
+       - IP Ranges
+       - Service Provider
+       
+     * - Community
+       - ``fastdl.mongodb.org``
+       - `IP ranges for CloudFront <http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html>`_.
 
-  - If you use automation with a custom build of MongoDB, the custom
-    build must be available at a URL accessible to the Automation Agent.
-    It could, for example, be served by a web server running inside an
-    isolated network environment. The custom build's ``Git Version``
-    field must be set to the output of the following command, issued on
-    the target binary.
+         The IP ranges for CloudFront change frequently.
+       - Amazon CloudFront
 
-    .. code-block:: javascript
+     * - `Enterprise <http://www.mongodb.com/products/mongodb-enterprise>`_
+       - ``downloads.mongodb.com``
+       -
+       -
 
-       mongod --version
+     * - Custom Build of MongoDB
+       - URL accessible to the Automation Agent
+       - 
+       - 
+   
+  .. note: 
+     The custom build's ``Git Version`` field must be set to the target binary's
+     ``mongod --version``.
 
   Required Inbound Access
   -----------------------
 
-  Auto-Provisioning
-  ~~~~~~~~~~~~~~~~~
-
-  If you use |mms| :doc:`provisioning </tutorial/nav/provision-cloud-servers>`,
-  you must grant SSH access to the following ranges at minimum:
+  If you use |mms| :doc:`provisioning </tutorial/nav/provision-cloud-servers>` 
+  or :ref:`delivering restored snapshots <delivery-methods-file-formats>`,
+  whitelist the following IP ranges and open outgoing port 22 for 
+  :abbr:`ssh (secure shell)` and :abbr:`scp (secure copy)` to those ranges:
 
   - ``4.71.186.128/25``
 
@@ -78,21 +84,6 @@ content: |
      without user notice.
 
   For additional information, see :doc:`/tutorial/nav/provision-cloud-servers`.
-
-  Backup SCP Restores
-  ~~~~~~~~~~~~~~~~~~~
-
-  If you use SCP as the :ref:`delivery method <delivery-methods-file-formats>` when
-  restoring a snapshot, you must grant SSH access to the following ranges at minimum:
-
-  - ``4.71.186.128/25``
-
-  - ``4.35.16.128/25``
-
-  .. important::
-
-     MongoDB reserves the right to change these IP addresses at any time
-     without user notice.
 
   Required Ports on Your Network
   ------------------------------
@@ -116,15 +107,13 @@ content: |
   must be opened to deploy the various components used with an |onprem|
   deployment.
 
-  Though |mms| only requires open :abbr:`HTTP (HyperText Transport Protocol)`
-  or :abbr:`HTTPS (HyperText Transport Protocol Secure)` and MongoDB network
-  ports to connect with users and to databases, what ports are opened on 
-  firewalls depend upon what capabilities are enabled: encryption,
-  authentication and monitoring.
+  The specific ports that must be open on any intermediate firewalls depend
+  upon what capabilities are enabled, such as encryption, authentication, and
+  monitoring.
 
   .. include:: /images/network-ports.rst
 
-  .. important:: 
+  .. tip:: 
 
      All ports listed in the following sections are either the port specified in
      the documentation for MongoDB installations or the
@@ -138,15 +127,17 @@ content: |
      the necessary binaries to run |onprem| without an Internet 
      connection.
 
-  Open Ports to Use |onprem|
-  --------------------------
+  Open Ports to Access |onprem|
+  -----------------------------
+
+  |onprem| requires the following minimum network port requirements: 
 
   * Both |onprem| users and |onprem| agents must be able to connect to the
     |onprem| application over :abbr:`HTTP (HyperText Transport Protocol)` or
     :abbr:`HTTPS (HyperText Transport Protocol Secure)`.
 
-  * |onprem| must be able to connect to its application MongoDB databases
-    running ``mongod``.
+  * |onprem| must be able to connect to the :program:`mongod` running the
+    |onprem| application MongoDB databases.
 
   * For each |onprem| group, |onprem| agents must be able to connect to all
     client MongoDB processes (``mongod`` or ``mongos``).
@@ -171,14 +162,15 @@ content: |
        - 8080
        - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
-       - Web connection to |onprem| from users and |onprem| agents.
+       - Provides a web connection to |onprem| from users and |onprem| agents.
        - No
 
      * - :abbr:`HTTPS (HyperText Transport Protocol Secure)`
        - 8443
        - :abbr:`TCP (Transmission Control Protocol)`
        - Inbound
-       - Web connection to |onprem| from users and |onprem| agents.
+       - Provides a secure web connection to |onprem| from users and |onprem|
+         agents.
        - Yes
 
      * - :abbr:`HTTP (HyperText Transport Protocol)` or :abbr:`HTTPS
@@ -216,14 +208,14 @@ content: |
        - 27017
        - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
-       - Connect to MongoDB application, backup and client databases.
+       - Connects to MongoDB application, backup and client databases.
        - Optional
 
      * - :abbr:`SMTP (Simple Mail Transport Protocol)`
        - 587
        - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
-       - Send emails from |onprem|.
+       - Sends emails from |onprem|.
        - Optional
 
   .. note::
@@ -238,13 +230,13 @@ content: |
        or :doc:`/tutorial/add-existing-mongodb-processes` for an existing
        deployment.
 
-  Open Ports to Administer |onprem| Hosts
-  ---------------------------------------
+  Open Ports to Access |onprem| and MongoDB Hosts
+  -----------------------------------------------
 
   Most |onprem| administration can be performed through the user interface.
   Some procedures require access to the operating system. To permit your
-  administrators to access your |onprem| and MongoDB servers, open the
-  following ports to those servers.
+  administrators to access your |onprem| as well as MongoDB hosts, open the
+  following ports to those hosts.
 
   .. list-table::
      :header-rows: 1
@@ -276,7 +268,7 @@ content: |
 
   |onprem| can back up MongoDB databases to one or more storage systems: a
   MongoDB database (:term:`blockstore`), an S3 bucket (S3 blockstore) or a
-  file system (:term:`file system store <File System Store>`. To back up
+  file system (:term:`file system store <File System Store>`). To back up
   MongoDB servers, open the following ports to the preferred backup hosts.
 
   .. list-table::
@@ -294,7 +286,7 @@ content: |
        - 27017
        - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
-       - Backup snapshots of entire database to Blockstore or snapshot metadata to S3 Blockstore
+       - Back up snapshots of entire database to Blockstore or snapshot metadata to S3 Blockstore
          metadata database.
        - Optional 
 
@@ -302,14 +294,14 @@ content: |
        - 443
        - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
-       - Backup database snapshot data to S3 bucket.
+       - Back up database snapshot data to S3 bucket.
        - Yes
 
      * - :abbr:`NFS (Network File System)`
        - 2049
        - :abbr:`TCP (Transmission Control Protocol)`
        - Outbound
-       - Backup database snapshots to UNIX-/Linux-based file system.
+       - Back up database snapshots to UNIX-/Linux-based file system.
        - No
 
      * - :abbr:`CIFS (Common Internet File System)`
@@ -326,9 +318,13 @@ content: |
        - Restore snapshot to a server.
        - Yes
 
-  Snapshots can also be restored using link displayed in the |onprem|
+  Snapshots can also be restored using the link displayed in the |onprem|
   application. The same ports needed to use |onprem| would need to be open for
   the user to download the snapshot.
+
+  To find the download link, click :guilabel:`Backup`, then the
+  :guilabel:`Restore History` tab, then click the :guilabel:`download` link
+  next to the snapshot.
 
   .. note::
      - To configure a different port for the Blockstore, see
@@ -338,12 +334,12 @@ content: |
        :doc:`/tutorial/manage-s3-blockstore-storage`.
 
   Open Ports to Integrate |onprem| with SNMP
-  --------------------------------------------
+  ------------------------------------------
 
-  To send and receive :abbr:`SNMP (Simple Network Management Protocol)` trap
-  notifications and hardware updates to and from your MongoDB deployments must
-  open the following ports between |onprem| and your 
-  :abbr:`SNMP (Simple Network Management Protocol)` Manager.
+  Open the following ports between |onprem| and your :abbr:`SNMP (Simple
+  Network Management Protocol)` Manager to send and receive :abbr:`SNMP
+  (Simple Network Management Protocol)` trap notifications from your 
+  MongoDB deployments to |onprem|.
 
   .. list-table::
      :header-rows: 1
@@ -371,18 +367,19 @@ content: |
        - No
 
   .. note::
-     To configure :abbr:`SNMP (Simple Network Management Protocol)` to use
-     non-standard ports, see :ref:`snmp-heartbeat-configure`.
+     To configure |onprem| to use :abbr:`SNMP (Simple Network Management
+     Protocol)` on non-standard ports, see :ref:`snmp-heartbeat-configure`.
 
   Open Ports to Provide Additional Monitoring for |onprem|
-  ----------------------------------------------------------
+  --------------------------------------------------------
 
   .. important:: 
      As of Automation Agent 2.7.0, using Munin to monitor hardware has been
      deprecated.
 
-  Beyond its built-in monitoring capability, the Munin Graphing Framework can
-  provide additional monitoring on UNIX/Linux-based MongoDB instances and hosts.
+  Beyond |onprem|'s built-in monitoring capability, it can use the `Munin
+  Graphing Framework <http://munin-monitoring.org>`_ to provide additional
+  monitoring on UNIX/Linux-based MongoDB instances and hosts.
 
   .. list-table::
      :header-rows: 1
@@ -402,11 +399,11 @@ content: |
        - Analyze hardware and network resource trends.
        - Optional
 
-  To configure the munin-node package, see 
+  To configure the ``munin-node`` package, see 
   :doc:`/tutorial/configure-monitoring-munin-node`.
 
-  Open Ports to Authenticate with |onprem|
-  ------------------------------------------
+  Open Ports to Authenticate |onprem| Users using LDAP
+  ----------------------------------------------------
 
   MongoDB Enterprise users :doc:`can use Lightweight Directory Access Protocol
   </tutorial/configure-for-ldap-authentication/>` (LDAP) to authenticate
@@ -441,9 +438,9 @@ content: |
          (Lightweight Directory Access Protocol)` server.
        - Yes
 
-  To configure :abbr:`LDAP (Lightweight Directory Access Protocol)` :abbr:`URI
-  (Uniform Resource Identifier)` strings including changing the default port,
-  see :ref:`ldap-settings`.
+  To configure the |onprem| :abbr:`LDAP (Lightweight Directory Access
+  Protocol)` :abbr:`URI (Uniform Resource Identifier)` strings, including
+  configuring a non-standard port, see :ref:`ldap-settings`.
 
   Open Ports to Authenticate with MongoDB
   -----------------------------------------
@@ -451,7 +448,7 @@ content: |
   MongoDB Enterprise users can use Kerberos or :abbr:`LDAP (Lightweight
   Directory Access Protocol)` to authenticate MongoDB users. To authenticate
   using :abbr:`LDAP (Lightweight Directory Access Protocol)` or Kerberos, open
-  the following ports between the MongoDB client databases, |onprem| and the
+  the following ports between the MongoDB client databases, |onprem|, and the
   Kerberos or :abbr:`LDAP (Lightweight Directory Access Protocol)` server(s).
 
   .. list-table::
@@ -500,15 +497,15 @@ content: |
   To configure Kerberos for authentication to the |onprem| application
   database, see :ref:`configuration-kerberos-settings`.
 
-  Open Ports to Manage Encryption Keys for MongoDB using WiredTiger
-  -----------------------------------------------------------------
+  Open Ports to Manage Encryption Keys using KMIP
+  -----------------------------------------------
 
   MongoDB databases using the WiredTiger storage engine can be encrypted on
   disk. The encryption method requires another server to manage the encryption
   keys. To manage encryption keys using Key Management Interoperability
   Protocol (KMIP), open the following port between the MongoDB client
-  databases and the
-  :abbr:`KMIP (Key Management Interoperability Protocol)` server(s).
+  databases and the :abbr:`KMIP (Key Management Interoperability Protocol)`
+  server(s).
 
   .. list-table::
      :header-rows: 1
@@ -530,7 +527,8 @@ content: |
        - No
 
   .. note:: 
-     To change the port for the :abbr:`KMIP (Key Management Interoperability
-     Protocol)` server, see :doc:`/tutorial/encrypt-snapshots`.
+     If you change the port for the :abbr:`KMIP (Key Management
+     Interoperability Protocol)` server, see :doc:`/tutorial/encrypt-snapshots` 
+     to configure |onprem| to use that new port.
 
 ...
