@@ -64,7 +64,7 @@
      - `JIRA <https://jira.mongodb.org/browse/PYTHON>`_
      - `Course <https://university.mongodb.com/courses/M101P/about>`_
 
-   * - :doc:`Motor </drivers/python>`
+   * - :ref:`Motor <python-async-driver>`
      - `Releases <https://pypi.python.org/pypi/motor/>`_
      - `Source <https://github.com/mongodb/motor>`_
      - `API <http://motor.readthedocs.org/en/stable/api/index.html>`_
