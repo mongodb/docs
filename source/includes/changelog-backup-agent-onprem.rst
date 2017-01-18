@@ -1,3 +1,12 @@
+.. _backup-5.0.5.472:
+
+Backup Agent ``5.0.5.472``
+--------------------------
+
+*Released with Ops Manager 3.4.2 on 2017-01-19*
+
+- Fixed Backup Agent logs not getting sent to server on Windows.
+
 .. _backup-5.0.4.469:
 
 Backup Agent ``5.0.4.469``
