@@ -45,8 +45,8 @@ language = 'en'
 project = sconf.project
 copyright = u'2008-{0}'.format(datetime.date.today().year)
 
-version = '3.0'
-release = version
+version = conf.version.branch
+release = conf.version.release
 
 rst_epilog = '\n'.join([
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
