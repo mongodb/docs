@@ -61,23 +61,6 @@ MongoDB binaries:
 Required Inbound Access
 -----------------------
 
-Auto-Provisioning
-~~~~~~~~~~~~~~~~~
-
-If you use |mms| :doc:`provisioning </tutorial/nav/provision-cloud-servers>`,
-you must grant SSH access to the following ranges at minimum:
-
-- ``4.71.186.128/25``
-
-- ``4.35.16.128/25``
-
-.. important::
-
-   MongoDB reserves the right to change these IP addresses at any
-   time without user notice.
-
-For additional information, see :doc:`/tutorial/nav/provision-cloud-servers`.
-
 Backup SCP Restores
 ~~~~~~~~~~~~~~~~~~~
 
