@@ -1,3 +1,12 @@
+Monitoring Agent ``5.6.0.364``
+------------------------------
+
+*Released 2017-01-23*
+
+- Support for macOS Sierra.
+
+- Compiled with Go 1.7.4.
+
 Monitoring Agent ``5.5.0.358``
 ------------------------------
 

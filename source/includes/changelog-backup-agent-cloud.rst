@@ -1,3 +1,14 @@
+Backup Agent ``5.2.0.473``
+--------------------------
+
+*Released 2017-01-23*
+
+- Support for macOS Sierra.
+
+- Compiled with Go 1.7.4.
+
+- Fix: Can send logs to Cloud Manager for Backup Agents running on Windows.
+
 Backup Agent ``5.1.0.467``
 --------------------------
 
