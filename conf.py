@@ -62,6 +62,7 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
     '.. |bi| replace:: MongoDB Connector for BI',
+    '.. |version| replace:: {0}'.format(version)
 ])
 
 pygments_style = 'sphinx'
