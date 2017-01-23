@@ -32,8 +32,18 @@ Definition
    The ``force`` parameter allows a reconfiguration command to be issued
    to a non-primary node.
 
-Behavior
---------
+Consideration
+-------------
+
+Mixed Version Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+Availability
+~~~~~~~~~~~~
 
 The :method:`rs.reconfig()` shell method can trigger the current primary
 to step down in some situations. When the
@@ -41,10 +51,22 @@ primary steps down, it forcibly closes all client connections. This is
 by design. Since it may take a period of time to elect a new primary, 
 schedule reconfiguration changes during maintenance periods to minimize loss of write availability.
 
+``{ force: true }``
+~~~~~~~~~~~~~~~~~~~
+
 .. warning::
 
    Using :method:`rs.reconfig()` with ``{ force: true }`` can lead to
    :term:`rollback` of committed writes. Exercise caution when using this option.
+
+Member Priority and Votes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
 
 .. _replica-set-reconfiguration-usage:
 
@@ -56,24 +78,67 @@ A replica set named ``rs0`` has the following configuration:
 .. code-block:: javascript
 
    {
-       "_id" : "rs0",
-       "version" : 1,
-       "members" : [
-            {
-               "_id" : 0,
-               "host" : "mongodb0.example.net:27017"
+      "_id" : "rs0",
+      "version" : 1,
+      "protocolVersion" : NumberLong(1),
+      "members" : [
+         {
+            "_id" : 0,
+            "host" : "mongodb0.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
             },
-            {
-               "_id" : 1,
-               "host" : "mongodb1.example.net:27017"
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 1,
+            "host" : "mongodb1.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
             },
-            {
-               "_id" : 2,
-               "host" : "mongodb2.example.net:27017"
-            }
-        ]
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 2,
+            "host" : "mongodb2.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         }
+      ],
+      "settings" : {
+         "chainingAllowed" : true,
+         "heartbeatIntervalMillis" : 2000,
+         "heartbeatTimeoutSecs" : 10,
+         "electionTimeoutMillis" : 10000,
+         "catchUpTimeoutMillis" : 2000,
+         "getLastErrorModes" : {
+         
+         },
+         "getLastErrorDefaults" : {
+            "w" : 1,
+            "wtimeout" : 0
+         },
+         "replicaSetId" : ObjectId("58858acc1f5609ed986b641b")
+      }
    }
-
+   
 The following sequence of operations updates the
 :rsconf:`members[n].priority` of the second member.
 The operations are issued through a :program:`mongo` shell connected to
@@ -108,23 +173,65 @@ the primary.
 .. code-block:: javascript
 
    {
-       "_id" : "rs0",
-       "version" : 2,
-       "members" : [
-            {
-               "_id" : 0,
-               "host" : "mongodb0.example.net:27017"
+      "_id" : "rs0",
+      "version" : 2,
+      "protocolVersion" : NumberLong(1),
+      "members" : [
+         {
+            "_id" : 0,
+            "host" : "mongodb0.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
             },
-            {
-               "_id" : 1,
-               "host" : "mongodb1.example.net:27017",
-               "priority" : 2
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 1,
+            "host" : "mongodb1.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 2,
+            "tags" : {
+            
             },
-            {
-               "_id" : 2,
-               "host" : "mongodb2.example.net:27017"
-            }
-        ]
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 2,
+            "host" : "mongodb2.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "slaveDelay" : NumberLong(0),
+            "votes" : 1
+         }
+      ],
+      "settings" : {
+         "chainingAllowed" : true,
+         "heartbeatIntervalMillis" : 2000,
+         "heartbeatTimeoutSecs" : 10,
+         "electionTimeoutMillis" : 10000,
+         "catchUpTimeoutMillis" : 2000,
+         "getLastErrorModes" : {
+         
+         },
+         "getLastErrorDefaults" : {
+            "w" : 1,
+            "wtimeout" : 0
+         },
+         "replicaSetId" : ObjectId("58858acc1f5609ed986b641b")
+      }
    }
 
 .. seealso:: :method:`rs.conf()`,

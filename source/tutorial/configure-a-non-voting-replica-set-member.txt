@@ -11,34 +11,60 @@ Configure Non-Voting Replica Set Member
    :class: singlecol
 
 Non-voting members allow you to add additional members for read
-distribution beyond the maximum seven voting members. To configure a
-member as non-voting, set its
-:rsconf:`members[n].votes` value to ``0``.
+distribution beyond the maximum seven voting members.
+
+.. important::
+
+   .. versionchanged:: 3.2
+
+      - .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+      - .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+
+To configure a member as non-voting, set both its
+:rsconf:`~members[n].votes` and :rsconf:`~members[n].priority` values to
+``0``.
 
 Example
 -------
 
-To disable the ability to vote in elections for the fourth, fifth, and
-sixth replica set members, use the following command sequence in the
-:program:`mongo` shell connected to the primary. You identify each
-replica set member by its array index in the
-:rsconf:`members` array:
+The following example configures the fourth, fifth, and sixth replica
+set members to be non-voting members.
 
-.. code-block:: javascript
+#. In a :program:`mongo` shell connected to a primary, run the
+   :method:`rs.conf()` method and assign the result to a variable:
 
-   cfg = rs.conf()
-   cfg.members[3].votes = 0
-   cfg.members[4].votes = 0
-   cfg.members[5].votes = 0
-   rs.reconfig(cfg)
+   .. code-block:: javascript
 
-This sequence gives ``0`` votes to the fourth, fifth, and sixth members
-of the set according to the order of the
-:rsconf:`members` array in the output of
-:method:`rs.conf()`. This setting allows the set to elect these members
-as :term:`primary` but does not allow them to vote in elections. Place
-voting members so that your designated primary or primaries can reach a
-majority of votes in the event of a network partition.
+      cfg = rs.conf();
+
+   The returned document contains a ``members`` field which contains an
+   zero-indexed array of member configuration documents, one document for each
+   member of the replica set.
+
+#. To configure the fourth, fifth, and sixth replica set members to be
+   non-voting, use the following command sequence to set both their
+   :rsconf:`members[n].votes` and :rsconf:`members[n].priority` values
+   to ``0``.
+
+   .. code-block:: javascript
+
+      cfg.members[3].votes = 0;
+      cfg.members[3].priority = 0;
+      cfg.members[4].votes = 0
+      cfg.members[4].priority = 0;
+      cfg.members[5].votes = 0
+      cfg.members[5].priority = 0;
+
+#. Use :method:`rs.reconfig()` method to reconfigure the replica set
+   with the updated replica set configuration document.
+
+   .. code-block:: javascript
+
+      rs.reconfig(cfg);
+
+Place voting members so that your designated primary or primaries can
+reach a majority of votes in the event of a network partition.
 
 .. include:: /includes/fact-rs-conf-array-index.rst
 

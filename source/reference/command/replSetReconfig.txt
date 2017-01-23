@@ -26,18 +26,21 @@ replSetReconfig
 
 .. slave-ok, admin-only
 
-Behaviors
----------
+Considerations
+--------------
 
-Be aware of the following :dbcommand:`replSetReconfig` behaviors:
+Be aware of the following :dbcommand:`replSetReconfig` behaviors and
+considerations:
+
+.. warning:: 
+   .. include:: /includes/warning-mixed-version-rs-config.rst
 
 - You must issue this command against the :term:`admin database` of the current
   primary member of the replica set.
 
 - You can optionally force the replica set to accept the new
-  configuration by specifying ``force: true``. Use this option if
-  the current member is not primary or if a majority of the members
-  of the set are not accessible.
+  configuration by specifying ``force: true``. Use this option if there
+  is no current primary in the replica set.
 
   .. warning::
 
@@ -45,15 +48,10 @@ Be aware of the following :dbcommand:`replSetReconfig` behaviors:
      :term:`rollback` situation. Use with caution.
 
   Use the force option to restore a replica set to new servers with
-  different hostnames. This works even if the set members already
-  have a copy of the data.
+  different hostnames.
 
 - A majority of the set's members must be operational for the
   changes to propagate properly.
-
-- If you are reconfiguring a set that has 2 members where only one
-  member votes, and you are adding a member, you will need to specify
-  the force option.
 
 - This command can cause downtime as the set renegotiates
   primary-status. Typically this is 10-20 seconds, but could
@@ -61,9 +59,16 @@ Be aware of the following :dbcommand:`replSetReconfig` behaviors:
   to reconfigure only during scheduled maintenance periods.
 
 - In some cases, :dbcommand:`replSetReconfig` forces the current
-  primary to step down, initiating an election for primary among
-  the members of the replica set. When this happens, the set will
-  drop all current connections.
+  primary to step down, initiating an election for primary among the
+  members of the replica set. When this happens, the primary node will drop
+  all current connections.
+
+.. versionchanged:: 3.2
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
 
 :dbcommand:`replSetReconfig` obtains a special mutually
 exclusive lock to prevent more than one
