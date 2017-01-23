@@ -39,7 +39,6 @@ two:
 SQL Compability
 ~~~~~~~~~~~~~~~
 
-|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements. |bi|
-Version 2.0.0 does not yet support ODBC syntax.
+|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements.
 
 .. seealso:: :doc:`/supported-operations`
