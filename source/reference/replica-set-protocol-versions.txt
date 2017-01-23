@@ -1,0 +1,195 @@
+=============================
+Replica Set Protocol Versions
+=============================
+
+.. default-domain:: mongodb
+
+
+MongoDB provides replica set protocol version 0 (``pv0``) and replica
+set protocol version 1 (``pv1``):
+
+- ``pv0`` prioritizes lowering the likelihood of rollbacks of
+  :writeconcern:`w:1 <\<number\>>` writes. However, ``pv0`` can lead to
+  the loss of confirmed :writeconcern:`w: "majority" <"majority">`
+  writes in certain network partition scenarios.
+
+- ``pv1`` guarantees the preservation of confirmed :writeconcern:`w:
+  "majority" <"majority">` writes. While ``pv1``, by default,
+  prioritizes faster failovers over the preservation of
+  :writeconcern:`w:1 <\<number\>>` writes, it can be configured to
+  prioritize preservation of most :writeconcern:`w:1 <\<number\>>`
+  writes at the expense of slower failover time.
+
+  .. note::
+
+     ``pv1`` is the default for all new replica sets created with
+     MongoDB 3.2 or later.
+
+The following outlines some differences between ``pv0`` and ``pv1``.
+
+Availability
+------------
+
+- ``pv0`` is available in all MongoDB versions.
+
+- ``pv1`` is available in MongoDB version 3.2 or later and is the
+  default for all new replica sets created with version 3.2 or later.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 15 15
+
+   * - MongoDB Versions
+     - ``pv0``
+     - ``pv1``
+
+   * - 3.2+
+     - |checkmark|
+     - |checkmark|
+
+   * - < 3.2
+     - |checkmark|
+     -
+
+.. include:: /includes/unicode-checkmark.rst
+
+Read Concern
+------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 15 15
+
+   * - Read Concern
+     - ``pv0``
+     - ``pv1``
+
+   * - :readconcern:`"local"`
+     - |checkmark|
+     - |checkmark|
+
+   * - :readconcern:`"majority"`
+     - 
+     - |checkmark|
+
+   * - :readconcern:`"linearizable"`
+     - |checkmark|
+     - |checkmark|
+
+Arbiters
+--------
+
+.. include:: /includes/extracts/arbiters-and-pvs.rst
+
+Vetoes
+------
+
+``pv0`` allows members to :ref:`veto elections <replica-set-vetoes>`
+based on member's :data:`optime <replSetGetStatus.members.optime>` and
+:rsconf:`~members[n].priority` values.
+
+``pv1`` does not use vetoes. Individual members can vote for or against
+a candidate in a particular election, but cannot individually veto (abort)
+an election unilaterally.
+
+.. _simultaneous-primaries:
+
+Detection of Simultaneous Primaries
+-----------------------------------
+
+.. include:: /includes/footnote-two-primaries-edge-cases.rst
+
+``pv0`` relies on clock synchronization to disambiguate when two
+members both think they are primary. Reliance on clock synchronization
+can lead to the loss of confirmed :writeconcern:`w: "majority"
+<"majority">` writes.
+
+Instead of clock synchronization, ``pv1`` uses the concept of
+:term:`term`. This allows for a faster detection of simultaneous
+primaries and for multiple successful elections in a short period of
+time. ``pv0`` can leave a replica set with no primary if multiple
+elections are needed in a short period of time.
+
+Back to Back Elections
+----------------------
+
+To maximize write availability, ``pv1`` does not consider
+:rsconf:`~members.[n].priority` when conducting an election. Instead,
+after a replica set has a stable primary, ``pv1`` makes a "best-effort"
+attempt to have the secondary with the highest
+:rsconf:`~members[n].priority` available call an election. This could
+lead to back-to-back elections as eligible members with higher priority
+can call an election. But unlike ``pv0``, which must include a 30
+second buffer between back-to-back elections, the use of :data:`terms
+<term>` in ``pv1`` allows for faster occurence of back-to-back
+elections.
+
+Both the increased frequency and the lack of a time buffer between
+back-to-back elections with ``pv1`` increase the likelihood of rollback
+of :writeconcern:`w:1 <\<number\>>` writes. However, you can reduce the
+number of rollbacks by raising the
+:rsconf:`~settings.catchUpTimeoutMillis` setting.
+
+During an election, ``pv0`` allows nodes to veto based on
+:rsconf:`~members[n].priority` values. As such, after a replica set has
+a stable primary, ``pv0`` would lead to less back-to-back elections
+than ``pv1``. Because ``pv0`` relies on clock synchronization to
+:ref:`detect multiple primaries <simultaneous-primaries>`, ``pv0``
+includes a 30 seconds buffer between back-to-back elections as a
+precaution against poor clock synchronization.
+
+.. warning::
+
+   Reliance on clock synchronization can lead to the loss of confirmed
+   :writeconcern:`w: "majority" <"majority">` writes.
+
+Double Voting
+-------------
+
+With its use of :term:`terms <term>`, ``pv1`` prevents double voting in
+one member's call for election.
+
+``pv0`` lessens the likelihood of double-voting via the 30-second
+buffer, but cannot guarantee that a member will not double vote if an
+election exceeds 30-seconds.
+
+Summary
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - 
+     - ``pv0``
+     - ``pv1``
+
+   * - ``w: 1`` **Writes**
+     - Prioritized preservation of ``w: 1`` writes.
+
+     - Increased likelihood of ``w: 1`` rollbacks, but behavior can be
+       adjusted through :rsconf:`~settings.catchUpTimeoutMillis`
+
+   * - ``w: "majority"`` **Writes**
+
+     - Can lose confirmed :writeconcern:`w: "majority" <"majority">`
+       writes.
+
+     - Guarantees the preservation of confirmed :writeconcern:`w:
+       "majority" <"majority">` writes
+
+   * - **No Primary**
+     - More likely
+     - Less likely
+
+   * - **Vetoes**
+     - Supported
+     - Not Needed
+
+   * - **Back-to-back Elections**
+     - Less frequent, 30 second buffer
+     - More likely, no buffer
+
+   * - **Arbiter**
+     - Less likely to lose ``w: 1`` writes
+     - More likely to lose ``w: 1`` writes
