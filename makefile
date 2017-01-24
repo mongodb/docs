@@ -81,41 +81,10 @@ deploy-opsmgr: build/public/onprem
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
 	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
+	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy --verbose  --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to publish preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/${GIT_BRANCH} ${PRODUCTION_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
+	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
-
-## Revisit decision to call make or just having the steps in the deploy-opsmgr rule
-ifeq (${GIT_BRANCH}, master)
-	@echo ''
-	$(MAKE) deploy-opsmgr-upcoming
-else ifeq (${GIT_BRANCH}, ${CURRENT_V})
-	@echo ''
-	$(MAKE) deploy-opsmgr-current
-endif
-
-deploy-opsmgr-current: build/public/onprem
-	@echo ''
-	@echo "Doing a dry-run for CURRENT symlink to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/current ${PRODUCTION_BUCKET_OPSMGR} --prefix=current --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
-
-	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/current/index.html"
-
-deploy-opsmgr-upcoming: build/public/onprem/master
-	@echo ''
-	@echo "Doing a dry-run of UPCOMING symlink to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --verbose --all-subdirectories --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/upcoming ${PRODUCTION_BUCKET_OPSMGR} --prefix=upcoming --deploy --all-subdirectories --redirects build/public/onprem/.htaccess ${ARGS}
-
-	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/upcoming/index.html"
