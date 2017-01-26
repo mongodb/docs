@@ -59,8 +59,7 @@ rst_epilog = '\n'.join([
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'manual': ('http://docs.mongodb.com/manual%s', ''),
-    'v3.4': ('http://docs.mongodb.com/v3.4%s', ''),
+    'manual': ('http://docs.mongodb.com/manual%s', '')
 }
 
 intersphinx_mapping = {}

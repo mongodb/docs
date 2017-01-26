@@ -1,4 +1,4 @@
-MongoDB 3.4 introduces :v3.4:`Read-Only Views </core/views>` that you can
+MongoDB 3.4 introduces :manual:`Read-Only Views </core/views>` that you can
 use to filter incompatible data.
 
 For example, you can create a view in the ``test`` database that contains
