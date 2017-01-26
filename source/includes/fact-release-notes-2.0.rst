@@ -39,6 +39,7 @@ two:
 SQL Compability
 ~~~~~~~~~~~~~~~
 
-|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements.
+|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements, and uses
+the MySQL wire protocol.
 
 .. seealso:: :doc:`/supported-operations`
