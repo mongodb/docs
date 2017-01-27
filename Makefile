@@ -9,6 +9,8 @@ PRODUCTION_BUCKET=docs-mongodb-org-prod
 # within one bucket. For the manual it is empty.
 PROJECT=
 
+BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
+TEST_FILE=./build/${GIT_BRANCH}/tests.js
 .PHONY: help lint html stage deploy
 
 help: ## Show this help message
@@ -17,14 +19,19 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
+lint: ## Checks URLs in the built corpus underneath build/<branch>/html
+	mut-lint --linters=links ./build/master/source/ ${ARGS}
+
+test: html ## Runs test framework over the corpus
+	./build/docs-tools/tools/rst-testing/create-blocks.py ./build/${GIT_BRANCH}/source ${BLOCKS_FILE}
+	node ./build/docs-tools/tools/rst-testing/compile-blocks.js ${BLOCKS_FILE} > ${TEST_FILE}
+	./build/docs-tools/tools/rst-testing/rst_tester.py ${TEST_FILE}
+
 html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
-
-lint: ## Checks URLs in the built corpus underneath build/<branch>/html
-	mut-lint --linters=links ./build/master/source/ ${ARGS}
 
 # - Enter build/<branch>/html, and recurse over each regular file
 #   <basename>/<filename>.
