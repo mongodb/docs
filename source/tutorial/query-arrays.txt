@@ -1,0 +1,164 @@
+
+.. _read-operations-arrays:
+
+=====================
+Query on Array Fields
+=====================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: MongoDB |version| query on arrays: query on the array field as a whole, query on specific array element
+   :keywords: array, array elements, array items, queries, select, MongoDB |version|, Manual |version|
+
+This page provides examples of query operations in the :program:`mongo`
+shell. The examples on this page use the ``inventory`` collection. To
+populate the ``inventory`` collection, run the following in the
+:program:`mongo` shell:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.insert([
+      { item: "canvas", qty: 100, tags: ["cotton"], dim_cm: [ 28, 35.5 ] },
+      { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ] },
+      { item: "mat", qty: 85, tags: ["gray"], dim_cm: [ 27.9, 35.5 ] },
+      { item: "mousepad", qty: 25, tags: ["gel", "blue"], dim_cm: [ 19, 22.85 ] },
+      { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ] },
+      { item: "paper", qty: 100, tags: "red", "blank", "A3", dim_cm: [ 14, 21 ] },
+      { item: "planner", qty: 75, tags: [ "blank", "red"], dim_cm: [ 22.85, 30 ] },
+      { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] },
+      { item: "sketchbook", qty: 80, tags: ["heavy weight", "acid-free"], dim_cm: [ 14, 21 ] },
+      { item: "sketch pad", qty: 95, tags: ["acid-free", "heavy weight"],  dim_cm: [ 22.85, 30.5 ] }
+   ]);
+
+.. only:: website
+
+   You can run the operation in the web shell below:
+
+   .. include:: /includes/fact-mws.rst
+
+.. _array-match-exact:
+
+Match an Array
+--------------
+
+To specify equality condition on an array, use the query document ``{
+<field>: <value> }`` where ``<value>`` is the exact array to match,
+including the order of the elements. The following example queries for
+all documents where the field ``tags`` value is an array with exactly
+two elements, ``"red"`` and ``"blank"``, in the specified order:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: ["red", "blank"] } )
+
+If, instead, you wish to find an array that contains both the elements
+``"red"`` and ``"blank"``, without regard to order or other elements in
+the array, use the :query:`$all` operator:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: { $all: ["red", "blank"] } } )
+
+.. _array-match-single-element:
+
+Query an Array for an Element
+-----------------------------
+
+To query if the array field contains at least *one* element with the
+specified value, use the filter ``{ <field>: <value> }`` where value is
+the element value. The following example queries for all documents
+where ``tags`` is an array that contains the string ``"red"`` as one
+of its elements:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: "red" } )
+
+To specify conditions on the elements in the array field, use the query
+filter document:
+
+.. code-block:: javascript
+
+   { <array field>: { <operator1>: <value1>, ... } }
+
+For example, the following operation queries for all documents where the array
+``dim_cm`` contains at least one element whose value is greater than
+``25``.
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { dim_cm: { $gt: 25 } } )
+
+.. _combination-of-elements-satisfies-criteria:
+
+Query an Array with Compound Filter Conditions on the Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents where the ``dim_cm`` array
+contains elements that in some combination satisfy the query
+conditions; e.g., one element can satisfy the greater than ``15``
+condition and another element can satisfy the less than ``20``
+condition, or a single element can satisfy both:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+
+.. _single-element-satisfies-criteria:
+
+Query for an Array Element that Meets Multiple Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :query:`$elemMatch` operator to specify multiple criteria on the
+elements of an array such that at least one array element satisfies all
+the specified criteria.
+
+The following example queries for documents where the ``dim_cm`` array
+contains at least one element that is both greater than (:query:`$gt`)
+``22`` and less than (:query:`$lt`) ``30``:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } } )
+
+Query for an Element by the Array Index Position
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using the :term:`dot notation`, you can specify query conditions for an
+element at a particular index or position of the array. The array uses
+zero-based indexing.
+
+The following example queries for all documents where the second
+element in the array ``dim_cm`` is greater than ``25``:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { "dim_cm.1": { $gt: 25 } } )
+
+Query an Array by Its Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the :query:`$size` operator to query for arrays of a particular
+size. For example, the following selects documents where the array
+``tags`` has 3 elements.
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { "tags": { $size: 3 } } )
