@@ -1,0 +1,227 @@
+=========================================
+Get One Backup Configuration from a Group
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/api/base-api-uri.rst
+
+Syntax
+------
+
+.. code-block:: http
+
+   GET /api/public/v1.0/groups/{GROUP-ID}/backupConfigs/{CLUSTER-ID}
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Required/Optional
+     - Description
+
+   * - ``GROUP-ID``
+     - Required.
+     - The unique identifier for the group that holds the cluster with
+       the backup configuration you want to change.
+
+   * - ``CLUSTER-ID``
+     - Required.
+     - The unique indentifier of the cluster whose backup configuration
+       you want to change.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response Elements
+-----------------
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     
+   * - ``groupId``
+     - string
+     - ID of the group that owns this backup configuration.
+
+   * - ``clusterId``
+     - string
+     - ID of the cluster that this backup configuration is for.
+
+   * - ``statusName``
+     - string
+     - The current (or desired) status of the backup configuration. Possible
+       values are:
+
+       - ``INACTIVE``
+       - ``PROVISIONING``
+       - ``STARTED``
+       - ``STOPPED``
+       - ``TERMINATING``
+
+   * - ``storageEngineName``
+     - string
+     - The storage engine used for the backup. Possible values are:
+
+       - ``MEMORY_MAPPED``
+       - ``WIRED_TIGER``
+
+.. only:: onprem
+
+   .. list-table::
+      :widths: 10 10 80
+
+      * - ``encryptionEnabled``
+        - boolean
+        - Specifies whether encryption is enabled for the backup
+          configuration. You must include the ``syncSource`` field when
+          enabling encryption for a backup configuration. For existing
+          backups in a group, enabling encryption requires an initial backup
+          sync to recreate the backups’ head databases. See :doc:`Encrypted
+          Backup Snapshots </tutorial/encrypt-snapshots>` for more
+          information, including a list of prerequisites.
+
+.. list-table::
+   :widths: 10 10 80
+
+   * - ``sslEnabled``
+     - boolean
+     - Is SSL enabled for the sync source database?
+
+   * - ``excludedNamespaces``
+     - string array
+     - A list of database names and collection names to omit from the
+       backup. Each string is a namespace in the form of ``{database}`` or
+       ``{database}.{collection}``. If this field is present the
+       ``includedNamespaces`` field cannot be present.
+
+       You must send the new full list of excluded namespaces, including any
+       that were already listed.
+
+       If the new list removes any namespaces from the previous list, you must
+       also set the ``syncSource`` field, as the removal of an excluded
+       namespace necessitates a full resync. Without the ``syncSource`` field,
+       the request will fail.
+
+       If the new list only adds to the previous list, you do not need to set
+       ``syncSource``.
+
+   * - ``includedNamespaces``
+     - string array
+     - A list of database names and collection names to include in the
+       backup. Each string is a namespace in the form of ``{database}``
+       or ``{database}.{collection}``. Any namespace **not listed** in this
+       array **will not be backed up**. If this field is present the
+       ``excludedNamespaces`` field cannot be present.
+
+       You must send the new full list of included namespaces, including any
+       that were already listed.
+
+       If the new list adds any namespaces to the previous list, you must
+       also set the ``syncSource`` field, as the addition of an included
+       namespace necessitates a full resync. Without the ``syncSource`` field,
+       the request will fail.
+
+       If the new list only removes namespaces from the previous list, you do
+       not need to set ``syncSource``.
+
+.. only:: cloud
+   
+   .. list-table::
+      :widths: 10 10 80
+
+      * - ``links``
+        - string array
+        - 
+          .. list-table::
+             :header-rows: 1
+
+             * - ``Relation``
+               - Description
+             * - ``self``
+               - Me
+             * - ``http://cloud.mongodb.com/cluster``
+               - The cluster that this backup configuration is for.
+             * - ``group``
+               - The group that owns this backup configuration.
+             * - ``http://cloud.mongodb.com/snapshotSchedule``
+               - The snapshot schedule for this backup configuration.
+
+Examples
+--------
+
+Example Request
+~~~~~~~~~~~~~~~
+
+.. only:: cloud
+
+   .. cssclass:: copyable-code
+   .. code-block:: sh
+
+      curl -i -u "{username}:{apiKey}" --digest "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/backupConfigs/5196e5b0e4b0fca9cc88334a"
+
+.. only:: onprem
+
+   .. cssclass:: copyable-code
+   .. code-block:: sh
+
+      curl -i -u "{username}:{apiKey}" --digest "https://{opsManagerHost}:{Port}/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/backupConfigs/5196e5b0e4b0fca9cc88334a"
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. only:: onprem
+
+   .. code-block:: json
+ 
+      HTTP/1.1 200 OK
+ 
+      {
+        "groupId" : "5196d3628d022db4cbc26d9e",
+        "clusterId" : "5196e5b0e4b0fca9cc88334a",
+        "statusName" : "STARTED",
+        "storageEngineName" : "WIRED_TIGER",
+        "sslEnabled" : false,
+        "excludedNamespaces" : [ ],
+        "includedNamespaces" : [ ]
+      }
+
+.. only:: cloud
+
+   .. code-block:: json
+ 
+      HTTP/1.1 200 OK
+ 
+      {
+        "groupId" : "5196d3628d022db4cbc26d9e",
+        "clusterId" : "5196e5b0e4b0fca9cc88334a",
+        "statusName" : "STARTED",
+        "storageEngineName" : "WIRED_TIGER",
+        "sslEnabled" : false,
+        "excludedNamespaces" : [ ],
+        "includedNamespaces" : [ ],
+        "links" : [ ... ]
+      }
