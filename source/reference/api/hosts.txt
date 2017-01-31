@@ -4,14 +4,13 @@ Hosts
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
+.. only:: cloud
 
-Overview
---------
+    .. include:: /includes/api-cm-base-url.rst
+
+.. only:: onprem
+
+    .. include:: /includes/api-ops-base-url.rst
 
 The ``hosts`` resource defines the ``mongod`` and ``mongos`` processes in your
 deployment. Each process is identified by a unique hostname and port combination.
@@ -32,620 +31,61 @@ algorithm.
 Endpoints
 ---------
 
-Get All Hosts in a Group
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Get all MongoDB processes in a group. Use the ``clusterId`` query parameter to only
-get the processes that belong to the specified cluster. The resulting list
-is sorted alphabetically by ``hostname:port``.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/hosts
-
-Get a Host by ID
-~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
-
-Get a Host By Name and Port
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Get a single MongoDB process by its hostname and port combination. You can specify
-either the primary hostname or an alias.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/byName/HOSTNAME:PORT
-
-Create a Host
-~~~~~~~~~~~~~
-
-Start monitoring a new MongoDB process. The Monitoring Agent will start
-monitoring the MongoDB process on the hostname and port you specify. |mms| knows
-only the information that you provided. Thus, the document returned in
-the response document will include blank values while |mms| discovers
-the missing values.
-
-.. code-block:: none
-
-   POST /api/public/v1.0/groups/GROUP-ID/hosts
-
-You may specify the following fields when creating a new MongoDB instance:
-
-- ``hostname`` - Required.
-- ``port`` - Required.
-- ``username`` - Required if ``authMechanismName`` is
-  ``MONGODB_CR``. Otherwise illegal.
-- ``password`` - Required if ``authMechanismName`` is
-  ``MONGODB_CR``. Otherwise illegal.
-- ``sslEnabled`` - Must be ``true`` if the ``authMechanismName`` is
-  ``MONGODB_X509``. Default is ``false`` if omitted.
-- ``logsEnabled`` - Default is ``false`` if omitted.
-- ``alertsEnabled`` - Default is ``true`` if omitted.
-- ``profilerEnabled`` - Default is ``false`` if omitted.
-- ``muninPort`` - Default is 0 and Munin stats are not collected if omitted.
-- ``authMechanismName`` - Default is ``NONE`` if omitted. If set to
-  ``MONGODB_CR`` then you must provide the ``username`` and ``password``.
-
-.. COMMENT: if authMechanism is x509, then ssl must be enabled, no?
-
-Update a Host
-~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   PATCH /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
-
-You can specify the following fields:
-
-- ``username``
-- ``password``
-- ``sslEnabled``
-- ``logsEnabled``
-- ``alertsEnabled``
-- ``profilerEnabled``
-- ``muninPort``
-- ``authMechanismName``
-
-If ``authMechanismName`` is ``NONE`` then any existing value for
-``username`` and ``password`` will be cleared out. If
-``authMechanismName`` is ``MONGODB_CR``, then you must provide both
-the ``username`` and ``password``.
-
-Delete a Host
-~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID
-
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "id": "680ab316473d6b28f966364b947134fc",
-     "groupId": "2847387cd717dabc348a",
-     "clusterId" : "56bcbef1e4b010e0058b711e",
-     "hostname": "localhost",
-     "port": 27017,
-     "typeName": "SHARD_SECONDARY",
-     "lastPing": "2016-08-15T16:03:47Z",
-     "ipAddress": "127.0.0.1",
-     "version": "2.4.3",
-     "hasStartupWarnings": true,
-     "sslEnabled": false,
-     "logsEnabled": false,
-     "uptimeMsec": 48918394,
-     "lastRestart": "2016-07-16T12:34:01Z",
-     "deactivated" : false,
-     "lastDataSizeBytes" : 470201119,
-     "lastIndexSizeBytes" : 117420592,
-     "shardName": "sh1",
-     "replicaSetName": "rs1",
-     "replicaStateName": "RECOVERING",
-     "created": "2013-11-05T03:04:05Z",
-     "hostEnabled": true,
-     "journalingEnabled": false,
-     "alertsEnabled": true,
-     "hidden": false,
-     "muninEnabled": false,
-     "profilerEnabled": false,
-     "lowUlimit": false,
-     "muninPort": 4949,
-     "authMechanismName": "MONGODB_CR",
-     "username": "mongo",
-     "aliases": [ "127.0.0.1:27017" ],
-     "displayName": "Newton",
-     "links": [ ... ]
-   }
-
-Entity Fields
--------------
-
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``id``
-     - string
-     - Unique identifier.
-
-   * - ``groupId``
-     - string
-     - ID of the group that owns this MongoDB process.
-
-   * - ``clusterId``
-     - string
-     - The ID of the cluster to which the MongoDB process belongs.
-
-   * - ``hostname``
-     - string
-     - Primary hostname. A MongoDB process typically has several aliases, so the primary is
-       the best available name as decided by |mms|.
-
-   * - ``port``
-     - number
-     - Port that MongoDB process (``mongod`` or ``mongos``) listens on.
-
-   * - ``typeName``
-     - string
-     - Type for this MongoDB process. Possible values are:
-
-       - ``STANDALONE``
-       - ``REPLICA_PRIMARY``
-       - ``REPLICA_SECONDARY``
-       - ``REPLICA_ARBITER``
-       - ``RECOVERING``
-       - ``MASTER``
-       - ``SLAVE``
-       - ``SHARD_MONGOS``
-       - ``SHARD_CONFIG``
-       - ``SHARD_STANDALONE``
-       - ``SHARD_PRIMARY``
-       - ``SHARD_SECONDARY``
-       - ``NO_DATA``
-
-       The type for new hosts added to |mms| will be ``NO_DATA``
-       until the Monitoring Agent receives its first ping.
-
-   * - ``lastPing``
-     - date
-     - When the last ping for this MongoDB process was received.
-
-   * - ``ipAddress``
-     - string
-     - IP address of this MongoDB process.
-
-   * - ``version``
-     - string
-     - Version of MongoDB running for this process.
-
-   * - ``hasStartupWarnings``
-     - boolean
-     - Are there startup warnings for this MongoDB process?
-
-   * - ``sslEnabled``
-     - boolean
-     - Is SSL enabled for this MongoDB process? Must be ``true`` if the
-       ``authMechanismName`` is ``MONGODB_X509``.
-
-   * - ``logsEnabled``
-     - boolean
-     - Is |mms| collecting logs for this MongoDB process?
-
-   * - ``uptimeMsec``
-     - number
-     - Number of milliseconds since this process last restarted.
-
-   * - ``lastRestart``
-     - date
-     - Date this process last restarted.
-
-   * - ``deactivated``
-     - boolean
-     - Whether the host is currently active.
-
-   * - ``lastDataSizeBytes``
-     - number
-     - The size of the host's databases on disk. This number **does not**
-       include the data in the :manual:`local </reference/local-database>`
-       database.
-
-   * - ``lastIndexSizeBytes``
-     - number
-     - The size of the host's database indexes on disk. This number **does
-       not** include the size of the index for the :manual:`local
-       </reference/local-database>` database.
-
-   * - ``shardName``
-     - string
-     - Name of the shard this process belongs to. Only present if the process is part
-       of a sharded cluster.
-
-   * - ``replicaSetName``
-     - string
-     - Name of the replica set this process belongs to. Only present if this process is
-       part of a replica set.
-
-   * - ``replicaStateName``
-     - string
-     - Current state of this MongoDB process within a replica set. Only present if this
-       process is part of a replica set. See :manual:`Replica Set Member States
-       </reference/replica-states>` for possible values.
-
-   * - ``created``
-     - date
-     - Date this MongoDB process was created or first discovered by |mms|.
-
-   * - ``hostEnabled``
-     - boolean
-     - Is this process currently enabled? MongoDB processes can be manually disabled in the |mms|
-       UI.
-
-   * - ``journalingEnabled``
-     - boolean
-     - Is journaling enabled for this MongoDB process?
-
-   * - ``alertsEnabled``
-     - boolean
-     - Are alerts enabled for this MongoDB process?
-
-   * - ``muninEnabled``
-     - boolean
-     - Are Munin stats being collected for this MongoDB process?
-
-   * - ``profilerEnabled``
-     - boolean
-     - Is |mms| collecting profile information from this MongoDB process?
-
-   * - ``lowUlimit``
-     - boolean
-     - Does this MongoDB process's server have a low ``ulimit`` setting?
-
-   * - ``muninPort``
-     - number
-     - What port should be used to collect Munin stats from this MongoDB process?
-
-   * - ``authMechanismName``
-     - string
-     - The authentication mechanism used to connect to this MongoDB process. Possible values
-       are:
-
-       .. include:: /includes/possibleValues-api-authMechanismName.rst
-
-   * - ``username``
-     - string
-     - Username for connecting to this MongoDB process. Only present when the
-       ``authMechanismName`` is ``MONGODB_CR``.
-
-   * - ``password``
-     - string
-     - Password for connecting to this MongoDB process. If the process's ``authMechanismName``
-       is ``MONGODB_CR``, then you must include this field when creating the
-       process or updating its credentials. However, it will never be exposed when
-       a host entity is returned.
-
-   * - ``aliases``
-     - array of strings
-     - A list of alternate hostname:port combinations that |mms| has discovered for
-       the MongoDB process.
-
-   * - ``displayName``
-     - string
-     - The MongoDB process's display name in |mms|. If this is not set, |mms|
-       displays the hostname instead. To unset this, use an empty string
-       (``""``) as the value of this field.
-
-Links
------
+The following endpoints are available for ``hosts``.
 
 .. list-table::
    :header-rows: 1
+   :widths: 10 70 20
 
-   * - Relation
+   * - Method
+     - Endpoint
      - Description
-   * - ``self``
-     - Me
-   * - ``http://mms.mongodb.com/cluster``
-     - The cluster this MongoDB process belongs to. Only present if the process is part of a
-       replica set or master/slave.
-   * - ``http://mms.mongodb.com/parentCluster``
-     - The parent cluster. Only present if the MongoDB process is part of a sharded cluster.
-   * - ``http://mms.mongodb.com/group``
-     - The group that this MongoDB process belongs to.
-   * - ``http://mms.mongodb.com/measurements``
-     - All available measurements for specified MongoDB processes.
-   * - ``http://mms.mongodb.com/metrics``
-     - All available metrics for the MongoDB process.
-   * - ``http://mms.mongodb.com/snapshots``
-     - All snapshots for the :term:`config server`. Only present if the
-       MongoDB process is a config server and if the config server is running as a
-       standalone, not as a replica set.
-   * - ``http://mms.mongodb.com/restoreJobs``
-     - All restore jobs for the :term:`config server`. Only present if the
-       MongoDB process is a config server and if the config server is running as a
-       standalone, not as a replica set.
 
-Examples
---------
+   * - ``GET``
 
-Create a New Host
-~~~~~~~~~~~~~~~~~
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts </reference/api/hosts-get-all-in-group>`
 
-Request
-```````
+     - Get all MongoDB processes in a group.
 
-.. only:: cloud
+   * - ``GET``
 
-   .. code-block:: none
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts/{HOST-ID} </reference/api/host-get-by-id>`
 
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/hosts" --data '
-      {
-        "hostname": "localhost",
-        "port": 27017
-      }'
+     - Get a MongoDB process by host ID.
 
-.. only:: onprem
+   * - ``GET``
 
-   .. code-block:: none
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts/byName/{HOSTNAME:PORT} </reference/api/host-get-by-hostname-port>`
 
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/hosts" --data '
-      {
-        "hostname": "localhost",
-        "port": 27017
-      }'
+     - Get a MongoDB process by its hostname and port.
 
-Response
-````````
+   * - ``POST``
 
-.. code-block:: none
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts </reference/api/create-host>`
 
-   HTTP/1.1 201 Created
+     - Start monitoring a new MongoDB process.
 
-   {
-     "id" : "4059580c20c4581872ef24d0b8f5dca0",
-     "groupId" : "5196d3628d022db4cbc26d9e",
-     "hostname" : "localhost",
-     "port" : 27017,
-     "hasStartupWarnings" : false,
-     "sslEnabled" : false,
-     "logsEnabled" : false,
-     "created" : "2014-04-22T19:56:50Z",
-     "hostEnabled" : true,
-     "journalingEnabled" : false,
-     "alertsEnabled" : true,
-     "hidden" : false,
-     "muninEnabled" : false,
-     "profilerEnabled" : false,
-     "lowUlimit" : false,
-     "authMechanismName" : "NONE",
-     "links" : [ ... ]
-   }
+   * - ``PATCH``
 
-Update a Host
-~~~~~~~~~~~~~
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts/{HOST-ID} </reference/api/update-host>`
 
-Request
-```````
+     - Update a MongoDB process.
 
-.. only:: cloud
+   * - ``DELETE``
 
-   .. code-block:: none
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/hosts/{HOST-ID} </reference/api/delete-host>`
 
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/680ab316473d6b28f966364b947134fc" --data '
-      {
-        "sslEnabled": true,
-        "username": "mongo",
-        "password": "M0ng0DB!:)"
-      }'
+     - Stop monitoring a MongoDB host.
 
-.. only:: onprem
 
-   .. code-block:: none
+.. class:: hidden
 
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/680ab316473d6b28f966364b947134fc" --data '
-      {
-        "sslEnabled": true,
-        "username": "mongo",
-        "password": "M0ng0DB!:)"
-      }'
+   .. toctree::
+      :titlesonly:
 
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "680ab316473d6b28f966364b947134fc",
-     "groupId" : "533c5895b91030606f21033a",
-     "clusterId" : "45cbedf1e4b010e0058b532e",
-     "hostname" : "localhost",
-     "port" : 26000,
-     "typeName": "REPLICA_SECONDARY",
-     "lastPing" : "2016-08-15T17:57:12Z",
-     "ipAddress": "127.0.0.1",
-     "version" : "3.2.0",
-     "hasStartupWarnings" : false,
-     "sslEnabled" : true,
-     "logsEnabled" : false,
-     "created" : "2014-04-22T19:56:50Z",
-     "uptimeMsec": 489182394,
-     "deactivated" : false,
-     "lastDataSizeBytes" : 470208719,
-     "lastIndexSizeBytes" : 110420592,
-     "replicaSetName": "rs1",
-     "replicaStateName" : "SECONDARY",
-     "hostEnabled" : true,
-     "journalingEnabled" : false,
-     "alertsEnabled" : true,
-     "hidden" : false,
-     "muninEnabled" : false,
-     "profilerEnabled" : false,
-     "lowUlimit" : false,
-     "authMechanismName" : "MONGODB_CR",
-     "username" : "mongo",
-     "links" : [ ... ]
-   }
-
-Get One Host
-~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/56e9378f601dc49360a40949c8a6df6c"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/56e9378f601dc49360a40949c8a6df6c"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "56e9378f601dc49360a40949c8a6df6c",
-     "groupId" : "533c5895b91030606f21033a",
-     "clusterId" : "4b0bedf1e10e0058b532e45c",
-     "hostname" : "mymongo.test.com",
-     "port" : 26000,
-     "typeName": "REPLICA_PRIMARY",
-     "lastPing" : "2016-08-18T11:23:41Z",
-     "ipAddress": "127.0.0.1",
-     "version" : "3.2.0",
-     "hasStartupWarnings" : false,
-     "sslEnabled" : true,
-     "logsEnabled" : false,
-     "created" : "2014-04-22T19:56:50Z",
-     "uptimeMsec": 1827300394,
-     "deactivated" : false,
-     "lastDataSizeBytes" : 633208918,
-     "lastIndexSizeBytes" : 101420524,
-     "replicaSetName": "rs1",
-     "replicaStateName" : "PRIMARY",
-     "hostEnabled" : true,
-     "journalingEnabled" : false,
-     "alertsEnabled" : true,
-     "hidden" : false,
-     "muninEnabled" : false,
-     "profilerEnabled" : false,
-     "lowUlimit" : false,
-     "authMechanismName" : "MONGODB_CR",
-     "username" : "mongo",
-     "aliases": [ "mymongo:26000", "12.34.56.78:26000" ],
-     "displayName": "Leibniz",
-     "links" : [ ... ]
-   }
-
-Get All Hosts
-~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/hosts"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b91030606f21033a/hosts"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount" : 2,
-     "results" : [
-       {
-         "id" : "56e9378f601dc49360a40949c8a6df6c",
-         "groupId" : "533c5895b91030606f21033a",
-         "clusterId" : "4b0bedf1e10e0058b532e45c",
-         "hostname" : "mymongo.test.com",
-         "port" : 26000,
-         "typeName": "REPLICA_PRIMARY",
-         "lastPing" : "2016-08-18T11:23:41Z",
-         "ipAddress": "127.0.0.1",
-         "version" : "3.2.0",
-         "hasStartupWarnings" : false,
-         "sslEnabled" : true,
-         "logsEnabled" : false,
-         "created" : "2014-04-22T19:56:50Z",
-         "uptimeMsec": 1827300394,
-         "deactivated" : false,
-         "lastDataSizeBytes" : 633208918,
-         "lastIndexSizeBytes" : 101420524,
-         "replicaSetName": "rs1",
-         "replicaStateName" : "PRIMARY",
-         "hostEnabled" : true,
-         "journalingEnabled" : false,
-         "alertsEnabled" : true,
-         "hidden" : false,
-         "muninEnabled" : false,
-         "profilerEnabled" : false,
-         "lowUlimit" : false,
-         "authMechanismName" : "MONGODB_CR",
-         "username" : "mongo",
-         "aliases": [ "mymongo:26000", "12.34.56.78:26000" ],
-         "displayName": "Leibniz",
-         "links" : [ ... ]
-       },
-       {
-         ...
-       }
-     ]
-   }
-
-Delete a Host
-~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/680ab316473d6b28f966364b947134fc"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b91030606f21033a/hosts/680ab316473d6b28f966364b947134fc"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
+      /reference/api/hosts-get-all-in-group
+      /reference/api/host-get-by-id
+      /reference/api/host-get-by-hostname-port
+      /reference/api/create-host
+      /reference/api/update-host
+      /reference/api/delete-host
