@@ -1,6 +1,6 @@
-============
-Backup Flows
-============
+==============
+Backup Process
+==============
 
 .. default-domain:: mongodb
 
@@ -10,93 +10,48 @@ Backup Flows
    :depth: 1
    :class: singlecol
 
-Introduction
-------------
-
 |mms| backups, once started, are an ongoing and continuous process.
 Data is continually backed up as long as the backup remains
 synchronized with the database. This process works like the process
-used to replicate data in a :term:`replica set` to secondary. The
-Backup process:
+used to replicate data in a :term:`replica set` to a secondary. 
 
-1. Performs an :term:`initial sync` to back up all of the data in its
-   current state.
+The backup process:
 
-2. Takes scheduled snapshots to keep the database backup current.
+1. Performs an :term:`initial sync` to back up all of your existing
+   data in its current state.
 
-3. Constantly monitors the :term:`oplog` and adds its operations to the
-   latest backup to keep its copy of the data current.
+2. Takes snapshots of the ``data`` directory in a deployment as often
+   as your
+   :ref:`snapshot schedule <snapshot-frequency-and-retention>`
+   specifies and then transfers the snapshots to a storage system.
 
-The backup process works in this manner using either database-based
-(blockstore) or file-based (file system) backup storage.
+3. Monitors the :term:`oplog` constantly and adds new database
+   operations to the latest backup to keep its copy of the data
+   current.
 
-Snapshot Storage
-----------------
+The backup process works in this manner regardless of how snapshots are stored.
 
-Snapshots
-~~~~~~~~~
+.. note::
+   With sharded clusters, the backup process also:
 
-The backup process takes a snapshot of the data directory of the
-backed-up deployment as often as specified by the 
-:ref:`snapshot schedule <snapshot-frequency-and-retention>`. This
-snapshot is transferred to snapshot storage.
-
-For a sharded cluster, the backup process takes a snapshot of each
-shard and of the config servers. The backup process can also use
-:ref:`checkpoints <checkpoint>` to permit restores at moments between
-snapshots. You must first :ref:`enable checkpoints <enable-cluster-checkpoints>`.
-
-Blockstores
-~~~~~~~~~~~
-
-.. include:: /images/backup-flow-blockstore.rst
-
-File Systems
-~~~~~~~~~~~~
-
-.. include:: /images/backup-flow-filesystem-storage.rst
-
-File System storage gives you full control over your data, allowing you
-to reduce the number of MongoDB instances you need to run and enabling
-you to take advantage of existing storage infrastructure. With
-filesystem storage, you can access the backed-up data files using
-standard filesystem utilities, rather than having to retrieve them
-through the |mms| interface.
-
-With filesystem storage, you can select any mountable filesystem to
-which |mms| writes the snapshots. 
-
-If you use file system snapshot storage and use multiple |onprem|
-instances (including those activated as Backup Daemons), all |onprem|
-instances must have the same view of the file system snapshot storage.
-You can achieve this through a Network File System (NFS) application or
-something similar.
-
-.. include:: /includes/important-multiple-instances-share-view-filesystem-snapshots.rst
-
-.. TODO: link to the installation tutorial where it talks about
-   picking the snapshot store.
-
-Operation Logs
-~~~~~~~~~~~~~~
-
-When a new Blockstore is added, that Blockstore integrates an
-:term:`oplog store <Oplog Store Database>` into its database.
-
-When a new file system store is created, you are prompted to
-create an :term:`oplog store <Oplog Store Database>`.
-
-Once an oplog has been created for a snapshot store, adding any
-additional snapshot stores does not require another :term:`oplog`.
+   - takes a snapshot of each shard and of the config servers
+   - can :ref:`enable checkpoints <enable-cluster-checkpoints>` to
+     permit restores at moments between snapshots. To learn how sharded
+     clusters use checkpoints, see :ref:`checkpoints <checkpoint>`.
 
 .. _backup-stages:
 
+Backup Definition and Operational States
+----------------------------------------
 
-Backup States
--------------
+Each backup is defined as a :term:`job <backup job>`. Each job defines
+how much and how often data is backed up. Backup jobs are defined on a
+per-group basis.
 
-A backup job defines how much and how often data is backed up. There
-are three states for a backup job: **active**, **inactive** or
+Operational States
+~~~~~~~~~~~~~~~~~~
+
+There are three states for a backup job: **active**, **inactive** or
 **stopped**.
 
 .. list-table::
@@ -123,9 +78,12 @@ are three states for a backup job: **active**, **inactive** or
      - No
      - No
 
-Once backups are active for a Group, they run without further
-intervention until they are stopped or terminated. The operator can
-change the state of a backup in the following ways:
+Change Operational States
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once backup jobs are active for a :term:`group`, they run without
+further intervention until they are stopped or terminated. The operator
+can change the state of a backup in the following ways:
 
 .. list-table::
    :widths: 20 40 40
@@ -173,138 +131,75 @@ change the state of a backup in the following ways:
 
 .. _backup-initial-sync:
 
-Initial Sync
-------------
+Backup Process Flows
+--------------------
 
-Initial Sync is an interim state between :guilabel:`Inactive` and
-:guilabel:`Active`. Its activities are exposed to the operator to keep
-them informed that the process is in progress.
+Initial Backup
+~~~~~~~~~~~~~~
 
-Transfer of Data and Oplog Entries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once created, a backup job goes through the following process flow:
 
-When you start a backup, the Backup Agent streams your deployment's
-existing data to |mms| in batches of documents, totaling roughly 10 MB
-each, called **slices**. Slices contain only the data as it existed
-when you started the backup.
+.. include:: /images/backup-flow.rst
 
-While transferring the data, the Backup Agent tails the :term:`oplog`
-and streams the oplog updates to |mms|. |mms| then stores the oplog
-entries in the oplog database for later processing offline.
+#. The Backup Agent logs into each database in the data directory.
 
-Building the Backup
-~~~~~~~~~~~~~~~~~~~
+#. The :term:`initial sync` begins and enters its ``starting`` phase.
+   Initial Sync is a transition state between :guilabel:`Inactive` and
+   :guilabel:`Active`. The Backup Agent streams the existing data to
+   |onprem| in batches of documents. These batches are called slices
+   and are approximately 10 MB in size. Slices contain data only as it
+   existed when the backup started.
 
-When |mms| has received all of the slices, it creates a local database
-on its server and inserts the documents that were captured as slices
-during the initial sync. |mms| then applies the oplog entries from
-the oplog store.
+#. The ``transferring`` phase begins as the slices are stored in the
+   :term:`oplog store <Oplog Store Database>` temporarily for later
+   processing. The Oplog Store is created when the first Snapshot 
+   Store is created.
 
-|mms| then validates the data. If there are missing documents, |mms|
-queries the deployment for the documents and inserts them. A missing
-document could occur because of an update that caused a document to
-move during the initial sync.
+#. While it is streaming the data, the Backup Agent is also tailing the
+   :term:`oplog`.
+   
+#. The ``building`` phase begins once |onprem| has received all of the
+   slices. In this phase, |onprem| creates a local version of the
+   backed up database called a :term:`head database`.
 
-Once |mms| validates the accuracy of the data directory, it has
-completed the initial sync process and proceeds to routine operation.
+#. |onprem| inserts the documents captured in the ``transferring``
+   phase into the head database.
 
-Initial Sync Phases
-~~~~~~~~~~~~~~~~~~~
+#. The ``applying oplogs`` phase begins as |onprem| applies the oplog
+   tailed oplog entries into the head database.
 
-Backups go through a series of phases during backup. The first backup
-is called the initial synchronization (``initialSync``). If you click
-the :guilabel:`Backup` button, you are presented with the list of
-backup jobs in progress. During ``initialSync``, they proceed through
-these phases in the following order:
+#. During the ``fetching missing documents`` phase, |onprem| queries
+   the deployment database for missing documents to validate the data.
+   If any documents are missing, |onprem| inserts the missing documents
+   found in the deployment database into the head database.
 
-.. list-table::
-   :widths: 20 50 30
-   :header-rows: 1
+#. After the head database is validated, the ``creating indexes`` phase
+   begins as |onprem| creates all of the indexes in the deployment
+   databases. When the indexes are complete, the initial sync ends and
+   it ends in the ``complete`` phase.
 
-   * - Phase
+#. Depending upon how the backups are stored, the data can be written
+   out:
 
-     - Description
+   a. As blocks to a :term:`blockstore <Backup Blockstore Database>`.
+   #. As blocks to an AWS S3 bucket. The metadata for those blocks is
+      written to a MongoDB database on the |onprem| host.
+   #. As snapshot files to a file system store.
 
-     - Measure of Progress
+.. note::
+   The characteristics of each storage method is covered in 
+   :ref:`backup-configuration-options`.
 
-   * - ``starting``
+Subsequent Backups
+~~~~~~~~~~~~~~~~~~
 
-     - Waiting phase until |mms| receives sync slices.
+Once the first full backup is completed, each backup job continues:
 
-     - None
-
-   * - ``transferring``
-
-     - Shows progress one namespace at a time. 
-
-     - 
-       * A ratio of ingested documents to total documents.
-
-       * A percentage of documents ingested. 
-
-   * - ``building``
-
-     - |mms| has started building the deployment ``HEAD`` database. 
-
-       .. note:: 
-          As of Backup Agent 4.0 and |onprem| 2.0, this happens in the
-          background during the ``transferring`` phase, but the UI
-          shows the ``transferring`` phase until all slices are
-          received.
-
-     - The percentage of the entire ``HEAD`` database that has been
-       built.
-
-   * - ``applying oplogs``
-
-     - |mms| has completed building the ``HEAD`` database. |mms| is
-       applying the oplog entries to catch up with the customer's oplog
-       at the point that the previous phase completed.
-
-     - The percentage of slices currently applied. 
-
-   * - ``fetching missing documents``
-
-     - |mms| queries the customers deployment for documents missed
-       during the ``building`` and ``applying oplogs`` phases.
-
-     - The percentage of slices currently applied.
-
-   * - ``creating indexes``
-
-     - |mms| creates all the indexes of the customer's deployment.
-
-     - 
-       * The index currently being processed.
-       * A percentage of total indexes processed so far.
-
-   * - ``complete``
-
-     - The backup ``initialSync`` job has completed.
-
-     -
-
-
-Routine Operation
------------------
-
-The Backup Agent tails the deployment's oplog and routinely batches and
-transfers new oplog entries to the |http-service|, which stores them in
-the oplog store. The Backup process applies all newly-received oplog
-entries in batches to its local copy of the backed-up deployment.
-
-Restores
---------
-
-When a user requests a snapshot, a backup process retrieves the data
-from the snapshot storage and delivers it to the requested destination.
-
-.. seealso::
-   :doc:`/core/restore-overview` for an overview of the restore process.
-
-Grooms
-------
-
-Groom jobs perform periodic "garbage collection" on the snapshot
-storage to reclaim space from deleted snapshots. A scheduling process
-determines when grooms are necessary.
+1. The Backup Agent tails the deployment's oplog.
+2. The Backup Agent routinely batches new oplog entries in :term:`oplog
+   slices` and transfers them to |onprem|.
+3. |onprem| stores the oplog entries in the Oplog Store. 
+4. |onprem| applies the new oplog entries in batches to the head
+   database that stores the deployment backup.
+5. Snapshots are created and stored in the snapshot store according to
+   your :ref:`snapshot schedule <snapshot-frequency-and-retention>`.
