@@ -10,6 +10,8 @@ Database Users
    :depth: 1
    :class: twocols
 
+.. include:: /includes/api-base-url.rst
+
 The ``databaseUsers`` resource lets you retrieve, create and modify the
 MongoDB users in your cluster. Each user has a set of roles that provide
 access to the group's databases. A user's roles apply to all the clusters in
@@ -22,321 +24,52 @@ Each user also has a username, password, and :ref:`authentication database
 MongoDB use ``admin`` as the authentication database for all users. The
 authentication database does not determine a user's roles.
 
-MongoDB users are separate from |service| users.
-
 The ``databaseUsers`` resource requires your :ref:`group-id`.
 
-Endpoints
----------
-
-Get All Database Users
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/databaseUsers
-
-Get a Single Database User
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/databaseUsers/admin/USERNAME
-
-``admin`` is the user's :ref:`authentication database <authentication-database>`.
-
-Create a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   POST /api/atlas/v1.0/groups/GROUP-ID/databaseUsers
-
-Update a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-You can update a user's roles and password. You cannot update the user's name
-or :ref:`authentication database <authentication-database>`, which is ``admin``.
-
-Send only those fields where you will change the value.
-
-.. code-block:: none
-
-   PATCH /api/atlas/v1.0/groups/GROUP-ID/databaseUsers/admin/USERNAME
-
-Delete a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/atlas/v1.0/groups/GROUP-ID/databaseUsers/admin/USERNAME
-
-``admin`` is the user's :ref:`authentication database <authentication-database>`.
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "username" : "admin",
-     "roles" : [
-       {
-         "databaseName" : "admin",
-         "roleName" : "backup"
-       },
-       ...
-     ],
-     "password" : "12345678"
-   }
-
-Entity Fields
--------------
-
 .. list-table::
-   :widths: 15 15 70
    :header-rows: 1
+   :widths: 10 70 15
 
-   * - Name
-     - Type
+   * - Method
+     - Endpoint
      - Description
 
-   * - ``databaseName``
-     - string
-     - The user's :ref:`authentication database <authentication-database>`. A
-       user must provide both a username and authentication database to log
-       into MongoDB. In |service| deployments of MongoDB, the authentication
-       database is always the ``admin`` database.
+   * - ``GET``
 
-   * - ``groupId``
-     - string
-     - ID of the |service| group the user belongs to.
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers </reference/api/database-users-get-all-users>`
 
-   * - ``username``
-     - string
-     - The username for authenticating to MongoDB.
+     - Get all users in the group
 
-   * - ``roles``
-     - object array
-     - The user's roles and the database on which the user has each role. A
-       role allows the user to perform particular actions on the specified
-       database. A role on the ``admin`` database can include privileges that
-       apply to the other databases as well.
+   * - ``GET``
 
-   * - ``roles.databaseName``
-     - string
-     - The database on which the user has the specified role. A role on the
-       ``admin`` database can include privileges that apply to the other
-       databases.
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/admin/{USERNAME} </reference/api/database-users-get-single-user>`
 
-   * - ``roles.roleName``
-     - string
-     - The name of the role. The possible values are:
+     - Get a single user in the group
 
-       - :authrole:`backup`
-       - :authrole:`clusterMonitor`
-       - :authrole:`dbAdmin`
-       - :authrole:`dbAdminAnyDatabase`
+   * - ``POST``
 
-       - ``enableSharding``
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers </reference/api/database-users-create-a-user>`
 
-         This role is specific to MongoDB databases managed by |service|. The role
-         allows the user to enable sharding on a database and to shard a collection.
+     - Create a user for the group
 
-       - :authrole:`read`
-       - :authrole:`readAnyDatabase`
-       - :authrole:`readWrite`
-       - :authrole:`readWriteAnyDatabase`
+   * - ``PATCH``
 
-   * - ``password``
-     - string
-     - The user's password. This field is NOT included in the entity returned
-       from the server.
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/admin/{USERNAME} </reference/api/database-users-create-a-user>`
 
-Links
------
+     - Update a user for the group.
 
-.. list-table::
-   :widths: 60 40
-   :header-rows: 1
+   * - ``DELETE``
 
-   * - Relation
-     - Description
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/databaseUsers/admin/{USERNAME} </reference/api/database-users-delete-a-user>`
 
-   * - ``self``
-     - Me
+     - Delete a user for the group.
 
-   * - ``http://mms.mongodb.com/group``
-     - The group containing the MongoDB user.
+.. class:: hidden
 
-Examples
---------
+   .. toctree::
 
-Get All Database Users
-~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "links" : [ ... ],
-     "results" : [
-       {
-         "databaseName" : "admin",
-         "groupId" : "5356823b3794dee37132bb7b",
-         "links" : [ ... ],
-         "roles" : [ {
-           "databaseName" : "staging",
-           "roleName" : "readWrite"
-         }, {
-           "databaseName" : "production",
-           "roleName" : "read"
-         } ],
-         "username" : "susan"
-       },
-       ...
-     ],
-     "totalCount" : 4
-   }
-
-Get a Single Database User
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/ellen"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "links" : [ ... ],
-     "roles" : [ {
-       "databaseName" : "admin",
-       "roleName" : "readAnyDatabase"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "backup"
-     } ],
-     "username" : "ellen"
-   }
-
-Create a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers" --data '
-   {
-     "databaseName" : "admin",
-     "roles" : [ {
-       "databaseName" : "sales",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "read"
-     } ],
-     "username" : "david",
-     "password" : "12345678"
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 201 Created
-
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "links" : [ ... ],
-     "roles" : [ {
-       "databaseName" : "sales",
-       "roleName" : "readWrite"
-     }, {
-       "databaseName" : "marketing",
-       "roleName" : "read"
-     } ],
-     "username" : "david"
-   }
-
-Update a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/david" --data '
-   {
-     "roles" : [ {
-       "databaseName" : "service",
-       "roleName" : "read"
-     } ]
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "databaseName" : "admin",
-     "groupId" : "5356823b3794dee37132bb7b",
-     "links" : [ ... ],
-     "roles" : [ {
-       "databaseName" : "service",
-       "roleName" : "read"
-     } ],
-     "username" : "david"
-
-Delete a Database User
-~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794dee37132bb7b/databaseUsers/admin/elsa"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {}
+      /reference/api/database-users-get-all-users
+      /reference/api/database-users-get-single-user
+      /reference/api/database-users-create-a-user
+      /reference/api/database-users-update-a-user
+      /reference/api/database-users-delete-a-user
