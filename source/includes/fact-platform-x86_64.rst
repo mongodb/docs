@@ -7,9 +7,11 @@
      - 3.4 Community & Enterprise
      - 3.2 Community & Enterprise
      - 3.0 Community & Enterprise
-     - 2.6 Community & Enterprise
-   * - Amazon Linux
+   * - Amazon Linux 2013.03 and later
      - |checkmark|
+     - |checkmark|
+     - |checkmark|
+   * - Debian 7
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -17,29 +19,15 @@
      - |checkmark|
      - |checkmark|
      -
-     -
-   * - Debian 7
+   * - RHEL/CentOS 6.2 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-   * - Fedora 8+
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-   * - RHEL/CentOS 6.2+
+   * - RHEL/CentOS 7.0 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-   * - RHEL/CentOS 7.0+
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     -
    * - SLES 11
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -47,14 +35,11 @@
      - |checkmark|
      -
      -
-     -
    * - Solaris 11 64-bit
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - Community only
+     - Community only
+     - Community only
    * - Ubuntu 12.04
-     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -62,24 +47,19 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     -
    * - Ubuntu 16.04
      - |checkmark|
      - |checkmark|
      -
-     -
-   * - Microsoft Azure
+   * - Windows Server 2008R2 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-   * - Windows Vista/Server 2008R2/2012+
-     - |checkmark|
+   * - Windows Vista and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OS X 10.7+
+   * - OS X 10.7 and later
      - |checkmark|
      - |checkmark|
-     -
      -
