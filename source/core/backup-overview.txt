@@ -17,8 +17,9 @@ synchronized with the database. This process works like
 
 The backup process:
 
-1. Performs an :term:`initial sync` to back up all of your existing
-   data in its current state. In sharded clusters, this occurs on  each shard and on the config servers.
+1. Performs an :term:`initial sync` to back up all of your existing data in
+   its current state. In sharded clusters, this occurs on each shard and on
+   the config servers.
 
 2. Takes snapshots of the ``data`` directory in a deployment as often
    as your
@@ -138,16 +139,17 @@ Once created, a backup job goes through the following process flow:
 
 .. include:: /images/backup-flow.rst
 
-#. The Backup Agent connects to, and authenticates with, each database
-   in the data directory.
+#. The Backup Agent connects to, and authenticates with, the databases
+   associated with the backup job.
 
 #. The :term:`initial sync` begins and enters its ``starting`` phase.
    Initial Sync is a transition state between :guilabel:`Inactive` and
    :guilabel:`Active`. Initial Sync goes through a series of phases 
    that are displayed in the :guilabel:`Backup` page to show progress.
-   The Backup Agent streams the existing data to |onprem| in 10 MB
-   batches of documents called slices. Slices contain data only as it
-   existed when the backup started.
+   The Backup Agent streams the existing data to |onprem| in 10 MB batches of
+   documents called slices. The Backup Agent creates slices at the point in
+   time when the backup was created. Data inserted to the cluster after that
+   point in time is captured separately.
 
 #. The ``transferring`` phase begins as the slices are stored in the
    :term:`oplog store <Oplog Store Database>` temporarily for later
@@ -167,8 +169,8 @@ Once created, a backup job goes through the following process flow:
    slices. In this phase, |onprem| creates a local version of the
    backed up database called a :term:`head database`.
 
-#. |onprem| inserts the documents, captured during the ``transferring``
-   phase and stored in the Oplog Store, into the head database.
+#. |onprem| inserts the documents stored in the Oplog Store into the head
+   database.
 
 #. The ``applying oplogs`` phase begins as |onprem| applies the 
    tailed oplog entries into the head database.
@@ -178,10 +180,10 @@ Once created, a backup job goes through the following process flow:
    |onprem| inserts the missing documents found in the deployment
    database into the head database.
 
-#. After the head database is validated, the ``creating indexes`` phase
-   begins as |onprem| creates all of the indexes in the deployment
-   databases. When the indexes are complete, the initial sync ends and
-   it ends in the ``complete`` phase.
+#. After the head database is validated, the ``creating indexes`` phase begins
+   as |onprem| creates all of the indexes in the deployment databases. When
+   the indexes finish, the initial sync ends and the phase changes to
+   ``complete``.
 
 #. Depending upon which snapshot store you chose to store your backup,
    a snapshot can be written out:
