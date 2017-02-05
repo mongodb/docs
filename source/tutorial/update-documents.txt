@@ -1,71 +1,243 @@
+.. _write-op-update:
+
 ================
 Update Documents
 ================
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
+.. meta::
+   :description: How to update documents in MongoDB. How to update  a single document in MongoDB. How to update multiple documents in MongoDB. How to update all documents in MongoDB. How to update fields in documents in MongoDB.  How to replace documents.
+   :keywords: update documents, update all documents, update single document, modify documents, update fields in documents, update collection, MongoDB Manual
 
-.. _write-op-update:
+This page provides examples of how to update documents in MongoDB. The
+examples use the following methods in the :program:`mongo` shell:
 
-Update
-------
+- ``db.collection.updateOne(<filter>, <update>, <options>)``
 
-MongoDB provides the following methods for updating documents in a
-collection:
+- ``db.collection.updateMany(<filter>, <update>, <options>)``
 
-.. list-table::
-   :widths: 35 65
+- ``db.collection.replaceOne(<filter>, <replacement>, <options>)``
 
-   * - :method:`db.collection.updateOne()`
+- ``db.collection.update(<filter>, <update/replacment>, <options>)``
 
-     - Updates at most a single document that match a specified filter
-       even though multiple documents may match the specified filter.
+The examples on this page use the ``inventory`` collection. To create
+and/or populate the ``inventory`` collection, run the following in the
+:program:`mongo` shell:
 
-       .. versionadded:: 3.2
+.. class:: copyable-code
 
-   * - :method:`db.collection.updateMany()`
+.. code-block:: javascript
 
-     - Update all documents that match a specified filter.
+   db.inventory.insert( [
+      { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A" },
+      { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+      { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A" },
+      { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "P" },
+      { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+      { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+      { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+      { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+      { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+      { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
+   ]);
 
-       .. versionadded:: 3.2
+.. only:: website
 
-   * - :method:`db.collection.replaceOne()`
+   You can run the operation in the web shell below:
 
-     - Replaces at most a single document that match a specified filter
-       even though multiple documents may match the specified filter.
+   .. include:: /includes/fact-mws.rst
 
-       .. versionadded:: 3.2
+.. _update-documents-modifiers:
 
-   * - :method:`db.collection.update()`
+Update Documents in a Collection
+--------------------------------
 
-     - Either updates or replaces a single document that match a
-       specified filter or updates all documents that match a specified
-       filter.
+To update a document, MongoDB provides :manual:`update operators
+</reference/operator/update>`, such as :update:`$set`, to modify field
+values. To use the update operators, pass to the update methods an
+update document of the form:
 
-       By default, the :method:`db.collection.update()` method
-       updates a **single** document. To update multiple documents, use
-       the :ref:`multi <multi-parameter>` option.
+.. code-block:: javascript
 
-These methods accept as parameters:
+   {
+     <update operator>: { <field1>: <value1>, ... }, 
+     <update operator>: { <field2>: <value2>, ... },
+     ...
+   }
 
-- a filter document to determine which documents to update. These
-  :ref:`filters <document-query-filter>` use the same syntax as read
-  operations:
+Some update operators, such as :update:`$set`, will create the field if
+the field does not exist. See the individual :manual:`update operator
+</reference/operator/update>` reference for details.
 
-  - .. include:: /includes/extracts/filter-equality.rst
+.. _write-op-updateOne:
 
-  - .. include:: /includes/extracts/filter-query-operators.rst
+Update Documents via ``db.collection.updateOne()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- an update document to specify the modification to perform or a
-  replacement document that wholly replaces the matching documents
-  except for the ``_id`` field, and
+The following example uses the :method:`db.collection.updateOne()`
+method on the ``inventory`` collection to update the *first* document
+where ``item`` equals ``"paper"``.
 
-- an options document.
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.updateOne(
+      { item: "paper" },
+      {
+        $set: { "size.uom": "cm", status: "P" },
+        $currentDate: { lastModified: true }
+      }
+   )
+
+The update operation:
+
+- uses the :update:`$set` operator to update the value of the
+  ``size.uom`` field to ``"cm"`` and the value of the ``status``
+  field to ``"P"``,
+
+- uses the :update:`$currentDate` operator to update the value of the
+  ``lastModified`` field to the current date. If ``lastModified`` field
+  does not exist, :update:`$currentDate` will create the field. See
+  :update:`$currentDate` for details.
+
+For more information and examples, see
+:method:`db.collection.updateOne()`.
+
+.. _update-multiple-documents:
+.. _write-op-updateMany:
+
+Update Documents via ``db.collection.updateMany()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+The following example uses the :method:`db.collection.updateMany()`
+method on the ``inventory`` collection to update all documents where
+``qty`` is less than ``50``.
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.updateMany(
+      { "qty": { $lt: 50 } },
+      {
+        $set: { "size.uom": "in", status: "P" },
+        $currentDate: { lastModified: true }
+      }
+   )
+
+The update operation:
+
+- uses the :update:`$set` operator to update the value of the
+  ``size.uom`` field to ``"in"`` and the value of the ``status``
+  field to ``"P"``,
+
+- uses the :update:`$currentDate` operator to update the value of the
+  ``lastModified`` field to the current date. If ``lastModified`` field
+  does not exist, :update:`$currentDate` will create the field. See
+  :update:`$currentDate` for details.
+
+For more information and examples, see
+:method:`db.collection.updateMany()`.
+
+Update Documents via ``db.collection.update``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the :method:`db.collection.update()` method
+on the ``inventory`` collection to update the *first* document where
+the status equals ``"P"``.
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { "status": "P" } ,
+      {
+        $set: { status: "D" },
+        $currentDate: { lastModified: true }
+      }
+   )
+
+The update operation:
+
+- uses the :update:`$set` operator to update the value of the
+  ``status`` field to ``"D"``,
+
+- uses the :update:`$currentDate` operator to update the value of the
+  ``lastModified`` field to the current date. If ``lastModified`` field
+  does not exist, :update:`$currentDate` will create the field. See
+  :update:`$currentDate` for details.
+
+To update multiple documents using the
+:method:`db.collection.update()`, include the :ref:`multi: true
+<multi-parameter>` option:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { "status": "P" },
+      {
+        $set: { status: "D" },
+        $currentDate: { lastModified: true }
+      },
+      { multi: true }
+   )
+
+Replace the Document
+--------------------
+
+To replace the entire content of a document except for the ``_id``
+field, pass an entirely new document as the second argument to
+:method:`db.collection.replaceOne()` or
+:method:`db.collection.update()`. When replacing a document, the
+replacement document must consist of only ``<field> : <value>`` pairs;
+i.e. do not include :manual:`update operators
+</reference/operator/update>` expressions.
+
+The replacement document can have different fields from the original
+document. In the replacement document, you can omit the ``_id`` field
+since the ``_id`` field is immutable; however, if you do include the
+``_id`` field, it must have the same value as the current value.
+
+.. _write-op-replaceOne:
+
+Replace a Document via ``db.collection.replaceOne``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the :method:`db.collection.replaceOne()`
+method on the ``inventory`` collection to replace the *first* document
+matches the filter ``item`` equals ``"paper"``:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.replaceOne(
+      { item: "paper" },
+      { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
+   )
+
+Replace a Document via ``db.collection.update``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the :method:`db.collection.update()`
+method on the ``inventory`` collection to replace the *first* document that
+matches the filter ``item`` equals ``"postcard"`` with the new document:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.update(
+      { item: "postcard" },
+      { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
+   )
 
 Behavior
 --------
@@ -112,316 +284,30 @@ operation modifies or replaces the matching document or documents.
 For details on the new document created, see the individual reference
 pages for the methods.
 
-Example Collection
-------------------
-
-The examples on this page use the :method:`db.collection.find()` method
-in the :program:`mongo` shell. In the :program:`mongo`
-shell, if the returned cursor is not assigned to a variable using the
-``var`` keyword, then the cursor is automatically iterated up to 20
-times [#set-shell-batch-size]_ to print up to the first 20 documents in
-the results.
-
-To populate the ``users`` collection referenced in the examples,
-run the following in :program:`mongo` shell:
-
-.. note:: 
-
-   If the ``users`` collection already contains documents with the same
-   ``_id`` values, you need to :method:`drop <db.collection.drop()>`
-   the collection (``db.users.drop()``) before inserting the example
-   documents.
-
-.. code-block:: javascript
-
-   db.users.insertMany(
-      [
-        {
-          _id: 1,
-          name: "sue",
-          age: 19, 
-          type: 1,
-          status: "P",
-          favorites: { artist: "Picasso", food: "pizza" },
-          finished: [ 17, 3 ],
-          badges: [ "blue", "black" ],
-          points: [
-             { points: 85, bonus: 20 },
-             { points: 85, bonus: 10 } 
-          ]
-        },
-        {
-          _id: 2,
-          name: "bob",
-          age: 42,
-          type: 1,
-          status: "A",
-          favorites: { artist: "Miro", food: "meringue" },
-          finished: [ 11, 25 ],
-          badges: [ "green" ],
-          points: [
-             { points: 85, bonus: 20 },
-             { points: 64, bonus: 12 } 
-          ]
-        },
-        {
-          _id: 3,
-          name: "ahn",
-          age: 22,
-          type: 2,
-          status: "A",
-          favorites: { artist: "Cassatt", food: "cake" },
-          finished: [ 6 ],
-          badges: [ "blue", "Picasso" ],
-          points: [
-             { points: 81, bonus: 8 },
-             { points: 55, bonus: 20 } 
-          ]
-        },
-        {
-          _id: 4,
-          name: "xi",
-          age: 34,
-          type: 2,
-          status: "D",
-          favorites: { artist: "Chagall", food: "chocolate" },
-          finished: [ 5, 11 ],
-          badges: [ "Picasso", "black" ],
-          points: [
-             { points: 53, bonus: 15 },
-             { points: 51, bonus: 15 } 
-          ]
-        },
-        {
-          _id: 5,
-          name: "xyz",
-          age: 23,
-          type: 2,
-          status: "D",
-          favorites: { artist: "Noguchi", food: "nougat" },
-          finished: [ 14, 6 ],
-          badges: [ "orange" ],
-          points: [
-             { points: 71, bonus: 20 }
-          ]
-        },
-        {
-          _id: 6,
-          name: "abc",
-          age: 43,
-          type: 1,
-          status: "A",
-          favorites: { food: "pizza", artist: "Picasso" },
-          finished: [ 18, 12 ],
-          badges: [ "black", "blue" ],
-          points: [
-             { points: 78, bonus: 8 },
-             { points: 57, bonus: 7 } 
-          ]
-        }
-      ]
-   )
-
-.. _update-documents-modifiers:
-
-Update Specific Fields in a Document
-------------------------------------
-
-To change a field in a document, MongoDB provides :manual:`update
-operators </reference/operator/update>`, such as :update:`$set` to
-modify values.
-
-To specify the modification to perform using update operators, use an
-update document of the form:
-
-.. code-block:: javascript
-
-   {
-      <update operator>: { <field1>: <value1>, ... },
-      <update operator>: { <field2>: <value2>, ... },
-      ...
-   }
-
-Some update operators, such as :update:`$set`, will create the field if
-the field does not exist. See the individual :manual:`update operator
-</reference/operator/update>` reference.
-
-.. _write-op-updateOne:
-
-``db.collection.updateOne()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.2
-
-The following example uses the :method:`db.collection.updateOne()`
-method on the ``users`` collection to update the *first* document that
-matches the filter ``favorites.artist`` equals ``"Picasso"``. The update
-operation:
-
-- uses the :update:`$set` operator to update the value of the
-  ``favorites.food`` field to ``"pie"`` and the value of the ``type``
-  field to ``3``,
-
-- uses the :update:`$currentDate` operator to update the value of the
-  ``lastModified`` field to the current date. If ``lastModified`` field
-  does not exist, :update:`$currentDate` will create the field. See
-  :update:`$currentDate` for details.
-
-.. code-block:: javascript
-
-   db.users.updateOne(
-      { "favorites.artist": "Picasso" },
-      {
-        $set: { "favorites.food": "pie", type: 3 },
-        $currentDate: { lastModified: true }
-      }
-   )
-
-For more information and examples, see
-:method:`db.collection.updateOne()`.
-
-.. _update-multiple-documents:
-.. _write-op-updateMany:
-
-``db.collection.updateMany()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.2
-
-The following example uses the :method:`db.collection.updateMany()`
-method on the ``users`` collection to update all documents that matches
-the filter ``favorites.artist`` equals ``"Picasso"``. The update operation:
-
-- uses the :update:`$set` operator to update the value of the
-  ``favorites.artist`` field to ``"Pisanello"`` and the value of the ``type``
-  field to ``3``,
-
-- uses the :update:`$currentDate` operator to update the value of the
-  ``lastModified`` field to the current date. If ``lastModified`` field
-  does not exist, :update:`$currentDate` will create the field. See
-  :update:`$currentDate` for details.
-
-.. code-block:: javascript
-
-   db.users.updateMany(
-      { "favorites.artist": "Picasso" },
-      {
-        $set: { "favorites.artist": "Pisanello", type: 3 },
-        $currentDate: { lastModified: true }
-      }
-   )
-
-For more information and examples, see
-:method:`db.collection.updateMany()`.
-
-``db.collection.update``
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example uses the :method:`db.collection.update()` method
-on the ``users`` collection to update the *first* document that matches
-the filter ``favorites.artist`` equals ``"Pisanello"``. The update operation:
-
-- uses the :update:`$set` operator to update the value of the
-  ``favorites.food`` field to ``"pizza"`` and the value of the ``type``
-  field to ``0``,
-
-- uses the :update:`$currentDate` operator to update the value of the
-  ``lastModified`` field to the current date. If ``lastModified`` field
-  does not exist, :update:`$currentDate` will create the field. See
-  :update:`$currentDate` for details.
-
-.. code-block:: javascript
-
-   db.users.update(
-      { "favorites.artist": "Pisanello" },
-      {
-        $set: { "favorites.food": "pizza", type: 0,  },
-        $currentDate: { lastModified: true }
-      }
-   )
-
-To update multiple documents using the
-:method:`db.collection.update()`, include the :ref:`multi: true
-<multi-parameter>` option:
-
-.. code-block:: javascript
-
-   db.users.update(
-      { "favorites.artist": "Pisanello" },
-      {
-        $set: { "favorites.food": "pizza", type: 0,  },
-        $currentDate: { lastModified: true }
-      },
-      { multi: true }
-   )
-
-Replace the Document
---------------------
-
-To replace the entire content of a document except for the ``_id``
-field, pass an entirely new document as the second argument to
-:method:`db.collection.replaceOne()` or
-:method:`db.collection.update()`. When replacing a document, the
-replacement document must consist of only ``<field> : <value>``.
-
-The replacement document can have different fields from the original
-document. In the replacement document, you can omit the ``_id`` field
-since the ``_id`` field is immutable; however, if you do include the
-``_id`` field, it must have the same value as the current value.
-
-.. _write-op-replaceOne:
-
-``db.collection.replaceOne``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example uses the :method:`db.collection.replaceOne()`
-method on the ``users`` collection to replace the *first* document that
-matches the filter ``name`` equals ``"abc"`` with the new document:
-
-.. code-block:: javascript
-
-   db.users.replaceOne(
-      { name: "abc" },
-      { name: "amy", age: 34, type: 2, status: "P", favorites: { "artist": "Dali", food: "donuts" } }
-   )
-
-``db.collection.update``
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example uses the :method:`db.collection.update()`
-method on the ``users`` collection to replace the *first* document that
-matches the filter ``name`` equals ``"xyz"`` with the new document:
-
-.. code-block:: javascript
-
-   db.users.update(
-      { name: "xyz" },
-      { name: "mee", age: 25, type: 1, status: "A", favorites: { "artist": "Matisse", food: "mango" } }
-   )
-
-Additional Methods
-------------------
-
-The following methods can also update documents from a collection:
-
-- :method:`db.collection.findOneAndReplace()`.
-
-- :method:`db.collection.findOneAndUpdate()`.
-
-- :method:`db.collection.findAndModify()`.
-
-- :method:`db.collection.save()`.
-
-- :method:`db.collection.bulkWrite()`.
-
-See the individual reference pages for the methods for more information
-and examples.
-
 Write Acknowledgement
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 With write concerns, you can specify the level of acknowledgement
 requested from MongoDB for write operations. For details, see
 :doc:`/reference/write-concern`.
 
 .. include:: /includes/footnote-set-shell-batch-size.rst
+
+.. seealso::
+
+   - :method:`db.collection.update()`
+
+   - :method:`db.collection.updateOne()`
+
+   - :method:`db.collection.updateMany()`
+
+   - :method:`db.collection.replaceOne()`
+
+   - :ref:`additional-updates`
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /reference/update-methods
