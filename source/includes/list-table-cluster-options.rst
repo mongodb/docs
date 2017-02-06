@@ -82,6 +82,8 @@
        .. include:: /includes/enable-sharding-requirements.rst
 
        .. include:: /includes/list-sharded-cluster-components.rst
+       
+       .. include:: /includes/fact-aws-instance.rst
 
        For details on how the number of server instances affects cost,
        see :ref:`server-number-costs`.
