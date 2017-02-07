@@ -93,7 +93,7 @@ can change the state of a backup in the following ways:
 
      - Method
 
-   * - ``Active``
+   * - ``Inactive``
 
      - :guilabel:`Active` after ``Initial Sync``
 
@@ -139,59 +139,62 @@ Once created, a backup job goes through the following process flow:
 
 .. include:: /images/backup-flow.rst
 
-#. The Backup Agent connects to, and authenticates with, the databases
+#. The :term:`Backup Agent` connects to, and authenticates with, the databases
    associated with the backup job.
 
 #. The :term:`initial sync` begins and enters its ``starting`` phase.
-   Initial Sync is a transition state between :guilabel:`Inactive` and
+   Initial sync is a transition state between :guilabel:`Inactive` and
    :guilabel:`Active`. Initial Sync goes through a series of phases 
-   that are displayed in the :guilabel:`Backup` page to show progress.
-   The Backup Agent streams the existing data to |onprem| in 10 MB batches of
-   documents called slices. The Backup Agent creates slices at the point in
-   time when the backup was created. Data inserted to the cluster after that
-   point in time is captured separately.
+   that are displayed on the :guilabel:`Backup` page to show progress.
+   The Backup Agent streams the existing data to |onprem| in 10 MB compressed
+   bundles of documents called slices. The Backup Agent creates slices at the
+   point in time when the backup was created. Data inserted to the instance
+   after that point in time is captured separately.
 
-#. The ``transferring`` phase begins as the slices are stored in the
-   :term:`oplog store <Oplog Store Database>` temporarily for later
-   processing. The Oplog Store is created when the first
+#. The ``transferring`` phase begins as the slices are streamed and stored in
+   the :term:`Oplog Store <Oplog Store Database>` temporarily on the Backup
+   Daemon's behalf. The Backup Daemon service cannot dedicate itself to
+   processing the large stream of initial sync slices at the expense of
+   processing other backup jobs. The Oplog Store stores the slices until the
+   Backup Daemon can fetch them. The Oplog Store is created when the first
    :term:`Snapshot Store` is created.
 
-#. While the Backup Agent is streaming the data, it tails the
-   :term:`oplog`. This tailing collects any differences between the
-   state of the deployment database when the backup began and the
-   deployment database's current state. The oplog entries are sent in
-   compressed bundles of 10 MB each called 
+#. While the Backup Agent is streaming the data, it tails the :term:`oplog`.
+   This tailing collects any differences between the state of the deployment
+   database when the backup began and the deployment database's current state.
+   The oplog entries are sent in 10 MB compressed bundles of documents called
    :term:`oplog slices <oplog slice>`. These two streams of slices are
-   collected in parallel to reduce the time needed to construct a
-   complete backup.
+   collected in parallel to reduce the time needed to construct a complete
+   backup.
    
-#. The ``building`` phase begins once |onprem| has received all of the
-   slices. In this phase, |onprem| creates a local version of the
-   backed up database called a :term:`head database`.
+#. The ``building`` phase begins once |onprem| has received all of the slices.
+   In this phase, |onprem| creates a local version of the backed up database
+   called a :term:`head database` on the host running the Backup Daemon
+   service.
 
-#. |onprem| inserts the documents stored in the Oplog Store into the head
-   database.
+#. |onprem|, through the Backup Daemon service, inserts the documents stored
+   in the Oplog Store into the head database.
 
 #. The ``applying oplogs`` phase begins as |onprem| applies the 
    tailed oplog entries into the head database.
 
 #. During the ``fetching missing documents`` phase, |onprem| queries
-   the deployment database for missing documents to validate the data.
+   the deployment database for documents missed during document insertion.
    |onprem| inserts the missing documents found in the deployment
    database into the head database.
 
-#. After the head database is validated, the ``creating indexes`` phase begins
-   as |onprem| creates all of the indexes in the deployment databases. When
-   the indexes finish, the initial sync ends and the phase changes to
-   ``complete``.
+#. After inserting the missing documents, the ``creating indexes`` phase
+   begins as |onprem| creates all of the indexes found in the deployment
+   databases in the head database. When the indexes finish, the initial sync
+   ends and the phase changes to ``complete``.
 
 #. Depending upon which snapshot store you chose to store your backup,
    a snapshot can be written out:
 
    a. As blocks to a :term:`blockstore <Backup Blockstore Database>`.
-   #. As blocks to an AWS S3 bucket. The metadata for those blocks is
-      written to a MongoDB database on the |onprem| host.
-   #. As snapshot files to a file system store.
+   #. As blocks to an :term:`AWS S3 bucket <S3 Snapshot Store>`. The metadata
+      for those blocks is written to a MongoDB database on the |onprem| host.
+   #. As snapshot files to a :term:`file system store <File System Store>`.
 
 .. note::
    The characteristics of each storage method is covered in 
