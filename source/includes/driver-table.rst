@@ -44,7 +44,7 @@
      - `Course <https://university.mongodb.com/courses/M101JS/about>`_
 
    * - :doc:`Perl </drivers/perl>`
-     - `Releases <http://search.cpan.org/dist/MongoDB/>`_
+     - `Releases <https://metacpan.org/release/MongoDB>`_
      - `Source <https://github.com/mongodb/mongo-perl-driver>`_
      - `API <https://metacpan.org/pod/MongoDB>`_
      - `JIRA <https://jira.mongodb.org/browse/PERL>`_
