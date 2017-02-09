@@ -8,35 +8,25 @@ Query Documents
 .. default-domain:: mongodb
 
 .. meta::
-   :description: MongoDB |version| query of documents, top level fields.  Equality match, query operators, compound and and or.
-   :keywords: query, select from collection, select all, select conditions, filters, criteria, greater than, less than, MongoDB |version|, Manual |version|
+   :description: MongoDB  Manual. How do I query documents, query top level fields, perform equality match, query with query operators, specify compound query conditions.
+   :keywords: query, select from collection, select all, select conditions, filters, select where, criteria, greater than, less than, MongoDB Manual
 
 This page provides examples of query operations using the
-``db.collection.find()`` method in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   db.collection.find( <query filter>, <projection> )
-
-The examples on this page use the ``inventory`` collection. To
-populate the ``inventory`` collection, run the following in the
-:program:`mongo` shell:
+``db.collection.find()`` method in the :program:`mongo` shell. The
+examples on this page use the ``inventory`` collection. To populate the
+``inventory`` collection, run the following in the :program:`mongo`
+shell:
 
 .. class:: copyable-code
 
 .. code-block:: javascript
 
-   db.inventory.insert( [
-      { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A" },
+   db.inventory.insert([
       { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
-      { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A" },
-      { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "A" },
       { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
       { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
       { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
-      { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
-      { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
-      { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
+      { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
    ]);
 
 .. only:: website
@@ -49,7 +39,9 @@ Select All Documents in a Collection
 ------------------------------------
 
 To select all documents in the collection, pass an empty document
-``{}`` as the :ref:`query filter <document-query-filter>`:
+``{}`` as the query filter parameter to the
+:method:`db.collection.find()` method. The query filter parameter
+determines the select criteria:
 
 .. class:: copyable-code
 
@@ -57,15 +49,24 @@ To select all documents in the collection, pass an empty document
 
    db.inventory.find( {} )
 
-Omitting a query filter document to the :method:`db.collection.find()`
-is equivalent to specifying an empty query document. As such, the
-following operation is equivalent to the previous operation:
+Omitting a query filter parameter is equivalent to specifying an empty
+query document. As such, the following operation is equivalent to the
+previous operation:
 
 .. class:: copyable-code
 
 .. code-block:: javascript
 
    db.inventory.find()
+
+These operations correspond to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory
+
+For more information on the syntax of the method, see
+:method:`db.collection.find()`.
 
 .. _read-operations-query-argument:
 
@@ -82,6 +83,12 @@ documents where the ``status`` equals ``"D"``:
 .. code-block:: javascript
 
    db.inventory.find( { status: "D" } )
+
+This operation corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "D"
 
 Specify Conditions Using Query Operators
 ----------------------------------------
@@ -102,8 +109,14 @@ Although you can express this query using the :query:`$or` operator,
 use the :query:`$in` operator rather than the :query:`$or`
 operator when performing equality checks on the same field.
 
-Refer to the :doc:`/reference/operator/query` document for the complete list
-of query operators.
+The operation corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status in ("A", "D")
+
+Refer to the :doc:`/reference/operator/query` document for the complete
+list of MongoDB query operators.
 
 Specify ``AND`` Conditions
 --------------------------
@@ -123,8 +136,14 @@ is less than (:query:`$lt`) ``30``:
 
    db.inventory.find( { status: "A", qty: { $lt: 30 } } )
 
+The operation corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" AND qty < 30
+
 See :ref:`comparison operators <query-selectors-comparison>` for other
-comparison operators.
+MongoDB comparison operators.
 
 Specify ``OR`` Conditions
 --------------------------
@@ -144,6 +163,12 @@ the ``status`` equals ``"A"`` **or** ``qty`` is less than
 
    db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
 
+The operation corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
 .. note::
    Queries which use :ref:`comparison operators <query-selectors-comparison>`
    are subject to :ref:`type-bracketing`.
@@ -151,12 +176,9 @@ the ``status`` equals ``"A"`` **or** ``qty`` is less than
 Specify ``AND`` as well as ``OR`` Conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With additional clauses, you can specify precise conditions for
-matching documents.
-
 In the following example, the compound query document selects all
 documents in the collection where the ``status`` equals ``"A"``
-**and** *either* ``qty`` is less than than (:query:`$lt`) ``30`` *or*
+**and** *either* ``qty`` is less than (:query:`$lt`) ``30`` *or*
 ``item`` starts with the character ``p``:
 
 .. class:: copyable-code
@@ -168,10 +190,31 @@ documents in the collection where the ``status`` equals ``"A"``
         $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
    } )
 
+The operation corresponds to the following SQL statement:
+
+.. code-block:: sql
+
+   SELECT * FROM inventory WHERE status = "A" AND ( qty < 30 OR item LIKE "p%")
+
 .. note::
 
    MongoDB supports regular expressions :query:`$regex` queries to
    perform string pattern matches.
+
+Additional Query Tutorials
+--------------------------
+
+For additional query examples, see:
+
+- :doc:`/tutorial/query-embedded-documents`
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents`
+
+- :doc:`/tutorial/project-fields-from-query-results`
+
+- :doc:`/tutorial/query-for-null-fields`
 
 Behavior
 --------
@@ -193,6 +236,18 @@ For reads to :doc:`replica sets </replication>` and replica set
 level of isolation for their reads. For more information, see
 :doc:`/reference/read-concern`.
 
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorial/query-embedded-documents
+      /tutorial/query-arrays
+      /tutorial/query-array-of-documents
+      /tutorial/project-fields-from-query-results
+      /tutorial/query-for-null-fields
+      /tutorial/iterate-a-cursor/
+
 Additional Methods
 ------------------
 
@@ -209,24 +264,3 @@ The following methods can also read documents from a collection:
    operation to return a single document. Internally, the
    :method:`db.collection.findOne()` method is the
    :method:`db.collection.find()` method with a limit of 1.
-
-Additional Query Tutorials
---------------------------
-
-- :doc:`/tutorial/query-embedded-documents`
-- :doc:`/tutorial/query-arrays`
-- :doc:`/tutorial/query-array-of-documents`
-- :doc:`/tutorial/project-fields-from-query-results`
-- :doc:`/tutorial/query-for-null-fields`
-   
-.. class:: hidden
-
-   .. toctree::
-      :titlesonly:
-
-      /tutorial/query-embedded-documents
-      /tutorial/query-arrays
-      /tutorial/query-array-of-documents
-      /tutorial/project-fields-from-query-results
-      /tutorial/query-for-null-fields
-      /tutorial/iterate-a-cursor/

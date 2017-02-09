@@ -11,26 +11,21 @@ Query an Array of Embedded Documents
    :description: MongoDB Manual - how to query an array of documents,  how to query an array of nested documents,  how to query an array of embedded documents.
    :keywords: array of nested documents, array of embedded documents, array of documents, nested documents, array index, select, array, array elements, array items
 
-This page provides examples of query operations in the :program:`mongo`
-shell. The examples on this page use the ``inventory`` collection. To
-populate the ``inventory`` collection, run the following in the
-:program:`mongo` shell:
+This page provides examples of how to query on array of nested
+documents in MongoDB. The examples on this page use the ``inventory``
+collection. To populate the ``inventory`` collection, run the following
+in the :program:`mongo` shell:
 
 .. class:: copyable-code
 
 .. code-block:: javascript
 
    db.inventory.insert( [
-      { item: "canvas", instock: [ { warehouse: "A", qty: 40 }, { warehouse: "B", qty: 60 } ] },
-      { item: "journal",  instock: [ { warehouse: "A", qty: 15 }, { warehouse: "C", qty: 10 } ] },
-      { item: "mat", instock: [ { warehouse: "B", qty: 50 }, { warehouse: "A", qty: 10 }, { warehouse: "C", qty: 25 } ] },
-      { item: "mousepad", instock: [ { warehouse: "A", qty: 25 } ] },
-      { item: "notebook", instock: [ { warehouse: "C", qty: 50 } ] },
-      { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] },
-      { item: "planner", instock: [ { warehouse: "A", qty: 25 }, { warehouse: "B", qty: 25 }, { warehouse: "C", qty: 25 } ] },
-      { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] },
-      { item: "sketchbook", instock: [ { warehouse: "B", qty: 50 }, { warehouse: "A", qty: 30 } ] },
-      { item: "sketch pad", instock: [ { warehouse: "B", qty: 25 }, { warehouse: "A", qty: 70 } ] }
+      { item: "journal", instock: [ { warehouse: "A", qty: 5 }, { warehouse: "C", qty: 15 } ] },
+      { item: "notebook", instock: [ { warehouse: "C", qty: 5 } ] },
+      { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 15 } ] },
+      { item: "planner", instock: [ { warehouse: "A", qty: 40 }, { warehouse: "B", qty: 5 } ] },
+      { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
    ]);
 
 .. only:: website
@@ -42,12 +37,25 @@ populate the ``inventory`` collection, run the following in the
 Query for a Document Nested in an Array
 ---------------------------------------
 
-The following examples selects all documents where the ``instock``
-array contains as an element the specified document:
+The following examples selects all documents where an element in the
+``instock`` array matches the specified document:
+
+.. class:: copyable-code
 
 .. code-block:: javascript
 
-   db.inventory.find( { "instock": { warehouse: "A", qty: 40 } } )
+   db.inventory.find( { "instock": { warehouse: "A", qty: 5 } } )
+
+Equality matches on the whole embedded/nested document require an
+*exact* match of the specified document, including the field order. For
+example, the following query does not match any documents in the
+``inventory`` collection:
+
+.. class:: copyable-code
+
+.. code-block:: javascript
+
+   db.inventory.find( { "instock": { qty: 5, warehouse: "A" } } )
 
 Specify a Query Condition on a Field in an Array of Documents
 -------------------------------------------------------------
@@ -103,24 +111,24 @@ satisfies all the specified criteria.
 
 The following example queries for documents where the ``instock`` array
 has at least one embedded document that contains both the field
-``qty`` equal to ``60`` and the field ``warehouse`` equal
+``qty`` equal to ``5`` and the field ``warehouse`` equal
 to ``A``:
 
 .. class:: copyable-code
 
 .. code-block:: javascript
 
-   db.inventory.find( { "instock": { $elemMatch: { qty: 60, warehouse: "A" } } } )
+   db.inventory.find( { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } } )
 
 The following example queries for documents where the ``instock`` array
 has at least one embedded document that contains the field ``qty`` that
-is less than or equal to ``20`` and greater than ``10``:
+is greater than ``10`` and less than or equal to ``20``:
 
 .. class:: copyable-code
 
 .. code-block:: javascript
 
-   db.inventory.find( { "instock": { $elemMatch: { qty: { $lte: 20, $gt: 10 } } } } )
+   db.inventory.find( { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } } )
 
 Combination of Elements Satisfies the Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,20 +139,21 @@ array contains any combination of elements that satisfies the
 conditions.
 
 For example, the following query matches documents where any document
-nested in the ``instock`` array has the ``qty`` field less than or
-equal to ``20`` and any document (but not necessarily the same embedded
-document) in the array has the ``qty`` field greater than ``10``:
+nested in the ``instock`` array has the ``qty`` field greater than
+``10`` and any document (but not necessarily the same embedded
+document) in the array has the ``qty`` field less than or equal to
+``20``:
 
 .. class:: copyable-code
 .. code-block:: javascript
 
-   db.inventory.find( { "instock.qty": {  $lte: 20, $gt: 10 }  } )
+   db.inventory.find( { "instock.qty": { $gt: 10,  $lte: 20 } } )
 
 .. class:: copyable-code
 
 The following example queries for documents where the ``instock`` array
 has at least one embedded document that contains the field ``qty``
-equal to ``60`` and at least one embedded document (but not necessarily
+equal to ``5`` and at least one embedded document (but not necessarily
 the same embedded document) that contains the field ``warehouse`` equal
 to ``A``:
 
@@ -152,7 +161,15 @@ to ``A``:
 
 .. code-block:: javascript
 
-   db.inventory.find( { "instock": { qty: 60, warehouse: "A" } } )
-   
-.. seealso:: :doc:`/tutorial/query-arrays`, :doc:`/tutorial/query-embedded-documents`, :doc:`/tutorial/query-documents`
+   db.inventory.find( { "instock.qty": 5, "instock.warehouse": "A" } )
 
+Additional Query Tutorials
+--------------------------
+
+For additional query examples, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-documents`
+
+- :doc:`/tutorial/query-embedded-documents`
