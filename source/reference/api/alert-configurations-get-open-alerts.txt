@@ -1,0 +1,271 @@
+=======================================
+Get Open Alerts for Alert Configuration
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/extracts/base-url.rst
+
+Syntax
+------
+
+.. code-block:: none
+
+   GET /api/public/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Required/Optional
+     - Description
+
+   * - ``GROUP-ID``
+     - Required
+     - Group identifier.
+
+   * - ``ALERT-CONFIG-ID``
+     - Required
+     - Alert configuiration identifier.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Required/Optional
+     - Description
+
+   * - ``pageNum``
+
+     - Optional.
+
+     - The page to return.
+
+   * - ``itemsPerPage``
+
+     - Optional.
+
+     - Maximum number of items to return per page. Default is 100.
+
+   * - ``envelope``
+
+     - Optional.
+
+     - A boolean that specifies whether or not to wrap the response in an envelope.
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This endpoint does not use HTTP request body parameters.
+
+Response Elements
+-----------------
+
+The response includes the ``totalCount`` of the open alerts and a
+``results`` array which lists all the alerts for the group. Alert
+details include:
+
+.. note::
+   
+   Alert details vary. An alert may only include a subset of these
+   elements.
+   
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``id``
+     - string
+     - Unique identifier for the alert.
+
+   * - ``groupId``
+     - string
+     - ID of the group that this alert was opened for.
+
+   * - ``alertConfigId``
+     - string
+     - ID of the alert configuration that triggered this alert.
+
+   * - ``eventTypeName``
+     - string
+     - The name of the event that triggered the alert.
+
+       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+
+   * - ``typeName``
+     - string
+     - *This field is deprecated and will be ignored.*
+
+   * - ``status``
+     - string
+     - The current state of the alert. Possible values are:
+
+       - ``TRACKING``
+
+         The alert condition exists but has not persisted beyond the defined
+         notification delay. For details, see :ref:`api-alert-status`.
+
+       - ``OPEN``
+       - ``CLOSED``
+       - ``CANCELLED``
+
+   * - ``acknowledgedUntil``
+     - date
+     - The date through which the alert has been acknowledged. Will not be
+       present if the alert has never been acknowledged.
+
+   * - ``acknowledgementComment``
+     - string
+     - The comment left by the user who acknowledged the alert. Will not be
+       present if the alert has never been acknowledged.
+
+   * - ``acknowledgingUsername``
+     - string
+     - The username of the user who acknowledged the alert. Will not be
+       present if the alert has never been acknowledged.
+   * - ``created``
+     - date
+     - When the alert was opened.
+   * - ``updated``
+     - date
+     - When the alert was last updated.
+   * - ``resolved``
+     - date
+     - When the alert was closed. Only present if the status is ``CLOSED``.
+   * - ``lastNotified``
+     - date
+     - When the last notification was sent for this alert. Only present if
+       notifications have been sent.
+   * - ``hostnameAndPort``
+     - string
+     - The hostname and port of each host to which the alert applies. Only
+       present for alerts of type ``HOST``, ``HOST_METRIC``, and
+       ``REPLICA_SET``.
+
+   * - ``hostId``
+     - string
+     - ID of the host to which the metric pertains. Only present for
+       alerts of type ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``.
+
+   * - ``replicaSetName``
+     - string
+     - Name of the replica set. Only present for alerts of type ``HOST``,
+       ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
+
+   * - ``metricName``
+     - string
+     - The name of the measurement whose value went outside the threshold. Only
+       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
+
+       For possible values, see :ref:`measurement-types-for-alerts-api` on
+       this page.
+
+   * - ``currentValue``
+     - object
+     - The current value of the metric that triggered the alert. Only present for
+       alerts of type ``HOST_METRIC``.
+   * - ``currentValue.number``
+     - number
+     - The value of the metric.
+   * - ``currentValue.units``
+     - string
+     - The units for the value. Depends on the type of metric. For example, a
+       metric that measures memory consumption would have a byte measurement,
+       while a metric that measures time would have a time unit. Possible values
+       are:
+
+       .. include:: /includes/possibleValues-api-units.rst
+
+   * - ``clusterId``
+     - string
+     - The ID of the cluster to which this alert applies. Only present for
+       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+
+   * - ``clusterName``
+     - string
+     - The name the cluster to which this alert applies. Only present for
+       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
+
+   * - ``sourceTypeName``
+     - string
+     - For alerts of the type ``BACKUP``, the type of server being backed
+       up. Possible values are:
+
+       - ``REPLICA_SET``
+       - ``SHARDED_CLUSTER``
+       - ``CONFIG_SERVER``
+
+Example Request
+---------------
+
+.. only:: cloud
+
+   .. code-block:: none
+
+      curl -X GET -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alertConfigs/533dc40ae4b00835ff81eaee/alerts"
+
+.. only:: onprem
+
+   .. code-block:: none
+
+      curl -X GET -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alertConfigs/533dc40ae4b00835ff81eaee/alerts"
+
+Example Response
+----------------
+
+
+
+.. code-block:: none
+
+   {
+     "totalCount" : 2,
+     "results" : [ {
+       "id" : "53569159300495c7702ee3a3",
+       "alertConfigId":"533dc40ae4b00835ff81eaee"
+       "groupId" : "4d1b6314e528c81a1f200e03",
+       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+       "status" : "OPEN",
+       "acknowledgedUntil" : "2014-05-01T14:00:00Z",
+       "created" : "2014-04-22T15:57:13.562Z",
+       "updated" : "2014-04-22T20:14:11.388Z",
+       "lastNotified" : "2014-04-22T15:57:24.126Z",
+       "metricName" : "ASSERT_REGULAR",
+       "currentValue" : {
+         "number" : 0.0,
+         "units" : "RAW"
+       },
+       "links" : [ ... ]
+     }, {
+       "id" : "5356ca0e300495c770333340",
+       "alertConfigId":"533dc40ae4b00835ff81eaee"
+       "groupId" : "4d1b6314e528c81a1f200e03",
+       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+       "status" : "OPEN",
+       "created" : "2014-04-22T19:59:10.657Z",
+       "updated" : "2014-04-22T20:14:11.388Z",
+       "lastNotified" : "2014-04-22T20:14:19.313Z",
+       "metricName" : "ASSERT_REGULAR",
+       "currentValue" : {
+         "number" : 0.0,
+         "units" : "RAW"
+       },
+       "links" : [ ... ]
+     } ],
+     "links" : [ ... ]
+   }
