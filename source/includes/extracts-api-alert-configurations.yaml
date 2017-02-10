@@ -1,0 +1,468 @@
+ref: api-alert-configuration-elements
+content: |
+
+   .. note:: 
+
+      Alert configurations vary. An alert configuration may only
+      include a subset of these elements.
+
+   .. list-table::
+      :widths: 10 10 80
+      :header-rows: 1
+
+      * - Name
+        - Type
+        - Description
+
+      * - ``id``
+        - string
+        - Unique identifier.
+
+      * - ``groupId``
+        - string
+        - ID of the group that owns this alert configuration.
+
+      * - ``eventTypeName``
+        - string
+        - The type of event that will trigger an alert.
+
+          Possible values are:
+
+          .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+      * - ``created``
+        - date
+        - When this alert configuration was created.
+
+      * - ``updated``
+        - date
+        - When this alert configuration was last updated.
+
+      * - ``enabled``
+        - boolean
+        - If set to ``true``, the alert configuration is enabled.
+
+          If ``enabled`` is not specified in a ``POST`` command, it defaults to
+          ``false``.
+
+      * - ``matchers``
+        - object array
+        - Rules to apply when matching an object against this alert configuration.
+          Only entities that match *all* these rules will be checked for an alert
+          condition.
+
+          You can filter using the ``matchers`` array only when the
+          ``eventTypeName`` specifies an event for a host, replica set, or
+          sharded cluster.
+
+      * - ``matchers.fieldName``
+        - string
+        - The name of the field in the target object to match on.
+
+          - Host alerts support these fields:
+
+            - ``TYPE_NAME``
+            - ``HOSTNAME``
+            - ``PORT``
+            - ``HOSTNAME_AND_PORT``
+            - ``REPLICA_SET_NAME``
+
+          - Replica set alerts support these fields:
+
+            - ``REPLICA_SET_NAME``
+            - ``SHARD_NAME``
+            - ``CLUSTER_NAME``
+
+          - Sharded cluster alerts support these fields:
+
+            - ``CLUSTER_NAME``
+            - ``SHARD_NAME``
+
+          All other types of alerts do not support matchers.
+
+      * - ``matchers.operator``
+        - string
+        - The operator to test the field's value. Possible values are:
+
+          - ``EQUALS``
+          - ``NOT_EQUALS``
+          - ``CONTAINS``
+          - ``NOT_CONTAINS``
+          - ``STARTS_WITH``
+          - ``ENDS_WITH``
+          - ``REGEX``
+
+      * - ``matchers.value``
+        - string
+        - The value to test with the specified operator.
+
+          If ``matchers.fieldName`` is set to ``TYPE_NAME``, you can match on the
+          following values:
+
+          - ``PRIMARY``
+          - ``SECONDARY``
+          - ``STANDALONE``
+          - ``CONFIG``
+          - ``MONGOS``
+
+      * - ``notifications``
+        - object array
+        - Notifications to send when an alert condition is detected.
+
+      * - ``notifications.typeName``
+        - string
+        - The type of alert notification. Possible values are:
+
+          - ``GROUP``
+          - ``USER``
+          - ``EMAIL``
+          - ``SMS``
+          - ``HIPCHAT``
+          - ``SLACK``
+          - ``FLOWDOCK``
+          - ``PAGER_DUTY``
+          - ``WEBHOOK``
+
+      * - ``notifications.intervalMin``
+        - integer
+        - The number of minutes to wait between successive notifications for
+          unacknowledged alerts that are not resolved.
+
+      * - ``notifications.delayMin``
+        - integer
+        - The number of minutes to wait after an alert condition is detected before
+          sending out the first notification.
+
+      * - ``notifications.emailEnabled``
+        - boolean
+        - Should email notifications be sent? Only present for notifications of type
+          ``GROUP`` and ``USER``.
+
+      * - ``notifications.smsEnabled``
+        - boolean
+        - Should SMS notifications be sent? Only present for notifications of type
+          ``GROUP`` and ``USER``.
+
+      * - ``notifications.username``
+        - string
+        - The name of the |service| user to which to send notifications. Only a
+          user in the group that owns the alert configuration is allowed here.
+          Only present for notifications of type ``USER``.
+
+      * - ``notifications.emailAddress``
+        - string
+        - The email address to which to send notification. Only present for
+          notifications of type ``EMAIL``.
+
+      * - ``notifications.mobileNumber``
+
+        - string
+
+        - Mobile number to send SMS messages to. Only present for notifications
+          of type ``SMS``.
+
+      * - ``notifications.notificationToken``
+        - string
+        - A HipChat API token. Only present for notifications of type ``HIP_CHAT``.
+          If the token later becomes invalid, |service| sends an email to the group
+          owner and eventually removes the token.
+
+      * - ``notifications.roomName``
+        - string
+        - HipChat room name. Only present for notifications of type ``HIP_CHAT``.
+
+      * - ``notifications.channelName``
+        - string
+        - The Slack channel name. Only present for ``SLACK`` notifications.
+
+      * - ``notifications.apiToken``
+        - string
+        - The Slack API token or Bot token. Only present for ``SLACK`` notifications.
+          If the token later becomes invalid, |service| sends an email to the group
+          owner and eventually removes the token.
+
+      * - ``notifications.orgName``
+        - string
+        - The Flowdock organization name in lower-case letters. This is the
+          name that appears after ``www.flowdock.com/app/`` in the URL
+          string. Only present for ``FLOWDOCK`` notifications.
+
+      * - ``notifications.flowName``
+        - string
+        - The Flowdock flow name, in lower-case letters. Only present for
+          ``FLOWDOCK`` notifications. The flow name appears after the
+          organization name in the URL string:
+
+          ``www.flowdock.com/app/<organization-name>/<flow-name>``.
+
+      * - ``notifications.flowdockApiToken``
+        - string
+        - The Flowdock "personal API token." Only present for ``FLOWDOCK``
+          notifications. If the token later becomes invalid, |service| sends an email
+          to the group owner and eventually removes the token.
+
+      * - ``notifications.serviceKey``
+        - string
+        - PagerDuty service key. Only present for ``PAGER_DUTY`` notifications.
+          If the key later becomes invalid, |service| sends an email to the group
+          owner and eventually removes the key.
+
+      * - ``metricThreshold``
+        - object
+        - The threshold that will cause an alert to be triggered. Only present
+          if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
+
+      * - ``metricThreshold.metricName``
+        - string
+        - The name of the metric to check. Supports the same values as the
+          ``metricName`` field of the **alerts** resource.
+
+      * - ``metricThreshold.operator``
+        - string
+        - The operator to apply when checking the current metric value against the
+          threshold value. Possible values are:
+
+          - ``GREATER_THAN``
+          - ``LESS_THAN``
+
+      * - ``metricThreshold.threshold``
+        - integer
+        - The threshold value outside of which an alert will be triggered.
+
+      * - ``metricThreshold.units``
+        - string
+        - The units for the threshold value. Depends on the type of metric. For example, a
+          metric that measures memory consumption would have a byte measurement,
+          while a metric that measures time would have a time unit. Possible values
+          are:
+
+          .. include:: /includes/possibleValues-api-units.rst
+
+      * - ``metricThreshold.mode``
+        - string
+        - ``AVERAGE``. |service| computes the current metric value as an average.
+---
+ref: api-alert-configuration-create
+content: |
+
+   .. note:: 
+      Alert configurations vary. An alert configuration may only
+      include a subset of these elements.
+      
+   .. list-table::
+      :widths: 10 10 80
+      :header-rows: 1
+
+      * - Name
+        - Type
+        - Description
+
+      * - ``eventTypeName``
+        - string
+        - Required. The type of event that will trigger an alert.
+
+          .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+          If this is set to ``OUTSIDE_METRIC_THRESHOLD``, the
+          ``metricThreshold`` field must also be set.
+                
+      * - ``enabled``
+        - boolean
+        - If omitted, the configuration is disabled.
+
+      * - ``matchers``
+        - object array
+        - Rules to apply when matching an object against this alert configuration.
+          Only entities that match *all* these rules will be checked for an alert
+          condition.
+
+          You can filter using the ``matchers`` array only when the
+          ``eventTypeName`` specifies an event for a host, replica set, or
+          sharded cluster.
+
+      * - ``matchers.fieldName``
+        - string
+        - The name of the field in the target object to match on.
+
+          - Host alerts support these fields:
+
+            - ``TYPE_NAME``
+            - ``HOSTNAME``
+            - ``PORT``
+            - ``HOSTNAME_AND_PORT``
+            - ``REPLICA_SET_NAME``
+
+          - Replica set alerts support these fields:
+
+            - ``REPLICA_SET_NAME``
+            - ``SHARD_NAME``
+            - ``CLUSTER_NAME``
+
+          - Sharded cluster alerts support these fields:
+
+            - ``CLUSTER_NAME``
+            - ``SHARD_NAME``
+
+          All other types of alerts do not support matchers.
+
+      * - ``matchers.operator``
+        - string
+        - The operator to test the field's value. Possible values are:
+
+          - ``EQUALS``
+          - ``NOT_EQUALS``
+          - ``CONTAINS``
+          - ``NOT_CONTAINS``
+          - ``STARTS_WITH``
+          - ``ENDS_WITH``
+          - ``REGEX``
+ 
+      * - ``matchers.value``
+        - string
+        - The value to test with the specified operator.
+
+          If ``matchers.fieldName`` is set to ``TYPE_NAME``, you can match on the
+          following values:
+
+          - ``PRIMARY``
+          - ``SECONDARY``
+          - ``STANDALONE``
+          - ``CONFIG``
+          - ``MONGOS``
+
+      * - ``notifications``
+        - object array
+        - Required. Notifications to send when an alert condition is detected.
+
+      * - ``notifications.typeName``
+        - string
+        - The type of alert notification. Possible values are:
+
+          - ``GROUP``
+          - ``USER``
+          - ``EMAIL``
+          - ``SMS``
+          - ``HIPCHAT``
+          - ``SLACK``
+          - ``FLOWDOCK``
+          - ``PAGER_DUTY``
+          - ``WEBHOOK``
+
+      * - ``notifications.intervalMin``
+        - number
+        - The number of minutes to wait between successive notifications for
+          unacknowledged alerts that are not resolved.
+
+      * - ``notifications.delayMin``
+        - number
+        - The number of minutes to wait after an alert condition is detected before
+          sending out the first notification.
+
+      * - ``notifications.emailEnabled``
+        - boolean
+        - Determines if email notifications should be sent. For notifications of type
+          ``GROUP`` and ``USER``.
+
+      * - ``notifications.smsEnabled``
+        - boolean
+        - Determines if SMS notifications should be sent. For notifications of type
+          ``GROUP`` and ``USER``.
+
+      * - ``notifications.username``
+        - string
+        - The name of |service| user to which to send notifications. Specify a user in the
+          group that owns the alert configuration. For
+          notifications of type ``USER``.
+
+      * - ``notifications.emailAddress``
+        - string
+        - The email address to which to send notification. For
+          notifications of type ``EMAIL``.
+
+      * - ``notifications.mobileNumber``
+
+        - string
+
+        - Mobile number to send SMS messages to. For
+          notifications of type ``SMS``.
+
+      * - ``notifications.notificationToken``
+        - string
+        - A HipChat API token. For notifications of type ``HIP_CHAT``.
+          If the token later becomes invalid, |service| sends an email to the group
+          owner and eventually removes the token.
+
+      * - ``notifications.roomName``
+        - string
+        - HipChat room name. For notifications of type ``HIP_CHAT``.
+
+      * - ``notifications.channelName``
+        - string
+        - The Slack channel name. For ``SLACK`` notifications.
+
+      * - ``notifications.apiToken``
+        - string
+        - The Slack API token or Bot token. For ``SLACK`` notifications.
+          If the token later becomes invalid, |service| sends an email to the group
+          owner and eventually removes the token.
+
+      * - ``notifications.orgName``
+        - string
+        - The Flowdock organization name in lower-case letters. This is the
+          name that appears after ``www.flowdock.com/app/`` in the URL
+          string. For ``FLOWDOCK`` notifications.
+
+      * - ``notifications.flowName``
+        - string
+        - The flow name, in lower-case letters. For ``FLOWDOCK``
+          notifications. The flow name appears after the organization name in the
+          URL string:
+
+          ``www.flowdock.com/app/<organization-name>/<flow-name>``.
+
+      * - ``notifications.flowdockApiToken``
+        - string
+        - The Flowdock "personal API token." For ``FLOWDOCK``
+          notifications. If the token later becomes invalid, |service| sends an email
+          to the group owner and eventually removes the token.
+
+      * - ``notifications.serviceKey``
+        - string
+        - PagerDuty service key.
+
+      * - ``metricThreshold``
+        - object
+        
+        - The threshold that will cause an alert to be triggered.
+          Required if ``eventTypeName`` is ``OUTSIDE_METRIC_THRESHOLD``.
+
+      * - ``metricThreshold.metricName``
+        - string
+        - The name of the metric to check. Supports the same values as the
+          ``metricName`` field of the **alerts** resource.
+
+      * - ``metricThreshold.operator``
+        - string
+        - The operator to apply when checking the current metric value against the
+          threshold value. Possible values are:
+
+          - ``GREATER_THAN``
+          - ``LESS_THAN``
+
+      * - ``metricThreshold.threshold``
+        - number
+        - The threshold value outside of which an alert will be triggered.
+
+      * - ``metricThreshold.units``
+        - string
+        - The units for the threshold value. Depends on the type of metric. For example, a
+          metric that measures memory consumption would have a byte measurement,
+          while a metric that measures time would have a time unit. Possible values
+          are:
+
+          .. include:: /includes/possibleValues-api-units.rst
+
+      * - ``metricThreshold.mode``
+        - string
+        - This must be set to ``AVERAGE``. |service| computes the current metric value as an average.
+...

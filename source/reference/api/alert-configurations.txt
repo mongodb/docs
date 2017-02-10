@@ -4,691 +4,75 @@ Alert Configurations
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
-The ``alertConfigs`` resource lets you retrieve, create and update the
-:doc:`configurations </configure-alerts>` that define alert conditions and
-notification methods.
+.. include:: /includes/api-base-url.rst
 
 Endpoints
 ---------
 
-Get All Alert Configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/alertConfigs
-
-Get an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can retrieve an alert configuration by its ID.
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/alertConfigs/ALERT-CONFIG-ID
-
-Get All Open Alerts Triggered by an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/alertConfigs/ALERT-CONFIG-ID/alerts
-
-Create an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   POST /api/atlas/v1.0/groups/GROUP-ID/alertConfigs
-
-The ``eventTypeName`` and ``notifications`` fields are required.
-
-The ``metricThreshold`` field is required if ``eventTypeName`` is set to
-``OUTSIDE_METRIC_THRESHOLD``.
-
-To enable the alert configuration, set the ``enabled`` field to ``true``.
-
-.. important::
-   If the ``enabled`` field is not specified, |service| sets its value to
-   ``false`` by default, and the alert configuration is not enabled.
-
-Update an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For most updates, you must use ``PUT`` and send the entire entity. The only
-exception is for updates to the ``enabled`` field, as described in
-:ref:`patch-alertConfigs-id`.
-
-.. code-block:: none
-
-   PUT /api/atlas/v1.0/groups/GROUP-ID/alertConfigs/ALERT-CONFIG-ID
-
-.. _patch-alertConfigs-id:
-
-Enable or Disable an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use to enable/disable an alert configuration by setting the ``enabled``
-field.
-
-.. code-block:: none
-
-   PATCH /api/atlas/v1.0/groups/GROUP-ID/alertConfigs/ALERT-CONFIG-ID
-
-Delete an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/atlas/v1.0/groups/GROUP-ID/alertConfigs/ALERT-CONFIG-ID
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "id" : "5744e1f6e4b090d8f0b34f0d",
-     "groupId": "535683b3794d371327b",
-     "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
-     "created" : "2016-07-24T23:21:26Z",
-     "updated" : "2016-08-23T11:08:11Z",
-     "enabled": true,
-     "matchers": [ {
-       "fieldName": "HOSTNAME",
-       "operator": "STARTS_WITH",
-       "value": "my-host-prefix"
-     }, {
-       "fieldName": "PORT",
-       "operator": "EQUALS",
-       "value": "27017"
-     } ],
-     "notifications": [ {
-       "typeName": "GROUP",
-       "intervalMin": 5,
-       "delayMin": 0,
-       "emailEnabled": true,
-       "smsEnabled": true
-     }, {
-       "typeName": "USER",
-       "intervalMin": 5,
-       "delayMin": 0,
-       "username": "john.doe",
-       "emailEnabled": true,
-       "smsEnabled": true
-     }, {
-       "typeName": "SNMP",
-       "intervalMin": 5,
-       "delayMin": 0,
-       "snmpAddress": "example.com:162"
-     }, {
-       "typeName": "EMAIL",
-       "intervalMin": 5,
-       "delayMin": 0,
-       "emailAddress": "somebody@example.com"
-     } ],
-     "metricThreshold": {
-       "metricName": "MEMORY_RESIDENT",
-       "operator": "GREATER_THAN",
-       "threshold": 7,
-       "units": "GIGABYTES",
-       "mode": "AVERAGE"
-     },
-     "links": [ ... ]
-   }
-
-Entity Fields
--------------
-
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``id``
-     - string
-     - Unique identifier.
-
-   * - ``groupId``
-     - string
-     - ID of the group that owns this alert configuration.
-
-   * - ``eventTypeName``
-     - string
-     - The type of event that will trigger an alert. If this is set to
-       ``OUTSIDE_METRIC_THRESHOLD``, the ``metricThreshold`` field must also
-       be set.
-
-       Possible values are:
-
-       .. include:: /includes/possibleValues-api-eventTypeName.rst
-
-   * - ``created``
-     - date
-     - When this alert configuration was created.
-
-   * - ``updated``
-     - date
-     - When this alert configuration was last updated.
-
-   * - ``enabled``
-     - boolean
-     - If set to ``true``, the alert configuration is enabled.
-
-       If ``enabled`` is not specified in a ``POST`` command, it defaults to
-       ``false``.
-
-   * - ``matchers``
-     - object array
-     - Rules to apply when matching an object against this alert configuration.
-       Only entities that match *all* these rules will be checked for an alert
-       condition.
-
-       You can filter using the ``matchers`` array only when the
-       ``eventTypeName`` specifies an event for a host, replica set, or
-       sharded cluster.
-
-   * - ``matchers.fieldName``
-     - string
-     - The name of the field in the target object to match on.
-
-       - Host alerts support these fields:
-
-         - ``TYPE_NAME``
-         - ``HOSTNAME``
-         - ``PORT``
-         - ``HOSTNAME_AND_PORT``
-         - ``REPLICA_SET_NAME``
-
-       - Replica set alerts support these fields:
-
-         - ``REPLICA_SET_NAME``
-         - ``SHARD_NAME``
-         - ``CLUSTER_NAME``
-
-       - Sharded cluster alerts support these fields:
-
-         - ``CLUSTER_NAME``
-         - ``SHARD_NAME``
-
-       All other types of alerts do not support matchers.
-
-   * - ``matchers.operator``
-     - string
-     - The operator to test the field's value. Possible values are:
-
-       - ``EQUALS``
-       - ``NOT_EQUALS``
-       - ``CONTAINS``
-       - ``NOT_CONTAINS``
-       - ``STARTS_WITH``
-       - ``ENDS_WITH``
-       - ``REGEX``
-
-   * - ``matchers.value``
-     - string
-     - The value to test with the specified operator.
-
-       If ``matchers.fieldName`` is set to ``TYPE_NAME``, you can match on the
-       following values:
-
-       - ``PRIMARY``
-       - ``SECONDARY``
-       - ``STANDALONE``
-       - ``CONFIG``
-       - ``MONGOS``
-
-   * - ``notifications``
-     - object array
-     - Notifications to send when an alert condition is detected.
-
-   * - ``notifications.typeName``
-     - string
-     - The type of alert notification. Possible values are:
-
-       - ``GROUP``
-       - ``USER``
-       - ``EMAIL``
-       - ``SMS``
-       - ``HIPCHAT``
-       - ``SLACK``
-       - ``FLOWDOCK``
-       - ``PAGER_DUTY``
-
-   * - ``notifications.intervalMin``
-     - integer
-     - The number of minutes to wait between successive notifications for
-       unacknowledged alerts that are not resolved.
-
-   * - ``notifications.delayMin``
-     - integer
-     - The number of minutes to wait after an alert condition is detected before
-       sending out the first notification.
-
-   * - ``notifications.emailEnabled``
-     - boolean
-     - Should email notifications be sent? Only present for notifications of type
-       ``GROUP`` and ``USER``.
-
-   * - ``notifications.smsEnabled``
-     - boolean
-     - Should SMS notifications be sent? Only present for notifications of type
-       ``GROUP`` and ``USER``.
-
-   * - ``notifications.username``
-     - string
-     - The name of the |service| user to which to send notifications. Only a
-       user in the group that owns the alert configuration is allowed here.
-       Only present for notifications of type ``USER``.
-
-   * - ``notifications.emailAddress``
-     - string
-     - The email address to which to send notification. Only present for
-       notifications of type ``EMAIL``.
-
-   * - ``notifications.mobileNumber``
-
-     - string
-
-     - Mobile number to send SMS messages to. Only present for notifications
-       of type ``SMS``.
-
-   * - ``notifications.notificationToken``
-     - string
-     - A HipChat API token. Only present for notifications of type ``HIP_CHAT``.
-       If the token later becomes invalid, |service| sends an email to the group
-       owner and eventually removes the token.
-
-   * - ``notifications.roomName``
-     - string
-     - HipChat room name. Only present for notifications of type ``HIP_CHAT``.
-
-   * - ``notifications.channelName``
-     - string
-     - The Slack channel name. Only present for ``SLACK`` notifications.
-
-   * - ``notifications.apiToken``
-     - string
-     - The Slack API token or Bot token. Only present for ``SLACK`` notifications.
-       If the token later becomes invalid, |service| sends an email to the group
-       owner and eventually removes the token.
-
-   * - ``notifications.orgName``
-     - string
-     - The Flowdock organization name in lower-case letters. This is the
-       name that appears after ``www.flowdock.com/app/`` in the URL
-       string. Only present for ``FLOWDOCK`` notifications.
-
-   * - ``notifications.flowName``
-     - string
-     - The Flowdock flow name, in lower-case letters. Only present for
-       ``FLOWDOCK`` notifications. The flow name appears after the
-       organization name in the URL string:
-
-       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
-
-   * - ``notifications.flowdockApiToken``
-     - string
-     - The Flowdock "personal API token." Only present for ``FLOWDOCK``
-       notifications. If the token later becomes invalid, |service| sends an email
-       to the group owner and eventually removes the token.
-
-   * - ``notifications.serviceKey``
-     - string
-     - PagerDuty service key. Only present for ``PAGER_DUTY`` notifications.
-       If the key later becomes invalid, |service| sends an email to the group
-       owner and eventually removes the key.
-
-   * - ``metricThreshold``
-     - object
-     - The threshold that will cause an alert to be triggered. Only present
-       if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
-
-   * - ``metricThreshold.metricName``
-     - string
-     - The name of the metric to check. Supports the same values as the
-       ``metricName`` field of the **alerts** resource.
-
-   * - ``metricThreshold.operator``
-     - string
-     - The operator to apply when checking the current metric value against the
-       threshold value. Possible values are:
-
-       - ``GREATER_THAN``
-       - ``LESS_THAN``
-
-   * - ``metricThreshold.threshold``
-     - integer
-     - The threshold value outside of which an alert will be triggered.
-
-   * - ``metricThreshold.units``
-     - string
-     - The units for the threshold value. Depends on the type of metric. For example, a
-       metric that measures memory consumption would have a byte measurement,
-       while a metric that measures time would have a time unit. Possible values
-       are:
-
-       .. include:: /includes/possibleValues-api-units.rst
-
-   * - ``metricThreshold.mode``
-     - string
-     - This must be set to ``AVERAGE``. |service| computes the current metric value as an average.
-
-Links
------
+The following lists the available for :doc:`alert configuration
+</configure-alerts>`. An :doc:`alert configuration </configure-alerts>`
+defines the conditions that trigger an alert and the methods of
+notification.
 
 .. list-table::
    :header-rows: 1
+   :widths: 10 60 30
 
-   * - Relation
+   * - Method
+     - Endpoint
      - Description
 
-   * - ``self``
-     - Me
+   * - ``GET``
 
-   * - ``http://mms.mongodb.com/alerts``
-     - Open alerts triggered by this alert configuration.
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs </reference/api/alert-configurations-get-all-configs>`
 
-Examples
---------
+     - Get all alert configurations for a group.
 
-Get All Alert Configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * - ``POST``
 
-Request
-```````
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs </reference/api/alert-configurations-create-config>`
 
-.. code-block:: none
+     - Create an alert configuration
 
-   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs"
+   * - ``GET``
 
-Response
-````````
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID} </reference/api/alert-configurations-get-config>`
 
-.. code-block:: none
+     - Get an alert configuration.
 
-   HTTP/1.1 200 OK
+   * - ``PUT``
 
-   {
-     "results": [ {
-       "id" : "533dc40ae4b00835ff81eaee",
-       "groupId" : "535683b3794d371327b",
-       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "created" : "2016-08-23T20:26:50Z",
-       "updated" : "2016-08-23T20:26:50Z",
-       "enabled" : true,
-       "matchers" : [ {
-         "field" : "HOSTNAME_AND_PORT",
-         "operator" : "EQUALS",
-         "value" : "mongo.example.com:27017"
-       } ],
-       "notifications" : [ {
-         "typeName" : "SMS",
-         "intervalMin" : 5,
-         "delayMin" : 0,
-         "mobileNumber" : "2343454567"
-       } ],
-       "metricThreshold" : {
-         "metricName" : "ASSERT_REGULAR",
-         "operator" : "LESS_THAN",
-         "threshold" : 99.0,
-         "units" : "RAW",
-         "mode" : "AVERAGE"
-       },
-       "links" : [ ... ]
-     }, ... ],
-     "totalCount": 3,
-     "links" : [ ... ]
-   }
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID} </reference/api/alert-configurations-update-config>`
 
-Get an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+     - Update an alert configuration.
 
-Request
-```````
+   * - ``PATCH``
 
-.. code-block:: none
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID} </reference/api/alert-configurations-enable-disable-config>`
 
-   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs/533dc40ae4b00835ff81eaee"
+     - Enable/disable an alert configuration.
 
-Response
-````````
+   * - ``DELETE``
 
-.. code-block:: none
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID} </reference/api/alert-configurations-delete-config>`
 
-   HTTP/1.1 200 OK
+     - Delete an alert configuration.
 
-   {
-     "id" : "533dc40ae4b00835ff81eaee",
-     "groupId" : "535683b3794d371327b",
-     "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-     "created" : "2016-08-23T20:26:50Z",
-     "updated" : "2016-08-23T20:26:50Z",
-     "enabled" : true,
-     "matchers" : [ {
-       "field" : "HOSTNAME_AND_PORT",
-       "operator" : "EQUALS",
-       "value" : "mongo.example.com:27017"
-     } ],
-     "notifications" : [ {
-       "typeName" : "SMS",
-       "intervalMin" : 5,
-       "delayMin" : 0,
-       "mobileNumber" : "2343454567"
-     } ],
-     "metricThreshold" : {
-       "metricName" : "ASSERT_REGULAR",
-       "operator" : "LESS_THAN",
-       "threshold" : 99.0,
-       "units" : "RAW",
-       "mode" : "AVERAGE"
-     },
-     "links" : [ ... ]
-   }
+   * - ``GET``
 
-Get All Open Alerts Triggered by an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts </reference/api/alert-configurations-get-open-alerts>`
 
-Request
-```````
+     - Get all open alerts for an alert configuration.
 
-.. code-block:: none
+.. class:: hidden
 
-   curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs/533dc40ae4b00835ff81eaee/alerts"
+   .. toctree::
+      :titlesonly:
 
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount" : 2,
-     "results" : [ {
-       "id" : "53569159300495c7702ee3a3",
-       "groupId" : "535683b3794d371327b",
-       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "status" : "OPEN",
-       "acknowledgedUntil" : "2016-09-01T14:00:00Z",
-       "created" : "2016-08-22T15:57:13.562Z",
-       "updated" : "2016-08-22T20:14:11.388Z",
-       "lastNotified" : "2016-08-22T15:57:24.126Z",
-       "metricName" : "ASSERT_REGULAR",
-       "currentValue" : {
-         "number" : 0.0,
-         "units" : "RAW"
-       },
-       "links" : [ ... ]
-     }, {
-       "id" : "5356ca0e300495c770333340",
-       "groupId" : "535683b3794d371327b",
-       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "status" : "OPEN",
-       "created" : "2016-08-22T19:59:10.657Z",
-       "updated" : "2016-08-22T20:14:11.388Z",
-       "lastNotified" : "2016-08-22T20:14:19.313Z",
-       "metricName" : "ASSERT_REGULAR",
-       "currentValue" : {
-         "number" : 0.0,
-         "units" : "RAW"
-       },
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Create a New Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs" --data '
-   {
-     "eventTypeName" : "NO_PRIMARY",
-     "enabled" : true,
-     "notifications" : [ {
-       "typeName" : "GROUP",
-       "intervalMin" : 5,
-       "delayMin" : 0,
-       "smsEnabled" : false,
-       "emailEnabled" : true
-     } ]
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 201 Created
-
-   {
-     "id" : "57b76ddc96e8215c017ceafb",
-     "created" : "2016-08-19T20:36:44Z",
-     "enabled" : true,
-     "eventTypeName" : "NO_PRIMARY",
-     "groupId" : "535683b3794d371327b",
-     "matchers" : [ ],
-     "notifications" : [ {
-       "delayMin" : 0,
-       "emailEnabled" : true,
-       "intervalMin" : 5,
-       "smsEnabled" : false,
-       "typeName" : "GROUP"
-     } ],
-     "updated" : "2016-08-19T20:36:44Z",
-     "links" : [ ... ],
-
-Update an Existing Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X PUT "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs/57b76ddc96e8215c017ceafb" --data '
-   {
-     "eventTypeName" : "NO_PRIMARY",
-     "enabled" : true,
-     "notifications" : [ {
-       "typeName" : "GROUP",
-       "intervalMin" : 5,
-       "delayMin" : 5,
-       "smsEnabled" : true,
-       "emailEnabled" : false
-     } ]
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "created" : "2016-08-19T20:45:29Z",
-     "enabled" : true,
-     "eventTypeName" : "NO_PRIMARY",
-     "groupId" : "535683b3794d371327b",
-     "id" : "57b76ddc96e8215c017ceafb",
-     "matchers" : [ ],
-     "notifications" : [ {
-       "typeName" : "GROUP",
-       "intervalMin" : 5,
-       "delayMin" : 5,
-       "smsEnabled" : true,
-       "emailEnabled" : false
-     } ],
-     "updated" : "2016-08-19T20:45:29Z",
-     "links" : [ ... ]
-   }
-
-Disable an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs/57b76ddc96e8215c017ceafb" --data '
-   {
-     "enabled" : false
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "created" : "2016-08-19T20:45:29Z",
-     "enabled" : false,
-     "eventTypeName" : "NO_PRIMARY",
-     "groupId" : "535683b3794d371327b",
-     "id" : "57b76ddc96e8215c017ceafb",
-     "matchers" : [ ],
-     "notifications" : [ {
-       "delayMin" : 5,
-       "emailEnabled" : false,
-       "intervalMin" : 5,
-       "smsEnabled" : true,
-       "typeName" : "GROUP"
-     } ],
-     "updated" : "2016-08-19T20:51:49Z",
-     "links" : [ ... ]
-   }
-
-Delete an Alert Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/535683b3794d371327b/alertConfigs/57b76ddc96e8215c017ceafb"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
+      /reference/api/alert-configurations-get-all-configs
+      /reference/api/alert-configurations-create-config
+      /reference/api/alert-configurations-get-config
+      /reference/api/alert-configurations-update-config
+      /reference/api/alert-configurations-enable-disable-config
+      /reference/api/alert-configurations-delete-config
+      /reference/api/alert-configurations-get-open-alerts
