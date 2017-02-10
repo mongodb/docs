@@ -100,7 +100,7 @@ pre: |
 
   The following example adds the first document to the ``processes``
   array. Replace ``<process_name_1>`` with any name you choose, and
-  replace ``<server_1.example.net>`` with the FQDN of the server. You
+  replace ``<server1.example.net>`` with the FQDN of the server. You
   will need to add 9 documents: one for each MongoDB instance in your
   sharded cluster.
 
@@ -115,7 +115,7 @@ action:
         {
             "version": "2.4.12",
             "name": "<process_name_1>",
-            "hostname": "<server_1.example.net>",
+            "hostname": "<server1.example.net>",
             "logRotate": {
                 "sizeThresholdMB": 1000,
                 "timeThresholdHrs": 24
@@ -212,8 +212,7 @@ stepnum: 8
 ref: confirm-update-of-configuration-doc
 pre: |
   Retrieve the automation configuration
-  and confirm it contains the changes. Also confirm that
-  the ``version`` field equals ``2``.
+  and confirm it contains the changes.
 
   To retrieve the automation configuration, issue a command similar to the
   following. Replace the credentials, URL, and group ID as in previous steps.
@@ -222,39 +221,51 @@ action:
   code: |
     curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationConfig" --digest -i
 ---
-title: Check the deployment status to ensure goal state is reached.
+title: Verify that the configuration update is deployed.
 stepnum: 9
 ref: check-deployment-status
-action:
-  - pre: |
-      Use the :doc:`automationStatus </reference/api/automation-status>`
-      resource to retrieve the deployment status. Issue the following
-      command, replacing the credentials, Public API key, URL, and
-      group ID as in previous steps.
-    language: sh
-    code: |
-      curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
-  - pre: |
-      The command returns the ``processes`` array and the ``goalVersion``
-      field. The ``processes`` array contains a document for each server
-      that is to run a MongoDB instance, similar to the following:
-    language: javascript
-    code: |
-      {
-        "plan": [],
-        "lastGoalVersionAchieved": 2,
-        "name": "<process_name_1>",
-        "hostname": "<server_1.example.net>",
-      }
-post: |
-  If any document has a ``lastGoalVersionAchieved`` field equal to ``1``,
-  the configuration is in the process of deploying. The document's ``plan`` field
-  displays the remaining work. Wait several seconds and issue the
-  ``curl`` command again.
+pre: |
+  Use the :doc:`automationStatus </reference/api/automation-status>`
+  resource to verify the configuration update is fully deployed. Issue
+  the following command, replacing the credentials, Public API key, URL,
+  and group ID with your credentials, as in previous steps.
 
-  When all ``lastGoalVersionAchieved`` fields equal the value
-  specified in the ``goalVersion`` field, the new
-  configuration has successfully deployed.
+  .. code-block:: sh
+
+    curl -u "<user@example.net>:<public_api_key>" "http://<app-example.net>/api/public/v1.0/groups/<group_id>/automationStatus" --digest -i
+
+  The ``curl`` command returns a JSON object containing the ``processes``
+  array and the ``goalVersion`` key and value. The ``processes`` array
+  contains a document for each server that hosts a MongoDB instance. 
+  The new configuration is successfully deployed when all ``lastGoalVersionAchieved``
+  fields in the ``processes`` array equal the value specified for ``goalVersion``. 
+
+  In the example response, ``processes[2].lastGoalVersionAchieved``
+  is behind ``goalVersion``. This indicates that the MongoDB instance at 
+  ``server3.example.net`` is running one version behind the ``goalVersion``. 
+  Wait several seconds and issue the ``curl`` command again. 
+
+  .. code-block:: javascript
+
+    {
+      "goalVersion": 2,
+      "processes": [{
+        "hostname": "server1.example.net",
+        "lastGoalVersionAchieved": 2,
+        "name": "ReplSet_0",
+        "plan": []
+      }, {
+        "hostname": "server2.example.net",
+        "lastGoalVersionAchieved": 2,
+        "name": "ReplSet_1",
+        "plan": []
+      }, {
+         "hostname": "server3.example.net",
+         "lastGoalVersionAchieved": 1,
+         "name": "ReplSet_2",
+         "plan":[...]
+      }]
+    }
 
   To view the new configuration in the |mms| web interface, click
   :guilabel:`Deployment`.
