@@ -8,3 +8,7 @@ Style Guide](https://docs.mongodb.com/manual/meta/style-guide/).
 ## Installation Instructions
 
     brew install hugo mmark
+
+## Building Instructions
+
+    make
