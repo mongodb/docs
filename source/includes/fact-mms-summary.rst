@@ -1,7 +1,5 @@
 .. note::
 
-.. include:: /includes/fact-mms-summary.rst
-
    `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_ is a
    cloud-hosted database-as-a-service. |mms-home|, a hosted service,
    and `Ops Manager
