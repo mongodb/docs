@@ -4,12 +4,6 @@ Clusters
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
 The ``clusters`` resource provides access to your cluster configurations. The
 resource lets you create, edit and delete clusters. The resource requires your
 :ref:`group-id`.
@@ -22,480 +16,51 @@ resource lets you create, edit and delete clusters. The resource requires your
 Endpoints
 ---------
 
-Get All Clusters
-~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/clusters
-
-Get a Single Cluster
-~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/atlas/v1.0/groups/GROUP-ID/clusters/CLUSTER-NAME
-
-Create a Cluster
-~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   POST /api/atlas/v1.0/groups/GROUP-ID/clusters
-
-You must include the following fields and their values when creating a new
-cluster:
-
-- ``name``
-- ``providerSettings.instanceSizeName``
-- ``providerSettings.providerName``
-- ``providerSettings.regionName``
-- ``backupEnabled``
-
-All other editable fields are optional. If you do not specify an
-optional field, |service| uses the field's current default value. To view the
-current default values used for new clusters: open the |service| interface;
-click the button to add a cluster; view the default selections; close the
-window without saving changes.
-
-Modify a Cluster
-~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   PATCH /api/atlas/v1.0/groups/GROUP-ID/clusters/CLUSTER-NAME
-
-Modify the fields you want to change. If you specify ``providerSettings``, you
-must also specify ``providerSettings.providerName``. Unspecified fields will
-preserve their current values.
-
-Delete a Cluster
-~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/atlas/v1.0/groups/GROUP-ID/clusters/CLUSTER-NAME
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "name" : "DataStore",
-     "groupId" : "5356823b3794de37132bb7b",
-     "mongoDBVersion" : "3.2.8",
-     "mongoURI" : "mongodb://datastore-shard-00-00-ub6lu.mongodb.net:27017,datastore-shard-00-01-ub6lu.mongodb.net:27017,datastore-shard-00-02-ub6lu.mongodb.net:27017",
-     "mongoURIUpdated" : "2016-08-02T20:16:23Z",
-     "numShards" : 1,
-     "replicationFactor" : 3,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "regionName" : "US_EAST_1",
-       "instanceSizeName" : "M30",
-       "diskIOPS" : 120,
-       "encryptEBSVolume" : false
-     },
-     "diskSizeGB" : 40,
-     "backupEnabled" : true,
-     "stateName" : "IDLE"
-   }
-
-Entity Fields
--------------
-
-.. list-table::
-   :widths: 20 10 70
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``name``
-     - string
-     - The name of the cluster as it appears in |service|. Once the cluster is
-       created, its name cannot be changed.
-
-   * - ``groupId``
-     - string
-     - ID of the group the cluster belongs to. This field is read-only.
-
-   * - ``mongoDBVersion``
-     - string
-     - The version of MongoDB the cluster uses. |service| deploys the latest
-       released version of the MongoDB Community Edition. As new maintenance
-       releases become available, |service| upgrades the cluster via a rolling
-       process that maintains cluster availability. This field is read-only.
-
-   * - ``mongoURI``
-     - string
-     - The :manual:`connection string </reference/connection-string>` for
-       connecting to the cluster through a :manual:`MongoDB driver
-       </applications/drivers>` or the :program:`mongo` shell. To download the
-       :program:`mongo` shell, click a cluster's :guilabel:`Connect` button
-       and follow the download instructions.
-
-       When you create a new cluster, the ``mongoURI`` will not show up while
-       the cluster is being built. |service| provides the connection string
-       only after the cluster is running. This field is read-only.
-
-   * - ``mongoURIUpdated``
-     - string
-     - Lists when the connection string was last updated. The connection
-       string changes, for example, if you change a replica set to a sharded
-       cluster. This field is read-only.
-
-   * - ``numShards``
-     - integer
-
-     - Selects whether the cluster is a :term:`sharded cluster` or a
-       :term:`replica set` and specifies the number of shards for a sharded
-       cluster.
-
-       If this is set to ``1``, the cluster is a replica set. For more
-       information on MongoDB replica sets, see :manual:`Replication
-       </replication>` in the MongoDB manual.
-
-       If this is set to ``2`` or higher, the cluster is a sharded cluster
-       with the number of shards specified. For more information on sharded
-       clusters, see :manual:`Sharding </sharding>` in the MongoDB manual.
-
-       For details on how this setting affects costs, see
-       :ref:`server-number-costs`.
-
-       The possible values are ``1`` through ``12``.
-
-       The default value is ``1``.
-
-   * - ``replicationFactor``
-     - number
-     - The number of :term:`replica set` members. Each member keeps a copy of
-       your databases, providing high availability and data redundancy.
-
-       If your cluster is a sharded cluster, each shard is a replica set with
-       the specified replication factor.
-
-       For information on how the replication factor affects costs, see
-       :ref:`server-number-costs`. For more information on MongoDB replica
-       sets, see :manual:`Replication </replication>` in the MongoDB manual.
-
-       The possible values are ``3``, ``5``, or ``7``.
-
-       The default value is ``3``.
-
-   * - ``providerSettings``
-     - object
-     - The configuration for the provisioned servers on which MongoDB runs.
-       The available options are specific to the cloud service provider.
-
-   * - ``providerSettings.providerName``
-     - string
-     - The cloud service provider on which the servers are provisioned.
-
-       |service| currently integrates with Amazon Web Services (AWS). This
-       field must be set to ``AWS`` until other integrations become available.
-
-   * - ``providerSettings.regionName``
-     - string
-     - The physical location of your MongoDB cluster. The region you choose
-       can affect network latency for clients accessing your databases.
-
-       .. include:: /includes/fact-group-region-association.rst
-
-       For ``AWS``, |service| currently uses the following values. |service|
-       might also offer additional values in the future.
-
-       - ``AP_SOUTHEAST_2``
-       - ``EU_WEST_1``
-       - ``US_EAST_1``
-       - ``US_WEST_2``
-
-   * - ``providerSettings.instanceSizeName``
-     - string
-     - |service| provides different instance sizes, each with a default RAM
-       size, storage capacity, and maximum storage speed. The instance size
-       you select is used for all the data-bearing servers in your cluster.
-       For definitions of data-bearing servers, see
-       :ref:`server-number-costs`.
-
-       You can customize the instance size using the ``diskSizeGB`` and
-       ``providerSettings.diskIOPS`` fields. Doing so affects costs, as
-       described in :doc:`/billing`.
-
-       In the API, enter the instance size exactly as it is named in the
-       interface. For example, for :guilabel:`M40` enter ``M40``.
-
-       To view available instance sizes: open the |service| web interface;
-       view an existing configuration or click the button to add a new one;
-       view the available instance sizes; close the window without saving
-       changes.
-
-   * - ``providerSettings.diskIOPS``
-     - integer
-
-     - The maximum input/output operations per second (IOPS) the system can
-       perform. The available IOPS depend on the instance size: each instance
-       size has a specific set of available IOPS values. To view available
-       values, use the |service| interface to either view an existing
-       configuration or add a new one; then click an instance size to view the
-       available values; and then close the configuration without saving
-       changes.
-
-       The default value for ``providerSettings.diskIOPS`` is the same as the
-       instance size's :guilabel:`Standard IOPS` value, as viewable in the
-       |service| interface.
-
-   * - ``providerSettings.encryptEBSVolume``
-     - Boolean
-     - *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
-       server's root volume for both data at rest within the volume and for
-       data moving between the volume and the instance.
-
-       The default value is ``false``.
-
-   * - ``diskSizeGB``
-     - double
-     - The size in gigabytes of the server's root volume. You can add capacity
-       by increasing this number, up to a maximum possible value of ``16384``
-       (i.e., 16 TB).
-
-       Each instance size has its own default value. If you set a value below
-       the instance default, |service| replaces it with the default value.
-       To view default values: open the |service| web interface; click the
-       button to add a new cluster; view the available default sizes; close
-       the window without saving changes.
-
-       .. important:: |service| calculates storage charges differently
-          depending on whether you choose the default value or a custom value.
-          For details, see :ref:`storage-capacity`.
-
-   * - ``backupEnabled``
-     - Boolean
-     - If enabled, the |service| :doc:`Backup </backup-cluster>` service takes
-       snapshots of your databases at regular intervals and retains them
-       according to your group's :ref:`retention policy <retention-policy>`.
-
-   * - ``stateName``
-     - string
-     - The current state of the cluster. This field is read-only. The possible
-       states are:
-
-       - ``IDLE``
-       - ``CREATING``
-       - ``UPDATING``
-       - ``DELETING``
-       - ``DELETED``
-       - ``REPAIRING``
-
-Links
------
-
 .. list-table::
    :header-rows: 1
+   :widths: 10 60 30
 
-   * - Relation
+   * - Method
+     - Endpoint
      - Description
 
-   * - ``self``
-     - Me
+   * - ``GET``
 
-Examples
---------
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/clusters </reference/api/clusters-get-all>`
 
-Get All Clusters
-~~~~~~~~~~~~~~~~
+     - Get all clusters for the specified group.
 
-Request
-```````
+   * - ``GET``
 
-.. code-block:: none
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME} </reference/api/clusters-get-one>`
 
-   curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters"
+     - Get a cluster in the specified group.
 
-Response
-````````
+   * - ``POST``
 
-.. code-block:: none
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME} </reference/api/clusters-create-one>`
 
-   HTTP/1.1 200 OK
+     - Create a cluster in the specified group.
 
-   {
-     "results" : [ {
-       "name" : "AppData",
-       "backupEnabled" : true,
-       "diskSizeGB" : 160,
-       "groupId" : "5356823b3794de37132bb7b",
-       "mongoDBVersion" : "3.2.8",
-       "mongoURI" : "mongodb://appdata-shard-00-00-ub6lu.mongodb.net:27017,appdata-shard-00-01-ub6lu.mongodb.net:27017,appdata-shard-00-02-ub6lu.mongodb.net:27017",
-       "mongoURIUpdated" : "2016-08-02T20:16:23Z",
-       "numShards" : 1,
-       "providerSettings" : {
-         "providerName" : "AWS",
-         "diskIOPS" : 1320,
-         "encryptEBSVolume" : false,
-         "instanceSizeName" : "M40",
-         "regionName" : "US_WEST_2"
-       },
-       "replicationFactor" : 3,
-       "stateName" : "IDLE"
-     },
-     ...
-     ],
-     "links" : [ ... ],
-     "totalCount" : 4
-   }
+   * - ``PATCH``
 
-Get a Single Cluster
-~~~~~~~~~~~~~~~~~~~~
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME} </reference/api/clusters-modify-one>`
 
-Request
-```````
+     - Update a cluster in the specified group.
 
-.. code-block:: none
+   * - ``DELETE``
 
-   curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/LogData"
+     - :doc:`/api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME} </reference/api/clusters-delete-one>`
 
-Response
-````````
+     - Delete a cluster in the specified group.
 
-.. code-block:: none
+.. class:: hidden
 
-   HTTP/1.1 200 OK
+   .. toctree::
+      :titlesonly:
 
-   {
-     "name" : "LogData",
-     "backupEnabled" : true,
-     "diskSizeGB" : 80,
-     "groupId" : "5356823b3794de37132bb7b",
-     "mongoDBVersion" : "3.2.8",
-     "mongoURI" : "mongodb://logdata-shard-00-00-ub6lu.mongodb.net:37017,logdata-shard-00-01-ub6lu.mongodb.net:37017,logdata-shard-00-02-ub6lu.mongodb.net:37017,logdata-shard-01-00-ub6lu.mongodb.net:37017,logdata-shard-01-01-ub6lu.mongodb.net:37017,logdata-shard-01-02-ub6lu.mongodb.net:37017",
-     "mongoURIUpdated" : "2016-08-02T20:16:23Z",
-     "numShards" : 2,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "diskIOPS" : 240,
-       "encryptEBSVolume" : false,
-       "instanceSizeName" : "M40",
-       "regionName" : "US_EAST_1"
-     },
-     "replicationFactor" : 3,
-     "stateName" : "IDLE"
-   }
-
-Create a Cluster
-~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters" --data '
-   {
-     "name" : "DataStore2",
-     "diskSizeGB" : 160,
-     "numShards" : 1,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "diskIOPS" : 1320,
-       "encryptEBSVolume" : false,
-       "instanceSizeName" : "M40",
-       "regionName" : "EU_WEST_1"
-     },
-     "replicationFactor" : 3,
-     "backupEnabled" : true
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 201 Created
-
-   {
-     "name" : "DataStore2",
-     "backupEnabled" : true,
-     "diskSizeGB" : 160,
-     "groupId" : "5356823b3794de37132bb7b",
-     "mongoDBVersion" : "3.2.8",
-     "mongoURIUpdated" : "2016-07-31T07:44:06Z",
-     "numShards" : 1,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "diskIOPS" : 1320,
-       "encryptEBSVolume" : false,
-       "instanceSizeName" : "M40",
-       "regionName" : "EU_WEST_1"
-     },
-     "replicationFactor" : 3,
-     "stateName" : "CREATING"
-   }
-
-Modify a Cluster
-~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/datastore2" --data '
-   {
-     "diskSizeGB" : 320,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "diskIOPS" : 2400,
-       "encryptEBSVolume" : false,
-       "instanceSizeName" : "M40",
-       "regionName" : "EU_WEST_1"
-     },
-     "replicationFactor" : 3
-   }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "name" : "datastore2",
-     "backupEnabled" : true,
-     "diskSizeGB" : 320,
-     "groupId" : "5356823b3794de37132bb7b",
-     "mongoDBVersion" : "3.2.8",
-     "mongoURI" : "mongodb://datastore2-shard-00-00-ub6lu.mongodb.net:27017,datastore2-shard-00-01-ub6lu.mongodb.net:27017,datastore2-shard-00-02-ub6lu.mongodb.net:27017",
-     "mongoURIUpdated" : "2016-08-03T15:19:24Z",
-     "numShards" : 1,
-     "providerSettings" : {
-       "providerName" : "AWS",
-       "diskIOPS" : 2400,
-       "encryptEBSVolume" : false,
-       "instanceSizeName" : "M40",
-       "regionName" : "EU_WEST_1"
-     },
-     "replicationFactor" : 3,
-     "stateName" : "UPDATING"
-   }
-
-Delete a Cluster
-~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. code-block:: none
-
-   curl -i -u "username:apiKey" --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/Cluster01"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 202 Accepted
-
-   {}
+      /reference/api/clusters-get-all
+      /reference/api/clusters-get-one
+      /reference/api/clusters-create-one
+      /reference/api/clusters-modify-one
+      /reference/api/clusters-delete-one

@@ -1,0 +1,243 @@
+================
+Modify a Cluster
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. include:: /includes/api-requirements.rst
+
+.. include:: /includes/api-base-url.rst
+
+Syntax
+------
+
+.. code-block:: none
+
+   POST /api/atlas/v1.0/groups/{GROUP-ID}/clusters{CLUSTER-NAME}
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 10 75
+
+   * - Path Element
+     - Required/Optional
+     - Description
+
+   * - ``GROUP-ID``
+
+     - Required.
+
+     - The unique identifier for the :ref:`group <group-id>` containing the
+       cluster.
+
+   * - ``CLUSTER-NAME``
+
+     - Required
+
+     - The name of the cluster to modify.
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   If modifying any of the ``providerSettings`` values, you *must*
+   specify the ``providerSettings.providerName``.
+
+.. list-table::
+   :widths: 20 10 70
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``numShards``
+     - integer
+     - Selects whether the cluster is a :term:`replica set` or a
+       :term:`sharded cluster`.
+
+       If this is set to ``1``, the cluster is a replica set. For more
+       information on MongoDB replica sets, see :manual:`Replication
+       </replication>` in the MongoDB manual.
+
+       If this is set to ``2`` or higher, the cluster is a sharded cluster
+       with the number of shards specified. For more information on sharded
+       clusters, see :manual:`Sharding </sharding>` in the MongoDB manual.
+
+       For details on how this setting affects costs, see
+       :ref:`server-number-costs`.
+
+       The possible values are ``1`` through ``12``.
+
+   * - ``replicationFactor``
+     - number
+     - The number of :term:`replica set` members. Each member keeps a copy of
+       your databases, providing high availability and data redundancy.
+
+       If your cluster is a sharded cluster, each shard is a replica set with
+       the specified replication factor.
+
+       For information on how the replication factor affects costs, see
+       :ref:`server-number-costs`. For more information on MongoDB replica
+       sets, see :manual:`Replication </replication>` in the MongoDB manual.
+
+       The possible values are ``3``, ``5``, or ``7``.
+
+   * - ``providerSettings``
+     - object
+     - The configuration for the provisioned servers on which MongoDB runs.
+       The available options are specific to the cloud service provider.
+
+   * - ``providerSettings.providerName``
+     - string
+     - The cloud service provider on which the servers are provisioned.
+
+       |service| currently integrates with Amazon Web Services (AWS). This
+       field must be set to ``AWS`` until other integrations become available.
+       
+       You must include this value if modifying any of the other
+       ``providerSettings``.
+
+   * - ``providerSettings.regionName``
+     - string
+     - The physical location of your MongoDB cluster. The region you choose
+       can affect network latency for clients accessing your databases.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       For ``AWS``, |service| currently uses the following values. |service|
+       might also offer additional values in the future.
+
+       - ``AP_SOUTHEAST_2``
+       - ``EU_WEST_1``
+       - ``US_EAST_1``
+       - ``US_WEST_2``
+       
+       You must include ``providerSettings.providerName`` if modifying this
+       value.
+
+   * - ``providerSettings.instanceSizeName``
+     - string
+     - |service| provides different instance sizes, each with a default RAM
+       size, storage capacity, and maximum storage speed. The instance size
+       you select is used for all the data-bearing servers in your cluster.
+       For definitions of data-bearing servers, see
+       :ref:`server-number-costs`.
+
+       You can customize the instance size using the ``diskSizeGB`` and
+       ``providerSettings.diskIOPS`` fields. Doing so affects costs, as
+       described in :doc:`/billing`.
+
+       In the API, enter the instance size exactly as it is named in the
+       interface. For example, for :guilabel:`M40` enter ``M40``.
+
+       To view available instance sizes: open the |service| web interface;
+       view an existing configuration or click the button to add a new one;
+       view the available instance sizes; close the window without saving
+       changes.
+       
+       You must include ``providerSettings.providerName`` if modifying this
+       value.
+
+   * - ``providerSettings.diskIOPS``
+     - integer
+     - The maximum input/output operations per second (IOPS) the system can
+       perform. The available IOPS depend on the instance size: each instance
+       size has a specific set of available IOPS values. To view available
+       values, use the |service| interface to either view an existing
+       configuration or add a new one; then click an instance size to view the
+       available values; and then close the configuration without saving
+       changes.
+       
+       You must include ``providerSettings.providerName`` if modifying this
+       value.
+
+   * - ``providerSettings.encryptEBSVolume``
+     - Boolean
+     - *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
+       server's root volume for both data at rest within the volume and for
+       data moving between the volume and the instance.
+       
+       You must include ``providerSettings.providerName`` if modifying this
+       value.
+
+   * - ``diskSizeGB``
+     - double
+     - The size in gigabytes of the server's root volume. You can add capacity
+       by increasing this number, up to a maximum possible value of ``16384``
+       (i.e., 16 TB).
+
+       .. important:: |service| calculates storage charges differently
+          depending on whether you choose the default value or a custom value.
+          For details, see :ref:`storage-capacity`.
+
+   * - ``backupEnabled``
+     - Boolean
+     - If enabled, the |service| :doc:`Backup </backup-cluster>` service takes
+       snapshots of your databases at regular intervals and retains them
+       according to your group's :ref:`retention policy <retention-policy>`.
+
+HTTP Response Elements
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/list-table-cluster-http-response.rst
+
+Example
+-------
+
+Request
+~~~~~~~
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/datastore2" --data '
+   {
+     "diskSizeGB" : 320,
+     "providerSettings" : {
+       "providerName" : "AWS",
+       "diskIOPS" : 2400,
+       "encryptEBSVolume" : false,
+       "instanceSizeName" : "M40",
+       "regionName" : "EU_WEST_1"
+     },
+     "replicationFactor" : 3
+   }'
+
+Response
+~~~~~~~~
+
+.. code-block:: none
+
+   HTTP/1.1 200 OK
+
+   {
+     "name" : "datastore2",
+     "backupEnabled" : true,
+     "diskSizeGB" : 320,
+     "groupId" : "5356823b3794de37132bb7b",
+     "mongoDBVersion" : "3.2.8",
+     "mongoURI" : "mongodb://datastore2-shard-00-00-ub6lu.mongodb.net:27017,datastore2-shard-00-01-ub6lu.mongodb.net:27017,datastore2-shard-00-02-ub6lu.mongodb.net:27017",
+     "mongoURIUpdated" : "2016-08-03T15:19:24Z",
+     "numShards" : 1,
+     "providerSettings" : {
+       "providerName" : "AWS",
+       "diskIOPS" : 2400,
+       "encryptEBSVolume" : false,
+       "instanceSizeName" : "M40",
+       "regionName" : "EU_WEST_1"
+     },
+     "replicationFactor" : 3,
+     "stateName" : "UPDATING"
+   }
