@@ -1,3 +1,14 @@
+.. _backup-5.0.6.477:
+
+Backup Agent 5.0.6.477
+----------------------
+
+*Released with Ops Manager 3.4.3 on 2017-02-17*
+
+- Built with Go 1.7.
+
+- Support for MacOS Sierra.
+
 .. _backup-5.0.5.472:
 
 Backup Agent ``5.0.5.472``

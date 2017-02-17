@@ -1,3 +1,14 @@
+.. _monitoring-5.4.4.366:
+
+Monitoring Agent ``5.4.4.366``
+------------------------------
+
+*Released with Ops Manager 3.4.3 on 2017-02-17*
+
+- Built with Go 1.7.
+
+- Support for MacOS Sierra
+
 .. _monitoring-5.4.3.361:
 
 Monitoring Agent ``5.4.3.361``
