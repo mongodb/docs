@@ -28,8 +28,7 @@ deploy: build/public ## Deploy to the production bucket
 	@echo "Doing a dry-run"
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose --dry-run --redirect-prefix='bi-connector' ${ARGS}
 
-	@echo
-	read -p "Press any key to perform the previous"
+	@echo 'Press any key to perform the previous' && read result
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='bi-connector' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
