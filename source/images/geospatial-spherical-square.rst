@@ -1,3 +1,3 @@
-.. figure:: /images/geospatial-spherical-square.bakedsvg.svg
+.. figure:: /images/geospatial-spherical-square.png
    :alt: Diagram of a square projected onto a sphere.
    :figwidth: 500px
