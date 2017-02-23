@@ -78,5 +78,15 @@
 
      - Sends an HTTP POST request to an endpoint for programmatic processing.
        The request body contains a JSON document that uses the same format as
-       the |service| API's ``Alerts`` resource. This option is available only if
-       you have configured Webhook settings on the ``Group Settings`` page.
+       the |service| API's ``Alerts`` resource. This option is available only
+       if you have configured Webhook settings on the ``Group Settings`` page.
+       
+       Grant the following CIDR ranges access to the endpoint resource:
+       
+       - 4.71.186.128/25
+       - 4.35.16.128/25
+       
+       .. important::
+       
+          MongoDB reserves the right to change these IP addresses at any time
+          without user notice.
