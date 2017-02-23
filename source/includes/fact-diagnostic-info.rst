@@ -1,7 +1,8 @@
-:method:`db.currentOp()` and the
+|operation| and the
 :doc:`database profiler</reference/database-profiler>` report the same
 basic diagnostic information for all CRUD operations, including the
-following.
+following:
+
 
 - :dbcommand:`aggregate`
 - :dbcommand:`count`
