@@ -12,4 +12,8 @@ exceeds this limit, MongoDB will produce an error. To allow for the
 handling of large datasets, use the ``allowDiskUse`` option to enable
 aggregation pipeline stages to write data to temporary files.
 
+.. version-changed:: 3.4
+
+.. include:: /includes/fact-graphlookup-memory-restrictions.rst
+
 .. seealso:: :ref:`sort-memory-limit` and :ref:`group-memory-limit`.
