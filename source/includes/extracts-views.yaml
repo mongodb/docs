@@ -3,15 +3,31 @@ content: |
 
    Views exhibit the following behavior:
 
-   - Views are read-only; write operations on views will error.
+   Read Only
+   ~~~~~~~~~
 
+   Views are read-only; write operations on views will error.
+
+   Index Use and Sort Operations
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
    - Views use indexes of the underlying collection.
+ 
+   - .. include:: /includes/extracts/views-unsupported-natural-sort.rst
+   
+   Projection Restrictions
+   ~~~~~~~~~~~~~~~~~~~~~~~
 
-   - Views are considered sharded if their underlying collection is
-     sharded. As such, you cannot specify a sharded view for the
-     ``from`` field in :pipeline:`$lookup` and :pipeline:`$graphLookup`
-     operations.
+   .. include:: /includes/extracts/views-unsupported-projection-operators.rst
 
+   Immutable Name
+   ~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/views-unsupported-rename.rst
+
+   View Creation
+   ~~~~~~~~~~~~~
+   
    - Views are computed on demand during read operations, and MongoDB
      executes read operations on views as part of the underlying
      aggregation pipeline. As such, views do not support operations
@@ -24,22 +40,26 @@ content: |
 
      - :dbcommand:`geoNear` command and :pipeline:`$geoNear` pipeline stage.
 
-   - .. include:: /includes/extracts/views-unsupported-projection-operators.rst
-
    - If the aggregation pipeline used to create the view suppresses the
      ``_id`` field, documents in the view do not have the ``_id`` field.
 
-   - .. include:: /includes/extracts/views-unsupported-rename.rst
+   Sharded View
+   ~~~~~~~~~~~~
    
-   - .. include:: /includes/extracts/views-collation-behavior.rst
-   
-   - .. include:: /includes/extracts/views-unsupported-natural-sort.rst
-     
-     For example, the following operation is *invalid*:
+   Views are considered sharded if their underlying collection is
+   sharded. As such, you cannot specify a sharded view for the ``from``
+   field in :pipeline:`$lookup` and :pipeline:`$graphLookup` operations.
+
+   For example, the following operation is *invalid*:
         
-     .. code-block:: javascript
-     
-        db.view.find().sort({$natural: 1})
+   .. code-block:: javascript
+
+      db.view.find().sort({$natural: 1})
+
+   Views and Collation
+   ~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/views-collation-behavior.rst
 
 ---
 ref: views-unsupported-natural-sort
@@ -108,9 +128,24 @@ replacement:
 ---
 ref: views-collation-behavior
 content: |
-   String comparisons on the view use the view's default collation. An
-   operation that attempts to change or override a view's default
-   collation will fail with an error.
+
+   - You can specify a default :doc:`collation </reference/collation>`
+     for a view at creation time. If no collation is specified, the
+     view's default collation is the "simple" binary comparison
+     collator. That is, the view does not inherit the collection's
+     default collation.
+
+   - String comparisons on the view use the view's default collation.
+     An operation that attempts to change or override a view's default
+     collation will fail with an error.
+
+   - If creating a view from another view, you cannot specify a
+     collation that differs from the source view's collation.
+
+   - If performing an operation involving multiple views, such as with
+     :pipeline:`$lookup` or :pipeline:`$graphLookup`, the views must
+     have the same collation.
+   
 ---
 ref: views-public-definition
 content: |
