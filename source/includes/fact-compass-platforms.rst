@@ -11,8 +11,9 @@
    * - Supported?
      - |checkmark|
      - |checkmark|
-     -
+     - |checkmark|
    * - OS Version
      - 10.10 and above (64-bit)
      - 7 and above (64-bit)
-     - N/A
+     - | Ubuntu 14.04+
+       | RHEL 7+ (64-bit)
