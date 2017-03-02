@@ -15,11 +15,17 @@
      - ID of the group the cluster belongs to.
 
    * - ``mongoDBVersion``
+     - string     
+     - The version of MongoDB the cluster runs, in 
+       ``<major version>.<minor version>`` format.
+       
+   * - ``mongoDBMajorVersion``
      - string
-     - The version of MongoDB the cluster uses. |service| deploys the latest
-       released version of the MongoDB Community Edition. As new maintenance
-       releases become available, |service| upgrades the cluster via a rolling
-       process that maintains cluster availability.
+     - The major version of MongoDB the cluster runs. |service| supports
+       the following MongoDB versions:
+       
+       - 3.2
+       - 3.4
 
    * - ``mongoURI``
      - string

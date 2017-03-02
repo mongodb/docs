@@ -9,7 +9,9 @@
 
    * - :guilabel:`MongoDB Version`
 
-     - The MongoDB version [#version]_ for your cluster.
+     - The MongoDB version [#version]_ for your cluster. |service|
+       always deploys the cluster with the latest stable release of the
+       specified version.
 
        .. include:: /includes/extracts/fact-mongodb-version-create-a-cluster.rst
 
