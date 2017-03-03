@@ -157,8 +157,8 @@ name:  sslCAFile
 args: <file>
 description: |
    The .pem file that contains the root certificate chain from the
-   Certificate Authority(CA). Specify the file using relative or
-   absolute paths.
+   Certificate Authority(CA) for the source replica set. Specify the
+   file using relative or absolute paths.
 optional: true
 directive: option
 ---
@@ -166,7 +166,7 @@ program: mongomirror
 name:  sslCRLFile
 args: <filename>
 description: |
-   The .pem file that contains the Certificate Revocation List. Specify
+   The .pem file that contains the Certificate Revocation List for the source replica set. Specify
    the file using relative or absolute paths.
 optional: true
 directive: option
@@ -175,10 +175,9 @@ program: mongomirror
 name: sslAllowInvalidHostnames
 args: null
 description: |
-
-   Disables the validation of the hostnames in TLS/SSL certificates.
-   Allows :program:`mongomirror` to connect to MongoDB instances even if the
-   hostname in their certificates does not match the specified hostname.
+   Disables the validation of the hostnames in TLS/SSL certificates presented by the source replica set.
+   Allows :program:`mongomirror` to connect to the source replica set if the
+   hostname in the certificates does not match the specified hostname.
 optional: true
 directive: option
 ---
@@ -186,7 +185,7 @@ program: mongomirror
 name: sslAllowInvalidCertificates
 args: null
 description : |
-   Bypasses the validation checks for server certificates and allows
+   Bypasses the validation checks for certificates presented by the source replica set and allows
    the use of invalid certificates. When using the
    ``--allowInvalidCertificates`` setting, MongoDB logs as a warning the
    use of the invalid certificate.
@@ -197,8 +196,9 @@ program: mongomirror
 name: gssapiServiceName
 args: <name>
 description: |
-   The name of the service using GSSAPI/Kerberos. Only required if the
-   service does not use the default name of ``mongodb``.
+   If the source replica set uses Kerberos authentication, the name of the service
+   using GSSAPI/Kerberos. Only required if the service does not use the
+   default name of ``mongodb``.
 
    This option is available only in MongoDB Enterprise.
 optional: true
@@ -208,9 +208,9 @@ program: mongomirror
 name: gssapiHostName
 args: <host>
 description: |
-   The hostname of a service using GSSAPI/Kerberos. Only required if
-   the hostname of a machine does not match the hostname resolved by
-   DNS.
+   If the source replica set uses Kerberos authentication, the hostname of a service
+   using GSSAPI/Kerberos. Only required if the hostname of a machine
+   does not match the hostname resolved by DNS.
 
    This option is available only in MongoDB Enterprise.
 optional: true
@@ -221,10 +221,19 @@ program: mongomirror
 name: readPreference
 args: <read preference>
 description: |
-   Read preference. Can specify read preference name (e.g.
-   ``--readPreference primary``) or a preference JSON object (e.g.
-   ``--readPreference '{mode: primary}'``).
-   
+   Read preference that :program:`mongomirror` uses to read from the
+   source replica set. Can specify read preference name, e.g.
+
+   .. code-block:: sh
+
+      mongomirror --readPreference primary  ...
+
+   or as a JSON object; e.g.
+
+   .. code-block:: sh
+
+      mongomirror --readPreference '{mode: primary}' ...
+
 optional: true
 directive: option
 ---
@@ -234,37 +243,29 @@ args: <write concern>
 default: majority
 description: |
 
-   The write concern. Can specify write concern name (e.g.
-   ``--writeConcern majority``) or as a json object (e.g. ``--writeConcern
-   '{w: 3, wtimeout: 500, fsync: true, j: true}'``)
+   The write concern that :program:`mongomirror` uses on the target
+   cluster during the initial sync. Can specify write concern name; e.g.
+   
+   .. code-block:: sh
+   
+      mongomirror --writeConcern majority ...
+      
+   or as a json object; e.g.
+   
+   .. code-block:: sh
+   
+      mongomirror --writeConcern '{w: 3, wtimeout: 500, fsync: true, j: true}'  ...
+
 optional: true
 directive: option
 ---
 program: mongomirror
 name: numParallelCollections
 aliases: -j
+default: 4
 args: <num>
 description: |
    The number of collections to copy and restore in parallel.
-optional: true
-directive: option
----
-program: mongomirror
-name: noIndexRestore
-args: null
-default: 4
-description: |
-   Flag that indicates that mongomirror should not recreate indexes on
-   the target cluster.
-optional: true
-directive: option
----
-program: mongomirror
-name: noOptionsRestore
-args: null
-description: |
-   Flag that indicates that mongomirror should not copy over the
-   collection options to the target cluster.
 optional: true
 directive: option
 ---
@@ -306,4 +307,15 @@ description: |
    even if a nonempty bookmark file exists.
 optional: true
 directive: option
+---
+program: mongomirror
+name: drop
+args: null
+description: |
+   Flag that indicates that mongomirror should drop all but the
+   ``system.*`` collections in the target cluster.
+
+optional: true
+directive: option
+
 ...

@@ -1,0 +1,101 @@
+title: "Set up MongoDB user in the source replica set."
+level: 4
+ref: mongomirror-user-source
+content: |
+
+   If the source replica set requires authentication, you must specify
+   a source MongoDB user that has privileges to read any database,
+   including the ``local`` database. For example, a user with
+   :manual:`backup </reference/built-in-roles/#backup>` role provides
+   these privileges.
+
+   If the source replica set requires authentication and no such user
+   exists, create the user in your source MongoDB replica set. For
+   example, if the source replica set uses SCRAM-SHA1 authentication:
+
+   #. Connect a :program:`mongo <bin.mongo>` shell to the primary.
+
+   #. Switch to the ``admin`` database and create a user with the  ``backup`` role.
+
+      .. code-block:: javascript
+
+         use admin
+         db.createUser( { user: "mySourceUser", pwd: "mySourcePassword", roles: [ "backup" ] } )
+---
+title: "Set up MongoDB user in the target |service| cluster."
+level: 4
+ref: mongomirror-user-target
+content: |
+
+   To run :program:`mongomirror`, you must specify a MongoDB user that
+   has :manual:`readWriteAnyDatabase
+   </reference/built-in-roles/#readWriteAnyDatabase>` and
+   :manual:`dbAdminAnyDatabase
+   </reference/built-in-roles/#dbAdminAnyDatabase>` privileges in the
+   Atlas cluster. For example, a user with :atlasrole:`Atlas admin` role
+   provides these privileges.
+
+   If no such user exists, create the user:
+
+   #. Go to :guilabel:`Clusters` view, select the :guilabel:`Security`
+      tab, and then :guilabel:`Users`.
+
+   #. Click :guilabel:`Add New User`.
+
+   #. Add an :guilabel:`Atlas admin` user.
+---
+title: "Open the connect dialog." 
+level: 4
+ref: mongomirror-connect-dialog
+content: |
+   From the :guilabel:`Clusters` view, click :guilabel:`Connect` for
+   the |service| cluster into which you want to migrate data.
+---
+title: "Update IP Whitelist."
+level: 4
+ref: connect-details
+content: |
+
+  If the host where you will run :program:`mongomirror` is not in the
+  :doc:`IP Whitelist </security-whitelist>`, update the list. You can
+  specify either:
+     
+  - The public IP address of the server on which :program:`mongomirror` will run, or
+  
+  - If set up for VPC peering, either the peer's VPC CIDR block (or a
+    subnet) or the peer VPC's Security Group.
+---
+title: "Copy the target cluster host information."
+level: 4
+ref: connect
+content: |
+   From the connect dialog, get the cluster host information. This
+   information is specified to :program:`mongomirror` in the
+   ``--destination`` option.
+   
+   If the |service| cluster is a replica set, you must also retrieve
+   the replica set name.
+---
+title: "Start ``mongomirror``."
+level: 4
+ref: mongomirror-run
+pre: |
+
+   From a terminal, start :program:`mongomirror` with the appropriate
+   options.
+
+   For example, if the source replica set uses SCRAM-SHA1 authentication,
+action: 
+   language: sh
+   code: |
+      mongomirror --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 \
+         --user mySourceUser \
+         --password mySourcePassword \
+         --authenticationDatabase admin \
+         --destination myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 \
+         --destinationUsername myAtlasAdminUser \
+         --destinationPassword atlasPassw0Rd
+post: |
+   See :ref:`mongomirror-options` for more :program:`mongomirror`
+   options.
+...
