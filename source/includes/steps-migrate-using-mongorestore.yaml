@@ -16,6 +16,7 @@ content: |
 
    #. Switch to the ``admin`` database and create a user with the  ``backup`` role.
 
+      .. class:: copyable-code
       .. code-block:: javascript
 
          use admin
@@ -73,7 +74,12 @@ content: |
    ``--host`` option.
    
    If the |service| cluster is a replica set, you must also retrieve
-   the replica set name.
+   the replica set name.  For example:
+
+   .. code-block:: none
+
+      myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017
+
 ---
 title: "Run mongodump and mongorestore."
 level: 4
@@ -83,12 +89,23 @@ pre: |
    For example, if the source is a replica set that uses SCRAM-SHA1
    authentication, the following operation pipes the output from
    :program:`mongodump` directly to :program:`mongorestore`.
+   
+   .. note:: 
+         :program:`mongorestore <bin.mongorestore>` errors when merging
+         in MongoDB users and roles data into |service|. If using
+         :program:`mongorestore <bin.mongorestore>` version 3.4 or
+         greater, you can exclude specific collections from the restore
+         using ``--nsExclude`` option.
+
+   The following operation assumes a version 3.4 :program:`mongorestore
+   <bin.mongorestore>` and includes the ``--nsExclude`` option.
 action: 
+   copyable: true
    language: sh
    code: |
    
       mongodump --host sourceRS/source-host1:27017,source-host2:27017,source-host3:27017 --archive --ssl -u mySourceUser -p mySourcePassword --authenticationDatabase admin | \
-      mongorestore --host myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 --archive --ssl -u myAtlasAdminUser -p atlasPassw0Rd --authenticationDatabase admin 
+      mongorestore --host myAtlasRS/atlas-host1:27017,atlas-host2:27017,atlas-host3:27017 --archive --ssl -u myAtlasAdminUser -p atlasPassw0Rd --authenticationDatabase admin --nsExclude 'admin.system.users' --nsExclude 'admin.system.roles'
 post: |
 
    Add/edit the :program:`mongodump <bin.mongodump>` command line
