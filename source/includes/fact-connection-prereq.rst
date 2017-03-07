@@ -1,6 +1,10 @@
 - TLS/SSL
    Clients must have support for TLS/SSL to connect to an |service|
    cluster.
+   
+   Clients must have support for the 
+   `SNI <https://tools.ietf.org/html/rfc6066#section-3>`_ 
+   TLS extension to connect to an |service| M0 Free Tier cluster.
 
 - Whitelist
    To access a cluster, you must connect from an IP address on the
