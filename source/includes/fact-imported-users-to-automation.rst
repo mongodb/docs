@@ -19,7 +19,6 @@ will have the security settings of the newly imported deployment.
 
 Imports MongoDB Users and Roles
 ```````````````````````````````
-
 .. note::
 
    The following applies for situations where at least either the
