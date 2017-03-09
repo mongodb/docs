@@ -22,7 +22,7 @@
    * - Suse 12
      - `mongomirror-linux-x86_64-suse12-0.2.0.tgz <https://s3.amazonaws.com/mciuploads/mongomirror/binaries/linux/mongomirror-linux-x86_64-suse12-0.2.0.tgz>`_
    * - Ubuntu 14.04
-     - `mongomirror-linux-x86_64-ubuntu1404-0.2.0.tgz <https://s3.amazonaws.com/mciuploads/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1404-0.2.0.tg>`_
+     - `mongomirror-linux-x86_64-ubuntu1404-0.2.0.tgz <https://s3.amazonaws.com/mciuploads/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1404-0.2.0.tgz>`_
    * - Windows
      - `mongomirror-win32-x86_64-0.2.0.zip <https://s3.amazonaws.com/mciuploads/mongomirror/binaries/win32/mongomirror-win32-x86_64-0.2.0.zip>`_
    
