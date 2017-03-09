@@ -1,6 +1,5 @@
 title: "Set up a **RHEL 6+** or **Amazon Linux** server that meets the following requirements:"
 stepnum: 1
-level: 4
 ref: set-up-server
 content: |
 
@@ -17,98 +16,97 @@ content: |
 
 ---
 title: "Configure the ``yum`` package management system to install the latest stable release of MongoDB."
-stepnum: 2
-level: 4
 ref: config-yum
 pre: |
   Issue the following command to set up a ``yum`` repository definition:
 action:
+  copyable: true
   language: sh
   code: |
-    echo "[mongodb-org-3.2]
+    echo "[mongodb-org-3.4]
     name=MongoDB Repository
-    baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.2/x86_64/
-    gpgcheck=0
-    enabled=1" | sudo tee /etc/yum.repos.d/mongodb.repo
+    baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.4/x86_64/
+    gpgcheck=1
+    enabled=1
+    gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
 ---
 title: "Install MongoDB."
-stepnum: 3
-level: 4
 ref: install-mongodb
 pre: |
   Issue the following command to install the latest stable release of MongoDB:
 action:
+  copyable: true
   language: sh
   code: |
     sudo yum install -y mongodb-org mongodb-org-shell
 ---
-title: "Create the data directory for the |application| Database."
-stepnum: 4
-level: 4
+title: "Create the data directory for the Ops Manager Application Database."
 ref: create-data-dir
 action: 
-  - pre: |
-      Issue the following two commands to create the data directory and
-      change its ownership:
-    language: sh
-    code: |
-      sudo mkdir -p /data/appdb
-      sudo chown -R mongod:mongod /data
+  pre: |
+    Issue the following two commands to create the data directory and
+    change its ownership:
+  copyable: true
+  language: sh
+  code: |
+    sudo mkdir -p /data/appdb
+    sudo chown -R mongod:mongod /data
 ---
 title: "Create the backup directory. (Optional)"
-stepnum: 5
-level: 4
 ref: create-backup-dir
 action: 
-  - pre: |
-      To also configure the Backup feature, issue following
-      additional commands for the Backup Database:
-    language: sh
-    code: |
-      sudo mkdir -p /data/backup
-      sudo chown mongod:mongod /data/backup
+  pre: |
+    To configure the Backup feature as well, issue the following
+    additional commands for the Backup Database:
+  copyable: true
+  language: sh
+  code: |
+    sudo mkdir -p /data/backup
+    sudo chown mongod:mongod /data/backup
 ---
 title: "Start MongoDB for the Application Database."
-stepnum: 6
-level: 4
 ref: start-mongod-instance
 action: 
-  - pre: |
+  pre: |
 
-      Start MongoDB as the ``mongod`` user, specifying:
+    Start MongoDB as the ``mongod`` user, specifying:
 
-      * Port ``27017``
-      * The ``/data/appdb`` path for data files (``--dbpath``)
-      * The ``/data/appdb/mongodb.log`` path for logs (``--logpath``)
-      * The ``--fork`` option to run the process in the background 
-        and maintain control of the terminal.
+    * Port ``27017``
+    * The ``/data/appdb`` path for data files (``--dbpath``)
+    * The ``/data/appdb/mongodb.log`` path for logs (``--logpath``)
+    * The ``--fork`` option to run the process in the background 
+      and maintain control of the terminal.
+    * The ``--wiredTigerCacheSizeGB`` option to minimize the amount
+      of cache the WiredTiger :term:`storage engine` uses for the
+      :term:`application database <Ops Manager Application Database>`.
 
-    language: sh
-    code: |
-      sudo -u mongod mongod --port 27017 --dbpath /data/appdb --logpath /data/appdb/mongodb.log --fork
+  copyable: true
+  language: sh
+  code: |
+    sudo -u mongod mongod --port 27017 --dbpath /data/appdb --logpath /data/appdb/mongodb.log --wiredTigerCacheSizeGB 1 --fork
 ---
 title: "Start MongoDB for the Backup Database. (Optional)"
-stepnum: 6
-level: 4
 ref: start-mongod-backup-instance
 action: 
-  - pre: |
+  pre: |
 
-      Start MongoDB as the ``mongod`` user, specifying:
+    Start MongoDB as the ``mongod`` user, specifying:
 
-      * Port ``27018``
-      * The ``/data/backup`` path for data files (``--dbpath``)
-      * The ``/data/backup/mongodb.log`` path for logs (``--logpath``)
-      * The ``--fork`` option to run the process in the background 
-        and maintain control of the terminal.
+    * Port ``27018``
+    * The ``/data/backup`` path for data files (``--dbpath``)
+    * The ``/data/backup/mongodb.log`` path for logs (``--logpath``)
+    * The ``--fork`` option to run the process in the background 
+      and maintain control of the terminal.
+    * The ``--wiredTigerCacheSizeGB`` option to minimize the amount
+      of cache the WiredTiger :term:`storage engine` uses for the
+      :term:`backup database <Backup Database>`.
 
-    language: sh
-    code: |
-      sudo -u mongod mongod --port 27018 --dbpath /data/backup --logpath /data/backup/mongodb.log --fork
+  copyable: true
+  language: sh
+  code: |
+    sudo -u mongod mongod --port 27018 --dbpath /data/backup --logpath /data/backup/mongodb.log --wiredTigerCacheSizeGB 1 --fork
 ---
 title: "Download the |onprem| package."
-stepnum: 7
-level: 4
 ref: application-package-download
 content: |
   a. In a browser, go to `http://www.mongodb.com
@@ -135,13 +133,12 @@ content: |
 
 ---
 title: "Install |onprem|."
-stepnum: 8
-level: 4
 ref: install
 pre: |
   Install the ``.rpm`` package by issuing the following command, where
   ``<version>`` is the version of the ``.rpm`` package:
 action:
+  copyable: true
   language: sh
   code: |
     sudo rpm -ivh mongodb-mms-<version>.x86_64.rpm
@@ -157,50 +154,48 @@ post: |
   - The ``/opt/mongodb/mms/conf/conf-mms.properties`` file, which contains the connection string to access the Application Database. The default is ``locahost``, port ``27017``, so no changes are necessary.
 
 ---
-stepnum: 9
-level: 4
 # Note: This step is borrowed from the rpm install procedure, not from steps-source-upgrade.
+stepnum: 10
 source:
   file: steps-install-on-prem-with-rpm-packages.yaml
   ref: workaround-rhel
 ---
 title: "Start |onprem|."
-stepnum: 10
-level: 4
 ref: start-the-application
 pre: |
   Issue the following:
 action:
+  copyable: true
   language: sh
   code: |
     sudo service mongodb-mms start
 ---
-title: "Get your server's host name."
-stepnum: 11
-level: 4
+title: "Get your server's hostname."
 ref: public-host-name
 pre: |
-  If you are using an EC2 instance, the host name is the ``Public DNS``
+  If you are using an EC2 instance, the hostname is the ``Public DNS``
   listed on the EC2 instance's ``Description`` tab.
 action:
   pre: |
     If you do not have a hostname, you can instead use the public IP
-    address. To get the public IP address, issue the following:
+    address. To get the public IP address, paste this URL into your
+    preferred browser:
+  copyable: true
   language: sh
   code: |
-    curl -s http://whatismijnip.nl |cut -d " " -f 5
+    https://www.google.com/search?q=what%20is%20my%20IP%20address
 ---
 title: "Open the |onprem| home page and register the first user."
-stepnum: 12
-level: 4
 ref: home-page
 content: |
-  a. In a browser, enter the following URL using the server's host name.
+
+  a. In a browser, enter the following URL using the server's hostname.
      If do not have a hostname, use the public IP address instead:
 
+     .. cssclass:: copyable-code
      .. code-block:: sh
 
-        http://<host_name>:8080
+        http://<opsManagerHost>:8080
 
   b. Click the :guilabel:`Register` link and follow the prompts to
      register the first user and create the first group. The first user
@@ -209,8 +204,6 @@ content: |
 
 ---
 title: "Configure |onprem|."
-stepnum: 13
-level: 4
 ref: configure-app
 content: | 
   |onprem| walks you through several configuration pages.
@@ -219,28 +212,29 @@ content: |
   :guilabel:`Deployment` page.
 ---
 title: "If you will backup your instance, configure the backup capabilities. (Optional)"
-stepnum: 14
-level: 4
 ref: configure-backup-feature
 content: |
-  a. Create a directory to store the :term:`head databases <head database>`. 
+  a. Create a directory to store the :term:`head databases <head
+     database>`.
 
      .. important::
-       Do not use this directory for any other purpose:
+        Do not use this directory for any other purpose:
 
+     .. cssclass:: copyable-code
      .. code-block:: sh
 
         mkdir /data/backupDaemon
 
   b. Make the directory writable by the ``mongodb-mms`` user:
 
+     .. cssclass:: copyable-code
      .. code-block:: sh
 
         sudo chown mongodb-mms:mongodb-mms /data/backupDaemon
 
   c. In |onprem|, while logged in as the user you registered during
-     installation, click the :guilabel:`Admin` link at the top right of the
-     page.
+     installation, click the :guilabel:`Admin` link at the top right of
+     the page.
 
   d. Click the :guilabel:`Backup` tab.
 
@@ -253,19 +247,18 @@ content: |
      <Oplog Store Database>`. At the prompt to configure the connection
      string to the Backup Database, enter the following:
 
+     .. cssclass:: copyable-code
      .. code-block:: sh
 
         mongodb://localhost:27018
 
 ---
 title: "Set up your first deployment."
-stepnum: 15
-level: 4
 ref: deploy
 content: |
 
-  a. Click :guilabel:`MongoDB Ops Manager` in the upper left corner of the
-     page to return to the :guilabel:`Deployment` page.
+  a. Click :guilabel:`MongoDB Ops Manager` in the upper left corner of
+     the page to return to the :guilabel:`Deployment` page.
 
   b. Click :guilabel:`Add` to deploy a MongoDB instance.
 
