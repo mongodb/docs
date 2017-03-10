@@ -91,6 +91,61 @@ What types of deployment can I create in |mms|?
 
 .. include:: /includes/extracts/faq-cloud-providers.rst
 
+What actions can Automation not complete in |mms|?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Advanced MongoDB options that modify how data is stored cannot be changed
+using Automation.
+
+You cannot enable encryption or change how data is stored on disk after the
+deployment has been created. However, you can still select the advanced
+options that would enable these options from the :doc:`Advanced Options
+</reference/deployment-advanced-options>` section in the deployment sidebar.
+
+Normally, if you add or change an advanced option and apply it, the members of
+the :term:`replica set` or :term:`sharded cluster` restart to apply the new
+settings. If certain advanced options are set and then applied, the
+:term:`Automation Agent` restarts the member as it should, but the
+:program:`mongod` does not start. The Automation Agent keeps trying to start
+the :program:`mongod` until you :doc:`edit the configuration </tutorial/edit-deployment>` 
+and revert the :doc:`Advanced Option </reference/deployment-advanced-options>`
+that prevents the :program:`mongod` from starting.
+
+The following advanced options cannot be enabled using Automation:
+
+- At-rest-encryption with :abbr:`KMIP (Key Management Interoperability
+  Protocol)` using one of the following settings:
+
+  - :setting:`security.kmip.keyIdentifier`
+  - :setting:`security.kmip.serverName`
+  - :setting:`security.kmip.port`
+  - :setting:`security.kmip.clientCertificateFile`
+  - :setting:`security.kmip.clientCertificatePassword`
+  - :setting:`security.kmip.serverCAFile`
+
+- Directory per database by using the :setting:`storage.directoryPerDB` setting.
+- Encrypted storage for a database using the :setting:`security.enableEncryption` setting.
+- Small database files using the :setting:`storage.mmapv1.smallFiles` setting.
+
+To change a setting Automation cannot change
+++++++++++++++++++++++++++++++++++++++++++++
+
+If you need to change one of the advanced options listed, you must make the
+changes manually. This requires you to do the following tasks for each node in
+a :term:`replica set` or :term:`sharded cluster`:
+
+#. Shut down the node using |mms|.
+#. Connect to the node using ``ssh`` or ``RDP``. 
+#. Delete the data directory for the deployment on that node.
+#. Start that node again. The node starts an :term:`initial sync`.
+#. Wait for the initial sync to complete.
+#. Repeat the previous steps on the next node until all nodes in the
+   :term:`replica set` or :term:`sharded cluster` have the same settings.
+
+.. note::
+   You can use the seeding process outlined in :ref:`differences-backup-format` 
+   in :doc:`/tutorial/use-restore-to-seed-secondary` to speed up this process.
+
 .. _faq-monitoring:
 
 Monitoring FAQs
