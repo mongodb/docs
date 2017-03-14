@@ -1,5 +1,5 @@
 .. admonition:: Package Updates required on Ubuntu 16.04 for IBM POWER Systems
-   :class: note
+   :class: warning
 
    Due to a lock elision bug present in older versions of the ``glibc``
    package on Ubuntu 16.04 for POWER, you must upgrade the ``glibc``
