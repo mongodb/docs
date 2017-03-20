@@ -1,0 +1,186 @@
+title: "Deploy a new Atlas cluster."
+ref: transition-free-tier-deploy-new-cluster
+level: 4
+content: |
+
+  If you already have an |service| Paid Tier cluster as a migration target,
+  skip this step.
+    
+  1. Click the :guilabel:`Groups` dropdown and select the |service| group.
+  
+  #. Click :guilabel:`Clusters`.
+  
+  #. Click :guilabel:`Add New Cluster`.
+  
+  #. Configure your new cluster. Ensure :guilabel:`MongoDB Version` is set to
+     ``3.4``.
+     
+  #. Click :guilabel:`Continue to Payment`. Enter your preferred payment 
+     method.
+  
+  #. Click :guilabel:`Confirm & Deploy`.
+  
+  For complete documentation on creating a new cluster, see
+  :doc:`/create-new-cluster`. 
+  
+  Continue to the next step once |service| completes deployment of the new
+  cluster.
+    
+     
+---
+title: Add the required IP addresses to the Atlas group whitelist.
+ref: transition-free-tier-whitelist
+level: 4
+content: |
+
+  1. Click :guilabel:`Clusters`.
+  
+  #. Click :guilabel:`Security`.
+  
+  #. Click :guilabel:`IP Whitelist`.
+  
+  #. Click :guilabel:`Add IP Address`.
+  
+  #. Enter the IP address or CIDR block corresponding to the machine executing
+     the :program:`mongodump` and :program:`mongorestore` programs.
+     
+  For complete documentation on IP Whitelisting, see :doc:`/security-whitelist`
+     
+  If the Free Tier and Paid Tier clusters are in different |service| groups,
+  you must perform this step in each group.
+
+---
+title: "Create MongoDB Users for backup and restore."
+ref: transition-free-tier-create-users
+level: 4
+content: |
+
+  1. Click :guilabel:`Clusters`.
+  
+  #. Click :guilabel:`Security`.
+  
+  #. Click :guilabel:`Users`.
+  
+  #. Click :guilabel:`Add New User`.
+  
+  #. Create a new user named ``Migrate`` and assign it the ``Atlas Admin`` 
+     role. 
+    
+  For complete documentation on configuring MongoDB users in |service|, see
+  :doc:`/security-add-mongodb-users`.
+  
+  If the Free Tier and Paid Tier clusters are in different |service| groups,
+  you must perform this step in each group.
+---
+title: "Copy and execute the following command."
+ref: transition-free-tier-create-mongodump-mongorestore-command
+level: 4
+content: |
+
+  1. Copy the following command into a text editor:
+    
+     .. class:: copyable-code
+  
+     .. code-block:: shell
+   
+        mongodump --host <hostSource> --archive --ssl -u <sourceUsername> -p <sourcePassword> --authenticationDatabase admin --oplog | mongorestore --host <hostDestination> --ssl -u <destinationUser> -p <destinationPassword> --authenticationDatabase admin --archive --oplogReplay
+  
+     This command uses :program:`mongodump` to create a point-in-time data
+     dump of the Free Tier cluster. It then pipes the output of
+     :program:`mongodump` to :program:`mongorestore`, which restores the data
+     onto the target Paid Tier cluster.
+  
+  #. Replace the ``<hostSource>`` with the host information of the
+     Free Tier cluster. To retrieve the host information, click the 
+     :guilabel:`Connect` button for the Free Tier cluster.
+     
+     Specify the host information using the replica set name as the prefix,
+     followed by a forward slash and a comma separated list of each replica
+     set member. For example:
+       
+     .. code-block:: shell
+     
+        myAtlasFreeTier/freetier.example.net:27017,freetier2.example.net:27017,freetier3.example.net:27017
+             
+  #. Replace the ``<sourceUsername>`` with the username of the MongoDB user 
+     you created in the previous step.
+     
+     If the Free Tier and Paid Tier clusters are in different |service| groups,
+     specify the user you created for the Free Tier group.
+     
+  #. Replace the ``<sourcePassword>`` with the password of the MongoDB user you
+     created in the previous step.
+     
+     If the Free Tier and Paid Tier cluster are in different |service| groups,
+     specify the password for the Free Tier user.
+
+  
+  #. Replace the ``<hostDestination>`` with the host information of the
+     Paid Tier cluster. To retrieve the host information, click the 
+     :guilabel:`Connect` button for the Paid Tier cluster.
+     
+     If the Paid Tier cluster is a replica set, specify the host information
+     using the replica set name as the prefix, followed by a forward slash and
+     a comma separated list of each replica set member. For example:
+       
+     .. code-block:: shell
+     
+        myAtlasPaidTier/paidtier.example.net:27017,paidtier2.example.net:27017,paidtier3.example.net:27017
+     
+  #. Replace the ``<destinationUsername>`` with the username of the MongoDB 
+     user you created in the previous step.
+     
+     If the Free Tier and Paid Tier clusters are in different |service| groups,
+     specify the user you created for the Paid Tier group.
+     
+  #. Replace the ``<destinationPassword>`` with the password of the MongoDB 
+     user you created in the previous step.
+     
+     If the Free Tier and Paid Tier cluster are in different |service| groups,
+     specify the password for the Paid Tier user.
+     
+  .. example::
+    
+     .. code-block:: shell
+     
+        mongodump --host myAtlasFreeTier/freetier.example.net:27017,freetier2.example.net:27017,freetier3.example.net:27017 --archive --ssl -u Migrate -p migratepwd --authenticationDatabase admin --oplog  | mongorestore --host myAtlasPaidTier/paidtier.example.net:27017,paidtier2.example.net:27017,paidtier3.example.net:27017 --ssl -u Migrate -p migratepwd --authenticationDatabase admin --archive --oplogReplay
+---
+title: "Execute the combined ``mongodump`` and ``mongorestore`` command."
+ref: transition-free-tier-execute-command
+level: 4
+content: |
+  
+  .. important::
+  
+     If possible, stop any writes to the Free Tier cluster before this step.
+     Writes that occur after :program:`mongodump` completes dumping data are
+     not reflected in the Paid Tier cluster.
+     
+     At the completion of this step, update your applications to point to the
+     Paid Tier cluster and resume normal read and write operations.
+  
+  Copy the code created in the previous step from your text editor into a
+  shell and execute it.
+  
+  When the process completes, the Paid Tier cluster reflects the state
+  of the Free Tier cluster when the :program:`mongodump` process completed
+  the dump.
+  
+---
+title: "Remove the MongoDB users created for the migration process."
+ref: transition-free-tier-cleanup
+level: 4
+content: |
+  
+  1. Click :guilabel:`Clusters`.
+  
+  #. Click :guilabel:`Security`.
+  
+  #. Click :guilabel:`Users`.
+  
+  #. Click :guilabel:`Delete` for the user you created as part of this
+     procedure.
+     
+  If the Free Tier and Paid Tier clusters are in different |service| groups,
+  you must perform this step in each group.
+...
