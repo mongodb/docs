@@ -21759,7 +21759,158 @@ var App = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         null,
-        'Hi world!'
+        _react2.default.createElement(
+          'div',
+          { className: 'product-facet' },
+          _react2.default.createElement(
+            'h2',
+            null,
+            'Product'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'All'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'MongoDB'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Atlas'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Cloud Manager'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Ops Manager'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'BI Connector'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Spark Connector'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'language-facet' },
+          _react2.default.createElement(
+            'h2',
+            null,
+            'Language'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'All'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Mongo Shell'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Python'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Java'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Node.js'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'PHP'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'C'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'C++ 11'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'C#'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Pearl'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Ruby'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'topic-facet' },
+          _react2.default.createElement(
+            'h2',
+            null,
+            'Topic'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'All'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'CRUD'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Aggregation'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Administration'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Security'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Replication'
+          ),
+          _react2.default.createElement(
+            'button',
+            null,
+            'Sharding'
+          )
+        )
       );
     }
   }]);
