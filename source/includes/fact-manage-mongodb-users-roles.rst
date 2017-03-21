@@ -1,12 +1,17 @@
 Managed Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Users and roles that the |mms| group manages have the :guilabel:`Synced` value
-set to ``Yes`` and are synced to all deployments in the group.
+Any users or roles you choose to manage in an |mms| group have their
+:guilabel:`Synced` value set to ``Yes`` and are synced to all deployments in
+the group.
 
-Users and roles that the |mms| group does not manage have the
+Any users or roles you do not choose to manage in an |mms| group have their
 :guilabel:`Synced` value set to ``No`` and exist only in their respective
 MongoDB deployments.
+
+.. note::
+   If you toggle :guilabel:`Synced` to ``OFF`` after import, any users or
+   roles you create are deleted.
 
 Consistent Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
