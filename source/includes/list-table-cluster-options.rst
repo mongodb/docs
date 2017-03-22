@@ -21,7 +21,11 @@
 
      - The physical location of your MongoDB cluster. The region you
        choose can affect network latency for clients accessing your
-       databases.
+       databases. Regions marked as :guilabel:`Recommended` provide 
+       higher availability compared to other regions.
+       
+       For more information on :guilabel:`Recommended` AWS regions, 
+       see :ref:`amazon-aws-availability-zones`.
 
        .. include:: /includes/fact-group-region-association.rst
  
@@ -61,9 +65,15 @@
        copy of your database, providing high availability and data
        redundancy.
 
-       The replica set spans a minimum of three availability zones, and
-       each member of the replica set runs on a separate instance. For
-       details on how the number of server instances affects cost, see
+       Replica sets deployed in a :guilabel:`Recommended` region span three
+       availability zones. Replica sets deployed in other regions span two
+       availability zones. The number of availability zones in a region has no
+       affect on the number of nodes |service| can deploy. For more
+       information on how |service| deploys replica sets across availability
+       zones, see :ref:`amazon-aws-availability-zones`.
+       
+       Each member of the replica set runs on a separate instance. For details
+       on how the number of server instances affects cost, see
        :ref:`server-number-costs`.
        
        If your deployment is a sharded cluster, each shard is a
