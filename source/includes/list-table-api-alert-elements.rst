@@ -118,6 +118,7 @@
        - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
        - ``JOURNALING_MB``
        - ``JOURNALING_WRITE_DATA_FILES_MB``
+       - ``LOGICAL_SIZE``
        - ``MEMORY_RESIDENT``
        - ``MEMORY_VIRTUAL``
        - ``MEMORY_MAPPED``
