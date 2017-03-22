@@ -47,6 +47,18 @@ class App extends React.Component {
     }
 
     this.updateFacet = this.updateFacet.bind(this)
+    this.clearFacets = this.clearFacets.bind(this)
+  }
+
+  clearFacets () {
+    let facets = { }
+    Object.keys(this.state.facets).map(facet => {
+      facets[facet] = this.state.facets[facet].map(option => { 
+        option.active = false
+        return option
+      })
+    })
+    this.setState({ facets: facets })
   }
 
   updateFacet (event) {
@@ -55,23 +67,16 @@ class App extends React.Component {
 
     let facet = this.state.facets[facetName]
 
-    if (optionName == 'All') {
-      facet = facet.map(option => {
-        option.active = false
-        return option
-      })
-    } else {
-      const index = facet.findIndex(option => option.name == optionName)
+    const index = facet.findIndex(option => option.name == optionName)
 
-      let option = facet[index]
-      option.active = !option.active
+    let option = facet[index]
+    option.active = !option.active
 
-      facet = [
-        ...facet.slice(0, index),
-        option,
-        ...facet.slice(index + 1, facet.length)
-      ]
-    }
+    facet = [
+      ...facet.slice(0, index),
+      option,
+      ...facet.slice(index + 1, facet.length)
+    ]
 
     let facets = this.state.facets
     facets[facetName] = facet
@@ -87,6 +92,7 @@ class App extends React.Component {
 
     return (
       <div>
+        <a onClick={this.clearFacets}>Clear Filters</a>
         { facets }
         <TutorialList tutorials={ this.state.tutorials } />
       </div>

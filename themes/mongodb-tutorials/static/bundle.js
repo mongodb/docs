@@ -9484,8 +9484,6 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -9529,18 +9527,7 @@ var Facet = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      var activeOptions = this.props.options.filter(function (o) {
-        return o.active == true;
-      });
-      var allOption = { name: "All", active: true };
-
-      if (activeOptions.length > 0) {
-        allOption.active = false;
-      }
-
-      var options = [allOption].concat(_toConsumableArray(this.props.options));
-
-      var buttons = options.map(this.genButton);
+      var buttons = this.props.options.map(this.genButton);
 
       return _react2.default.createElement(
         'div',
@@ -21929,10 +21916,25 @@ var App = function (_React$Component) {
     };
 
     _this.updateFacet = _this.updateFacet.bind(_this);
+    _this.clearFacets = _this.clearFacets.bind(_this);
     return _this;
   }
 
   _createClass(App, [{
+    key: 'clearFacets',
+    value: function clearFacets() {
+      var _this2 = this;
+
+      var facets = {};
+      Object.keys(this.state.facets).map(function (facet) {
+        facets[facet] = _this2.state.facets[facet].map(function (option) {
+          option.active = false;
+          return option;
+        });
+      });
+      this.setState({ facets: facets });
+    }
+  }, {
     key: 'updateFacet',
     value: function updateFacet(event) {
       var facetName = event.target.getAttribute('data-facet-name');
@@ -21940,21 +21942,14 @@ var App = function (_React$Component) {
 
       var facet = this.state.facets[facetName];
 
-      if (optionName == 'All') {
-        facet = facet.map(function (option) {
-          option.active = false;
-          return option;
-        });
-      } else {
-        var index = facet.findIndex(function (option) {
-          return option.name == optionName;
-        });
+      var index = facet.findIndex(function (option) {
+        return option.name == optionName;
+      });
 
-        var option = facet[index];
-        option.active = !option.active;
+      var option = facet[index];
+      option.active = !option.active;
 
-        facet = [].concat(_toConsumableArray(facet.slice(0, index)), [option], _toConsumableArray(facet.slice(index + 1, facet.length)));
-      }
+      facet = [].concat(_toConsumableArray(facet.slice(0, index)), [option], _toConsumableArray(facet.slice(index + 1, facet.length)));
 
       var facets = this.state.facets;
       facets[facetName] = facet;
@@ -21962,21 +21957,23 @@ var App = function (_React$Component) {
       this.setState({ facets: facets });
     }
   }, {
-    key: 'falsifyFacet',
-    value: function falsifyFacet(event) {}
-  }, {
     key: 'render',
     value: function render() {
-      var _this2 = this;
+      var _this3 = this;
 
       var facets = Object.keys(this.state.facets).map(function (facet, i) {
-        var options = _this2.state.facets[facet];
-        return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this2.updateFacet });
+        var options = _this3.state.facets[facet];
+        return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this3.updateFacet });
       });
 
       return _react2.default.createElement(
         'div',
         null,
+        _react2.default.createElement(
+          'a',
+          { onClick: this.clearFacets },
+          'Clear Filters'
+        ),
         facets,
         _react2.default.createElement(_tutorialList2.default, { tutorials: this.state.tutorials })
       );

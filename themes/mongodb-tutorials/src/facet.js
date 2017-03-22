@@ -29,19 +29,7 @@ export default class Facet extends React.Component {
   }
 
   render () {
-    const activeOptions = this.props.options.filter(o => o.active == true)
-    let allOption = { name: "All", active: true }
-
-    if (activeOptions.length > 0) {
-      allOption.active = false
-    }
-    
-    const options = [
-      allOption,
-      ...this.props.options,
-    ]
-
-    const buttons = options.map(this.genButton)
+    const buttons = this.props.options.map(this.genButton)
 
     return (
       <div>
