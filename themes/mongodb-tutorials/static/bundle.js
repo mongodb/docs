@@ -9580,13 +9580,26 @@ var TutorialList = function (_React$Component) {
     key: 'render',
     value: function render() {
       var tutorials = this.props.tutorials.map(function (tutorial, i) {
+        var options = tutorial.options.map(function (option, j) {
+          return _react2.default.createElement(
+            'li',
+            { key: j },
+            option.name
+          );
+        });
+
         return _react2.default.createElement(
           'li',
           { key: i },
           _react2.default.createElement(
             'a',
             { href: tutorial.url },
-            tutorial.title
+            tutorial.title,
+            _react2.default.createElement(
+              'ul',
+              null,
+              options
+            )
           )
         );
       });
@@ -21903,7 +21916,19 @@ var App = function (_React$Component) {
 
     _this.state = {
       options: [{ name: "MongoDB", facet: 'product', active: false }, { name: "Atlas", facet: 'product', active: false }, { name: "Cloud Manager", facet: 'product', active: false }, { name: "Ops Manager", facet: 'product', active: false }, { name: "BI Connector", facet: 'product', active: false }, { name: "Spark Connector", facet: 'product', active: false }, { name: "Mongo Shell", facet: 'language', active: false }, { name: "Python", facet: 'language', active: false }, { name: "Java", facet: 'language', active: false }, { name: "Node.js", facet: 'language', active: false }, { name: "PHP", facet: 'language', active: false }, { name: "C", facet: 'language', active: false }, { name: "C++ 11", facet: 'language', active: false }, { name: "C#", facet: 'language', active: false }, { name: "Pearl", facet: 'language', active: false }, { name: "Ruby", facet: 'language', active: false }, { name: "CRUD", facet: 'topic', active: false }, { name: "Aggregation", facet: 'topic', active: false }, { name: "Administration", facet: 'topic', active: false }, { name: "Security", facet: 'topic', active: false }, { name: "Replication", facet: 'topic', active: false }, { name: "Sharding", facet: 'topic', active: false }],
-      tutorials: [{ title: 'Connecting to MongoDB', url: '/connecting-to-mongodb', tags: { products: ['MongoDB'], languages: ['Mongo Shell', 'Node.js'] } }, { title: 'Setting up a Replica Set', url: '/setting-up-a-replica-set', tags: { products: ['MongoDB'], languages: ['Mongo Shell'], topics: ['Replication'] } }, { title: 'How to Compass', url: '/how-to-compass', tags: { products: ['Compass'] } }]
+      tutorials: [{
+        title: 'Connecting to MongoDB',
+        url: '/connecting-to-mongodb',
+        options: [{ facet: 'product', name: 'MongoDB' }, { facet: 'language', name: 'Mongo Shell' }, { facet: 'language', name: 'Node.js' }]
+      }, {
+        title: 'Setting up a Replica Set',
+        url: '/setting-up-a-replica-set',
+        options: [{ facet: 'product', name: 'MongoDB' }, { facet: 'language', name: 'Mongo Shell' }, { facet: 'topic', name: 'Replication' }]
+      }, {
+        title: 'How to Compass',
+        url: '/how-to-compass',
+        options: [{ facet: 'product', name: 'Compass' }]
+      }]
     };
 
     _this.updateFacet = _this.updateFacet.bind(_this);
@@ -21958,6 +21983,28 @@ var App = function (_React$Component) {
         return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this2.updateFacet });
       });
 
+      var activeOptions = this.state.options.filter(function (option) {
+        return option.active;
+      }).map(function (option) {
+        return { facet: option.facet, name: option.name }; // remove active field for stringification
+      });
+
+      var tutorials = this.state.tutorials.filter(function (tutorial) {
+        var shouldInclude = true; // by default show all the tutorials
+
+        activeOptions.map(function (option) {
+          var stringifiedOptions = tutorial.options.map(function (option) {
+            return JSON.stringify(option);
+          });
+
+          if (stringifiedOptions.indexOf(JSON.stringify(option)) == -1) {
+            shouldInclude = false;
+          }
+        });
+
+        return shouldInclude;
+      });
+
       return _react2.default.createElement(
         'div',
         null,
@@ -21967,7 +22014,7 @@ var App = function (_React$Component) {
           'Clear Filters'
         ),
         facets,
-        _react2.default.createElement(_tutorialList2.default, { tutorials: this.state.tutorials })
+        _react2.default.createElement(_tutorialList2.default, { tutorials: tutorials })
       );
     }
   }]);

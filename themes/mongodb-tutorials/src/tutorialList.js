@@ -8,7 +8,20 @@ export default class TutorialList extends React.Component {
 
   render () {
     const tutorials = this.props.tutorials.map((tutorial, i)=> {
-      return <li key={i}><a href={ tutorial.url }>{ tutorial.title }</a></li>
+      const options = tutorial.options.map((option, j) => {
+        return <li key={j}>{ option.name }</li>
+      })
+
+      return (
+        <li key={i}>
+          <a href={ tutorial.url }>
+            { tutorial.title }
+            <ul>
+              { options }
+            </ul>
+          </a>
+        </li>
+      )
     })
 
     return (

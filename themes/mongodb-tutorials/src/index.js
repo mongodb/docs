@@ -34,9 +34,31 @@ class App extends React.Component {
         { name: "Sharding", facet: 'topic', active: false },
       ],
       tutorials: [
-        { title: 'Connecting to MongoDB', url: '/connecting-to-mongodb', tags: { products: ['MongoDB'], languages: ['Mongo Shell', 'Node.js'] } },
-        { title: 'Setting up a Replica Set', url: '/setting-up-a-replica-set', tags: { products: ['MongoDB'], languages: ['Mongo Shell'], topics: ['Replication'] } },
-        { title: 'How to Compass', url: '/how-to-compass', tags: { products: ['Compass'] } },
+        { 
+          title: 'Connecting to MongoDB',
+          url: '/connecting-to-mongodb',
+          options: [ 
+            { facet: 'product', name: 'MongoDB' },
+            { facet: 'language', name: 'Mongo Shell' },
+            { facet: 'language', name: 'Node.js' },
+          ]
+        },
+        { 
+          title: 'Setting up a Replica Set',
+          url: '/setting-up-a-replica-set',
+          options: [
+            { facet: 'product', name: 'MongoDB' },
+            { facet: 'language', name: 'Mongo Shell' },
+            { facet: 'topic', name: 'Replication' },
+          ]
+        },
+        {
+          title: 'How to Compass',
+          url: '/how-to-compass',
+          options: [
+            { facet: 'product', name: 'Compass' },
+          ]
+        }
       ],
     }
 
@@ -88,11 +110,30 @@ class App extends React.Component {
       return <Facet key={i} name={facet} options={options} updateFacet={this.updateFacet} />
     })
 
+    const activeOptions = this.state.options.filter(option => option.active)
+      .map(option => {
+        return { facet: option.facet, name: option.name } // remove active field for stringification
+      })
+
+    const tutorials = this.state.tutorials.filter(tutorial => {
+      let shouldInclude = true // by default show all the tutorials
+
+      activeOptions.map(option => {
+        const stringifiedOptions = tutorial.options.map(option => JSON.stringify(option))
+
+        if (stringifiedOptions.indexOf(JSON.stringify(option)) == -1) {
+          shouldInclude = false
+        }
+      })
+
+      return shouldInclude
+    })
+
     return (
       <div>
         <a onClick={this.clearFacets}>Clear Filters</a>
         { facets }
-        <TutorialList tutorials={ this.state.tutorials } />
+        <TutorialList tutorials={ tutorials } />
       </div>
     )
   }
