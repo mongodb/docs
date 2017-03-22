@@ -9,36 +9,30 @@ class App extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      facets: {
-        product: [
-          { name: "MongoDB", active: false },
-          { name: "Atlas", active: false },
-          { name: "Cloud Manager", active: false },
-          { name: "Ops Manager", active: false },
-          { name: "BI Connector", active: false },
-          { name: "Spark Connector", active: false },
-        ],
-        language: [
-          { name: "Mongo Shell", active: false },
-          { name: "Python", active: false },
-          { name: "Java", active: false },
-          { name: "Node.js", active: false },
-          { name: "PHP", active: false },
-          { name: "C", active: false },
-          { name: "C++ 11", active: false },
-          { name: "C#", active: false },
-          { name: "Pearl", active: false },
-          { name: "Ruby", active: false },
-        ],
-        topic: [
-          { name: "CRUD", active: false },
-          { name: "Aggregation", active: false },
-          { name: "Administration", active: false },
-          { name: "Security", active: false },
-          { name: "Replication", active: false },
-          { name: "Sharding", active: false },
-        ],
-      },
+      options: [
+        { name: "MongoDB", facet: 'product', active: false },
+        { name: "Atlas", facet: 'product', active: false },
+        { name: "Cloud Manager", facet: 'product', active: false },
+        { name: "Ops Manager", facet: 'product', active: false },
+        { name: "BI Connector", facet: 'product', active: false },
+        { name: "Spark Connector", facet: 'product', active: false },
+        { name: "Mongo Shell", facet: 'language', active: false },
+        { name: "Python", facet: 'language', active: false },
+        { name: "Java", facet: 'language', active: false },
+        { name: "Node.js", facet: 'language', active: false },
+        { name: "PHP", facet: 'language', active: false },
+        { name: "C", facet: 'language', active: false },
+        { name: "C++ 11", facet: 'language', active: false },
+        { name: "C#", facet: 'language', active: false },
+        { name: "Pearl", facet: 'language', active: false },
+        { name: "Ruby", facet: 'language', active: false },
+        { name: "CRUD", facet: 'topic', active: false },
+        { name: "Aggregation", facet: 'topic', active: false },
+        { name: "Administration", facet: 'topic', active: false },
+        { name: "Security", facet: 'topic', active: false },
+        { name: "Replication", facet: 'topic', active: false },
+        { name: "Sharding", facet: 'topic', active: false },
+      ],
       tutorials: [
         { title: 'Connecting to MongoDB', url: '/connecting-to-mongodb', tags: { products: ['MongoDB'], languages: ['Mongo Shell', 'Node.js'] } },
         { title: 'Setting up a Replica Set', url: '/setting-up-a-replica-set', tags: { products: ['MongoDB'], languages: ['Mongo Shell'], topics: ['Replication'] } },
@@ -51,42 +45,46 @@ class App extends React.Component {
   }
 
   clearFacets () {
-    let facets = { }
-    Object.keys(this.state.facets).map(facet => {
-      facets[facet] = this.state.facets[facet].map(option => { 
-        option.active = false
-        return option
-      })
+    const options = this.state.options.map(option => {
+      option.active = false
+      return option
     })
-    this.setState({ facets: facets })
+
+    this.setState({ options })
   }
 
   updateFacet (event) {
-    const facetName = event.target.getAttribute('data-facet-name')
     const optionName = event.target.innerHTML
 
-    let facet = this.state.facets[facetName]
+    const index = this.state.options.findIndex(option => option.name == optionName)
 
-    const index = facet.findIndex(option => option.name == optionName)
-
-    let option = facet[index]
+    let options = this.state.options
+    let option = options[index]
     option.active = !option.active
 
-    facet = [
-      ...facet.slice(0, index),
+    options = [
+      ...options.slice(0, index),
       option,
-      ...facet.slice(index + 1, facet.length)
+      ...options.slice(index + 1, options.length)
     ]
 
-    let facets = this.state.facets
-    facets[facetName] = facet
-
-    this.setState({ facets: facets })
+    this.setState({ options })
   }
 
   render () {
-    const facets = Object.keys(this.state.facets).map((facet, i) => {
-      const options = this.state.facets[facet]
+    // TODO: This should be possible with reduce
+    let facetNames = []
+    this.state.options.map(option => { 
+      if (facetNames.indexOf(option.facet) == -1) { 
+        facetNames = [
+          ...facetNames,
+          option.facet
+        ]
+      }
+    })
+
+    const facets = facetNames.map((facet, i) => {
+      const options = this.state.options.filter(o => o.facet == facet)
       return <Facet key={i} name={facet} options={options} updateFacet={this.updateFacet} />
     })
 

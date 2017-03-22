@@ -9515,12 +9515,7 @@ var Facet = function (_React$Component) {
 
       return _react2.default.createElement(
         'button',
-        {
-          key: index,
-          style: style,
-          'data-facet-name': this.props.name,
-          onClick: this.props.updateFacet
-        },
+        { key: index, style: style, onClick: this.props.updateFacet },
         option.name
       );
     }
@@ -21907,11 +21902,7 @@ var App = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
     _this.state = {
-      facets: {
-        product: [{ name: "MongoDB", active: false }, { name: "Atlas", active: false }, { name: "Cloud Manager", active: false }, { name: "Ops Manager", active: false }, { name: "BI Connector", active: false }, { name: "Spark Connector", active: false }],
-        language: [{ name: "Mongo Shell", active: false }, { name: "Python", active: false }, { name: "Java", active: false }, { name: "Node.js", active: false }, { name: "PHP", active: false }, { name: "C", active: false }, { name: "C++ 11", active: false }, { name: "C#", active: false }, { name: "Pearl", active: false }, { name: "Ruby", active: false }],
-        topic: [{ name: "CRUD", active: false }, { name: "Aggregation", active: false }, { name: "Administration", active: false }, { name: "Security", active: false }, { name: "Replication", active: false }, { name: "Sharding", active: false }]
-      },
+      options: [{ name: "MongoDB", facet: 'product', active: false }, { name: "Atlas", facet: 'product', active: false }, { name: "Cloud Manager", facet: 'product', active: false }, { name: "Ops Manager", facet: 'product', active: false }, { name: "BI Connector", facet: 'product', active: false }, { name: "Spark Connector", facet: 'product', active: false }, { name: "Mongo Shell", facet: 'language', active: false }, { name: "Python", facet: 'language', active: false }, { name: "Java", facet: 'language', active: false }, { name: "Node.js", facet: 'language', active: false }, { name: "PHP", facet: 'language', active: false }, { name: "C", facet: 'language', active: false }, { name: "C++ 11", facet: 'language', active: false }, { name: "C#", facet: 'language', active: false }, { name: "Pearl", facet: 'language', active: false }, { name: "Ruby", facet: 'language', active: false }, { name: "CRUD", facet: 'topic', active: false }, { name: "Aggregation", facet: 'topic', active: false }, { name: "Administration", facet: 'topic', active: false }, { name: "Security", facet: 'topic', active: false }, { name: "Replication", facet: 'topic', active: false }, { name: "Sharding", facet: 'topic', active: false }],
       tutorials: [{ title: 'Connecting to MongoDB', url: '/connecting-to-mongodb', tags: { products: ['MongoDB'], languages: ['Mongo Shell', 'Node.js'] } }, { title: 'Setting up a Replica Set', url: '/setting-up-a-replica-set', tags: { products: ['MongoDB'], languages: ['Mongo Shell'], topics: ['Replication'] } }, { title: 'How to Compass', url: '/how-to-compass', tags: { products: ['Compass'] } }]
     };
 
@@ -21923,47 +21914,48 @@ var App = function (_React$Component) {
   _createClass(App, [{
     key: 'clearFacets',
     value: function clearFacets() {
-      var _this2 = this;
-
-      var facets = {};
-      Object.keys(this.state.facets).map(function (facet) {
-        facets[facet] = _this2.state.facets[facet].map(function (option) {
-          option.active = false;
-          return option;
-        });
+      var options = this.state.options.map(function (option) {
+        option.active = false;
+        return option;
       });
-      this.setState({ facets: facets });
+
+      this.setState({ options: options });
     }
   }, {
     key: 'updateFacet',
     value: function updateFacet(event) {
-      var facetName = event.target.getAttribute('data-facet-name');
       var optionName = event.target.innerHTML;
 
-      var facet = this.state.facets[facetName];
-
-      var index = facet.findIndex(function (option) {
+      var index = this.state.options.findIndex(function (option) {
         return option.name == optionName;
       });
 
-      var option = facet[index];
+      var options = this.state.options;
+      var option = options[index];
       option.active = !option.active;
 
-      facet = [].concat(_toConsumableArray(facet.slice(0, index)), [option], _toConsumableArray(facet.slice(index + 1, facet.length)));
+      options = [].concat(_toConsumableArray(options.slice(0, index)), [option], _toConsumableArray(options.slice(index + 1, options.length)));
 
-      var facets = this.state.facets;
-      facets[facetName] = facet;
-
-      this.setState({ facets: facets });
+      this.setState({ options: options });
     }
   }, {
     key: 'render',
     value: function render() {
-      var _this3 = this;
+      var _this2 = this;
 
-      var facets = Object.keys(this.state.facets).map(function (facet, i) {
-        var options = _this3.state.facets[facet];
-        return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this3.updateFacet });
+      // TODO: This should be possible with reduce
+      var facetNames = [];
+      this.state.options.map(function (option) {
+        if (facetNames.indexOf(option.facet) == -1) {
+          facetNames = [].concat(_toConsumableArray(facetNames), [option.facet]);
+        }
+      });
+
+      var facets = facetNames.map(function (facet, i) {
+        var options = _this2.state.options.filter(function (o) {
+          return o.facet == facet;
+        });
+        return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this2.updateFacet });
       });
 
       return _react2.default.createElement(

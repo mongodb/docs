@@ -17,12 +17,7 @@ export default class Facet extends React.Component {
     }
 
     return (
-      <button 
-        key={ index }
-        style={ style }
-        data-facet-name={ this.props.name }
-        onClick={ this.props.updateFacet }
-      >
+      <button key={index} style={style} onClick={this.props.updateFacet} >
         { option.name }
       </button>
     )
