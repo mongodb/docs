@@ -1,0 +1,102 @@
+==================================
+Live Migrate Your Cluster to Atlas
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| can perform a live migration of a remote replica set to a
+|service| cluster, keeping the |service| cluster in sync with the remote source
+until you cut your applications over to the |service| cluster.
+
+|service| does not support live migrations from a remote sharded cluster.
+
+Considerations
+--------------
+
+MongoDB Users and Roles
+~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| does not migrate any user or role data to the destination cluster.
+
+Create the appropriate users on the |service| cluster prior to starting the
+procedure to ensure a seamless transition.
+
+See :doc:`/security-add-mongodb-users` for a tutorial on creating MongoDB
+users in |service|. If the available |service| MongoDB built-in roles are
+not sufficient, please contact |service| support for additional guidance.
+
+Supported Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For source clusters that enforce authentication, |service| only supports
+:manual:`SCRAM-SHA-1 </core/security-scram-sha-1>` for connecting to the
+source cluster. If the source cluster uses a different authentication
+mechanism, please contact |service| support for additional guidance.
+
+.. _live-import-ip-whitelist:
+
+IP Whitelisting
+~~~~~~~~~~~~~~~
+
+To ensure |service| can access the source cluster, whitelist the following
+|service| IP ranges on the source cluster:
+
+- ``4.71.186.128/25``
+- ``4.35.16.128/25``
+
+|service| automatically adds the IP address of the source cluster to the
+|service| group whitelist. You must add any additional IP addresses to the
+group whitelist manually, such as application servers. Do this before
+beginning the migration procedure.
+
+For documentation on adding entries to the |service| whitelist, see
+:doc:`/security-whitelist`.
+
+Cut Over Downtime
+~~~~~~~~~~~~~~~~~
+
+Once the destination |service| cluster is nearly in sync with the source
+cluster, |service| prompts you to start the cut over process. As a part
+of the cut over, you must stop any applications that are accessing the source
+cluster to allow the destination cluster to fully sync. 
+
+|service| starts an extendable 24 hour timer once the destination cluster is
+ready for cut over. Take this time to schedule the cut over period during the
+most appropriate time.
+
+The |service| UI provides a timer for the approximate time remaining for sync
+to complete. Use this timer to approximate the amount of downtime required
+to perform the cut over, taking into consideration the time required to
+update and restart your applications.
+
+Destination Cluster Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When configuring the destination cluster, consider the following:
+
+- If the region you deploy the destination cluster to is geographically
+  distant from the source cluster, the latency may cause the migration
+  timer to stay the same or increase. You may need to deploy the destination
+  cluster in a region more geographically near to the source cluster.
+
+- If the write workload on the source cluster is higher than what can be
+  transferred and applied to the destination cluster, the migration timer may
+  stay the same or increase. You may need to scale the destination cluster up
+  to a instance with more processing power, bandwidth or disk IO.
+
+- The destination |service| cluster can be either a replica set or a sharded
+  cluster.
+
+- You cannot select an ``M0`` (Free Tier) cluster as the destination for
+  live migration.
+
+Procedure
+---------
+
+.. include:: /includes/steps/atlas-live-import.rst
