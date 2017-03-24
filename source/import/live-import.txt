@@ -10,11 +10,11 @@ Live Migrate Your Cluster to Atlas
    :depth: 1
    :class: singlecol
 
-|service| can perform a live migration of a remote replica set to an
+|service| can perform a live migration of a source replica set to an
 |service| cluster, keeping the cluster in sync with the remote source
 until you cut your applications over to the |service| cluster.
 
-|service| does not support live migrations from a sharded cluster.
+|service| does not support live migrations from or to a sharded cluster.
 
 Considerations
 --------------
@@ -36,8 +36,9 @@ Supported Authentication Mechanism
 |service| only supports :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>` for
 connecting to source clusters enforcing authentication.
 
-If the source cluster uses a different authentication mechanism, please
-create a :ref:`support ticket <live-migration-support>`.
+If the source cluster uses a different authentication mechanism, you can use
+the :doc:`/import/mongomirror` tool to migrate data from the source cluster
+to the destination |service| cluster.
 
 .. _live-import-ip-whitelist:
 
@@ -56,10 +57,15 @@ firewall:
 |service| Cluster IP Whitelist
 ++++++++++++++++++++++++++++++
 
-|service| automatically adds the IP address of the source cluster to the
-|service| group whitelist. You must add any additional IP addresses such as
-application servers to the group whitelist manually. Do this before
-beginning the migration procedure.
+|service| only allows connections to the cluster from entries in the group’s
+:doc:`whitelist </security-whitelist>`. You must add IP addresses such as
+application servers to the group whitelist manually. Do this before beginning
+the migration procedure.
+
+|service| temporarily adds the IP address of the |service| migration
+to the group whitelist. During the migration procedure, you cannot edit
+or delete this entry. |service| removes the entry automatically once the
+procedure completes. 
 
 For documentation on adding entries to the |service| whitelist, see
 :doc:`/security-whitelist`.
@@ -67,37 +73,32 @@ For documentation on adding entries to the |service| whitelist, see
 Cut Over Downtime
 ~~~~~~~~~~~~~~~~~
 
-Once the destination |service| cluster is nearly in sync with the source
-cluster, |service| prompts you to start the cut over process. You must stop
-any applications that are accessing the source cluster to allow the
-destination cluster to fully sync.
-
-|service| starts an extendable 24 hour timer once the destination cluster is
-ready for cut over. Take this time to schedule the cut over period during the
-most appropriate time.
-
-The |service| UI provides a timer for the approximate time remaining for sync
-to complete. Use this timer to approximate the amount of downtime required
-to perform the cut over, taking into consideration the time required to
-update and restart your applications.
+The live migration procedure requires shutting down your applications as part
+of the cut over process. This results in some downtime while the migration
+procedure completes, as well as the time required to update your applications
+to point to the destination cluster and restart them.
 
 Destination Cluster Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When configuring the destination cluster, consider the following:
 
-- If the region you deploy the destination cluster to is geographically
-  distant from the source cluster, the latency may cause the migration
-  timer to stay the same or increase. You may need to deploy the destination
-  cluster in a region more geographically near to the source cluster.
+- The live migration process streams data through a |service| server running
+  in AWS US-East, implicitly requiring two network hops to reach the
+  destination cluster irrespective of the location of the source and
+  destination clusters. Depending on the location of the source cluster and
+  the destination cluster with respect to the migration server in AWS US-East,
+  the latency may cause the time required to complete migration to stay the
+  same or increase. You may need to deploy the destination cluster in a region
+  more geographically near to the migration server.
 
 - If the write workload on the source cluster is higher than what can be
-  transferred and applied to the destination cluster, the migration timer may
-  stay the same or increase. You may need to scale the destination cluster up
-  to a instance with more processing power, bandwidth or disk IO.
+  transferred and applied to the destination cluster, the time required to
+  complete migration to stay the same or increase. You may need to scale the
+  destination cluster up to a instance with more processing power, bandwidth
+  or disk IO.
 
-- The destination |service| cluster can be either a replica set or a sharded
-  cluster.
+- The destination |service| cluster must be a replica set.
 
 - You cannot select an ``M0`` (Free Tier) cluster as the destination for
   live migration.
