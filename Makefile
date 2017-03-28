@@ -3,8 +3,8 @@ USER=`whoami`
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.org"
 STAGING_BUCKET=docs-mongodb-org-staging
-PRODUCTION_BUCKET=docs-mongodb-org-prod
-PROJECT=bi-connector
+PRODUCTION_BUCKET=docs-bi-connector-prod
+PROJECT=
 
 .PHONY: help html publish stage deploy
 
