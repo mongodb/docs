@@ -1,3 +1,10 @@
+Backup Agent ``5.3.0.484``
+--------------------------
+
+*Released 2017-03-29*
+
+- Optimization for collection of data in the initial sync phase. (Recompiled with the MGO-128 fix.)
+
 Backup Agent ``5.2.0.473``
 --------------------------
 
