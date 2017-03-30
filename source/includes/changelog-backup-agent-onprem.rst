@@ -1,3 +1,13 @@
+.. _backup-5.0.6.486:
+
+Backup Agent 5.0.6.486
+----------------------
+
+*Released with Ops Manager 3.4.4 on 2017-03-30*
+
+- Performance optimization for initial data collection in the initial
+  sync phase.
+
 .. _backup-5.0.6.477:
 
 Backup Agent 5.0.6.477
