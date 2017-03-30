@@ -1,8 +1,9 @@
-.. warning:: 
+.. admonition:: Package Updates required on Ubuntu 16.04 for IBM POWER Systems
+   :class: warning
 
-   3.4 Incompatibility with Ubuntu 16.04 on IBM Power Systems
-      Due to a `lock elision bug in glibc
-      <https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1640518>`_,
-      if you are running on Ubuntu 16.04 on IBM Power Systems, do not use
-      MongoDB 3.4 in production until the ``glibc`` version with the
-      fix becomes available and you have installed that version.
+   Due to a lock elision bug present in older versions of the ``glibc``
+   package on Ubuntu 16.04 for POWER, you must upgrade the ``glibc``
+   package to at least ``glibc 2.23-0ubuntu5`` before running MongoDB.
+   Systems with older versions of the ``glibc`` package will experience
+   database server crashes and misbehavior due to random memory
+   corruption, and are unsuitable for production deployments of MongoDB

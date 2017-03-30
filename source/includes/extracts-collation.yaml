@@ -20,12 +20,23 @@ content: |
 
    - Operations on that collection use the collection's default
      collation unless they explictly specify a different collation.
+     
+     .. include:: /includes/extracts/collation-single-per-operation.rst
 ---
 ref: collation-unspecified
 content: |
    If no collation is specified for the collection or for the
    operations, MongoDB uses the simple binary comparison used in prior
    versions for string comparisons.
+---
+ref: collation-single-per-operation
+content: |
+
+   You cannot specify multiple collations for an operation. For
+   example, you cannot specify different collations per field, or if
+   performing a find with a sort, you cannot use one collation for the
+   find and another for the sort.
+
 ---
 ref: collation-option-specification
 content: |
@@ -93,6 +104,67 @@ content: |-
       create a case-insensitive index. Index with a collation ``strength``
       of ``1`` is both diacritic- and case-insensitive.
 ---
+ref: collation-index-use
+content: |-
+   To use an index for string comparisons, an operation must also
+   specify the same collation. That is, an index with a collation
+   cannot support an operation that performs string comparisons on the
+   indexed fields if the operation specifies a different collation.
+
+   For example, the collection ``myColl`` has an index on a string
+   field ``category`` with the collation locale ``"fr"``.
+
+   .. code-block:: javascript
+
+      db.myColl.createIndex( { category: 1 }, { collation: { locale: "fr" } } )
+   
+   The following query operation, which specifies the same collation as
+   the index, can use the index:
+
+   .. code-block:: javascript
+
+      db.myColl.find( { category: "cafe" } ).collation( { locale: "fr" } )
+
+   However, the following query operation, which by default uses the
+   "simple" binary collator, cannot use the index:
+
+   .. code-block:: javascript
+
+      db.myColl.find( { category: "cafe" } )
+
+   For a compound index where the index prefix keys are not strings,
+   arrays, and embedded documents, an operation that specifies a
+   different collation can still use the index to support comparisons
+   on the index prefix keys.
+
+   For example, the collection ``myColl`` has a compound index on the
+   numeric fields ``score`` and ``price`` and the string field
+   ``category``; the index is created with the  collation locale
+   ``"fr"`` for string comparisons:
+
+   .. code-block:: javascript
+
+      db.myColl.createIndex( 
+         { score: 1, price: 1, category: 1 },
+         { collation: { locale: "fr" } } )
+
+   The following operations, which use ``"simple"`` binary collation
+   for string comparisons, can use the index:
+
+   .. code-block:: javascript
+
+      db.myColl.find( { score: 5 } ).sort( { price: 1 } )
+      db.myColl.find( { score: 5, price: { $gt: NumberDecimal( "10" ) } } ).sort( { price: 1 } )
+
+   The following operation, which uses ``"simple"`` binary collation
+   for string comparisons on the indexed ``category`` field, can use
+   the index to fulfill only the ``score: 5`` portion of the query:
+
+   .. code-block:: javascript
+
+      db.myColl.find( { score: 5, category: "cafe" } )
+
+---
 ref: collation-index
 content: |-
    .. include:: /includes/extracts/collation-index-collection.rst
@@ -100,6 +172,8 @@ content: |-
    .. include:: /includes/extracts/collation-index-tip.rst
 
    .. include:: /includes/extracts/collation-index-options.rst
+
+   .. include:: /includes/extracts/collation-index-use.rst
 ---
 ref: collation-option
 content: |
@@ -114,6 +188,8 @@ content: |
    operation uses the collation specified for the collection.
 
    .. include:: /includes/extracts/collation-unspecified.rst
+
+   .. include:: /includes/extracts/collation-single-per-operation.rst
 
    .. versionadded:: 3.4
 ---
