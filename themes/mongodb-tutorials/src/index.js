@@ -144,9 +144,12 @@ class App extends React.Component {
 
     return (
       <div>
-        <Search onResults={this.onResults} />
-        <a onClick={this.clearFacets}>Clear Filters</a>
-        { facets }
+        <aside className="facets">
+          <Search onResults={this.onResults} />
+          <a onClick={this.clearFacets}>Clear Filters</a>
+          { facets }
+        </aside>
+
         <TutorialList tutorials={ tutorials } />
       </div>
     )

@@ -25,9 +25,11 @@ export default class TutorialList extends React.Component {
     })
 
     return (
-      <ul>
-        { tutorials }
-      </ul>
+      <div className="tutorials">
+        <ul>
+          { tutorials }
+        </ul>
+      </div>
     )
   }
 }
