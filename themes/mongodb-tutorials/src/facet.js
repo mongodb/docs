@@ -1,4 +1,5 @@
 import React from 'react'
+import classNames from 'classnames'
 
 
 export default class Facet extends React.Component {
@@ -8,16 +9,13 @@ export default class Facet extends React.Component {
   }
 
   genButton (option, index) {
-    let style = {
-      backgroundColor: 'transparent'
-    }
-
-    if (option.active) {
-      style.backgroundColor = 'red'
-    }
+    const buttonClass = classNames({
+      'button': true,
+      'button--active': option.active,
+    })
 
     return (
-      <button key={index} style={style} onClick={this.props.updateFacet} >
+      <button key={index} className={buttonClass} onClick={this.props.updateFacet} >
         { option.name }
       </button>
     )
