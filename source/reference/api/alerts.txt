@@ -10,402 +10,48 @@ Alerts
    :depth: 1
    :class: twocols
 
-The ``alerts`` resource allows you to retrieve alerts by their status, alert ID,
-or :doc:`alert configuration </reference/api/alert-configurations>` and to
-acknowledge alerts.
+.. include:: /includes/extracts/base-url.rst
 
-.. _api-alert-status:
-
-Alert Status
-------------
-
-.. include:: /includes/extracts/alert-status-alerts-resource.rst
+The ``alerts`` resource allows you to retrieve and acknowledge
+:doc:`alerts </tutorial/nav/alerts>`.
 
 Endpoints
 ---------
 
-Get All Alerts
-~~~~~~~~~~~~~~
-
-Gets all alerts regardless of status.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/alerts
-
-To specify alert status, use the ``status`` query parameter with one of these
-possible values: ``TRACKING``, ``OPEN``, or ``CLOSED``. The ``status``
-parameter **cannot** retrieve ``CANCELLED`` alerts.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/alerts?status=STATUS
-
-Get an Alert
-~~~~~~~~~~~~
-
-Gets a single alert by ID.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
-
-Acknowledge an Alert
-~~~~~~~~~~~~~~~~~~~~
-
-To acknowledge an alert, use ``PATCH`` to update the alert's ``acknowledgedUntil``
-field. You can optionally update the ``acknowledgementComment`` field with a
-comment. Do not include any other field in the ``PATCH`` request.
-
-.. code-block:: none
-
-   PATCH /api/public/v1.0/groups/GROUP-ID/alerts/ALERT-ID
-
-To acknowledge an alert "forever", set the field value to 100 years in the
-future. To unacknowledge a previously acknowledged alert, set the field value
-to the past.
-
-If you add a comment in the ``acknowledgementComment`` field, |mms| displays
-the comment next to the message that the alert has been acknowledged.
-
-Sample Entity
--------------
-
-The fields in the return document depend on the alert type. The
-fields shown here are common to all alert types.
-
-.. code-block:: javascript
-
-   {
-     "id": "yyy",
-     "groupId": "xxx",
-     "alertConfigId": "xxx",
-     "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
-     "status": "OPEN",
-     "acknowledgedUntil": "2014-03-01T12:00:00Z",
-     "created": "2014-02-01T12:34:12Z",
-     "updated": "2014-02-02T01:23:45Z",
-     "resolved": null,
-     "lastNotified": "2014-02-04T02:43:13Z",
-
-     // Additional fields, depending on the type of alert:
-     //   acknowledgementComment
-     //   acknowledgingUsername
-     //   hostnameAndPort
-     //   hostId
-     //   replicaSetName
-     //   metricName
-     //   currentValue
-     //   currentValue.number
-     //   currentValue.units
-     //   clusterId
-     //   clusterName
-     //   sourceTypeName
-
-     "links": [ ... ]
-   }
-
-Entity Fields
--------------
-
-.. list-table::
-   :widths: 20 20 60
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-   * - ``id``
-     - string
-     - Unique identifier.
-   * - ``groupId``
-     - string
-     - ID of the group that this alert was opened for.
-   * - ``alertConfigId``
-     - string
-     - ID of the alert configuration that triggered this alert.
-
-   * - ``eventTypeName``
-     - string
-     - The name of the event that triggered the alert.
-
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
-
-   * - ``typeName``
-     - string
-     - *This field is deprecated and will be ignored.*
-
-   * - ``status``
-     - string
-     - The current state of the alert. Possible values are:
-
-       - ``TRACKING``
-
-         The alert condition exists but has not persisted beyond the defined
-         notification delay. For details, see :ref:`api-alert-status`.
-
-       - ``OPEN``
-       - ``CLOSED``
-       - ``CANCELLED``
-
-   * - ``acknowledgedUntil``
-     - date
-     - The date through which the alert has been acknowledged. Will not be
-       present if the alert has never been acknowledged.
-   * - ``acknowledgementComment``
-     - string
-     - The comment left by the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
-   * - ``acknowledgingUsername``
-     - string
-     - The username of the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
-   * - ``created``
-     - date
-     - When the alert was opened.
-   * - ``updated``
-     - date
-     - When the alert was last updated.
-   * - ``resolved``
-     - date
-     - When the alert was closed. Only present if the status is ``CLOSED``.
-   * - ``lastNotified``
-     - date
-     - When the last notification was sent for this alert. Only present if
-       notifications have been sent.
-   * - ``hostnameAndPort``
-     - string
-     - The hostname and port of each host to which the alert applies. Only
-       present for alerts of type ``HOST``, ``HOST_METRIC``, and
-       ``REPLICA_SET``.
-
-   * - ``hostId``
-     - string
-     - ID of the host to which the metric pertains. Only present for
-       alerts of type ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``.
-
-   * - ``replicaSetName``
-     - string
-     - Name of the replica set. Only present for alerts of type ``HOST``,
-       ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
-
-   * - ``metricName``
-     - string
-     - The name of the measurement whose value went outside the threshold. Only
-       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
-
-       For possible values, see :ref:`measurement-types-for-alerts-api` on
-       this page.
-
-   * - ``currentValue``
-     - object
-     - The current value of the metric that triggered the alert. Only present for
-       alerts of type ``HOST_METRIC``.
-   * - ``currentValue.number``
-     - number
-     - The value of the metric.
-   * - ``currentValue.units``
-     - string
-     - The units for the value. Depends on the type of metric. For example, a
-       metric that measures memory consumption would have a byte measurement,
-       while a metric that measures time would have a time unit. Possible values
-       are:
-
-       .. include:: /includes/possibleValues-api-units.rst
-
-   * - ``clusterId``
-     - string
-     - The ID of the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
-   * - ``clusterName``
-     - string
-     - The name the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
-   * - ``sourceTypeName``
-     - string
-     - For alerts of the type ``BACKUP``, the type of server being backed
-       up. Possible values are:
-
-       - ``REPLICA_SET``
-       - ``SHARDED_CLUSTER``
-       - ``CONFIG_SERVER``
-
-.. _measurement-types-for-alerts-api:
-
-Measurement Types for Alerts
-----------------------------
-
-The ``alerts`` resource returns measurement types in the ``metricName`` field.
-The field is present only if ``eventTypeName`` is set to
-``OUTSIDE_METRIC_THRESHOLD``.
-
-.. include:: /includes/possibleValues-api-measurements-host.rst
-
-.. include:: /includes/possibleValues-api-measurements-host-query-scanned.rst
-
-Links
------
+The following lists the endpoints available for :doc:`alerts
+</tutorial/nav/alerts>`.
 
 .. list-table::
    :header-rows: 1
+   :widths: 10 60 30
 
-   * - ``Relation``
+   * - Method
+     - Endpoint
      - Description
-   * - ``self``
-     - Me
-   * - ``http://mms.mongodb.com/group``
-     - The group that this alert was triggered for.
-   * - ``http://mms.mongodb.com/alertConfig``
-     - The alert configuration that triggered this alert.
-   * - ``http://mms.mongodb.com/alertConfigs``
-     - A list of alert configurations that triggered this alert. This list will
-       only contain a single element and is present for backward compatibility.
-       New code should use the ``alertConfig`` link instead.
-   * - ``http://mms.mongodb.com/host``
-     - The host that triggered this alert. Only present for alerts of type
-       ``HOST``, ``REPLICA_SET``, or ``CLUSTER``.
 
-   * - ``http://mms.mongodb.com/cluster``
-     - The replica set or sharded cluster that triggered this alert. Only
-       present for alerts of type ``CLUSTER``, ``REPLICA_SET``, or ``BACKUP``.
+   * - ``GET``
 
-Examples
---------
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/alerts </reference/api/alerts-get-all-alerts>`
 
-Get an Alert
-~~~~~~~~~~~~
+     - Get all alerts for a group.
 
-Request
-```````
+   * - ``GET``
 
-.. only:: cloud
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/alerts/{ALERT-ID} </reference/api/alerts-get-alert>`
 
-   .. code-block:: none
+     - Get the specified alert for a group.
 
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f"
+   * - ``PATCH``
 
-.. only:: onprem
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/alerts/{ALERT-ID} </reference/api/alerts-acknowledge-alert>`
 
-   .. code-block:: none
+     - Acknowledge or unacknowledge an alert.
 
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533cb4b8e4b0f1820cdabc7f"
+.. class:: hidden
 
-Response
-````````
+   .. toctree::
+      :titlesonly:
 
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "533cb4b8e4b0f1820cdabc7f",
-     "groupId" : "5196d3628d022db4cbc26d9e",
-     "eventTypeName" : "OPLOG_BEHIND",
-     "status" : "CLOSED",
-     "created" : "2014-04-03T01:09:12Z",
-     "updated" : "2014-04-03T01:14:12Z",
-     "resolved" : "2014-04-03T01:14:12Z",
-     "links" : [ ... ]
-   }
-
-Get All Open Alerts
-~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts?status=OPEN"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts?status=OPEN"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount": 1,
-     "results": [ {
-       "alertConfigId":"55e756a6e4b0fa1210c695a2",
-       "id" : "533dc45ee4b00835ff81ec2a",
-       "groupId" : "5196d3628d022db4cbc26d9e",
-       "hostId":"51714c7fa22cbe473a9573d3629ff53c",
-       "hostnameAndPort":"example.test.4182.mongodbdns.com:27017",
-       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "status" : "OPEN",
-       "created" : "2014-04-03T20:28:14Z",
-       "updated" : "2014-04-03T20:28:14Z",
-       "lastNotified" : "2014-04-03T20:28:23Z",
-       "metricName": "ASSERTS_REGULAR",
-       "currentValue" : {
-         "number" : 0.0,
-         "units" : "RAW"
-       },
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Acknowledge an Alert
-~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533dc45ee4b00835ff81ec2a" --data '
-      {
-        "acknowledgedUntil": "2016-04-15T00:00:00-0400",
-        "acknowledgementComment": "This is normal. Please ignore."
-      }'
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X PATCH "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e/alerts/533dc45ee4b00835ff81ec2a" --data '
-      {
-        "acknowledgedUntil": "2016-04-15T00:00:00-0400",
-        "acknowledgementComment": "This is normal. Please ignore."
-      }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "533dc45ee4b00835ff81ec2a",
-     "groupId" : "5196d3628d022db4cbc26d9e",
-     "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-     "status" : "OPEN",
-     "acknowledgedUntil" : "2014-04-15T04:00:00Z",
-     "acknowledgementComment" : "This is normal. Please ignore.",
-     "acknowledgingUsername" : "someuser@example.com",
-     "created" : "2014-04-03T20:28:14Z",
-     "updated" : "2014-04-03T20:33:14Z",
-     "lastNotified" : "2014-04-03T20:33:23Z",
-     "metricName": "ASSERTS_REGULAR",
-     "currentValue" : {
-       "number" : 0.0,
-       "units" : "RAW"
-     },
-     "links" : [ ... ]
-   }
+      /reference/api/alerts-get-all-alerts
+      /reference/api/alerts-get-alert
+      /reference/api/alerts-acknowledge-alert
