@@ -48,6 +48,7 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 extlinks = {
+    'hardlink' : ( 'http://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
     'v2.2': ('http://docs.mongodb.com/v2.2%s', ''),
