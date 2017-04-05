@@ -38,7 +38,8 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
-    'testcode'
+    'testcode',
+    'template'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]

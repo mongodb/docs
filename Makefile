@@ -9,6 +9,8 @@ PRODUCTION_BUCKET=docs-mongodb-org-prod
 # within one bucket. For the manual it is empty.
 PROJECT=
 
+DRIVERS_PATH=source/driver-examples
+
 BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
 TEST_FILE=./build/${GIT_BRANCH}/tests.js
 .PHONY: help lint html stage deploy
@@ -27,10 +29,10 @@ test: html ## Runs test framework over the corpus
 	node ./build/docs-tools/tools/rst-testing/compile-blocks.js ${BLOCKS_FILE} > ${TEST_FILE}
 	./build/docs-tools/tools/rst-testing/rst_tester.py ${TEST_FILE}
 
-html: ## Builds this branch's HTML under build/<branch>/html
+html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 
 # - Enter build/<branch>/html, and recurse over each regular file
@@ -62,3 +64,10 @@ deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
+
+examples: examples-python
+
+# Something about Python example
+examples-python:
+	mkdir -p ${DRIVERS_PATH}
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-python-driver/master/test/test_examples.py -o ${DRIVERS_PATH}/test_examples.py 
