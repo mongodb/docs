@@ -5,5 +5,5 @@
 
 .. only:: onprem
 
-   Base URL: ``{opsManagerHost}:{Port}``
+   Base URL: ``{opsManagerHost}:{port}``
    -------------------------------------
