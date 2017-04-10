@@ -24,7 +24,7 @@ class App extends React.Component {
         { name: "C", facet: 'language', active: false },
         { name: "C++ 11", facet: 'language', active: false },
         { name: "C#", facet: 'language', active: false },
-        { name: "Pearl", facet: 'language', active: false },
+        { name: "Perl", facet: 'language', active: false },
         { name: "Ruby", facet: 'language', active: false },
         { name: "CRUD", facet: 'topic', active: false },
         { name: "Aggregation", facet: 'topic', active: false },
@@ -34,16 +34,16 @@ class App extends React.Component {
         { name: "Sharding", facet: 'topic', active: false },
       ],
       tutorials: [
-        { 
+        {
           title: 'Connecting to MongoDB',
           url: '/connecting-to-mongodb',
-          options: [ 
+          options: [
             { facet: 'product', name: 'MongoDB' },
             { facet: 'language', name: 'Mongo Shell' },
             { facet: 'language', name: 'Node.js' },
           ]
         },
-        { 
+        {
           title: 'Setting up a Replica Set',
           url: '/setting-up-a-replica-set',
           options: [
@@ -96,8 +96,8 @@ class App extends React.Component {
   render () {
     // TODO: This should be possible with reduce
     let facetNames = []
-    this.state.options.map(option => { 
-      if (facetNames.indexOf(option.facet) == -1) { 
+    this.state.options.map(option => {
+      if (facetNames.indexOf(option.facet) == -1) {
         facetNames = [
           ...facetNames,
           option.facet
