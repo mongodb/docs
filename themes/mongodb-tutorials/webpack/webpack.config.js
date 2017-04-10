@@ -1,7 +1,7 @@
 module.exports = {
-  entry: __dirname + '/src',
+  entry: __dirname + '/../src',
   output: {
-    path: './static',
+    path: __dirname + '/../static',
     filename: 'bundle.js'
   },
   devtool: 'source-maps',

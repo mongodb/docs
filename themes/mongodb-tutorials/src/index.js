@@ -2,13 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
+import Search from './Search.js'
 import TutorialList from './tutorialList.js'
-
 
 class App extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
+      searchResults: null,
       options: [
         { name: "MongoDB", facet: 'product', active: false },
         { name: "Atlas", facet: 'product', active: false },
@@ -93,6 +94,10 @@ class App extends React.Component {
     this.setState({ options })
   }
 
+  onResults = (results) => {
+    this.setState({searchResults: results})
+  }
+
   render () {
     // TODO: This should be possible with reduce
     let facetNames = []
@@ -115,7 +120,7 @@ class App extends React.Component {
         return { facet: option.facet, name: option.name } // remove active field for stringification
       })
 
-    const tutorials = this.state.tutorials.filter(tutorial => {
+    const tutorialsMatchingFacets = this.state.tutorials.filter(tutorial => {
       let shouldInclude = true // by default show all the tutorials
 
       activeOptions.map(option => {
@@ -129,8 +134,17 @@ class App extends React.Component {
       return shouldInclude
     })
 
+    let tutorials = tutorialsMatchingFacets
+    if (this.state.searchResults !== null) {
+      const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
+      tutorials = this.state.searchResults.filter(slug => {
+        return tutorialsSet.has(slug)
+      })
+    }
+
     return (
       <div>
+        <Search onResults={this.onResults} />
         <a onClick={this.clearFacets}>Clear Filters</a>
         { facets }
         <TutorialList tutorials={ tutorials } />
