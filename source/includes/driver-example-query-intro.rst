@@ -11,7 +11,6 @@
          ``inventory`` collection. To populate the ``inventory``
          collection, run the following:
 
-
      - id: python
        content: |
          This page provides examples of |query_operations| using the
@@ -20,3 +19,12 @@
          Python driver. The examples on this page use the ``inventory``
          collection. To populate the ``inventory`` collection, run the
          following:
+
+     - id: perl
+       content: |
+         This page provides examples of |query_operations| using the
+         :perl-api:`MongoDB::Collection::find()<Collection#find>` method
+         in the
+         `MongoDB Perl Driver <https://metacpan.org/release/MongoDB>`_.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:
