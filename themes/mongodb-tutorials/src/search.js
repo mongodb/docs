@@ -45,6 +45,6 @@ export default class Search extends React.Component {
   }
 
   render() {
-    return <input type="search" placeholder={this.placeholder} value={this.state.searchText} disabled={!this.state.searcher.loaded} onInput={this.onInput} />
+    return <input type="search" className="navbar-search" placeholder={this.placeholder} value={this.state.searchText} disabled={!this.state.searcher.loaded} onInput={this.onInput} />
   }
 }

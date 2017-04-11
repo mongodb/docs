@@ -1,6 +1,8 @@
 import React from 'react'
 
-const Navbar = () => {
+import Search from './search.js'
+
+const Navbar = (props) => {
   return (
     <nav className="navbar">
       <div className="navbar__left">
@@ -23,7 +25,7 @@ const Navbar = () => {
       <img src="/images/download-icon.svg" alt="Download Icon" />
 
       <div className="navbar__right">
-        <input type="text" className="navbar-search" placeholder="Search" />
+        <Search onResults={props.onResults} />
       </div>
     </nav>
   )

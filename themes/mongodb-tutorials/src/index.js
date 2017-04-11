@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
-import Search from './Search.js'
 import Navbar from './navbar.js'
 import TutorialList from './tutorialList.js'
 
@@ -156,9 +155,7 @@ class App extends React.Component {
 
     return (
       <div>
-        <Navbar />
-
-        <Search onResults={this.onResults} />
+        <Navbar onResults={this.onResults} />
 
         <div className="main">
           <aside className="main__sidebar">
