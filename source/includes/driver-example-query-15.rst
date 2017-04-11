@@ -18,3 +18,12 @@
             :dedent: 8
             :start-after: Start Example 15
             :end-before: End Example 15
+
+     - id: perl
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/driver-examples.t
+            :language: perl
+            :dedent: 4
+            :start-after: Start Example 15
+            :end-before: End Example 15
