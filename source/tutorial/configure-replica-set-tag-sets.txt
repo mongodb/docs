@@ -234,6 +234,51 @@ facility:
 
    db.users.insert( { id: "xyz", status: "A" }, { writeConcern: { w: "MultipleDC" } } )
 
+Tag Sets and Custom Write Concern Behavior
+-------------------------------------------
+
+The numeric value in the custom ``getLastErrorModes`` write concern refers to
+the number of *unique* tag values (in the associated replica set tag) required
+to satisfy the write concern.
+
+For example, given the following tag set configuration:
+
+.. code-block:: javascript
+
+    conf = rs.conf()
+    conf.members[0].tags = { "dc": "east", "production": "node-1"  }
+    conf.members[1].tags = { "dc": "east", "production": "node-2"  }
+    conf.members[2].tags = { "dc": "east", "production": "node-3"  }
+    rs.reconfig(conf)
+
+The custom write concern ``productionWriteConcern`` defined below is satisfied
+if the write propagates to the three replica set members since across the three
+members, the ``production`` tag contains three unique values:
+
+.. code-block:: javascript
+
+    conf.settings = {
+        getLastErrorModes: {
+            productionWriteConcern : { "production": 3 }
+        }
+    }
+
+However, the following custom write concern ``dcWriteConcern`` can never
+succeed:
+
+.. code-block:: javascript
+
+    conf.settings = {
+        getLastErrorModes: {
+            dcWriteConcern : { "dc": 3 } // this will never succeed
+        }
+    }
+
+This is because the ``dc`` tag does not contain three unique values, but
+rather a single tag/value repeated three times across the replica set members
+(i.e. ``{"dc": "east"}``). Therefore the custom write concern setting of
+``{"dc": 3}`` will never be satisfied.
+
 Configure Tag Sets for Functional Segregation of Read and Write Operations
 --------------------------------------------------------------------------
 
