@@ -3,7 +3,7 @@
 
 const __doc__ = `
 Usage:
-  genindex.js <source> <outputPrefix> --config=<path>
+  genindex.js <source> <outputIndex> --config=<path>
 `
 
 const assert = require('assert')
@@ -152,13 +152,13 @@ function processFile(path) {
     const rawHeadmatter = match[1]
     const headmatter = toml.parse(rawHeadmatter)
     if (!headmatter.slug) {
-      headmatter.slug = pathModule.parse(path).base
+      headmatter.slug = '/' + pathModule.parse(path).name
     }
 
     const searchDoc = parseXML(path, headmatter, rawdata.slice(match[0].length))
     searchIndex.idx.add(searchDoc)
 
-    return [headmatter.slug, headmatter.title, headmatter.tags]
+    return ['/' + headmatter.slug, headmatter.title, headmatter.tags]
 }
 
 function main() {
@@ -191,13 +191,13 @@ function main() {
         process.exit(1)
     }
 
-    fs.writeFileSync(args['<outputPrefix>'] + 'tags.json', JSON.stringify({
-        tags: tagManifest,
-        pages: data
-    }))
+    // fs.writeFileSync(args['<outputPrefix>'] + 'tags.js', JSON.stringify({
+    //     tags: tagManifest,
+    //     pages: data
+    // }))
 
     const searchIndexJSON = searchIndex.toJSON()
-    fs.writeFileSync(args['<outputPrefix>'] + 'search.json', JSON.stringify(searchIndexJSON))
+    fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
 }
 
 main()

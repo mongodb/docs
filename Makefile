@@ -7,7 +7,7 @@ help: ## Show this help message
 
 build: | tools/node_modules ## Build the documentation under build/<git branch>
 	hugo -d build/$(GIT_BRANCH)
-	$(NODE) tools/genindex.js content/tutorials build/$(GIT_BRANCH)/ --config config.toml
+	$(NODE) tools/genindex.js content/tutorials build/$(GIT_BRANCH)/search.json --config config.toml
 
 serve: ## Host the documentation on port 1313
 	hugo serve
