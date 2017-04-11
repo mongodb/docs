@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
 import Search from './Search.js'
+import Navbar from './navbar.js'
 import TutorialList from './tutorialList.js'
 
 class App extends React.Component {
@@ -35,18 +36,28 @@ class App extends React.Component {
         { name: "Sharding", facet: 'topic', active: false },
       ],
       tutorials: [
-        {
-          title: 'Connecting to MongoDB',
-          url: '/connecting-to-mongodb',
-          options: [
+        { 
+          title: 'Connecting to MongoDB (Python)',
+          url: '/connect-to-mongodb-python',
+          snippet: "Snippet…Activated charcoal irony cliche direct trade, echo park trust fund austin la croix man bun heirloom butcher gastropub four dollar toast locavore prism. Get familiar:...",
+          options: [ 
+            { facet: 'product', name: 'MongoDB' },
+            { facet: 'language', name: 'Python' },
+          ]
+        },
+        { 
+          title: 'Connecting to MongoDB (Mongo Shell)',
+          url: '/connect-to-mongodb-shell',
+          snippet: "Snippet…Activated charcoal irony cliche direct trade, echo park trust fund austin la croix man bun heirloom butcher gastropub four dollar toast locavore prism. Get familiar:...",
+          options: [ 
             { facet: 'product', name: 'MongoDB' },
             { facet: 'language', name: 'Mongo Shell' },
-            { facet: 'language', name: 'Node.js' },
           ]
         },
         {
           title: 'Setting up a Replica Set',
           url: '/setting-up-a-replica-set',
+          snippet: "Snippet…Activated charcoal irony cliche direct trade, echo park trust fund austin la croix man bun heirloom butcher gastropub four dollar toast locavore prism. Get familiar:...",
           options: [
             { facet: 'product', name: 'MongoDB' },
             { facet: 'language', name: 'Mongo Shell' },
@@ -55,7 +66,8 @@ class App extends React.Component {
         },
         {
           title: 'How to Compass',
-          url: '/how-to-compass',
+          url: '/compass',
+          snippet: "Snippet…Activated charcoal irony cliche direct trade, echo park trust fund austin la croix man bun heirloom butcher gastropub four dollar toast locavore prism. Get familiar:...",
           options: [
             { facet: 'product', name: 'Compass' },
           ]
@@ -144,13 +156,26 @@ class App extends React.Component {
 
     return (
       <div>
-        <aside className="facets">
-          <Search onResults={this.onResults} />
-          <a onClick={this.clearFacets}>Clear Filters</a>
-          { facets }
-        </aside>
+        <Navbar />
 
-        <TutorialList tutorials={ tutorials } />
+        <Search onResults={this.onResults} />
+
+        <div className="main">
+          <aside className="main__sidebar">
+            <div className="filter-header">
+              <h5 className="filter-header__title">Filters</h5>
+              <a onClick={this.clearFacets}><h5 className="filter-header__clear">X Clear Filters</h5></a>
+            </div>
+            <div className="filters">
+              { facets }
+            </div>
+          </aside>
+
+          <div className="main__content">
+            <h1 className="main__title">Tutorials</h1>
+            <TutorialList tutorials={ tutorials } />
+          </div>
+        </div>
       </div>
     )
   }

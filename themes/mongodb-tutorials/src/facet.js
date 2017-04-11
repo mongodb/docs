@@ -1,4 +1,5 @@
 import React from 'react'
+import capitalize from 'lodash.capitalize'
 import classNames from 'classnames'
 
 
@@ -25,8 +26,8 @@ export default class Facet extends React.Component {
     const buttons = this.props.options.map(this.genButton)
 
     return (
-      <div>
-        <h2>{ this.props.name }</h2>
+      <div className="facet">
+        <h4 className="facet__title">{ capitalize(this.props.name) }</h4>
         { buttons }
       </div>
     )

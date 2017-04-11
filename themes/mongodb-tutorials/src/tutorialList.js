@@ -1,5 +1,7 @@
 import React from 'react'
 
+import Tutorial from './tutorial.js'
+
 
 export default class TutorialList extends React.Component {
   constructor (props) {
@@ -7,29 +9,16 @@ export default class TutorialList extends React.Component {
   }
 
   render () {
-    const tutorials = this.props.tutorials.map((tutorial, i)=> {
-      const options = tutorial.options.map((option, j) => {
-        return <li key={j}>{ option.name }</li>
-      })
-
+    const tutorials = this.props.tutorials.map((tutorial, i) => {
       return (
-        <li key={i}>
-          <a href={ tutorial.url }>
-            { tutorial.title }
-            <ul>
-              { options }
-            </ul>
-          </a>
-        </li>
+        <Tutorial tutorial={ tutorial } key={ i } />
       )
     })
 
     return (
-      <div className="tutorials">
-        <ul>
-          { tutorials }
-        </ul>
-      </div>
+      <ul className="tutorials">
+        { tutorials }
+      </ul>
     )
   }
 }
