@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
-import Search from './Search.js'
+import Search from './search.js'
 import TutorialList from './tutorialList.js'
 
 class App extends React.Component {
