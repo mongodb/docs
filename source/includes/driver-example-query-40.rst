@@ -8,7 +8,7 @@
          .. class:: copyable-code
          .. code-block:: javascript
 
-            db.inventory.find( { item : { $type: 10 } } )
+            db.inventory.find( { item : { $type: 'null' } } )
 
      - id: python
        content: |
