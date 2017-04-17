@@ -1,3 +1,13 @@
+Backup Agent ``5.4.0.490``
+--------------------------
+
+*Released 2017-04-19*
+
+- Reduce memory used during initial sync.
+
+- Ensure messages printed to ``STDOUT`` and ``STDERR`` will also be
+  included in the Backup Agent log file.
+
 Backup Agent ``5.3.0.484``
 --------------------------
 

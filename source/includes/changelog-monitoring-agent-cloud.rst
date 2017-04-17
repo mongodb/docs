@@ -1,3 +1,11 @@
+Monitoring Agent ``5.7.0.368``
+------------------------------
+
+*Released 2017-04-19*
+
+- Do not print an error message when monitoring a newly created sharded
+  cluster for which the config.settings document does not yet exist.
+
 Monitoring Agent ``5.6.0.364``
 ------------------------------
 
