@@ -28,11 +28,11 @@ gulp.task('sass:build', function() {
 
 gulp.task('sass', ['sass:lint', 'sass:build'])
 
-gulp.task('js:build', function() {
-  gulp.src('./src/index.js')
+gulp.task('js:build-home', function() {
+  gulp.src('./src/home.js')
     .pipe(webpack({
       output: {
-        filename: 'bundle.js'
+        filename: 'home.js'
       },
       devtool: 'source-maps',
       module: {
@@ -51,7 +51,30 @@ gulp.task('js:build', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
-gulp.task('js', ['js:build'])
+gulp.task('js:build-single', function() {
+  gulp.src('./src/single.js')
+    .pipe(webpack({
+      output: {
+        filename: 'single.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
+gulp.task('js', ['js:build-home', 'js:build-single'])
 
 gulp.task('watch', function() {
   gulp.watch('./src/styles/**/*.scss', ['sass'])
