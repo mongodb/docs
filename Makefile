@@ -5,10 +5,10 @@ help: ## Show this help message
 
 build: | tools/node_modules ## Build into public/
 	hugo
-	$(NODE) tools/genindex.js content public/search.json --config config.toml
+	$(NODE) tools/genindex.js content public/search.json public/tags.json --config config.toml
 
 server: ## Host the documentation on port 1313
-	$(NODE) tools/genindex.js content public/search.json --config config.toml
+	$(NODE) tools/genindex.js content public/search.json public/tags.json --config config.toml
 	hugo server --renderToDisk
 
 tools/node_modules: tools/package.json
