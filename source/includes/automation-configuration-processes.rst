@@ -56,12 +56,11 @@ You can also use the array to restore an instance.
 
    * - ``processes.<args>``
      - object
-     - This field is named either ``args2_6``, for MongoDB versions 2.6
-       and higher (including 3.0 and higher), or ``args2_4``, for versions
-       2.4 and earlier. The field contains a MongoDB configuration
-       object in the format appropriate to the version. For information
-       on format and supported MongoDB options, see :doc:`supported
-       configuration options
+     - This field is named ``args2_6`` for MongoDB versions 2.6 and
+       higher (including 3.0 and higher). The field contains a MongoDB
+       configuration object in the format appropriate to the version.
+       For information on format and supported MongoDB options, see
+       :doc:`supported configuration options
        </reference/cluster-configuration-process-options>`.
 
    * - ``processes.disabled``

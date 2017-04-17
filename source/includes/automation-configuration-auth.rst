@@ -136,13 +136,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
 
    * - ``auth.usersWanted.userSource``
      - string
-     - If you use MongoDB version 2.4, you can use this field to specify
-       the database that contains the user's credentials. See the
-       `Privilege Documents page in the MongoDB 2.4 manual
-       <http://docs.mongodb.org/v2.4/reference/privilege-documents/>`_. If
-       you set this field, **do not** set the
-       ``auth.usersWanted.pwd`` or ``auth.usersWanted.initPwd``
-       fields.
+     - No longer supported.
 
    * - ``auth.usersWanted.otherDBRoles``
      - object
