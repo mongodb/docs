@@ -3,7 +3,7 @@
 
 const __doc__ = `
 Usage:
-  genindex.js <source> <outputIndex> --config=<path>
+  genindex.js <source> <outputIndex> <outputTags> --config=<path>
 `
 
 const assert = require('assert')
@@ -18,6 +18,7 @@ const toml = require('toml')
 const lunr = require('lunr')
 
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
+const SNIPPET_LENGTH = 175
 
 // Recursively step through an object and replace any numbers with a number
 // representable in a short ASCII string.
@@ -84,7 +85,7 @@ function parseXML(path, headmatter, xml) {
     const doc = {
         id: searchIndex.docId,
         title: headmatter.title,
-        tags: headmatter.tags,
+        tags: Object.keys(headmatter.tags),
         minorTitles: [],
         body: []
     }
@@ -158,7 +159,21 @@ function processFile(path) {
     const searchDoc = parseXML(path, headmatter, rawdata.slice(match[0].length))
     searchIndex.idx.add(searchDoc)
 
-    return ['/' + headmatter.slug, headmatter.title, headmatter.tags]
+    let tags = []
+
+    for (const tag of Object.keys(headmatter.tags)) {
+      tags.push({
+        facet: headmatter.tags[tag],
+        name: tag,
+      })
+    }
+
+    return {
+      url: headmatter.slug,
+      title: headmatter.title,
+      snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
+      tags,
+    }
 }
 
 function main() {
@@ -177,27 +192,31 @@ function main() {
             continue
         }
 
-        for (const tag of headmatter[2]) {
-            if (tagManifest[tag] === undefined) {
-                console.error(`Unknown tag "${tag}" in ${path}`)
-                error = true
-            }
-        }
+        console.log(headmatter)
 
-        data.push(headmatter)
+        // for (const tag of Object.keys(headmatter.tags)) {
+        //     if (tagManifest[tag] === undefined) {
+        //         console.error(`Unknown tag "${tag}" in ${path}`)
+        //         error = true
+        //     }
+        // }
+        //
+        // data.push(headmatter)
     }
 
-    if (error) {
-        process.exit(1)
-    }
+    // console.log(data)
 
-    // fs.writeFileSync(args['<outputPrefix>'] + 'tags.js', JSON.stringify({
+    // if (error) {
+    //     process.exit(1)
+    // }
+    //
+    // fs.writeFileSync(args['<outputTags>'], JSON.stringify({
     //     tags: tagManifest,
     //     pages: data
     // }))
-
-    const searchIndexJSON = searchIndex.toJSON()
-    fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
+    //
+    // const searchIndexJSON = searchIndex.toJSON()
+    // fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
 }
 
 main()
