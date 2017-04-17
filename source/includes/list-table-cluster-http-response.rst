@@ -98,13 +98,7 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       For ``AWS``, |service| currently uses the following values. |service|
-       might also offer additional values in the future.
-
-       - ``AP_SOUTHEAST_2``
-       - ``EU_WEST_1``
-       - ``US_EAST_1``
-       - ``US_WEST_2``
+       .. include:: /includes/fact-aws-region-names.rst
 
    * - ``providerSettings.instanceSizeName``
      - string
