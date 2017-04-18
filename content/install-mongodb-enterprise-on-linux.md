@@ -1,0 +1,182 @@
++++
+title = "Install MongoDB Enterprise From Tarball"
+
+[tags]
++++
+# Install MongoDB Enterprise From Tarball
+
+
+# On this page
+
+* [Overview](#overview) 
+
+* [Install MongoDB](#install-mongodb) 
+
+* [Run MongoDB](#run-mongodb) 
+
+
+## Overview
+
+MongoDB Enterprise tarballs provide an option for installing
+MongoDB Enterprise Edition if the distribution packages are not
+appropriate for your deployment.
+
+Installing the tarballs on a platform not listed on
+[Supported Platforms](#prod-notes-supported-platforms) may result in unpredictable
+behavior.
+
+
+## Install MongoDB
+
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-linux/). 
+
+
+### Step 1: Install any missing dependencies.
+
+To manually install MongoDB Enterprise, first install any dependencies
+as appropriate for your operating system:
+
+Red Hat Enterprise Linux/CentOS
+   Version 6
+      ```sh
+
+      yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs net-snmp openssl libcurl
+
+      ```
+
+   Version 7
+      ```sh
+
+      yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs lm_sensors-libs net-snmp-agent-libs net-snmp openssl rpm-libs tcp_wrappers-libs libcurl
+
+      ```
+
+Ubuntu & Debian
+   ```sh
+
+   sudo apt-get install libcurl3 libgssapi-krb5-2 libldap-2.4-2 libpcap0.8 libpci3 libsasl2-2 libsensors4 libsnmp30 libssl1.0.0 libwrap0
+
+   ```
+
+SUSE
+   ```sh
+
+   zypper install krb5 libcurl4 libldap-2_4-2 libopenssl1_0_0 cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5 libsensors4 libsnmp30 libwrap0
+
+   ```
+
+Amazon Linux
+   ```sh
+
+   yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs lm_sensors-libs net-snmp-agent-libs net-snmp openssl rpm-libs tcp_wrappers-libs libcurl
+
+   ```
+
+
+### Step 2: Download and extract the MongoDB Enterprise packages.
+
+After you have installed the required prerequisite packages, download
+and extract the MongoDB Enterprise tarball for your system from
+[https://www.mongodb.com/download-center#enterprise](https://www.mongodb.com/download-center#enterprise).
+
+
+### Step 3: Ensure that the MongoDB binaries are in your ``PATH``.
+
+The MongoDB binaries are in the ``bin/`` directory of the tarball.
+You must either:
+
+* Copy these binaries into a directory listed in your ``PATH`` variable such as ``/usr/local/bin``, 
+
+* Create symbolic links to each of these binaries from a directory listed in your ``PATH`` variable, or 
+
+* Modify your user's ``PATH`` environment variable to include this directory. 
+
+
+## Run MongoDB
+
+Most Unix-like operating systems limit the system resources that a
+session may use. These limits may negatively impact MongoDB operation.
+See [UNIX ulimit Settings](#) for more information.
+
+
+### Step 1: Create the data directory.
+
+Before you start MongoDB for the first time, create the directory to
+which the [``mongod``](#bin.mongod) process will write data. By default, the
+[``mongod``](#bin.mongod) process uses the ``/data/db`` directory. If you create
+a directory other than this one, you must specify that directory in the
+``dbpath`` option when starting the [``mongod``](#bin.mongod) process
+later in this procedure.
+
+The following example command creates the default ``/data/db`` directory:
+
+```sh
+
+mkdir -p /data/db
+
+```
+
+
+### Step 2: Set permissions for the data directory.
+
+Before running [``mongod``](#bin.mongod) for the first time, ensure that the
+user account running [``mongod``](#bin.mongod) has read and write permissions
+for the directory.
+
+
+### Step 3: Run MongoDB.
+
+To run MongoDB, run the [``mongod``](#bin.mongod) process at the system prompt.
+If necessary, specify the path of the [``mongod``](#bin.mongod) or the data
+directory. See the following examples.
+
+
+#### Run without specifying paths
+
+If your system ``PATH`` variable includes the location of the
+[``mongod``](#bin.mongod) binary and if you use the default data directory
+(i.e., ``/data/db``), simply enter ``mongod`` at the system prompt:
+
+```sh
+
+mongod
+
+```
+
+
+#### Specify the path of the [``mongod``](#bin.mongod)
+
+If your ``PATH`` does not include the location of the
+[``mongod``](#bin.mongod) binary, enter the full path to the [``mongod``](#bin.mongod)
+binary at the system prompt:
+
+```sh
+
+<path to binary>/mongod
+
+```
+
+
+#### Specify the path of the data directory
+
+If you do not use the default data directory (i.e., ``/data/db``),
+specify the path to the data directory using the ``--dbpath`` option:
+
+```sh
+
+mongod --dbpath <path to data directory>
+
+```
+
+
+### Step 4: Begin using MongoDB.
+
+To help you start using MongoDB, MongoDB provides [Getting
+Started Guides](#getting-started) in various driver editions. See
+[Getting Started](#getting-started) for the available editions.
+
+Before deploying MongoDB in a production environment, consider the
+[Production Notes](#) document.
+
+Later, to stop MongoDB, press ``Control+C`` in the terminal where the
+[``mongod``](#bin.mongod) instance is running.

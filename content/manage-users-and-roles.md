@@ -1,0 +1,482 @@
++++
+title = "Manage Users and Roles"
+
+[tags]
++++
+# Manage Users and Roles
+
+
+# On this page
+
+* [Overview](#overview) 
+
+* [Prerequisites](#prerequisites) 
+
+* [Create a User-Defined Role](#create-a-user-defined-role) 
+
+* [Modify Access for an Existing User](#modify-access-for-an-existing-user) 
+
+* [Modify the Password for an Existing User](#modify-the-password-for-an-existing-user) 
+
+* [View a User's Roles](#view-a-user-s-roles) 
+
+* [View a Role's Privileges](#view-a-role-s-privileges) 
+
+
+## Overview
+
+Changed in version 2.6: MongoDB 2.6 introduces a new [authorization model](#authorization).
+
+This tutorial provides examples for user and role management under the
+MongoDB's authorization model. [Add Users](#) describes
+how to add a new user to MongoDB.
+
+
+## Prerequisites
+
+Important: If you have [enabled access control](#) for your deployment, you must authenticate as a user with the required privileges specified in each section. A user administrator with the [``userAdminAnyDatabase``](#userAdminAnyDatabase) role, or [``userAdmin``](#userAdmin) role in the specific databases, provides the required privileges to perform the operations listed in this tutorial. See [Enable Auth](#) for details on adding user administrator as the first user. 
+
+
+## Create a User-Defined Role
+
+Roles grant users access to MongoDB resources. MongoDB provides a
+number of [built-in roles](#) that
+administrators can use to control access to a MongoDB system. However,
+if these roles cannot describe the desired set of privileges, you can
+create new roles in a particular database.
+
+Except for roles created in the ``admin`` database, a role can only
+include privileges that apply to its database and can only inherit from
+other roles in its database.
+
+A role created in the ``admin`` database can include privileges that
+apply to the ``admin`` database, other databases or to the
+[cluster](#resource-cluster) resource, and can inherit from roles
+in other databases as well as the ``admin`` database.
+
+To create a new role, use the [``db.createRole()``](#db.createRole) method,
+specifying the privileges in the ``privileges`` array and the inherited
+roles in the ``roles`` array.
+
+MongoDB uses the combination of the database name and the role name to
+uniquely define a role. Each role is scoped to the database in which
+you create the role, but MongoDB stores all role information in the
+[``admin.system.roles``](#admin.system.roles) collection in the ``admin`` database.
+
+
+### Prerequisites
+
+To create a role in a database, you must have:
+
+* the [``createRole``](#createRole) [action](#security-user-actions) on that [database resource](#resource-specific-db). 
+
+* the [``grantRole``](#grantRole) [action](#security-user-actions) on that database to specify privileges for the new role as well as to specify roles to inherit from. 
+
+Built-in roles [``userAdmin``](#userAdmin) and
+[``userAdminAnyDatabase``](#userAdminAnyDatabase) provide [``createRole``](#createRole) and
+[``grantRole``](#grantRole) actions on their respective [resources](#).
+
+
+### Create a Role to Manage Current Operations
+
+The following example creates a role named ``manageOpRole`` which
+provides only the privileges to run both [``db.currentOp()``](#db.currentOp) and
+[``db.killOp()``](#db.killOp). [1]
+
+Note: Changed in version 3.2.9: On [``mongod``](#bin.mongod) instances, users do not need any specific privileges to run to view their own operations or to kill their own operations. See [``db.currentOp()``](#db.currentOp) and [``db.killOp()``](#db.killOp) for details. 
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) with the privileges
+specified in the [Prerequisites](#define-roles-prereq) section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+The ``myUserAdmin`` has privileges to create roles in the ``admin``
+as well as other databases.
+
+
+#### Step 2: Create a new role to manage current operations.
+
+``manageOpRole`` has privileges that act on multiple databases as well
+as the [cluster resource](#resource-cluster). As such, you must
+create the role in the ``admin`` database.
+
+```javascript
+
+use admin
+db.createRole(
+   {
+     role: "manageOpRole",
+     privileges: [
+       { resource: { cluster: true }, actions: [ "killop", "inprog" ] },
+       { resource: { db: "", collection: "" }, actions: [ "killCursors" ] }
+     ],
+     roles: []
+   }
+)
+
+```
+
+The new role grants permissions to kill any operations.
+
+Warning: Terminate running operations with extreme caution. Only use the [``db.killOp()``](#db.killOp) method or [``killOp``](#dbcmd.killOp) command to terminate operations initiated by clients and *do not* terminate internal database operations. 
+
+[1] The built-in role [``clusterMonitor``](#clusterMonitor) also provides the privilege to run [``db.currentOp()``](#db.currentOp) along with other privileges, and the built-in role [``hostManager``](#hostManager) provides the privilege to run [``db.killOp()``](#db.killOp) along with other privileges. 
+
+
+### Create a Role to Run ``mongostat``
+
+The following example creates a role named ``mongostatRole`` that
+provides only the privileges to run [``mongostat``](#bin.mongostat).
+[2]
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) with the privileges
+specified in the [Prerequisites](#define-roles-prereq) section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+The ``myUserAdmin`` has privileges to create roles in the ``admin``
+as well as other databases.
+
+
+#### Step 2: Create a new role to manage current operations.
+
+``mongostatRole`` has privileges that act on the [cluster
+resource](#resource-cluster). As such, you must create the role in
+the ``admin`` database.
+
+```javascript
+
+use admin
+db.createRole(
+   {
+     role: "mongostatRole",
+     privileges: [
+       { resource: { cluster: true }, actions: [ "serverStatus" ] }
+     ],
+     roles: []
+   }
+)
+
+```
+
+[2] The built-in role [``clusterMonitor``](#clusterMonitor) also provides the privilege to run [``mongostat``](#bin.mongostat) along with other privileges. 
+
+
+## Modify Access for an Existing User
+
+
+### Prerequisites
+
+* You must have the [``grantRole``](#grantRole) [action](#security-user-actions) on a database to grant a role on that database. 
+
+* You must have the [``revokeRole``](#revokeRole) [action](#security-user-actions) on a database to revoke a role on that database. 
+
+* To view a role's information, you must be either explicitly granted the role or must have the [``viewRole``](#viewRole) [action](#security-user-actions) on the role's database. 
+
+
+### Procedure
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) as a user with
+the privileges specified in the prerequisite section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+
+#### Step 2: Identify the user's roles and privileges.
+
+To display the roles and privileges of the user to be modified, use the
+[``db.getUser()``](#db.getUser) and [``db.getRole()``](#db.getRole) methods.
+
+For example, to view roles for ``reportsUser`` created in
+[Examples](#add-new-user), issue:
+
+```javascript
+
+use reporting
+db.getUser("reportsUser")
+
+```
+
+To display the privileges granted to the user by the
+``readWrite`` role on the ``"accounts"`` database, issue:
+
+```javascript
+
+use accounts
+db.getRole( "readWrite", { showPrivileges: true } )
+
+```
+
+
+#### Step 3: Identify the privileges to grant or revoke.
+
+If the user requires additional privileges, grant to the user the
+role, or roles, with the required set of privileges. If such a role
+does not exist, [create a new role](#create-user-defined-role)
+with the appropriate set of privileges.
+
+To revoke a subset of privileges provided by an existing role: revoke
+the original role and grant a role that contains only the required
+privileges. You may need to [create a new role](#create-user-defined-role) if a role does not exist.
+
+
+#### Step 4: Modify the user's access.
+
+
+##### Revoke a Role
+
+Revoke a role with the [``db.revokeRolesFromUser()``](#db.revokeRolesFromUser) method.
+The following example operation removes the [``readWrite``](#readWrite)
+role on the ``accounts`` database from the ``reportsUser``:
+
+```javascript
+
+use reporting
+db.revokeRolesFromUser(
+    "reportsUser",
+    [
+      { role: "readWrite", db: "accounts" }
+    ]
+)
+
+```
+
+
+##### Grant a Role
+
+Grant a role using the [``db.grantRolesToUser()``](#db.grantRolesToUser)
+method. For example, the following operation grants the
+``reportsUser`` user the [``read``](#read) role on the
+``accounts`` database:
+
+```javascript
+
+use reporting
+db.grantRolesToUser(
+    "reportsUser",
+    [
+      { role: "read", db: "accounts" }
+    ]
+)
+
+```
+
+For sharded clusters, the changes to the user are instant on the
+[``mongos``](#bin.mongos) on which the command runs. However, for other
+[``mongos``](#bin.mongos) instances in the cluster, the user cache may wait
+up to 10 minutes to refresh. See
+[``userCacheInvalidationIntervalSecs``](#param.userCacheInvalidationIntervalSecs).
+
+
+## Modify the Password for an Existing User
+
+
+### Prerequisites
+
+To modify the password of another user on a database, you must have the
+``changeAnyPassword`` [action](#security-user-actions)
+on that database.
+
+
+### Procedure
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to the [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) with the privileges
+specified in the [Prerequisites](#change-password-prereq) section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+
+#### Step 2: Change the password.
+
+Pass the user's username and the new password to the
+[``db.changeUserPassword()``](#db.changeUserPassword) method.
+
+The following operation changes the ``reporting`` user's password to
+``SOh3TbYhxuLiW8ypJPxmt1oOfL``:
+
+```javascript
+
+db.changeUserPassword("reporting", "SOh3TbYhxuLiW8ypJPxmt1oOfL")
+
+```
+
+See also: [Change Your Password and Custom Data](#) 
+
+
+## View a User's Roles
+
+
+### Prerequisites
+
+To view another user's information, you must have the
+[``viewUser``](#viewUser) [action](#security-user-actions) on the
+other user's database.
+
+Users can view their own information.
+
+
+### Procedure
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) as a user with
+the privileges specified in the prerequisite section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+
+#### Step 2: Identify the user's roles.
+
+Use the [``usersInfo``](#dbcmd.usersInfo) command or [``db.getUser()``](#db.getUser) method to
+display user information.
+
+For example, to view roles for ``reportsUser`` created in
+[Examples](#add-new-user), issue:
+
+```javascript
+
+use reporting
+db.getUser("reportsUser")
+
+```
+
+In the returned document, the [``roles``](#admin.system.users.roles)
+field displays all roles for ``reportsUser``:
+
+```javascript
+
+...
+"roles" : [
+   { "role" : "readWrite", "db" : "accounts" },
+   { "role" : "read", "db" : "reporting" },
+   { "role" : "read", "db" : "products" },
+   { "role" : "read", "db" : "sales" }
+]
+
+```
+
+
+## View a Role's Privileges
+
+
+### Prerequisites
+
+To view a role's information, you must be either explicitly granted the
+role or must have the [``viewRole``](#viewRole) [action](#security-user-actions) on the role's database.
+
+
+### Procedure
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) as a user with
+the privileges specified in the prerequisite section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](#).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+
+```
+
+
+#### Step 2: Identify the privileges granted by a role.
+
+For a given role, use the [``db.getRole()``](#db.getRole) method, or the
+[``rolesInfo``](#dbcmd.rolesInfo) command, with the ``showPrivileges`` option:
+
+For example, to view the privileges granted by ``read`` role on
+the ``products`` database, use the following operation, issue:
+
+```javascript
+
+use products
+db.getRole( "read", { showPrivileges: true } )
+
+```
+
+In the returned document, the [``privileges``](#rolesInfo.privileges) and
+[``inheritedPrivileges``](#rolesInfo.inheritedPrivileges) arrays. The
+[``privileges``](#rolesInfo.privileges) lists the privileges directly
+specified by the role and excludes those privileges inherited
+from other roles. The [``inheritedPrivileges``](#rolesInfo.inheritedPrivileges)
+lists all privileges granted by this role, both directly
+specified and inherited. If the role does not inherit from other
+roles, the two fields are the same.
+
+```javascript
+
+...
+"privileges" : [
+  {
+    "resource": { "db" : "products", "collection" : "" },
+    "actions": [ "collStats","dbHash","dbStats","find","killCursors","planCacheRead" ]
+  },
+  {
+    "resource" : { "db" : "products", "collection" : "system.js" },
+    "actions": [ "collStats","dbHash","dbStats","find","killCursors","planCacheRead" ]
+  }
+],
+"inheritedPrivileges" : [
+  {
+    "resource": { "db" : "products", "collection" : "" },
+    "actions": [ "collStats","dbHash","dbStats","find","killCursors","planCacheRead" ]
+  },
+  {
+    "resource" : { "db" : "products", "collection" : "system.js" },
+    "actions": [ "collStats","dbHash","dbStats","find","killCursors","planCacheRead" ]
+  }
+]
+
+```
