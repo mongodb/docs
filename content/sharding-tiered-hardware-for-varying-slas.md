@@ -43,7 +43,7 @@ Level Agreement (SLA) or Service Level Objective (SLO):
 The following diagram illustrates a sharded cluster that uses hardware based
 zones to satisfy data access SLAs or SLOs.
 
-   [image: Diagram of sharded cluster architecture for tiered SLA][image]
+![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-overview.bakedsvg.svg)
 
 
 ## Scenario
@@ -93,7 +93,7 @@ on the creation date.
 
 The sharded cluster deployment currently consists of three [*shards*](#term-shard).
 
-   [image: Diagram of sharded cluster architecture for tiered SLA][image]
+![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-architecture.bakedsvg.svg)
 
 
 ### Zones
@@ -102,7 +102,7 @@ The application requires adding each shard to a zone based on its
 hardware tier. Each hardware tier represents a specific hardware configuration
 designed to satisfy a given SLA or SLO.
 
-   [image: Diagram of sharded cluster architecture for tiered SLA][image]
+![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-tags.bakedsvg.svg)
 
 Fast Tier ("recent")
    These are the fastest performing machines, with large

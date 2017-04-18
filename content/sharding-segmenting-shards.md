@@ -38,7 +38,7 @@ be isolated to specific shards. Additionally, each shard can have specific
 hardware allocated to fit the performance requirement of the data stored on
 that shard.
 
-   [image: Overview of zones used for supporting data segmentation][image]
+![Overview of zones used for supporting data segmentation](../images/sharding-segmenting-shards-overview.bakedsvg.svg)
 
 
 ## Scenario
@@ -93,14 +93,14 @@ The application requires adding shard to a zone associated to a specific
 
 The sharded cluster deployment currently consists of four [*shards*](#term-shard).
 
-   [image: Diagram of Data Segmentation Architecture using zones][image]
+![Diagram of Data Segmentation Architecture using zones](../images/sharding-segmenting-shards-architecture.bakedsvg.svg)
 
 
 ### Zones
 
 For this application, there are two client zones.
 
-   [image: Diagram of zones used for supporting data segmentation][image]
+![Diagram of zones used for supporting data segmentation](../images/sharding-segmenting-shards-tags.bakedsvg.svg)
 
 Robot client ("robot")
    This zone represents all documents where ``client : robot``.

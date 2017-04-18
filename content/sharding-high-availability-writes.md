@@ -87,8 +87,7 @@ set*](#term-replica-set) with three members. ``shard0000`` has two members on ``
 [priority 0 member](#replica-set-secondary-only-members) on ``bravo``.
 ``shard0001`` has two members on ``bravo`` and one [priority 0 member](#replica-set-secondary-only-members) on ``alfa``.
 
-   [image: Diagram of sharded cluster architecture for high availability][image]
-
+![Diagram of sharded cluster architecture for high availability](../images/sharded-cluster-high-availability-architecture.bakedsvg.svg)
 
 ### Tags
 
