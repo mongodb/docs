@@ -54,16 +54,16 @@ The following documents represent a partial view of two users:
 
 {
   "_id" : ObjectId("56f08c447fe58b2e96f595fa"),
-  “client" : “robot”,
-  “userid" : 123,
-  “high_score" : 181,
+  "client" : "robot",
+  "userid" : 123,
+  "high_score" : 181,
   ...,
 }
 {
   "_id" : ObjectId("56f08c447fe58b2e96f595fb"),
-  “client" : “fruitos”,
-  “userid" : 456,
-  “high_score" : 210,
+  "client" : "fruitos",
+  "userid" : 456,
+  "high_score" : 210,
   ...,
 }
 
