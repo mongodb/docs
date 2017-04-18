@@ -35,7 +35,7 @@ transmission errors.
 
 MongoDB signs each release branch with a different PGP key. The public key files
 for each release branch since MongoDB 2.2 are available for download
-from the [key server](https://www.mongodb.org/images/pgp/) in both textual
+from the [key server](https://www.mongodb.org/static/pgp/) in both textual
 ``.asc`` and binary ``.pub`` formats.
 
 
@@ -70,7 +70,7 @@ run these commands:
 
 ```sh
 
-curl -LO https://www.mongodb.org/images/pgp/server-3.4.asc
+curl -LO https://www.mongodb.org/static/pgp/server-3.4.asc
 gpg --import server-3.4.asc
 
 ```
