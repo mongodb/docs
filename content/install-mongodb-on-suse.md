@@ -2,6 +2,7 @@
 title = "Install MongoDB Community Edition on SUSE"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Community Edition on SUSE
 

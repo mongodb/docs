@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise on Amazon Linux"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise on Amazon Linux
 

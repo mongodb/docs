@@ -2,6 +2,7 @@
 title = "Linearizable Reads via findAndModify"
 
 [tags]
+mongodb = "product"
 +++
 # Linearizable Reads via ``findAndModify``
 

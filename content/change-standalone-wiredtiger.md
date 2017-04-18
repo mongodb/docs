@@ -2,6 +2,7 @@
 title = "Change Standalone to WiredTiger"
 
 [tags]
+mongodb = "product"
 +++
 # Change Standalone to WiredTiger
 

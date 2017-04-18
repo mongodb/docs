@@ -2,6 +2,7 @@
 title = "Configure MongoDB with Kerberos Authentication and Active Directory Authorization"
 
 [tags]
+mongodb = "product"
 +++
 # Configure MongoDB with Kerberos Authentication and Active Directory Authorization
 

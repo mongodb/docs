@@ -2,6 +2,7 @@
 title = "Back Up a Sharded Cluster with File System Snapshots"
 
 [tags]
+mongodb = "product"
 +++
 # Back Up a Sharded Cluster with File System Snapshots
 

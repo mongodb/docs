@@ -2,6 +2,7 @@
 title = "Text Search with Basis Technology Rosette Linguistics Platform"
 
 [tags]
+mongodb = "product"
 +++
 # Text Search with Basis Technology Rosette Linguistics Platform
 

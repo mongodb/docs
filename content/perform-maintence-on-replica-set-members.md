@@ -2,6 +2,7 @@
 title = "Perform Maintenance on Replica Set Members"
 
 [tags]
+mongodb = "product"
 +++
 # Perform Maintenance on Replica Set Members
 

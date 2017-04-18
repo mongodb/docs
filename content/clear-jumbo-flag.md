@@ -2,6 +2,7 @@
 title = "Clear jumbo Flag"
 
 [tags]
+mongodb = "product"
 +++
 # Clear ``jumbo`` Flag
 

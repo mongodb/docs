@@ -2,6 +2,7 @@
 title = "Migrate a Sharded Cluster to Different Hardware"
 
 [tags]
+mongodb = "product"
 +++
 # Migrate a Sharded Cluster to Different Hardware
 

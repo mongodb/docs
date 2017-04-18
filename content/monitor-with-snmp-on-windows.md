@@ -2,6 +2,7 @@
 title = "Monitor MongoDB Windows with SNMP"
 
 [tags]
+mongodb = "product"
 +++
 # Monitor MongoDB Windows with SNMP
 

@@ -2,6 +2,7 @@
 title = "Manage Sharded Cluster Balancer"
 
 [tags]
+mongodb = "product"
 +++
 # Manage Sharded Cluster Balancer
 

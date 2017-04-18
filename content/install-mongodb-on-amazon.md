@@ -2,6 +2,7 @@
 title = "Install MongoDB Community Edition on Amazon Linux"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Community Edition on Amazon Linux
 

@@ -2,6 +2,7 @@
 title = "Change Replica Set to WiredTiger"
 
 [tags]
+mongodb = "product"
 +++
 # Change Replica Set to WiredTiger
 

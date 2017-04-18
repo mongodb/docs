@@ -2,6 +2,7 @@
 title = "Back Up a Sharded Cluster with Database Dumps"
 
 [tags]
+mongodb = "product"
 +++
 # Back Up a Sharded Cluster with Database Dumps
 

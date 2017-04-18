@@ -2,6 +2,7 @@
 title = "Restore a Replica Set from MongoDB Backups"
 
 [tags]
+mongodb = "product"
 +++
 # Restore a Replica Set from MongoDB Backups
 

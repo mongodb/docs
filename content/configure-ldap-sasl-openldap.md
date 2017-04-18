@@ -2,6 +2,7 @@
 title = "Authenticate Using SASL and LDAP with OpenLDAP"
 
 [tags]
+mongodb = "product"
 +++
 # Authenticate Using SASL and LDAP with OpenLDAP
 

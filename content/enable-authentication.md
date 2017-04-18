@@ -2,6 +2,7 @@
 title = "Enable Auth"
 
 [tags]
+mongodb = "product"
 +++
 # Enable Auth
 

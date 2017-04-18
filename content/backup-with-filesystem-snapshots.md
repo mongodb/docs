@@ -2,6 +2,7 @@
 title = "Back Up and Restore with Filesystem Snapshots"
 
 [tags]
+mongodb = "product"
 +++
 # Back Up and Restore with Filesystem Snapshots
 

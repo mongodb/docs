@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise on Ubuntu"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise on Ubuntu
 

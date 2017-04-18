@@ -2,6 +2,7 @@
 title = "Distributed Local Writes for Insert Only Workloads"
 
 [tags]
+mongodb = "product"
 +++
 # Distributed Local Writes for Insert Only Workloads
 

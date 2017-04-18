@@ -2,6 +2,7 @@
 title = "Replace a Config Server"
 
 [tags]
+mongodb = "product"
 +++
 # Replace a Config Server
 

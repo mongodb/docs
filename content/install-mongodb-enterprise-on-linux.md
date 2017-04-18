@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise From Tarball"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise From Tarball
 

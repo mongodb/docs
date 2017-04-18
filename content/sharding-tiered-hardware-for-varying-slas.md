@@ -2,6 +2,7 @@
 title = "Tiered Hardware for Varying SLA or SLO"
 
 [tags]
+mongodb = "product"
 +++
 # Tiered Hardware for Varying SLA or SLO
 

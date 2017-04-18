@@ -2,6 +2,7 @@
 title = "Configure MongoDB with Kerberos Authentication on Windows"
 
 [tags]
+mongodb = "product"
 +++
 # Configure MongoDB with Kerberos Authentication on Windows
 

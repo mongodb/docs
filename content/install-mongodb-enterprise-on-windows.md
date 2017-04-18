@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise on Windows"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise on Windows
 

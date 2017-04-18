@@ -2,6 +2,7 @@
 title = "Authenticate and Authorize Users Using Active Directory via Native LDAP"
 
 [tags]
+mongodb = "product"
 +++
 # Authenticate and Authorize Users Using Active Directory via Native LDAP
 

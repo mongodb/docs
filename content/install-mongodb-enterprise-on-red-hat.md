@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise on Red Hat Enterprise or CentOS"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise on Red Hat Enterprise or CentOS
 

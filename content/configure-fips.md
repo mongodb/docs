@@ -2,6 +2,7 @@
 title = "Configure MongoDB for FIPS"
 
 [tags]
+mongodb = "product"
 +++
 # Configure MongoDB for FIPS
 

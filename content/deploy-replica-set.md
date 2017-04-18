@@ -2,6 +2,7 @@
 title = "Deploy a Replica Set"
 
 [tags]
+mongodb = "product"
 +++
 # Deploy a Replica Set
 

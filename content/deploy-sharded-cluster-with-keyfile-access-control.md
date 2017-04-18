@@ -2,6 +2,7 @@
 title = "Deploy Sharded Cluster with Keyfile Access Control"
 
 [tags]
+mongodb = "product"
 +++
 # Deploy Sharded Cluster with Keyfile Access Control
 

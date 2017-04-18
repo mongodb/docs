@@ -2,6 +2,7 @@
 title = "Install MongoDB Enterprise on OS X"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Enterprise on OS X
 

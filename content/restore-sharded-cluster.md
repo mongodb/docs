@@ -2,6 +2,7 @@
 title = "Restore a Sharded Cluster"
 
 [tags]
+mongodb = "product"
 +++
 # Restore a Sharded Cluster
 

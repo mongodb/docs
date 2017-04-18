@@ -2,6 +2,7 @@
 title = "Install MongoDB Community Edition From Tarball"
 
 [tags]
+mongodb = "product"
 +++
 # Install MongoDB Community Edition From Tarball
 

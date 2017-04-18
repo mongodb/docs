@@ -2,6 +2,7 @@
 title = "Segmenting Data by Application or Customer"
 
 [tags]
+mongodb = "product"
 +++
 # Segmenting Data by Application or Customer
 

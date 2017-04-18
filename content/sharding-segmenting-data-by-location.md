@@ -2,6 +2,7 @@
 title = "Segmenting Data by Location"
 
 [tags]
+mongodb = "product"
 +++
 # Segmenting Data by Location
 
