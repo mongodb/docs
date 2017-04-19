@@ -54,11 +54,10 @@ You can also use the array to restore an instance.
      - The name of the ``mongoDbVersions`` specification used with
        this instance.
 
-   * - ``processes.<args>``
+   * - ``processes.args2_6``
      - object
-     - This field is named ``args2_6`` for MongoDB versions 2.6 and
-       higher (including 3.0 and higher). The field contains a MongoDB
-       configuration object in the format appropriate to the version.
+     - The MongoDB configuration object for MongoDB versions 2.6 and
+       higher. 
        For information on format and supported MongoDB options, see
        :doc:`supported configuration options
        </reference/cluster-configuration-process-options>`.
@@ -132,8 +131,7 @@ You can also use the array to restore an instance.
      - *Optional*. The schema version of the user credential objects.
        This should match all other elements of the ``processes`` array
        that belong to the same cluster. The possible values are ``1``,
-       ``3``, and ``5``. The default is ``3`` for ``2.6`` clusters and
-       ``1`` for ``2.4`` clusters.
+       ``3``, and ``5``. The default is ``3`` for ``2.6`` clusters.
 
    * - ``processes.alias``
      - string
