@@ -37,27 +37,10 @@ fake-deploy: build/public/${GIT_BRANCH}
 
 deploy:
 	@echo "Doing a dry-run"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --all-subdirectories --deploy  --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --all-subdirectories --deploy  --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the preceding statements to ${PRODUCTION_BUCKET}."
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --all-subdirectories --deploy ${ARGS}  --redirects build/public/.htaccess
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --all-subdirectories --deploy ${ARGS} --verbose  --redirects build/public/.htaccess
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
-
-## Revisit decision to call make or just having the steps in the deploy rule
-ifeq (${GIT_BRANCH}, master)
-	@echo ''
-	$(MAKE) deploy-current
-endif
-
-deploy-current: build/public/master
-	@echo ''
-	@echo "Doing a dry-run for CURRENT symlink to ${PRODUCTION_BUCKET}"
-	mut-publish build/public/current ${PRODUCTION_BUCKET} --prefix=${PREFIX}/current --all-subdirectories --deploy  --verbose  --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/current ${PRODUCTION_BUCKET} --prefix=${PREFIX}/current --all-subdirectories --deploy  --verbose ${ARGS}
-
-	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/current/index.html"
