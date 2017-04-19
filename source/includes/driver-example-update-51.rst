@@ -1,5 +1,3 @@
-.. include:: /includes/templates/tabs.rst
-
 .. tabs::
 
    tabs:
@@ -32,6 +30,15 @@
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
+            :dedent: 8
+            :start-after: Start Example 51
+            :end-before: End Example 51
+
+     - id: php
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
             :dedent: 8
             :start-after: Start Example 51
             :end-before: End Example 51

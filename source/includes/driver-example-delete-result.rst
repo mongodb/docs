@@ -1,5 +1,3 @@
-.. include:: /includes/templates/tabs.rst
-
 .. tabs::
 
    tabs:
@@ -15,6 +13,15 @@
          method returns an instance of
          :py:class:`pymongo.results.DeleteResult` with the status of the
          operation.
+
+     - id: php
+       content: |
+         Upon successful execution, the
+         :phpmethod:`deleteMany() <phpmethod.MongoDB\\Collection::deleteMany>`
+         method returns an instance of
+         :phpclass:`MongoDB\\DeleteResult <phpclass.MongoDB\\DeleteResult>`
+         whose :phpmethod:`getDeletedCount()<phpmethod.MongoDB\\DeleteResult::getDeletedCount>`
+         method returns the number of documents that matched the filter.
 
      - id: perl
        content: |

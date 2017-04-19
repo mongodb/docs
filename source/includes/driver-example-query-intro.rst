@@ -1,5 +1,3 @@
-.. include:: /includes/templates/tabs.rst
-
 .. tabs::
 
    tabs:
@@ -19,6 +17,15 @@
          Python driver. The examples on this page use the ``inventory``
          collection. To populate the ``inventory`` collection, run the
          following:
+
+     - id: php
+       content: |
+         This page provides examples of |query_operations| using the
+         :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find>`
+         method in the
+         `MongoDB PHP Library <https://docs.mongodb.com/php-library/master/>`_.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:
 
      - id: perl
        content: |
