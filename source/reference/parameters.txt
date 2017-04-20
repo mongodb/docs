@@ -139,13 +139,13 @@ Authentication Parameters
    between external user cache flushes. After MongoDB flushes the external
    user cache, the next operation an LDAP-authorized user, MongoDB
    reacquires authorization data from the LDAP server.
-  
+
    Increasing the value specified increases the amount of time
    MongoDB and the LDAP server can be out of sync, but reduces the load on
    the LDAP server. Conversely, decreasing the value specified
    decreases the time MongoDB and the LDAP server can be out of sync while
    increasing the load on the LDAP server.
-   
+
    Defaults to 30 seconds.
 
 .. parameter:: saslauthdPath
@@ -295,6 +295,10 @@ General Parameters
    additional connections, but *does* prevent the connection pools from
    retaining connections above this limit.
 
+   .. note::
+      The parameter is separate from the connections in TaskExecutor
+      pools. See :parameter:`ShardingTaskExecutorPoolMaxSize`.
+   
    Increase the :parameter:`connPoolMaxShardedConnsPerHost` value
    **only** if the number of connections in a connection pool has a
    high level of churn or if the total number of created connections
@@ -321,6 +325,10 @@ General Parameters
    of a pool does not prevent the creation of additional connections,
    but *does* prevent a connection pool from retaining connections in
    excess of the value of :parameter:`connPoolMaxConnsPerHost`.
+
+   .. note::
+      The parameter is separate from the connections in TaskExecutor
+      pools. See :parameter:`ShardingTaskExecutorPoolMaxSize`.
 
    **Only** adjust this setting if your driver does *not* pool
    connections and you're using authentication in the
@@ -858,6 +866,133 @@ Sharding Parameters
    Specify a boolean to check or ignore sharding state recovery
    information. Default is ``true`` to check the sharding state
    recovery information.
+
+.. parameter:: ShardingTaskExecutorPoolHostTimeoutMS
+
+   Type: integer
+
+   Default: 300000 (i.e. 5 minutes)
+
+   |mongos-only|
+
+   Maximum time that :program:`mongos` goes without communication to a
+   host before :program:`mongos` drops all connections to the host.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolHostTimeoutMS=120000
+
+.. parameter:: ShardingTaskExecutorPoolMaxSize
+
+   Type: integer
+
+   Default: 2\ :sup:`64` - 1
+
+   |mongos-only|
+
+   Maximum number of outbound connections each TaskExecutor connection
+   pool can open to any given :program:`mongod` instance.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolMaxSize=4
+
+   :program:`mongos` can have up to ``n`` TaskExecutor connection
+   pools, where ``n`` is the number of cores. See
+   :parameter:`taskExecutorPoolSize`.
+
+   .. seealso:: :parameter:`ShardingTaskExecutorPoolMinSize`
+
+.. parameter:: ShardingTaskExecutorPoolMinSize
+
+   Type: integer
+
+   Default: 1
+
+   |mongos-only|
+
+   Minimum number of outbound connections each TaskExecutor connection
+   pool can open to any given :program:`mongod` instance.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolMinSize=2
+
+   :program:`mongos` can have up to ``n`` TaskExecutor connection
+   pools, where ``n`` is the number of cores. See
+   :parameter:`taskExecutorPoolSize`.
+
+   .. seealso:: :parameter:`ShardingTaskExecutorPoolMaxSize`
+
+.. parameter:: ShardingTaskExecutorPoolRefreshRequirementMS
+
+   Type: integer
+
+   Default: 60000 (1 minute)
+
+   |mongos-only|
+
+   Maximum time the :program:`mongos` waits before attempting to
+   heartbeat a resting connection in the pool.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolRefreshRequirementMS=90000
+
+.. parameter:: ShardingTaskExecutorPoolRefreshTimeoutMS
+
+   Type: integer
+
+   Default: 20000 (20 seconds)
+
+   |mongos-only|
+
+   Maximum time the :program:`mongos` waits for a heartbeat before
+   timing out the heartbeat.
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter ShardingTaskExecutorPoolRefreshTimeoutMS=30000
+
+.. parameter:: taskExecutorPoolSize
+
+   Type: integer
+
+   Default: Number of cores
+
+   |mongos-only|
+
+   The number of Task Executor connection pools to use for a given
+   :program:`mongos`. The parameter has a minimum value of ``4`` and a
+   maximum value of ``64``. 
+
+   You can only set this parameter during start-up and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. code-block:: sh
+
+      mongod --setParameter taskExecutorPoolSize=6
+
+   .. seealso:: 
+
+      - :parameter:`ShardingTaskExecutorPoolMaxSize`
+
+      - :parameter:`ShardingTaskExecutorPoolMinSize`
 
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
