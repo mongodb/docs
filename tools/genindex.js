@@ -172,7 +172,7 @@ function processFile(path) {
       url: headmatter.slug,
       title: headmatter.title,
       snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
-      tags,
+      options: tags,
     }
 }
 
@@ -192,31 +192,36 @@ function main() {
             continue
         }
 
-        console.log(headmatter)
+        headmatter.options.forEach(function(option) {
+          if (tagManifest[option.name] === undefined) {
+            console.error(`Unknown tag "${option}" in ${path}`)
+            error = true
+          }
+        })
 
-        // for (const tag of Object.keys(headmatter.tags)) {
-        //     if (tagManifest[tag] === undefined) {
-        //         console.error(`Unknown tag "${tag}" in ${path}`)
-        //         error = true
-        //     }
-        // }
-        //
-        // data.push(headmatter)
+        data.push(headmatter)
     }
 
-    // console.log(data)
+    if (error) {
+        process.exit(1)
+    }
 
-    // if (error) {
-    //     process.exit(1)
-    // }
-    //
-    // fs.writeFileSync(args['<outputTags>'], JSON.stringify({
-    //     tags: tagManifest,
-    //     pages: data
-    // }))
-    //
-    // const searchIndexJSON = searchIndex.toJSON()
-    // fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
+    let tags = []
+
+    for (const tag of Object.keys(tagManifest)) {
+      tags.push({
+        facet: tagManifest[tag],
+        name: tag,
+      })
+    }
+
+    fs.writeFileSync(args['<outputTags>'], JSON.stringify({
+        tags: tags,
+        tutorials: data
+    }))
+
+    const searchIndexJSON = searchIndex.toJSON()
+    fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
 }
 
 main()
