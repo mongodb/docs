@@ -12,6 +12,8 @@ You can also use the array to restore an instance.
            "disabled" : <Boolean>,
            "manualMode" : <Boolean>,
            "hostname" : <string>,
+           "authSchemaVersion" : <integer>,
+           "featureCompatibilityVersion" : <string>,
            "cluster": <string>,
            "numCores": <integer>,
            "logRotate" : {
@@ -20,7 +22,6 @@ You can also use the array to restore an instance.
                "numUncompressed": <integer>,
                "percentOfDiskspace" : <number>
            },
-           "authSchemaVersion": <integer>,
            "alias": <string>,
            "backupRestoreUrl" : <string>
        },
@@ -73,8 +74,26 @@ You can also use the array to restore an instance.
 
    * - ``processes.hostname``
      - string
-     - *Optional*. The name of the host this process should run on. This
-       defaults to ``localhost``.
+     - The name of the host this process should run on. This defaults to
+       ``localhost``.
+       
+   * - ``processes.authSchemaVersion``
+     - integer
+     - The schema version of the user credential objects.
+       This should match all other elements of the ``processes`` array
+       that belong to the same cluster. The possible values are ``1``,
+       ``3``, and ``5``. The default is ``5`` for ``3.x`` clusters and
+       ``1`` for ``2.4`` clusters.
+
+   * - ``processes.featureCompatibilityVersion``
+     - string
+     - Enables MongoDB 3.4 features that are not backwards compatible with
+       MongDB 3.2. Valid values are "3.2" and "3.4". New deployments of MongoDB 3.4 automatically set
+       the value of this field to "3.4". However, upgrading a host from
+       3.2 to 3.4 does not automatically add the field with a value of
+       3.4. See the
+       `setFeatureCompatibilityVersion <https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`_
+       reference for more information about behavior and affected features.
 
    * - ``processes.cluster``
      - string
@@ -95,7 +114,6 @@ You can also use the array to restore an instance.
 
    * - ``processes.logRotate.sizeThresholdMB``
      - number
-
      - The maximum size in MB for an individual log file before
        rotation. The file rotates immediately if the file meets either
        this ``sizeThresholdMB`` or the
@@ -103,7 +121,6 @@ You can also use the array to restore an instance.
 
    * - ``processes.logRotate.timeThresholdHrs``
      - integer
-     
      - The maximum time in hours for an individual log file before the
        next rotation. The time is since the last rotation.
 
@@ -118,20 +135,12 @@ You can also use the array to restore an instance.
 
    * - ``processes.logRotate.percentOfDiskspace``
      - number
-
      - *Optional*. The maximum percentage of total disk space that can
        be used to store the log files. If this limit is exceeded, the
        compressed log files are deleted to meet this limit, starting
        with the oldest log files first.
 
        The default is ``.02``.
-
-   * - ``processes.authSchemaVersion``
-     - integer
-     - *Optional*. The schema version of the user credential objects.
-       This should match all other elements of the ``processes`` array
-       that belong to the same cluster. The possible values are ``1``,
-       ``3``, and ``5``. The default is ``3`` for ``2.6`` clusters.
 
    * - ``processes.alias``
      - string

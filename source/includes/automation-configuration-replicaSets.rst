@@ -1,4 +1,5 @@
-The ``replicaSets`` array is optional and defines each replica set's configuration.
+The ``replicaSets`` array defines each replica set's configuration. This
+field is optional except for deployments with replica sets. 
 
 .. code-block:: cfg
 

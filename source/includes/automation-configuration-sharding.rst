@@ -1,4 +1,5 @@
-The ``sharding`` array is optional and defines the configuration of each sharded cluster.
+The ``sharding`` array defines the configuration of each sharded cluster.
+This field is optional except for deployments with sharded clusters.
 
 .. code-block:: cfg
 
