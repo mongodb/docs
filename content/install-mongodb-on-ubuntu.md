@@ -9,15 +9,15 @@ mongodb = "product"
 
 # On this page
 
-* [Overview](#overview) 
+* [Overview](#overview)
 
-* [Packages](#packages) 
+* [Packages](#packages)
 
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
+* [Install MongoDB Community Edition](#install-mongodb-community-edition)
 
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
+* [Run MongoDB Community Edition](#run-mongodb-community-edition)
 
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition) 
+* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition)
 
 
 ## Overview
@@ -43,28 +43,13 @@ corruption, and are unsuitable for production deployments of MongoDB
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org``           | A ``metapackage`` that will automatically install                                                        |
-|                           | the four component packages listed below.                                                                |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-server``    | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                           | configuration and init scripts.                                                                          |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-mongos``    | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-shell``     | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-tools``     | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                           | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                           | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                           | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                           | and [``mongotop``](#bin.mongotop).                                                                       |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-org``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-org-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-org-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-org-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-org-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 The ``mongodb-org-server`` package provides an initialization script
 that starts [``mongod``](#bin.mongod) with the ``/etc/mongod.conf``
@@ -84,7 +69,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-ubuntu/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-ubuntu/).
 
 MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
@@ -245,7 +230,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.

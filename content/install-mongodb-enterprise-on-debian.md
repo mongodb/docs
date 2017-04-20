@@ -9,15 +9,15 @@ mongodb = "product"
 
 # On this page
 
-* [Overview](#overview) 
+* [Overview](#overview)
 
-* [Install MongoDB Enterprise](#install-mongodb-enterprise) 
+* [Install MongoDB Enterprise](#install-mongodb-enterprise)
 
-* [Install MongoDB Enterprise From Tarball](#install-mongodb-enterprise-from-tarball) 
+* [Install MongoDB Enterprise From Tarball](#install-mongodb-enterprise-from-tarball)
 
-* [Run MongoDB Enterprise](#run-mongodb-enterprise) 
+* [Run MongoDB Enterprise](#run-mongodb-enterprise)
 
-* [Uninstall MongoDB](#uninstall-mongodb) 
+* [Uninstall MongoDB](#uninstall-mongodb)
 
 
 ## Overview
@@ -30,33 +30,18 @@ Platform Support: This installation guide only supports 64-bit systems. See [Pla
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise``        | A ``metapackage`` that will automatically install                                                        |
-|                               | the four component packages listed below.                                                                |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                               | configuration and init scripts.                                                                          |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-shell``  | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                               | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                               | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                               | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                               | and [``mongotop``](#bin.mongotop).                                                                       |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-enterprise``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-enterprise-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-enterprise-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-enterprise-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-debian/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
 
@@ -84,19 +69,21 @@ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A1
 Create the list file using the command appropriate for your version
 of Debian:
 
-Debian 7 "Wheezy"
-   ```sh
+#### Debian 7 "Wheezy"
 
-   echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+```sh
 
-   ```
+echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
-Debian 8 "Jessie"
-   ```sh
+```
 
-   echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+#### Debian 8 "Jessie"
 
-   ```
+```sh
+
+echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+```
 
 If you'd like to install MongoDB Enterprise packages from a
 particular [release series](#release-version-numbers), such as
@@ -237,7 +224,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.

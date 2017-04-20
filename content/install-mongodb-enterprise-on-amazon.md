@@ -7,18 +7,6 @@ mongodb = "product"
 # Install MongoDB Enterprise on Amazon Linux
 
 
-# On this page
-
-* [Overview](#overview) 
-
-* [Install MongoDB Enterprise](#install-mongodb-enterprise) 
-
-* [Install MongoDB Enterprise From Tarball](#install-mongodb-enterprise-from-tarball) 
-
-* [Run MongoDB Enterprise](#run-mongodb-enterprise) 
-
-* [Uninstall MongoDB](#uninstall-mongodb) 
-
 MongoDB Atlas and AWS: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas?jmp=docs) is a
 hosted MongoDB service on AWS, for launching, running, and
 maintaining MongoDB clusters.
@@ -35,33 +23,18 @@ This installation guide only supports 64-bit systems. See [Platform Support](#co
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise``        | A ``metapackage`` that will automatically install                                                        |
-|                               | the four component packages listed below.                                                                |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                               | configuration and init scripts.                                                                          |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-shell``  | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-enterprise-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                               | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                               | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                               | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                               | and [``mongotop``](#bin.mongotop).                                                                       |
-|                               |                                                                                                          |
-+-------------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-enterprise``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-enterprise-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-enterprise-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-enterprise-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-amazon/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-amazon/).
 
 
 ### Step 1: Configure repository.
@@ -213,7 +186,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.

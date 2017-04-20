@@ -9,21 +9,21 @@ mongodb = "product"
 
 # On this page
 
-* [Overview](#overview) 
+* [Overview](#overview)
 
-* [Requirements](#requirements) 
+* [Requirements](#requirements)
 
-* [Get MongoDB Community Edition](#get-mongodb-community-edition) 
+* [Get MongoDB Community Edition](#get-mongodb-community-edition)
 
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
+* [Install MongoDB Community Edition](#install-mongodb-community-edition)
 
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
+* [Run MongoDB Community Edition](#run-mongodb-community-edition)
 
-* [Configure a Windows Service for MongoDB Community Edition](#configure-a-windows-service-for-mongodb-community-edition) 
+* [Configure a Windows Service for MongoDB Community Edition](#configure-a-windows-service-for-mongodb-community-edition)
 
-* [Manually Create a Windows Service for MongoDB Community Edition](#manually-create-a-windows-service-for-mongodb-community-edition) 
+* [Manually Create a Windows Service for MongoDB Community Edition](#manually-create-a-windows-service-for-mongodb-community-edition)
 
-* [Additional Resources](#additional-resources) 
+* [Additional Resources](#additional-resources)
 
 
 ## Overview
@@ -34,7 +34,7 @@ Platform Support: Starting in version 2.2, MongoDB does not support Windows XP. 
 use a more recent version of Windows to use more recent releases of
 MongoDB.
 
-Important: If you are running any edition of Windows Server 2008 R2 or Windows 7, please install [a hotfix to resolve an issue with memory mapped files on Windows](http://support.microsoft.com/kb/2731284). 
+Important: If you are running any edition of Windows Server 2008 R2 or Windows 7, please install [a hotfix to resolve an issue with memory mapped files on Windows](http://support.microsoft.com/kb/2731284).
 
 
 ## Requirements
@@ -47,7 +47,7 @@ using an ``.msi`` file.
 
 ## Get MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-windows/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-windows/).
 
 
 ### Step 1: Determine which MongoDB build you need.
@@ -98,7 +98,7 @@ installation process.
 You may specify an installation directory if you choose the "Custom"
 installation option.
 
-Note: These instructions assume that you have installed MongoDB to ``C:\Program Files\MongoDB\Server\3.2\``. 
+Note: These instructions assume that you have installed MongoDB to ``C:\Program Files\MongoDB\Server\3.2\``.
 
 MongoDB is self-contained and does not have any other system
 dependencies. You can run MongoDB from any folder you choose. You may
@@ -140,28 +140,14 @@ MongoDB component sets, you can specify them in the ``ADDLOCAL`` argument
 using a comma-separated list including one or more of the following
 component sets:
 
-+------------------------+-----------------------------------------------------------------------------------+
-| **Component Set**      | **Binaries**                                                                      |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``Server``             | ``mongod.exe``                                                                    |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``Router``             | ``mongos.exe``                                                                    |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``Client``             | ``mongo.exe``                                                                     |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``MonitoringTools``    | ``mongostat.exe``, ``mongotop.exe``                                               |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``ImportExportTools``  | ``mongodump.exe``, ``mongorestore.exe``, ``mongoexport.exe``, ``mongoimport.exe`` |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
-| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongooplog.exe``, ``mongoperf.exe``       |
-|                        |                                                                                   |
-+------------------------+-----------------------------------------------------------------------------------+
+| Component Set | Binaries
+| ------------- | -----------
+| ``Server``            | ``mongod.exe``
+| ``Router``            | ``mongos.exe``
+| ``Client``            | ``mongo.exe``
+| ``MonitoringTools``   | ``mongostat.exe``, ``mongotop.exe``
+| ``ImportExportTools`` | ``mongodump.exe``, ``mongorestore.exe``, ``mongoexport.exe``, ``mongoimport.exe``
+| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongooplog.exe``, ``mongoperf.exe``
 
 For instance, to install *only* the MongoDB utilities, invoke:
 
@@ -176,7 +162,7 @@ msiexec.exe /q /i mongodb-win32-x86_64-2008plus-ssl-3.4.2-signed.msi ^
 
 ## Run MongoDB Community Edition
 
-Warning: Do not make [``mongod.exe``](#bin.mongod.exe) visible on public networks without running in "Secure Mode" with the ``auth`` setting. MongoDB is designed to be run in trusted environments, and the database does not enable "Secure Mode" by default. 
+Warning: Do not make [``mongod.exe``](#bin.mongod.exe) visible on public networks without running in "Secure Mode" with the ``auth`` setting. MongoDB is designed to be run in trusted environments, and the database does not enable "Secure Mode" by default.
 
 
 ### Step 1: Set up the MongoDB environment.
@@ -311,7 +297,7 @@ storage:
 
 ### Step 4: Install the MongoDB service.
 
-Important: Run all of the following commands in Command Prompt with "Administrative Privileges". 
+Important: Run all of the following commands in Command Prompt with "Administrative Privileges".
 
 Install the MongoDB service by starting [``mongod.exe``](#bin.mongod.exe)
 with the ``--install`` option and the ``-config``
@@ -468,8 +454,8 @@ sc.exe delete MongoDB
 
 ## Additional Resources
 
-* [MongoDB for Developers Free Course](https://university.mongodb.com/courses/M101P/about?jmp=docs) 
+* [MongoDB for Developers Free Course](https://university.mongodb.com/courses/M101P/about?jmp=docs)
 
-* [MongoDB for .NET Developers Free Online Course](https://university.mongodb.com/courses/M101N/about?jmp=docs) 
+* [MongoDB for .NET Developers Free Online Course](https://university.mongodb.com/courses/M101N/about?jmp=docs)
 
-* [MongoDB Architecture Guide](https://www.mongodb.com/lp/white-paper/architecture-guide?jmp=docs) 
+* [MongoDB Architecture Guide](https://www.mongodb.com/lp/white-paper/architecture-guide?jmp=docs)

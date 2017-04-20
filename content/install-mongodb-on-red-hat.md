@@ -9,15 +9,15 @@ mongodb = "product"
 
 # On this page
 
-* [Overview](#overview) 
+* [Overview](#overview)
 
-* [Packages](#packages) 
+* [Packages](#packages)
 
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
+* [Install MongoDB Community Edition](#install-mongodb-community-edition)
 
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
+* [Run MongoDB Community Edition](#run-mongodb-community-edition)
 
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition) 
+* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition)
 
 
 ## Overview
@@ -35,28 +35,13 @@ Platform Support: This installation guide only supports 64-bit systems. See [Pla
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org``           | A ``metapackage`` that will automatically install                                                        |
-|                           | the four component packages listed below.                                                                |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-server``    | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                           | configuration and init scripts.                                                                          |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-mongos``    | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-shell``     | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-tools``     | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                           | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                           | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                           | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                           | and [``mongotop``](#bin.mongotop).                                                                       |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-org``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-org-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-org-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-org-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-org-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 The ``mongodb-org-server`` package provides an initialization script
 that starts [``mongod``](#bin.mongod) with the ``/etc/mongod.conf``
@@ -73,7 +58,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-red-hat/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-red-hat/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
 
@@ -147,11 +132,11 @@ See [UNIX ulimit Settings](#) for more information.
 
 ### Configure SELinux
 
-Important: If you are using SELinux, you must configure SELinux to allow MongoDB to start on Red Hat Linux-based systems (Red Hat Enterprise Linux or CentOS Linux). 
+Important: If you are using SELinux, you must configure SELinux to allow MongoDB to start on Red Hat Linux-based systems (Red Hat Enterprise Linux or CentOS Linux).
 
 To configure SELinux, administrators have three options:
 
-* If SELinux is in ``enforcing`` mode, enable access to the relevant ports that the MongoDB deployment will use (e.g. ``27017``). See [Default MongoDB Port](#) for more information on MongoDB's default ports. For default settings, this can be accomplished by running 
+* If SELinux is in ``enforcing`` mode, enable access to the relevant ports that the MongoDB deployment will use (e.g. ``27017``). See [Default MongoDB Port](#) for more information on MongoDB's default ports. For default settings, this can be accomplished by running
 
   ```sh
 
@@ -159,7 +144,7 @@ To configure SELinux, administrators have three options:
 
   ```
 
-* Disable SELinux by setting the ``SELINUX`` setting to ``disabled`` in ``/etc/selinux/config``. 
+* Disable SELinux by setting the ``SELINUX`` setting to ``disabled`` in ``/etc/selinux/config``.
 
   ```sh
 
@@ -169,7 +154,7 @@ To configure SELinux, administrators have three options:
 
   You must reboot the system for the changes to take effect.
 
-* Set SELinux to ``permissive`` mode in ``/etc/selinux/config`` by setting the ``SELINUX`` setting to ``permissive``. 
+* Set SELinux to ``permissive`` mode in ``/etc/selinux/config`` by setting the ``SELINUX`` setting to ``permissive``.
 
   ```sh
 
@@ -189,7 +174,7 @@ packages. This option is the most invasive and is not recommended.
 
 ### Data Directories and Permissions
 
-Warning: On RHEL 7.0, if you change the data path, the *default* SELinux policies will prevent [``mongod``](#bin.mongod) from having write access on the new data path if you do not change the security context. 
+Warning: On RHEL 7.0, if you change the data path, the *default* SELinux policies will prevent [``mongod``](#bin.mongod) from having write access on the new data path if you do not change the security context.
 
 The MongoDB instance stores its data files in ``/var/lib/mongo``
 and its log files in ``/var/log/mongodb`` by default,
@@ -290,7 +275,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.

@@ -9,13 +9,13 @@ mongodb = "product"
 
 # On this page
 
-* [Init Script](#init-script) 
+* [Init Script](#init-script)
 
-* [Using ``tuned`` and ``ktune``](#using-tuned-and-ktune) 
+* [Using ``tuned`` and ``ktune``](#using-tuned-and-ktune)
 
-* [Test Your Changes](#test-your-changes) 
+* [Test Your Changes](#test-your-changes)
 
-Note: This page describes how to disable Transparent Huge Pages on Red Hat Enterprise Linux and CentOS versions 6 and 7. For other systems, please consult your vendor's documentation. 
+Note: This page describes how to disable Transparent Huge Pages on Red Hat Enterprise Linux and CentOS versions 6 and 7. For other systems, please consult your vendor's documentation.
 
 Transparent Huge Pages (THP) is a Linux memory management system
 that reduces the overhead of Translation Lookaside Buffer (TLB) lookups on
@@ -29,7 +29,7 @@ with MongoDB.
 
 ## Init Script
 
-Important: If you are using ``tuned`` or ``ktune`` (for example, if you are running Red Hat or CentOS 6+), you must additionally configure them so that THP is not re-enabled. See [Using tuned and ktune](#configure-thp-tuned). 
+Important: If you are using ``tuned`` or ``ktune`` (for example, if you are running Red Hat or CentOS 6+), you must additionally configure them so that THP is not re-enabled. See [Using tuned and ktune](#configure-thp-tuned).
 
 
 ### Step 1: Create the ``init.d`` script.
@@ -98,37 +98,11 @@ sudo chmod 755 /etc/init.d/disable-transparent-hugepages
 Use the appropriate command to configure the new init script on your Linux
 distribution.
 
-+------------------------------------------------+----------------------------------------------------------------------------------+
-| Distribution                                   | Command                                                                          |
-|                                                |                                                                                  |
-+================================================+==================================================================================+
-| Ubuntu and Debian                              | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | sudo update-rc.d disable-transparent-hugepages defaults                          |
-|                                                |                                                                                  |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-+------------------------------------------------+----------------------------------------------------------------------------------+
-| SUSE                                           | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | sudo insserv /etc/init.d/disable-transparent-hugepages                           |
-|                                                |                                                                                  |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-+------------------------------------------------+----------------------------------------------------------------------------------+
-| Red Hat, CentOS, Amazon Linux, and derivatives | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | sudo chkconfig --add disable-transparent-hugepages                               |
-|                                                |                                                                                  |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-|                                                | `                                                                                |
-+------------------------------------------------+----------------------------------------------------------------------------------+
+| Distribution | Command
+| ------------ | -------
+| Ubuntu and Debian | ``sudo update-rc.d disable-transparent-hugepages defaults``
+| SUSE              | ``sudo insserv /etc/init.d/disable-transparent-hugepages``
+| Red Hat, CentOS, Amazon Linux, and derivatives | ``sudo chkconfig --add disable-transparent-hugepages``
 
 
 ### Step 4: Override tuned and ktune, if applicable
@@ -140,7 +114,7 @@ settings.
 
 ## Using ``tuned`` and ``ktune``
 
-Important: If using ``tuned`` or ``ktune``, you must perform this step in addition to installing the init script. 
+Important: If using ``tuned`` or ``ktune``, you must perform this step in addition to installing the init script.
 
 ``tuned`` and ``ktune`` are dynamic kernel tuning tools available on Red Hat
 and CentOS that can disable transparent huge pages.

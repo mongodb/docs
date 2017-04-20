@@ -7,19 +7,6 @@ mongodb = "product"
 # Install MongoDB Community Edition on Debian
 
 
-# On this page
-
-* [Overview](#overview) 
-
-* [Packages](#packages) 
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
-
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
-
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition) 
-
-
 ## Overview
 
 Use this tutorial to install MongoDB Community Edition from ``.deb`` packages on
@@ -35,28 +22,13 @@ MongoDB only provides packages for 64-bit builds of Debian 7 and 8.
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org``           | A ``metapackage`` that will automatically install                                                        |
-|                           | the four component packages listed below.                                                                |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-server``    | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                           | configuration and init scripts.                                                                          |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-mongos``    | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-shell``     | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-tools``     | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                           | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                           | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                           | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                           | and [``mongotop``](#bin.mongotop).                                                                       |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-org``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-org-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-org-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-org-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-org-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 The ``mongodb-org-server`` package provides an initialization script
 that starts [``mongod``](#bin.mongod) with the ``/etc/mongod.conf``
@@ -76,7 +48,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-debian/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
 
@@ -104,19 +76,19 @@ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A1
 Create the list file using the command appropriate for your version
 of Debian:
 
-Debian 7 "Wheezy"
-   ```sh
+#### Debian 7 "Wheezy"
+```sh
 
-   echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 
-   ```
+```
 
-Debian 8 "Jessie"
-   ```sh
+#### Debian 8 "Jessie"
+```sh
 
-   echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 
-   ```
+```
 
 Currently packages are only available for Debian 7 "Wheezy" and Debian 8 "Jessie".
 
@@ -234,7 +206,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.

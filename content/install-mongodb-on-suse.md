@@ -9,15 +9,15 @@ mongodb = "product"
 
 # On this page
 
-* [Overview](#overview) 
+* [Overview](#overview)
 
-* [Packages](#packages) 
+* [Packages](#packages)
 
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
+* [Install MongoDB Community Edition](#install-mongodb-community-edition)
 
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
+* [Run MongoDB Community Edition](#run-mongodb-community-edition)
 
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition) 
+* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition)
 
 
 ## Overview
@@ -35,28 +35,13 @@ Platform Support: This installation guide only supports 64-bit systems. See [Pla
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org``           | A ``metapackage`` that will automatically install                                                        |
-|                           | the four component packages listed below.                                                                |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-server``    | Contains the [``mongod``](#bin.mongod) daemon and associated                                             |
-|                           | configuration and init scripts.                                                                          |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-mongos``    | Contains the [``mongos``](#bin.mongos) daemon.                                                           |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-shell``     | Contains the [``mongo``](#bin.mongo) shell.                                                              |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
-| ``mongodb-org-tools``     | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport)                                |
-|                           | [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport),     |
-|                           | [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog),                                    |
-|                           | [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), |
-|                           | and [``mongotop``](#bin.mongotop).                                                                       |
-|                           |                                                                                                          |
-+---------------------------+----------------------------------------------------------------------------------------------------------+
+| Package | Description
+| ------- | -----------
+| ``mongodb-org``        | A ``metapackage`` that will automatically install the four component packages listed below.
+| ``mongodb-org-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
+| ``mongodb-org-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
+| ``mongodb-org-shell``  | Contains the [``mongo``](#bin.mongo) shell.
+| ``mongodb-org-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
 
 The ``mongodb-org-server`` package provides an initialization script
 that starts [``mongod``](#bin.mongod) with the ``/etc/mongod.conf``
@@ -73,12 +58,12 @@ packages have ``bind_ip`` set to ``127.0.0.1`` by default. Modify
 this setting as needed for your environment before initializing a
 [*replica set*](#term-replica-set).
 
-Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows.The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages. 
+Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows.The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
 
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-suse/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-suse/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
 
@@ -255,7 +240,7 @@ To completely remove MongoDB from a system, you must remove the MongoDB
 applications themselves, the configuration files, and any directories containing
 data and logs. The following section guides you through the necessary steps.
 
-Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding. 
+Warning: This process will *completely* remove MongoDB, its configuration, and *all* databases. This process is not reversible, so ensure that all of your configuration and data is backed up before proceeding.
 
 
 ### Step 1: Stop MongoDB.
