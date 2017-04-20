@@ -75,7 +75,7 @@ folder. If specifying a different file path, see the
 To use with ActiveDirectory, start ``saslauthd`` with the following
 configuration options set in the ``saslauthd.conf`` file:
 
-```none
+```
 
 ldap_servers: <ldap uri>
 ldap_use_sasl: yes
@@ -160,7 +160,7 @@ For socket path of ``/<some>/<path>/saslauthd``, set the
 [``saslauthdPath``](#param.saslauthdPath) to ``/<some>/<path>/saslauthd/mux``,
 as in the following command line example:
 
-```none
+```
 
 mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
 
@@ -197,7 +197,7 @@ To use the default Unix-domain socket path, set the
 [``saslauthdPath``](#param.saslauthdPath) to the empty string ``""``, as in the
 following command line example:
 
-```none
+```
 
 mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
 

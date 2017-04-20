@@ -47,7 +47,7 @@ For example, the following output from sh.status(true) shows that
 chunk with shard key range ``{ "x" : 2 } -->> { "x" : 4 }`` is
 ``jumbo``.
 
-```none
+```
 
 --- Sharding Status ---
   sharding version: {
@@ -110,7 +110,7 @@ outlined in [Disable the Balancer](#sharding-balancing-disable-temporarily).
 Use [``mongodump``](#bin.mongodump) against a config server to create a backup
 of the ``config`` database. For example:
 
-```none
+```
 
 mongodump --db config --port <config server port> --out <output file>
 
@@ -137,7 +137,7 @@ For example, the following output from sh.status(true) shows that
 chunk with shard key range ``{ "x" : 2 } -->> { "x" : 3 }`` is
 ``jumbo``.
 
-```none
+```
 
 --- Sharding Status ---
   sharding version: {

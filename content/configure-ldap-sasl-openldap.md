@@ -75,7 +75,7 @@ folder. If specifying a different file path, see the
 To connect to an OpenLDAP server, update the ``saslauthd.conf``
 file with the following configuration options:
 
-```none
+```
 
 ldap_servers: <ldap uri>
 ldap_search_base: <search base>
@@ -104,7 +104,7 @@ values specific for your test. For example, to filter on email, specify
 
 A sample ``saslauthd.conf`` file for OpenLDAP includes the following content:
 
-```none
+```
 
 ldap_servers: ldaps://ad.example.net
 ldap_search_base: ou=Users,dc=example,dc=com
@@ -190,7 +190,7 @@ For socket path of ``/<some>/<path>/saslauthd``, set the
 [``saslauthdPath``](#param.saslauthdPath) to ``/<some>/<path>/saslauthd/mux``,
 as in the following command line example:
 
-```none
+```
 
 mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
 
@@ -227,7 +227,7 @@ To use the default Unix-domain socket path, set the
 [``saslauthdPath``](#param.saslauthdPath) to the empty string ``""``, as in the
 following command line example:
 
-```none
+```
 
 mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
 

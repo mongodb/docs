@@ -149,7 +149,7 @@ successfully by checking the contents of the log file at
 ``/var/log/mongodb/mongod.log``
 for a line reading
 
-```none
+```
 
 [initandlisten] waiting for connections on port <port>
 

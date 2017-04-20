@@ -11,7 +11,7 @@ inconsistent state. Following an unclean shutdown, if a non-empty
 ``mongod.lock`` file exists, [``mongod``](#bin.mongod) instance logs the
 following message upon restart:
 
-```none
+```
 
 Detected unclean shutdown - mongod.lock is not empty.
 
