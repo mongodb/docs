@@ -4,6 +4,8 @@ title = "Distributed Local Writes for Insert Only Workloads"
 [tags]
 mongodb = "product"
 +++
+# Distributed Local Writes for Insert Only Workloads
+
 
 MongoDB Tag Aware Sharding allows administrators to control data distribution
 in a sharded cluster by defining ranges of the [*shard key*](#term-shard-key) and tagging

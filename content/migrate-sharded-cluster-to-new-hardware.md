@@ -4,6 +4,8 @@ title = "Migrate a Sharded Cluster to Different Hardware"
 [tags]
 mongodb = "product"
 +++
+# Migrate a Sharded Cluster to Different Hardware
+
 
 The tutorial is specific to MongoDB 3.4. For earlier versions of
 MongoDB, refer to the corresponding version of the MongoDB Manual.

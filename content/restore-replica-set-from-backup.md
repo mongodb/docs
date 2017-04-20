@@ -4,6 +4,8 @@ title = "Restore a Replica Set from MongoDB Backups"
 [tags]
 mongodb = "product"
 +++
+# Restore a Replica Set from MongoDB Backups
+
 
 This procedure outlines the process for taking MongoDB data and
 restoring that data into a new [*replica set*](#term-replica-set). Use this approach

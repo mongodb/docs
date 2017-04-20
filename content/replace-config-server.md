@@ -4,6 +4,8 @@ title = "Replace a Config Server"
 [tags]
 mongodb = "product"
 +++
+# Replace a Config Server
+
 
 Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](#).The following procedure applies to 3.4 config servers.For replacing config servers for other MongoDB versions, refer to the appropriate version of the MongoDB Manual. For example, if you are running a v3.2 sharded cluster with SCCC, see the following tutorials in the v3.2 manual: [/tutorial/migrate-config-servers-with-same-hostname](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-same-hostname) and [/tutorial/migrate-config-servers-with-different-hostnames](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-different-hostnames) 
 

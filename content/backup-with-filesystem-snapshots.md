@@ -4,6 +4,8 @@ title = "Back Up and Restore with Filesystem Snapshots"
 [tags]
 mongodb = "product"
 +++
+# Back Up and Restore with Filesystem Snapshots
+
 
 This document describes a procedure for creating backups of MongoDB
 systems using system-level tools, such as [*LVM*](#term-lvm) or storage

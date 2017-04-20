@@ -4,6 +4,8 @@ title = "Authenticate Using SASL and LDAP with ActiveDirectory"
 [tags]
 mongodb = "product"
 +++
+# Authenticate Using SASL and LDAP with ActiveDirectory
+
 
 MongoDB Enterprise provides support for proxy authentication of users.
 This allows administrators to configure a MongoDB cluster to

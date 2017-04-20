@@ -4,6 +4,8 @@ title = "Monitor MongoDB Windows with SNMP"
 [tags]
 mongodb = "product"
 +++
+# Monitor MongoDB Windows with SNMP
+
 
 Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 

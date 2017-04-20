@@ -4,6 +4,8 @@ title = "Install MongoDB Community Edition on OS X"
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Community Edition on OS X
+
 
 ## Overview
 

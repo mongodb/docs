@@ -4,6 +4,8 @@ title = "Manage Sharded Cluster Balancer"
 [tags]
 mongodb = "product"
 +++
+# Manage Sharded Cluster Balancer
+
 
 Changed in version 3.4: The balancer process has moved from the [``mongos``](#bin.mongos) instances
 to the primary member of the config server replica set.

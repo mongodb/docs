@@ -4,6 +4,8 @@ title = "Configure MongoDB with Kerberos Authentication on Linux"
 [tags]
 mongodb = "product"
 +++
+# Configure MongoDB with Kerberos Authentication on Linux
+
 
 ## Overview
 

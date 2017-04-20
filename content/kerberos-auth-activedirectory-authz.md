@@ -4,6 +4,8 @@ title = "Configure MongoDB with Kerberos Authentication and Active Directory Aut
 [tags]
 mongodb = "product"
 +++
+# Configure MongoDB with Kerberos Authentication and Active Directory Authorization
+
 
 New in version 3.4: [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs) supports
 querying an LDAP server for the LDAP groups to which an authenticated user

@@ -4,6 +4,8 @@ title = "Deploy a Replica Set"
 [tags]
 mongodb = "product"
 +++
+# Deploy a Replica Set
+
 
 This tutorial describes how to create a three-member [*replica
 set*](#term-replica-set) from three existing [``mongod``](#bin.mongod) instances running with

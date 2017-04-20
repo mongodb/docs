@@ -4,6 +4,8 @@ title = "Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux
+
 
 ## Overview
 

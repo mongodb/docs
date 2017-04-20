@@ -4,6 +4,8 @@ title = "Install MongoDB Community Edition on Windows"
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Community Edition on Windows
+
 
 ## Overview
 

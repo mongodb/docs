@@ -4,6 +4,8 @@ title = "Install MongoDB Community Edition on Debian"
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Community Edition on Debian
+
 
 ## Overview
 

@@ -4,6 +4,8 @@ title = "Recover a Standalone after an Unexpected Shutdown"
 [tags]
 mongodb = "product"
 +++
+# Recover a Standalone after an Unexpected Shutdown
+
 
 When a standalone [``mongod``](#bin.mongod) instance has journaling disabled
 [1], an unclean shutdown may leave the data in an

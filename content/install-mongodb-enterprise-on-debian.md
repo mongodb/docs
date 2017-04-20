@@ -4,6 +4,8 @@ title = "Install MongoDB Enterprise on Debian"
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Enterprise on Debian
+
 
 ## Overview
 

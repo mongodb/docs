@@ -4,6 +4,8 @@ title = "Monitor MongoDB With SNMP on Linux"
 [tags]
 mongodb = "product"
 +++
+# Monitor MongoDB With SNMP on Linux
+
 
 Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 

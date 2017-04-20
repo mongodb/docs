@@ -4,6 +4,8 @@ title = "Deploy a Sharded Cluster"
 [tags]
 mongodb = "product"
 +++
+# Deploy a Sharded Cluster
+
 
 ## Overview
 

@@ -4,6 +4,8 @@ title = "Install MongoDB Enterprise on SUSE"
 [tags]
 mongodb = "product"
 +++
+# Install MongoDB Enterprise on SUSE
+
 
 ## Overview
 
