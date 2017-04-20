@@ -4,20 +4,6 @@ title = "Monitor MongoDB With SNMP on Linux"
 [tags]
 mongodb = "product"
 +++
-# Monitor MongoDB With SNMP on Linux
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Configuration Files](#configuration-files) 
-
-* [Procedure](#procedure) 
-
-* [Optional: Run MongoDB as SNMP Master](#optional-run-mongodb-as-snmp-master) 
 
 Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 

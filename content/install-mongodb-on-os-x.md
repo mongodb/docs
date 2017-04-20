@@ -4,17 +4,6 @@ title = "Install MongoDB Community Edition on OS X"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition on OS X
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
-
-* [Run MongoDB](#run-mongodb) 
-
 
 ## Overview
 

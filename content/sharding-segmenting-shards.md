@@ -4,14 +4,6 @@ title = "Segmenting Data by Application or Customer"
 [tags]
 mongodb = "product"
 +++
-# Segmenting Data by Application or Customer
-
-
-# On this page
-
-* [Scenario](#scenario) 
-
-* [Procedure](#procedure) 
 
 In sharded clusters, you can create [*zones*](#term-zone) of sharded data based
 on the [*shard key*](#term-shard-key). You can associate each zone with one or more shards

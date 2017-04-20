@@ -4,21 +4,6 @@ title = "Configure MongoDB for FIPS"
 [tags]
 mongodb = "product"
 +++
-# Configure MongoDB for FIPS
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Considerations](#considerations) 
-
-* [Procedure](#procedure) 
-
-New in version 2.6.
-
 
 ## Overview
 

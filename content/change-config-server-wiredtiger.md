@@ -4,7 +4,6 @@ title = "Change Config Servers to WiredTiger"
 [tags]
 mongodb = "product"
 +++
-# Change Config Servers to WiredTiger
 
 New in version 3.0: The WiredTiger storage engine is available.
 

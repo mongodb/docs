@@ -4,23 +4,6 @@ title = "Install MongoDB Enterprise on SUSE"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Enterprise on SUSE
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Considerations](#considerations)
-
-* [Install MongoDB Enterprise](#install-mongodb-enterprise)
-
-* [Install MongoDB Enterprise From Tarball](#install-mongodb-enterprise-from-tarball)
-
-* [Run MongoDB Enterprise](#run-mongodb-enterprise)
-
-* [Uninstall MongoDB](#uninstall-mongodb)
-
 
 ## Overview
 

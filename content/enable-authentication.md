@@ -4,19 +4,6 @@ title = "Enable Auth"
 [tags]
 mongodb = "product"
 +++
-# Enable Auth
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Replica sets and sharded clusters](#replica-sets-and-sharded-clusters) 
-
-* [User Administrator](#user-administrator) 
-
-* [Procedure](#procedure) 
-
 
 ## Overview
 

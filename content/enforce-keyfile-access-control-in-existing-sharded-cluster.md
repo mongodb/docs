@@ -4,33 +4,6 @@ title = "Enforce Keyfile Access Control in Sharded Cluster"
 [tags]
 mongodb = "product"
 +++
-# Enforce Keyfile Access Control in Sharded Cluster
-
-
-# On this page
-
-* [Overview](#overview) 
-
-  * [CloudManager and OpsManager](#cloudmanager-and-opsmanager) 
-
-* [Considerations](#considerations) 
-
-  * [Operating System](#operating-system) 
-
-  * [Keyfile Security](#keyfile-security) 
-
-  * [Access Control](#access-control) 
-
-  * [Users](#users) 
-
-  * [Downtime](#downtime) 
-
-* [Procedures](#procedures) 
-
-  * [Enforce Keyfile Internal Authentication on Existing Sharded Cluster Deployment](#enforce-keyfile-internal-authentication-on-existing-sharded-cluster-deployment) 
-
-* [x.509 Internal Authentication](#x-509-internal-authentication) 
-
 
 ## Overview
 

@@ -4,18 +4,6 @@ title = "Text Search with Basis Technology Rosette Linguistics Platform"
 [tags]
 mongodb = "product"
 +++
-# Text Search with Basis Technology Rosette Linguistics Platform
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Procedure](#procedure) 
-
-* [Additional Information](#additional-information) 
 
 Enterprise Feature: Available in MongoDB Enterprise only.
 

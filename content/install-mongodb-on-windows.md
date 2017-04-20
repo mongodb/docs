@@ -4,27 +4,6 @@ title = "Install MongoDB Community Edition on Windows"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition on Windows
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Requirements](#requirements)
-
-* [Get MongoDB Community Edition](#get-mongodb-community-edition)
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition)
-
-* [Run MongoDB Community Edition](#run-mongodb-community-edition)
-
-* [Configure a Windows Service for MongoDB Community Edition](#configure-a-windows-service-for-mongodb-community-edition)
-
-* [Manually Create a Windows Service for MongoDB Community Edition](#manually-create-a-windows-service-for-mongodb-community-edition)
-
-* [Additional Resources](#additional-resources)
-
 
 ## Overview
 

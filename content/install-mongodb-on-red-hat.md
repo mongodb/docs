@@ -4,21 +4,6 @@ title = "Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Packages](#packages)
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition)
-
-* [Run MongoDB Community Edition](#run-mongodb-community-edition)
-
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition)
-
 
 ## Overview
 

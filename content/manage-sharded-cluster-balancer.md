@@ -4,36 +4,6 @@ title = "Manage Sharded Cluster Balancer"
 [tags]
 mongodb = "product"
 +++
-# Manage Sharded Cluster Balancer
-
-
-# On this page
-
-* [Check the Balancer State](#check-the-balancer-state) 
-
-* [Check if Balancer is Running](#check-if-balancer-is-running) 
-
-* [Configure Default Chunk Size](#configure-default-chunk-size) 
-
-* [Schedule the Balancing Window](#schedule-the-balancing-window) 
-
-* [Remove a Balancing Window Schedule](#remove-a-balancing-window-schedule) 
-
-* [Disable the Balancer](#disable-the-balancer) 
-
-* [Enable the Balancer](#enable-the-balancer) 
-
-* [Disable Balancing During Backups](#disable-balancing-during-backups) 
-
-* [Disable Balancing on a Collection](#disable-balancing-on-a-collection) 
-
-* [Enable Balancing on a Collection](#enable-balancing-on-a-collection) 
-
-* [Confirm Balancing is Enabled or Disabled](#confirm-balancing-is-enabled-or-disabled) 
-
-* [Change Replication Behavior for Chunk Migration](#change-replication-behavior-for-chunk-migration) 
-
-* [Change the Maximum Storage Size for a Given Shard](#change-the-maximum-storage-size-for-a-given-shard) 
 
 Changed in version 3.4: The balancer process has moved from the [``mongos``](#bin.mongos) instances
 to the primary member of the config server replica set.

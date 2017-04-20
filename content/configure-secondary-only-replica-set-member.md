@@ -4,19 +4,6 @@ title = "Prevent Secondary from Becoming Primary"
 [tags]
 mongodb = "product"
 +++
-# Prevent Secondary from Becoming Primary
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Procedure](#procedure) 
-
-* [Related Documents](#related-documents) 
-
 
 ## Overview
 

@@ -4,16 +4,6 @@ title = "Disable Transparent Huge Pages (THP)"
 [tags]
 mongodb = "product"
 +++
-# Disable Transparent Huge Pages (THP)
-
-
-# On this page
-
-* [Init Script](#init-script)
-
-* [Using ``tuned`` and ``ktune``](#using-tuned-and-ktune)
-
-* [Test Your Changes](#test-your-changes)
 
 Note: This page describes how to disable Transparent Huge Pages on Red Hat Enterprise Linux and CentOS versions 6 and 7. For other systems, please consult your vendor's documentation.
 

@@ -4,23 +4,6 @@ title = "Configure MongoDB with Kerberos Authentication on Linux"
 [tags]
 mongodb = "product"
 +++
-# Configure MongoDB with Kerberos Authentication on Linux
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Procedure](#procedure) 
-
-* [Additional Considerations](#additional-considerations) 
-
-* [Additional Resources](#additional-resources) 
-
-New in version 2.4.
-
 
 ## Overview
 

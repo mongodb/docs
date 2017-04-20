@@ -4,20 +4,6 @@ title = "Install MongoDB Community Edition on Amazon Linux"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition on Amazon Linux
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Packages](#packages)
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition)
-
-* [Run MongoDB Community Edition](#run-mongodb-community-edition)
-
-* [Uninstall MongoDB Community Edition](#uninstall-mongodb-community-edition)
 
 MongoDB Atlas and AWS: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas?jmp=docs) is a
 hosted MongoDB service on AWS, for launching, running, and

@@ -4,15 +4,6 @@ title = "Verify Integrity of MongoDB Packages"
 [tags]
 mongodb = "product"
 +++
-# Verify Integrity of MongoDB Packages
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Procedures](#procedures) 
-
 
 ## Overview
 

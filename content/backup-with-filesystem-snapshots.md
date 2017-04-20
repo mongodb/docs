@@ -4,18 +4,6 @@ title = "Back Up and Restore with Filesystem Snapshots"
 [tags]
 mongodb = "product"
 +++
-# Back Up and Restore with Filesystem Snapshots
-
-
-# On this page
-
-* [Snapshots Overview](#snapshots-overview) 
-
-* [Back Up and Restore Using LVM on Linux](#back-up-and-restore-using-lvm-on-linux) 
-
-* [Back up Instances with Journal Files on Separate Volume or without Journaling](#back-up-instances-with-journal-files-on-separate-volume-or-without-journaling) 
-
-* [Additional Resources](#additional-resources) 
 
 This document describes a procedure for creating backups of MongoDB
 systems using system-level tools, such as [*LVM*](#term-lvm) or storage

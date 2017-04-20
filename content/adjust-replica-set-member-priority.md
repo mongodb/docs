@@ -4,16 +4,6 @@ title = "Adjust Priority for Replica Set Member"
 [tags]
 mongodb = "product"
 +++
-# Adjust Priority for Replica Set Member
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Procedure](#procedure) 
 
 
 ## Overview

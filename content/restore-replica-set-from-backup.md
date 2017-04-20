@@ -4,14 +4,6 @@ title = "Restore a Replica Set from MongoDB Backups"
 [tags]
 mongodb = "product"
 +++
-# Restore a Replica Set from MongoDB Backups
-
-
-# On this page
-
-* [Restore Database into a Single Node Replica Set](#restore-database-into-a-single-node-replica-set) 
-
-* [Add Members to the Replica Set](#add-members-to-the-replica-set) 
 
 This procedure outlines the process for taking MongoDB data and
 restoring that data into a new [*replica set*](#term-replica-set). Use this approach

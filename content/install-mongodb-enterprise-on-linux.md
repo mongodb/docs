@@ -4,17 +4,6 @@ title = "Install MongoDB Enterprise From Tarball"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Enterprise From Tarball
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Install MongoDB](#install-mongodb) 
-
-* [Run MongoDB](#run-mongodb) 
-
 
 ## Overview
 

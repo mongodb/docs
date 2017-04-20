@@ -4,19 +4,6 @@ title = "Deploy Sharded Cluster using Hashed Sharding"
 [tags]
 mongodb = "product"
 +++
-# Deploy Sharded Cluster using Hashed Sharding
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Deploy Sharded Cluster with Hashed Sharding](#deploy-sharded-cluster-with-hashed-sharding) 
-
-* [Shard a Collection using Hashed Sharding](#shard-a-collection-using-hashed-sharding) 
-
 
 ## Overview
 

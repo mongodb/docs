@@ -4,21 +4,6 @@ title = "Configure MongoDB with Kerberos Authentication on Windows"
 [tags]
 mongodb = "product"
 +++
-# Configure MongoDB with Kerberos Authentication on Windows
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Procedures](#procedures) 
-
-* [Additional Considerations](#additional-considerations) 
-
-New in version 2.6.
-
 
 ## Overview
 

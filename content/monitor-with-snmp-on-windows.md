@@ -4,22 +4,6 @@ title = "Monitor MongoDB Windows with SNMP"
 [tags]
 mongodb = "product"
 +++
-# Monitor MongoDB Windows with SNMP
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Configuration Files](#configuration-files) 
-
-* [Procedure](#procedure) 
-
-* [Optional: Run MongoDB as SNMP Master](#optional-run-mongodb-as-snmp-master) 
-
-New in version 2.6.
 
 Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 

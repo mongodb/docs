@@ -4,19 +4,6 @@ title = "Deploy a Sharded Cluster"
 [tags]
 mongodb = "product"
 +++
-# Deploy a Sharded Cluster
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Deploy Sharded Cluster](#sharding-deploy-sharded-cluster) 
-
-* [Shard a Collection](#shard-a-collection) 
-
 
 ## Overview
 

@@ -4,21 +4,6 @@ title = "Change Your Password and Custom Data"
 [tags]
 mongodb = "product"
 +++
-# Change Your Password and Custom Data
-
-Changed in version 2.6.
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Procedure](#procedure) 
-
 
 ## Overview
 

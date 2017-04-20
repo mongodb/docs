@@ -4,19 +4,6 @@ title = "Deploy Replica Set With Keyfile Access Control"
 [tags]
 mongodb = "product"
 +++
-# Deploy Replica Set With Keyfile Access Control
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Deploy New Replica Set with Keyfile Access Control](#deploy-new-replica-set-with-keyfile-access-control) 
-
-* [x.509 Internal Authentication](#x-509-internal-authentication) 
-
 
 ## Overview
 

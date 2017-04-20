@@ -4,22 +4,6 @@ title = "Tiered Hardware for Varying SLA or SLO"
 [tags]
 mongodb = "product"
 +++
-# Tiered Hardware for Varying SLA or SLO
-
-
-# On this page
-
-* [Scenario](#scenario) 
-
-* [Write Operations](#write-operations) 
-
-* [Read Operations](#read-operations) 
-
-* [Balancer](#balancer) 
-
-* [Security](#security) 
-
-* [Procedure](#procedure) 
 
 In sharded clusters, you can create [*zones*](#term-zone) of sharded data based
 on the [*shard key*](#term-shard-key). You can associate each zone with one or more shards

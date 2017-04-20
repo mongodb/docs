@@ -4,27 +4,6 @@ title = "Install MongoDB Enterprise on Windows"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Enterprise on Windows
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Prerequisites](#prerequisites)
-
-* [Get MongoDB Enterprise](#get-mongodb-enterprise)
-
-* [Install MongoDB Enterprise](#install-mongodb-enterprise)
-
-* [Run MongoDB Enterprise](#run-mongodb-enterprise)
-
-* [Configure a Windows Service for MongoDB Enterprise](#configure-a-windows-service-for-mongodb-enterprise)
-
-* [Manually Create a Windows Service for MongoDB Enterprise](#manually-create-a-windows-service-for-mongodb-enterprise)
-
-New in version 2.6.
-
 
 ## Overview
 

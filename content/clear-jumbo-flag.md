@@ -4,12 +4,6 @@ title = "Clear jumbo Flag"
 [tags]
 mongodb = "product"
 +++
-# Clear ``jumbo`` Flag
-
-
-# On this page
-
-* [Procedures](#procedures) 
 
 If MongoDB cannot split a chunk that exceeds the [specified chunk
 size](#sharding-chunk-size) or contains a number of documents that

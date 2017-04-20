@@ -4,23 +4,6 @@ title = "Perform Two Phase Commits"
 [tags]
 mongodb = "product"
 +++
-# Perform Two Phase Commits
-
-
-# On this page
-
-* [Synopsis](#synopsis) 
-
-* [Background](#background) 
-
-* [Pattern](#pattern) 
-
-* [Recovering from Failure Scenarios](#recovering-from-failure-scenarios) 
-
-* [Multiple Applications](#multiple-applications) 
-
-* [Using Two-Phase Commits in Production Applications](#using-two-phase-commits-in-production-applications) 
-
 
 ## Synopsis
 

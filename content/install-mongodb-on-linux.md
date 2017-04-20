@@ -4,17 +4,6 @@ title = "Install MongoDB Community Edition From Tarball"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition From Tarball
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Install MongoDB Community Edition](#install-mongodb-community-edition) 
-
-* [Run MongoDB Community Edition](#run-mongodb-community-edition) 
-
 
 ## Overview
 

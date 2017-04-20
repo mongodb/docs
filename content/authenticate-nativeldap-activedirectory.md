@@ -4,16 +4,6 @@ title = "Authenticate and Authorize Users Using Active Directory via Native LDAP
 [tags]
 mongodb = "product"
 +++
-# Authenticate and Authorize Users Using Active Directory via Native LDAP
-
-
-# On this page
-
-* [Prerequisites](#prerequisites) 
-
-* [Considerations](#considerations) 
-
-* [Procedure](#procedure) 
 
 New in version 3.4: MongoDB EnterpriseMongoDB Enterprise provides support via platform LDAP
 libraries for proxying authentication and authorization requests to a

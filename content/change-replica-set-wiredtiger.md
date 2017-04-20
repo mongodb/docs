@@ -4,7 +4,6 @@ title = "Change Replica Set to WiredTiger"
 [tags]
 mongodb = "product"
 +++
-# Change Replica Set to WiredTiger
 
 New in version 3.0: The WiredTiger storage engine is available. Also, replica sets may
 have members with different storage engines.

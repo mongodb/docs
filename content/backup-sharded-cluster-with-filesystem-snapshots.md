@@ -4,18 +4,6 @@ title = "Back Up a Sharded Cluster with File System Snapshots"
 [tags]
 mongodb = "product"
 +++
-# Back Up a Sharded Cluster with File System Snapshots
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Procedure](#procedure) 
-
-* [Additional Resources](#additional-resources) 
 
 Changed in version 3.2: Starting in MongoDB 3.2, the procedure can be used with the
 [MMAPv1](#) and the [WiredTiger](#) storage engines. With previous versions of

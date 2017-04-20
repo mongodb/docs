@@ -4,7 +4,6 @@ title = "Change Standalone to WiredTiger"
 [tags]
 mongodb = "product"
 +++
-# Change Standalone to WiredTiger
 
 New in version 3.0: The WiredTiger storage engine is available.
 

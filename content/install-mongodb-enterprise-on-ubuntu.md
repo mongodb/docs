@@ -4,21 +4,6 @@ title = "Install MongoDB Enterprise on Ubuntu"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Enterprise on Ubuntu
-
-
-# On this page
-
-* [Overview](#overview)
-
-* [Install MongoDB Enterprise](#install-mongodb-enterprise)
-
-* [Install MongoDB Enterprise From Tarball](#install-mongodb-enterprise-from-tarball)
-
-* [Run MongoDB Enterprise](#run-mongodb-enterprise)
-
-* [Uninstall MongoDB](#uninstall-mongodb)
-
 
 ## Overview
 

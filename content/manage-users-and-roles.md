@@ -4,25 +4,6 @@ title = "Manage Users and Roles"
 [tags]
 mongodb = "product"
 +++
-# Manage Users and Roles
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Create a User-Defined Role](#create-a-user-defined-role) 
-
-* [Modify Access for an Existing User](#modify-access-for-an-existing-user) 
-
-* [Modify the Password for an Existing User](#modify-the-password-for-an-existing-user) 
-
-* [View a User's Roles](#view-a-user-s-roles) 
-
-* [View a Role's Privileges](#view-a-role-s-privileges) 
-
 
 ## Overview
 

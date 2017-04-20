@@ -4,19 +4,6 @@ title = "Deploy a Geographically Redundant Replica Set"
 [tags]
 mongodb = "product"
 +++
-# Deploy a Geographically Redundant Replica Set
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Procedures](#procedures) 
-
 
 ## Overview
 

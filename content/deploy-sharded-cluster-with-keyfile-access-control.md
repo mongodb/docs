@@ -4,47 +4,6 @@ title = "Deploy Sharded Cluster with Keyfile Access Control"
 [tags]
 mongodb = "product"
 +++
-# Deploy Sharded Cluster with Keyfile Access Control
-
-
-# On this page
-
-* [Overview](#overview) 
-
-  * [CloudManager and OpsManager](#cloudmanager-and-opsmanager) 
-
-* [Considerations](#considerations) 
-
-  * [Keyfile Security](#keyfile-security) 
-
-  * [Access Control](#access-control) 
-
-  * [Users](#users) 
-
-  * [Operating System](#operating-system) 
-
-* [Deploy Sharded Cluster with Keyfile Access Control](#security-shard-deploy-sharded-cluster-with-access-control) 
-
-  * [Create the Keyfile](#create-the-keyfile) 
-
-  * [Distribute the Keyfile](#distribute-the-keyfile) 
-
-  * [Create the Config Server Replica Set](#create-the-config-server-replica-set) 
-
-  * [Create the Shard Replica Sets](#create-the-shard-replica-sets) 
-
-  * [Connect a ``mongos`` to the Sharded Cluster](#connect-a-mongos-to-the-sharded-cluster) 
-
-  * [Add Shards to the Cluster](#add-shards-to-the-cluster) 
-
-  * [Enable Sharding for a Database](#enable-sharding-for-a-database) 
-
-  * [Shard a Collection](#shard-a-collection) 
-
-* [Next Steps](#next-steps) 
-
-* [x.509 Internal Authentication](#x-509-internal-authentication) 
-
 
 ## Overview
 

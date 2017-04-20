@@ -4,20 +4,6 @@ title = "Back Up a Sharded Cluster with Database Dumps"
 [tags]
 mongodb = "product"
 +++
-# Back Up a Sharded Cluster with Database Dumps
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Prerequisites](#prerequisites) 
-
-* [Consideration](#consideration) 
-
-* [Procedure](#procedure) 
-
-* [Additional Resources](#additional-resources) 
 
 Changed in version 3.2: Starting in MongoDB 3.2, the following procedure can be used with the
 [MMAPv1](#) and the [WiredTiger](#) storage engines. With previous versions of

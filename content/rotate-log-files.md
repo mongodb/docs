@@ -4,21 +4,6 @@ title = "Rotate Log Files"
 [tags]
 mongodb = "product"
 +++
-# Rotate Log Files
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Default Log Rotation Behavior](#default-log-rotation-behavior) 
-
-* [Log Rotation with ``--logRotate reopen``](#log-rotation-with-logrotate-reopen) 
-
-* [Syslog Log Rotation](#syslog-log-rotation) 
-
-* [Forcing a Log Rotation with ``SIGUSR1``](#forcing-a-log-rotation-with-sigusr1) 
-
 
 ## Overview
 

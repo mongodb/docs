@@ -4,19 +4,6 @@ title = "Deploy Sharded Cluster using Ranged Sharding"
 [tags]
 mongodb = "product"
 +++
-# Deploy Sharded Cluster using Ranged Sharding
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Considerations](#considerations) 
-
-* [Deploy Sharded Cluster with Ranged Sharding](#deploy-sharded-cluster-with-ranged-sharding) 
-
-* [Shard a Collection using Ranged Sharding](#shard-a-collection-using-ranged-sharding) 
-
 
 ## Overview
 

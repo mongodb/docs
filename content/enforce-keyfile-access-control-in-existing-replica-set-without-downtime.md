@@ -4,17 +4,6 @@ title = "Enforce Keyfile Access Control in a Replica Set without Downtime"
 [tags]
 mongodb = "product"
 +++
-# Enforce Keyfile Access Control in a Replica Set without Downtime
-
-
-# On this page
-
-* [Overview](#overview) 
-
-* [Enforce Keyfile Access Control on Existing Replica Set](#enforce-keyfile-access-control-on-existing-replica-set) 
-
-* [x.509 Internal Authentication](#x-509-internal-authentication) 
-
 
 ## Overview
 
