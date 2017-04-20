@@ -79,11 +79,13 @@ You can also use the array to restore an instance.
        
    * - ``processes.authSchemaVersion``
      - integer
-     - The schema version of the user credential objects.
-       This should match all other elements of the ``processes`` array
-       that belong to the same cluster. The possible values are ``1``,
-       ``3``, and ``5``. The default is ``5`` for ``3.x`` clusters and
-       ``1`` for ``2.4`` clusters.
+     - The schema version of the user credentials for MongoDB database
+       users. This should match all other elements of the ``processes``
+       array that belong to the same cluster. The possible values are 
+       ``1``, ``3``, and ``5``. The default is ``5`` for MongodDB 3.x
+       clusters and ``1`` for MongoDB 2.4 clusters. See `Upgrade to
+       SCRAM-SHA-1 <https://docs.mongodb.com/manual/release-notes/3.0-scram/>`_
+       in the MongoDB 3.0 release notes for more information.
 
    * - ``processes.featureCompatibilityVersion``
      - string

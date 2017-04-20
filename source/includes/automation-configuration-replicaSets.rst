@@ -1,5 +1,5 @@
 The ``replicaSets`` array defines each replica set's configuration. This
-field is optional except for deployments with replica sets. 
+field is required for deployments with replica sets. 
 
 .. code-block:: cfg
 
