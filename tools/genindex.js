@@ -3,7 +3,7 @@
 
 const __doc__ = `
 Usage:
-  genindex.js <source> <outputIndex> <outputTags> --config=<path>
+  genindex.js --config=<path>
 `
 
 const assert = require('assert')
@@ -16,9 +16,42 @@ const docopt = require('docopt')
 const sax = require('sax')
 const toml = require('toml')
 const lunr = require('lunr')
+const marked = require('marked')
 
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
 const SNIPPET_LENGTH = 175
+
+function makeRenderer() {
+    const renderer = new marked.Renderer()
+    let lastLevel = 0
+
+    renderer.heading = function(text, level, raw) {
+        var escapedText = text.toLowerCase().replace(/[^\w]+/g, '-')
+
+        let prefix = ''
+        if (level <= lastLevel) {
+            prefix = '\n</section>'.repeat(lastLevel - level + 1)
+        }
+        lastLevel = level
+
+        return prefix + '\n<section>\n<h'
+            + level
+            + ' id="'
+            + this.options.headerPrefix
+            + raw.toLowerCase().replace(/[^\w]+/g, '-')
+            + '">'
+            + text
+            + '</h'
+            + level
+            + '>\n'
+    }
+
+    renderer.flush = function() {
+        return '\n</section>'.repeat(lastLevel)
+    }
+
+    return renderer
+}
 
 // Recursively step through an object and replace any numbers with a number
 // representable in a short ASCII string.
@@ -70,77 +103,46 @@ function* walk(root) {
     }
 }
 
-function parseXML(path, headmatter, xml) {
-    const spawnOutput = child_process.spawnSync('mmark', ['-xml'], {encoding: 'utf-8', input: xml})
-    if (spawnOutput.status != 0) {
-        throw new Error('Command "mmark" failed')
+function getTreeText(tree) {
+    const text = []
+    for (let i = 1; i < tree.length; i += 1) {
+        const child = tree[i]
+        if (Array.isArray(child)) {
+            text.push(...getTreeText(child))
+        } else {
+            text.push(child)
+        }
     }
 
-    const text = `<root>${spawnOutput.output[1]}</root>`
-    const parser = sax.parser(true, {
-        trim: true,
-        normalize: true
-    })
+    return text
+}
 
-    const doc = {
-        id: searchIndex.docId,
-        title: headmatter.title,
-        tags: Object.keys(headmatter.tags),
-        minorTitles: [],
-        body: []
-    }
-    searchIndex.docId += 1
-    searchIndex.slugs.push(headmatter.slug)
+function scanTree(tree, searchDoc) {
+    const root = tree[0]
+    for (let i = 1; i < tree.length; i += 1) {
+        const child = tree[i]
+        if (Array.isArray(child)) {
+            if (/h[0-6]/.test(child[0])) {
+                const level = parseInt(child[0][1])
 
-    let sectionDepth = 0
-    let inName = false
-    let error = false
+                for (let j = i; j < tree.length; j += 1) {
 
-    parser.onerror = function (error) {
-        console.error('Error parsing ' + path)
-        console.error(error)
-        error = true
-    }
+                }
 
-    parser.ontext = function (text) {
-        if (inName) {
-            assert.ok(sectionDepth >= 1)
-            if (sectionDepth === 1) {
-                doc.title += ' ' + text
-            } else {
-                doc.minorTitles.push(text)
+                // Inject a <section> tag
+                tree[i] = ['section', [child].concat(tree.splice(i))]
+                if (!searchDoc.title) {
+                    searchDoc.title = getTreeText(child).join(' ')
+                } else {
+                    searchDoc.minorTitles.push(getTreeText(child).join(' '))
+                }
             }
 
-            return
-        }
-
-        doc.body.push(text)
-    }
-
-    parser.onopentag = function (node) {
-        if (node.name === 'section') {
-            sectionDepth += 1
-        } else if (node.name === 'name') {
-            inName = true
+            scanTree(child, searchDoc)
+        } else {
+            searchDoc.body.push(child)
         }
     }
-
-    parser.onclosetag = function (name) {
-        if (name === 'section') {
-            sectionDepth -= 1
-        } else if (name === 'name') {
-            assert.equal(inName, true)
-            inName = false
-        }
-    }
-
-    parser.write(text).close()
-    if (error) { throw new Error('Parse error') }
-
-    doc.title = doc.title.trim()
-    doc.body = doc.body.join(' ').trim()
-
-    return doc
 }
 
 function processFile(path) {
@@ -156,7 +158,23 @@ function processFile(path) {
       headmatter.slug = '/' + pathModule.parse(path).name
     }
 
-    const searchDoc = parseXML(path, headmatter, rawdata.slice(match[0].length))
+    const searchDoc = {
+        id: searchIndex.docId,
+        title: headmatter.title,
+        tags: Object.keys(headmatter.tags),
+        minorTitles: [],
+        body: []
+    }
+    searchIndex.docId += 1
+    searchIndex.slugs.push(headmatter.slug)
+
+    const renderer = makeRenderer()
+    const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
+    // const tree = markdown.toHTMLTree(rawdata.slice(match[0].length))
+    // scanTree(tree, searchDoc)
+    // console.log(tree)
+    searchDoc.body = searchDoc.body.join(' ')
+    // const html = markdown.renderJsonML(tree)
     searchIndex.idx.add(searchDoc)
 
     let tags = []
@@ -169,37 +187,51 @@ function processFile(path) {
     }
 
     return {
-      url: headmatter.slug,
-      title: headmatter.title,
-      snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
-      options: tags,
+        html: html,
+        headmatterSource: match[0],
+        headmatter: {
+            url: headmatter.slug,
+            title: headmatter.title,
+            snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
+            options: tags,
+        }
     }
 }
 
 function main() {
     const args = docopt.docopt(__doc__)
-    const data = []
-    const tagManifest = toml.parse(fs.readFileSync(args['--config'])).tags || {}
+    const tutorials = []
+    const config = toml.parse(fs.readFileSync(args['--config']))
+    const tagManifest = config.tags || {}
     let error = false
 
-    for (const path of walk(args['<source>'])) {
-        let headmatter
+    const sourceContentDir = config.sourceContentDir.replace(/\/$/, '')
+    const outputContentDir = config.contentDir.replace(/\/$/, '')
+
+    try {
+        fs.mkdirSync(outputContentDir)
+    } catch (error) {}
+
+    for (const path of walk(sourceContentDir)) {
+        let doc
         try {
-            headmatter = processFile(path)
+            doc = processFile(path)
         } catch(err) {
             console.error(`Error processing ${path}: ${err}`)
             error = true
             continue
         }
 
-        headmatter.options.forEach(function(option) {
+        doc.headmatter.options.forEach(function(option) {
           if (tagManifest[option.name] === undefined) {
             console.error(`Unknown tag "${option}" in ${path}`)
             error = true
           }
         })
 
-        data.push(headmatter)
+        tutorials.push(doc.headmatter)
+        const outputPath = path.replace(sourceContentDir, outputContentDir).replace(/\.[a-z]+$/, '.html')
+        fs.writeFileSync(outputPath, doc.headmatterSource + '\n' + doc.html)
     }
 
     if (error) {
@@ -215,13 +247,17 @@ function main() {
       })
     }
 
-    fs.writeFileSync(args['<outputTags>'], JSON.stringify({
+    try {
+        fs.mkdirSync('public')
+    } catch (error) {}
+
+    fs.writeFileSync('public/tags.json', JSON.stringify({
         tags: tags,
-        tutorials: data
+        tutorials: tutorials
     }))
 
     const searchIndexJSON = searchIndex.toJSON()
-    fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
+    fs.writeFileSync('public/search.json', JSON.stringify(searchIndexJSON))
 }
 
 main()

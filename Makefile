@@ -4,20 +4,21 @@ STAGING_BUCKET=docs-mongodb-org-staging
 STAGING_PREFIX=tutorials
 STAGING_URL=http://docs-mongodb-org-staging.s3-website-us-east-1.amazonaws.com/${STAGING_PREFIX}/${USER}/${GIT_BRANCH}
 
-.PHONY: build server help stage
+.PHONY: build server help stage content-html
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-build: | tools/node_modules ## Build into public/
-	hugo -b "${STAGING_URL}"
-	$(NODE) tools/genindex.js content public/search.json public/tags.json --config config.toml
+content-html: | tools/node_modules
+	$(NODE) tools/genindex.js --config config.toml
 
-server: ## Host the documentation on port 1313
-	$(NODE) tools/genindex.js content public/search.json public/tags.json --config config.toml
+build: | content-html ## Build into public/
+	hugo -b "${STAGING_URL}"
+
+server: | content-html ## Host the documentation on port 1313
 	hugo server --renderToDisk -b 'localhost'
 
-stage: build  # Upload built artifacts to the staging URL
+stage: build  ## Upload built artifacts to the staging URL
 	mut-publish public/ ${STAGING_BUCKET} --prefix=${STAGING_PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}"
 
