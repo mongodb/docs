@@ -21,13 +21,20 @@ const marked = require('marked')
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
 const SNIPPET_LENGTH = 175
 
+function escape(html, encode) {
+  return html
+    .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function makeRenderer() {
     const renderer = new marked.Renderer()
     let lastLevel = 0
 
     renderer.heading = function(text, level, raw) {
-        var escapedText = text.toLowerCase().replace(/[^\w]+/g, '-')
-
         let prefix = ''
         if (level <= lastLevel) {
             prefix = '\n</section>'.repeat(lastLevel - level + 1)
@@ -44,6 +51,16 @@ function makeRenderer() {
             + '</h'
             + level
             + '>\n'
+    }
+
+    renderer.code = function(code, lang) {
+        if (!lang) {
+            return '<div class="highlight"><pre><code>' + escape(code) + '\n</code></pre></div>'
+        }
+
+        return `{{< highlight ${escape(lang, true)} >}}`
+            + code
+            + '\n{{< /highlight >}}\n'
     }
 
     renderer.flush = function() {
@@ -103,48 +120,6 @@ function* walk(root) {
     }
 }
 
-function getTreeText(tree) {
-    const text = []
-    for (let i = 1; i < tree.length; i += 1) {
-        const child = tree[i]
-        if (Array.isArray(child)) {
-            text.push(...getTreeText(child))
-        } else {
-            text.push(child)
-        }
-    }
-
-    return text
-}
-
-function scanTree(tree, searchDoc) {
-    const root = tree[0]
-    for (let i = 1; i < tree.length; i += 1) {
-        const child = tree[i]
-        if (Array.isArray(child)) {
-            if (/h[0-6]/.test(child[0])) {
-                const level = parseInt(child[0][1])
-
-                for (let j = i; j < tree.length; j += 1) {
-
-                }
-
-                // Inject a <section> tag
-                tree[i] = ['section', [child].concat(tree.splice(i))]
-                if (!searchDoc.title) {
-                    searchDoc.title = getTreeText(child).join(' ')
-                } else {
-                    searchDoc.minorTitles.push(getTreeText(child).join(' '))
-                }
-            }
-
-            scanTree(child, searchDoc)
-        } else {
-            searchDoc.body.push(child)
-        }
-    }
-}
-
 function processFile(path) {
     const rawdata = fs.readFileSync(path, { encoding: 'utf-8' })
     const match = rawdata.match(PAT_HEADMATTER)
@@ -170,11 +145,7 @@ function processFile(path) {
 
     const renderer = makeRenderer()
     const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
-    // const tree = markdown.toHTMLTree(rawdata.slice(match[0].length))
-    // scanTree(tree, searchDoc)
-    // console.log(tree)
     searchDoc.body = searchDoc.body.join(' ')
-    // const html = markdown.renderJsonML(tree)
     searchIndex.idx.add(searchDoc)
 
     let tags = []
