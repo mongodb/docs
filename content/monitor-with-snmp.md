@@ -4,8 +4,8 @@ title = "Monitor MongoDB With SNMP on Linux"
 [tags]
 mongodb = "product"
 +++
-# Monitor MongoDB With SNMP on Linux
 
+# Monitor MongoDB With SNMP on Linux
 
 Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 
@@ -14,17 +14,17 @@ Enterprise Feature: SNMP is only available in [MongoDB Enterprise](http://www.mo
 
 MongoDB Enterprise can provide database metrics via SNMP, in
 support of centralized data collection and aggregation. This procedure
-explains the setup and configuration of a [``mongod``](#bin.mongod) instance
+explains the setup and configuration of a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance
 as an SNMP subagent, as well as initializing and testing of SNMP
 support with MongoDB Enterprise.
 
-See also: [Troubleshoot SNMP](#) and [Monitor MongoDB Windows with SNMP](#) for complete instructions on using MongoDB with SNMP on Windows systems. 
+See also: [Troubleshoot SNMP](https://docs.mongodb.com/manual/tutorial/troubleshoot-snmp) and [Monitor MongoDB Windows with SNMP](monitor-with-snmp-on-windows/) for complete instructions on using MongoDB with SNMP on Windows systems.
 
 
 ## Considerations
 
-Only [``mongod``](#bin.mongod) instances provide SNMP
-support. [``mongos``](#bin.mongos) and the other MongoDB binaries do not
+Only [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances provide SNMP
+support. [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) and the other MongoDB binaries do not
 support SNMP.
 
 
@@ -35,20 +35,20 @@ Changed in version 2.6.
 MongoDB Enterprise contains the following configuration files to
 support SNMP:
 
-* ``MONGOD-MIB.txt``: 
+* ``MONGOD-MIB.txt``:
 
   The management information base (MIB) file that defines MongoDB's
   SNMP output.
 
-* ``mongod.conf.subagent``: 
+* ``mongod.conf.subagent``:
 
-  The configuration file to run [``mongod``](#bin.mongod) as the SNMP
+  The configuration file to run [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) as the SNMP
   subagent. This file sets SNMP run-time configuration options,
   including the ``AgentX`` socket to connect to the SNMP master.
 
-* ``mongod.conf.master``: 
+* ``mongod.conf.master``:
 
-  The configuration file to run [``mongod``](#bin.mongod) as the SNMP
+  The configuration file to run [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) as the SNMP
   master. This file sets SNMP run-time configuration options.
 
 
@@ -85,7 +85,7 @@ SNMP master configuration file.
 
 ### Step 2: Start MongoDB.
 
-Start [``mongod``](#bin.mongod) with the ``snmp-subagent`` to send data
+Start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``snmp-subagent`` to send data
 to the SNMP master.
 
 ```sh
@@ -97,7 +97,7 @@ mongod --snmp-subagent
 
 ### Step 3: Confirm SNMP data retrieval.
 
-Use ``snmpwalk`` to collect data from [``mongod``](#bin.mongod):
+Use ``snmpwalk`` to collect data from [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod):
 
 Connect an SNMP client to verify the ability to collect SNMP data
 from MongoDB.
@@ -113,13 +113,13 @@ snmpwalk -m /usr/share/snmp/mibs/MONGOD-MIB.txt -v 2c -c mongodb 127.0.0.1:<port
 ```
 
 ``<port>`` refers to the port defined by the SNMP master,
-*not* the primary [``port``](#net.port) used by [``mongod``](#bin.mongod) for
+*not* the primary [``port``](https://docs.mongodb.com/manual/reference/configuration-options/#net.port) used by [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) for
 client communication.
 
 
 ## Optional: Run MongoDB as SNMP Master
 
-You can run [``mongod``](#bin.mongod) with the ``snmp-master``
+You can run [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``snmp-master``
 option for testing purposes. To do this, use the SNMP master
 configuration file instead of the subagent configuration file. From
 the directory containing the unpacked MongoDB installation files:
@@ -130,7 +130,7 @@ cp mongod.conf.master /etc/snmp/mongod.conf
 
 ```
 
-Additionally, start [``mongod``](#bin.mongod) with the ``snmp-master``
+Additionally, start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``snmp-master``
 option, as in the following:
 
 ```sh

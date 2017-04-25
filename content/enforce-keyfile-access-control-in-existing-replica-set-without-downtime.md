@@ -4,27 +4,28 @@ title = "Enforce Keyfile Access Control in a Replica Set without Downtime"
 [tags]
 mongodb = "product"
 +++
+
 # Enforce Keyfile Access Control in a Replica Set without Downtime
 
 
 ## Overview
 
-To secure against unauthorized access, enforce [authentication](#authentication) in [*sharded cluster*](#term-sharded-cluster) deployments. Authentication
-in MongoDB consists of [internal authentication](#inter-process-auth)
-among the replica set members, and [user access control](#authorization)
+To secure against unauthorized access, enforce [authentication](https://docs.mongodb.com/manual/core/authentication/#authentication) in [*sharded cluster*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster) deployments. Authentication
+in MongoDB consists of [internal authentication](https://docs.mongodb.com/manual/core/security-internal-authentication/#inter-process-auth)
+among the replica set members, and [user access control](https://docs.mongodb.com/manual/core/authorization/#authorization)
 for clients connecting to the replica set.
 
 If your deployment does not enforce authentication, MongoDB 3.4 provides the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option for performing a no-downtime upgrade to
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option for performing a no-downtime upgrade to
 enforcing authentication.
 
 New in version 3.4: MongoDB 3.2 and earlier do not support a no-downtime upgrade to enforce
 authentication. See
-[Enforce Keyfile Access Control in a Replica Set](#) for
+[Enforce Keyfile Access Control in a Replica Set](enforce-keyfile-access-control-in-existing-replica-set/) for
 enforcing authentication in an existing MongoDB 3.2 replica set.
 
-This tutorial uses the [keyfile](#internal-auth-keyfile) internal
-authentication mechanism for internal security, and [SCRAM-SHA-1](#authentication-scram-sha-1)-based [role-based access controls](#authorization) for client connections.
+This tutorial uses the [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) internal
+authentication mechanism for internal security, and [SCRAM-SHA-1](https://docs.mongodb.com/manual/core/security-scram-sha-1/#authentication-scram-sha-1)-based [role-based access controls](https://docs.mongodb.com/manual/core/authorization/#authorization) for client connections.
 
 
 ### Cloud Manager and Ops Manager
@@ -38,19 +39,19 @@ or in the [Ops Manager manual](https://docs.opsmanager.mongodb.com/current/tutor
 ### Architecture
 
 This tutorial assumes that your replica set can elect a new
-[*primary*](#term-primary) after stepping down the existing primary replica set member.
+[*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) after stepping down the existing primary replica set member.
 This requires:
 
-* A majority of voting replica set members available after stepping down the [*primary*](#term-primary). 
+* A majority of voting replica set members available after stepping down the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary).
 
-* At least one [*secondary*](#term-secondary) member that is not [delayed](#replica-set-delayed-members), [hidden](#replica-set-hidden-members), or [Priority 0](#replica-set-secondary-only-members). 
+* At least one [*secondary*](https://docs.mongodb.com/manual/reference/glossary/#term-secondary) member that is not [delayed](https://docs.mongodb.com/manual/core/replica-set-delayed-member/#replica-set-delayed-members), [hidden](https://docs.mongodb.com/manual/core/replica-set-hidden-member/#replica-set-hidden-members), or [Priority 0](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members).
 
 
 ### Transition State
 
-A [``mongod``](#bin.mongod) running with [``--transitionToAuth``](#cmdoption-transitiontoauth) accepts both
+A [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) running with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) accepts both
 authenticated and non-authenticated connections. Clients connected to the
-[``mongod``](#bin.mongod) during this transition state can perform read, write, and
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) during this transition state can perform read, write, and
 administrative operations on any database.
 
 
@@ -58,10 +59,10 @@ administrative operations on any database.
 
 At the end of the following procedure, the replica set rejects any
 client attempting to make a non-authenticated connection. The procedure creates
-[users](#users) for client applications to use when connecting to the
+[users](https://docs.mongodb.com/manual/core/security-users/#users) for client applications to use when connecting to the
 replica set.
 
-See [Configure Role-Based Access Control](#security-checklist-role-based-access-control) for user creation and
+See [Configure Role-Based Access Control](https://docs.mongodb.com/manual/administration/security-checklist/#security-checklist-role-based-access-control) for user creation and
 management best practices.
 
 
@@ -70,15 +71,15 @@ management best practices.
 
 ### Step 1: Create the user administrator.
 
-The [``userAdminAnyDatabase``](#userAdminAnyDatabase) role grants access to user creation
+The [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role grants access to user creation
 on any database in the deployment.
 
-You must connect to the [*primary*](#term-primary) to create users.
+You must connect to the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) to create users.
 
 The following example creates the user ``fred`` with the
-[``userAdminAnyDatabase``](#userAdminAnyDatabase) role on the ``admin`` database.
+[``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role on the ``admin`` database.
 
-Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access. 
+Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access.
 
 ```javascript
 
@@ -97,21 +98,21 @@ At the completion of this procedure, any client that administers users in
 the replica set must authenticate as this user, or a user with
 similar permissions.
 
-See [Database User Roles](#database-user-roles) for a full list of built-in roles and
+See [Database User Roles](https://docs.mongodb.com/manual/reference/built-in-roles/#database-user-roles) for a full list of built-in roles and
 related to database administration operations.
 
 
 ### Step 2: Create the cluster administrator.
 
-The [``clusterAdmin``](#clusterAdmin) role grants access to replication
+The [``clusterAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterAdmin) role grants access to replication
 operations, such as configuring the replica set.
 
-You must connect to the [*primary*](#term-primary) to create users.
+You must connect to the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) to create users.
 
 The following example creates the user ``ravi`` with the
-[``clusterAdmin``](#clusterAdmin) role on the ``admin`` database.
+[``clusterAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterAdmin) role on the ``admin`` database.
 
-Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access. 
+Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access.
 
 ```javascript
 
@@ -129,7 +130,7 @@ At the completion of this procedure, any client that administrates or
 maintains the replica set must authenticate as this user, or a user with
 similar permissions.
 
-See [Cluster Administration Roles](#cluster-admin-roles) for a full list of built-in roles related to
+See [Cluster Administration Roles](https://docs.mongodb.com/manual/reference/built-in-roles/#cluster-admin-roles) for a full list of built-in roles related to
 replica set operations.
 
 
@@ -139,16 +140,16 @@ Create users to allow client application to connect and interact with the
 replica set. At the completion of this tutorial, clients must authenticate as
 a configured user to connect to the replica set.
 
-See [Database User Roles](#database-user-roles) for basic built-in roles to use
+See [Database User Roles](https://docs.mongodb.com/manual/reference/built-in-roles/#database-user-roles) for basic built-in roles to use
 in creating read-only and read-write users.
 
 The following creates a user with read and write permissions
 on the ``foo`` database.
 
-Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access. 
+Important: Passwords should be random, long, and complex to ensure system security and to prevent or delay malicious access.
 
 Create a user with the
-[``readWrite``](#readWrite) role in the ``foo`` database.
+[``readWrite``](https://docs.mongodb.com/manual/reference/built-in-roles/#readWrite) role in the ``foo`` database.
 
 ```javascript
 
@@ -163,11 +164,11 @@ db.getSiblingDB("foo").createUser(
 ```
 
 Clients authenticating as this user can perform read and write operations
-against the ``foo`` database. See [Authenticate a User](#authentication-auth-as-user) for
+against the ``foo`` database. See [Authenticate a User](https://docs.mongodb.com/manual/core/security-users/#authentication-auth-as-user) for
 more on creating an authenticated connection to the replica set.
 
-See the [Add Users](#add-new-user) tutorial for more information on
-adding users. Consider [security best practices](#security-checklist-role-based-access-control) when adding new users.
+See the [Add Users](https://docs.mongodb.com/manual/tutorial/create-users/#add-new-user) tutorial for more information on
+adding users. Consider [security best practices](https://docs.mongodb.com/manual/administration/security-checklist/#security-checklist-role-based-access-control) when adding new users.
 
 
 ### Step 4: Update Client Applications
@@ -178,7 +179,7 @@ credentials and connect to the replica set.
 
 Update client applications to authenticate to the replica set using a
 configured user. Authenticated connections require a username, password, and
-the authentication database. See [Authenticate a User](#authentication-auth-as-user).
+the authentication database. See [Authenticate a User](https://docs.mongodb.com/manual/core/security-users/#authentication-auth-as-user).
 
 For example, the following connects to a replica set named ``mongoRepl``
 and authenticates as the user ``joe``.
@@ -200,7 +201,7 @@ to the replica set before and after the transition.
 
 ### Step 5: Create a keyfile.
 
-The contents of the [keyfile](#internal-auth-keyfile) serves as
+The contents of the [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) serves as
 the shared password for the members of the replica set. The
 content of the keyfile must be the same for all members of the
 replica set.
@@ -208,7 +209,7 @@ replica set.
 You can generate a keyfile using any method you choose. The contents
 of the keyfile must be between 6 and 1024 characters long.
 
-Note: On UNIX systems, the keyfile must not have group or world permissions. On Windows systems, keyfile permissions are not checked. 
+Note: On UNIX systems, the keyfile must not have group or world permissions. On Windows systems, keyfile permissions are not checked.
 
 The following operation uses ``openssl`` to generate a complex
 pseudo-random 1024 character string to use for a keyfile. It then
@@ -222,7 +223,7 @@ chmod 400 <path-to-keyfile>
 
 ```
 
-See [Keyfiles](#internal-auth-keyfile) for additional details  and requirements
+See [Keyfiles](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) for additional details  and requirements
 for using keyfiles.
 
 
@@ -231,23 +232,23 @@ for using keyfiles.
 Copy the keyfile to each server hosting the replica set members. Use a
 consistent location for each server.
 
-Important: Do not use shared network locations or storage mediums such as USB drives for storing the keyfile. 
+Important: Do not use shared network locations or storage mediums such as USB drives for storing the keyfile.
 
-Ensure that the user running the [``mongod``](#bin.mongod) instances can access the keyfile.
+Ensure that the user running the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances can access the keyfile.
 
 
 ### Step 7: Restart each secondary or arbiter member of the replica set with ``transitionToAuth``.
 
-Restart each [*secondary*](#term-secondary) or [*arbiter*](#term-arbiter) member in the replica set,
-specifying the [``--transitionToAuth``](#cmdoption-transitiontoauth) option and an internal
+Restart each [*secondary*](https://docs.mongodb.com/manual/reference/glossary/#term-secondary) or [*arbiter*](https://docs.mongodb.com/manual/reference/glossary/#term-arbiter) member in the replica set,
+specifying the [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and an internal
 authentication mechanism such as ``--keyfile``. You must do this one
 at a time to ensure a majority of members in the replica set remain online.
 
 
 #### Shut down the secondary or arbiter members.
 
-From a [``mongo``](#bin.mongo) shell connected to the secondary or arbiter,
-issue the [``db.shutdownServer()``](#db.shutdownServer) against the ``admin`` database.
+From a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell connected to the secondary or arbiter,
+issue the [``db.shutdownServer()``](https://docs.mongodb.com/manual/reference/method/db.shutdownServer/#db.shutdownServer) against the ``admin`` database.
 
 ```javascript
 
@@ -259,21 +260,21 @@ admin.shutdownServer()
 
 #### Restart the secondary or arbiter members with ``transitionToAuth``
 
-Restart the [``mongod``](#bin.mongod), this time specifying the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option and an internal authentication
+Restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), this time specifying the
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and an internal authentication
 mechanism such as ``--keyfile``.
 
-Starting the [``mongod``](#bin.mongod) with [``--transitionToAuth``](#cmdoption-transitiontoauth) places
+Starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) places
 the instance in a transition state where it can accept and create both
 authenticated and non-authenticated connections.
 
-Specify the following settings in your [configuration file](#configuration-file).
+Specify the following settings in your [configuration file](https://docs.mongodb.com/manual/administration/configuration/#configuration-file).
 
-* [``security.keyFile``](#security.keyFile), with the path to the keyfile. 
+* [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile), with the path to the keyfile.
 
-* [``replication.replSetName``](#replication.replSetName) to the original replica set name. 
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the original replica set name.
 
-* [``security.transitionToAuth``](#security.transitionToAuth) to ``true``. 
+* [``security.transitionToAuth``](https://docs.mongodb.com/manual/reference/configuration-options/#security.transitionToAuth) to ``true``.
 
 ```yaml
 
@@ -285,8 +286,8 @@ replication:
 
 ```
 
-Specify the [``--config``](#cmdoption-config) option with the path to the configuration
-file when starting the [``mongod``](#bin.mongod).
+Specify the [``--config``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-config) option with the path to the configuration
+file when starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
 ```shell
 
@@ -295,29 +296,29 @@ mongod --config <path-to-config-file>
 ```
 
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-You can also use the equivalent [``mongod``](#bin.mongod) options when starting your
-mongod. See the [``mongod``](#bin.mongod) reference page for a complete list of
+You can also use the equivalent [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options when starting your
+mongod. See the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page for a complete list of
 options.
 
 Include additional settings as appropriate to your deployment.
 
 At the end of this step, all secondaries and arbiters should be up and
-running with [``--transitionToAuth``](#cmdoption-transitiontoauth).
+running with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth).
 
 
 ### Step 8: Step down the primary member of the replica set and restart it with ``--transitionToAuth``.
 
-Restart the [*primary*](#term-primary) member in the replica set, specifying the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option and an internal authentication mechanism
+Restart the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) member in the replica set, specifying the
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and an internal authentication mechanism
 such as ``--keyfile``.
 
 
 #### Step down the primary replica set member
 
-Connect to the primary using a [``mongo``](#bin.mongo) shell and step down the
-primary using the [``rs.stepDown()``](#rs.stepDown) method.
+Connect to the primary using a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell and step down the
+primary using the [``rs.stepDown()``](https://docs.mongodb.com/manual/reference/method/rs.stepDown/#rs.stepDown) method.
 
 ```javascript
 
@@ -329,10 +330,10 @@ rs.stepDown()
 #### Shut down the old primary
 
 Once the primary steps down and the replica set elects a new primary,
-shut down the old primary [``mongod``](#bin.mongod).
+shut down the old primary [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
-From a [``mongo``](#bin.mongo) shell connected to the old primary, issue the
-[``db.shutdownServer()``](#db.shutdownServer) on the *admin* database.
+From a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell connected to the old primary, issue the
+[``db.shutdownServer()``](https://docs.mongodb.com/manual/reference/method/db.shutdownServer/#db.shutdownServer) on the *admin* database.
 
 ```javascript
 
@@ -344,21 +345,21 @@ admin.shutdownServer()
 
 #### Restart the old primary with ``transitionToAuth``
 
-Restart the [``mongod``](#bin.mongod), this time specifying the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option and an internal authentication
+Restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), this time specifying the
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and an internal authentication
 mechanism such as ``--keyfile``.
 
-Starting the [``mongod``](#bin.mongod) with [``--transitionToAuth``](#cmdoption-transitiontoauth) places
+Starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) places
 the instance in a transition state where it can accept and create both
 authenticated and non-authenticated connections.
 
-Specify the following settings in your [configuration file](#configuration-file).
+Specify the following settings in your [configuration file](https://docs.mongodb.com/manual/administration/configuration/#configuration-file).
 
-* [``security.keyFile``](#security.keyFile), with the path to the keyfile. 
+* [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile), with the path to the keyfile.
 
-* [``replication.replSetName``](#replication.replSetName) to the original replica set name. 
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the original replica set name.
 
-* [``security.transitionToAuth``](#security.transitionToAuth) to ``true``. 
+* [``security.transitionToAuth``](https://docs.mongodb.com/manual/reference/configuration-options/#security.transitionToAuth) to ``true``.
 
 ```yaml
 
@@ -370,7 +371,7 @@ replication:
 
 ```
 
-Start the [``mongod``](#bin.mongod) using the configuration file.
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) using the configuration file.
 
 ```shell
 
@@ -379,22 +380,22 @@ mongod --config <path-to-config-file>
 ```
 
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-You can also use the equivalent [``mongod``](#bin.mongod) options when starting your
-mongod. See the [``mongod``](#bin.mongod) reference page for a complete list of
+You can also use the equivalent [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options when starting your
+mongod. See the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page for a complete list of
 options.
 
 Include additional settings as appropriate to your deployment.
 
 At the end of this step, all members of the replica set should be up and
-running with [``--transitionToAuth``](#cmdoption-transitiontoauth) and ``--keyfile``.
+running with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) and ``--keyfile``.
 
 
 ### Step 9: Restart secondaries and arbiters *without* ``--transitionToAuth``
 
-Restart each [*secondary*](#term-secondary) or [*arbiter*](#term-arbiter) member in the replica set,
-removing the [``--transitionToAuth``](#cmdoption-transitiontoauth) option on restart. You must do
+Restart each [*secondary*](https://docs.mongodb.com/manual/reference/glossary/#term-secondary) or [*arbiter*](https://docs.mongodb.com/manual/reference/glossary/#term-arbiter) member in the replica set,
+removing the [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option on restart. You must do
 this one at a time to ensure a majority of members in the replica set remain
 online.
 
@@ -404,8 +405,8 @@ replica set may go into read-only mode.
 
 #### Shut down the secondary or arbiter members
 
-Connect to a [``mongo``](#bin.mongo) shell to the secondary or arbiter, and
-issue the [``db.shutdownServer()``](#db.shutdownServer) on the *database*.
+Connect to a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the secondary or arbiter, and
+issue the [``db.shutdownServer()``](https://docs.mongodb.com/manual/reference/method/db.shutdownServer/#db.shutdownServer) on the *database*.
 
 ```javascript
 
@@ -417,19 +418,19 @@ admin.shutdownServer()
 
 #### Restart the secondary or arbiter members without ``transitionToAuth``
 
-Restart the [``mongod``](#bin.mongod), this time *without* the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option and *with* internal authentication
+Restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), this time *without* the
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and *with* internal authentication
 mechanism such as ``--keyfile``.
 
-Starting the [``mongod``](#bin.mongod) with [``--transitionToAuth``](#cmdoption-transitiontoauth) places
+Starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) places
 the instance in a transition state where it can accept and create both
 authenticated and non-authenticated connections.
 
-Specify the following settings in your [configuration file](#configuration-file).
+Specify the following settings in your [configuration file](https://docs.mongodb.com/manual/administration/configuration/#configuration-file).
 
-* [``security.keyFile``](#security.keyFile), with the path to the keyfile. 
+* [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile), with the path to the keyfile.
 
-* [``replication.replSetName``](#replication.replSetName) to the original replica set name. 
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the original replica set name.
 
 ```yaml
 
@@ -440,7 +441,7 @@ replication:
 
 ```
 
-Start the [``mongod``](#bin.mongod) using the configuration file:
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) using the configuration file:
 
 ```shell
 
@@ -449,33 +450,33 @@ mongod --config <path-to-config-file>
 ```
 
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-You can also use the equivalent [``mongod``](#bin.mongod) options when starting your
-mongod. See the [``mongod``](#bin.mongod) reference page for a complete list of
+You can also use the equivalent [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options when starting your
+mongod. See the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page for a complete list of
 options.
 
 Include additional settings as appropriate to your deployment.
 
 At the end of this step, all secondaries and arbiters should be up and
 running with internal authentication configured, but *without*
-[``--transitionToAuth``](#cmdoption-transitiontoauth). Clients can only connect to these
-[``mongod``](#bin.mongod) instances by using the configured client authentication
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth). Clients can only connect to these
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances by using the configured client authentication
 mechanism.
 
 
 ### Step 10: Step down and restart the primary replica set member *without* ``--transitionToAuth``.
 
-Step down the [*primary*](#term-primary) member in the replica set, then restart it
-without the [``--transitionToAuth``](#cmdoption-transitiontoauth) option.
+Step down the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) member in the replica set, then restart it
+without the [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option.
 
-Important: At the end of this step, clients not connecting with auth cannot connect to the replica set. Update clients to connect with authentication *before* completing this step to avoid loss of connectivity. 
+Important: At the end of this step, clients not connecting with auth cannot connect to the replica set. Update clients to connect with authentication *before* completing this step to avoid loss of connectivity.
 
 
 #### Step down the primary replica set member
 
-Connect to the primary using a [``mongo``](#bin.mongo) shell and step down the
-primary using the [``rs.stepDown()``](#rs.stepDown) method.
+Connect to the primary using a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell and step down the
+primary using the [``rs.stepDown()``](https://docs.mongodb.com/manual/reference/method/rs.stepDown/#rs.stepDown) method.
 
 ```javascript
 
@@ -487,10 +488,10 @@ rs.stepDown()
 #### Shut down the old primary
 
 Once the primary steps down and the replica set elects a new primary,
-shut down the old primary [``mongod``](#bin.mongod).
+shut down the old primary [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
-From a [``mongo``](#bin.mongo) shell connected to the old primary, issue the
-[``db.shutdownServer()``](#db.shutdownServer) on the *admin* database.
+From a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell connected to the old primary, issue the
+[``db.shutdownServer()``](https://docs.mongodb.com/manual/reference/method/db.shutdownServer/#db.shutdownServer) on the *admin* database.
 
 ```javascript
 
@@ -502,19 +503,19 @@ admin.shutdownServer()
 
 #### Restart the old primary without ``transitionToAuth``
 
-Restart the [``mongod``](#bin.mongod), this time *without* the
-[``--transitionToAuth``](#cmdoption-transitiontoauth) option and *with* internal authentication
+Restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), this time *without* the
+[``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) option and *with* internal authentication
 mechanism such as ``--keyfile``.
 
-Starting the [``mongod``](#bin.mongod) with [``--transitionToAuth``](#cmdoption-transitiontoauth) places
+Starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with [``--transitionToAuth``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-transitiontoauth) places
 the instance in a transition state where it can accept and create both
 authenticated and non-authenticated connections.
 
-Specify the following settings in your [configuration file](#configuration-file).
+Specify the following settings in your [configuration file](https://docs.mongodb.com/manual/administration/configuration/#configuration-file).
 
-* [``security.keyFile``](#security.keyFile), with the path to the keyfile. 
+* [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile), with the path to the keyfile.
 
-* [``replication.replSetName``](#replication.replSetName) to the original replica set name. 
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the original replica set name.
 
 ```yaml
 
@@ -525,7 +526,7 @@ replication:
 
 ```
 
-Start the [``mongod``](#bin.mongod) using the configuration file:
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) using the configuration file:
 
 ```shell
 
@@ -534,25 +535,25 @@ mongod --config <path-to-config-file>
 ```
 
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-You can also use the equivalent [``mongod``](#bin.mongod) options when starting your
-mongod. See the [``mongod``](#bin.mongod) reference page for a complete list of
+You can also use the equivalent [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options when starting your
+mongod. See the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page for a complete list of
 options.
 
 Include additional settings as appropriate to your deployment.
 
 At the end of this step, all members of the replica set should be up and
 running with authentication enforced. Clients can only connect to these
-[``mongod``](#bin.mongod) instances by using the configured client authentication
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances by using the configured client authentication
 mechanism.
 
 
 ## x.509 Internal Authentication
 
 For details on using x.509 for internal authentication, see
-[Use x.509 Certificate for Membership Authentication](#).
+[Use x.509 Certificate for Membership Authentication](https://docs.mongodb.com/manual/tutorial/configure-x509-member-authentication).
 
 To upgrade from keyfile internal authentication to x.509 internal
 authentication, see
-[Upgrade from Keyfile Authentication to x.509 Authentication](#).
+[Upgrade from Keyfile Authentication to x.509 Authentication](https://docs.mongodb.com/manual/tutorial/upgrade-keyfile-to-x509).

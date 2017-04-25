@@ -4,29 +4,29 @@ title = "Segmenting Data by Location"
 [tags]
 mongodb = "product"
 +++
+
 # Segmenting Data by Location
 
-
-In sharded clusters, you can create [*zones*](#term-zone) of sharded data based
-on the [*shard key*](#term-shard-key). You can associate each zone with one or more shards
+In sharded clusters, you can create [*zones*](https://docs.mongodb.com/manual/reference/glossary/#term-zone) of sharded data based
+on the [*shard key*](https://docs.mongodb.com/manual/reference/glossary/#term-shard-key). You can associate each zone with one or more shards
 in the cluster. A shard can associate with any number of non-conflicting
-zones. In a balanced cluster, MongoDB migrates [*chunks*](#term-chunk) covered
+zones. In a balanced cluster, MongoDB migrates [*chunks*](https://docs.mongodb.com/manual/reference/glossary/#term-chunk) covered
 by a zone only to those shards associated with the zone.
 
-This tutorial uses [Zones](#zone-sharding) to segment data based on
+This tutorial uses [Zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding) to segment data based on
 geographic area.
 
 The following are some example use cases for segmenting data by geographic
 area:
 
-* An application that requires segmenting user data based on geographic country 
+* An application that requires segmenting user data based on geographic country
 
-* A database that requires resource allocation based on geographic country 
+* A database that requires resource allocation based on geographic country
 
 The following diagram illustrates a sharded cluster that uses geographic based
 zones to manage and satisfy data segmentation requirements.
 
-![Diagram geo distribution based on zones](../images/sharding-segmenting-data-by-location-overview.bakedsvg.svg)
+<img src="images/sharding-segmenting-data-by-location-overview.bakedsvg.svg" width="700px" alt="Diagram geo distribution based on zones">
 
 
 ## Scenario
@@ -80,11 +80,11 @@ index as the shard key.
 The ``country`` field in each document allows for creating a zone for
 each distinct country value.
 
-The ``userid`` field provides a high [cardinality](#shard-key-cardinality)
-and low [frequency](#shard-key-frequency) component to the shard key
+The ``userid`` field provides a high [cardinality](https://docs.mongodb.com/manual/core/sharding-shard-key/#shard-key-cardinality)
+and low [frequency](https://docs.mongodb.com/manual/core/sharding-shard-key/#shard-key-frequency) component to the shard key
 relative to ``country``.
 
-See [Choosing a Shard Key](#sharding-shard-key-requirements) for more
+See [Choosing a Shard Key](https://docs.mongodb.com/manual/core/sharding-shard-key/#sharding-shard-key-requirements) for more
 general instructions on selecting a shard key.
 
 
@@ -93,7 +93,7 @@ general instructions on selecting a shard key.
 The sharded cluster has shards in two data centers - one in Europe, and
 one in North America.
 
-![Diagram of zones used for supporting geo distribution architecture](../images/sharding-segmenting-data-by-location-architecture.bakedsvg.svg)
+<img src="images/sharding-segmenting-data-by-location-architecture.bakedsvg.svg" width="700px" alt="Diagram of zones used for supporting geo distribution architecture">
 
 
 ### Zones
@@ -106,9 +106,9 @@ This application requires one zone per data center.
    For each country using the ``EU`` data center for local reads and writes,
    create a zone range for the ``EU`` zone with:
 
-   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }`` 
+   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
 
-   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }`` 
+   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
 
 ``NA`` - North American data center
    Shards deployed on this data center are assigned to the ``NA`` zone.
@@ -116,11 +116,11 @@ This application requires one zone per data center.
    For each country using the ``NA`` data center for local reads and writes,
    create a zone range for the ``NA`` zone with:
 
-   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }`` 
+   * a lower bound of ``{ "country" : <country>, "userid" : MinKey }``
 
-   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }`` 
+   * an upper bound of ``{ "country" : <country>, "userid" : MaxKey }``
 
-Note: The ``MinKey`` and ``MaxKey`` values are reserved special values for comparisons 
+Note: The ``MinKey`` and ``MaxKey`` values are reserved special values for comparisons
 
 
 ### Write Operations
@@ -131,7 +131,7 @@ configured zone, it can only be written to a shard inside of that zone.
 MongoDB can write documents that do not match a configured zone to any
 shard in the cluster.
 
-Note: The behavior described above requires the cluster to be in a steady state with no chunks violating a configured zone. See the following section on the [balancer](#sharding-segmenting-data-by-location-balancer) for more information. 
+Note: The behavior described above requires the cluster to be in a steady state with no chunks violating a configured zone. See the following section on the [balancer](#sharding-segmenting-data-by-location-balancer) for more information.
 
 
 ### Read Operations
@@ -139,7 +139,7 @@ Note: The behavior described above requires the cluster to be in a steady state 
 MongoDB can route queries to a specific shard if the query includes at least
 the ``country`` field.
 
-For example, MongoDB can attempt a [targeted read operation](#sharding-mongos-targeted) on the following query:
+For example, MongoDB can attempt a [targeted read operation](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-targeted) on the following query:
 
 ```javascript
 
@@ -148,12 +148,12 @@ chatDB.messages.find( { "country" : "UK" , "userid" : "123" } )
 
 ```
 
-Queries without the ``country`` field perform [broadcast operations](#sharding-mongos-broadcast).
+Queries without the ``country`` field perform [broadcast operations](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-broadcast).
 
 
 ### Balancer
 
-The [balancer](#sharding-balancing) [migrates](#sharding-chunk-migration) chunks to the appropriate shard respecting any
+The [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) [migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks to the appropriate shard respecting any
 configured zones. Until the migration, shards may contain chunks that violate
 configured zones. Once balancing completes, shards should only
 contain chunks whose ranges do not violate its assigned zones.
@@ -161,22 +161,22 @@ contain chunks whose ranges do not violate its assigned zones.
 Adding or removing zones or zone ranges can result in chunk migrations.
 Depending on the size of your data set and the number of chunks a zone or zone
 range affects, these migrations may impact cluster performance. Consider
-running your [balancer](#sharding-balancing) during specific scheduled
-windows. See [Schedule the Balancing Window](#sharding-schedule-balancing-window) for a tutorial on how
+running your [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) during specific scheduled
+windows. See [Schedule the Balancing Window](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/#sharding-schedule-balancing-window) for a tutorial on how
 to set a scheduling window.
 
 
 ### Security
 
-For sharded clusters running with [Role-Based Access Control](#authorization), authenticate as a user
-with at least the [``clusterManager``](#clusterManager) role on the ``admin`` database.
+For sharded clusters running with [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization/#authorization), authenticate as a user
+with at least the [``clusterManager``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterManager) role on the ``admin`` database.
 
 
 ## Procedure
 
-You must be connected to a [``mongos``](#bin.mongos) to create zones and zone ranges.
+You must be connected to a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) to create zones and zone ranges.
 You cannot create zones or zone ranges by connecting directly to a
-[*shard*](#term-shard).
+[*shard*](https://docs.mongodb.com/manual/reference/glossary/#term-shard).
 
 
 ### Step 1: Disable the Balancer (Optional)
@@ -184,7 +184,7 @@ You cannot create zones or zone ranges by connecting directly to a
 To reduce performance impacts, the balancer may be disabled on the collection
 to ensure no migrations take place while configuring the new zones.
 
-Use [``sh.disableBalancing()``](#sh.disableBalancing), specifying the namespace of the
+Use [``sh.disableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.disableBalancing/#sh.disableBalancing), specifying the namespace of the
 collection, to stop the balancer.
 
 ```javascript
@@ -193,7 +193,7 @@ sh.disableBalancing("chat.message")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running. Wait until any current balancing rounds have completed
 before proceeding.
 
@@ -217,22 +217,22 @@ sh.addShardTag(<shard name>, "EU")
 ```
 
 You can review the zones assigned to any given shard by running
-[``sh.status()``](#sh.status).
+[``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
 
 ### Step 3: Define ranges for each zone
 
 For shard key values where ``country : US``, define a shard key range
-and associate it to the ``NA`` zone using the [``sh.addTagRange()``](#sh.addTagRange)
+and associate it to the ``NA`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange)
 method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -246,16 +246,16 @@ sh.addTagRange(
 ```
 
 For shard key values where ``country : UK``, define a shard key range
-and associate it to the ``EU`` zone using the [``sh.addTagRange()``](#sh.addTagRange)
+and associate it to the ``EU`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange)
 method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -269,16 +269,16 @@ sh.addTagRange(
 ```
 
 For shard key values where ``country : DE``, define a shard key range
-and associate it to the ``EU`` zone using the [``sh.addTagRange()``](#sh.addTagRange)
+and associate it to the ``EU`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange)
 method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -307,7 +307,7 @@ This associates any document with either ``UK`` or ``DE`` as the value for
 If the balancer was disabled in previous steps, re-enable the balancer at
 the completion of this procedure to rebalance the cluster.
 
-Use [``sh.enableBalancing()``](#sh.enableBalancing), specifying the namespace of the
+Use [``sh.enableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.enableBalancing/#sh.enableBalancing), specifying the namespace of the
 collection, to start the balancer.
 
 ```javascript
@@ -316,15 +316,15 @@ sh.enableBalancing("chat.message")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running.
 
 
 ### Step 5: Review the Changes
 
-The next time the [balancer](#sharding-balancing) runs, it
-[splits](#sharding-chunk-split) chunks where necessary and
-[migrates](#sharding-chunk-migration) chunks across the
+The next time the [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) runs, it
+[splits](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-split) chunks where necessary and
+[migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks across the
 shards respecting the configured zones.
 
 Once balancing finishes, the shards in the  ``NA`` zone should only
@@ -334,16 +334,16 @@ should only contain documents with ``country : UK`` or ``country : DE``.
 A document with a value for ``country`` other than ``NA``, ``UK``, or
 ``DE`` can reside on any shard in the cluster.
 
-You can confirm the chunk distribution by running [``sh.status()``](#sh.status).
+You can confirm the chunk distribution by running [``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
 
 ### Updating Zones
 
 The application requires the following updates:
 
-* Documents with ``country : UK`` must now be associated to the new ``UK`` data center. Any data in the ``EU`` data center must be migrated 
+* Documents with ``country : UK`` must now be associated to the new ``UK`` data center. Any data in the ``EU`` data center must be migrated
 
-* The chat application now supports users in Mexico. Documents with ``country : MX`` must be routed to the ``NA`` data center. 
+* The chat application now supports users in Mexico. Documents with ``country : MX`` must be routed to the ``NA`` data center.
 
 Perform the following procedures to update the zone ranges.
 
@@ -354,7 +354,7 @@ To reduce performance impacts, the balancer may be disabled on the collection
 to ensure no migrations take place while configuring the new zones or removing
 the old ones.
 
-Use [``sh.disableBalancing()``](#sh.disableBalancing), specifying the namespace of the
+Use [``sh.disableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.disableBalancing/#sh.disableBalancing), specifying the namespace of the
 collection, to stop the balancer
 
 ```javascript
@@ -363,7 +363,7 @@ sh.disableBalancing("chat.messages")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running. Wait until any current balancing rounds have completed
 before proceeding.
 
@@ -379,21 +379,21 @@ sh.addShardTag("<shard name>", "UK")
 ```
 
 You can review the zones assigned to any given shard by running
-[``sh.status()``](#sh.status).
+[``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
 
 #### Step 3: Remove the old zone range
 
 Remove the old zone range associated to the ``UK`` country using the
-[``sh.removeTagRange()``](#sh.removeTagRange) method. This method requires:
+[``sh.removeTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.removeTagRange/#sh.removeTagRange) method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -410,16 +410,16 @@ sh.removeTagRange(
 #### Step 4: Add new zone ranges
 
 For shard key values where ``country : UK``, define a shard key range
-and associate it to the ``UK`` zone using the [``sh.addTagRange()``](#sh.addTagRange)
+and associate it to the ``UK`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange)
 method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -433,16 +433,16 @@ sh.addTagRange(
 ```
 
 For shard key values where ``country : MX``, define a shard key range
-and associate it to the ``NA`` zone using the [``sh.addTagRange()``](#sh.addTagRange)
+and associate it to the ``NA`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange)
 method. This method requires:
 
-* The full namespace of the target collection. 
+* The full namespace of the target collection.
 
-* The inclusive lower bound of the range. 
+* The inclusive lower bound of the range.
 
-* The exclusive upper bound of the range. 
+* The exclusive upper bound of the range.
 
-* The name of the zone. 
+* The name of the zone.
 
 ```javascript
 
@@ -467,7 +467,7 @@ entire possible value space of ``creation_date``.
 If the balancer was disabled in previous steps, re-enable the balancer at
 the completion of this procedure to rebalance the cluster.
 
-Use [``sh.enableBalancing()``](#sh.enableBalancing), specifying the namespace of the
+Use [``sh.enableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.enableBalancing/#sh.enableBalancing), specifying the namespace of the
 collection, to start the balancer
 
 ```javascript
@@ -476,15 +476,15 @@ sh.enableBalancing("chat.messages")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running.
 
 
 #### Step 6: Review the changes
 
-The next time the [balancer](#sharding-balancing) runs, it
-[splits](#sharding-chunk-split) chunks where necessary and
-[migrates](#sharding-chunk-migration) chunks across the
+The next time the [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) runs, it
+[splits](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-split) chunks where necessary and
+[migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks across the
 shards respecting the configured zones.
 
 Before balancing, the shards in the ``EU`` zone only contained documents
@@ -499,10 +499,10 @@ should only contain documents where ``country : US`` or ``country : MX``.
 A document with a value for ``country`` other than ``NA``, ``MX``, ``UK``,
 or ``DE`` can reside on any shard in the cluster.
 
-You can confirm the chunk distribution by running [``sh.status()``](#sh.status).
+You can confirm the chunk distribution by running [``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
-See also: [Zones](#zone-sharding) 
+See also: [Zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding)
 
-  [Sharded Cluster Balancer](#sharding-balancing)
+  [Sharded Cluster Balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing)
 
-  [Deploy a Sharded Cluster](#)
+  [Deploy a Sharded Cluster](deploy-shard-cluster/)

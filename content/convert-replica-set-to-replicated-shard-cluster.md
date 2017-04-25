@@ -4,6 +4,7 @@ title = "Convert a Replica Set to a Sharded Cluster"
 [tags]
 mongodb = "product"
 +++
+
 # Convert a Replica Set to a Sharded Cluster
 
 
@@ -17,22 +18,22 @@ Manual.
 
 The procedure is as follows:
 
-1. Create the initial three-member replica set and insert data into a collection. See [Set Up Initial Replica Set](#convert-setup-initial-set). 
+1. Create the initial three-member replica set and insert data into a collection. See [Set Up Initial Replica Set](#convert-setup-initial-set).
 
-2. Start the config servers and a [``mongos``](#bin.mongos). See [Deploy Config Server Replica Set and mongos](#convert-deploy-sharding-infrastructure). 
+2. Start the config servers and a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos). See [Deploy Config Server Replica Set and mongos](#convert-deploy-sharding-infrastructure).
 
-3. Add the initial replica set as a shard. See [Add Initial Replica Set as a Shard](#convert-add-initial-shard). 
+3. Add the initial replica set as a shard. See [Add Initial Replica Set as a Shard](#convert-add-initial-shard).
 
-4. Create a second shard and add to the cluster. See [Add Second Shard](#convert-add-second-shard). 
+4. Create a second shard and add to the cluster. See [Add Second Shard](#convert-add-second-shard).
 
-5. Shard the desired collection. See [Shard a Collection](#convert-shard-collection). 
+5. Shard the desired collection. See [Shard a Collection](#convert-shard-collection).
 
 
 ## Prerequisites
 
 This tutorial uses a total of ten servers: one server for the
-[``mongos``](#bin.mongos) and three servers each for the first [*replica
-set*](#term-replica-set), the second replica set, and the [config server replica set](#).
+[``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) and three servers each for the first [*replica
+set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set), the second replica set, and the [config server replica set](https://docs.mongodb.com/manual/core/sharded-cluster-config-servers).
 
 Each server must have a resolvable domain, hostname, or IP address
 within your system.
@@ -40,7 +41,7 @@ within your system.
 The tutorial uses the default data directories (e.g. ``/data/db`` and
 ``/data/configdb``). Create the appropriate directories with
 appropriate permissions. To use different paths, see
-[Configuration File Options](#) .
+[Configuration File Options](https://docs.mongodb.com/manual/reference/configuration-options) .
 
 
 ## Procedures
@@ -56,10 +57,10 @@ The replica set members are on the following hosts:
 
 #### Step 1: Start each member of the replica set with the appropriate options.
 
-For each member, start a [``mongod``](#bin.mongod), specifying the replica set
+For each member, start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying the replica set
 name through the ``replSet`` option. Include any other parameters
 specific to your deployment. For replication-specific parameters, see
-[Replication Options](#cli-mongod-replica-set).
+[Replication Options](https://docs.mongodb.com/manual/reference/program/mongod/#cli-mongod-replica-set).
 
 ```javascript
 
@@ -70,9 +71,9 @@ mongod --replSet "rs0"
 Repeat this step for the other two members of the ``rs0`` replica set.
 
 
-#### Step 2: Connect a [``mongo``](#bin.mongo) shell to a replica set member.
+#### Step 2: Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to a replica set member.
 
-Connect a [``mongo``](#bin.mongo) shell to *one* member of the replica set
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to *one* member of the replica set
 (e.g. ``mongodb0.example.net``)
 
 ```javascript
@@ -84,7 +85,7 @@ mongo mongodb0.example.net
 
 #### Step 3: Initiate the replica set.
 
-From the [``mongo``](#bin.mongo) shell, run [``rs.initiate()``](#rs.initiate) to
+From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to
 initiate a replica set that consists of the current member.
 
 ```javascript
@@ -131,29 +132,29 @@ bulk.execute();
 ```
 
 For more information on deploying a replica set, see
-[Deploy a Replica Set](#).
+[Deploy a Replica Set](deploy-replica-set/).
 
 
 ### Restart the Replica Set as a Shard
 
-Changed in version 3.4: For MongoDB 3.4 sharded clusters, [``mongod``](#bin.mongod) instances for
+Changed in version 3.4: For MongoDB 3.4 sharded clusters, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances for
 the shards **must** explicitly specify its role as a ``shardsvr``,
 either via the configuration file setting
-[``sharding.clusterRole``](#sharding.clusterRole) or via the command line option
-[``--shardsvr``](#cmdoption-shardsvr).
+[``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) or via the command line option
+[``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr).
 
-Note: Default port for [``mongod``](#bin.mongod) instances with the ``shardsvr`` role is ``27018``. To use a different port, specify [``net.port``](#net.port) setting or ``--port`` option. 
+Note: Default port for [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances with the ``shardsvr`` role is ``27018``. To use a different port, specify [``net.port``](https://docs.mongodb.com/manual/reference/configuration-options/#net.port) setting or ``--port`` option.
 
 
 #### Step 1: Determine the primary and secondary members.
 
-Connect a [``mongo``](#bin.mongo) shell to one of the members and run
-[``rs.status()``](#rs.status) to determine the primary and secondary members.
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the members and run
+[``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status) to determine the primary and secondary members.
 
 
 #### Step 2: Restart secondary members with the ``--shardsvr`` option.
 
-One secondary at a time, restart each [secondary](#replica-set-secondary-members) with the [``--shardsvr``](#cmdoption-shardsvr) option.
+One secondary at a time, restart each [secondary](https://docs.mongodb.com/manual/core/replica-set-members/#replica-set-secondary-members) with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option.
 To continue to use the same port, include the ``--port`` option.
 
 ```javascript
@@ -167,7 +168,7 @@ Repeat this step for the other secondary.
 
 #### Step 3: Step down the primary.
 
-Connect a [``mongo``](#bin.mongo) shell to the primary and stepdown the primary.
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the primary and stepdown the primary.
 
 ```javascript
 
@@ -178,7 +179,7 @@ rs.stepDown()
 
 #### Step 4: Restart the primary with the ``--shardsvr`` option.
 
-Restart the primary with the [``--shardsvr``](#cmdoption-shardsvr) option.
+Restart the primary with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option.
 To continue to use the same port, include the ``--port`` option.
 
 ```javascript
@@ -191,12 +192,12 @@ mongod --replSet "rs0" --shardsvr --port 27017
 ### Deploy Config Server Replica Set and ``mongos``
 
 This procedure deploys the three-member replica set for the [config
-servers](#) and the
-[``mongos``](#bin.mongos).
+servers](https://docs.mongodb.com/manual/core/sharded-cluster-config-servers) and the
+[``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos).
 
-* The config servers use the following hosts: ``mongodb7.example.net``, ``mongodb8.example.net``, and ``mongodb9.example.net``. 
+* The config servers use the following hosts: ``mongodb7.example.net``, ``mongodb8.example.net``, and ``mongodb9.example.net``.
 
-* The [``mongos``](#bin.mongos) uses ``mongodb6.example.net``. 
+* The [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) uses ``mongodb6.example.net``.
 
 
 #### Step 1: Deploy the config servers as a three-member replica set.
@@ -213,11 +214,11 @@ mongod --configsvr --replSet configReplSet
 ```
 
 To modify the default settings or to include additional options
-specific to your deployment, see [mongod](#) or
-[Configuration File Options](#).
+specific to your deployment, see [mongod](https://docs.mongodb.com/manual/reference/program/mongod) or
+[Configuration File Options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-Connect a [``mongo``](#bin.mongo) shell to one of the config servers and
-run [``rs.initiate()``](#rs.initiate) to initiate the replica set.
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the config servers and
+run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to initiate the replica set.
 
 ```javascript
 
@@ -236,7 +237,7 @@ rs.initiate( {
 
 #### Step 2: Start a ``mongos`` instance.
 
-On ``mongodb6.example.net``, start the [``mongos``](#bin.mongos) specifying
+On ``mongodb6.example.net``, start the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) specifying
 the config server replica set name followed by a slash ``/`` and at least
 one of the config server hostnames and ports.
 
@@ -263,7 +264,7 @@ mongo mongodb6.example.net:27017/admin
 
 #### Step 2: Add the shard.
 
-Add a shard to the cluster with the [``sh.addShard``](#sh.addShard) method:
+Add a shard to the cluster with the [``sh.addShard``](https://docs.mongodb.com/manual/reference/method/sh.addShard/#sh.addShard) method:
 
 ```javascript
 
@@ -279,22 +280,22 @@ second shard and adds it to the cluster. The replica set members are on
 the following hosts: ``mongodb3.example.net``,
 ``mongodb4.example.net``, and ``mongodb5.example.net``.
 
-Changed in version 3.4: For MongoDB 3.4 sharded clusters, [``mongod``](#bin.mongod) instances for
+Changed in version 3.4: For MongoDB 3.4 sharded clusters, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances for
 the shards **must** explicitly specify its role as a ``shardsvr``,
 either via the configuration file setting
-[``sharding.clusterRole``](#sharding.clusterRole) or via the command line option
-[``--shardsvr``](#cmdoption-shardsvr).
+[``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) or via the command line option
+[``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr).
 
-Note: Default port for [``mongod``](#bin.mongod) instances with the ``shardsvr`` role is ``27018``. To use a different port, specify [``net.port``](#net.port) setting or ``--port`` option. 
+Note: Default port for [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances with the ``shardsvr`` role is ``27018``. To use a different port, specify [``net.port``](https://docs.mongodb.com/manual/reference/configuration-options/#net.port) setting or ``--port`` option.
 
 
 #### Step 1: Start each member of the replica set with the appropriate options.
 
-For each member, start a [``mongod``](#bin.mongod), specifying the replica
+For each member, start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying the replica
 set name through the ``replSet`` option and its role as a
-shard with the [``--shardsvr``](#cmdoption-shardsvr) option. Include any other
+shard with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option. Include any other
 parameters specific to your deployment. For replication-specific
-parameters, see [Replication Options](#cli-mongod-replica-set).
+parameters, see [Replication Options](https://docs.mongodb.com/manual/reference/program/mongod/#cli-mongod-replica-set).
 
 ```javascript
 
@@ -305,9 +306,9 @@ mongod --replSet "rs1" --shardsvr --port 27017
 Repeat this step for the other two members of the ``rs1`` replica set.
 
 
-#### Step 2: Connect a [``mongo``](#bin.mongo) shell to a replica set member.
+#### Step 2: Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to a replica set member.
 
-Connect a [``mongo``](#bin.mongo) shell to *one* member of the replica set
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to *one* member of the replica set
 (e.g. ``mongodb3.example.net``)
 
 ```javascript
@@ -319,7 +320,7 @@ mongo mongodb3.example.net
 
 #### Step 3: Initiate the replica set.
 
-From the [``mongo``](#bin.mongo) shell, run [``rs.initiate()``](#rs.initiate) to
+From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to
 initiate a replica set that consists of the current member.
 
 ```javascript
@@ -334,7 +335,7 @@ rs.initiate( {
 
 #### Step 4: Add the remaining members to the replica set.
 
-Add the remaining members with the [``rs.add()``](#rs.add) method.
+Add the remaining members with the [``rs.add()``](https://docs.mongodb.com/manual/reference/method/rs.add/#rs.add) method.
 
 ```javascript
 
@@ -355,8 +356,8 @@ mongo mongodb6.example.net:27017/admin
 
 #### Step 6: Add the shard.
 
-In a [``mongo``](#bin.mongo) shell connected to the [``mongos``](#bin.mongos), add
-the shard to the cluster with the [``sh.addShard()``](#sh.addShard) method:
+In a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell connected to the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), add
+the shard to the cluster with the [``sh.addShard()``](https://docs.mongodb.com/manual/reference/method/sh.addShard/#sh.addShard) method:
 
 ```javascript
 
@@ -405,18 +406,18 @@ The operation returns the status of the operation:
 #### Step 3: Determine the shard key.
 
 For the collection to shard, determine the shard key. The [shard
-key](#sharding-shard-key) determines how MongoDB distributes the
+key](https://docs.mongodb.com/manual/core/sharding-shard-key/#sharding-shard-key) determines how MongoDB distributes the
 documents between shards. Good shard keys:
 
-* have values that are evenly distributed among all documents, 
+* have values that are evenly distributed among all documents,
 
-* group documents that are often accessed at the same time into contiguous chunks, and 
+* group documents that are often accessed at the same time into contiguous chunks, and
 
-* allow for effective distribution of activity among shards. 
+* allow for effective distribution of activity among shards.
 
 Once you shard a collection with the specified shard key, you
 **cannot** change the shard key. For more information on shard keys,
-see [Shard Keys](#).
+see [Shard Keys](https://docs.mongodb.com/manual/core/sharding-shard-key).
 
 This procedure will use the ``number`` field as the shard key for
 ``test_collection``.
@@ -425,7 +426,7 @@ This procedure will use the ``number`` field as the shard key for
 #### Step 4: Create an index on the shard key.
 
 Before sharding a non-empty collection, create an [index on
-the shard key](#).
+the shard key](https://docs.mongodb.com/manual/core/sharding-shard-key).
 
 ```sh
 
@@ -455,16 +456,16 @@ The method returns the status of the operation:
 
 ```
 
-The [balancer](#) redistributes
+The [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration) redistributes
 chunks of documents when it next runs. As clients insert additional
-documents into this collection, the [``mongos``](#bin.mongos) routes the
+documents into this collection, the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) routes the
 documents to the appropriate shard.
 
 
 #### Step 6: Confirm the shard is balancing.
 
-To confirm balancing activity, run [``db.stats()``](#db.stats) or
-[``db.printShardingStatus()``](#db.printShardingStatus) in the ``test`` database.
+To confirm balancing activity, run [``db.stats()``](https://docs.mongodb.com/manual/reference/method/db.stats/#db.stats) or
+[``db.printShardingStatus()``](https://docs.mongodb.com/manual/reference/method/db.printShardingStatus/#db.printShardingStatus) in the ``test`` database.
 
 ```sh
 
@@ -474,7 +475,7 @@ db.printShardingStatus()
 
 ```
 
-Example output of the [``db.stats()``](#db.stats):
+Example output of the [``db.stats()``](https://docs.mongodb.com/manual/reference/method/db.stats/#db.stats):
 
 ```sh
 
@@ -533,7 +534,7 @@ Example output of the [``db.stats()``](#db.stats):
 
 ```
 
-Example output of the [``db.printShardingStatus()``](#db.printShardingStatus):
+Example output of the [``db.printShardingStatus()``](https://docs.mongodb.com/manual/reference/method/db.printShardingStatus/#db.printShardingStatus):
 
 ```sh
 
@@ -577,4 +578,4 @@ databases:
 
 ```
 
-Run these commands for a second time to demonstrate that [*chunks*](#term-chunk) are migrating from ``rs0`` to ``rs1``.
+Run these commands for a second time to demonstrate that [*chunks*](https://docs.mongodb.com/manual/reference/glossary/#term-chunk) are migrating from ``rs0`` to ``rs1``.

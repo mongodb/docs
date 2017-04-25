@@ -4,8 +4,8 @@ title = "Disable Transparent Huge Pages (THP)"
 [tags]
 mongodb = "product"
 +++
-# Disable Transparent Huge Pages (THP)
 
+# Disable Transparent Huge Pages (THP)
 
 Note: This page describes how to disable Transparent Huge Pages on Red Hat Enterprise Linux and CentOS versions 6 and 7. For other systems, please consult your vendor's documentation.
 
@@ -90,11 +90,11 @@ sudo chmod 755 /etc/init.d/disable-transparent-hugepages
 Use the appropriate command to configure the new init script on your Linux
 distribution.
 
-| Distribution | Command
-| ------------ | -------
-| Ubuntu and Debian | ``sudo update-rc.d disable-transparent-hugepages defaults``
-| SUSE              | ``sudo insserv /etc/init.d/disable-transparent-hugepages``
-| Red Hat, CentOS, Amazon Linux, and derivatives | ``sudo chkconfig --add disable-transparent-hugepages``
+| Distribution | Command |
+| - | - | - |
+| Ubuntu and Debian | ```sudo update-rc.d disable-transparent-hugepages defaults``` |
+| SUSE | ```sudo insserv /etc/init.d/disable-transparent-hugepages``` |
+| Red Hat, CentOS, Amazon Linux, and derivatives | ```sudo chkconfig --add disable-transparent-hugepages``` |
 
 
 ### Step 4: Override tuned and ktune, if applicable

@@ -4,7 +4,10 @@ title = "Configure MongoDB for FIPS"
 [tags]
 mongodb = "product"
 +++
+
 # Configure MongoDB for FIPS
+
+New in version 2.6.
 
 
 ## Overview
@@ -19,10 +22,10 @@ command line.
 
 ## Prerequisites
 
-Important: A full description of FIPS and TLS/SSL is beyond the scope of this document. This tutorial assumes prior knowledge of FIPS and TLS/SSL. 
+Important: A full description of FIPS and TLS/SSL is beyond the scope of this document. This tutorial assumes prior knowledge of FIPS and TLS/SSL.
 
 Only [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs) edition supports FIPS mode. See
-[Install MongoDB Enterprise](#) to download and install
+[Install MongoDB Enterprise](https://docs.mongodb.com/manual/administration/install-enterprise) to download and install
 [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 
 Your system must have an OpenSSL library configured with the FIPS 140-2
@@ -74,18 +77,18 @@ ensure that these external mechanisms are FIPS-compliant.
 
 ### Configure MongoDB to use TLS/SSL
 
-See [Configure mongod and mongos for TLS/SSL](#) for details about configuring
+See [Configure mongod and mongos for TLS/SSL](https://docs.mongodb.com/manual/tutorial/configure-ssl) for details about configuring
 OpenSSL. For FIPS mode, ensure that your certificate is FIPS compliant.
 
 
 ### Run ``mongod`` or ``mongos`` instance in FIPS mode
 
-Perform these steps after you [Configure mongod and mongos for TLS/SSL](#).
+Perform these steps after you [Configure mongod and mongos for TLS/SSL](https://docs.mongodb.com/manual/tutorial/configure-ssl).
 
 
 #### Step 1: Change configuration file.
 
-To configure your [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) instance to use
+To configure your [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance to use
 FIPS mode, shut down the instance and update the configuration file with
 the following setting:
 
@@ -98,9 +101,9 @@ net:
 ```
 
 
-#### Step 2: Start [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) instance with configuration file.
+#### Step 2: Start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance with configuration file.
 
-For example, run this command to start the  [``mongod``](#bin.mongod) instance with its configuration file:
+For example, run this command to start the  [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance with its configuration file:
 
 ```javascript
 

@@ -4,6 +4,7 @@ title = "Install MongoDB Enterprise on SUSE"
 [tags]
 mongodb = "product"
 +++
+
 # Install MongoDB Enterprise on SUSE
 
 
@@ -13,18 +14,17 @@ Use this tutorial to install [MongoDB Enterprise](https://www.mongodb.com/produc
 MongoDB Enterprise is available on select platforms and contains support
 for several features related to security and monitoring.
 
-Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
+Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
-| Package | Description
-| ------- | -----------
-| ``mongodb-enterprise``        | A ``metapackage`` that will automatically install the four component packages listed below.
-| ``mongodb-enterprise-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
-| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
-| ``mongodb-enterprise-shell``  | Contains the [``mongo``](#bin.mongo) shell.
-| ``mongodb-enterprise-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
+| - | - | - |
+| ``mongodb-enterprise`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
+| ``mongodb-enterprise-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
+| ``mongodb-enterprise-mongos`` | Contains the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) daemon. |
+| ``mongodb-enterprise-shell`` | Contains the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell. |
+| ``mongodb-enterprise-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles), [``mongooplog``](https://docs.mongodb.com/manual/reference/program/mongooplog/#bin.mongooplog),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
 
 
 ## Considerations
@@ -41,7 +41,7 @@ Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-enterprise-on-suse/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-enterprise-on-suse/).
 
 
 ### Step 1: Import the MongoDB public key
@@ -74,7 +74,7 @@ SUSE 12
    ```
 
 If you'd like to install MongoDB packages from a previous [release
-series](#release-version-numbers), such as 2.6, you can
+series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as 2.6, you can
 specify the release series in the repository configuration. For
 example, to restrict your SUSE 11 system to the 2.6 release series,
 use the following command:
@@ -106,7 +106,7 @@ your MongoDB version.
 
 While you should use the ``.rpm`` packages as previously
 described, you may also manually install MongoDB using the tarballs. See
-[Install MongoDB Enterprise From Tarball](#) for details.
+[Install MongoDB Enterprise From Tarball](install-mongodb-enterprise-on-linux/) for details.
 
 
 ## Run MongoDB Enterprise
@@ -118,8 +118,8 @@ The MongoDB instance stores its data files in ``/var/lib/mongo``
 and its log files in ``/var/log/mongodb`` by default,
 and runs using the ``mongod``
 user account. You can specify alternate log and data file
-directories in ``/etc/mongod.conf``. See [``systemLog.path``](#systemLog.path)
-and [``storage.dbPath``](#storage.dbPath) for additional information.
+directories in ``/etc/mongod.conf``. See [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path)
+and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath) for additional information.
 
 If you change the user that runs the MongoDB process, you
 **must** modify the access control rights to the ``/var/lib/mongo`` and
@@ -128,7 +128,7 @@ directories.
 
 Most Unix-like operating systems limit the system resources that a
 session may use. These limits may negatively impact MongoDB operation.
-See [UNIX ulimit Settings](#) for more information.
+See [UNIX ulimit Settings](https://docs.mongodb.com/manual/reference/ulimit) for more information.
 
 
 ### Procedure
@@ -136,7 +136,7 @@ See [UNIX ulimit Settings](#) for more information.
 
 #### Step 1: Start MongoDB.
 
-You can start the [``mongod``](#bin.mongod) process by issuing the following
+You can start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following
 command:
 
 ```sh
@@ -148,7 +148,7 @@ sudo service mongod start
 
 #### Step 2: Verify that MongoDB has started successfully
 
-You can verify that the [``mongod``](#bin.mongod) process has started
+You can verify that the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process has started
 successfully by checking the contents of the log file at
 ``/var/log/mongodb/mongod.log``
 for a line reading
@@ -173,7 +173,7 @@ sudo chkconfig mongod on
 
 #### Step 3: Stop MongoDB.
 
-As needed, you can stop the [``mongod``](#bin.mongod) process by issuing the
+As needed, you can stop the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the
 following command:
 
 ```sh
@@ -185,7 +185,7 @@ sudo service mongod stop
 
 #### Step 4: Restart MongoDB.
 
-You can restart the [``mongod``](#bin.mongod) process by issuing the following
+You can restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following
 command:
 
 ```sh
@@ -201,14 +201,14 @@ by watching the output in the ``/var/log/mongodb/mongod.log`` file.
 #### Step 5: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](#getting-started) in various driver editions. See
-[Getting Started](#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
-[Production Notes](#) document.
+[Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.
 
 Later, to stop MongoDB, press ``Control+C`` in the terminal where the
-[``mongod``](#bin.mongod) instance is running.
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance is running.
 
 
 ## Uninstall MongoDB
@@ -222,7 +222,7 @@ Warning: This process will *completely* remove MongoDB, its configuration, and *
 
 ### Step 1: Stop MongoDB.
 
-Stop the [``mongod``](#bin.mongod) process by issuing the following command:
+Stop the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following command:
 
 ```sh
 

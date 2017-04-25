@@ -4,6 +4,7 @@ title = "Install MongoDB Community Edition on Windows"
 [tags]
 mongodb = "product"
 +++
+
 # Install MongoDB Community Edition on Windows
 
 
@@ -28,7 +29,7 @@ using an ``.msi`` file.
 
 ## Get MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-windows/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-windows/).
 
 
 ### Step 1: Determine which MongoDB build you need.
@@ -121,14 +122,14 @@ MongoDB component sets, you can specify them in the ``ADDLOCAL`` argument
 using a comma-separated list including one or more of the following
 component sets:
 
-| Component Set | Binaries
-| ------------- | -----------
-| ``Server``            | ``mongod.exe``
-| ``Router``            | ``mongos.exe``
-| ``Client``            | ``mongo.exe``
-| ``MonitoringTools``   | ``mongostat.exe``, ``mongotop.exe``
-| ``ImportExportTools`` | ``mongodump.exe``, ``mongorestore.exe``, ``mongoexport.exe``, ``mongoimport.exe``
-| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongooplog.exe``, ``mongoperf.exe``
+| **Component Set** | **Binaries** |
+| - | - | - |
+| ``Server`` | ``mongod.exe`` |
+| ``Router`` | ``mongos.exe`` |
+| ``Client`` | ``mongo.exe`` |
+| ``MonitoringTools`` | ``mongostat.exe``, ``mongotop.exe`` |
+| ``ImportExportTools`` | ``mongodump.exe``, ``mongorestore.exe``, ``mongoexport.exe``, ``mongoimport.exe`` |
+| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongooplog.exe``, ``mongoperf.exe`` |
 
 For instance, to install *only* the MongoDB utilities, invoke:
 
@@ -143,12 +144,12 @@ msiexec.exe /q /i mongodb-win32-x86_64-2008plus-ssl-3.4.2-signed.msi ^
 
 ## Run MongoDB Community Edition
 
-Warning: Do not make [``mongod.exe``](#bin.mongod.exe) visible on public networks without running in "Secure Mode" with the ``auth`` setting. MongoDB is designed to be run in trusted environments, and the database does not enable "Secure Mode" by default.
+Warning: Do not make [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) visible on public networks without running in "Secure Mode" with the ``auth`` setting. MongoDB is designed to be run in trusted environments, and the database does not enable "Secure Mode" by default.
 
 
 ### Step 1: Set up the MongoDB environment.
 
-MongoDB requires a [*data directory*](#term-dbpath) to store all
+MongoDB requires a [*data directory*](https://docs.mongodb.com/manual/reference/glossary/#term-dbpath) to store all
 data. MongoDB's default data directory path is the absolute path
 ``\data\db`` on the drive from which you start MongoDB. Create
 this folder by running the following command in a
@@ -162,7 +163,7 @@ md \data\db
 
 You can specify an alternate path for data files using the
 ``--dbpath`` option to
-[``mongod.exe``](#bin.mongod.exe), for example:
+[``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe), for example:
 
 ```powershell
 
@@ -179,12 +180,12 @@ quotes, for example:
 
 ```
 
-You may also specify the ``dbpath`` in a [configuration file](#).
+You may also specify the ``dbpath`` in a [configuration file](https://docs.mongodb.com/manual/reference/configuration-options).
 
 
 ### Step 2: Start MongoDB.
 
-To start MongoDB, run [``mongod.exe``](#bin.mongod.exe). For example, from the
+To start MongoDB, run [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe). For example, from the
 Command Prompt:
 
 ```powershell
@@ -195,19 +196,19 @@ Command Prompt:
 
 This starts the main MongoDB database process. The ``waiting for
 connections`` message in the console output indicates that the
-[``mongod.exe``](#bin.mongod.exe) process is running successfully.
+[``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) process is running successfully.
 
 Depending on the security level of your system, Windows may pop up a
 Security Alert dialog box about blocking "some features" of
 ``C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe`` from communicating
 on networks. All users should select ``Private Networks, such as my home or
 work network`` and click ``Allow access``. For additional information on
-security and MongoDB, please see the [Security Documentation](#).
+security and MongoDB, please see the [Security Documentation](https://docs.mongodb.com/manual/security).
 
 
 ### Step 3: Connect to MongoDB.
 
-To connect to MongoDB through the [``mongo.exe``](#bin.mongo) shell,
+To connect to MongoDB through the [``mongo.exe``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell,
 open another Command Prompt.
 
 ```powershell
@@ -223,14 +224,14 @@ of [C# and MongoDB](https://docs.mongodb.com/ecosystem/drivers/csharp) for more 
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](#getting-started) in various driver editions. See
-[Getting Started](#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
-[Production Notes](#) document.
+[Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.
 
 Later, to stop MongoDB, press ``Control+C`` in the terminal where the
-[``mongod``](#bin.mongod) instance is running.
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance is running.
 
 
 ## Configure a Windows Service for MongoDB Community Edition
@@ -258,12 +259,12 @@ mkdir c:\data\log
 
 ### Step 3: Create a configuration file.
 
-Create a configuration file. The file **must** set [``systemLog.path``](#systemLog.path).
+Create a configuration file. The file **must** set [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path).
 Include additional
-[configuration options](#) as appropriate.
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options) as appropriate.
 
 For example, create a file at ``C:\Program Files\MongoDB\Server\3.4\mongod.cfg`` that specifies both
-[``systemLog.path``](#systemLog.path) and [``storage.dbPath``](#storage.dbPath):
+[``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path) and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath):
 
 ```yaml
 
@@ -280,7 +281,7 @@ storage:
 
 Important: Run all of the following commands in Command Prompt with "Administrative Privileges".
 
-Install the MongoDB service by starting [``mongod.exe``](#bin.mongod.exe)
+Install the MongoDB service by starting [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe)
 with the ``--install`` option and the ``-config``
 option to specify the previously created configuration file.
 
@@ -295,7 +296,7 @@ configuration file (e.g. ``C:\mongodb\mongod.cfg``) or
 on the command line with the ``--dbpath`` option.
 
 If needed, you can install services for multiple instances of
-[``mongod.exe``](#bin.mongod.exe) or [``mongos.exe``](#bin.mongos.exe). Install each service
+[``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) or [``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe). Install each service
 with a unique ``--serviceName`` and
 ``--serviceDisplayName``. Use
 multiple instances only when sufficient system resources exist and your
@@ -364,12 +365,12 @@ mkdir c:\data\log
 
 ### Step 3: Create a configuration file.
 
-Create a configuration file. The file **must** set [``systemLog.path``](#systemLog.path).
+Create a configuration file. The file **must** set [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path).
 Include additional
-[configuration options](#) as appropriate.
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options) as appropriate.
 
 For example, create a file at ``C:\Program Files\MongoDB\Server\3.4\mongod.cfg`` that specifies both
-[``systemLog.path``](#systemLog.path) and [``storage.dbPath``](#storage.dbPath):
+[``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path) and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath):
 
 ```yaml
 

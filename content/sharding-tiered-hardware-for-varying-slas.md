@@ -4,32 +4,32 @@ title = "Tiered Hardware for Varying SLA or SLO"
 [tags]
 mongodb = "product"
 +++
+
 # Tiered Hardware for Varying SLA or SLO
 
-
-In sharded clusters, you can create [*zones*](#term-zone) of sharded data based
-on the [*shard key*](#term-shard-key). You can associate each zone with one or more shards
+In sharded clusters, you can create [*zones*](https://docs.mongodb.com/manual/reference/glossary/#term-zone) of sharded data based
+on the [*shard key*](https://docs.mongodb.com/manual/reference/glossary/#term-shard-key). You can associate each zone with one or more shards
 in the cluster. A shard can associate with any number of non-conflicting
-zones. In a balanced cluster, MongoDB migrates [*chunks*](#term-chunk) covered
+zones. In a balanced cluster, MongoDB migrates [*chunks*](https://docs.mongodb.com/manual/reference/glossary/#term-chunk) covered
 by a zone only to those shards associated with the zone.
 
-This tutorial uses [Zones](#zone-sharding) to route documents based on
+This tutorial uses [Zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding) to route documents based on
 creation date either to shards zoned for supporting recent documents, or
 those zoned for supporting archived documents.
 
 The following are some example use cases for segmenting data based on Service
 Level Agreement (SLA) or Service Level Objective (SLO):
 
-* An application requires providing low-latency access to recently inserted / updated documents 
+* An application requires providing low-latency access to recently inserted / updated documents
 
-* An application requires prioritizing low-latency access to a range or subset of documents 
+* An application requires prioritizing low-latency access to a range or subset of documents
 
-* An application that benefits from ensuring specific ranges or subsets of data are stored on servers with hardware that suits the SLA's for accessing that data 
+* An application that benefits from ensuring specific ranges or subsets of data are stored on servers with hardware that suits the SLA's for accessing that data
 
 The following diagram illustrates a sharded cluster that uses hardware based
 zones to satisfy data access SLAs or SLOs.
 
-![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-overview.bakedsvg.svg)
+<img src="images/sharding-tiered-slas-overview.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 
 ## Scenario
@@ -77,9 +77,9 @@ on the creation date.
 
 ### Architecture
 
-The sharded cluster deployment currently consists of three [*shards*](#term-shard).
+The sharded cluster deployment currently consists of three [*shards*](https://docs.mongodb.com/manual/reference/glossary/#term-shard).
 
-![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-architecture.bakedsvg.svg)
+<img src="images/sharding-tiered-slas-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 
 ### Zones
@@ -88,7 +88,7 @@ The application requires adding each shard to a zone based on its
 hardware tier. Each hardware tier represents a specific hardware configuration
 designed to satisfy a given SLA or SLO.
 
-![Diagram of sharded cluster architecture for tiered SLA](../images/sharding-tiered-slas-tags.bakedsvg.svg)
+<img src="images/sharding-tiered-slas-tags.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 Fast Tier ("recent")
    These are the fastest performing machines, with large
@@ -96,9 +96,9 @@ Fast Tier ("recent")
 
    The zone requires a range with:
 
-   * a lower bound of ``{ creation_date : ISODate(YYYY-mm-dd)}``, where the Year, Month, and Date specified by ``YYYY-mm-dd`` is within the last 6 months. 
+   * a lower bound of ``{ creation_date : ISODate(YYYY-mm-dd)}``, where the Year, Month, and Date specified by ``YYYY-mm-dd`` is within the last 6 months.
 
-   * an upper bound of ``{ creation_date : MaxKey }``. 
+   * an upper bound of ``{ creation_date : MaxKey }``.
 
 Archival Tier ("archive")
    These machines use less RAM, slower disks, and more basic CPUs. However,
@@ -106,11 +106,11 @@ Archival Tier ("archive")
 
    The zone requires a range with:
 
-   * a lower bound of ``{ creation_date : MinKey }``. 
+   * a lower bound of ``{ creation_date : MinKey }``.
 
-   * an upper bound of ``{ creation_date : ISODate(YYYY-mm-dd)}``, where the Year, Month, and Date match the values used for the ``recent`` tier's lower bound. 
+   * an upper bound of ``{ creation_date : ISODate(YYYY-mm-dd)}``, where the Year, Month, and Date match the values used for the ``recent`` tier's lower bound.
 
-Note: The ``MinKey`` and ``MaxKey`` values are reserved special values for comparisons. 
+Note: The ``MinKey`` and ``MaxKey`` values are reserved special values for comparisons.
 
 As performance needs increase, adding additional shards and associating them
 to the appropriate zone based on their hardware tier allows for the cluster to
@@ -133,7 +133,7 @@ configured zone, it can only be written to a shard inside that zone.
 MongoDB can write documents that do not match a configured zone to any
 shard in the cluster.
 
-Note: The behavior described above requires the cluster to be in a steady state with no chunks violating a configured zone. See the following section on the [balancer](#sharding-tiered-hardware-balancing) for more information. 
+Note: The behavior described above requires the cluster to be in a steady state with no chunks violating a configured zone. See the following section on the [balancer](#sharding-tiered-hardware-balancing) for more information.
 
 
 ## Read Operations
@@ -141,7 +141,7 @@ Note: The behavior described above requires the cluster to be in a steady state 
 MongoDB can route queries to a specific shard if the query includes the
 shard key.
 
-For example, MongoDB can attempt a [targeted read operation](#sharding-mongos-targeted) on the following query because it includes
+For example, MongoDB can attempt a [targeted read operation](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-targeted) on the following query because it includes
 ``creation_date`` in the query document:
 
 ```javascript
@@ -153,12 +153,12 @@ photoDB.data.find( { "creation_date" : ISODate("2015-01-01") } )
 
 If the requested document falls within the ``recent`` zone range, MongoDB
 would route this query to the shards inside that zone, ensuring a faster read
-compared to a cluster-wide [broadcast read operation](#sharding-mongos-broadcast)
+compared to a cluster-wide [broadcast read operation](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-broadcast)
 
 
 ## Balancer
 
-The [balancer](#sharding-balancing) [migrates](#sharding-chunk-migration) chunks to the appropriate shard respecting any
+The [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) [migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks to the appropriate shard respecting any
 configured zones. Until the migration, shards may contain chunks that violate
 configured zones. Once balancing completes, shards should only
 contain chunks whose ranges do not violate its assigned zones.
@@ -166,22 +166,22 @@ contain chunks whose ranges do not violate its assigned zones.
 Adding or removing zones or zone ranges can result in chunk migrations.
 Depending on the size of your data set and the number of chunks a zone or zone
 range affects, these migrations may impact cluster performance. Consider
-running your [balancer](#sharding-balancing) during specific scheduled
-windows. See [Schedule the Balancing Window](#sharding-schedule-balancing-window) for a tutorial on how
+running your [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) during specific scheduled
+windows. See [Schedule the Balancing Window](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/#sharding-schedule-balancing-window) for a tutorial on how
 to set a scheduling window.
 
 
 ## Security
 
-For sharded clusters running with [Role-Based Access Control](#authorization), authenticate as a user
-with at least the [``clusterManager``](#clusterManager) role on the ``admin`` database.
+For sharded clusters running with [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization/#authorization), authenticate as a user
+with at least the [``clusterManager``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterManager) role on the ``admin`` database.
 
 
 ## Procedure
 
-You must be connected to a [``mongos``](#bin.mongos) to create zones or zone ranges.
+You must be connected to a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) to create zones or zone ranges.
 You cannot create zone or zone ranges by connecting directly to a
-[*shard*](#term-shard).
+[*shard*](https://docs.mongodb.com/manual/reference/glossary/#term-shard).
 
 
 ### Step 1: Disable the Balancer
@@ -189,7 +189,7 @@ You cannot create zone or zone ranges by connecting directly to a
 The balancer must be disabled on the collection
 to ensure no migrations take place while configuring the new zones.
 
-Use [``sh.disableBalancing()``](#sh.disableBalancing), specifying the namespace of the
+Use [``sh.disableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.disableBalancing/#sh.disableBalancing), specifying the namespace of the
 collection, to stop the balancer
 
 ```javascript
@@ -198,7 +198,7 @@ sh.disableBalancing("photoshare.data")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running. Wait until any current balancing rounds have completed
 before proceeding.
 
@@ -230,21 +230,21 @@ sh.addShardTag("shard0002", "archive")
 ```
 
 You can review the zone assigned to any given shard by running
-[``sh.status()``](#sh.status).
+[``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
 
 ### Step 3: Define ranges for each zone
 
 Define range for recent photos and associate it to the ``recent`` zone
-using the [``sh.addTagRange()``](#sh.addTagRange) method. This method requires:
+using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange) method. This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -258,16 +258,16 @@ sh.addTagRange(
 ```
 
 Define range for older photos and associate it to the
-``archive`` zone using the [``sh.addTagRange()``](#sh.addTagRange) method.
+``archive`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange) method.
 This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -288,7 +288,7 @@ comparisons.
 
 Re-enable the balancer to rebalance the cluster.
 
-Use [``sh.enableBalancing()``](#sh.enableBalancing), specifying the namespace of the
+Use [``sh.enableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.enableBalancing/#sh.enableBalancing), specifying the namespace of the
 collection, to start the balancer
 
 ```javascript
@@ -297,15 +297,15 @@ sh.enableBalancing("photoshare.data")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running.
 
 
 ### Step 5: Review the changes
 
-The next time the [balancer](#sharding-balancing) runs, it
-[splits](#sharding-chunk-split) and
-[migrates](#sharding-chunk-migration) chunks across the
+The next time the [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) runs, it
+[splits](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-split) and
+[migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks across the
 shards respecting configured zones.
 
 Once balancing finishes, the shards in the ``recent`` zone should only
@@ -314,7 +314,7 @@ contain documents with ``creation_date`` greater than or equal to
 only contain documents with ``creation_date`` less than
 ``ISODate("2016-01-01")``.
 
-You can confirm the chunk distribution by running [``sh.status()``](#sh.status).
+You can confirm the chunk distribution by running [``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
 
 ### Updating Zone Ranges
@@ -328,7 +328,7 @@ a cron job or other scheduled procedure:
 The balancer must be disabled on the collection
 to ensure no migrations take place while configuring the new zones.
 
-Use [``sh.disableBalancing()``](#sh.disableBalancing), specifying the namespace of the
+Use [``sh.disableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.disableBalancing/#sh.disableBalancing), specifying the namespace of the
 collection, to stop the balancer
 
 ```javascript
@@ -337,7 +337,7 @@ sh.disableBalancing("photoshare.data")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running. Wait until any current balancing rounds have completed
 before proceeding.
 
@@ -345,15 +345,15 @@ before proceeding.
 #### Step 2: Remove the old shard zone ranges
 
 Remove the old ``recent`` zone range using the
-[``sh.removeTagRange()``](#sh.removeTagRange) method. This method requires:
+[``sh.removeTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.removeTagRange/#sh.removeTagRange) method. This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -367,15 +367,15 @@ sh.removeTagRange(
 ```
 
 Remove the old ``archive`` zone range using the
-[``sh.removeTagRange()``](#sh.removeTagRange) method. This method requires:
+[``sh.removeTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.removeTagRange/#sh.removeTagRange) method. This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -395,15 +395,15 @@ comparisons.
 #### Step 3: Add the new zone range for each zone
 
 Define range for recent photos and associate it to the ``recent`` zone using
-the [``sh.addTagRange()``](#sh.addTagRange) method. This method requires:
+the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange) method. This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -417,16 +417,16 @@ sh.addTagRange(
 ```
 
 Define range for older photos and associate it to the
-``archive`` zone using the [``sh.addTagRange()``](#sh.addTagRange) method.
+``archive`` zone using the [``sh.addTagRange()``](https://docs.mongodb.com/manual/reference/method/sh.addTagRange/#sh.addTagRange) method.
 This method requires:
 
-* the full namespace of the target collection. 
+* the full namespace of the target collection.
 
-* the inclusive lower bound of the range. 
+* the inclusive lower bound of the range.
 
-* the exclusive upper bound of the range. 
+* the exclusive upper bound of the range.
 
-* the zone. 
+* the zone.
 
 ```javascript
 
@@ -447,7 +447,7 @@ comparisons.
 
 Re-enable the balancer to rebalance the cluster.
 
-Use [``sh.enableBalancing()``](#sh.enableBalancing), specifying the namespace of the
+Use [``sh.enableBalancing()``](https://docs.mongodb.com/manual/reference/method/sh.enableBalancing/#sh.enableBalancing), specifying the namespace of the
 collection, to start the balancer
 
 ```javascript
@@ -456,15 +456,15 @@ sh.enableBalancing("photoshare.data")
 
 ```
 
-Use [``sh.isBalancerRunning()``](#sh.isBalancerRunning) to check if the balancer process
+Use [``sh.isBalancerRunning()``](https://docs.mongodb.com/manual/reference/method/sh.isBalancerRunning/#sh.isBalancerRunning) to check if the balancer process
 is currently running.
 
 
 #### Step 5: Review the changes
 
-The next time the [balancer](#sharding-balancing) runs, it
-[splits](#sharding-chunk-split) chunks where necessary and
-[migrates](#sharding-chunk-migration) chunks across the
+The next time the [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) runs, it
+[splits](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-split) chunks where necessary and
+[migrates](https://docs.mongodb.com/manual/core/sharding-data-partitioning/#sharding-chunk-migration) chunks across the
 shards respecting the configured zones.
 
 Before balancing, the shards in the ``recent`` zone only contained documents
@@ -478,4 +478,4 @@ contain documents with ``creation_date`` greater than or equal to
 only contain documents with ``creation_date`` less than
 ``ISODate("2016-06-01")``.
 
-You can confirm the chunk distribution by running [``sh.status()``](#sh.status).
+You can confirm the chunk distribution by running [``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).

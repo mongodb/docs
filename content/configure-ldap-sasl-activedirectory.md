@@ -4,8 +4,8 @@ title = "Authenticate Using SASL and LDAP with ActiveDirectory"
 [tags]
 mongodb = "product"
 +++
-# Authenticate Using SASL and LDAP with ActiveDirectory
 
+# Authenticate Using SASL and LDAP with ActiveDirectory
 
 MongoDB Enterprise provides support for proxy authentication of users.
 This allows administrators to configure a MongoDB cluster to
@@ -15,11 +15,11 @@ Lightweight Directory Access Protocol (LDAP) service.
 
 ## Considerations
 
-Warning: MongoDB Enterprise for Windows does not support binding via ``saslauthd``. 
+Warning: MongoDB Enterprise for Windows does not support binding via ``saslauthd``.
 
-* Linux MongoDB servers support binding to an LDAP server via the ``saslauthd`` daemon. 
+* Linux MongoDB servers support binding to an LDAP server via the ``saslauthd`` daemon.
 
-* Use secure encrypted or trusted connections between clients and the server, as well as between ``saslauthd`` and the LDAP server. The LDAP server uses the ``SASL PLAIN`` mechanism, sending and receiving data in **plain text**. You should use only a trusted channel such as a VPN, a connection encrypted with TLS/SSL, or a trusted wired network. 
+* Use secure encrypted or trusted connections between clients and the server, as well as between ``saslauthd`` and the LDAP server. The LDAP server uses the ``SASL PLAIN`` mechanism, sending and receiving data in **plain text**. You should use only a trusted channel such as a VPN, a connection encrypted with TLS/SSL, or a trusted wired network.
 
 
 ## Configure ``saslauthd``
@@ -104,7 +104,7 @@ testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
 
 ```
 
-Note: ``/var/run/saslauthd`` directory must have permissions set to ``755`` for MongoDB to successfully authenticate. 
+Note: ``/var/run/saslauthd`` directory must have permissions set to ``755`` for MongoDB to successfully authenticate.
 
 
 ## Configure MongoDB
@@ -113,7 +113,7 @@ Note: ``/var/run/saslauthd`` directory must have permissions set to ``755`` for 
 ### Step 1: Add user to MongoDB for authentication.
 
 Add the user to the ``$external`` database in MongoDB. To specify the
-user's privileges, assign [roles](#) to the
+user's privileges, assign [roles](https://docs.mongodb.com/manual/core/authorization) to the
 user.
 
 For example, the following adds a user with read-only access to
@@ -132,34 +132,34 @@ db.getSiblingDB("$external").createUser(
 
 Add additional principals as needed. For more
 information about creating and managing users, see
-[User Management Commands](#).
+[User Management Commands](https://docs.mongodb.com/manual/reference/command/nav-user-management).
 
 
 ### Step 2: Configure MongoDB server.
 
 To configure the MongoDB server to use the ``saslauthd`` instance for
-proxy authentication, start the [``mongod``](#bin.mongod) with the following
+proxy authentication, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the following
 options:
 
-* [``--auth``](#cmdoption-auth), 
+* [``--auth``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-auth),
 
-* [``authenticationMechanisms``](#param.authenticationMechanisms) parameter set to ``PLAIN``, and 
+* [``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) parameter set to ``PLAIN``, and
 
-* [``saslauthdPath``](#param.saslauthdPath) parameter set to the path to the Unix-domain Socket of the ``saslauthd`` instance. 
+* [``saslauthdPath``](https://docs.mongodb.com/manual/reference/parameters/#param.saslauthdPath) parameter set to the path to the Unix-domain Socket of the ``saslauthd`` instance.
 
 Configure the MongoDB server using either the command line option
-[--setParameter](#) or the
-[configuration file](#). Specify
+[--setParameter](https://docs.mongodb.com/manual/reference/parameters) or the
+[configuration file](https://docs.mongodb.com/manual/reference/configuration-options). Specify
 additional configurations as appropriate for your configuration.
 
-If you use the [``authorization``](#security.authorization) option to enforce
+If you use the [``authorization``](https://docs.mongodb.com/manual/reference/configuration-options/#security.authorization) option to enforce
 authentication, you will need privileges to create a user.
 
 
 #### Use specific ``saslauthd`` socket path.
 
 For socket path of ``/<some>/<path>/saslauthd``, set the
-[``saslauthdPath``](#param.saslauthdPath) to ``/<some>/<path>/saslauthd/mux``,
+[``saslauthdPath``](https://docs.mongodb.com/manual/reference/parameters/#param.saslauthdPath) to ``/<some>/<path>/saslauthd/mux``,
 as in the following command line example:
 
 ```
@@ -168,7 +168,7 @@ mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setPar
 
 ```
 
-Or if using a [YAML format configuration file](#), specify the following settings in
+Or if using a [YAML format configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the following settings in
 the file:
 
 ```yaml
@@ -196,7 +196,7 @@ setParameter=authenticationMechanisms=PLAIN
 #### Use default Unix-domain socket path.
 
 To use the default Unix-domain socket path, set the
-[``saslauthdPath``](#param.saslauthdPath) to the empty string ``""``, as in the
+[``saslauthdPath``](https://docs.mongodb.com/manual/reference/parameters/#param.saslauthdPath) to the empty string ``""``, as in the
 following command line example:
 
 ```
@@ -205,7 +205,7 @@ mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMecha
 
 ```
 
-Or if using a [YAML format configuration file](#), specify the following settings in
+Or if using a [YAML format configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the following settings in
 the file:
 
 ```yaml
@@ -232,8 +232,8 @@ setParameter=authenticationMechanisms=PLAIN
 
 ### Step 3: Authenticate the user in the ``mongo`` shell.
 
-To perform the authentication in the [``mongo``](#bin.mongo) shell, use the
-[``db.auth()``](#db.auth) method in the ``$external`` database.
+To perform the authentication in the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, use the
+[``db.auth()``](https://docs.mongodb.com/manual/reference/method/db.auth/#db.auth) method in the ``$external`` database.
 
 Specify the value ``"PLAIN"`` in the ``mechanism`` field, the user and
 password in the ``user`` and ``pwd`` fields respectively, and the

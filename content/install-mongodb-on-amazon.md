@@ -4,8 +4,8 @@ title = "Install MongoDB Community Edition on Amazon Linux"
 [tags]
 mongodb = "product"
 +++
-# Install MongoDB Community Edition on Amazon Linux
 
+# Install MongoDB Community Edition on Amazon Linux
 
 MongoDB Atlas and AWS: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas?jmp=docs) is a
 hosted MongoDB service on AWS, for launching, running, and
@@ -17,7 +17,7 @@ maintaining MongoDB clusters.
 Use this tutorial to install MongoDB Community Edition on Amazon Linux from
 ``.rpm`` packages.
 
-This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
+This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
 
 ## Packages
@@ -26,15 +26,15 @@ MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
 | Package | Description
-| ------- | -----------
-| ``mongodb-org``        | A ``metapackage`` that will automatically install the four component packages listed below.
-| ``mongodb-org-server`` | Contains the [``mongod``](#bin.mongod) daemon and associated configuration and init scripts.
-| ``mongodb-org-mongos`` | Contains the [``mongos``](#bin.mongos) daemon.
-| ``mongodb-org-shell``  | Contains the [``mongo``](#bin.mongo) shell.
-| ``mongodb-org-tools``  | Contains the following MongoDB tools: [``mongoimport``](#bin.mongoimport), [``bsondump``](#bin.bsondump), [``mongodump``](#bin.mongodump), [``mongoexport``](#bin.mongoexport), [``mongofiles``](#bin.mongofiles), [``mongooplog``](#bin.mongooplog), [``mongoperf``](#bin.mongoperf), [``mongorestore``](#bin.mongorestore), [``mongostat``](#bin.mongostat), and [``mongotop``](#bin.mongotop).
+| - | - | - |
+| ``mongodb-org`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
+| ``mongodb-org-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
+| ``mongodb-org-mongos`` | Contains the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) daemon. |
+| ``mongodb-org-shell`` | Contains the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell. |
+| ``mongodb-org-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles), [``mongooplog``](https://docs.mongodb.com/manual/reference/program/mongooplog/#bin.mongooplog),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
 
 The ``mongodb-org-server`` package provides an initialization script
-that starts [``mongod``](#bin.mongod) with the ``/etc/mongod.conf``
+that starts [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``/etc/mongod.conf``
 configuration file.
 
 See [Run MongoDB Community Edition](#run-mongodb-community-edition) for details on using this
@@ -43,14 +43,14 @@ initialization script.
 The default ``/etc/mongod.conf`` configuration file supplied by the
 packages have ``bind_ip`` set to ``127.0.0.1`` by default. Modify
 this setting as needed for your environment before initializing a
-[*replica set*](#term-replica-set).
+[*replica set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set).
 
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-amazon/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-amazon/).
 
-This installation guide only supports 64-bit systems. See [Platform Support](#compatibility-platform-support) for details.
+This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
 
 ### Step 1: Configure the package management system (``yum``).
@@ -79,7 +79,7 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc
 
 #### For versions of MongoDB *earlier* than 3.0
 
-To install the packages from an earlier [release series](#release-version-numbers), such as 2.4 or 2.6, you can specify
+To install the packages from an earlier [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as 2.4 or 2.6, you can specify
 the release series in the repository configuration. For example,
 to restrict your system to the 2.6 release series, create a
 ``/etc/yum.repos.d/mongodb-org-2.6.repo`` file to hold the
@@ -117,14 +117,14 @@ sudo yum install -y mongodb-org
 
 Most Unix-like operating systems limit the system resources that a
 session may use. These limits may negatively impact MongoDB operation.
-See [UNIX ulimit Settings](#) for more information.
+See [UNIX ulimit Settings](https://docs.mongodb.com/manual/reference/ulimit) for more information.
 
 The MongoDB instance stores its data files in ``/var/lib/mongo``
 and its log files in ``/var/log/mongodb`` by default,
 and runs using the ``mongod``
 user account. You can specify alternate log and data file
-directories in ``/etc/mongod.conf``. See [``systemLog.path``](#systemLog.path)
-and [``storage.dbPath``](#storage.dbPath) for additional information.
+directories in ``/etc/mongod.conf``. See [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path)
+and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath) for additional information.
 
 If you change the user that runs the MongoDB process, you
 **must** modify the access control rights to the ``/var/lib/mongo`` and
@@ -134,7 +134,7 @@ directories.
 
 ### Step 1: Start MongoDB.
 
-You can start the [``mongod``](#bin.mongod) process by issuing the following
+You can start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following
 command:
 
 ```sh
@@ -146,7 +146,7 @@ sudo service mongod start
 
 ### Step 2: Verify that MongoDB has started successfully
 
-You can verify that the [``mongod``](#bin.mongod) process has started
+You can verify that the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process has started
 successfully by checking the contents of the log file at
 ``/var/log/mongodb/mongod.log``
 for a line reading
@@ -171,7 +171,7 @@ sudo chkconfig mongod on
 
 ### Step 3: Stop MongoDB.
 
-As needed, you can stop the [``mongod``](#bin.mongod) process by issuing the
+As needed, you can stop the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the
 following command:
 
 ```sh
@@ -183,7 +183,7 @@ sudo service mongod stop
 
 ### Step 4: Restart MongoDB.
 
-You can restart the [``mongod``](#bin.mongod) process by issuing the following
+You can restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following
 command:
 
 ```sh
@@ -199,14 +199,14 @@ by watching the output in the ``/var/log/mongodb/mongod.log`` file.
 ### Step 5: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](#getting-started) in various driver editions. See
-[Getting Started](#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
-[Production Notes](#) document.
+[Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.
 
 Later, to stop MongoDB, press ``Control+C`` in the terminal where the
-[``mongod``](#bin.mongod) instance is running.
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance is running.
 
 
 ## Uninstall MongoDB Community Edition
@@ -220,7 +220,7 @@ Warning: This process will *completely* remove MongoDB, its configuration, and *
 
 ### Step 1: Stop MongoDB.
 
-Stop the [``mongod``](#bin.mongod) process by issuing the following command:
+Stop the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process by issuing the following command:
 
 ```sh
 

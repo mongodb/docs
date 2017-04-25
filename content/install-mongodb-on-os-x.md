@@ -4,6 +4,7 @@ title = "Install MongoDB Community Edition on OS X"
 [tags]
 mongodb = "product"
 +++
+
 # Install MongoDB Community Edition on OS X
 
 
@@ -21,7 +22,7 @@ popular OS X package manager [Homebrew](http://brew.sh/).
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](https://docs.mongodb.com/v3.0/tutorial/install-mongodb-on-os-x/). 
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-os-x/).
 
 
 ### Install MongoDB Community Edition Manually
@@ -150,10 +151,10 @@ brew install mongodb --devel
 ### Step 1: Create the data directory.
 
 Before you start MongoDB for the first time, create the directory to
-which the [``mongod``](#bin.mongod) process will write data. By default, the
-[``mongod``](#bin.mongod) process uses the ``/data/db`` directory. If you create
+which the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process will write data. By default, the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process uses the ``/data/db`` directory. If you create
 a directory other than this one, you must specify that directory in the
-``dbpath`` option when starting the [``mongod``](#bin.mongod) process
+``dbpath`` option when starting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process
 later in this procedure.
 
 The following example command creates the default ``/data/db`` directory:
@@ -167,22 +168,22 @@ mkdir -p /data/db
 
 ### Step 2: Set permissions for the data directory.
 
-Before running [``mongod``](#bin.mongod) for the first time, ensure that the
-user account running [``mongod``](#bin.mongod) has read and write permissions
+Before running [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) for the first time, ensure that the
+user account running [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) has read and write permissions
 for the directory.
 
 
 ### Step 3: Run MongoDB.
 
-To run MongoDB, run the [``mongod``](#bin.mongod) process at the system prompt.
-If necessary, specify the path of the [``mongod``](#bin.mongod) or the data
+To run MongoDB, run the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process at the system prompt.
+If necessary, specify the path of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or the data
 directory. See the following examples.
 
 
 #### Run without specifying paths
 
 If your system ``PATH`` variable includes the location of the
-[``mongod``](#bin.mongod) binary and if you use the default data directory
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) binary and if you use the default data directory
 (i.e., ``/data/db``), simply enter ``mongod`` at the system prompt:
 
 ```sh
@@ -192,10 +193,10 @@ mongod
 ```
 
 
-#### Specify the path of the [``mongod``](#bin.mongod)
+#### Specify the path of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 
 If your ``PATH`` does not include the location of the
-[``mongod``](#bin.mongod) binary, enter the full path to the [``mongod``](#bin.mongod)
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) binary, enter the full path to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 binary at the system prompt:
 
 ```sh
@@ -220,11 +221,11 @@ mongod --dbpath <path to data directory>
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](#getting-started) in various driver editions. See
-[Getting Started](#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
-[Production Notes](#) document.
+[Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.
 
 Later, to stop MongoDB, press ``Control+C`` in the terminal where the
-[``mongod``](#bin.mongod) instance is running.
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance is running.

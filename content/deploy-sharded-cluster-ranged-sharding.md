@@ -4,6 +4,7 @@ title = "Deploy Sharded Cluster using Ranged Sharding"
 [tags]
 mongodb = "product"
 +++
+
 # Deploy Sharded Cluster using Ranged Sharding
 
 
@@ -11,10 +12,10 @@ mongodb = "product"
 
 In ranged-based sharding, MongoDB automatically divides data into contiguous
 ranges determined by the shard key values. In this model, documents with
-"close" shard key values are likely to be in the same [*chunk*](#term-chunk) or
-[*shard*](#term-shard). This allows for efficient queries where reads target documents
+"close" shard key values are likely to be in the same [*chunk*](https://docs.mongodb.com/manual/reference/glossary/#term-chunk) or
+[*shard*](https://docs.mongodb.com/manual/reference/glossary/#term-shard). This allows for efficient queries where reads target documents
 within a contiguous range. However, both read and write performance may
-decrease with poor shard key selection. See [Shard Key Selection](#sharding-ranged-shard-key).
+decrease with poor shard key selection. See [Shard Key Selection](https://docs.mongodb.com/manual/core/ranged-sharding/#sharding-ranged-shard-key).
 
 If you already have a sharded cluster deployed, skip to
 [Shard a Collection using Ranged Sharding](#deploy-ranged-sharded-cluster-shard-collection).
@@ -24,7 +25,7 @@ If you already have a sharded cluster deployed, skip to
 
 If you are currently using or are planning to use Cloud Manager or
 Ops Manager, consider using their built-in features for
-deploying a [*sharded cluster*](#term-sharded-cluster).
+deploying a [*sharded cluster*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster).
 
 See ``Deploy a Sharded Cluster`` in the
 [Cloud Manager manual](https://docs.cloudmanager.mongodb.com/tutorial/deploy-sharded-cluster) or in the
@@ -36,36 +37,36 @@ See ``Deploy a Sharded Cluster`` in the
 
 ### Operating System
 
-This tutorial uses the [``mongod``](#bin.mongod) and [``mongos``](#bin.mongos)
-programs. Windows users should use the [``mongod.exe``](#bin.mongod.exe) and
-[``mongos.exe``](#bin.mongos.exe) programs instead.
+This tutorial uses the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos)
+programs. Windows users should use the [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) and
+[``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe) programs instead.
 
 
 ### Security
 
 This tutorial does *not* include the required steps for configuring
-[Internal Authentication](#) or [Role-Based Access Control](#).
-See [Deploy Sharded Cluster with Keyfile Access Control](#) for a
+[Internal Authentication](https://docs.mongodb.com/manual/core/security-internal-authentication) or [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization).
+See [Deploy Sharded Cluster with Keyfile Access Control](deploy-sharded-cluster-with-keyfile-access-control/) for a
 tutorial on deploying a sharded cluster with a
-[keyfile](#internal-auth-keyfile).
+[keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile).
 
 In production environments, sharded clusters should employ at
-minimum [x.509](#) security for internal authentication
+minimum [x.509](https://docs.mongodb.com/manual/core/security-x.509) security for internal authentication
 and client access.
 
 For details on using x.509 for internal authentication, see
-[Use x.509 Certificate for Membership Authentication](#).
+[Use x.509 Certificate for Membership Authentication](https://docs.mongodb.com/manual/tutorial/configure-x509-member-authentication).
 
 For details on using x.509 for client authentication, see
-[Use x.509 Certificates to Authenticate Clients](#).
+[Use x.509 Certificates to Authenticate Clients](https://docs.mongodb.com/manual/tutorial/configure-x509-client-authentication).
 
-Note: Enabling internal authentication also enables [Role-Based Access Control](#). 
+Note: Enabling internal authentication also enables [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization).
 
 
 ## Deploy Sharded Cluster with Ranged Sharding
 
 The following procedures involve creating a new sharded cluster that consists
-of a [``mongos``](#bin.mongos), the config servers, and two shards.
+of a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), the config servers, and two shards.
 
 
 ### Create the Config Server Replica Set
@@ -79,15 +80,15 @@ single-member replica set.
 
 #### Step 1: Start each member of the config server replica set.
 
-Start *each* [``mongod``](#bin.mongod) in the config server replica set.
+Start *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the config server replica set.
 
-You can specify the [``mongod``](#bin.mongod) settings either via a
+You can specify the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) settings either via a
 configuration file or the command line.
 
 **Configuration File**
 
-If using a configuration file, set [``sharding.clusterRole``](#sharding.clusterRole)
-to ``configsvr``, and [``replication.replSetName``](#replication.replSetName) to the
+If using a configuration file, set [``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole)
+to ``configsvr``, and [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the
 desired name of the config server replica set.
 
 ```yaml
@@ -101,9 +102,9 @@ replication:
 
 Include additional settings as appropriate to your deployment.
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-Start the [``mongod``](#bin.mongod) specifying the ``--config`` option and the
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) specifying the ``--config`` option and the
 path to the configuration file.
 
 ```shell
@@ -114,7 +115,7 @@ mongod --config <path-to-config-file>
 
 **Command Line**
 
-If using the command line parameters, start the [``mongod``](#bin.mongod) with
+If using the command line parameters, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with
 the ``--configsvr``, and ``--replSet`` parameters.
 
 ```sh
@@ -125,12 +126,12 @@ mongod --configsvr --replSet <setname> --dbpath <path>
 
 Include additional settings as appropriate to your deployment.
 For more information on startup parameters, see the
-[``mongod``](#bin.mongod) reference page.
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
 
 
 #### Step 2: Connect to one of the config servers.
 
-Connect a [``mongo``](#bin.mongo) shell to one of the config server
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the config server
 members.
 
 ```sh
@@ -142,20 +143,20 @@ mongo --host <hostname> --port <port>
 
 #### Step 3
 
-The [``rs.initiate()``](#rs.initiate) method initiates the replica set and can
-take an optional [replica set configuration document](#). In the [replica set
-configuration document](#), include:
+The [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method initiates the replica set and can
+take an optional [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration). In the [replica set
+configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
 
-* The [``_id``](#rsconf._id). The [``_id``](#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](#bin.mongod). 
+* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id). The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
-* The [``members``](#rsconf.members) field. The [``members``](#rsconf.members) field is an array and requires a document per each member of the replica set. 
+* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field. The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field is an array and requires a document per each member of the replica set.
 
-* The [``configsvr``](#rsconf.configsvr) field. The [``configsvr``](#rsconf.configsvr) field must be set to ``true`` for the config server replica set. 
+* The [``configsvr``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.configsvr) field. The [``configsvr``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.configsvr) field must be set to ``true`` for the config server replica set.
 
-See [Replica Set Configuration](#) for more information on
+See [Replica Set Configuration](https://docs.mongodb.com/manual/reference/replica-configuration) for more information on
 replica set configuration documents.
 
-Initiate the replica set using the [``rs.initiate()``](#rs.initiate) method
+Initiate the replica set using the [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method
 and a configuration document:
 
 ```javascript
@@ -187,14 +188,14 @@ set.
 
 #### Step 1: Start each member of the shard replica set.
 
-Start *each* [``mongod``](#bin.mongod) in the replica set using either
+Start *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the replica set using either
 a configuration file or the command line.
 
 **Configuration File**
 
-If using a configuration file, set the [``replication.replSetName``](#replication.replSetName)
+If using a configuration file, set the [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName)
 to the desired name of the replica set, and the
-[``sharding.clusterRole``](#sharding.clusterRole) option to ``shardsvr``.
+[``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) option to ``shardsvr``.
 
 ```yaml
 
@@ -206,9 +207,9 @@ replication:
 ```
 
 Include any other options as appropriate for your deployment. See
-[Configuration File Options](#) for settings available.
+[Configuration File Options](https://docs.mongodb.com/manual/reference/configuration-options) for settings available.
 
-Start the [``mongod``](#bin.mongod) specifying the ``--config`` option
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) specifying the ``--config`` option
 and the path to the configuration file.
 
 ```sh
@@ -232,14 +233,14 @@ mongod --shardsvr --replSet <replSetname>
 Include any other options as appropriate for your deployment.
 
 For more information on startup parameters,
-see the [``mongod``](#bin.mongod) reference page.
+see the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
 
 Include additional settings as appropriate to your deployment.
 
 
 #### Step 2: Connect to a member of the shard replica set.
 
-Connect a [``mongo``](#bin.mongo) shell to one of the replica set members.
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the replica set members.
 
 ```sh
 
@@ -250,16 +251,16 @@ mongo --host <hostname> --port <port>
 
 #### Step 3: Initiate the replica set.
 
-The [``rs.initiate()``](#rs.initiate) method initiates the replica set and can
-take an optional [replica set configuration document](#).
+The [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method initiates the replica set and can
+take an optional [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration).
 
-In the [replica set configuration document](#), include:
+In the [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
 
-* The [``_id``](#rsconf._id) field. The [``_id``](#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](#bin.mongod). 
+* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) field. The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
-* The [``members``](#rsconf.members) field. The [``members``](#rsconf.members) field is an array and requires a document per each member of the replica set. 
+* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field. The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field is an array and requires a document per each member of the replica set.
 
-See [Replica Set Configuration](#) for more information on
+See [Replica Set Configuration](https://docs.mongodb.com/manual/reference/replica-configuration) for more information on
 replica set configuration documents.
 
 The following example initates a three member replica set.
@@ -279,24 +280,24 @@ rs.initiate(
 
 ```
 
-[``rs.initiate()``](#rs.initiate) triggers an [*election*](#term-election) and
-elects one of the members to be the [*primary*](#term-primary).
+[``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) triggers an [*election*](https://docs.mongodb.com/manual/reference/glossary/#term-election) and
+elects one of the members to be the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary).
 
-Connect to the primary before continuing. Use [``rs.status()``](#rs.status) to
+Connect to the primary before continuing. Use [``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status) to
 locate the primary member.
 
 
 ### Connect a ``mongos`` to the Sharded Cluster
 
 
-#### Step 1: Connect a [``mongos``](#bin.mongos) to the cluster
+#### Step 1: Connect a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) to the cluster
 
-Start a [``mongos``](#bin.mongos) specifying
+Start a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) specifying
 using either a configuration file or a command line parameter.
 
 **Configuration File**
 
-If using a configuration file, set the [``sharding.configDB``](#sharding.configDB) to
+If using a configuration file, set the [``sharding.configDB``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.configDB) to
 the config server replica set name and at least one member of the replica
 set in ``<replSetName>/<host:port>`` format.
 
@@ -307,7 +308,7 @@ sharding:
 
 ```
 
-Start the [``mongos``](#bin.mongos) specifying the ``--config`` option and the
+Start the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) specifying the ``--config`` option and the
 path to the configuration file.
 
 ```shell
@@ -317,11 +318,11 @@ mongos --config <path-to-config>
 ```
 
 For more information on the configuration file, see
-[configuration options](#).
+[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
 **Command Line**
 
-If using command line parameters start the [``mongos``](#bin.mongos) and specify
+If using command line parameters start the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) and specify
 the ``--configdb`` parameter.
 
 ```sh
@@ -333,9 +334,9 @@ mongos --configdb <configReplSetName>/cfg1.example.net:27017,cfg2.example.net:27
 Include any other options as appropriate for your deployment.
 
 
-#### Step 2: Connect to the [``mongos``](#bin.mongos).
+#### Step 2: Connect to the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos).
 
-Connect a [``mongo``](#bin.mongo) shell to the [``mongos``](#bin.mongos).
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos).
 
 ```shell
 
@@ -346,7 +347,7 @@ mongo --host <hostname> --port <port>
 
 ### Add Shards to the Cluster
 
-Use the [``sh.addShard()``](#sh.addShard) method to add each shard to the cluster. If
+Use the [``sh.addShard()``](https://docs.mongodb.com/manual/reference/method/sh.addShard/#sh.addShard) method to add each shard to the cluster. If
 the shard is a replica set, specify the name of the replica set and specify a
 member of the set. In production deployments, *all* shards should be replica
 sets.
@@ -359,7 +360,7 @@ sh.addShard( "<replSetName>/s1-mongo1.example.net:27017")
 
 ```
 
-The following operation is an example of adding a standalone [``mongod``](#bin.mongod)
+The following operation is an example of adding a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 shard to the cluster:
 
 ```javascript
@@ -373,11 +374,11 @@ Repeat these steps until the cluster includes all shards.
 
 ### Enable Sharding for a Database
 
-To proceed, you must be connected to a [``mongos``](#bin.mongos) associated to the
+To proceed, you must be connected to a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) associated to the
 target sharded cluster.
 
 Enabling sharding on a database makes it possible to shard collections
-within a database. Use the [``sh.enableSharding()``](#sh.enableSharding) method to
+within a database. Use the [``sh.enableSharding()``](https://docs.mongodb.com/manual/reference/method/sh.enableSharding/#sh.enableSharding) method to
 enable sharding on the target database.
 
 ```javascript
@@ -389,28 +390,28 @@ sh.enableSharding("<database>")
 
 ## Shard a Collection using Ranged Sharding
 
-To proceed, you must be connected to a [``mongos``](#bin.mongos) associated to the
+To proceed, you must be connected to a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) associated to the
 target sharded cluster.
 
-To shard a collection, use the [``sh.shardCollection()``](#sh.shardCollection) method. You must
+To shard a collection, use the [``sh.shardCollection()``](https://docs.mongodb.com/manual/reference/method/sh.shardCollection/#sh.shardCollection) method. You must
 specify the full namespace of the collection and a document containing the
 shard key. The database must have sharding
 [enabled](#deploy-ranged-sharded-cluster-shard-database).
 
 Your selection of shard key affects the efficiency of sharding, as well as
 your ability to take advantage of certain sharding features such as
-[zones](#zone-sharding). See the selection considerations listed
-in the [Shard Key Selection](#sharding-ranged-shard-key).
+[zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding). See the selection considerations listed
+in the [Shard Key Selection](https://docs.mongodb.com/manual/core/ranged-sharding/#sharding-ranged-shard-key).
 
 If the collection already contains data, you must create an index on the
-[*shard key*](#term-shard-key) using the [``db.collection.createIndex()``](#db.collection.createIndex) method before
-using [``shardCollection()``](#sh.shardCollection).
+[*shard key*](https://docs.mongodb.com/manual/reference/glossary/#term-shard-key) using the [``db.collection.createIndex()``](https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#db.collection.createIndex) method before
+using [``shardCollection()``](https://docs.mongodb.com/manual/reference/method/sh.shardCollection/#sh.shardCollection).
 
 If the collection is empty, MongoDB creates the index as part of
-[``sh.shardCollection()``](#sh.shardCollection).
+[``sh.shardCollection()``](https://docs.mongodb.com/manual/reference/method/sh.shardCollection/#sh.shardCollection).
 
 The following operation shards the target collection using the
-[ranged](#) sharding strategy.
+[ranged](https://docs.mongodb.com/manual/core/ranged-sharding) sharding strategy.
 
 ```javascript
 

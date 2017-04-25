@@ -4,6 +4,7 @@ title = "Perform Two Phase Commits"
 [tags]
 mongodb = "product"
 +++
+
 # Perform Two Phase Commits
 
 
@@ -18,7 +19,7 @@ functionality.
 
 ## Background
 
-Operations on a single [*document*](#term-document) are always atomic with MongoDB
+Operations on a single [*document*](https://docs.mongodb.com/manual/reference/glossary/#term-document) are always atomic with MongoDB
 databases; however, operations that involve multiple documents, which
 are often referred to as "multi-document transactions", are not atomic.
 Since documents can be fairly complex and contain multiple "nested"
@@ -29,9 +30,9 @@ Despite the power of single-document atomic operations, there are cases
 that require multi-document transactions. When executing a transaction
 composed of sequential operations, certain issues arise, such as:
 
-* Atomicity: if one operation fails, the previous operation within the transaction must "rollback" to the previous state (i.e. the "nothing," in "all or nothing"). 
+* Atomicity: if one operation fails, the previous operation within the transaction must "rollback" to the previous state (i.e. the "nothing," in "all or nothing").
 
-* Consistency: if a major failure (i.e. network, hardware) interrupts the transaction, the database must be able to recover a consistent state. 
+* Consistency: if a major failure (i.e. network, hardware) interrupts the transaction, the database must be able to recover a consistent state.
 
 For situations that require multi-document transactions, you can
 implement two-phase commit in your application to provide support for
@@ -40,7 +41,7 @@ that data is consistent and, in case of an error, the state that
 preceded the transaction is [recoverable](#phase-commits-rollback). During the procedure, however, documents
 can represent pending data and states.
 
-Note: Because only single-document operations are atomic with MongoDB, two-phase commits can only offer transaction-*like* semantics. It is possible for applications to return intermediate data at intermediate points during the two-phase commit or rollback. 
+Note: Because only single-document operations are atomic with MongoDB, two-phase commits can only offer transaction-*like* semantics. It is possible for applications to return intermediate data at intermediate points during the two-phase commit or rollback.
 
 
 ## Pattern
@@ -56,9 +57,9 @@ a comparable result.
 
 The examples in this tutorial use the following two collections:
 
-1. A collection named ``accounts`` to store account information. 
+1. A collection named ``accounts`` to store account information.
 
-2. A collection named ``transactions`` to store information on the fund transfer transactions. 
+2. A collection named ``transactions`` to store information on the fund transfer transactions.
 
 
 ### Initialize Source and Destination Accounts
@@ -77,9 +78,9 @@ db.accounts.insert(
 
 ```
 
-The operation returns a [``BulkWriteResult()``](#BulkWriteResult) object with the
+The operation returns a [``BulkWriteResult()``](https://docs.mongodb.com/manual/reference/method/BulkWriteResult/#BulkWriteResult) object with the
 status of the operation. Upon successful insert, the
-[``BulkWriteResult()``](#BulkWriteResult) has [``nInserted``](#BulkWriteResult.nInserted) set
+[``BulkWriteResult()``](https://docs.mongodb.com/manual/reference/method/BulkWriteResult/#BulkWriteResult) has [``nInserted``](https://docs.mongodb.com/manual/reference/method/BulkWriteResult/#BulkWriteResult.nInserted) set
 to ``2`` .
 
 
@@ -89,13 +90,13 @@ For each fund transfer to perform, insert into the ``transactions``
 collection a document with the transfer information. The document
 contains the following fields:
 
-* ``source`` and ``destination`` fields, which refer to the ``_id`` fields from the ``accounts`` collection, 
+* ``source`` and ``destination`` fields, which refer to the ``_id`` fields from the ``accounts`` collection,
 
-* ``value`` field, which specifies the amount of transfer affecting the ``balance`` of the ``source`` and ``destination`` accounts, 
+* ``value`` field, which specifies the amount of transfer affecting the ``balance`` of the ``source`` and ``destination`` accounts,
 
-* ``state`` field, which reflects the current state of the transfer. The ``state`` field can have the value of ``initial``, ``pending``, ``applied``, ``done``, ``canceling``, and ``canceled``. 
+* ``state`` field, which reflects the current state of the transfer. The ``state`` field can have the value of ``initial``, ``pending``, ``applied``, ``done``, ``canceling``, and ``canceled``.
 
-* ``lastModified`` field, which reflects last modification date. 
+* ``lastModified`` field, which reflects last modification date.
 
 To initialize the transfer of ``100`` from account ``A`` to account
 ``B``, insert into the ``transactions`` collection a document with the
@@ -110,9 +111,9 @@ db.transactions.insert(
 
 ```
 
-The operation returns a [``WriteResult()``](#WriteResult) object with the status
-of the operation. Upon successful insert, the [``WriteResult()``](#WriteResult)
-object has [``nInserted``](#WriteResult.nInserted) set to ``1``.
+The operation returns a [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with the status
+of the operation. Upon successful insert, the [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult)
+object has [``nInserted``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nInserted) set to ``1``.
 
 
 ### Transfer Funds Between Accounts Using Two-Phase Commit
@@ -134,7 +135,7 @@ var t = db.transactions.findOne( { state: "initial" } )
 
 ```
 
-Type the variable ``t`` in the [``mongo``](#bin.mongo) shell to print the
+Type the variable ``t`` in the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to print the
 contents of the variable. The operation should print a document
 similar to the following except the ``lastModified`` field should reflect
 date of your insert operation:
@@ -149,7 +150,7 @@ date of your insert operation:
 #### Step 2: Update transaction state to pending.
 
 Set the transaction ``state`` from ``initial`` to ``pending`` and
-use the [``$currentDate``](#up._S_currentDate) operator to set the ``lastModified``
+use the [``$currentDate``](https://docs.mongodb.com/manual/reference/operator/update/currentDate/#up._S_currentDate) operator to set the ``lastModified``
 field to the current date.
 
 ```javascript
@@ -164,14 +165,14 @@ db.transactions.update(
 
 ```
 
-The operation returns a [``WriteResult()``](#WriteResult) object with the status
+The operation returns a [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with the status
 of the operation. Upon successful update, the
-[``nMatched``](#WriteResult.nMatched) and [``nModified``](#WriteResult.nModified)
+[``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified)
 displays ``1``.
 
 In the update statement, the ``state: "initial"`` condition ensures
 that no other process has already updated this record. If
-[``nMatched``](#WriteResult.nMatched) and [``nModified``](#WriteResult.nModified) is
+[``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) is
 ``0``, go back to the first step to get a different transaction
 and restart the procedure.
 
@@ -179,7 +180,7 @@ and restart the procedure.
 #### Step 3: Apply the transaction to both accounts.
 
 Apply the transaction ``t`` to both accounts using the
-[``update()``](#db.collection.update) method *if* the transaction has not
+[``update()``](https://docs.mongodb.com/manual/reference/method/db.collection.update/#db.collection.update) method *if* the transaction has not
 been applied to the accounts. In the update condition, include the
 condition ``pendingTransactions: { $ne: t._id }`` in order to avoid
 re-applying the transaction if the step is run more than once.
@@ -201,8 +202,8 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 Update the destination account, adding to its ``balance`` the
 transaction ``value`` and adding to its ``pendingTransactions``
@@ -218,13 +219,13 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 #### Step 4: Update transaction state to applied.
 
-Use the following [``update()``](#db.collection.update) operation to
+Use the following [``update()``](https://docs.mongodb.com/manual/reference/method/db.collection.update/#db.collection.update) operation to
 set the transaction's ``state`` to ``applied`` and update the
 ``lastModified`` field:
 
@@ -241,8 +242,8 @@ db.transactions.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 #### Step 5: Update both accounts' list of pending transactions.
@@ -262,8 +263,8 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 Update the destination account.
 
@@ -277,8 +278,8 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 #### Step 6: Update transaction state to done.
@@ -298,9 +299,9 @@ db.transactions.update(
 
 ```
 
-Upon successful update, the method returns a [``WriteResult()``](#WriteResult)
-object with [``nMatched``](#WriteResult.nMatched) and
-[``nModified``](#WriteResult.nModified) set to ``1``.
+Upon successful update, the method returns a [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult)
+object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and
+[``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 ## Recovering from Failure Scenarios
@@ -408,9 +409,9 @@ db.transactions.update(
 
 ```
 
-Upon successful update, the method returns a [``WriteResult()``](#WriteResult)
-object with [``nMatched``](#WriteResult.nMatched) and
-[``nModified``](#WriteResult.nModified) set to ``1``.
+Upon successful update, the method returns a [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult)
+object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and
+[``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 #### Step 2: Undo the transaction on both accounts.
@@ -437,11 +438,11 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 If the pending transaction has not been previously applied to
 this account, no document will match the update condition and
-[``nMatched``](#WriteResult.nMatched) and [``nModified``](#WriteResult.nModified)
+[``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified)
 will be ``0``.
 
 Update the source account, adding to its ``balance`` the
@@ -461,11 +462,11 @@ db.accounts.update(
 ```
 
 Upon successful update, the method returns a
-[``WriteResult()``](#WriteResult) object with [``nMatched``](#WriteResult.nMatched)
-and [``nModified``](#WriteResult.nModified) set to ``1``.
+[``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult) object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched)
+and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 If the pending transaction has not been previously applied to
 this account, no document will match the update condition and
-[``nMatched``](#WriteResult.nMatched) and [``nModified``](#WriteResult.nModified)
+[``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified)
 will be ``0``.
 
 
@@ -486,9 +487,9 @@ db.transactions.update(
 
 ```
 
-Upon successful update, the method returns a [``WriteResult()``](#WriteResult)
-object with [``nMatched``](#WriteResult.nMatched) and
-[``nModified``](#WriteResult.nModified) set to ``1``.
+Upon successful update, the method returns a [``WriteResult()``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult)
+object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and
+[``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
 
 ## Multiple Applications
@@ -505,8 +506,8 @@ transaction, which is in the ``initial`` state. ``App1`` applies the
 whole transaction before ``App2`` starts. When ``App2`` attempts to
 perform the "[Update transaction state to pending.](#update-transaction-state-to-pending)" step, the update
 condition, which includes the ``state: "initial"`` criterion, will not
-match any document, and the [``nMatched``](#WriteResult.nMatched) and
-[``nModified``](#WriteResult.nModified) will be ``0``. This should signal to
+match any document, and the [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and
+[``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) will be ``0``. This should signal to
 ``App2`` to go back to the first step to restart the procedure with
 a different transaction.
 
@@ -515,7 +516,7 @@ application can handle a given transaction at any point in time. As
 such, in addition including the expected state of the transaction in
 the update condition, you can also create a marker in the transaction
 document itself to identify the application that is handling the
-transaction. Use [``findAndModify()``](#db.collection.findAndModify) method to
+transaction. Use [``findAndModify()``](https://docs.mongodb.com/manual/reference/method/db.collection.findAndModify/#db.collection.findAndModify) method to
 modify the transaction and get it back in one step:
 
 ```javascript
@@ -570,4 +571,4 @@ accounts need information about current balance, pending credits, and
 pending debits.
 
 For all transactions, ensure that you use the appropriate level of
-[write concern](#) for your deployment.
+[write concern](https://docs.mongodb.com/manual/reference/write-concern) for your deployment.

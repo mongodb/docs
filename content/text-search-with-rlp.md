@@ -4,8 +4,8 @@ title = "Text Search with Basis Technology Rosette Linguistics Platform"
 [tags]
 mongodb = "product"
 +++
-# Text Search with Basis Technology Rosette Linguistics Platform
 
+# Text Search with Basis Technology Rosette Linguistics Platform
 
 Enterprise Feature: Available in MongoDB Enterprise only.
 
@@ -28,7 +28,7 @@ MongoDB Enterprise supports RLP SDK 7.11.1 on Red Hat Enterprise Linux
 6.x. For information on providing support on other platforms, contact
 your sales representative.
 
-See also: [Text Search Languages](#), [Specify a Language for Text Index](#) 
+See also: [Text Search Languages](https://docs.mongodb.com/manual/reference/text-search-languages), [Specify a Language for Text Index](https://docs.mongodb.com/manual/tutorial/specify-language-for-text-index)
 
 
 ## Prerequisites
@@ -49,7 +49,7 @@ identify each supported language.
 You do not need the Language Extension Pack as MongoDB does not support
 these RLP languages at this time.
 
-Contact Basis Technology at [info@basistech.com](mailto:info@basistech.com) to get a copy of RLP and
+Contact Basis Technology at [info@basistech.com](https://docs.mongodb.com/manual/tutorial/text-search-with-rlp.txt/mailto:info@basistech.com) to get a copy of RLP and
 a license for one or more languages. For more information on how
 to contact Basis Technology, see [http://www.basistech.com/contact/](http://www.basistech.com/contact/).
 
@@ -68,7 +68,7 @@ Using the links, download the RLP C++ SDK package file, the
 documentation package file, and the license file
 (``rlp-license.xml``) for Linux x64.
 
-Note: These links automatically expire after 30 days. 
+Note: These links automatically expire after 30 days.
 
 
 ### Step 2: Install the RLP binaries.
@@ -120,4 +120,4 @@ For debugging any RLP specific issues, you can set the ``rlpVerbose``
 parameter to ``true`` (i.e. ``--setParameter rlpVerbose=true``) to view
 ``INFO`` messages from RLP.
 
-Warning: Enabling ``rlpVerbose`` has a performance overhead and should only be enabled for troubleshooting installation issues. 
+Warning: Enabling ``rlpVerbose`` has a performance overhead and should only be enabled for troubleshooting installation issues.

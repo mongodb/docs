@@ -4,13 +4,16 @@ title = "Configure MongoDB with Kerberos Authentication on Linux"
 [tags]
 mongodb = "product"
 +++
+
 # Configure MongoDB with Kerberos Authentication on Linux
+
+New in version 2.4.
 
 
 ## Overview
 
 MongoDB Enterprise supports authentication using a [Kerberos
-service](#). Kerberos is an industry standard
+service](https://docs.mongodb.com/manual/core/kerberos). Kerberos is an industry standard
 authentication protocol for large client/server system.
 
 
@@ -18,10 +21,10 @@ authentication protocol for large client/server system.
 
 Setting up and configuring a Kerberos deployment is beyond the scope of
 this document. This tutorial assumes you have configured a
-[Kerberos service principal](#kerberos-service-principal) for each
-[``mongod``](#bin.mongod) and [``mongos``](#bin.mongos) instance in your MongoDB
-deployment, and you have a valid [keytab file](#keytab-files) for
-for each [``mongod``](#bin.mongod) and [``mongos``](#bin.mongos) instance.
+[Kerberos service principal](https://docs.mongodb.com/manual/core/kerberos/#kerberos-service-principal) for each
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance in your MongoDB
+deployment, and you have a valid [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) for
+for each [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance.
 
 For replica sets and sharded clusters, ensure that your configuration
 uses fully qualified domain names (FQDN) rather than IP addresses or
@@ -29,7 +32,7 @@ unqualified hostnames. You must use the FQDN for GSSAPI to correctly
 resolve the Kerberos realms and allow you to connect.
 
 To verify MongoDB Enterprise binaries, pass the ``--version`` command line
-option to the [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos):
+option to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos):
 
 ```sh
 
@@ -45,26 +48,26 @@ MongoDB Enterprise.
 ## Procedure
 
 The following procedure outlines the steps to add a Kerberos user
-principal to MongoDB, configure a standalone [``mongod``](#bin.mongod) instance
-for Kerberos support, and connect using the [``mongo``](#bin.mongo) shell and
+principal to MongoDB, configure a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance
+for Kerberos support, and connect using the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell and
 authenticate the user principal.
 
 
 ### Step 1: Start ``mongod`` without Kerberos.
 
-For the initial addition of Kerberos users, start [``mongod``](#bin.mongod)
+For the initial addition of Kerberos users, start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 without Kerberos support.
 
 If a Kerberos user is already in MongoDB and has the
-[privileges required to create a user](#createuser-required-access), you can start
-[``mongod``](#bin.mongod) with Kerberos support.
+[privileges required to create a user](https://docs.mongodb.com/manual/reference/command/createUser/#createuser-required-access), you can start
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with Kerberos support.
 
 
 ### Step 2: Connect to ``mongod``.
 
-Connect via the [``mongo``](#bin.mongo) shell to the [``mongod``](#bin.mongod)
-instance. If [``mongod``](#bin.mongod) has [``--auth``](#cmdoption-auth) enabled, ensure
-you connect with the [privileges required to create a user](#createuser-required-access).
+Connect via the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
+instance. If [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) has [``--auth``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-auth) enabled, ensure
+you connect with the [privileges required to create a user](https://docs.mongodb.com/manual/reference/command/createUser/#createuser-required-access).
 
 
 ### Step 3: Add Kerberos Principal(s) to MongoDB.
@@ -72,9 +75,9 @@ you connect with the [privileges required to create a user](#createuser-required
 Add a Kerberos principal, ``<username>@<KERBEROS REALM>`` or
 ``<username>/<instance>@<KERBEROS REALM>``, to MongoDB in the
 ``$external`` database. Specify the Kerberos realm in all uppercase.
-The ``$external`` database allows [``mongod``](#bin.mongod) to consult an
+The ``$external`` database allows [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) to consult an
 external source (e.g. Kerberos) to authenticate. To specify the
-user's privileges, assign [roles](#) to the
+user's privileges, assign [roles](https://docs.mongodb.com/manual/core/authorization) to the
 user.
 
 The following example adds the Kerberos principal
@@ -98,15 +101,15 @@ authenticate using Kerberos, you must create a corresponding user in
 MongoDB.
 For more
 information about creating and managing users, see
-[User Management Commands](#).
+[User Management Commands](https://docs.mongodb.com/manual/reference/command/nav-user-management).
 
 
 ### Step 4: Start ``mongod`` with Kerberos support.
 
-To start [``mongod``](#bin.mongod) with Kerberos support, set the
+To start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with Kerberos support, set the
 environmental variable ``KRB5_KTNAME`` to the path of the keytab
-file and the [``mongod``](#bin.mongod) parameter
-[``authenticationMechanisms``](#param.authenticationMechanisms) to ``GSSAPI`` in the
+file and the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) parameter
+[``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) to ``GSSAPI`` in the
 following form:
 
 ```sh
@@ -118,7 +121,7 @@ mongod \
 
 ```
 
-For example, the following starts a standalone [``mongod``](#bin.mongod)
+For example, the following starts a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 instance with Kerberos support:
 
 ```sh
@@ -130,10 +133,10 @@ env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
 
 ```
 
-The path to your [``mongod``](#bin.mongod) as well as your [keytab file](#keytab-files) may differ. Modify or include additional
-[``mongod``](#bin.mongod) options as required for your configuration. The
-[keytab file](#keytab-files) must be only accessible to the
-owner of the [``mongod``](#bin.mongod) process.
+The path to your [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) as well as your [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) may differ. Modify or include additional
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options as required for your configuration. The
+[keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) must be only accessible to the
+owner of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process.
 
 With the official ``.deb`` or ``.rpm`` packages, you can set the
 ``KRB5_KTNAME`` in a environment settings file. See
@@ -142,7 +145,7 @@ With the official ``.deb`` or ``.rpm`` packages, you can set the
 
 ### Step 5: Connect ``mongo`` shell to ``mongod`` and authenticate.
 
-Connect the [``mongo``](#bin.mongo) shell client as the Kerberos principal
+Connect the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell client as the Kerberos principal
 ``application/reporting@EXAMPLE.NET``. Before connecting, you
 must have used Kerberos's ``kinit`` program to get credentials for
 ``application/reporting@EXAMPLE.NET``.
@@ -164,9 +167,9 @@ If you are connecting to a system whose hostname does not
 match the Kerberos name, use ``--gssapiHostName``
 to specify the Kerberos FQDN that it responds to.
 
-Alternatively, you can first connect [``mongo``](#bin.mongo) to the
-[``mongod``](#bin.mongod), and then from the [``mongo``](#bin.mongo) shell, use
-the [``db.auth()``](#db.auth) method to authenticate in the
+Alternatively, you can first connect [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) to the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), and then from the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, use
+the [``db.auth()``](https://docs.mongodb.com/manual/reference/method/db.auth/#db.auth) method to authenticate in the
 ``$external`` database.
 
 ```javascript
@@ -184,7 +187,7 @@ db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" } )
 
 If you installed MongoDB Enterprise using one of the official ``.deb``
 or ``.rpm`` packages, and you use the included init/upstart scripts to
-control the [``mongod``](#bin.mongod) instance, you can set the ``KR5_KTNAME``
+control the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance, you can set the ``KR5_KTNAME``
 variable in the default environment settings file instead of setting
 the variable each time.
 
@@ -204,9 +207,9 @@ export KRB5_KTNAME="<path to keytab>"
 
 ### Configure ``mongos`` for Kerberos
 
-To start [``mongos``](#bin.mongos) with Kerberos support, set the environmental
-variable ``KRB5_KTNAME`` to the path of its [keytab file](#keytab-files) and the [``mongos``](#bin.mongos) parameter
-[``authenticationMechanisms``](#param.authenticationMechanisms) to ``GSSAPI`` in the following form:
+To start [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) with Kerberos support, set the environmental
+variable ``KRB5_KTNAME`` to the path of its [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) and the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) parameter
+[``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) to ``GSSAPI`` in the following form:
 
 ```sh
 
@@ -217,7 +220,7 @@ mongos \
 
 ```
 
-For example, the following starts a [``mongos``](#bin.mongos) instance with
+For example, the following starts a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance with
 Kerberos support:
 
 ```sh
@@ -230,22 +233,22 @@ mongos \
 
 ```
 
-The path to your [``mongos``](#bin.mongos) as well as your [keytab file](#keytab-files) may differ. The [keytab file](#keytab-files) must
-be only accessible to the owner of the [``mongos``](#bin.mongos) process.
+The path to your [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) as well as your [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) may differ. The [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) must
+be only accessible to the owner of the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) process.
 
-Modify or include any additional [``mongos``](#bin.mongos) options as required
+Modify or include any additional [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) options as required
 for your configuration. For example, instead of using
-[``--keyFile``](#cmdoption-keyfile) for internal authentication of sharded cluster
-members, you can use [x.509 member authentication](#x509-internal-authentication) instead.
+[``--keyFile``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-keyfile) for internal authentication of sharded cluster
+members, you can use [x.509 member authentication](https://docs.mongodb.com/manual/tutorial/configure-x509-member-authentication/#x509-internal-authentication) instead.
 
 
 ### Use a Config File
 
-To configure [``mongod``](#bin.mongod) or [``mongos``](#bin.mongos) for Kerberos
-support using a [configuration file](#), specify the
-[``authenticationMechanisms``](#param.authenticationMechanisms) setting in the configuration file:
+To configure [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) for Kerberos
+support using a [configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the
+[``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) setting in the configuration file:
 
-If using the [YAML configuration file format](#):
+If using the [YAML configuration file format](https://docs.mongodb.com/manual/reference/configuration-options):
 
 ```yaml
 
@@ -262,10 +265,10 @@ setParameter=authenticationMechanisms=GSSAPI
 
 ```
 
-Modify or include any additional [``mongod``](#bin.mongod) options as required
+Modify or include any additional [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options as required
 for your configuration. For example, if
 ``/opt/mongodb/mongod.conf`` contains the following configuration
-settings for a standalone [``mongod``](#bin.mongod):
+settings for a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod):
 
 ```yaml
 
@@ -288,7 +291,7 @@ dbpath=/opt/mongodb/data
 
 ```
 
-To start [``mongod``](#bin.mongod) with Kerberos support, use the following
+To start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with Kerberos support, use the following
 form:
 
 ```sh
@@ -298,28 +301,28 @@ env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
 
 ```
 
-The path to your [``mongod``](#bin.mongod), [keytab file](#keytab-files),
+The path to your [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files),
 and configuration file may differ. The
-[keytab file](#keytab-files) must be only accessible to the owner
-of the [``mongod``](#bin.mongod) process.
+[keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) must be only accessible to the owner
+of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process.
 
 
 ### Troubleshoot Kerberos Setup for MongoDB
 
-If you encounter problems when starting [``mongod``](#bin.mongod) or
-[``mongos``](#bin.mongos) with Kerberos authentication, see
-[Troubleshoot Kerberos Authentication](#).
+If you encounter problems when starting [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or
+[``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) with Kerberos authentication, see
+[Troubleshoot Kerberos Authentication](https://docs.mongodb.com/manual/tutorial/troubleshoot-kerberos).
 
 
 ### Incorporate Additional Authentication Mechanisms
 
-Kerberos authentication ([GSSAPI](#security-auth-kerberos) (Kerberos))
+Kerberos authentication ([GSSAPI](https://docs.mongodb.com/manual/core/authentication-mechanisms-enterprise/#security-auth-kerberos) (Kerberos))
 can work alongside MongoDB's challenge/response authentication mechanisms
-([SCRAM-SHA-1](#authentication-scram-sha-1) and
-[MONGODB-CR](#authentication-mongodb-cr)), MongoDB's
-authentication mechanism for LDAP ([PLAIN](#security-auth-ldap)
+([SCRAM-SHA-1](https://docs.mongodb.com/manual/core/security-scram-sha-1/#authentication-scram-sha-1) and
+[MONGODB-CR](https://docs.mongodb.com/manual/core/security-mongodb-cr/#authentication-mongodb-cr)), MongoDB's
+authentication mechanism for LDAP ([PLAIN](https://docs.mongodb.com/manual/core/authentication-mechanisms-enterprise/#security-auth-ldap)
 (LDAP SASL)), and MongoDB's authentication mechanism for x.509 (
-[MONGODB-X509](#security-auth-x509)). Specify the
+[MONGODB-X509](https://docs.mongodb.com/manual/core/security-x.509/#security-auth-x509)). Specify the
 mechanisms as follows:
 
 ```sh
@@ -334,6 +337,6 @@ not affect MongoDB's internal authentication of cluster members.
 
 ## Additional Resources
 
-* [MongoDB LDAP and Kerberos Authentication with Dell (Quest) Authentication Services](https://www.mongodb.com/blog/post/mongodb-ldap-and-kerberos-authentication-dell-quest-authentication-services?jmp=docs) 
+* [MongoDB LDAP and Kerberos Authentication with Dell (Quest) Authentication Services](https://www.mongodb.com/blog/post/mongodb-ldap-and-kerberos-authentication-dell-quest-authentication-services?jmp=docs)
 
-* [MongoDB with Red Hat Enterprise Linux Identity Management and Kerberos](http://docs.mongodb.org/ecosystem/tutorial/manage-red-hat-enterprise-linux-identity-management?jmp=docs) 
+* [MongoDB with Red Hat Enterprise Linux Identity Management and Kerberos](http://docs.mongodb.org/ecosystem/tutorial/manage-red-hat-enterprise-linux-identity-management?jmp=docs)
