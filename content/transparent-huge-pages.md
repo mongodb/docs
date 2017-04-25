@@ -103,6 +103,8 @@ If you are using ``tuned`` or ``ktune`` (for example, if you are running
 Red Hat or CentOS 6+) you must now configure them to preserve the above
 settings.
 
+<span id="configure-thp-tuned"></span>
+
 
 ## Using ``tuned`` and ``ktune``
 
@@ -195,6 +197,8 @@ Finally, enable the new profile by issuing:
 sudo tuned-adm profile no-thp
 
 ```
+
+<span id="test-thp-changes"></span>
 
 
 ## Test Your Changes

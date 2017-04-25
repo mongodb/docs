@@ -83,6 +83,8 @@ export PATH=<mongodb-install-directory>/bin:$PATH
 Replace ``<mongodb-install-directory>`` with the path to the extracted
 MongoDB archive.
 
+<span id="install-with-homebrew"></span>
+
 
 ### Install MongoDB Community Edition with Homebrew
 

@@ -21,6 +21,8 @@ procedures outline the steps to manually clear the ``jumbo`` flag.
 
 ## Procedures
 
+<span id="preferred-method-clear-jumbo"></span>
+
 
 ### Divisible Chunks
 

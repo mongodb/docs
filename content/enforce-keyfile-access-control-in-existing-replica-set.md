@@ -48,6 +48,8 @@ Keyfiles are bare-minimum forms of security and are best suited for testing or
 development environments. For production environments we recommend using
 [x.509 certificates](https://docs.mongodb.com/manual/core/security-x.509).
 
+<span id="security-replset-auth-access-control"></span>
+
 
 ### Access Control
 
@@ -74,6 +76,8 @@ The following procedure for enforcing access control requires downtime.
 For a procedure that does not require downtime, see
 [Enforce Keyfile Access Control in a Replica Set without Downtime](enforce-keyfile-access-control-in-existing-replica-set-without-downtime/)
 instead.
+
+<span id="security-enable-access-control-replica-set"></span>
 
 
 ## Enforce Keyfile Access Control on Existing Replica Set

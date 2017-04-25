@@ -29,6 +29,8 @@ simplify migration and to let you keep the cluster online during
 future maintenance. Migrating a shard as standalone is a multi-step
 process that may require downtime.
 
+<span id="migrate-to-new-hardware-disable-balancer"></span>
+
 
 ## Disable the Balancer
 
@@ -50,6 +52,8 @@ To check the balancer state, issue the [``sh.getBalancerState()``](https://docs.
 method.
 
 For more information, see [Disable the Balancer](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/#sharding-balancing-disable-temporarily).
+
+<span id="migrate-to-new-hardware-config-servers"></span>
 
 
 ## Migrate Each Config Server Separately
@@ -120,6 +124,8 @@ config server replica set members without restarting.
 If replacing the primary member, step down the primary first before
 shutting down.
 
+<span id="migrate-to-new-hardware-restart-mongos"></span>
+
 
 ## Restart the ``mongos`` Instances
 
@@ -137,11 +143,15 @@ the config server setting for the next time you restart the
 
 For more information, see [Connect a mongos to the Sharded Cluster](https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/#sharding-setup-start-mongos).
 
+<span id="migrate-to-new-hardware-shards"></span>
+
 
 ## Migrate the Shards
 
 Migrate the shards one at a time. For each shard, follow the appropriate
 procedure in this section.
+
+<span id="migrate-replica-set-shard"></span>
 
 
 ### Migrate a Replica Set Shard
@@ -153,6 +163,8 @@ last.
 If the replica set has two voting members, add an [arbiter](https://docs.mongodb.com/manual/core/replica-set-arbiter) to the replica set to ensure the set
 keeps a majority of its votes available during the migration. You can
 remove the arbiter after completing the migration.
+
+<span id="migrate-replica-set-shard-member"></span>
 
 
 #### Migrate a Member of a Replica Set Shard
@@ -224,6 +236,8 @@ part of the shard may be unavailable. If the shard is the
 runs, you should stop modifying data in that database. To migrate the
 standalone shard, use the [Remove Shards from an Existing Sharded Cluster](https://docs.mongodb.com/manual/tutorial/remove-shards-from-cluster)
 procedure.
+
+<span id="migrate-to-new-hardware-enable-balancer"></span>
 
 
 ## Re-Enable the Balancer

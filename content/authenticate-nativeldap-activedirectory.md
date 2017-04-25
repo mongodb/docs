@@ -60,12 +60,16 @@ This tutorial provides instructions for the required host configurations.
 This tutorial assumes you have access to the AD server's CA certificates and
 can create a copy of the certificates on the MongoDB server.
 
+<span id="activedirectory-authauthz-adschema"></span>
+
 
 ### Example Active Directory Schema
 
 This tutorial uses the following example AD (Active Directory) objects
 as the basis for the provided queries, configurations, and output. Each object
 shows only a subset of the possible attributes.
+
+<span id="activedirectory-authauthz-userobj"></span>
 
 
 #### User Objects
@@ -91,6 +95,8 @@ userPrincipalName: joe@analytics.example.com
 memberof: CN=marketing,CN=Users,DC=example,DC=com
 
 ```
+
+<span id="activedirectory-authauthz-groupobj"></span>
 
 
 #### Group Objects
@@ -175,7 +181,7 @@ Warning: Setting [``transportSecurity``](https://docs.mongodb.com/manual/referen
 ### Step 2: Connect to the MongoDB server.
 
 Connect to the MongoDB server using the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell using the
-[``--host``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-host) and [``--port``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-port) options.
+[``--host``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-host) and [``--port``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-port) options.
 
 ```shell
 
@@ -187,7 +193,7 @@ If your MongoDB server currently enforces authentication, you must
 authenticate to the ``admin`` database as a user with role management
 privileges, such as those provided by [``userAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdmin) or
 [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase). Include the appropriate
-[``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-authenticationmechanism) for the
+[``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-authenticationmechanism) for the
 MongoDB server's configured authentication mechanism.
 
 ```shell
@@ -468,17 +474,17 @@ or a custom role with equivalent privileges.
 Use the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to authenticate to the MongoDB
 server, set the following options:
 
-* [``--host``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-host) with the hostname of the MongoDB server
+* [``--host``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-host) with the hostname of the MongoDB server
 
-* [``--port``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-port) with the port of the MongoDB server
+* [``--port``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-port) with the port of the MongoDB server
 
-* [``--username``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-username) to the user's username
+* [``--username``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-username) to the user's username
 
-* [``--password``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-password) to the user's password
+* [``--password``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-password) to the user's password
 
-* [``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-authenticationmechanism) to ``'PLAIN'``
+* [``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-authenticationmechanism) to ``'PLAIN'``
 
-* [``--authenticationDatabase``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-authenticationdatabase) to ``'$external'``
+* [``--authenticationDatabase``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-authenticationdatabase) to ``'$external'``
 
 Example: Previously in this procedure, you configured the
 ``dn:CN=dba,CN=Users,DC=example,DC=com`` role on the ``admin`` database
@@ -497,7 +503,7 @@ Windows (Microsoft Windows) MongoDB deployments must use
 Given the configured [Active Directory users](#activedirectory-authauthz-userobj), the user authenticates successfully and
 receives the appropriate permissions.
 
-Note: If you want to authenticate as an existing non-``$external`` user, set [``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongotop/#cmdoption-authenticationmechanism) to ``SCRAM-SHA-1``. This requires that the MongoDB server's [``setParameter``](https://docs.mongodb.com/manual/reference/privilege-actions/#setParameter) [``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) includes ``SCRAM-SHA-1``.
+Note: If you want to authenticate as an existing non-``$external`` user, set [``--authenticationMechanism``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-authenticationmechanism) to ``SCRAM-SHA-1``. This requires that the MongoDB server's [``setParameter``](https://docs.mongodb.com/manual/reference/privilege-actions/#setParameter) [``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) includes ``SCRAM-SHA-1``.
 
 
 ### Step 11: Create roles for mapping returned AD (Active Directory) groups.

@@ -182,6 +182,8 @@ db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" } )
 
 ## Additional Considerations
 
+<span id="setting-krb5-ktname"></span>
+
 
 ### KRB5_KTNAME
 
@@ -312,6 +314,8 @@ of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bi
 If you encounter problems when starting [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or
 [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) with Kerberos authentication, see
 [Troubleshoot Kerberos Authentication](https://docs.mongodb.com/manual/tutorial/troubleshoot-kerberos).
+
+<span id="enable-mixed-kerberos-and-cr"></span>
 
 
 ### Incorporate Additional Authentication Mechanisms

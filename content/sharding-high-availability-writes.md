@@ -61,6 +61,8 @@ application writes to the database:
 The collection uses the ``{ datacenter : 1, userid : 1 }`` compound index as
 the [*shard key*](https://docs.mongodb.com/manual/reference/glossary/#term-shard-key).
 
+<span id="index-0"></span>
+
 The ``datacenter`` field in each document allows for creating a tag range on
 each distinct datacenter value. Without the ``datacenter`` field, it would not
 be possible to associate a document with a specific datacenter.
@@ -81,7 +83,7 @@ set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set) with
 [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``bravo``.
 ``shard0001`` has two members on ``bravo`` and one [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``alfa``.
 
-<img src="images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability">
+<img src="images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability"><span id="sharding-high-availability-tags"></span>
 
 
 ### Tags
@@ -130,6 +132,8 @@ shard in the cluster.
 
 Note: The behavior described above requires the cluster to be in a steady state with no chunks violating a configured tag range. See the following section on the [balancer](#sharding-high-availability-writes-balancing) for more information.
 
+<span id="sharding-high-availability-writes-balancing"></span>
+
 
 ### Balancer
 
@@ -144,6 +148,8 @@ affects, these migrations may impact cluster performance. Consider running
 your [balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing) during specific scheduled windows.
 See [Schedule the Balancing Window](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/#sharding-schedule-balancing-window) for a tutorial on how to set a
 scheduling window.
+
+<span id="sharding-high-availability-application-behavior"></span>
 
 
 ### Application Behavior
@@ -208,6 +214,8 @@ See [Resolve Write Failure](#sharding-high-availability-write-failure).
 
 
 ## Procedure
+
+<span id="sharding-high-availability-write-configure-tags"></span>
 
 
 ### Configure Shard Tags
@@ -306,6 +314,8 @@ contain documents with ``datacenter : alfa``, while shards tagged as
 
 You can review the chunk distribution by running [``sh.status()``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status).
 
+<span id="sharding-high-availability-write-failure"></span>
+
 
 ### Resolve Write Failure
 
@@ -350,6 +360,8 @@ connectivity. If the datacenter is reachable again, the application can resume
 normal writes.
 
 Note: It is possible that the original write to ``datacenter : alfa`` succeeded, especially if the error was related to a [timeout](https://docs.mongodb.com/manual/reference/write-concern/#wc-wtimeout). If so, the document with ``message_id : 329620`` may now be duplicated across both datacenters. Applications must resolve duplicates as a part of [read operations](#sharding-high-availability-writes-read-resolution).
+
+<span id="sharding-high-availability-writes-read-resolution"></span>
 
 
 ### Resolve Duplicate Documents on Reads

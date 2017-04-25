@@ -5,6 +5,9 @@ title = "Deploy a Sharded Cluster"
 mongodb = "product"
 +++
 
+<span id="sharding-procedure-setup"></span>
+
+
 # Deploy a Sharded Cluster
 
 
@@ -78,8 +81,12 @@ For example, the [``sh.addShard()``](https://docs.mongodb.com/manual/reference/m
 the hostname of the target shard. If you set ``host`` to ``localhost``, you
 must then use ``localhost`` as the host for all other shards in the cluster.
 
+<span id="deploy-sharded-cluster"></span><span id="sharding-deploy-sharded-cluster"></span>
+
 
 ## Deploy Sharded Cluster
+
+<span id="sharding-setup-start-cfgsrvr"></span>
 
 
 ### Create the Config Server Replica Set
@@ -299,6 +306,8 @@ elects one of the members to be the [*primary*](https://docs.mongodb.com/manual/
 Connect to the primary before continuing. Use [``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status) to
 locate the primary member.
 
+<span id="sharding-setup-start-mongos"></span>
+
 
 ### Connect a ``mongos`` to the Sharded Cluster
 
@@ -357,6 +366,8 @@ mongo --host <hostname> --port <port>
 
 ```
 
+<span id="sharding-setup-add-shards"></span>
+
 
 ### Add Shards to the Cluster
 
@@ -384,6 +395,8 @@ sh.addShard( "s1-mongo1.example.net:27017")
 
 Repeat these steps until the cluster includes all shards.
 
+<span id="sharding-setup-enable-sharding"></span>
+
 
 ### Enable Sharding for a Database
 
@@ -406,6 +419,8 @@ database.
 sh.enableSharding("<database>")
 
 ```
+
+<span id="sharding-setup-shard-collection"></span>
 
 
 ## Shard a Collection

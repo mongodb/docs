@@ -30,6 +30,8 @@ your sales representative.
 
 See also: [Text Search Languages](https://docs.mongodb.com/manual/reference/text-search-languages), [Specify a Language for Text Index](https://docs.mongodb.com/manual/tutorial/specify-language-for-text-index)
 
+<span id="text-search-with-rlp-prereq"></span>
+
 
 ## Prerequisites
 

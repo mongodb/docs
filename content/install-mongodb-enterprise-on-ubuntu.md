@@ -132,6 +132,8 @@ Versions of the MongoDB packages before 2.6 use a different repository
 location. Refer to the version of the documentation appropriate for
 your MongoDB version.
 
+<span id="install-ubuntu-from-tarball"></span>
+
 
 ## Install MongoDB Enterprise From Tarball
 

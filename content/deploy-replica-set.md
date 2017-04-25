@@ -52,6 +52,8 @@ must be able to connect to every other member. For instructions on how
 to check your connection, see
 [Test Connections Between all Members](https://docs.mongodb.com/manual/tutorial/troubleshoot-replica-sets/#replica-set-troubleshooting-check-connection).
 
+<span id="considerations-when-deploying-rs"></span>
+
 
 ## Considerations When Deploying a Replica Set
 

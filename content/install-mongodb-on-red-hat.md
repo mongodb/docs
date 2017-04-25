@@ -23,7 +23,6 @@ Platform Support: This installation guide only supports 64-bit systems. See [Pla
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
-| Package | Description
 | - | - | - |
 | ``mongodb-org`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
 | ``mongodb-org-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
@@ -117,6 +116,8 @@ Most Unix-like operating systems limit the system resources that a
 session may use. These limits may negatively impact MongoDB operation.
 See [UNIX ulimit Settings](https://docs.mongodb.com/manual/reference/ulimit) for more information.
 
+<span id="install-rhel-configure-selinux"></span>
+
 
 ### Configure SELinux
 
@@ -158,6 +159,8 @@ To configure SELinux, administrators have three options:
 Alternatively, you can choose not to install the SELinux packages when you are
 installing your Linux operating system, or choose to remove the relevant
 packages. This option is the most invasive and is not recommended.
+
+<span id="install-selinux-data-directory"></span>
 
 
 ### Data Directories and Permissions

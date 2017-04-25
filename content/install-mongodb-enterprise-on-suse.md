@@ -101,6 +101,8 @@ Previous versions of MongoDB packages use a different repository location.
 Refer to the version of the documentation appropriate for
 your MongoDB version.
 
+<span id="install-suse-from-tarball"></span>
+
 
 ## Install MongoDB Enterprise From Tarball
 

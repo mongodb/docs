@@ -30,6 +30,8 @@ openssl rand -base64 48
 
 ```
 
+<span id="change-own-password-prereq"></span>
+
 
 ## Prerequisites
 

@@ -46,6 +46,8 @@ appropriate permissions. To use different paths, see
 
 ## Procedures
 
+<span id="convert-setup-initial-set"></span>
+
 
 ### Set Up Initial Replica Set
 
@@ -188,6 +190,8 @@ mongod --replSet "rs0" --shardsvr --port 27017
 
 ```
 
+<span id="convert-deploy-sharding-infrastructure"></span>
+
 
 ### Deploy Config Server Replica Set and ``mongos``
 
@@ -247,6 +251,8 @@ mongos --configdb configReplSet/mongodb07.example.net:27019,mongodb08.example.ne
 
 ```
 
+<span id="convert-add-initial-shard"></span>
+
 
 ### Add Initial Replica Set as a Shard
 
@@ -271,6 +277,8 @@ Add a shard to the cluster with the [``sh.addShard``](https://docs.mongodb.com/m
 sh.addShard( "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
 ```
+
+<span id="convert-add-second-shard"></span>
 
 
 ### Add Second Shard
@@ -364,6 +372,8 @@ the shard to the cluster with the [``sh.addShard()``](https://docs.mongodb.com/m
 sh.addShard( "rs1/mongodb3.example.net:27017,mongodb4.example.net:27017,mongodb5.example.net:27017" )
 
 ```
+
+<span id="convert-shard-collection"></span>
 
 
 ### Shard a Collection

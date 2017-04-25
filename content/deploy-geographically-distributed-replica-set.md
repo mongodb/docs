@@ -91,6 +91,8 @@ MongoDB, see the [installation tutorials](https://docs.mongodb.com/manual/instal
 
 ## Procedures
 
+<span id="replica-set-deploy-distributed-three-member"></span>
+
 
 ### Deploy a Geographically Redundant Three-Member Replica Set
 

@@ -106,6 +106,8 @@ testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
 
 Note: ``/var/run/saslauthd`` directory must have permissions set to ``755`` for MongoDB to successfully authenticate.
 
+<span id="configure-mongodb-auth-users-activedirectory"></span>
+
 
 ## Configure MongoDB
 

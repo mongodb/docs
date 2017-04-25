@@ -55,6 +55,8 @@ Keyfiles are bare-minimum forms of security and are best suited for testing or
 development environments. For production environments we recommend using
 [x.509 certificates](https://docs.mongodb.com/manual/core/security-x.509).
 
+<span id="security-shardclust-enforce-access-control"></span>
+
 
 ### Access Control
 
@@ -99,6 +101,8 @@ Upgrading a sharded cluster to enforce access control requires downtime.
 
 
 ## Procedures
+
+<span id="security-update-existing-sharded-deployment-with-auth"></span>
 
 
 ### Enforce Keyfile Internal Authentication on Existing Sharded Cluster Deployment

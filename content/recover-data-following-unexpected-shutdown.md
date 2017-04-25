@@ -27,6 +27,8 @@ Warning: Do not use this tutorial to recover a member of a [*replica set*](https
 
 [1] By default, MongoDB runs with [journaling](https://docs.mongodb.com/manual/core/journaling) enabled to prevent data inconsistency in the event of an unclean shutdown. To shut down cleanly, see [Stop mongod Processes](https://docs.mongodb.com/manual/tutorial/manage-mongodb-processes/#terminate-mongod-processes).
 
+<span id="tutorial-repair-procedures"></span>
+
 
 ## Procedure
 

@@ -25,6 +25,8 @@ reside on the same volume.
 
 See also: [MongoDB Backup Methods](https://docs.mongodb.com/manual/core/backups) and [Back Up and Restore with MongoDB Tools](https://docs.mongodb.com/manual/tutorial/backup-and-restore-tools).
 
+<span id="snapshots-overview"></span>
+
 
 ## Snapshots Overview
 
@@ -89,6 +91,8 @@ Although different snapshot methods provide different features, the
 LVM method outlined below does not provide any capacity for capturing
 incremental backups.
 
+<span id="backup-with-journaling"></span>
+
 
 ### Snapshots With Journaling
 
@@ -120,6 +124,8 @@ an alternative, you can do one of the following:
   If you choose this option, perform the LVM backup operation described
   in [Create a Snapshot](#lvm-backup-operation).
 
+<span id="lvm-backup-and-restore"></span>
+
 
 ## Back Up and Restore Using LVM on Linux
 
@@ -129,6 +135,8 @@ be (slightly) different on your system the following steps provide a
 high level overview of the backup operation.
 
 Note: Only use the following procedure as a guideline for a backup system and infrastructure. Production backup systems must consider a number of application specific requirements and factors unique to specific environments.
+
+<span id="lvm-backup-operation"></span>
 
 
 ### Create a Snapshot
@@ -196,6 +204,8 @@ The above command sequence does the following:
 
   Warning: This command will create a large ``gz`` file in your current working directory. Make sure that you run this command in a file system that has enough free space.
 
+<span id="backup-restore-snapshot"></span>
+
 
 ### Restore a Snapshot
 
@@ -221,6 +231,8 @@ The above sequence does the following:
 * Mounts the ``mdb-new`` disk image to the ``/srv/mongodb`` directory. Modify the mount point to correspond to your MongoDB data file location, or other location as needed.
 
 Note: The restored snapshot will have a stale ``mongod.lock`` file. If you do not remove this file from the snapshot, and MongoDB may assume that the stale lock file indicates an unclean shutdown. If you're running with [``storage.journal.enabled``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.journal.enabled) enabled, and you *do not* use [``db.fsyncLock()``](https://docs.mongodb.com/manual/reference/method/db.fsyncLock/#db.fsyncLock), you do not need to remove the ``mongod.lock`` file. If you use [``db.fsyncLock()``](https://docs.mongodb.com/manual/reference/method/db.fsyncLock/#db.fsyncLock) you will need to remove the lock.
+
+<span id="backup-restore-from-snapshot"></span>
 
 
 ### Restore Directly from a Snapshot
@@ -256,6 +268,8 @@ ssh username@example.com gzip -d -c /opt/backup/mdb-snap01.gz | dd of=/dev/vg0/m
 mount /dev/vg0/mdb-new /srv/mongodb
 
 ```
+
+<span id="backup-without-journaling"></span>
 
 
 ## Back up Instances with Journal Files on Separate Volume or without Journaling

@@ -87,12 +87,16 @@ replica set:
 
 Note: If your database is large, initial sync can take a long time to complete. For large databases, it might be preferable to copy the database files onto each host.
 
+<span id="restore-rs-copy-db-files"></span>
+
 
 ### Copy Database Files and Restart [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) Instance
 
 Use the following sequence of operations to "seed" additional members
 of the replica set with the restored data by copying MongoDB data
 files directly.
+
+<span id="restore-rs-initial-sync"></span>
 
 
 ### Step 1: Shut down the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance that you restored.

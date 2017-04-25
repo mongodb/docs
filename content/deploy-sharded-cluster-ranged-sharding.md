@@ -62,11 +62,15 @@ For details on using x.509 for client authentication, see
 
 Note: Enabling internal authentication also enables [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization).
 
+<span id="deploy-ranged-sharded-cluster"></span>
+
 
 ## Deploy Sharded Cluster with Ranged Sharding
 
 The following procedures involve creating a new sharded cluster that consists
 of a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), the config servers, and two shards.
+
+<span id="deploy-ranged-sharded-cluster-config-server"></span>
 
 
 ### Create the Config Server Replica Set
@@ -371,6 +375,8 @@ sh.addShard( "s1-mongo1.example.net:27017")
 
 Repeat these steps until the cluster includes all shards.
 
+<span id="deploy-ranged-sharded-cluster-shard-database"></span>
+
 
 ### Enable Sharding for a Database
 
@@ -386,6 +392,8 @@ enable sharding on the target database.
 sh.enableSharding("<database>")
 
 ```
+
+<span id="deploy-ranged-sharded-cluster-shard-collection"></span>
 
 
 ## Shard a Collection using Ranged Sharding

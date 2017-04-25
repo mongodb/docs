@@ -79,6 +79,8 @@ sudo yum install -y mongodb-enterprise
 
 ### Step 3: When the install completes, you can run MongoDB.
 
+<span id="install-redhat-from-tarball"></span>
+
 
 ## Install MongoDB Enterprise From Tarball
 
@@ -91,6 +93,8 @@ described, you may also manually install MongoDB using the tarballs. See
 
 
 ### Prerequisites
+
+<span id="install-enterprise-rhel-configure-selinux"></span>
 
 
 #### Configure SELinux
@@ -133,6 +137,8 @@ To configure SELinux, administrators have three options:
 Alternatively, you can choose not to install the SELinux packages when you are
 installing your Linux operating system, or choose to remove the relevant
 packages. This option is the most invasive and is not recommended.
+
+<span id="install-enterprise-selinux-data-directory"></span>
 
 
 #### Data Directories and Permissions

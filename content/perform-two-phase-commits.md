@@ -83,6 +83,8 @@ status of the operation. Upon successful insert, the
 [``BulkWriteResult()``](https://docs.mongodb.com/manual/reference/method/BulkWriteResult/#BulkWriteResult) has [``nInserted``](https://docs.mongodb.com/manual/reference/method/BulkWriteResult/#BulkWriteResult.nInserted) set
 to ``2`` .
 
+<span id="initialize-transfer-record"></span>
+
 
 ### Initialize Transfer Record
 
@@ -303,6 +305,8 @@ Upon successful update, the method returns a [``WriteResult()``](https://docs.mo
 object with [``nMatched``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nMatched) and
 [``nModified``](https://docs.mongodb.com/manual/reference/method/WriteResult/#WriteResult.nModified) set to ``1``.
 
+<span id="phase-commits-recovery"></span>
+
 
 ## Recovering from Failure Scenarios
 
@@ -369,6 +373,8 @@ var t = db.transactions.findOne( { state: "applied", lastModified: { $lt: dateTh
 And resume from
 "[Update both accounts' list of pending transactions.](#update-both-accounts-list-of-pending-transactions)"
 
+<span id="phase-commits-rollback"></span>
+
 
 ### Rollback Operations
 
@@ -391,6 +397,8 @@ destination fields.
 After the "[Update transaction state to pending.](#update-transaction-state-to-pending)" step, but before the
 "[Update transaction state to applied.](#update-transaction-state-to-applied)" step, you can rollback the
 transaction using the following procedure:
+
+<span id="phase-commits-concurrency"></span>
 
 
 #### Step 1: Update transaction state to canceling.
@@ -558,6 +566,8 @@ db.transactions.find(
 )
 
 ```
+
+<span id="phase-commits-in-production"></span>
 
 
 ## Using Two-Phase Commits in Production Applications

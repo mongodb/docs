@@ -53,6 +53,8 @@ Keyfiles are bare-minimum forms of security and are best suited for testing or
 development environments. For production environments we recommend using
 [x.509 certificates](https://docs.mongodb.com/manual/core/security-x.509).
 
+<span id="security-shardclust-deploy-access-control"></span>
+
 
 ### Access Control
 
@@ -100,6 +102,8 @@ This tutorial uses the [``mongod``](https://docs.mongodb.com/manual/reference/pr
 programs. Windows users should use the [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) and
 [``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe) programs instead.
 
+<span id="security-shard-deploy-sharded-cluster-with-access-control"></span>
+
 
 ## Deploy Sharded Cluster with Keyfile Access Control
 
@@ -143,6 +147,8 @@ consistent location for each server.
 Important: Do not use shared network locations or storage mediums such as USB drives for storing the keyfile.
 
 Ensure that the user running the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instances can access the keyfile.
+
+<span id="deploy-auth-cluster-create-config-server-replica-set"></span>
 
 
 ### Create the Config Server Replica Set

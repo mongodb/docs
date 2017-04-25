@@ -21,6 +21,8 @@ how to add a new user to MongoDB.
 
 Important: If you have [enabled access control](enable-authentication/) for your deployment, you must authenticate as a user with the required privileges specified in each section. A user administrator with the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role, or [``userAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdmin) role in the specific databases, provides the required privileges to perform the operations listed in this tutorial. See [Enable Auth](enable-authentication/) for details on adding user administrator as the first user.
 
+<span id="create-user-defined-role"></span>
+
 
 ## Create a User-Defined Role
 
@@ -48,6 +50,8 @@ uniquely define a role. Each role is scoped to the database in which
 you create the role, but MongoDB stores all role information in the
 [``admin.system.roles``](https://docs.mongodb.com/manual/reference/system-collections/#admin.system.roles) collection in the ``admin`` database.
 
+<span id="define-roles-prereq"></span>
+
 
 ### Prerequisites
 
@@ -60,6 +64,8 @@ To create a role in a database, you must have:
 Built-in roles [``userAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdmin) and
 [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) provide [``createRole``](https://docs.mongodb.com/manual/reference/privilege-actions/#createRole) and
 [``grantRole``](https://docs.mongodb.com/manual/reference/privilege-actions/#grantRole) actions on their respective [resources](https://docs.mongodb.com/manual/reference/resource-document).
+
+<span id="create-role-to-manage-ops"></span>
 
 
 ### Create a Role to Manage Current Operations
@@ -117,6 +123,8 @@ Warning: Terminate running operations with extreme caution. Only use the [``db.k
 
 [1] The built-in role [``clusterMonitor``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterMonitor) also provides the privilege to run [``db.currentOp()``](https://docs.mongodb.com/manual/reference/method/db.currentOp/#db.currentOp) along with other privileges, and the built-in role [``hostManager``](https://docs.mongodb.com/manual/reference/built-in-roles/#hostManager) provides the privilege to run [``db.killOp()``](https://docs.mongodb.com/manual/reference/method/db.killOp/#db.killOp) along with other privileges.
 
+<span id="create-role-for-mongostat"></span>
+
 
 ### Create a Role to Run ``mongostat``
 
@@ -168,6 +176,8 @@ db.createRole(
 
 
 ## Modify Access for an Existing User
+
+<span id="assign-role-to-user-prereq"></span>
 
 
 ### Prerequisites
@@ -284,6 +294,8 @@ up to 10 minutes to refresh. See
 
 
 ## Modify the Password for an Existing User
+
+<span id="change-password-prereq"></span>
 
 
 ### Prerequisites

@@ -122,8 +122,8 @@ MongoDB component sets, you can specify them in the ``ADDLOCAL`` argument
 using a comma-separated list including one or more of the following
 component sets:
 
-| **Component Set** | **Binaries** |
 | - | - | - |
+| **Component Set** | **Binaries** |
 | ``Server`` | ``mongod.exe`` |
 | ``Router`` | ``mongos.exe`` |
 | ``Client`` | ``mongo.exe`` |
@@ -232,6 +232,8 @@ Before deploying MongoDB in a production environment, consider the
 
 Later, to stop MongoDB, press ``Control+C`` in the terminal where the
 [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance is running.
+
+<span id="manually-create-windows-service"></span>
 
 
 ## Configure a Windows Service for MongoDB Community Edition

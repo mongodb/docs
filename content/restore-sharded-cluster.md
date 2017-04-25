@@ -37,6 +37,8 @@ The following procedures assume shard [``mongod``](https://docs.mongodb.com/manu
 include the ``--shardsvr`` and ``--port`` options (or corresponding
 settings in the configuration file).
 
+<span id="restore-sharded-cluster-with-snapshots"></span>
+
 
 ### Restore a Sharded Cluster with Filesystem Snapshots
 
@@ -160,6 +162,8 @@ db.printShardingStatus()
 show collections
 
 ```
+
+<span id="restore-sh-cl-dmp"></span>
 
 
 ### Restore a Sharded Cluster with Database Dumps

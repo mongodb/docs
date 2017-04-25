@@ -155,6 +155,8 @@ If the requested document falls within the ``recent`` zone range, MongoDB
 would route this query to the shards inside that zone, ensuring a faster read
 compared to a cluster-wide [broadcast read operation](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-broadcast)
 
+<span id="sharding-tiered-hardware-balancing"></span>
+
 
 ## Balancer
 

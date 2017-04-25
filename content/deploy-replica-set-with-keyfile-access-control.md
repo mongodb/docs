@@ -5,6 +5,9 @@ title = "Deploy Replica Set With Keyfile Access Control"
 mongodb = "product"
 +++
 
+<span id="deploy-repl-set-with-keyfile"></span><span id="deploy-repl-set-with-auth"></span>
+
+
 # Deploy Replica Set With Keyfile Access Control
 
 
@@ -55,6 +58,8 @@ Keyfiles are bare-minimum forms of security and are best suited for testing or
 development environments. For production environments we recommend using
 [x.509 certificates](https://docs.mongodb.com/manual/core/security-x.509).
 
+<span id="security-repsetdeploy-access-control"></span>
+
 
 ### Access Control
 
@@ -73,6 +78,8 @@ refer to the specific authentication mechanism pages.
 
 See [Configure Role-Based Access Control](https://docs.mongodb.com/manual/administration/security-checklist/#security-checklist-role-based-access-control) for best
 practices for user creation and management.
+
+<span id="security-replica-deploy-with-access-control"></span>
 
 
 ## Deploy New Replica Set with Keyfile Access Control

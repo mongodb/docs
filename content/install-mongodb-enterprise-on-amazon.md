@@ -75,6 +75,8 @@ sudo yum install -y mongodb-enterprise
 
 ### Step 3: When the install completes, you can run MongoDB.
 
+<span id="install-amazon-from-tarball"></span>
+
 
 ## Install MongoDB Enterprise From Tarball
 

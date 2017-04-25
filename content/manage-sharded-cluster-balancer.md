@@ -5,6 +5,9 @@ title = "Manage Sharded Cluster Balancer"
 mongodb = "product"
 +++
 
+<span id="index-1"></span>
+
+
 # Manage Sharded Cluster Balancer
 
 Changed in version 3.4: The balancer process has moved from the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instances
@@ -40,6 +43,8 @@ the balancer is enabled, while the
 [``currently-running``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status.balancer.currently-running) field indicates if
 the balancer is currently running.
 
+<span id="sharding-balancing-is-running"></span>
+
 
 ## Check if Balancer is Running
 
@@ -57,6 +62,8 @@ Important: Use the version of the [``mongo``](https://docs.mongodb.com/manual/re
 
    ```
 
+<span id="sharded-cluster-config-default-chunk-size"></span>
+
 
 ## Configure Default Chunk Size
 
@@ -70,6 +77,8 @@ migrations and auto-splits but does not retroactively affect all chunks.
 
 To configure default chunk size, see
 [Modify Chunk Size in a Sharded Cluster](https://docs.mongodb.com/manual/tutorial/modify-chunk-size-in-sharded-cluster).
+
+<span id="sharding-schedule-balancing-window"></span><span id="sharded-cluster-config-balancing-window"></span>
 
 
 ## Schedule the Balancing Window
@@ -144,6 +153,8 @@ server replica set.
 
 Note: The balancer window must be sufficient to *complete* the migration of all data inserted during the day.As data insert rates can change based on activity and usage patterns, it is important to ensure that the balancing window you select will be sufficient to support the needs of your deployment.Do not use the [``sh.startBalancer()``](https://docs.mongodb.com/manual/reference/method/sh.startBalancer/#sh.startBalancer) method when you have set an ``activeWindow``.
 
+<span id="sharding-balancing-remove-window"></span>
+
 
 ## Remove a Balancing Window Schedule
 
@@ -157,6 +168,8 @@ use config
 db.settings.update({ _id : "balancer" }, { $unset : { activeWindow : true } })
 
 ```
+
+<span id="sharding-balancing-disable-temporally"></span><span id="sharding-balancing-disable-temporarily"></span>
 
 
 ## Disable the Balancer
@@ -206,6 +219,8 @@ Note: To disable the balancer from a driver that does not have the [``sh.stopBal
   db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } ,  { upsert: true } )
 
   ```
+
+<span id="sharding-balancing-re-enable"></span><span id="sharding-balancing-enable"></span>
 
 
 ## Enable the Balancer
@@ -344,6 +359,8 @@ New in version 3.0.0: You can also see if the balancer is enabled using
 [``currently-enabled``](https://docs.mongodb.com/manual/reference/method/sh.status/#sh.status.balancer.currently-enabled) field indicates if the
 balancer is enabled.
 
+<span id="index-3"></span><span id="sharded-cluster-config-secondary-throttle"></span>
+
 
 ## Change Replication Behavior for Chunk Migration
 
@@ -395,6 +412,8 @@ to enable the selected value of ``_secondaryThrottle``. See
 For more information on the replication behavior during various steps
 of chunk migration, see [Chunk Migration and Replication](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#chunk-migration-replication).
 
+<span id="wait-for-delete-setting"></span>
+
 
 ### Wait for Delete
 
@@ -443,6 +462,8 @@ Once set to ``true``, to revert to the default behavior:
    )
 
    ```
+
+<span id="sharded-cluster-config-max-shard-size"></span>
 
 
 ## Change the Maximum Storage Size for a Given Shard

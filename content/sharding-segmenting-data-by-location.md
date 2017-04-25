@@ -150,6 +150,8 @@ chatDB.messages.find( { "country" : "UK" , "userid" : "123" } )
 
 Queries without the ``country`` field perform [broadcast operations](https://docs.mongodb.com/manual/core/sharded-cluster-query-router/#sharding-mongos-broadcast).
 
+<span id="sharding-segmenting-data-by-location-balancer"></span>
+
 
 ### Balancer
 

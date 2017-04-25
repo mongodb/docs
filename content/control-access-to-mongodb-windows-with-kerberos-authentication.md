@@ -178,6 +178,8 @@ for your configuration. For example, instead of using
 [``--keyFile``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-keyfile) for internal authentication of sharded cluster
 members, you can use [x.509 member authentication](https://docs.mongodb.com/manual/tutorial/configure-x509-member-authentication/#x509-internal-authentication) instead.
 
+<span id="assign-service-principal-name"></span>
+
 
 ### Assign Service Principal Name to MongoDB Windows Service
 
@@ -199,6 +201,8 @@ For example, if [``mongod.exe``](https://docs.mongodb.com/manual/reference/progr
 setspn.exe -A mongodb/testserver.mongodb.com mongodtest
 
 ```
+
+<span id="enable-mixed-kerberos-and-cr-windows"></span>
 
 
 ### Incorporate Additional Authentication Mechanisms
