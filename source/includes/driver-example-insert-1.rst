@@ -24,11 +24,21 @@
             :dedent: 8
             :start-after: Start Example 1
             :end-before: End Example 1
+
      - id: java-sync
        content: |
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/DocumentationSamples.java
             :language: java
+            :dedent: 8
+            :start-after: Start Example 1
+            :end-before: End Example 1
+
+     - id: nodejs
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/examples_tests.js
+            :language: javascript
             :dedent: 8
             :start-after: Start Example 1
             :end-before: End Example 1

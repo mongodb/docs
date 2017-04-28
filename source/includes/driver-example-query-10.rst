@@ -17,6 +17,24 @@
             :start-after: Start Example 10
             :end-before: End Example 10
 
+     - id: java-sync
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Example 10
+            :end-before: End Example 10
+
+     - id: nodejs
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/examples_tests.js
+            :language: javascript
+            :dedent: 8
+            :start-after: Start Example 10
+            :end-before: End Example 10
+
      - id: php
        content: |
          .. class:: copyable-code

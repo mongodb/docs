@@ -22,6 +22,13 @@
          with the status of the
          operation.
 
+     - id: nodejs
+       content: |
+         :node-api:`deleteMany() <Collection.html#deleteMany>` returns a
+         promise that provides a ``result``. The ``result.deletedCount``
+         property contains the number of documents that matched the
+         filter.
+
      - id: php
        content: |
          Upon successful execution, the

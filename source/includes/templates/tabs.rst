@@ -23,7 +23,7 @@
           <li{{ if i zero }} class="active"{{ end }}><a href="#{{ tab.id }}">{{ tab.name }}</a></li>
           {{ end }}
           {{ end }}
-          {{ if tabs len greaterThan(4) }}
+          {{ if tabs numberOfLanguages greaterThan(5) }}
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown">Other <span class="caret"></span></a>
             <ul id="tab-dropdown" class="dropdown-menu">

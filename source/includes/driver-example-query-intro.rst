@@ -30,6 +30,14 @@
          collection. To populate the ``inventory`` collection, run the
          following:
 
+     - id: nodejs
+       content: |
+         This page provides examples of |query_operations| using the
+         :node-api:`Collection.find() <Collection.html#find>` method in
+         the :node-docs:`MongoDB Node.js Driver <>`.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:
+
      - id: php
        content: |
          This page provides examples of |query_operations| using the
