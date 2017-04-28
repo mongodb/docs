@@ -26,6 +26,15 @@
             :start-after: Start Example 34
             :end-before: End Example 34
 
+     - id: nodejs
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/examples_tests.js
+            :language: javascript
+            :dedent: 8
+            :start-after: Start Example 34
+            :end-before: End Example 34
+
      - id: php
        content: |
          .. class:: copyable-code

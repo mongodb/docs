@@ -82,6 +82,8 @@ extlinks = {
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
+    'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
+    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', '')
 }
 
 ## add `extlinks` for each published version.
