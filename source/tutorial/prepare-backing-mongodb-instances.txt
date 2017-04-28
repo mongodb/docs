@@ -13,140 +13,151 @@ Install the |application| Database and Backup Database
 Overview
 --------
 
-Before you install |onprem| you must install the
-:ref:`mms-application-database`, which holds |onprem| operational data.
-If you will use the |onprem| Backup feature, you must also install the
-Backup Database, which stores oplog data, temporary sync data, and,
-depending on your configuration, stores your snapshots.
+Before you install |onprem| you must deploy the supporting databases first.
+These are called :term:`backing databases`. |mms| cannot deploy or manage
+these databases. These databases include the :ref:`mms-application-database`
+and the :term:`backup database <Backup Database>`. You must deploy an
+application database. It holds |onprem| operational data. You may deploy a
+:term:`backup database <Backup Database>` if you want to use the |onprem|
+:doc:`backup feature </core/backup-overview>`. This database stores
+:term:`oplog` data, temporary sync data, and, depending on your configuration,
+your :term:`snapshots <snapshot>`.
 
-Both databases run on dedicated MongoDB :term:`replica sets <replica
-set>`. If you use multiple Backup Databases, set up separate replica
-sets for each database. The replica set for each database is dedicated
-to that database only and **must store no other data**.
+These databases run on dedicated MongoDB :term:`replica sets <replica set>`.
+If you use  
+:doc:`multiple backup databases </tutorial/configure-backup-high-availability>`, 
+you must configure one replica set for each backup database.
+The replica set for each database must be dedicated to that database only and
+*must store no other data*.
 
-The application database and the backup database(s) run as separate
-replica sets to ensure that the |application| would keep running should
-you accidentally fill the Backup Database's volume. If that occurred
-and both databases were members of the same replica set, |onprem| would
-become inoperable.
+The :term:`backing databases` must run on separate 
+:term:`replica sets <replica set>`. This ensures that the |application| keeps
+running if you accidentally fill the volume that stores a :term:`backup
+database`. If that occurred and both databases were members of the same
+replica set, |onprem| would become inoperable.
 
-.. note::
-
-   You cannot use |onprem| to deploy the backing database. You must
-   deploy and manage the backing databases manually.
+Considerations
+--------------
 
 Replica Set Topology
---------------------
+++++++++++++++++++++
 
-Each replica set usually comprises three data-bearing members to
-provide high availability. If you cannot allocate space for three
-data-bearing members, the third member can be an arbiter, but keep in
-mind that |onprem| uses ``w:2`` :manual:`write concern
-</reference/write-concern>`, which reports a write operation as
-successful after acknowledgement from the primary and one secondary. If
-you use a replica set with only two data-bearing members, and if you
-lose one of the data-bearing members, MongoDB blocks write operations.
+Each :term:`backing database <backing databases>` :term:`replica set` should
+include three data-bearing members for high availability. If you lack storage
+capacity for three data-bearing members, the third member of a backing
+database may be an :term:`arbiter`.
 
-For the |onprem| Application Database, you can optionally run one member
-of the replica set on the same physical server as |onprem|. For *testing
-only*, you may use a standalone MongoDB deployment in place of each
-replica set.
+For the |onprem| :term:`application database`, you may run one member of the
+replica set on the same host as |onprem|.
+
+.. admonition:: Backing Databases with Less than Three data-bearing members
+   :class: important
+
+   When writing to its :term:`backing databases`, |onprem| uses the
+   :guilabel:`Replica Acknowledged` (``w:2``) :manual:`write concern 
+   </reference/write-concern>`. This write concern reports a write as
+   successful *only* after the primary *and* one secondary acknowledge that
+   write. If a backing database loses one of the two data-bearing members,
+   MongoDB stops write operations.
 
 .. _requirements-backing-db-replica-sets:
 
-Replica Sets Requirements
--------------------------
+Prerequisites
+-------------
 
-The replica sets that host the |application| Database and Backup
-Database(s) must:
+Replica Set Configuration
++++++++++++++++++++++++++
 
-- **Dedicated Databases:** The replica sets must store data **only** in
-  support of |onprem| operations. They must store **no other data**.
+The :term:`replica sets <replica set>` that host the |onprem| :term:`backing databases` must:
 
-- **MongoDB Version:** The replica sets must run MongoDB 2.6.6 or
-  later. If they run a 3.0+ version of MongoDB, the replica sets must
-  run MongoDB version 3.0.6 or later.
+Use Dedicated Databases
+  The :term:`replica sets <replica set>` must store data to support |onprem|
+  metadata *only*. They must store *no other data*.
 
-- **Storage Engine**: Use the storage engine appropriate to your
-  workload. In most cases, this is MMAPv1. See the :ref:`storage engine
-  considerations <storage-engine-considerations-for-backing-dbs>` below.
+Use a Compatible MongoDB Version
+  .. include:: /includes/fact-compatible-mongodb-versions.rst
 
-- **Settings:**
+Use the WiredTiger Storage Engine
+  Use :manual:`WiredTiger </core/wiredtiger>` for the |onprem|
+  :term:`backing databases`.
 
-  - Set the MongoDB :setting:`security.javascriptEnabled` option to
-    ``true``, which is the default. The |application| uses the
-    :query:`$where` query and requires this setting be enabled on the
-    |application| Database.
+Enable JavaScript for the Databases through the Configuration File
+  Set the MongoDB :setting:`security.javascriptEnabled` option to ``true``,
+  which is the default. The |application| uses the 
+  :manual:`$where </reference/operator/query/where>` query and
+  requires this setting be enabled on the |onprem| 
+  :term:`application database`.
 
-  - **Do not** run the MongoDB ``notablescan`` option.
+Use Queries that Do Not Require Indexes
+  Do *not* run the :term:`backing databases` with the MongoDB
+  :parameter:`--notablescan` :manual:`parameter </reference/parameters>` set.
+  When set, this parameter specifies that all queries must use indexes.
 
-- **Credentials:** The replica sets must include user credentials for
-  accessing the backing database. When you install |onprem|, you will
-  include the user credentials in the :setting:`mongo.mongoUri`
-  setting. You will also specify the :parameter:`authentication
-  mechanism <authenticationMechanisms>` if the database uses a
-  mechanism other than default MongoDB authentication.
+Replica Set Security
+++++++++++++++++++++
+
+Secure the Connection to the :term:`Backing Databases <backing databases>`
+  Ensure that connections from |onprem| to your :term:`backing databases` are
+  secure. Configure these databases to accept connections from |onprem| that
+  :ref:`only use SSL <configure-ssl-backing>`.
+
+Configure an :term:`Authentication Mechanism <authentication mechanism>` for the :term:`Backing Databases <backing databases>`
+  Limit access to your backing databases to specific MongoDB users
+  using an authentication mechanism. To configure your backing
+  databases to use authentication, see :ref:`configure-auth-backing`.
 
 .. _backing-instances-prerequisites:
 
-Server Prerequisites
---------------------
+Host Configuration
+++++++++++++++++++
 
-The servers that run the replica sets must meet the following requirements.
+The hosts that run the :term:`replica sets <replica set>` must meet the
+following requirements for:
 
-- The hardware requirements described in
-  :ref:`mms-application-database-specifications` or
-  :ref:`backup-database-specifications`, depending on which database
-  the server will host. If a server hosts other |onprem| components in
+Hardware
+  The hosts must meet :ref:`mms-application-database-specifications` or
+  :ref:`backup-database-specifications` depending on which database
+  the host runs. If a host serves other |onprem| components in
   addition to the database, you must sum the hardware requirements for
-  each component to determine the requirements for the server.
+  each component to determine the requirements for the host.
 
-- The system requirements in the :manual:`MongoDB Production Notes
-  </administration/production-notes>`. The Production Notes include
+System Configuration
+  The hosts must be configured according to the requirements given in the
+  :manual:`MongoDB Production Notes </administration/production-notes>` except
+  where explicitly contradicted in this tutorial. The Production Notes include
   information on ulimits, NUMA, and other configuration options.
 
-- The MongoDB ports requirements described in
-  :doc:`/reference/firewall-configuration`. Each server's firewall
-  rules must allow access to the required ports.
+Networking
+  Network security must allow the needed ports described in :doc:`/reference/firewall-configuration`.
+  The appropriate inbound and outbound firewall rules for each host must allow
+  access to the required ports.
 
-- **RHEL servers only**: 
-
+:abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS 6 hosts only
   .. include:: /includes/rhel-ulimit-conf-file.rst
-
-  For more information, see :manual:`UNIX ulimit Settings
-  </reference/ulimit>` in the MongoDB manual.
 
 .. _storage-engine-considerations-for-backing-dbs:
 
-Choosing a Storage Engine for Application and Backup Databases
---------------------------------------------------------------
 
-MongoDB provides both the MMAPv1 and WiredTiger storage engines. The
-|application| and Backup Database schemas have been designed to achieve
-maximum performance on MMAPv1. Therefore, while WiredTiger outperforms
-MMAPv1 on typical workloads, MMAPv1 performs best given the unique |onprem|
-workload.
+Deploy Backing Databases
+------------------------
 
-The MMAPv1 engine also minimizes storage in the Backup Database's
-blockstore, as all the blocks are already compressed and padding is
-disabled. There is typically no further storage benefit to be gained by
-taking advantage of WiredTiger compression.
-
-In one case, WiredTiger might be preferable. Backups of insert-only
-MongoDB workloads that benefit from high levels of block-level
-de-duplication in the blockstore may see a compression-based storage
-reduction when running the Backup Database on the WiredTiger storage
-engine.
-
-The storage engine used by the Backup Database is independent from the
-storage engine chosen to store a deployment's snapshots. If the Backup
-Database uses the MMAPv1 storage engine, it can store backup snapshots
-for WiredTiger backup jobs in its blockstore.
-
-Procedure
----------
-
-To deploy MongoDB replica sets to host the |application| and Backup
-Databases:
+To deploy MongoDB :term:`replica sets <replica set>` to host the |onprem|
+:term:`backing databases`:
 
 .. include:: /includes/steps/deploy-backing-dbs.rst
+
+Next Steps
+----------
+
+- When you install |onprem|, you must set the :setting:`mongo.mongoUri`
+  setting to connect to the :term:`replica set` you created for the
+  application database in this tutorial.
+
+- If you enable backup for your |onprem| deployment, you must :doc:`configure
+  the oplog store </tutorial/manage-oplog-storage>` to use the replica set
+  that you created for the backup database in this tutorial. If you *also*
+  choose to use a :term:`blockstore` or :term:`S3 snapshot store <S3 Snapshot
+  Store>` to store your :term:`snapshots <snapshot>`, you must :manual:`deploy
+  one Replica Set </tutorial/deploy-replica-set>` for each :doc:`blockstore
+  </tutorial/manage-blockstore-storage>` or :doc:`S3 blockstore
+  </tutorial/manage-s3-blockstore-storage>` metadata database.
