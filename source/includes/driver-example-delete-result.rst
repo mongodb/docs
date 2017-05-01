@@ -14,6 +14,14 @@
          :py:class:`pymongo.results.DeleteResult` with the status of the
          operation.
 
+     - id: java-sync
+       content: |
+         The com.mongodb.client.MongoCollection.deleteMany_
+         method returns an instance of
+         com.mongodb.client.result.DeleteResult_
+         with the status of the
+         operation.
+
      - id: php
        content: |
          Upon successful execution, the

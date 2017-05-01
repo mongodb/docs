@@ -10,13 +10,22 @@
                  status: "A",
                  $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
             } )
-         
+
 
      - id: python
        content: |
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
+            :dedent: 8
+            :start-after: Start Example 13
+            :end-before: End Example 13
+
+     - id: java-sync
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
             :dedent: 8
             :start-after: Start Example 13
             :end-before: End Example 13

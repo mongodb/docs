@@ -13,7 +13,7 @@
                { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
                { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
             ]);
-          
+
          .. only:: website
 
             You can run the operation in the web shell below:
@@ -25,6 +25,15 @@
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
+            :dedent: 8
+            :start-after: Start Example 6
+            :end-before: End Example 6
+
+     - id: java-sync
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
             :dedent: 8
             :start-after: Start Example 6
             :end-before: End Example 6

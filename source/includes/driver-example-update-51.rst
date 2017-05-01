@@ -34,6 +34,15 @@
             :start-after: Start Example 51
             :end-before: End Example 51
 
+     - id: java-sync
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Example 51
+            :end-before: End Example 51
+
      - id: php
        content: |
          .. class:: copyable-code

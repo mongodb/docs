@@ -81,8 +81,7 @@ extlinks = {
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
-    'perl-api': ('https://metacpan.org/pod/MongoDB::%s', '')
-
+    'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
 }
 
 ## add `extlinks` for each published version.

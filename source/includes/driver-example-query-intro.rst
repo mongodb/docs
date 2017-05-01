@@ -18,6 +18,18 @@
          collection. To populate the ``inventory`` collection, run the
          following:
 
+     - id: java-sync
+       content: |
+         This page provides examples of |query_operations| using the
+         com.mongodb.client.MongoCollection.find_ method in the `Java
+         Synchronous Driver`_. The driver provides
+         com.mongodb.client.model.Filters_ helper methods to facilitate
+         the creation of filter documents.
+
+         The examples on this page use the ``inventory``
+         collection. To populate the ``inventory`` collection, run the
+         following:
+
      - id: php
        content: |
          This page provides examples of |query_operations| using the
