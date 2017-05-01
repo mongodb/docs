@@ -68,6 +68,8 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
+	var baseURL = window.__baseURL__;
+	
 	var Single = function (_React$Component) {
 	  _inherits(Single, _React$Component);
 	
@@ -120,7 +122,7 @@
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        _react2.default.createElement(_navbar2.default, { onResults: this.onResults }),
+	        _react2.default.createElement(_navbar2.default, { baseURL: baseURL, onResults: this.onResults }),
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'main' },
@@ -21916,7 +21918,7 @@
 	    _react2.default.createElement(
 	      'div',
 	      { className: 'navbar__left' },
-	      _react2.default.createElement('img', { src: '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' }),
+	      _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' }),
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-dropdown' },
@@ -21961,11 +21963,11 @@
 	      { href: '#', className: 'navbar-download' },
 	      'Download MongoDB'
 	    ),
-	    _react2.default.createElement('img', { src: '/images/download-icon.svg', alt: 'Download Icon' }),
+	    _react2.default.createElement('img', { src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' }),
 	    _react2.default.createElement(
 	      'div',
 	      { className: 'navbar__right' },
-	      _react2.default.createElement(_search2.default, { onResults: props.onResults })
+	      _react2.default.createElement(_search2.default, { baseURL: props.baseURL, onResults: props.onResults })
 	    )
 	  );
 	};
@@ -22023,7 +22025,7 @@
 	    };
 	
 	    _this.state = {
-	      searcher: new _SearchChannel2.default('/search.json'),
+	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
 	      timeout: -1,
 	      loaded: false,
 	      searchText: ''
@@ -22075,12 +22077,12 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var SearchChannel = function () {
-	  function SearchChannel(url) {
+	  function SearchChannel(baseURL, url) {
 	    var _this = this;
 	
 	    _classCallCheck(this, SearchChannel);
 	
-	    this.worker = new Worker('worker-search.js');
+	    this.worker = new Worker(baseURL + '/worker-search.js');
 	
 	    this.pending = null;
 	    this.busy = false;
@@ -22106,7 +22108,7 @@
 	      };
 	    });
 	
-	    this.worker.postMessage({ 'load': url });
+	    this.worker.postMessage({ 'load': baseURL + url });
 	    this.onresults = function (results) {};
 	  }
 	

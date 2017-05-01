@@ -5,6 +5,8 @@ import Facet from './facet.js'
 import Navbar from './navbar.js'
 import TutorialList from './tutorialList.js'
 
+const baseURL = window.__baseURL__
+
 class App extends React.Component {
   constructor (props) {
     super(props)
@@ -19,7 +21,7 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    fetch('/tags.json').then((response) => {
+    fetch(baseURL + '/tags.json').then((response) => {
       return response.json()
     }).then((data) => {
       this.setState({
@@ -108,7 +110,7 @@ class App extends React.Component {
 
     return (
       <div>
-        <Navbar onResults={this.onResults} />
+        <Navbar baseURL={baseURL} onResults={this.onResults} />
 
         <div className="main">
           <aside className="main__sidebar">
@@ -123,7 +125,7 @@ class App extends React.Component {
 
           <div className="main__content">
             <h1 className="main__title">Tutorials</h1>
-            <TutorialList tutorials={ tutorials } />
+            <TutorialList tutorials={ tutorials } baseURL={baseURL} />
           </div>
         </div>
       </div>

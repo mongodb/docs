@@ -11,7 +11,7 @@ export default class TutorialList extends React.Component {
   render () {
     const tutorials = this.props.tutorials.map((tutorial, i) => {
       return (
-        <Tutorial tutorial={ tutorial } key={ i } />
+        <Tutorial tutorial={ tutorial } key={ i } baseURL={ this.props.baseURL }/>
       )
     })
 

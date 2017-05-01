@@ -13,7 +13,7 @@ export default class Tutorial extends React.Component {
 
     return (
       <li className="tutorial-list-item">
-        <a href={ this.props.tutorial.url } className="tutorial-list-item__link">
+        <a href={ this.props.baseURL + this.props.tutorial.url } className="tutorial-list-item__link">
           <h4 className="tutorial-list-item__title">{ this.props.tutorial.title }</h4>
           <p className="tutorial-list-item__snippet">{ this.props.tutorial.snippet }</p>
           <ul>{ options }</ul>

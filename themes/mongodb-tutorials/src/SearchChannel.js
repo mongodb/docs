@@ -1,6 +1,6 @@
 export default class SearchChannel {
-  constructor(url) {
-    this.worker = new Worker('worker-search.js')
+  constructor(baseURL, url) {
+    this.worker = new Worker(baseURL + '/worker-search.js')
 
     this.pending = null
     this.busy = false
@@ -26,7 +26,7 @@ export default class SearchChannel {
       }
     })
 
-    this.worker.postMessage({ 'load': url })
+    this.worker.postMessage({ 'load': baseURL + url })
     this.onresults = (results) => {}
   }
 

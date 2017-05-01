@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom'
 
 import Navbar from './navbar.js'
 
+const baseURL = window.__baseURL__
+
 class Single extends React.Component {
   constructor (props) {
     super(props)
@@ -39,7 +41,7 @@ class Single extends React.Component {
 
     return (
       <div>
-        <Navbar onResults={this.onResults} />
+        <Navbar baseURL={baseURL} onResults={this.onResults} />
 
         <div className="main">
           <aside className="main__sidebar main__sidebar--single">

@@ -7,7 +7,7 @@ export default class Search extends React.Component {
     super(props)
 
     this.state = {
-      searcher: new SearchChannel('/search.json'),
+      searcher: new SearchChannel(props.baseURL, '/search.json'),
       timeout: -1,
       loaded: false,
       searchText: ''

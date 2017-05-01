@@ -15,7 +15,7 @@ build: | tools/node_modules ## Build into public/
 
 server: ## Host the documentation on port 1313
 	$(NODE) tools/genindex.js content public/search.json public/tags.json --config config.toml
-	hugo server --renderToDisk
+	hugo server --renderToDisk -b 'localhost'
 
 stage: build  # Upload built artifacts to the staging URL
 	mut-publish public/ ${STAGING_BUCKET} --prefix=${STAGING_PREFIX} --stage ${ARGS}
