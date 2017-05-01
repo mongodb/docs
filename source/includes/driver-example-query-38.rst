@@ -61,3 +61,12 @@
             :dedent: 4
             :start-after: Start Example 38
             :end-before: End Example 38
+
+     - id: ruby
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/shell_examples_spec.rb
+            :language: ruby
+            :dedent: 6
+            :start-after: Start Example 38
+            :end-before: End Example 38
