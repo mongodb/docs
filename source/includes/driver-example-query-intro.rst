@@ -35,3 +35,12 @@
          `MongoDB Perl Driver <https://metacpan.org/release/MongoDB>`_.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
+
+     - id: ruby
+       content: |
+         This page provides examples of |query_operations| using the
+         :ruby-api:`Mongo::Collection#find()<Collection.html#find-instance_method>`
+         method in the
+         `MongoDB Ruby Driver <https://docs.mongodb.com/ruby-driver/master/>`_.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:

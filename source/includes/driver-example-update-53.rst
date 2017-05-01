@@ -32,11 +32,11 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
-     - id: perl
+     - id: ruby
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
+         .. literalinclude:: /driver-examples/shell_examples_spec.rb
+            :language: ruby
+            :dedent: 8
             :start-after: Start Example 53
             :end-before: End Example 53

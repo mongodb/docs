@@ -31,3 +31,12 @@
          :perl-api:`MongoDB::DeleteResult<DeleteResult>` whose
          ``deleted_count`` attribute contains the number of documents
          that matched the filter.
+
+     - id: ruby
+       content: |
+         Upon successful execution, the
+         :ruby-api:`delete_many()<Collection.html#delete_many>` method
+         returns an instance of
+         :ruby-api:`Mongo::Operation::Result<Operation/Result.html>`, whose
+         ``deleted_count`` attribute contains the number of documents
+         that matched the filter.
