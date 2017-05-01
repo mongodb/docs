@@ -22,6 +22,9 @@
 
      - id: java-sync
        content: |
+         The example uses the com.mongodb.client.model.Projections_
+         class to create the projection documents.
+
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/DocumentationSamples.java
             :language: java

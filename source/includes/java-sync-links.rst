@@ -37,3 +37,5 @@
 .. _com.mongodb.client.model.UpdateOptions: https://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/model/UpdateOptions.html
 
 .. _`com.mongodb.client.model.UpdateOptions.upsert(true)`: http://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/model/UpdateOptions.html#upsert-boolean-
+
+.. _com.mongodb.client.model.Projections: http://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/model/Projections.html
