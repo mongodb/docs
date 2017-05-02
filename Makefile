@@ -13,7 +13,7 @@ DRIVERS_PATH=source/driver-examples
 
 BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
 TEST_FILE=./build/${GIT_BRANCH}/tests.js
-.PHONY: help lint html stage deploy
+.PHONY: help lint html stage deploy examples
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
