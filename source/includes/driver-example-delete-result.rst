@@ -64,3 +64,12 @@
          `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
          with a single element with a ``DeleteResult`` type parameter or with
          an ``com.mongodb.MongoException``.
+
+     - id: csharp
+       content: |
+         Upon successful execution, the
+         :csharp-api:`IMongoCollection.DeleteMany() <M_MongoDB_Driver_IMongoCollection_1_DeleteMany>`
+         method returns an instance of
+         :csharp-api:`DeleteResult <T_MongoDB_Driver_DeleteResult>` whose
+         ``DeletedCount`` property contains the number of documents
+         that matched the filter.

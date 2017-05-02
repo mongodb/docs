@@ -85,7 +85,9 @@ extlinks = {
     'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
     'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
     'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
-    'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', '')
+    'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
+    'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
+    'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
 }
 
 ## add `extlinks` for each published version.

@@ -78,3 +78,12 @@
          `MongoDB Scala Driver <http://mongodb.github.io/mongo-scala-driver/>`_.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
+
+     - id: csharp
+       content: |
+         This page provides examples of |query_operations| using the
+         :csharp-api:`MongoCollection.Find() <M_MongoDB_Driver_MongoCollection_1_Find>`
+         method in the
+         `MongoDB C# Driver <https://mongodb.github.io/mongo-csharp-driver/>`_.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:

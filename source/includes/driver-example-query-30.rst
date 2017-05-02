@@ -70,3 +70,12 @@
             :dedent: 4
             :start-after: Start Example 30
             :end-before: End Example 30
+
+     - id: csharp
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+            :language: c#
+            :dedent: 12
+            :start-after: Start Example 30
+            :end-before: End Example 30
