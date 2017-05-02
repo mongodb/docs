@@ -22,8 +22,11 @@
 
      - id: java-sync
        content: |
-         The example uses the com.mongodb.client.model.Projections_
-         class to create the projection documents.
+         To specify a projection document, chain the
+         com.mongodb.client.FindIterable.projection_ method to the
+         ``find`` method. The example uses the
+         com.mongodb.client.model.Projections_ class to create the
+         projection documents.
 
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/DocumentationSamples.java

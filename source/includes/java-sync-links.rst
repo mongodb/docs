@@ -39,3 +39,5 @@
 .. _`com.mongodb.client.model.UpdateOptions.upsert(true)`: http://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/model/UpdateOptions.html#upsert-boolean-
 
 .. _com.mongodb.client.model.Projections: http://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/model/Projections.html
+
+.. _com.mongodb.client.FindIterable.projection: https://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/FindIterable.html#projection-org.bson.conversions.Bson-
