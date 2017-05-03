@@ -1,7 +1,7 @@
-The ``auth`` object is optional and defines :manual:`authentication-related
+The ``auth`` object is optional and defines :manual:`authentication-related 
 </core/authentication>` settings.
 
-.. code-block:: cfg
+.. code-block:: json
 
    "auth" : {
        "autoUser": <string>,
@@ -61,11 +61,28 @@ The ``auth`` object is optional and defines :manual:`authentication-related
 
    * - ``auth.deploymentAuthMechanisms``
      - array
-     - Lists the supported authentication mechanisms for the processes
-       in the deployment. Specify ``MONGODB-CR`` for ``MONGODB-CR`` /
-       ``SCRAM-SHA-1`` authentication, ``MONGODB-X509`` for x.509 Client
-       Certificate authentication, ``PLAIN`` for LDAP authentication,
-       and ``GSSAPI`` for authenticating with Kerberos.       
+     - Lists the supported authentication mechanisms for the processes in the
+       deployment. Specify:
+
+       .. list-table::
+          :widths: 30 70
+          :header-rows: 1
+      
+          * - Value
+            - Authentication Mechanism
+          
+          * - ``MONGODB-CR``
+            - :manual:`MONGODB-CR </core/security-mongodb-cr>` / 
+              :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+          
+          * - ``MONGODB-X509``
+            - :manual:`x.509 Client Certificate </core/security-x.509>`
+          
+          * - ``PLAIN``
+            - :ref:`LDAP <security-auth-ldap>`
+          
+          * - ``GSSAPI``
+            - :ref:`Kerberos <security-auth-kerberos>`
 
    * - ``auth.disabled``
      - boolean
@@ -75,12 +92,22 @@ The ``auth`` object is optional and defines :manual:`authentication-related
    * - ``auth.key``
      - string
      - The contents of the key file that |mms| uses to authenticate to the
-       MongoDB processes. The ``key`` is not required if ``disabled`` is ``true``.
+       MongoDB processes. The ``key`` is not required if ``auth.disabled`` is
+       ``true``.
+
+       .. note:: 
+          If you change the ``auth.key`` value, you must change the
+          ``auth.keyfile`` value.
 
    * - ``auth.keyfile``
      - string
-     - The path and name of the key file that |mms| uses to authenticate
-       to the MongoDB processes. The ``keyfile`` is not required if ``disabled`` is ``true``.
+     - The path and name of the key file that |mms| uses to authenticate to
+       the MongoDB processes. The ``keyfile`` is not required if ``auth.disabled``
+       is ``true``.
+
+       .. note:: 
+          If you change the ``auth.keyfile`` value, you must change the
+          ``auth.key`` value.
 
    * - ``auth.usersDeleted``
      - array of objects
