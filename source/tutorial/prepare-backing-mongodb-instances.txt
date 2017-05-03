@@ -30,11 +30,11 @@ you must configure one replica set for each backup database.
 The replica set for each database must be dedicated to that database only and
 *must store no other data*.
 
-The :term:`backing databases` must run on separate 
-:term:`replica sets <replica set>`. This ensures that the |application| keeps
-running if you accidentally fill the volume that stores a :term:`backup
-database`. If that occurred and both databases were members of the same
-replica set, |onprem| would become inoperable.
+The :term:`backing databases` must run on independent :term:`replica sets
+<replica set>` on independent storage volumes. Running regular backups, a
+backup database could fill a volume. If the application database cannot write
+to a volume, |onprem| stops. Proper storage setup reduces the risk of |onprem|
+failures.
 
 Considerations
 --------------
@@ -50,15 +50,15 @@ database may be an :term:`arbiter`.
 For the |onprem| :term:`application database`, you may run one member of the
 replica set on the same host as |onprem|.
 
-.. admonition:: Backing Databases with Less than Three data-bearing members
+.. admonition:: Backing Databases with fewer than three data-bearing members
    :class: important
 
    When writing to its :term:`backing databases`, |onprem| uses the
-   :guilabel:`Replica Acknowledged` (``w:2``) :manual:`write concern 
+   :guilabel:`Replica Acknowledged` (``w:2``) :manual:`write concern
    </reference/write-concern>`. This write concern reports a write as
    successful *only* after the primary *and* one secondary acknowledge that
-   write. If a backing database loses one of the two data-bearing members,
-   MongoDB stops write operations.
+   write. This means that if a backing database loses one of the two data-
+   bearing members, MongoDB stops write operations.
 
 .. _requirements-backing-db-replica-sets:
 
@@ -77,9 +77,13 @@ Use Dedicated Databases
 Use a Compatible MongoDB Version
   .. include:: /includes/fact-compatible-mongodb-versions.rst
 
-Use the WiredTiger Storage Engine
+Use the WiredTiger Storage Engine for the Application Database
   Use :manual:`WiredTiger </core/wiredtiger>` for the |onprem|
-  :term:`backing databases`.
+  application database.
+
+Use the Appropriate Storage Engine for the Backup Database
+  For backup database configuration options, see :ref:`selecting a Storage
+  Engine for Backup <considerations-backup-storage-engine>`.
 
 Enable JavaScript for the Databases through the Configuration File
   Set the MongoDB :setting:`security.javascriptEnabled` option to ``true``,
