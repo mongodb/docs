@@ -83,7 +83,9 @@ extlinks = {
     'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
     'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
-    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', '')
+    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
+    'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
+    'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', '')
 }
 
 ## add `extlinks` for each published version.

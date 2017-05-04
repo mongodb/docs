@@ -26,6 +26,15 @@
             :start-after: Start Example 16
             :end-before: End Example 16
 
+     - id: java-async
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Example 16
+            :end-before: End Example 16
+
      - id: nodejs
        content: |
          .. class:: copyable-code

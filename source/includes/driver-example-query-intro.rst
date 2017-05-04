@@ -21,8 +21,8 @@
      - id: java-sync
        content: |
          This page provides examples of |query_operations| using the
-         com.mongodb.client.MongoCollection.find_ method in the `Java
-         Synchronous Driver`_. 
+         com.mongodb.client.MongoCollection.find_ method in the MongoDB
+         `Java Synchronous Driver`_.
 
          .. tip::
 
@@ -30,6 +30,16 @@
             helper methods to facilitate the creation of filter
             documents. The examples on this page use these methods to
             create the filter documents.
+
+         The examples on this page use the ``inventory``
+         collection. To populate the ``inventory`` collection, run the
+         following:
+
+     - id: java-async
+       content: |
+         This page provides examples of |query_operations| using the
+         `com.mongodb.reactivestreams.client.MongoCollection.find <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`_
+         method in the MongoDB `Java Reactive Streams Driver <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/>`_.
 
          The examples on this page use the ``inventory``
          collection. To populate the ``inventory`` collection, run the
