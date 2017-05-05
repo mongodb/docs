@@ -1,8 +1,10 @@
 +++
 title = "Back Up and Restore with Filesystem Snapshots"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"intermediate" ]
 +++
 
 # Back Up and Restore with Filesystem Snapshots

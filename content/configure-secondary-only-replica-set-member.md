@@ -1,8 +1,11 @@
 +++
 title = "Prevent Secondary from Becoming Primary"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Prevent Secondary from Becoming Primary

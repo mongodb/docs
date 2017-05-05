@@ -1,8 +1,11 @@
 +++
 title = "Deploy Sharded Cluster using Ranged Sharding"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Deploy Sharded Cluster using Ranged Sharding

@@ -1,8 +1,7 @@
 +++
 title = "Text Search with Basis Technology Rosette Linguistics Platform"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb-enterprise", "administration", "beginner" ]
 +++
 
 # Text Search with Basis Technology Rosette Linguistics Platform

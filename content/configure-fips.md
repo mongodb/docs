@@ -1,8 +1,7 @@
 +++
 title = "Configure MongoDB for FIPS"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb-enterprise", "administration", "security", "intermediate" ]
 +++
 
 # Configure MongoDB for FIPS

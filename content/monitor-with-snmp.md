@@ -1,8 +1,7 @@
 +++
 title = "Monitor MongoDB With SNMP on Linux"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb", "administration", "intermediate" ]
 +++
 
 # Monitor MongoDB With SNMP on Linux

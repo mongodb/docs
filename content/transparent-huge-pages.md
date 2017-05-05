@@ -1,8 +1,11 @@
 +++
 title = "Disable Transparent Huge Pages (THP)"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"performance",
+"intermediate" ]
 +++
 
 # Disable Transparent Huge Pages (THP)

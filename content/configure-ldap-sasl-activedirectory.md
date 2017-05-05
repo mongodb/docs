@@ -1,8 +1,7 @@
 +++
 title = "Authenticate Using SASL and LDAP with ActiveDirectory"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb-enterprise", "administration", "security", "advanced" ]
 +++
 
 # Authenticate Using SASL and LDAP with ActiveDirectory

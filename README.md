@@ -99,3 +99,51 @@ Use the following tutorial outline whenever possible:
 * Use hyperlinks to point readers to supplemental content that may not
   covered in entirety in the tutorial. This helps keep the tutorial
   focused while covering any knowledge gaps readers may have.
+
+### Tagging Tutorials
+* Tag tutorials with the appropriate product, language (driver or
+  shell), topics, and difficulty tags. Add tags to tutorial pages by
+  including a `tags` array containing the string identifiers of each tag
+  in the tutorial page's headmatter. Tag identifiers, display names, and
+  facet group (e.g., language, product, etc.) are stored in the
+  `config.toml` in the following format:
+  
+  ~~~
+  [tags]
+    [tags.mongodb] # Format is [tags.id], mongodb is the tag ID
+    name = "MongoDB"
+    facet = "product"
+    
+    [tags.administration] # administration is the tag ID
+    name = "Administration"
+    facet = "topic"
+    
+    # Additional tags would go here...
+  ~~~
+  
+  The following example adds the "MongoDB", "Administration",
+  "Replication", and "Beginner" tags to the "Deploy a Replica Set"
+  tutorial:
+  
+  ~~~
+  +++
+  title = "Deploy a Replica Set"
+
+  tags = [ "mongodb", "administration", "replication", "beginner" ]
+  +++
+  ~~~
+  
+* Consider the tutorial's audience when tagging the difficulty level.
+  See the following suggested difficulty levels based on certain topics:
+  * **Beginner** - Installing and connecting to MongoDB, configuring a
+    replica set, CRUD, and other topics geared towards new MongoDB users.
+  * **Intermediate** - Basic security and encryption (e.g., AUTH, SCRAM-SHA1,
+    x.509, TLS/SSL, managing users and roles), deploying a sharded cluster
+    and other topics geared towards experienced MongoDB users.
+  * **Advanced** - Sharding (anything beyond deploying a sharded cluster),
+    enterprise security (LDAP, Kerberos, and Active Directory),
+    upgrade/downgrade proceedures and other topics geared towards highly
+    experienced DBAs and developers in an enterprise setting or a setting
+    with a large MongoDB deployment.
+* New tags must be added to the `config.toml` file. Tag identifiers must
+  be all lowercase with dashes '-' denoting spaces.

@@ -1,8 +1,11 @@
 +++
 title = "Manage Sharded Cluster Balancer"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 <span id="index-1"></span>

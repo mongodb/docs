@@ -1,8 +1,11 @@
 +++
 title = "Restore a Replica Set from MongoDB Backups"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"intermediate" ]
 +++
 
 # Restore a Replica Set from MongoDB Backups

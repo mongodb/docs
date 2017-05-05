@@ -1,8 +1,10 @@
 +++
 title = "Recover a Standalone after an Unexpected Shutdown"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Recover a Standalone after an Unexpected Shutdown

@@ -1,8 +1,10 @@
 +++
 title = "Verify Integrity of MongoDB Packages"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Verify Integrity of MongoDB Packages

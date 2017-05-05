@@ -1,8 +1,11 @@
 +++
 title = "Perform Maintenance on Replica Set Members"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Perform Maintenance on Replica Set Members

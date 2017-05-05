@@ -1,8 +1,11 @@
 +++
 title = "Migrate a Sharded Cluster to Different Hardware"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Migrate a Sharded Cluster to Different Hardware

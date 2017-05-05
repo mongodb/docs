@@ -1,8 +1,10 @@
 +++
 title = "Install MongoDB Community Edition From Tarball"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Install MongoDB Community Edition From Tarball

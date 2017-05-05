@@ -1,8 +1,12 @@
 +++
 title = "Enforce Keyfile Access Control in Sharded Cluster"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"security",
+"sharding",
+"advanced" ]
 +++
 
 # Enforce Keyfile Access Control in Sharded Cluster

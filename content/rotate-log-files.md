@@ -1,8 +1,10 @@
 +++
 title = "Rotate Log Files"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Rotate Log Files

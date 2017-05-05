@@ -1,8 +1,11 @@
 +++
 title = "Change Replica Set to WiredTiger"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Change Replica Set to WiredTiger

@@ -1,8 +1,11 @@
 +++
 title = "Manage Users and Roles"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"security",
+"intermediate" ]
 +++
 
 # Manage Users and Roles
