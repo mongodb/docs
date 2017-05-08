@@ -1,7 +1,27 @@
-- Chrome latest stable
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
 
-- Firefox latest stable
+   * - Supported Web Browser
+     - Supported Version(s)
+     
+   * - `Google Chrome <https://www.google.com/chrome/>`_
+     - latest stable
 
-- Internet Explorer 10 (IE10) and greater
+   * - `Mozilla Foundation Firefox <https://www.mozilla.org/en-US/firefox/new/>`_
+     - latest stable
 
-- Safari latest stable version on MacOS 10.10.5+
+   * - `Microsoft Internet Explorer <https://support.microsoft.com/en-us/help/17621/internet-explorer-downloads>`_
+     - 10 and later
+
+   * - `Microsoft Edge <https://www.microsoft.com/en-us/windows/microsoft-edge>`_
+     - latest stable
+
+   * - `Apple Safari <https://www.apple.com/safari/>`_
+     - latest stable version on MacOS 10.10.5 and later
+
+|onprem| displays a warning on non-supported browsers. 
+
+.. note::
+   |onprem| does not display a warning for the 
+   `Blackberry Access <https://us.blackberry.com/enterprise/mobility-applications/blackberry-access>`_ web browser.
