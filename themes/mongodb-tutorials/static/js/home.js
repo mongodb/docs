@@ -22494,7 +22494,12 @@
 	    _react2.default.createElement(
 	      'div',
 	      { className: 'navbar__left' },
-	      _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' }),
+	      _react2.default.createElement(
+	        'a',
+	        { href: props.baseURL },
+	        _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
+	      ),
+	      _react2.default.createElement('span', { className: 'navbar-seperator' }),
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-dropdown' },
@@ -22507,42 +22512,46 @@
 	    ),
 	    _react2.default.createElement(
 	      'div',
-	      { className: 'navbar__middle' },
-	      _react2.default.createElement(
-	        'a',
-	        { href: '#', className: 'navbar-link' },
-	        'Server'
-	      ),
-	      _react2.default.createElement(
-	        'a',
-	        { href: '#', className: 'navbar-link' },
-	        'Drivers'
-	      ),
-	      _react2.default.createElement(
-	        'a',
-	        { href: '#', className: 'navbar-link' },
-	        'Cloud'
-	      ),
-	      _react2.default.createElement(
-	        'a',
-	        { href: '#', className: 'navbar-link' },
-	        'Tools'
-	      ),
-	      _react2.default.createElement(
-	        'a',
-	        { href: '#', className: 'navbar-link navbar-link--active' },
-	        'Tutorials'
-	      )
-	    ),
-	    _react2.default.createElement(
-	      'a',
-	      { href: '#', className: 'navbar-download' },
-	      'Download MongoDB'
-	    ),
-	    _react2.default.createElement('img', { src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' }),
-	    _react2.default.createElement(
-	      'div',
 	      { className: 'navbar__right' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'navbar-links' },
+	        _react2.default.createElement(
+	          'a',
+	          { href: '#', className: 'navbar-links__item' },
+	          'Server'
+	        ),
+	        _react2.default.createElement(
+	          'a',
+	          { href: '#', className: 'navbar-links__item' },
+	          'Drivers'
+	        ),
+	        _react2.default.createElement(
+	          'a',
+	          { href: '#', className: 'navbar-links__item' },
+	          'Cloud'
+	        ),
+	        _react2.default.createElement(
+	          'a',
+	          { href: '#', className: 'navbar-links__item' },
+	          'Tools'
+	        ),
+	        _react2.default.createElement(
+	          'a',
+	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
+	          'Tutorials'
+	        )
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'navbar-download' },
+	        _react2.default.createElement(
+	          'a',
+	          { href: '#', className: 'navbar-download__text' },
+	          'Download MongoDB'
+	        ),
+	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' })
+	      ),
 	      _react2.default.createElement(_search2.default, { baseURL: props.baseURL, onResults: props.onResults })
 	    )
 	  );
@@ -22620,7 +22629,13 @@
 	  _createClass(Search, [{
 	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement('input', { type: 'search', className: 'navbar-search', placeholder: this.placeholder, value: this.state.searchText, disabled: !this.state.searcher.loaded, onInput: this.onInput });
+	      return _react2.default.createElement('input', { type: 'search',
+	        className: 'navbar-search',
+	        placeholder: this.placeholder,
+	        value: this.state.searchText,
+	        disabled: !this.state.searcher.loaded,
+	        onInput: this.onInput
+	      });
 	    }
 	  }, {
 	    key: 'placeholder',
@@ -22629,7 +22644,7 @@
 	        return 'Loading...';
 	      }
 	
-	      return 'search by keywords';
+	      return 'Search';
 	    }
 	  }]);
 	
