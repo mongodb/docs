@@ -13,7 +13,6 @@ export default class Search extends React.Component {
       searchText: ''
     }
 
-
     this.state.searcher.load().then(() => {
       this.setState({loaded: true})
     }).catch((err) => console.error(err))
@@ -26,7 +25,7 @@ export default class Search extends React.Component {
       return 'Loading...'
     }
 
-    return 'search by keywords'
+    return 'Search'
   }
 
   onInput = (event) => {
@@ -45,6 +44,14 @@ export default class Search extends React.Component {
   }
 
   render() {
-    return <input type="search" className="navbar-search" placeholder={this.placeholder} value={this.state.searchText} disabled={!this.state.searcher.loaded} onInput={this.onInput} />
+    return (
+      <input type="search" 
+             className="navbar-search"
+             placeholder={this.placeholder}
+             value={this.state.searchText}
+             disabled={!this.state.searcher.loaded}
+             onInput={this.onInput}
+      />
+    )
   }
 }
