@@ -6,7 +6,9 @@ const Navbar = (props) => {
   return (
     <nav className="navbar">
       <div className="navbar__left">
-        <img src={ props.baseURL + '/images/mongodb-logo.svg' } className="navbar-brand" alt="MongoDB Logo" />
+        <a href={ props.baseURL } >
+          <img src={ props.baseURL + '/images/mongodb-logo.svg' } className="navbar-brand" alt="MongoDB Logo" />
+        </a>
 
         <div className="navbar-dropdown">
           <span>Documentation</span>
@@ -18,7 +20,7 @@ const Navbar = (props) => {
         <a href="#" className="navbar-link">Drivers</a>
         <a href="#" className="navbar-link">Cloud</a>
         <a href="#" className="navbar-link">Tools</a>
-        <a href="#" className="navbar-link navbar-link--active">Tutorials</a>
+        <a href={ props.baseURL } className="navbar-link navbar-link--active">Tutorials</a>
       </div>
 
       <a href="#" className="navbar-download">Download MongoDB</a>

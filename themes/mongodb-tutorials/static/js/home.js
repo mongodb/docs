@@ -22494,7 +22494,11 @@
 	    _react2.default.createElement(
 	      'div',
 	      { className: 'navbar__left' },
-	      _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' }),
+	      _react2.default.createElement(
+	        'a',
+	        { href: props.baseURL },
+	        _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
+	      ),
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-dropdown' },
@@ -22530,7 +22534,7 @@
 	      ),
 	      _react2.default.createElement(
 	        'a',
-	        { href: '#', className: 'navbar-link navbar-link--active' },
+	        { href: props.baseURL, className: 'navbar-link navbar-link--active' },
 	        'Tutorials'
 	      )
 	    ),
