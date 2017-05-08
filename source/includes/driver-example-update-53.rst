@@ -50,6 +50,15 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+     - id: perl
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/driver-examples.t
+            :language: perl
+            :dedent: 4
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
      - id: ruby
        content: |
          .. class:: copyable-code
