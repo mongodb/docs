@@ -27,7 +27,7 @@ const Navbar = (props) => {
         </div>
 
         <div className="navbar-download">
-          <a href="#" className="navbar-download__text">Download MongoDB</a>
+          <a href="https://www.mongodb.com/download-center?jmp=tutorials" className="navbar-download__text">Download MongoDB</a>
           <img className="navbar-download__icon" src={ props.baseURL + '/images/download-icon.svg' } alt="Download Icon" />
         </div>
 
