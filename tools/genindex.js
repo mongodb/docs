@@ -3,7 +3,7 @@
 
 const __doc__ = `
 Usage:
-  genindex.js <source> <outputIndex> <outputTags> --config=<path>
+  genindex.js --config=<path>
 `
 
 const assert = require('assert')
@@ -16,9 +16,59 @@ const docopt = require('docopt')
 const sax = require('sax')
 const toml = require('toml')
 const lunr = require('lunr')
+const marked = require('marked')
 
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
 const SNIPPET_LENGTH = 175
+
+function escape(html, encode) {
+  return html
+    .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function makeRenderer() {
+    const renderer = new marked.Renderer()
+    let lastLevel = 0
+
+    renderer.heading = function(text, level, raw) {
+        let prefix = ''
+        if (level <= lastLevel) {
+            prefix = '\n</section>'.repeat(lastLevel - level + 1)
+        }
+        lastLevel = level
+
+        return prefix + '\n<section>\n<h'
+            + level
+            + ' id="'
+            + this.options.headerPrefix
+            + raw.toLowerCase().replace(/[^\w]+/g, '-')
+            + '">'
+            + text
+            + '</h'
+            + level
+            + '>\n'
+    }
+
+    renderer.code = function(code, lang) {
+        if (!lang) {
+            return '<div class="highlight"><pre><code>' + escape(code) + '\n</code></pre></div>'
+        }
+
+        return `{{< highlight ${escape(lang, true)} >}}`
+            + code
+            + '\n{{< /highlight >}}\n'
+    }
+
+    renderer.flush = function() {
+        return '\n</section>'.repeat(lastLevel)
+    }
+
+    return renderer
+}
 
 // Recursively step through an object and replace any numbers with a number
 // representable in a short ASCII string.
@@ -70,79 +120,6 @@ function* walk(root) {
     }
 }
 
-function parseXML(path, headmatter, xml) {
-    const spawnOutput = child_process.spawnSync('mmark', ['-xml'], {encoding: 'utf-8', input: xml})
-    if (spawnOutput.status != 0) {
-        throw new Error('Command "mmark" failed')
-    }
-
-    const text = `<root>${spawnOutput.output[1]}</root>`
-    const parser = sax.parser(true, {
-        trim: true,
-        normalize: true
-    })
-
-    const doc = {
-        id: searchIndex.docId,
-        title: headmatter.title,
-        tags: Object.keys(headmatter.tags),
-        minorTitles: [],
-        body: []
-    }
-    searchIndex.docId += 1
-    searchIndex.slugs.push(headmatter.slug)
-
-    let sectionDepth = 0
-    let inName = false
-    let error = false
-
-    parser.onerror = function (error) {
-        console.error('Error parsing ' + path)
-        console.error(error)
-        error = true
-    }
-
-    parser.ontext = function (text) {
-        if (inName) {
-            assert.ok(sectionDepth >= 1)
-            if (sectionDepth === 1) {
-                doc.title += ' ' + text
-            } else {
-                doc.minorTitles.push(text)
-            }
-
-            return
-        }
-
-        doc.body.push(text)
-    }
-
-    parser.onopentag = function (node) {
-        if (node.name === 'section') {
-            sectionDepth += 1
-        } else if (node.name === 'name') {
-            inName = true
-        }
-    }
-
-    parser.onclosetag = function (name) {
-        if (name === 'section') {
-            sectionDepth -= 1
-        } else if (name === 'name') {
-            assert.equal(inName, true)
-            inName = false
-        }
-    }
-
-    parser.write(text).close()
-    if (error) { throw new Error('Parse error') }
-
-    doc.title = doc.title.trim()
-    doc.body = doc.body.join(' ').trim()
-
-    return doc
-}
-
 function processFile(path) {
     const rawdata = fs.readFileSync(path, { encoding: 'utf-8' })
     const match = rawdata.match(PAT_HEADMATTER)
@@ -156,7 +133,19 @@ function processFile(path) {
       headmatter.slug = '/' + pathModule.parse(path).name
     }
 
-    const searchDoc = parseXML(path, headmatter, rawdata.slice(match[0].length))
+    const searchDoc = {
+        id: searchIndex.docId,
+        title: headmatter.title,
+        tags: Object.keys(headmatter.tags),
+        minorTitles: [],
+        body: []
+    }
+    searchIndex.docId += 1
+    searchIndex.slugs.push(headmatter.slug)
+
+    const renderer = makeRenderer()
+    const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
+    searchDoc.body = searchDoc.body.join(' ')
     searchIndex.idx.add(searchDoc)
 
     let tags = []
@@ -169,37 +158,51 @@ function processFile(path) {
     }
 
     return {
-      url: headmatter.slug,
-      title: headmatter.title,
-      snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
-      options: tags,
+        html: html,
+        headmatterSource: match[0],
+        headmatter: {
+            url: headmatter.slug,
+            title: headmatter.title,
+            snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
+            options: tags,
+        }
     }
 }
 
 function main() {
     const args = docopt.docopt(__doc__)
-    const data = []
-    const tagManifest = toml.parse(fs.readFileSync(args['--config'])).tags || {}
+    const tutorials = []
+    const config = toml.parse(fs.readFileSync(args['--config']))
+    const tagManifest = config.tags || {}
     let error = false
 
-    for (const path of walk(args['<source>'])) {
-        let headmatter
+    const sourceContentDir = config.sourceContentDir.replace(/\/$/, '')
+    const outputContentDir = config.contentDir.replace(/\/$/, '')
+
+    try {
+        fs.mkdirSync(outputContentDir)
+    } catch (error) {}
+
+    for (const path of walk(sourceContentDir)) {
+        let doc
         try {
-            headmatter = processFile(path)
+            doc = processFile(path)
         } catch(err) {
             console.error(`Error processing ${path}: ${err}`)
             error = true
             continue
         }
 
-        headmatter.options.forEach(function(option) {
+        doc.headmatter.options.forEach(function(option) {
           if (tagManifest[option.name] === undefined) {
             console.error(`Unknown tag "${option}" in ${path}`)
             error = true
           }
         })
 
-        data.push(headmatter)
+        tutorials.push(doc.headmatter)
+        const outputPath = path.replace(sourceContentDir, outputContentDir).replace(/\.[a-z]+$/, '.html')
+        fs.writeFileSync(outputPath, doc.headmatterSource + '\n' + doc.html)
     }
 
     if (error) {
@@ -215,13 +218,17 @@ function main() {
       })
     }
 
-    fs.writeFileSync(args['<outputTags>'], JSON.stringify({
+    try {
+        fs.mkdirSync('public')
+    } catch (error) {}
+
+    fs.writeFileSync('public/tags.json', JSON.stringify({
         tags: tags,
-        tutorials: data
+        tutorials: tutorials
     }))
 
     const searchIndexJSON = searchIndex.toJSON()
-    fs.writeFileSync(args['<outputIndex>'], JSON.stringify(searchIndexJSON))
+    fs.writeFileSync('public/search.json', JSON.stringify(searchIndexJSON))
 }
 
 main()
