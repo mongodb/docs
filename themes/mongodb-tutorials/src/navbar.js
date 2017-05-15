@@ -1,5 +1,6 @@
 import React from 'react'
 
+import NavbarDropdown from './navbar-dropdown.js'
 import Search from './search.js'
 
 const Navbar = (props) => {
@@ -12,9 +13,7 @@ const Navbar = (props) => {
 
         <span className="navbar-seperator"></span>
 
-        <div className="navbar-dropdown">
-          <span>Documentation</span>
-        </div>
+        <NavbarDropdown />
       </div>
 
       <div className="navbar__right">

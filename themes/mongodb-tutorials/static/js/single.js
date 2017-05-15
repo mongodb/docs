@@ -130,6 +130,11 @@
 	            'aside',
 	            { className: 'main__sidebar main__sidebar--single' },
 	            _react2.default.createElement(
+	              'div',
+	              { className: 'main__sidebar__header' },
+	              'MongoDB Manual Sections:'
+	            ),
+	            _react2.default.createElement(
 	              'ul',
 	              { className: 'toc' },
 	              sections
@@ -21905,7 +21910,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _search = __webpack_require__(182);
+	var _navbarDropdown = __webpack_require__(182);
+	
+	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
+	
+	var _search = __webpack_require__(185);
 	
 	var _search2 = _interopRequireDefault(_search);
 	
@@ -21924,15 +21933,7 @@
 	        _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
 	      ),
 	      _react2.default.createElement('span', { className: 'navbar-seperator' }),
-	      _react2.default.createElement(
-	        'div',
-	        { className: 'navbar-dropdown' },
-	        _react2.default.createElement(
-	          'span',
-	          null,
-	          'Documentation'
-	        )
-	      )
+	      _react2.default.createElement(_navbarDropdown2.default, null)
 	    ),
 	    _react2.default.createElement(
 	      'div',
@@ -21971,7 +21972,7 @@
 	        { className: 'navbar-download' },
 	        _react2.default.createElement(
 	          'a',
-	          { href: '#', className: 'navbar-download__text' },
+	          { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
 	          'Download MongoDB'
 	        ),
 	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' })
@@ -21999,7 +22000,189 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _SearchChannel = __webpack_require__(183);
+	var _classnames = __webpack_require__(183);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var NavbarDropdown = function (_React$Component) {
+	  _inherits(NavbarDropdown, _React$Component);
+	
+	  function NavbarDropdown(props) {
+	    _classCallCheck(this, NavbarDropdown);
+	
+	    var _this = _possibleConstructorReturn(this, (NavbarDropdown.__proto__ || Object.getPrototypeOf(NavbarDropdown)).call(this, props));
+	
+	    _this.toggle = function (event) {
+	      _this.setState({
+	        open: !_this.state.open
+	      });
+	    };
+	
+	    _this.state = {
+	      open: false
+	    };
+	    return _this;
+	  }
+	
+	  _createClass(NavbarDropdown, [{
+	    key: 'render',
+	    value: function render() {
+	      var dropDownClass = (0, _classnames2.default)({
+	        'navbar-dropdown': true,
+	        'navbar-dropdown--open': this.state.open
+	      });
+	
+	      var menuClass = (0, _classnames2.default)({
+	        'navbar-dropdown__menu': true,
+	        'navbar-dropdown__menu--open': this.state.open
+	      });
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: dropDownClass },
+	        _react2.default.createElement(
+	          'span',
+	          { onClick: this.toggle },
+	          'Documentation'
+	        ),
+	        _react2.default.createElement(
+	          'ul',
+	          { className: menuClass },
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'Documentation'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'Company'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'University'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item' },
+	            'Community'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item' },
+	            'What is MongoDB'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
+	            'Download MongoDB'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
+	            'Contact Us'
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return NavbarDropdown;
+	}(_react2.default.Component);
+	
+	exports.default = NavbarDropdown;
+
+/***/ },
+/* 183 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	/*!
+	  Copyright (c) 2016 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+	
+	(function () {
+		'use strict';
+	
+		var hasOwn = {}.hasOwnProperty;
+	
+		function classNames() {
+			var classes = [];
+	
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+	
+				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
+	
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg)) {
+					classes.push(classNames.apply(null, arg));
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+	
+			return classes.join(' ');
+		}
+	
+		if (typeof module !== 'undefined' && module.exports) {
+			module.exports = classNames;
+		} else if ("function" === 'function' && _typeof(__webpack_require__(184)) === 'object' && __webpack_require__(184)) {
+			// register as 'classnames', consistent with npm package name
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+				return classNames;
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else {
+			window.classNames = classNames;
+		}
+	})();
+
+/***/ },
+/* 184 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _SearchChannel = __webpack_require__(186);
 	
 	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
 	
@@ -22078,7 +22261,7 @@
 	exports.default = Search;
 
 /***/ },
-/* 183 */
+/* 186 */
 /***/ function(module, exports) {
 
 	'use strict';

@@ -45,6 +45,9 @@ class Single extends React.Component {
 
         <div className="main">
           <aside className="main__sidebar main__sidebar--single">
+            <div className="main__sidebar__header">
+              MongoDB Manual Sections:
+            </div>
             <ul className="toc">
               { sections }
             </ul>

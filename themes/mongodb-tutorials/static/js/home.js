@@ -64,7 +64,7 @@
 	
 	var _navbar2 = _interopRequireDefault(_navbar);
 	
-	var _tutorialList = __webpack_require__(188);
+	var _tutorialList = __webpack_require__(189);
 	
 	var _tutorialList2 = _interopRequireDefault(_tutorialList);
 	
@@ -22481,7 +22481,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _search = __webpack_require__(186);
+	var _navbarDropdown = __webpack_require__(186);
+	
+	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
+	
+	var _search = __webpack_require__(187);
 	
 	var _search2 = _interopRequireDefault(_search);
 	
@@ -22500,15 +22504,7 @@
 	        _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
 	      ),
 	      _react2.default.createElement('span', { className: 'navbar-seperator' }),
-	      _react2.default.createElement(
-	        'div',
-	        { className: 'navbar-dropdown' },
-	        _react2.default.createElement(
-	          'span',
-	          null,
-	          'Documentation'
-	        )
-	      )
+	      _react2.default.createElement(_navbarDropdown2.default, null)
 	    ),
 	    _react2.default.createElement(
 	      'div',
@@ -22547,7 +22543,7 @@
 	        { className: 'navbar-download' },
 	        _react2.default.createElement(
 	          'a',
-	          { href: '#', className: 'navbar-download__text' },
+	          { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
 	          'Download MongoDB'
 	        ),
 	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' })
@@ -22575,7 +22571,124 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _SearchChannel = __webpack_require__(187);
+	var _classnames = __webpack_require__(183);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var NavbarDropdown = function (_React$Component) {
+	  _inherits(NavbarDropdown, _React$Component);
+	
+	  function NavbarDropdown(props) {
+	    _classCallCheck(this, NavbarDropdown);
+	
+	    var _this = _possibleConstructorReturn(this, (NavbarDropdown.__proto__ || Object.getPrototypeOf(NavbarDropdown)).call(this, props));
+	
+	    _this.toggle = function (event) {
+	      _this.setState({
+	        open: !_this.state.open
+	      });
+	    };
+	
+	    _this.state = {
+	      open: false
+	    };
+	    return _this;
+	  }
+	
+	  _createClass(NavbarDropdown, [{
+	    key: 'render',
+	    value: function render() {
+	      var dropDownClass = (0, _classnames2.default)({
+	        'navbar-dropdown': true,
+	        'navbar-dropdown--open': this.state.open
+	      });
+	
+	      var menuClass = (0, _classnames2.default)({
+	        'navbar-dropdown__menu': true,
+	        'navbar-dropdown__menu--open': this.state.open
+	      });
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: dropDownClass },
+	        _react2.default.createElement(
+	          'span',
+	          { onClick: this.toggle },
+	          'Documentation'
+	        ),
+	        _react2.default.createElement(
+	          'ul',
+	          { className: menuClass },
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'Documentation'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'Company'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
+	            'University'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item' },
+	            'Community'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item' },
+	            'What is MongoDB'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
+	            'Download MongoDB'
+	          ),
+	          _react2.default.createElement(
+	            'li',
+	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
+	            'Contact Us'
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return NavbarDropdown;
+	}(_react2.default.Component);
+	
+	exports.default = NavbarDropdown;
+
+/***/ },
+/* 187 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _SearchChannel = __webpack_require__(188);
 	
 	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
 	
@@ -22654,7 +22767,7 @@
 	exports.default = Search;
 
 /***/ },
-/* 187 */
+/* 188 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -22738,7 +22851,7 @@
 	exports.default = SearchChannel;
 
 /***/ },
-/* 188 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -22753,7 +22866,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _tutorial = __webpack_require__(189);
+	var _tutorial = __webpack_require__(190);
 	
 	var _tutorial2 = _interopRequireDefault(_tutorial);
 	
@@ -22797,7 +22910,7 @@
 	exports.default = TutorialList;
 
 /***/ },
-/* 189 */
+/* 190 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
