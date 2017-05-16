@@ -2,10 +2,10 @@
 date = "2017-03-13T12:12:50-05:00"
 title = "Connect to MongoDB via the Python Driver"
 
-[tags]
-beginner = "level"
-mongodb = "product"
-python = "language"
+tags = [
+"mongodb",
+"python",
+"beginner" ]
 +++
 
 # Connect to MongoDB via the Python Driver

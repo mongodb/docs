@@ -1,8 +1,10 @@
 +++
 title = "Install MongoDB Community Edition on Ubuntu"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Install MongoDB Community Edition on Ubuntu

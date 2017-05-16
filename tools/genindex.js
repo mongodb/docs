@@ -148,15 +148,6 @@ function processFile(path) {
     searchDoc.body = searchDoc.body.join(' ')
     searchIndex.idx.add(searchDoc)
 
-    let tags = []
-
-    for (const tag of Object.keys(headmatter.tags)) {
-      tags.push({
-        facet: headmatter.tags[tag],
-        name: tag,
-      })
-    }
-
     return {
         html: html,
         headmatterSource: match[0],
@@ -164,7 +155,7 @@ function processFile(path) {
             url: headmatter.slug,
             title: headmatter.title,
             snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
-            options: tags,
+            options: headmatter.tags,
         }
     }
 }
@@ -194,10 +185,17 @@ function main() {
         }
 
         doc.headmatter.options.forEach(function(option) {
-          if (tagManifest[option.name] === undefined) {
+          if (tagManifest[option] === undefined) {
             console.error(`Unknown tag "${option}" in ${path}`)
             error = true
           }
+        })
+
+        doc.headmatter.options = doc.headmatter.options.map(option => {
+          // Add the ID from the TOML to the object
+          let tagWithId = tagManifest[option]
+          tagWithId.id = option
+          return tagWithId
         })
 
         tutorials.push(doc.headmatter)
@@ -211,11 +209,10 @@ function main() {
 
     let tags = []
 
-    for (const tag of Object.keys(tagManifest)) {
-      tags.push({
-        facet: tagManifest[tag],
-        name: tag,
-      })
+    for (const tag of Object.keys(tagManifest)) {     
+      let tagWithId = tagManifest[tag]
+      tagWithId.id = tag
+      tags.push(tagWithId)
     }
 
     try {

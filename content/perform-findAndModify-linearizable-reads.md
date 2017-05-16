@@ -1,8 +1,10 @@
 +++
 title = "Linearizable Reads via findAndModify"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"shell",
+"beginner" ]
 +++
 
 <span id="perform-findandmodify-linearizable-reads"></span>

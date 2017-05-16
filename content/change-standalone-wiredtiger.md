@@ -1,8 +1,11 @@
 +++
 title = "Change Standalone to WiredTiger"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Change Standalone to WiredTiger

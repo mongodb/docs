@@ -1,8 +1,11 @@
 +++
 title = "Tiered Hardware for Varying SLA or SLO"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Tiered Hardware for Varying SLA or SLO

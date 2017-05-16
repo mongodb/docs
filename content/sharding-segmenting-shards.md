@@ -1,8 +1,11 @@
 +++
 title = "Segmenting Data by Application or Customer"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Segmenting Data by Application or Customer

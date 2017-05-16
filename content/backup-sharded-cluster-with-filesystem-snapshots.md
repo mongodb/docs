@@ -1,8 +1,11 @@
 +++
 title = "Back Up a Sharded Cluster with File System Snapshots"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Back Up a Sharded Cluster with File System Snapshots

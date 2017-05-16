@@ -1,8 +1,12 @@
 +++
 title = "Enforce Keyfile Access Control in a Replica Set without Downtime"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"security",
+"intermediate" ]
 +++
 
 # Enforce Keyfile Access Control in a Replica Set without Downtime

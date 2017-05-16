@@ -1,8 +1,11 @@
 +++
 title = "Enable Auth"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"security",
+"intermediate" ]
 +++
 
 # Enable Auth

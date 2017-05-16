@@ -82,19 +82,17 @@ class App extends React.Component {
     })
 
     const activeOptions = this.state.options.filter(option => option.active)
-      .map(option => {
-        return { facet: option.facet, name: option.name } // remove active field for stringification
-      })
 
     const tutorialsMatchingFacets = this.state.tutorials.filter(tutorial => {
       let shouldInclude = true // by default show all the tutorials
 
-      activeOptions.map(option => {
-        const stringifiedOptions = tutorial.options.map(option => JSON.stringify(option))
-
-        if (stringifiedOptions.indexOf(JSON.stringify(option)) == -1) {
-          shouldInclude = false
-        }
+      activeOptions.map(activeOption => {
+        // Store each tutorial option ID in array
+        const tutorialOptionIds = tutorial.options.map(tutorialOption => tutorialOption.id)
+          // If an active option ID is not in the array, hide tutorial
+          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
+            shouldInclude = false
+          }
       })
 
       return shouldInclude

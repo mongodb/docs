@@ -1,8 +1,11 @@
 +++
 title = "Clear jumbo Flag"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Clear ``jumbo`` Flag

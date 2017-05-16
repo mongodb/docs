@@ -1,8 +1,11 @@
 +++
 title = "Deploy a Replica Set"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Deploy a Replica Set

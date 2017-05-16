@@ -168,19 +168,18 @@
 	
 	      var activeOptions = this.state.options.filter(function (option) {
 	        return option.active;
-	      }).map(function (option) {
-	        return { facet: option.facet, name: option.name }; // remove active field for stringification
 	      });
 	
 	      var tutorialsMatchingFacets = this.state.tutorials.filter(function (tutorial) {
 	        var shouldInclude = true; // by default show all the tutorials
 	
-	        activeOptions.map(function (option) {
-	          var stringifiedOptions = tutorial.options.map(function (option) {
-	            return JSON.stringify(option);
+	        activeOptions.map(function (activeOption) {
+	          // Store each tutorial option ID in array
+	          var tutorialOptionIds = tutorial.options.map(function (tutorialOption) {
+	            return tutorialOption.id;
 	          });
-	
-	          if (stringifiedOptions.indexOf(JSON.stringify(option)) == -1) {
+	          // If an active option ID is not in the array, hide tutorial
+	          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
 	            shouldInclude = false;
 	          }
 	        });

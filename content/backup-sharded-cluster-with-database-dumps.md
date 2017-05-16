@@ -1,8 +1,11 @@
 +++
 title = "Back Up a Sharded Cluster with Database Dumps"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Back Up a Sharded Cluster with Database Dumps

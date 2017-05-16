@@ -1,8 +1,11 @@
 +++
 title = "Change Config Servers to WiredTiger"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Change Config Servers to WiredTiger
