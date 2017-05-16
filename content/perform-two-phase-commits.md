@@ -1,8 +1,10 @@
 +++
 title = "Perform Two Phase Commits"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"shell",
+"intermediate" ]
 +++
 
 # Perform Two Phase Commits

@@ -1,8 +1,11 @@
 +++
 title = "Restore a Sharded Cluster"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Restore a Sharded Cluster

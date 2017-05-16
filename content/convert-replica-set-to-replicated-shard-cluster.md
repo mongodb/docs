@@ -1,8 +1,12 @@
 +++
 title = "Convert a Replica Set to a Sharded Cluster"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"sharding",
+"intermediate" ]
 +++
 
 # Convert a Replica Set to a Sharded Cluster

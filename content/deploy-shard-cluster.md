@@ -1,8 +1,11 @@
 +++
 title = "Deploy a Sharded Cluster"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"intermediate" ]
 +++
 
 <span id="sharding-procedure-setup"></span>

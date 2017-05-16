@@ -1,8 +1,11 @@
 +++
 title = "Distributed Local Writes for Insert Only Workloads"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"advanced" ]
 +++
 
 # Distributed Local Writes for Insert Only Workloads

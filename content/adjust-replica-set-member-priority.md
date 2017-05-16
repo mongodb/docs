@@ -1,8 +1,11 @@
 +++
 title = "Adjust Priority for Replica Set Member"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"beginner" ]
 +++
 
 # Adjust Priority for Replica Set Member

@@ -1,8 +1,7 @@
 +++
 title = "Change Your Password and Custom Data"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb-enterprise", "administration", "beginner" ]
 +++
 
 # Change Your Password and Custom Data

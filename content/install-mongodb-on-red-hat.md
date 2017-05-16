@@ -1,8 +1,10 @@
 +++
 title = "Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"beginner" ]
 +++
 
 # Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux

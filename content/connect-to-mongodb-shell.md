@@ -2,10 +2,10 @@
 date = "2017-03-13T12:12:50-05:00"
 title = "Connect to MongoDB via Mongo Shell"
 
-[tags]
-beginner = "level"
-mongodb = "product"
-shell = "language"
+tags = [
+"mongodb",
+"shell",
+"beginner" ]
 +++
 
 # Connect to MongoDB via Mongo Shell

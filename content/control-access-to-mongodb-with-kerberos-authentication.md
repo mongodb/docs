@@ -1,8 +1,7 @@
 +++
 title = "Configure MongoDB with Kerberos Authentication on Linux"
 
-[tags]
-mongodb = "product"
+tags = [ "mongodb", "administration", "security", "advanced" ]
 +++
 
 # Configure MongoDB with Kerberos Authentication on Linux

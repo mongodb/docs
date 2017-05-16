@@ -1,8 +1,11 @@
 +++
 title = "Replace a Config Server"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"sharding",
+"intermediate" ]
 +++
 
 # Replace a Config Server

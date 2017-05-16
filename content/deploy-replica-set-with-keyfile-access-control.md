@@ -1,8 +1,12 @@
 +++
 title = "Deploy Replica Set With Keyfile Access Control"
 
-[tags]
-mongodb = "product"
+tags = [
+"mongodb",
+"administration",
+"replication",
+"security",
+"intermediate" ]
 +++
 
 <span id="deploy-repl-set-with-keyfile"></span><span id="deploy-repl-set-with-auth"></span>
