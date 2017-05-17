@@ -1,5 +1,8 @@
-The Atlas :abbr:`CIDR (Classless Inter-Domain Routing)` block must be a
-``/21`` in one of the following 
+|service| uses the specified :abbr:`CIDR (Classless Inter-Domain Routing)`
+block for all other VPC peering connections created in the group.
+
+The Atlas :abbr:`CIDR (Classless Inter-Domain Routing)` block must be at least
+a ``/24`` and at most a ``/21`` in one of the following 
 `private networks <https://tools.ietf.org/html/rfc1918#section-3>`_.
 
 - ``10.0.0.0/8``
@@ -7,3 +10,24 @@ The Atlas :abbr:`CIDR (Classless Inter-Domain Routing)` block must be a
 - ``172.16.0.0/12``
 
 - ``192.168.0.0/16``
+
+|service| locks this value if an ``M10+`` cluster or a VPC peering connection
+already exists. To modify the :abbr:`CIDR (Classless Inter-Domain Routing)`
+block, ensure there are no ``M10+`` clusters in the group *and* no other VPC
+peering connections in the group. Alternatively, :ref:`create a new group
+<atlas-create-atlas-group>` and create a VPC Peering Connection to set the
+desired |service| VPC :abbr:`CIDR (Classless Inter-Domain Routing)` block for
+that group.
+
+.. important::
+
+   |service| limits the number of MongoDB nodes per VPC based on the
+   :abbr:`CIDR (Classless Inter-Domain Routing)` block and the region selected
+   for the group. For example, a group in an AWS region supporting 3
+   availability zones and a |service| 
+   :abbr:`CIDR (Classless Inter-Domain Routing)` VPC block of ``/24`` is 
+   limited to the equivalent of 27 3-node replica sets.
+   
+   Contact `MongoDB Support 
+   <https://www.mongodb.com/contact?jmp=atlas%20docs>`_ 
+   for any questions on |service| limits of MongoDB nodes per VPC.
