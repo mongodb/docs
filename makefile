@@ -8,7 +8,7 @@ PRODUCTION_URL="https://docs.atlas.mongodb.com"
 PRODUCTION_BUCKET=docs-atlas-prod
 PREFIX=
 
-.PHONY: help stage fake-deploy deploy
+.PHONY: help stage fake-deploy deploy publish
 
 help:
 	@echo 'Targets'
@@ -27,6 +27,9 @@ html:
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+
+publish:
+	giza make publish
 
 fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --all-subdirectories  ${ARGS}
