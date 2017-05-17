@@ -1,3 +1,13 @@
+.. _monitoring-5.4.5.370:
+
+Monitoring Agent ``5.4.5.370``
+------------------------------
+
+*Released with Ops Manager 3.4.5 on 2017-05-18*
+
+- Tolerate no config.settings document present without printing error
+  message.
+
 .. _monitoring-5.4.4.366:
 
 Monitoring Agent ``5.4.4.366``
