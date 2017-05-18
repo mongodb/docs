@@ -19,7 +19,7 @@ const lunr = require('lunr')
 const marked = require('marked')
 
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
-const SNIPPET_LENGTH = 175
+const SNIPPET_LENGTH = 220
 
 function escape(html, encode) {
   return html
@@ -68,6 +68,21 @@ function makeRenderer() {
     }
 
     return renderer
+}
+
+// Creates a renderer to render HTML without headings for snippets and
+// make the removed headings available (for the searchDoc)
+function makeHeadingRemover() {
+  const renderer = new marked.Renderer()
+  let headings = []
+  
+  renderer.heading = function(text, level, raw) {
+    headings.push(text)
+    return ''
+  }
+
+  renderer.headings = headings
+  return renderer
 }
 
 // Recursively step through an object and replace any numbers with a number
@@ -133,19 +148,27 @@ function processFile(path) {
       headmatter.slug = '/' + pathModule.parse(path).name
     }
 
+    const renderer = makeRenderer()
+    const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
+    
+    const headingRemover = makeHeadingRemover()
+    const htmlNoHeadings = marked(rawdata.slice(match[0].length), { renderer: headingRemover })
+    // Remove HTML tags, quotation mark entities, and single quote entities
+    const paragraphText = htmlNoHeadings.replace(/<(?:.|\n)*?>/gm, '')
+        .replace(/&quot;/g, '\"')
+        .replace(/&#39;/g, '\'')
+
     const searchDoc = {
         id: searchIndex.docId,
         title: headmatter.title,
-        tags: Object.keys(headmatter.tags),
-        minorTitles: [],
-        body: []
+        tags: headmatter.tags,
+        minorTitles: headingRemover.headings,
+        body: paragraphText
     }
+
     searchIndex.docId += 1
     searchIndex.slugs.push(headmatter.slug)
 
-    const renderer = makeRenderer()
-    const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
-    searchDoc.body = searchDoc.body.join(' ')
     searchIndex.idx.add(searchDoc)
 
     return {
@@ -154,7 +177,7 @@ function processFile(path) {
         headmatter: {
             url: headmatter.slug,
             title: headmatter.title,
-            snippet: searchDoc.body.substring(0, SNIPPET_LENGTH),
+            snippet: paragraphText.substring(0, SNIPPET_LENGTH) + '...',
             options: headmatter.tags,
         }
     }
