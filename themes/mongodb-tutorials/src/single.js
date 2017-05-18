@@ -7,21 +7,12 @@ const baseURL = window.__baseURL__
 
 function setupCopyButtons() {
   const copyableBlocks = document.getElementsByClassName('highlight')
-  for (const copyBlock of copyableBlocks) {
-    // const highlightElement = copyBlock.getElementsByClassName('highlight')[0]
-    // if (!highlightElement) {
-    //   return
-    // }
-    const highlightElement = copyBlock
-
+  for (const highlightElement of copyableBlocks) {
     const text = highlightElement.innerText.trim()
     const copyButtonContainer = document.createElement('div')
     const copyButton = document.createElement('button')
-    const copyIcon = document.createElement('span')
     copyButtonContainer.className = 'copy-button-container'
-    copyIcon.className = 'fa fa-clipboard'
     copyButton.className = 'copy-button'
-    copyButton.appendChild(copyIcon)
     copyButton.appendChild(document.createTextNode('Copy'))
     copyButtonContainer.appendChild(copyButton)
     highlightElement.insertBefore(copyButtonContainer, highlightElement.children[0])
@@ -54,6 +45,10 @@ class Single extends React.Component {
       searchResults: null,
       sections: this._getSections(),
     }
+  }
+
+  componentDidMount() {
+    setupCopyButtons()
   }
 
   _getSections () {
@@ -101,6 +96,3 @@ class Single extends React.Component {
 }
 
 ReactDOM.render(<Single />, document.getElementById('root'))
-document.addEventListener('DOMContentLoaded', function() {
-  setupCopyButtons()
-})

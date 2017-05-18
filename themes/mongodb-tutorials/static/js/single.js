@@ -78,22 +78,13 @@
 	
 	  try {
 	    var _loop = function _loop() {
-	      var copyBlock = _step.value;
-	
-	      // const highlightElement = copyBlock.getElementsByClassName('highlight')[0]
-	      // if (!highlightElement) {
-	      //   return
-	      // }
-	      var highlightElement = copyBlock;
+	      var highlightElement = _step.value;
 	
 	      var text = highlightElement.innerText.trim();
 	      var copyButtonContainer = document.createElement('div');
 	      var copyButton = document.createElement('button');
-	      var copyIcon = document.createElement('span');
 	      copyButtonContainer.className = 'copy-button-container';
-	      copyIcon.className = 'fa fa-clipboard';
 	      copyButton.className = 'copy-button';
-	      copyButton.appendChild(copyIcon);
 	      copyButton.appendChild(document.createTextNode('Copy'));
 	      copyButtonContainer.appendChild(copyButton);
 	      highlightElement.insertBefore(copyButtonContainer, highlightElement.children[0]);
@@ -156,6 +147,11 @@
 	  }
 	
 	  _createClass(Single, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      setupCopyButtons();
+	    }
+	  }, {
 	    key: '_getSections',
 	    value: function _getSections() {
 	      var sectionElements = document.querySelectorAll('.single h2');
@@ -215,9 +211,6 @@
 	}(_react2.default.Component);
 	
 	_reactDom2.default.render(_react2.default.createElement(Single, null), document.getElementById('root'));
-	document.addEventListener('DOMContentLoaded', function () {
-	  setupCopyButtons();
-	});
 
 /***/ }),
 /* 1 */
