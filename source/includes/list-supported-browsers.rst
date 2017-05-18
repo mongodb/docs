@@ -21,7 +21,3 @@
      - latest stable version on MacOS 10.10.5 and later
 
 |onprem| displays a warning on non-supported browsers. 
-
-.. note::
-   |onprem| does not display a warning for the 
-   `Blackberry Access <https://us.blackberry.com/enterprise/mobility-applications/blackberry-access>`_ web browser.
