@@ -175,6 +175,10 @@ function main() {
     } catch (error) {}
 
     for (const path of walk(sourceContentDir)) {
+        if (pathModule.extname(path) !== '.md') {
+            continue
+        }
+
         let doc
         try {
             doc = processFile(path)
@@ -209,7 +213,7 @@ function main() {
 
     let tags = []
 
-    for (const tag of Object.keys(tagManifest)) {     
+    for (const tag of Object.keys(tagManifest)) {
       let tagWithId = tagManifest[tag]
       tagWithId.id = tag
       tags.push(tagWithId)
