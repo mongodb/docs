@@ -164,7 +164,12 @@ function main() {
     const args = docopt.docopt(__doc__)
     const tutorials = []
     const config = toml.parse(fs.readFileSync(args['--config']))
-    const tagManifest = config.tags || {}
+    const tagManifest = config.tags || []
+    const tagIndexes = new Map()
+    const tagMap = new Map(tagManifest.map((tag, index) => {
+        tagIndexes.set(tag.id, index)
+        return [tag.id, tag]
+    }))
     let error = false
 
     const sourceContentDir = config.sourceContentDir.replace(/\/$/, '')
@@ -185,17 +190,18 @@ function main() {
         }
 
         doc.headmatter.options.forEach(function(option) {
-          if (tagManifest[option] === undefined) {
+          if (!tagMap.has(option)) {
             console.error(`Unknown tag "${option}" in ${path}`)
             error = true
           }
         })
 
-        doc.headmatter.options = doc.headmatter.options.map(option => {
-          // Add the ID from the TOML to the object
-          let tagWithId = tagManifest[option]
-          tagWithId.id = option
-          return tagWithId
+        // Add facet and title information
+        doc.headmatter.options = doc.headmatter.options.map(option => tagMap.get(option))
+
+        // Ensure that tags have a consistent order defined by the config file
+        doc.headmatter.options.sort((a, b) => {
+            return tagIndexes.get(a.id) - tagIndexes.get(b.id)
         })
 
         tutorials.push(doc.headmatter)
@@ -209,7 +215,7 @@ function main() {
 
     let tags = []
 
-    for (const tag of Object.keys(tagManifest)) {     
+    for (const tag of Object.keys(tagManifest)) {
       let tagWithId = tagManifest[tag]
       tagWithId.id = tag
       tags.push(tagWithId)
