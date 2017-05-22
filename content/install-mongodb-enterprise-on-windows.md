@@ -94,8 +94,8 @@ MongoDB component sets, you can specify them in the ``ADDLOCAL`` argument
 using a comma-separated list including one or more of the following
 component sets:
 
+| Component Set | Binaries |
 | - | - | - |
-| **Component Set** | **Binaries** |
 | ``Server`` | ``mongod.exe`` |
 | ``Router`` | ``mongos.exe`` |
 | ``Client`` | ``mongo.exe`` |

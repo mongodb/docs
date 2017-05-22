@@ -22,6 +22,7 @@ This installation guide only supports 64-bit systems. See [Platform Support](htt
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
+| Package Name | Description |
 | - | - | - |
 | ``mongodb-enterprise`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
 | ``mongodb-enterprise-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |

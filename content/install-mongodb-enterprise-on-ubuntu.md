@@ -26,6 +26,7 @@ corruption, and are unsuitable for production deployments of MongoDB
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
+| Package Name | Description |
 | - | - | - |
 | ``mongodb-enterprise`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
 | ``mongodb-enterprise-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
