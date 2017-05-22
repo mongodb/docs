@@ -84,7 +84,6 @@ html_title = conf.project.title
 htmlhelp_basename = 'MongoDB'
 
 html_logo = ".static/logo-mongodb.png"
-html_static_path = sconf.paths.static
 
 html_copy_source = False
 html_use_smartypants = True
@@ -94,7 +93,6 @@ html_split_index = False
 html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
-html_add_permalinks = None
 
 
 html_theme_options = {

@@ -50,7 +50,7 @@ deploy: build/public/${GIT_BRANCH}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}"
 
-migrate: 
+migrate: get-assets
 	@echo "Making target source directory"
 	if [ -d ${TARGET_DIR} ]; then rm -rf ${TARGET_DIR} ; fi;
 	mkdir ${TARGET_DIR}
@@ -58,5 +58,9 @@ migrate:
 	
 	@echo "Copying over mongoid doc files"
 	cp -r build/mongoid-master/docs/* ${TARGET_DIR}/
-	cp -r build/mongoid-master/docs/mongoid.txt ${TARGET_DIR}/index.txt
 
+# This gets the docs-tools and the mongoid docs from the mongoid repo.
+# the assets are defined in the config/build_conf.yaml
+
+get-assets:
+	giza generate assets
