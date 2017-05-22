@@ -2,7 +2,11 @@ MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
 
 .. list-table::
+   :header-rows: 1
    :widths: 25 75
+
+   * - Package Name
+     - Description
 
    * - ``mongodb-enterprise``
      - A ``metapackage`` that will automatically install
