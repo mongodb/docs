@@ -16,7 +16,7 @@ To build the documentation locally,
 
      git clone git@github.com:10gen/docs-mongoid.git
      cd docs-mongoid/
-     giza make html
+     make html
 
 Contribute
 ----------
