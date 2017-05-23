@@ -61,9 +61,26 @@ Backup Agent ``5.0.3.465``
 - Added support for all data-format affecting MongoDB configuration
   options: ``directoryPerDB``, ``smallfiles``, etc.
 
+.. _backup-3.9.1.382-2.0.9:
+
+Backup Agent ``3.9.1.382``
+--------------------------
+
+*Released with Ops Manager 2.0.9 on 2017-05-23*
+
+- Fix: Add a flush method to DigestOutputStream to avoid timeouts.
+
+- Fix: Some deleteIndex oplog entries not supported during initial sync.
+
+- Fix: FileSystemStorejobRunner thread gets killed if exception is
+  thrown while getting the Job.
+
+- Fix: Failure to create collection if the mongod being backed up is
+  configured with encryption.
+
 .. _backup-3.9.1.382:
 
-Backup Agent ``3.9.0.336``
+Backup Agent ``3.9.1.382``
 --------------------------
 
 *Released with Ops Manager 2.0.4 on 2016-05-20*
