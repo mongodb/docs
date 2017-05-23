@@ -36,8 +36,8 @@ stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy: build/public/${GIT_BRANCH} 
-	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose  --all-subdirectories ${ARGS}
+fake-deploy: build/public/${GIT_BRANCH}
+	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
 
 deploy: build/public/${GIT_BRANCH} check-redirects
