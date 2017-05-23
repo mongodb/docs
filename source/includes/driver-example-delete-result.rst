@@ -55,3 +55,11 @@
          :ruby-api:`Mongo::Operation::Result<Operation/Result.html>`, whose
          ``deleted_count`` attribute contains the number of documents
          that matched the filter.
+
+     - id: scala
+       content: |
+         Upon successful execution, the
+         :scala-api:`collection.deleteMany()<deleteMany(filter:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.DeleteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.DeleteResult]>` method
+         returns an Observable with a single element with a 
+         ``DeleteResult`` type parameter or with an 
+         ``com.mongodb.MongoException``.

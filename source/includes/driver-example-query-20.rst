@@ -73,3 +73,12 @@
             :dedent: 6
             :start-after: Start Example 20
             :end-before: End Example 20
+
+     - id: scala
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+            :language: scala
+            :dedent: 4
+            :start-after: Start Example 20
+            :end-before: End Example 20
