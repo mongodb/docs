@@ -4,7 +4,7 @@ URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=landing
 
-.PHONY: help stage fake-deploy build-temp lint
+.PHONY: help stage fake-deploy build-temp lint build
 
 CSS_ERRORS=errors,empty-rules,duplicate-properties,selector-max-approaching
 CSS_WARNINGS=regex-selectors,unqualified-attributes,text-indent
@@ -41,6 +41,20 @@ build-temp: style.min.css header.js
 	rm -rf $@
 	mkdir $@
 	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/
+
+build: style.min.css header.js
+	# Clean build directory
+	rm -rf $@
+	# Create output directories
+	mkdir -p $@/landing
+	mkdir -p $@/cloud
+	mkdir -p $@/tools
+	# Copy CSS and JS files to output directories
+	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/landing
+	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/cloud
+	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/tools
+	# Run the script to generate each landing page
+	python ./gen_landings.py $@
 
 # Don't grab node_modules unless we have to
 style.min.css: normalize.css style.css header.css
