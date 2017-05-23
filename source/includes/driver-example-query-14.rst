@@ -65,6 +65,7 @@
             :start-after: Start Example 14
             :end-before: End Example 14
 
+<<<<<<< HEAD
      - id: ruby
        content: |
          .. class:: copyable-code
@@ -73,3 +74,13 @@
             :dedent: 6
             :start-after: Start Example 14
             :end-before: End Example 14
+=======
+     - id: scala
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+            :language: scala
+            :dedent: 4
+            :start-after: Start Example 14
+            :end-before: End Example 14
+>>>>>>> (DOCSP-608): Adding Scala to CRUD as tabbed interface.

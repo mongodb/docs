@@ -69,3 +69,12 @@
          `MongoDB Ruby Driver <https://docs.mongodb.com/ruby-driver/master/>`_.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
+
+     - id: scala
+       content: |
+         This page provides examples of |query_operations| using the
+         :scala-api:`collection.find()<find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>` method
+         in the
+         `MongoDB Scala Driver <http://mongodb.github.io/mongo-scala-driver/>`_.
+         The examples on this page use the ``inventory`` collection. To
+         populate the ``inventory`` collection, run the following:
