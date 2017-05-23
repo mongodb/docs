@@ -26,6 +26,19 @@ gulp.task('sass:build', function() {
     .pipe(gulp.dest('./static/css/'))
 })
 
+gulp.task('sass:build-navbar', function() {
+  gulp.src('./src/styles/navbar.scss')
+    .pipe(rename({suffix: '.min'}))
+    .pipe(plumber())
+    .pipe(sourcemaps.init())
+    .pipe(sass({
+      outputStyle: 'compressed',
+    }))
+    .pipe(autoprefixer())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('./static/css/'))
+})
+
 gulp.task('sass', ['sass:lint', 'sass:build'])
 
 gulp.task('js:build-home', function() {
@@ -56,6 +69,29 @@ gulp.task('js:build-single', function() {
     .pipe(webpack({
       output: {
         filename: 'single.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
+gulp.task('js:build-navbar', function() {
+  gulp.src('./src/navbar-docs.js')
+    .pipe(webpack({
+      output: {
+        filename: 'navbar-docs.js'
       },
       devtool: 'source-maps',
       module: {

@@ -22484,13 +22484,11 @@
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
 	
-	var _search = __webpack_require__(187);
-	
-	var _search2 = _interopRequireDefault(_search);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var Navbar = function Navbar(props) {
+	  var assetsPrefix = props.assetsPrefix || '';
+	
 	  return _react2.default.createElement(
 	    'nav',
 	    { className: 'navbar' },
@@ -22500,7 +22498,7 @@
 	      _react2.default.createElement(
 	        'a',
 	        { href: props.baseURL },
-	        _react2.default.createElement('img', { src: props.baseURL + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
+	        _react2.default.createElement('img', { src: props.baseURL + assetsPrefix + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
 	      ),
 	      _react2.default.createElement('span', { className: 'navbar-seperator' }),
 	      _react2.default.createElement(_navbarDropdown2.default, null)
@@ -22513,7 +22511,7 @@
 	        { className: 'navbar-links' },
 	        _react2.default.createElement(
 	          'a',
-	          { href: '#', className: 'navbar-links__item' },
+	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
 	          'Server'
 	        ),
 	        _react2.default.createElement(
@@ -22533,7 +22531,7 @@
 	        ),
 	        _react2.default.createElement(
 	          'a',
-	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
+	          { href: '#', className: 'navbar-links__item' },
 	          'Tutorials'
 	        )
 	      ),
@@ -22545,9 +22543,9 @@
 	          { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
 	          'Download MongoDB'
 	        ),
-	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + '/images/download-icon.svg', alt: 'Download Icon' })
+	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + assetsPrefix + '/images/download-icon.svg', alt: 'Download Icon' })
 	      ),
-	      _react2.default.createElement(_search2.default, { baseURL: props.baseURL, onResults: props.onResults })
+	      props.children
 	    )
 	  );
 	};
@@ -22573,6 +22571,14 @@
 	var _classnames = __webpack_require__(183);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	var _menu = __webpack_require__(187);
+	
+	var _menu2 = _interopRequireDefault(_menu);
+	
+	var _submenu = __webpack_require__(188);
+	
+	var _submenu2 = _interopRequireDefault(_submenu);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22612,7 +22618,8 @@
 	
 	      var menuClass = (0, _classnames2.default)({
 	        'navbar-dropdown__menu': true,
-	        'navbar-dropdown__menu--open': this.state.open
+	        'navbar-dropdown__menu--hidden': !this.state.open,
+	        'navbar-dropdown__menu--shown': this.state.open
 	      });
 	
 	      return _react2.default.createElement(
@@ -22624,42 +22631,150 @@
 	          'Documentation'
 	        ),
 	        _react2.default.createElement(
-	          'ul',
+	          'div',
 	          { className: menuClass },
 	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
-	            'Documentation'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
-	            'Company'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--menu' },
-	            'University'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item' },
-	            'Community'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item' },
-	            'What is MongoDB'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
-	            'Download MongoDB'
-	          ),
-	          _react2.default.createElement(
-	            'li',
-	            { className: 'navbar-dropdown__menu__item navbar-dropdown__menu__item--secondary' },
-	            'Contact Us'
+	            _menu2.default,
+	            null,
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item' },
+	              _react2.default.createElement(
+	                _submenu2.default,
+	                { title: 'Documentation' },
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item' },
+	                  'Server'
+	                ),
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item' },
+	                  _react2.default.createElement(
+	                    _submenu2.default,
+	                    { title: 'Drivers' },
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'C'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'C++11'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'C#'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Java'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Node.js'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Perl'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'PHP'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Python'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Motor'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Ruby'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'Scala'
+	                    )
+	                  )
+	                ),
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item submenu__item--nested' },
+	                  _react2.default.createElement(
+	                    _submenu2.default,
+	                    { title: 'Cloud' },
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'MongoDB Atlas'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'MongoDB Cloud Manager'
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      'MongoDB Ops Manager'
+	                    )
+	                  )
+	                ),
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item submenu__item--nested' },
+	                  'Tools'
+	                ),
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item' },
+	                  'Tutorials'
+	                )
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item' },
+	              'Company'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item' },
+	              'University'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item' },
+	              'Community'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item' },
+	              'What is MongoDB'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item menu__item--secondary' },
+	              'Download MongoDB'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              { className: 'menu__item menu__item--secondary' },
+	              'Contact Us'
+	            )
 	          )
 	        )
 	      );
@@ -22675,6 +22790,32 @@
 /* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Menu = function Menu(props) {
+	  return _react2.default.createElement(
+	    "ul",
+	    { className: "menu" },
+	    props.children
+	  );
+	};
+	
+	exports.default = Menu;
+
+/***/ },
+/* 188 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -22687,9 +22828,9 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _SearchChannel = __webpack_require__(188);
+	var _classnames = __webpack_require__(183);
 	
-	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
+	var _classnames2 = _interopRequireDefault(_classnames);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22699,155 +22840,61 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var Search = function (_React$Component) {
-	  _inherits(Search, _React$Component);
+	var Submenu = function (_React$Component) {
+	  _inherits(Submenu, _React$Component);
 	
-	  function Search(props) {
-	    _classCallCheck(this, Search);
+	  function Submenu(props) {
+	    _classCallCheck(this, Submenu);
 	
-	    var _this = _possibleConstructorReturn(this, (Search.__proto__ || Object.getPrototypeOf(Search)).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Submenu.__proto__ || Object.getPrototypeOf(Submenu)).call(this, props));
 	
-	    _this.onInput = function (event) {
+	    _this.toggle = function (event) {
 	      _this.setState({
-	        searchText: event.target.value
+	        open: !_this.state.open
 	      });
-	
-	      if (_this.state.timeout !== -1) {
-	        clearTimeout(_this.state.timeout);
-	      }
-	
-	      _this.setState({ timeout: _this.state.timeout = setTimeout(function () {
-	          _this.state.searcher.search(_this.state.searchText);
-	        }, 250) });
 	    };
 	
 	    _this.state = {
-	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
-	      timeout: -1,
-	      loaded: false,
-	      searchText: ''
+	      open: false
 	    };
-	
-	    _this.state.searcher.load().then(function () {
-	      _this.setState({ loaded: true });
-	    }).catch(function (err) {
-	      return console.error(err);
-	    });
-	
-	    _this.state.searcher.onresults = props.onResults;
 	    return _this;
 	  }
 	
-	  _createClass(Search, [{
+	  _createClass(Submenu, [{
 	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement('input', { type: 'search',
-	        className: 'navbar-search',
-	        placeholder: this.placeholder,
-	        value: this.state.searchText,
-	        disabled: !this.state.searcher.loaded,
-	        onInput: this.onInput
+	      var titleClass = (0, _classnames2.default)({
+	        'submenu__title': true,
+	        'submenu__title--open': this.state.open
 	      });
-	    }
-	  }, {
-	    key: 'placeholder',
-	    get: function get() {
-	      if (!this.state.searcher.loaded) {
-	        return 'Loading...';
-	      }
 	
-	      return 'Search';
+	      var submenuClass = (0, _classnames2.default)({
+	        'submenu': true,
+	        'submenu--hidden': !this.state.open,
+	        'submenu--shown': this.state.open
+	      });
+	
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'span',
+	          { className: titleClass, onClick: this.toggle },
+	          this.props.title
+	        ),
+	        _react2.default.createElement(
+	          'ul',
+	          { className: submenuClass },
+	          this.props.children
+	        )
+	      );
 	    }
 	  }]);
 	
-	  return Search;
+	  return Submenu;
 	}(_react2.default.Component);
 	
-	exports.default = Search;
-
-/***/ },
-/* 188 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var SearchChannel = function () {
-	  function SearchChannel(baseURL, url) {
-	    var _this = this;
-	
-	    _classCallCheck(this, SearchChannel);
-	
-	    this.worker = new Worker(baseURL + '/worker-search.js');
-	
-	    this.pending = null;
-	    this.busy = false;
-	
-	    this.loaded = false;
-	    this.loadingTime = null;
-	    this.loadWaiter = new Promise(function (resolve) {
-	      _this.worker.onmessage = function (ev) {
-	        if (ev.data.loaded) {
-	          _this.loaded = true;
-	          _this.loadingTime = ev.data.loaded;
-	          return resolve(_this.loadingTime);
-	        }
-	
-	        if (ev.data.results) {
-	          _this.onresults(ev.data.results);
-	        }
-	
-	        _this.busy = false;
-	        if (_this.pending !== null) {
-	          _this.search(_this.pending);
-	        }
-	      };
-	    });
-	
-	    this.worker.postMessage({ 'load': baseURL + url });
-	    this.onresults = function (results) {};
-	  }
-	
-	  _createClass(SearchChannel, [{
-	    key: 'search',
-	    value: function search(query) {
-	      if (!this.busy) {
-	        if (!query) {
-	          this.onresults([]);
-	        } else {
-	          this.worker.postMessage({ 'search': query });
-	        }
-	        this.pending = null;
-	        this.busy = true;
-	      } else {
-	        this.pending = query;
-	      }
-	    }
-	  }, {
-	    key: 'load',
-	    value: function load() {
-	      var _this2 = this;
-	
-	      if (this.loadingTime !== null) {
-	        return new Promise(function (resolve, reject) {
-	          return resolve(_this2.loadingTime);
-	        });
-	      }
-	      return this.loadWaiter;
-	    }
-	  }]);
-	
-	  return SearchChannel;
-	}();
-	
-	exports.default = SearchChannel;
+	exports.default = Submenu;
 
 /***/ },
 /* 189 */
