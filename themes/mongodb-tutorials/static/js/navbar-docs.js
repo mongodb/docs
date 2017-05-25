@@ -56,21 +56,9 @@
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _menu = __webpack_require__(181);
-	
-	var _menu2 = _interopRequireDefault(_menu);
-	
-	var _navbar = __webpack_require__(182);
+	var _navbar = __webpack_require__(181);
 	
 	var _navbar2 = _interopRequireDefault(_navbar);
-	
-	var _search = __webpack_require__(187);
-	
-	var _search2 = _interopRequireDefault(_search);
-	
-	var _submenu = __webpack_require__(186);
-	
-	var _submenu2 = _interopRequireDefault(_submenu);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -80,153 +68,32 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var baseURL = window.__baseURL__;
+	var baseURL = 'http://localhost:8000';
 	
-	function setupCopyButtons() {
-	  var copyableBlocks = document.getElementsByClassName('highlight');
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	var NavbarDocs = function (_React$Component) {
+	  _inherits(NavbarDocs, _React$Component);
 	
-	  try {
-	    var _loop = function _loop() {
-	      var highlightElement = _step.value;
+	  function NavbarDocs(props) {
+	    _classCallCheck(this, NavbarDocs);
 	
-	      var text = highlightElement.innerText.trim();
-	      var copyButtonContainer = document.createElement('div');
-	      var copyButton = document.createElement('button');
-	      copyButtonContainer.className = 'copy-button-container';
-	      copyButton.className = 'copy-button';
-	      copyButton.appendChild(document.createTextNode('Copy'));
-	      copyButtonContainer.appendChild(copyButton);
-	      highlightElement.insertBefore(copyButtonContainer, highlightElement.children[0]);
-	      copyButton.addEventListener('click', function () {
-	        var tempElement = document.createElement('textarea');
-	        document.body.appendChild(tempElement);
-	        tempElement.value = text;
-	        tempElement.select();
-	
-	        try {
-	          var successful = document.execCommand('copy');
-	          if (!successful) {
-	            throw new Error('Failed to copy');
-	          }
-	        } catch (err) {
-	          console.error('Failed to copy');
-	          console.error(err);
-	        }
-	
-	        document.body.removeChild(tempElement);
-	      });
-	    };
-	
-	    for (var _iterator = copyableBlocks[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      _loop();
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator.return) {
-	        _iterator.return();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
-	  }
-	}
-	
-	var Single = function (_React$Component) {
-	  _inherits(Single, _React$Component);
-	
-	  function Single(props) {
-	    _classCallCheck(this, Single);
-	
-	    var _this = _possibleConstructorReturn(this, (Single.__proto__ || Object.getPrototypeOf(Single)).call(this, props));
-	
-	    _this.onResults = function (results) {
-	      _this.setState({ searchResults: results });
-	    };
-	
-	    _this.state = {
-	      searchResults: null,
-	      sections: _this._getSections()
-	    };
-	    return _this;
+	    return _possibleConstructorReturn(this, (NavbarDocs.__proto__ || Object.getPrototypeOf(NavbarDocs)).call(this, props));
 	  }
 	
-	  _createClass(Single, [{
-	    key: 'componentDidMount',
-	    value: function componentDidMount() {
-	      setupCopyButtons();
-	    }
-	  }, {
-	    key: '_getSections',
-	    value: function _getSections() {
-	      var sectionElements = document.querySelectorAll('.single h2');
-	      var sections = [];
-	
-	      sectionElements.forEach(function (el) {
-	        sections.push({
-	          name: el.innerHTML,
-	          link: '#' + el.id
-	        });
-	      });
-	
-	      return sections;
-	    }
-	  }, {
+	  _createClass(NavbarDocs, [{
 	    key: 'render',
 	    value: function render() {
-	      var sections = this._getSections().map(function (section, i) {
-	        return _react2.default.createElement(
-	          'li',
-	          { key: i, className: 'menu__item' },
-	          _react2.default.createElement(
-	            'a',
-	            { href: section.link, className: 'menu__link' },
-	            section.name
-	          )
-	        );
-	      });
-	
 	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	          _navbar2.default,
-	          { baseURL: baseURL },
-	          _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults })
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'main' },
-	          _react2.default.createElement(
-	            'aside',
-	            { className: 'main__sidebar main__sidebar--single' },
-	            _react2.default.createElement(
-	              'div',
-	              { className: 'main__sidebar__header' },
-	              'MongoDB Manual Sections:'
-	            ),
-	            _react2.default.createElement(
-	              _menu2.default,
-	              null,
-	              sections
-	            )
-	          )
-	        )
+	        _navbar2.default,
+	        { baseURL: baseURL, assetsPrefix: '/_static' },
+	        _react2.default.createElement('input', { type: 'search', className: 'navbar-search', placeholder: 'Search' })
 	      );
 	    }
 	  }]);
 	
-	  return Single;
+	  return NavbarDocs;
 	}(_react2.default.Component);
 	
-	_reactDom2.default.render(_react2.default.createElement(Single, null), document.getElementById('root'));
+	_reactDom2.default.render(_react2.default.createElement(NavbarDocs, null), document.getElementById('navbar-docs'));
 
 /***/ },
 /* 1 */
@@ -21978,32 +21845,6 @@
 /* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Menu = function Menu(props) {
-	  return _react2.default.createElement(
-	    "ul",
-	    { className: "menu" },
-	    props.children
-	  );
-	};
-	
-	exports.default = Menu;
-
-/***/ },
-/* 182 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -22014,7 +21855,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _navbarDropdown = __webpack_require__(183);
+	var _navbarDropdown = __webpack_require__(182);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
 	
@@ -22087,7 +21928,7 @@
 	exports.default = Navbar;
 
 /***/ },
-/* 183 */
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -22102,11 +21943,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(184);
+	var _classnames = __webpack_require__(183);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
-	var _menu = __webpack_require__(181);
+	var _menu = __webpack_require__(185);
 	
 	var _menu2 = _interopRequireDefault(_menu);
 	
@@ -22321,7 +22162,7 @@
 	exports.default = NavbarDropdown;
 
 /***/ },
-/* 184 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -22367,7 +22208,7 @@
 	
 		if (typeof module !== 'undefined' && module.exports) {
 			module.exports = classNames;
-		} else if ("function" === 'function' && _typeof(__webpack_require__(185)) === 'object' && __webpack_require__(185)) {
+		} else if ("function" === 'function' && _typeof(__webpack_require__(184)) === 'object' && __webpack_require__(184)) {
 			// register as 'classnames', consistent with npm package name
 			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
 				return classNames;
@@ -22378,12 +22219,38 @@
 	})();
 
 /***/ },
-/* 185 */
+/* 184 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Menu = function Menu(props) {
+	  return _react2.default.createElement(
+	    "ul",
+	    { className: "menu" },
+	    props.children
+	  );
+	};
+	
+	exports.default = Menu;
 
 /***/ },
 /* 186 */
@@ -22401,7 +22268,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(184);
+	var _classnames = __webpack_require__(183);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -22469,184 +22336,6 @@
 	
 	exports.default = Submenu;
 
-/***/ },
-/* 187 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _SearchChannel = __webpack_require__(188);
-	
-	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Search = function (_React$Component) {
-	  _inherits(Search, _React$Component);
-	
-	  function Search(props) {
-	    _classCallCheck(this, Search);
-	
-	    var _this = _possibleConstructorReturn(this, (Search.__proto__ || Object.getPrototypeOf(Search)).call(this, props));
-	
-	    _this.onInput = function (event) {
-	      _this.setState({
-	        searchText: event.target.value
-	      });
-	
-	      if (_this.state.timeout !== -1) {
-	        clearTimeout(_this.state.timeout);
-	      }
-	
-	      _this.setState({ timeout: _this.state.timeout = setTimeout(function () {
-	          _this.state.searcher.search(_this.state.searchText);
-	        }, 250) });
-	    };
-	
-	    _this.state = {
-	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
-	      timeout: -1,
-	      loaded: false,
-	      searchText: ''
-	    };
-	
-	    _this.state.searcher.load().then(function () {
-	      _this.setState({ loaded: true });
-	    }).catch(function (err) {
-	      return console.error(err);
-	    });
-	
-	    _this.state.searcher.onresults = props.onResults;
-	    return _this;
-	  }
-	
-	  _createClass(Search, [{
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement('input', { type: 'search',
-	        className: 'navbar-search',
-	        placeholder: this.placeholder,
-	        value: this.state.searchText,
-	        disabled: !this.state.searcher.loaded,
-	        onInput: this.onInput
-	      });
-	    }
-	  }, {
-	    key: 'placeholder',
-	    get: function get() {
-	      if (!this.state.searcher.loaded) {
-	        return 'Loading...';
-	      }
-	
-	      return 'Search';
-	    }
-	  }]);
-	
-	  return Search;
-	}(_react2.default.Component);
-	
-	exports.default = Search;
-
-/***/ },
-/* 188 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var SearchChannel = function () {
-	  function SearchChannel(baseURL, url) {
-	    var _this = this;
-	
-	    _classCallCheck(this, SearchChannel);
-	
-	    this.worker = new Worker(baseURL + '/worker-search.js');
-	
-	    this.pending = null;
-	    this.busy = false;
-	
-	    this.loaded = false;
-	    this.loadingTime = null;
-	    this.loadWaiter = new Promise(function (resolve) {
-	      _this.worker.onmessage = function (ev) {
-	        if (ev.data.loaded) {
-	          _this.loaded = true;
-	          _this.loadingTime = ev.data.loaded;
-	          return resolve(_this.loadingTime);
-	        }
-	
-	        if (ev.data.results) {
-	          _this.onresults(ev.data.results);
-	        }
-	
-	        _this.busy = false;
-	        if (_this.pending !== null) {
-	          _this.search(_this.pending);
-	        }
-	      };
-	    });
-	
-	    this.worker.postMessage({ 'load': baseURL + url });
-	    this.onresults = function (results) {};
-	  }
-	
-	  _createClass(SearchChannel, [{
-	    key: 'search',
-	    value: function search(query) {
-	      if (!this.busy) {
-	        if (!query) {
-	          this.onresults([]);
-	        } else {
-	          this.worker.postMessage({ 'search': query });
-	        }
-	        this.pending = null;
-	        this.busy = true;
-	      } else {
-	        this.pending = query;
-	      }
-	    }
-	  }, {
-	    key: 'load',
-	    value: function load() {
-	      var _this2 = this;
-	
-	      if (this.loadingTime !== null) {
-	        return new Promise(function (resolve, reject) {
-	          return resolve(_this2.loadingTime);
-	        });
-	      }
-	      return this.loadWaiter;
-	    }
-	  }]);
-	
-	  return SearchChannel;
-	}();
-	
-	exports.default = SearchChannel;
-
 /***/ }
 /******/ ]);
-//# sourceMappingURL=single.js.map
+//# sourceMappingURL=navbar-docs.js.map
