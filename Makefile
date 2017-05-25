@@ -12,6 +12,8 @@ PRODUCTION_BUCKET=docs-ruby-driver
 PREFIX=mongoid
 TARGET_DIR=source-${GIT_BRANCH}
 
+SOURCE_FILE_DIR=build/mongoid-master
+
 .PHONY: help stage fake-deploy deploy api-docs get-assets migrate
 
 help:
@@ -38,7 +40,7 @@ publish: migrate
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc build/mongoid-master/ --readme build/mongoid-master/README.md -o build/public/${GIT_BRANCH}/api/
+	yard doc ${SOURCE_FILE_DIR}   --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
@@ -68,7 +70,7 @@ api-docs:
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc build/mongoid-master/ --readme build/mongoid-master/README.md -o build/public/${GIT_BRANCH}/api/
+	yard doc ${SOURCE_FILE_DIR}   --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 
 
 migrate: get-assets
@@ -78,7 +80,7 @@ migrate: get-assets
 	
 	
 	@echo "Copying over mongoid doc files"
-	cp -r build/mongoid-master/docs/* ${TARGET_DIR}/
+	cp -r ${SOURCE_FILE_DIR}/docs/* ${TARGET_DIR}/
 
 # This gets the docs-tools and the mongoid docs from the mongoid repo.
 # the assets are defined in the config/build_conf.yaml
