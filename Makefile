@@ -38,7 +38,7 @@ publish: migrate
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc build/mongoid-master/ -o build/public/${GIT_BRANCH}/api/
+	yard doc build/mongoid-master/ --readme build/mongoid-master/README.md -o build/public/${GIT_BRANCH}/api/
 
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
@@ -68,7 +68,7 @@ api-docs:
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc build/mongoid-master/ -o build/public/${GIT_BRANCH}/api/
+	yard doc build/mongoid-master/ --readme build/mongoid-master/README.md -o build/public/${GIT_BRANCH}/api/
 
 
 migrate: get-assets
