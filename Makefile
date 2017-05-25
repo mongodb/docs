@@ -12,7 +12,7 @@ PRODUCTION_BUCKET=docs-ruby-driver
 PREFIX=mongoid
 TARGET_DIR=source-${GIT_BRANCH}
 
-.PHONY: help stage fake-deploy deploy
+.PHONY: help stage fake-deploy deploy api-docs get-assets migrate
 
 help:
 	@echo 'Targets'
@@ -27,28 +27,49 @@ help:
 html: migrate
 	giza make html
 
-## Migrate the files from the driver repo and publish
+## Migrate the files from the driver repo and build the dirhtml for publishing
+## In course of building, will use yard to build API docs (takes a while)
+# you must install yard
+# generate the api docs from the mongoid project and output to the build dir
 
 publish: migrate 
 	giza make publish
+	@echo "Making api  directory in /build/public/${GIT_BRANCH}"
+	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
+	mkdir build/public/${GIT_BRANCH}/api
+
+	yard doc build/mongoid-master/ -o build/public/${GIT_BRANCH}/api/
 
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy: build/public/${GIT_BRANCH}
-	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose  --all-subdirectories ${ARGS}
+fake-deploy: build/public/${GIT_BRANCH} 
+	mut-publish build/public ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
 
-deploy: build/public/${GIT_BRANCH}
+deploy: build/public/${GIT_BRANCH} 
 	@echo "Doing a dry-run"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories --redirects build/public/.htaccess --dry-run ${ARGS}
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous upload to ${PRODUCTION_BUCKET}"
-	mut-publish build/public/${GIT_BRANCH} ${PRODUCTION_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose --all-subdirectories  --redirects build/public/.htaccess ${ARGS}
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}"
+
+# in case you want to just generate the api-docs
+# generate the api docs
+# you must install yard
+# generate the api docs from the mongoid project and output to the build dir
+
+api-docs:
+	@echo "Making api  directory in /build/public/${GIT_BRANCH}"
+	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
+	mkdir build/public/${GIT_BRANCH}/api
+
+	yard doc build/mongoid-master/ -o build/public/${GIT_BRANCH}/api/
+
 
 migrate: get-assets
 	@echo "Making target source directory"
