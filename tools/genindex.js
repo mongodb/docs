@@ -77,12 +77,75 @@ function makeHeadingRemover() {
   let headings = []
   
   renderer.heading = function(text, level, raw) {
-    headings.push(text)
+    headings.push({'text': text, 'level': level})
     return ''
   }
 
   renderer.headings = headings
   return renderer
+}
+
+function getHeadingLink(heading) {
+  return '<a class="toc__link" href="#' + heading.text.replace(/\s|\.+/g, '-').replace(/\:/g, '').toLowerCase() + '">'
+          + heading.text + '</a>'
+}
+
+function generateTOC(headings) {
+
+  // TODO generate ToC on react for cleaner implementation later
+  // Initial ToC HTML
+  let toc='<div class="main">' +
+          '<aside class="main__sidebar main__sidebar--single">'
+          + '<div class="main__sidebar__header">Table of Contents:</div>'
+          + '<ul class="toc">'
+
+  // Used to keep track of heading levels
+  let previousLevel = 0
+  let currentLevel = 0
+
+  // Remove h1 and any headers deeper than h5
+  headings = headings.filter(heading => {
+    if(heading.level == 1 || heading.level > 5) {
+      return false
+    } else {
+      return true
+    }
+  })
+  
+  headings.map(heading => {
+    currentLevel = heading.level
+
+    // First element add the list item
+    if(previousLevel == 0) {
+      toc += '<li class="toc__item">' + getHeadingLink(heading)
+      previousLevel = currentLevel
+
+    // If same level, close previous li and open a new one
+    } else if (currentLevel == previousLevel) {
+      toc += '</li><li class="toc__item">' + getHeadingLink(heading)
+
+    // If deeper level, open up a new list and add list item
+    } else if (currentLevel > previousLevel) {
+      toc += '<ul class="toc__nestedlist"><li class="toc__item">' + getHeadingLink(heading)
+      previousLevel = currentLevel
+
+    // If higher level in tree
+    } else if(currentLevel < previousLevel) {
+      // Calculate the number of levels to terminate (li and list)
+      let depth = previousLevel - currentLevel
+      for(let i = 0; i < depth; i++) {
+        toc += '</li></ul>'
+      }
+      // Add item to the appropriate level
+      toc += '<li class="toc__item">' + getHeadingLink(heading)
+      previousLevel = currentLevel
+    }
+  })
+
+  // Post generated html
+  toc += '</li></ul></aside></div>'
+  //toc += '</li></ul></aside>'
+  return toc
 }
 
 // Recursively step through an object and replace any numbers with a number
@@ -162,7 +225,7 @@ function processFile(path) {
         id: searchIndex.docId,
         title: headmatter.title,
         tags: headmatter.tags,
-        minorTitles: headingRemover.headings,
+        minorTitles: headingRemover.headings.map(function(heading) {return heading.text}),
         body: paragraphText
     }
 
@@ -171,8 +234,10 @@ function processFile(path) {
 
     searchIndex.idx.add(searchDoc)
 
+    const nav = generateTOC(headingRemover.headings)
+
     return {
-        html: html,
+        html: nav + '<div class="main__content main__content--single">' + html + "</div>",
         headmatterSource: match[0],
         headmatter: {
             url: headmatter.slug,
