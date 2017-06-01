@@ -144,7 +144,6 @@ function generateTOC(headings) {
 
   // Post generated html
   toc += '</li></ul></aside></div>'
-  //toc += '</li></ul></aside>'
   return toc
 }
 
