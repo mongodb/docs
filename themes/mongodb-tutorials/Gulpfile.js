@@ -110,6 +110,29 @@ gulp.task('js:build-navbar', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
+gulp.task('js:build-navbar-landing', function() {
+  gulp.src('./src/navbar-landing.js')
+    .pipe(webpack({
+      output: {
+        filename: 'navbar-landing.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
 gulp.task('js', ['js:build-home', 'js:build-single'])
 
 gulp.task('watch', function() {
