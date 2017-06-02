@@ -37,32 +37,29 @@ deploy: build-temp
 
 	@echo "Deployed"
 
-build-temp: style.min.css header.js
+build-temp: style.min.css
 	rm -rf $@
 	mkdir $@
-	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/
+	cp -p index.html mongodb-logo.png style.min.css *webfont* $@/
 
-build: style.min.css header.js
+build: style.min.css
 	# Clean build directory
 	rm -rf $@
 	# Create output directories
-	mkdir -p $@/landing
+	mkdir -p $@/home
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
 	# Copy CSS and JS files to output directories
-	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/landing
-	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/cloud
-	cp -p index.html mongodb-logo.png style.min.css header.js *webfont* $@/tools
+	cp -r src/js static/images static/fonts static/css static/js $@/home
+	cp -r src/js static/images static/fonts static/css static/js $@/cloud
+	cp -r src/js static/images static/fonts static/css static/js $@/tools
 	# Run the script to generate each landing page
 	python ./gen_landings.py $@
 
 # Don't grab node_modules unless we have to
-style.min.css: normalize.css style.css header.css
-	$(MAKE) node_modules lint
-	./node_modules/.bin/cleancss --skip-rebase --semantic-merging -o $@ $^
-
-lint: | node_modules
-	./node_modules/.bin/csslint --quiet --format=compact --errors=$(ERRORS) --warnings=$(CSS_WARNINGS) style.css
+style.min.css: src/sass/style.scss
+	$(MAKE) node_modules
+	./node_modules/.bin/node-sass $^ | ./node_modules/.bin/cleancss --skip-rebase --semantic-merging -o ./static/css/$@
 
 node_modules:
 	npm update
