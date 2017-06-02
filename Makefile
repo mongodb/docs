@@ -50,9 +50,9 @@ build: style.min.css
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
 	# Copy CSS and JS files to output directories
-	cp -r src/js static/images static/fonts static/css static/js $@/home
-	cp -r src/js static/images static/fonts static/css static/js $@/cloud
-	cp -r src/js static/images static/fonts static/css static/js $@/tools
+	cp -r static/images static/fonts static/css static/js $@/home
+	cp -r static/images static/fonts static/css static/js $@/cloud
+	cp -r static/images static/fonts static/css static/js $@/tools
 	# Run the script to generate each landing page
 	python ./gen_landings.py $@
 
