@@ -94,8 +94,7 @@ function generateTOC(headings) {
 
   // TODO generate ToC on react for cleaner implementation later
   // Initial ToC HTML
-  let toc='<div class="main">' +
-          '<aside class="main__sidebar main__sidebar--single">'
+  let toc='<aside class="main__sidebar main__sidebar--single">'
           + '<div class="main__sidebar__header">Table of Contents:</div>'
           + '<ul class="toc">'
 
@@ -104,19 +103,13 @@ function generateTOC(headings) {
   let currentLevel = 0
 
   // Remove h1 and any headers deeper than h5
-  headings = headings.filter(heading => {
-    if(heading.level == 1 || heading.level > 5) {
-      return false
-    } else {
-      return true
-    }
-  })
+  headings = headings.filter(h => !(h.level == 1 || h.level > 5))
   
   headings.map(heading => {
     currentLevel = heading.level
 
     // First element add the list item
-    if(previousLevel == 0) {
+    if (previousLevel == 0) {
       toc += '<li class="toc__item">' + getHeadingLink(heading)
       previousLevel = currentLevel
 
@@ -126,11 +119,18 @@ function generateTOC(headings) {
 
     // If deeper level, open up a new list and add list item
     } else if (currentLevel > previousLevel) {
-      toc += '<ul class="toc__nestedlist"><li class="toc__item">' + getHeadingLink(heading)
+      // Add 'toc__link--nested' class to the link, so that we know there is stuff inside of it
+      let arr = toc.split('toc__link')
+      const lastLink = arr[arr.length - 1]
+      const newLastLink = " toc__link--nested" + lastLink
+      arr[arr.length - 1] = newLastLink
+      toc = arr.join('toc__link')
+
+      toc += '<ul class="toc__nestedlist DOM-slider-hidden"><li class="toc__item">' + getHeadingLink(heading)
       previousLevel = currentLevel
 
     // If higher level in tree
-    } else if(currentLevel < previousLevel) {
+    } else if (currentLevel < previousLevel) {
       // Calculate the number of levels to terminate (li and list)
       let depth = previousLevel - currentLevel
       for(let i = 0; i < depth; i++) {
@@ -143,7 +143,7 @@ function generateTOC(headings) {
   })
 
   // Post generated html
-  toc += '</li></ul></aside></div>'
+  toc += '</li></ul></aside>'
   return toc
 }
 
@@ -236,7 +236,7 @@ function processFile(path) {
     const nav = generateTOC(headingRemover.headings)
 
     return {
-        html: nav + '<div class="main__content main__content--single">' + html + "</div>",
+        html: nav + '<div class="main__content main__content--single single">' + html + "</div>",
         headmatterSource: match[0],
         headmatter: {
             url: headmatter.slug,
