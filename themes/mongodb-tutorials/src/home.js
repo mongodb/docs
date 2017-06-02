@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
 import Navbar from './navbar.js'
+import Search from './search.js'
 import TutorialList from './tutorialList.js'
 
 const baseURL = window.__baseURL__
@@ -108,7 +109,9 @@ class App extends React.Component {
 
     return (
       <div>
-        <Navbar baseURL={baseURL} onResults={this.onResults} />
+        <Navbar baseURL={baseURL}>
+          <Search baseURL={baseURL} onResults={this.onResults} />
+        </Navbar>
 
         <div className="main">
           <aside className="main__sidebar">

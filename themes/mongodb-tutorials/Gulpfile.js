@@ -133,7 +133,59 @@ gulp.task('js:build-navbar-landing', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
+gulp.task('js:build-landing-sidebar', function() {
+  gulp.src('./src/landing.js')
+    .pipe(webpack({
+      output: {
+        filename: 'landing-sidebar.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
+gulp.task('js:build-landing-list', function() {
+  gulp.src('./src/landing-list.js')
+    .pipe(webpack({
+      output: {
+        filename: 'landing-list.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
 gulp.task('js', ['js:build-home', 'js:build-single'])
+
+gulp.task('js:landing', [
+  'js:build-navbar-landing',
+  'js:build-landing-sidebar',
+  'js:build-landing-list',
+])
 
 gulp.task('watch', function() {
   gulp.watch('./src/styles/**/*.scss', ['sass'])
