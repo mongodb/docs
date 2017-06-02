@@ -101,11 +101,16 @@ function generateTOC(headings) {
   // Used to keep track of heading levels
   let previousLevel = 0
   let currentLevel = 0
+  let lastLevelIsNested = false;
 
   // Remove h1 and any headers deeper than h5
   headings = headings.filter(h => !(h.level == 1 || h.level > 5))
   
-  headings.map(heading => {
+  headings.map((heading, i) => {
+    if (i == headings.length - 1 && heading.level == 3) {
+      lastLevelIsNested = true
+    }
+
     currentLevel = heading.level
 
     // First element add the list item
@@ -137,10 +142,14 @@ function generateTOC(headings) {
         toc += '</li></ul>'
       }
       // Add item to the appropriate level
-      toc += '<li class="toc__item">' + getHeadingLink(heading)
+      toc += '</li><li class="toc__item">' + getHeadingLink(heading)
       previousLevel = currentLevel
     }
   })
+
+  if (lastLevelIsNested) {
+    toc += '</li></ul>'
+  }
 
   // Post generated html
   toc += '</li></ul></aside>'
