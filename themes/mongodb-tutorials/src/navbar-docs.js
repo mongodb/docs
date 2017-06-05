@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 
 import Navbar from './navbar.js'
 
-const baseURL = 'http://localhost:8000'
+const baseURL = 'http://docs-mongodb-org-staging.s3-website-us-east-1.amazonaws.com/redesign'
 
 class NavbarDocs extends React.Component {
   constructor (props) {
@@ -40,20 +40,20 @@ class NavbarDocs extends React.Component {
 
   render () {
     const links = [{
-      url: "https://docs.mongodb.com/manual/",
+      url: "/redesign/manual/",
       text: "Server",
       active: true,
     }, {
-      url: "https://docs.mongodb.com/ecosystem/drivers/",
+      url: "/redesign/ecosystem/drivers/",
       text: "Drivers",
     }, {
-      url: "https://docs.mongodb.com/cloud/",
+      url: "/redesign/cloud/",
       text: "Cloud",
     }, {
-      url: "https://docs.mongodb.com/tools",
+      url: "/redesign/tools",
       text: "Tools",
     }, {
-      url: "https://docs.mongodb.com/tutorials/",
+      url: "/redesign/tutorials/",
       text: "Tutorials",
     }];
 

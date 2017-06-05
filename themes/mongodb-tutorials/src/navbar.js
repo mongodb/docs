@@ -18,7 +18,7 @@ const Navbar = (props) => {
   return (
     <nav className="navbar">
       <div className="navbar__left">
-        <a href={ props.baseURL } >
+        <a href="/redesign/">
           <img src={ props.baseURL + assetsPrefix + '/images/mongodb-logo.svg' } className="navbar-brand" alt="MongoDB Logo" />
         </a>
 

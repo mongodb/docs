@@ -42,7 +42,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -56,9 +56,9 @@
 	  _util2.default.setupList();
 	})();
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -174,9 +174,9 @@
 	
 	exports.default = utils;
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 	// Array.isArray polyfill and Array.from polyfill
@@ -332,9 +332,9 @@
 	    printStyles();
 	})();
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 	
@@ -399,6 +399,6 @@
 	  if (this.has(className)) this.remove(className);else this.add(className);
 	};
 
-/***/ }
+/***/ })
 /******/ ]);
 //# sourceMappingURL=landing-list.js.map

@@ -83,19 +83,20 @@
 	    key: 'render',
 	    value: function render() {
 	      var links = [{
-	        url: "manual/",
+	        url: "/redesign/manual/",
 	        text: "Server"
 	      }, {
-	        url: "ecosystem/drivers/",
+	        url: "/redesign/ecosystem/drivers/",
 	        text: "Drivers"
 	      }, {
-	        url: "cloud/",
+	        url: "/redesign/cloud/",
 	        text: "Cloud"
 	      }, {
-	        url: "tools/",
-	        text: "Tools"
+	        url: "/redesign/tools/",
+	        text: "Tools",
+	        active: true
 	      }, {
-	        url: "tutorials/",
+	        url: "/redesign/tutorials/",
 	        text: "Tutorials"
 	      }];
 	
@@ -22470,4 +22471,4 @@
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=navbar-landing.js.map
+//# sourceMappingURL=navbar-tools.js.map

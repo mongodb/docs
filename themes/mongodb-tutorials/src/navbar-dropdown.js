@@ -39,7 +39,7 @@ class NavbarDropdown extends React.Component {
             <li className="menu__item">
               <Submenu title="Documentation">
                 <li className="submenu__item">
-                  <a href="https://docs.mongodb.com/manual/">Server</a>
+                  <a href="/redesign/manual/">Server</a>
                 </li>
                 <li className="submenu__item">
                   <Submenu title="Drivers">
@@ -50,7 +50,7 @@ class NavbarDropdown extends React.Component {
                       <a href="https://mongodb.github.io/mongo-cxx-driver/">C++11</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/csharp/">C#</a>
+                      <a href="/redesign/ecosystem/drivers/csharp/">C#</a>
                     </li>
                     <li className="submenu__item">
                       <a href="http://mongodb.github.io/mongo-java-driver/">Java</a>
@@ -59,19 +59,19 @@ class NavbarDropdown extends React.Component {
                       <a href="https://mongodb.github.io/node-mongodb-native/">Node.js</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/perl/">Perl</a>
+                      <a href="/redesign/ecosystem/drivers/perl/">Perl</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/php/">PHP</a>
+                      <a href="/redesign/ecosystem/drivers/php/">PHP</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/python/">Python</a>
+                      <a href="/redesign/ecosystem/drivers/python/">Python</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ruby-driver/master/">Ruby</a>
+                      <a href="/redesign/ruby-driver/master/">Ruby</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/scala/">Scala</a>
+                      <a href="/redesign/ecosystem/drivers/scala/">Scala</a>
                     </li>
                   </Submenu>
                 </li>
@@ -89,10 +89,10 @@ class NavbarDropdown extends React.Component {
                   </Submenu>
                 </li>
                 <li className="submenu__item submenu__item--nested">
-                  <a href="/tools">Tools</a>
+                  <a href="/redesign/tools/">Tools</a>
                 </li>
                 <li className="submenu__item">
-                  <a href="/tutorials">Tutorials</a>
+                  <a href="/redesign/tutorials/">Tutorials</a>
                 </li>
               </Submenu>
             </li>

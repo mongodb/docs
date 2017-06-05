@@ -131,19 +131,19 @@ class App extends React.Component {
     }
 
     const links = [{
-      url: "https://docs.mongodb.com/manual/",
+      url: "/redesign/manual/",
       text: "Server",
     }, {
-      url: "https://docs.mongodb.com/ecosystem/drivers/",
+      url: "/redesign/ecosystem/drivers/",
       text: "Drivers",
     }, {
-      url: "https://docs.mongodb.com/cloud/",
+      url: "/redesign/cloud/",
       text: "Cloud",
     }, {
-      url: "https://docs.mongodb.com/tools",
+      url: "/redesign/tools",
       text: "Tools",
     }, {
-      url: "https://docs.mongodb.com/tutorials/",
+      url: "/redesign/tutorials/",
       text: "Tutorials",
       active: true,
     }];
