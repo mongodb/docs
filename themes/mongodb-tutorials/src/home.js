@@ -166,6 +166,7 @@ class App extends React.Component {
           </aside>
 
           <div className="main__content">
+            <input className="tutorial-search" placeholder="Search Tutorials" />
             <h1 className="main__title">Tutorials</h1>
             <TutorialList tutorials={ tutorials } baseURL={baseURL} />
           </div>

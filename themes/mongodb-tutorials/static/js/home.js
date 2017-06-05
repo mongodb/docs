@@ -286,6 +286,7 @@
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'main__content' },
+	            _react2.default.createElement('input', { className: 'tutorial-search', placeholder: 'Search Tutorials' }),
 	            _react2.default.createElement(
 	              'h1',
 	              { className: 'main__title' },
