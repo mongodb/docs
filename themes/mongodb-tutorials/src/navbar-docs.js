@@ -39,8 +39,26 @@ class NavbarDocs extends React.Component {
   }
 
   render () {
+    const links = [{
+      url: "https://docs.mongodb.com/manual/",
+      text: "Server",
+      active: true,
+    }, {
+      url: "https://docs.mongodb.com/ecosystem/drivers/",
+      text: "Drivers",
+    }, {
+      url: "https://docs.mongodb.com/cloud/",
+      text: "Cloud",
+    }, {
+      url: "https://docs.mongodb.com/tools",
+      text: "Tools",
+    }, {
+      url: "https://docs.mongodb.com/tutorials/",
+      text: "Tutorials",
+    }];
+
     return (
-      <Navbar baseURL={baseURL} assetsPrefix="/_static">
+      <Navbar baseURL={baseURL} assetsPrefix="/_static" links={links}>
         <div className="navbar-search">
           <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl="http://docs.mongodb.com/manual/search/" data-queryParameterName="query"></div>
         </div>

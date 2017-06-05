@@ -5,6 +5,7 @@ import Facet from './facet.js'
 import Navbar from './navbar.js'
 import Search from './search.js'
 import TutorialList from './tutorialList.js'
+import elementClass from 'element-class'
 
 const baseURL = window.__baseURL__
 
@@ -32,6 +33,27 @@ class App extends React.Component {
     }).catch((err) => {
       // TODO: do something here
     })
+
+    var cx = '017213726194841070573:WMX6838984';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    gcse.onload = gcse.onreadystatechange = function() {
+      // hack to set a placeholder in google's custom search input
+      var pollInput = window.setInterval(function() {
+        var input = document.querySelector('.gsc-input input.gsc-input')
+
+        if (input) {
+          input.setAttribute('placeholder', "Search Documentation");
+          elementClass(input).add('navbar-search')
+          window.clearInterval(pollInput);
+        }
+      }, 10);
+    };
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
   }
 
   clearFacets () {
@@ -100,6 +122,7 @@ class App extends React.Component {
     })
 
     let tutorials = tutorialsMatchingFacets
+
     if (this.state.searchResults !== null) {
       const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
       tutorials = this.state.searchResults.filter(slug => {
@@ -107,10 +130,28 @@ class App extends React.Component {
       })
     }
 
+    const links = [{
+      url: "https://docs.mongodb.com/manual/",
+      text: "Server",
+    }, {
+      url: "https://docs.mongodb.com/ecosystem/drivers/",
+      text: "Drivers",
+    }, {
+      url: "https://docs.mongodb.com/cloud/",
+      text: "Cloud",
+    }, {
+      url: "https://docs.mongodb.com/tools",
+      text: "Tools",
+    }, {
+      url: "https://docs.mongodb.com/tutorials/",
+      text: "Tutorials",
+      active: true,
+    }];
+
     return (
       <div>
-        <Navbar baseURL={baseURL}>
-          <Search baseURL={baseURL} onResults={this.onResults} />
+        <Navbar baseURL={baseURL} links={links}>
+          <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl="http://docs.mongodb.com/manual/search/" data-queryParameterName="query"></div>
         </Navbar>
 
         <div className="main">

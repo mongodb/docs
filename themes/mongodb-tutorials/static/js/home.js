@@ -72,6 +72,10 @@
 	
 	var _tutorialList2 = _interopRequireDefault(_tutorialList);
 	
+	var _elementClass = __webpack_require__(193);
+	
+	var _elementClass2 = _interopRequireDefault(_elementClass);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -122,6 +126,27 @@
 	      }).catch(function (err) {
 	        // TODO: do something here
 	      });
+	
+	      var cx = '017213726194841070573:WMX6838984';
+	      var gcse = document.createElement('script');
+	      gcse.type = 'text/javascript';
+	      gcse.async = true;
+	      gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+	      gcse.onload = gcse.onreadystatechange = function () {
+	        // hack to set a placeholder in google's custom search input
+	        var pollInput = window.setInterval(function () {
+	          var input = document.querySelector('.gsc-input input.gsc-input');
+	
+	          if (input) {
+	            input.setAttribute('placeholder', "Search Documentation");
+	            (0, _elementClass2.default)(input).add('navbar-search');
+	            window.clearInterval(pollInput);
+	          }
+	        }, 10);
+	      };
+	
+	      var s = document.getElementsByTagName('script')[0];
+	      s.parentNode.insertBefore(gcse, s);
 	    }
 	  }, {
 	    key: 'clearFacets',
@@ -192,6 +217,7 @@
 	      });
 	
 	      var tutorials = tutorialsMatchingFacets;
+	
 	      if (this.state.searchResults !== null) {
 	        var tutorialsSet = new Set(tutorialsMatchingFacets.map(function (tutorial) {
 	          return tutorial.url;
@@ -201,13 +227,31 @@
 	        });
 	      }
 	
+	      var links = [{
+	        url: "https://docs.mongodb.com/manual/",
+	        text: "Server"
+	      }, {
+	        url: "https://docs.mongodb.com/ecosystem/drivers/",
+	        text: "Drivers"
+	      }, {
+	        url: "https://docs.mongodb.com/cloud/",
+	        text: "Cloud"
+	      }, {
+	        url: "https://docs.mongodb.com/tools",
+	        text: "Tools"
+	      }, {
+	        url: "https://docs.mongodb.com/tutorials/",
+	        text: "Tutorials",
+	        active: true
+	      }];
+	
 	      return _react2.default.createElement(
 	        'div',
 	        null,
 	        _react2.default.createElement(
 	          _navbar2.default,
-	          { baseURL: baseURL },
-	          _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults })
+	          { baseURL: baseURL, links: links },
+	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': 'http://docs.mongodb.com/manual/search/', 'data-queryParameterName': 'query' })
 	        ),
 	        _react2.default.createElement(
 	          'div',
@@ -22488,6 +22532,10 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
+	var _classnames = __webpack_require__(183);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
 	var _navbarDropdown = __webpack_require__(186);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
@@ -22496,6 +22544,19 @@
 	
 	var Navbar = function Navbar(props) {
 	  var assetsPrefix = props.assetsPrefix || '';
+	
+	  var links = props.links.map(function (link) {
+	    var linkClass = (0, _classnames2.default)({
+	      'navbar-links__item': true,
+	      'navbar-links__item--active': link.active
+	    });
+	
+	    return _react2.default.createElement(
+	      'a',
+	      { href: link.url, className: linkClass },
+	      link.text
+	    );
+	  });
 	
 	  return _react2.default.createElement(
 	    'nav',
@@ -22517,31 +22578,7 @@
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-links' },
-	        _react2.default.createElement(
-	          'a',
-	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
-	          'Server'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Drivers'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Cloud'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tools'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tutorials'
-	        )
+	        links
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -22653,7 +22690,11 @@
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item' },
-	                  'Server'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: 'https://docs.mongodb.com/manual/' },
+	                    'Server'
+	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
@@ -22664,57 +22705,92 @@
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'http://mongoc.org/libmongoc/current/' },
+	                        'C'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C++11'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://mongodb.github.io/mongo-cxx-driver/' },
+	                        'C++11'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C#'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/csharp/' },
+	                        'C#'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Java'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'http://mongodb.github.io/mongo-java-driver/' },
+	                        'Java'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Node.js'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://mongodb.github.io/node-mongodb-native/' },
+	                        'Node.js'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Perl'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/perl/' },
+	                        'Perl'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'PHP'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/php/' },
+	                        'PHP'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Python'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/python/' },
+	                        'Python'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Motor'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ruby-driver/master/' },
+	                        'Ruby'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Ruby'
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      'Scala'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/scala/' },
+	                        'Scala'
+	                      )
 	                    )
 	                  )
 	                ),
@@ -22727,61 +22803,105 @@
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Atlas'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/cloud/atlas' },
+	                        'MongoDB Atlas'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Cloud Manager'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/cloud/cloud-manager' },
+	                        'MongoDB Cloud Manager'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Ops Manager'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/products/ops-manager' },
+	                        'MongoDB Ops Manager'
+	                      )
 	                    )
 	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item submenu__item--nested' },
-	                  'Tools'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: '/tools' },
+	                    'Tools'
+	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item' },
-	                  'Tutorials'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: '/tutorials' },
+	                    'Tutorials'
+	                  )
 	                )
 	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'Company'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/' },
+	                'Company'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'University'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://university.mongodb.com/' },
+	                'University'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'Community'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/community' },
+	                'Community'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'What is MongoDB'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/what-is-mongodb' },
+	                'What is MongoDB'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item menu__item--secondary' },
-	              'Download MongoDB'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/download-center?jmp=docs' },
+	                'Download MongoDB'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item menu__item--secondary' },
-	              'Contact Us'
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#' },
+	                'Contact Us'
+	              )
 	            )
 	          )
 	        )
@@ -23215,6 +23335,73 @@
 	}(_react2.default.Component);
 	
 	exports.default = Tutorial;
+
+/***/ },
+/* 193 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	module.exports = function (opts) {
+	  return new ElementClass(opts);
+	};
+	
+	function indexOf(arr, prop) {
+	  if (arr.indexOf) return arr.indexOf(prop);
+	  for (var i = 0, len = arr.length; i < len; i++) {
+	    if (arr[i] === prop) return i;
+	  }return -1;
+	}
+	
+	function ElementClass(opts) {
+	  if (!(this instanceof ElementClass)) return new ElementClass(opts);
+	  var self = this;
+	  if (!opts) opts = {};
+	
+	  // similar doing instanceof HTMLElement but works in IE8
+	  if (opts.nodeType) opts = { el: opts };
+	
+	  this.opts = opts;
+	  this.el = opts.el || document.body;
+	  if (_typeof(this.el) !== 'object') this.el = document.querySelector(this.el);
+	}
+	
+	ElementClass.prototype.add = function (className) {
+	  var el = this.el;
+	  if (!el) return;
+	  if (el.className === "") return el.className = className;
+	  var classes = el.className.split(' ');
+	  if (indexOf(classes, className) > -1) return classes;
+	  classes.push(className);
+	  el.className = classes.join(' ');
+	  return classes;
+	};
+	
+	ElementClass.prototype.remove = function (className) {
+	  var el = this.el;
+	  if (!el) return;
+	  if (el.className === "") return;
+	  var classes = el.className.split(' ');
+	  var idx = indexOf(classes, className);
+	  if (idx > -1) classes.splice(idx, 1);
+	  el.className = classes.join(' ');
+	  return classes;
+	};
+	
+	ElementClass.prototype.has = function (className) {
+	  var el = this.el;
+	  if (!el) return;
+	  var classes = el.className.split(' ');
+	  return indexOf(classes, className) > -1;
+	};
+	
+	ElementClass.prototype.toggle = function (className) {
+	  var el = this.el;
+	  if (!el) return;
+	  if (this.has(className)) this.remove(className);else this.add(className);
+	};
 
 /***/ }
 /******/ ]);

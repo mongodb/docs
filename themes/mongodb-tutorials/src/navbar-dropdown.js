@@ -39,44 +39,81 @@ class NavbarDropdown extends React.Component {
             <li className="menu__item">
               <Submenu title="Documentation">
                 <li className="submenu__item">
-                  Server
+                  <a href="https://docs.mongodb.com/manual/">Server</a>
                 </li>
                 <li className="submenu__item">
                   <Submenu title="Drivers">
-                    <li className="submenu__item">C</li>
-                    <li className="submenu__item">C++11</li>
-                    <li className="submenu__item">C#</li>
-                    <li className="submenu__item">Java</li>
-                    <li className="submenu__item">Node.js</li>
-                    <li className="submenu__item">Perl</li>
-                    <li className="submenu__item">PHP</li>
-                    <li className="submenu__item">Python</li>
-                    <li className="submenu__item">Motor</li>
-                    <li className="submenu__item">Ruby</li>
-                    <li className="submenu__item">Scala</li>
+                    <li className="submenu__item">
+                      <a href="http://mongoc.org/libmongoc/current/">C</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://mongodb.github.io/mongo-cxx-driver/">C++11</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/csharp/">C#</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="http://mongodb.github.io/mongo-java-driver/">Java</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://mongodb.github.io/node-mongodb-native/">Node.js</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/perl/">Perl</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/php/">PHP</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/python/">Python</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ruby-driver/master/">Ruby</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/scala/">Scala</a>
+                    </li>
                   </Submenu>
                 </li>
                 <li className="submenu__item submenu__item--nested">
                   <Submenu title="Cloud">
-                    <li className="submenu__item">MongoDB Atlas</li>
-                    <li className="submenu__item">MongoDB Cloud Manager</li>
-                    <li className="submenu__item">MongoDB Ops Manager</li>
+                    <li className="submenu__item">
+                      <a href="https://www.mongodb.com/cloud/atlas">MongoDB Atlas</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://www.mongodb.com/cloud/cloud-manager">MongoDB Cloud Manager</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://www.mongodb.com/products/ops-manager">MongoDB Ops Manager</a>
+                    </li>
                   </Submenu>
                 </li>
                 <li className="submenu__item submenu__item--nested">
-                  Tools
+                  <a href="/tools">Tools</a>
                 </li>
                 <li className="submenu__item">
-                  Tutorials
+                  <a href="/tutorials">Tutorials</a>
                 </li>
               </Submenu>
             </li>
-            <li className="menu__item">Company</li>
-            <li className="menu__item">University</li>
-            <li className="menu__item">Community</li>
-            <li className="menu__item">What is MongoDB</li>
-            <li className="menu__item menu__item--secondary">Download MongoDB</li>
-            <li className="menu__item menu__item--secondary">Contact Us</li>
+            <li className="menu__item">
+              <a href="https://www.mongodb.com/">Company</a>
+            </li>
+            <li className="menu__item">
+              <a href="https://university.mongodb.com/">University</a>
+            </li>
+            <li className="menu__item">
+              <a href="https://www.mongodb.com/community">Community</a>
+            </li>
+            <li className="menu__item">
+              <a href="https://www.mongodb.com/what-is-mongodb">What is MongoDB</a>
+            </li>
+            <li className="menu__item menu__item--secondary">
+              <a href="https://www.mongodb.com/download-center?jmp=docs">Download MongoDB</a>
+            </li>
+            <li className="menu__item menu__item--secondary">
+              <a href="#">Contact Us</a>
+            </li>
           </Menu>
         </div>
       </div>

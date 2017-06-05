@@ -1,9 +1,19 @@
 import React from 'react'
+import classNames from 'classnames'
 
 import NavbarDropdown from './navbar-dropdown.js'
 
 const Navbar = (props) => {
   var assetsPrefix = props.assetsPrefix || '';
+
+  const links = props.links.map(link => {
+    const linkClass = classNames({
+      'navbar-links__item': true,
+      'navbar-links__item--active': link.active,
+    });
+
+    return <a href={ link.url } className={ linkClass }>{ link.text }</a>
+  })
 
   return (
     <nav className="navbar">
@@ -19,11 +29,7 @@ const Navbar = (props) => {
 
       <div className="navbar__right">
         <div className="navbar-links">
-          <a href={ props.baseURL } className="navbar-links__item navbar-links__item--active">Server</a>
-          <a href="#" className="navbar-links__item">Drivers</a>
-          <a href="#" className="navbar-links__item">Cloud</a>
-          <a href="#" className="navbar-links__item">Tools</a>
-          <a href="#" className="navbar-links__item">Tutorials</a>
+          { links }
         </div>
 
         <div className="navbar-download">

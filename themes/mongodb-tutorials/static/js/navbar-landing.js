@@ -68,7 +68,7 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var baseURL = 'http://localhost:8000';
+	var baseURL = 'http://docs-mongodb-org-staging.s3-website-us-east-1.amazonaws.com/redesign';
 	
 	var NavbarDocs = function (_React$Component) {
 	  _inherits(NavbarDocs, _React$Component);
@@ -82,9 +82,26 @@
 	  _createClass(NavbarDocs, [{
 	    key: 'render',
 	    value: function render() {
+	      var links = [{
+	        url: "manual/",
+	        text: "Server"
+	      }, {
+	        url: "ecosystem/drivers/",
+	        text: "Drivers"
+	      }, {
+	        url: "cloud/",
+	        text: "Cloud"
+	      }, {
+	        url: "tools/",
+	        text: "Tools"
+	      }, {
+	        url: "tutorials/",
+	        text: "Tutorials"
+	      }];
+	
 	      return _react2.default.createElement(
 	        _navbar2.default,
-	        { baseURL: baseURL },
+	        { baseURL: baseURL, links: links },
 	        _react2.default.createElement('input', { type: 'search', className: 'navbar-search', placeholder: 'Search' })
 	      );
 	    }
@@ -21855,7 +21872,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _navbarDropdown = __webpack_require__(182);
+	var _classnames = __webpack_require__(182);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	var _navbarDropdown = __webpack_require__(184);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
 	
@@ -21863,6 +21884,19 @@
 	
 	var Navbar = function Navbar(props) {
 	  var assetsPrefix = props.assetsPrefix || '';
+	
+	  var links = props.links.map(function (link) {
+	    var linkClass = (0, _classnames2.default)({
+	      'navbar-links__item': true,
+	      'navbar-links__item--active': link.active
+	    });
+	
+	    return _react2.default.createElement(
+	      'a',
+	      { href: link.url, className: linkClass },
+	      link.text
+	    );
+	  });
 	
 	  return _react2.default.createElement(
 	    'nav',
@@ -21884,31 +21918,7 @@
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-links' },
-	        _react2.default.createElement(
-	          'a',
-	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
-	          'Server'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Drivers'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Cloud'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tools'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tutorials'
-	        )
+	        links
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -21931,6 +21941,71 @@
 /* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	/*!
+	  Copyright (c) 2016 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+	
+	(function () {
+		'use strict';
+	
+		var hasOwn = {}.hasOwnProperty;
+	
+		function classNames() {
+			var classes = [];
+	
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+	
+				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
+	
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg)) {
+					classes.push(classNames.apply(null, arg));
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+	
+			return classes.join(' ');
+		}
+	
+		if (typeof module !== 'undefined' && module.exports) {
+			module.exports = classNames;
+		} else if ("function" === 'function' && _typeof(__webpack_require__(183)) === 'object' && __webpack_require__(183)) {
+			// register as 'classnames', consistent with npm package name
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+				return classNames;
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else {
+			window.classNames = classNames;
+		}
+	})();
+
+/***/ },
+/* 183 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 184 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -21943,7 +22018,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(183);
+	var _classnames = __webpack_require__(182);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -22162,71 +22237,6 @@
 	exports.default = NavbarDropdown;
 
 /***/ },
-/* 183 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	/*!
-	  Copyright (c) 2016 Jed Watson.
-	  Licensed under the MIT License (MIT), see
-	  http://jedwatson.github.io/classnames
-	*/
-	/* global define */
-	
-	(function () {
-		'use strict';
-	
-		var hasOwn = {}.hasOwnProperty;
-	
-		function classNames() {
-			var classes = [];
-	
-			for (var i = 0; i < arguments.length; i++) {
-				var arg = arguments[i];
-				if (!arg) continue;
-	
-				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
-	
-				if (argType === 'string' || argType === 'number') {
-					classes.push(arg);
-				} else if (Array.isArray(arg)) {
-					classes.push(classNames.apply(null, arg));
-				} else if (argType === 'object') {
-					for (var key in arg) {
-						if (hasOwn.call(arg, key) && arg[key]) {
-							classes.push(key);
-						}
-					}
-				}
-			}
-	
-			return classes.join(' ');
-		}
-	
-		if (typeof module !== 'undefined' && module.exports) {
-			module.exports = classNames;
-		} else if ("function" === 'function' && _typeof(__webpack_require__(184)) === 'object' && __webpack_require__(184)) {
-			// register as 'classnames', consistent with npm package name
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
-				return classNames;
-			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else {
-			window.classNames = classNames;
-		}
-	})();
-
-/***/ },
-/* 184 */
-/***/ function(module, exports) {
-
-	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
 /* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -22268,7 +22278,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(183);
+	var _classnames = __webpack_require__(182);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	

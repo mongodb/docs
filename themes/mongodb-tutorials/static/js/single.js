@@ -68,6 +68,10 @@
 	
 	var _util2 = _interopRequireDefault(_util);
 	
+	var _elementClass = __webpack_require__(191);
+	
+	var _elementClass2 = _interopRequireDefault(_elementClass);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -100,19 +104,57 @@
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      _util2.default.setupCopyButtons();
-	      _util2.default.setupSidebar();
+	      // util.setupSidebar()
+	
+	      var cx = '017213726194841070573:WMX6838984';
+	      var gcse = document.createElement('script');
+	      gcse.type = 'text/javascript';
+	      gcse.async = true;
+	      gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+	      gcse.onload = gcse.onreadystatechange = function () {
+	        // hack to set a placeholder in google's custom search input
+	        var pollInput = window.setInterval(function () {
+	          var input = document.querySelector('.gsc-input input.gsc-input');
+	
+	          if (input) {
+	            input.setAttribute('placeholder', "Search Documentation");
+	            (0, _elementClass2.default)(input).add('navbar-search');
+	            window.clearInterval(pollInput);
+	          }
+	        }, 10);
+	      };
+	
+	      var s = document.getElementsByTagName('script')[0];
+	      s.parentNode.insertBefore(gcse, s);
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var links = [{
+	        url: "https://docs.mongodb.com/manual/",
+	        text: "Server"
+	      }, {
+	        url: "https://docs.mongodb.com/ecosystem/drivers/",
+	        text: "Drivers"
+	      }, {
+	        url: "https://docs.mongodb.com/cloud/",
+	        text: "Cloud"
+	      }, {
+	        url: "https://docs.mongodb.com/tools",
+	        text: "Tools"
+	      }, {
+	        url: "https://docs.mongodb.com/tutorials/",
+	        text: "Tutorials",
+	        active: true
+	      }];
 	
 	      return _react2.default.createElement(
 	        'div',
 	        null,
 	        _react2.default.createElement(
 	          _navbar2.default,
-	          { baseURL: baseURL },
-	          _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults })
+	          { baseURL: baseURL, links: links },
+	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': 'http://docs.mongodb.com/manual/search/', 'data-queryParameterName': 'query' })
 	        )
 	      );
 	    }
@@ -21883,7 +21925,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _navbarDropdown = __webpack_require__(182);
+	var _classnames = __webpack_require__(182);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	var _navbarDropdown = __webpack_require__(184);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
 	
@@ -21891,6 +21937,19 @@
 	
 	var Navbar = function Navbar(props) {
 	  var assetsPrefix = props.assetsPrefix || '';
+	
+	  var links = props.links.map(function (link) {
+	    var linkClass = (0, _classnames2.default)({
+	      'navbar-links__item': true,
+	      'navbar-links__item--active': link.active
+	    });
+	
+	    return _react2.default.createElement(
+	      'a',
+	      { href: link.url, className: linkClass },
+	      link.text
+	    );
+	  });
 	
 	  return _react2.default.createElement(
 	    'nav',
@@ -21912,31 +21971,7 @@
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'navbar-links' },
-	        _react2.default.createElement(
-	          'a',
-	          { href: props.baseURL, className: 'navbar-links__item navbar-links__item--active' },
-	          'Server'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Drivers'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Cloud'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tools'
-	        ),
-	        _react2.default.createElement(
-	          'a',
-	          { href: '#', className: 'navbar-links__item' },
-	          'Tutorials'
-	        )
+	        links
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -21959,6 +21994,71 @@
 /* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	/*!
+	  Copyright (c) 2016 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+	
+	(function () {
+		'use strict';
+	
+		var hasOwn = {}.hasOwnProperty;
+	
+		function classNames() {
+			var classes = [];
+	
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+	
+				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
+	
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg)) {
+					classes.push(classNames.apply(null, arg));
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+	
+			return classes.join(' ');
+		}
+	
+		if (typeof module !== 'undefined' && module.exports) {
+			module.exports = classNames;
+		} else if ("function" === 'function' && _typeof(__webpack_require__(183)) === 'object' && __webpack_require__(183)) {
+			// register as 'classnames', consistent with npm package name
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+				return classNames;
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else {
+			window.classNames = classNames;
+		}
+	})();
+
+/***/ },
+/* 183 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 184 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -21971,7 +22071,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(183);
+	var _classnames = __webpack_require__(182);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -22048,7 +22148,11 @@
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item' },
-	                  'Server'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: 'https://docs.mongodb.com/manual/' },
+	                    'Server'
+	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
@@ -22059,57 +22163,92 @@
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'http://mongoc.org/libmongoc/current/' },
+	                        'C'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C++11'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://mongodb.github.io/mongo-cxx-driver/' },
+	                        'C++11'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'C#'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/csharp/' },
+	                        'C#'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Java'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'http://mongodb.github.io/mongo-java-driver/' },
+	                        'Java'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Node.js'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://mongodb.github.io/node-mongodb-native/' },
+	                        'Node.js'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Perl'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/perl/' },
+	                        'Perl'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'PHP'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/php/' },
+	                        'PHP'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Python'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/python/' },
+	                        'Python'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Motor'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ruby-driver/master/' },
+	                        'Ruby'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'Ruby'
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      'Scala'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/scala/' },
+	                        'Scala'
+	                      )
 	                    )
 	                  )
 	                ),
@@ -22122,61 +22261,105 @@
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Atlas'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/cloud/atlas' },
+	                        'MongoDB Atlas'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Cloud Manager'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/cloud/cloud-manager' },
+	                        'MongoDB Cloud Manager'
+	                      )
 	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
-	                      'MongoDB Ops Manager'
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://www.mongodb.com/products/ops-manager' },
+	                        'MongoDB Ops Manager'
+	                      )
 	                    )
 	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item submenu__item--nested' },
-	                  'Tools'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: '/tools' },
+	                    'Tools'
+	                  )
 	                ),
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item' },
-	                  'Tutorials'
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: '/tutorials' },
+	                    'Tutorials'
+	                  )
 	                )
 	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'Company'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/' },
+	                'Company'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'University'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://university.mongodb.com/' },
+	                'University'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'Community'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/community' },
+	                'Community'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item' },
-	              'What is MongoDB'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/what-is-mongodb' },
+	                'What is MongoDB'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item menu__item--secondary' },
-	              'Download MongoDB'
+	              _react2.default.createElement(
+	                'a',
+	                { href: 'https://www.mongodb.com/download-center?jmp=docs' },
+	                'Download MongoDB'
+	              )
 	            ),
 	            _react2.default.createElement(
 	              'li',
 	              { className: 'menu__item menu__item--secondary' },
-	              'Contact Us'
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#' },
+	                'Contact Us'
+	              )
 	            )
 	          )
 	        )
@@ -22188,71 +22371,6 @@
 	}(_react2.default.Component);
 	
 	exports.default = NavbarDropdown;
-
-/***/ },
-/* 183 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	/*!
-	  Copyright (c) 2016 Jed Watson.
-	  Licensed under the MIT License (MIT), see
-	  http://jedwatson.github.io/classnames
-	*/
-	/* global define */
-	
-	(function () {
-		'use strict';
-	
-		var hasOwn = {}.hasOwnProperty;
-	
-		function classNames() {
-			var classes = [];
-	
-			for (var i = 0; i < arguments.length; i++) {
-				var arg = arguments[i];
-				if (!arg) continue;
-	
-				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
-	
-				if (argType === 'string' || argType === 'number') {
-					classes.push(arg);
-				} else if (Array.isArray(arg)) {
-					classes.push(classNames.apply(null, arg));
-				} else if (argType === 'object') {
-					for (var key in arg) {
-						if (hasOwn.call(arg, key) && arg[key]) {
-							classes.push(key);
-						}
-					}
-				}
-			}
-	
-			return classes.join(' ');
-		}
-	
-		if (typeof module !== 'undefined' && module.exports) {
-			module.exports = classNames;
-		} else if ("function" === 'function' && _typeof(__webpack_require__(184)) === 'object' && __webpack_require__(184)) {
-			// register as 'classnames', consistent with npm package name
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
-				return classNames;
-			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else {
-			window.classNames = classNames;
-		}
-	})();
-
-/***/ },
-/* 184 */
-/***/ function(module, exports) {
-
-	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
 /* 185 */
@@ -22296,7 +22414,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(183);
+	var _classnames = __webpack_require__(182);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -22665,38 +22783,6 @@
 /***/ function(module, exports) {
 
 	'use strict';
-	// Array.isArray polyfill and Array.from polyfill
-	
-	Array.from || (Array.from = function () {
-	    var a = Object.prototype.toString,
-	        b = function b(_b) {
-	        return "function" == typeof _b || "[object Function]" === a.call(_b);
-	    },
-	        c = function c(a) {
-	        var b = Number(a);return isNaN(b) ? 0 : 0 !== b && isFinite(b) ? (b > 0 ? 1 : -1) * Math.floor(Math.abs(b)) : b;
-	    },
-	        d = Math.pow(2, 53) - 1,
-	        e = function e(a) {
-	        var b = c(a);return Math.min(Math.max(b, 0), d);
-	    };return function (c) {
-	        var d = this,
-	            f = Object(c);if (null == c) throw new TypeError("Array.from requires an array-like object - not null or undefined");var h,
-	            g = arguments.length > 1 ? arguments[1] : void 0;if ("undefined" != typeof g) {
-	            if (!b(g)) throw new TypeError("Array.from: when provided, the second argument must be a function");arguments.length > 2 && (h = arguments[2]);
-	        }for (var l, i = e(f.length), j = b(d) ? Object(new d(i)) : new Array(i), k = 0; k < i;) {
-	            l = f[k], g ? j[k] = "undefined" == typeof h ? g(l, k) : g.call(h, l, k) : j[k] = l, k += 1;
-	        }return j.length = i, j;
-	    };
-	}());
-	function _toConsumableArray(arr) {
-	    if (Array.isArray(arr)) {
-	        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-	            arr2[i] = arr[i];
-	        }return arr2;
-	    } else {
-	        return Array.from(arr);
-	    }
-	}
 	
 	function slide(element, _speed, direction, easing) {
 	    // prevent user from sliding down if already sliding
