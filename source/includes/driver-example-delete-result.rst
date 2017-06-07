@@ -50,7 +50,7 @@
      - id: ruby
        content: |
          Upon successful execution, the
-         :ruby-api:`delete_many()<Collection.html#delete_many>` method
+         :ruby-api:`delete_many()<Collection.html#delete_many-instance_method>` method
          returns an instance of
          :ruby-api:`Mongo::Operation::Result<Operation/Result.html>`, whose
          ``deleted_count`` attribute contains the number of documents
@@ -60,6 +60,7 @@
        content: |
          Upon successful execution, the
          :scala-api:`collection.deleteMany()<deleteMany(filter:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.DeleteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.DeleteResult]>` method
-         returns an Observable with a single element with a 
-         ``DeleteResult`` type parameter or with an 
-         ``com.mongodb.MongoException``.
+         returns an 
+         `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
+         with a single element with a ``DeleteResult`` type parameter or with
+         an ``com.mongodb.MongoException``.
