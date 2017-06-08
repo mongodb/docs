@@ -1,35 +1,60 @@
-Before changing a deployment's MongoDB version, consult the following
-documents for any special considerations or application compatibility
-issues:
+- Before changing a deployment's MongoDB version, check the following
+  documents for any considerations or compatibility issues:
 
-- :manual:`The MongoDB Release Notes </release-notes>`
+  - :manual:`The MongoDB Release Notes </release-notes>`
 
-- The documentation for your driver.
+  - The documentation for your driver.
 
-- :doc:`/reference/mongodb-compatibility`
+  - :doc:`/reference/mongodb-compatibility`
 
-Plan the version change during a predefined maintenance window.
+- Plan the version change during a predefined maintenance window.
 
-Before applying the change to a production environment, change the MongoDB
-version on a staging environment that reproduces your production
-environment. This can help avoid discovering compatibility issues that may
-result in downtime for your production deployment.
+- Before changing a production environment, try to change the MongoDB version
+  on a staging environment. Your staging environment should mirror your
+  production environment. This can help avoid compatibility issues that may
+  result in downtime for your production deployment.
 
-If you *downgrade* to an earlier version of MongoDB and your MongoDB
-configuration file includes options that are not part of the earlier
-MongoDB version, you must perform the downgrade in two phases. First,
-remove the configuration settings that are specific to the newer MongoDB
-version, and deploy those changes. Then, update the MongoDB version and
-deploy that change.
+- With a :term:`replica set` or :term:`sharded cluster`, you must upgrade each
+  process in this order:
 
-For example, if you are running MongoDB version 3.0 with the
-:guilabel:`engine` option set to ``mmapv1``, and you wish to downgrade
-to MongoDB 2.6, you must first remove the :guilabel:`engine` option as
-MongoDB 2.6 does not include that option.
+  For :term:`replica sets <replica set>`:
 
-.. note::
+  1. Upgrade each :term:`secondary` one at a time.
+  2. Upgrade the :term:`primary`.
 
-   You may not downgrade a MongoDB deployment from version 3.4 to any
-   version before 3.2.8. As such, |mms| will block users from attempting to
-   downgrade from ``featureCompatibilityVersion=3.4`` to
-   ``featureCompatiblityVersion=3.2``.
+  For :term:`sharded clusters <sharded cluster>`:
+
+  1. Upgrade the :term:`config servers <config server>` replica set.
+  2. Upgrade each the :term:`replica set` for each shard.
+  3. Upgrade each :program:`mongos` process.
+
+  If you try to upgrade the processes in a different order, the
+  upgrade can fail.
+  
+  .. example::
+     If you upgrade your ``mongos`` processes to 3.4 before upgrading
+     the :term:`config servers <config server>`, a :term:`sharded
+     cluster` upgrade fails. The ``mongos`` running 3.4 cannot talk to
+     config servers running 3.2.
+
+- To *downgrade* to an earlier MongoDB version if your MongoDB
+  configuration file includes options incompatible with the earlier MongoDB
+  version, perform the downgrade in two stages: 
+
+  1. Remove the configuration settings specific to the newer MongoDB
+     version. Deploy those changes.
+
+     .. example:: 
+        If you are running MongoDB version 3.0 with the :guilabel:`engine`
+        option set to ``mmapv1``, and want to downgrade to MongoDB 2.6, you
+        must first remove the :guilabel:`engine` option. MongoDB 2.6 does not
+        support that option.
+
+  2. Update the MongoDB version. Deploy that change.
+
+  .. note::
+
+     You may not downgrade a MongoDB deployment from version 3.4 to any
+     version before 3.2.8. |mms| blocks users attempts to downgrade from
+     ``featureCompatibilityVersion=3.4`` to
+     ``featureCompatiblityVersion=3.2``.
