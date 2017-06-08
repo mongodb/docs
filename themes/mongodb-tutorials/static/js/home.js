@@ -206,9 +206,9 @@
 	          // Store each tutorial option ID in array
 	          var tutorialOptionIds = tutorial.options.map(function (tutorialOption) {
 	            return tutorialOption.id;
-	          }
+	          });
 	          // If an active option ID is not in the array, hide tutorial
-	          );if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
+	          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
 	            shouldInclude = false;
 	          }
 	        });
@@ -3491,11 +3491,11 @@
 	  var hasOwnProperty = Object.prototype.hasOwnProperty;
 	  var reIsNative = RegExp('^' + funcToString
 	  // Take an example native function source for comparison
-	  .call(hasOwnProperty
+	  .call(hasOwnProperty)
 	  // Strip regex characters so we can use it for regex
-	  ).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&'
+	  .replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
 	  // Remove hasOwnProperty from the template to make it generic
-	  ).replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
+	  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
 	  try {
 	    var source = funcToString.call(fn);
 	    return reIsNative.test(source);

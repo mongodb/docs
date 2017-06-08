@@ -104,7 +104,7 @@
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      _util2.default.setupCopyButtons();
-	      _util2.default.setupSidebar
+	      _util2.default.setupSidebar();
 	
 	      // var cx = '017213726194841070573:WMX6838984';
 	      // var gcse = document.createElement('script');
@@ -126,7 +126,6 @@
 	      //
 	      // var s = document.getElementsByTagName('script')[0];
 	      // s.parentNode.insertBefore(gcse, s);
-	      ();
 	    }
 	  }, {
 	    key: 'render',
@@ -3356,11 +3355,11 @@
 	  var hasOwnProperty = Object.prototype.hasOwnProperty;
 	  var reIsNative = RegExp('^' + funcToString
 	  // Take an example native function source for comparison
-	  .call(hasOwnProperty
+	  .call(hasOwnProperty)
 	  // Strip regex characters so we can use it for regex
-	  ).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&'
+	  .replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
 	  // Remove hasOwnProperty from the template to make it generic
-	  ).replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
+	  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
 	  try {
 	    var source = funcToString.call(fn);
 	    return reIsNative.test(source);
