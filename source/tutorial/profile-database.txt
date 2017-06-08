@@ -20,79 +20,98 @@ Profile Databases
 Overview
 --------
 
-|mms| can collect and display data from the MongoDB :manual:`database
-profilers </tutorial/manage-the-database-profiler>` running on your
-:program:`mongod` instances. An instance must have its profiler enabled
-for |mms| to collect data. The profiler provides statistics about database
-performance and operations. |mms| displays collected data in the
-**Profiler** section of an instance's metrics page.
+A :manual:`database profiler </tutorial/manage-the-database-profiler>`
+gathers data about writes, cursors, and commands on one running
+:program:`mongod` instance.
 
-To collect profiling data for a given :program:`mongod` instance, you must
-enable profiling on the instance and enable |mms| to collect the profiling
-data from it. To enable both at the same time, see the procedure on this
-page to :ref:`enable-profiling-through-automation`.
+|mms| can collect and display data from profilers running on 
+any of your :program:`mongod` instances. |mms| displays this data in the
+:guilabel:`Profiler` section of an instance's :guilabel:`Metrics` page. 
 
-To enable |mms| collection of profiling data when the profiler is already
-enabled on a process, see the procedure on this page to
-:ref:`enable-profiling-manually`. To enable or disable |mms| collection of
-profiling data for all processes in the group, see
-:ref:`group-settings-page`.
+- To enable a given :program:`mongod`\'s profiler and have |mms| collect its
+  profiling data, see the :ref:`enable-profiling-through-automation`
+  procedure.
 
-**Please read the considerations below before enabling profiling.**
+- To enable |mms| to collect profiling data if a :program:`mongod` instance has
+  profiling enabled, see the :ref:`enable-profiling-manually` procedure.
+
+- To enable or disable |mms| profiling data collection for all instances in
+  the group, see :ref:`group-settings-page`.
 
 .. _considerations-profile-database:
 
 Considerations
 --------------
 
-Before enabling profiling, be aware of the following.
+.. warning:: Please read the following considerations before enabling profiling.
 
 Security
 ~~~~~~~~
 
-Profile data can include sensitive information, including the content of
+Profile data may include sensitive information including the content of
 database queries. Ensure that exposing this data to |mms| is consistent
 with your information security practices.
 
-Resources
-~~~~~~~~~
+Profiled Operations
+~~~~~~~~~~~~~~~~~~~
 
-The profiler can consume resources which may adversely affect MongoDB
-performance. Consider the implications before enabling profiling.
+The MongoDB profiler stores data in the :data:`system.profile
+<<database>.system.profile>` collection. This is a :manual:`capped collection
+<capped collections>` with a 1 MB default size. You may increase the size of
+this collection up to 4 MB.
 
-|mms| samples up to 20 entries or 4MB of data, whichever comes first. The
-4MB limit is reached only if you have increased the default size the
-:data:`system.profile <<database>.system.profile>` collection (which by
-default is 1MB) *and* if you have large profiler documents.
+When collecting data from the profiler, |mms| ignores data about operations on
+the :data:`system.profile <<database>.system.profile>` collection, such as
+Monitoring Agent queries of the :data:`system.profile <<database>.system.profile>` 
+collection.
 
-The agent sends only the most recent 20 entries from the last minute.
+Resource Consumption Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you use a Monitoring Agent version **earlier than version 3.8.0.230**,
-and if the agent authenticates as a user containing the
-:authrole:`clusterAdmin` role, the agent might leak cursors if you
-enable profiling. A leaked cursor will automatically time-out on the
-server after 10 minutes.
+The profiler may consume resources which may slow MongoDB performance.
+Consider the resource impact before enabling profiling.
 
-The Monitoring Agent attempts to minimize its effect on the
-monitored systems. If resource intensive operations, like polling
-profile data, begins to impact the performance of the database,
-|mms| will throttle the frequency that it collects data.
+Data Collection
++++++++++++++++
+
+Every minute, the agent queries the :data:`system.profile
+<<database>.system.profile>` collection for documents created
+since its last query up to a limit of 20. The agent sends 
+:manual:`those documents </reference/database-profiler>` to |mms|.
+
+.. seealso::
+
+   See the MongoDB Manual for how the 
+   :manual:`Database Profiler </tutorial/manage-the-database-profiler>` 
+   works.
+
+|mms| samples profile documents until it samples either all documents returned
+or 4 MB of returned document data. This 4 MB limit may be reached if you increase the collection's size to 4 MB *and* your database creates large :manual:`profiler documents </reference/database-profiler>`.
+
+The Monitoring Agent tries to minimize its effect on the monitored systems. If
+polling profile data slows database performance, |mms| throttles the
+how often it collects data.
+
+.. admonition:: Leaking Cursors with Monitoring Agent version **earlier than 3.8.0.230**
+   :class: important
+
+   If the agent authenticates as a user containing the
+   :authrole:`clusterAdmin` role, the agent might leak cursors if you enable
+   profiling. A leaked cursor automatically times out on the server after 10
+   minutes.
+
+Data Display
+++++++++++++
+
+|mms| displays no more than 10,000 data points in the :guilabel:`Profiler`
+charts.
 
 Time to Propagate
 ~~~~~~~~~~~~~~~~~
 
 With profiling enabled, configuration changes made in |mms| can
-take up to 2 minutes to propagate to the agent and another minute before
+take up to 2 minutes to propagate to the agent and 1 more minute before
 profiling data appears in the |mms| interface.
-
-Profiled Operations
-~~~~~~~~~~~~~~~~~~~
-
-The MongoDB profiler stores data in the ``<database>.system.profile``
-collections. When collecting data from the profiler, |mms| ignores
-data about operations on the ``<database>.system.profile``
-collections themselves, such as Monitoring Agent queries of the
-``<database>.system.profile`` collections.
 
 .. _enable-profiling-through-automation:
 
@@ -107,11 +126,11 @@ Enable Collection of Profiling Data
 -----------------------------------
 
 This procedure enables |mms| to collect profiling data from a
-:program:`mongod` instance. You must separately enable the instance's
+:program:`mongod` instance. As a separate activity, you must enable the instance's
 profiler, either upon deployment or through the :manual:`setProfilingLevel
-</reference/method/db.setProfilingLevel>` command. If using Automation,
-you can enable profiling upon deployment by setting the ``profile`` option
-under :guilabel:`Advanced Options`.
+</reference/method/db.setProfilingLevel>` command. 
+If using Automation, set the ``profile`` option under :guilabel:`Advanced
+Options` to enable profiling upon deployment.
 
 To enabled collection of profiling data from an instance's active
 profiler:
