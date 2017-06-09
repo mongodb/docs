@@ -20,13 +20,14 @@
      - :doc:`Full metrics </monitor-cluster-metrics>`, including the 
        :ref:`Real Time Performance Tab <real-time-metrics-status-tab>`
        
-   * - VPC Peering
+   * - VPC Peering (:ref:`amazon-aws` clusters only)
      - No
      - :ref:`VPC Peering Connection wizard <vpc-peering>`
      
    * - Global Region Selection
      - No
-     - All major :doc:`AWS regions </reference/amazon-aws>`
+     - |service| supports all major :doc:`AWS regions </reference/amazon-aws>`
+       and all major :doc:`GCP regions </reference/google-gcp>`.
      
    * - Backups
      - No

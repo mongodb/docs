@@ -17,23 +17,26 @@
 
    * - :guilabel:`Cluster Name`
 
-     - The name as it will appear in |service|.
-
-   * - :guilabel:`Region`
-
-     - The physical location of your MongoDB cluster. The region you
-       choose can affect network latency for clients accessing your
-       databases. Regions marked as :guilabel:`Recommended` provide 
-       higher availability compared to other regions.
+     - The cluster name as it will appear in |service|.
+     
+   * - :guilabel:`Cloud Provider and Region`
+   
+     - The cloud provider and physical location of your MongoDB cluster. 
        
-       For more information on :guilabel:`Recommended` AWS regions, 
-       see :ref:`amazon-aws-availability-zones`.
-
+       The choice of cloud provider and region affects the configuration
+       options for the available instance sizes, network latency for clients
+       accessing your cluster, and the :doc:`cost of running the cluster
+       </billing>`.
+       
        .. include:: /includes/fact-group-region-association.rst
+       
+       Regions marked as :guilabel:`Recommended` provide higher availability
+       compared to other regions. For more information, see:
+       
+       - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
+       
+       - :ref:`GCP Recommended Regions<google-gcp-availability-zones>`.
  
-       Pricing for cluster configuration settings :ref:`vary by region
-       <region-costs>`.
-
    * - :guilabel:`Instance Size`
 
      - The memory, storage, and IOPS specification for each
@@ -41,21 +44,34 @@
 
        .. include:: /includes/fact-instance-size-groupings.rst
 
-       Each instance size comes with a default set of resources, but
-       you can modify the following:
+       Each instance size comes with a default set of resources. Depending
+       on the choice of cloud provider you can modify the following 
+       settings per cluster:
 
        - :guilabel:`Custom Storage Capacity`: The size of the server
          root volume. Changes to storage capacity affects :ref:`cost
          <instance-size-costs>`.
 
-       - :guilabel:`Custom Storage Speed`: The input/output operations
-         per second (IOPS) the system can perform. Changes to storage
-         speed affects :ref:`cost <instance-size-costs>`.
+       - :guilabel:`Custom Storage Speed`: The input/output
+         operations per second (IOPS) the system can perform. Changes to
+         storage speed affects :ref:`cost <instance-size-costs>`.
+         
+         For :ref:`amazon-aws` clusters, you can choose between
+         :guilabel:`Standard`, :guilabel:`Fast`, and :guilabel:`Fastest`. 
+         
+         For :ref:`google-gcp` clusters, you cannot modify this value.
 
        - :guilabel:`Use encrypted storage volumes`: Encrypts root
-         volume using Amazon EBS encryption for data at rest inside the
-         volume and all data moving between the volume and the
-         instance.
+         volume for data at rest inside the volume and all data moving between
+         the volume and the instance.
+         
+         For :ref:`amazon-aws` clusters with this option enabled, |service| 
+         uses `Amazon EBS encryption 
+         <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html>`_.
+         
+         For :ref:`google-gcp` clusters, storage volumes are `always encrypted 
+         <https://cloud.google.com/security/encryption-at-rest/>`_.
+         You cannot modify this value.
 
        .. include:: /includes/enable-sharding-requirements.rst
 
@@ -67,19 +83,18 @@
        copy of your database, providing high availability and data
        redundancy.
 
-       Replica sets deployed in a :guilabel:`Recommended` region span three
-       availability zones. Replica sets deployed in other regions span two
-       availability zones. The number of availability zones in a region has no
-       affect on the number of nodes |service| can deploy. For more
-       information on how |service| deploys replica sets across availability
-       zones, see :ref:`amazon-aws-availability-zones`.
+       |service| deploys replica set members across the selected region. For
+       more information, see :ref:`amazon-aws-availability-zones` for AWS or
+       :ref:`google-gcp-availability-zones` for GCP.
+       
+       .. include:: /includes/extracts/fact-no-node-restriction-base.rst
        
        Each member of the replica set runs on a separate instance. For details
        on how the number of server instances affects cost, see
        :ref:`server-number-costs`.
        
        If your deployment is a sharded cluster, each shard is a
-       replica set, and the replica factor determines the number of
+       replica set, and the replication factor determines the number of
        members in each shard replica set.
 
        For more information on replica sets, see :manual:`Replication
