@@ -88,8 +88,7 @@
      - string
      - The cloud service provider on which the servers are provisioned.
 
-       |service| currently integrates with Amazon Web Services (AWS). This
-       field value is ``AWS`` until other integrations become available.
+       .. include:: /includes/fact-cloud-service-providers.rst
 
    * - ``providerSettings.regionName``
      - string
@@ -98,26 +97,33 @@
 
        .. include:: /includes/fact-group-region-association.rst
 
-       .. include:: /includes/fact-aws-region-names.rst
+       .. list-table::
+          :header-rows: 1
+          
+          * - AWS
+            - GCP
+            
+          * - .. include:: /includes/fact-aws-region-names.rst
+            - .. include:: /includes/fact-gcp-region-names.rst
 
    * - ``providerSettings.instanceSizeName``
      - string
      - The name of the instance size used for the |service| cluster.
 
        To view available instance sizes: open the |service| web interface;
-       view an existing configuration or click the button to add a new one;
-       view the available instance sizes; close the window without saving
-       changes.
+       select :guilabel:`Build a New Cluster`; select your preferred cloud
+       service provider and region; view the available instance sizes; close
+       the window without saving changes.
 
    * - ``providerSettings.diskIOPS``
      - integer
-
      - The maximum input/output operations per second (IOPS) the system can
-       perform. The available IOPS depend on the instance size: each instance
-       size has a specific set of available IOPS values. To view available
-       values, use the |service| interface to either view an existing
-       configuration or add a new one; then click an instance size to view the
-       available values; and then close the configuration without saving
+       perform. The available :abbr:`IOPS (Input/Output Operations per
+       Second)` depend on the instance size: each instance size has a specific
+       set of available IOPS values. To view available values: open the
+       |service| web interface; select :guilabel:`Build a New Cluster`; select
+       your preferred cloud service provider and region; click an instance
+       size to view the available values; close the window without saving
        changes.
 
    * - ``providerSettings.encryptEBSVolume``
