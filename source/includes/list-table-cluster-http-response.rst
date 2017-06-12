@@ -102,9 +102,11 @@
           
           * - AWS
             - GCP
+            - Azure
             
           * - .. include:: /includes/fact-aws-region-names.rst
             - .. include:: /includes/fact-gcp-region-names.rst
+            - .. include:: /includes/fact-azure-region-names.rst
 
    * - ``providerSettings.instanceSizeName``
      - string
@@ -123,8 +125,8 @@
        set of available IOPS values. To view available values: open the
        |service| web interface; select :guilabel:`Build a New Cluster`; select
        your preferred cloud service provider and region; click an instance
-       size to view the available values; close the window without saving
-       changes.
+       size to view the available values for :guilabel:`Custom Storage Speed`; 
+       close the window without saving changes.
 
    * - ``providerSettings.encryptEBSVolume``
      - Boolean

@@ -1,0 +1,8 @@
+- ``US_CENTRAL``
+- ``US_EAST``
+- ``US_EAST_2``
+- ``US_NORTH_CENTRAL``
+- ``US_WEST``
+- ``US_SOUTH_CENTRAL``
+- ``EUROPE_NORTH``
+- ``EUROPE_WEST``
