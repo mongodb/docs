@@ -91,7 +91,8 @@
 	    _this.state = {
 	      searchResults: null,
 	      options: [],
-	      tutorials: []
+	      tutorials: [],
+	      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix
 	    };
 	
 	    _this.updateFacet = _this.updateFacet.bind(_this);
@@ -104,7 +105,7 @@
 	    value: function componentDidMount() {
 	      var _this2 = this;
 	
-	      fetch(baseURL + '/tags.json').then(function (response) {
+	      fetch(baseURL + this.state.assetsPrefix + '/tags.json').then(function (response) {
 	        return response.json();
 	      }).then(function (data) {
 	        _this2.setState({
@@ -242,7 +243,8 @@
 	  return App;
 	}(_react2.default.Component);
 	
-	_reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('main'));
+	var main = document.getElementById('main');
+	_reactDom2.default.render(_react2.default.createElement(App, main.dataset), main);
 
 /***/ }),
 /* 1 */

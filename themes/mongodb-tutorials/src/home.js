@@ -13,6 +13,7 @@ class App extends React.Component {
       searchResults: null,
       options: [],
       tutorials: [],
+      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix,
     }
 
     this.updateFacet = this.updateFacet.bind(this)
@@ -20,7 +21,7 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    fetch(baseURL + '/tags.json').then((response) => {
+    fetch(baseURL + this.state.assetsPrefix + '/tags.json').then((response) => {
       return response.json()
     }).then((data) => {
       this.setState({
@@ -128,4 +129,5 @@ class App extends React.Component {
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('main'))
+var main = document.getElementById('main')
+ReactDOM.render(<App {...(main.dataset)} />, main)
