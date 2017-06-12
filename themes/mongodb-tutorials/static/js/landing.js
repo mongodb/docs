@@ -53,8 +53,8 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	document.addEventListener("DOMContentLoaded", function (event) {
-	  _util2.default.setupCopyButtons();
 	  _util2.default.setupSidebar();
+	  _util2.default.setupList();
 	});
 
 /***/ }),
@@ -5001,4 +5001,4 @@
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=single.js.map
+//# sourceMappingURL=landing.js.map

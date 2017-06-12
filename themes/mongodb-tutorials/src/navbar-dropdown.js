@@ -37,82 +37,85 @@ class NavbarDropdown extends React.Component {
         <div className={ menuClass }>
           <Menu>
             <li className="menu__item">
+              <a href={this.props.links.home}>Docs Home</a>
+            </li>
+            <li className="menu__item">
               <Submenu title="Documentation">
                 <li className="submenu__item">
-                  <a href="/redesign/manual/">Server</a>
+                  <a href={this.props.links.documentation.server}>Server</a>
                 </li>
                 <li className="submenu__item">
                   <Submenu title="Drivers">
                     <li className="submenu__item">
-                      <a href="http://mongoc.org/libmongoc/current/">C</a>
+                      <a href={this.props.links.documentation.drivers.c}>C</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://mongodb.github.io/mongo-cxx-driver/">C++11</a>
+                      <a href={this.props.links.documentation.drivers.cpp11}>C++11</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ecosystem/drivers/csharp/">C#</a>
+                      <a href={this.props.links.documentation.drivers.cs}>C#</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="http://mongodb.github.io/mongo-java-driver/">Java</a>
+                      <a href={this.props.links.documentation.drivers.java}>Java</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://mongodb.github.io/node-mongodb-native/">Node.js</a>
+                      <a href={this.props.links.documentation.drivers.node}>Node.js</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ecosystem/drivers/perl/">Perl</a>
+                      <a href={this.props.links.documentation.drivers.perl}>Perl</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ecosystem/drivers/php/">PHP</a>
+                      <a href={this.props.links.documentation.drivers.php}>PHP</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ecosystem/drivers/python/">Python</a>
+                      <a href={this.props.links.documentation.drivers.python}>Python</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ruby-driver/master/">Ruby</a>
+                      <a href={this.props.links.documentation.drivers.ruby}>Ruby</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="/redesign/ecosystem/drivers/scala/">Scala</a>
+                      <a href={this.props.links.documentation.drivers.scala}>Scala</a>
                     </li>
                   </Submenu>
                 </li>
                 <li className="submenu__item submenu__item--nested">
                   <Submenu title="Cloud">
                     <li className="submenu__item">
-                      <a href="https://www.mongodb.com/cloud/atlas">MongoDB Atlas</a>
+                      <a href={this.props.links.documentation.cloud['mongodb-atlas']}>MongoDB Atlas</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://www.mongodb.com/cloud/cloud-manager">MongoDB Cloud Manager</a>
+                      <a href={this.props.links.documentation.cloud['mongodb-cloud-manager']}>MongoDB Cloud Manager</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://www.mongodb.com/products/ops-manager">MongoDB Ops Manager</a>
+                      <a href={this.props.links.documentation.cloud['mongodb-ops-manager']}>MongoDB Ops Manager</a>
                     </li>
                   </Submenu>
                 </li>
                 <li className="submenu__item submenu__item--nested">
-                  <a href="/redesign/tools/">Tools</a>
+                  <a href={this.props.links.documentation.tools}>Tools</a>
                 </li>
                 <li className="submenu__item">
-                  <a href="/redesign/tutorials/">Tutorials</a>
+                  <a href={this.props.links.documentation.tutorials}>Tutorials</a>
                 </li>
               </Submenu>
             </li>
             <li className="menu__item">
-              <a href="https://www.mongodb.com/">Company</a>
+              <a href={this.props.links.company}>Company</a>
             </li>
             <li className="menu__item">
-              <a href="https://university.mongodb.com/">University</a>
+              <a href={this.props.links.university}>University</a>
             </li>
             <li className="menu__item">
-              <a href="https://www.mongodb.com/community">Community</a>
+              <a href={this.props.links.community}>Community</a>
             </li>
             <li className="menu__item">
-              <a href="https://www.mongodb.com/what-is-mongodb">What is MongoDB</a>
+              <a href={this.props.links['what-is-mongodb']}>What is MongoDB</a>
             </li>
             <li className="menu__item menu__item--secondary">
-              <a href="https://www.mongodb.com/download-center?jmp=docs">Download MongoDB</a>
+              <a href={this.props.links['download-mongodb']}>Download MongoDB</a>
             </li>
             <li className="menu__item menu__item--secondary">
-              <a href="#">Contact Us</a>
+              <a href={this.props.links['contact-us']}>Contact Us</a>
             </li>
           </Menu>
         </div>

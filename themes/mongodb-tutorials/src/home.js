@@ -2,12 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
-import Navbar from './navbar.js'
 import Search from './search.js'
 import TutorialList from './tutorialList.js'
-import elementClass from 'element-class'
 
-const baseURL = window.__baseURL__
+const baseURL = window.location.origin
 
 class App extends React.Component {
   constructor (props) {
@@ -16,6 +14,7 @@ class App extends React.Component {
       searchResults: null,
       options: [],
       tutorials: [],
+      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix,
     }
 
     this.updateFacet = this.updateFacet.bind(this)
@@ -23,7 +22,7 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    fetch(baseURL + '/tags.json').then((response) => {
+    fetch(baseURL + this.state.assetsPrefix + '/tags.json').then((response) => {
       return response.json()
     }).then((data) => {
       this.setState({
@@ -33,30 +32,6 @@ class App extends React.Component {
     }).catch((err) => {
       // TODO: do something here
     })
-
-    var cx = '017213726194841070573:WMX6838984';
-    var gcse = document.createElement('script');
-    gcse.type = 'text/javascript';
-    gcse.async = true;
-    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-    gcse.onload = gcse.onreadystatechange = function() {
-      // hack to set a placeholder in google's custom search input
-      var pollInput = window.setInterval(function() {
-        var input = document.querySelector('.gsc-input input.gsc-input')
-
-        if (input) {
-          input.style = ''
-          input.className = 'navbar-search'
-          document.querySelector('.navbar__right').appendChild(input)
-          input.setAttribute('placeholder', "Search Documentation")
-          elementClass(input).add('navbar-search')
-          window.clearInterval(pollInput);
-        }
-      }, 10);
-    };
-
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(gcse, s);
   }
 
   clearFacets () {
@@ -128,55 +103,37 @@ class App extends React.Component {
 
     if (this.state.searchResults !== null) {
       const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
-      tutorials = this.state.searchResults.filter(slug => {
+
+      const tutorialURLs = this.state.searchResults.filter(slug => {
         return tutorialsSet.has(slug)
+      })
+
+      tutorials = tutorialURLs.map(url => {
+        return tutorialsMatchingFacets.find(t => t.url === url)
       })
     }
 
-    const links = [{
-      url: "/redesign/manual/",
-      text: "Server",
-    }, {
-      url: "/redesign/ecosystem/drivers/",
-      text: "Drivers",
-    }, {
-      url: "/redesign/cloud/",
-      text: "Cloud",
-    }, {
-      url: "/redesign/tools",
-      text: "Tools",
-    }, {
-      url: "/redesign/tutorials/",
-      text: "Tutorials",
-      active: true,
-    }];
-
     return (
-      <div>
-        <Navbar baseURL={baseURL} links={links}>
-          <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl="http://docs.mongodb.com/manual/search/" data-queryParameterName="query"></div>
-        </Navbar>
-
-        <div className="main">
-          <aside className="main__sidebar">
-            <div className="filter-header">
-              <h5 className="filter-header__title">Filters</h5>
-              <a onClick={this.clearFacets}><h5 className="filter-header__clear">X Clear Filters</h5></a>
-            </div>
-            <div className="filters">
-              { facets }
-            </div>
-          </aside>
-
-          <div className="main__content">
-            <input className="tutorial-search" placeholder="Search Tutorials" />
-            <h1 className="main__title">Tutorials</h1>
-            <TutorialList tutorials={ tutorials } baseURL={baseURL} />
+      <div className="main">
+        <aside className="main__sidebar">
+          <div className="filter-header">
+            <h5 className="filter-header__title">Filters</h5>
+            <a onClick={this.clearFacets}><h5 className="filter-header__clear">X Clear Filters</h5></a>
           </div>
+          <div className="filters">
+            { facets }
+          </div>
+        </aside>
+
+        <div className="main__content">
+          <Search baseURL={baseURL} onResults={this.onResults} />
+          <h1 className="main__title">Tutorials</h1>
+          <TutorialList tutorials={ tutorials } baseURL={baseURL} />
         </div>
       </div>
     )
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('root'))
+var main = document.getElementById('main')
+ReactDOM.render(<App {...(main.dataset)} />, main)

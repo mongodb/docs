@@ -1,5 +1,5 @@
-import domslider from 'dom-slider'
 import elementClass from 'element-class'
+import Velocity from 'velocity-animate'
 
 const utils = {
   setupCopyButtons () {
@@ -43,8 +43,15 @@ const utils = {
 
       if (nestedList) {
         link.addEventListener('click', (e) => {
-          elementClass(link).toggle('toc__link--open')
-          nestedList.slideToggle(400)
+          const $link = elementClass(link)
+
+          if ($link.has('toc__link--open')) {
+            $link.remove('toc__link--open')
+            Velocity(nestedList, 'slideUp', { duration: 400 })
+          } else {
+            $link.add('toc__link--open')
+            Velocity(nestedList, 'slideDown', { duration: 400 })
+          }
         })
       }
 
@@ -63,8 +70,15 @@ const utils = {
       const nestedList = link.nextElementSibling
 
       link.parentElement.addEventListener('click', (e) => {
-        elementClass(link).toggle('list__item--open')
-        nestedList.slideToggle(400)
+        const $link = elementClass(link)
+
+        if ($link.has('list__item--open')) {
+          $link.remove('list__item--open')
+          Velocity(nestedList, 'slideUp', { duration: 400 })
+        } else {
+          $link.add('list__item--open')
+          Velocity(nestedList, 'slideDown', { duration: 400 })
+        }
       })
     })
   },
