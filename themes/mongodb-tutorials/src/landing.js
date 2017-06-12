@@ -1,5 +1,6 @@
 import util from './util.js'
 
-(function() {
+document.addEventListener("DOMContentLoaded", event => {
   util.setupSidebar()
-})()
+  util.setupList()
+})

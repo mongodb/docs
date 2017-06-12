@@ -110,7 +110,35 @@ gulp.task('js:build-single', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
-gulp.task('js', ['js:build-home', 'js:build-single', 'js:build-navbar'])
+gulp.task('js:build-landing', function() {
+  gulp.src('./src/landing.js')
+    .pipe(webpack({
+      output: {
+        filename: 'landing.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
+
+gulp.task('js', [
+  'js:build-home',
+  'js:build-single',
+  'js:build-navbar',
+  'js:build-landing'
+])
 
 gulp.task('watch', function() {
   gulp.watch('./src/styles/**/*.scss', ['sass'])
