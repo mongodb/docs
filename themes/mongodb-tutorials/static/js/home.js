@@ -22662,7 +22662,7 @@
 	    value: function search(query) {
 	      if (!this.busy) {
 	        if (!query) {
-	          this.onresults([]);
+	          this.onresults(null);
 	        } else {
 	          this.worker.postMessage({ 'search': query });
 	          this.busy = true;
