@@ -37,7 +37,7 @@ class NavbarDropdown extends React.Component {
         <div className={ menuClass }>
           <Menu>
             <li className="menu__item">
-              <a href={this.props.links.home}>Home</a>
+              <a href={this.props.links.home}>Docs Home</a>
             </li>
             <li className="menu__item">
               <Submenu title="Documentation">

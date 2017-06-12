@@ -22185,7 +22185,7 @@
 	              _react2.default.createElement(
 	                'a',
 	                { href: this.props.links.home },
-	                'Home'
+	                'Docs Home'
 	              )
 	            ),
 	            _react2.default.createElement(
