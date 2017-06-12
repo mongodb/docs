@@ -20,6 +20,7 @@ export default class SearchChannel {
         }
 
         this.busy = false
+
         if (this.pending !== null) {
           this.search(this.pending)
         }
@@ -36,9 +37,9 @@ export default class SearchChannel {
         this.onresults([])
       } else {
         this.worker.postMessage({ 'search': query })
+        this.busy = true
       }
       this.pending = null
-      this.busy = true
     } else {
       this.pending = query
     }
