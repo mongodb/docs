@@ -131,7 +131,7 @@ function generateTOC(headings) {
       arr[arr.length - 1] = newLastLink
       toc = arr.join('toc__link')
 
-      toc += '<ul class="toc__nestedlist DOM-slider-hidden"><li class="toc__item">' + getHeadingLink(heading)
+      toc += '<ul class="toc__nestedlist" style="display: none;"><li class="toc__item">' + getHeadingLink(heading)
       previousLevel = currentLevel
 
     // If higher level in tree

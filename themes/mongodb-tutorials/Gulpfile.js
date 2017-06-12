@@ -39,7 +39,30 @@ gulp.task('sass:build-navbar', function() {
     .pipe(gulp.dest('./static/css/'))
 })
 
-gulp.task('sass', ['sass:lint', 'sass:build'])
+gulp.task('sass', ['sass:lint', 'sass:build', 'sass:build-navbar'])
+
+gulp.task('js:build-navbar', function() {
+  gulp.src('./src/navbar.js')
+    .pipe(webpack({
+      output: {
+        filename: 'navbar.js'
+      },
+      devtool: 'source-maps',
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react'],
+              plugins: ['transform-class-properties']
+            }
+          }
+        ]
+      }
+    }))
+    .pipe(gulp.dest('./static/js/'))
+})
 
 gulp.task('js:build-home', function() {
   gulp.src('./src/home.js')
@@ -87,155 +110,7 @@ gulp.task('js:build-single', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
-gulp.task('js:build-navbar', function() {
-  gulp.src('./src/navbar-docs.js')
-    .pipe(webpack({
-      output: {
-        filename: 'navbar-docs.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:build-navbar-landing', function() {
-  gulp.src('./src/navbar-landing.js')
-    .pipe(webpack({
-      output: {
-        filename: 'navbar-landing.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:build-navbar-tools', function() {
-  gulp.src('./src/navbar-tools.js')
-    .pipe(webpack({
-      output: {
-        filename: 'navbar-tools.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:build-navbar-cloud', function() {
-  gulp.src('./src/navbar-cloud.js')
-    .pipe(webpack({
-      output: {
-        filename: 'navbar-cloud.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:build-landing-sidebar', function() {
-  gulp.src('./src/landing.js')
-    .pipe(webpack({
-      output: {
-        filename: 'landing-sidebar.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:build-landing-list', function() {
-  gulp.src('./src/landing-list.js')
-    .pipe(webpack({
-      output: {
-        filename: 'landing-list.js'
-      },
-      devtool: 'source-maps',
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: ['es2015', 'react'],
-              plugins: ['transform-class-properties']
-            }
-          }
-        ]
-      }
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js', ['js:build-home', 'js:build-single'])
-
-gulp.task('landing', [
-  'js:build-navbar',
-  'js:build-navbar-landing',
-  'js:build-navbar-tools',
-  'js:build-navbar-cloud',
-  'js:build-landing-sidebar',
-  'js:build-landing-list',
-  'sass:build-navbar',
-])
+gulp.task('js', ['js:build-home', 'js:build-single', 'js:build-navbar'])
 
 gulp.task('watch', function() {
   gulp.watch('./src/styles/**/*.scss', ['sass'])

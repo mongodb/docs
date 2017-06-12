@@ -60,21 +60,9 @@
 	
 	var _facet2 = _interopRequireDefault(_facet);
 	
-	var _navbar = __webpack_require__(186);
-	
-	var _navbar2 = _interopRequireDefault(_navbar);
-	
-	var _search = __webpack_require__(190);
-	
-	var _search2 = _interopRequireDefault(_search);
-	
-	var _tutorialList = __webpack_require__(192);
+	var _tutorialList = __webpack_require__(186);
 	
 	var _tutorialList2 = _interopRequireDefault(_tutorialList);
-	
-	var _elementClass = __webpack_require__(194);
-	
-	var _elementClass2 = _interopRequireDefault(_elementClass);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -86,7 +74,7 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var baseURL = window.__baseURL__;
+	var baseURL = window.location.origin;
 	
 	var App = function (_React$Component) {
 	  _inherits(App, _React$Component);
@@ -126,27 +114,6 @@
 	      }).catch(function (err) {
 	        // TODO: do something here
 	      });
-	
-	      var cx = '017213726194841070573:WMX6838984';
-	      var gcse = document.createElement('script');
-	      gcse.type = 'text/javascript';
-	      gcse.async = true;
-	      gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-	      gcse.onload = gcse.onreadystatechange = function () {
-	        // hack to set a placeholder in google's custom search input
-	        var pollInput = window.setInterval(function () {
-	          var input = document.querySelector('.gsc-input input.gsc-input');
-	
-	          if (input) {
-	            input.setAttribute('placeholder', "Search Documentation");
-	            (0, _elementClass2.default)(input).add('navbar-search');
-	            window.clearInterval(pollInput);
-	          }
-	        }, 10);
-	      };
-	
-	      var s = document.getElementsByTagName('script')[0];
-	      s.parentNode.insertBefore(gcse, s);
 	    }
 	  }, {
 	    key: 'clearFacets',
@@ -206,9 +173,9 @@
 	          // Store each tutorial option ID in array
 	          var tutorialOptionIds = tutorial.options.map(function (tutorialOption) {
 	            return tutorialOption.id;
-	          });
+	          }
 	          // If an active option ID is not in the array, hide tutorial
-	          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
+	          );if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
 	            shouldInclude = false;
 	          }
 	        });
@@ -227,73 +194,46 @@
 	        });
 	      }
 	
-	      var links = [{
-	        url: "/redesign/manual/",
-	        text: "Server"
-	      }, {
-	        url: "/redesign/ecosystem/drivers/",
-	        text: "Drivers"
-	      }, {
-	        url: "/redesign/cloud/",
-	        text: "Cloud"
-	      }, {
-	        url: "/redesign/tools",
-	        text: "Tools"
-	      }, {
-	        url: "/redesign/tutorials/",
-	        text: "Tutorials",
-	        active: true
-	      }];
-	
 	      return _react2.default.createElement(
 	        'div',
-	        null,
+	        { className: 'main' },
 	        _react2.default.createElement(
-	          _navbar2.default,
-	          { baseURL: baseURL, links: links },
-	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': 'http://docs.mongodb.com/manual/search/', 'data-queryParameterName': 'query' })
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'main' },
+	          'aside',
+	          { className: 'main__sidebar' },
 	          _react2.default.createElement(
-	            'aside',
-	            { className: 'main__sidebar' },
+	            'div',
+	            { className: 'filter-header' },
 	            _react2.default.createElement(
-	              'div',
-	              { className: 'filter-header' },
-	              _react2.default.createElement(
-	                'h5',
-	                { className: 'filter-header__title' },
-	                'Filters'
-	              ),
-	              _react2.default.createElement(
-	                'a',
-	                { onClick: this.clearFacets },
-	                _react2.default.createElement(
-	                  'h5',
-	                  { className: 'filter-header__clear' },
-	                  'X Clear Filters'
-	                )
-	              )
+	              'h5',
+	              { className: 'filter-header__title' },
+	              'Filters'
 	            ),
 	            _react2.default.createElement(
-	              'div',
-	              { className: 'filters' },
-	              facets
+	              'a',
+	              { onClick: this.clearFacets },
+	              _react2.default.createElement(
+	                'h5',
+	                { className: 'filter-header__clear' },
+	                'X Clear Filters'
+	              )
 	            )
 	          ),
 	          _react2.default.createElement(
 	            'div',
-	            { className: 'main__content' },
-	            _react2.default.createElement('input', { className: 'tutorial-search', placeholder: 'Search Tutorials' }),
-	            _react2.default.createElement(
-	              'h1',
-	              { className: 'main__title' },
-	              'Tutorials'
-	            ),
-	            _react2.default.createElement(_tutorialList2.default, { tutorials: tutorials, baseURL: baseURL })
+	            { className: 'filters' },
+	            facets
 	          )
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'main__content' },
+	          _react2.default.createElement('input', { className: 'tutorial-search', placeholder: 'Search Tutorials' }),
+	          _react2.default.createElement(
+	            'h1',
+	            { className: 'main__title' },
+	            'Tutorials'
+	          ),
+	          _react2.default.createElement(_tutorialList2.default, { tutorials: tutorials, baseURL: baseURL })
 	        )
 	      );
 	    }
@@ -302,7 +242,7 @@
 	  return App;
 	}(_react2.default.Component);
 	
-	_reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('root'));
+	_reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('main'));
 
 /***/ }),
 /* 1 */
@@ -3491,11 +3431,11 @@
 	  var hasOwnProperty = Object.prototype.hasOwnProperty;
 	  var reIsNative = RegExp('^' + funcToString
 	  // Take an example native function source for comparison
-	  .call(hasOwnProperty)
+	  .call(hasOwnProperty
 	  // Strip regex characters so we can use it for regex
-	  .replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+	  ).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&'
 	  // Remove hasOwnProperty from the template to make it generic
-	  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
+	  ).replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
 	  try {
 	    var source = funcToString.call(fn);
 	    return reIsNative.test(source);
@@ -22568,697 +22508,13 @@
 	  value: true
 	});
 	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _classnames = __webpack_require__(184);
-	
-	var _classnames2 = _interopRequireDefault(_classnames);
-	
-	var _navbarDropdown = __webpack_require__(187);
-	
-	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Navbar = function Navbar(props) {
-	  var assetsPrefix = props.assetsPrefix || '';
-	
-	  var links = props.links.map(function (link) {
-	    var linkClass = (0, _classnames2.default)({
-	      'navbar-links__item': true,
-	      'navbar-links__item--active': link.active
-	    });
-	
-	    return _react2.default.createElement(
-	      'a',
-	      { href: link.url, className: linkClass },
-	      link.text
-	    );
-	  });
-	
-	  return _react2.default.createElement(
-	    'nav',
-	    { className: 'navbar' },
-	    _react2.default.createElement(
-	      'div',
-	      { className: 'navbar__left' },
-	      _react2.default.createElement(
-	        'a',
-	        { href: '/redesign/' },
-	        _react2.default.createElement('img', { src: props.baseURL + assetsPrefix + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
-	      ),
-	      _react2.default.createElement('span', { className: 'navbar-seperator' }),
-	      _react2.default.createElement(_navbarDropdown2.default, null)
-	    ),
-	    _react2.default.createElement(
-	      'div',
-	      { className: 'navbar__right' },
-	      _react2.default.createElement(
-	        'div',
-	        { className: 'navbar-links' },
-	        links
-	      ),
-	      _react2.default.createElement(
-	        'div',
-	        { className: 'navbar-download' },
-	        _react2.default.createElement(
-	          'a',
-	          { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
-	          'Download MongoDB'
-	        ),
-	        _react2.default.createElement('img', { className: 'navbar-download__icon', src: props.baseURL + assetsPrefix + '/images/download-icon.svg', alt: 'Download Icon' })
-	      ),
-	      props.children
-	    )
-	  );
-	};
-	
-	exports.default = Navbar;
-
-/***/ }),
-/* 187 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(184);
-	
-	var _classnames2 = _interopRequireDefault(_classnames);
-	
-	var _menu = __webpack_require__(188);
-	
-	var _menu2 = _interopRequireDefault(_menu);
-	
-	var _submenu = __webpack_require__(189);
-	
-	var _submenu2 = _interopRequireDefault(_submenu);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var NavbarDropdown = function (_React$Component) {
-	  _inherits(NavbarDropdown, _React$Component);
-	
-	  function NavbarDropdown(props) {
-	    _classCallCheck(this, NavbarDropdown);
-	
-	    var _this = _possibleConstructorReturn(this, (NavbarDropdown.__proto__ || Object.getPrototypeOf(NavbarDropdown)).call(this, props));
-	
-	    _this.toggle = function (event) {
-	      _this.setState({
-	        open: !_this.state.open
-	      });
-	    };
-	
-	    _this.state = {
-	      open: false
-	    };
-	    return _this;
-	  }
-	
-	  _createClass(NavbarDropdown, [{
-	    key: 'render',
-	    value: function render() {
-	      var dropDownClass = (0, _classnames2.default)({
-	        'navbar-dropdown': true,
-	        'navbar-dropdown--open': this.state.open
-	      });
-	
-	      var menuClass = (0, _classnames2.default)({
-	        'navbar-dropdown__menu': true,
-	        'navbar-dropdown__menu--hidden': !this.state.open,
-	        'navbar-dropdown__menu--shown': this.state.open
-	      });
-	
-	      return _react2.default.createElement(
-	        'div',
-	        { className: dropDownClass },
-	        _react2.default.createElement(
-	          'span',
-	          { onClick: this.toggle },
-	          'Documentation'
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: menuClass },
-	          _react2.default.createElement(
-	            _menu2.default,
-	            null,
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item' },
-	              _react2.default.createElement(
-	                _submenu2.default,
-	                { title: 'Documentation' },
-	                _react2.default.createElement(
-	                  'li',
-	                  { className: 'submenu__item' },
-	                  _react2.default.createElement(
-	                    'a',
-	                    { href: '/redesign/manual/' },
-	                    'Server'
-	                  )
-	                ),
-	                _react2.default.createElement(
-	                  'li',
-	                  { className: 'submenu__item' },
-	                  _react2.default.createElement(
-	                    _submenu2.default,
-	                    { title: 'Drivers' },
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'http://mongoc.org/libmongoc/current/' },
-	                        'C'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://mongodb.github.io/mongo-cxx-driver/' },
-	                        'C++11'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ecosystem/drivers/csharp/' },
-	                        'C#'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'http://mongodb.github.io/mongo-java-driver/' },
-	                        'Java'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://mongodb.github.io/node-mongodb-native/' },
-	                        'Node.js'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ecosystem/drivers/perl/' },
-	                        'Perl'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ecosystem/drivers/php/' },
-	                        'PHP'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ecosystem/drivers/python/' },
-	                        'Python'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ruby-driver/master/' },
-	                        'Ruby'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: '/redesign/ecosystem/drivers/scala/' },
-	                        'Scala'
-	                      )
-	                    )
-	                  )
-	                ),
-	                _react2.default.createElement(
-	                  'li',
-	                  { className: 'submenu__item submenu__item--nested' },
-	                  _react2.default.createElement(
-	                    _submenu2.default,
-	                    { title: 'Cloud' },
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://www.mongodb.com/cloud/atlas' },
-	                        'MongoDB Atlas'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://www.mongodb.com/cloud/cloud-manager' },
-	                        'MongoDB Cloud Manager'
-	                      )
-	                    ),
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://www.mongodb.com/products/ops-manager' },
-	                        'MongoDB Ops Manager'
-	                      )
-	                    )
-	                  )
-	                ),
-	                _react2.default.createElement(
-	                  'li',
-	                  { className: 'submenu__item submenu__item--nested' },
-	                  _react2.default.createElement(
-	                    'a',
-	                    { href: '/redesign/tools/' },
-	                    'Tools'
-	                  )
-	                ),
-	                _react2.default.createElement(
-	                  'li',
-	                  { className: 'submenu__item' },
-	                  _react2.default.createElement(
-	                    'a',
-	                    { href: '/redesign/tutorials/' },
-	                    'Tutorials'
-	                  )
-	                )
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: 'https://www.mongodb.com/' },
-	                'Company'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: 'https://university.mongodb.com/' },
-	                'University'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: 'https://www.mongodb.com/community' },
-	                'Community'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: 'https://www.mongodb.com/what-is-mongodb' },
-	                'What is MongoDB'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item menu__item--secondary' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: 'https://www.mongodb.com/download-center?jmp=docs' },
-	                'Download MongoDB'
-	              )
-	            ),
-	            _react2.default.createElement(
-	              'li',
-	              { className: 'menu__item menu__item--secondary' },
-	              _react2.default.createElement(
-	                'a',
-	                { href: '#' },
-	                'Contact Us'
-	              )
-	            )
-	          )
-	        )
-	      );
-	    }
-	  }]);
-	
-	  return NavbarDropdown;
-	}(_react2.default.Component);
-	
-	exports.default = NavbarDropdown;
-
-/***/ }),
-/* 188 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var Menu = function Menu(props) {
-	  return _react2.default.createElement(
-	    "ul",
-	    { className: "menu" },
-	    props.children
-	  );
-	};
-	
-	exports.default = Menu;
-
-/***/ }),
-/* 189 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _classnames = __webpack_require__(184);
-	
-	var _classnames2 = _interopRequireDefault(_classnames);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Submenu = function (_React$Component) {
-	  _inherits(Submenu, _React$Component);
-	
-	  function Submenu(props) {
-	    _classCallCheck(this, Submenu);
-	
-	    var _this = _possibleConstructorReturn(this, (Submenu.__proto__ || Object.getPrototypeOf(Submenu)).call(this, props));
-	
-	    _this.toggle = function (event) {
-	      _this.setState({
-	        open: !_this.state.open
-	      });
-	    };
-	
-	    _this.state = {
-	      open: false
-	    };
-	    return _this;
-	  }
-	
-	  _createClass(Submenu, [{
-	    key: 'render',
-	    value: function render() {
-	      var titleClass = (0, _classnames2.default)({
-	        'submenu__title': true,
-	        'submenu__title--open': this.state.open
-	      });
-	
-	      var submenuClass = (0, _classnames2.default)({
-	        'submenu': true,
-	        'submenu--hidden': !this.state.open,
-	        'submenu--shown': this.state.open
-	      });
-	
-	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	          'span',
-	          { className: titleClass, onClick: this.toggle },
-	          this.props.title
-	        ),
-	        _react2.default.createElement(
-	          'ul',
-	          { className: submenuClass },
-	          this.props.children
-	        )
-	      );
-	    }
-	  }]);
-	
-	  return Submenu;
-	}(_react2.default.Component);
-	
-	exports.default = Submenu;
-
-/***/ }),
-/* 190 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _SearchChannel = __webpack_require__(191);
-	
-	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Search = function (_React$Component) {
-	  _inherits(Search, _React$Component);
-	
-	  function Search(props) {
-	    _classCallCheck(this, Search);
-	
-	    var _this = _possibleConstructorReturn(this, (Search.__proto__ || Object.getPrototypeOf(Search)).call(this, props));
-	
-	    _this.onInput = function (event) {
-	      _this.setState({
-	        searchText: event.target.value
-	      });
-	
-	      if (_this.state.timeout !== -1) {
-	        clearTimeout(_this.state.timeout);
-	      }
-	
-	      _this.setState({ timeout: _this.state.timeout = setTimeout(function () {
-	          _this.state.searcher.search(_this.state.searchText);
-	        }, 250) });
-	    };
-	
-	    _this.state = {
-	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
-	      timeout: -1,
-	      loaded: false,
-	      searchText: ''
-	    };
-	
-	    _this.state.searcher.load().then(function () {
-	      _this.setState({ loaded: true });
-	    }).catch(function (err) {
-	      return console.error(err);
-	    });
-	
-	    _this.state.searcher.onresults = props.onResults;
-	    return _this;
-	  }
-	
-	  _createClass(Search, [{
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement('input', { type: 'search',
-	        className: 'navbar-search',
-	        placeholder: this.placeholder,
-	        value: this.state.searchText,
-	        disabled: !this.state.searcher.loaded,
-	        onInput: this.onInput
-	      });
-	    }
-	  }, {
-	    key: 'placeholder',
-	    get: function get() {
-	      if (!this.state.searcher.loaded) {
-	        return 'Loading...';
-	      }
-	
-	      return 'Search';
-	    }
-	  }]);
-	
-	  return Search;
-	}(_react2.default.Component);
-	
-	exports.default = Search;
-
-/***/ }),
-/* 191 */
-/***/ (function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var SearchChannel = function () {
-	  function SearchChannel(baseURL, url) {
-	    var _this = this;
-	
-	    _classCallCheck(this, SearchChannel);
-	
-	    this.worker = new Worker(baseURL + '/worker-search.js');
-	
-	    this.pending = null;
-	    this.busy = false;
-	
-	    this.loaded = false;
-	    this.loadingTime = null;
-	    this.loadWaiter = new Promise(function (resolve) {
-	      _this.worker.onmessage = function (ev) {
-	        if (ev.data.loaded) {
-	          _this.loaded = true;
-	          _this.loadingTime = ev.data.loaded;
-	          return resolve(_this.loadingTime);
-	        }
-	
-	        if (ev.data.results) {
-	          _this.onresults(ev.data.results);
-	        }
-	
-	        _this.busy = false;
-	        if (_this.pending !== null) {
-	          _this.search(_this.pending);
-	        }
-	      };
-	    });
-	
-	    this.worker.postMessage({ 'load': baseURL + url });
-	    this.onresults = function (results) {};
-	  }
-	
-	  _createClass(SearchChannel, [{
-	    key: 'search',
-	    value: function search(query) {
-	      if (!this.busy) {
-	        if (!query) {
-	          this.onresults([]);
-	        } else {
-	          this.worker.postMessage({ 'search': query });
-	        }
-	        this.pending = null;
-	        this.busy = true;
-	      } else {
-	        this.pending = query;
-	      }
-	    }
-	  }, {
-	    key: 'load',
-	    value: function load() {
-	      var _this2 = this;
-	
-	      if (this.loadingTime !== null) {
-	        return new Promise(function (resolve, reject) {
-	          return resolve(_this2.loadingTime);
-	        });
-	      }
-	      return this.loadWaiter;
-	    }
-	  }]);
-	
-	  return SearchChannel;
-	}();
-	
-	exports.default = SearchChannel;
-
-/***/ }),
-/* 192 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _tutorial = __webpack_require__(193);
+	var _tutorial = __webpack_require__(187);
 	
 	var _tutorial2 = _interopRequireDefault(_tutorial);
 	
@@ -23302,7 +22558,7 @@
 	exports.default = TutorialList;
 
 /***/ }),
-/* 193 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23375,73 +22631,6 @@
 	}(_react2.default.Component);
 	
 	exports.default = Tutorial;
-
-/***/ }),
-/* 194 */
-/***/ (function(module, exports) {
-
-	'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	module.exports = function (opts) {
-	  return new ElementClass(opts);
-	};
-	
-	function indexOf(arr, prop) {
-	  if (arr.indexOf) return arr.indexOf(prop);
-	  for (var i = 0, len = arr.length; i < len; i++) {
-	    if (arr[i] === prop) return i;
-	  }return -1;
-	}
-	
-	function ElementClass(opts) {
-	  if (!(this instanceof ElementClass)) return new ElementClass(opts);
-	  var self = this;
-	  if (!opts) opts = {};
-	
-	  // similar doing instanceof HTMLElement but works in IE8
-	  if (opts.nodeType) opts = { el: opts };
-	
-	  this.opts = opts;
-	  this.el = opts.el || document.body;
-	  if (_typeof(this.el) !== 'object') this.el = document.querySelector(this.el);
-	}
-	
-	ElementClass.prototype.add = function (className) {
-	  var el = this.el;
-	  if (!el) return;
-	  if (el.className === "") return el.className = className;
-	  var classes = el.className.split(' ');
-	  if (indexOf(classes, className) > -1) return classes;
-	  classes.push(className);
-	  el.className = classes.join(' ');
-	  return classes;
-	};
-	
-	ElementClass.prototype.remove = function (className) {
-	  var el = this.el;
-	  if (!el) return;
-	  if (el.className === "") return;
-	  var classes = el.className.split(' ');
-	  var idx = indexOf(classes, className);
-	  if (idx > -1) classes.splice(idx, 1);
-	  el.className = classes.join(' ');
-	  return classes;
-	};
-	
-	ElementClass.prototype.has = function (className) {
-	  var el = this.el;
-	  if (!el) return;
-	  var classes = el.className.split(' ');
-	  return indexOf(classes, className) > -1;
-	};
-	
-	ElementClass.prototype.toggle = function (className) {
-	  var el = this.el;
-	  if (!el) return;
-	  if (this.has(className)) this.remove(className);else this.add(className);
-	};
 
 /***/ })
 /******/ ]);
