@@ -25,7 +25,7 @@ export default class Search extends React.Component {
       return 'Loading...'
     }
 
-    return 'Search'
+    return 'Search Tutorials'
   }
 
   onInput = (event) => {
@@ -37,6 +37,7 @@ export default class Search extends React.Component {
       clearTimeout(this.state.timeout)
     }
 
+    // This prevents users from searching before the search has loaded
     this.setState({timeout:
       this.state.timeout = setTimeout(() => {
         this.state.searcher.search(this.state.searchText)
@@ -46,7 +47,7 @@ export default class Search extends React.Component {
   render() {
     return (
       <input type="search" 
-             className="navbar-search"
+             className="tutorial-search"
              placeholder={this.placeholder}
              value={this.state.searchText}
              disabled={!this.state.searcher.loaded}

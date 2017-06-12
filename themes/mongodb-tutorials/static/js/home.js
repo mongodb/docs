@@ -60,7 +60,11 @@
 	
 	var _facet2 = _interopRequireDefault(_facet);
 	
-	var _tutorialList = __webpack_require__(186);
+	var _search = __webpack_require__(186);
+	
+	var _search2 = _interopRequireDefault(_search);
+	
+	var _tutorialList = __webpack_require__(188);
 	
 	var _tutorialList2 = _interopRequireDefault(_tutorialList);
 	
@@ -190,8 +194,15 @@
 	        var tutorialsSet = new Set(tutorialsMatchingFacets.map(function (tutorial) {
 	          return tutorial.url;
 	        }));
-	        tutorials = this.state.searchResults.filter(function (slug) {
+	
+	        var tutorialURLs = this.state.searchResults.filter(function (slug) {
 	          return tutorialsSet.has(slug);
+	        });
+	
+	        tutorials = tutorialURLs.map(function (url) {
+	          return tutorialsMatchingFacets.find(function (t) {
+	            return t.url === url;
+	          });
 	        });
 	      }
 	
@@ -228,7 +239,7 @@
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'main__content' },
-	          _react2.default.createElement('input', { className: 'tutorial-search', placeholder: 'Search Tutorials' }),
+	          _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults }),
 	          _react2.default.createElement(
 	            'h1',
 	            { className: 'main__title' },
@@ -22516,7 +22527,186 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _tutorial = __webpack_require__(187);
+	var _SearchChannel = __webpack_require__(187);
+	
+	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Search = function (_React$Component) {
+	  _inherits(Search, _React$Component);
+	
+	  function Search(props) {
+	    _classCallCheck(this, Search);
+	
+	    var _this = _possibleConstructorReturn(this, (Search.__proto__ || Object.getPrototypeOf(Search)).call(this, props));
+	
+	    _this.onInput = function (event) {
+	      _this.setState({
+	        searchText: event.target.value
+	      });
+	
+	      if (_this.state.timeout !== -1) {
+	        clearTimeout(_this.state.timeout);
+	      }
+	
+	      // This prevents users from searching before the search has loaded
+	      _this.setState({ timeout: _this.state.timeout = setTimeout(function () {
+	          _this.state.searcher.search(_this.state.searchText);
+	        }, 250) });
+	    };
+	
+	    _this.state = {
+	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
+	      timeout: -1,
+	      loaded: false,
+	      searchText: ''
+	    };
+	
+	    _this.state.searcher.load().then(function () {
+	      _this.setState({ loaded: true });
+	    }).catch(function (err) {
+	      return console.error(err);
+	    });
+	
+	    _this.state.searcher.onresults = props.onResults;
+	    return _this;
+	  }
+	
+	  _createClass(Search, [{
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement('input', { type: 'search',
+	        className: 'tutorial-search',
+	        placeholder: this.placeholder,
+	        value: this.state.searchText,
+	        disabled: !this.state.searcher.loaded,
+	        onInput: this.onInput
+	      });
+	    }
+	  }, {
+	    key: 'placeholder',
+	    get: function get() {
+	      if (!this.state.searcher.loaded) {
+	        return 'Loading...';
+	      }
+	
+	      return 'Search Tutorials';
+	    }
+	  }]);
+	
+	  return Search;
+	}(_react2.default.Component);
+	
+	exports.default = Search;
+
+/***/ }),
+/* 187 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var SearchChannel = function () {
+	  function SearchChannel(baseURL, url) {
+	    var _this = this;
+	
+	    _classCallCheck(this, SearchChannel);
+	
+	    this.worker = new Worker(baseURL + '/worker-search.js');
+	
+	    this.pending = null;
+	    this.busy = false;
+	
+	    this.loaded = false;
+	    this.loadingTime = null;
+	    this.loadWaiter = new Promise(function (resolve) {
+	      _this.worker.onmessage = function (ev) {
+	        if (ev.data.loaded) {
+	          _this.loaded = true;
+	          _this.loadingTime = ev.data.loaded;
+	          return resolve(_this.loadingTime);
+	        }
+	
+	        if (ev.data.results) {
+	          _this.onresults(ev.data.results);
+	        }
+	
+	        _this.busy = false;
+	        if (_this.pending !== null) {
+	          _this.search(_this.pending);
+	        }
+	      };
+	    });
+	
+	    this.worker.postMessage({ 'load': baseURL + url });
+	    this.onresults = function (results) {};
+	  }
+	
+	  _createClass(SearchChannel, [{
+	    key: 'search',
+	    value: function search(query) {
+	      if (!this.busy) {
+	        if (!query) {
+	          this.onresults([]);
+	        } else {
+	          this.worker.postMessage({ 'search': query });
+	        }
+	        this.pending = null;
+	        this.busy = true;
+	      } else {
+	        this.pending = query;
+	      }
+	    }
+	  }, {
+	    key: 'load',
+	    value: function load() {
+	      var _this2 = this;
+	
+	      if (this.loadingTime !== null) {
+	        return new Promise(function (resolve, reject) {
+	          return resolve(_this2.loadingTime);
+	        });
+	      }
+	      return this.loadWaiter;
+	    }
+	  }]);
+	
+	  return SearchChannel;
+	}();
+	
+	exports.default = SearchChannel;
+
+/***/ }),
+/* 188 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _tutorial = __webpack_require__(189);
 	
 	var _tutorial2 = _interopRequireDefault(_tutorial);
 	
@@ -22560,7 +22750,7 @@
 	exports.default = TutorialList;
 
 /***/ }),
-/* 187 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";

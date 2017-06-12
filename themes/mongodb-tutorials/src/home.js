@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Facet from './facet.js'
+import Search from './search.js'
 import TutorialList from './tutorialList.js'
 
 const baseURL = window.location.origin
@@ -102,8 +103,13 @@ class App extends React.Component {
 
     if (this.state.searchResults !== null) {
       const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
-      tutorials = this.state.searchResults.filter(slug => {
+
+      const tutorialURLs = this.state.searchResults.filter(slug => {
         return tutorialsSet.has(slug)
+      })
+
+      tutorials = tutorialURLs.map(url => {
+        return tutorialsMatchingFacets.find(t => t.url === url)
       })
     }
 
@@ -120,7 +126,7 @@ class App extends React.Component {
         </aside>
 
         <div className="main__content">
-          <input className="tutorial-search" placeholder="Search Tutorials" />
+          <Search baseURL={baseURL} onResults={this.onResults} />
           <h1 className="main__title">Tutorials</h1>
           <TutorialList tutorials={ tutorials } baseURL={baseURL} />
         </div>
