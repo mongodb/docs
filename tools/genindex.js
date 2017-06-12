@@ -75,7 +75,7 @@ function makeRenderer() {
 function makeHeadingRemover() {
   const renderer = new marked.Renderer()
   let headings = []
-  
+
   renderer.heading = function(text, level, raw) {
     headings.push({'text': text, 'level': level})
     return ''
@@ -105,7 +105,7 @@ function generateTOC(headings) {
 
   // Remove h1 and any headers deeper than h5
   headings = headings.filter(h => !(h.level == 1 || h.level > 5))
-  
+
   headings.map((heading, i) => {
     if (i == headings.length - 1 && heading.level == 3) {
       lastLevelIsNested = true
@@ -156,34 +156,23 @@ function generateTOC(headings) {
   return toc
 }
 
-// Recursively step through an object and replace any numbers with a number
-// representable in a short ASCII string.
-function truncateNumbers(r) {
-    if (!(r instanceof Object)) { return }
-    for (let child of Object.keys(r)) {
-        if (typeof r[child] === 'number') {
-            r[child] = Number((r[child]).toString().slice(0, 10))
-        }
-        truncateNumbers(r[child])
-    }
-}
-
 const searchIndex = {
-    idx: lunr(function () {
-        this.ref('id')
-        this.field('title', { boost: 20 })
-        this.field('tags', { boost: 15 })
-        this.field('minorTitles', { boost: 5 })
-        this.field('body')
-    }),
     docId: 0,
     slugs: [],
-    toJSON: function() {
-        truncateNumbers(searchIndex.idx.tokenStore.tokens)
-        searchIndex.idx.tokenStore.compress()
-        const json = searchIndex.idx.toJSON()
-        json.slugs = searchIndex.slugs
-        return json
+    build: function(f) {
+      const idx = lunr(function () {
+        this.ref('id')
+        this.field('title')
+        this.field('tags')
+        this.field('minorTitles')
+        this.field('body')
+
+        f(this.add.bind(this))
+      })
+
+      const json = idx.toJSON()
+      json.slugs = searchIndex.slugs
+      return json
     }
 }
 
@@ -206,7 +195,7 @@ function* walk(root) {
     }
 }
 
-function processFile(path) {
+function processFile(path, addDocument) {
     const rawdata = fs.readFileSync(path, { encoding: 'utf-8' })
     const match = rawdata.match(PAT_HEADMATTER)
     if (!match) {
@@ -221,7 +210,7 @@ function processFile(path) {
 
     const renderer = makeRenderer()
     const html = marked(rawdata.slice(match[0].length), { renderer: renderer }) + renderer.flush()
-    
+
     const headingRemover = makeHeadingRemover()
     const htmlNoHeadings = marked(rawdata.slice(match[0].length), { renderer: headingRemover })
     // Remove HTML tags, quotation mark entities, and single quote entities
@@ -240,7 +229,7 @@ function processFile(path) {
     searchIndex.docId += 1
     searchIndex.slugs.push(headmatter.slug)
 
-    searchIndex.idx.add(searchDoc)
+    addDocument(searchDoc)
 
     const nav = generateTOC(headingRemover.headings)
 
@@ -275,39 +264,41 @@ function main() {
         fs.mkdirSync(outputContentDir)
     } catch (error) {}
 
-    for (const path of walk(sourceContentDir)) {
-        if (pathModule.extname(path) !== '.md') {
-            continue
+    const searchIndexJSON = searchIndex.build((addDocument) => {
+        for (const path of walk(sourceContentDir)) {
+            if (pathModule.extname(path) !== '.md') {
+                continue
+            }
+
+            let doc
+            try {
+                doc = processFile(path, addDocument)
+            } catch(err) {
+                console.error(`Error processing ${path}: ${err}`)
+                error = true
+                continue
+            }
+
+            doc.headmatter.options.forEach(function(option) {
+              if (!tagMap.has(option)) {
+                console.error(`Unknown tag "${option}" in ${path}`)
+                error = true
+              }
+            })
+
+            // Add facet and title information
+            doc.headmatter.options = doc.headmatter.options.map(option => tagMap.get(option))
+
+            // Ensure that tags have a consistent order defined by the config file
+            doc.headmatter.options.sort((a, b) => {
+                return tagIndexes.get(a.id) - tagIndexes.get(b.id)
+            })
+
+            tutorials.push(doc.headmatter)
+            const outputPath = path.replace(sourceContentDir, outputContentDir).replace(/\.[a-z]+$/, '.html')
+            fs.writeFileSync(outputPath, doc.headmatterSource + '\n' + doc.html)
         }
-
-        let doc
-        try {
-            doc = processFile(path)
-        } catch(err) {
-            console.error(`Error processing ${path}: ${err}`)
-            error = true
-            continue
-        }
-
-        doc.headmatter.options.forEach(function(option) {
-          if (!tagMap.has(option)) {
-            console.error(`Unknown tag "${option}" in ${path}`)
-            error = true
-          }
-        })
-
-        // Add facet and title information
-        doc.headmatter.options = doc.headmatter.options.map(option => tagMap.get(option))
-
-        // Ensure that tags have a consistent order defined by the config file
-        doc.headmatter.options.sort((a, b) => {
-            return tagIndexes.get(a.id) - tagIndexes.get(b.id)
-        })
-
-        tutorials.push(doc.headmatter)
-        const outputPath = path.replace(sourceContentDir, outputContentDir).replace(/\.[a-z]+$/, '.html')
-        fs.writeFileSync(outputPath, doc.headmatterSource + '\n' + doc.html)
-    }
+    })
 
     if (error) {
         process.exit(1)
@@ -330,7 +321,6 @@ function main() {
         tutorials: tutorials
     }))
 
-    const searchIndexJSON = searchIndex.toJSON()
     fs.writeFileSync('public/search.json', JSON.stringify(searchIndexJSON))
 }
 
