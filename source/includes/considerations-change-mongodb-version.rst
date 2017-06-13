@@ -1,5 +1,5 @@
-- Before changing a deployment's MongoDB version, check the following
-  documents for any considerations or compatibility issues:
+- Check the following documents for any considerations or compatibility issues
+  before changing a deployment's MongoDB version:
 
   - :manual:`The MongoDB Release Notes </release-notes>`
 
@@ -9,37 +9,36 @@
 
 - Plan the version change during a predefined maintenance window.
 
-- Before changing a production environment, try to change the MongoDB version
-  on a staging environment. Your staging environment should mirror your
+- Change the MongoDB version on a staging environment before changing a
+  production environment. Your staging environment should mirror your
   production environment. This can help avoid compatibility issues that may
   result in downtime for your production deployment.
 
-- With a :term:`replica set` or :term:`sharded cluster`, you must upgrade each
-  process in this order:
-
-  For :term:`replica sets <replica set>`:
+- Upgrade :term:`replica sets <replica set>` in this order:
 
   1. Upgrade each :term:`secondary` one at a time.
   2. Upgrade the :term:`primary`.
 
-  For :term:`sharded clusters <sharded cluster>`:
+  If you try to upgrade the processes in a different order, the
+  upgrade may fail.
+  
+- Upgrade :term:`sharded clusters <sharded cluster>` in this order:
 
   1. Upgrade the :term:`config servers <config server>` replica set.
   2. Upgrade each the :term:`replica set` for each shard.
   3. Upgrade each :program:`mongos` process.
 
   If you try to upgrade the processes in a different order, the
-  upgrade can fail.
+  upgrade may fail.
   
   .. example::
-     If you upgrade your ``mongos`` processes to 3.4 before upgrading
-     the :term:`config servers <config server>`, a :term:`sharded
-     cluster` upgrade fails. The ``mongos`` running 3.4 cannot talk to
-     config servers running 3.2.
+     If you upgrade your ``mongos`` processes to 3.4 before upgrading the
+     :term:`config servers <config server>`, a :term:`sharded cluster` upgrade
+     fails. The ``mongos`` running 3.4 cannot interact with config servers
+     running 3.2.
 
-- To *downgrade* to an earlier MongoDB version if your MongoDB
-  configuration file includes options incompatible with the earlier MongoDB
-  version, perform the downgrade in two stages: 
+- Perform any *downgrades* in *two* stages if your MongoDB configuration file
+  includes options incompatible with the earlier MongoDB version:
 
   1. Remove the configuration settings specific to the newer MongoDB
      version. Deploy those changes.
