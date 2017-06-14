@@ -14,28 +14,9 @@
   production environment. This can help avoid compatibility issues that may
   result in downtime for your production deployment.
 
-- Upgrade :term:`replica sets <replica set>` in this order:
-
-  1. Upgrade each :term:`secondary` one at a time.
-  2. Upgrade the :term:`primary`.
-
-  If you try to upgrade the processes in a different order, the
-  upgrade may fail.
-  
-- Upgrade :term:`sharded clusters <sharded cluster>` in this order:
-
-  1. Upgrade the :term:`config servers <config server>` replica set.
-  2. Upgrade each the :term:`replica set` for each shard.
-  3. Upgrade each :program:`mongos` process.
-
-  If you try to upgrade the processes in a different order, the
-  upgrade may fail.
-  
-  .. example::
-     If you upgrade your ``mongos`` processes to 3.4 before upgrading the
-     :term:`config servers <config server>`, a :term:`sharded cluster` upgrade
-     fails. The ``mongos`` running 3.4 cannot interact with config servers
-     running 3.2.
+- Follow the :manual:`MongoDB release notes </release-notes>` when performing
+  manual upgrades of :term:`replica sets <replica set>` and
+  :term:`sharded clusters <sharded cluster>`.
 
 - Perform any *downgrades* in *two* stages if your MongoDB configuration file
   includes options incompatible with the earlier MongoDB version:
