@@ -21,6 +21,20 @@ const marked = require('marked')
 const PAT_HEADMATTER = /^\+\+\+\n([^]+)\n\+\+\+/
 const SNIPPET_LENGTH = 220
 
+// Temporarily hardcode featured tutorial URLs
+const FEATURED_URLS = [
+  "/install-mongodb-on-windows",
+  "/install-mongodb-on-os-x",
+  "/install-mongodb-on-ubuntu",
+  "/connect-to-mongodb-python",
+  "/connect-to-mongodb-shell",
+  "/deploy-replica-set",
+  "/deploy-shard-cluster",
+  "/manage-users-and-roles",
+  "/enable-authentication",
+  "/configure-ldap-sasl-openldap"
+]
+
 function escape(html, encode) {
   return html
     .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
@@ -245,6 +259,24 @@ function processFile(path, addDocument) {
     }
 }
 
+function sortFeatured(tutorials) {
+  let featured = []
+  let notFeatured = []
+
+  let index = -1
+
+  tutorials.map(tutorial => {
+    index = FEATURED_URLS.indexOf(tutorial.url)
+    if (index > -1) {
+      featured[index] = tutorial
+    } else {
+      notFeatured.push(tutorial)
+    }
+  })
+
+  return featured.concat(notFeatured)
+}
+
 function main() {
     const args = docopt.docopt(__doc__)
     const tutorials = []
@@ -316,9 +348,11 @@ function main() {
         fs.mkdirSync('public')
     } catch (error) {}
 
+    let sortedTutorials = sortFeatured(tutorials)
+
     fs.writeFileSync('public/tags.json', JSON.stringify({
         tags: tags,
-        tutorials: tutorials
+        tutorials: sortedTutorials
     }))
 
     fs.writeFileSync('public/search.json', JSON.stringify(searchIndexJSON))
