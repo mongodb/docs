@@ -1,3 +1,11 @@
+Monitoring Agent ``6.0.0.381``
+------------------------------
+
+*Released 2017-06-15*
+
+- Use HTTP basic auth to authenticate HTTPS requests between the Monitoring
+  Agent and cloud.mongodb.com
+
 Monitoring Agent ``5.7.0.368``
 ------------------------------
 

@@ -1,3 +1,11 @@
+Backup Agent ``5.5.0.512``
+--------------------------
+
+*Released 2017-06-15*
+
+- Use HTTP basic auth to authenticate HTTPS requests between the Backup Agent
+  and cloud.mongodb.com
+
 Backup Agent ``5.4.0.493``
 --------------------------
 
@@ -197,7 +205,7 @@ Backup Agent ``3.2.0.262``
    - Support for x.509 certificate authentication.
 
    - Fixes a race condition which could result in inconsistent
-     clustershots for MongoDB 3.0+ sharded clusters using the 
+     clustershots for MongoDB 3.0+ sharded clusters using the
      :authrole:`backup` role.
 
 .. only:: classic
