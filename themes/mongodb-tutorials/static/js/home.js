@@ -239,7 +239,11 @@
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'main__content' },
-	          _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults }),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'tutorial-search__wrapper' },
+	            _react2.default.createElement(_search2.default, { baseURL: baseURL, onResults: this.onResults })
+	          ),
 	          _react2.default.createElement(
 	            'h1',
 	            { className: 'main__title' },
