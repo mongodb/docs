@@ -34,9 +34,10 @@ If the ``Enforce Consistent Set`` value for the |mms| group is ``YES``,
 users and roles *not* imported are deleted from the MongoDB deployment.
 
 If the ``Enforce Consistent Set`` value for the |mms| group is ``No``,
-non-imported users and roles are not managed by |mms| group but remain
-in the MongoDB deployment. To manage these users and roles, you must
-connect directly to the MongoDB deployment.
+the |mms| group does not manage the non-imported users and roles. All
+non-imported *and existing* users and roles remain in the MongoDB
+deployment. To manage these users and roles, you must connect directly
+to the MongoDB deployment.
 
 If importing users and roles, before you confirm and deploy the
 changes, you can, from the :guilabel:`Authentication & Users` and
