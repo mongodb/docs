@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom'
 import Facet from './facet.js'
 import Search from './search.js'
 import TutorialList from './tutorialList.js'
+import util from './util.js'
 
 const baseURL = window.location.origin
 
@@ -32,6 +33,8 @@ class App extends React.Component {
     }).catch((err) => {
       // TODO: do something here
     })
+
+    util.setupFeedback()
   }
 
   clearFacets () {

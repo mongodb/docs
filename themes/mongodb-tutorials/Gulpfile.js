@@ -74,12 +74,16 @@ gulp.task('js:build-home', function() {
       module: {
         loaders: [
           {
-            test: /\.js$/,
+            test: /\.(html|js)$/,
             loader: 'babel-loader',
             query: {
               presets: ['es2015', 'react'],
               plugins: ['transform-class-properties']
             }
+          }, {
+            test: /\.html$/,
+            exclude: /node_modules/,
+            use: 'svelte-loader'
           }
         ]
       }

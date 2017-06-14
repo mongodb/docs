@@ -1,3 +1,4 @@
+import { Deluge } from 'rigning';
 import elementClass from 'element-class'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -85,6 +86,28 @@ const utils = {
         }
       })
     })
+  },
+
+  // This is copied from docs-tools
+  setupFeedback () {
+    // We require DOM storage. Don't show anything if support is not present.
+    if (window.localStorage === undefined) { return; }
+
+    const project = document.body.getAttribute('data-project');
+    const pagename = document.querySelector('.main').getAttribute('data-pagename');
+    const ratingPanelElement = document.getElementById('rating-panel');
+    
+    ratingPanelElement.innerText = '';
+
+    if (ratingPanelElement) {
+        (new Deluge(project, pagename, ratingPanelElement)).
+            askFreeformQuestion('reason', 'What were you looking for?').
+            askQuestion('findability', 'Did you find it?').
+            askQuestion('accuracy', 'Was the information you found <strong>accurate</strong>?').
+            askQuestion('clarity', 'Was the information <strong>clear</strong>?').
+            askQuestion('fragmentation', 'Was the information you needed <strong>' +
+                        'all on one page</strong>?');
+    }
   },
 
   // this is currently only used on the home landing page
