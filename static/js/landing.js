@@ -219,7 +219,36 @@
 	    ratingPanelElement.innerText = '';
 	
 	    if (ratingPanelElement) {
-	      new _rigningNonGreni.Deluge(project, pagename, ratingPanelElement).askFreeformQuestion('reason', 'What were you looking for?').askQuestion('findability', 'Did you find it?').askQuestion('accuracy', 'Was the information you found <strong>accurate</strong>?').askQuestion('clarity', 'Was the information <strong>clear</strong>?').askQuestion('fragmentation', 'Was the information you needed <strong>' + 'all on one page</strong>?');
+	      var show = function show() {
+	        deluge.open();
+	      };
+	
+	      var deluge = new _rigningNonGreni.Deluge(project, pagename, ratingPanelElement).askFreeformQuestion('reason', 'What were you looking for?').askQuestion('findability', 'Did you find it?').askQuestion('accuracy', 'Was the information you found <strong>accurate</strong>?').askQuestion('clarity', 'Was the information <strong>clear</strong>?').askQuestion('fragmentation', 'Was the information you needed <strong>' + 'all on one page</strong>?');
+	
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+	
+	      try {
+	        for (var _iterator2 = document.querySelectorAll('.toc__link--deluge')[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var element = _step2.value;
+	
+	          element.addEventListener('click', show);
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	            _iterator2.return();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
 	    }
 	  },
 	
@@ -382,6 +411,11 @@
 	                img.src = url;
 	            });
 	        }
+	    }, {
+	        key: 'open',
+	        value: function open() {
+	            this.app.open();
+	        }
 	    }]);
 
 	    return Deluge;
@@ -452,6 +486,12 @@
 			},
 	
 			methods: {
+				open: function open() {
+					if (this.get('state') === 'Initial') {
+						this.set({ answers: {} });
+						this.set({ 'state': 'NotVoted' });
+					}
+				},
 				toggle: function toggle() {
 					this.set({ answers: {} });
 	
