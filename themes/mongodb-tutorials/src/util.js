@@ -1,4 +1,4 @@
-import { Deluge } from 'rigning';
+import { Deluge } from 'rigning-non-greni';
 import elementClass from 'element-class'
 import React from 'react'
 import ReactDOM from 'react-dom'
