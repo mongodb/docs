@@ -24,7 +24,7 @@ class Navbar extends React.Component {
         var input = document.querySelector('.gsc-input input.gsc-input')
 
         if (input) {
-          input.style = ''
+          input.style.cssText = ''
           input.className = 'navbar-search'
           document.querySelector('.navbar__right').appendChild(input)
           input.setAttribute('placeholder', "Search Documentation")
