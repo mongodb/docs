@@ -4,801 +4,117 @@ Groups
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
 Endpoints
 ---------
 
-Get All Groups for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups
-
-.. only:: onprem
-
-   To query by group tags, use the ``tag`` query parameter, as shown below. If
-   you specify multiple tag values, the group must have all the specified
-   values. You must have the ``Global Read Only`` or ``Global Owner``
-   :doc:`role </reference/user-roles>` to view tags.
-
-   .. code-block:: none
-
-      GET /api/public/v1.0/groups?tag=ABC&tag=DEF
-
-Get a Group by ID
-~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID
-
-Get a Group by Name
-~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/byName/GROUP-NAME
-
-Get a Group by Agent API Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/byAgentApiKey/AGENT-API-KEY
-
-.. _api-get-all-users-in-group:
-
-Get All Users in a Group
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/groups/GROUP-ID/users
-
-Create a Group
-~~~~~~~~~~~~~~
-
-Specify only the ``name`` field.
-
-.. code-block:: none
-
-   POST /api/public/v1.0/groups
-
-The response includes the ``agentApiKey`` for the group.
-
-.. only:: onprem
-
-   If you include the ``tags`` field when creating a group, |onprem| will check
-   whether you have the ``Global Owner`` :doc:`role </reference/user-roles>`,
-   which gives permission to create tags. If you do not, the entire ``POST``
-   request will be rejected.
-
-Add Users to a Group
-~~~~~~~~~~~~~~~~~~~~
-
-Add one or more existing users to a group.
-
-.. code-block:: none
-
-   POST /api/public/v1.0/groups/GROUP-ID/users
-
-You must send an array of entities, even if you're only adding a single
-user. For each user that you wish to add, specify the user ID and the
-roles the user should possess. For possible role values, see the description
-of the ``roles.roleName`` field in the :ref:`users resource's field descriptions
-<entity-fields-users-resource>`.
-
-If you specify a user that is already a member of the group, their existing
-roles are overwritten with the specified permissions.
-
-Change a Group's Name
-~~~~~~~~~~~~~~~~~~~~~
-
-Use ``PATCH`` to replace the group's ``name`` field. You must have the
-``group owner`` :doc:`role </reference/user-roles>`.
-
-.. code-block:: none
-
-   PATCH /api/public/v1.0/groups/GROUP-ID/
-
-.. only:: onprem
-
-   Add or Remove Tags from a Group
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Add or remove tags by using ``PATCH`` to replace the entire ``tags`` array
-   with a new set of tags. The command overwrites all existing tags. You must
-   have the ``global owner`` :doc:`role </reference/user-roles>` to add or
-   remove tags.
-
-   .. code-block:: none
-
-      PATCH /api/public/v1.0/groups/GROUP-ID/
-
-   Map LDAP Groups to |onprem| Roles
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   If |onprem| uses LDAP to authenticate users, use this endpoint to map LDAP
-   groups to |onprem| roles.
-
-   .. code-block:: none
-
-      PATCH /api/public/v1.0/groups/GROUP-ID/
-
-   Replace the entire ``ldapGroupMappings`` array with a new set of mappings.
-   The ``ldapGroupMappings`` array must specify a mapping for the |mms|
-   ``GROUP_OWNER`` role. All other group roles are optional. The array can
-   not map |mms| global roles.
-
-   The ``PATCH`` command overwrites all existing mappings.
-
-   You must have the ``group owner`` :doc:`role </reference/user-roles>` to
-   map LDAP groups to |onprem| roles.
-
-Remove a User from a Group
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/groups/GROUP-ID/users/USER-ID
-
-Delete a Group
-~~~~~~~~~~~~~~
-
-Once a group is deleted, its name cannot be reclaimed.
-Thus, if you create a group named **My Group** and then delete it, you
-will not be able to create another group named **My Group**.
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/groups/GROUP-ID
-
-Sample Entity
--------------
-
-The following is a sample response document:
-
-.. only:: cloud
-
-   .. code-block:: javascript
-
-      {
-        "id": "xxx",
-        "name": "My Group",
-        "hostCounts": {
-          "arbiter": 2,
-          "config": 1,
-          "primary": 4,
-          "secondary": 8,
-          "mongos": 2.
-          "master": 0,
-          "slave": 0
-        },
-        "lastActiveAgent": ISODate("2016-08-05T07:23:34Z"),
-        "activeAgentCount": 1,
-        "replicaSetCount": 3,
-        "shardCount": 2,
-        "publicApiEnabled": true,
-        "agentApiKey": "cbd728abd6a6d6c6b6d7826345dbcff0e",
-        "links": [ ... ]
-      }
-
-.. only:: onprem
-
-   .. code-block:: javascript
-
-      {
-        "id": "xxx",
-        "name": "My Group",
-        "hostCounts": {
-          "arbiter": 2,
-          "config": 1,
-          "primary": 4,
-          "secondary": 8,
-          "mongos": 2.
-          "master": 0,
-          "slave": 0
-        },
-        "lastActiveAgent": ISODate("2016-08-05T07:23:34Z"),
-        "activeAgentCount": 1,
-        "replicaSetCount": 3,
-        "shardCount": 2,
-        "publicApiEnabled": true,
-        "agentApiKey": "cbd728abd6a6d6c6b6d7826345dbcff0e",
-        "tags": [ "DEV", "PRODUCT" ],
-        "ldapGroupMappings" : [ {
-          "roleName": "GROUP_OWNER",
-          "ldapGroups": [ "group-owner" ]
-          }, ... ],
-        "links": [ ... ]
-      }
-
-Entity Fields
--------------
-
-.. only:: cloud
-
-   .. list-table::
-      :widths: 10 10 80
-      :header-rows: 1
- 
-      * - Name
-        - Type
-        - Description
- 
-      * - ``id``
-        - string
-        - The unique identifier for the group.
- 
-      * - ``name``
-        - string
-        - The display name for the group.
- 
-      * - ``hostCounts``
-        - object
-        - The total number of hosts by type. The embedded fields should be
-          self-explanatory.
- 
-      * - ``lastActiveAgent``
-        - date
-        - The time |mms| last updated the ``activeAgentCount`` total for the
-          group. |mms| runs a job every 30 minutes to record the number of active
-          agents of any type (Monitoring, Backup, Automation).
- 
-      * - ``activeAgentCount``
-        - number
-        - The number of active agents of any type (Monitoring, Backup, Automation)
-          sending regular pings to |mms|.
- 
-          The value is refreshed every 30 minutes. If you start a new agent or
-          stop an existing one, the change can take up to 30 minutes to show up
-          in the ``activeAgentCount`` field.
- 
-      * - ``replicaSetCount``
-        - number
-        - The total number of replica sets for this group.
- 
-      * - ``shardCount``
-        - number
-        - The total number of shards for this group.
- 
-      * - ``publicApiEnabled``
-        - boolean
-        - Indicates that the Public API is enabled for this group. This is a read-only field
-          that will always be true.
- 
-      * - ``agentApiKey``
-        - string
-        - The :term:`agent API key` for the group.
- 
-          You must have the **Owner** :doc:`role </reference/user-roles>` to
-          view this field.
-
-.. only:: onprem
-
-   .. list-table::
-      :widths: 10 10 80
- 
-      * - Name
-        - Type
-        - Description
- 
-      * - ``id``
-        - string
-        - The unique identifier for the group.
- 
-      * - ``name``
-        - string
-        - The display name for the group.
- 
-      * - ``hostCounts``
-        - object
-        - The total number of hosts by type. The embedded fields should be
-          self-explanatory.
- 
-      * - ``lastActiveAgent``
-        - date
-        - The time |mms| last updated the ``activeAgentCount`` total for the
-          group. |mms| runs a job every 30 minutes to record the number of active
-          agents of any type (Monitoring, Backup, Automation).
- 
-      * - ``activeAgentCount``
-        - number
-        - The number of active agents of any type (Monitoring, Backup, Automation)
-          sending regular pings to |mms|.
- 
-          The value is refreshed every 30 minutes. If you start a new agent or
-          stop an existing one, the change can take up to 30 minutes to show up
-          in the ``activeAgentCount`` field.
- 
-      * - ``replicaSetCount``
-        - number
-        - The total number of replica sets for this group.
- 
-      * - ``shardCount``
-        - number
-        - The total number of shards for this group.
- 
-      * - ``publicApiEnabled``
-        - boolean
-        - Indicates that the Public API is enabled for this group. This is a read-only field
-          that will always be true.
- 
-      * - ``agentApiKey``
-        - string
-        - The :term:`agent API key` for the group.
- 
-          You must have the **Owner** or **Global Read Only** :doc:`role
-          </reference/user-roles>` to view this field.
-
-      * - ``tags``
- 
-        - string array
- 
-        - The tags assigned to the group for use in programmatically identifying
-          the group. To view tags you must have either the ``Global Read Only``
-          or ``Global Owner`` :doc:`role </reference/user-roles>`. To create or
-          edit tags, you must be a ``Global Owner``.
- 
-          .. include:: /includes/requirements-tag-names.rst
- 
-      * - ``ldapGroupMappings``
- 
-        - object array
- 
-        -  For LDAP-backed |onprem|, the mappings of LDAP groups to |onprem|
-           roles. Only present for LDAP-backed |onprem|.
- 
-      * - ``ldapGroupMappings.roleName``
- 
-        - string
- 
-        - The |onprem| user role. For role values, see the description of the
-          ``roles.roleName`` field in the :doc:`users resource
-          </reference/api/users>`.
- 
-      * - ``ldapGroupMappings.ldapGroups``
- 
-        - string array
- 
-        - The LDAP group(s) that map to the |onprem| role.
-
-Links
------
 
 .. list-table::
    :header-rows: 1
+   :widths: 10 50 40
 
-   * - Relation
+   * - Method
+     - Endpoint
      - Description
-   * - ``self``
-     - Me
-   * - ``http://mms.mongodb.com/hosts``
-     - All hosts in the group.
-   * - ``http://mms.mongodb.com/users``
-     - All users in the group.
-   * - ``http://mms.mongodb.com/clusters``
-     - All clusters in the group.
-   * - ``http://mms.mongodb.com/alerts``
-     - All open alerts for the group.
-   * - ``http://mms.mongodb.com/alertConfigs``
-     - All alert configurations for the group.
-   * - ``http://mms.mongodb.com/backupConfigs``
-     - All backup configurations for the group.
-   * - ``http://mms.mongodb.com/agents``
-     - All agents for the group.
 
-Examples
---------
+   * - GET 
+     - :doc:`/api/public/v1.0/groups </reference/api/groups/get-all-groups-for-current-user>`
+     - Get All Groups for the Current User
 
-Get All Groups for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * - GET
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID} </reference/api/groups/get-one-group-by-id>`
+     - Get One Group by Its ID
 
-Request
-```````
+   * - GET
+     - :doc:`/api/public/v1.0/groups/byName/{GROUP-NAME} </reference/api/groups/get-one-group-by-name>`
+     - Get One Group by Its Name
+
+   * - GET
+     - :doc:`/api/public/v1.0/groups/byAgentApiKey/{AGENT-API-KEY} </reference/api/groups/get-one-group-by-agent-api-key>`
+     - Get One Group by Its Agent API Key
+
+   * - GET
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/users </reference/api/groups/get-all-users-in-one-group>`
+     - Get All Users in One Group
+
+   * - POST
+     - :doc:`/api/public/v1.0/groups </reference/api/groups/create-one-group>`
+     - Create One Group
+
+   * - POST
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/users </reference/api/groups/add-users-to-one-group>`
+     - Add Users to One Group
+
+   * - PATCH
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/ </reference/api/groups/change-one-group-name>`
+     - Change One Group's Name
+
+   * - PATCH
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/ </reference/api/groups/map-ldap-groups-to-manager-roles>`
+     - Map LDAP Groups to |onprem| Roles
+
+   * - DELETE
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID}/users/{USER-ID} </reference/api/groups/remove-one-user-from-one-group>`
+     - Remove One User from One Group
+
+   * - DELETE
+     - :doc:`/api/public/v1.0/groups/{GROUP-ID} </reference/api/groups/delete-one-group>`
+     - Delete One Group
+
+.. only:: onprem
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 50 40
+
+      * - Method
+        - Endpoint
+        - Description
+ 
+      * - GET
+        - :doc:`/api/public/v1.0/groups?tag={TAG1}&tag={TAG2} </reference/api/groups/get-all-groups-with-specific-tags-for-current-user>`
+        - Get All Groups with Specific Tags for the Current User
+ 
+      * - PATCH
+        - :doc:`/api/public/v1.0/groups/{GROUP-ID}/ </reference/api/groups/add-or-remove-tags-from-one-group>`
+        - Add or Remove Tags from One Group
+ 
 
 .. only:: cloud
 
-   .. code-block:: none
+   .. class:: hidden
 
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups"
+      .. toctree::
+         :titlesonly:
 
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount" : 6,
-     "results" : [ {
-       "id" : "5196d3628d022db4cbc26d9e",
-       "name" : "API Example",
-       "hostCounts" : {
-         "arbiter" : 0,
-         "config" : 1,
-         "primary" : 3,
-         "secondary" : 4,
-         "mongos" : 2,
-         "master" : 0,
-         "slave" : 0
-       },
-       "lastActiveAgent" : "2016-02-03T18:18:12Z",
-       "activeAgentCount" : 1,
-       "replicaSetCount" : 3,
-       "shardCount" : 2,
-       "publicApiEnabled" : true,
-       "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
-       "links" : [ ... ]
-     }, {
-       // etc.
-     } ],
-     "links" : [ ... ]
-   }
-
-Get a Group by ID
-~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5196d3628d022db4cbc26d9e"
+         /reference/api/groups/get-all-groups-for-current-user
+         /reference/api/groups/get-one-group-by-id
+         /reference/api/groups/get-one-group-by-name
+         /reference/api/groups/get-one-group-by-agent-api-key
+         /reference/api/groups/get-all-users-in-one-group
+         /reference/api/groups/create-one-group
+         /reference/api/groups/add-users-to-one-group
+         /reference/api/groups/change-one-group-name
+         /reference/api/groups/map-ldap-groups-to-manager-roles
+         /reference/api/groups/remove-one-user-from-one-group
+         /reference/api/groups/delete-one-group
 
 .. only:: onprem
 
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5196d3628d022db4cbc26d9e"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "5196d3628d022db4cbc26d9e",
-     "name" : "API Example",
-     "hostCounts" : {
-       "arbiter" : 0,
-       "config" : 1,
-       "primary" : 3,
-       "secondary" : 4,
-       "mongos" : 2,
-       "master" : 0,
-       "slave" : 0
-     },
-     "lastActiveAgent" : "2016-02-03T18:18:12Z",
-     "activeAgentCount" : 1,
-     "replicaSetCount" : 3,
-     "shardCount" : 2,
-     "publicApiEnabled" : true,
-     "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
-     "links" : [ ... ]
-   }
-
-Get a Group by Agent API Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/byAgentApiKey/cbd728abd6a6d6c6b6d7826345dbcff0e"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/byAgentApiKey/cbd728abd6a6d6c6b6d7826345dbcff0e"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "id" : "5196d3628d022db4cbc26d9e",
-     "name" : "API Example",
-     "hostCounts" : {
-       "arbiter" : 0,
-       "config" : 1,
-       "primary" : 3,
-       "secondary" : 4,
-       "mongos" : 2,
-       "master" : 0,
-       "slave" : 0
-     },
-     "lastActiveAgent" : "2016-02-03T18:18:12Z",
-     "activeAgentCount" : 1,
-     "replicaSetCount" : 3,
-     "shardCount" : 2,
-     "publicApiEnabled" : true,
-     "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
-     "links" : [ ... ]
-   }
-
-Get All Users in a Group
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "totalCount" : 2,
-     "results" : [ {
-       "id" : "5357e25a300490374243f425",
-       "username" : "user1@example.com",
-       "emailAddress" : "user1@example.com",
-       "firstName" : "User",
-       "lastName" : "One",
-       "roles" : [ {
-         "groupId" : "5356823bc0edc2788a835ed0",
-         "roleName" : "GROUP_USER_ADMIN"
-       } ],
-       "links" : [ ... ]
-     }, {
-       "id" : "5356823b3004dee37132bb7b",
-       "username" : "user2@example.com",
-       "emailAddress" : "user2@example.com",
-       "firstName" : "User",
-       "lastName" : "Deux",
-       "roles" : [ {
-         "groupId" : "5356823bc0edc2788a835ed0",
-         "roleName" : "GROUP_OWNER"
-       }, {
-         "groupId" : "5356823bc0edc2788a835ecd",
-         "roleName" : "GROUP_OWNER"
-       } ],
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Create a Group
-~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X POST "https://cloud.mongodb.com/api/public/v1.0/groups" --data '
-      {
-        "name": "API Example 2"
-      }'
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X POST "https://<ops-manager-host>/api/public/v1.0/groups" --data '
-      {
-        "name": "API Example 2"
-      }'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 201 Created
-
-   {
-     "id" : "533daa30879bb2da07807696",
-     "name" : "API Example 2",
-     "activeAgentCount" : 0,
-     "replicaSetCount" : 0,
-     "shardCount" : 0,
-     "publicApiEnabled": true,
-     "agentApiKey": "cbd747d7b7b711de45aa3ff0e",
-     "hostCounts" : {
-       "arbiter" : 0,
-       "config" : 0,
-       "primary" : 0,
-       "secondary" : 0,
-       "mongos" : 0,
-       "master" : 0,
-       "slave" : 0
-     },
-     "links" : [ ... ]
-   }
-
-Add Users to a Group
-~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X POST "https://cloud.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696/users" --data '
-      [
-        {
-          "id": "5329c8dfe4b0b07a83d67e7d",
-          "roles": [{
-            "roleName": "GROUP_READ_ONLY"
-          }]
-        },
-        {
-          "id": "5329c906e4b0b07a83d691ba",
-          "roles": [{
-            "roleName": "GROUP_MONITORING_ADMIN"
-          }, {
-            "roleName": "GROUP_BACKUP_ADMIN"
-          }]
-        }
-      ]'
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" -H "Content-Type: application/json" --digest -i -X POST "https://<ops-manager-host>/api/public/v1.0/groups/533daa30879bb2da07807696/users" --data '
-      [
-        {
-          "id": "5329c8dfe4b0b07a83d67e7d",
-          "roles": [{
-            "roleName": "GROUP_READ_ONLY"
-          }]
-        },
-        {
-          "id": "5329c906e4b0b07a83d691ba",
-          "roles": [{
-            "roleName": "GROUP_MONITORING_ADMIN"
-          }, {
-            "roleName": "GROUP_BACKUP_ADMIN"
-          }]
-        }
-      ]'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-.. only:: onprem
-
-   Add or Remove Tags from a Group
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   The following command adds and removes tags by replacing the group's
-   ``tags`` array with the new set of desired tags. The command overwrites the
-   existing array.
-
-   Request
-   ```````
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -H "Content-Type: application/json" -X PATCH "https://<ops-manager-host>/api/public/v1.0/groups/533daa30879bb2da07807696" --data '
-      {
-        "tags": [ "DEV", "PROD", "WEB" ]
-      }'
-
-   Response
-   ````````
-
-   .. code-block:: none
-
-      HTTP/1.1 200 OK
-
-      {
-        "id" : "5196d3628d022db4cbc26d9e",
-        "name" : "API Example",
-        "hostCounts" : {
-          "arbiter" : 0,
-          "config" : 1,
-          "primary" : 3,
-          "secondary" : 4,
-          "mongos" : 2,
-          "master" : 0,
-          "slave" : 0
-        },
-        "lastActiveAgent" : "2016-08-04T14:12:11Z",
-        "activeAgentCount" : 1,
-        "replicaSetCount" : 3,
-        "shardCount" : 2,
-        "publicApiEnabled" : true,
-        "agentApiKey" : "cbd728abd6a6d6c6b6d7826345dbcff0e",
-        "tags": [ "DEV", "PROD", "WEB" ],
-        "links" : [ ... ]
-      }
-
-Remove a User from a Group
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://cloud.mongodb.com/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/5356823bc0edc2788a835ed0/users/5357e25a300490374243f425"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-Delete a Group
-~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://cloud.mongodb.com/api/public/v1.0/groups/533daa30879bb2da07807696"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -u "username:apiKey" --digest -i -X DELETE "https://<ops-manager-host>/api/public/v1.0/groups/533daa30879bb2da07807696"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
+   .. class:: hidden
+   
+      .. toctree::
+         :titlesonly:
+   
+         /reference/api/groups/get-all-groups-for-current-user
+         /reference/api/groups/get-one-group-by-id
+         /reference/api/groups/get-one-group-by-name
+         /reference/api/groups/get-one-group-by-agent-api-key
+         /reference/api/groups/get-all-users-in-one-group
+         /reference/api/groups/create-one-group
+         /reference/api/groups/add-users-to-one-group
+         /reference/api/groups/change-one-group-name
+         /reference/api/groups/map-ldap-groups-to-manager-roles
+         /reference/api/groups/remove-one-user-from-one-group
+         /reference/api/groups/delete-one-group
+         /reference/api/groups/get-all-groups-with-specific-tags-for-current-user
+         /reference/api/groups/add-or-remove-tags-from-one-group
