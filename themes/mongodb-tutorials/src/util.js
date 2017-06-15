@@ -100,13 +100,18 @@ const utils = {
     ratingPanelElement.innerText = '';
 
     if (ratingPanelElement) {
-        (new Deluge(project, pagename, ratingPanelElement)).
+        const deluge = new Deluge(project, pagename, ratingPanelElement).
             askFreeformQuestion('reason', 'What were you looking for?').
             askQuestion('findability', 'Did you find it?').
             askQuestion('accuracy', 'Was the information you found <strong>accurate</strong>?').
             askQuestion('clarity', 'Was the information <strong>clear</strong>?').
             askQuestion('fragmentation', 'Was the information you needed <strong>' +
                         'all on one page</strong>?');
+
+        function show() { deluge.open(); }
+        for (const element of document.querySelectorAll('.toc__link--deluge')) {
+            element.addEventListener('click', show);
+        }
     }
   },
 
