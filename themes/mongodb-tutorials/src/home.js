@@ -5,6 +5,8 @@ import Facet from './facet.js'
 import Search from './search.js'
 import TutorialList from './tutorialList.js'
 import util from './util.js'
+import 'whatwg-fetch'
+
 
 const baseURL = window.location.origin
 
