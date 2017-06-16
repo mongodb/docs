@@ -22398,7 +22398,7 @@
 	        { className: dropDownClass },
 	        _react2.default.createElement(
 	          'span',
-	          { onClick: this.toggle },
+	          { className: 'navbar-dropdown__label', onClick: this.toggle },
 	          'Documentation'
 	        ),
 	        _react2.default.createElement(

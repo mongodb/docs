@@ -32,7 +32,7 @@ class NavbarDropdown extends React.Component {
 
     return (
       <div className={ dropDownClass }>
-        <span onClick={ this.toggle }>Documentation</span>
+        <span className="navbar-dropdown__label" onClick={ this.toggle }>Documentation</span>
 
         <div className={ menuClass }>
           <Menu>
