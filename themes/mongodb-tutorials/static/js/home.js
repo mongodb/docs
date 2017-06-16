@@ -22973,6 +22973,42 @@
 	    value: function render() {
 	      var _this2 = this;
 	
+	      if (this.props.tutorials.length === 0) {
+	        return _react2.default.createElement(
+	          'div',
+	          { className: 'tutorials tutorials--no-results' },
+	          _react2.default.createElement(
+	            'h2',
+	            null,
+	            'Your search did not match any tutorials.'
+	          ),
+	          _react2.default.createElement(
+	            'h3',
+	            null,
+	            'Suggestions:'
+	          ),
+	          _react2.default.createElement(
+	            'ul',
+	            { className: 'tutorials--no-results__suggestions' },
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              'Make sure all words are spelled correctly.'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              'Try different keywords.'
+	            ),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              'Try more general keywords.'
+	            )
+	          )
+	        );
+	      }
+	
 	      var tutorials = this.props.tutorials.map(function (tutorial, i) {
 	        return _react2.default.createElement(_tutorial2.default, { tutorial: tutorial, key: i, baseURL: _this2.props.baseURL });
 	      });
