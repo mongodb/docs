@@ -39,7 +39,26 @@ gulp.task('sass:build-navbar', function() {
     .pipe(gulp.dest('./static/css/'))
 })
 
-gulp.task('sass', ['sass:lint', 'sass:build', 'sass:build-navbar'])
+gulp.task('sass:build-feedback', function() {
+  gulp.src('./src/styles/feedback.scss')
+    .pipe(rename({suffix: '.min'}))
+    .pipe(plumber())
+    .pipe(sourcemaps.init())
+    .pipe(sass({
+      outputStyle: 'compressed',
+      includePaths: ['./node_modules/font-awesome-scss/scss']
+    }))
+    .pipe(autoprefixer())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('./static/css/'))
+})
+
+gulp.task('sass', [
+  'sass:lint',
+  'sass:build',
+  'sass:build-navbar',
+  'sass:build-feedback'
+])
 
 gulp.task('js:build-navbar', function() {
   gulp.src('./src/navbar.js')
