@@ -17,7 +17,7 @@ class App extends React.Component {
       searchResults: null,
       options: [],
       tutorials: [],
-      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix,
+      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix || '',
     }
 
     this.updateFacet = this.updateFacet.bind(this)
@@ -132,11 +132,11 @@ class App extends React.Component {
 
         <div className="main__content">
           <div className="tutorial-search__wrapper">
-            <Search baseURL={baseURL} onResults={this.onResults} />
+            <Search baseURL={baseURL + this.state.assetsPrefix} onResults={this.onResults} />
           </div>
 
           <h1 className="main__title">Tutorials</h1>
-          <TutorialList tutorials={ tutorials } baseURL={baseURL} />
+          <TutorialList tutorials={ tutorials } baseURL={baseURL + this.state.assetsPrefix} />
         </div>
       </div>
     )

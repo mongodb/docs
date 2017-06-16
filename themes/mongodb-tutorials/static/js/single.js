@@ -406,6 +406,11 @@
 	                img.src = url;
 	            });
 	        }
+	    }, {
+	        key: 'open',
+	        value: function open() {
+	            this.app.open();
+	        }
 	    }]);
 
 	    return Deluge;
@@ -476,6 +481,12 @@
 			},
 	
 			methods: {
+				open: function open() {
+					if (this.get('state') === 'Initial') {
+						this.set({ answers: {} });
+						this.set({ 'state': 'NotVoted' });
+					}
+				},
 				toggle: function toggle() {
 					this.set({ answers: {} });
 	
@@ -28764,7 +28775,6 @@
 	          return script('script', cdn + '/languages/' + language + '.min.js');
 	        }));
 	      }).then(function () {
-	        console.log('here');
 	        _this2.minimaps.forEach(function (minimap, i) {
 	          minimap.innerHTML = _this2.renderMinimap(minimap.innerHTML, minimap.className, _this2.stageTitles.length);
 	        });
@@ -28780,8 +28790,8 @@
 	        return setTimeout(this.initHLJS.bind(this), 300);
 	      }
 	
-	      window.hljs.configure({ tabReplace: '  ' }); // 2 spaces
-	      window.hljs.initHighlighting();
+	      window.hljs.configure({ tabReplace: '  ' // 2 spaces
+	      });window.hljs.initHighlighting();
 	    }
 	  }, {
 	    key: 'alertCopied',
