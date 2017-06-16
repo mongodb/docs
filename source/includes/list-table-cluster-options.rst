@@ -35,7 +35,9 @@
        
        - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
        
-       - :ref:`GCP Recommended Regions<google-gcp-availability-zones>`.
+       - :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
+       
+       - :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`
  
    * - :guilabel:`Instance Size`
 
@@ -43,10 +45,12 @@
        data-bearing server [#data-bearing]_ for your |service| cluster.
 
        .. include:: /includes/fact-instance-size-groupings.rst
+       
+       .. include:: /includes/enable-sharding-requirements.rst
 
        Each instance size comes with a default set of resources. Depending
-       on the choice of cloud provider you can modify the following 
-       settings per cluster:
+       on the selected cloud service provider and instance size, 
+       |service| can provide the following configuration options:
 
        - :guilabel:`Custom Storage Capacity`: The size of the server
          root volume. Changes to storage capacity affects :ref:`cost
@@ -55,25 +59,18 @@
        - :guilabel:`Custom Storage Speed`: The input/output
          operations per second (IOPS) the system can perform. Changes to
          storage speed affects :ref:`cost <instance-size-costs>`.
-         
-         For :ref:`amazon-aws` clusters, you can choose between
-         :guilabel:`Standard`, :guilabel:`Fast`, and :guilabel:`Fastest`. 
-         
-         For :ref:`google-gcp` clusters, you cannot modify this value.
 
        - :guilabel:`Use encrypted storage volumes`: Encrypts root
          volume for data at rest inside the volume and all data moving between
          the volume and the instance.
          
-         For :ref:`amazon-aws` clusters with this option enabled, |service| 
-         uses `Amazon EBS encryption 
-         <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html>`_.
-         
-         For :ref:`google-gcp` clusters, storage volumes are `always encrypted 
-         <https://cloud.google.com/security/encryption-at-rest/>`_.
-         You cannot modify this value.
-
-       .. include:: /includes/enable-sharding-requirements.rst
+       For more information on the default resources and available
+       configuration options for each cloud service provider, see:
+       
+       - :ref:`AWS Configuration Options <amazon-aws-configuration-options>`
+       - :ref:`GCP Configuration Options <google-gcp-configuration-options>`
+       - :ref:`Azure Configuration Options 
+         <microsoft-azure-configuration-options>`.
 
        .. seealso:: :ref:`connection-limits`
 
@@ -84,8 +81,11 @@
        redundancy.
 
        |service| deploys replica set members across the selected region. For
-       more information, see :ref:`amazon-aws-availability-zones` for AWS or
-       :ref:`google-gcp-availability-zones` for GCP.
+       more information, see :ref:`amazon-aws-availability-zones` for
+       :abbr:`AWS (Amazon Web Services)`, :ref:`google-gcp-availability-zones`
+       for :abbr:`GCP (Google Cloud Platform)`, and
+       :ref:`microsoft-azure-availability-zones` for :abbr:`Azure (Microsoft
+       Azure)`.
        
        .. include:: /includes/extracts/fact-no-node-restriction-base.rst
        

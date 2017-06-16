@@ -25,9 +25,12 @@
      - :ref:`VPC Peering Connection wizard <vpc-peering>`
      
    * - Global Region Selection
-     - No
-     - |service| supports all major :doc:`AWS regions </reference/amazon-aws>`
-       and all major :doc:`GCP regions </reference/google-gcp>`.
+     - No, Free Tier clusters are deployed in a US-based :abbr:`AWS
+       (Amazon Web Services)` datacenter.
+     - |service| supports deploying clusters globally on 
+       :doc:`Amazon Web Services </reference/amazon-aws>`, 
+       :doc:`Google Cloud Platform </reference/google-gcp>`, and 
+       :doc:`Microsoft Azure </reference/microsoft-azure>`
      
    * - Backups
      - No
