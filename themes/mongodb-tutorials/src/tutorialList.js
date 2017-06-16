@@ -12,7 +12,7 @@ export default class TutorialList extends React.Component {
     if (this.props.tutorials.length === 0) {
       return (
         <div className="tutorials tutorials--no-results">
-          <h2>Your search did not match any tutorials.</h2>
+          <h2>No tutorials match your search or filter criteria.</h2>
 
           <h3>Suggestions:</h3>
 
