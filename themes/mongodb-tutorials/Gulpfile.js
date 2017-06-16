@@ -84,7 +84,7 @@ gulp.task('js:build-navbar', function() {
 })
 
 gulp.task('js:build-home', function() {
-  gulp.src(['./src/home.js', 'whatwg-fetch'])
+  gulp.src(['whatwg-fetch', './src/home.js'])
     .pipe(webpack({
       output: {
         filename: 'home.js'
