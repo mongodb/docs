@@ -91,7 +91,7 @@
 	  _createClass(Navbar, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
-	      var cx = '017213726194841070573:WMX6838984';
+	      var cx = window.googleSearchCx;
 	      var gcse = document.createElement('script');
 	      gcse.type = 'text/javascript';
 	      gcse.async = true;
@@ -105,7 +105,7 @@
 	            input.style.cssText = '';
 	            input.className = 'navbar-search';
 	            document.querySelector('.navbar__right').appendChild(input);
-	            input.setAttribute('placeholder', "Search Documentation");
+	            input.setAttribute('placeholder', window.googleSearchPlaceholder);
 	            (0, _elementClass2.default)(input).add('navbar-search');
 	            window.clearInterval(pollInput);
 	          }
@@ -166,7 +166,7 @@
 	            ),
 	            _react2.default.createElement('img', { className: 'navbar-download__icon', src: baseURL + assetsPrefix + '/images/download-icon.svg', alt: 'Download Icon' })
 	          ),
-	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': 'http://docs.mongodb.com/manual/search/', 'data-queryParameterName': 'query' })
+	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': window.googleSearchResultsUrl, 'data-queryParameterName': 'query' })
 	        )
 	      );
 	    }

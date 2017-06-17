@@ -13,7 +13,7 @@ class Navbar extends React.Component {
   }
 
   componentDidMount () {
-    var cx = '017213726194841070573:WMX6838984';
+    var cx = window.googleSearchCx;
     var gcse = document.createElement('script');
     gcse.type = 'text/javascript';
     gcse.async = true;
@@ -27,7 +27,7 @@ class Navbar extends React.Component {
           input.style.cssText = ''
           input.className = 'navbar-search'
           document.querySelector('.navbar__right').appendChild(input)
-          input.setAttribute('placeholder', "Search Documentation")
+          input.setAttribute('placeholder', window.googleSearchPlaceholder)
           elementClass(input).add('navbar-search')
           window.clearInterval(pollInput);
         }
@@ -73,7 +73,7 @@ class Navbar extends React.Component {
             <img className="navbar-download__icon" src={ baseURL + assetsPrefix + '/images/download-icon.svg' } alt="Download Icon" />
           </div>
 
-          <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl="http://docs.mongodb.com/manual/search/" data-queryParameterName="query"></div>
+          <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl={window.googleSearchResultsUrl} data-queryParameterName="query"></div>
         </div>
       </nav>
     )
