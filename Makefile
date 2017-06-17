@@ -1,7 +1,7 @@
 USER=`whoami`
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 STAGING_BUCKET=docs-mongodb-org-staging
-STAGING_PREFIX=tutorials
+STAGING_PREFIX=redesign/tutorials
 # STAGING_URL=http://docs-mongodb-org-staging.s3-website-us-east-1.amazonaws.com/${STAGING_PREFIX}/${USER}/${GIT_BRANCH}
 STAGING_URL=http://docs-mongodb-org-staging.s3-website-us-east-1.amazonaws.com/redesign/tutorials/
 
