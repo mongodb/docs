@@ -1,5 +1,5 @@
 'use strict'
-import lunr from 'lunr'
+const lunr = require('lunr')
 
 var searchIndex = null
 var slugMapping = []
