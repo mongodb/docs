@@ -12,6 +12,7 @@ help:
 	@echo 'Targets'
 	@echo '  help         - Show this help message'
 	@echo '  html         - Builds the html files'
+	@echo '  publish      - Builds this branch's publishable HTML and other artifacts under build/public'
 	@echo '  lint         - Check links'
 	@echo '  stage        - Host online for review'
 	@echo '  fake-deploy  - Create a fake deployment in the staging bucket'
@@ -22,6 +23,9 @@ help:
 
 html:
 	giza make html
+
+publish:
+	giza make publish
 
 lint:
 	mut-lint --linters=links ./build/master/source/ ${ARGS}
