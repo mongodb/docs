@@ -12,7 +12,7 @@ CLOUD_INPUT_PATH = './src/html/cloud.html'
 TOOLS_INPUT_PATH = './src/html/tools.html'
 
 # Path of the output files
-HOME_OUTPUT_PATH = os.path.join(BUILD_DIR, 'home', 'index.html')
+HOME_OUTPUT_PATH = os.path.join(BUILD_DIR, 'index.html')
 CLOUD_OUTPUT_PATH = os.path.join(BUILD_DIR, 'cloud', 'index.html')
 TOOLS_OUTPUT_PATH = os.path.join(BUILD_DIR, 'tools', 'index.html')
 
