@@ -17,7 +17,6 @@
             "query" : <document>,
             "insert" : <document>,
             "planSummary": <string>,
-            "client" : <string>,
             "appName" : <string>,
             "msg": <string>,
             "progress" : {
