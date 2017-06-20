@@ -118,9 +118,6 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var baseURL = window.location.origin;
-	      var assetsPrefix = this.state.assetsPrefix || '';
-	
 	      var linkElements = this.state.links.map(function (link, i) {
 	        var linkClass = (0, _classnames2.default)({
 	          'navbar-links__item': true,
@@ -143,7 +140,7 @@
 	          _react2.default.createElement(
 	            'a',
 	            { href: 'https://www.mongodb.com/' },
-	            _react2.default.createElement('img', { src: baseURL + assetsPrefix + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
+	            _react2.default.createElement('img', { src: 'https://docs.mongodb.com/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
 	          ),
 	          _react2.default.createElement('span', { className: 'navbar-seperator' }),
 	          _react2.default.createElement(_navbarDropdown2.default, { links: this.state.dropdown })
@@ -164,7 +161,11 @@
 	              { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
 	              'Download MongoDB'
 	            ),
-	            _react2.default.createElement('img', { className: 'navbar-download__icon', src: baseURL + assetsPrefix + '/images/download-icon.svg', alt: 'Download Icon' })
+	            _react2.default.createElement(
+	              'svg',
+	              { height: '11', width: '9', xmlns: 'http://www.w3.org/2000/svg' },
+	              _react2.default.createElement('path', { d: 'm8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z', fill: '#69b241' })
+	            )
 	          ),
 	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': window.googleSearchResultsUrl, 'data-queryParameterName': 'query' })
 	        )

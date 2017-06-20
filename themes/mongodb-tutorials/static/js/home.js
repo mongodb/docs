@@ -186,9 +186,9 @@
 	          // Store each tutorial option ID in array
 	          var tutorialOptionIds = tutorial.options.map(function (tutorialOption) {
 	            return tutorialOption.id;
-	          }
+	          });
 	          // If an active option ID is not in the array, hide tutorial
-	          );if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
+	          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
 	            shouldInclude = false;
 	          }
 	        });
@@ -23435,11 +23435,11 @@
 	            return new Promise(function (resolve, reject) {
 	                fields.set('v', vote);
 	                fields.set('p', _this2.project + '/' + _this2.path);
-	                var url = addQueryParameters(FEEDBACK_URL, fields
+	                var url = addQueryParameters(FEEDBACK_URL, fields);
 	
 	                // Report this rating using an image GET to work around the
 	                // same-origin policy
-	                );var img = new Image();
+	                var img = new Image();
 	                img.onload = function () {
 	                    return resolve();
 	                };
@@ -28447,9 +28447,9 @@
 								var separateValue = function separateValue(property, value) {
 									var unitType, numericValue;
 	
-									numericValue = (value || "0").toString().toLowerCase
+									numericValue = (value || "0").toString().toLowerCase()
 									/* Match the unit type at the end of the value. */
-									().replace(/[%A-z]+$/, function (match) {
+									.replace(/[%A-z]+$/, function (match) {
 										/* Grab the unit type. */
 										unitType = match;
 	
@@ -28668,8 +28668,8 @@
 									var sameRatioIndicators = {
 										myParent: element.parentNode || document.body, /* GET */
 										position: CSS.getPropertyValue(element, "position"), /* GET */
-										fontSize: CSS.getPropertyValue(element, "fontSize" /* GET */
-										) },
+										fontSize: CSS.getPropertyValue(element, "fontSize") /* GET */
+									},
 	
 									/* Determine if the same % ratio can be used. % is based on the element's position value and its parent's width and height dimensions. */
 									samePercentRatio = sameRatioIndicators.position === callUnitConversionData.lastPosition && sameRatioIndicators.myParent === callUnitConversionData.lastParent,
@@ -30530,9 +30530,9 @@
 	      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
 	        this._bodyText = body.toString();
 	      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
-	        this._bodyArrayBuffer = bufferClone(body.buffer
+	        this._bodyArrayBuffer = bufferClone(body.buffer);
 	        // IE 10-11 can't handle a DataView body.
-	        );this._bodyInit = new Blob([this._bodyArrayBuffer]);
+	        this._bodyInit = new Blob([this._bodyArrayBuffer]);
 	      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
 	        this._bodyArrayBuffer = bufferClone(body);
 	      } else {

@@ -39,9 +39,6 @@ class Navbar extends React.Component {
   }
 
   render () {
-    const baseURL = window.location.origin
-    const assetsPrefix = this.state.assetsPrefix || '';
-
     const linkElements = this.state.links.map((link, i) => {
       const linkClass = classNames({
         'navbar-links__item': true,
@@ -55,7 +52,7 @@ class Navbar extends React.Component {
       <nav className="navbar">
         <div className="navbar__left">
           <a href="https://www.mongodb.com/">
-            <img src={ baseURL + assetsPrefix + '/images/mongodb-logo.svg' } className="navbar-brand" alt="MongoDB Logo" />
+            <img src='https://docs.mongodb.com/images/mongodb-logo.svg' className="navbar-brand" alt="MongoDB Logo" />
           </a>
 
           <span className="navbar-seperator"></span>
@@ -70,7 +67,7 @@ class Navbar extends React.Component {
 
           <div className="navbar-download">
             <a href="https://www.mongodb.com/download-center?jmp=tutorials" className="navbar-download__text">Download MongoDB</a>
-            <img className="navbar-download__icon" src={ baseURL + assetsPrefix + '/images/download-icon.svg' } alt="Download Icon" />
+            <svg height="11" width="9" xmlns="http://www.w3.org/2000/svg"><path d="m8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z" fill="#69b241"/></svg>
           </div>
 
           <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl={window.googleSearchResultsUrl} data-queryParameterName="query"></div>

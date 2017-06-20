@@ -392,11 +392,11 @@
 	            return new Promise(function (resolve, reject) {
 	                fields.set('v', vote);
 	                fields.set('p', _this2.project + '/' + _this2.path);
-	                var url = addQueryParameters(FEEDBACK_URL, fields
+	                var url = addQueryParameters(FEEDBACK_URL, fields);
 	
 	                // Report this rating using an image GET to work around the
 	                // same-origin policy
-	                );var img = new Image();
+	                var img = new Image();
 	                img.onload = function () {
 	                    return resolve();
 	                };
@@ -27417,9 +27417,9 @@
 								var separateValue = function separateValue(property, value) {
 									var unitType, numericValue;
 	
-									numericValue = (value || "0").toString().toLowerCase
+									numericValue = (value || "0").toString().toLowerCase()
 									/* Match the unit type at the end of the value. */
-									().replace(/[%A-z]+$/, function (match) {
+									.replace(/[%A-z]+$/, function (match) {
 										/* Grab the unit type. */
 										unitType = match;
 	
@@ -27638,8 +27638,8 @@
 									var sameRatioIndicators = {
 										myParent: element.parentNode || document.body, /* GET */
 										position: CSS.getPropertyValue(element, "position"), /* GET */
-										fontSize: CSS.getPropertyValue(element, "fontSize" /* GET */
-										) },
+										fontSize: CSS.getPropertyValue(element, "fontSize") /* GET */
+									},
 	
 									/* Determine if the same % ratio can be used. % is based on the element's position value and its parent's width and height dimensions. */
 									samePercentRatio = sameRatioIndicators.position === callUnitConversionData.lastPosition && sameRatioIndicators.myParent === callUnitConversionData.lastParent,
