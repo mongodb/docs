@@ -57,6 +57,9 @@ rst_epilog = [
     '.. |service| replace:: Atlas',
     '.. |mms-full| replace:: MongoDB Cloud Manager',
     '.. |mms| replace:: Cloud Manager',
+    '.. |stitch-docs| replace:: MongoDB Stitch',
+    '.. _stitch-docs: https://docs.mongodb.com/stitch',
+    
 ]
 
 rst_epilog.extend(get_replacements(conf))
