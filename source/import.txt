@@ -10,6 +10,9 @@ Import Data into Cluster
    :depth: 1
    :class: singlecol
 
+Data Import Programs
+--------------------
+
 You can bring data from existing MongoDB deployments or JSON/CSV files
 into |service| using one of the following:
 
@@ -74,7 +77,82 @@ into |service| using one of the following:
 You can also restore from an |service| cluster backup data to another
 |service| cluster. For information, see :doc:`/restore-cluster`.
 
-To migrate data from an ``M0`` (Free Tier) cluster to a paid cluster, 
+Import Strategies for Common Cluster Configurations
+---------------------------------------------------
+
+The following table covers the best import strategy for common cluster
+configurations:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - Cluster Configuration
+     - Import Strategy
+
+   * - A :term:`replica set`.
+
+     - Use :doc:`Live Migrate </import/live-import>`.
+
+       You must provide the hostname of the :term:`primary` to the Live
+       Migrate tool.
+
+       If the cluster is not running MongoDB 3.0 or above, you must first
+       upgrade it.
+
+       You must have access to the primary node's :term:`oplog`. If the
+       cluster runs with authentication, you must have credentials that
+       provide read access to the primary and its :term:`oplog`.
+
+   * - A "single :term:`shard`" :term:`sharded cluster` in ``Compose``. This is
+       the standard configuration for new MongoDB deployments in ``Compose``.
+
+     - Use :doc:`Live Migrate </import/live-import>`.
+
+       You must `enable the oplog proxy
+       <https://www.compose.com/articles/connecting-to-the-oplog-on-the-new-mon
+       godb/>`_.
+
+       You must specify the hostname and credentials for the oplog proxy when
+       connecting from Live Migrate.
+
+   * - A standalone MongoDB node.
+
+     - Convert the standalone MongoDB to a single-node replica set and use
+       :doc:`Live Migrate </import/live-import>`.
+
+       If the MongoDB is not running MongoDB 3.0 or above, you must upgrade it.
+
+       If you are running with authentication enabled, you must have
+       credentials that provide read access to the primary and its oplog.
+
+       If you cannot convert the standalone to a replica set, use
+       :program:`mongodump` and :program:`mongorestore`. See
+       :doc:`/import/mongorestore`.
+
+   * - A shared multi-tenant cluster, or a cluster where you have no oplog
+       access.
+
+     - Use :program:`mongodump` and :program:`mongorestore`. See
+       :doc:`/import/mongorestore`.
+
+       If you are running with authentication enabled, you must have
+       credentials that provide read access to the primary.
+
+   * - A sharded cluster with multiple shards.
+
+     - If near-continuous uptime is a requirement, please contact MongoDB.
+       From the |service| UI, click :guilabel:`Support`. Fill out a Support
+       ticket, noting your uptime requirements and cluster configuration in
+       the :guilabel:`More details` text entry.
+
+       If some downtime is OK, you may use :program:`mongodump` and
+       :program:`mongorestore`. See :doc:`/import/mongorestore` and
+       :manual:`Backup Sharded Cluster with Database Dumps
+       </tutorial/backup-sharded-cluster-with-database-dumps>`.
+
+
+To migrate data from an ``M0`` (Free Tier) cluster to a paid cluster,
 see :doc:`/tutorial/transition-free-tier-to-paid`.
 
 .. class:: hidden
