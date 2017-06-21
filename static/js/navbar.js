@@ -118,9 +118,6 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var baseURL = window.location.origin;
-	      var assetsPrefix = this.state.assetsPrefix || '';
-	
 	      var linkElements = this.state.links.map(function (link, i) {
 	        var linkClass = (0, _classnames2.default)({
 	          'navbar-links__item': true,
@@ -143,7 +140,7 @@
 	          _react2.default.createElement(
 	            'a',
 	            { href: 'https://www.mongodb.com/' },
-	            _react2.default.createElement('img', { src: baseURL + assetsPrefix + '/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
+	            _react2.default.createElement('img', { src: 'https://docs.mongodb.com/images/mongodb-logo.svg', className: 'navbar-brand', alt: 'MongoDB Logo' })
 	          ),
 	          _react2.default.createElement('span', { className: 'navbar-seperator' }),
 	          _react2.default.createElement(_navbarDropdown2.default, { links: this.state.dropdown })
@@ -164,7 +161,11 @@
 	              { href: 'https://www.mongodb.com/download-center?jmp=tutorials', className: 'navbar-download__text' },
 	              'Download MongoDB'
 	            ),
-	            _react2.default.createElement('img', { className: 'navbar-download__icon', src: baseURL + assetsPrefix + '/images/download-icon.svg', alt: 'Download Icon' })
+	            _react2.default.createElement(
+	              'svg',
+	              { height: '11', width: '9', xmlns: 'http://www.w3.org/2000/svg' },
+	              _react2.default.createElement('path', { d: 'm8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z', fill: '#69b241' })
+	            )
 	          ),
 	          _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': window.googleSearchResultsUrl, 'data-queryParameterName': 'query' })
 	        )
@@ -22412,7 +22413,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links.home },
+	                { href: 'https://docs.mongodb.com/' },
 	                'Docs Home'
 	              )
 	            ),
@@ -22427,7 +22428,7 @@
 	                  { className: 'submenu__item' },
 	                  _react2.default.createElement(
 	                    'a',
-	                    { href: this.props.links.documentation.server },
+	                    { href: 'https://docs.mongodb.com/manual/' },
 	                    'Server'
 	                  )
 	                ),
@@ -22442,7 +22443,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.c },
+	                        { href: 'http://mongoc.org/libmongoc/current/' },
 	                        'C'
 	                      )
 	                    ),
@@ -22451,7 +22452,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.cpp11 },
+	                        { href: 'https://mongodb.github.io/mongo-cxx-driver/' },
 	                        'C++11'
 	                      )
 	                    ),
@@ -22460,7 +22461,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.cs },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/csharp/' },
 	                        'C#'
 	                      )
 	                    ),
@@ -22469,7 +22470,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.java },
+	                        { href: 'http://mongodb.github.io/mongo-java-driver/' },
 	                        'Java'
 	                      )
 	                    ),
@@ -22478,7 +22479,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.node },
+	                        { href: 'https://mongodb.github.io/node-mongodb-native/' },
 	                        'Node.js'
 	                      )
 	                    ),
@@ -22487,7 +22488,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.perl },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/perl/' },
 	                        'Perl'
 	                      )
 	                    ),
@@ -22496,7 +22497,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.php },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/php/' },
 	                        'PHP'
 	                      )
 	                    ),
@@ -22505,7 +22506,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.python },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/python/' },
 	                        'Python'
 	                      )
 	                    ),
@@ -22514,7 +22515,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.ruby },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/ruby/' },
 	                        'Ruby'
 	                      )
 	                    ),
@@ -22523,7 +22524,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.drivers.scala },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/scala/' },
 	                        'Scala'
 	                      )
 	                    )
@@ -22540,7 +22541,16 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.cloud['mongodb-atlas'] },
+	                        { href: 'https://docs.mongodb.com/stitch/' },
+	                        'MongoDB Stitch'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.atlas.mongodb.com/' },
 	                        'MongoDB Atlas'
 	                      )
 	                    ),
@@ -22549,7 +22559,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.cloud['mongodb-cloud-manager'] },
+	                        { href: 'https://docs.cloudmanager.mongodb.com/' },
 	                        'MongoDB Cloud Manager'
 	                      )
 	                    ),
@@ -22558,7 +22568,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: this.props.links.documentation.cloud['mongodb-ops-manager'] },
+	                        { href: 'https://docs.opsmanager.mongodb.com/current/' },
 	                        'MongoDB Ops Manager'
 	                      )
 	                    )
@@ -22569,7 +22579,7 @@
 	                  { className: 'submenu__item submenu__item--nested' },
 	                  _react2.default.createElement(
 	                    'a',
-	                    { href: this.props.links.documentation.tools },
+	                    { href: 'https://docs.mongodb.com/tools/' },
 	                    'Tools'
 	                  )
 	                ),
@@ -22578,7 +22588,7 @@
 	                  { className: 'submenu__item' },
 	                  _react2.default.createElement(
 	                    'a',
-	                    { href: this.props.links.documentation.tutorials },
+	                    { href: 'https://docs.mongodb.com/tutorials/' },
 	                    'Tutorials'
 	                  )
 	                )
@@ -22589,7 +22599,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links.company },
+	                { href: 'https://www.mongodb.com/' },
 	                'Company'
 	              )
 	            ),
@@ -22598,7 +22608,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links.university },
+	                { href: 'https://university.mongodb.com/' },
 	                'University'
 	              )
 	            ),
@@ -22607,7 +22617,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links.community },
+	                { href: 'https://www.mongodb.com/community' },
 	                'Community'
 	              )
 	            ),
@@ -22616,7 +22626,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links['what-is-mongodb'] },
+	                { href: 'https://www.mongodb.com/what-is-mongodb' },
 	                'What is MongoDB'
 	              )
 	            ),
@@ -22625,7 +22635,7 @@
 	              { className: 'menu__item menu__item--secondary' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links['download-mongodb'] },
+	                { href: 'https://www.mongodb.com/download-center?jmp=docs' },
 	                'Download MongoDB'
 	              )
 	            ),
@@ -22634,7 +22644,7 @@
 	              { className: 'menu__item menu__item--secondary' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: this.props.links['contact-us'] },
+	                { href: '#' },
 	                'Contact Us'
 	              )
 	            )
