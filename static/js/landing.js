@@ -55,10 +55,10 @@
 	document.addEventListener("DOMContentLoaded", function (event) {
 	  _util2.default.setupSidebar();
 	  _util2.default.setupList();
-	  _util2.default.setupFeedback
+	  _util2.default.setupFeedback();
 	
 	  // only on the home landing page
-	  ();if (document.getElementById('code-widget')) {
+	  if (document.getElementById('code-widget')) {
 	    _util2.default.setupCodeWidget();
 	  }
 	});
@@ -397,11 +397,11 @@
 	            return new Promise(function (resolve, reject) {
 	                fields.set('v', vote);
 	                fields.set('p', _this2.project + '/' + _this2.path);
-	                var url = addQueryParameters(FEEDBACK_URL, fields
+	                var url = addQueryParameters(FEEDBACK_URL, fields);
 	
 	                // Report this rating using an image GET to work around the
 	                // same-origin policy
-	                );var img = new Image();
+	                var img = new Image();
 	                img.onload = function () {
 	                    return resolve();
 	                };
@@ -452,6 +452,13 @@
 	}
 	
 	var template = function () {
+		function loadJira(jiraurl) {
+			var scriptElement = document.createElement('script');
+			scriptElement.type = 'application/javascript';
+			scriptElement.src = jiraurl;
+			document.body.appendChild(scriptElement);
+		}
+	
 		return {
 			data: function data() {
 				return {
@@ -558,6 +565,8 @@
 					this.get('answers')[questionName] = answer;
 				},
 				showCollectorDialog: function showCollectorDialog() {
+					var _this = this;
+	
 					window.ATL_JQ_PAGE_PROPS = {
 						triggerFunction: function triggerFunction(showFunc) {
 							window.setTimeout(function () {
@@ -567,12 +576,19 @@
 						fieldValues: { 'summary': 'Comment on: "' + this.get('project') + '/' + this.get('pagename') + '"' }
 					};
 	
-					jQuery.ajax({
-						'cache': true,
-						'dataType': 'script',
-						'type': 'get',
-						'url': this.get('jiraurl')
-					});
+					if (!window.jQuery) {
+						var scriptElement = document.createElement('script');
+						scriptElement.type = 'application/javascript';
+						scriptElement.integrity = 'sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=';
+						scriptElement.setAttribute('crossorigin', 'anonymous');
+						scriptElement.src = 'https://code.jquery.com/jquery-2.2.4.min.js';
+						scriptElement.onload = function () {
+							loadJira(_this.get('jiraurl'));
+						};
+						document.body.appendChild(scriptElement);
+					} else {
+						loadJira(this.get('jiraurl'));
+					}
 				}
 			}
 		};
@@ -700,6 +716,7 @@
 				detachNode(div);
 				if (if_block) if_block.unmount();
 				if (if_block_1) if_block_1.unmount();
+				if (if_block_2) if_block_2.unmount();
 				if (if_block_5) if_block_5.unmount();
 			},
 	
@@ -707,10 +724,7 @@
 				removeListener(div_1, 'click', click_handler);
 				if (if_block) if_block.destroy();
 				if (if_block_1) if_block_1.destroy();
-				if (if_block_2) {
-					if_block_2.unmount();
-					if_block_2.destroy();
-				}
+				if (if_block_2) if_block_2.destroy();
 				if (if_block_5) if_block_5.destroy();
 			}
 		};
@@ -801,13 +815,11 @@
 	
 			unmount: function unmount() {
 				detachNode(li);
+				if (if_block_4) if_block_4.unmount();
 			},
 	
 			destroy: function destroy() {
-				if (if_block_4) {
-					if_block_4.unmount();
-					if_block_4.destroy();
-				}
+				if (if_block_4) if_block_4.destroy();
 			}
 		};
 	}
@@ -27422,9 +27434,9 @@
 								var separateValue = function separateValue(property, value) {
 									var unitType, numericValue;
 	
-									numericValue = (value || "0").toString().toLowerCase
+									numericValue = (value || "0").toString().toLowerCase()
 									/* Match the unit type at the end of the value. */
-									().replace(/[%A-z]+$/, function (match) {
+									.replace(/[%A-z]+$/, function (match) {
 										/* Grab the unit type. */
 										unitType = match;
 	
@@ -27643,8 +27655,8 @@
 									var sameRatioIndicators = {
 										myParent: element.parentNode || document.body, /* GET */
 										position: CSS.getPropertyValue(element, "position"), /* GET */
-										fontSize: CSS.getPropertyValue(element, "fontSize" /* GET */
-										) },
+										fontSize: CSS.getPropertyValue(element, "fontSize") /* GET */
+									},
 	
 									/* Determine if the same % ratio can be used. % is based on the element's position value and its parent's width and height dimensions. */
 									samePercentRatio = sameRatioIndicators.position === callUnitConversionData.lastPosition && sameRatioIndicators.myParent === callUnitConversionData.lastParent,
@@ -28780,7 +28792,6 @@
 	          return script('script', cdn + '/languages/' + language + '.min.js');
 	        }));
 	      }).then(function () {
-	        console.log('here');
 	        _this2.minimaps.forEach(function (minimap, i) {
 	          minimap.innerHTML = _this2.renderMinimap(minimap.innerHTML, minimap.className, _this2.stageTitles.length);
 	        });
@@ -28796,8 +28807,8 @@
 	        return setTimeout(this.initHLJS.bind(this), 300);
 	      }
 	
-	      window.hljs.configure({ tabReplace: '  ' }); // 2 spaces
-	      window.hljs.initHighlighting();
+	      window.hljs.configure({ tabReplace: '  ' // 2 spaces
+	      });window.hljs.initHighlighting();
 	    }
 	  }, {
 	    key: 'alertCopied',
