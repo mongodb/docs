@@ -71,7 +71,7 @@ class NavbarDropdown extends React.Component {
                       <a href="https://docs.mongodb.com/ecosystem/drivers/python/">Python</a>
                     </li>
                     <li className="submenu__item">
-                      <a href="https://docs.mongodb.com/ecosystem/drivers/master/">Ruby</a>
+                      <a href="https://docs.mongodb.com/ecosystem/drivers/ruby/">Ruby</a>
                     </li>
                     <li className="submenu__item">
                       <a href="https://docs.mongodb.com/ecosystem/drivers/scala/">Scala</a>

@@ -22515,7 +22515,7 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/master/' },
+	                        { href: 'https://docs.mongodb.com/ecosystem/drivers/ruby/' },
 	                        'Ruby'
 	                      )
 	                    ),
