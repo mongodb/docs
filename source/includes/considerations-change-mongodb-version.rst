@@ -34,7 +34,9 @@
 
   .. note::
 
-     You may not downgrade a MongoDB deployment from version 3.4 to any
-     version before 3.2.8. |mms| blocks users attempts to downgrade from
-     ``featureCompatibilityVersion=3.4`` to
-     ``featureCompatiblityVersion=3.2``.
+     - You may not downgrade a MongoDB deployment from version 3.4 to 
+       :manual:`any version before 3.2.8 </release-notes/3.4-downgrade>`.
+
+     - |mms| blocks users attempts to downgrade from
+       ``featureCompatibilityVersion=3.4`` to
+       ``featureCompatiblityVersion=3.2``.
