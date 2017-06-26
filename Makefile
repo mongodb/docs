@@ -23,7 +23,8 @@ help:
 html:
 	giza make html
 
-publish-artifacts:
+## makes just the artifacts
+publish:
 	giza make publish
 
 stage:
