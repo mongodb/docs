@@ -1,15 +1,26 @@
+.. _install-auth-c-plugin:
+
 ===================================
 Install the C Authentication Plugin
 ===================================
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 .. versionadded:: 2.2
 
-The |bi| provides a MySQL authentication plugin implementing the
-client side of MongoDB-supported authentication mechanisms.
+The |bi| provides a MySQL authentication plugin which implements the
+client side of MongoDB-supported authentication mechanisms. The
+``mongosql_auth`` plugin allows you to use |bi| with a MongoDB
+instance running with authentication enabled without needing to
+generate your own SSL certificates for authentication.
 
-This plugin supports the following mechanisms:
+This plugin supports the following authentication mechanisms:
 
 * ``SCRAM-SHA-1``
 * ``PLAIN``
@@ -20,80 +31,154 @@ Installation
 Windows
 ~~~~~~~
 
-Install the ``mongosql_auth`` plugin component provided by the |bi|
-``.msi`` installer.
+The ``.msi`` installer for the ``mongosql_auth`` plugin component
+is available on the `releases page
+<https://github.com/mongodb/mongosql-auth-c/releases>`_.
 
 MacOS and Linux
 ~~~~~~~~~~~~~~~
 
-The plugin library (``mongosql_auth.so``) should be installed in
-``<mysql-home>/lib/plugin/``. The default location of ``<mysql-home>``
-varies by platform, but the location of the plugin directory can be
-verified by running ``mysql_config -plugindir``.
+A download link for the ``mongosql_auth`` plugin library
+is available on the
+`releases page <https://github.com/mongodb/mongosql-auth-c/releases>`_.
+After downloading, move the file ``mongosql_auth.so`` to the
+``<mysql-home>/lib/plugin/`` directory. The default location of
+``<mysql-home>`` varies by platform, but you can discover the location
+of the plugin directory by running ``mysql_config --plugindir`` at the
+command line.
 
-Alternatively, the plugin can be installed in a directory of your choice
+Alternatively, you can install the plugin in a directory of your choice
 if you provide the ``plugin-dir=<your-install-dir>`` option to your
-MySQL lient.
+MySQL client. See the :ref:`mysql client command example 
+<mysql-example-command>`.
 
 Usage
 -----
 
-Parameters
-~~~~~~~~~~
+The exact procedure for using the C Authentication plugin library
+varies depending on your SQL client. The following options are for
+use with the MySQL shell.
 
-Optionally, specify the authentication mechanism via a query parameter
-on the user name. The default mechanism is ``SCRAM-SHA-1``. For example:
+.. _mysql-command-options:
 
-.. cssclass:: copyable-code
-.. code::
+Options
+~~~~~~~
 
-   username?mechanism=PLAIN
+When starting the mysql client at the command line, the following
+options are available. For a complete list of command line options,
+refer to the `MySQL client documentation
+<https://dev.mysql.com/doc/refman/5.7/en/mysql.html>`_.
 
-Optionally, specify the authentication source via a query parameter on
-the user name. The default source is ``admin`` for ``SCRAM-SHA-1`` and
-``$external`` or ``PLAIN``. For example:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 30
 
-.. cssclass:: copyable-code
-.. code::
+   * - Option
+     - Value
+     - Notes
 
-   username?source=somedb
+   * - ``--default-auth``
+     - ``mongosql_auth``
+     - Use the C Authentication plugin. You can specify the plugin
+       as part of your command, include it as a :ref:`ODBC
+       Connection Parameter <odbc-connection>`, or include it in a
+       :ref:`MySQL Configuration File <mysql-config>`.
 
-``default-auth``
-~~~~~~~~~~~~~~~~
+   * - ``--user``
+     - ``<your-username>``
+     - Possible parameters to this option are
+       ``source=<authenticated-db>`` and
+       ``mechanism=<auth-mechanism>``. If no authenticated database
+       is specified, it defaults to ``admin``. If no authentication
+       mechanism is specified, it defaults to ``SCRAM-SHA-1``.
 
-To authenticate with :program:`mongosqld` using the ``mongosql_auth``
-plugin, you will need to provide the ``default-auth=mongsql_auth``
-option to your MySQL lient. There are a number of ways to accomplish
-this, depending on which client program you are using.
+       .. note::
 
-Command-Line Flag
-`````````````````
+          If you use both the ``source`` and ``mechanism`` parameters,
+          separate them with a ``&`` and enclose the entire option in
+          single quotes. See the :ref:`example command
+          <mysql-example-command>` below.
 
-With the MySQL shell, the default-auth option can be specified as follows:
+   * - ``-p``
+     - None, shell will prompt
+     - Required.
+
+   * - ``--plugin-dir``
+     - ``<your-plugin-dir>``
+     - Optional. Defaults to ``<mysql-home>/lib/plugin/``.
+
+Example Command
+~~~~~~~~~~~~~~~
+
+.. _mysql-example-command:
 
 .. cssclass:: copyable-code
 .. code-block:: sh
 
-   mysql -u<username> -p<password> --default-auth=mongosql_auth
+   mysql '--user=myTestUser?source=test&mechanism=SCRAM-SHA-1' --default-auth=mongosql_auth --plugin-dir=/usr/bin/mysql/plugins -p
+
+The above command specifies the user with username ``myTestUser``
+who is authenticated for the database ``test``. The shell will prompt
+the user for a password.
+
+.. _odbc-connection:
 
 ODBC Connection Parameter
-`````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are using the MySQL ODBC driver, the interface you use to
-configure your DSN may provide a field where you can specify the default
-auth plugin to use. Specifying ``mongosql_auth`` here will cause the
+configure your :abbr:`DSN (Data Source Name)` may provide a
+field where you can specify the default authentication
+plugin to use. Specifying ``mongosql_auth`` here will cause the
 ODBC driver to use the ``mongosql_auth`` plugin by default.
+ 
+.. _mysql-config: 
 
 Configuration File
-``````````````````
+~~~~~~~~~~~~~~~~~~
 
 MySQL configuration files can be found in many locations, as listed
 in the `MySQL documentation
 <https://dev.mysql.com/doc/refman/5.7/en/option-files.html>`_.
 In one of these files, add a line with ``default-auth=mongosql_auth`` to
-the ``[client]`` section (or create it if it doesn't yet exist).
-To use this same configuration file with an ODBC DSN, provide the
-``USE_MYCNF=1`` connection parameter to your ODBC DSN.
+the ``[client]`` section or create it if it does not yet exist.
+To use this same configuration file with an ODBC :abbr:`DSN
+(Data Source Name)`, provide the ``USE_MYCNF=1`` connection parameter
+to your ODBC :abbr:`DSN (Data Source Name)`.
+
+Example Steps: Using the C Authentication Plugin
+------------------------------------------------
+
+#. If you haven't yet set up authenticated users for MongoDB, do that
+   first. See :manual:`Enable Authentication
+   </tutorial/enable-authentication/>` for more information.
+
+#. Start a :term:`mongod` instance with the ``--auth`` option. See
+   :manual:`Authentication </core/authentication/>` for more
+   information about starting ``mongod`` with security enabled.
+
+#. Start :program:`mongosqld` with the ``--auth`` option. See
+   :doc:`/installation` for more information about starting ``mongosqld``.
+
+   .. cssclass:: copyable-code   
+   .. code-block:: sh
+   
+      mongosqld --schema schema.drdl --auth
+
+#. Connect to :program:`mongosqld` with your client program, using the
+   ``default-auth=mongsql_auth`` option. The connection command
+   varies by client, but with the MySQL shell the command is as
+   follows:
+
+   .. cssclass:: copyable-code   
+   .. code-block:: sh
+
+      mysql --user=<username>?source=<some-db> --default-auth=mongosql_auth -p
+
+In the above command, ``<some-db>`` should be the database for which
+the user is authenticated. The shell will prompt the user for a password.
+See the :ref:`table above <mysql-command-options>` for
+additional options.
 
 Notes
 -----
