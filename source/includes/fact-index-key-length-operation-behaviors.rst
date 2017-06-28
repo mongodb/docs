@@ -1,7 +1,7 @@
 .. index-field-limit-ensureIndex
 
-MongoDB will **not** :method:`create an index
-<db.collection.createIndex()>` on a collection if the index entry for
+MongoDB will **not** create an index 
+on a collection if the index entry for
 an existing document exceeds the |limit|. Previous versions of MongoDB
 would create the index but not index such documents.
 
