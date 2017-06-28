@@ -28,7 +28,7 @@ lint: ## Checks URLs in the built corpus underneath build/<branch>/html
 
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 deploy: build/public ## Deploy to the production bucket
 	@echo "Doing a dry-run"
