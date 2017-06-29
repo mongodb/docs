@@ -1,62 +1,3 @@
-title: Uninstall old versions of the |bi| (optional).
-ref: uninstall-old-bi
-level: 4
-pre: |
-  If you have an older version of the |bi| installed, uninstall it.
-
-action:
-  - heading: "Red Hat Enterprise Linux and CentOS"
-    pre: |
-
-    copyable: true
-    language: sh
-    code: |
-      sudo yum remove mongodb-bi*
-
-  - heading: "Debian and Ubuntu"
-    pre: |
-
-    copyable: true
-    language: sh
-    code: |
-      sudo apt-get remove mongodb-bi*
-
-  - heading: "Windows"
-    pre: | 
-
-      Delete the MongoDB BI Connector directory from the :guilabel:`Program
-      Files` directory.
-
----
-title: Install OpenSSL.
-ref: install-prereqs
-level: 4
-action:
-
-  - heading: "macOS"
-    pre: |
-
-      a. Install `Homebrew <http://brew.sh/>`_.
-      b. Update Homebrew.
-      c. Install OpenSSL using Homebrew.
-
-         .. cssclass:: copyable-code
-         .. code-block:: sh
-
-            brew update && brew install openssl
-
-  - heading: "Linux"
-    pre: |
-
-      Ensure that your system has its OpenSSL package installed.
-
-  - heading: "Windows"
-    pre: |
-
-      The |bi| for Windows bundles the OpenSSL libraries. You do not
-      need to take any special action.
-
----
 title: Install the |bi|.
 ref: install-bi-server
 level: 4
@@ -66,12 +7,69 @@ pre: |
 
 action:
 
-  - heading: "Linux / macOS"
+  - heading: "RHEL-based Linux"
     pre: |
 
-      a. Extract the tarball you downloaded.
+      a. Uninstall the previous version, if you have installed it.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            sudo yum remove mongodb-bi*
+
+      b. Extract the ``.tar`` archive you downloaded.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            tar -xvzf mongodb-bi-linux-{arch}-{platform}-{version}.tgz
+
+      c. Install the programs within the ``bin/`` directory into a
+         directory listed in your system ``PATH``.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            sudo install -m755 bin/mongo* /usr/local/bin/
+
+  - heading: "Debian-based Linux"
+    pre: |
+
+      a. Uninstall the previous version, if you have installed it.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            sudo apt-get remove mongodb-bi*
+
+      b. Extract the ``.tar`` archive you downloaded.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            tar -xvzf mongodb-bi-linux-{arch}-{platform}-{version}.tgz
+
+      c. Install the programs within the ``bin/`` directory into a
+         directory listed in your system ``PATH``.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            sudo install -m755 bin/mongo* /usr/local/bin/
+
+  - heading: "macOS"
+    pre: |
+
+      a. Extract the ``.tar`` archive you downloaded.
+
+         .. cssclass:: copyable-code
+         .. code-block:: sh
+
+            tar -xvzf mongodb-bi-osx-x86_64-{version}.tgz
+
       b. Install the programs within the ``bin/`` directory into a directory
-         listed in your system ``PATH``.
+         listed in your system ``PATH``. If a prior version exists, overwrite
+         the binaries.
 
          .. cssclass:: copyable-code
          .. code-block:: sh
@@ -81,22 +79,10 @@ action:
   - heading: "Windows"
     pre: |
 
-      a. Extract the ZIP file you downloaded.
-      b. Create a directory for the |bi| within the :guilabel:`Program Files`
-         directory:
+      a. Run the ``.msi`` file you downloaded.
+      b. Follow the wizard to install the files. The binaries install into a
+         ``bin`` directory inside the installation directory.
 
-         .. cssclass:: copyable-code
-         .. code-block:: powershell
-
-            md "C:\Program Files\MongoDB BI Connector"
-
-      c. Save the |bi| executables into the Program Files directory you
-         created.
-
-         .. cssclass:: copyable-code
-         .. code-block:: powershell
-
-            move {downloadDirectory}\* "C:\Program Files\MongoDB BI Connector"
 
 ---
 title: Generate your schema definition file.
@@ -117,7 +103,7 @@ action:
     language: powershell
     copyable: true
     code: |
-      "C:\Program Files\MongoDB BI Connector\bin\mongodrdl.exe" --host {your.mongohost.com} -d dbname [-c collname] -o schema.drdl
+      "C:\Program Files\MongoDB\Connector for BI\2.2\bin\mongodrdl.exe" --host {your.mongohost.com} -d dbname [-c collname] -o schema.drdl
 post: |
   .. note::
      The :option:`--host` option only accepts a hostname. You cannot
@@ -125,22 +111,37 @@ post: |
 
   You can examine the generated ``schema.drdl`` file, and remove any fields or
   tables that are not part of your intended schema.
+
 ---
-title: Start ``mongosqld``
+title: Edit your |bi| configuration file.
 ref: start-mongosqld
 level: 4
+content: |
+  Using your preferred text editor, create a |bi| configuration file.
+  To review the configuration file options, see :ref:`Configuration
+  File <config-format>`.
+
+---
+title: Start ``mongosqld`` as a system service.
+ref: start-mongosqld-service
+level: 4
 action:
-  - heading: "Linux / macOS"
+  - heading: "Linux / macOS using a configuration file"
     language: sh
     copyable: true
     code: |
-      mongosqld --schema schema.drdl --mongo-uri {your.mongohost.com}
-  - heading: "Windows"
+      mongosqld install --config {pathToConfigFile}/mongosqld.conf
+      sudo service mongosql start
+  - heading: "Windows using a configuration file"
     language: powershell
     copyable: true
     code: |
-      "C:\Program Files\MongoDB BI Connector\bin\mongosqld.exe" --schema schema.drdl --mongo-uri {your.mongohost.com}
+      "C:\Program Files\MongoDB\Connector for BI\2.2\bin\mongosqld.exe" install --config {pathToConfigFile}\mongosqld.conf
+      net start mongosql
 
+    post: |
+      Windows returns ``mongosql service installed`` if your installation
+      succeeded.
 ---
 title: Connect to the |bi|
 level: 4
@@ -154,14 +155,11 @@ content: |
      :stub-columns: 1
 
      * - Host
-
-       - The hostname of the server on which you installed the |bi| in
-         step 3.
+       - The hostname of the server on which you installed the |bi|.
 
      * - Port
-
        - ``3307`` by default.
 
-  See :doc:`/tutorial/connecting` for more details on connecting to the
-  |bi|.
+  For more details on connecting to the |bi|, see
+  :doc:`/tutorial/connecting`.
 ...
