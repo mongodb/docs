@@ -1,14 +1,15 @@
-var autoprefixer = require('gulp-autoprefixer')
-var babili = require("gulp-babili")
-var gulp = require('gulp')
-var plumber = require('gulp-plumber')
-var pump = require('pump')
-var rename = require('gulp-rename')
-var sass = require('gulp-sass')
-var scsslint = require('gulp-scss-lint')
-var sourcemaps = require('gulp-sourcemaps')
-var uglify = require('gulp-uglify')
-var webpack = require('gulp-webpack')
+const autoprefixer = require('gulp-autoprefixer')
+const babili = require("gulp-babili")
+const gulp = require('gulp')
+const gulpWebpack = require('gulp-webpack')
+const plumber = require('gulp-plumber')
+const pump = require('pump')
+const rename = require('gulp-rename')
+const sass = require('gulp-sass')
+const scsslint = require('gulp-scss-lint')
+const sourcemaps = require('gulp-sourcemaps')
+const uglify = require('gulp-uglify')
+const webpack = require('webpack')
 
 gulp.task('sass:lint', function() {
   gulp.src('./src/styles/*.scss')
@@ -94,7 +95,7 @@ gulp.task('sass:prod', [
 
 gulp.task('js:build-navbar', function() {
   gulp.src('./src/navbar.js')
-    .pipe(webpack({
+    .pipe(gulpWebpack({
       output: {
         filename: 'navbar.js'
       },
@@ -117,7 +118,7 @@ gulp.task('js:build-navbar', function() {
 
 gulp.task('js:build-search', function() {
   gulp.src(['whatwg-fetch', './src/worker-search.js'])
-    .pipe(webpack({
+    .pipe(gulpWebpack({
       output: {
         filename: 'worker-search.js'
       },
@@ -129,7 +130,7 @@ gulp.task('js:build-search', function() {
 gulp.task('js:prod:build-search', function(cb) {
   pump([
     gulp.src(['whatwg-fetch', './src/worker-search.js']),
-    webpack({
+    gulpWebpack({
       output: {
         filename: 'worker-search.min.js'
       }
@@ -142,10 +143,17 @@ gulp.task('js:prod:build-search', function(cb) {
 gulp.task('js:prod:build-navbar', function(cb) {
   pump([
     gulp.src('./src/navbar.js'),
-    webpack({
+    gulpWebpack({
       output: {
         filename: 'navbar.min.js'
       },
+      plugins: [
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': JSON.stringify('production')
+          }
+        })
+      ],
       module: {
         loaders: [
           {
@@ -158,7 +166,7 @@ gulp.task('js:prod:build-navbar', function(cb) {
           }
         ]
       }
-    }),
+    }, webpack),
     uglify(),
     gulp.dest('./static/js/')
   ], cb)
@@ -166,7 +174,7 @@ gulp.task('js:prod:build-navbar', function(cb) {
 
 gulp.task('js:build-home', function() {
   gulp.src(['whatwg-fetch', './src/home.js'])
-    .pipe(webpack({
+    .pipe(gulpWebpack({
       output: {
         filename: 'home.js'
       },
@@ -190,10 +198,17 @@ gulp.task('js:build-home', function() {
 gulp.task('js:prod:build-home', function(cb) {
   pump([
     gulp.src(['whatwg-fetch', './src/home.js']),
-    webpack({
+    gulpWebpack({
       output: {
         filename: 'home.min.js'
       },
+      plugins: [
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': JSON.stringify('production')
+          }
+        })
+      ],
       module: {
         loaders: [
           {
@@ -206,7 +221,7 @@ gulp.task('js:prod:build-home', function(cb) {
           }
         ]
       }
-    }),
+    }, webpack),
     uglify(),
     gulp.dest('./static/js/')
   ], cb)
@@ -214,7 +229,7 @@ gulp.task('js:prod:build-home', function(cb) {
 
 gulp.task('js:build-single', function() {
   gulp.src('./src/single.js')
-    .pipe(webpack({
+    .pipe(gulpWebpack({
       output: {
         filename: 'single.js'
       },
@@ -238,10 +253,17 @@ gulp.task('js:build-single', function() {
 gulp.task('js:prod:build-single', function(cb) {
   pump([
     gulp.src('./src/single.js'),
-    webpack({
+    gulpWebpack({
       output: {
         filename: 'single.min.js'
       },
+      plugins: [
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': JSON.stringify('production')
+          }
+        })
+      ],
       module: {
         loaders: [
           {
@@ -254,7 +276,7 @@ gulp.task('js:prod:build-single', function(cb) {
           }
         ]
       }
-    }),
+    }, webpack),
     uglify(),
     gulp.dest('./static/js/')
   ], cb)
@@ -262,7 +284,7 @@ gulp.task('js:prod:build-single', function(cb) {
 
 gulp.task('js:build-landing', function() {
   gulp.src('./src/landing.js')
-    .pipe(webpack({
+    .pipe(gulpWebpack({
       output: {
         filename: 'landing.js'
       },
@@ -286,10 +308,17 @@ gulp.task('js:build-landing', function() {
 gulp.task('js:prod:build-landing', function(cb) {
   pump([
     gulp.src('./src/landing.js'),
-    webpack({
+    gulpWebpack({
       output: {
         filename: 'landing.min.js'
       },
+      plugins: [
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': JSON.stringify('production')
+          }
+        })
+      ],
       module: {
         loaders: [
           {
@@ -302,7 +331,7 @@ gulp.task('js:prod:build-landing', function(cb) {
           }
         ]
       }
-    }),
+    }, webpack),
     uglify(),
     gulp.dest('./static/js/')
   ], cb)
