@@ -36,10 +36,10 @@ two:
   You will need to have defined your schema with
   :program:`mongodrdl` before starting :program:`mongosqld`.
 
-SQL Compability
-~~~~~~~~~~~~~~~
+SQL Compatibility
+~~~~~~~~~~~~~~~~~
 
-|bi| Version 2.0.0 is compatible with SQL-99 SELECT statements, and uses
+|bi| Version 2.x is compatible with SQL-99 SELECT statements, and uses
 the MySQL wire protocol.
 
 .. seealso:: :doc:`/supported-operations`
