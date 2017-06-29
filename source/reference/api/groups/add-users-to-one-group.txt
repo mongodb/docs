@@ -1,6 +1,6 @@
-======================
-Add Users to One Group
-======================
+===============================
+Add Existing Users to One Group
+===============================
 
 .. default-domain:: mongodb
 
@@ -9,6 +9,9 @@ Add Users to One Group
    :backlinks: none
    :depth: 2
    :class: singlecol
+
+This resource adds users who exist in |mms| to another group. It does not
+create new users and add them to a group.
 
 .. include:: /includes/api/base-api-uri.rst
 
@@ -25,7 +28,17 @@ Request Parameters
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/api/no-query-parameters.rst
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Parameter
+     - Required/Optional
+     - Description
+
+   * - ``GROUP-ID``
+     - Required.
+     - The unique identifier for the group.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,11 +58,30 @@ Request Body Parameters
 
    * - ``id``
      - string
-     - The unique identifier for the user.
+     - The unique identifier for an existing user.
 
-   * - ``username``
+   * - ``roles``
+     - document array
+     - The roles to which this user is assigned.
+
+   * - ``roles.groupId``
      - string
-     - The |mms| username.
+     - The unique identifier for the group role.
+
+   * - ``roles.roleName``
+     - string
+     - The display name for the user role.
+
+Response Elements
+-----------------
+
+.. list-table::
+   :widths: 10 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
 
    * - ``emailAddress``
      - string
@@ -58,6 +90,14 @@ Request Body Parameters
    * - ``firstName``
      - string
      - The first name displayed for the returned |mms| user.
+
+   * - ``id``
+     - string
+     - The unique identifier for the user.
+
+   * - ``links``
+     - string array
+     - See `Response Links`_. 
 
    * - ``lastName``
      - string
@@ -75,10 +115,38 @@ Request Body Parameters
      - string
      - The display name for the user role.
 
-Response Elements
------------------
+   * - ``username``
+     - string
+     - The |mms| username.
 
-None.
+_`Response Links`
+~~~~~~~~~~~~~~~~~
+
+.. only:: cloud
+
+   .. list-table::
+      :widths: 60 40
+      :header-rows: 1
+
+      * - Relation
+        - Description
+      * - ``self``
+        - Me
+      * - ``http://mms.mongodb.com/whitelist``
+        - All whitelists in the group.
+
+.. only:: onprem
+
+   .. list-table::
+      :widths: 60 40
+      :header-rows: 1
+
+      * - Relation
+        - Description
+      * - ``self``
+        - Me
+      * - ``http://{opsManagerHost}:{port}/whitelist``
+        - All whitelists in the group.
 
 Examples
 --------
@@ -90,26 +158,19 @@ Example Request
 
    .. cssclass:: copyable-code
    .. code-block:: sh
-      :emphasize-lines: 5-21
+      :emphasize-lines: 6-14
 
       curl --user "{username}:{apiKey}" --digest \
        --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
        --include \
-       --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/users" \
+       --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/users?pretty=true" \
        --data '
        [
          {
-           "id": "5329c8dfe4b0b07a83d67e7d",
+           "id": "{USER-ID}",
            "roles": [{
-             "roleName": "GROUP_READ_ONLY"
-           }]
-         },
-         {
-           "id": "5329c906e4b0b07a83d691ba",
-           "roles": [{
-             "roleName": "GROUP_MONITORING_ADMIN"
-           }, {
-             "roleName": "GROUP_BACKUP_ADMIN"
+             "roleName": "GROUP_OWNER"
            }]
          }
        ]'
@@ -118,26 +179,19 @@ Example Request
 
    .. cssclass:: copyable-code
    .. code-block:: sh
-      :emphasize-lines: 5-21
+      :emphasize-lines: 6-14
 
       curl --user "{username}:{apiKey}" --digest \
        --header "Accept: application/json" \
+       --header "Content-Type: application/json" \
        --include \
-       --request POST "https://{opsManagerHost}:{port}/api/public/v1.0/groups/{GROUP-ID}/users" \
+       --request POST "https://{opsManagerHost}:{port}/api/public/v1.0/groups/{GROUP-ID}/users?pretty=true" \
        --data '
        [
          {
-           "id": "5329c8dfe4b0b07a83d67e7d",
+           "id": "{USER-ID}",
            "roles": [{
-             "roleName": "GROUP_READ_ONLY"
-           }]
-         },
-         {
-           "id": "5329c906e4b0b07a83d691ba",
-           "roles": [{
-             "roleName": "GROUP_MONITORING_ADMIN"
-           }, {
-             "roleName": "GROUP_BACKUP_ADMIN"
+             "roleName": "GROUP_OWNER"
            }]
          }
        ]'
@@ -156,6 +210,122 @@ Example Request
 Example Response
 ~~~~~~~~~~~~~~~~
 
-.. code-block:: http
+Response Header
++++++++++++++++
 
-   HTTP/1.1 200 OK
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
++++++++++++++
+
+.. only:: cloud
+
+   .. code-block:: json
+      :emphasize-lines: 9
+ 
+      {
+        "links" : [ {
+          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/ users?pretty=true&pageNum=1&itemsPerPage=100",
+          "rel" : "self"
+        } ],
+        "results" : [ {
+          "emailAddress" : "joe.bloggs@example.com",
+          "firstName" : "Joe",
+          "id" : "{USER-ID}",
+          "lastName" : "Bloggs",
+          "links" : [ {
+            "href" : "https://cloud.mongodb.com/api/atlas/v1.0/users/{USER-ID}",
+            "rel" : "self"
+          }, {
+            "href" : "https://cloud.mongodb.com/api/atlas/v1.0/users/{USER-ID}/whitelist",
+            "rel" : "http://mms.mongodb.com/whitelist"
+          } ],
+          "roles" : [ {
+            "groupId" : "{GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          }, {
+            "groupId" : "{OTHER-GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          }
+          ...
+          ],
+          "username" : "joe.bloggs"
+        }, {
+          "emailAddress" : "jim.bloggs@example.com",
+          "firstName" : "Jim",
+          "id" : "{OTHER-USER-ID}",
+          "lastName" : "Bloggs",
+          "links" : [ {
+            "href" : "https://cloud.mongodb.com/api/atlas/v1.0/users/{OTHER-USER-ID}",
+            "rel" : "self"
+          }, {
+            "href" : "https://cloud.mongodb.com/api/atlas/v1.0/users/{OTHER-USER-ID}/whitelist",
+            "rel" : "http://mms.mongodb.com/whitelist"
+          } ],
+          "roles" : [ {
+            "roleName" : "GLOBAL_READ_ONLY"
+          }, {
+            "groupId" : "{GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          } ],
+          "username" : "jim.bloggs"
+        } ],
+        "totalCount" : 2
+      }
+
+.. only:: onprem
+
+   .. code-block:: json
+      :emphasize-lines: 9
+ 
+      {
+        "links" : [ {
+          "href" : "http://{opsManagerHost}:{port}/api/public/v1.0/groups/{GROUP-ID}/ users?pretty=true&pageNum=1&itemsPerPage=100",
+          "rel" : "self"
+        } ],
+        "results" : [ {
+          "emailAddress" : "joe.bloggs@example.com",
+          "firstName" : "Joe",
+          "id" : "{USER-ID}",
+          "lastName" : "Bloggs",
+          "links" : [ {
+            "href" : "http://{opsManagerHost}:{port}/api/atlas/v1.0/users/{USER-ID}",
+            "rel" : "self"
+          }, {
+            "href" : "http://{opsManagerHost}:{port}/api/atlas/v1.0/users/{USER-ID}/whitelist",
+            "rel" : "http://mms.mongodb.com/whitelist"
+          } ],
+          "roles" : [ {
+            "groupId" : "{GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          }, {
+            "groupId" : "{OTHER-GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          }
+          ...
+          ],
+          "username" : "joe.bloggs"
+        }, {
+          "emailAddress" : "jim.bloggs@example.com",
+          "firstName" : "Jim",
+          "id" : "{OTHER-USER-ID}",
+          "lastName" : "Bloggs",
+          "links" : [ {
+            "href" : "http://{opsManagerHost}:{port}/api/atlas/v1.0/users/{OTHER-USER-ID}",
+            "rel" : "self"
+          }, {
+            "href" : "http://{opsManagerHost}:{port}/api/atlas/v1.0/users/{OTHER-USER-ID}/whitelist",
+            "rel" : "http://mms.mongodb.com/whitelist"
+          } ],
+          "roles" : [ {
+            "roleName" : "GLOBAL_READ_ONLY"
+          }, {
+            "groupId" : "{GROUP-ID}",
+            "roleName" : "GROUP_OWNER"
+          } ],
+          "username" : "jim.bloggs"
+        } ],
+        "totalCount" : 2
+      }
