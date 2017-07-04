@@ -1,5 +1,5 @@
 .. important::
-   Specify coordinates in this order: **"longitude, latitude."**
+   .. include::  /includes/extracts/geospatial-long-lat-values.rst
 
 Consider a collection ``places`` that has a ``2dsphere`` index.
 

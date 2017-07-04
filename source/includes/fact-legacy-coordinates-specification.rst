@@ -13,6 +13,8 @@ Specify via an array (*Preferred*):
 
      <field>: [<longitude>, <latitude> ]
 
+  .. include::  /includes/extracts/geospatial-long-lat-values.rst
+
 Specify via an embedded document:
   .. code-block:: javascript
 
@@ -24,7 +26,9 @@ Specify via an embedded document:
 
   .. code-block:: javascript
 
-     <field>: { <field1>: longitude, <field2>: <latitude> }
+     <field>: { <field1>: <longitude>, <field2>: <latitude> }
+
+  .. include::  /includes/extracts/geospatial-valid-long-lat-values.rst
 
 To specify legacy coordinate pairs, arrays are preferred over an
 embedded document as some languages do not guarantee associative map

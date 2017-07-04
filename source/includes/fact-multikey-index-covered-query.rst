@@ -1,2 +1,2 @@
-A :ref:`multikey index <index-type-multikey>` cannot support a
-:ref:`covered query <covered-queries>`.
+:ref:`Multikey indexes <index-type-multikey>` cannot :ref:`cover a
+query <covered-queries>`.
