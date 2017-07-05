@@ -8,6 +8,16 @@ Backup Agent 5.0.8.601-1
 
 - Performance enhancement: Use bson.Raw for initial sync
 
+.. _backup-5.0.7.494:
+
+Backup Agent 5.0.7.494
+----------------------
+
+*Released with Ops Manager 3.4.5 on 2017-05-18*
+
+- Fix: High Memory Usage during Initial Sync with Large Numbers of
+  Small Documents.
+
 .. _backup-5.0.6.486:
 
 Backup Agent 5.0.6.486
