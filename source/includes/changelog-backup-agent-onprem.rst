@@ -1,3 +1,13 @@
+
+.. _backup-5.0.8.601-1:
+
+Backup Agent 5.0.8.601-1
+------------------------
+
+*Released with Ops Manager 3.4.6 on 2017-07-06*
+
+- Performance enhancement: Use bson.Raw for initial sync
+
 .. _backup-5.0.6.486:
 
 Backup Agent 5.0.6.486
