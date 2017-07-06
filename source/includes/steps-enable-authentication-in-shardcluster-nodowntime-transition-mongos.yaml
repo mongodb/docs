@@ -1,79 +1,80 @@
 stepnum: 1
 level: 4
-title: "Add ``transitionToAuth: true`` to the ``mongos`` configuration file"
+title: "Create a new ``mongos`` configuration file."
 ref: modify-config-files
 pre: |
-  
-  Copy the existing {{program}} configuration file, giving it a distinct
-  name such as ``<filename>-secure``.
-  
-  You will use this new configuration file to transition the {{program}} to
-  enforce authentication in the sharded cluster. Retain the original
-  configuration file for backup purposes.
 
-  Add the following settings to the new configuration file.
+  For each :program:`mongos`:
 
-  .. list-table::
-     :header-rows: 1
-     :widths: 30 70
+  #. Copy the existing {{program}} configuration file, giving it a
+     distinct name such as ``<filename>-secure.conf`` (or ``.cfg`` if
+     using Windows). You will use this new configuration file to
+     transition the {{program}} to enforce authentication in the
+     sharded cluster. Retain the original configuration file for backup
+     purposes.
 
-     * - Setting
-       - Value
+  #. To the new configuration file, add the following settings:
 
-     * - :setting:`security.transitionToAuth`
-       - ``true``
+     - :setting:`security.transitionToAuth` set to ``true``
 
-     * - :setting:`security.keyFile`
-       - Path to the keyfile.
+     - :setting:`security.keyFile` set to the keyfile path.
 
-         If using a different internal authentication mechanism, specify
-         settings appropriate for the mechanism.
+       If using a different internal authentication mechanism, specify
+       settings appropriate for the mechanism.
 
-  The new configuration file should contain all of the configuration settings
-  previously used by the {{program}}, as well as the new security
-  settings.
+     .. code-block:: yaml
 
-  .. code-block:: yaml
+        security:
+           transitionToAuth: true
+           keyFile: <path-to-keyfile>
 
-     security:
-        transitionToAuth: true
-        keyFile: <path-to-keyfile>
+     The new configuration file should contain all of the configuration
+     settings previously used by the {{program}} as well as the new
+     security settings.
+
 replacement:
   program: :program:`mongos`
 ---
 stepnum: 2
 level: 4
 ref: restart-mongos
-title: "Restart the ``mongos`` with the new configuration file."
+title: "One at a time, restart the ``mongos`` with the new configuration file."
 pre: |
 
-  Restart one :program:`mongos` at a time to ensure that clients can connect
-  to the sharded cluster. If your cluster has only one :program:`mongos`, this
-  step results in downtime while the :program:`mongos` is offline.
-  
-  Connect to the :program:`mongos` and use the :method:`db.shutdownServer()`
-  method against the ``admin`` database to safely shut down the
-  :program:`mongos`.
-  
-  .. code-block:: javascript
-  
-     db.getSiblingDB("admin").shutdownServer()
-  
-  Restart :program:`mongos` with the new configuration file, specifying the
-  path to the config file using :option:`--config`.
-  
-  .. example::
+   .. note::
 
-     The following operation starts the :program:`mongos` specifying
-     the updated configuration file, here named ``mongos-secure.conf``.
-     The ``<path>`` represents the system path to the folder containing
-     the configuration file.
+      If your cluster has only one :program:`mongos`, this step results
+      in downtime while the :program:`mongos` is offline.
 
-     .. code-block:: shell
-     
-        mongos --config <path>/mongos-secure.conf
+   Follow the procedure to restart :program:`mongos` instance, one
+   :program:`mongos` at a time:
 
-  .. note::
-    
-     MongoDB deployments running on :abbr:`Windows (Microsoft Windows)` use
-     the ``.cfg`` file extension instead of ``.conf``.
+   #. Connect to the :program:`mongos` to shutdown.
+
+   #. Use the :method:`db.shutdownServer()`
+      method against the ``admin`` database to safely shut down the
+      :program:`mongos`.
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").shutdownServer()
+
+   #. Restart :program:`mongos` with the {{status}} configuration file, 
+      specifying the path to the config file using
+      :option:`--config`. For example, if the {{status}} configuration file
+      were named ``mongos-secure.conf``:
+
+      .. code-block:: shell
+
+         mongos --config <path>/mongos-secure.conf
+
+      where ``<path>`` represents the system path to the folder
+      containing the new configuration file.
+
+   Repeat the restart process for the next :program:`mongos` instance
+   until all :program:`mongos` instances in the sharded cluster have
+   been restarted.
+
+replacement:
+  status: "new"
+...
