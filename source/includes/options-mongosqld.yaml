@@ -54,6 +54,16 @@ description: |
   Use :option:`--schema` instead.
 ---
 program: mongosqld
+name: mongo-versionCompatibility
+directive: option
+args: <version-number>
+description: |
+  Specifies that {{program}} must only use features supported by the
+  specified version of MongoDB. Only necessary when used with
+  replica sets in which members use different MongoDB versions.
+  The minimum allowable MongoDB version is ``3.2``.
+---
+program: mongosqld
 name: mongo-uri
 directive: option
 args: <uri>
@@ -134,10 +144,28 @@ inherit:
   file: options-shared.yaml
 ---
 program: mongosqld
+name: mongo-sslAllowInvalidHostnames
+directive: option
+inherit:
+  name: sslAllowInvalidHostnames
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongosqld
 name: mongo-sslCAFile
 directive: option
 inherit:
   name: sslCAFile
+  program: _shared
+  file: options-shared.yaml
+replacement:
+  ssl-option: ":option:`--mongo-ssl`"
+---
+program: mongosqld
+name: mongo-sslCRLFile
+directive: option
+inherit:
+  name: sslCRLFile
   program: _shared
   file: options-shared.yaml
 replacement:
@@ -167,7 +195,16 @@ name: sslAllowInvalidCertificates
 directive: option
 args: null
 description: |
-  Permits MySQL clients to present invalid client SSL/TLS certificates.
+  Permits MySQL clients to present invalid client TLS/SSL certificates.
+optional: true
+---
+program: mongosqld
+name: sslAllowInvalidHostnames
+directive: option
+args: null
+description: |
+  Permits {{program}} to connect to a MySQL server whose
+  hostname differs from the hostname on its TLS/SSL certificate.
 optional: true
 ---
 program: mongosqld
@@ -181,26 +218,45 @@ description: |
 optional: true
 ---
 program: mongosqld
+name: sslCRLFile
+directive: option
+args: <filename>
+description: |
+  Specifies the MySQL client's :file:`.pem` file containing the
+  certificate revocation list.
+optional: true
+---
+program: mongosqld
 name: auth
 directive: option
 args: null
 description: |
-  Require authentication for incoming client requests. Requires
-  :option:`--sslPEMKeyFile`.
+  Require authentication for incoming client requests.
 optional: true
 ---
 program: mongosqld
-name: defaultAuthDatabase
+name: defaultAuthSource
 directive: option
-args: <database>
+args: <authSource>
 description: |
-
-  Specifies the default authentication source database for connecting to the
-  |bi|. Set this value to specify a default database for connecting to
-  {{program}}. Any connections using the default value can omit the ``source``
-  value from their :ref:`MySQL <connect-mysql-auth>` or :ref:`Tableau
-  <connect-tableau-auth>` username.
-
+  Specifies the default MongoDB authentication source.
+  Set this value to specify a default source that {{program}}
+  uses when authenticating with a MongoDB database. The
+  authentication mechanisms
+  ``GSSAPI`` and ``PLAIN`` use the ``$external`` source, while
+  ``SCRAM-SHA-1`` uses a MongoDB database as its source.
+  
+  If no value is given for this option it defaults to the the
+  MongoDB ``admin`` database.
+  
+  The ``$external`` authentication source stores a reference
+  to system users in a MongoDB database called ``$external``,
+  but the credentials are stored in an external,
+  non-MongoDB system, such as an LDAP server.
+  
+  Any connection which uses the default value can omit the
+  ``source`` parameter from its :ref:`MySQL <connect-mysql-auth>`
+  or :ref:`Tableau <connect-tableau-auth>` username.
 optional: true
 default: admin
 ---
@@ -209,15 +265,13 @@ name: defaultAuthMechanism
 directive: option
 args: <authMechanism>
 description: |
-
   Specifies the default authentication mechanism. Set this value to
   specify a default mechanism for connecting to {{program}}. Any
-  connections using the default value can omit the ``mechanism`` value
-  from their :ref:`MySQL <connect-mysql-auth>` or 
+  connection which uses this specified default value can omit
+  the ``mechanism`` value from its :ref:`MySQL <connect-mysql-auth>` or
   :ref:`Tableau <connect-tableau-auth>` username.
-
 optional: true
-default: SCRAM-SHA1
+default: SCRAM-SHA-1
 ---
 program: mongosqld
 name: logAppend
