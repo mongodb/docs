@@ -20,7 +20,7 @@ content-html: | tools/node_modules/.npm_pulled
 
 deploy: | content-html  ## Deploy the tutorials site
 	rm -rf public
-	hugo -b ${PRODUCTION_URL}
+	ulimit -n 1024 && hugo -b ${PRODUCTION_URL}
 
 	mut-publish public/ ${PRODUCTION_BUCKET} --prefix=${PRODUCTION_PREFIX} --deploy --all-subdirectories --dry-run --verbose ${ARGS}
 	@echo ''
@@ -30,10 +30,10 @@ deploy: | content-html  ## Deploy the tutorials site
 	@echo "Deployed"
 
 server: | content-html ## Host the documentation on port 1313
-	hugo server --renderToDisk -b 'localhost'
+	ulimit -n 1024 && hugo server --renderToDisk -b 'localhost'
 
 stage: | content-html  ## Upload built artifacts to the staging URL
-	hugo -b ${STAGING_URL}
+	ulimit -n 1024 && hugo -b ${STAGING_URL}
 	mut-publish public/ ${STAGING_BUCKET} --prefix=${STAGING_PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}"
 
