@@ -31,7 +31,7 @@ using an ``.msi`` file.
 
 ## Get MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-windows/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-windows/).
 
 
 ### Step 1: Determine which MongoDB build you need.

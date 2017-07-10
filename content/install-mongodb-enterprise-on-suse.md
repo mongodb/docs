@@ -41,7 +41,7 @@ Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-enterprise-on-suse/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-suse/).
 
 
 ### Step 1: Import the MongoDB public key
@@ -108,7 +108,7 @@ your MongoDB version.
 
 While you should use the ``.rpm`` packages as previously
 described, you may also manually install MongoDB using the tarballs. See
-[Install MongoDB Enterprise From Tarball](install-mongodb-enterprise-on-linux/) for details.
+[Install MongoDB Enterprise From Tarball](../install-mongodb-enterprise-on-linux/) for details.
 
 
 ## Run MongoDB Enterprise

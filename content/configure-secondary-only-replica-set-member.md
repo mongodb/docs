@@ -113,7 +113,7 @@ rs.reconfig(cfg)
 
 * [``members[n].priority``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members[n].priority)
 
-* [Adjust Priority for Replica Set Member](adjust-replica-set-member-priority/)
+* [Adjust Priority for Replica Set Member](../adjust-replica-set-member-priority/)
 
 * [Replica Set Reconfiguration](https://docs.mongodb.com/manual/reference/method/rs.reconfig/#replica-set-reconfiguration-usage)
 

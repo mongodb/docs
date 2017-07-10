@@ -78,7 +78,7 @@ practices for user creation and management.
 
 The following procedure for enforcing access control requires downtime.
 For a procedure that does not require downtime, see
-[Enforce Keyfile Access Control in a Replica Set without Downtime](enforce-keyfile-access-control-in-existing-replica-set-without-downtime/)
+[Enforce Keyfile Access Control in a Replica Set without Downtime](../enforce-keyfile-access-control-in-existing-replica-set-without-downtime/)
 instead.
 
 <span id="security-enable-access-control-replica-set"></span>

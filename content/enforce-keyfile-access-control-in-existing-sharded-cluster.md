@@ -178,7 +178,7 @@ sh.getBalancerState()
 
 Important: Do not proceed until the balancer has stopped running.
 
-See [Manage Sharded Cluster Balancer](manage-sharded-cluster-balancer/) for tutorials on
+See [Manage Sharded Cluster Balancer](../manage-sharded-cluster-balancer/) for tutorials on
 configuring sharded cluster balancer behavior.
 
 
@@ -570,7 +570,7 @@ sh.startBalancer()
 
 Use the [``sh.getBalancerState()``](https://docs.mongodb.com/manual/reference/method/sh.getBalancerState/#sh.getBalancerState) to verify the balancer has started.
 
-See [Manage Sharded Cluster Balancer](manage-sharded-cluster-balancer/) for tutorials on
+See [Manage Sharded Cluster Balancer](../manage-sharded-cluster-balancer/) for tutorials on
 the sharded cluster balancer.
 
 

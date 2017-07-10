@@ -176,7 +176,7 @@ any [built-in roles](https://docs.mongodb.com/manual/core/security-built-in-role
 users.
 
 The ``myUserAdmin`` user only has privileges to [manage users
-and roles](manage-users-and-roles/). As ``myUserAdmin``, if
+and roles](../manage-users-and-roles/). As ``myUserAdmin``, if
 you attempt to perform any other operations, such as read from a
 ``foo`` collection in the ``test`` database, MongoDB returns an error.
 
@@ -254,8 +254,8 @@ db.foo.insert( { x: 1, y: 1 } )
 
 ```
 
-See also: [Manage Users and Roles](manage-users-and-roles/).
+See also: [Manage Users and Roles](../manage-users-and-roles/).
 
-* [Manage Users and Roles](manage-users-and-roles/)
+* [Manage Users and Roles](../manage-users-and-roles/)
 
-* [Change Your Password and Custom Data](change-own-password-and-custom-data/)
+* [Change Your Password and Custom Data](../change-own-password-and-custom-data/)

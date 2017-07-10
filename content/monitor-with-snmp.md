@@ -17,7 +17,7 @@ explains the setup and configuration of a [``mongod``](https://docs.mongodb.com/
 as an SNMP subagent, as well as initializing and testing of SNMP
 support with MongoDB Enterprise.
 
-See also: [Troubleshoot SNMP](https://docs.mongodb.com/manual/tutorial/troubleshoot-snmp) and [Monitor MongoDB Windows with SNMP](monitor-with-snmp-on-windows/) for complete instructions on using MongoDB with SNMP on Windows systems.
+See also: [Troubleshoot SNMP](https://docs.mongodb.com/manual/tutorial/troubleshoot-snmp) and [Monitor MongoDB Windows with SNMP](../monitor-with-snmp-on-windows/) for complete instructions on using MongoDB with SNMP on Windows systems.
 
 
 ## Considerations

@@ -39,8 +39,8 @@ Ops Manager, consider using the built-in features for
 deploying a replica set with access control enforced.
 
 See ``Deploy Replica Set`` in the
-[Cloud Manager manual](deploy-replica-set/) or in the
-[Ops Manager manual](deploy-replica-set/).
+[Cloud Manager manual](../deploy-replica-set/) or in the
+[Ops Manager manual](../deploy-replica-set/).
 
 See ``Access Control for MongoDB Deployments`` in the
 [Cloud Manager manual](https://docs.cloudmanager.mongodb.com/nav/security-enable-authentication) or in the

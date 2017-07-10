@@ -24,7 +24,7 @@ Note: Do not use this installation method unless you have a specific need that t
 MongoDB only provides archives for 64-bit builds of Linux. Follow the
 installation procedure appropriate for your system.
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-linux/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-linux/).
 
 
 ### Install for 64-bit Linux

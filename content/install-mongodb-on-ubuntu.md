@@ -58,7 +58,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-ubuntu/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-ubuntu/).
 
 MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.

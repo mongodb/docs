@@ -138,7 +138,7 @@ bulk.execute();
 ```
 
 For more information on deploying a replica set, see
-[Deploy a Replica Set](deploy-replica-set/).
+[Deploy a Replica Set](../deploy-replica-set/).
 
 
 ### Restart the Replica Set as a Shard

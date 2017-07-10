@@ -15,8 +15,8 @@ tags = [
 
 Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](https://docs.mongodb.com/manual/tutorial/upgrade-config-servers-to-replica-set).The following procedure applies to 3.4 config servers.
 
-You can restore a [*sharded cluster*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster) either from [snapshots](backup-with-filesystem-snapshots/) or from [*BSON*](https://docs.mongodb.com/manual/reference/glossary/#term-bson)
-[database dumps](backup-sharded-cluster-with-database-dumps/) created by the
+You can restore a [*sharded cluster*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster) either from [snapshots](../backup-with-filesystem-snapshots/) or from [*BSON*](https://docs.mongodb.com/manual/reference/glossary/#term-bson)
+[database dumps](../backup-sharded-cluster-with-database-dumps/) created by the
 [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) tool. This document describes procedures to
 
 * [Restore a Sharded Cluster with Filesystem Snapshots](#restore-sharded-cluster-with-snapshots)
@@ -48,7 +48,7 @@ settings in the configuration file).
 The following procedure outlines the steps to restore a sharded cluster
 from filesystem snapshots. To create filesystem snapshots of sharded
 clusters, see
-[Back Up a Sharded Cluster with File System Snapshots](backup-sharded-cluster-with-filesystem-snapshots/).
+[Back Up a Sharded Cluster with File System Snapshots](../backup-sharded-cluster-with-filesystem-snapshots/).
 
 
 #### Step 1: Shut down the entire cluster.
@@ -73,12 +73,12 @@ On each server, extract the data files to the location where the
 * **Data files for each server in each shard.**
 
   For each shard replica set, restore all the members of the replica
-  set. See [Restore a Replica Set from MongoDB Backups](restore-replica-set-from-backup/).
+  set. See [Restore a Replica Set from MongoDB Backups](../restore-replica-set-from-backup/).
 
 * **Data files for each config server.**
 
   To restore to the [config server replica set (CSRS)](https://docs.mongodb.com/manual/core/sharded-cluster-config-servers/#csrs),
-  see [Restore a Replica Set from MongoDB Backups](restore-replica-set-from-backup/).
+  see [Restore a Replica Set from MongoDB Backups](../restore-replica-set-from-backup/).
 
 See also: [Restore a Snapshot](https://docs.mongodb.com/manual/tutorial/backup-with-filesystem-snapshots/#backup-restore-snapshot).
 
@@ -174,7 +174,7 @@ show collections
 The following procedure outlines the steps to restore a sharded cluster
 from the BSON database dumps created by [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump). For
 information on using [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) to backup sharded clusters,
-see [Back Up a Sharded Cluster with Database Dumps](backup-sharded-cluster-with-database-dumps/).
+see [Back Up a Sharded Cluster with Database Dumps](../backup-sharded-cluster-with-database-dumps/).
 
 Changed in version 3.0: [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore) requires a running MongoDB instances.
 Earlier versions of [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore) did not require a
@@ -197,7 +197,7 @@ For each shard, deploy a new replica set:
    2. Use [``rs.add()``](https://docs.mongodb.com/manual/reference/method/rs.add/#rs.add) to add the other members of the replica set.
 
 For detailed instructions on deploying a replica set, see
-[Deploy a Replica Set](deploy-replica-set/).
+[Deploy a Replica Set](../deploy-replica-set/).
 
 
 #### Step 2: Deploy new config servers.
@@ -234,7 +234,7 @@ instances.
 For each shard, use [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore) to restore the data dump
 to the primary's data directory. Include the ``--drop`` option to
 drop the collections before restoring and, because the [backup
-procedure](backup-sharded-cluster-with-database-dumps/)
+procedure](../backup-sharded-cluster-with-database-dumps/)
 included the [``--oplog``](https://docs.mongodb.com/manual/reference/program/mongodump/#cmdoption-oplog) option, include the
 [``--oplogReplay``](https://docs.mongodb.com/manual/reference/program/mongorestore/#cmdoption-oplogreplay) option for [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore).
 

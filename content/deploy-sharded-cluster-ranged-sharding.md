@@ -49,7 +49,7 @@ programs. Windows users should use the [``mongod.exe``](https://docs.mongodb.com
 
 This tutorial does *not* include the required steps for configuring
 [Internal Authentication](https://docs.mongodb.com/manual/core/security-internal-authentication) or [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization).
-See [Deploy Sharded Cluster with Keyfile Access Control](deploy-sharded-cluster-with-keyfile-access-control/) for a
+See [Deploy Sharded Cluster with Keyfile Access Control](../deploy-sharded-cluster-with-keyfile-access-control/) for a
 tutorial on deploying a sharded cluster with a
 [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile).
 

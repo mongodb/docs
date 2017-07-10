@@ -24,7 +24,7 @@ popular OS X package manager [Homebrew](http://brew.sh/).
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-on-os-x/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-os-x/).
 
 
 ### Install MongoDB Community Edition Manually

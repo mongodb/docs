@@ -19,7 +19,7 @@ explains the setup and configuration of a [``mongod.exe``](https://docs.mongodb.
 as an SNMP subagent, as well as initializing and testing of SNMP
 support with MongoDB Enterprise.
 
-See also: [Monitor MongoDB With SNMP on Linux](monitor-with-snmp/) and [Troubleshoot SNMP](https://docs.mongodb.com/manual/tutorial/troubleshoot-snmp) for more information.
+See also: [Monitor MongoDB With SNMP on Linux](../monitor-with-snmp/) and [Troubleshoot SNMP](https://docs.mongodb.com/manual/tutorial/troubleshoot-snmp) for more information.
 
 
 ## Considerations

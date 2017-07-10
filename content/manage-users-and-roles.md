@@ -22,7 +22,7 @@ how to add a new user to MongoDB.
 
 ## Prerequisites
 
-Important: If you have [enabled access control](enable-authentication/) for your deployment, you must authenticate as a user with the required privileges specified in each section. A user administrator with the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role, or [``userAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdmin) role in the specific databases, provides the required privileges to perform the operations listed in this tutorial. See [Enable Auth](enable-authentication/) for details on adding user administrator as the first user.
+Important: If you have [enabled access control](../enable-authentication/) for your deployment, you must authenticate as a user with the required privileges specified in each section. A user administrator with the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role, or [``userAdmin``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdmin) role in the specific databases, provides the required privileges to perform the operations listed in this tutorial. See [Enable Auth](../enable-authentication/) for details on adding user administrator as the first user.
 
 <span id="create-user-defined-role"></span>
 
@@ -86,7 +86,7 @@ Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod
 specified in the [Prerequisites](#define-roles-prereq) section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 
@@ -142,7 +142,7 @@ Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod
 specified in the [Prerequisites](#define-roles-prereq) section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 
@@ -201,7 +201,7 @@ Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod
 the privileges specified in the prerequisite section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 
@@ -317,7 +317,7 @@ Connect to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mo
 specified in the [Prerequisites](#change-password-prereq) section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 
@@ -340,7 +340,7 @@ db.changeUserPassword("reporting", "SOh3TbYhxuLiW8ypJPxmt1oOfL")
 
 ```
 
-See also: [Change Your Password and Custom Data](change-own-password-and-custom-data/)
+See also: [Change Your Password and Custom Data](../change-own-password-and-custom-data/)
 
 
 ## View a User's Roles
@@ -364,7 +364,7 @@ Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod
 the privileges specified in the prerequisite section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 
@@ -422,7 +422,7 @@ Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod
 the privileges specified in the prerequisite section.
 
 The following procedure uses the ``myUserAdmin`` created in
-[Enable Auth](enable-authentication/).
+[Enable Auth](../enable-authentication/).
 
 ```javascript
 

@@ -29,7 +29,7 @@ sure you have sufficient drive space available for the
 
 You must be using MongoDB version 3.0 or greater in order to use the
 WiredTiger storage engine. If upgrading from an earlier version of
-MongoDB, see the guides on [Upgrading to MongoDB 3.0](3.0-upgrade/) or [Upgrading to MongoDB 3.2](3.2-upgrade/) before proceeding with changing your
+MongoDB, see the guides on [Upgrading to MongoDB 3.0](../3.0-upgrade/) or [Upgrading to MongoDB 3.2](../3.2-upgrade/) before proceeding with changing your
 storage engine.
 
 

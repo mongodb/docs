@@ -22,7 +22,7 @@ components of a [*sharded cluster*](https://docs.mongodb.com/manual/reference/gl
 snapshots to capture a copy of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance. An
 alternate procedure uses [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) to create binary
 database dumps when file-system snapshots are not available. See
-[Back Up a Sharded Cluster with Database Dumps](backup-sharded-cluster-with-database-dumps/) for the
+[Back Up a Sharded Cluster with Database Dumps](../backup-sharded-cluster-with-database-dumps/) for the
 alternate procedure.
 
 Important: To capture a point-in-time backup from a sharded cluster you **must** stop *all* writes to the cluster. On a running production system, you can only capture an *approximation* of point-in-time snapshot.
@@ -221,7 +221,7 @@ against the locked secondary.
 
 You may back up the shards in parallel. For each shard, create a
 snapshot, using the procedure in
-[Back Up and Restore with Filesystem Snapshots](backup-with-filesystem-snapshots/).
+[Back Up and Restore with Filesystem Snapshots](../backup-with-filesystem-snapshots/).
 
 
 ### Step 5: Unlock all locked replica set members.

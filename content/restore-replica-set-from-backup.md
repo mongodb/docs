@@ -27,7 +27,7 @@ using data created with [``mongodump``](https://docs.mongodb.com/manual/referenc
 
 ### Step 1: Obtain backup MongoDB Database files.
 
-The backup files may come from a [file system snapshot](backup-with-filesystem-snapshots/). The [MongoDB Cloud Manager](https://www.mongodb.com/cloud/cloud-manager/?jmp=docs)
+The backup files may come from a [file system snapshot](../backup-with-filesystem-snapshots/). The [MongoDB Cloud Manager](https://www.mongodb.com/cloud/cloud-manager/?jmp=docs)
 produces MongoDB database files for [stored snapshots](https://docs.cloudmanager.mongodb.com/tutorial/restore-from-snapshot/) and [point in time
 snapshots](https://docs.cloudmanager.mongodb.com/tutorial/restore-from-point-in-time-snapshot/).
 For [Ops Manager, an on-premise solution available in
@@ -122,7 +122,7 @@ Copy the [*primary's*](https://docs.mongodb.com/manual/reference/glossary/#term-
 
 In a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell connected to the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary), add the
 [*secondaries*](https://docs.mongodb.com/manual/reference/glossary/#term-secondary) to the replica set using
-[``rs.add()``](https://docs.mongodb.com/manual/reference/method/rs.add/#rs.add). See [Deploy a Replica Set](deploy-replica-set/) for more
+[``rs.add()``](https://docs.mongodb.com/manual/reference/method/rs.add/#rs.add). See [Deploy a Replica Set](../deploy-replica-set/) for more
 information about deploying a replica set.
 
 

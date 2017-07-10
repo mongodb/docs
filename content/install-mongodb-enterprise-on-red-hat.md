@@ -33,7 +33,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-enterprise-on-red-hat/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-red-hat/).
 
 Use the provided distribution packages as described in this page if possible.
 These packages will automatically install all of MongoDB's dependencies, and are
@@ -86,7 +86,7 @@ sudo yum install -y mongodb-enterprise
 
 While you should use the ``.rpm`` packages as previously
 described, you may also manually install MongoDB using the tarballs. See
-[Install MongoDB Enterprise From Tarball](install-mongodb-enterprise-on-linux/) for details.
+[Install MongoDB Enterprise From Tarball](../install-mongodb-enterprise-on-linux/) for details.
 
 
 ## Run MongoDB Enterprise

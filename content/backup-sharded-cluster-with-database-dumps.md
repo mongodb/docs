@@ -22,7 +22,7 @@ components of a [*sharded cluster*](https://docs.mongodb.com/manual/reference/gl
 uses [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) to create dumps of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 instances.
 
-You may alternatively use [file system snapshots](backup-sharded-cluster-with-filesystem-snapshots/) to capture
+You may alternatively use [file system snapshots](../backup-sharded-cluster-with-filesystem-snapshots/) to capture
 the backup data. File system snapshots may be more efficient in some
 situations if your system configuration supports them.
 

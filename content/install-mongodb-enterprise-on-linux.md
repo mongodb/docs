@@ -20,7 +20,7 @@ behavior.
 
 ## Install MongoDB
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-enterprise-on-linux/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-linux/).
 
 
 ### Step 1: Install any missing dependencies.

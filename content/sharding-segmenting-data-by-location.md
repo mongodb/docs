@@ -510,4 +510,4 @@ See also: [Zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-shard
 
   [Sharded Cluster Balancer](https://docs.mongodb.com/manual/core/sharding-balancer-administration/#sharding-balancing)
 
-  [Deploy a Sharded Cluster](deploy-shard-cluster/)
+  [Deploy a Sharded Cluster](../deploy-shard-cluster/)

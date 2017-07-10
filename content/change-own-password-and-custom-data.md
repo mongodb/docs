@@ -44,7 +44,7 @@ that grant [``changeOwnPassword``](https://docs.mongodb.com/manual/reference/pri
 Connect to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) with privileges
 to manage users and roles, such as a user with
 [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role. The following procedure uses the
-``myUserAdmin`` created in [Enable Auth](enable-authentication/).
+``myUserAdmin`` created in [Enable Auth](../enable-authentication/).
 
 ```javascript
 

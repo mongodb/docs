@@ -25,7 +25,7 @@ enforcing authentication.
 
 New in version 3.4: MongoDB 3.2 and earlier do not support a no-downtime upgrade to enforce
 authentication. See
-[Enforce Keyfile Access Control in a Replica Set](enforce-keyfile-access-control-in-existing-replica-set/) for
+[Enforce Keyfile Access Control in a Replica Set](../enforce-keyfile-access-control-in-existing-replica-set/) for
 enforcing authentication in an existing MongoDB 3.2 replica set.
 
 This tutorial uses the [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) internal

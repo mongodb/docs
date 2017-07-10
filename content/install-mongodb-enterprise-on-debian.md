@@ -28,7 +28,7 @@ repository. This repository contains the following packages:
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](install-mongodb-enterprise-on-debian/).
+Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -120,7 +120,7 @@ your MongoDB version.
 
 While you should use the ``.deb`` packages as previously
 described, you may also manually install MongoDB using the tarballs. See
-[Install MongoDB Enterprise From Tarball](install-mongodb-enterprise-on-linux/) for details.
+[Install MongoDB Enterprise From Tarball](../install-mongodb-enterprise-on-linux/) for details.
 
 
 ## Run MongoDB Enterprise
