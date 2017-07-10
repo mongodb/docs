@@ -4,7 +4,9 @@ Backup Agent ``5.5.0.512``
 *Released 2017-06-15*
 
 - Use HTTP basic auth to authenticate HTTPS requests between the Backup Agent
-  and cloud.mongodb.com
+  and cloud.mongodb.com.
+
+- Performance enhancement: Use ``bson.Raw`` for initial sync.
 
 Backup Agent ``5.4.0.493``
 --------------------------
