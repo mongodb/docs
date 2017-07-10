@@ -64,6 +64,9 @@
          volume for data at rest inside the volume and all data moving between
          the volume and the instance.
          
+         As of July 11th, 2017, new |service| clusters are encrypted by
+         default.
+         
        For more information on the default resources and available
        configuration options for each cloud service provider, see:
        
