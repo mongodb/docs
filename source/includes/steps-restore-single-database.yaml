@@ -1,24 +1,27 @@
-title: "Restore the snapshot data files to the server."
+title: "Restore the snapshot data files to the host."
 stepnum: 1
 ref: copy
 content: |
   Extract the snapshot archive to a temporary location where a temporary
   :program:`mongod` process will access the archive contents. Use a
   different data directory than any other database running on the
-  server.
+  host.
 
   For example:
 
   .. code-block:: sh
 
-     tar -xvf <backupRestoreName>.tar.gz
-     mv <backupRestoreName> <temp-database-path>
+     tar -xvf {backupRestoreName}.tar.gz
+     mv {backupRestoreName} {temp-database-path}
 
 ---
-title: "Start a new, temporary MongoDB process on a new port using the extracted backup snapshot as the :setting:`dbpath`."
-stepnum: 2
+title: "Start a new, temporary MongoDB process."
 ref: start-with-new-path
 content: | 
+
+  This temporary process must be on a new port using the extracted backup
+  snapshot as the :setting:`dbpath`.
+
   Ensure the user executing the :program:`mongod` can read, write and
   execute code in the directory specified with :setting:`dbpath`.
 
@@ -26,11 +29,42 @@ content: |
 
   .. code-block:: sh
 
-     mongod --port 27018 --dbpath <temp-database-path> --logpath <temp-database-path>/mongodb.log --fork
+     mongod --port 27018 --dbpath {temp-database-path} --logpath {temp-database-path}/mongodb.log --fork
+
+---
+title: "Run the Point-in-Time Restore Tool (Point-in-Time Restore Only)."
+stepnum: 2
+ref: pit-binary
+content: | 
+
+  a. Download the PIT Restore Tool to your host.
+
+     .. note::
+
+        If you closed the restore panel, click :guilabel:`Backup`, then
+        :guilabel:`More` and then :guilabel:`Download PIT Restore Tool`.
+
+  b. Run the PIT Restore Tool on your host.
+
+     .. only:: onprem
+
+        .. class:: copyable-code
+        .. code-block:: sh
+
+          ./mongodb-mms-pit-restore -https -host {targetHost} -port {targetPort} -opStart {opLogStartTimeStamp} -opEnd {opLogEndTimeStamp} -logFile pitLog.log -oplogSourceAddr {opsManagerHost}:{port} -apiKey {apiKey}
+
+     .. only:: cloud
+
+        .. class:: copyable-code
+        .. code-block:: sh
+
+          ./mongodb-mms-pit-restore -https -host {targetHost} -port {targetPort} -opStart {opLogStartTimeStamp} -opEnd {opLogEndTimeStamp} -logFile pitLog.log -oplogSourceAddr api-backup-dev.mongodb.com -apiKey {apiKey}
+
+  .. important::
+     Skip to the last step in this procedure.
 
 ---
 title: Use the ``mongodump`` command to export a single database or collection from the temporary running ``mongod`` process.
-stepnum: 3
 ref: dump-database
 content: |
 
@@ -44,31 +78,30 @@ content: |
 
   .. code-block:: sh
 
-     mongodump --port 27018 --db <single-database> --out <new-database-path>
+     mongodump --port 27018 --db {single-database} --out {new-database-path}
 
   It also possible to export only a single collection:
 
   .. code-block:: sh
 
-     mongodump --port 27018 --db <single-database> --collection <collection-name> --out <new-database-path>
+     mongodump --port 27018 --db {single-database} --collection {collection-name} --out {new-database-path}
 
 ---
 title: "Use the ``mongorestore`` command to import the single database or collection."
-stepnum: 4
 ref: import-database
 content: |
   Restore the single database to the desired instance using this :program:`mongorestore` command:
 
   .. code-block:: sh
 
-     mongorestore --port 27017 --db <single-database> <temp-database-path> --drop
+     mongorestore --port 27017 --db {single-database} {temp-database-path} --drop
 
   If you are restoring a single collection, be sure to designate the
   collection:
 
   .. code-block:: sh
 
-     mongorestore --port 27017 --db <single-database> --collection <collection-name> <temp-database-path> --drop
+     mongorestore --port 27017 --db {single-database} --collection {collection-name} {temp-database-path} --drop
 
   Any existing databases matching the name given for the :option:`--db`
   option should be dropped using the :option:`--drop` option. If you
@@ -78,7 +111,6 @@ content: |
 
 ---
 title: "Shutdown the temporary MongoDB instance and remove the temporary database."
-stepnum: 5
 ref: clean-temp-database
 content: |
 
@@ -86,7 +118,7 @@ content: |
 
      .. code-block:: sh
 
-        mongo <port>
+        mongo {port}
 
   b. Drop the database and shutdown the process.
 
@@ -100,5 +132,5 @@ content: |
 
      .. code-block:: sh
 
-        rm -rf <temp-database-path>
+        rm -rf {temp-database-path}
 ...
