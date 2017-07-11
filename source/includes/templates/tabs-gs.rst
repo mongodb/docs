@@ -16,17 +16,17 @@
    .. raw:: html
 
       <div class="tabs">
-        <ul class="nav nav-tabs nav-justified">
-          {{ for tab in tabs }}
+        <ul tab-strip tab-strip--singleton" role="tablist">
+          {{ for tab in tabs getLanguageNames}}
           {{ # Only render the tab here if i < 5 }}
           {{ if i lessThan(5) }}
-          <li{{ if i zero }} class="active"{{ end }}><a href="#{{ tab.id }}">{{ tab.name }}</a></li>
+          <li class="tab-strip__element" data-tabid="{{ tab.id }}" role="tab" aria-selected="{{ if i zero }}true{{ else }}false{{ end }}">{{ tab.name }}</li>
           {{ end }}
           {{ end }}
         </ul>
         <div class="tab-content">
           {{ for tab in tabs }}
-          <div class="{{ tab.id }}">
+          <div class="tabpanel-{{ tab.id }}">
 
    {{ tab.content convertSections }}
 
@@ -39,25 +39,25 @@
 
 
 .. register-template:: h1
-   
+
    .. raw:: html
-   
+
       <h1>{{ title }}</h1>
-      
+
 .. register-template:: h2
-   
+
    .. raw:: html
-   
+
       <h2>{{ title }}</h2>
 
 .. register-template:: h3
-   
+
    .. raw:: html
-   
+
       <h3>{{ title }}</h3>
 
 .. register-template:: h4
-   
+
    .. raw:: html
-   
+
       <h4>{{ title }}</h4>
