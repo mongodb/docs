@@ -29,3 +29,8 @@ The ``ssl`` object is optional and enables SSL for encrypting connections.
    * - ``ssl.CAFilePath``
      - string
      - The path to the certificate used to authenticate through SSL.
+       
+   * - ``ssl.clientCertificateMode``
+     - string
+     - Specifies whether connections to |mms| require an SSL certificate.
+       Valid values are ``OPTIONAL`` and ``REQUIRED``.
