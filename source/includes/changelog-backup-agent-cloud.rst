@@ -4,7 +4,7 @@ Backup Agent ``5.6.0.61``
 *Released 2017-07-11*
 
 - During initial sync, add verification that shard name matches
-  expected shard name.
+  the expected shard name.
 
 Backup Agent ``5.5.0.512``
 --------------------------
