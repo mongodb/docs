@@ -16,30 +16,30 @@
    .. raw:: html
 
       <div class="tabs">
-        <ul class="nav nav-tabs nav-justified">
+        <ul class="tab-strip tab-strip--singleton" role="tablist">
           {{ for tab in tabs sortLanguages }}
           {{ # Only render the tab here if i < 5 }}
           {{ if i lessThan(5) }}
-          <li{{ if i zero }} class="active"{{ end }}><a href="#{{ tab.id }}">{{ tab.name }}</a></li>
+          <li class="tab-strip__element" data-tabid="{{ tab.id }}" role="tab" aria-selected="{{ if i zero }}true{{ else }}false{{ end }}">{{ tab.name }}</li>
           {{ end }}
           {{ end }}
           {{ if tabs numberOfLanguages greaterThan(5) }}
-          <li class="dropdown">
+          <li class="tab-strip__element dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown">Other <span class="caret"></span></a>
-            <ul id="tab-dropdown" class="dropdown-menu">
+            <ul class="dropdown-menu tab-strip__dropdown" role="menu">
               {{ for tab in tabs sortLanguages }}
               {{ # Only render the tab here if i >= 5 }}
               {{ if i greaterThanOrEqual(5) }}
-              <li><a href="#{{ tab.id }}">{{ tab.name }}</a></li>
+              <li data-tabid="{{ tab.id }}" aria-selected="{{ if i zero }}true{{ else }}false{{ end }}">{{ tab.name }}</li>
               {{ end }}
               {{ end }}
             </ul>
           </li>
           {{ end }}
         </ul>
-        <div class="tab-content">
+        <div class="tabs__content" role="tabpanel">
           {{ for tab in tabs sortLanguages}}
-          <div class="{{ tab.id }}">
+          <div class="tabpanel-{{ tab.id }}">
 
    {{ tab.content convertSections }}
 
@@ -52,25 +52,25 @@
 
 
 .. register-template:: h1
-   
+
    .. raw:: html
-   
+
       <h1>{{ title }}</h1>
-      
+
 .. register-template:: h2
-   
+
    .. raw:: html
-   
+
       <h2>{{ title }}</h2>
 
 .. register-template:: h3
-   
+
    .. raw:: html
-   
+
       <h3>{{ title }}</h3>
 
 .. register-template:: h4
-   
+
    .. raw:: html
-   
+
       <h4>{{ title }}</h4>
