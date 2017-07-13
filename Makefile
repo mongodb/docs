@@ -42,7 +42,7 @@ fake-deploy:
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
 
 # Deploys the DIR (dirhtml) artifacts generated from "publish" to the production bucket.
-deploy:
+deploy: check-redirects
 	@echo "Doing a dry-run"
 	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 
@@ -51,3 +51,8 @@ deploy:
 	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose   --redirects build/public/.htaccess  ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
+
+#This workaround is because the redirects for symlink version does not prefix with ruby-driver.
+check-redirects:
+	perl -pi -e  's/301 \/v/301 \/spark-connector\/v/g' build/public/.htaccess
+	perl -pi -e  's/301 \/current/301 \/spark-connector\/current/g' build/public/.htaccess
