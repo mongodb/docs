@@ -22644,7 +22644,7 @@
 	              { className: 'menu__item menu__item--secondary' },
 	              _react2.default.createElement(
 	                'a',
-	                { href: '#' },
+	                { href: 'https://www.mongodb.com/contact?jmp=docs' },
 	                'Contact Us'
 	              )
 	            )

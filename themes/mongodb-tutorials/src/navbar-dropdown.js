@@ -118,7 +118,7 @@ class NavbarDropdown extends React.Component {
               <a href="https://www.mongodb.com/download-center?jmp=docs">Download MongoDB</a>
             </li>
             <li className="menu__item menu__item--secondary">
-              <a href="#">Contact Us</a>
+              <a href="https://www.mongodb.com/contact?jmp=docs">Contact Us</a>
             </li>
           </Menu>
         </div>
