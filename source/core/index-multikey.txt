@@ -13,16 +13,16 @@ Multikey Indexes
    :backlinks: none
    :depth: 1
    :class: singlecol
-
+##Introduction
 To index a field that holds an array value, MongoDB creates an index
-key for each element in the array. These *multikey* indexes support
+key for each element in the array. These *multikey* indexes can support
 efficient queries against array fields. Multikey indexes can be
 constructed over arrays that hold both scalar values (e.g. strings,
 numbers) *and* nested documents.
 
 .. include:: /images/index-multikey.rst
 
-Create Multikey Index
+**Create Multikey Index**
 ---------------------
 
 To create a multikey index, use the
@@ -35,24 +35,24 @@ To create a multikey index, use the
 MongoDB automatically creates a multikey index if any indexed field is
 an array; you do not need to explicitly specify the multikey type.
 
-Index Bounds
+**Index Bounds**
 ------------
 
-If an index is multikey, then computation of the index bounds follows
+If an index is a multikey, then the computation of the index bounds follows
 special rules. For details on multikey index bounds, see
 :doc:`/core/multikey-index-bounds`.
 
-Limitations
------------
+**Limitations**
+--------------
 
-Compound Multikey Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~
+##Compound Multikey Indexes
+
 
 For a :ref:`compound <index-type-compound>` multikey index, each
 indexed document can have *at most* one indexed field whose value is an
 array. As such, you cannot create a compound multikey index if more than one
-to-be-indexed field of a document is an array. Or, if a compound
-multikey index already exists, you cannot insert a document that would
+to-be-indexed field of a document is an array. If a compound
+multikey index already exists however, you cannot insert a document that would
 violate this restriction.
 
 For example, consider a collection that contains the following document:
@@ -73,13 +73,13 @@ But consider a collection that contains the following documents:
 
 A compound multikey index ``{ a: 1, b: 1 }`` is permissible since for
 each document, only one field indexed by the compound multikey index is
-an array; i.e. no document contains array values for both ``a`` and
+an array. For example, when no document contains array values for both ``a`` and
 ``b`` fields. After creating the compound multikey index, if you
 attempt to insert a document where both ``a`` and ``b`` fields are
 arrays, MongoDB will fail the insert.
 
-Shard Keys
-~~~~~~~~~~
+##Shard Keys
+
 
 You **cannot** specify a multikey index as the shard key index.
 
@@ -91,18 +91,13 @@ You **cannot** specify a multikey index as the shard key index.
    keys (i.e. keys that are not part of the shard key) indexes an
    array. Compound multikey indexes can have an impact on performance.
 
-Hashed Indexes
-~~~~~~~~~~~~~~
+##Hashed Indexes and Covered Queries 
 
-:doc:`Hashed </core/index-hashed>` indexes **cannot** be multikey.
+:doc:`Hashed </core/index-hashed>` indexes and include:: /includes/fact-multikey-index-covered-query.rst **cannot** be apart of multikey indexes since they are unsupportable when apart of the index. 
 
-Covered Queries
-~~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-multikey-index-covered-query.rst
+##Query on the Array Field as a Whole
 
-Query on the Array Field as a Whole
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When a query filter specifies an :ref:`exact match for an array as a
 whole <array-match-exact>`, MongoDB can use the multikey index to look
@@ -123,7 +118,7 @@ following documents:
    { _id: 8, type: "food", item: "ddd", ratings: [ 9, 5 ] }
    { _id: 9, type: "food", item: "eee", ratings: [ 5, 9, 5 ] }
 
-The collection has a multikey index on the ``ratings`` field:
+The collection has a multikey index on the ``ratings`` field as in the following example:
 
 .. code-block:: javascript
 
@@ -141,11 +136,11 @@ any position in the ``ratings`` array. Then, MongoDB retrieves these
 documents and filters for documents whose ``ratings`` array equals the
 query array ``[ 5, 9 ]``.
 
-Examples
+**Examples**
 --------
 
-Index Basic Arrays
-~~~~~~~~~~~~~~~~~~
+##Index Basic Arrays
+
 
 Consider a ``survey`` collection with the following document:
 
@@ -162,15 +157,10 @@ Create an index on the field ``ratings``:
 Since the ``ratings`` field contains an array, the index on ``ratings``
 is multikey. The multikey index contains the following three index
 keys, each pointing to the same document:
+``2``, ``5``, and ``9``.
 
-- ``2``,
+##Index Arrays with Embedded Documents
 
-- ``5``, and
-
-- ``9``.
-
-Index Arrays with Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can create multikey indexes on array fields that contain nested
 objects.
@@ -227,11 +217,6 @@ index prefix ``"stock.size"``, as in the following examples:
    db.inventory.find( { "stock.size": "M" } )
    db.inventory.find( { "stock.size": "S", "stock.quantity": { $gt: 20 } } )
 
-For details on how MongoDB can combine multikey index bounds, see
-:doc:`/core/multikey-index-bounds`. For more information on behavior of
-compound indexes and prefixes, see :ref:`compound indexes and prefixes
-<compound-index-prefix>`.
-
 The compound multikey index can also support sort operations, such as
 the following examples:
 
@@ -240,7 +225,16 @@ the following examples:
    db.inventory.find( ).sort( { "stock.size": 1, "stock.quantity": 1 } )
    db.inventory.find( { "stock.size": "M" } ).sort( { "stock.quantity": 1 } )
 
-For more information on behavior of compound indexes and sort
+##Further Resources 
+
+For details on how MongoDB can combine multikey index bounds, see
+:doc:`/core/multikey-index-bounds`. 
+
+For more information on behavior of
+compound indexes and prefixes, see :ref:`compound indexes and prefixes
+<compound-index-prefix>`.
+
+And to look into the behavior of compound indexes and sort
 operations, see :doc:`/tutorial/sort-results-with-indexes`.
 
 .. class:: hidden
