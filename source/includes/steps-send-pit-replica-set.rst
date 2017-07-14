@@ -8,7 +8,7 @@ stepnum: 2
 level: 4
 source:
   file: steps-source-restore-single-database.yaml
-  ref: pit-binary
+  ref: mbru-binary
 ---
 title: "Copy the snapshot to each replica set member to restore."
 stepnum: 3
