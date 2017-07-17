@@ -1,3 +1,3 @@
 .. note::
-   Microsoft Windows computers do not include ``SCP`` and require
-   additional setup outside the scope of this manual.
+   Microsoft Windows does not include :abbr:`SCP (secure copy)`.
+   Installing SCP is outside the scope of this manual.
