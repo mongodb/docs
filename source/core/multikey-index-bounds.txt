@@ -84,6 +84,10 @@ MongoDB does *not* intersect the bounds and uses either ``[ [ 3,
 Infinity ] ]`` or ``[ [ -Infinity, 6 ] ]``. MongoDB makes no guarantee
 as to which of these two bounds it chooses.
 
+For queries that specify predicates on the indexed scalar field,
+MongoDB cannot combine bounds for the scalar field for a compound
+multikey index, even if the query is only on the scalar field.
+
 Compound Bounds for Multikey Index
 ----------------------------------
 
@@ -315,23 +319,24 @@ For example, a collection ``survey3`` contains documents with a field
    {
      _id: 1,
      item: "ABC",
-     ratings: [ { score: { q1: 2, q2: 5 } }, { score: { q1: 8, q2: 4 } } ]
+     ratings: [ { scores: [ { q1: 2, q2: 4 }, { q1: 3, q2: 8 } ], loc: "A" },
+                { scores: [ { q1: 2, q2: 5 } ], loc: "B" } ]
    }
    {
      _id: 2,
      item: "XYZ",
-     ratings: [ { score: { q1: 7, q2: 8 } }, { score: { q1: 9, q2: 5 } } ]
+     ratings: [ { scores: [ { q1: 7 }, { q1: 2, q2: 8 } ], loc: "B" } ]
    }
 
 Create a :ref:`compound index <index-type-compound>` on the
-``ratings.score.q1`` and the ``ratings.score.q2`` fields:
+``ratings.scores.q1`` and the ``ratings.scores.q2`` fields:
 
 .. code-block:: javascript
 
-   db.survey3.createIndex( { "ratings.score.q1": 1, "ratings.score.q2": 1 } )
+   db.survey3.createIndex( { "ratings.scores.q1": 1, "ratings.scores.q2": 1 } )
 
-The fields ``"ratings.score.q1"`` and ``"ratings.score.q2"`` share the
-field path ``"ratings.score"`` and the :query:`$elemMatch` must be on
+The fields ``"ratings.scores.q1"`` and ``"ratings.scores.q2"`` share the
+field path ``"ratings.scores"`` and the :query:`$elemMatch` must be on
 that path.
 
 The following query, however, uses an :query:`$elemMatch` but not on
@@ -339,98 +344,14 @@ the required path:
 
 .. code-block:: javascript
 
-   db.survey3.find( { ratings: { $elemMatch: { 'score.q1': 2, 'score.q2': 8 } } } )
+   db.survey3.find( { ratings: { $elemMatch: { 'scores.q1': 2, 'scores.q2': 8 } } } )
 
 As such, MongoDB **cannot** compound the bounds, and the
 ``"ratings.score.q2"`` field will be unconstrained during the index
 scan. To compound the bounds, the query must use :query:`$elemMatch` on
-the path ``"ratings.score"``:
+the path ``"ratings.scores"``:
 
 .. code-block:: javascript
 
-   db.survey3.find( { 'ratings.score': { $elemMatch: { 'q1': 2, 'q2': 8 } } } )
+   db.survey3.find( { 'ratings.scores': { $elemMatch: { 'q1': 2, 'q2': 8 } } } )
 
-Compound ``$elemMatch`` Clauses
-```````````````````````````````
-
-Consider a query that contains multiple :query:`$elemMatch` clauses on
-different field paths, for instance, ``"a.b": { $elemMatch: ... },
-"a.c": { $elemMatch: ... }``. MongoDB cannot combine the bounds of the
-``"a.b"`` with the bounds of ``"a.c"`` since ``"a.b"`` and ``"a.c"``
-also require :query:`$elemMatch` on the path ``a``.
-
-For example, a collection ``survey4`` contains documents with a field
-``item`` and an array field ``ratings``:
-
-.. code-block:: javascript
-
-   {
-     _id: 1,
-     item: "ABC",
-     ratings: [
-       { score: { q1: 2, q2: 5 }, certainty: { q1: 2, q2: 3 } },
-       { score: { q1: 8, q2: 4 }, certainty: { q1: 10, q2: 10 } }
-     ]
-   }
-   {
-     _id: 2,
-     item: "XYZ",
-     ratings: [
-       { score: { q1: 7, q2: 8 }, certainty: { q1: 5, q2: 5 } },
-       { score: { q1: 9, q2: 5 }, certainty: { q1: 7, q2: 7 } }
-     ]
-   }
-
-Create a :ref:`compound index <index-type-compound>` on the
-``ratings.score.q1`` and the ``ratings.score.q2`` fields:
-
-.. code-block:: javascript
-
-   db.survey4.createIndex( {
-      "ratings.score.q1": 1,
-      "ratings.score.q2": 1,
-      "ratings.certainty.q1": 1,
-      "ratings.certainty.q2": 1
-   } )
-
-Consider the following query with two :query:`$elemMatch` clauses:
-
-.. code-block:: javascript
-
-   db.survey4.find(
-     {
-       "ratings.score": { $elemMatch: { q1: 5, q2: 5 } },
-       "ratings.certainty": { $elemMatch: { q1: 7, q2: 7 } },
-     }
-   )
-
-Taking the predicates separately:
-
-- the bounds for the ``"ratings.score"`` predicate are the compound
-  bounds:
-
-  .. code-block:: javascript
-
-     { "ratings.score.q1" : [ [ 5, 5 ] ], "ratings.score.q2" : [ [ 5, 5 ] ] }
-
-- the bounds for the ``"ratings.certainty"`` predicate are the compound
-  bounds:
-
-  .. code-block:: javascript
-
-     { "ratings.certainty.q1" : [ [ 7, 7 ] ], "ratings.certainty.q2" : [ [ 7, 7 ] ] }
-
-However, MongoDB cannot compound the bounds for ``"ratings.score"`` and
-``"ratings.certainty"`` since :query:`$elemMatch` does not join the
-two. Instead, MongoDB constrains the leading field of the index
-``"ratings.score.q1"`` which can be compounded with the bounds for
-``"ratings.score.q2"``:
-
-.. code-block:: javascript
-
-   {
-     "ratings.score.q1" : [ [ 5, 5 ] ],
-     "ratings.score.q2" : [ [ 5, 5 ] ],
-     "ratings.certainty.q1" : [ [ MinKey, MaxKey ] ],
-     "ratings.certainty.q2" : [ [ MinKey, MaxKey ] ]
-   }
