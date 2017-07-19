@@ -60,8 +60,8 @@ The following example returns information on index creation operations:
    db.currentOp(
        {
          $or: [
-           { op: "query", "query.createIndexes": { $exists: true } },
-           { op: "insert", ns: /\.system\.indexes\b/ }
+           { op: "command", "query.createIndexes": { $exists: true } },
+           { op: "none", ns: /\.system\.indexes\b/ }
          ]
        }
    )
