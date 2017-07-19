@@ -49,9 +49,13 @@ as soon as possible to replace the lost redundancy.
 All Members of a Shard Become Unavailable
 -----------------------------------------
 
-If all members of a replica set shard are unavailable, all data
-held in that shard is unavailable. However, the data on all other shards
-will remain available, and it is possible to read and write data to the
+In a sharded cluster, :program:`mongod` and :program:`mongos` instances
+monitor the replica sets in the sharded cluster (e.g. shard replica
+sets, config server replica set). 
+
+If all members of a replica set shard are unavailable, all data held in
+that shard is unavailable. However, the data on all other shards will
+remain available, and it is possible to read and write data to the
 other shards. However, your application must be able to deal with
 partial results, and you should investigate the cause of the
 interruption and attempt to recover the shard as soon as possible.
@@ -75,10 +79,45 @@ primary, the cluster's metadata becomes *read only*. You can still read
 and write data from the shards, but no :ref:`chunk migration
 <sharding-balancing>` or :doc:`chunk splits
 </tutorial/split-chunks-in-sharded-cluster>` will occur until a primary
-is available. If all config databases become unavailable, the cluster can
-become inoperable.
+is available. 
 
 .. include:: /includes/note-config-server-startup.rst
+
+.. _sharded-clusters-3.2-config-server-avail:
+
+MongoDB 3.2
+~~~~~~~~~~~
+
+In a sharded cluster, :program:`mongod` and :program:`mongos` instances
+monitor the replica sets in the sharded cluster (e.g. shard replica
+sets, config server replica set).
+
+If no member of the config server replica set is reachable by a
+:program:`mongos` instance or a shard member:
+
+For MongoDB 3.2.0-3.2.9,
+   If the number of consecutive unsuccessful attempts exceeds
+   :parameter:`replMonitorMaxFailedChecks` parameter value, the
+   :program:`mongod` or :program:`mongos` instance denotes the
+   replica set as unavailable and the monitoring
+   :program:`mongos` or :program:`mongod` instance becomes unusable
+   until you restart the instance.
+   
+   However, you can avoid having to restart the :program:`mongos` or
+   the shard replica set member :program:`mongod` in this situation by
+   setting :parameter:`replMonitorMaxFailedChecks` to value
+   ``2147483647`` when you start up these instances:
+
+   .. important::
+      The parameter setting is not persisted upon restart.
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, 'replMonitorMaxFailedChecks': 2147483647 } )
+
+For MongoDB 3.2.10 or later 3.2-series,
+   By default, you do not need to restart unless
+   :parameter:`timeOutMonitoringReplicaSets` is set to ``true``.
 
 Cursor Fails Because of Stale Config Data
 -----------------------------------------
