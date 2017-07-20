@@ -10,14 +10,14 @@
 .. If you rename or modify the h1/h2/h3/h4... directives, make sure to change the template
 .. extension appropriately.
 
-.. register-template:: tabs
+.. register-template:: tabs-gs
    :yaml:
 
    .. raw:: html
 
       <div class="tabs">
         <ul class="nav nav-tabs nav-justified">
-          {{ for tab in tabs getLanguageNames}}
+          {{ for tab in tabs }}
           {{ # Only render the tab here if i < 5 }}
           {{ if i lessThan(5) }}
           <li{{ if i zero }} class="active"{{ end }}><a href="#{{ tab.id }}">{{ tab.name }}</a></li>
