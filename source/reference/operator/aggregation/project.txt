@@ -41,23 +41,38 @@ Definition
 
       * - ``<field>: <1 or true>``
 
-        - Specify the inclusion of a field.
+        - Specifies the inclusion of a field.
 
       * - ``_id: <0 or false>``
-        - Specify the suppression of the ``_id`` field.
+        - Specifies the suppression of the ``_id`` field.
+
+          To exclude a field conditionally, use the :variable:`REMOVE`
+          variable instead. For details, see :ref:`remove-var`.
 
       * - ``<field>: <expression>``
-        - Add a new field or reset the value of an existing field.
-      
+
+        - Adds a new field or resets the value of an existing field.
+
+          .. versionchanged:: 3.6
+
+             MongoDB 3.6 adds the variable :variable:`REMOVE`. If the
+             the expression evaluates to ``$$REMOVE``, the field is
+             excluded in the output. For details, see :ref:`remove-var`.
+
       * - ``<field>:<0 or false>``
-        
+
         - .. versionadded:: 3.4 
-        
-          Specify the exclusion of a field. 
-          
+
+          Specifies the exclusion of a field.
+
+          To exclude a field conditionally, use the :variable:`REMOVE`
+          variable instead. For details, see :ref:`remove-var`.
+
           If you specify the exclusion of a field other than ``_id``,
           you **cannot** employ any other :pipeline:`$project`
-          specification forms.
+          specification forms. This restriction does not apply to
+          conditionally exclusion of a field using the :variable:`REMOVE`
+          variable.
 
 Considerations
 --------------
@@ -93,7 +108,20 @@ returned in the output documents.
 If you specify the exclusion of a field other than ``_id``, you cannot
 employ any other :pipeline:`$project` specification forms: i.e. if you
 exclude fields, you cannot also specify the inclusion of fields, reset
-the value of existing fields, or add new fields.
+the value of existing fields, or add new fields. This restriction does
+not apply to conditional exclusion of a field using the
+:variable:`REMOVE` variable.
+
+.. _remove-var:
+
+Exclude Fields Conditionally
+````````````````````````````
+
+.. versionadded:: 3.6
+
+Starting in MongoDB 3.6, you can use the variable :variable:`REMOVE` in
+aggregation expressions to conditionally suppress a field. For an
+example, see :ref:`remove-example`.
 
 Add New Fields or Reset Existing Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -102,22 +130,30 @@ To add a new field or to reset the value of an existing field, specify
 the field name and set its value to some expression. For more
 information on expressions, see :ref:`aggregation-expressions`.
 
+Literal Values
+``````````````
+
 To set a field value directly to a numeric or boolean literal, as
 opposed to setting the field to an expression that resolves to a
 literal, use the :expression:`$literal` operator. Otherwise,
 :pipeline:`$project` treats the numeric or boolean literal as a flag
 for including or excluding the field.
 
+Field Rename
+````````````
+
 By specifying a new field and setting its value to the field path of an
 existing field, you can effectively rename a field.
 
-.. versionchanged:: 3.2
+New Array Fields
+````````````````
 
-   Starting in MongoDB 3.2, :pipeline:`$project` stage supports using
-   the square brackets ``[]`` to directly create new array fields. If
-   array specification includes fields that are non-existent in a
-   document, the operation substitutes ``null`` as the value for that
-   field. For an example, see :ref:`example-project-new-array-fields`.
+Starting in MongoDB 3.2, :pipeline:`$project` stage supports using the
+square brackets ``[]`` to directly create new array fields. If array
+specification includes fields that are non-existent in a document, the
+operation substitutes ``null`` as the value for that field. For an
+example, see :ref:`example-project-new-array-fields`.
+
 
 Embedded Document Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,14 +309,86 @@ Both specifications result in the same output:
 .. code-block:: javascript
 
    {
-   	"_id" : 1,
-   	"title" : "abc123",
-   	"isbn" : "0001122223334",
-   	"author" : {
-   		"last" : "zzz"
-   	},
-   	"copies" : 5,
+      "_id" : 1,
+      "title" : "abc123",
+      "isbn" : "0001122223334",
+      "author" : {
+         "last" : "zzz"
+      },
+      "copies" : 5,
    }
+
+.. _remove-example:
+
+Conditionally Exclude Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+Starting in MongoDB 3.6, you can use the variable :variable:`REMOVE` in
+aggregation expressions to conditionally suppress a field.
+
+Consider a ``books`` collection with the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     title: "abc123",
+     isbn: "0001122223334",
+     author: { last: "zzz", first: "aaa" },
+     copies: 5,
+     lastModified: "2016-07-28"
+   }
+   {
+     "_id" : 2,
+     title: "Baked Goods",
+     isbn: "9999999999999",
+     author: { last: "xyz", first: "abc", middle: "" },
+     copies: 2,
+     lastModified: "2017-07-21"
+   }
+   {
+     "_id" : 3,
+     title: "Ice Cream Cakes",
+     isbn: "8888888888888",
+     author: { last: "xyz", first: "abc", middle: "mmm" },
+     copies: 5,
+     lastModified: "2017-07-22"
+   }
+
+The following :pipeline:`$project` stage uses the :variable:`REMOVE`
+variable to excludes the ``author.middle`` field only if it equals ``""``:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.books.aggregate( [ 
+      {
+         $project: { 
+            title: 1,
+            "author.first": 1,
+            "author.last" : 1,
+            "author.middle": {
+               $cond: {
+                  if: { $eq: [ "", "$author.middle" ] }, 
+                  then: "$$REMOVE",
+                  else: "$author.middle"
+               } 
+            }
+         }
+      }
+   ] )
+
+The aggregation operation results in the following output:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "title" : "abc123", "author" : { "last" : "zzz", "first" : "aaa" } }
+   { "_id" : 2, "title" : "Baked Goods", "author" : { "last" : "xyz", "first" : "abc" } }
+   { "_id" : 3, "title" : "Ice Cream Cakes", "author" : { "last" : "xyz", "first" : "abc", "middle" : "mmm" } }
+
 
 Include Specific Fields from Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
