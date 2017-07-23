@@ -38,10 +38,10 @@ fake-deploy: build/public/${GIT_BRANCH}
 
 deploy:
 	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --all-subdirectories --deploy  --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy  --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the preceding statements to ${PRODUCTION_BUCKET}."
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --all-subdirectories --deploy ${ARGS} --verbose  --redirects build/public/.htaccess
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS} --verbose  --redirects build/public/.htaccess
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
