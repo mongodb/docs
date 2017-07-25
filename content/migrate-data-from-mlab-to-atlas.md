@@ -11,15 +11,15 @@ tags = [
 # Migrate an mlab MongoDB Cluster to Atlas
 
 [MongoDB Atlas](https://cloud.mongodb.com/?jmp=docs) is a cloud service for
-running, monitoring, and maintaining MongODB Deployments, including the
-provisioning of dedicated servers for the MongoDB instances.
+running, monitoring, and maintaining MongoDB Deployments, including the
+provisioning of dedicated servers for MongoDB instances.
 
 This procedure migrates a MongoDB cluster hosted on mLab to an Atlas cluster using
 the Atlas [Live Migration](https://docs.atlas.mongodb.com/import/live-import/) 
 tool.
 
-This procedure requires downtime limited to the amount of time required to
-update your applications to connect to the Atlas cluster.
+This procedure only requires downtime for updating your applications to
+connect to the Atlas cluster?
 
 **Important**: This procedure only applies to Dedicated mLab clusters. The
 Sandbox and Shared mLab environments cannot be migrated via the Live Migration
@@ -35,7 +35,7 @@ for use with this procedure.
 
 <span id="configure-compose-cluster-admin-user"></span>
 
-### Create an administrative user for Migration
+### Create an Administrative User for Migration
 
 To create an administrative user:
 
@@ -47,7 +47,7 @@ To create an administrative user:
 
 <span id="configure-atlas-cluster-whitelist"></span>
 
-### Whitelist the Atlas migration servers
+### Whitelist the Atlas Migration Servers
 
 1. From the cluster view, click ``Networking``.
 2. Click ``Add IP address range rule(s)``. 
@@ -59,7 +59,7 @@ To create an administrative user:
 
 <span id="configure-atlas-cluster"></span>
 
-## Configure the destination Atlas cluster for migration
+## Configure the Destination Atlas Cluster for Migration
 
 Log into your Atlas account and click ``Clusters`` in the left-hand navigation
 panel. Ensure you are in your preferred Atlas group by checking the 
@@ -74,28 +74,27 @@ When selecting a destination cluster, consider the following:
 - The live migration process may not be able to keep up with a source cluster 
   whose write workload is greater than what can be transferred and applied to
   the destination cluster. You may need to scale the destination cluster up to
-  a instance with more processing power, bandwidth or disk IO.
+  an instance with more processing power, bandwidth, or disk IO.
   
 - The destination Atlas cluster must be a replica set. You can [scale the cluster](https://docs.atlas.mongodb.com/scale-cluster/)
   to a sharded cluster after migration. 
 
 - You cannot select an M0 (Free Tier) cluster as the destination for live migration.
 
-**Important**: If possible, ensure the destination cluster is empty. If the
-destination cluster already contains data, ensure that the source and
-destination clusters do not share any namespaces, excluding those on the
-``admin`` and ``local`` database. A namespace is the full path to a collection
-in ``<database>.<collection>`` format. For example, if both the source and
-destination have the ``foo.bar`` namespace, migration will fail.
+- The destination cluster should be empty, excluding data on the ``admin`` and
+  ``local`` databases, to prevent namespace collisions. A namespace is the
+  full path to a collection in ``<database>.<collection>`` format. For
+  example, if both the source and the destination cluster contain data in the
+  ``foo.bar`` namespace, the procedure will fail.
 
-### Configure MongoDB users
+### Configure MongoDB Users
 
 The Atlas Live Migration tool *does not* migrate user and role data. You must
 [configure the necessary MongoDB users](https://docs.atlas.mongodb.com/security-add-mongodb-users/),
 such that your applications have the same level of data and operational access as provided
 on the mLab cluster. 
 
-### Whitelist applications that must connect to the cluster
+### Whitelist Applications That Must Connect to the Cluster
 
 Atlas defaults to blocking all incoming connections not on the IP whitelist.
 The Live Migration tool automatically adds a temporary whitelist entry for the
@@ -109,7 +108,7 @@ For Atlas clusters deployed on Amazon Web Services, you can [configure
 VPC Peering Connections](https://docs.atlas.mongodb.com/security-vpc-peering/) 
 between your Atlas cluster and any AWS VPCs in the same AWS region.
 
-## Migrate a mLab cluster to Atlas
+## Migrate an mLab Cluster to Atlas
 
 **Important**: The Live Migration tool requires a period of downtime where you
 cut over your applications to the Atlas cluster. Atlas provides a 
@@ -127,14 +126,14 @@ Atlas provides a summary of the Live Migration procedure. Once you have
 read through it, click ``I'm Ready To Migrate`` to open the configuration
 dialog.
 
-### Step 2: Enter the source cluster connection information
+### Step 2: Enter the Source Cluster Connection Information
 
 The Live Migration configuration dialog requires the following information 
 from the mLab cluster view:
 
-- Hostname and Port of the primary replica set member in the mLab cluster.
-- Username for administrative user created in an [earlier step](#configure-compose-cluster-admin-user).
-- Password for the administrative user created in an [earlier step](#configure-compose-cluster-admin-user).
+- The ``Hostname`` and ``Port`` of the primary replica set member in the mLab cluster,
+- The ``Username`` for administrative user created in an [earlier step](#configure-compose-cluster-admin-user), and
+- The ``Password`` for the administrative user created in an [earlier step](#configure-compose-cluster-admin-user).
 
 The mLab cluster view displays the hostname and port of the primary replica set member
 as a part of the ``mongo`` shell connection dialog. The following example
@@ -168,11 +167,12 @@ to retrieve the SSL certificate text. In general, you must:
    
 3. Copy the *entire* certificate, including the ``BEGIN CERTIFICATE`` and
    ``END CERTIFICATE`` lines.
-4. In the Atlas Live Migration configuration dialog, 
+4. In the Atlas Live Migration configuration dialog, toggle ``Is SSL Enabled`` to
+   ``Yes`` to display a text box for entering the certificate. 
 5. Paste the *entire* the certificate into the Atlas Live Migration
    configuration dialog.
 
-### Step 3: Validate the Live Migration settings
+### Step 3: Validate the Live Migration Settings
 
 Click ``Validate`` to prompt Atlas to confirm it can successfully connect to the
 mLab cluster. If the connection fails to validate, ensure you have
@@ -182,13 +182,13 @@ entered all information correctly *and* that you have
 If errors persist, open a support ticket in Atlas UI by clicking
 ``Support`` in the left-hand navigation and filling out the requested information.
 
-### Step 4: Begin the Live Migration procedure
+### Step 4: Begin the Live Migration Procedure
 
 Once your connection is validated, click ``Start Migration``. Atlas begins
 the migration procedure and displays a counter in the UI that represents
 the time remaining for the Atlas cluster to catch up to the mLab cluster.
 
-When the timer turns green, the ``Start Cut Over`` button. Atlas displays
+When the timer turns green, click the ``Start Cut Over`` button. Atlas displays
 a walk-through with instructions on how to proceed with the cut over. In general,
 you must:
 
