@@ -95,11 +95,14 @@ placing them on separate volumes reduces I/O contention.
    snapshot-style backups of your data, since the files will be on
    different devices and volumes.
 
+For optimal performance in terms of the storage layer, use disks
+backed by RAID-10. RAID-5 and RAID-6 do not typically provide
+sufficient performance to support a MongoDB deployment.
 
-Using RAID levels such as RAID0, RAID1, or RAID10 can provide
-volume-level redundancy or capacity. Different storage configurations
-will have different cost implications, especially when combined with
-PIOPS EBS volumes.
+Avoid RAID-0 with MongoDB deployments. While RAID-0 provides good write
+performance, it also provides limited availability and can lead to
+reduced performance on read operations, particularly when using
+Amazon’s EBS volumes.
 
 .. _deploy-mongodb-ec2:
 
@@ -151,32 +154,34 @@ After login, update installed packages, add the MongoDB yum repo, and install Mo
 
 .. code-block:: sh
 
-   echo "[mongodb-org-3.2]
+   echo "[mongodb-org-3.4]
    name=MongoDB Repository
-   baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.2/x86_64/
+   baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.4/x86_64/
    gpgcheck=1
    enabled=1
-   gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc" |
-     sudo tee -a /etc/yum.repos.d/mongodb-org-3.2.repo
+   gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc" |
+     sudo tee -a /etc/yum.repos.d/mongodb-org-3.4.repo
 
 .. code-block:: sh
 
    sudo yum -y update && sudo yum install -y mongodb-org-server \
        mongodb-org-shell mongodb-org-tools
 
-Next, create/configure the mount points, mount each volume, set ownership (MongoDB runs under the :setting:`mongod` user/group), and set the :file:`/journal` link:
+Next, create/configure the mount points, mount each volume, set
+ownership (MongoDB runs under the :setting:`mongod` user/group), and
+set the :file:`/journal` link:
 
 .. code-block:: sh
 
    sudo mkdir /data /log /journal
 
-   sudo mkfs.ext4 /dev/xvdf
-   sudo mkfs.ext4 /dev/xvdg
-   sudo mkfs.ext4 /dev/xvdh
+   sudo mkfs.xfs /dev/xvdf
+   sudo mkfs.xfs /dev/xvdg
+   sudo mkfs.xfs /dev/xvdh
 
-   echo '/dev/xvdf /data ext4 defaults,auto,noatime,noexec 0 0
-   /dev/xvdg /journal ext4 defaults,auto,noatime,noexec 0 0
-   /dev/xvdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+   echo '/dev/xvdf /data xfs defaults,auto,noatime,noexec 0 0
+   /dev/xvdg /journal xfs defaults,auto,noatime,noexec 0 0
+   /dev/xvdh /log xfs defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
 
    sudo mount /data
    sudo mount /journal
@@ -186,7 +191,9 @@ Next, create/configure the mount points, mount each volume, set ownership (Mongo
 
    sudo ln -s /journal /data/journal
 
-Now configure the following MongoDB parameters by editing the configuration file :file:`/etc/mongod.conf` so that it contains the following:
+Now configure the following MongoDB parameters by editing the
+configuration file :file:`/etc/mongod.conf` so that it contains the
+following:
 
 .. code-block:: ini
 
@@ -212,23 +219,22 @@ following command:
    * soft nproc 64000
    * hard nproc 64000' | sudo tee /etc/security/limits.d/90-mongodb.conf
 
-Additionally, default read ahead settings on EC2 are not optimized for
-MongoDB. As noted in the read-ahead settings from :manual:`Production
-Notes </administration/production-notes>`, you should adjust the settings
-to read approximately 32 blocks (or 16 KB) of data. The
-following command will set the readahead appropriately (repeat for
-additional volumes):
+Additionally, default read ahead settings on EC2 may not be optimized for
+MongoDB. Refer to the :manual:`Production
+Notes </administration/production-notes>` for the recommended configuration
+for your Linux distribution and selected MongoDB storage engine.
+For example, to set readahead to 0 for use with the WiredTiger storage engine,
 
 .. code-block:: sh
 
-   sudo blockdev --setra 32 /dev/xvdf
+   sudo blockdev --setra 0 /dev/xvdf
 
 To make this change persistent across system boot, issue the following
 command:
 
 .. code-block:: sh
 
-   echo 'ACTION=="add|change", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
+   echo 'ACTION=="add|change", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="0"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
 
 Once again, repeat the above command for all required volumes (note:
 the device we created was named :file:`/dev/xvdf` but the name used by
@@ -269,12 +275,10 @@ Deployment Notes
 Instance Types
 ~~~~~~~~~~~~~~
 
-MongoDB works on most EC2 types including Linux and Windows.  We
-recommend you use a 64 bit instance as this is
-`required for all MongoDB databases of significant size
-<http://blog.mongodb.org/post/137788967/32-bit-limitations>`_.
-Additionally, we find that the larger instances tend to be on the
-freshest ec2 hardware.
+MongoDB works on most 64-bit EC2 types including Linux and Windows.
+Refer to the :manual:`Supported Platforms </installation>` documentation
+to ensure your selected platform is compatible with your version
+of MongoDB.
 
 Running MongoDB
 ```````````````
@@ -306,18 +310,9 @@ start the :program:`mongod` server:
 Operating System
 ````````````````
 
-Occasionally, due to the shared and virtualized nature of EC2, an
-instance can experience intermittent I/O problems and low responsiveness
-compared to other similar instances. Terminating the instance and
-bringing up a new one can in some cases result in better performance.
-
-Some people have reported problems with ubuntu 10.04 on ec2.
-
-Please read
-`Ubuntu issue 614853 <https://bugs.launchpad.net/ubuntu/+source/linux-ec2/+bug/614853>`_
-and
-`Linux Kernel issue 16991 <https://bugzilla.kernel.org/show_bug.cgi?id=16991>`_ for further
-information.
+Refer to the MongoDB on Virtual Environments section of the
+:manual:`Production Notes </administration/production-notes>` for
+configuration recommendations.
 
 Networking
 ~~~~~~~~~~
@@ -325,8 +320,9 @@ Networking
 Port Management
 ```````````````
 
-By default the database will now be listening on port 27017. The web
-administrative UI will be on port 28017.
+By default, the :program:`mongod` listens on port ``27017``. To change
+the default port, use the :setting:`net.port` setting or
+:option:`--port` option.
 
 Keepalive
 `````````
@@ -334,6 +330,15 @@ Keepalive
 Change the default TCP keepalive time to 300 seconds. See our
 :manual:`troubleshooting </faq/diagnostics>` page for details.
 
+Enhanced Networking on Supported Instance Types
+```````````````````````````````````````````````
+
+When available, enable AWS's `Enhanced Networking
+<http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_ 
+for your instance. Not all instance types support Enhanced Networking.
+Refer to the `AWS documentation
+<http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_
+for more information. 
 
 Secure Instances
 ~~~~~~~~~~~~~~~~~~
