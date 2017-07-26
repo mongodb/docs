@@ -1,0 +1,136 @@
+title: "Open the :guilabel:`Connect` Dialog for the Free Tier  Cluster"
+ref: getting-started-connect-dialog
+level: 4
+content: |
+  Go to the :guilabel:`Clusters` view. Click the :guilabel:`Connect`
+  button for the Free Tier cluster you created for this procedure.
+  
+  The :guilabel:`Connect` dialog provides instructions for configuring the
+  :ref:`group whitelist <whitelist>` to allow access to your cluster, as well
+  as providing the :manual:`URI connection string
+  </reference/connection-string>` for connecting to the cluster.
+  
+---
+title: "Configure IP Whitelisting to Grant Access To Your Cluster."
+level: 4
+ref: create-cluster-whitelist
+content: |
+  
+  |service| only allows client connections to the cluster from entries in the
+  :ref:`group's whitelist <whitelist>`.
+  
+  |service| displays any entries already on the group whitelist in the
+  :guilabel:`Connect` dialog under :guilabel:`Check the IP Whitelist`. If you
+  do not see the IP address of your client on the list, you can:
+    
+  * Click :guilabel:`Add Entry` to add a single IP address or a CIDR-notated
+    range of addresses. 
+    
+    For |service| clusters deployed on :ref:`amazon-aws` *and* using :ref:`VPC
+    Peering <vpc-peering>`, you can add a Security Group associated with the
+    peer :abbr:`VPC (Virtual Private Connection)`.
+    
+  * Click :guilabel:`Add Current IP Address` to add your current IP address. 
+  
+  * Click :guilabel:`Allow Access From Anywhere` to allow access from any IP
+    address.
+    
+    .. warning::
+       
+       Using :guilabel:`Allow Access From Anywhere` results in all clusters in
+       the |service| group being publically accessible. Consider the security
+       risks of having public-facing MongoDB clusters before using this option.
+---
+title: "Retrieve the Free Tier Cluster Host String."
+ref: getting-started-import-connection
+level: 4
+content: |
+
+  From the :guilabel:`Connect` dialog:
+  
+  #. Click :guilabel:`Connect Your Application`.
+  #. Copy the :guilabel:`URI Connection String`.
+  #. Paste the URI connection string into a text editor.
+  #. Replace the ``<PASSWORD>`` with the password for the MongoDB user.
+  #. Replace ``<DATABASE>`` with ``guidebook``.
+  #. Copy the updated URI connection string.
+        
+---
+title: "Run ``mongoimport``."
+ref: getting-started-import-mongoimport
+level: 4
+content: |
+
+  :program:`mongoimport <bin.mongoimport>` 3.4.7 adds support for a MongoDB
+  :manual:`URI connection string </reference/connection-string>` via the
+  ``--uri`` option. Go to the `MongoDB Download Center
+  <http://www.mongodb.com/download-center?jmp=docs>`_ to download MongoDB
+  Server 3.4.7 or later. The server package includes :program:`mongoimport
+  <bin.mongoimport>`. For :abbr:`Windows (Microsoft Windows)` and :abbr:`OSX
+  (Apple OSX)` users, you *must* download the MongoDB package with SSL support.
+
+  The following operation imports data from ``primer-dataset.json`` into the
+  ``restaurants`` collection in the ``guidebook`` database. It uses the 
+  ``--uri`` option along with the modified URI connection string from the
+  previous step to connect to the Free Tier cluster.
+  
+  .. class:: copyable-code
+  .. code-block:: shell
+  
+     wget -qO- https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json | 
+       mongoimport --collection "restaurants" \
+       --uri "mongodb://admin:mysecretpassword@mongo1.example.net:27017,mongo2.example.net:27017,mongo3.example.net:27017/guidebook?ssl=true&replicaSet=GettingStarted&authSource=admin" \
+       primer-dataset.json
+  
+  Alternatively, you can enter in the cluster connection details manually.
+  From the :guilabel:`Connect` dialog, click :guilabel:`Connect Your Application`,
+  then :guilabel:`Copy` to copy the URI connection string. 
+  Using the URI connection string, do the following:
+  
+  a. Extract the host string. For example, consider the following URI:
+     
+     .. code-block:: shell
+     
+        mongodb://admin:<PASSWORD>@mongo1.example.net:27017,mongo2.example.net:27017,mongo3.example.net:27017/<DATABASE>?ssl=true&replicaSet=GettingStarted&authSource=admin
+     
+     The Host String consists of the comma separated list between the 
+     ``@`` symbol and the ``/`` symbol:
+       
+     .. code-block:: shell
+     
+        mongo1.example.net:27017,mongo2.example.net:27017,mongo3.example.net:27017
+        
+  #. Extract the replica set name. In the URI connection string, the replica 
+     set name is associated to the ``replicaSet`` query parameter:
+       
+     .. code-block:: shell
+     
+        replicaSet=GettingStarted
+
+  #. Assemble the cluster host string in 
+     ``replicaSetName/<host1>,<host2>,<host3>`` format. For example,
+     given the information retrieved in the previous steps, the Free Tier
+     cluster host string would look as follows:
+       
+     .. code-block:: shell
+     
+        GettingStarted/mongo1.example.net:27017,mongo2.example.net:27017,mongo3.example.net:27017
+
+  The following operation imports data from ``primer-dataset.json`` into the
+  ``restaurants`` collection in the ``guidebook`` database. Make the following
+  changes:
+    
+  - Replace the ``<username>`` and ``<password>`` with the administrative
+    username and password you chose during cluster creation. 
+    
+  - Replace the ``<clusterHostString>`` with the cluster host string assembled
+    in the previous step.
+
+  .. class:: copyable-code
+  .. code-block:: shell
+  
+     wget -qO- https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json | \
+       mongoimport --host <clusterHostString> \
+       --ssl -u <username> -p '<password>' --authenticationDatabase admin  \
+       --db "guidebook" --collection "restaurants"
+...

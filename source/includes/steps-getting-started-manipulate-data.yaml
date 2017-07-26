@@ -1,0 +1,244 @@
+title: "Connect to your Free Tier Cluster."
+ref: manipulate-connect
+level: 4
+content: |
+
+  a. From the :guilabel:`Clusters` view, click :guilabel:`Connect` for the
+     Free Tier cluster.
+  #. For :guilabel:`Connect with the Mongo Shell`, click
+     :guilabel:`Select Operating System` and select your operating system.
+  #. Click :guilabel:`Copy` to copy the full shell command.
+  #. Paste the shell command into your operating system shell or terminal.
+     For example:
+  
+     .. code-block:: shell
+     
+        mongo "mongodb://mongo1.example.net:27017,mongo2.example.net:27017,mongo3.example.net:27017/test?replicaSet=AtlasReplicaSet" --authenticationDatabase admin --ssl --username adminUsername --password <PASSWORD>
+  
+  #. Replace the ``<PASSWORD>`` placeholder with the password for your 
+     administrative user.
+  #. Execute the shell command to connect to your cluster. The 
+     :program:`mongo <bin.mongo>` shell should run and display 
+     ``GettingStarted-PRIMARY>`` in the :program:`mongo <bin.mongo>` shell 
+     prompt - this indicates a successfull connection.
+  #. Enter ``use guidebook`` into the prompt and execute to change the
+     active database to ``guidebook``.
+  #. Enter ``show collections`` into the prompt and execute to display the 
+     collections in the database. You should see the ``restaurants`` 
+     collection.
+     
+  If the connection fails, double check that:
+  
+  - The ``<PASSWORD>`` entered is correct, 
+  - The machine you are connecting from is 
+    :ref:`whitelisted <security-ip-whitelist>`, and
+  - The ``mongo`` shell version is ``3.4.7`` or greater *and* supports SSL. 
+    You can check by running ``mongo --version``. 
+
+---
+title: "Query the ``guidebook.restaurants`` collection."
+ref: manipulate-find
+level: 4
+content: |
+
+  From the ``mongo`` shell, use :manual:`db.collection.find()
+  </reference/method/db.collection.find>` to query for documents.
+    
+  .. class:: copyable-code
+  .. code-block:: shell
+  
+     db.restaurants.find()
+     
+  This operation returns output similar to the following:
+    
+  .. code-block:: shell
+  
+     {
+       "_id" : ObjectId("5977a0cb705246a689e91a6d"),
+       "address" : {
+         "building" : "469",
+         "coord" : [
+           -73.961704,
+           40.662942
+         ],
+         "street" : "Flatbush Avenue",
+         "zipcode" : "11225"
+       },
+       "borough" : "Brooklyn",
+       "cuisine" : "Hamburgers",
+       "grades" : [
+         {
+           "date" : ISODate("2014-12-30T00:00:00Z"),
+           "grade" : "A",
+           "score" : 8
+         },
+         {
+           "date" : ISODate("2014-07-01T00:00:00Z"),
+           "grade" : "B",
+           "score" : 23
+         },
+         {
+           "date" : ISODate("2013-04-30T00:00:00Z"),
+           "grade" : "A",
+           "score" : 12
+         },
+         {
+           "date" : ISODate("2012-05-08T00:00:00Z"),
+           "grade" : "A",
+           "score" : 12
+         }
+       ],
+       "name" : "Wendy'S",
+       "restaurant_id" : "30112340"
+     }
+     
+  The following operation queries for all documents in the borough of
+  ``Manhattan``, using the :manual:`$slice
+  </reference/operator/projection/slice>` operator to project only the first
+  element in the ``grades`` array.
+  
+  .. class:: copyable-code
+  .. code-block:: shell
+  
+     db.restaurants.find( { "borough" : "Manhattan" } , { "grades" : { $slice : 1 } } )
+     
+  This operation returns output similar to the following:   
+  
+  .. code-block:: shell
+  
+     {
+       "_id" : ObjectId("5977a0cb705246a689e91aa8"),
+       "address" : {
+         "building" : "837",
+         "coord" : [
+           -73.9712,
+           40.751703
+         ],
+         "street" : "2 Avenue",
+         "zipcode" : "10017"
+       },
+       "borough" : "Manhattan",
+       "cuisine" : "American",
+       "grades" : [
+         {
+           "date" : ISODate("2014-07-22T00:00:00Z"),
+           "grade" : "B",
+           "score" : 19
+         }
+       ],
+       "name" : "Palm Restaurant",
+       "restaurant_id" : "40364355"
+     }
+     
+  For detailed documentation on CRUD operations using the
+  MongoDB shell, see the 
+  `Getting Started Guide <https://docs.mongodb.com/getting-started/shell/>`_.
+---
+title: "Use Aggregation to Count the Number of Letter Grades per Borough."
+ref: manipulate-aggregate
+level: 4
+content: |
+
+  From the ``mongo`` shell, use :manual:`db.collection.aggregate()
+  </reference/method/db.collection.aggregate>` to perform aggregation
+  operations.
+  
+  .. class:: copyable-code
+  .. code-block:: javascript
+  
+     db.restaurants.aggregate(
+        [ 
+           { $unwind : "$grades" }, 
+           { $group : {   
+              _id : 
+                 { "borough" : "$borough" , "grade" : "$grades.grade" }, 
+              count : { $sum : 1} } 
+              },
+           { $group : {
+              _id : "$_id.borough", 
+              "grades" : { 
+                 $push : { 
+                    grade : "$_id.grade", count : "$count"
+                    }
+                 }
+              }
+           } 
+        ] 
+     )
+     
+  This aggregation operation works as follows:
+    
+  a. :manual:`$unwind </reference/aggregation/unwind>` deconstructs the
+     ``grades`` array from each input document to output one document for each
+     element in the array. The output document structure of this stage is 
+     similar to the following:
+       
+     .. code-block:: javascript
+     
+        {
+          "_id" : ObjectId("5977a0cb705246a689e91aa8"),
+          ...,
+          "borough" : "Manhattan",
+          "grades" : {
+            "date" : ISODate("2014-07-22T00:00:00Z"),
+            "grade" : "B",
+            "score" : 19
+          }
+        }
+    
+  #. :manual:`$group </reference/aggregation/group>` groups input documents by 
+     the ``borough`` and ``grade`` fields, using the :manual:`$sum
+     </reference/operator/aggregation/sum>` accumulator to increment the
+     ``count`` field for each occurance of a given combination of ``borough``
+     and ``grade``. The output document structure of this stage is as follows:
+    
+     .. code-block:: javascript
+       
+        { _id : {"borough" : <string> , "grade" : <string> }, count : <int> }
+  
+  #. :manual:`$group </reference/aggregation/group>` groups input documents by
+     ``_id.borough``, using the :manual:`$push
+     </reference/operator/aggregation/push>` operator to push each value of
+     ``_id.grade`` and ``count`` to the ``grade`` array.
+     
+  This operation returns output similar to the following:  
+  
+  .. code-block:: javascript
+  
+     {  
+       "_id" : "Brooklyn",
+       "grades" : [
+         {
+           "grade" : "Not Yet Graded",
+           "count" : 145
+         },
+         {
+           "grade" : "Z",
+           "count" : 285
+         },
+         {
+           "grade" : "C",
+           "count" : 811
+         },
+         {
+           "grade" : "A",
+           "count" : 17324
+         },
+         {
+           "grade" : "B",
+           "count" : 3055
+         },
+         {
+           "grade" : "P",
+           "count" : 343
+         }
+       ]
+     }  
+  
+  For detailed documentation on CRUD operations using the
+  MongoDB shell, see the 
+  `Aggregation <https://docs.mongodb.com/getting-started/shell/aggregation/>`_
+  section of the 
+  `Getting Started Guide <https://docs.mongodb.com/getting-started/shell/>`_.
+  
+...
