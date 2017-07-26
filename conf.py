@@ -133,7 +133,7 @@ html_theme_options = {
     'repo_name': sconf.theme.repo,
     'jira_project': sconf.theme.jira,
     'google_analytics': sconf.theme.google_analytics,
-    'project': sconf.theme.project,
+    'project': sconf.project,
     'version': version,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
