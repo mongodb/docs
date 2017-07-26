@@ -17,11 +17,9 @@ aggregate
    users to process data from a collection with a sequence of
    stage-based manipulations.
 
-   .. TODO will undergo a thorough rewrite during the agg doc rewrite
-
    The command has following syntax:
 
-   .. versionchanged:: 3.4
+   .. versionchanged:: 3.6
 
    .. code-block:: javascript
 
@@ -34,7 +32,8 @@ aggregate
         maxTimeMS: <int>,
         bypassDocumentValidation: <boolean>,
         readConcern: <document>,
-        collation: <document>
+        collation: <document>,
+        hint: <string or document>
       }
 
    The :dbcommand:`aggregate` command takes the following fields as
@@ -202,6 +201,39 @@ option:
 
 For descriptions on the collation fields, see
 :ref:`collation-document-fields`.
+
+Hint an Index
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+Create a collection ``foodColl`` with the following documents:
+
+.. code-block:: javascript
+
+   db.foodColl.insert([
+      { _id: 1, category: "cake", type: "chocolate", qty: 10 },
+      { _id: 2, category: "cake", type: "ice cream", qty: 25 },
+      { _id: 3, category: "pie", type: "boston cream", qty: 20 },
+      { _id: 4, category: "pie", type: "blueberry", qty: 15 }
+   ])
+
+Create the following indexes:
+
+.. code-block:: javascript
+
+   db.foodColl.createIndex( { qty: 1, type: 1 } );
+   db.foodColl.createIndex( { qty: 1, category: 1 } );
+
+The following aggregation operation includes the :ref:`hint` option to
+force the usage of the specified index:
+
+.. code-block:: javascript
+
+   db.foodColl.aggregate(
+      [ { $sort: { qty: 1 }}, { $match: { category: "cake", qty: 10  } }, { $sort: { type: -1 } } ],
+      { hint: { qty: 1, category: 1 } }
+   )
 
 Override Default Read Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
