@@ -246,3 +246,65 @@ The operation returns the following document:
          }
       ]
    }
+
+Use ``$lookup`` with ``$mergeObjects``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   MongoDB 3.6 adds the :expression:`$mergeObjects` operator to combine
+   multiple documents into a single document
+
+Create a collection ``orders`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.orders.insert([
+     { "_id" : 1, "item" : "abc", "price" : 12, "ordered" : 2 },
+     { "_id" : 2, "item" : "jkl", "price" : 20, "ordered" : 1 }
+   ])
+
+Create another collection ``items`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.items.insert([
+     { "_id" : 1, "item" : "abc", description: "product 1", "instock" : 120 },
+     { "_id" : 2, "item" : "def", description: "product 2", "instock" : 80 },
+     { "_id" : 3, "item" : "jkl", description: "product 3", "instock" : 60 }
+   ])
+
+The following operation first uses the :pipeline:`$lookup` stage to
+join the two collections by the ``item`` fields and then uses
+:expression:`$mergeObjects` in the :pipeline:`$replaceRoot` to merge
+the joined documents from ``items`` and ``orders``:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      {
+         $lookup: {
+            from: "items",
+            localField: "item",    // field in the orders collection
+            foreignField: "item",  // field in the items collection
+            as: "fromItems"
+         }
+      },
+      {
+         $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } }
+      },
+      { $project: { fromItems: 0 } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "description" : "product 1", "instock" : 120, "price" : 12, "ordered" : 2 }
+   { "_id" : 2, "item" : "jkl", "description" : "product 3", "instock" : 60, "price" : 20, "ordered" : 1 }
