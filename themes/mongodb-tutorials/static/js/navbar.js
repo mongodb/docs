@@ -22486,13 +22486,19 @@
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
-	            this.bodyElement.style.display = 'none';
+	            this.bodyElement.style.opacity = 0;
+	            this.bodyElement.style.overflowY = 'hidden';
+	            this.bodyElement.style.height = 0;
+	            this.bodyElement.style.zIndex = -1000;
 	        }
 	    }, {
 	        key: 'hide',
 	        value: function hide() {
 	            this.container.className = 'marian';
-	            this.bodyElement.style.removeProperty('display');
+	            this.bodyElement.style.removeProperty('opacity');
+	            this.bodyElement.style.removeProperty('overflow-y');
+	            this.bodyElement.style.removeProperty('height');
+	            this.bodyElement.style.removeProperty('z-index');
 	        }
 	    }, {
 	        key: 'search',
