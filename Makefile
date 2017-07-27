@@ -4,7 +4,7 @@ URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_BUCKET=docs-mongodb-org-prod
 PREFIX=landing
 
-.PHONY: help stage fake-deploy lint build
+.PHONY: help stage fake-deploy build
 
 CSS_ERRORS=errors,empty-rules,duplicate-properties,selector-max-approaching
 CSS_WARNINGS=regex-selectors,unqualified-attributes,text-indent
@@ -14,7 +14,6 @@ help:
 	@echo '  help         - Show this help message'
 	@echo '  stage        - Host online for review'
 	@echo '  deploy       - Deploy into production'
-	@echo '  lint         - Check the CSS'
 	@echo ''
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
