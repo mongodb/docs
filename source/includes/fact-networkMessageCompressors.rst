@@ -4,7 +4,6 @@
    compression. Otherwise, messages between the parties are
    uncompressed.
 
-You can specify the following compressor for
-``networkMessageCompressors``:
+You can specify the following compressor:
 
 - :term:`snappy`
