@@ -62,16 +62,23 @@ export default class Marian {
         rootElement.appendChild(this.container)
 
         // When we show our search results, the page body should go away
-        const candidateSelectors = ['.main__content', '.main-column']
-        for (const candidate of candidateSelectors) {
-            this.bodyElement = document.querySelector(candidate)
-            if (this.bodyElement) { break }
+        this._bodyElement = null
+    }
+
+    get bodyElement() {
+        if (!this._bodyElement) {
+            for (const candidate of ['.main__content', '.main-column']) {
+                this._bodyElement = document.querySelector(candidate)
+                if (this._bodyElement) { break }
+            }
+
+            // If we can't find a page body, just use a dummy element
+            if (!this._bodyElement) {
+                this._bodyElement = document.createElement('div')
+            }
         }
 
-        // If we can't find a page body, just use a dummy element
-        if (!this.bodyElement) {
-            this.bodyElement = document.createElement('div')
-        }
+        return this._bodyElement
     }
 
     show() {

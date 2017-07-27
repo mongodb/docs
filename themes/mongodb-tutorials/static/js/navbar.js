@@ -22479,40 +22479,7 @@
 	        rootElement.appendChild(this.container);
 	
 	        // When we show our search results, the page body should go away
-	        var candidateSelectors = ['.main__content', '.main-column'];
-	        var _iteratorNormalCompletion3 = true;
-	        var _didIteratorError3 = false;
-	        var _iteratorError3 = undefined;
-	
-	        try {
-	            for (var _iterator3 = candidateSelectors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	                var candidate = _step3.value;
-	
-	                this.bodyElement = document.querySelector(candidate);
-	                if (this.bodyElement) {
-	                    break;
-	                }
-	            }
-	
-	            // If we can't find a page body, just use a dummy element
-	        } catch (err) {
-	            _didIteratorError3 = true;
-	            _iteratorError3 = err;
-	        } finally {
-	            try {
-	                if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	                    _iterator3.return();
-	                }
-	            } finally {
-	                if (_didIteratorError3) {
-	                    throw _iteratorError3;
-	                }
-	            }
-	        }
-	
-	        if (!this.bodyElement) {
-	            this.bodyElement = document.createElement('div');
-	        }
+	        this._bodyElement = null;
 	    }
 	
 	    _createClass(Marian, [{
@@ -22564,27 +22531,27 @@
 	                var spellingErrors = Object.keys(data.spellingCorrections);
 	                if (spellingErrors.length > 0) {
 	                    var corrected = query;
-	                    var _iteratorNormalCompletion4 = true;
-	                    var _didIteratorError4 = false;
-	                    var _iteratorError4 = undefined;
+	                    var _iteratorNormalCompletion3 = true;
+	                    var _didIteratorError3 = false;
+	                    var _iteratorError3 = undefined;
 	
 	                    try {
-	                        for (var _iterator4 = spellingErrors[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	                            var orig = _step4.value;
+	                        for (var _iterator3 = spellingErrors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	                            var orig = _step3.value;
 	
 	                            corrected = corrected.replace(orig, data.spellingCorrections[orig]);
 	                        }
 	                    } catch (err) {
-	                        _didIteratorError4 = true;
-	                        _iteratorError4 = err;
+	                        _didIteratorError3 = true;
+	                        _iteratorError3 = err;
 	                    } finally {
 	                        try {
-	                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                                _iterator4.return();
+	                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	                                _iterator3.return();
 	                            }
 	                        } finally {
-	                            if (_didIteratorError4) {
-	                                throw _iteratorError4;
+	                            if (_didIteratorError3) {
+	                                throw _iteratorError3;
 	                            }
 	                        }
 	                    }
@@ -22601,13 +22568,13 @@
 	                    _this2.listElement.appendChild(li);
 	                }
 	
-	                var _iteratorNormalCompletion5 = true;
-	                var _didIteratorError5 = false;
-	                var _iteratorError5 = undefined;
+	                var _iteratorNormalCompletion4 = true;
+	                var _didIteratorError4 = false;
+	                var _iteratorError4 = undefined;
 	
 	                try {
-	                    for (var _iterator5 = data.results[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	                        var result = _step5.value;
+	                    for (var _iterator4 = data.results[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	                        var result = _step4.value;
 	
 	                        var _li = document.createElement('li');
 	                        _li.className = 'marian-result';
@@ -22626,22 +22593,44 @@
 	                        _this2.listElement.appendChild(_li);
 	                    }
 	                } catch (err) {
-	                    _didIteratorError5 = true;
-	                    _iteratorError5 = err;
+	                    _didIteratorError4 = true;
+	                    _iteratorError4 = err;
 	                } finally {
 	                    try {
-	                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	                            _iterator5.return();
+	                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                            _iterator4.return();
 	                        }
 	                    } finally {
-	                        if (_didIteratorError5) {
-	                            throw _iteratorError5;
+	                        if (_didIteratorError4) {
+	                            throw _iteratorError4;
 	                        }
 	                    }
 	                }
 	            };
 	
 	            request.send();
+	        }
+	    }, {
+	        key: 'bodyElement',
+	        get: function get() {
+	            if (!this._bodyElement) {
+	                var _arr = ['.main__content', '.main-column'];
+	
+	                for (var _i = 0; _i < _arr.length; _i++) {
+	                    var candidate = _arr[_i];
+	                    this._bodyElement = document.querySelector(candidate);
+	                    if (this._bodyElement) {
+	                        break;
+	                    }
+	                }
+	
+	                // If we can't find a page body, just use a dummy element
+	                if (!this._bodyElement) {
+	                    this._bodyElement = document.createElement('div');
+	                }
+	            }
+	
+	            return this._bodyElement;
 	        }
 	    }]);
 	
