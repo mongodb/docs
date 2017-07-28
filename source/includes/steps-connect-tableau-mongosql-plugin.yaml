@@ -1,80 +1,167 @@
 title: Download the C Authentication Plugin library.
 ref: download-plugin
 level: 4
-pre: |
-  Navigate to the `releases page
-  <https://github.com/mongodb/mongosql-auth-c/releases>`_
-  and download the ``mongosql_auth`` plugin library. Save
-  the file ``mongosql_auth.so`` to the
-  ``/usr/local/mysql/lib/plugin/`` directory.
+stepnum: 1
+content: | 
+
+  Navigate to the `releases page 
+  <https://github.com/mongodb/mongosql-auth-c/releases>`_ 
+  then download the ``mongosql_auth`` plugin library.
+
+  .. list-table::
+     :widths: 20 80
+     :stub-columns: 1
+
+     * - macOS
+       - Save the library file ``mongosql_auth.so`` to the 
+         ``/usr/local/mysql/lib/plugin/`` directory.
+
+         If this directory does not exist, create it:
+
+         .. example::
+
+            .. class:: copyable-code
+            .. code-block:: sh
+
+               sudo mkdir -p /usr/local/mysql/lib/plugin -m 755
+               sudo chown -R {user}:admin /usr/local/mysql
+               tar -xvf /Users/{user}/Downloads/mongosql-auth-osx-x86_64-v{version}.tgz
+               cp /Users/{user}/Downloads/mongosql-auth-osx-x86_64/lib/mongosql_auth.so ./
+
+            .. note:: 
+
+               This example assumes you downloaded the
+               ``mongosql_auth`` plugin to the
+               ``/Users/{user}/Downloads/`` directory.
+
+               The plugin does not require MySQL or the MySQL ODBC
+               Connector to be installed.
+
+     * - Windows
+       - Run the Windows installer (``.msi``).
+
 ---
-title: Create a ``my.cnf`` file.
+title: Create a `MySQL Configuration file <https://dev.mysql.com/doc/refman/5.7/en/option-files.html>`_. (macOS only)
 ref: create-my-cnf
 level: 4
-pre: |
-  OS X
-    Create a text file with the following contents:
+content: |
 
-    .. code-block:: sh
+  a. Create a text file with the following contents:
 
-       [client]
-       default-auth=mongosql_auth
+     .. class:: copyable-code
 
-    Name the file ``my.cnf`` and save it in the directory ``/etc``.
+     .. code-block:: ini
+ 
+        [client]
+        default-auth=mongosql_auth
+
+  b. Save the file to ``/etc/my.cnf``.
+
 ---
-title: Create a ``my.tdc`` file.
-ref: create-my-tdc
+title: Create a `Tableau Datasource Connection <http://kb.tableau.com/articles/howto/using-a-tdc-file-with-tableau-server>`_ file.
+ref: create-tdc
 level: 4
-pre: |
-  OS X
-    Create a text file with the following contents:
+content: |
 
-    .. code-block:: sh
+  a. Create a text file with the following contents:
 
-       <?xml version='1.0' encoding='utf-8' ?>
-       <connection-customization class='mongodb' version='7.7' enabled='true'>
-           <vendor name='mongodb' />
-           <driver name='mongodb' />
-           <customizations>
-             <customization
-               name='odbc-connect-string-extras'
-               value='USE_MYCNF=1' />
-             </customizations>
-       </connection-customization>
+     .. list-table::
+        :widths: 20 80
+        :stub-columns: 1
+        :header-rows: 1
 
-    Name the file ``my.tdc`` and save in Tableau's ``Datasources``
-    directory. By default, Tableau creates a directory called ``My
-    Tableau Repository`` in your OS X user's ``Documents`` directory,
-    and the ``Datasources`` directory can be found there. Your
-    ``Datasources`` directory may be elsewhere, depending on your
-    system configuration. Place the ``my.tdc`` directory in the
-    repository directory you use while connecting with Tableau.
+        * - Platform
+          - TDC File Contents
+
+        * - macOS
+          - 
+
+            .. class:: copyable-code
+            .. literalinclude:: /includes/tdc/mongodb-mac.tdc
+               :language: xml
+               :emphasize-lines: 6-8
+               :linenos:
+
+        * - Windows
+          - 
+
+            .. class:: copyable-code
+            .. literalinclude:: /includes/tdc/mongodb-win.tdc
+               :language: xml
+               :emphasize-lines: 6-8
+               :linenos:
+
+  b. Save this file as ``mongodb.tdc`` in the :guilabel:`My Tableau
+     Repository` for your platform:
+
+     .. include:: /includes/list-tables/tableau-default-tdc-locations.rst
+
 ---
 title: Start Tableau.
 ref: start-tab
 level: 4
-pre: |
-  Start the Tableau Desktop application, or restart it if it was
+content: |
+  Start the Tableau Desktop application or restart it if it was
   already running.
+
+  .. include:: /includes/facts/tableau-restart.rst
+
 ---
 title: Connect using Tableau.
-ref: connect-tab
+ref: connect-tableau
 level: 4
-pre: |
-  In the left-side navigation, click on :guilabel:`More...` under
-  :guilabel:`To a server`. Select :guilabel:`MongoDB BI Connector`
-  from the list of options.
+content: |
 
-  In the connection dialog box, enter your server and port
-  information. 
+  a. In the left-side navigation under :guilabel:`To a server`, click
+     on :guilabel:`More...` then click :guilabel:`MongoDB BI
+     Connector`.
 
-  In the :guilabel:`Username` field, append the authenticating
-  database to the username. In the example shown below,
-  the user ``myTestUser`` is authenticated to use the ``test``
-  database.
+  b. In the connection dialog box:
 
-  .. figure:: /images/bi-connector/mdb-bi-connector-panel.png
-     :alt: Screenshot of Tableau with the connection panel open
-     :figwidth: 412px
+     .. list-table::
+        :widths: 20 80
+        :stub-columns: 1
+        :header-rows: 1
+
+        * - Field
+          - Action
+
+        * - :guilabel:`Server`
+          - Type the hostname or IP address of the |bi| host.
+
+        * - :guilabel:`Port`
+          - Type the 
+            :abbr:`IANA (Internet Assigned Numbers Authority)` 
+            `port number <https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml>`_ 
+            for the |bi|. The default is ``3307``.
+
+        * - :guilabel:`Username`
+          - Type the username for the user that can access the active
+            |bi| database.
+
+            Unless you specified a ``defaultMechanism`` in your
+            |bi| :ref:`Configuration File <config-format>`, you
+            must append the authenticating database to the username.
+
+            .. example::
+
+               The user ``myTestUser`` is authenticated against the
+               ``test`` database.
+
+               .. figure:: /images/bi-connector/mdb-bi-connector-panel.png
+                  :alt: Screenshot of Tableau with the connection panel open
+                  :figwidth: 412px
+           
+            - If you are using Username and Password (``SCRAM-SHA-1``)
+              authentication, the expected authenticating database is
+              ``admin``.
+            
+            - If you are using LDAP (``PLAIN``) authentication, the
+              expected authenticating database is ``$external``.
+
+        * - :guilabel:`Password`
+          - Type the password associated with the :guilabel:`Username`.
+
+  c. Click :guilabel:`Sign In`.
 
 ...
