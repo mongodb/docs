@@ -151,7 +151,7 @@ html_theme_options = {
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'upcoming': conf.version.upcoming,
-    'eol': 'true',
+    'eol': True,
     'eol_msg': 'This version has reached end of life on October 2016.  <a href="https://www.mongodb.com/blog/post/mongodb-2-6-end-of-life">Learn more</a> about upgrading your version of MongoDB.',
 }
 
