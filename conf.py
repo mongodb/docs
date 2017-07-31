@@ -149,6 +149,9 @@ html_theme_options = {
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
+    'eol': True,
+    'eol_msg': 'This version will reach end of life on Feb 2018.  To upgrade, go to the <a href="https://www.mongodb.com/upgrade-from-3-0?jmp=docs">Learn more </a>about upgrading your version of MongoDB.',
+    
 }
 
 html_sidebars = sconf.sidebars
