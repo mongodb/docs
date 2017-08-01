@@ -40,6 +40,13 @@ class Navbar extends React.Component {
 
       this.search()
     }
+
+    window.history.onnavigate = () => {
+      this.setState({
+        searchText: ''
+      })
+      this.search()
+    }
   }
 
   onInput = (event) => {
@@ -47,7 +54,7 @@ class Navbar extends React.Component {
       searchText: event.target.value
     })
 
-  window.clearTimeout(this.state.timeout)
+    window.clearTimeout(this.state.timeout)
     this.setState({timeout:
       this.state.timeout = window.setTimeout(() => {
         this.search()

@@ -134,6 +134,13 @@
 	
 	      _this.search();
 	    };
+	
+	    window.history.onnavigate = function () {
+	      _this.setState({
+	        searchText: ''
+	      });
+	      _this.search();
+	    };
 	    return _this;
 	  }
 	
@@ -22620,7 +22627,7 @@
 	        key: 'bodyElement',
 	        get: function get() {
 	            if (!this._bodyElement) {
-	                var _arr = ['.main__content', '.main-column'];
+	                var _arr = ['.main__content', '.document'];
 	
 	                for (var _i = 0; _i < _arr.length; _i++) {
 	                    var candidate = _arr[_i];

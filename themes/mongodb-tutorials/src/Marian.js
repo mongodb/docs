@@ -67,7 +67,7 @@ export default class Marian {
 
     get bodyElement() {
         if (!this._bodyElement) {
-            for (const candidate of ['.main__content', '.main-column']) {
+            for (const candidate of ['.main__content', '.document']) {
                 this._bodyElement = document.querySelector(candidate)
                 if (this._bodyElement) { break }
             }
