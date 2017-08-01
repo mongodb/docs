@@ -29,8 +29,11 @@ gulp.task('sass:build', function() {
 
 gulp.task('sass:prod:build', function() {
   gulp.src('./src/styles/app.scss')
+    .pipe(rename({suffix: '.min'}))
     .pipe(plumber())
-    .pipe(sass())
+    .pipe(sass({
+      outputStyle: 'compressed',
+    }))
     .pipe(autoprefixer())
     .pipe(gulp.dest('./static/css/'))
 })
