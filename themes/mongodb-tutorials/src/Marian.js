@@ -31,7 +31,7 @@ class TabStrip {
 }
 
 export default class Marian {
-    constructor(url, defaultProperties, defaultPropertiesLabel, rootElement) {
+    constructor(url, defaultProperties, defaultPropertiesLabel) {
         this.url = url.replace(/\/+$/, '')
         this.defaultProperties = defaultProperties
         this.onchangequery = () => {}
@@ -59,7 +59,15 @@ export default class Marian {
         this.container.appendChild(titleElement)
         this.container.appendChild(tabStrip.element)
         this.container.appendChild(this.listElement)
-        rootElement.appendChild(this.container)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const rootElement = [
+                document.querySelector('.main-column'),
+                document.querySelector('.main'),
+                document.body].filter((el) => Boolean(el))[0]
+
+            rootElement.appendChild(this.container)
+        })
 
         // When we show our search results, the page body should go away
         this._bodyElement = null
@@ -83,18 +91,12 @@ export default class Marian {
 
     show() {
         this.container.className = 'marian marian--shown'
-        this.bodyElement.style.opacity = 0
-        this.bodyElement.style.overflowY = 'hidden'
-        this.bodyElement.style.height = 0
-        this.bodyElement.style.zIndex = -1000
+        this.bodyElement.style.display = 'none'
     }
 
     hide() {
         this.container.className = 'marian'
-        this.bodyElement.style.removeProperty('opacity')
-        this.bodyElement.style.removeProperty('overflow-y')
-        this.bodyElement.style.removeProperty('height')
-        this.bodyElement.style.removeProperty('z-index')
+        this.bodyElement.style.removeProperty('display')
     }
 
     search(query) {

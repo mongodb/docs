@@ -29,7 +29,7 @@ class Navbar extends React.Component {
 
     super(props)
     this.state = JSON.parse(props.navprops)
-    this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label, document.body)
+    this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label)
     this.state.timeout = -1
     this.state.searchText = ''
 

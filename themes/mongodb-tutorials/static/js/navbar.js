@@ -123,7 +123,7 @@
 	    };
 	
 	    _this.state = JSON.parse(props.navprops);
-	    _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label, document.body);
+	    _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
 	    _this.state.timeout = -1;
 	    _this.state.searchText = '';
 	
@@ -22454,7 +22454,7 @@
 	}();
 	
 	var Marian = function () {
-	    function Marian(url, defaultProperties, defaultPropertiesLabel, rootElement) {
+	    function Marian(url, defaultProperties, defaultPropertiesLabel) {
 	        var _this = this;
 	
 	        _classCallCheck(this, Marian);
@@ -22483,7 +22483,14 @@
 	        this.container.appendChild(titleElement);
 	        this.container.appendChild(tabStrip.element);
 	        this.container.appendChild(this.listElement);
-	        rootElement.appendChild(this.container);
+	
+	        document.addEventListener('DOMContentLoaded', function () {
+	            var rootElement = [document.querySelector('.main-column'), document.querySelector('.main'), document.body].filter(function (el) {
+	                return Boolean(el);
+	            })[0];
+	
+	            rootElement.appendChild(_this.container);
+	        });
 	
 	        // When we show our search results, the page body should go away
 	        this._bodyElement = null;
@@ -22493,19 +22500,13 @@
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
-	            this.bodyElement.style.opacity = 0;
-	            this.bodyElement.style.overflowY = 'hidden';
-	            this.bodyElement.style.height = 0;
-	            this.bodyElement.style.zIndex = -1000;
+	            this.bodyElement.style.display = 'none';
 	        }
 	    }, {
 	        key: 'hide',
 	        value: function hide() {
 	            this.container.className = 'marian';
-	            this.bodyElement.style.removeProperty('opacity');
-	            this.bodyElement.style.removeProperty('overflow-y');
-	            this.bodyElement.style.removeProperty('height');
-	            this.bodyElement.style.removeProperty('z-index');
+	            this.bodyElement.style.removeProperty('display');
 	        }
 	    }, {
 	        key: 'search',
