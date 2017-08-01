@@ -15,22 +15,21 @@ Definition
 
 .. dbcommand:: collMod
 
-   :dbcommand:`collMod` makes it possible to add flags to a collection
-   to modify the behavior of MongoDB. Flags include
-   :collflag:`usePowerOf2Sizes` and :collflag:`index`. The command
+   :dbcommand:`collMod` makes it possible to add options to a collection
+   or to modify view definitions. The command
    takes the following prototype form:
 
    .. code-block:: javascript
 
-      db.runCommand( {"collMod" : <collection> , "<flag>" : <value> } )
+      db.runCommand( {"collMod" : <collection or view> , "<option>" : <value> } )
 
-   In this command substitute ``<collection>`` with the name of a
-   collection in the current database, and ``<flag>`` and ``<value>``
-   with the flag and value you want to set.
+   In this command, substitute ``<collection or view>`` with the name
+   of a collection or view in the current database, and ``<option>``
+   and ``<value>`` with the option and value you want to set.
 
    Use the :data:`~collStats.userFlags` field in the
-   :method:`db.collection.stats()` output to check enabled collection
-   flags.
+   :method:`db.collection.stats()` output to check the options enabled
+   for a collection.
 
 .. Commenting out the following after DOCS-717, it does take
    a lock but its to cover a very small metadata change.
@@ -38,16 +37,16 @@ Definition
    This command obtains a write lock on the affected database
    and will block other operations until it has completed.
 
-Flags
------
+Options
+-------
 
-TTL Collection Expiration Time
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TTL Collections
+~~~~~~~~~~~~~~~
 
 .. index:: expireAfterSeconds
 .. collflag:: index
 
-   The :collflag:`index` flag changes the expiration time of a
+   The :collflag:`index` option changes the expiration time of a
    :doc:`TTL Collection </tutorial/expire-data>`.
 
    Specify the key and new expiration time with a document of the form:
@@ -73,14 +72,11 @@ TTL Collection Expiration Time
 Record Allocation
 ~~~~~~~~~~~~~~~~~
 
-Disable All Record Padding
-``````````````````````````
-
 .. collflag:: noPadding
 
    .. versionadded:: 3.0
 
-   :collflag:`noPadding` flag is available for the MMAPv1 storage
+   :collflag:`noPadding` is available for the MMAPv1 storage
    engine only.
 
    :collflag:`noPadding` disables record padding for the collection.
@@ -95,9 +91,6 @@ Disable All Record Padding
       such as for collections with workloads that are insert-only. For
       more information, see :ref:`exact-fit-allocation`.
 
-Powers of Two Record Allocation
-```````````````````````````````
-
 .. index:: document; space allocation
 .. index:: usePowerOf2Sizes
 .. _usePowerOf2Sizes:
@@ -105,7 +98,7 @@ Powers of Two Record Allocation
 
    .. deprecated:: 3.0
 
-   :collflag:`usePowerOf2Sizes` flag is available for the MMAPv1 storage
+   :collflag:`usePowerOf2Sizes` is available for the MMAPv1 storage
    engine only.
 
    :collflag:`usePowerOf2Sizes` has no effect on the allocation
@@ -115,7 +108,7 @@ Powers of Two Record Allocation
 
    To disable the :ref:`power of 2 allocation <power-of-2-allocation>`
    for a collection, use the :dbcommand:`collMod` command with the
-   :collflag:`noPadding` flag or the :method:`db.createCollection()`
+   :collflag:`noPadding` option or the :method:`db.createCollection()`
    method with the ``noPadding`` option. For more information, see
    :ref:`3.0-mmapv1-padding`.
 
@@ -156,7 +149,7 @@ Document Validation
 
    .. include:: /includes/table/validationLevel-values.rst
 
-.. collflag:: validationAction   
+.. collflag:: validationAction
 
    .. versionadded:: 3.2
 
@@ -174,6 +167,56 @@ Document Validation
 To view the validation specifications for a collection, use the
 :method:`db.getCollectionInfos()` method.
 
+Views
+~~~~~
+
+.. collflag:: viewOn
+
+   The underlying source collection or view for the :doc:`view
+   </core/views>`. The view definition is determined by applying the
+   specified :collflag:`pipeline` to this source.
+
+   Required if modifying a view on a MongoDB deployment that is running
+   with access control.
+
+.. collflag:: pipeline
+
+   The :ref:`aggregation pipeline <aggregation-pipeline>` that defines
+   the :doc:`view </core/views>`.
+
+   Required if modifying a view on a MongoDB deployment that is running
+   with access control.
+
+   .. include:: /includes/extracts/views-public-definition.rst
+
+Access Control
+--------------
+
+If the deployment enforces authentication/authorization, you must have
+the following privilege to run the :dbcommand:`collMod` command:
+
+.. list-table::
+   :header-rows: 1
+
+   * -
+
+     - Required Privileges
+
+   * - Modify a non-capped collection
+
+     - :authaction:`collMod` in the database
+
+   * - Modify a view
+
+     - :authaction:`collMod` in the database and either:
+
+       - no :authaction:`find` on the view to modify, **or**
+
+       - both :authaction:`find` on the view to modify and
+         :authaction:`find` on the source collection/view.
+
+The built-in role :authrole:`dbAdmin` provides the required privileges.
+
 Examples
 --------
 
@@ -188,7 +231,7 @@ minutes to 60 minutes, use the following operation:
 
    db.runCommand( { collMod: "sessions",
                     index: { keyPattern: { lastAccess: 1 },
-                             expireAfterSeconds: 3600 
+                             expireAfterSeconds: 3600
                            }
    })
 
@@ -227,7 +270,7 @@ validation.
                     },
                     validationLevel: "moderate",
                     validationAction: "warn"
-   
+
    } )
 
 With the validator in place, the following insert operation fails validation:
