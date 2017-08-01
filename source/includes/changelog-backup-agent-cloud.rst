@@ -1,3 +1,11 @@
+Backup Agent ``5.7.0.637``
+--------------------------
+
+*Released 2017-08-01*
+
+- Support for optimized point in time restores.
+
+
 Backup Agent ``5.6.0.61``
 --------------------------
 
