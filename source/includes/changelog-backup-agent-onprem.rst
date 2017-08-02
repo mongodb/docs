@@ -1,4 +1,14 @@
 
+.. _backup-5.0.8.634-1:
+
+Backup Agent 5.0.8.634-1
+------------------------
+
+*Released with Ops Manager 3.4.7 on 2017-08-03*
+
+- Improve state management when executing an administrative error
+  retrieval task.
+
 .. _backup-5.0.8.601-1:
 
 Backup Agent 5.0.8.601-1
@@ -6,7 +16,7 @@ Backup Agent 5.0.8.601-1
 
 *Released with Ops Manager 3.4.6 on 2017-07-06*
 
-- Performance enhancement: Use bson.Raw for initial sync
+- Performance enhancement: Use bson.Raw for initial sync.
 
 .. _backup-5.0.7.494:
 
