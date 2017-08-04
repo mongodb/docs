@@ -1,5 +1,5 @@
-.. warning::
+.. versionchanged:: 3.6
 
-   Ensure that the HTTP status interface, the REST API, and the JSON
-   API are all disabled in production environments to prevent
-   potential data exposure and vulnerability to attackers.
+   MongoDB 3.6 removes the deprecated ``net.http`` options. The options
+   have been deprecated since version 3.2.
+

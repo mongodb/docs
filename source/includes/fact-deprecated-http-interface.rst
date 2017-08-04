@@ -1,3 +1,4 @@
-.. deprecated:: 3.2
+.. versionchanged:: 3.6
 
-   HTTP interface for MongoDB
+   MongoDB 3.6 removes the deprecated HTTP interface and REST API to
+   MongoDB.
