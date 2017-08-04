@@ -40,14 +40,21 @@ export default class Marian {
         this.container.className = 'marian'
 
         this.query = ''
-        this.searchAllProperties = false
+        this.searchProperty = 'current'
 
-        const tabStrip = new TabStrip('current', [
-            {id: 'current', label: `${defaultPropertiesLabel}`},
-            {id: 'all', label: 'All Results'}
-        ], (tab) => {
+        // We have three options to search: the current site, the current MongoDB manual,
+        // and all properties.
+        const tabStripElements = [{id: 'current', label: `${defaultPropertiesLabel}`}]
+        if (!defaultPropertiesLabel.match(/^MongoDB Manual/)) {
+            tabStripElements.push({id: 'manual', label: 'MongoDB Manual'})
+        }
+
+        // Holding off on this until we deploy to more properties
+        // tabStripElements.push({id: 'all', label: 'All Results'})
+
+        const tabStrip = new TabStrip('current', tabStripElements, (tab) => {
             tabStrip.update(tab.id)
-            this.searchAllProperties = (tab.id === 'all')
+            this.searchProperty = tab.id
             this.search(this.query)
         })
 
@@ -111,8 +118,10 @@ export default class Marian {
         const request = new XMLHttpRequest()
         let requestUrl = this.url + '/search?q=' + encodeURIComponent(query)
 
-        if (this.defaultProperties.length && !this.searchAllProperties) {
+        if (this.defaultProperties.length && this.searchProperty === 'current') {
             requestUrl += `&searchProperty=${encodeURIComponent(this.defaultProperties)}`
+        } else if (this.searchProperty === 'manual') {
+            requestUrl += '&searchProperty=manual-current'
         }
 
         request.open('GET', requestUrl)

@@ -22467,11 +22467,21 @@
 	        this.container.className = 'marian';
 	
 	        this.query = '';
-	        this.searchAllProperties = false;
+	        this.searchProperty = 'current';
 	
-	        var tabStrip = new TabStrip('current', [{ id: 'current', label: '' + defaultPropertiesLabel }, { id: 'all', label: 'All Results' }], function (tab) {
+	        // We have three options to search: the current site, the current MongoDB manual,
+	        // and all properties.
+	        var tabStripElements = [{ id: 'current', label: '' + defaultPropertiesLabel }];
+	        if (!defaultPropertiesLabel.match(/^MongoDB Manual/)) {
+	            tabStripElements.push({ id: 'manual', label: 'MongoDB Manual' });
+	        }
+	
+	        // Holding off on this until we deploy to more properties
+	        // tabStripElements.push({id: 'all', label: 'All Results'})
+	
+	        var tabStrip = new TabStrip('current', tabStripElements, function (tab) {
 	            tabStrip.update(tab.id);
-	            _this.searchAllProperties = tab.id === 'all';
+	            _this.searchProperty = tab.id;
 	            _this.search(_this.query);
 	        });
 	
@@ -22524,8 +22534,10 @@
 	            var request = new XMLHttpRequest();
 	            var requestUrl = this.url + '/search?q=' + encodeURIComponent(query);
 	
-	            if (this.defaultProperties.length && !this.searchAllProperties) {
+	            if (this.defaultProperties.length && this.searchProperty === 'current') {
 	                requestUrl += '&searchProperty=' + encodeURIComponent(this.defaultProperties);
+	            } else if (this.searchProperty === 'manual') {
+	                requestUrl += '&searchProperty=manual-current';
 	            }
 	
 	            request.open('GET', requestUrl);
