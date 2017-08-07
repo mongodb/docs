@@ -86,27 +86,13 @@
 	  function Navbar(props) {
 	    _classCallCheck(this, Navbar);
 	
-	    var label = document.body.getAttribute('data-project-title');
-	    var searchProperties = document.body.getAttribute('data-search-properties');
-	    if (!searchProperties) {
-	      var projectName = document.body.getAttribute('data-project');
-	      var projectBranch = document.body.getAttribute('data-branch');
-	      searchProperties = projectName + '-' + projectBranch;
-	
-	      if (label) {
-	        if (projectBranch && projectBranch !== 'master') {
-	          label += ' ' + projectBranch;
-	        }
-	      }
-	    }
-	
-	    if (!label) {
-	      label = searchProperties;
-	    }
-	
 	    var _this = _possibleConstructorReturn(this, (Navbar.__proto__ || Object.getPrototypeOf(Navbar)).call(this, props));
 	
 	    _this.onInput = function (event) {
+	      if (!_this.state.enableMarian) {
+	        return;
+	      }
+	
 	      _this.setState({
 	        searchText: event.target.value
 	      });
@@ -118,35 +104,104 @@
 	    };
 	
 	    _this.search = function () {
+	      if (!_this.state.enableMarian) {
+	        return;
+	      }
+	
 	      window.clearTimeout(_this.state.timeout);
 	      _this.state.marian.search(_this.state.searchText);
 	    };
 	
 	    _this.state = JSON.parse(props.navprops);
-	    _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
-	    _this.state.timeout = -1;
-	    _this.state.searchText = '';
+	    _this.state.enableMarian = Boolean(document.body.getAttribute('data-enable-marian'));
 	
-	    _this.state.marian.onchangequery = function (newQuery) {
-	      _this.setState({
-	        searchText: newQuery
-	      });
+	    if (_this.state.enableMarian) {
+	      var label = document.body.getAttribute('data-project-title');
+	      var searchProperties = document.body.getAttribute('data-search-properties');
+	      if (!searchProperties) {
+	        var projectName = document.body.getAttribute('data-project');
+	        var projectBranch = document.body.getAttribute('data-branch');
+	        searchProperties = projectName + '-' + projectBranch;
 	
-	      _this.search();
-	    };
+	        if (label) {
+	          if (projectBranch && projectBranch !== 'master') {
+	            label += ' ' + projectBranch;
+	          }
+	        }
+	      }
 	
-	    window.history.onnavigate = function () {
-	      _this.setState({
-	        searchText: ''
-	      });
-	      _this.search();
-	    };
+	      if (!label) {
+	        label = searchProperties;
+	      }
+	
+	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
+	      _this.state.timeout = -1;
+	      _this.state.searchText = '';
+	
+	      _this.state.marian.onchangequery = function (newQuery) {
+	        _this.setState({
+	          searchText: newQuery
+	        });
+	
+	        _this.search();
+	      };
+	
+	      window.history.onnavigate = function () {
+	        _this.setState({
+	          searchText: ''
+	        });
+	        _this.search();
+	      };
+	    }
 	    return _this;
 	  }
 	
 	  _createClass(Navbar, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      if (this.state.enableMarian) {
+	        return;
+	      }
+	
+	      var cx = window.googleSearchCx;
+	      var gcse = document.createElement('script');
+	      gcse.type = 'text/javascript';
+	      gcse.async = true;
+	      gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+	      gcse.onload = gcse.onreadystatechange = function () {
+	        // hack to set a placeholder in google's custom search input
+	        var pollInput = window.setInterval(function () {
+	          var input = document.querySelector('.gsc-input input.gsc-input');
+	
+	          if (input) {
+	            input.style.cssText = '';
+	            input.className = 'navbar-search';
+	            document.querySelector('.navbar__right').appendChild(input);
+	            input.setAttribute('placeholder', window.googleSearchPlaceholder);
+	            (0, _elementClass2.default)(input).add('navbar-search');
+	            window.clearInterval(pollInput);
+	          }
+	        }, 10);
+	      };
+	
+	      var s = document.getElementsByTagName('script')[0];
+	      s.parentNode.insertBefore(gcse, s);
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var searchBar = void 0;
+	      if (this.state.enableMarian) {
+	        searchBar = _react2.default.createElement('input', { type: 'search',
+	          className: 'navbar-search',
+	          onInput: this.onInput,
+	          value: this.state.searchText,
+	          placeholder: 'Search Documentation',
+	          'aria-label': 'Search Documentation' });
+	      } else {
+	        searchBar = _react2.default.createElement('div', { id: 'gsearch', className: 'gcse-searchbox-only', 'data-resultsUrl': window.googleSearchResultsUrl, 'data-queryParameterName': 'query' });
+	      }
+	
 	      var linkElements = this.state.links.map(function (link, i) {
 	        var linkClass = (0, _classnames2.default)({
 	          'navbar-links__item': true,
@@ -196,12 +251,7 @@
 	              _react2.default.createElement('path', { d: 'm8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z', fill: '#69b241' })
 	            )
 	          ),
-	          _react2.default.createElement('input', { type: 'search',
-	            className: 'navbar-search',
-	            onInput: this.onInput,
-	            value: this.state.searchText,
-	            placeholder: 'Search Documentation',
-	            'aria-label': 'Search Documentation' })
+	          searchBar
 	        )
 	      );
 	    }

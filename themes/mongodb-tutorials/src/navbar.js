@@ -9,47 +9,53 @@ import NavbarDropdown from './navbar-dropdown.js'
 
 class Navbar extends React.Component {
   constructor (props) {
-    let label = document.body.getAttribute('data-project-title')
-    let searchProperties = document.body.getAttribute('data-search-properties')
-    if (!searchProperties) {
-      const projectName = document.body.getAttribute('data-project')
-      const projectBranch = document.body.getAttribute('data-branch')
-      searchProperties = `${projectName}-${projectBranch}`
-
-      if (label) {
-        if (projectBranch && projectBranch !== 'master') {
-          label += ' ' + projectBranch
-        }
-      }
-    }
-
-    if (!label) {
-      label = searchProperties
-    }
-
     super(props)
     this.state = JSON.parse(props.navprops)
-    this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label)
-    this.state.timeout = -1
-    this.state.searchText = ''
+    this.state.enableMarian = Boolean(document.body.getAttribute('data-enable-marian'))
 
-    this.state.marian.onchangequery = (newQuery) => {
-      this.setState({
-        searchText: newQuery
-      })
+    if (this.state.enableMarian) {
+      let label = document.body.getAttribute('data-project-title')
+      let searchProperties = document.body.getAttribute('data-search-properties')
+      if (!searchProperties) {
+        const projectName = document.body.getAttribute('data-project')
+        const projectBranch = document.body.getAttribute('data-branch')
+        searchProperties = `${projectName}-${projectBranch}`
 
-      this.search()
-    }
+        if (label) {
+          if (projectBranch && projectBranch !== 'master') {
+            label += ' ' + projectBranch
+          }
+        }
+      }
 
-    window.history.onnavigate = () => {
-      this.setState({
-        searchText: ''
-      })
-      this.search()
+      if (!label) {
+        label = searchProperties
+      }
+
+      this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label)
+      this.state.timeout = -1
+      this.state.searchText = ''
+
+      this.state.marian.onchangequery = (newQuery) => {
+        this.setState({
+          searchText: newQuery
+        })
+
+        this.search()
+      }
+
+      window.history.onnavigate = () => {
+        this.setState({
+          searchText: ''
+        })
+        this.search()
+      }
     }
   }
 
   onInput = (event) => {
+    if (!this.state.enableMarian) { return }
+
     this.setState({
       searchText: event.target.value
     })
@@ -62,11 +68,53 @@ class Navbar extends React.Component {
   }
 
   search = () => {
+    if (!this.state.enableMarian) { return }
+
     window.clearTimeout(this.state.timeout)
     this.state.marian.search(this.state.searchText)
   }
 
+  componentDidMount () {
+    if (this.state.enableMarian) { return }
+
+    var cx = window.googleSearchCx;
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    gcse.onload = gcse.onreadystatechange = function() {
+      // hack to set a placeholder in google's custom search input
+      var pollInput = window.setInterval(function() {
+        var input = document.querySelector('.gsc-input input.gsc-input')
+
+        if (input) {
+          input.style.cssText = ''
+          input.className = 'navbar-search'
+          document.querySelector('.navbar__right').appendChild(input)
+          input.setAttribute('placeholder', window.googleSearchPlaceholder)
+          elementClass(input).add('navbar-search')
+          window.clearInterval(pollInput);
+        }
+      }, 10);
+    };
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+}
+
   render () {
+    let searchBar
+    if (this.state.enableMarian) {
+      searchBar = <input type="search"
+                         className="navbar-search"
+                         onInput={this.onInput}
+                         value={this.state.searchText}
+                         placeholder="Search Documentation"
+                         aria-label="Search Documentation"></input>
+    } else {
+      searchBar = <div id="gsearch" className="gcse-searchbox-only" data-resultsUrl={window.googleSearchResultsUrl} data-queryParameterName="query"></div>
+    }
+
     const linkElements = this.state.links.map((link, i) => {
       const linkClass = classNames({
         'navbar-links__item': true,
@@ -98,12 +146,7 @@ class Navbar extends React.Component {
             <svg height="11" width="9" xmlns="http://www.w3.org/2000/svg"><path d="m8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z" fill="#69b241"/></svg>
           </div>
 
-          <input type="search"
-                 className="navbar-search"
-                 onInput={this.onInput}
-                 value={this.state.searchText}
-                 placeholder="Search Documentation"
-                 aria-label="Search Documentation"></input>
+          { searchBar }
         </div>
       </nav>
     )
