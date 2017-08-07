@@ -8,7 +8,7 @@ PRODUCTION_URL="https://docs.atlas.mongodb.com"
 PRODUCTION_BUCKET=docs-atlas-prod
 PREFIX=
 
-.PHONY: help stage fake-deploy deploy publish
+.PHONY: help stage fake-deploy deploy publish deploy-search-index
 
 help:
 	@echo 'Targets'
@@ -44,3 +44,9 @@ deploy: build/public
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
+
+	$(MAKE) deploy-search-index
+
+deploy-search-index:
+	@echo "Building search index"
+	mut-index upload build/public -o atlas-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
