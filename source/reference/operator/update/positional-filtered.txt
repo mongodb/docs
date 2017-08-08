@@ -1,0 +1,336 @@
+================
+\$[<identifier>]
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $[<identifier>]
+
+   .. versionadded:: 3.6
+
+   The filtered positional operator ``$[<identifier>]`` identifies the
+   array elements that match the :ref:`3.6-arrayFilters` conditions for
+   an update operation, e.g. :method:`db.collection.update()` and
+   :method:`db.collection.findAndModify()`.
+
+   Used in conjunction with the ``arrayFilters`` option, the
+   ``$[<identifier>]`` operator has the following form:
+
+   .. code-block:: javascript
+
+      { <update operator>: { "<array>.$[<identifier>]" : value } },
+      { arrayFilters: [ { <identifier>: <condition> } } ] }
+
+   Use in conjunction with the ``arrayFilters`` option to update all
+   elements that match the :ref:`3.6-arrayFilters` conditions in the
+   document or documents that match the query conditions. For example:
+
+   .. code-block:: javascript
+   
+      db.collection.updateMany(
+         { <query conditions> },
+         { <update operator>: { "<array>.$[<identifier>]" : value } },
+         { arrayFilters: [ { <identifier>: <condition> } } ] }
+      )
+
+   .. note::
+
+      The ``<identifier>`` must begin with a lowercase letter and
+      contain only alphanumeric characters.
+
+   For an example, see :ref:`positional-update-arrayFilters`.
+
+Behavior
+--------
+
+``upsert``
+~~~~~~~~~~~
+
+
+If an :term:`upsert` operation results in an insert, the ``query`` must
+include an :ref:`exact equality match <array-match-exact>` on the array
+field in order to use ``$[<identifier>]`` in the update statement.
+
+If the upsert operation did not include an exact equality match and no
+matching documents were found to update, the upsert operation would
+error.
+
+Nested Arrays
+~~~~~~~~~~~~~
+
+The filtered positional operator ``$[<identifier>]`` can
+be used for queries which traverse more than one array and nested arrays.
+
+For an example, see :ref:`position-nested-arrays-filtered`.
+
+
+Examples
+--------
+
+.. _positional-update-arrayFilters:
+
+Update All Array Elements That Match ``arrayFilters``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``students`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 102 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+To update all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the positional :update:`$[identifier] <$>`
+operator with the :ref:`3.6-arrayFilters`:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.update(
+      { },
+      { $set: { "grades.$[element]" : 100 } },
+      { multi: true,
+        arrayFilters: [ { "element": { $gte: 100 } } ]
+      }
+   )
+
+The positional ``$[<identifier>]`` operator acts as a
+placeholder for all elements in the array field that match the
+conditions specified in :ref:`3.6-arrayFilters`.
+
+After the operation, the ``students`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+
+Update All Documents That Match ``arrayFilters`` in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :update:`$[\<identifier\>]` operator facilitates updates to arrays
+that contain embedded documents.  To access the fields
+in the embedded documents, use the :ref:`dot notation
+<document-dot-notation>` on the :update:`$[\<identifier\>]`.
+
+.. code-block:: javascript
+
+   db.collection.update(
+      { <query selector> },
+      { <update operator>: { "array.$[<identifier>].field" : value } },
+      { arrayFilters: [ { <identifier>: <condition> } } ] }
+   )
+
+
+Consider a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 90, "std" : 4 },
+         { "grade" : 85, "mean" : 85, "std" : 6 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the positional ``$[<identifier>]`` operator and
+:ref:`3.6-arrayFilters`:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students2.update(
+      { },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      {
+        multi: true,
+        arrayFilters: [ { "elem.grade": { $gte: 85 } } ]
+      }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+Update All Array Elements that Match Multiple Conditions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+To modify the value of the ``std`` field for all elements in the
+``grades`` array where both the grade is greater than or equal to
+``80`` and the ``std`` is greater than or equal to ``5``, use the
+positional ``$[<identifier>]`` operator and :ref:`3.6-arrayFilters`:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.update(
+      { },
+      { $inc: { "grades.$[elem].std" : -1 } },
+      { arrayFilters: [ { "elem.grade": { $gte: 80 }, "elem.std": { $gt: 5 } } ], multi: true }
+   )
+
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+
+   {  "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 5 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 5 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 5 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+.. _position-nested-arrays-filtered:
+
+Update Nested Arrays in Conjunction with ``$[]``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$[<identifier>]`` filtered positional operator, in conjunction with all
+:update:`$[]` positional operator can be used to update nested
+arrays.
+
+Create a collection ``students3`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students3.insert([
+      { "_id" : 1,
+         "grades" : [
+           { type: "quiz", questions: [ 10, 8, 5 ] },
+           { type: "quiz", questions: [ 8, 9, 6 ] },
+           { type: "hw", questions: [ 5, 4, 3 ] },
+           { type: "exam", questions: [ 25, 10, 23, 0 ] },
+
+         ]
+      }
+   ])
+
+The following updates the values that are greater than or equal to
+``8`` in the nested ``grades.questions`` array if the associated
+``grades.type`` field is ``quiz``.
+
+elements in the nested array ``grades.questions`` that whose
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students3.update(
+      {},
+      { $inc: { "grades.$[t].questions.$[score]": 2 } },
+      { arrayFilters: [ { "t.type": "quiz" } , { "score": { $gte: 8 } } ], multi: true}
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "type" : "quiz", "questions" : [ 12, 10, 5 ] },
+         { "type" : "quiz", "questions" : [ 10, 11, 6 ] },
+         { "type" : "hw", "questions" : [ 5, 4, 3 ] },
+         { "type" : "exam", "questions" : [ 25, 10, 23, 0 ] }
+      ]
+   }
+
+To update all values that are greater than or equal to ``8`` in the
+nested ``grades.questions`` array, regardless of ``type``:
+
+.. code-block:: javascript
+
+   db.students3.update(
+      {},
+      { $inc: { "grades.$[].questions.$[score]": 2 } },
+      { arrayFilters: [  { "score": { $gte: 8 } } ], multi: true}
+   )
+
+.. seealso:: 
+
+   - :update:`$[]`
+
+   - :method:`db.collection.update()`,
+
+   - :method:`db.collection.findAndModify()`,
+
+   - :query:`$elemMatch()`
+
+.. |arrow| unicode:: U+27A4
