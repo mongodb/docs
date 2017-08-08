@@ -88,7 +88,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
-	 * lunr - http://lunrjs.com - A bit like Solr, but much smaller and not as bright - 2.1.0
+	 * lunr - http://lunrjs.com - A bit like Solr, but much smaller and not as bright - 2.1.2
 	 * Copyright (C) 2017 Oliver Nightingale
 	 * @license MIT
 	 */
@@ -143,7 +143,7 @@
 	  return builder.build()
 	}
 	
-	lunr.version = "2.1.0"
+	lunr.version = "2.1.2"
 	/*!
 	 * lunr.utils
 	 * Copyright (C) 2017 Oliver Nightingale
@@ -2201,7 +2201,7 @@
 	        tokens = this.tokenizer(field),
 	        terms = this.pipeline.run(tokens),
 	        fieldRef = new lunr.FieldRef (docRef, fieldName),
-	        fieldTerms = {}
+	        fieldTerms = Object.create(null)
 	
 	    this.fieldTermFrequencies[fieldRef] = fieldTerms
 	    this.fieldLengths[fieldRef] = 0
@@ -2387,13 +2387,29 @@
 	 * lunr.Index~Result.
 	 *
 	 * @constructor
-	 * @property {object} metadata - A collection of metadata associated with this document.
+	 * @param {string} term - The term this match data is associated with
+	 * @param {string} field - The field in which the term was found
+	 * @param {object} metadata - The metadata recorded about this term in this field
+	 * @property {object} metadata - A cloned collection of metadata associated with this document.
 	 * @see {@link lunr.Index~Result}
 	 */
 	lunr.MatchData = function (term, field, metadata) {
-	  this.metadata = {}
-	  this.metadata[term] = {}
-	  this.metadata[term][field] = metadata
+	  var clonedMetadata = Object.create(null),
+	      metadataKeys = Object.keys(metadata)
+	
+	  // Cloning the metadata to prevent the original
+	  // being mutated during match data combination.
+	  // Metadata is kept in an array within the inverted
+	  // index so cloning the data can be done with
+	  // Array#slice
+	  for (var i = 0; i < metadataKeys.length; i++) {
+	    var key = metadataKeys[i]
+	    clonedMetadata[key] = metadata[key].slice()
+	  }
+	
+	  this.metadata = Object.create(null)
+	  this.metadata[term] = Object.create(null)
+	  this.metadata[term][field] = clonedMetadata
 	}
 	
 	/**
@@ -2413,7 +2429,7 @@
 	        fields = Object.keys(otherMatchData.metadata[term])
 	
 	    if (this.metadata[term] == undefined) {
-	      this.metadata[term] = {}
+	      this.metadata[term] = Object.create(null)
 	    }
 	
 	    for (var j = 0; j < fields.length; j++) {
@@ -2421,7 +2437,7 @@
 	          keys = Object.keys(otherMatchData.metadata[term][field])
 	
 	      if (this.metadata[term][field] == undefined) {
-	        this.metadata[term][field] = {}
+	        this.metadata[term][field] = Object.create(null)
 	      }
 	
 	      for (var k = 0; k < keys.length; k++) {

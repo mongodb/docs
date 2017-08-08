@@ -2,6 +2,7 @@ import classNames from 'classnames'
 import elementClass from 'element-class'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import Velocity from 'velocity-animate'
 
 import Marian from './Marian.js'
 import NavbarDropdown from './navbar-dropdown.js'
@@ -51,6 +52,9 @@ class Navbar extends React.Component {
         this.search()
       }
     }
+
+    this.calculateBlurredWidth = this.calculateBlurredWidth.bind(this)
+    this.calculateFocusWidth = this.calculateFocusWidth.bind(this)
   }
 
   onInput = (event) => {
@@ -82,6 +86,11 @@ class Navbar extends React.Component {
     gcse.type = 'text/javascript';
     gcse.async = true;
     gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+
+    // Pass the calculateBlurredWidth function
+    var calculateBlurredWidth = this.calculateBlurredWidth;
+    var calculateFocusWidth = this.calculateFocusWidth;
+
     gcse.onload = gcse.onreadystatechange = function() {
       // hack to set a placeholder in google's custom search input
       var pollInput = window.setInterval(function() {
@@ -90,17 +99,56 @@ class Navbar extends React.Component {
         if (input) {
           input.style.cssText = ''
           input.className = 'navbar-search'
+
           document.querySelector('.navbar__right').appendChild(input)
           input.setAttribute('placeholder', window.googleSearchPlaceholder)
           elementClass(input).add('navbar-search')
           window.clearInterval(pollInput);
+
+          // Set the initial size of the search bar depending on browser size
+          document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+
+          // Width of the search bar must be set manually when in or out of focus
+          input.onfocus = function() {
+            // Stop any executing animations, then start expanding
+            Velocity(input, "stop");
+            Velocity(input, { width: calculateFocusWidth() }, { duration: 200 });
+          }
+
+          input.onblur = function() {
+            // Stop any executing animations, then start collapsing
+            Velocity(input, "stop");
+            Velocity(input, { width: calculateBlurredWidth() }, { duration: 200 });
+          }
         }
       }, 10);
+
+      // Resize search bar when the browser is resized
+      window.addEventListener("resize", function(){
+        document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+      })
     };
 
     var s = document.getElementsByTagName('script')[0];
     s.parentNode.insertBefore(gcse, s);
 }
+
+  // Calculates the size of the search bar when it's not in focus
+  calculateBlurredWidth () {
+    var totalWidth = document.querySelector('.navbar__right').clientWidth;
+    var linksWidth = document.querySelector('.navbar-links').clientWidth;
+    var downloadWidth = document.querySelector('.navbar-download').clientWidth;
+
+    var searchWidth = totalWidth - (linksWidth + downloadWidth);
+
+    // Return as a string to forcefeed to velocity.js
+    return searchWidth + 'px';
+  }
+
+  // Calculates the size of the search bar when it's in focus, cursor
+  calculateFocusWidth () {
+    return document.querySelector('.navbar__right').clientWidth + 'px';
+  }
 
   render () {
     let searchBar
@@ -145,7 +193,6 @@ class Navbar extends React.Component {
             <a href="https://www.mongodb.com/download-center?jmp=tutorials" className="navbar-download__text">Download MongoDB</a>
             <svg height="11" width="9" xmlns="http://www.w3.org/2000/svg"><path d="m8.8 6.8-1.2-1.2-2.1 2v-7.6h-1.7v7.6l-2.1-2-1.2 1.2 4.2 4.2z" fill="#69b241"/></svg>
           </div>
-
           { searchBar }
         </div>
       </nav>

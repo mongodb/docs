@@ -60,9 +60,13 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDom = __webpack_require__(40);
+	var _reactDom = __webpack_require__(39);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
+	
+	var _velocityAnimate = __webpack_require__(185);
+	
+	var _velocityAnimate2 = _interopRequireDefault(_velocityAnimate);
 	
 	var _Marian = __webpack_require__(187);
 	
@@ -153,6 +157,9 @@
 	        _this.search();
 	      };
 	    }
+	
+	    _this.calculateBlurredWidth = _this.calculateBlurredWidth.bind(_this);
+	    _this.calculateFocusWidth = _this.calculateFocusWidth.bind(_this);
 	    return _this;
 	  }
 	
@@ -168,6 +175,11 @@
 	      gcse.type = 'text/javascript';
 	      gcse.async = true;
 	      gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+	
+	      // Pass the calculateBlurredWidth function
+	      var calculateBlurredWidth = this.calculateBlurredWidth;
+	      var calculateFocusWidth = this.calculateFocusWidth;
+	
 	      gcse.onload = gcse.onreadystatechange = function () {
 	        // hack to set a placeholder in google's custom search input
 	        var pollInput = window.setInterval(function () {
@@ -176,16 +188,61 @@
 	          if (input) {
 	            input.style.cssText = '';
 	            input.className = 'navbar-search';
+	
 	            document.querySelector('.navbar__right').appendChild(input);
 	            input.setAttribute('placeholder', window.googleSearchPlaceholder);
 	            (0, _elementClass2.default)(input).add('navbar-search');
 	            window.clearInterval(pollInput);
+	
+	            // Set the initial size of the search bar depending on browser size
+	            document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+	
+	            // Width of the search bar must be set manually when in or out of focus
+	            input.onfocus = function () {
+	              // Stop any executing animations, then start expanding
+	              (0, _velocityAnimate2.default)(input, "stop");
+	              (0, _velocityAnimate2.default)(input, { width: calculateFocusWidth() }, { duration: 200 });
+	            };
+	
+	            input.onblur = function () {
+	              // Stop any executing animations, then start collapsing
+	              (0, _velocityAnimate2.default)(input, "stop");
+	              (0, _velocityAnimate2.default)(input, { width: calculateBlurredWidth() }, { duration: 200 });
+	            };
 	          }
 	        }, 10);
+	
+	        // Resize search bar when the browser is resized
+	        window.addEventListener("resize", function () {
+	          document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+	        });
 	      };
 	
 	      var s = document.getElementsByTagName('script')[0];
 	      s.parentNode.insertBefore(gcse, s);
+	    }
+	
+	    // Calculates the size of the search bar when it's not in focus
+	
+	  }, {
+	    key: 'calculateBlurredWidth',
+	    value: function calculateBlurredWidth() {
+	      var totalWidth = document.querySelector('.navbar__right').clientWidth;
+	      var linksWidth = document.querySelector('.navbar-links').clientWidth;
+	      var downloadWidth = document.querySelector('.navbar-download').clientWidth;
+	
+	      var searchWidth = totalWidth - (linksWidth + downloadWidth);
+	
+	      // Return as a string to forcefeed to velocity.js
+	      return searchWidth + 'px';
+	    }
+	
+	    // Calculates the size of the search bar when it's in focus, cursor
+	
+	  }, {
+	    key: 'calculateFocusWidth',
+	    value: function calculateFocusWidth() {
+	      return document.querySelector('.navbar__right').clientWidth + 'px';
 	    }
 	  }, {
 	    key: 'render',
@@ -421,24 +478,25 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var ReactBaseClasses = __webpack_require__(8);
-	var ReactChildren = __webpack_require__(17);
-	var ReactDOMFactories = __webpack_require__(25);
-	var ReactElement = __webpack_require__(19);
-	var ReactPropTypes = __webpack_require__(31);
-	var ReactVersion = __webpack_require__(36);
+	var ReactChildren = __webpack_require__(8);
+	var ReactComponent = __webpack_require__(21);
+	var ReactPureComponent = __webpack_require__(24);
+	var ReactClass = __webpack_require__(25);
+	var ReactDOMFactories = __webpack_require__(27);
+	var ReactElement = __webpack_require__(12);
+	var ReactPropTypes = __webpack_require__(32);
+	var ReactVersion = __webpack_require__(37);
 	
-	var createReactClass = __webpack_require__(37);
-	var onlyChild = __webpack_require__(39);
+	var onlyChild = __webpack_require__(38);
+	var warning = __webpack_require__(14);
 	
 	var createElement = ReactElement.createElement;
 	var createFactory = ReactElement.createFactory;
 	var cloneElement = ReactElement.cloneElement;
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var lowPriorityWarning = __webpack_require__(16);
-	  var canDefineProperty = __webpack_require__(13);
-	  var ReactElementValidator = __webpack_require__(26);
+	  var canDefineProperty = __webpack_require__(16);
+	  var ReactElementValidator = __webpack_require__(28);
 	  var didWarnPropTypesDeprecated = false;
 	  createElement = ReactElementValidator.createElement;
 	  createFactory = ReactElementValidator.createFactory;
@@ -446,27 +504,18 @@
 	}
 	
 	var __spread = _assign;
-	var createMixin = function createMixin(mixin) {
-	  return mixin;
-	};
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var warnedForSpread = false;
-	  var warnedForCreateMixin = false;
+	  var warned = false;
 	  __spread = function __spread() {
-	    lowPriorityWarning(warnedForSpread, 'React.__spread is deprecated and should not be used. Use ' + 'Object.assign directly or another helper function with similar ' + 'semantics. You may be seeing this warning due to your compiler. ' + 'See https://fb.me/react-spread-deprecation for more details.');
-	    warnedForSpread = true;
+	    process.env.NODE_ENV !== 'production' ? warning(warned, 'React.__spread is deprecated and should not be used. Use ' + 'Object.assign directly or another helper function with similar ' + 'semantics. You may be seeing this warning due to your compiler. ' + 'See https://fb.me/react-spread-deprecation for more details.') : void 0;
+	    warned = true;
 	    return _assign.apply(null, arguments);
-	  };
-	
-	  createMixin = function createMixin(mixin) {
-	    lowPriorityWarning(warnedForCreateMixin, 'React.createMixin is deprecated and should not be used. ' + 'In React v16.0, it will be removed. ' + 'You can use this mixin directly instead. ' + 'See https://fb.me/createmixin-was-never-implemented for more info.');
-	    warnedForCreateMixin = true;
-	    return mixin;
 	  };
 	}
 	
 	var React = {
+	
 	  // Modern
 	
 	  Children: {
@@ -477,8 +526,8 @@
 	    only: onlyChild
 	  },
 	
-	  Component: ReactBaseClasses.Component,
-	  PureComponent: ReactBaseClasses.PureComponent,
+	  Component: ReactComponent,
+	  PureComponent: ReactPureComponent,
 	
 	  createElement: createElement,
 	  cloneElement: cloneElement,
@@ -487,9 +536,12 @@
 	  // Classic
 	
 	  PropTypes: ReactPropTypes,
-	  createClass: createReactClass,
+	  createClass: ReactClass.createClass,
 	  createFactory: createFactory,
-	  createMixin: createMixin,
+	  createMixin: function createMixin(mixin) {
+	    // Currently a noop. Will be used to validate and trace mixins.
+	    return mixin;
+	  },
 	
 	  // This looks DOM specific but these are actually isomorphic helpers
 	  // since they are just generating DOM strings.
@@ -501,40 +553,17 @@
 	  __spread: __spread
 	};
 	
+	// TODO: Fix tests so that this deprecation warning doesn't cause failures.
 	if (process.env.NODE_ENV !== 'production') {
-	  var warnedForCreateClass = false;
 	  if (canDefineProperty) {
 	    Object.defineProperty(React, 'PropTypes', {
 	      get: function get() {
-	        lowPriorityWarning(didWarnPropTypesDeprecated, 'Accessing PropTypes via the main React package is deprecated,' + ' and will be removed in  React v16.0.' + ' Use the latest available v15.* prop-types package from npm instead.' + ' For info on usage, compatibility, migration and more, see ' + 'https://fb.me/prop-types-docs');
+	        process.env.NODE_ENV !== 'production' ? warning(didWarnPropTypesDeprecated, 'Accessing PropTypes via the main React package is deprecated. Use ' + 'the prop-types package from npm instead.') : void 0;
 	        didWarnPropTypesDeprecated = true;
 	        return ReactPropTypes;
 	      }
 	    });
-	
-	    Object.defineProperty(React, 'createClass', {
-	      get: function get() {
-	        lowPriorityWarning(warnedForCreateClass, 'Accessing createClass via the main React package is deprecated,' + ' and will be removed in React v16.0.' + " Use a plain JavaScript class instead. If you're not yet " + 'ready to migrate, create-react-class v15.* is available ' + 'on npm as a temporary, drop-in replacement. ' + 'For more info see https://fb.me/react-create-class');
-	        warnedForCreateClass = true;
-	        return createReactClass;
-	      }
-	    });
 	  }
-	
-	  // React.DOM factories are deprecated. Wrap these methods so that
-	  // invocations of the React.DOM namespace and alert users to switch
-	  // to the `react-dom-factories` package.
-	  React.DOM = {};
-	  var warnedForFactories = false;
-	  Object.keys(ReactDOMFactories).forEach(function (factory) {
-	    React.DOM[factory] = function () {
-	      if (!warnedForFactories) {
-	        lowPriorityWarning(false, 'Accessing factories like React.DOM.%s has been deprecated ' + 'and will be removed in v16.0+. Use the ' + 'react-dom-factories package instead. ' + ' Version 1.0 provides a drop-in replacement.' + ' For more info, see https://fb.me/react-dom-factories', factory);
-	        warnedForFactories = true;
-	      }
-	      return ReactDOMFactories[factory].apply(ReactDOMFactories, arguments);
-	    };
-	  });
 	}
 	
 	module.exports = React;
@@ -831,601 +860,6 @@
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	var _prodInvariant = __webpack_require__(9),
-	    _assign = __webpack_require__(7);
-	
-	var ReactNoopUpdateQueue = __webpack_require__(10);
-	
-	var canDefineProperty = __webpack_require__(13);
-	var emptyObject = __webpack_require__(14);
-	var invariant = __webpack_require__(15);
-	var lowPriorityWarning = __webpack_require__(16);
-	
-	/**
-	 * Base class helpers for the updating state of a component.
-	 */
-	function ReactComponent(props, context, updater) {
-	  this.props = props;
-	  this.context = context;
-	  this.refs = emptyObject;
-	  // We initialize the default updater but the real one gets injected by the
-	  // renderer.
-	  this.updater = updater || ReactNoopUpdateQueue;
-	}
-	
-	ReactComponent.prototype.isReactComponent = {};
-	
-	/**
-	 * Sets a subset of the state. Always use this to mutate
-	 * state. You should treat `this.state` as immutable.
-	 *
-	 * There is no guarantee that `this.state` will be immediately updated, so
-	 * accessing `this.state` after calling this method may return the old value.
-	 *
-	 * There is no guarantee that calls to `setState` will run synchronously,
-	 * as they may eventually be batched together.  You can provide an optional
-	 * callback that will be executed when the call to setState is actually
-	 * completed.
-	 *
-	 * When a function is provided to setState, it will be called at some point in
-	 * the future (not synchronously). It will be called with the up to date
-	 * component arguments (state, props, context). These values can be different
-	 * from this.* because your function may be called after receiveProps but before
-	 * shouldComponentUpdate, and this new state, props, and context will not yet be
-	 * assigned to this.
-	 *
-	 * @param {object|function} partialState Next partial state or function to
-	 *        produce next partial state to be merged with current state.
-	 * @param {?function} callback Called after state is updated.
-	 * @final
-	 * @protected
-	 */
-	ReactComponent.prototype.setState = function (partialState, callback) {
-	  !((typeof partialState === 'undefined' ? 'undefined' : _typeof(partialState)) === 'object' || typeof partialState === 'function' || partialState == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'setState(...): takes an object of state variables to update or a function which returns an object of state variables.') : _prodInvariant('85') : void 0;
-	  this.updater.enqueueSetState(this, partialState);
-	  if (callback) {
-	    this.updater.enqueueCallback(this, callback, 'setState');
-	  }
-	};
-	
-	/**
-	 * Forces an update. This should only be invoked when it is known with
-	 * certainty that we are **not** in a DOM transaction.
-	 *
-	 * You may want to call this when you know that some deeper aspect of the
-	 * component's state has changed but `setState` was not called.
-	 *
-	 * This will not invoke `shouldComponentUpdate`, but it will invoke
-	 * `componentWillUpdate` and `componentDidUpdate`.
-	 *
-	 * @param {?function} callback Called after update is complete.
-	 * @final
-	 * @protected
-	 */
-	ReactComponent.prototype.forceUpdate = function (callback) {
-	  this.updater.enqueueForceUpdate(this);
-	  if (callback) {
-	    this.updater.enqueueCallback(this, callback, 'forceUpdate');
-	  }
-	};
-	
-	/**
-	 * Deprecated APIs. These APIs used to exist on classic React classes but since
-	 * we would like to deprecate them, we're not going to move them over to this
-	 * modern base class. Instead, we define a getter that warns if it's accessed.
-	 */
-	if (process.env.NODE_ENV !== 'production') {
-	  var deprecatedAPIs = {
-	    isMounted: ['isMounted', 'Instead, make sure to clean up subscriptions and pending requests in ' + 'componentWillUnmount to prevent memory leaks.'],
-	    replaceState: ['replaceState', 'Refactor your code to use setState instead (see ' + 'https://github.com/facebook/react/issues/3236).']
-	  };
-	  var defineDeprecationWarning = function defineDeprecationWarning(methodName, info) {
-	    if (canDefineProperty) {
-	      Object.defineProperty(ReactComponent.prototype, methodName, {
-	        get: function get() {
-	          lowPriorityWarning(false, '%s(...) is deprecated in plain JavaScript React classes. %s', info[0], info[1]);
-	          return undefined;
-	        }
-	      });
-	    }
-	  };
-	  for (var fnName in deprecatedAPIs) {
-	    if (deprecatedAPIs.hasOwnProperty(fnName)) {
-	      defineDeprecationWarning(fnName, deprecatedAPIs[fnName]);
-	    }
-	  }
-	}
-	
-	/**
-	 * Base class helpers for the updating state of a component.
-	 */
-	function ReactPureComponent(props, context, updater) {
-	  // Duplicated from ReactComponent.
-	  this.props = props;
-	  this.context = context;
-	  this.refs = emptyObject;
-	  // We initialize the default updater but the real one gets injected by the
-	  // renderer.
-	  this.updater = updater || ReactNoopUpdateQueue;
-	}
-	
-	function ComponentDummy() {}
-	ComponentDummy.prototype = ReactComponent.prototype;
-	ReactPureComponent.prototype = new ComponentDummy();
-	ReactPureComponent.prototype.constructor = ReactPureComponent;
-	// Avoid an extra prototype jump for these methods.
-	_assign(ReactPureComponent.prototype, ReactComponent.prototype);
-	ReactPureComponent.prototype.isPureReactComponent = true;
-	
-	module.exports = {
-	  Component: ReactComponent,
-	  PureComponent: ReactPureComponent
-	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports) {
-
-	/**
-	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * 
-	 */
-	'use strict';
-	
-	/**
-	 * WARNING: DO NOT manually require this module.
-	 * This is a replacement for `invariant(...)` used by the error code system
-	 * and will _only_ be required by the corresponding babel pass.
-	 * It always throws.
-	 */
-	
-	function reactProdInvariant(code) {
-	  var argCount = arguments.length - 1;
-	
-	  var message = 'Minified React error #' + code + '; visit ' + 'http://facebook.github.io/react/docs/error-decoder.html?invariant=' + code;
-	
-	  for (var argIdx = 0; argIdx < argCount; argIdx++) {
-	    message += '&args[]=' + encodeURIComponent(arguments[argIdx + 1]);
-	  }
-	
-	  message += ' for the full message or use the non-minified dev environment' + ' for full errors and additional helpful warnings.';
-	
-	  var error = new Error(message);
-	  error.name = 'Invariant Violation';
-	  error.framesToPop = 1; // we don't care about reactProdInvariant's own frame
-	
-	  throw error;
-	}
-	
-	module.exports = reactProdInvariant;
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2015-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var warning = __webpack_require__(11);
-	
-	function warnNoop(publicInstance, callerName) {
-	  if (process.env.NODE_ENV !== 'production') {
-	    var constructor = publicInstance.constructor;
-	    process.env.NODE_ENV !== 'production' ? warning(false, '%s(...): Can only update a mounted or mounting component. ' + 'This usually means you called %s() on an unmounted component. ' + 'This is a no-op. Please check the code for the %s component.', callerName, callerName, constructor && (constructor.displayName || constructor.name) || 'ReactClass') : void 0;
-	  }
-	}
-	
-	/**
-	 * This is the abstract API for an update queue.
-	 */
-	var ReactNoopUpdateQueue = {
-	  /**
-	   * Checks whether or not this composite component is mounted.
-	   * @param {ReactClass} publicInstance The instance we want to test.
-	   * @return {boolean} True if mounted, false otherwise.
-	   * @protected
-	   * @final
-	   */
-	  isMounted: function isMounted(publicInstance) {
-	    return false;
-	  },
-	
-	  /**
-	   * Enqueue a callback that will be executed after all the pending updates
-	   * have processed.
-	   *
-	   * @param {ReactClass} publicInstance The instance to use as `this` context.
-	   * @param {?function} callback Called after state is updated.
-	   * @internal
-	   */
-	  enqueueCallback: function enqueueCallback(publicInstance, callback) {},
-	
-	  /**
-	   * Forces an update. This should only be invoked when it is known with
-	   * certainty that we are **not** in a DOM transaction.
-	   *
-	   * You may want to call this when you know that some deeper aspect of the
-	   * component's state has changed but `setState` was not called.
-	   *
-	   * This will not invoke `shouldComponentUpdate`, but it will invoke
-	   * `componentWillUpdate` and `componentDidUpdate`.
-	   *
-	   * @param {ReactClass} publicInstance The instance that should rerender.
-	   * @internal
-	   */
-	  enqueueForceUpdate: function enqueueForceUpdate(publicInstance) {
-	    warnNoop(publicInstance, 'forceUpdate');
-	  },
-	
-	  /**
-	   * Replaces all of the state. Always use this or `setState` to mutate state.
-	   * You should treat `this.state` as immutable.
-	   *
-	   * There is no guarantee that `this.state` will be immediately updated, so
-	   * accessing `this.state` after calling this method may return the old value.
-	   *
-	   * @param {ReactClass} publicInstance The instance that should rerender.
-	   * @param {object} completeState Next state.
-	   * @internal
-	   */
-	  enqueueReplaceState: function enqueueReplaceState(publicInstance, completeState) {
-	    warnNoop(publicInstance, 'replaceState');
-	  },
-	
-	  /**
-	   * Sets a subset of the state. This only exists because _pendingState is
-	   * internal. This provides a merging strategy that is not available to deep
-	   * properties which is confusing. TODO: Expose pendingState or don't use it
-	   * during the merge.
-	   *
-	   * @param {ReactClass} publicInstance The instance that should rerender.
-	   * @param {object} partialState Next partial state to be merged with state.
-	   * @internal
-	   */
-	  enqueueSetState: function enqueueSetState(publicInstance, partialState) {
-	    warnNoop(publicInstance, 'setState');
-	  }
-	};
-	
-	module.exports = ReactNoopUpdateQueue;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var emptyFunction = __webpack_require__(12);
-	
-	/**
-	 * Similar to invariant but only logs a warning if the condition is not met.
-	 * This can be used to log issues in development environments in critical
-	 * paths. Removing the logging code for production environments will keep the
-	 * same logic and follow the same code paths.
-	 */
-	
-	var warning = emptyFunction;
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  (function () {
-	    var printWarning = function printWarning(format) {
-	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	        args[_key - 1] = arguments[_key];
-	      }
-	
-	      var argIndex = 0;
-	      var message = 'Warning: ' + format.replace(/%s/g, function () {
-	        return args[argIndex++];
-	      });
-	      if (typeof console !== 'undefined') {
-	        console.error(message);
-	      }
-	      try {
-	        // --- Welcome to debugging React ---
-	        // This error was thrown as a convenience so that you can use this stack
-	        // to find the callsite that caused this warning to fire.
-	        throw new Error(message);
-	      } catch (x) {}
-	    };
-	
-	    warning = function warning(condition, format) {
-	      if (format === undefined) {
-	        throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
-	      }
-	
-	      if (format.indexOf('Failed Composite propType: ') === 0) {
-	        return; // Ignore CompositeComponent proptype check.
-	      }
-	
-	      if (!condition) {
-	        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-	          args[_key2 - 2] = arguments[_key2];
-	        }
-	
-	        printWarning.apply(undefined, [format].concat(args));
-	      }
-	    };
-	  })();
-	}
-	
-	module.exports = warning;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports) {
-
-	"use strict";
-	
-	/**
-	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * 
-	 */
-	
-	function makeEmptyFunction(arg) {
-	  return function () {
-	    return arg;
-	  };
-	}
-	
-	/**
-	 * This function accepts and discards inputs; it has no side effects. This is
-	 * primarily useful idiomatically for overridable function endpoints which
-	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
-	 */
-	var emptyFunction = function emptyFunction() {};
-	
-	emptyFunction.thatReturns = makeEmptyFunction;
-	emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
-	emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
-	emptyFunction.thatReturnsNull = makeEmptyFunction(null);
-	emptyFunction.thatReturnsThis = function () {
-	  return this;
-	};
-	emptyFunction.thatReturnsArgument = function (arg) {
-	  return arg;
-	};
-	
-	module.exports = emptyFunction;
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * 
-	 */
-	
-	'use strict';
-	
-	var canDefineProperty = false;
-	if (process.env.NODE_ENV !== 'production') {
-	  try {
-	    // $FlowFixMe https://github.com/facebook/flow/issues/285
-	    Object.defineProperty({}, 'x', { get: function get() {} });
-	    canDefineProperty = true;
-	  } catch (x) {
-	    // IE will fail on defineProperty
-	  }
-	}
-	
-	module.exports = canDefineProperty;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var emptyObject = {};
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  Object.freeze(emptyObject);
-	}
-	
-	module.exports = emptyObject;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	/**
-	 * Use invariant() to assert state which your program assumes to be true.
-	 *
-	 * Provide sprintf-style format (only %s is supported) and arguments
-	 * to provide information about what broke and what you were
-	 * expecting.
-	 *
-	 * The invariant message will be stripped in production, but the invariant
-	 * will remain to ensure logic does not differ in production.
-	 */
-	
-	var validateFormat = function validateFormat(format) {};
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  validateFormat = function validateFormat(format) {
-	    if (format === undefined) {
-	      throw new Error('invariant requires an error message argument');
-	    }
-	  };
-	}
-	
-	function invariant(condition, format, a, b, c, d, e, f) {
-	  validateFormat(format);
-	
-	  if (!condition) {
-	    var error;
-	    if (format === undefined) {
-	      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
-	    } else {
-	      var args = [a, b, c, d, e, f];
-	      var argIndex = 0;
-	      error = new Error(format.replace(/%s/g, function () {
-	        return args[argIndex++];
-	      }));
-	      error.name = 'Invariant Violation';
-	    }
-	
-	    error.framesToPop = 1; // we don't care about invariant's own frame
-	    throw error;
-	  }
-	}
-	
-	module.exports = invariant;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	/**
-	 * Forked from fbjs/warning:
-	 * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
-	 *
-	 * Only change is we use console.warn instead of console.error,
-	 * and do nothing when 'console' is not supported.
-	 * This really simplifies the code.
-	 * ---
-	 * Similar to invariant but only logs a warning if the condition is not met.
-	 * This can be used to log issues in development environments in critical
-	 * paths. Removing the logging code for production environments will keep the
-	 * same logic and follow the same code paths.
-	 */
-	
-	var lowPriorityWarning = function lowPriorityWarning() {};
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  var printWarning = function printWarning(format) {
-	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	      args[_key - 1] = arguments[_key];
-	    }
-	
-	    var argIndex = 0;
-	    var message = 'Warning: ' + format.replace(/%s/g, function () {
-	      return args[argIndex++];
-	    });
-	    if (typeof console !== 'undefined') {
-	      console.warn(message);
-	    }
-	    try {
-	      // --- Welcome to debugging React ---
-	      // This error was thrown as a convenience so that you can use this stack
-	      // to find the callsite that caused this warning to fire.
-	      throw new Error(message);
-	    } catch (x) {}
-	  };
-	
-	  lowPriorityWarning = function lowPriorityWarning(condition, format) {
-	    if (format === undefined) {
-	      throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
-	    }
-	    if (!condition) {
-	      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-	        args[_key2 - 2] = arguments[_key2];
-	      }
-	
-	      printWarning.apply(undefined, [format].concat(args));
-	    }
-	  };
-	}
-	
-	module.exports = lowPriorityWarning;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
 	 * All rights reserved.
@@ -1438,11 +872,11 @@
 	
 	'use strict';
 	
-	var PooledClass = __webpack_require__(18);
-	var ReactElement = __webpack_require__(19);
+	var PooledClass = __webpack_require__(9);
+	var ReactElement = __webpack_require__(12);
 	
-	var emptyFunction = __webpack_require__(12);
-	var traverseAllChildren = __webpack_require__(22);
+	var emptyFunction = __webpack_require__(15);
+	var traverseAllChildren = __webpack_require__(18);
 	
 	var twoArgumentPooler = PooledClass.twoArgumentPooler;
 	var fourArgumentPooler = PooledClass.fourArgumentPooler;
@@ -1617,7 +1051,7 @@
 	module.exports = ReactChildren;
 
 /***/ }),
-/* 18 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -1633,9 +1067,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(9);
+	var _prodInvariant = __webpack_require__(10);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Static poolers. Several custom versions for each potential number of
@@ -1734,7 +1168,111 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 19 */
+/* 10 */
+/***/ (function(module, exports) {
+
+	/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * 
+	 */
+	'use strict';
+	
+	/**
+	 * WARNING: DO NOT manually require this module.
+	 * This is a replacement for `invariant(...)` used by the error code system
+	 * and will _only_ be required by the corresponding babel pass.
+	 * It always throws.
+	 */
+	
+	function reactProdInvariant(code) {
+	  var argCount = arguments.length - 1;
+	
+	  var message = 'Minified React error #' + code + '; visit ' + 'http://facebook.github.io/react/docs/error-decoder.html?invariant=' + code;
+	
+	  for (var argIdx = 0; argIdx < argCount; argIdx++) {
+	    message += '&args[]=' + encodeURIComponent(arguments[argIdx + 1]);
+	  }
+	
+	  message += ' for the full message or use the non-minified dev environment' + ' for full errors and additional helpful warnings.';
+	
+	  var error = new Error(message);
+	  error.name = 'Invariant Violation';
+	  error.framesToPop = 1; // we don't care about reactProdInvariant's own frame
+	
+	  throw error;
+	}
+	
+	module.exports = reactProdInvariant;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	/**
+	 * Use invariant() to assert state which your program assumes to be true.
+	 *
+	 * Provide sprintf-style format (only %s is supported) and arguments
+	 * to provide information about what broke and what you were
+	 * expecting.
+	 *
+	 * The invariant message will be stripped in production, but the invariant
+	 * will remain to ensure logic does not differ in production.
+	 */
+	
+	var validateFormat = function validateFormat(format) {};
+	
+	if (process.env.NODE_ENV !== 'production') {
+	  validateFormat = function validateFormat(format) {
+	    if (format === undefined) {
+	      throw new Error('invariant requires an error message argument');
+	    }
+	  };
+	}
+	
+	function invariant(condition, format, a, b, c, d, e, f) {
+	  validateFormat(format);
+	
+	  if (!condition) {
+	    var error;
+	    if (format === undefined) {
+	      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
+	    } else {
+	      var args = [a, b, c, d, e, f];
+	      var argIndex = 0;
+	      error = new Error(format.replace(/%s/g, function () {
+	        return args[argIndex++];
+	      }));
+	      error.name = 'Invariant Violation';
+	    }
+	
+	    error.framesToPop = 1; // we don't care about invariant's own frame
+	    throw error;
+	  }
+	}
+	
+	module.exports = invariant;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -1753,13 +1291,13 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
+	var ReactCurrentOwner = __webpack_require__(13);
 	
-	var warning = __webpack_require__(11);
-	var canDefineProperty = __webpack_require__(13);
+	var warning = __webpack_require__(14);
+	var canDefineProperty = __webpack_require__(16);
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
 	
-	var REACT_ELEMENT_TYPE = __webpack_require__(21);
+	var REACT_ELEMENT_TYPE = __webpack_require__(17);
 	
 	var RESERVED_PROPS = {
 	  key: true,
@@ -2082,7 +1620,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 20 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	/**
@@ -2106,17 +1644,165 @@
 	 */
 	
 	var ReactCurrentOwner = {
+	
 	  /**
 	   * @internal
 	   * @type {ReactComponent}
 	   */
 	  current: null
+	
 	};
 	
 	module.exports = ReactCurrentOwner;
 
 /***/ }),
-/* 21 */
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014-2015, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var emptyFunction = __webpack_require__(15);
+	
+	/**
+	 * Similar to invariant but only logs a warning if the condition is not met.
+	 * This can be used to log issues in development environments in critical
+	 * paths. Removing the logging code for production environments will keep the
+	 * same logic and follow the same code paths.
+	 */
+	
+	var warning = emptyFunction;
+	
+	if (process.env.NODE_ENV !== 'production') {
+	  (function () {
+	    var printWarning = function printWarning(format) {
+	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        args[_key - 1] = arguments[_key];
+	      }
+	
+	      var argIndex = 0;
+	      var message = 'Warning: ' + format.replace(/%s/g, function () {
+	        return args[argIndex++];
+	      });
+	      if (typeof console !== 'undefined') {
+	        console.error(message);
+	      }
+	      try {
+	        // --- Welcome to debugging React ---
+	        // This error was thrown as a convenience so that you can use this stack
+	        // to find the callsite that caused this warning to fire.
+	        throw new Error(message);
+	      } catch (x) {}
+	    };
+	
+	    warning = function warning(condition, format) {
+	      if (format === undefined) {
+	        throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+	      }
+	
+	      if (format.indexOf('Failed Composite propType: ') === 0) {
+	        return; // Ignore CompositeComponent proptype check.
+	      }
+	
+	      if (!condition) {
+	        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+	          args[_key2 - 2] = arguments[_key2];
+	        }
+	
+	        printWarning.apply(undefined, [format].concat(args));
+	      }
+	    };
+	  })();
+	}
+	
+	module.exports = warning;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports) {
+
+	"use strict";
+	
+	/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * 
+	 */
+	
+	function makeEmptyFunction(arg) {
+	  return function () {
+	    return arg;
+	  };
+	}
+	
+	/**
+	 * This function accepts and discards inputs; it has no side effects. This is
+	 * primarily useful idiomatically for overridable function endpoints which
+	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+	 */
+	var emptyFunction = function emptyFunction() {};
+	
+	emptyFunction.thatReturns = makeEmptyFunction;
+	emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+	emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+	emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+	emptyFunction.thatReturnsThis = function () {
+	  return this;
+	};
+	emptyFunction.thatReturnsArgument = function (arg) {
+	  return arg;
+	};
+	
+	module.exports = emptyFunction;
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * 
+	 */
+	
+	'use strict';
+	
+	var canDefineProperty = false;
+	if (process.env.NODE_ENV !== 'production') {
+	  try {
+	    // $FlowFixMe https://github.com/facebook/flow/issues/285
+	    Object.defineProperty({}, 'x', { get: function get() {} });
+	    canDefineProperty = true;
+	  } catch (x) {
+	    // IE will fail on defineProperty
+	  }
+	}
+	
+	module.exports = canDefineProperty;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 17 */
 /***/ (function(module, exports) {
 
 	/**
@@ -2140,7 +1826,7 @@
 	module.exports = REACT_ELEMENT_TYPE;
 
 /***/ }),
-/* 22 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -2157,15 +1843,15 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(9);
+	var _prodInvariant = __webpack_require__(10);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var REACT_ELEMENT_TYPE = __webpack_require__(21);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var REACT_ELEMENT_TYPE = __webpack_require__(17);
 	
-	var getIteratorFn = __webpack_require__(23);
-	var invariant = __webpack_require__(15);
-	var KeyEscapeUtils = __webpack_require__(24);
-	var warning = __webpack_require__(11);
+	var getIteratorFn = __webpack_require__(19);
+	var invariant = __webpack_require__(11);
+	var KeyEscapeUtils = __webpack_require__(20);
+	var warning = __webpack_require__(14);
 	
 	var SEPARATOR = '.';
 	var SUBSEPARATOR = ':';
@@ -2278,7 +1964,7 @@
 	      if (process.env.NODE_ENV !== 'production') {
 	        addendum = ' If you meant to render a collection of children, use an array ' + 'instead or wrap the object using createFragment(object) from the ' + 'React add-ons.';
 	        if (children._isReactElement) {
-	          addendum = " It looks like you're using an element created by a different " + 'version of React. Make sure to use only one copy of React.';
+	          addendum = ' It looks like you\'re using an element created by a different ' + 'version of React. Make sure to use only one copy of React.';
 	        }
 	        if (ReactCurrentOwner.current) {
 	          var name = ReactCurrentOwner.current.getName();
@@ -2323,7 +2009,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 23 */
+/* 19 */
 /***/ (function(module, exports) {
 
 	/**
@@ -2368,7 +2054,7 @@
 	module.exports = getIteratorFn;
 
 /***/ }),
-/* 24 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	/**
@@ -2431,6 +2117,303 @@
 	module.exports = KeyEscapeUtils;
 
 /***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _prodInvariant = __webpack_require__(10);
+	
+	var ReactNoopUpdateQueue = __webpack_require__(22);
+	
+	var canDefineProperty = __webpack_require__(16);
+	var emptyObject = __webpack_require__(23);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
+	
+	/**
+	 * Base class helpers for the updating state of a component.
+	 */
+	function ReactComponent(props, context, updater) {
+	  this.props = props;
+	  this.context = context;
+	  this.refs = emptyObject;
+	  // We initialize the default updater but the real one gets injected by the
+	  // renderer.
+	  this.updater = updater || ReactNoopUpdateQueue;
+	}
+	
+	ReactComponent.prototype.isReactComponent = {};
+	
+	/**
+	 * Sets a subset of the state. Always use this to mutate
+	 * state. You should treat `this.state` as immutable.
+	 *
+	 * There is no guarantee that `this.state` will be immediately updated, so
+	 * accessing `this.state` after calling this method may return the old value.
+	 *
+	 * There is no guarantee that calls to `setState` will run synchronously,
+	 * as they may eventually be batched together.  You can provide an optional
+	 * callback that will be executed when the call to setState is actually
+	 * completed.
+	 *
+	 * When a function is provided to setState, it will be called at some point in
+	 * the future (not synchronously). It will be called with the up to date
+	 * component arguments (state, props, context). These values can be different
+	 * from this.* because your function may be called after receiveProps but before
+	 * shouldComponentUpdate, and this new state, props, and context will not yet be
+	 * assigned to this.
+	 *
+	 * @param {object|function} partialState Next partial state or function to
+	 *        produce next partial state to be merged with current state.
+	 * @param {?function} callback Called after state is updated.
+	 * @final
+	 * @protected
+	 */
+	ReactComponent.prototype.setState = function (partialState, callback) {
+	  !((typeof partialState === 'undefined' ? 'undefined' : _typeof(partialState)) === 'object' || typeof partialState === 'function' || partialState == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'setState(...): takes an object of state variables to update or a function which returns an object of state variables.') : _prodInvariant('85') : void 0;
+	  this.updater.enqueueSetState(this, partialState);
+	  if (callback) {
+	    this.updater.enqueueCallback(this, callback, 'setState');
+	  }
+	};
+	
+	/**
+	 * Forces an update. This should only be invoked when it is known with
+	 * certainty that we are **not** in a DOM transaction.
+	 *
+	 * You may want to call this when you know that some deeper aspect of the
+	 * component's state has changed but `setState` was not called.
+	 *
+	 * This will not invoke `shouldComponentUpdate`, but it will invoke
+	 * `componentWillUpdate` and `componentDidUpdate`.
+	 *
+	 * @param {?function} callback Called after update is complete.
+	 * @final
+	 * @protected
+	 */
+	ReactComponent.prototype.forceUpdate = function (callback) {
+	  this.updater.enqueueForceUpdate(this);
+	  if (callback) {
+	    this.updater.enqueueCallback(this, callback, 'forceUpdate');
+	  }
+	};
+	
+	/**
+	 * Deprecated APIs. These APIs used to exist on classic React classes but since
+	 * we would like to deprecate them, we're not going to move them over to this
+	 * modern base class. Instead, we define a getter that warns if it's accessed.
+	 */
+	if (process.env.NODE_ENV !== 'production') {
+	  var deprecatedAPIs = {
+	    isMounted: ['isMounted', 'Instead, make sure to clean up subscriptions and pending requests in ' + 'componentWillUnmount to prevent memory leaks.'],
+	    replaceState: ['replaceState', 'Refactor your code to use setState instead (see ' + 'https://github.com/facebook/react/issues/3236).']
+	  };
+	  var defineDeprecationWarning = function defineDeprecationWarning(methodName, info) {
+	    if (canDefineProperty) {
+	      Object.defineProperty(ReactComponent.prototype, methodName, {
+	        get: function get() {
+	          process.env.NODE_ENV !== 'production' ? warning(false, '%s(...) is deprecated in plain JavaScript React classes. %s', info[0], info[1]) : void 0;
+	          return undefined;
+	        }
+	      });
+	    }
+	  };
+	  for (var fnName in deprecatedAPIs) {
+	    if (deprecatedAPIs.hasOwnProperty(fnName)) {
+	      defineDeprecationWarning(fnName, deprecatedAPIs[fnName]);
+	    }
+	  }
+	}
+	
+	module.exports = ReactComponent;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2015-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var warning = __webpack_require__(14);
+	
+	function warnNoop(publicInstance, callerName) {
+	  if (process.env.NODE_ENV !== 'production') {
+	    var constructor = publicInstance.constructor;
+	    process.env.NODE_ENV !== 'production' ? warning(false, '%s(...): Can only update a mounted or mounting component. ' + 'This usually means you called %s() on an unmounted component. ' + 'This is a no-op. Please check the code for the %s component.', callerName, callerName, constructor && (constructor.displayName || constructor.name) || 'ReactClass') : void 0;
+	  }
+	}
+	
+	/**
+	 * This is the abstract API for an update queue.
+	 */
+	var ReactNoopUpdateQueue = {
+	
+	  /**
+	   * Checks whether or not this composite component is mounted.
+	   * @param {ReactClass} publicInstance The instance we want to test.
+	   * @return {boolean} True if mounted, false otherwise.
+	   * @protected
+	   * @final
+	   */
+	  isMounted: function isMounted(publicInstance) {
+	    return false;
+	  },
+	
+	  /**
+	   * Enqueue a callback that will be executed after all the pending updates
+	   * have processed.
+	   *
+	   * @param {ReactClass} publicInstance The instance to use as `this` context.
+	   * @param {?function} callback Called after state is updated.
+	   * @internal
+	   */
+	  enqueueCallback: function enqueueCallback(publicInstance, callback) {},
+	
+	  /**
+	   * Forces an update. This should only be invoked when it is known with
+	   * certainty that we are **not** in a DOM transaction.
+	   *
+	   * You may want to call this when you know that some deeper aspect of the
+	   * component's state has changed but `setState` was not called.
+	   *
+	   * This will not invoke `shouldComponentUpdate`, but it will invoke
+	   * `componentWillUpdate` and `componentDidUpdate`.
+	   *
+	   * @param {ReactClass} publicInstance The instance that should rerender.
+	   * @internal
+	   */
+	  enqueueForceUpdate: function enqueueForceUpdate(publicInstance) {
+	    warnNoop(publicInstance, 'forceUpdate');
+	  },
+	
+	  /**
+	   * Replaces all of the state. Always use this or `setState` to mutate state.
+	   * You should treat `this.state` as immutable.
+	   *
+	   * There is no guarantee that `this.state` will be immediately updated, so
+	   * accessing `this.state` after calling this method may return the old value.
+	   *
+	   * @param {ReactClass} publicInstance The instance that should rerender.
+	   * @param {object} completeState Next state.
+	   * @internal
+	   */
+	  enqueueReplaceState: function enqueueReplaceState(publicInstance, completeState) {
+	    warnNoop(publicInstance, 'replaceState');
+	  },
+	
+	  /**
+	   * Sets a subset of the state. This only exists because _pendingState is
+	   * internal. This provides a merging strategy that is not available to deep
+	   * properties which is confusing. TODO: Expose pendingState or don't use it
+	   * during the merge.
+	   *
+	   * @param {ReactClass} publicInstance The instance that should rerender.
+	   * @param {object} partialState Next partial state to be merged with state.
+	   * @internal
+	   */
+	  enqueueSetState: function enqueueSetState(publicInstance, partialState) {
+	    warnNoop(publicInstance, 'setState');
+	  }
+	};
+	
+	module.exports = ReactNoopUpdateQueue;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var emptyObject = {};
+	
+	if (process.env.NODE_ENV !== 'production') {
+	  Object.freeze(emptyObject);
+	}
+	
+	module.exports = emptyObject;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var _assign = __webpack_require__(7);
+	
+	var ReactComponent = __webpack_require__(21);
+	var ReactNoopUpdateQueue = __webpack_require__(22);
+	
+	var emptyObject = __webpack_require__(23);
+	
+	/**
+	 * Base class helpers for the updating state of a component.
+	 */
+	function ReactPureComponent(props, context, updater) {
+	  // Duplicated from ReactComponent.
+	  this.props = props;
+	  this.context = context;
+	  this.refs = emptyObject;
+	  // We initialize the default updater but the real one gets injected by the
+	  // renderer.
+	  this.updater = updater || ReactNoopUpdateQueue;
+	}
+	
+	function ComponentDummy() {}
+	ComponentDummy.prototype = ReactComponent.prototype;
+	ReactPureComponent.prototype = new ComponentDummy();
+	ReactPureComponent.prototype.constructor = ReactPureComponent;
+	// Avoid an extra prototype jump for these methods.
+	_assign(ReactPureComponent.prototype, ReactComponent.prototype);
+	ReactPureComponent.prototype.isPureReactComponent = true;
+	
+	module.exports = ReactPureComponent;
+
+/***/ }),
 /* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2446,7 +2429,766 @@
 	
 	'use strict';
 	
-	var ReactElement = __webpack_require__(19);
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _prodInvariant = __webpack_require__(10),
+	    _assign = __webpack_require__(7);
+	
+	var ReactComponent = __webpack_require__(21);
+	var ReactElement = __webpack_require__(12);
+	var ReactPropTypeLocationNames = __webpack_require__(26);
+	var ReactNoopUpdateQueue = __webpack_require__(22);
+	
+	var emptyObject = __webpack_require__(23);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
+	
+	var MIXINS_KEY = 'mixins';
+	
+	// Helper function to allow the creation of anonymous functions which do not
+	// have .name set to the name of the variable being assigned to.
+	function identity(fn) {
+	  return fn;
+	}
+	
+	/**
+	 * Policies that describe methods in `ReactClassInterface`.
+	 */
+	
+	var injectedMixins = [];
+	
+	/**
+	 * Composite components are higher-level components that compose other composite
+	 * or host components.
+	 *
+	 * To create a new type of `ReactClass`, pass a specification of
+	 * your new class to `React.createClass`. The only requirement of your class
+	 * specification is that you implement a `render` method.
+	 *
+	 *   var MyComponent = React.createClass({
+	 *     render: function() {
+	 *       return <div>Hello World</div>;
+	 *     }
+	 *   });
+	 *
+	 * The class specification supports a specific protocol of methods that have
+	 * special meaning (e.g. `render`). See `ReactClassInterface` for
+	 * more the comprehensive protocol. Any other properties and methods in the
+	 * class specification will be available on the prototype.
+	 *
+	 * @interface ReactClassInterface
+	 * @internal
+	 */
+	var ReactClassInterface = {
+	
+	  /**
+	   * An array of Mixin objects to include when defining your component.
+	   *
+	   * @type {array}
+	   * @optional
+	   */
+	  mixins: 'DEFINE_MANY',
+	
+	  /**
+	   * An object containing properties and methods that should be defined on
+	   * the component's constructor instead of its prototype (static methods).
+	   *
+	   * @type {object}
+	   * @optional
+	   */
+	  statics: 'DEFINE_MANY',
+	
+	  /**
+	   * Definition of prop types for this component.
+	   *
+	   * @type {object}
+	   * @optional
+	   */
+	  propTypes: 'DEFINE_MANY',
+	
+	  /**
+	   * Definition of context types for this component.
+	   *
+	   * @type {object}
+	   * @optional
+	   */
+	  contextTypes: 'DEFINE_MANY',
+	
+	  /**
+	   * Definition of context types this component sets for its children.
+	   *
+	   * @type {object}
+	   * @optional
+	   */
+	  childContextTypes: 'DEFINE_MANY',
+	
+	  // ==== Definition methods ====
+	
+	  /**
+	   * Invoked when the component is mounted. Values in the mapping will be set on
+	   * `this.props` if that prop is not specified (i.e. using an `in` check).
+	   *
+	   * This method is invoked before `getInitialState` and therefore cannot rely
+	   * on `this.state` or use `this.setState`.
+	   *
+	   * @return {object}
+	   * @optional
+	   */
+	  getDefaultProps: 'DEFINE_MANY_MERGED',
+	
+	  /**
+	   * Invoked once before the component is mounted. The return value will be used
+	   * as the initial value of `this.state`.
+	   *
+	   *   getInitialState: function() {
+	   *     return {
+	   *       isOn: false,
+	   *       fooBaz: new BazFoo()
+	   *     }
+	   *   }
+	   *
+	   * @return {object}
+	   * @optional
+	   */
+	  getInitialState: 'DEFINE_MANY_MERGED',
+	
+	  /**
+	   * @return {object}
+	   * @optional
+	   */
+	  getChildContext: 'DEFINE_MANY_MERGED',
+	
+	  /**
+	   * Uses props from `this.props` and state from `this.state` to render the
+	   * structure of the component.
+	   *
+	   * No guarantees are made about when or how often this method is invoked, so
+	   * it must not have side effects.
+	   *
+	   *   render: function() {
+	   *     var name = this.props.name;
+	   *     return <div>Hello, {name}!</div>;
+	   *   }
+	   *
+	   * @return {ReactComponent}
+	   * @required
+	   */
+	  render: 'DEFINE_ONCE',
+	
+	  // ==== Delegate methods ====
+	
+	  /**
+	   * Invoked when the component is initially created and about to be mounted.
+	   * This may have side effects, but any external subscriptions or data created
+	   * by this method must be cleaned up in `componentWillUnmount`.
+	   *
+	   * @optional
+	   */
+	  componentWillMount: 'DEFINE_MANY',
+	
+	  /**
+	   * Invoked when the component has been mounted and has a DOM representation.
+	   * However, there is no guarantee that the DOM node is in the document.
+	   *
+	   * Use this as an opportunity to operate on the DOM when the component has
+	   * been mounted (initialized and rendered) for the first time.
+	   *
+	   * @param {DOMElement} rootNode DOM element representing the component.
+	   * @optional
+	   */
+	  componentDidMount: 'DEFINE_MANY',
+	
+	  /**
+	   * Invoked before the component receives new props.
+	   *
+	   * Use this as an opportunity to react to a prop transition by updating the
+	   * state using `this.setState`. Current props are accessed via `this.props`.
+	   *
+	   *   componentWillReceiveProps: function(nextProps, nextContext) {
+	   *     this.setState({
+	   *       likesIncreasing: nextProps.likeCount > this.props.likeCount
+	   *     });
+	   *   }
+	   *
+	   * NOTE: There is no equivalent `componentWillReceiveState`. An incoming prop
+	   * transition may cause a state change, but the opposite is not true. If you
+	   * need it, you are probably looking for `componentWillUpdate`.
+	   *
+	   * @param {object} nextProps
+	   * @optional
+	   */
+	  componentWillReceiveProps: 'DEFINE_MANY',
+	
+	  /**
+	   * Invoked while deciding if the component should be updated as a result of
+	   * receiving new props, state and/or context.
+	   *
+	   * Use this as an opportunity to `return false` when you're certain that the
+	   * transition to the new props/state/context will not require a component
+	   * update.
+	   *
+	   *   shouldComponentUpdate: function(nextProps, nextState, nextContext) {
+	   *     return !equal(nextProps, this.props) ||
+	   *       !equal(nextState, this.state) ||
+	   *       !equal(nextContext, this.context);
+	   *   }
+	   *
+	   * @param {object} nextProps
+	   * @param {?object} nextState
+	   * @param {?object} nextContext
+	   * @return {boolean} True if the component should update.
+	   * @optional
+	   */
+	  shouldComponentUpdate: 'DEFINE_ONCE',
+	
+	  /**
+	   * Invoked when the component is about to update due to a transition from
+	   * `this.props`, `this.state` and `this.context` to `nextProps`, `nextState`
+	   * and `nextContext`.
+	   *
+	   * Use this as an opportunity to perform preparation before an update occurs.
+	   *
+	   * NOTE: You **cannot** use `this.setState()` in this method.
+	   *
+	   * @param {object} nextProps
+	   * @param {?object} nextState
+	   * @param {?object} nextContext
+	   * @param {ReactReconcileTransaction} transaction
+	   * @optional
+	   */
+	  componentWillUpdate: 'DEFINE_MANY',
+	
+	  /**
+	   * Invoked when the component's DOM representation has been updated.
+	   *
+	   * Use this as an opportunity to operate on the DOM when the component has
+	   * been updated.
+	   *
+	   * @param {object} prevProps
+	   * @param {?object} prevState
+	   * @param {?object} prevContext
+	   * @param {DOMElement} rootNode DOM element representing the component.
+	   * @optional
+	   */
+	  componentDidUpdate: 'DEFINE_MANY',
+	
+	  /**
+	   * Invoked when the component is about to be removed from its parent and have
+	   * its DOM representation destroyed.
+	   *
+	   * Use this as an opportunity to deallocate any external resources.
+	   *
+	   * NOTE: There is no `componentDidUnmount` since your component will have been
+	   * destroyed by that point.
+	   *
+	   * @optional
+	   */
+	  componentWillUnmount: 'DEFINE_MANY',
+	
+	  // ==== Advanced methods ====
+	
+	  /**
+	   * Updates the component's currently mounted DOM representation.
+	   *
+	   * By default, this implements React's rendering and reconciliation algorithm.
+	   * Sophisticated clients may wish to override this.
+	   *
+	   * @param {ReactReconcileTransaction} transaction
+	   * @internal
+	   * @overridable
+	   */
+	  updateComponent: 'OVERRIDE_BASE'
+	
+	};
+	
+	/**
+	 * Mapping from class specification keys to special processing functions.
+	 *
+	 * Although these are declared like instance properties in the specification
+	 * when defining classes using `React.createClass`, they are actually static
+	 * and are accessible on the constructor instead of the prototype. Despite
+	 * being static, they must be defined outside of the "statics" key under
+	 * which all other static methods are defined.
+	 */
+	var RESERVED_SPEC_KEYS = {
+	  displayName: function displayName(Constructor, _displayName) {
+	    Constructor.displayName = _displayName;
+	  },
+	  mixins: function mixins(Constructor, _mixins) {
+	    if (_mixins) {
+	      for (var i = 0; i < _mixins.length; i++) {
+	        mixSpecIntoComponent(Constructor, _mixins[i]);
+	      }
+	    }
+	  },
+	  childContextTypes: function childContextTypes(Constructor, _childContextTypes) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      validateTypeDef(Constructor, _childContextTypes, 'childContext');
+	    }
+	    Constructor.childContextTypes = _assign({}, Constructor.childContextTypes, _childContextTypes);
+	  },
+	  contextTypes: function contextTypes(Constructor, _contextTypes) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      validateTypeDef(Constructor, _contextTypes, 'context');
+	    }
+	    Constructor.contextTypes = _assign({}, Constructor.contextTypes, _contextTypes);
+	  },
+	  /**
+	   * Special case getDefaultProps which should move into statics but requires
+	   * automatic merging.
+	   */
+	  getDefaultProps: function getDefaultProps(Constructor, _getDefaultProps) {
+	    if (Constructor.getDefaultProps) {
+	      Constructor.getDefaultProps = createMergedResultFunction(Constructor.getDefaultProps, _getDefaultProps);
+	    } else {
+	      Constructor.getDefaultProps = _getDefaultProps;
+	    }
+	  },
+	  propTypes: function propTypes(Constructor, _propTypes) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      validateTypeDef(Constructor, _propTypes, 'prop');
+	    }
+	    Constructor.propTypes = _assign({}, Constructor.propTypes, _propTypes);
+	  },
+	  statics: function statics(Constructor, _statics) {
+	    mixStaticSpecIntoComponent(Constructor, _statics);
+	  },
+	  autobind: function autobind() {} };
+	
+	function validateTypeDef(Constructor, typeDef, location) {
+	  for (var propName in typeDef) {
+	    if (typeDef.hasOwnProperty(propName)) {
+	      // use a warning instead of an invariant so components
+	      // don't show up in prod but only in __DEV__
+	      process.env.NODE_ENV !== 'production' ? warning(typeof typeDef[propName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', Constructor.displayName || 'ReactClass', ReactPropTypeLocationNames[location], propName) : void 0;
+	    }
+	  }
+	}
+	
+	function validateMethodOverride(isAlreadyDefined, name) {
+	  var specPolicy = ReactClassInterface.hasOwnProperty(name) ? ReactClassInterface[name] : null;
+	
+	  // Disallow overriding of base class methods unless explicitly allowed.
+	  if (ReactClassMixin.hasOwnProperty(name)) {
+	    !(specPolicy === 'OVERRIDE_BASE') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClassInterface: You are attempting to override `%s` from your class specification. Ensure that your method names do not overlap with React methods.', name) : _prodInvariant('73', name) : void 0;
+	  }
+	
+	  // Disallow defining methods more than once unless explicitly allowed.
+	  if (isAlreadyDefined) {
+	    !(specPolicy === 'DEFINE_MANY' || specPolicy === 'DEFINE_MANY_MERGED') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClassInterface: You are attempting to define `%s` on your component more than once. This conflict may be due to a mixin.', name) : _prodInvariant('74', name) : void 0;
+	  }
+	}
+	
+	/**
+	 * Mixin helper which handles policy validation and reserved
+	 * specification keys when building React classes.
+	 */
+	function mixSpecIntoComponent(Constructor, spec) {
+	  if (!spec) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      var typeofSpec = typeof spec === 'undefined' ? 'undefined' : _typeof(spec);
+	      var isMixinValid = typeofSpec === 'object' && spec !== null;
+	
+	      process.env.NODE_ENV !== 'production' ? warning(isMixinValid, '%s: You\'re attempting to include a mixin that is either null ' + 'or not an object. Check the mixins included by the component, ' + 'as well as any mixins they include themselves. ' + 'Expected object but got %s.', Constructor.displayName || 'ReactClass', spec === null ? null : typeofSpec) : void 0;
+	    }
+	
+	    return;
+	  }
+	
+	  !(typeof spec !== 'function') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClass: You\'re attempting to use a component class or function as a mixin. Instead, just use a regular object.') : _prodInvariant('75') : void 0;
+	  !!ReactElement.isValidElement(spec) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClass: You\'re attempting to use a component as a mixin. Instead, just use a regular object.') : _prodInvariant('76') : void 0;
+	
+	  var proto = Constructor.prototype;
+	  var autoBindPairs = proto.__reactAutoBindPairs;
+	
+	  // By handling mixins before any other properties, we ensure the same
+	  // chaining order is applied to methods with DEFINE_MANY policy, whether
+	  // mixins are listed before or after these methods in the spec.
+	  if (spec.hasOwnProperty(MIXINS_KEY)) {
+	    RESERVED_SPEC_KEYS.mixins(Constructor, spec.mixins);
+	  }
+	
+	  for (var name in spec) {
+	    if (!spec.hasOwnProperty(name)) {
+	      continue;
+	    }
+	
+	    if (name === MIXINS_KEY) {
+	      // We have already handled mixins in a special case above.
+	      continue;
+	    }
+	
+	    var property = spec[name];
+	    var isAlreadyDefined = proto.hasOwnProperty(name);
+	    validateMethodOverride(isAlreadyDefined, name);
+	
+	    if (RESERVED_SPEC_KEYS.hasOwnProperty(name)) {
+	      RESERVED_SPEC_KEYS[name](Constructor, property);
+	    } else {
+	      // Setup methods on prototype:
+	      // The following member methods should not be automatically bound:
+	      // 1. Expected ReactClass methods (in the "interface").
+	      // 2. Overridden methods (that were mixed in).
+	      var isReactClassMethod = ReactClassInterface.hasOwnProperty(name);
+	      var isFunction = typeof property === 'function';
+	      var shouldAutoBind = isFunction && !isReactClassMethod && !isAlreadyDefined && spec.autobind !== false;
+	
+	      if (shouldAutoBind) {
+	        autoBindPairs.push(name, property);
+	        proto[name] = property;
+	      } else {
+	        if (isAlreadyDefined) {
+	          var specPolicy = ReactClassInterface[name];
+	
+	          // These cases should already be caught by validateMethodOverride.
+	          !(isReactClassMethod && (specPolicy === 'DEFINE_MANY_MERGED' || specPolicy === 'DEFINE_MANY')) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClass: Unexpected spec policy %s for key %s when mixing in component specs.', specPolicy, name) : _prodInvariant('77', specPolicy, name) : void 0;
+	
+	          // For methods which are defined more than once, call the existing
+	          // methods before calling the new property, merging if appropriate.
+	          if (specPolicy === 'DEFINE_MANY_MERGED') {
+	            proto[name] = createMergedResultFunction(proto[name], property);
+	          } else if (specPolicy === 'DEFINE_MANY') {
+	            proto[name] = createChainedFunction(proto[name], property);
+	          }
+	        } else {
+	          proto[name] = property;
+	          if (process.env.NODE_ENV !== 'production') {
+	            // Add verbose displayName to the function, which helps when looking
+	            // at profiling tools.
+	            if (typeof property === 'function' && spec.displayName) {
+	              proto[name].displayName = spec.displayName + '_' + name;
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }
+	}
+	
+	function mixStaticSpecIntoComponent(Constructor, statics) {
+	  if (!statics) {
+	    return;
+	  }
+	  for (var name in statics) {
+	    var property = statics[name];
+	    if (!statics.hasOwnProperty(name)) {
+	      continue;
+	    }
+	
+	    var isReserved = name in RESERVED_SPEC_KEYS;
+	    !!isReserved ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClass: You are attempting to define a reserved property, `%s`, that shouldn\'t be on the "statics" key. Define it as an instance property instead; it will still be accessible on the constructor.', name) : _prodInvariant('78', name) : void 0;
+	
+	    var isInherited = name in Constructor;
+	    !!isInherited ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactClass: You are attempting to define `%s` on your component more than once. This conflict may be due to a mixin.', name) : _prodInvariant('79', name) : void 0;
+	    Constructor[name] = property;
+	  }
+	}
+	
+	/**
+	 * Merge two objects, but throw if both contain the same key.
+	 *
+	 * @param {object} one The first object, which is mutated.
+	 * @param {object} two The second object
+	 * @return {object} one after it has been mutated to contain everything in two.
+	 */
+	function mergeIntoWithNoDuplicateKeys(one, two) {
+	  !(one && two && (typeof one === 'undefined' ? 'undefined' : _typeof(one)) === 'object' && (typeof two === 'undefined' ? 'undefined' : _typeof(two)) === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'mergeIntoWithNoDuplicateKeys(): Cannot merge non-objects.') : _prodInvariant('80') : void 0;
+	
+	  for (var key in two) {
+	    if (two.hasOwnProperty(key)) {
+	      !(one[key] === undefined) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'mergeIntoWithNoDuplicateKeys(): Tried to merge two objects with the same key: `%s`. This conflict may be due to a mixin; in particular, this may be caused by two getInitialState() or getDefaultProps() methods returning objects with clashing keys.', key) : _prodInvariant('81', key) : void 0;
+	      one[key] = two[key];
+	    }
+	  }
+	  return one;
+	}
+	
+	/**
+	 * Creates a function that invokes two functions and merges their return values.
+	 *
+	 * @param {function} one Function to invoke first.
+	 * @param {function} two Function to invoke second.
+	 * @return {function} Function that invokes the two argument functions.
+	 * @private
+	 */
+	function createMergedResultFunction(one, two) {
+	  return function mergedResult() {
+	    var a = one.apply(this, arguments);
+	    var b = two.apply(this, arguments);
+	    if (a == null) {
+	      return b;
+	    } else if (b == null) {
+	      return a;
+	    }
+	    var c = {};
+	    mergeIntoWithNoDuplicateKeys(c, a);
+	    mergeIntoWithNoDuplicateKeys(c, b);
+	    return c;
+	  };
+	}
+	
+	/**
+	 * Creates a function that invokes two functions and ignores their return vales.
+	 *
+	 * @param {function} one Function to invoke first.
+	 * @param {function} two Function to invoke second.
+	 * @return {function} Function that invokes the two argument functions.
+	 * @private
+	 */
+	function createChainedFunction(one, two) {
+	  return function chainedFunction() {
+	    one.apply(this, arguments);
+	    two.apply(this, arguments);
+	  };
+	}
+	
+	/**
+	 * Binds a method to the component.
+	 *
+	 * @param {object} component Component whose method is going to be bound.
+	 * @param {function} method Method to be bound.
+	 * @return {function} The bound method.
+	 */
+	function bindAutoBindMethod(component, method) {
+	  var boundMethod = method.bind(component);
+	  if (process.env.NODE_ENV !== 'production') {
+	    boundMethod.__reactBoundContext = component;
+	    boundMethod.__reactBoundMethod = method;
+	    boundMethod.__reactBoundArguments = null;
+	    var componentName = component.constructor.displayName;
+	    var _bind = boundMethod.bind;
+	    boundMethod.bind = function (newThis) {
+	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        args[_key - 1] = arguments[_key];
+	      }
+	
+	      // User is trying to bind() an autobound method; we effectively will
+	      // ignore the value of "this" that the user is trying to use, so
+	      // let's warn.
+	      if (newThis !== component && newThis !== null) {
+	        process.env.NODE_ENV !== 'production' ? warning(false, 'bind(): React component methods may only be bound to the ' + 'component instance. See %s', componentName) : void 0;
+	      } else if (!args.length) {
+	        process.env.NODE_ENV !== 'production' ? warning(false, 'bind(): You are binding a component method to the component. ' + 'React does this for you automatically in a high-performance ' + 'way, so you can safely remove this call. See %s', componentName) : void 0;
+	        return boundMethod;
+	      }
+	      var reboundMethod = _bind.apply(boundMethod, arguments);
+	      reboundMethod.__reactBoundContext = component;
+	      reboundMethod.__reactBoundMethod = method;
+	      reboundMethod.__reactBoundArguments = args;
+	      return reboundMethod;
+	    };
+	  }
+	  return boundMethod;
+	}
+	
+	/**
+	 * Binds all auto-bound methods in a component.
+	 *
+	 * @param {object} component Component whose method is going to be bound.
+	 */
+	function bindAutoBindMethods(component) {
+	  var pairs = component.__reactAutoBindPairs;
+	  for (var i = 0; i < pairs.length; i += 2) {
+	    var autoBindKey = pairs[i];
+	    var method = pairs[i + 1];
+	    component[autoBindKey] = bindAutoBindMethod(component, method);
+	  }
+	}
+	
+	/**
+	 * Add more to the ReactClass base class. These are all legacy features and
+	 * therefore not already part of the modern ReactComponent.
+	 */
+	var ReactClassMixin = {
+	
+	  /**
+	   * TODO: This will be deprecated because state should always keep a consistent
+	   * type signature and the only use case for this, is to avoid that.
+	   */
+	  replaceState: function replaceState(newState, callback) {
+	    this.updater.enqueueReplaceState(this, newState);
+	    if (callback) {
+	      this.updater.enqueueCallback(this, callback, 'replaceState');
+	    }
+	  },
+	
+	  /**
+	   * Checks whether or not this composite component is mounted.
+	   * @return {boolean} True if mounted, false otherwise.
+	   * @protected
+	   * @final
+	   */
+	  isMounted: function isMounted() {
+	    return this.updater.isMounted(this);
+	  }
+	};
+	
+	var ReactClassComponent = function ReactClassComponent() {};
+	_assign(ReactClassComponent.prototype, ReactComponent.prototype, ReactClassMixin);
+	
+	var didWarnDeprecated = false;
+	
+	/**
+	 * Module for creating composite components.
+	 *
+	 * @class ReactClass
+	 */
+	var ReactClass = {
+	
+	  /**
+	   * Creates a composite component class given a class specification.
+	   * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
+	   *
+	   * @param {object} spec Class specification (which must define `render`).
+	   * @return {function} Component constructor function.
+	   * @public
+	   */
+	  createClass: function createClass(spec) {
+	    if (process.env.NODE_ENV !== 'production') {
+	      process.env.NODE_ENV !== 'production' ? warning(didWarnDeprecated, '%s: React.createClass is deprecated and will be removed in version 16. ' + 'Use plain JavaScript classes instead. If you\'re not yet ready to ' + 'migrate, create-react-class is available on npm as a ' + 'drop-in replacement.', spec && spec.displayName || 'A Component') : void 0;
+	      didWarnDeprecated = true;
+	    }
+	
+	    // To keep our warnings more understandable, we'll use a little hack here to
+	    // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
+	    // unnecessarily identify a class without displayName as 'Constructor'.
+	    var Constructor = identity(function (props, context, updater) {
+	      // This constructor gets overridden by mocks. The argument is used
+	      // by mocks to assert on what gets mounted.
+	
+	      if (process.env.NODE_ENV !== 'production') {
+	        process.env.NODE_ENV !== 'production' ? warning(this instanceof Constructor, 'Something is calling a React component directly. Use a factory or ' + 'JSX instead. See: https://fb.me/react-legacyfactory') : void 0;
+	      }
+	
+	      // Wire up auto-binding
+	      if (this.__reactAutoBindPairs.length) {
+	        bindAutoBindMethods(this);
+	      }
+	
+	      this.props = props;
+	      this.context = context;
+	      this.refs = emptyObject;
+	      this.updater = updater || ReactNoopUpdateQueue;
+	
+	      this.state = null;
+	
+	      // ReactClasses doesn't have constructors. Instead, they use the
+	      // getInitialState and componentWillMount methods for initialization.
+	
+	      var initialState = this.getInitialState ? this.getInitialState() : null;
+	      if (process.env.NODE_ENV !== 'production') {
+	        // We allow auto-mocks to proceed as if they're returning null.
+	        if (initialState === undefined && this.getInitialState._isMockFunction) {
+	          // This is probably bad practice. Consider warning here and
+	          // deprecating this convenience.
+	          initialState = null;
+	        }
+	      }
+	      !((typeof initialState === 'undefined' ? 'undefined' : _typeof(initialState)) === 'object' && !Array.isArray(initialState)) ? process.env.NODE_ENV !== 'production' ? invariant(false, '%s.getInitialState(): must return an object or null', Constructor.displayName || 'ReactCompositeComponent') : _prodInvariant('82', Constructor.displayName || 'ReactCompositeComponent') : void 0;
+	
+	      this.state = initialState;
+	    });
+	    Constructor.prototype = new ReactClassComponent();
+	    Constructor.prototype.constructor = Constructor;
+	    Constructor.prototype.__reactAutoBindPairs = [];
+	
+	    injectedMixins.forEach(mixSpecIntoComponent.bind(null, Constructor));
+	
+	    mixSpecIntoComponent(Constructor, spec);
+	
+	    // Initialize the defaultProps property after all mixins have been merged.
+	    if (Constructor.getDefaultProps) {
+	      Constructor.defaultProps = Constructor.getDefaultProps();
+	    }
+	
+	    if (process.env.NODE_ENV !== 'production') {
+	      // This is a tag to indicate that the use of these method names is ok,
+	      // since it's used with createClass. If it's not, then it's likely a
+	      // mistake so we'll warn you to use the static property, property
+	      // initializer or constructor respectively.
+	      if (Constructor.getDefaultProps) {
+	        Constructor.getDefaultProps.isReactClassApproved = {};
+	      }
+	      if (Constructor.prototype.getInitialState) {
+	        Constructor.prototype.getInitialState.isReactClassApproved = {};
+	      }
+	    }
+	
+	    !Constructor.prototype.render ? process.env.NODE_ENV !== 'production' ? invariant(false, 'createClass(...): Class specification must implement a `render` method.') : _prodInvariant('83') : void 0;
+	
+	    if (process.env.NODE_ENV !== 'production') {
+	      process.env.NODE_ENV !== 'production' ? warning(!Constructor.prototype.componentShouldUpdate, '%s has a method called ' + 'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' + 'The name is phrased as a question because the function is ' + 'expected to return a value.', spec.displayName || 'A component') : void 0;
+	      process.env.NODE_ENV !== 'production' ? warning(!Constructor.prototype.componentWillRecieveProps, '%s has a method called ' + 'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?', spec.displayName || 'A component') : void 0;
+	    }
+	
+	    // Reduce time spent doing lookups by setting these on the prototype.
+	    for (var methodName in ReactClassInterface) {
+	      if (!Constructor.prototype[methodName]) {
+	        Constructor.prototype[methodName] = null;
+	      }
+	    }
+	
+	    return Constructor;
+	  },
+	
+	  injection: {
+	    injectMixin: function injectMixin(mixin) {
+	      injectedMixins.push(mixin);
+	    }
+	  }
+	
+	};
+	
+	module.exports = ReactClass;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * 
+	 */
+	
+	'use strict';
+	
+	var ReactPropTypeLocationNames = {};
+	
+	if (process.env.NODE_ENV !== 'production') {
+	  ReactPropTypeLocationNames = {
+	    prop: 'prop',
+	    context: 'context',
+	    childContext: 'child context'
+	  };
+	}
+	
+	module.exports = ReactPropTypeLocationNames;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	'use strict';
+	
+	var ReactElement = __webpack_require__(12);
 	
 	/**
 	 * Create a factory that creates HTML tag elements.
@@ -2455,12 +3197,13 @@
 	 */
 	var createDOMFactory = ReactElement.createFactory;
 	if (process.env.NODE_ENV !== 'production') {
-	  var ReactElementValidator = __webpack_require__(26);
+	  var ReactElementValidator = __webpack_require__(28);
 	  createDOMFactory = ReactElementValidator.createFactory;
 	}
 	
 	/**
 	 * Creates a mapping from supported HTML tags to `ReactDOMComponent` classes.
+	 * This is also accessible via `React.DOM`.
 	 *
 	 * @public
 	 */
@@ -2605,7 +3348,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -2629,16 +3372,15 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactComponentTreeHook = __webpack_require__(27);
-	var ReactElement = __webpack_require__(19);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactComponentTreeHook = __webpack_require__(29);
+	var ReactElement = __webpack_require__(12);
 	
-	var checkReactTypeSpec = __webpack_require__(28);
+	var checkReactTypeSpec = __webpack_require__(30);
 	
-	var canDefineProperty = __webpack_require__(13);
-	var getIteratorFn = __webpack_require__(23);
-	var warning = __webpack_require__(11);
-	var lowPriorityWarning = __webpack_require__(16);
+	var canDefineProperty = __webpack_require__(16);
+	var getIteratorFn = __webpack_require__(19);
+	var warning = __webpack_require__(14);
 	
 	function getDeclarationErrorAddendum() {
 	  if (ReactCurrentOwner.current) {
@@ -2779,6 +3521,7 @@
 	}
 	
 	var ReactElementValidator = {
+	
 	  createElement: function createElement(type, props, children) {
 	    var validType = typeof type === 'string' || typeof type === 'function';
 	    // We warn in this case but don't throw. We expect the element creation to
@@ -2787,7 +3530,7 @@
 	      if (typeof type !== 'function' && typeof type !== 'string') {
 	        var info = '';
 	        if (type === undefined || (typeof type === 'undefined' ? 'undefined' : _typeof(type)) === 'object' && type !== null && Object.keys(type).length === 0) {
-	          info += ' You likely forgot to export your component from the file ' + "it's defined in.";
+	          info += ' You likely forgot to export your component from the file ' + 'it\'s defined in.';
 	        }
 	
 	        var sourceInfo = getSourceInfoErrorAddendum(props);
@@ -2799,10 +3542,7 @@
 	
 	        info += ReactComponentTreeHook.getCurrentStackAddendum();
 	
-	        var currentSource = props !== null && props !== undefined && props.__source !== undefined ? props.__source : null;
-	        ReactComponentTreeHook.pushNonStandardWarningStack(true, currentSource);
 	        process.env.NODE_ENV !== 'production' ? warning(false, 'React.createElement: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', type == null ? type : typeof type === 'undefined' ? 'undefined' : _typeof(type), info) : void 0;
-	        ReactComponentTreeHook.popNonStandardWarningStack();
 	      }
 	    }
 	
@@ -2840,7 +3580,7 @@
 	        Object.defineProperty(validatedFactory, 'type', {
 	          enumerable: false,
 	          get: function get() {
-	            lowPriorityWarning(false, 'Factory.type is deprecated. Access the class directly ' + 'before passing it to createFactory.');
+	            process.env.NODE_ENV !== 'production' ? warning(false, 'Factory.type is deprecated. Access the class directly ' + 'before passing it to createFactory.') : void 0;
 	            Object.defineProperty(this, 'type', {
 	              value: type
 	            });
@@ -2861,13 +3601,14 @@
 	    validatePropTypes(newElement);
 	    return newElement;
 	  }
+	
 	};
 	
 	module.exports = ReactElementValidator;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -2885,12 +3626,12 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(9);
+	var _prodInvariant = __webpack_require__(10);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
+	var ReactCurrentOwner = __webpack_require__(13);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	function isNative(fn) {
 	  // Based on isNative() from Lodash
@@ -3200,59 +3941,14 @@
 	  },
 	
 	  getRootIDs: getRootIDs,
-	  getRegisteredIDs: getItemIDs,
-	
-	  pushNonStandardWarningStack: function pushNonStandardWarningStack(isCreatingElement, currentSource) {
-	    if (typeof console.reactStack !== 'function') {
-	      return;
-	    }
-	
-	    var stack = [];
-	    var currentOwner = ReactCurrentOwner.current;
-	    var id = currentOwner && currentOwner._debugID;
-	
-	    try {
-	      if (isCreatingElement) {
-	        stack.push({
-	          name: id ? ReactComponentTreeHook.getDisplayName(id) : null,
-	          fileName: currentSource ? currentSource.fileName : null,
-	          lineNumber: currentSource ? currentSource.lineNumber : null
-	        });
-	      }
-	
-	      while (id) {
-	        var element = ReactComponentTreeHook.getElement(id);
-	        var parentID = ReactComponentTreeHook.getParentID(id);
-	        var ownerID = ReactComponentTreeHook.getOwnerID(id);
-	        var ownerName = ownerID ? ReactComponentTreeHook.getDisplayName(ownerID) : null;
-	        var source = element && element._source;
-	        stack.push({
-	          name: ownerName,
-	          fileName: source ? source.fileName : null,
-	          lineNumber: source ? source.lineNumber : null
-	        });
-	        id = parentID;
-	      }
-	    } catch (err) {
-	      // Internal state is messed up.
-	      // Stop building the stack (it's just a nice to have).
-	    }
-	
-	    console.reactStack(stack);
-	  },
-	  popNonStandardWarningStack: function popNonStandardWarningStack() {
-	    if (typeof console.reactStackEnd !== 'function') {
-	      return;
-	    }
-	    console.reactStackEnd();
-	  }
+	  getRegisteredIDs: getItemIDs
 	};
 	
 	module.exports = ReactComponentTreeHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -3269,13 +3965,13 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(9);
+	var _prodInvariant = __webpack_require__(10);
 	
-	var ReactPropTypeLocationNames = __webpack_require__(29);
-	var ReactPropTypesSecret = __webpack_require__(30);
+	var ReactPropTypeLocationNames = __webpack_require__(26);
+	var ReactPropTypesSecret = __webpack_require__(31);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var ReactComponentTreeHook;
 	
@@ -3285,7 +3981,7 @@
 	  // https://github.com/facebook/react/issues/7240
 	  // Remove the inline requires when we don't need them anymore:
 	  // https://github.com/facebook/react/pull/7178
-	  ReactComponentTreeHook = __webpack_require__(27);
+	  ReactComponentTreeHook = __webpack_require__(29);
 	}
 	
 	var loggedTypeFailures = {};
@@ -3327,7 +4023,7 @@
 	
 	        if (process.env.NODE_ENV !== 'production') {
 	          if (!ReactComponentTreeHook) {
-	            ReactComponentTreeHook = __webpack_require__(27);
+	            ReactComponentTreeHook = __webpack_require__(29);
 	          }
 	          if (debugID !== null) {
 	            componentStackInfo = ReactComponentTreeHook.getStackAddendumByID(debugID);
@@ -3346,37 +4042,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 29 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * 
-	 */
-	
-	'use strict';
-	
-	var ReactPropTypeLocationNames = {};
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  ReactPropTypeLocationNames = {
-	    prop: 'prop',
-	    context: 'context',
-	    childContext: 'child context'
-	  };
-	}
-	
-	module.exports = ReactPropTypeLocationNames;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports) {
 
 	/**
@@ -3397,7 +4063,7 @@
 	module.exports = ReactPropTypesSecret;
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -3412,15 +4078,15 @@
 	
 	'use strict';
 	
-	var _require = __webpack_require__(19),
+	var _require = __webpack_require__(12),
 	    isValidElement = _require.isValidElement;
 	
-	var factory = __webpack_require__(32);
+	var factory = __webpack_require__(33);
 	
 	module.exports = factory(isValidElement);
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -3439,7 +4105,7 @@
 	// However if one is migrating to the `prop-types` npm library, they will go through the
 	// `index.js` entry point, and it will branch depending on the environment.
 	
-	var factory = __webpack_require__(33);
+	var factory = __webpack_require__(34);
 	module.exports = function (isValidElement) {
 	  // It is still allowed in 15.5.
 	  var throwOnDirectAccess = false;
@@ -3447,7 +4113,7 @@
 	};
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -3463,12 +4129,12 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var emptyFunction = __webpack_require__(12);
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var emptyFunction = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
-	var ReactPropTypesSecret = __webpack_require__(34);
-	var checkPropTypes = __webpack_require__(35);
+	var ReactPropTypesSecret = __webpack_require__(35);
+	var checkPropTypes = __webpack_require__(36);
 	
 	module.exports = function (isValidElement, throwOnDirectAccess) {
 	  /* global Symbol */
@@ -3945,7 +4611,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports) {
 
 	/**
@@ -3964,7 +4630,7 @@
 	module.exports = ReactPropTypesSecret;
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -3981,9 +4647,9 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var invariant = __webpack_require__(15);
-	  var warning = __webpack_require__(11);
-	  var ReactPropTypesSecret = __webpack_require__(34);
+	  var invariant = __webpack_require__(11);
+	  var warning = __webpack_require__(14);
+	  var ReactPropTypesSecret = __webpack_require__(35);
 	  var loggedTypeFailures = {};
 	}
 	
@@ -4033,7 +4699,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports) {
 
 	/**
@@ -4048,34 +4714,7 @@
 	
 	'use strict';
 	
-	module.exports = '15.6.1';
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var _require = __webpack_require__(8),
-	    Component = _require.Component;
-	
-	var _require2 = __webpack_require__(19),
-	    isValidElement = _require2.isValidElement;
-	
-	var ReactNoopUpdateQueue = __webpack_require__(10);
-	var factory = __webpack_require__(38);
-	
-	module.exports = factory(Component, isValidElement, ReactNoopUpdateQueue);
+	module.exports = '15.5.4';
 
 /***/ }),
 /* 38 */
@@ -4090,753 +4729,13 @@
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 */
-	
 	'use strict';
 	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	var _prodInvariant = __webpack_require__(10);
 	
-	var _assign = __webpack_require__(7);
+	var ReactElement = __webpack_require__(12);
 	
-	var emptyObject = __webpack_require__(14);
-	var _invariant = __webpack_require__(15);
-	
-	if (process.env.NODE_ENV !== 'production') {
-	  var warning = __webpack_require__(11);
-	}
-	
-	var MIXINS_KEY = 'mixins';
-	
-	// Helper function to allow the creation of anonymous functions which do not
-	// have .name set to the name of the variable being assigned to.
-	function identity(fn) {
-	  return fn;
-	}
-	
-	var ReactPropTypeLocationNames;
-	if (process.env.NODE_ENV !== 'production') {
-	  ReactPropTypeLocationNames = {
-	    prop: 'prop',
-	    context: 'context',
-	    childContext: 'child context'
-	  };
-	} else {
-	  ReactPropTypeLocationNames = {};
-	}
-	
-	function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
-	  /**
-	   * Policies that describe methods in `ReactClassInterface`.
-	   */
-	
-	  var injectedMixins = [];
-	
-	  /**
-	   * Composite components are higher-level components that compose other composite
-	   * or host components.
-	   *
-	   * To create a new type of `ReactClass`, pass a specification of
-	   * your new class to `React.createClass`. The only requirement of your class
-	   * specification is that you implement a `render` method.
-	   *
-	   *   var MyComponent = React.createClass({
-	   *     render: function() {
-	   *       return <div>Hello World</div>;
-	   *     }
-	   *   });
-	   *
-	   * The class specification supports a specific protocol of methods that have
-	   * special meaning (e.g. `render`). See `ReactClassInterface` for
-	   * more the comprehensive protocol. Any other properties and methods in the
-	   * class specification will be available on the prototype.
-	   *
-	   * @interface ReactClassInterface
-	   * @internal
-	   */
-	  var ReactClassInterface = {
-	    /**
-	     * An array of Mixin objects to include when defining your component.
-	     *
-	     * @type {array}
-	     * @optional
-	     */
-	    mixins: 'DEFINE_MANY',
-	
-	    /**
-	     * An object containing properties and methods that should be defined on
-	     * the component's constructor instead of its prototype (static methods).
-	     *
-	     * @type {object}
-	     * @optional
-	     */
-	    statics: 'DEFINE_MANY',
-	
-	    /**
-	     * Definition of prop types for this component.
-	     *
-	     * @type {object}
-	     * @optional
-	     */
-	    propTypes: 'DEFINE_MANY',
-	
-	    /**
-	     * Definition of context types for this component.
-	     *
-	     * @type {object}
-	     * @optional
-	     */
-	    contextTypes: 'DEFINE_MANY',
-	
-	    /**
-	     * Definition of context types this component sets for its children.
-	     *
-	     * @type {object}
-	     * @optional
-	     */
-	    childContextTypes: 'DEFINE_MANY',
-	
-	    // ==== Definition methods ====
-	
-	    /**
-	     * Invoked when the component is mounted. Values in the mapping will be set on
-	     * `this.props` if that prop is not specified (i.e. using an `in` check).
-	     *
-	     * This method is invoked before `getInitialState` and therefore cannot rely
-	     * on `this.state` or use `this.setState`.
-	     *
-	     * @return {object}
-	     * @optional
-	     */
-	    getDefaultProps: 'DEFINE_MANY_MERGED',
-	
-	    /**
-	     * Invoked once before the component is mounted. The return value will be used
-	     * as the initial value of `this.state`.
-	     *
-	     *   getInitialState: function() {
-	     *     return {
-	     *       isOn: false,
-	     *       fooBaz: new BazFoo()
-	     *     }
-	     *   }
-	     *
-	     * @return {object}
-	     * @optional
-	     */
-	    getInitialState: 'DEFINE_MANY_MERGED',
-	
-	    /**
-	     * @return {object}
-	     * @optional
-	     */
-	    getChildContext: 'DEFINE_MANY_MERGED',
-	
-	    /**
-	     * Uses props from `this.props` and state from `this.state` to render the
-	     * structure of the component.
-	     *
-	     * No guarantees are made about when or how often this method is invoked, so
-	     * it must not have side effects.
-	     *
-	     *   render: function() {
-	     *     var name = this.props.name;
-	     *     return <div>Hello, {name}!</div>;
-	     *   }
-	     *
-	     * @return {ReactComponent}
-	     * @required
-	     */
-	    render: 'DEFINE_ONCE',
-	
-	    // ==== Delegate methods ====
-	
-	    /**
-	     * Invoked when the component is initially created and about to be mounted.
-	     * This may have side effects, but any external subscriptions or data created
-	     * by this method must be cleaned up in `componentWillUnmount`.
-	     *
-	     * @optional
-	     */
-	    componentWillMount: 'DEFINE_MANY',
-	
-	    /**
-	     * Invoked when the component has been mounted and has a DOM representation.
-	     * However, there is no guarantee that the DOM node is in the document.
-	     *
-	     * Use this as an opportunity to operate on the DOM when the component has
-	     * been mounted (initialized and rendered) for the first time.
-	     *
-	     * @param {DOMElement} rootNode DOM element representing the component.
-	     * @optional
-	     */
-	    componentDidMount: 'DEFINE_MANY',
-	
-	    /**
-	     * Invoked before the component receives new props.
-	     *
-	     * Use this as an opportunity to react to a prop transition by updating the
-	     * state using `this.setState`. Current props are accessed via `this.props`.
-	     *
-	     *   componentWillReceiveProps: function(nextProps, nextContext) {
-	     *     this.setState({
-	     *       likesIncreasing: nextProps.likeCount > this.props.likeCount
-	     *     });
-	     *   }
-	     *
-	     * NOTE: There is no equivalent `componentWillReceiveState`. An incoming prop
-	     * transition may cause a state change, but the opposite is not true. If you
-	     * need it, you are probably looking for `componentWillUpdate`.
-	     *
-	     * @param {object} nextProps
-	     * @optional
-	     */
-	    componentWillReceiveProps: 'DEFINE_MANY',
-	
-	    /**
-	     * Invoked while deciding if the component should be updated as a result of
-	     * receiving new props, state and/or context.
-	     *
-	     * Use this as an opportunity to `return false` when you're certain that the
-	     * transition to the new props/state/context will not require a component
-	     * update.
-	     *
-	     *   shouldComponentUpdate: function(nextProps, nextState, nextContext) {
-	     *     return !equal(nextProps, this.props) ||
-	     *       !equal(nextState, this.state) ||
-	     *       !equal(nextContext, this.context);
-	     *   }
-	     *
-	     * @param {object} nextProps
-	     * @param {?object} nextState
-	     * @param {?object} nextContext
-	     * @return {boolean} True if the component should update.
-	     * @optional
-	     */
-	    shouldComponentUpdate: 'DEFINE_ONCE',
-	
-	    /**
-	     * Invoked when the component is about to update due to a transition from
-	     * `this.props`, `this.state` and `this.context` to `nextProps`, `nextState`
-	     * and `nextContext`.
-	     *
-	     * Use this as an opportunity to perform preparation before an update occurs.
-	     *
-	     * NOTE: You **cannot** use `this.setState()` in this method.
-	     *
-	     * @param {object} nextProps
-	     * @param {?object} nextState
-	     * @param {?object} nextContext
-	     * @param {ReactReconcileTransaction} transaction
-	     * @optional
-	     */
-	    componentWillUpdate: 'DEFINE_MANY',
-	
-	    /**
-	     * Invoked when the component's DOM representation has been updated.
-	     *
-	     * Use this as an opportunity to operate on the DOM when the component has
-	     * been updated.
-	     *
-	     * @param {object} prevProps
-	     * @param {?object} prevState
-	     * @param {?object} prevContext
-	     * @param {DOMElement} rootNode DOM element representing the component.
-	     * @optional
-	     */
-	    componentDidUpdate: 'DEFINE_MANY',
-	
-	    /**
-	     * Invoked when the component is about to be removed from its parent and have
-	     * its DOM representation destroyed.
-	     *
-	     * Use this as an opportunity to deallocate any external resources.
-	     *
-	     * NOTE: There is no `componentDidUnmount` since your component will have been
-	     * destroyed by that point.
-	     *
-	     * @optional
-	     */
-	    componentWillUnmount: 'DEFINE_MANY',
-	
-	    // ==== Advanced methods ====
-	
-	    /**
-	     * Updates the component's currently mounted DOM representation.
-	     *
-	     * By default, this implements React's rendering and reconciliation algorithm.
-	     * Sophisticated clients may wish to override this.
-	     *
-	     * @param {ReactReconcileTransaction} transaction
-	     * @internal
-	     * @overridable
-	     */
-	    updateComponent: 'OVERRIDE_BASE'
-	  };
-	
-	  /**
-	   * Mapping from class specification keys to special processing functions.
-	   *
-	   * Although these are declared like instance properties in the specification
-	   * when defining classes using `React.createClass`, they are actually static
-	   * and are accessible on the constructor instead of the prototype. Despite
-	   * being static, they must be defined outside of the "statics" key under
-	   * which all other static methods are defined.
-	   */
-	  var RESERVED_SPEC_KEYS = {
-	    displayName: function displayName(Constructor, _displayName) {
-	      Constructor.displayName = _displayName;
-	    },
-	    mixins: function mixins(Constructor, _mixins) {
-	      if (_mixins) {
-	        for (var i = 0; i < _mixins.length; i++) {
-	          mixSpecIntoComponent(Constructor, _mixins[i]);
-	        }
-	      }
-	    },
-	    childContextTypes: function childContextTypes(Constructor, _childContextTypes) {
-	      if (process.env.NODE_ENV !== 'production') {
-	        validateTypeDef(Constructor, _childContextTypes, 'childContext');
-	      }
-	      Constructor.childContextTypes = _assign({}, Constructor.childContextTypes, _childContextTypes);
-	    },
-	    contextTypes: function contextTypes(Constructor, _contextTypes) {
-	      if (process.env.NODE_ENV !== 'production') {
-	        validateTypeDef(Constructor, _contextTypes, 'context');
-	      }
-	      Constructor.contextTypes = _assign({}, Constructor.contextTypes, _contextTypes);
-	    },
-	    /**
-	     * Special case getDefaultProps which should move into statics but requires
-	     * automatic merging.
-	     */
-	    getDefaultProps: function getDefaultProps(Constructor, _getDefaultProps) {
-	      if (Constructor.getDefaultProps) {
-	        Constructor.getDefaultProps = createMergedResultFunction(Constructor.getDefaultProps, _getDefaultProps);
-	      } else {
-	        Constructor.getDefaultProps = _getDefaultProps;
-	      }
-	    },
-	    propTypes: function propTypes(Constructor, _propTypes) {
-	      if (process.env.NODE_ENV !== 'production') {
-	        validateTypeDef(Constructor, _propTypes, 'prop');
-	      }
-	      Constructor.propTypes = _assign({}, Constructor.propTypes, _propTypes);
-	    },
-	    statics: function statics(Constructor, _statics) {
-	      mixStaticSpecIntoComponent(Constructor, _statics);
-	    },
-	    autobind: function autobind() {}
-	  };
-	
-	  function validateTypeDef(Constructor, typeDef, location) {
-	    for (var propName in typeDef) {
-	      if (typeDef.hasOwnProperty(propName)) {
-	        // use a warning instead of an _invariant so components
-	        // don't show up in prod but only in __DEV__
-	        if (process.env.NODE_ENV !== 'production') {
-	          warning(typeof typeDef[propName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', Constructor.displayName || 'ReactClass', ReactPropTypeLocationNames[location], propName);
-	        }
-	      }
-	    }
-	  }
-	
-	  function validateMethodOverride(isAlreadyDefined, name) {
-	    var specPolicy = ReactClassInterface.hasOwnProperty(name) ? ReactClassInterface[name] : null;
-	
-	    // Disallow overriding of base class methods unless explicitly allowed.
-	    if (ReactClassMixin.hasOwnProperty(name)) {
-	      _invariant(specPolicy === 'OVERRIDE_BASE', 'ReactClassInterface: You are attempting to override ' + '`%s` from your class specification. Ensure that your method names ' + 'do not overlap with React methods.', name);
-	    }
-	
-	    // Disallow defining methods more than once unless explicitly allowed.
-	    if (isAlreadyDefined) {
-	      _invariant(specPolicy === 'DEFINE_MANY' || specPolicy === 'DEFINE_MANY_MERGED', 'ReactClassInterface: You are attempting to define ' + '`%s` on your component more than once. This conflict may be due ' + 'to a mixin.', name);
-	    }
-	  }
-	
-	  /**
-	   * Mixin helper which handles policy validation and reserved
-	   * specification keys when building React classes.
-	   */
-	  function mixSpecIntoComponent(Constructor, spec) {
-	    if (!spec) {
-	      if (process.env.NODE_ENV !== 'production') {
-	        var typeofSpec = typeof spec === 'undefined' ? 'undefined' : _typeof(spec);
-	        var isMixinValid = typeofSpec === 'object' && spec !== null;
-	
-	        if (process.env.NODE_ENV !== 'production') {
-	          warning(isMixinValid, "%s: You're attempting to include a mixin that is either null " + 'or not an object. Check the mixins included by the component, ' + 'as well as any mixins they include themselves. ' + 'Expected object but got %s.', Constructor.displayName || 'ReactClass', spec === null ? null : typeofSpec);
-	        }
-	      }
-	
-	      return;
-	    }
-	
-	    _invariant(typeof spec !== 'function', "ReactClass: You're attempting to " + 'use a component class or function as a mixin. Instead, just use a ' + 'regular object.');
-	    _invariant(!isValidElement(spec), "ReactClass: You're attempting to " + 'use a component as a mixin. Instead, just use a regular object.');
-	
-	    var proto = Constructor.prototype;
-	    var autoBindPairs = proto.__reactAutoBindPairs;
-	
-	    // By handling mixins before any other properties, we ensure the same
-	    // chaining order is applied to methods with DEFINE_MANY policy, whether
-	    // mixins are listed before or after these methods in the spec.
-	    if (spec.hasOwnProperty(MIXINS_KEY)) {
-	      RESERVED_SPEC_KEYS.mixins(Constructor, spec.mixins);
-	    }
-	
-	    for (var name in spec) {
-	      if (!spec.hasOwnProperty(name)) {
-	        continue;
-	      }
-	
-	      if (name === MIXINS_KEY) {
-	        // We have already handled mixins in a special case above.
-	        continue;
-	      }
-	
-	      var property = spec[name];
-	      var isAlreadyDefined = proto.hasOwnProperty(name);
-	      validateMethodOverride(isAlreadyDefined, name);
-	
-	      if (RESERVED_SPEC_KEYS.hasOwnProperty(name)) {
-	        RESERVED_SPEC_KEYS[name](Constructor, property);
-	      } else {
-	        // Setup methods on prototype:
-	        // The following member methods should not be automatically bound:
-	        // 1. Expected ReactClass methods (in the "interface").
-	        // 2. Overridden methods (that were mixed in).
-	        var isReactClassMethod = ReactClassInterface.hasOwnProperty(name);
-	        var isFunction = typeof property === 'function';
-	        var shouldAutoBind = isFunction && !isReactClassMethod && !isAlreadyDefined && spec.autobind !== false;
-	
-	        if (shouldAutoBind) {
-	          autoBindPairs.push(name, property);
-	          proto[name] = property;
-	        } else {
-	          if (isAlreadyDefined) {
-	            var specPolicy = ReactClassInterface[name];
-	
-	            // These cases should already be caught by validateMethodOverride.
-	            _invariant(isReactClassMethod && (specPolicy === 'DEFINE_MANY_MERGED' || specPolicy === 'DEFINE_MANY'), 'ReactClass: Unexpected spec policy %s for key %s ' + 'when mixing in component specs.', specPolicy, name);
-	
-	            // For methods which are defined more than once, call the existing
-	            // methods before calling the new property, merging if appropriate.
-	            if (specPolicy === 'DEFINE_MANY_MERGED') {
-	              proto[name] = createMergedResultFunction(proto[name], property);
-	            } else if (specPolicy === 'DEFINE_MANY') {
-	              proto[name] = createChainedFunction(proto[name], property);
-	            }
-	          } else {
-	            proto[name] = property;
-	            if (process.env.NODE_ENV !== 'production') {
-	              // Add verbose displayName to the function, which helps when looking
-	              // at profiling tools.
-	              if (typeof property === 'function' && spec.displayName) {
-	                proto[name].displayName = spec.displayName + '_' + name;
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	
-	  function mixStaticSpecIntoComponent(Constructor, statics) {
-	    if (!statics) {
-	      return;
-	    }
-	    for (var name in statics) {
-	      var property = statics[name];
-	      if (!statics.hasOwnProperty(name)) {
-	        continue;
-	      }
-	
-	      var isReserved = name in RESERVED_SPEC_KEYS;
-	      _invariant(!isReserved, 'ReactClass: You are attempting to define a reserved ' + 'property, `%s`, that shouldn\'t be on the "statics" key. Define it ' + 'as an instance property instead; it will still be accessible on the ' + 'constructor.', name);
-	
-	      var isInherited = name in Constructor;
-	      _invariant(!isInherited, 'ReactClass: You are attempting to define ' + '`%s` on your component more than once. This conflict may be ' + 'due to a mixin.', name);
-	      Constructor[name] = property;
-	    }
-	  }
-	
-	  /**
-	   * Merge two objects, but throw if both contain the same key.
-	   *
-	   * @param {object} one The first object, which is mutated.
-	   * @param {object} two The second object
-	   * @return {object} one after it has been mutated to contain everything in two.
-	   */
-	  function mergeIntoWithNoDuplicateKeys(one, two) {
-	    _invariant(one && two && (typeof one === 'undefined' ? 'undefined' : _typeof(one)) === 'object' && (typeof two === 'undefined' ? 'undefined' : _typeof(two)) === 'object', 'mergeIntoWithNoDuplicateKeys(): Cannot merge non-objects.');
-	
-	    for (var key in two) {
-	      if (two.hasOwnProperty(key)) {
-	        _invariant(one[key] === undefined, 'mergeIntoWithNoDuplicateKeys(): ' + 'Tried to merge two objects with the same key: `%s`. This conflict ' + 'may be due to a mixin; in particular, this may be caused by two ' + 'getInitialState() or getDefaultProps() methods returning objects ' + 'with clashing keys.', key);
-	        one[key] = two[key];
-	      }
-	    }
-	    return one;
-	  }
-	
-	  /**
-	   * Creates a function that invokes two functions and merges their return values.
-	   *
-	   * @param {function} one Function to invoke first.
-	   * @param {function} two Function to invoke second.
-	   * @return {function} Function that invokes the two argument functions.
-	   * @private
-	   */
-	  function createMergedResultFunction(one, two) {
-	    return function mergedResult() {
-	      var a = one.apply(this, arguments);
-	      var b = two.apply(this, arguments);
-	      if (a == null) {
-	        return b;
-	      } else if (b == null) {
-	        return a;
-	      }
-	      var c = {};
-	      mergeIntoWithNoDuplicateKeys(c, a);
-	      mergeIntoWithNoDuplicateKeys(c, b);
-	      return c;
-	    };
-	  }
-	
-	  /**
-	   * Creates a function that invokes two functions and ignores their return vales.
-	   *
-	   * @param {function} one Function to invoke first.
-	   * @param {function} two Function to invoke second.
-	   * @return {function} Function that invokes the two argument functions.
-	   * @private
-	   */
-	  function createChainedFunction(one, two) {
-	    return function chainedFunction() {
-	      one.apply(this, arguments);
-	      two.apply(this, arguments);
-	    };
-	  }
-	
-	  /**
-	   * Binds a method to the component.
-	   *
-	   * @param {object} component Component whose method is going to be bound.
-	   * @param {function} method Method to be bound.
-	   * @return {function} The bound method.
-	   */
-	  function bindAutoBindMethod(component, method) {
-	    var boundMethod = method.bind(component);
-	    if (process.env.NODE_ENV !== 'production') {
-	      boundMethod.__reactBoundContext = component;
-	      boundMethod.__reactBoundMethod = method;
-	      boundMethod.__reactBoundArguments = null;
-	      var componentName = component.constructor.displayName;
-	      var _bind = boundMethod.bind;
-	      boundMethod.bind = function (newThis) {
-	        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	          args[_key - 1] = arguments[_key];
-	        }
-	
-	        // User is trying to bind() an autobound method; we effectively will
-	        // ignore the value of "this" that the user is trying to use, so
-	        // let's warn.
-	        if (newThis !== component && newThis !== null) {
-	          if (process.env.NODE_ENV !== 'production') {
-	            warning(false, 'bind(): React component methods may only be bound to the ' + 'component instance. See %s', componentName);
-	          }
-	        } else if (!args.length) {
-	          if (process.env.NODE_ENV !== 'production') {
-	            warning(false, 'bind(): You are binding a component method to the component. ' + 'React does this for you automatically in a high-performance ' + 'way, so you can safely remove this call. See %s', componentName);
-	          }
-	          return boundMethod;
-	        }
-	        var reboundMethod = _bind.apply(boundMethod, arguments);
-	        reboundMethod.__reactBoundContext = component;
-	        reboundMethod.__reactBoundMethod = method;
-	        reboundMethod.__reactBoundArguments = args;
-	        return reboundMethod;
-	      };
-	    }
-	    return boundMethod;
-	  }
-	
-	  /**
-	   * Binds all auto-bound methods in a component.
-	   *
-	   * @param {object} component Component whose method is going to be bound.
-	   */
-	  function bindAutoBindMethods(component) {
-	    var pairs = component.__reactAutoBindPairs;
-	    for (var i = 0; i < pairs.length; i += 2) {
-	      var autoBindKey = pairs[i];
-	      var method = pairs[i + 1];
-	      component[autoBindKey] = bindAutoBindMethod(component, method);
-	    }
-	  }
-	
-	  var IsMountedPreMixin = {
-	    componentDidMount: function componentDidMount() {
-	      this.__isMounted = true;
-	    }
-	  };
-	
-	  var IsMountedPostMixin = {
-	    componentWillUnmount: function componentWillUnmount() {
-	      this.__isMounted = false;
-	    }
-	  };
-	
-	  /**
-	   * Add more to the ReactClass base class. These are all legacy features and
-	   * therefore not already part of the modern ReactComponent.
-	   */
-	  var ReactClassMixin = {
-	    /**
-	     * TODO: This will be deprecated because state should always keep a consistent
-	     * type signature and the only use case for this, is to avoid that.
-	     */
-	    replaceState: function replaceState(newState, callback) {
-	      this.updater.enqueueReplaceState(this, newState, callback);
-	    },
-	
-	    /**
-	     * Checks whether or not this composite component is mounted.
-	     * @return {boolean} True if mounted, false otherwise.
-	     * @protected
-	     * @final
-	     */
-	    isMounted: function isMounted() {
-	      if (process.env.NODE_ENV !== 'production') {
-	        warning(this.__didWarnIsMounted, '%s: isMounted is deprecated. Instead, make sure to clean up ' + 'subscriptions and pending requests in componentWillUnmount to ' + 'prevent memory leaks.', this.constructor && this.constructor.displayName || this.name || 'Component');
-	        this.__didWarnIsMounted = true;
-	      }
-	      return !!this.__isMounted;
-	    }
-	  };
-	
-	  var ReactClassComponent = function ReactClassComponent() {};
-	  _assign(ReactClassComponent.prototype, ReactComponent.prototype, ReactClassMixin);
-	
-	  /**
-	   * Creates a composite component class given a class specification.
-	   * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
-	   *
-	   * @param {object} spec Class specification (which must define `render`).
-	   * @return {function} Component constructor function.
-	   * @public
-	   */
-	  function createClass(spec) {
-	    // To keep our warnings more understandable, we'll use a little hack here to
-	    // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
-	    // unnecessarily identify a class without displayName as 'Constructor'.
-	    var Constructor = identity(function (props, context, updater) {
-	      // This constructor gets overridden by mocks. The argument is used
-	      // by mocks to assert on what gets mounted.
-	
-	      if (process.env.NODE_ENV !== 'production') {
-	        warning(this instanceof Constructor, 'Something is calling a React component directly. Use a factory or ' + 'JSX instead. See: https://fb.me/react-legacyfactory');
-	      }
-	
-	      // Wire up auto-binding
-	      if (this.__reactAutoBindPairs.length) {
-	        bindAutoBindMethods(this);
-	      }
-	
-	      this.props = props;
-	      this.context = context;
-	      this.refs = emptyObject;
-	      this.updater = updater || ReactNoopUpdateQueue;
-	
-	      this.state = null;
-	
-	      // ReactClasses doesn't have constructors. Instead, they use the
-	      // getInitialState and componentWillMount methods for initialization.
-	
-	      var initialState = this.getInitialState ? this.getInitialState() : null;
-	      if (process.env.NODE_ENV !== 'production') {
-	        // We allow auto-mocks to proceed as if they're returning null.
-	        if (initialState === undefined && this.getInitialState._isMockFunction) {
-	          // This is probably bad practice. Consider warning here and
-	          // deprecating this convenience.
-	          initialState = null;
-	        }
-	      }
-	      _invariant((typeof initialState === 'undefined' ? 'undefined' : _typeof(initialState)) === 'object' && !Array.isArray(initialState), '%s.getInitialState(): must return an object or null', Constructor.displayName || 'ReactCompositeComponent');
-	
-	      this.state = initialState;
-	    });
-	    Constructor.prototype = new ReactClassComponent();
-	    Constructor.prototype.constructor = Constructor;
-	    Constructor.prototype.__reactAutoBindPairs = [];
-	
-	    injectedMixins.forEach(mixSpecIntoComponent.bind(null, Constructor));
-	
-	    mixSpecIntoComponent(Constructor, IsMountedPreMixin);
-	    mixSpecIntoComponent(Constructor, spec);
-	    mixSpecIntoComponent(Constructor, IsMountedPostMixin);
-	
-	    // Initialize the defaultProps property after all mixins have been merged.
-	    if (Constructor.getDefaultProps) {
-	      Constructor.defaultProps = Constructor.getDefaultProps();
-	    }
-	
-	    if (process.env.NODE_ENV !== 'production') {
-	      // This is a tag to indicate that the use of these method names is ok,
-	      // since it's used with createClass. If it's not, then it's likely a
-	      // mistake so we'll warn you to use the static property, property
-	      // initializer or constructor respectively.
-	      if (Constructor.getDefaultProps) {
-	        Constructor.getDefaultProps.isReactClassApproved = {};
-	      }
-	      if (Constructor.prototype.getInitialState) {
-	        Constructor.prototype.getInitialState.isReactClassApproved = {};
-	      }
-	    }
-	
-	    _invariant(Constructor.prototype.render, 'createClass(...): Class specification must implement a `render` method.');
-	
-	    if (process.env.NODE_ENV !== 'production') {
-	      warning(!Constructor.prototype.componentShouldUpdate, '%s has a method called ' + 'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' + 'The name is phrased as a question because the function is ' + 'expected to return a value.', spec.displayName || 'A component');
-	      warning(!Constructor.prototype.componentWillRecieveProps, '%s has a method called ' + 'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?', spec.displayName || 'A component');
-	    }
-	
-	    // Reduce time spent doing lookups by setting these on the prototype.
-	    for (var methodName in ReactClassInterface) {
-	      if (!Constructor.prototype[methodName]) {
-	        Constructor.prototype[methodName] = null;
-	      }
-	    }
-	
-	    return Constructor;
-	  }
-	
-	  return createClass;
-	}
-	
-	module.exports = factory;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	'use strict';
-	
-	var _prodInvariant = __webpack_require__(9);
-	
-	var ReactElement = __webpack_require__(19);
-	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Returns the first child in a collection of children and verifies that there
@@ -4861,15 +4760,15 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	module.exports = __webpack_require__(41);
+	module.exports = __webpack_require__(40);
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -4886,17 +4785,17 @@
 	
 	'use strict';
 	
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactDefaultInjection = __webpack_require__(46);
-	var ReactMount = __webpack_require__(175);
-	var ReactReconciler = __webpack_require__(67);
-	var ReactUpdates = __webpack_require__(64);
-	var ReactVersion = __webpack_require__(180);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactDefaultInjection = __webpack_require__(45);
+	var ReactMount = __webpack_require__(173);
+	var ReactReconciler = __webpack_require__(66);
+	var ReactUpdates = __webpack_require__(63);
+	var ReactVersion = __webpack_require__(178);
 	
-	var findDOMNode = __webpack_require__(181);
-	var getHostComponentFromComposite = __webpack_require__(182);
-	var renderSubtreeIntoContainer = __webpack_require__(183);
-	var warning = __webpack_require__(11);
+	var findDOMNode = __webpack_require__(179);
+	var getHostComponentFromComposite = __webpack_require__(180);
+	var renderSubtreeIntoContainer = __webpack_require__(181);
+	var warning = __webpack_require__(14);
 	
 	ReactDefaultInjection.inject();
 	
@@ -4909,7 +4808,6 @@
 	  /* eslint-disable camelcase */
 	  unstable_batchedUpdates: ReactUpdates.batchedUpdates,
 	  unstable_renderSubtreeIntoContainer: renderSubtreeIntoContainer
-	  /* eslint-enable camelcase */
 	};
 	
 	// Inject the runtime into a devtools global hook regardless of browser.
@@ -4936,8 +4834,9 @@
 	}
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var ExecutionEnvironment = __webpack_require__(56);
+	  var ExecutionEnvironment = __webpack_require__(55);
 	  if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
+	
 	    // First check if devtools is not installed
 	    if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined') {
 	      // If we're in Chrome or Firefox, provide a download link if not installed.
@@ -4949,7 +4848,7 @@
 	    }
 	
 	    var testFunc = function testFn() {};
-	    process.env.NODE_ENV !== 'production' ? warning((testFunc.name || testFunc.toString()).indexOf('testFn') !== -1, "It looks like you're using a minified copy of the development build " + 'of React. When deploying React apps to production, make sure to use ' + 'the production build which skips development warnings and is faster. ' + 'See https://fb.me/react-minification for more details.') : void 0;
+	    process.env.NODE_ENV !== 'production' ? warning((testFunc.name || testFunc.toString()).indexOf('testFn') !== -1, 'It looks like you\'re using a minified copy of the development build ' + 'of React. When deploying React apps to production, make sure to use ' + 'the production build which skips development warnings and is faster. ' + 'See https://fb.me/react-minification for more details.') : void 0;
 	
 	    // If we're in IE8, check to see if we are in compatibility mode and provide
 	    // information on preventing compatibility mode
@@ -4971,10 +4870,10 @@
 	}
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var ReactInstrumentation = __webpack_require__(70);
-	  var ReactDOMUnknownPropertyHook = __webpack_require__(184);
-	  var ReactDOMNullInputValuePropHook = __webpack_require__(185);
-	  var ReactDOMInvalidARIAHook = __webpack_require__(186);
+	  var ReactInstrumentation = __webpack_require__(69);
+	  var ReactDOMUnknownPropertyHook = __webpack_require__(182);
+	  var ReactDOMNullInputValuePropHook = __webpack_require__(183);
+	  var ReactDOMInvalidARIAHook = __webpack_require__(184);
 	
 	  ReactInstrumentation.debugTool.addHook(ReactDOMUnknownPropertyHook);
 	  ReactInstrumentation.debugTool.addHook(ReactDOMNullInputValuePropHook);
@@ -4985,7 +4884,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -5000,12 +4899,12 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var DOMProperty = __webpack_require__(44);
-	var ReactDOMComponentFlags = __webpack_require__(45);
+	var DOMProperty = __webpack_require__(43);
+	var ReactDOMComponentFlags = __webpack_require__(44);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var ATTR_NAME = DOMProperty.ID_ATTRIBUTE_NAME;
 	var Flags = ReactDOMComponentFlags;
@@ -5185,7 +5084,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports) {
 
 	/**
@@ -5228,7 +5127,7 @@
 	module.exports = reactProdInvariant;
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -5243,9 +5142,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	function checkMask(value, bitmask) {
 	  return (value & bitmask) === bitmask;
@@ -5369,6 +5268,7 @@
 	 * @see http://jsperf.com/key-missing
 	 */
 	var DOMProperty = {
+	
 	  ID_ATTRIBUTE_NAME: 'data-reactid',
 	  ROOT_ATTRIBUTE_NAME: 'data-reactroot',
 	
@@ -5442,7 +5342,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports) {
 
 	/**
@@ -5464,7 +5364,7 @@
 	module.exports = ReactDOMComponentFlags;
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -5479,25 +5379,25 @@
 	
 	'use strict';
 	
-	var ARIADOMPropertyConfig = __webpack_require__(47);
-	var BeforeInputEventPlugin = __webpack_require__(48);
-	var ChangeEventPlugin = __webpack_require__(63);
-	var DefaultEventPluginOrder = __webpack_require__(81);
-	var EnterLeaveEventPlugin = __webpack_require__(82);
-	var HTMLDOMPropertyConfig = __webpack_require__(87);
-	var ReactComponentBrowserEnvironment = __webpack_require__(88);
-	var ReactDOMComponent = __webpack_require__(101);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactDOMEmptyComponent = __webpack_require__(146);
-	var ReactDOMTreeTraversal = __webpack_require__(147);
-	var ReactDOMTextComponent = __webpack_require__(148);
-	var ReactDefaultBatchingStrategy = __webpack_require__(149);
-	var ReactEventListener = __webpack_require__(150);
-	var ReactInjection = __webpack_require__(153);
-	var ReactReconcileTransaction = __webpack_require__(154);
-	var SVGDOMPropertyConfig = __webpack_require__(162);
-	var SelectEventPlugin = __webpack_require__(163);
-	var SimpleEventPlugin = __webpack_require__(164);
+	var ARIADOMPropertyConfig = __webpack_require__(46);
+	var BeforeInputEventPlugin = __webpack_require__(47);
+	var ChangeEventPlugin = __webpack_require__(62);
+	var DefaultEventPluginOrder = __webpack_require__(79);
+	var EnterLeaveEventPlugin = __webpack_require__(80);
+	var HTMLDOMPropertyConfig = __webpack_require__(85);
+	var ReactComponentBrowserEnvironment = __webpack_require__(86);
+	var ReactDOMComponent = __webpack_require__(99);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactDOMEmptyComponent = __webpack_require__(144);
+	var ReactDOMTreeTraversal = __webpack_require__(145);
+	var ReactDOMTextComponent = __webpack_require__(146);
+	var ReactDefaultBatchingStrategy = __webpack_require__(147);
+	var ReactEventListener = __webpack_require__(148);
+	var ReactInjection = __webpack_require__(151);
+	var ReactReconcileTransaction = __webpack_require__(152);
+	var SVGDOMPropertyConfig = __webpack_require__(160);
+	var SelectEventPlugin = __webpack_require__(161);
+	var SimpleEventPlugin = __webpack_require__(162);
 	
 	var alreadyInjected = false;
 	
@@ -5554,7 +5454,7 @@
 	};
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports) {
 
 	/**
@@ -5632,7 +5532,7 @@
 	module.exports = ARIADOMPropertyConfig;
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -5649,11 +5549,11 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var EventPropagators = __webpack_require__(49);
-	var ExecutionEnvironment = __webpack_require__(56);
-	var FallbackCompositionState = __webpack_require__(57);
-	var SyntheticCompositionEvent = __webpack_require__(60);
-	var SyntheticInputEvent = __webpack_require__(62);
+	var EventPropagators = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var FallbackCompositionState = __webpack_require__(56);
+	var SyntheticCompositionEvent = __webpack_require__(59);
+	var SyntheticInputEvent = __webpack_require__(61);
 	
 	var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 	var START_KEYCODE = 229;
@@ -6012,6 +5912,7 @@
 	 * `composition` event types.
 	 */
 	var BeforeInputEventPlugin = {
+	
 	  eventTypes: eventTypes,
 	
 	  extractEvents: function extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget) {
@@ -6022,7 +5923,7 @@
 	module.exports = BeforeInputEventPlugin;
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -6037,12 +5938,12 @@
 	
 	'use strict';
 	
-	var EventPluginHub = __webpack_require__(50);
-	var EventPluginUtils = __webpack_require__(52);
+	var EventPluginHub = __webpack_require__(49);
+	var EventPluginUtils = __webpack_require__(51);
 	
-	var accumulateInto = __webpack_require__(54);
-	var forEachAccumulated = __webpack_require__(55);
-	var warning = __webpack_require__(11);
+	var accumulateInto = __webpack_require__(53);
+	var forEachAccumulated = __webpack_require__(54);
+	var warning = __webpack_require__(14);
 	
 	var getListener = EventPluginHub.getListener;
 	
@@ -6161,7 +6062,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -6178,15 +6079,15 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var EventPluginRegistry = __webpack_require__(51);
-	var EventPluginUtils = __webpack_require__(52);
-	var ReactErrorUtils = __webpack_require__(53);
+	var EventPluginRegistry = __webpack_require__(50);
+	var EventPluginUtils = __webpack_require__(51);
+	var ReactErrorUtils = __webpack_require__(52);
 	
-	var accumulateInto = __webpack_require__(54);
-	var forEachAccumulated = __webpack_require__(55);
-	var invariant = __webpack_require__(15);
+	var accumulateInto = __webpack_require__(53);
+	var forEachAccumulated = __webpack_require__(54);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Internal store for event listeners
@@ -6273,10 +6174,12 @@
 	 * @public
 	 */
 	var EventPluginHub = {
+	
 	  /**
 	   * Methods for injecting dependencies.
 	   */
 	  injection: {
+	
 	    /**
 	     * @param {array} InjectedEventPluginOrder
 	     * @public
@@ -6287,6 +6190,7 @@
 	     * @param {object} injectedNamesToPlugins Map from names to plugin modules.
 	     */
 	    injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName
+	
 	  },
 	
 	  /**
@@ -6436,13 +6340,14 @@
 	  __getListenerBank: function __getListenerBank() {
 	    return listenerBank;
 	  }
+	
 	};
 	
 	module.exports = EventPluginHub;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -6458,9 +6363,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Injectable ordering of event plugins.
@@ -6555,6 +6460,7 @@
 	 * @see {EventPluginHub}
 	 */
 	var EventPluginRegistry = {
+	
 	  /**
 	   * Ordered list of injected plugins.
 	   */
@@ -6694,13 +6600,14 @@
 	      }
 	    }
 	  }
+	
 	};
 	
 	module.exports = EventPluginRegistry;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -6715,12 +6622,12 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactErrorUtils = __webpack_require__(53);
+	var ReactErrorUtils = __webpack_require__(52);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	/**
 	 * Injected dependencies:
@@ -6931,7 +6838,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -7012,7 +6919,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -7028,9 +6935,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Accumulates items that must not be null or undefined into the first one. This
@@ -7075,7 +6982,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(module, exports) {
 
 	/**
@@ -7110,7 +7017,7 @@
 	module.exports = forEachAccumulated;
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(module, exports) {
 
 	/**
@@ -7150,7 +7057,7 @@
 	module.exports = ExecutionEnvironment;
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -7167,9 +7074,9 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var PooledClass = __webpack_require__(58);
+	var PooledClass = __webpack_require__(57);
 	
-	var getTextContentAccessor = __webpack_require__(59);
+	var getTextContentAccessor = __webpack_require__(58);
 	
 	/**
 	 * This helper class stores information about text content of a target node,
@@ -7249,7 +7156,7 @@
 	module.exports = FallbackCompositionState;
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -7265,9 +7172,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Static poolers. Several custom versions for each potential number of
@@ -7366,7 +7273,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -7381,7 +7288,7 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
 	var contentKey = null;
 	
@@ -7403,7 +7310,7 @@
 	module.exports = getTextContentAccessor;
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -7418,7 +7325,7 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
 	/**
 	 * @interface Event
@@ -7443,7 +7350,7 @@
 	module.exports = SyntheticCompositionEvent;
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -7460,10 +7367,10 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var PooledClass = __webpack_require__(58);
+	var PooledClass = __webpack_require__(57);
 	
-	var emptyFunction = __webpack_require__(12);
-	var warning = __webpack_require__(11);
+	var emptyFunction = __webpack_require__(15);
+	var warning = __webpack_require__(14);
 	
 	var didWarnForAddedNewProperty = false;
 	var isProxySupported = typeof Proxy === 'function';
@@ -7550,6 +7457,7 @@
 	}
 	
 	_assign(SyntheticEvent.prototype, {
+	
 	  preventDefault: function preventDefault() {
 	    this.defaultPrevented = true;
 	    var event = this.nativeEvent;
@@ -7559,8 +7467,8 @@
 	
 	    if (event.preventDefault) {
 	      event.preventDefault();
-	      // eslint-disable-next-line valid-typeof
 	    } else if (typeof event.returnValue !== 'unknown') {
+	      // eslint-disable-line valid-typeof
 	      event.returnValue = false;
 	    }
 	    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
@@ -7574,8 +7482,8 @@
 	
 	    if (event.stopPropagation) {
 	      event.stopPropagation();
-	      // eslint-disable-next-line valid-typeof
 	    } else if (typeof event.cancelBubble !== 'unknown') {
+	      // eslint-disable-line valid-typeof
 	      // The ChangeEventPlugin registers a "propertychange" event for
 	      // IE. This event does not support bubbling or cancelling, and
 	      // any references to cancelBubble throw "Member not found".  A
@@ -7624,6 +7532,7 @@
 	      Object.defineProperty(this, 'stopPropagation', getPooledWarningPropertyDefinition('stopPropagation', emptyFunction));
 	    }
 	  }
+	
 	});
 	
 	SyntheticEvent.Interface = EventInterface;
@@ -7639,7 +7548,7 @@
 	        return new Proxy(constructor.apply(that, args), {
 	          set: function set(target, prop, value) {
 	            if (prop !== 'isPersistent' && !target.constructor.Interface.hasOwnProperty(prop) && shouldBeReleasedProperties.indexOf(prop) === -1) {
-	              process.env.NODE_ENV !== 'production' ? warning(didWarnForAddedNewProperty || target.isPersistent(), "This synthetic event is reused for performance reasons. If you're " + "seeing this, you're adding a new property in the synthetic event object. " + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.') : void 0;
+	              process.env.NODE_ENV !== 'production' ? warning(didWarnForAddedNewProperty || target.isPersistent(), 'This synthetic event is reused for performance reasons. If you\'re ' + 'seeing this, you\'re adding a new property in the synthetic event object. ' + 'The property is never released. See ' + 'https://fb.me/react-event-pooling for more information.') : void 0;
 	              didWarnForAddedNewProperty = true;
 	            }
 	            target[prop] = value;
@@ -7708,13 +7617,13 @@
 	
 	  function warn(action, result) {
 	    var warningCondition = false;
-	    process.env.NODE_ENV !== 'production' ? warning(warningCondition, "This synthetic event is reused for performance reasons. If you're seeing this, " + "you're %s `%s` on a released/nullified synthetic event. %s. " + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result) : void 0;
+	    process.env.NODE_ENV !== 'production' ? warning(warningCondition, 'This synthetic event is reused for performance reasons. If you\'re seeing this, ' + 'you\'re %s `%s` on a released/nullified synthetic event. %s. ' + 'If you must keep the original synthetic event around, use event.persist(). ' + 'See https://fb.me/react-event-pooling for more information.', action, propName, result) : void 0;
 	  }
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -7729,7 +7638,7 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
 	/**
 	 * @interface Event
@@ -7755,7 +7664,7 @@
 	module.exports = SyntheticInputEvent;
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -7770,17 +7679,16 @@
 	
 	'use strict';
 	
-	var EventPluginHub = __webpack_require__(50);
-	var EventPropagators = __webpack_require__(49);
-	var ExecutionEnvironment = __webpack_require__(56);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactUpdates = __webpack_require__(64);
-	var SyntheticEvent = __webpack_require__(61);
+	var EventPluginHub = __webpack_require__(49);
+	var EventPropagators = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactUpdates = __webpack_require__(63);
+	var SyntheticEvent = __webpack_require__(60);
 	
-	var inputValueTracking = __webpack_require__(77);
-	var getEventTarget = __webpack_require__(78);
-	var isEventSupported = __webpack_require__(79);
-	var isTextInputElement = __webpack_require__(80);
+	var getEventTarget = __webpack_require__(76);
+	var isEventSupported = __webpack_require__(77);
+	var isTextInputElement = __webpack_require__(78);
 	
 	var eventTypes = {
 	  change: {
@@ -7792,17 +7700,13 @@
 	  }
 	};
 	
-	function createAndAccumulateChangeEvent(inst, nativeEvent, target) {
-	  var event = SyntheticEvent.getPooled(eventTypes.change, inst, nativeEvent, target);
-	  event.type = 'change';
-	  EventPropagators.accumulateTwoPhaseDispatches(event);
-	  return event;
-	}
 	/**
 	 * For IE shims
 	 */
 	var activeElement = null;
 	var activeElementInst = null;
+	var activeElementValue = null;
+	var activeElementValueProp = null;
 	
 	/**
 	 * SECTION: handle `change` event
@@ -7819,7 +7723,8 @@
 	}
 	
 	function manualDispatchChangeEvent(nativeEvent) {
-	  var event = createAndAccumulateChangeEvent(activeElementInst, nativeEvent, getEventTarget(nativeEvent));
+	  var event = SyntheticEvent.getPooled(eventTypes.change, activeElementInst, nativeEvent, getEventTarget(nativeEvent));
+	  EventPropagators.accumulateTwoPhaseDispatches(event);
 	
 	  // If change and propertychange bubbled, we'd just bind to it like all the
 	  // other events and have it go through ReactBrowserEventEmitter. Since it
@@ -7855,21 +7760,11 @@
 	  activeElementInst = null;
 	}
 	
-	function getInstIfValueChanged(targetInst, nativeEvent) {
-	  var updated = inputValueTracking.updateValueIfChanged(targetInst);
-	  var simulated = nativeEvent.simulated === true && ChangeEventPlugin._allowSimulatedPassThrough;
-	
-	  if (updated || simulated) {
-	    return targetInst;
-	  }
-	}
-	
 	function getTargetInstForChangeEvent(topLevelType, targetInst) {
 	  if (topLevelType === 'topChange') {
 	    return targetInst;
 	  }
 	}
-	
 	function handleEventsForChangeEventIE8(topLevelType, target, targetInst) {
 	  if (topLevelType === 'topFocus') {
 	    // stopWatching() should be a noop here but we call it just in case we
@@ -7888,54 +7783,105 @@
 	if (ExecutionEnvironment.canUseDOM) {
 	  // IE9 claims to support the input event but fails to trigger it when
 	  // deleting text, so we ignore its input events.
-	
-	  isInputEventSupported = isEventSupported('input') && (!('documentMode' in document) || document.documentMode > 9);
+	  // IE10+ fire input events to often, such when a placeholder
+	  // changes or when an input with a placeholder is focused.
+	  isInputEventSupported = isEventSupported('input') && (!document.documentMode || document.documentMode > 11);
 	}
 	
 	/**
-	 * (For IE <=9) Starts tracking propertychange events on the passed-in element
+	 * (For IE <=11) Replacement getter/setter for the `value` property that gets
+	 * set on the active element.
+	 */
+	var newValueProp = {
+	  get: function get() {
+	    return activeElementValueProp.get.call(this);
+	  },
+	  set: function set(val) {
+	    // Cast to a string so we can do equality checks.
+	    activeElementValue = '' + val;
+	    activeElementValueProp.set.call(this, val);
+	  }
+	};
+	
+	/**
+	 * (For IE <=11) Starts tracking propertychange events on the passed-in element
 	 * and override the value property so that we can distinguish user events from
 	 * value changes in JS.
 	 */
 	function startWatchingForValueChange(target, targetInst) {
 	  activeElement = target;
 	  activeElementInst = targetInst;
-	  activeElement.attachEvent('onpropertychange', handlePropertyChange);
+	  activeElementValue = target.value;
+	  activeElementValueProp = Object.getOwnPropertyDescriptor(target.constructor.prototype, 'value');
+	
+	  // Not guarded in a canDefineProperty check: IE8 supports defineProperty only
+	  // on DOM elements
+	  Object.defineProperty(activeElement, 'value', newValueProp);
+	  if (activeElement.attachEvent) {
+	    activeElement.attachEvent('onpropertychange', handlePropertyChange);
+	  } else {
+	    activeElement.addEventListener('propertychange', handlePropertyChange, false);
+	  }
 	}
 	
 	/**
-	 * (For IE <=9) Removes the event listeners from the currently-tracked element,
+	 * (For IE <=11) Removes the event listeners from the currently-tracked element,
 	 * if any exists.
 	 */
 	function stopWatchingForValueChange() {
 	  if (!activeElement) {
 	    return;
 	  }
-	  activeElement.detachEvent('onpropertychange', handlePropertyChange);
+	
+	  // delete restores the original property definition
+	  delete activeElement.value;
+	
+	  if (activeElement.detachEvent) {
+	    activeElement.detachEvent('onpropertychange', handlePropertyChange);
+	  } else {
+	    activeElement.removeEventListener('propertychange', handlePropertyChange, false);
+	  }
 	
 	  activeElement = null;
 	  activeElementInst = null;
+	  activeElementValue = null;
+	  activeElementValueProp = null;
 	}
 	
 	/**
-	 * (For IE <=9) Handles a propertychange event, sending a `change` event if
+	 * (For IE <=11) Handles a propertychange event, sending a `change` event if
 	 * the value of the active element has changed.
 	 */
 	function handlePropertyChange(nativeEvent) {
 	  if (nativeEvent.propertyName !== 'value') {
 	    return;
 	  }
-	  if (getInstIfValueChanged(activeElementInst, nativeEvent)) {
-	    manualDispatchChangeEvent(nativeEvent);
+	  var value = nativeEvent.srcElement.value;
+	  if (value === activeElementValue) {
+	    return;
+	  }
+	  activeElementValue = value;
+	
+	  manualDispatchChangeEvent(nativeEvent);
+	}
+	
+	/**
+	 * If a `change` event should be fired, returns the target's ID.
+	 */
+	function getTargetInstForInputEvent(topLevelType, targetInst) {
+	  if (topLevelType === 'topInput') {
+	    // In modern browsers (i.e., not IE8 or IE9), the input event is exactly
+	    // what we want so fall through here and trigger an abstract event
+	    return targetInst;
 	  }
 	}
 	
-	function handleEventsForInputEventPolyfill(topLevelType, target, targetInst) {
+	function handleEventsForInputEventIE(topLevelType, target, targetInst) {
 	  if (topLevelType === 'topFocus') {
 	    // In IE8, we can capture almost all .value changes by adding a
 	    // propertychange handler and looking for events with propertyName
 	    // equal to 'value'
-	    // In IE9, propertychange fires for most input events but is buggy and
+	    // In IE9-11, propertychange fires for most input events but is buggy and
 	    // doesn't fire when text is deleted, but conveniently, selectionchange
 	    // appears to fire in all of the remaining cases so we catch those and
 	    // forward the event if the value has changed
@@ -7953,7 +7899,7 @@
 	}
 	
 	// For IE8 and IE9.
-	function getTargetInstForInputEventPolyfill(topLevelType, targetInst, nativeEvent) {
+	function getTargetInstForInputEventIE(topLevelType, targetInst) {
 	  if (topLevelType === 'topSelectionChange' || topLevelType === 'topKeyUp' || topLevelType === 'topKeyDown') {
 	    // On the selectionchange event, the target is just document which isn't
 	    // helpful for us so just check activeElement instead.
@@ -7965,7 +7911,10 @@
 	    // keystroke if user does a key repeat (it'll be a little delayed: right
 	    // before the second keystroke). Other input methods (e.g., paste) seem to
 	    // fire selectionchange normally.
-	    return getInstIfValueChanged(activeElementInst, nativeEvent);
+	    if (activeElement && activeElement.value !== activeElementValue) {
+	      activeElementValue = activeElement.value;
+	      return activeElementInst;
+	    }
 	  }
 	}
 	
@@ -7976,19 +7925,12 @@
 	  // Use the `click` event to detect changes to checkbox and radio inputs.
 	  // This approach works across all browsers, whereas `change` does not fire
 	  // until `blur` in IE8.
-	  var nodeName = elem.nodeName;
-	  return nodeName && nodeName.toLowerCase() === 'input' && (elem.type === 'checkbox' || elem.type === 'radio');
+	  return elem.nodeName && elem.nodeName.toLowerCase() === 'input' && (elem.type === 'checkbox' || elem.type === 'radio');
 	}
 	
-	function getTargetInstForClickEvent(topLevelType, targetInst, nativeEvent) {
+	function getTargetInstForClickEvent(topLevelType, targetInst) {
 	  if (topLevelType === 'topClick') {
-	    return getInstIfValueChanged(targetInst, nativeEvent);
-	  }
-	}
-	
-	function getTargetInstForInputOrChangeEvent(topLevelType, targetInst, nativeEvent) {
-	  if (topLevelType === 'topInput' || topLevelType === 'topChange') {
-	    return getInstIfValueChanged(targetInst, nativeEvent);
+	    return targetInst;
 	  }
 	}
 	
@@ -8023,10 +7965,8 @@
 	 * - select
 	 */
 	var ChangeEventPlugin = {
-	  eventTypes: eventTypes,
 	
-	  _allowSimulatedPassThrough: true,
-	  _isInputEventSupported: isInputEventSupported,
+	  eventTypes: eventTypes,
 	
 	  extractEvents: function extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget) {
 	    var targetNode = targetInst ? ReactDOMComponentTree.getNodeFromInstance(targetInst) : window;
@@ -8040,19 +7980,21 @@
 	      }
 	    } else if (isTextInputElement(targetNode)) {
 	      if (isInputEventSupported) {
-	        getTargetInstFunc = getTargetInstForInputOrChangeEvent;
+	        getTargetInstFunc = getTargetInstForInputEvent;
 	      } else {
-	        getTargetInstFunc = getTargetInstForInputEventPolyfill;
-	        handleEventFunc = handleEventsForInputEventPolyfill;
+	        getTargetInstFunc = getTargetInstForInputEventIE;
+	        handleEventFunc = handleEventsForInputEventIE;
 	      }
 	    } else if (shouldUseClickEvent(targetNode)) {
 	      getTargetInstFunc = getTargetInstForClickEvent;
 	    }
 	
 	    if (getTargetInstFunc) {
-	      var inst = getTargetInstFunc(topLevelType, targetInst, nativeEvent);
+	      var inst = getTargetInstFunc(topLevelType, targetInst);
 	      if (inst) {
-	        var event = createAndAccumulateChangeEvent(inst, nativeEvent, nativeEventTarget);
+	        var event = SyntheticEvent.getPooled(eventTypes.change, inst, nativeEvent, nativeEventTarget);
+	        event.type = 'change';
+	        EventPropagators.accumulateTwoPhaseDispatches(event);
 	        return event;
 	      }
 	    }
@@ -8066,12 +8008,13 @@
 	      handleControlledInputBlur(targetInst, targetNode);
 	    }
 	  }
+	
 	};
 	
 	module.exports = ChangeEventPlugin;
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8086,16 +8029,16 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var CallbackQueue = __webpack_require__(65);
-	var PooledClass = __webpack_require__(58);
-	var ReactFeatureFlags = __webpack_require__(66);
-	var ReactReconciler = __webpack_require__(67);
-	var Transaction = __webpack_require__(76);
+	var CallbackQueue = __webpack_require__(64);
+	var PooledClass = __webpack_require__(57);
+	var ReactFeatureFlags = __webpack_require__(65);
+	var ReactReconciler = __webpack_require__(66);
+	var Transaction = __webpack_require__(75);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var dirtyComponents = [];
 	var updateBatchNumber = 0;
@@ -8327,7 +8270,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8343,7 +8286,7 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
 	function _classCallCheck(instance, Constructor) {
 	  if (!(instance instanceof Constructor)) {
@@ -8351,9 +8294,9 @@
 	  }
 	}
 	
-	var PooledClass = __webpack_require__(58);
+	var PooledClass = __webpack_require__(57);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * A specialized pseudo-event module to help keep track of components waiting to
@@ -8451,7 +8394,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module, exports) {
 
 	/**
@@ -8477,7 +8420,7 @@
 	module.exports = ReactFeatureFlags;
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8492,10 +8435,10 @@
 	
 	'use strict';
 	
-	var ReactRef = __webpack_require__(68);
-	var ReactInstrumentation = __webpack_require__(70);
+	var ReactRef = __webpack_require__(67);
+	var ReactInstrumentation = __webpack_require__(69);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	/**
 	 * Helper to call ReactRef.attachRefs with this composite component, split out
@@ -8506,6 +8449,7 @@
 	}
 	
 	var ReactReconciler = {
+	
 	  /**
 	   * Initializes the component, renders markup, and registers event listeners.
 	   *
@@ -8517,8 +8461,8 @@
 	   * @final
 	   * @internal
 	   */
-	  mountComponent: function mountComponent(internalInstance, transaction, hostParent, hostContainerInfo, context, parentDebugID) // 0 in production and for roots
-	  {
+	  mountComponent: function mountComponent(internalInstance, transaction, hostParent, hostContainerInfo, context, parentDebugID // 0 in production and for roots
+	  ) {
 	    if (process.env.NODE_ENV !== 'production') {
 	      if (internalInstance._debugID !== 0) {
 	        ReactInstrumentation.debugTool.onBeforeMountComponent(internalInstance._debugID, internalInstance._currentElement, parentDebugID);
@@ -8642,13 +8586,14 @@
 	      }
 	    }
 	  }
+	
 	};
 	
 	module.exports = ReactReconciler;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 68 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -8666,7 +8611,7 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var ReactOwner = __webpack_require__(69);
+	var ReactOwner = __webpack_require__(68);
 	
 	var ReactRef = {};
 	
@@ -8743,7 +8688,7 @@
 	module.exports = ReactRef;
 
 /***/ }),
-/* 69 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8759,9 +8704,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * @param {?object} object
@@ -8835,13 +8780,14 @@
 	      owner.detachRef(ref);
 	    }
 	  }
+	
 	};
 	
 	module.exports = ReactOwner;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 70 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8862,7 +8808,7 @@
 	var debugTool = null;
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var ReactDebugTool = __webpack_require__(71);
+	  var ReactDebugTool = __webpack_require__(70);
 	  debugTool = ReactDebugTool;
 	}
 	
@@ -8870,7 +8816,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 71 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -8888,13 +8834,13 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var ReactInvalidSetStateWarningHook = __webpack_require__(72);
-	var ReactHostOperationHistoryHook = __webpack_require__(73);
-	var ReactComponentTreeHook = __webpack_require__(27);
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ReactInvalidSetStateWarningHook = __webpack_require__(71);
+	var ReactHostOperationHistoryHook = __webpack_require__(72);
+	var ReactComponentTreeHook = __webpack_require__(29);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
-	var performanceNow = __webpack_require__(74);
-	var warning = __webpack_require__(11);
+	var performanceNow = __webpack_require__(73);
+	var warning = __webpack_require__(14);
 	
 	var hooks = [];
 	var didHookThrowForEvent = {};
@@ -9103,9 +9049,7 @@
 	  }
 	
 	  performance.clearMarks(markName);
-	  if (measurementName) {
-	    performance.clearMeasures(measurementName);
-	  }
+	  performance.clearMeasures(measurementName);
 	}
 	
 	var ReactDebugTool = {
@@ -9238,7 +9182,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 72 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9254,7 +9198,7 @@
 	
 	'use strict';
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	if (process.env.NODE_ENV !== 'production') {
 	  var processingChildContext = false;
@@ -9280,7 +9224,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 73 */
+/* 72 */
 /***/ (function(module, exports) {
 
 	/**
@@ -9318,7 +9262,7 @@
 	module.exports = ReactHostOperationHistoryHook;
 
 /***/ }),
-/* 74 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -9334,7 +9278,7 @@
 	 * @typechecks
 	 */
 	
-	var performance = __webpack_require__(75);
+	var performance = __webpack_require__(74);
 	
 	var performanceNow;
 	
@@ -9356,7 +9300,7 @@
 	module.exports = performanceNow;
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -9372,7 +9316,7 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
 	var performance;
 	
@@ -9383,7 +9327,7 @@
 	module.exports = performance || {};
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9399,9 +9343,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var OBSERVED_ERROR = {};
 	
@@ -9496,8 +9440,6 @@
 	    return !!this._isInTransaction;
 	  },
 	
-	  /* eslint-disable space-before-function-paren */
-	
 	  /**
 	   * Executes the function within a safety window. Use this for the top level
 	   * methods that result in large amounts of computation/mutations that would
@@ -9516,7 +9458,6 @@
 	   * @return {*} Return value from `method`.
 	   */
 	  perform: function perform(method, scope, a, b, c, d, e, f) {
-	    /* eslint-enable space-before-function-paren */
 	    !!this.isInTransaction() ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Transaction.perform(...): Cannot initialize a transaction when there is already an outstanding transaction.') : _prodInvariant('27') : void 0;
 	    var errorThrown;
 	    var ret;
@@ -9616,133 +9557,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 77 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 */
-	
-	'use strict';
-	
-	var ReactDOMComponentTree = __webpack_require__(42);
-	
-	function isCheckable(elem) {
-	  var type = elem.type;
-	  var nodeName = elem.nodeName;
-	  return nodeName && nodeName.toLowerCase() === 'input' && (type === 'checkbox' || type === 'radio');
-	}
-	
-	function getTracker(inst) {
-	  return inst._wrapperState.valueTracker;
-	}
-	
-	function attachTracker(inst, tracker) {
-	  inst._wrapperState.valueTracker = tracker;
-	}
-	
-	function detachTracker(inst) {
-	  delete inst._wrapperState.valueTracker;
-	}
-	
-	function getValueFromNode(node) {
-	  var value;
-	  if (node) {
-	    value = isCheckable(node) ? '' + node.checked : node.value;
-	  }
-	  return value;
-	}
-	
-	var inputValueTracking = {
-	  // exposed for testing
-	  _getTrackerFromNode: function _getTrackerFromNode(node) {
-	    return getTracker(ReactDOMComponentTree.getInstanceFromNode(node));
-	  },
-	
-	  track: function track(inst) {
-	    if (getTracker(inst)) {
-	      return;
-	    }
-	
-	    var node = ReactDOMComponentTree.getNodeFromInstance(inst);
-	    var valueField = isCheckable(node) ? 'checked' : 'value';
-	    var descriptor = Object.getOwnPropertyDescriptor(node.constructor.prototype, valueField);
-	
-	    var currentValue = '' + node[valueField];
-	
-	    // if someone has already defined a value or Safari, then bail
-	    // and don't track value will cause over reporting of changes,
-	    // but it's better then a hard failure
-	    // (needed for certain tests that spyOn input values and Safari)
-	    if (node.hasOwnProperty(valueField) || typeof descriptor.get !== 'function' || typeof descriptor.set !== 'function') {
-	      return;
-	    }
-	
-	    Object.defineProperty(node, valueField, {
-	      enumerable: descriptor.enumerable,
-	      configurable: true,
-	      get: function get() {
-	        return descriptor.get.call(this);
-	      },
-	      set: function set(value) {
-	        currentValue = '' + value;
-	        descriptor.set.call(this, value);
-	      }
-	    });
-	
-	    attachTracker(inst, {
-	      getValue: function getValue() {
-	        return currentValue;
-	      },
-	      setValue: function setValue(value) {
-	        currentValue = '' + value;
-	      },
-	      stopTracking: function stopTracking() {
-	        detachTracker(inst);
-	        delete node[valueField];
-	      }
-	    });
-	  },
-	
-	  updateValueIfChanged: function updateValueIfChanged(inst) {
-	    if (!inst) {
-	      return false;
-	    }
-	    var tracker = getTracker(inst);
-	
-	    if (!tracker) {
-	      inputValueTracking.track(inst);
-	      return true;
-	    }
-	
-	    var lastValue = tracker.getValue();
-	    var nextValue = getValueFromNode(ReactDOMComponentTree.getNodeFromInstance(inst));
-	
-	    if (nextValue !== lastValue) {
-	      tracker.setValue(nextValue);
-	      return true;
-	    }
-	
-	    return false;
-	  },
-	  stopTracking: function stopTracking(inst) {
-	    var tracker = getTracker(inst);
-	    if (tracker) {
-	      tracker.stopTracking();
-	    }
-	  }
-	};
-	
-	module.exports = inputValueTracking;
-
-/***/ }),
-/* 78 */
+/* 76 */
 /***/ (function(module, exports) {
 
 	/**
@@ -9781,7 +9596,7 @@
 	module.exports = getEventTarget;
 
 /***/ }),
-/* 79 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -9796,7 +9611,7 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
 	var useHasFeature;
 	if (ExecutionEnvironment.canUseDOM) {
@@ -9845,7 +9660,7 @@
 	module.exports = isEventSupported;
 
 /***/ }),
-/* 80 */
+/* 78 */
 /***/ (function(module, exports) {
 
 	/**
@@ -9866,21 +9681,21 @@
 	 */
 	
 	var supportedInputTypes = {
-	  color: true,
-	  date: true,
-	  datetime: true,
+	  'color': true,
+	  'date': true,
+	  'datetime': true,
 	  'datetime-local': true,
-	  email: true,
-	  month: true,
-	  number: true,
-	  password: true,
-	  range: true,
-	  search: true,
-	  tel: true,
-	  text: true,
-	  time: true,
-	  url: true,
-	  week: true
+	  'email': true,
+	  'month': true,
+	  'number': true,
+	  'password': true,
+	  'range': true,
+	  'search': true,
+	  'tel': true,
+	  'text': true,
+	  'time': true,
+	  'url': true,
+	  'week': true
 	};
 	
 	function isTextInputElement(elem) {
@@ -9900,7 +9715,7 @@
 	module.exports = isTextInputElement;
 
 /***/ }),
-/* 81 */
+/* 79 */
 /***/ (function(module, exports) {
 
 	/**
@@ -9930,7 +9745,7 @@
 	module.exports = DefaultEventPluginOrder;
 
 /***/ }),
-/* 82 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -9945,9 +9760,9 @@
 	
 	'use strict';
 	
-	var EventPropagators = __webpack_require__(49);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var SyntheticMouseEvent = __webpack_require__(83);
+	var EventPropagators = __webpack_require__(48);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var SyntheticMouseEvent = __webpack_require__(81);
 	
 	var eventTypes = {
 	  mouseEnter: {
@@ -9961,6 +9776,7 @@
 	};
 	
 	var EnterLeaveEventPlugin = {
+	
 	  eventTypes: eventTypes,
 	
 	  /**
@@ -10027,12 +9843,13 @@
 	
 	    return [leave, enter];
 	  }
+	
 	};
 	
 	module.exports = EnterLeaveEventPlugin;
 
 /***/ }),
-/* 83 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10047,10 +9864,10 @@
 	
 	'use strict';
 	
-	var SyntheticUIEvent = __webpack_require__(84);
-	var ViewportMetrics = __webpack_require__(85);
+	var SyntheticUIEvent = __webpack_require__(82);
+	var ViewportMetrics = __webpack_require__(83);
 	
-	var getEventModifierState = __webpack_require__(86);
+	var getEventModifierState = __webpack_require__(84);
 	
 	/**
 	 * @interface MouseEvent
@@ -10108,7 +9925,7 @@
 	module.exports = SyntheticMouseEvent;
 
 /***/ }),
-/* 84 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10123,9 +9940,9 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
-	var getEventTarget = __webpack_require__(78);
+	var getEventTarget = __webpack_require__(76);
 	
 	/**
 	 * @interface UIEvent
@@ -10171,7 +9988,7 @@
 	module.exports = SyntheticUIEvent;
 
 /***/ }),
-/* 85 */
+/* 83 */
 /***/ (function(module, exports) {
 
 	/**
@@ -10187,6 +10004,7 @@
 	'use strict';
 	
 	var ViewportMetrics = {
+	
 	  currentScrollLeft: 0,
 	
 	  currentScrollTop: 0,
@@ -10195,12 +10013,13 @@
 	    ViewportMetrics.currentScrollLeft = scrollPosition.x;
 	    ViewportMetrics.currentScrollTop = scrollPosition.y;
 	  }
+	
 	};
 	
 	module.exports = ViewportMetrics;
 
 /***/ }),
-/* 86 */
+/* 84 */
 /***/ (function(module, exports) {
 
 	/**
@@ -10221,10 +10040,10 @@
 	 */
 	
 	var modifierKeyToProp = {
-	  Alt: 'altKey',
-	  Control: 'ctrlKey',
-	  Meta: 'metaKey',
-	  Shift: 'shiftKey'
+	  'Alt': 'altKey',
+	  'Control': 'ctrlKey',
+	  'Meta': 'metaKey',
+	  'Shift': 'shiftKey'
 	};
 	
 	// IE8 does not implement getModifierState so we simply map it to the only
@@ -10247,7 +10066,7 @@
 	module.exports = getEventModifierState;
 
 /***/ }),
-/* 87 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10262,7 +10081,7 @@
 	
 	'use strict';
 	
-	var DOMProperty = __webpack_require__(44);
+	var DOMProperty = __webpack_require__(43);
 	
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
 	var HAS_BOOLEAN_VALUE = DOMProperty.injection.HAS_BOOLEAN_VALUE;
@@ -10487,7 +10306,7 @@
 	module.exports = HTMLDOMPropertyConfig;
 
 /***/ }),
-/* 88 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10502,8 +10321,8 @@
 	
 	'use strict';
 	
-	var DOMChildrenOperations = __webpack_require__(89);
-	var ReactDOMIDOperations = __webpack_require__(100);
+	var DOMChildrenOperations = __webpack_require__(87);
+	var ReactDOMIDOperations = __webpack_require__(98);
 	
 	/**
 	 * Abstracts away all functionality of the reconciler that requires knowledge of
@@ -10511,15 +10330,17 @@
 	 * need for this injection.
 	 */
 	var ReactComponentBrowserEnvironment = {
+	
 	  processChildrenUpdates: ReactDOMIDOperations.dangerouslyProcessChildrenUpdates,
 	
 	  replaceNodeWithMarkup: DOMChildrenOperations.dangerouslyReplaceNodeWithMarkup
+	
 	};
 	
 	module.exports = ReactComponentBrowserEnvironment;
 
 /***/ }),
-/* 89 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -10534,14 +10355,14 @@
 	
 	'use strict';
 	
-	var DOMLazyTree = __webpack_require__(90);
-	var Danger = __webpack_require__(96);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactInstrumentation = __webpack_require__(70);
+	var DOMLazyTree = __webpack_require__(88);
+	var Danger = __webpack_require__(94);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactInstrumentation = __webpack_require__(69);
 	
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(93);
-	var setInnerHTML = __webpack_require__(92);
-	var setTextContent = __webpack_require__(94);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(91);
+	var setInnerHTML = __webpack_require__(90);
+	var setTextContent = __webpack_require__(92);
 	
 	function getNodeAfter(parentNode, node) {
 	  // Special case for text components, which return [open, close] comments
@@ -10669,6 +10490,7 @@
 	 * Operations for updating with DOM children.
 	 */
 	var DOMChildrenOperations = {
+	
 	  dangerouslyReplaceNodeWithMarkup: dangerouslyReplaceNodeWithMarkup,
 	
 	  replaceDelimitedText: replaceDelimitedText,
@@ -10694,10 +10516,7 @@
 	            ReactInstrumentation.debugTool.onHostOperation({
 	              instanceID: parentNodeDebugID,
 	              type: 'insert child',
-	              payload: {
-	                toIndex: update.toIndex,
-	                content: update.content.toString()
-	              }
+	              payload: { toIndex: update.toIndex, content: update.content.toString() }
 	            });
 	          }
 	          break;
@@ -10744,13 +10563,14 @@
 	      }
 	    }
 	  }
+	
 	};
 	
 	module.exports = DOMChildrenOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 90 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10765,11 +10585,11 @@
 	
 	'use strict';
 	
-	var DOMNamespaces = __webpack_require__(91);
-	var setInnerHTML = __webpack_require__(92);
+	var DOMNamespaces = __webpack_require__(89);
+	var setInnerHTML = __webpack_require__(90);
 	
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(93);
-	var setTextContent = __webpack_require__(94);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(91);
+	var setTextContent = __webpack_require__(92);
 	
 	var ELEMENT_NODE_TYPE = 1;
 	var DOCUMENT_FRAGMENT_NODE_TYPE = 11;
@@ -10872,7 +10692,7 @@
 	module.exports = DOMLazyTree;
 
 /***/ }),
-/* 91 */
+/* 89 */
 /***/ (function(module, exports) {
 
 	/**
@@ -10896,7 +10716,7 @@
 	module.exports = DOMNamespaces;
 
 /***/ }),
-/* 92 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -10911,13 +10731,13 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
-	var DOMNamespaces = __webpack_require__(91);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var DOMNamespaces = __webpack_require__(89);
 	
 	var WHITESPACE_TEST = /^[ \r\n\t\f]/;
 	var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
 	
-	var createMicrosoftUnsafeLocalFunction = __webpack_require__(93);
+	var createMicrosoftUnsafeLocalFunction = __webpack_require__(91);
 	
 	// SVG temp container for IE lacking innerHTML
 	var reusableSVGContainer;
@@ -10977,7 +10797,7 @@
 	        // in hopes that this is preserved even if "\uFEFF" is transformed to
 	        // the actual Unicode character (by Babel, for example).
 	        // https://github.com/mishoo/UglifyJS2/blob/v2.4.20/lib/parse.js#L216
-	        node.innerHTML = String.fromCharCode(0xfeff) + html;
+	        node.innerHTML = String.fromCharCode(0xFEFF) + html;
 	
 	        // deleteData leaves an empty `TextNode` which offsets the index of all
 	        // children. Definitely want to avoid this.
@@ -10998,7 +10818,7 @@
 	module.exports = setInnerHTML;
 
 /***/ }),
-/* 93 */
+/* 91 */
 /***/ (function(module, exports) {
 
 	/**
@@ -11034,7 +10854,7 @@
 	module.exports = createMicrosoftUnsafeLocalFunction;
 
 /***/ }),
-/* 94 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -11049,9 +10869,9 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
-	var escapeTextContentForBrowser = __webpack_require__(95);
-	var setInnerHTML = __webpack_require__(92);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var escapeTextContentForBrowser = __webpack_require__(93);
+	var setInnerHTML = __webpack_require__(90);
 	
 	/**
 	 * Set the textContent property of a node, ensuring that whitespace is preserved
@@ -11090,7 +10910,7 @@
 	module.exports = setTextContent;
 
 /***/ }),
-/* 95 */
+/* 93 */
 /***/ (function(module, exports) {
 
 	/**
@@ -11197,6 +11017,7 @@
 	}
 	// end code copied and modified from escape-html
 	
+	
 	/**
 	 * Escapes text to prevent scripting attacks.
 	 *
@@ -11216,7 +11037,7 @@
 	module.exports = escapeTextContentForBrowser;
 
 /***/ }),
-/* 96 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -11231,16 +11052,17 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var DOMLazyTree = __webpack_require__(90);
-	var ExecutionEnvironment = __webpack_require__(56);
+	var DOMLazyTree = __webpack_require__(88);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
-	var createNodesFromMarkup = __webpack_require__(97);
-	var emptyFunction = __webpack_require__(12);
-	var invariant = __webpack_require__(15);
+	var createNodesFromMarkup = __webpack_require__(95);
+	var emptyFunction = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var Danger = {
+	
 	  /**
 	   * Replaces a node with a string of markup at its current position within its
 	   * parent. The markup must render into a single root node.
@@ -11261,13 +11083,14 @@
 	      DOMLazyTree.replaceChildWithTree(oldChild, markup);
 	    }
 	  }
+	
 	};
 	
 	module.exports = Danger;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 97 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -11285,11 +11108,11 @@
 	
 	/*eslint-disable fb-www/unsafe-html*/
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
-	var createArrayFromMixed = __webpack_require__(98);
-	var getMarkupWrap = __webpack_require__(99);
-	var invariant = __webpack_require__(15);
+	var createArrayFromMixed = __webpack_require__(96);
+	var getMarkupWrap = __webpack_require__(97);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Dummy container used to render all markup.
@@ -11356,7 +11179,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 98 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -11374,7 +11197,7 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Convert array-like objects to arrays.
@@ -11490,7 +11313,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 99 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -11507,9 +11330,9 @@
 	
 	/*eslint-disable fb-www/unsafe-html */
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Dummy container used to detect which wraps are necessary.
@@ -11590,7 +11413,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 100 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -11605,13 +11428,14 @@
 	
 	'use strict';
 	
-	var DOMChildrenOperations = __webpack_require__(89);
-	var ReactDOMComponentTree = __webpack_require__(42);
+	var DOMChildrenOperations = __webpack_require__(87);
+	var ReactDOMComponentTree = __webpack_require__(41);
 	
 	/**
 	 * Operations used to process updates to DOM nodes.
 	 */
 	var ReactDOMIDOperations = {
+	
 	  /**
 	   * Updates a component's children by processing a series of updates.
 	   *
@@ -11627,7 +11451,7 @@
 	module.exports = ReactDOMIDOperations;
 
 /***/ }),
-/* 101 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -11646,36 +11470,35 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var AutoFocusUtils = __webpack_require__(102);
-	var CSSPropertyOperations = __webpack_require__(104);
-	var DOMLazyTree = __webpack_require__(90);
-	var DOMNamespaces = __webpack_require__(91);
-	var DOMProperty = __webpack_require__(44);
-	var DOMPropertyOperations = __webpack_require__(112);
-	var EventPluginHub = __webpack_require__(50);
-	var EventPluginRegistry = __webpack_require__(51);
-	var ReactBrowserEventEmitter = __webpack_require__(114);
-	var ReactDOMComponentFlags = __webpack_require__(45);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactDOMInput = __webpack_require__(117);
-	var ReactDOMOption = __webpack_require__(120);
-	var ReactDOMSelect = __webpack_require__(121);
-	var ReactDOMTextarea = __webpack_require__(122);
-	var ReactInstrumentation = __webpack_require__(70);
-	var ReactMultiChild = __webpack_require__(123);
-	var ReactServerRenderingTransaction = __webpack_require__(142);
+	var AutoFocusUtils = __webpack_require__(100);
+	var CSSPropertyOperations = __webpack_require__(102);
+	var DOMLazyTree = __webpack_require__(88);
+	var DOMNamespaces = __webpack_require__(89);
+	var DOMProperty = __webpack_require__(43);
+	var DOMPropertyOperations = __webpack_require__(110);
+	var EventPluginHub = __webpack_require__(49);
+	var EventPluginRegistry = __webpack_require__(50);
+	var ReactBrowserEventEmitter = __webpack_require__(112);
+	var ReactDOMComponentFlags = __webpack_require__(44);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactDOMInput = __webpack_require__(115);
+	var ReactDOMOption = __webpack_require__(118);
+	var ReactDOMSelect = __webpack_require__(119);
+	var ReactDOMTextarea = __webpack_require__(120);
+	var ReactInstrumentation = __webpack_require__(69);
+	var ReactMultiChild = __webpack_require__(121);
+	var ReactServerRenderingTransaction = __webpack_require__(140);
 	
-	var emptyFunction = __webpack_require__(12);
-	var escapeTextContentForBrowser = __webpack_require__(95);
-	var invariant = __webpack_require__(15);
-	var isEventSupported = __webpack_require__(79);
-	var shallowEqual = __webpack_require__(132);
-	var inputValueTracking = __webpack_require__(77);
-	var validateDOMNesting = __webpack_require__(145);
-	var warning = __webpack_require__(11);
+	var emptyFunction = __webpack_require__(15);
+	var escapeTextContentForBrowser = __webpack_require__(93);
+	var invariant = __webpack_require__(11);
+	var isEventSupported = __webpack_require__(77);
+	var shallowEqual = __webpack_require__(130);
+	var validateDOMNesting = __webpack_require__(143);
+	var warning = __webpack_require__(14);
 	
 	var Flags = ReactDOMComponentFlags;
 	var deleteListener = EventPluginHub.deleteListener;
@@ -11684,7 +11507,7 @@
 	var registrationNameModules = EventPluginRegistry.registrationNameModules;
 	
 	// For quickly matching children type, to test if can be treated as content.
-	var CONTENT_TYPES = { string: true, number: true };
+	var CONTENT_TYPES = { 'string': true, 'number': true };
 	
 	var STYLE = 'style';
 	var HTML = '__html';
@@ -11793,7 +11616,7 @@
 	  if (process.env.NODE_ENV !== 'production') {
 	    // IE8 has no API for event capturing and the `onScroll` event doesn't
 	    // bubble.
-	    process.env.NODE_ENV !== 'production' ? warning(registrationName !== 'onScroll' || isEventSupported('scroll', true), "This browser doesn't support the `onScroll` event") : void 0;
+	    process.env.NODE_ENV !== 'production' ? warning(registrationName !== 'onScroll' || isEventSupported('scroll', true), 'This browser doesn\'t support the `onScroll` event') : void 0;
 	  }
 	  var containerInfo = inst._hostContainerInfo;
 	  var isDocumentFragment = containerInfo._node && containerInfo._node.nodeType === DOC_FRAGMENT_TYPE;
@@ -11883,10 +11706,6 @@
 	  topWaiting: 'waiting'
 	};
 	
-	function trackInputValue() {
-	  inputValueTracking.track(this);
-	}
-	
 	function trapBubbledEventsLocal() {
 	  var inst = this;
 	  // If a component renders to null or if another component fatals and causes
@@ -11902,6 +11721,7 @@
 	      break;
 	    case 'video':
 	    case 'audio':
+	
 	      inst._wrapperState.listeners = [];
 	      // Create listener for each media event
 	      for (var event in mediaEvents) {
@@ -11935,35 +11755,34 @@
 	// those special-case tags.
 	
 	var omittedCloseTags = {
-	  area: true,
-	  base: true,
-	  br: true,
-	  col: true,
-	  embed: true,
-	  hr: true,
-	  img: true,
-	  input: true,
-	  keygen: true,
-	  link: true,
-	  meta: true,
-	  param: true,
-	  source: true,
-	  track: true,
-	  wbr: true
-	  // NOTE: menuitem's close tag should be omitted, but that causes problems.
+	  'area': true,
+	  'base': true,
+	  'br': true,
+	  'col': true,
+	  'embed': true,
+	  'hr': true,
+	  'img': true,
+	  'input': true,
+	  'keygen': true,
+	  'link': true,
+	  'meta': true,
+	  'param': true,
+	  'source': true,
+	  'track': true,
+	  'wbr': true
 	};
 	
 	var newlineEatingTags = {
-	  listing: true,
-	  pre: true,
-	  textarea: true
+	  'listing': true,
+	  'pre': true,
+	  'textarea': true
 	};
 	
 	// For HTML, certain tags cannot have children. This has the same purpose as
 	// `omittedCloseTags` except that `menuitem` should still have its closing tag.
 	
 	var voidElementTags = _assign({
-	  menuitem: true
+	  'menuitem': true
 	}, omittedCloseTags);
 	
 	// We accept any tag to be rendered but since this gets injected into arbitrary
@@ -12027,6 +11846,7 @@
 	ReactDOMComponent.displayName = 'ReactDOMComponent';
 	
 	ReactDOMComponent.Mixin = {
+	
 	  /**
 	   * Generates root tag markup then recurses. This method has side effects and
 	   * is not idempotent.
@@ -12063,7 +11883,6 @@
 	      case 'input':
 	        ReactDOMInput.mountWrapper(this, props, hostParent);
 	        props = ReactDOMInput.getHostProps(this, props);
-	        transaction.getReactMountReady().enqueue(trackInputValue, this);
 	        transaction.getReactMountReady().enqueue(trapBubbledEventsLocal, this);
 	        break;
 	      case 'option':
@@ -12078,7 +11897,6 @@
 	      case 'textarea':
 	        ReactDOMTextarea.mountWrapper(this, props, hostParent);
 	        props = ReactDOMTextarea.getHostProps(this, props);
-	        transaction.getReactMountReady().enqueue(trackInputValue, this);
 	        transaction.getReactMountReady().enqueue(trapBubbledEventsLocal, this);
 	        break;
 	    }
@@ -12604,10 +12422,6 @@
 	          }
 	        }
 	        break;
-	      case 'input':
-	      case 'textarea':
-	        inputValueTracking.stopTracking(this);
-	        break;
 	      case 'html':
 	      case 'head':
 	      case 'body':
@@ -12636,6 +12450,7 @@
 	  getPublicInstance: function getPublicInstance() {
 	    return getNode(this);
 	  }
+	
 	};
 	
 	_assign(ReactDOMComponent.prototype, ReactDOMComponent.Mixin, ReactMultiChild.Mixin);
@@ -12644,7 +12459,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 102 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -12659,9 +12474,9 @@
 	
 	'use strict';
 	
-	var ReactDOMComponentTree = __webpack_require__(42);
+	var ReactDOMComponentTree = __webpack_require__(41);
 	
-	var focusNode = __webpack_require__(103);
+	var focusNode = __webpack_require__(101);
 	
 	var AutoFocusUtils = {
 	  focusDOMComponent: function focusDOMComponent() {
@@ -12672,7 +12487,7 @@
 	module.exports = AutoFocusUtils;
 
 /***/ }),
-/* 103 */
+/* 101 */
 /***/ (function(module, exports) {
 
 	/**
@@ -12703,7 +12518,7 @@
 	module.exports = focusNode;
 
 /***/ }),
-/* 104 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -12718,15 +12533,15 @@
 	
 	'use strict';
 	
-	var CSSProperty = __webpack_require__(105);
-	var ExecutionEnvironment = __webpack_require__(56);
-	var ReactInstrumentation = __webpack_require__(70);
+	var CSSProperty = __webpack_require__(103);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var ReactInstrumentation = __webpack_require__(69);
 	
-	var camelizeStyleName = __webpack_require__(106);
-	var dangerousStyleValue = __webpack_require__(108);
-	var hyphenateStyleName = __webpack_require__(109);
-	var memoizeStringOnly = __webpack_require__(111);
-	var warning = __webpack_require__(11);
+	var camelizeStyleName = __webpack_require__(104);
+	var dangerousStyleValue = __webpack_require__(106);
+	var hyphenateStyleName = __webpack_require__(107);
+	var memoizeStringOnly = __webpack_require__(109);
+	var warning = __webpack_require__(14);
 	
 	var processStyleName = memoizeStringOnly(function (styleName) {
 	  return hyphenateStyleName(styleName);
@@ -12783,7 +12598,7 @@
 	    }
 	
 	    warnedStyleValues[value] = true;
-	    process.env.NODE_ENV !== 'production' ? warning(false, "Style property values shouldn't contain a semicolon.%s " + 'Try "%s: %s" instead.', checkRenderMessage(owner), name, value.replace(badStyleValueWithSemicolonPattern, '')) : void 0;
+	    process.env.NODE_ENV !== 'production' ? warning(false, 'Style property values shouldn\'t contain a semicolon.%s ' + 'Try "%s: %s" instead.', checkRenderMessage(owner), name, value.replace(badStyleValueWithSemicolonPattern, '')) : void 0;
 	  };
 	
 	  var warnStyleValueIsNaN = function warnStyleValueIsNaN(name, value, owner) {
@@ -12833,6 +12648,7 @@
 	 * Operations for dealing with CSS properties.
 	 */
 	var CSSPropertyOperations = {
+	
 	  /**
 	   * Serializes a mapping of style properties for use as inline styles:
 	   *
@@ -12852,16 +12668,13 @@
 	      if (!styles.hasOwnProperty(styleName)) {
 	        continue;
 	      }
-	      var isCustomProperty = styleName.indexOf('--') === 0;
 	      var styleValue = styles[styleName];
 	      if (process.env.NODE_ENV !== 'production') {
-	        if (!isCustomProperty) {
-	          warnValidStyle(styleName, styleValue, component);
-	        }
+	        warnValidStyle(styleName, styleValue, component);
 	      }
 	      if (styleValue != null) {
 	        serialized += processStyleName(styleName) + ':';
-	        serialized += dangerousStyleValue(styleName, styleValue, component, isCustomProperty) + ';';
+	        serialized += dangerousStyleValue(styleName, styleValue, component) + ';';
 	      }
 	    }
 	    return serialized || null;
@@ -12889,19 +12702,14 @@
 	      if (!styles.hasOwnProperty(styleName)) {
 	        continue;
 	      }
-	      var isCustomProperty = styleName.indexOf('--') === 0;
 	      if (process.env.NODE_ENV !== 'production') {
-	        if (!isCustomProperty) {
-	          warnValidStyle(styleName, styles[styleName], component);
-	        }
+	        warnValidStyle(styleName, styles[styleName], component);
 	      }
-	      var styleValue = dangerousStyleValue(styleName, styles[styleName], component, isCustomProperty);
+	      var styleValue = dangerousStyleValue(styleName, styles[styleName], component);
 	      if (styleName === 'float' || styleName === 'cssFloat') {
 	        styleName = styleFloatAccessor;
 	      }
-	      if (isCustomProperty) {
-	        style.setProperty(styleName, styleValue);
-	      } else if (styleValue) {
+	      if (styleValue) {
 	        style[styleName] = styleValue;
 	      } else {
 	        var expansion = hasShorthandPropertyBug && CSSProperty.shorthandPropertyExpansions[styleName];
@@ -12917,13 +12725,14 @@
 	      }
 	    }
 	  }
+	
 	};
 	
 	module.exports = CSSPropertyOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 105 */
+/* 103 */
 /***/ (function(module, exports) {
 
 	/**
@@ -12958,13 +12767,7 @@
 	  flexNegative: true,
 	  flexOrder: true,
 	  gridRow: true,
-	  gridRowEnd: true,
-	  gridRowSpan: true,
-	  gridRowStart: true,
 	  gridColumn: true,
-	  gridColumnEnd: true,
-	  gridColumnSpan: true,
-	  gridColumnStart: true,
 	  fontWeight: true,
 	  lineClamp: true,
 	  lineHeight: true,
@@ -13081,7 +12884,7 @@
 	module.exports = CSSProperty;
 
 /***/ }),
-/* 106 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -13097,7 +12900,7 @@
 	
 	'use strict';
 	
-	var camelize = __webpack_require__(107);
+	var camelize = __webpack_require__(105);
 	
 	var msPattern = /^-ms-/;
 	
@@ -13125,7 +12928,7 @@
 	module.exports = camelizeStyleName;
 
 /***/ }),
-/* 107 */
+/* 105 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -13161,7 +12964,7 @@
 	module.exports = camelize;
 
 /***/ }),
-/* 108 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -13176,8 +12979,8 @@
 	
 	'use strict';
 	
-	var CSSProperty = __webpack_require__(105);
-	var warning = __webpack_require__(11);
+	var CSSProperty = __webpack_require__(103);
+	var warning = __webpack_require__(14);
 	
 	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
 	var styleWarnings = {};
@@ -13192,7 +12995,7 @@
 	 * @param {ReactDOMComponent} component
 	 * @return {string} Normalized style value with dimensions applied.
 	 */
-	function dangerousStyleValue(name, value, component, isCustomProperty) {
+	function dangerousStyleValue(name, value, component) {
 	  // Note that we've removed escapeTextForBrowser() calls here since the
 	  // whole string will be escaped when the attribute is injected into
 	  // the markup. If you provide unsafe user data here they can inject
@@ -13209,7 +13012,7 @@
 	  }
 	
 	  var isNonNumeric = isNaN(value);
-	  if (isCustomProperty || isNonNumeric || value === 0 || isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
+	  if (isNonNumeric || value === 0 || isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
 	    return '' + value; // cast to string
 	  }
 	
@@ -13245,7 +13048,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 109 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -13261,7 +13064,7 @@
 	
 	'use strict';
 	
-	var hyphenate = __webpack_require__(110);
+	var hyphenate = __webpack_require__(108);
 	
 	var msPattern = /^ms-/;
 	
@@ -13288,7 +13091,7 @@
 	module.exports = hyphenateStyleName;
 
 /***/ }),
-/* 110 */
+/* 108 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -13325,7 +13128,7 @@
 	module.exports = hyphenate;
 
 /***/ }),
-/* 111 */
+/* 109 */
 /***/ (function(module, exports) {
 
 	/**
@@ -13359,7 +13162,7 @@
 	module.exports = memoizeStringOnly;
 
 /***/ }),
-/* 112 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -13374,12 +13177,12 @@
 	
 	'use strict';
 	
-	var DOMProperty = __webpack_require__(44);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactInstrumentation = __webpack_require__(70);
+	var DOMProperty = __webpack_require__(43);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactInstrumentation = __webpack_require__(69);
 	
-	var quoteAttributeValueForBrowser = __webpack_require__(113);
-	var warning = __webpack_require__(11);
+	var quoteAttributeValueForBrowser = __webpack_require__(111);
+	var warning = __webpack_require__(14);
 	
 	var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + DOMProperty.ATTRIBUTE_NAME_START_CHAR + '][' + DOMProperty.ATTRIBUTE_NAME_CHAR + ']*$');
 	var illegalAttributeNameCache = {};
@@ -13409,6 +13212,7 @@
 	 * Operations for dealing with DOM properties.
 	 */
 	var DOMPropertyOperations = {
+	
 	  /**
 	   * Creates markup for the ID property.
 	   *
@@ -13593,13 +13397,14 @@
 	      });
 	    }
 	  }
+	
 	};
 	
 	module.exports = DOMPropertyOperations;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 113 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -13614,7 +13419,7 @@
 	
 	'use strict';
 	
-	var escapeTextContentForBrowser = __webpack_require__(95);
+	var escapeTextContentForBrowser = __webpack_require__(93);
 	
 	/**
 	 * Escapes attribute value to prevent scripting attacks.
@@ -13629,7 +13434,7 @@
 	module.exports = quoteAttributeValueForBrowser;
 
 /***/ }),
-/* 114 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -13646,12 +13451,12 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var EventPluginRegistry = __webpack_require__(51);
-	var ReactEventEmitterMixin = __webpack_require__(115);
-	var ViewportMetrics = __webpack_require__(85);
+	var EventPluginRegistry = __webpack_require__(50);
+	var ReactEventEmitterMixin = __webpack_require__(113);
+	var ViewportMetrics = __webpack_require__(83);
 	
-	var getVendorPrefixedEventName = __webpack_require__(116);
-	var isEventSupported = __webpack_require__(79);
+	var getVendorPrefixedEventName = __webpack_require__(114);
+	var isEventSupported = __webpack_require__(77);
 	
 	/**
 	 * Summary of `ReactBrowserEventEmitter` event handling:
@@ -13809,6 +13614,7 @@
 	 * @internal
 	 */
 	var ReactBrowserEventEmitter = _assign({}, ReactEventEmitterMixin, {
+	
 	  /**
 	   * Injectable event backend
 	   */
@@ -13882,12 +13688,14 @@
 	            ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent('topWheel', 'DOMMouseScroll', mountAt);
 	          }
 	        } else if (dependency === 'topScroll') {
+	
 	          if (isEventSupported('scroll', true)) {
 	            ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent('topScroll', 'scroll', mountAt);
 	          } else {
 	            ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent('topScroll', 'scroll', ReactBrowserEventEmitter.ReactEventListener.WINDOW_HANDLE);
 	          }
 	        } else if (dependency === 'topFocus' || dependency === 'topBlur') {
+	
 	          if (isEventSupported('focus', true)) {
 	            ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent('topFocus', 'focus', mountAt);
 	            ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent('topBlur', 'blur', mountAt);
@@ -13952,12 +13760,13 @@
 	      isMonitoringScrollValue = true;
 	    }
 	  }
+	
 	});
 	
 	module.exports = ReactBrowserEventEmitter;
 
 /***/ }),
-/* 115 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -13972,7 +13781,7 @@
 	
 	'use strict';
 	
-	var EventPluginHub = __webpack_require__(50);
+	var EventPluginHub = __webpack_require__(49);
 	
 	function runEventQueueInBatch(events) {
 	  EventPluginHub.enqueueEvents(events);
@@ -13980,6 +13789,7 @@
 	}
 	
 	var ReactEventEmitterMixin = {
+	
 	  /**
 	   * Streams a fired top-level event to `EventPluginHub` where plugins have the
 	   * opportunity to create `ReactEvent`s to be dispatched.
@@ -13993,7 +13803,7 @@
 	module.exports = ReactEventEmitterMixin;
 
 /***/ }),
-/* 116 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -14008,7 +13818,7 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
 	/**
 	 * Generate a mapping of standard vendor prefixes using the defined style property and event name.
@@ -14098,7 +13908,7 @@
 	module.exports = getVendorPrefixedEventName;
 
 /***/ }),
-/* 117 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14113,16 +13923,16 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var DOMPropertyOperations = __webpack_require__(112);
-	var LinkedValueUtils = __webpack_require__(118);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactUpdates = __webpack_require__(64);
+	var DOMPropertyOperations = __webpack_require__(110);
+	var LinkedValueUtils = __webpack_require__(116);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var didWarnValueLink = false;
 	var didWarnCheckedLink = false;
@@ -14253,16 +14063,14 @@
 	        // Simulate `input.valueAsNumber`. IE9 does not support it
 	        var valueAsNumber = parseFloat(node.value, 10) || 0;
 	
-	        if (
 	        // eslint-disable-next-line
-	        value != valueAsNumber ||
-	        // eslint-disable-next-line
-	        value == valueAsNumber && node.value != value) {
+	        if (value != valueAsNumber) {
 	          // Cast `value` to a string to ensure the value is set correctly. While
 	          // browsers typically do this as necessary, jsdom doesn't.
 	          node.value = '' + value;
 	        }
-	      } else if (node.value !== '' + value) {
+	        // eslint-disable-next-line
+	      } else if (value != node.value) {
 	        // Cast `value` to a string to ensure the value is set correctly. While
 	        // browsers typically do this as necessary, jsdom doesn't.
 	        node.value = '' + value;
@@ -14390,7 +14198,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 118 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14405,25 +14213,25 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactPropTypesSecret = __webpack_require__(119);
-	var propTypesFactory = __webpack_require__(32);
+	var ReactPropTypesSecret = __webpack_require__(117);
+	var propTypesFactory = __webpack_require__(33);
 	
 	var React = __webpack_require__(5);
 	var PropTypes = propTypesFactory(React.isValidElement);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var hasReadOnlyValue = {
-	  button: true,
-	  checkbox: true,
-	  image: true,
-	  hidden: true,
-	  radio: true,
-	  reset: true,
-	  submit: true
+	  'button': true,
+	  'checkbox': true,
+	  'image': true,
+	  'hidden': true,
+	  'radio': true,
+	  'reset': true,
+	  'submit': true
 	};
 	
 	function _assertSingleLink(inputProps) {
@@ -14533,7 +14341,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 119 */
+/* 117 */
 /***/ (function(module, exports) {
 
 	/**
@@ -14554,7 +14362,7 @@
 	module.exports = ReactPropTypesSecret;
 
 /***/ }),
-/* 120 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14572,10 +14380,10 @@
 	var _assign = __webpack_require__(7);
 	
 	var React = __webpack_require__(5);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactDOMSelect = __webpack_require__(121);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactDOMSelect = __webpack_require__(119);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	var didWarnInvalidOptionChildren = false;
 	
 	function flattenChildren(children) {
@@ -14675,13 +14483,14 @@
 	
 	    return hostProps;
 	  }
+	
 	};
 	
 	module.exports = ReactDOMOption;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 121 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14698,11 +14507,11 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var LinkedValueUtils = __webpack_require__(118);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactUpdates = __webpack_require__(64);
+	var LinkedValueUtils = __webpack_require__(116);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var didWarnValueLink = false;
 	var didWarnValueDefaultValue = false;
@@ -14886,7 +14695,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 122 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14901,15 +14710,15 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var LinkedValueUtils = __webpack_require__(118);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactUpdates = __webpack_require__(64);
+	var LinkedValueUtils = __webpack_require__(116);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var didWarnValueLink = false;
 	var didWarnValDefaultVal = false;
@@ -15051,7 +14860,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 123 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15066,19 +14875,19 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactComponentEnvironment = __webpack_require__(124);
-	var ReactInstanceMap = __webpack_require__(125);
-	var ReactInstrumentation = __webpack_require__(70);
+	var ReactComponentEnvironment = __webpack_require__(122);
+	var ReactInstanceMap = __webpack_require__(123);
+	var ReactInstrumentation = __webpack_require__(69);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactReconciler = __webpack_require__(67);
-	var ReactChildReconciler = __webpack_require__(126);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactReconciler = __webpack_require__(66);
+	var ReactChildReconciler = __webpack_require__(124);
 	
-	var emptyFunction = __webpack_require__(12);
-	var flattenChildren = __webpack_require__(141);
-	var invariant = __webpack_require__(15);
+	var emptyFunction = __webpack_require__(15);
+	var flattenChildren = __webpack_require__(139);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Make an update for markup to be rendered and inserted at a supplied index.
@@ -15224,6 +15033,7 @@
 	 * @internal
 	 */
 	var ReactMultiChild = {
+	
 	  /**
 	   * Provides common functionality for components that must reconcile multiple
 	   * children. This is used by `ReactDOMComponent` to mount, update, and
@@ -15232,6 +15042,7 @@
 	   * @lends {ReactMultiChild.prototype}
 	   */
 	  Mixin: {
+	
 	    _reconcilerInstantiateChildren: function _reconcilerInstantiateChildren(nestedChildren, transaction, context) {
 	      if (process.env.NODE_ENV !== 'production') {
 	        var selfDebugID = getDebugID(this);
@@ -15495,14 +15306,16 @@
 	      child._mountIndex = null;
 	      return update;
 	    }
+	
 	  }
+	
 	};
 	
 	module.exports = ReactMultiChild;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 124 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15518,13 +15331,14 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var injected = false;
 	
 	var ReactComponentEnvironment = {
+	
 	  /**
 	   * Optionally injectable hook for swapping out mount images in the middle of
 	   * the tree.
@@ -15545,13 +15359,14 @@
 	      injected = true;
 	    }
 	  }
+	
 	};
 	
 	module.exports = ReactComponentEnvironment;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 125 */
+/* 123 */
 /***/ (function(module, exports) {
 
 	/**
@@ -15576,6 +15391,7 @@
 	// TODO: Replace this with ES6: var ReactInstanceMap = new Map();
 	
 	var ReactInstanceMap = {
+	
 	  /**
 	   * This API should be called `delete` but we'd have to make sure to always
 	   * transform these to strings for IE support. When this transform is fully
@@ -15596,12 +15412,13 @@
 	  set: function set(key, value) {
 	    key._reactInternalInstance = value;
 	  }
+	
 	};
 	
 	module.exports = ReactInstanceMap;
 
 /***/ }),
-/* 126 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15616,13 +15433,13 @@
 	
 	'use strict';
 	
-	var ReactReconciler = __webpack_require__(67);
+	var ReactReconciler = __webpack_require__(66);
 	
-	var instantiateReactComponent = __webpack_require__(127);
-	var KeyEscapeUtils = __webpack_require__(137);
-	var shouldUpdateReactComponent = __webpack_require__(133);
-	var traverseAllChildren = __webpack_require__(138);
-	var warning = __webpack_require__(11);
+	var instantiateReactComponent = __webpack_require__(125);
+	var KeyEscapeUtils = __webpack_require__(135);
+	var shouldUpdateReactComponent = __webpack_require__(131);
+	var traverseAllChildren = __webpack_require__(136);
+	var warning = __webpack_require__(14);
 	
 	var ReactComponentTreeHook;
 	
@@ -15632,7 +15449,7 @@
 	  // https://github.com/facebook/react/issues/7240
 	  // Remove the inline requires when we don't need them anymore:
 	  // https://github.com/facebook/react/pull/7178
-	  ReactComponentTreeHook = __webpack_require__(27);
+	  ReactComponentTreeHook = __webpack_require__(29);
 	}
 	
 	function instantiateChild(childInstances, child, name, selfDebugID) {
@@ -15640,7 +15457,7 @@
 	  var keyUnique = childInstances[name] === undefined;
 	  if (process.env.NODE_ENV !== 'production') {
 	    if (!ReactComponentTreeHook) {
-	      ReactComponentTreeHook = __webpack_require__(27);
+	      ReactComponentTreeHook = __webpack_require__(29);
 	    }
 	    if (!keyUnique) {
 	      process.env.NODE_ENV !== 'production' ? warning(false, 'flattenChildren(...): Encountered two children with the same key, ' + '`%s`. Child keys must be unique; when two children share a key, only ' + 'the first child will be used.%s', KeyEscapeUtils.unescape(name), ReactComponentTreeHook.getStackAddendumByID(selfDebugID)) : void 0;
@@ -15665,8 +15482,8 @@
 	   * @return {?object} A set of child instances.
 	   * @internal
 	   */
-	  instantiateChildren: function instantiateChildren(nestedChildNodes, transaction, context, selfDebugID) // 0 in production and for roots
-	  {
+	  instantiateChildren: function instantiateChildren(nestedChildNodes, transaction, context, selfDebugID // 0 in production and for roots
+	  ) {
 	    if (nestedChildNodes == null) {
 	      return null;
 	    }
@@ -15692,8 +15509,8 @@
 	   * @return {?object} A new set of child instances.
 	   * @internal
 	   */
-	  updateChildren: function updateChildren(prevChildren, nextChildren, mountImages, removedNodes, transaction, hostParent, hostContainerInfo, context, selfDebugID) // 0 in production and for roots
-	  {
+	  updateChildren: function updateChildren(prevChildren, nextChildren, mountImages, removedNodes, transaction, hostParent, hostContainerInfo, context, selfDebugID // 0 in production and for roots
+	  ) {
 	    // We currently don't have a way to track moves here but if we use iterators
 	    // instead of for..in we can zip the iterators and check if an item has
 	    // moved.
@@ -15753,13 +15570,14 @@
 	      }
 	    }
 	  }
+	
 	};
 	
 	module.exports = ReactChildReconciler;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 127 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15776,16 +15594,16 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var ReactCompositeComponent = __webpack_require__(128);
-	var ReactEmptyComponent = __webpack_require__(134);
-	var ReactHostComponent = __webpack_require__(135);
+	var ReactCompositeComponent = __webpack_require__(126);
+	var ReactEmptyComponent = __webpack_require__(132);
+	var ReactHostComponent = __webpack_require__(133);
 	
-	var getNextDebugID = __webpack_require__(136);
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var getNextDebugID = __webpack_require__(134);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	// To avoid a cyclic dependency, we create the final class in this module
 	var ReactCompositeComponentWrapper = function ReactCompositeComponentWrapper(element) {
@@ -15833,7 +15651,7 @@
 	      var info = '';
 	      if (process.env.NODE_ENV !== 'production') {
 	        if (type === undefined || (typeof type === 'undefined' ? 'undefined' : _typeof(type)) === 'object' && type !== null && Object.keys(type).length === 0) {
-	          info += ' You likely forgot to export your component from the file ' + "it's defined in.";
+	          info += ' You likely forgot to export your component from the file ' + 'it\'s defined in.';
 	        }
 	      }
 	      info += getDeclarationErrorAddendum(element._owner);
@@ -15895,7 +15713,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 128 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15912,27 +15730,27 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
 	var React = __webpack_require__(5);
-	var ReactComponentEnvironment = __webpack_require__(124);
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactErrorUtils = __webpack_require__(53);
-	var ReactInstanceMap = __webpack_require__(125);
-	var ReactInstrumentation = __webpack_require__(70);
-	var ReactNodeTypes = __webpack_require__(129);
-	var ReactReconciler = __webpack_require__(67);
+	var ReactComponentEnvironment = __webpack_require__(122);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactErrorUtils = __webpack_require__(52);
+	var ReactInstanceMap = __webpack_require__(123);
+	var ReactInstrumentation = __webpack_require__(69);
+	var ReactNodeTypes = __webpack_require__(127);
+	var ReactReconciler = __webpack_require__(66);
 	
 	if (process.env.NODE_ENV !== 'production') {
-	  var checkReactTypeSpec = __webpack_require__(130);
+	  var checkReactTypeSpec = __webpack_require__(128);
 	}
 	
-	var emptyObject = __webpack_require__(14);
-	var invariant = __webpack_require__(15);
-	var shallowEqual = __webpack_require__(132);
-	var shouldUpdateReactComponent = __webpack_require__(133);
-	var warning = __webpack_require__(11);
+	var emptyObject = __webpack_require__(23);
+	var invariant = __webpack_require__(11);
+	var shallowEqual = __webpack_require__(130);
+	var shouldUpdateReactComponent = __webpack_require__(131);
+	var warning = __webpack_require__(14);
 	
 	var CompositeTypes = {
 	  ImpureClass: 0,
@@ -16019,6 +15837,7 @@
 	 * @lends {ReactCompositeComponent.prototype}
 	 */
 	var ReactCompositeComponent = {
+	
 	  /**
 	   * Base constructor for all composite component.
 	   *
@@ -16114,7 +15933,7 @@
 	      var propsMutated = inst.props !== publicProps;
 	      var componentName = Component.displayName || Component.name || 'Component';
 	
-	      process.env.NODE_ENV !== 'production' ? warning(inst.props === undefined || !propsMutated, '%s(...): When calling super() in `%s`, make sure to pass ' + "up the same props that your component's constructor was passed.", componentName, componentName) : void 0;
+	      process.env.NODE_ENV !== 'production' ? warning(inst.props === undefined || !propsMutated, '%s(...): When calling super() in `%s`, make sure to pass ' + 'up the same props that your component\'s constructor was passed.', componentName, componentName) : void 0;
 	    }
 	
 	    // These should be set up in the constructor, but as a convenience for
@@ -16796,13 +16615,14 @@
 	
 	  // Stub
 	  _instantiateReactComponent: null
+	
 	};
 	
 	module.exports = ReactCompositeComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 129 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -16818,11 +16638,11 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
 	var React = __webpack_require__(5);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var ReactNodeTypes = {
 	  HOST: 0,
@@ -16847,7 +16667,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 130 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -16864,13 +16684,13 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactPropTypeLocationNames = __webpack_require__(131);
-	var ReactPropTypesSecret = __webpack_require__(119);
+	var ReactPropTypeLocationNames = __webpack_require__(129);
+	var ReactPropTypesSecret = __webpack_require__(117);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var ReactComponentTreeHook;
 	
@@ -16880,7 +16700,7 @@
 	  // https://github.com/facebook/react/issues/7240
 	  // Remove the inline requires when we don't need them anymore:
 	  // https://github.com/facebook/react/pull/7178
-	  ReactComponentTreeHook = __webpack_require__(27);
+	  ReactComponentTreeHook = __webpack_require__(29);
 	}
 	
 	var loggedTypeFailures = {};
@@ -16922,7 +16742,7 @@
 	
 	        if (process.env.NODE_ENV !== 'production') {
 	          if (!ReactComponentTreeHook) {
-	            ReactComponentTreeHook = __webpack_require__(27);
+	            ReactComponentTreeHook = __webpack_require__(29);
 	          }
 	          if (debugID !== null) {
 	            componentStackInfo = ReactComponentTreeHook.getStackAddendumByID(debugID);
@@ -16941,7 +16761,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 131 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -16971,7 +16791,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 132 */
+/* 130 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17045,7 +16865,7 @@
 	module.exports = shallowEqual;
 
 /***/ }),
-/* 133 */
+/* 131 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17093,7 +16913,7 @@
 	module.exports = shouldUpdateReactComponent;
 
 /***/ }),
-/* 134 */
+/* 132 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17127,7 +16947,7 @@
 	module.exports = ReactEmptyComponent;
 
 /***/ }),
-/* 135 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17142,9 +16962,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	var genericComponentClass = null;
 	var textComponentClass = null;
@@ -17200,7 +17020,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 136 */
+/* 134 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17225,7 +17045,7 @@
 	module.exports = getNextDebugID;
 
 /***/ }),
-/* 137 */
+/* 135 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17288,7 +17108,7 @@
 	module.exports = KeyEscapeUtils;
 
 /***/ }),
-/* 138 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17305,15 +17125,15 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var REACT_ELEMENT_TYPE = __webpack_require__(139);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var REACT_ELEMENT_TYPE = __webpack_require__(137);
 	
-	var getIteratorFn = __webpack_require__(140);
-	var invariant = __webpack_require__(15);
-	var KeyEscapeUtils = __webpack_require__(137);
-	var warning = __webpack_require__(11);
+	var getIteratorFn = __webpack_require__(138);
+	var invariant = __webpack_require__(11);
+	var KeyEscapeUtils = __webpack_require__(135);
+	var warning = __webpack_require__(14);
 	
 	var SEPARATOR = '.';
 	var SUBSEPARATOR = ':';
@@ -17426,7 +17246,7 @@
 	      if (process.env.NODE_ENV !== 'production') {
 	        addendum = ' If you meant to render a collection of children, use an array ' + 'instead or wrap the object using createFragment(object) from the ' + 'React add-ons.';
 	        if (children._isReactElement) {
-	          addendum = " It looks like you're using an element created by a different " + 'version of React. Make sure to use only one copy of React.';
+	          addendum = ' It looks like you\'re using an element created by a different ' + 'version of React. Make sure to use only one copy of React.';
 	        }
 	        if (ReactCurrentOwner.current) {
 	          var name = ReactCurrentOwner.current.getName();
@@ -17471,7 +17291,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 139 */
+/* 137 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17495,7 +17315,7 @@
 	module.exports = REACT_ELEMENT_TYPE;
 
 /***/ }),
-/* 140 */
+/* 138 */
 /***/ (function(module, exports) {
 
 	/**
@@ -17540,7 +17360,7 @@
 	module.exports = getIteratorFn;
 
 /***/ }),
-/* 141 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17558,9 +17378,9 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var KeyEscapeUtils = __webpack_require__(137);
-	var traverseAllChildren = __webpack_require__(138);
-	var warning = __webpack_require__(11);
+	var KeyEscapeUtils = __webpack_require__(135);
+	var traverseAllChildren = __webpack_require__(136);
+	var warning = __webpack_require__(14);
 	
 	var ReactComponentTreeHook;
 	
@@ -17570,7 +17390,7 @@
 	  // https://github.com/facebook/react/issues/7240
 	  // Remove the inline requires when we don't need them anymore:
 	  // https://github.com/facebook/react/pull/7178
-	  ReactComponentTreeHook = __webpack_require__(27);
+	  ReactComponentTreeHook = __webpack_require__(29);
 	}
 	
 	/**
@@ -17586,7 +17406,7 @@
 	    var keyUnique = result[name] === undefined;
 	    if (process.env.NODE_ENV !== 'production') {
 	      if (!ReactComponentTreeHook) {
-	        ReactComponentTreeHook = __webpack_require__(27);
+	        ReactComponentTreeHook = __webpack_require__(29);
 	      }
 	      if (!keyUnique) {
 	        process.env.NODE_ENV !== 'production' ? warning(false, 'flattenChildren(...): Encountered two children with the same key, ' + '`%s`. Child keys must be unique; when two children share a key, only ' + 'the first child will be used.%s', KeyEscapeUtils.unescape(name), ReactComponentTreeHook.getStackAddendumByID(selfDebugID)) : void 0;
@@ -17623,7 +17443,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 142 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17640,10 +17460,10 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var PooledClass = __webpack_require__(58);
-	var Transaction = __webpack_require__(76);
-	var ReactInstrumentation = __webpack_require__(70);
-	var ReactServerUpdateQueue = __webpack_require__(143);
+	var PooledClass = __webpack_require__(57);
+	var Transaction = __webpack_require__(75);
+	var ReactInstrumentation = __webpack_require__(69);
+	var ReactServerUpdateQueue = __webpack_require__(141);
 	
 	/**
 	 * Executed within the scope of the `Transaction` instance. Consider these as
@@ -17718,7 +17538,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 143 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17740,9 +17560,9 @@
 	  }
 	}
 	
-	var ReactUpdateQueue = __webpack_require__(144);
+	var ReactUpdateQueue = __webpack_require__(142);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	function warnNoop(publicInstance, callerName) {
 	  if (process.env.NODE_ENV !== 'production') {
@@ -17861,7 +17681,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 144 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17878,15 +17698,15 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactInstanceMap = __webpack_require__(125);
-	var ReactInstrumentation = __webpack_require__(70);
-	var ReactUpdates = __webpack_require__(64);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactInstanceMap = __webpack_require__(123);
+	var ReactInstrumentation = __webpack_require__(69);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	function enqueueUpdate(internalInstance) {
 	  ReactUpdates.enqueueUpdate(internalInstance);
@@ -17919,7 +17739,7 @@
 	  }
 	
 	  if (process.env.NODE_ENV !== 'production') {
-	    process.env.NODE_ENV !== 'production' ? warning(ReactCurrentOwner.current == null, '%s(...): Cannot update during an existing state transition (such as ' + "within `render` or another component's constructor). Render methods " + 'should be a pure function of props and state; constructor ' + 'side-effects are an anti-pattern, but can be moved to ' + '`componentWillMount`.', callerName) : void 0;
+	    process.env.NODE_ENV !== 'production' ? warning(ReactCurrentOwner.current == null, '%s(...): Cannot update during an existing state transition (such as ' + 'within `render` or another component\'s constructor). Render methods ' + 'should be a pure function of props and state; constructor ' + 'side-effects are an anti-pattern, but can be moved to ' + '`componentWillMount`.', callerName) : void 0;
 	  }
 	
 	  return internalInstance;
@@ -17930,6 +17750,7 @@
 	 * reconciliation step.
 	 */
 	var ReactUpdateQueue = {
+	
 	  /**
 	   * Checks whether or not this composite component is mounted.
 	   * @param {ReactClass} publicInstance The instance we want to test.
@@ -18096,13 +17917,14 @@
 	  validateCallback: function validateCallback(callback, callerName) {
 	    !(!callback || typeof callback === 'function') ? process.env.NODE_ENV !== 'production' ? invariant(false, '%s(...): Expected the last optional `callback` argument to be a function. Instead received: %s.', callerName, formatUnexpectedArgument(callback)) : _prodInvariant('122', callerName, formatUnexpectedArgument(callback)) : void 0;
 	  }
+	
 	};
 	
 	module.exports = ReactUpdateQueue;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 145 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -18119,8 +17941,8 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var emptyFunction = __webpack_require__(12);
-	var warning = __webpack_require__(11);
+	var emptyFunction = __webpack_require__(15);
+	var warning = __webpack_require__(14);
 	
 	var validateDOMNesting = emptyFunction;
 	
@@ -18228,6 +18050,7 @@
 	      // but
 	      case 'option':
 	        return tag === '#text';
+	
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intd
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incaption
 	      // No special behavior since these rules fall back to "in body" mode for
@@ -18236,20 +18059,25 @@
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intr
 	      case 'tr':
 	        return tag === 'th' || tag === 'td' || tag === 'style' || tag === 'script' || tag === 'template';
+	
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intbody
 	      case 'tbody':
 	      case 'thead':
 	      case 'tfoot':
 	        return tag === 'tr' || tag === 'style' || tag === 'script' || tag === 'template';
+	
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incolgroup
 	      case 'colgroup':
 	        return tag === 'col' || tag === 'template';
+	
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intable
 	      case 'table':
 	        return tag === 'caption' || tag === 'colgroup' || tag === 'tbody' || tag === 'tfoot' || tag === 'thead' || tag === 'style' || tag === 'script' || tag === 'template';
+	
 	      // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inhead
 	      case 'head':
 	        return tag === 'base' || tag === 'basefont' || tag === 'bgsound' || tag === 'link' || tag === 'meta' || tag === 'title' || tag === 'noscript' || tag === 'noframes' || tag === 'style' || tag === 'script' || tag === 'template';
+	
 	      // https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
 	      case 'html':
 	        return tag === 'head' || tag === 'body';
@@ -18445,7 +18273,7 @@
 	          tagDisplayName = 'Text nodes';
 	        } else {
 	          tagDisplayName = 'Whitespace text nodes';
-	          whitespaceInfo = " Make sure you don't have any extra whitespace between tags on " + 'each line of your source code.';
+	          whitespaceInfo = ' Make sure you don\'t have any extra whitespace between tags on ' + 'each line of your source code.';
 	        }
 	      } else {
 	        tagDisplayName = '<' + childTag + '>';
@@ -18478,7 +18306,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 146 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -18495,8 +18323,8 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var DOMLazyTree = __webpack_require__(90);
-	var ReactDOMComponentTree = __webpack_require__(42);
+	var DOMLazyTree = __webpack_require__(88);
+	var ReactDOMComponentTree = __webpack_require__(41);
 	
 	var ReactDOMEmptyComponent = function ReactDOMEmptyComponent(instantiate) {
 	  // ReactCompositeComponent uses this:
@@ -18542,7 +18370,7 @@
 	module.exports = ReactDOMEmptyComponent;
 
 /***/ }),
-/* 147 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -18557,9 +18385,9 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var invariant = __webpack_require__(15);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Return the lowest common ancestor of A and B, or null if they are in
@@ -18683,7 +18511,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 148 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -18698,16 +18526,16 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43),
+	var _prodInvariant = __webpack_require__(42),
 	    _assign = __webpack_require__(7);
 	
-	var DOMChildrenOperations = __webpack_require__(89);
-	var DOMLazyTree = __webpack_require__(90);
-	var ReactDOMComponentTree = __webpack_require__(42);
+	var DOMChildrenOperations = __webpack_require__(87);
+	var DOMLazyTree = __webpack_require__(88);
+	var ReactDOMComponentTree = __webpack_require__(41);
 	
-	var escapeTextContentForBrowser = __webpack_require__(95);
-	var invariant = __webpack_require__(15);
-	var validateDOMNesting = __webpack_require__(145);
+	var escapeTextContentForBrowser = __webpack_require__(93);
+	var invariant = __webpack_require__(11);
+	var validateDOMNesting = __webpack_require__(143);
 	
 	/**
 	 * Text nodes violate a couple assumptions that React makes about components:
@@ -18740,6 +18568,7 @@
 	};
 	
 	_assign(ReactDOMTextComponent.prototype, {
+	
 	  /**
 	   * Creates the markup for this text node. This node is not intended to have
 	   * any features besides containing text content.
@@ -18844,13 +18673,14 @@
 	    this._commentNodes = null;
 	    ReactDOMComponentTree.uncacheNode(this);
 	  }
+	
 	});
 	
 	module.exports = ReactDOMTextComponent;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 149 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -18867,10 +18697,10 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var ReactUpdates = __webpack_require__(64);
-	var Transaction = __webpack_require__(76);
+	var ReactUpdates = __webpack_require__(63);
+	var Transaction = __webpack_require__(75);
 	
-	var emptyFunction = __webpack_require__(12);
+	var emptyFunction = __webpack_require__(15);
 	
 	var RESET_BATCHED_UPDATES = {
 	  initialize: emptyFunction,
@@ -18922,7 +18752,7 @@
 	module.exports = ReactDefaultBatchingStrategy;
 
 /***/ }),
-/* 150 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -18939,14 +18769,14 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var EventListener = __webpack_require__(151);
-	var ExecutionEnvironment = __webpack_require__(56);
-	var PooledClass = __webpack_require__(58);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactUpdates = __webpack_require__(64);
+	var EventListener = __webpack_require__(149);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var PooledClass = __webpack_require__(57);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var getEventTarget = __webpack_require__(78);
-	var getUnboundedScrollPosition = __webpack_require__(152);
+	var getEventTarget = __webpack_require__(76);
+	var getUnboundedScrollPosition = __webpack_require__(150);
 	
 	/**
 	 * Find the deepest React component completely containing the root of the
@@ -19081,7 +18911,7 @@
 	module.exports = ReactEventListener;
 
 /***/ }),
-/* 151 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -19104,7 +18934,7 @@
 	 * @typechecks
 	 */
 	
-	var emptyFunction = __webpack_require__(12);
+	var emptyFunction = __webpack_require__(15);
 	
 	/**
 	 * Upstream version of event listener. Does not take into account specific
@@ -19170,7 +19000,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 152 */
+/* 150 */
 /***/ (function(module, exports) {
 
 	/**
@@ -19213,7 +19043,7 @@
 	module.exports = getUnboundedScrollPosition;
 
 /***/ }),
-/* 153 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -19228,14 +19058,14 @@
 	
 	'use strict';
 	
-	var DOMProperty = __webpack_require__(44);
-	var EventPluginHub = __webpack_require__(50);
-	var EventPluginUtils = __webpack_require__(52);
-	var ReactComponentEnvironment = __webpack_require__(124);
-	var ReactEmptyComponent = __webpack_require__(134);
-	var ReactBrowserEventEmitter = __webpack_require__(114);
-	var ReactHostComponent = __webpack_require__(135);
-	var ReactUpdates = __webpack_require__(64);
+	var DOMProperty = __webpack_require__(43);
+	var EventPluginHub = __webpack_require__(49);
+	var EventPluginUtils = __webpack_require__(51);
+	var ReactComponentEnvironment = __webpack_require__(122);
+	var ReactEmptyComponent = __webpack_require__(132);
+	var ReactBrowserEventEmitter = __webpack_require__(112);
+	var ReactHostComponent = __webpack_require__(133);
+	var ReactUpdates = __webpack_require__(63);
 	
 	var ReactInjection = {
 	  Component: ReactComponentEnvironment.injection,
@@ -19251,7 +19081,7 @@
 	module.exports = ReactInjection;
 
 /***/ }),
-/* 154 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -19268,13 +19098,13 @@
 	
 	var _assign = __webpack_require__(7);
 	
-	var CallbackQueue = __webpack_require__(65);
-	var PooledClass = __webpack_require__(58);
-	var ReactBrowserEventEmitter = __webpack_require__(114);
-	var ReactInputSelection = __webpack_require__(155);
-	var ReactInstrumentation = __webpack_require__(70);
-	var Transaction = __webpack_require__(76);
-	var ReactUpdateQueue = __webpack_require__(144);
+	var CallbackQueue = __webpack_require__(64);
+	var PooledClass = __webpack_require__(57);
+	var ReactBrowserEventEmitter = __webpack_require__(112);
+	var ReactInputSelection = __webpack_require__(153);
+	var ReactInstrumentation = __webpack_require__(69);
+	var Transaction = __webpack_require__(75);
+	var ReactUpdateQueue = __webpack_require__(142);
 	
 	/**
 	 * Ensures that, when possible, the selection range (currently selected text
@@ -19434,7 +19264,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 155 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -19449,11 +19279,11 @@
 	
 	'use strict';
 	
-	var ReactDOMSelection = __webpack_require__(156);
+	var ReactDOMSelection = __webpack_require__(154);
 	
-	var containsNode = __webpack_require__(158);
-	var focusNode = __webpack_require__(103);
-	var getActiveElement = __webpack_require__(161);
+	var containsNode = __webpack_require__(156);
+	var focusNode = __webpack_require__(101);
+	var getActiveElement = __webpack_require__(159);
 	
 	function isInDocument(node) {
 	  return containsNode(document.documentElement, node);
@@ -19466,6 +19296,7 @@
 	 * Input selection module for React.
 	 */
 	var ReactInputSelection = {
+	
 	  hasSelectionCapabilities: function hasSelectionCapabilities(elem) {
 	    var nodeName = elem && elem.nodeName && elem.nodeName.toLowerCase();
 	    return nodeName && (nodeName === 'input' && elem.type === 'text' || nodeName === 'textarea' || elem.contentEditable === 'true');
@@ -19561,7 +19392,7 @@
 	module.exports = ReactInputSelection;
 
 /***/ }),
-/* 156 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -19576,10 +19407,10 @@
 	
 	'use strict';
 	
-	var ExecutionEnvironment = __webpack_require__(56);
+	var ExecutionEnvironment = __webpack_require__(55);
 	
-	var getNodeForCharacterOffset = __webpack_require__(157);
-	var getTextContentAccessor = __webpack_require__(59);
+	var getNodeForCharacterOffset = __webpack_require__(155);
+	var getTextContentAccessor = __webpack_require__(58);
 	
 	/**
 	 * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -19777,7 +19608,7 @@
 	module.exports = ReactDOMSelection;
 
 /***/ }),
-/* 157 */
+/* 155 */
 /***/ (function(module, exports) {
 
 	/**
@@ -19855,7 +19686,7 @@
 	module.exports = getNodeForCharacterOffset;
 
 /***/ }),
-/* 158 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -19871,7 +19702,7 @@
 	 * 
 	 */
 	
-	var isTextNode = __webpack_require__(159);
+	var isTextNode = __webpack_require__(157);
 	
 	/*eslint-disable no-bitwise */
 	
@@ -19899,7 +19730,7 @@
 	module.exports = containsNode;
 
 /***/ }),
-/* 159 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -19915,7 +19746,7 @@
 	 * @typechecks
 	 */
 	
-	var isNode = __webpack_require__(160);
+	var isNode = __webpack_require__(158);
 	
 	/**
 	 * @param {*} object The object to check.
@@ -19928,7 +19759,7 @@
 	module.exports = isTextNode;
 
 /***/ }),
-/* 160 */
+/* 158 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -19960,7 +19791,7 @@
 	module.exports = isNode;
 
 /***/ }),
-/* 161 */
+/* 159 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -20004,7 +19835,7 @@
 	module.exports = getActiveElement;
 
 /***/ }),
-/* 162 */
+/* 160 */
 /***/ (function(module, exports) {
 
 	/**
@@ -20310,7 +20141,7 @@
 	module.exports = SVGDOMPropertyConfig;
 
 /***/ }),
-/* 163 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -20325,15 +20156,15 @@
 	
 	'use strict';
 	
-	var EventPropagators = __webpack_require__(49);
-	var ExecutionEnvironment = __webpack_require__(56);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactInputSelection = __webpack_require__(155);
-	var SyntheticEvent = __webpack_require__(61);
+	var EventPropagators = __webpack_require__(48);
+	var ExecutionEnvironment = __webpack_require__(55);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactInputSelection = __webpack_require__(153);
+	var SyntheticEvent = __webpack_require__(60);
 	
-	var getActiveElement = __webpack_require__(161);
-	var isTextInputElement = __webpack_require__(80);
-	var shallowEqual = __webpack_require__(132);
+	var getActiveElement = __webpack_require__(159);
+	var isTextInputElement = __webpack_require__(78);
+	var shallowEqual = __webpack_require__(130);
 	
 	var skipSelectionChangeEvent = ExecutionEnvironment.canUseDOM && 'documentMode' in document && document.documentMode <= 11;
 	
@@ -20438,6 +20269,7 @@
 	 * - Fires after user input.
 	 */
 	var SelectEventPlugin = {
+	
 	  eventTypes: eventTypes,
 	
 	  extractEvents: function extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget) {
@@ -20461,6 +20293,7 @@
 	        activeElementInst = null;
 	        lastSelection = null;
 	        break;
+	
 	      // Don't fire the event while the user is dragging. This matches the
 	      // semantics of the native select event.
 	      case 'topMouseDown':
@@ -20470,6 +20303,7 @@
 	      case 'topMouseUp':
 	        mouseDown = false;
 	        return constructSelectEvent(nativeEvent, nativeEventTarget);
+	
 	      // Chrome and IE fire non-standard event when selection is changed (and
 	      // sometimes when it hasn't). IE's event fires out of order with respect
 	      // to key and input events on deletion, so we discard it.
@@ -20502,7 +20336,7 @@
 	module.exports = SelectEventPlugin;
 
 /***/ }),
-/* 164 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -20518,26 +20352,26 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var EventListener = __webpack_require__(151);
-	var EventPropagators = __webpack_require__(49);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var SyntheticAnimationEvent = __webpack_require__(165);
-	var SyntheticClipboardEvent = __webpack_require__(166);
-	var SyntheticEvent = __webpack_require__(61);
-	var SyntheticFocusEvent = __webpack_require__(167);
-	var SyntheticKeyboardEvent = __webpack_require__(168);
-	var SyntheticMouseEvent = __webpack_require__(83);
-	var SyntheticDragEvent = __webpack_require__(171);
-	var SyntheticTouchEvent = __webpack_require__(172);
-	var SyntheticTransitionEvent = __webpack_require__(173);
-	var SyntheticUIEvent = __webpack_require__(84);
-	var SyntheticWheelEvent = __webpack_require__(174);
+	var EventListener = __webpack_require__(149);
+	var EventPropagators = __webpack_require__(48);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var SyntheticAnimationEvent = __webpack_require__(163);
+	var SyntheticClipboardEvent = __webpack_require__(164);
+	var SyntheticEvent = __webpack_require__(60);
+	var SyntheticFocusEvent = __webpack_require__(165);
+	var SyntheticKeyboardEvent = __webpack_require__(166);
+	var SyntheticMouseEvent = __webpack_require__(81);
+	var SyntheticDragEvent = __webpack_require__(169);
+	var SyntheticTouchEvent = __webpack_require__(170);
+	var SyntheticTransitionEvent = __webpack_require__(171);
+	var SyntheticUIEvent = __webpack_require__(82);
+	var SyntheticWheelEvent = __webpack_require__(172);
 	
-	var emptyFunction = __webpack_require__(12);
-	var getEventCharCode = __webpack_require__(169);
-	var invariant = __webpack_require__(15);
+	var emptyFunction = __webpack_require__(15);
+	var getEventCharCode = __webpack_require__(167);
+	var invariant = __webpack_require__(11);
 	
 	/**
 	 * Turns
@@ -20588,6 +20422,7 @@
 	}
 	
 	var SimpleEventPlugin = {
+	
 	  eventTypes: eventTypes,
 	
 	  extractEvents: function extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget) {
@@ -20727,13 +20562,14 @@
 	      delete onClickListeners[key];
 	    }
 	  }
+	
 	};
 	
 	module.exports = SimpleEventPlugin;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 165 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -20748,7 +20584,7 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
 	/**
 	 * @interface Event
@@ -20776,7 +20612,7 @@
 	module.exports = SyntheticAnimationEvent;
 
 /***/ }),
-/* 166 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -20791,7 +20627,7 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
 	/**
 	 * @interface Event
@@ -20818,7 +20654,7 @@
 	module.exports = SyntheticClipboardEvent;
 
 /***/ }),
-/* 167 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -20833,7 +20669,7 @@
 	
 	'use strict';
 	
-	var SyntheticUIEvent = __webpack_require__(84);
+	var SyntheticUIEvent = __webpack_require__(82);
 	
 	/**
 	 * @interface FocusEvent
@@ -20858,7 +20694,7 @@
 	module.exports = SyntheticFocusEvent;
 
 /***/ }),
-/* 168 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -20873,11 +20709,11 @@
 	
 	'use strict';
 	
-	var SyntheticUIEvent = __webpack_require__(84);
+	var SyntheticUIEvent = __webpack_require__(82);
 	
-	var getEventCharCode = __webpack_require__(169);
-	var getEventKey = __webpack_require__(170);
-	var getEventModifierState = __webpack_require__(86);
+	var getEventCharCode = __webpack_require__(167);
+	var getEventKey = __webpack_require__(168);
+	var getEventModifierState = __webpack_require__(84);
 	
 	/**
 	 * @interface KeyboardEvent
@@ -20946,7 +20782,7 @@
 	module.exports = SyntheticKeyboardEvent;
 
 /***/ }),
-/* 169 */
+/* 167 */
 /***/ (function(module, exports) {
 
 	/**
@@ -21000,7 +20836,7 @@
 	module.exports = getEventCharCode;
 
 /***/ }),
-/* 170 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21015,25 +20851,25 @@
 	
 	'use strict';
 	
-	var getEventCharCode = __webpack_require__(169);
+	var getEventCharCode = __webpack_require__(167);
 	
 	/**
 	 * Normalization of deprecated HTML5 `key` values
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names
 	 */
 	var normalizeKey = {
-	  Esc: 'Escape',
-	  Spacebar: ' ',
-	  Left: 'ArrowLeft',
-	  Up: 'ArrowUp',
-	  Right: 'ArrowRight',
-	  Down: 'ArrowDown',
-	  Del: 'Delete',
-	  Win: 'OS',
-	  Menu: 'ContextMenu',
-	  Apps: 'ContextMenu',
-	  Scroll: 'ScrollLock',
-	  MozPrintableKey: 'Unidentified'
+	  'Esc': 'Escape',
+	  'Spacebar': ' ',
+	  'Left': 'ArrowLeft',
+	  'Up': 'ArrowUp',
+	  'Right': 'ArrowRight',
+	  'Down': 'ArrowDown',
+	  'Del': 'Delete',
+	  'Win': 'OS',
+	  'Menu': 'ContextMenu',
+	  'Apps': 'ContextMenu',
+	  'Scroll': 'ScrollLock',
+	  'MozPrintableKey': 'Unidentified'
 	};
 	
 	/**
@@ -21063,18 +20899,8 @@
 	  40: 'ArrowDown',
 	  45: 'Insert',
 	  46: 'Delete',
-	  112: 'F1',
-	  113: 'F2',
-	  114: 'F3',
-	  115: 'F4',
-	  116: 'F5',
-	  117: 'F6',
-	  118: 'F7',
-	  119: 'F8',
-	  120: 'F9',
-	  121: 'F10',
-	  122: 'F11',
-	  123: 'F12',
+	  112: 'F1', 113: 'F2', 114: 'F3', 115: 'F4', 116: 'F5', 117: 'F6',
+	  118: 'F7', 119: 'F8', 120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12',
 	  144: 'NumLock',
 	  145: 'ScrollLock',
 	  224: 'Meta'
@@ -21116,7 +20942,7 @@
 	module.exports = getEventKey;
 
 /***/ }),
-/* 171 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21131,7 +20957,7 @@
 	
 	'use strict';
 	
-	var SyntheticMouseEvent = __webpack_require__(83);
+	var SyntheticMouseEvent = __webpack_require__(81);
 	
 	/**
 	 * @interface DragEvent
@@ -21156,7 +20982,7 @@
 	module.exports = SyntheticDragEvent;
 
 /***/ }),
-/* 172 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21171,9 +20997,9 @@
 	
 	'use strict';
 	
-	var SyntheticUIEvent = __webpack_require__(84);
+	var SyntheticUIEvent = __webpack_require__(82);
 	
-	var getEventModifierState = __webpack_require__(86);
+	var getEventModifierState = __webpack_require__(84);
 	
 	/**
 	 * @interface TouchEvent
@@ -21205,7 +21031,7 @@
 	module.exports = SyntheticTouchEvent;
 
 /***/ }),
-/* 173 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21220,7 +21046,7 @@
 	
 	'use strict';
 	
-	var SyntheticEvent = __webpack_require__(61);
+	var SyntheticEvent = __webpack_require__(60);
 	
 	/**
 	 * @interface Event
@@ -21248,7 +21074,7 @@
 	module.exports = SyntheticTransitionEvent;
 
 /***/ }),
-/* 174 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21263,7 +21089,7 @@
 	
 	'use strict';
 	
-	var SyntheticMouseEvent = __webpack_require__(83);
+	var SyntheticMouseEvent = __webpack_require__(81);
 	
 	/**
 	 * @interface WheelEvent
@@ -21271,12 +21097,15 @@
 	 */
 	var WheelEventInterface = {
 	  deltaX: function deltaX(event) {
-	    return 'deltaX' in event ? event.deltaX : // Fallback to `wheelDeltaX` for Webkit and normalize (right is positive).
+	    return 'deltaX' in event ? event.deltaX :
+	    // Fallback to `wheelDeltaX` for Webkit and normalize (right is positive).
 	    'wheelDeltaX' in event ? -event.wheelDeltaX : 0;
 	  },
 	  deltaY: function deltaY(event) {
-	    return 'deltaY' in event ? event.deltaY : // Fallback to `wheelDeltaY` for Webkit and normalize (down is positive).
-	    'wheelDeltaY' in event ? -event.wheelDeltaY : // Fallback to `wheelDelta` for IE<9 and normalize (down is positive).
+	    return 'deltaY' in event ? event.deltaY :
+	    // Fallback to `wheelDeltaY` for Webkit and normalize (down is positive).
+	    'wheelDeltaY' in event ? -event.wheelDeltaY :
+	    // Fallback to `wheelDelta` for IE<9 and normalize (down is positive).
 	    'wheelDelta' in event ? -event.wheelDelta : 0;
 	  },
 	  deltaZ: null,
@@ -21303,7 +21132,7 @@
 	module.exports = SyntheticWheelEvent;
 
 /***/ }),
-/* 175 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -21318,30 +21147,30 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var DOMLazyTree = __webpack_require__(90);
-	var DOMProperty = __webpack_require__(44);
+	var DOMLazyTree = __webpack_require__(88);
+	var DOMProperty = __webpack_require__(43);
 	var React = __webpack_require__(5);
-	var ReactBrowserEventEmitter = __webpack_require__(114);
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactDOMContainerInfo = __webpack_require__(176);
-	var ReactDOMFeatureFlags = __webpack_require__(177);
-	var ReactFeatureFlags = __webpack_require__(66);
-	var ReactInstanceMap = __webpack_require__(125);
-	var ReactInstrumentation = __webpack_require__(70);
-	var ReactMarkupChecksum = __webpack_require__(178);
-	var ReactReconciler = __webpack_require__(67);
-	var ReactUpdateQueue = __webpack_require__(144);
-	var ReactUpdates = __webpack_require__(64);
+	var ReactBrowserEventEmitter = __webpack_require__(112);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactDOMContainerInfo = __webpack_require__(174);
+	var ReactDOMFeatureFlags = __webpack_require__(175);
+	var ReactFeatureFlags = __webpack_require__(65);
+	var ReactInstanceMap = __webpack_require__(123);
+	var ReactInstrumentation = __webpack_require__(69);
+	var ReactMarkupChecksum = __webpack_require__(176);
+	var ReactReconciler = __webpack_require__(66);
+	var ReactUpdateQueue = __webpack_require__(142);
+	var ReactUpdates = __webpack_require__(63);
 	
-	var emptyObject = __webpack_require__(14);
-	var instantiateReactComponent = __webpack_require__(127);
-	var invariant = __webpack_require__(15);
-	var setInnerHTML = __webpack_require__(92);
-	var shouldUpdateReactComponent = __webpack_require__(133);
-	var warning = __webpack_require__(11);
+	var emptyObject = __webpack_require__(23);
+	var instantiateReactComponent = __webpack_require__(125);
+	var invariant = __webpack_require__(11);
+	var setInnerHTML = __webpack_require__(90);
+	var shouldUpdateReactComponent = __webpack_require__(131);
+	var warning = __webpack_require__(14);
 	
 	var ATTR_NAME = DOMProperty.ID_ATTRIBUTE_NAME;
 	var ROOT_ATTR_NAME = DOMProperty.ROOT_ATTRIBUTE_NAME;
@@ -21564,6 +21393,7 @@
 	 * Inside of `container`, the first element rendered is the "reactRoot".
 	 */
 	var ReactMount = {
+	
 	  TopLevelWrapper: TopLevelWrapper,
 	
 	  /**
@@ -21652,14 +21482,13 @@
 	
 	  _renderSubtreeIntoContainer: function _renderSubtreeIntoContainer(parentComponent, nextElement, container, callback) {
 	    ReactUpdateQueue.validateCallback(callback, 'ReactDOM.render');
-	    !React.isValidElement(nextElement) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactDOM.render(): Invalid component element.%s', typeof nextElement === 'string' ? " Instead of passing a string like 'div', pass " + "React.createElement('div') or <div />." : typeof nextElement === 'function' ? ' Instead of passing a class like Foo, pass ' + 'React.createElement(Foo) or <Foo />.' : // Check if it quacks like an element
-	    nextElement != null && nextElement.props !== undefined ? ' This may be caused by unintentionally loading two independent ' + 'copies of React.' : '') : _prodInvariant('39', typeof nextElement === 'string' ? " Instead of passing a string like 'div', pass " + "React.createElement('div') or <div />." : typeof nextElement === 'function' ? ' Instead of passing a class like Foo, pass ' + 'React.createElement(Foo) or <Foo />.' : nextElement != null && nextElement.props !== undefined ? ' This may be caused by unintentionally loading two independent ' + 'copies of React.' : '') : void 0;
+	    !React.isValidElement(nextElement) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'ReactDOM.render(): Invalid component element.%s', typeof nextElement === 'string' ? ' Instead of passing a string like \'div\', pass ' + 'React.createElement(\'div\') or <div />.' : typeof nextElement === 'function' ? ' Instead of passing a class like Foo, pass ' + 'React.createElement(Foo) or <Foo />.' :
+	    // Check if it quacks like an element
+	    nextElement != null && nextElement.props !== undefined ? ' This may be caused by unintentionally loading two independent ' + 'copies of React.' : '') : _prodInvariant('39', typeof nextElement === 'string' ? ' Instead of passing a string like \'div\', pass ' + 'React.createElement(\'div\') or <div />.' : typeof nextElement === 'function' ? ' Instead of passing a class like Foo, pass ' + 'React.createElement(Foo) or <Foo />.' : nextElement != null && nextElement.props !== undefined ? ' This may be caused by unintentionally loading two independent ' + 'copies of React.' : '') : void 0;
 	
 	    process.env.NODE_ENV !== 'production' ? warning(!container || !container.tagName || container.tagName.toUpperCase() !== 'BODY', 'render(): Rendering components directly into document.body is ' + 'discouraged, since its children are often manipulated by third-party ' + 'scripts and browser extensions. This may lead to subtle ' + 'reconciliation issues. Try rendering into a container element created ' + 'for your app.') : void 0;
 	
-	    var nextWrappedElement = React.createElement(TopLevelWrapper, {
-	      child: nextElement
-	    });
+	    var nextWrappedElement = React.createElement(TopLevelWrapper, { child: nextElement });
 	
 	    var nextContext;
 	    if (parentComponent) {
@@ -21748,7 +21577,7 @@
 	    !isValidContainer(container) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'unmountComponentAtNode(...): Target container is not a DOM element.') : _prodInvariant('40') : void 0;
 	
 	    if (process.env.NODE_ENV !== 'production') {
-	      process.env.NODE_ENV !== 'production' ? warning(!nodeIsRenderedByOtherInstance(container), "unmountComponentAtNode(): The node you're attempting to unmount " + 'was rendered by another copy of React.') : void 0;
+	      process.env.NODE_ENV !== 'production' ? warning(!nodeIsRenderedByOtherInstance(container), 'unmountComponentAtNode(): The node you\'re attempting to unmount ' + 'was rendered by another copy of React.') : void 0;
 	    }
 	
 	    var prevComponent = getTopLevelWrapperInContainer(container);
@@ -21761,7 +21590,7 @@
 	      var isContainerReactRoot = container.nodeType === 1 && container.hasAttribute(ROOT_ATTR_NAME);
 	
 	      if (process.env.NODE_ENV !== 'production') {
-	        process.env.NODE_ENV !== 'production' ? warning(!containerHasNonRootReactChild, "unmountComponentAtNode(): The node you're attempting to unmount " + 'was rendered by React and is not a top-level container. %s', isContainerReactRoot ? 'You may have accidentally passed in a React root node instead ' + 'of its container.' : 'Instead, have the parent component update its state and ' + 'rerender in order to remove this component.') : void 0;
+	        process.env.NODE_ENV !== 'production' ? warning(!containerHasNonRootReactChild, 'unmountComponentAtNode(): The node you\'re attempting to unmount ' + 'was rendered by React and is not a top-level container. %s', isContainerReactRoot ? 'You may have accidentally passed in a React root node instead ' + 'of its container.' : 'Instead, have the parent component update its state and ' + 'rerender in order to remove this component.') : void 0;
 	      }
 	
 	      return false;
@@ -21846,7 +21675,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 176 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -21861,7 +21690,7 @@
 	
 	'use strict';
 	
-	var validateDOMNesting = __webpack_require__(145);
+	var validateDOMNesting = __webpack_require__(143);
 	
 	var DOC_NODE_TYPE = 9;
 	
@@ -21884,7 +21713,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 177 */
+/* 175 */
 /***/ (function(module, exports) {
 
 	/**
@@ -21907,7 +21736,7 @@
 	module.exports = ReactDOMFeatureFlags;
 
 /***/ }),
-/* 178 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -21922,7 +21751,7 @@
 	
 	'use strict';
 	
-	var adler32 = __webpack_require__(179);
+	var adler32 = __webpack_require__(177);
 	
 	var TAG_END = /\/?>/;
 	var COMMENT_START = /^<\!\-\-/;
@@ -21961,7 +21790,7 @@
 	module.exports = ReactMarkupChecksum;
 
 /***/ }),
-/* 179 */
+/* 177 */
 /***/ (function(module, exports) {
 
 	/**
@@ -22009,7 +21838,7 @@
 	module.exports = adler32;
 
 /***/ }),
-/* 180 */
+/* 178 */
 /***/ (function(module, exports) {
 
 	/**
@@ -22024,10 +21853,10 @@
 	
 	'use strict';
 	
-	module.exports = '15.6.1';
+	module.exports = '15.5.4';
 
 /***/ }),
-/* 181 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22042,15 +21871,15 @@
 	
 	'use strict';
 	
-	var _prodInvariant = __webpack_require__(43);
+	var _prodInvariant = __webpack_require__(42);
 	
-	var ReactCurrentOwner = __webpack_require__(20);
-	var ReactDOMComponentTree = __webpack_require__(42);
-	var ReactInstanceMap = __webpack_require__(125);
+	var ReactCurrentOwner = __webpack_require__(13);
+	var ReactDOMComponentTree = __webpack_require__(41);
+	var ReactInstanceMap = __webpack_require__(123);
 	
-	var getHostComponentFromComposite = __webpack_require__(182);
-	var invariant = __webpack_require__(15);
-	var warning = __webpack_require__(11);
+	var getHostComponentFromComposite = __webpack_require__(180);
+	var invariant = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	/**
 	 * Returns the DOM node rendered by this element.
@@ -22092,7 +21921,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 182 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -22107,7 +21936,7 @@
 	
 	'use strict';
 	
-	var ReactNodeTypes = __webpack_require__(129);
+	var ReactNodeTypes = __webpack_require__(127);
 	
 	function getHostComponentFromComposite(inst) {
 	  var type;
@@ -22126,7 +21955,7 @@
 	module.exports = getHostComponentFromComposite;
 
 /***/ }),
-/* 183 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -22141,12 +21970,12 @@
 	
 	'use strict';
 	
-	var ReactMount = __webpack_require__(175);
+	var ReactMount = __webpack_require__(173);
 	
 	module.exports = ReactMount.renderSubtreeIntoContainer;
 
 /***/ }),
-/* 184 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22161,11 +21990,11 @@
 	
 	'use strict';
 	
-	var DOMProperty = __webpack_require__(44);
-	var EventPluginRegistry = __webpack_require__(51);
-	var ReactComponentTreeHook = __webpack_require__(27);
+	var DOMProperty = __webpack_require__(43);
+	var EventPluginRegistry = __webpack_require__(50);
+	var ReactComponentTreeHook = __webpack_require__(29);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	if (process.env.NODE_ENV !== 'production') {
 	  var reactProps = {
@@ -22263,7 +22092,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 185 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22278,9 +22107,9 @@
 	
 	'use strict';
 	
-	var ReactComponentTreeHook = __webpack_require__(27);
+	var ReactComponentTreeHook = __webpack_require__(29);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var didWarnValueNull = false;
 	
@@ -22311,7 +22140,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 186 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22326,10 +22155,10 @@
 	
 	'use strict';
 	
-	var DOMProperty = __webpack_require__(44);
-	var ReactComponentTreeHook = __webpack_require__(27);
+	var DOMProperty = __webpack_require__(43);
+	var ReactComponentTreeHook = __webpack_require__(29);
 	
-	var warning = __webpack_require__(11);
+	var warning = __webpack_require__(14);
 	
 	var warnedProperties = {};
 	var rARIA = new RegExp('^(aria)-[' + DOMProperty.ATTRIBUTE_NAME_CHAR + ']*$');
@@ -22407,6 +22236,4749 @@
 	
 	module.exports = ReactDOMInvalidARIAHook;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ }),
+/* 185 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {"use strict";
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	/*! VelocityJS.org (1.5.0). (C) 2014 Julian Shapiro. MIT @license: en.wikipedia.org/wiki/MIT_License */
+	
+	/*************************
+	 Velocity jQuery Shim
+	 *************************/
+	
+	/*! VelocityJS.org jQuery Shim (1.0.1). (C) 2014 The jQuery Foundation. MIT @license: en.wikipedia.org/wiki/MIT_License. */
+	
+	/* This file contains the jQuery functions that Velocity relies on, thereby removing Velocity's dependency on a full copy of jQuery, and allowing it to work in any environment. */
+	/* These shimmed functions are only used if jQuery isn't present. If both this shim and jQuery are loaded, Velocity defaults to jQuery proper. */
+	/* Browser support: Using this shim instead of jQuery proper removes support for IE8. */
+	
+	(function (window) {
+		"use strict";
+		/***************
+	  Setup
+	  ***************/
+	
+		/* If jQuery is already loaded, there's no point in loading this shim. */
+	
+		if (window.jQuery) {
+			return;
+		}
+	
+		/* jQuery base. */
+		var $ = function $(selector, context) {
+			return new $.fn.init(selector, context);
+		};
+	
+		/********************
+	  Private Methods
+	  ********************/
+	
+		/* jQuery */
+		$.isWindow = function (obj) {
+			/* jshint eqeqeq: false */
+			return obj && obj === obj.window;
+		};
+	
+		/* jQuery */
+		$.type = function (obj) {
+			if (!obj) {
+				return obj + "";
+			}
+	
+			return (typeof obj === "undefined" ? "undefined" : _typeof(obj)) === "object" || typeof obj === "function" ? class2type[toString.call(obj)] || "object" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
+		};
+	
+		/* jQuery */
+		$.isArray = Array.isArray || function (obj) {
+			return $.type(obj) === "array";
+		};
+	
+		/* jQuery */
+		function isArraylike(obj) {
+			var length = obj.length,
+			    type = $.type(obj);
+	
+			if (type === "function" || $.isWindow(obj)) {
+				return false;
+			}
+	
+			if (obj.nodeType === 1 && length) {
+				return true;
+			}
+	
+			return type === "array" || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
+		}
+	
+		/***************
+	  $ Methods
+	  ***************/
+	
+		/* jQuery: Support removed for IE<9. */
+		$.isPlainObject = function (obj) {
+			var key;
+	
+			if (!obj || $.type(obj) !== "object" || obj.nodeType || $.isWindow(obj)) {
+				return false;
+			}
+	
+			try {
+				if (obj.constructor && !hasOwn.call(obj, "constructor") && !hasOwn.call(obj.constructor.prototype, "isPrototypeOf")) {
+					return false;
+				}
+			} catch (e) {
+				return false;
+			}
+	
+			for (key in obj) {}
+	
+			return key === undefined || hasOwn.call(obj, key);
+		};
+	
+		/* jQuery */
+		$.each = function (obj, callback, args) {
+			var value,
+			    i = 0,
+			    length = obj.length,
+			    isArray = isArraylike(obj);
+	
+			if (args) {
+				if (isArray) {
+					for (; i < length; i++) {
+						value = callback.apply(obj[i], args);
+	
+						if (value === false) {
+							break;
+						}
+					}
+				} else {
+					for (i in obj) {
+						if (!obj.hasOwnProperty(i)) {
+							continue;
+						}
+						value = callback.apply(obj[i], args);
+	
+						if (value === false) {
+							break;
+						}
+					}
+				}
+			} else {
+				if (isArray) {
+					for (; i < length; i++) {
+						value = callback.call(obj[i], i, obj[i]);
+	
+						if (value === false) {
+							break;
+						}
+					}
+				} else {
+					for (i in obj) {
+						if (!obj.hasOwnProperty(i)) {
+							continue;
+						}
+						value = callback.call(obj[i], i, obj[i]);
+	
+						if (value === false) {
+							break;
+						}
+					}
+				}
+			}
+	
+			return obj;
+		};
+	
+		/* Custom */
+		$.data = function (node, key, value) {
+			/* $.getData() */
+			if (value === undefined) {
+				var getId = node[$.expando],
+				    store = getId && cache[getId];
+	
+				if (key === undefined) {
+					return store;
+				} else if (store) {
+					if (key in store) {
+						return store[key];
+					}
+				}
+				/* $.setData() */
+			} else if (key !== undefined) {
+				var setId = node[$.expando] || (node[$.expando] = ++$.uuid);
+	
+				cache[setId] = cache[setId] || {};
+				cache[setId][key] = value;
+	
+				return value;
+			}
+		};
+	
+		/* Custom */
+		$.removeData = function (node, keys) {
+			var id = node[$.expando],
+			    store = id && cache[id];
+	
+			if (store) {
+				// Cleanup the entire store if no keys are provided.
+				if (!keys) {
+					delete cache[id];
+				} else {
+					$.each(keys, function (_, key) {
+						delete store[key];
+					});
+				}
+			}
+		};
+	
+		/* jQuery */
+		$.extend = function () {
+			var src,
+			    copyIsArray,
+			    copy,
+			    name,
+			    options,
+			    clone,
+			    target = arguments[0] || {},
+			    i = 1,
+			    length = arguments.length,
+			    deep = false;
+	
+			if (typeof target === "boolean") {
+				deep = target;
+	
+				target = arguments[i] || {};
+				i++;
+			}
+	
+			if ((typeof target === "undefined" ? "undefined" : _typeof(target)) !== "object" && $.type(target) !== "function") {
+				target = {};
+			}
+	
+			if (i === length) {
+				target = this;
+				i--;
+			}
+	
+			for (; i < length; i++) {
+				if (options = arguments[i]) {
+					for (name in options) {
+						if (!options.hasOwnProperty(name)) {
+							continue;
+						}
+						src = target[name];
+						copy = options[name];
+	
+						if (target === copy) {
+							continue;
+						}
+	
+						if (deep && copy && ($.isPlainObject(copy) || (copyIsArray = $.isArray(copy)))) {
+							if (copyIsArray) {
+								copyIsArray = false;
+								clone = src && $.isArray(src) ? src : [];
+							} else {
+								clone = src && $.isPlainObject(src) ? src : {};
+							}
+	
+							target[name] = $.extend(deep, clone, copy);
+						} else if (copy !== undefined) {
+							target[name] = copy;
+						}
+					}
+				}
+			}
+	
+			return target;
+		};
+	
+		/* jQuery 1.4.3 */
+		$.queue = function (elem, type, data) {
+			function $makeArray(arr, results) {
+				var ret = results || [];
+	
+				if (arr) {
+					if (isArraylike(Object(arr))) {
+						/* $.merge */
+						(function (first, second) {
+							var len = +second.length,
+							    j = 0,
+							    i = first.length;
+	
+							while (j < len) {
+								first[i++] = second[j++];
+							}
+	
+							if (len !== len) {
+								while (second[j] !== undefined) {
+									first[i++] = second[j++];
+								}
+							}
+	
+							first.length = i;
+	
+							return first;
+						})(ret, typeof arr === "string" ? [arr] : arr);
+					} else {
+						[].push.call(ret, arr);
+					}
+				}
+	
+				return ret;
+			}
+	
+			if (!elem) {
+				return;
+			}
+	
+			type = (type || "fx") + "queue";
+	
+			var q = $.data(elem, type);
+	
+			if (!data) {
+				return q || [];
+			}
+	
+			if (!q || $.isArray(data)) {
+				q = $.data(elem, type, $makeArray(data));
+			} else {
+				q.push(data);
+			}
+	
+			return q;
+		};
+	
+		/* jQuery 1.4.3 */
+		$.dequeue = function (elems, type) {
+			/* Custom: Embed element iteration. */
+			$.each(elems.nodeType ? [elems] : elems, function (i, elem) {
+				type = type || "fx";
+	
+				var queue = $.queue(elem, type),
+				    fn = queue.shift();
+	
+				if (fn === "inprogress") {
+					fn = queue.shift();
+				}
+	
+				if (fn) {
+					if (type === "fx") {
+						queue.unshift("inprogress");
+					}
+	
+					fn.call(elem, function () {
+						$.dequeue(elem, type);
+					});
+				}
+			});
+		};
+	
+		/******************
+	  $.fn Methods
+	  ******************/
+	
+		/* jQuery */
+		$.fn = $.prototype = {
+			init: function init(selector) {
+				/* Just return the element wrapped inside an array; don't proceed with the actual jQuery node wrapping process. */
+				if (selector.nodeType) {
+					this[0] = selector;
+	
+					return this;
+				} else {
+					throw new Error("Not a DOM node.");
+				}
+			},
+			offset: function offset() {
+				/* jQuery altered code: Dropped disconnected DOM node checking. */
+				var box = this[0].getBoundingClientRect ? this[0].getBoundingClientRect() : { top: 0, left: 0 };
+	
+				return {
+					top: box.top + (window.pageYOffset || document.scrollTop || 0) - (document.clientTop || 0),
+					left: box.left + (window.pageXOffset || document.scrollLeft || 0) - (document.clientLeft || 0)
+				};
+			},
+			position: function position() {
+				/* jQuery */
+				function offsetParentFn(elem) {
+					var offsetParent = elem.offsetParent;
+	
+					while (offsetParent && offsetParent.nodeName.toLowerCase() !== "html" && offsetParent.style && offsetParent.style.position === "static") {
+						offsetParent = offsetParent.offsetParent;
+					}
+	
+					return offsetParent || document;
+				}
+	
+				/* Zepto */
+				var elem = this[0],
+				    offsetParent = offsetParentFn(elem),
+				    offset = this.offset(),
+				    parentOffset = /^(?:body|html)$/i.test(offsetParent.nodeName) ? { top: 0, left: 0 } : $(offsetParent).offset();
+	
+				offset.top -= parseFloat(elem.style.marginTop) || 0;
+				offset.left -= parseFloat(elem.style.marginLeft) || 0;
+	
+				if (offsetParent.style) {
+					parentOffset.top += parseFloat(offsetParent.style.borderTopWidth) || 0;
+					parentOffset.left += parseFloat(offsetParent.style.borderLeftWidth) || 0;
+				}
+	
+				return {
+					top: offset.top - parentOffset.top,
+					left: offset.left - parentOffset.left
+				};
+			}
+		};
+	
+		/**********************
+	  Private Variables
+	  **********************/
+	
+		/* For $.data() */
+		var cache = {};
+		$.expando = "velocity" + new Date().getTime();
+		$.uuid = 0;
+	
+		/* For $.queue() */
+		var class2type = {},
+		    hasOwn = class2type.hasOwnProperty,
+		    toString = class2type.toString;
+	
+		var types = "Boolean Number String Function Array Date RegExp Object Error".split(" ");
+		for (var i = 0; i < types.length; i++) {
+			class2type["[object " + types[i] + "]"] = types[i].toLowerCase();
+		}
+	
+		/* Makes $(node) possible, without having to call init. */
+		$.fn.init.prototype = $.fn;
+	
+		/* Globalize Velocity onto the window, and assign its Utilities property. */
+		window.Velocity = { Utilities: $ };
+	})(window);
+	
+	/******************
+	 Velocity.js
+	 ******************/
+	
+	(function (factory) {
+		"use strict";
+		/* CommonJS module. */
+	
+		if (( false ? "undefined" : _typeof(module)) === "object" && _typeof(module.exports) === "object") {
+			module.exports = factory();
+			/* AMD module. */
+		} else if (true) {
+			!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+			/* Browser globals. */
+		} else {
+			factory();
+		}
+	})(function () {
+		"use strict";
+	
+		return function (global, window, document, undefined) {
+	
+			/***************
+	   Summary
+	   ***************/
+	
+			/*
+	   - CSS: CSS stack that works independently from the rest of Velocity.
+	   - animate(): Core animation method that iterates over the targeted elements and queues the incoming call onto each element individually.
+	   - Pre-Queueing: Prepare the element for animation by instantiating its data cache and processing the call's options.
+	   - Queueing: The logic that runs once the call has reached its point of execution in the element's $.queue() stack.
+	   Most logic is placed here to avoid risking it becoming stale (if the element's properties have changed).
+	   - Pushing: Consolidation of the tween data followed by its push onto the global in-progress calls container.
+	   - tick(): The single requestAnimationFrame loop responsible for tweening all in-progress calls.
+	   - completeCall(): Handles the cleanup process for each Velocity call.
+	   */
+	
+			/*********************
+	   Helper Functions
+	   *********************/
+	
+			/* IE detection. Gist: https://gist.github.com/julianshapiro/9098609 */
+			var IE = function () {
+				if (document.documentMode) {
+					return document.documentMode;
+				} else {
+					for (var i = 7; i > 4; i--) {
+						var div = document.createElement("div");
+	
+						div.innerHTML = "<!--[if IE " + i + "]><span></span><![endif]-->";
+	
+						if (div.getElementsByTagName("span").length) {
+							div = null;
+	
+							return i;
+						}
+					}
+				}
+	
+				return undefined;
+			}();
+	
+			/* rAF shim. Gist: https://gist.github.com/julianshapiro/9497513 */
+			var rAFShim = function () {
+				var timeLast = 0;
+	
+				return window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function (callback) {
+					var timeCurrent = new Date().getTime(),
+					    timeDelta;
+	
+					/* Dynamically set delay on a per-tick basis to match 60fps. */
+					/* Technique by Erik Moller. MIT license: https://gist.github.com/paulirish/1579671 */
+					timeDelta = Math.max(0, 16 - (timeCurrent - timeLast));
+					timeLast = timeCurrent + timeDelta;
+	
+					return setTimeout(function () {
+						callback(timeCurrent + timeDelta);
+					}, timeDelta);
+				};
+			}();
+	
+			var performance = function () {
+				var perf = window.performance || {};
+	
+				if (typeof perf.now !== "function") {
+					var nowOffset = perf.timing && perf.timing.navigationStart ? perf.timing.navigationStart : new Date().getTime();
+	
+					perf.now = function () {
+						return new Date().getTime() - nowOffset;
+					};
+				}
+				return perf;
+			}();
+	
+			/* Array compacting. Copyright Lo-Dash. MIT License: https://github.com/lodash/lodash/blob/master/LICENSE.txt */
+			function compactSparseArray(array) {
+				var index = -1,
+				    length = array ? array.length : 0,
+				    result = [];
+	
+				while (++index < length) {
+					var value = array[index];
+	
+					if (value) {
+						result.push(value);
+					}
+				}
+	
+				return result;
+			}
+	
+			/**
+	   * Shim for "fixing" IE's lack of support (IE < 9) for applying slice
+	   * on host objects like NamedNodeMap, NodeList, and HTMLCollection
+	   * (technically, since host objects have been implementation-dependent,
+	   * at least before ES2015, IE hasn't needed to work this way).
+	   * Also works on strings, fixes IE < 9 to allow an explicit undefined
+	   * for the 2nd argument (as in Firefox), and prevents errors when
+	   * called on other DOM objects.
+	   */
+			var _slice = function () {
+				var slice = Array.prototype.slice;
+	
+				try {
+					// Can't be used with DOM elements in IE < 9
+					slice.call(document.documentElement);
+					return slice;
+				} catch (e) {
+					// Fails in IE < 9
+	
+					// This will work for genuine arrays, array-like objects, 
+					// NamedNodeMap (attributes, entities, notations),
+					// NodeList (e.g., getElementsByTagName), HTMLCollection (e.g., childNodes),
+					// and will not fail on other DOM objects (as do DOM elements in IE < 9)
+					return function (begin, end) {
+						var len = this.length;
+	
+						if (typeof begin !== "number") {
+							begin = 0;
+						}
+						// IE < 9 gets unhappy with an undefined end argument
+						if (typeof end !== "number") {
+							end = len;
+						}
+						// For native Array objects, we use the native slice function
+						if (this.slice) {
+							return slice.call(this, begin, end);
+						}
+						// For array like object we handle it ourselves.
+						var i,
+						    cloned = [],
+	
+						// Handle negative value for "begin"
+						start = begin >= 0 ? begin : Math.max(0, len + begin),
+	
+						// Handle negative value for "end"
+						upTo = end < 0 ? len + end : Math.min(end, len),
+	
+						// Actual expected size of the slice
+						size = upTo - start;
+	
+						if (size > 0) {
+							cloned = new Array(size);
+							if (this.charAt) {
+								for (i = 0; i < size; i++) {
+									cloned[i] = this.charAt(start + i);
+								}
+							} else {
+								for (i = 0; i < size; i++) {
+									cloned[i] = this[start + i];
+								}
+							}
+						}
+						return cloned;
+					};
+				}
+			}();
+	
+			/* .indexOf doesn't exist in IE<9 */
+			var _inArray = function _inArray() {
+				if (Array.prototype.includes) {
+					return function (arr, val) {
+						return arr.includes(val);
+					};
+				}
+				if (Array.prototype.indexOf) {
+					return function (arr, val) {
+						return arr.indexOf(val) >= 0;
+					};
+				}
+				return function (arr, val) {
+					for (var i = 0; i < arr.length; i++) {
+						if (arr[i] === val) {
+							return true;
+						}
+					}
+					return false;
+				};
+			};
+	
+			function sanitizeElements(elements) {
+				/* Unwrap jQuery/Zepto objects. */
+				if (Type.isWrapped(elements)) {
+					elements = _slice.call(elements);
+					/* Wrap a single element in an array so that $.each() can iterate with the element instead of its node's children. */
+				} else if (Type.isNode(elements)) {
+					elements = [elements];
+				}
+	
+				return elements;
+			}
+	
+			var Type = {
+				isNumber: function isNumber(variable) {
+					return typeof variable === "number";
+				},
+				isString: function isString(variable) {
+					return typeof variable === "string";
+				},
+				isArray: Array.isArray || function (variable) {
+					return Object.prototype.toString.call(variable) === "[object Array]";
+				},
+				isFunction: function isFunction(variable) {
+					return Object.prototype.toString.call(variable) === "[object Function]";
+				},
+				isNode: function isNode(variable) {
+					return variable && variable.nodeType;
+				},
+				/* Determine if variable is an array-like wrapped jQuery, Zepto or similar element, or even a NodeList etc. */
+				/* NOTE: HTMLFormElements also have a length. */
+				isWrapped: function isWrapped(variable) {
+					return variable && variable !== window && Type.isNumber(variable.length) && !Type.isString(variable) && !Type.isFunction(variable) && !Type.isNode(variable) && (variable.length === 0 || Type.isNode(variable[0]));
+				},
+				isSVG: function isSVG(variable) {
+					return window.SVGElement && variable instanceof window.SVGElement;
+				},
+				isEmptyObject: function isEmptyObject(variable) {
+					for (var name in variable) {
+						if (variable.hasOwnProperty(name)) {
+							return false;
+						}
+					}
+	
+					return true;
+				}
+			};
+	
+			/*****************
+	   Dependencies
+	   *****************/
+	
+			var $,
+			    isJQuery = false;
+	
+			if (global.fn && global.fn.jquery) {
+				$ = global;
+				isJQuery = true;
+			} else {
+				$ = window.Velocity.Utilities;
+			}
+	
+			if (IE <= 8 && !isJQuery) {
+				throw new Error("Velocity: IE8 and below require jQuery to be loaded before Velocity.");
+			} else if (IE <= 7) {
+				/* Revert to jQuery's $.animate(), and lose Velocity's extra features. */
+				jQuery.fn.velocity = jQuery.fn.animate;
+	
+				/* Now that $.fn.velocity is aliased, abort this Velocity declaration. */
+				return;
+			}
+	
+			/*****************
+	   Constants
+	   *****************/
+	
+			var DURATION_DEFAULT = 400,
+			    EASING_DEFAULT = "swing";
+	
+			/*************
+	   State
+	   *************/
+	
+			var Velocity = {
+				/* Container for page-wide Velocity state data. */
+				State: {
+					/* Detect mobile devices to determine if mobileHA should be turned on. */
+					isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+					/* The mobileHA option's behavior changes on older Android devices (Gingerbread, versions 2.3.3-2.3.7). */
+					isAndroid: /Android/i.test(navigator.userAgent),
+					isGingerbread: /Android 2\.3\.[3-7]/i.test(navigator.userAgent),
+					isChrome: window.chrome,
+					isFirefox: /Firefox/i.test(navigator.userAgent),
+					/* Create a cached element for re-use when checking for CSS property prefixes. */
+					prefixElement: document.createElement("div"),
+					/* Cache every prefix match to avoid repeating lookups. */
+					prefixMatches: {},
+					/* Cache the anchor used for animating window scrolling. */
+					scrollAnchor: null,
+					/* Cache the browser-specific property names associated with the scroll anchor. */
+					scrollPropertyLeft: null,
+					scrollPropertyTop: null,
+					/* Keep track of whether our RAF tick is running. */
+					isTicking: false,
+					/* Container for every in-progress call to Velocity. */
+					calls: [],
+					delayedElements: {
+						count: 0
+					}
+				},
+				/* Velocity's custom CSS stack. Made global for unit testing. */
+				CSS: {/* Defined below. */},
+				/* A shim of the jQuery utility functions used by Velocity -- provided by Velocity's optional jQuery shim. */
+				Utilities: $,
+				/* Container for the user's custom animation redirects that are referenced by name in place of the properties map argument. */
+				Redirects: {/* Manually registered by the user. */},
+				Easings: {/* Defined below. */},
+				/* Attempt to use ES6 Promises by default. Users can override this with a third-party promises library. */
+				Promise: window.Promise,
+				/* Velocity option defaults, which can be overriden by the user. */
+				defaults: {
+					queue: "",
+					duration: DURATION_DEFAULT,
+					easing: EASING_DEFAULT,
+					begin: undefined,
+					complete: undefined,
+					progress: undefined,
+					display: undefined,
+					visibility: undefined,
+					loop: false,
+					delay: false,
+					mobileHA: true,
+					/* Advanced: Set to false to prevent property values from being cached between consecutive Velocity-initiated chain calls. */
+					_cacheValues: true,
+					/* Advanced: Set to false if the promise should always resolve on empty element lists. */
+					promiseRejectEmpty: true
+				},
+				/* A design goal of Velocity is to cache data wherever possible in order to avoid DOM requerying. Accordingly, each element has a data cache. */
+				init: function init(element) {
+					$.data(element, "velocity", {
+						/* Store whether this is an SVG element, since its properties are retrieved and updated differently than standard HTML elements. */
+						isSVG: Type.isSVG(element),
+						/* Keep track of whether the element is currently being animated by Velocity.
+	      This is used to ensure that property values are not transferred between non-consecutive (stale) calls. */
+						isAnimating: false,
+						/* A reference to the element's live computedStyle object. Learn more here: https://developer.mozilla.org/en/docs/Web/API/window.getComputedStyle */
+						computedStyle: null,
+						/* Tween data is cached for each animation on the element so that data can be passed across calls --
+	      in particular, end values are used as subsequent start values in consecutive Velocity calls. */
+						tweensContainer: null,
+						/* The full root property values of each CSS hook being animated on this element are cached so that:
+	      1) Concurrently-animating hooks sharing the same root can have their root values' merged into one while tweening.
+	      2) Post-hook-injection root values can be transferred over to consecutively chained Velocity calls as starting root values. */
+						rootPropertyValueCache: {},
+						/* A cache for transform updates, which must be manually flushed via CSS.flushTransformCache(). */
+						transformCache: {}
+					});
+				},
+				/* A parallel to jQuery's $.css(), used for getting/setting Velocity's hooked CSS properties. */
+				hook: null, /* Defined below. */
+				/* Velocity-wide animation time remapping for testing purposes. */
+				mock: false,
+				version: { major: 1, minor: 5, patch: 0 },
+				/* Set to 1 or 2 (most verbose) to output debug info to console. */
+				debug: false,
+				/* Use rAF high resolution timestamp when available */
+				timestamp: true,
+				/* Pause all animations */
+				pauseAll: function pauseAll(queueName) {
+					var currentTime = new Date().getTime();
+	
+					$.each(Velocity.State.calls, function (i, activeCall) {
+	
+						if (activeCall) {
+	
+							/* If we have a queueName and this call is not on that queue, skip */
+							if (queueName !== undefined && (activeCall[2].queue !== queueName || activeCall[2].queue === false)) {
+								return true;
+							}
+	
+							/* Set call to paused */
+							activeCall[5] = {
+								resume: false
+							};
+						}
+					});
+	
+					/* Pause timers on any currently delayed calls */
+					$.each(Velocity.State.delayedElements, function (k, element) {
+						if (!element) {
+							return;
+						}
+						pauseDelayOnElement(element, currentTime);
+					});
+				},
+				/* Resume all animations */
+				resumeAll: function resumeAll(queueName) {
+					var currentTime = new Date().getTime();
+	
+					$.each(Velocity.State.calls, function (i, activeCall) {
+	
+						if (activeCall) {
+	
+							/* If we have a queueName and this call is not on that queue, skip */
+							if (queueName !== undefined && (activeCall[2].queue !== queueName || activeCall[2].queue === false)) {
+								return true;
+							}
+	
+							/* Set call to resumed if it was paused */
+							if (activeCall[5]) {
+								activeCall[5].resume = true;
+							}
+						}
+					});
+					/* Resume timers on any currently delayed calls */
+					$.each(Velocity.State.delayedElements, function (k, element) {
+						if (!element) {
+							return;
+						}
+						resumeDelayOnElement(element, currentTime);
+					});
+				}
+			};
+	
+			/* Retrieve the appropriate scroll anchor and property name for the browser: https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY */
+			if (window.pageYOffset !== undefined) {
+				Velocity.State.scrollAnchor = window;
+				Velocity.State.scrollPropertyLeft = "pageXOffset";
+				Velocity.State.scrollPropertyTop = "pageYOffset";
+			} else {
+				Velocity.State.scrollAnchor = document.documentElement || document.body.parentNode || document.body;
+				Velocity.State.scrollPropertyLeft = "scrollLeft";
+				Velocity.State.scrollPropertyTop = "scrollTop";
+			}
+	
+			/* Shorthand alias for jQuery's $.data() utility. */
+			function Data(element) {
+				/* Hardcode a reference to the plugin name. */
+				var response = $.data(element, "velocity");
+	
+				/* jQuery <=1.4.2 returns null instead of undefined when no match is found. We normalize this behavior. */
+				return response === null ? undefined : response;
+			}
+	
+			/**************
+	   Delay Timer
+	   **************/
+	
+			function pauseDelayOnElement(element, currentTime) {
+				/* Check for any delay timers, and pause the set timeouts (while preserving time data)
+	    to be resumed when the "resume" command is issued */
+				var data = Data(element);
+				if (data && data.delayTimer && !data.delayPaused) {
+					data.delayRemaining = data.delay - currentTime + data.delayBegin;
+					data.delayPaused = true;
+					clearTimeout(data.delayTimer.setTimeout);
+				}
+			}
+	
+			function resumeDelayOnElement(element, currentTime) {
+				/* Check for any paused timers and resume */
+				var data = Data(element);
+				if (data && data.delayTimer && data.delayPaused) {
+					/* If the element was mid-delay, re initiate the timeout with the remaining delay */
+					data.delayPaused = false;
+					data.delayTimer.setTimeout = setTimeout(data.delayTimer.next, data.delayRemaining);
+				}
+			}
+	
+			/**************
+	   Easing
+	   **************/
+	
+			/* Step easing generator. */
+			function generateStep(steps) {
+				return function (p) {
+					return Math.round(p * steps) * (1 / steps);
+				};
+			}
+	
+			/* Bezier curve function generator. Copyright Gaetan Renaudeau. MIT License: http://en.wikipedia.org/wiki/MIT_License */
+			function generateBezier(mX1, mY1, mX2, mY2) {
+				var NEWTON_ITERATIONS = 4,
+				    NEWTON_MIN_SLOPE = 0.001,
+				    SUBDIVISION_PRECISION = 0.0000001,
+				    SUBDIVISION_MAX_ITERATIONS = 10,
+				    kSplineTableSize = 11,
+				    kSampleStepSize = 1.0 / (kSplineTableSize - 1.0),
+				    float32ArraySupported = "Float32Array" in window;
+	
+				/* Must contain four arguments. */
+				if (arguments.length !== 4) {
+					return false;
+				}
+	
+				/* Arguments must be numbers. */
+				for (var i = 0; i < 4; ++i) {
+					if (typeof arguments[i] !== "number" || isNaN(arguments[i]) || !isFinite(arguments[i])) {
+						return false;
+					}
+				}
+	
+				/* X values must be in the [0, 1] range. */
+				mX1 = Math.min(mX1, 1);
+				mX2 = Math.min(mX2, 1);
+				mX1 = Math.max(mX1, 0);
+				mX2 = Math.max(mX2, 0);
+	
+				var mSampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+	
+				function A(aA1, aA2) {
+					return 1.0 - 3.0 * aA2 + 3.0 * aA1;
+				}
+				function B(aA1, aA2) {
+					return 3.0 * aA2 - 6.0 * aA1;
+				}
+				function C(aA1) {
+					return 3.0 * aA1;
+				}
+	
+				function calcBezier(aT, aA1, aA2) {
+					return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT;
+				}
+	
+				function getSlope(aT, aA1, aA2) {
+					return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1);
+				}
+	
+				function newtonRaphsonIterate(aX, aGuessT) {
+					for (var i = 0; i < NEWTON_ITERATIONS; ++i) {
+						var currentSlope = getSlope(aGuessT, mX1, mX2);
+	
+						if (currentSlope === 0.0) {
+							return aGuessT;
+						}
+	
+						var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+						aGuessT -= currentX / currentSlope;
+					}
+	
+					return aGuessT;
+				}
+	
+				function calcSampleValues() {
+					for (var i = 0; i < kSplineTableSize; ++i) {
+						mSampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
+					}
+				}
+	
+				function binarySubdivide(aX, aA, aB) {
+					var currentX,
+					    currentT,
+					    i = 0;
+	
+					do {
+						currentT = aA + (aB - aA) / 2.0;
+						currentX = calcBezier(currentT, mX1, mX2) - aX;
+						if (currentX > 0.0) {
+							aB = currentT;
+						} else {
+							aA = currentT;
+						}
+					} while (Math.abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
+	
+					return currentT;
+				}
+	
+				function getTForX(aX) {
+					var intervalStart = 0.0,
+					    currentSample = 1,
+					    lastSample = kSplineTableSize - 1;
+	
+					for (; currentSample !== lastSample && mSampleValues[currentSample] <= aX; ++currentSample) {
+						intervalStart += kSampleStepSize;
+					}
+	
+					--currentSample;
+	
+					var dist = (aX - mSampleValues[currentSample]) / (mSampleValues[currentSample + 1] - mSampleValues[currentSample]),
+					    guessForT = intervalStart + dist * kSampleStepSize,
+					    initialSlope = getSlope(guessForT, mX1, mX2);
+	
+					if (initialSlope >= NEWTON_MIN_SLOPE) {
+						return newtonRaphsonIterate(aX, guessForT);
+					} else if (initialSlope === 0.0) {
+						return guessForT;
+					} else {
+						return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize);
+					}
+				}
+	
+				var _precomputed = false;
+	
+				function precompute() {
+					_precomputed = true;
+					if (mX1 !== mY1 || mX2 !== mY2) {
+						calcSampleValues();
+					}
+				}
+	
+				var f = function f(aX) {
+					if (!_precomputed) {
+						precompute();
+					}
+					if (mX1 === mY1 && mX2 === mY2) {
+						return aX;
+					}
+					if (aX === 0) {
+						return 0;
+					}
+					if (aX === 1) {
+						return 1;
+					}
+	
+					return calcBezier(getTForX(aX), mY1, mY2);
+				};
+	
+				f.getControlPoints = function () {
+					return [{ x: mX1, y: mY1 }, { x: mX2, y: mY2 }];
+				};
+	
+				var str = "generateBezier(" + [mX1, mY1, mX2, mY2] + ")";
+				f.toString = function () {
+					return str;
+				};
+	
+				return f;
+			}
+	
+			/* Runge-Kutta spring physics function generator. Adapted from Framer.js, copyright Koen Bok. MIT License: http://en.wikipedia.org/wiki/MIT_License */
+			/* Given a tension, friction, and duration, a simulation at 60FPS will first run without a defined duration in order to calculate the full path. A second pass
+	   then adjusts the time delta -- using the relation between actual time and duration -- to calculate the path for the duration-constrained animation. */
+			var generateSpringRK4 = function () {
+				function springAccelerationForState(state) {
+					return -state.tension * state.x - state.friction * state.v;
+				}
+	
+				function springEvaluateStateWithDerivative(initialState, dt, derivative) {
+					var state = {
+						x: initialState.x + derivative.dx * dt,
+						v: initialState.v + derivative.dv * dt,
+						tension: initialState.tension,
+						friction: initialState.friction
+					};
+	
+					return { dx: state.v, dv: springAccelerationForState(state) };
+				}
+	
+				function springIntegrateState(state, dt) {
+					var a = {
+						dx: state.v,
+						dv: springAccelerationForState(state)
+					},
+					    b = springEvaluateStateWithDerivative(state, dt * 0.5, a),
+					    c = springEvaluateStateWithDerivative(state, dt * 0.5, b),
+					    d = springEvaluateStateWithDerivative(state, dt, c),
+					    dxdt = 1.0 / 6.0 * (a.dx + 2.0 * (b.dx + c.dx) + d.dx),
+					    dvdt = 1.0 / 6.0 * (a.dv + 2.0 * (b.dv + c.dv) + d.dv);
+	
+					state.x = state.x + dxdt * dt;
+					state.v = state.v + dvdt * dt;
+	
+					return state;
+				}
+	
+				return function springRK4Factory(tension, friction, duration) {
+	
+					var initState = {
+						x: -1,
+						v: 0,
+						tension: null,
+						friction: null
+					},
+					    path = [0],
+					    time_lapsed = 0,
+					    tolerance = 1 / 10000,
+					    DT = 16 / 1000,
+					    have_duration,
+					    dt,
+					    last_state;
+	
+					tension = parseFloat(tension) || 500;
+					friction = parseFloat(friction) || 20;
+					duration = duration || null;
+	
+					initState.tension = tension;
+					initState.friction = friction;
+	
+					have_duration = duration !== null;
+	
+					/* Calculate the actual time it takes for this animation to complete with the provided conditions. */
+					if (have_duration) {
+						/* Run the simulation without a duration. */
+						time_lapsed = springRK4Factory(tension, friction);
+						/* Compute the adjusted time delta. */
+						dt = time_lapsed / duration * DT;
+					} else {
+						dt = DT;
+					}
+	
+					while (true) {
+						/* Next/step function .*/
+						last_state = springIntegrateState(last_state || initState, dt);
+						/* Store the position. */
+						path.push(1 + last_state.x);
+						time_lapsed += 16;
+						/* If the change threshold is reached, break. */
+						if (!(Math.abs(last_state.x) > tolerance && Math.abs(last_state.v) > tolerance)) {
+							break;
+						}
+					}
+	
+					/* If duration is not defined, return the actual time required for completing this animation. Otherwise, return a closure that holds the
+	     computed path and returns a snapshot of the position according to a given percentComplete. */
+					return !have_duration ? time_lapsed : function (percentComplete) {
+						return path[percentComplete * (path.length - 1) | 0];
+					};
+				};
+			}();
+	
+			/* jQuery easings. */
+			Velocity.Easings = {
+				linear: function linear(p) {
+					return p;
+				},
+				swing: function swing(p) {
+					return 0.5 - Math.cos(p * Math.PI) / 2;
+				},
+				/* Bonus "spring" easing, which is a less exaggerated version of easeInOutElastic. */
+				spring: function spring(p) {
+					return 1 - Math.cos(p * 4.5 * Math.PI) * Math.exp(-p * 6);
+				}
+			};
+	
+			/* CSS3 and Robert Penner easings. */
+			$.each([["ease", [0.25, 0.1, 0.25, 1.0]], ["ease-in", [0.42, 0.0, 1.00, 1.0]], ["ease-out", [0.00, 0.0, 0.58, 1.0]], ["ease-in-out", [0.42, 0.0, 0.58, 1.0]], ["easeInSine", [0.47, 0, 0.745, 0.715]], ["easeOutSine", [0.39, 0.575, 0.565, 1]], ["easeInOutSine", [0.445, 0.05, 0.55, 0.95]], ["easeInQuad", [0.55, 0.085, 0.68, 0.53]], ["easeOutQuad", [0.25, 0.46, 0.45, 0.94]], ["easeInOutQuad", [0.455, 0.03, 0.515, 0.955]], ["easeInCubic", [0.55, 0.055, 0.675, 0.19]], ["easeOutCubic", [0.215, 0.61, 0.355, 1]], ["easeInOutCubic", [0.645, 0.045, 0.355, 1]], ["easeInQuart", [0.895, 0.03, 0.685, 0.22]], ["easeOutQuart", [0.165, 0.84, 0.44, 1]], ["easeInOutQuart", [0.77, 0, 0.175, 1]], ["easeInQuint", [0.755, 0.05, 0.855, 0.06]], ["easeOutQuint", [0.23, 1, 0.32, 1]], ["easeInOutQuint", [0.86, 0, 0.07, 1]], ["easeInExpo", [0.95, 0.05, 0.795, 0.035]], ["easeOutExpo", [0.19, 1, 0.22, 1]], ["easeInOutExpo", [1, 0, 0, 1]], ["easeInCirc", [0.6, 0.04, 0.98, 0.335]], ["easeOutCirc", [0.075, 0.82, 0.165, 1]], ["easeInOutCirc", [0.785, 0.135, 0.15, 0.86]]], function (i, easingArray) {
+				Velocity.Easings[easingArray[0]] = generateBezier.apply(null, easingArray[1]);
+			});
+	
+			/* Determine the appropriate easing type given an easing input. */
+			function getEasing(value, duration) {
+				var easing = value;
+	
+				/* The easing option can either be a string that references a pre-registered easing,
+	    or it can be a two-/four-item array of integers to be converted into a bezier/spring function. */
+				if (Type.isString(value)) {
+					/* Ensure that the easing has been assigned to jQuery's Velocity.Easings object. */
+					if (!Velocity.Easings[value]) {
+						easing = false;
+					}
+				} else if (Type.isArray(value) && value.length === 1) {
+					easing = generateStep.apply(null, value);
+				} else if (Type.isArray(value) && value.length === 2) {
+					/* springRK4 must be passed the animation's duration. */
+					/* Note: If the springRK4 array contains non-numbers, generateSpringRK4() returns an easing
+	     function generated with default tension and friction values. */
+					easing = generateSpringRK4.apply(null, value.concat([duration]));
+				} else if (Type.isArray(value) && value.length === 4) {
+					/* Note: If the bezier array contains non-numbers, generateBezier() returns false. */
+					easing = generateBezier.apply(null, value);
+				} else {
+					easing = false;
+				}
+	
+				/* Revert to the Velocity-wide default easing type, or fall back to "swing" (which is also jQuery's default)
+	    if the Velocity-wide default has been incorrectly modified. */
+				if (easing === false) {
+					if (Velocity.Easings[Velocity.defaults.easing]) {
+						easing = Velocity.defaults.easing;
+					} else {
+						easing = EASING_DEFAULT;
+					}
+				}
+	
+				return easing;
+			}
+	
+			/*****************
+	   CSS Stack
+	   *****************/
+	
+			/* The CSS object is a highly condensed and performant CSS stack that fully replaces jQuery's.
+	   It handles the validation, getting, and setting of both standard CSS properties and CSS property hooks. */
+			/* Note: A "CSS" shorthand is aliased so that our code is easier to read. */
+			var CSS = Velocity.CSS = {
+				/*************
+	    RegEx
+	    *************/
+	
+				RegEx: {
+					isHex: /^#([A-f\d]{3}){1,2}$/i,
+					/* Unwrap a property value's surrounding text, e.g. "rgba(4, 3, 2, 1)" ==> "4, 3, 2, 1" and "rect(4px 3px 2px 1px)" ==> "4px 3px 2px 1px". */
+					valueUnwrap: /^[A-z]+\((.*)\)$/i,
+					wrappedValueAlreadyExtracted: /[0-9.]+ [0-9.]+ [0-9.]+( [0-9.]+)?/,
+					/* Split a multi-value property into an array of subvalues, e.g. "rgba(4, 3, 2, 1) 4px 3px 2px 1px" ==> [ "rgba(4, 3, 2, 1)", "4px", "3px", "2px", "1px" ]. */
+					valueSplit: /([A-z]+\(.+\))|(([A-z0-9#-.]+?)(?=\s|$))/ig
+				},
+				/************
+	    Lists
+	    ************/
+	
+				Lists: {
+					colors: ["fill", "stroke", "stopColor", "color", "backgroundColor", "borderColor", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor", "outlineColor"],
+					transformsBase: ["translateX", "translateY", "scale", "scaleX", "scaleY", "skewX", "skewY", "rotateZ"],
+					transforms3D: ["transformPerspective", "translateZ", "scaleZ", "rotateX", "rotateY"],
+					units: ["%", // relative
+					"em", "ex", "ch", "rem", // font relative
+					"vw", "vh", "vmin", "vmax", // viewport relative
+					"cm", "mm", "Q", "in", "pc", "pt", "px", // absolute lengths
+					"deg", "grad", "rad", "turn", // angles
+					"s", "ms" // time
+					],
+					colorNames: {
+						"aliceblue": "240,248,255",
+						"antiquewhite": "250,235,215",
+						"aquamarine": "127,255,212",
+						"aqua": "0,255,255",
+						"azure": "240,255,255",
+						"beige": "245,245,220",
+						"bisque": "255,228,196",
+						"black": "0,0,0",
+						"blanchedalmond": "255,235,205",
+						"blueviolet": "138,43,226",
+						"blue": "0,0,255",
+						"brown": "165,42,42",
+						"burlywood": "222,184,135",
+						"cadetblue": "95,158,160",
+						"chartreuse": "127,255,0",
+						"chocolate": "210,105,30",
+						"coral": "255,127,80",
+						"cornflowerblue": "100,149,237",
+						"cornsilk": "255,248,220",
+						"crimson": "220,20,60",
+						"cyan": "0,255,255",
+						"darkblue": "0,0,139",
+						"darkcyan": "0,139,139",
+						"darkgoldenrod": "184,134,11",
+						"darkgray": "169,169,169",
+						"darkgrey": "169,169,169",
+						"darkgreen": "0,100,0",
+						"darkkhaki": "189,183,107",
+						"darkmagenta": "139,0,139",
+						"darkolivegreen": "85,107,47",
+						"darkorange": "255,140,0",
+						"darkorchid": "153,50,204",
+						"darkred": "139,0,0",
+						"darksalmon": "233,150,122",
+						"darkseagreen": "143,188,143",
+						"darkslateblue": "72,61,139",
+						"darkslategray": "47,79,79",
+						"darkturquoise": "0,206,209",
+						"darkviolet": "148,0,211",
+						"deeppink": "255,20,147",
+						"deepskyblue": "0,191,255",
+						"dimgray": "105,105,105",
+						"dimgrey": "105,105,105",
+						"dodgerblue": "30,144,255",
+						"firebrick": "178,34,34",
+						"floralwhite": "255,250,240",
+						"forestgreen": "34,139,34",
+						"fuchsia": "255,0,255",
+						"gainsboro": "220,220,220",
+						"ghostwhite": "248,248,255",
+						"gold": "255,215,0",
+						"goldenrod": "218,165,32",
+						"gray": "128,128,128",
+						"grey": "128,128,128",
+						"greenyellow": "173,255,47",
+						"green": "0,128,0",
+						"honeydew": "240,255,240",
+						"hotpink": "255,105,180",
+						"indianred": "205,92,92",
+						"indigo": "75,0,130",
+						"ivory": "255,255,240",
+						"khaki": "240,230,140",
+						"lavenderblush": "255,240,245",
+						"lavender": "230,230,250",
+						"lawngreen": "124,252,0",
+						"lemonchiffon": "255,250,205",
+						"lightblue": "173,216,230",
+						"lightcoral": "240,128,128",
+						"lightcyan": "224,255,255",
+						"lightgoldenrodyellow": "250,250,210",
+						"lightgray": "211,211,211",
+						"lightgrey": "211,211,211",
+						"lightgreen": "144,238,144",
+						"lightpink": "255,182,193",
+						"lightsalmon": "255,160,122",
+						"lightseagreen": "32,178,170",
+						"lightskyblue": "135,206,250",
+						"lightslategray": "119,136,153",
+						"lightsteelblue": "176,196,222",
+						"lightyellow": "255,255,224",
+						"limegreen": "50,205,50",
+						"lime": "0,255,0",
+						"linen": "250,240,230",
+						"magenta": "255,0,255",
+						"maroon": "128,0,0",
+						"mediumaquamarine": "102,205,170",
+						"mediumblue": "0,0,205",
+						"mediumorchid": "186,85,211",
+						"mediumpurple": "147,112,219",
+						"mediumseagreen": "60,179,113",
+						"mediumslateblue": "123,104,238",
+						"mediumspringgreen": "0,250,154",
+						"mediumturquoise": "72,209,204",
+						"mediumvioletred": "199,21,133",
+						"midnightblue": "25,25,112",
+						"mintcream": "245,255,250",
+						"mistyrose": "255,228,225",
+						"moccasin": "255,228,181",
+						"navajowhite": "255,222,173",
+						"navy": "0,0,128",
+						"oldlace": "253,245,230",
+						"olivedrab": "107,142,35",
+						"olive": "128,128,0",
+						"orangered": "255,69,0",
+						"orange": "255,165,0",
+						"orchid": "218,112,214",
+						"palegoldenrod": "238,232,170",
+						"palegreen": "152,251,152",
+						"paleturquoise": "175,238,238",
+						"palevioletred": "219,112,147",
+						"papayawhip": "255,239,213",
+						"peachpuff": "255,218,185",
+						"peru": "205,133,63",
+						"pink": "255,192,203",
+						"plum": "221,160,221",
+						"powderblue": "176,224,230",
+						"purple": "128,0,128",
+						"red": "255,0,0",
+						"rosybrown": "188,143,143",
+						"royalblue": "65,105,225",
+						"saddlebrown": "139,69,19",
+						"salmon": "250,128,114",
+						"sandybrown": "244,164,96",
+						"seagreen": "46,139,87",
+						"seashell": "255,245,238",
+						"sienna": "160,82,45",
+						"silver": "192,192,192",
+						"skyblue": "135,206,235",
+						"slateblue": "106,90,205",
+						"slategray": "112,128,144",
+						"snow": "255,250,250",
+						"springgreen": "0,255,127",
+						"steelblue": "70,130,180",
+						"tan": "210,180,140",
+						"teal": "0,128,128",
+						"thistle": "216,191,216",
+						"tomato": "255,99,71",
+						"turquoise": "64,224,208",
+						"violet": "238,130,238",
+						"wheat": "245,222,179",
+						"whitesmoke": "245,245,245",
+						"white": "255,255,255",
+						"yellowgreen": "154,205,50",
+						"yellow": "255,255,0"
+					}
+				},
+				/************
+	    Hooks
+	    ************/
+	
+				/* Hooks allow a subproperty (e.g. "boxShadowBlur") of a compound-value CSS property
+	    (e.g. "boxShadow: X Y Blur Spread Color") to be animated as if it were a discrete property. */
+				/* Note: Beyond enabling fine-grained property animation, hooking is necessary since Velocity only
+	    tweens properties with single numeric values; unlike CSS transitions, Velocity does not interpolate compound-values. */
+				Hooks: {
+					/********************
+	     Registration
+	     ********************/
+	
+					/* Templates are a concise way of indicating which subproperties must be individually registered for each compound-value CSS property. */
+					/* Each template consists of the compound-value's base name, its constituent subproperty names, and those subproperties' default values. */
+					templates: {
+						"textShadow": ["Color X Y Blur", "black 0px 0px 0px"],
+						"boxShadow": ["Color X Y Blur Spread", "black 0px 0px 0px 0px"],
+						"clip": ["Top Right Bottom Left", "0px 0px 0px 0px"],
+						"backgroundPosition": ["X Y", "0% 0%"],
+						"transformOrigin": ["X Y Z", "50% 50% 0px"],
+						"perspectiveOrigin": ["X Y", "50% 50%"]
+					},
+					/* A "registered" hook is one that has been converted from its template form into a live,
+	     tweenable property. It contains data to associate it with its root property. */
+					registered: {
+						/* Note: A registered hook looks like this ==> textShadowBlur: [ "textShadow", 3 ],
+	      which consists of the subproperty's name, the associated root property's name,
+	      and the subproperty's position in the root's value. */
+					},
+					/* Convert the templates into individual hooks then append them to the registered object above. */
+					register: function register() {
+						/* Color hooks registration: Colors are defaulted to white -- as opposed to black -- since colors that are
+	      currently set to "transparent" default to their respective template below when color-animated,
+	      and white is typically a closer match to transparent than black is. An exception is made for text ("color"),
+	      which is almost always set closer to black than white. */
+						for (var i = 0; i < CSS.Lists.colors.length; i++) {
+							var rgbComponents = CSS.Lists.colors[i] === "color" ? "0 0 0 1" : "255 255 255 1";
+							CSS.Hooks.templates[CSS.Lists.colors[i]] = ["Red Green Blue Alpha", rgbComponents];
+						}
+	
+						var rootProperty, hookTemplate, hookNames;
+	
+						/* In IE, color values inside compound-value properties are positioned at the end the value instead of at the beginning.
+	      Thus, we re-arrange the templates accordingly. */
+						if (IE) {
+							for (rootProperty in CSS.Hooks.templates) {
+								if (!CSS.Hooks.templates.hasOwnProperty(rootProperty)) {
+									continue;
+								}
+								hookTemplate = CSS.Hooks.templates[rootProperty];
+								hookNames = hookTemplate[0].split(" ");
+	
+								var defaultValues = hookTemplate[1].match(CSS.RegEx.valueSplit);
+	
+								if (hookNames[0] === "Color") {
+									/* Reposition both the hook's name and its default value to the end of their respective strings. */
+									hookNames.push(hookNames.shift());
+									defaultValues.push(defaultValues.shift());
+	
+									/* Replace the existing template for the hook's root property. */
+									CSS.Hooks.templates[rootProperty] = [hookNames.join(" "), defaultValues.join(" ")];
+								}
+							}
+						}
+	
+						/* Hook registration. */
+						for (rootProperty in CSS.Hooks.templates) {
+							if (!CSS.Hooks.templates.hasOwnProperty(rootProperty)) {
+								continue;
+							}
+							hookTemplate = CSS.Hooks.templates[rootProperty];
+							hookNames = hookTemplate[0].split(" ");
+	
+							for (var j in hookNames) {
+								if (!hookNames.hasOwnProperty(j)) {
+									continue;
+								}
+								var fullHookName = rootProperty + hookNames[j],
+								    hookPosition = j;
+	
+								/* For each hook, register its full name (e.g. textShadowBlur) with its root property (e.g. textShadow)
+	        and the hook's position in its template's default value string. */
+								CSS.Hooks.registered[fullHookName] = [rootProperty, hookPosition];
+							}
+						}
+					},
+					/*****************************
+	     Injection and Extraction
+	     *****************************/
+	
+					/* Look up the root property associated with the hook (e.g. return "textShadow" for "textShadowBlur"). */
+					/* Since a hook cannot be set directly (the browser won't recognize it), style updating for hooks is routed through the hook's root property. */
+					getRoot: function getRoot(property) {
+						var hookData = CSS.Hooks.registered[property];
+	
+						if (hookData) {
+							return hookData[0];
+						} else {
+							/* If there was no hook match, return the property name untouched. */
+							return property;
+						}
+					},
+					getUnit: function getUnit(str, start) {
+						var unit = (str.substr(start || 0, 5).match(/^[a-z%]+/) || [])[0] || "";
+	
+						if (unit && _inArray(CSS.Lists.units, unit)) {
+							return unit;
+						}
+						return "";
+					},
+					fixColors: function fixColors(str) {
+						return str.replace(/(rgba?\(\s*)?(\b[a-z]+\b)/g, function ($0, $1, $2) {
+							if (CSS.Lists.colorNames.hasOwnProperty($2)) {
+								return ($1 ? $1 : "rgba(") + CSS.Lists.colorNames[$2] + ($1 ? "" : ",1)");
+							}
+							return $1 + $2;
+						});
+					},
+					/* Convert any rootPropertyValue, null or otherwise, into a space-delimited list of hook values so that
+	     the targeted hook can be injected or extracted at its standard position. */
+					cleanRootPropertyValue: function cleanRootPropertyValue(rootProperty, rootPropertyValue) {
+						/* If the rootPropertyValue is wrapped with "rgb()", "clip()", etc., remove the wrapping to normalize the value before manipulation. */
+						if (CSS.RegEx.valueUnwrap.test(rootPropertyValue)) {
+							rootPropertyValue = rootPropertyValue.match(CSS.RegEx.valueUnwrap)[1];
+						}
+	
+						/* If rootPropertyValue is a CSS null-value (from which there's inherently no hook value to extract),
+	      default to the root's default value as defined in CSS.Hooks.templates. */
+						/* Note: CSS null-values include "none", "auto", and "transparent". They must be converted into their
+	      zero-values (e.g. textShadow: "none" ==> textShadow: "0px 0px 0px black") for hook manipulation to proceed. */
+						if (CSS.Values.isCSSNullValue(rootPropertyValue)) {
+							rootPropertyValue = CSS.Hooks.templates[rootProperty][1];
+						}
+	
+						return rootPropertyValue;
+					},
+					/* Extracted the hook's value from its root property's value. This is used to get the starting value of an animating hook. */
+					extractValue: function extractValue(fullHookName, rootPropertyValue) {
+						var hookData = CSS.Hooks.registered[fullHookName];
+	
+						if (hookData) {
+							var hookRoot = hookData[0],
+							    hookPosition = hookData[1];
+	
+							rootPropertyValue = CSS.Hooks.cleanRootPropertyValue(hookRoot, rootPropertyValue);
+	
+							/* Split rootPropertyValue into its constituent hook values then grab the desired hook at its standard position. */
+							return rootPropertyValue.toString().match(CSS.RegEx.valueSplit)[hookPosition];
+						} else {
+							/* If the provided fullHookName isn't a registered hook, return the rootPropertyValue that was passed in. */
+							return rootPropertyValue;
+						}
+					},
+					/* Inject the hook's value into its root property's value. This is used to piece back together the root property
+	     once Velocity has updated one of its individually hooked values through tweening. */
+					injectValue: function injectValue(fullHookName, hookValue, rootPropertyValue) {
+						var hookData = CSS.Hooks.registered[fullHookName];
+	
+						if (hookData) {
+							var hookRoot = hookData[0],
+							    hookPosition = hookData[1],
+							    rootPropertyValueParts,
+							    rootPropertyValueUpdated;
+	
+							rootPropertyValue = CSS.Hooks.cleanRootPropertyValue(hookRoot, rootPropertyValue);
+	
+							/* Split rootPropertyValue into its individual hook values, replace the targeted value with hookValue,
+	       then reconstruct the rootPropertyValue string. */
+							rootPropertyValueParts = rootPropertyValue.toString().match(CSS.RegEx.valueSplit);
+							rootPropertyValueParts[hookPosition] = hookValue;
+							rootPropertyValueUpdated = rootPropertyValueParts.join(" ");
+	
+							return rootPropertyValueUpdated;
+						} else {
+							/* If the provided fullHookName isn't a registered hook, return the rootPropertyValue that was passed in. */
+							return rootPropertyValue;
+						}
+					}
+				},
+				/*******************
+	    Normalizations
+	    *******************/
+	
+				/* Normalizations standardize CSS property manipulation by pollyfilling browser-specific implementations (e.g. opacity)
+	    and reformatting special properties (e.g. clip, rgba) to look like standard ones. */
+				Normalizations: {
+					/* Normalizations are passed a normalization target (either the property's name, its extracted value, or its injected value),
+	     the targeted element (which may need to be queried), and the targeted property value. */
+					registered: {
+						clip: function clip(type, element, propertyValue) {
+							switch (type) {
+								case "name":
+									return "clip";
+								/* Clip needs to be unwrapped and stripped of its commas during extraction. */
+								case "extract":
+									var extracted;
+	
+									/* If Velocity also extracted this value, skip extraction. */
+									if (CSS.RegEx.wrappedValueAlreadyExtracted.test(propertyValue)) {
+										extracted = propertyValue;
+									} else {
+										/* Remove the "rect()" wrapper. */
+										extracted = propertyValue.toString().match(CSS.RegEx.valueUnwrap);
+	
+										/* Strip off commas. */
+										extracted = extracted ? extracted[1].replace(/,(\s+)?/g, " ") : propertyValue;
+									}
+	
+									return extracted;
+								/* Clip needs to be re-wrapped during injection. */
+								case "inject":
+									return "rect(" + propertyValue + ")";
+							}
+						},
+						blur: function blur(type, element, propertyValue) {
+							switch (type) {
+								case "name":
+									return Velocity.State.isFirefox ? "filter" : "-webkit-filter";
+								case "extract":
+									var extracted = parseFloat(propertyValue);
+	
+									/* If extracted is NaN, meaning the value isn't already extracted. */
+									if (!(extracted || extracted === 0)) {
+										var blurComponent = propertyValue.toString().match(/blur\(([0-9]+[A-z]+)\)/i);
+	
+										/* If the filter string had a blur component, return just the blur value and unit type. */
+										if (blurComponent) {
+											extracted = blurComponent[1];
+											/* If the component doesn't exist, default blur to 0. */
+										} else {
+											extracted = 0;
+										}
+									}
+	
+									return extracted;
+								/* Blur needs to be re-wrapped during injection. */
+								case "inject":
+									/* For the blur effect to be fully de-applied, it needs to be set to "none" instead of 0. */
+									if (!parseFloat(propertyValue)) {
+										return "none";
+									} else {
+										return "blur(" + propertyValue + ")";
+									}
+							}
+						},
+						/* <=IE8 do not support the standard opacity property. They use filter:alpha(opacity=INT) instead. */
+						opacity: function opacity(type, element, propertyValue) {
+							if (IE <= 8) {
+								switch (type) {
+									case "name":
+										return "filter";
+									case "extract":
+										/* <=IE8 return a "filter" value of "alpha(opacity=\d{1,3})".
+	          Extract the value and convert it to a decimal value to match the standard CSS opacity property's formatting. */
+										var extracted = propertyValue.toString().match(/alpha\(opacity=(.*)\)/i);
+	
+										if (extracted) {
+											/* Convert to decimal value. */
+											propertyValue = extracted[1] / 100;
+										} else {
+											/* When extracting opacity, default to 1 since a null value means opacity hasn't been set. */
+											propertyValue = 1;
+										}
+	
+										return propertyValue;
+									case "inject":
+										/* Opacified elements are required to have their zoom property set to a non-zero value. */
+										element.style.zoom = 1;
+	
+										/* Setting the filter property on elements with certain font property combinations can result in a
+	          highly unappealing ultra-bolding effect. There's no way to remedy this throughout a tween, but dropping the
+	          value altogether (when opacity hits 1) at leasts ensures that the glitch is gone post-tweening. */
+										if (parseFloat(propertyValue) >= 1) {
+											return "";
+										} else {
+											/* As per the filter property's spec, convert the decimal value to a whole number and wrap the value. */
+											return "alpha(opacity=" + parseInt(parseFloat(propertyValue) * 100, 10) + ")";
+										}
+								}
+								/* With all other browsers, normalization is not required; return the same values that were passed in. */
+							} else {
+								switch (type) {
+									case "name":
+										return "opacity";
+									case "extract":
+										return propertyValue;
+									case "inject":
+										return propertyValue;
+								}
+							}
+						}
+					},
+					/*****************************
+	     Batched Registrations
+	     *****************************/
+	
+					/* Note: Batched normalizations extend the CSS.Normalizations.registered object. */
+					register: function register() {
+	
+						/*****************
+	      Transforms
+	      *****************/
+	
+						/* Transforms are the subproperties contained by the CSS "transform" property. Transforms must undergo normalization
+	      so that they can be referenced in a properties map by their individual names. */
+						/* Note: When transforms are "set", they are actually assigned to a per-element transformCache. When all transform
+	      setting is complete complete, CSS.flushTransformCache() must be manually called to flush the values to the DOM.
+	      Transform setting is batched in this way to improve performance: the transform style only needs to be updated
+	      once when multiple transform subproperties are being animated simultaneously. */
+						/* Note: IE9 and Android Gingerbread have support for 2D -- but not 3D -- transforms. Since animating unsupported
+	      transform properties results in the browser ignoring the *entire* transform string, we prevent these 3D values
+	      from being normalized for these browsers so that tweening skips these properties altogether
+	      (since it will ignore them as being unsupported by the browser.) */
+						if ((!IE || IE > 9) && !Velocity.State.isGingerbread) {
+							/* Note: Since the standalone CSS "perspective" property and the CSS transform "perspective" subproperty
+	       share the same name, the latter is given a unique token within Velocity: "transformPerspective". */
+							CSS.Lists.transformsBase = CSS.Lists.transformsBase.concat(CSS.Lists.transforms3D);
+						}
+	
+						for (var i = 0; i < CSS.Lists.transformsBase.length; i++) {
+							/* Wrap the dynamically generated normalization function in a new scope so that transformName's value is
+	       paired with its respective function. (Otherwise, all functions would take the final for loop's transformName.) */
+							(function () {
+								var transformName = CSS.Lists.transformsBase[i];
+	
+								CSS.Normalizations.registered[transformName] = function (type, element, propertyValue) {
+									switch (type) {
+										/* The normalized property name is the parent "transform" property -- the property that is actually set in CSS. */
+										case "name":
+											return "transform";
+										/* Transform values are cached onto a per-element transformCache object. */
+										case "extract":
+											/* If this transform has yet to be assigned a value, return its null value. */
+											if (Data(element) === undefined || Data(element).transformCache[transformName] === undefined) {
+												/* Scale CSS.Lists.transformsBase default to 1 whereas all other transform properties default to 0. */
+												return (/^scale/i.test(transformName) ? 1 : 0
+												);
+												/* When transform values are set, they are wrapped in parentheses as per the CSS spec.
+	            Thus, when extracting their values (for tween calculations), we strip off the parentheses. */
+											}
+											return Data(element).transformCache[transformName].replace(/[()]/g, "");
+										case "inject":
+											var invalid = false;
+	
+											/* If an individual transform property contains an unsupported unit type, the browser ignores the *entire* transform property.
+	           Thus, protect users from themselves by skipping setting for transform values supplied with invalid unit types. */
+											/* Switch on the base transform type; ignore the axis by removing the last letter from the transform's name. */
+											switch (transformName.substr(0, transformName.length - 1)) {
+												/* Whitelist unit types for each transform. */
+												case "translate":
+													invalid = !/(%|px|em|rem|vw|vh|\d)$/i.test(propertyValue);
+													break;
+												/* Since an axis-free "scale" property is supported as well, a little hack is used here to detect it by chopping off its last letter. */
+												case "scal":
+												case "scale":
+													/* Chrome on Android has a bug in which scaled elements blur if their initial scale
+	             value is below 1 (which can happen with forcefeeding). Thus, we detect a yet-unset scale property
+	             and ensure that its first value is always 1. More info: http://stackoverflow.com/questions/10417890/css3-animations-with-transform-causes-blurred-elements-on-webkit/10417962#10417962 */
+													if (Velocity.State.isAndroid && Data(element).transformCache[transformName] === undefined && propertyValue < 1) {
+														propertyValue = 1;
+													}
+	
+													invalid = !/(\d)$/i.test(propertyValue);
+													break;
+												case "skew":
+													invalid = !/(deg|\d)$/i.test(propertyValue);
+													break;
+												case "rotate":
+													invalid = !/(deg|\d)$/i.test(propertyValue);
+													break;
+											}
+	
+											if (!invalid) {
+												/* As per the CSS spec, wrap the value in parentheses. */
+												Data(element).transformCache[transformName] = "(" + propertyValue + ")";
+											}
+	
+											/* Although the value is set on the transformCache object, return the newly-updated value for the calling code to process as normal. */
+											return Data(element).transformCache[transformName];
+									}
+								};
+							})();
+						}
+	
+						/*************
+	      Colors
+	      *************/
+	
+						/* Since Velocity only animates a single numeric value per property, color animation is achieved by hooking the individual RGBA components of CSS color properties.
+	      Accordingly, color values must be normalized (e.g. "#ff0000", "red", and "rgb(255, 0, 0)" ==> "255 0 0 1") so that their components can be injected/extracted by CSS.Hooks logic. */
+						for (var j = 0; j < CSS.Lists.colors.length; j++) {
+							/* Wrap the dynamically generated normalization function in a new scope so that colorName's value is paired with its respective function.
+	       (Otherwise, all functions would take the final for loop's colorName.) */
+							(function () {
+								var colorName = CSS.Lists.colors[j];
+	
+								/* Note: In IE<=8, which support rgb but not rgba, color properties are reverted to rgb by stripping off the alpha component. */
+								CSS.Normalizations.registered[colorName] = function (type, element, propertyValue) {
+									switch (type) {
+										case "name":
+											return colorName;
+										/* Convert all color values into the rgb format. (Old IE can return hex values and color names instead of rgb/rgba.) */
+										case "extract":
+											var extracted;
+	
+											/* If the color is already in its hookable form (e.g. "255 255 255 1") due to having been previously extracted, skip extraction. */
+											if (CSS.RegEx.wrappedValueAlreadyExtracted.test(propertyValue)) {
+												extracted = propertyValue;
+											} else {
+												var converted,
+												    colorNames = {
+													black: "rgb(0, 0, 0)",
+													blue: "rgb(0, 0, 255)",
+													gray: "rgb(128, 128, 128)",
+													green: "rgb(0, 128, 0)",
+													red: "rgb(255, 0, 0)",
+													white: "rgb(255, 255, 255)"
+												};
+	
+												/* Convert color names to rgb. */
+												if (/^[A-z]+$/i.test(propertyValue)) {
+													if (colorNames[propertyValue] !== undefined) {
+														converted = colorNames[propertyValue];
+													} else {
+														/* If an unmatched color name is provided, default to black. */
+														converted = colorNames.black;
+													}
+													/* Convert hex values to rgb. */
+												} else if (CSS.RegEx.isHex.test(propertyValue)) {
+													converted = "rgb(" + CSS.Values.hexToRgb(propertyValue).join(" ") + ")";
+													/* If the provided color doesn't match any of the accepted color formats, default to black. */
+												} else if (!/^rgba?\(/i.test(propertyValue)) {
+													converted = colorNames.black;
+												}
+	
+												/* Remove the surrounding "rgb/rgba()" string then replace commas with spaces and strip
+	            repeated spaces (in case the value included spaces to begin with). */
+												extracted = (converted || propertyValue).toString().match(CSS.RegEx.valueUnwrap)[1].replace(/,(\s+)?/g, " ");
+											}
+	
+											/* So long as this isn't <=IE8, add a fourth (alpha) component if it's missing and default it to 1 (visible). */
+											if ((!IE || IE > 8) && extracted.split(" ").length === 3) {
+												extracted += " 1";
+											}
+	
+											return extracted;
+										case "inject":
+											/* If we have a pattern then it might already have the right values */
+											if (/^rgb/.test(propertyValue)) {
+												return propertyValue;
+											}
+	
+											/* If this is IE<=8 and an alpha component exists, strip it off. */
+											if (IE <= 8) {
+												if (propertyValue.split(" ").length === 4) {
+													propertyValue = propertyValue.split(/\s+/).slice(0, 3).join(" ");
+												}
+												/* Otherwise, add a fourth (alpha) component if it's missing and default it to 1 (visible). */
+											} else if (propertyValue.split(" ").length === 3) {
+												propertyValue += " 1";
+											}
+	
+											/* Re-insert the browser-appropriate wrapper("rgb/rgba()"), insert commas, and strip off decimal units
+	           on all values but the fourth (R, G, and B only accept whole numbers). */
+											return (IE <= 8 ? "rgb" : "rgba") + "(" + propertyValue.replace(/\s+/g, ",").replace(/\.(\d)+(?=,)/g, "") + ")";
+									}
+								};
+							})();
+						}
+	
+						/**************
+	      Dimensions
+	      **************/
+						function augmentDimension(name, element, wantInner) {
+							var isBorderBox = CSS.getPropertyValue(element, "boxSizing").toString().toLowerCase() === "border-box";
+	
+							if (isBorderBox === (wantInner || false)) {
+								/* in box-sizing mode, the CSS width / height accessors already give the outerWidth / outerHeight. */
+								var i,
+								    value,
+								    augment = 0,
+								    sides = name === "width" ? ["Left", "Right"] : ["Top", "Bottom"],
+								    fields = ["padding" + sides[0], "padding" + sides[1], "border" + sides[0] + "Width", "border" + sides[1] + "Width"];
+	
+								for (i = 0; i < fields.length; i++) {
+									value = parseFloat(CSS.getPropertyValue(element, fields[i]));
+									if (!isNaN(value)) {
+										augment += value;
+									}
+								}
+								return wantInner ? -augment : augment;
+							}
+							return 0;
+						}
+						function getDimension(name, wantInner) {
+							return function (type, element, propertyValue) {
+								switch (type) {
+									case "name":
+										return name;
+									case "extract":
+										return parseFloat(propertyValue) + augmentDimension(name, element, wantInner);
+									case "inject":
+										return parseFloat(propertyValue) - augmentDimension(name, element, wantInner) + "px";
+								}
+							};
+						}
+						CSS.Normalizations.registered.innerWidth = getDimension("width", true);
+						CSS.Normalizations.registered.innerHeight = getDimension("height", true);
+						CSS.Normalizations.registered.outerWidth = getDimension("width");
+						CSS.Normalizations.registered.outerHeight = getDimension("height");
+					}
+				},
+				/************************
+	    CSS Property Names
+	    ************************/
+	
+				Names: {
+					/* Camelcase a property name into its JavaScript notation (e.g. "background-color" ==> "backgroundColor").
+	     Camelcasing is used to normalize property names between and across calls. */
+					camelCase: function camelCase(property) {
+						return property.replace(/-(\w)/g, function (match, subMatch) {
+							return subMatch.toUpperCase();
+						});
+					},
+					/* For SVG elements, some properties (namely, dimensional ones) are GET/SET via the element's HTML attributes (instead of via CSS styles). */
+					SVGAttribute: function SVGAttribute(property) {
+						var SVGAttributes = "width|height|x|y|cx|cy|r|rx|ry|x1|x2|y1|y2";
+	
+						/* Certain browsers require an SVG transform to be applied as an attribute. (Otherwise, application via CSS is preferable due to 3D support.) */
+						if (IE || Velocity.State.isAndroid && !Velocity.State.isChrome) {
+							SVGAttributes += "|transform";
+						}
+	
+						return new RegExp("^(" + SVGAttributes + ")$", "i").test(property);
+					},
+					/* Determine whether a property should be set with a vendor prefix. */
+					/* If a prefixed version of the property exists, return it. Otherwise, return the original property name.
+	     If the property is not at all supported by the browser, return a false flag. */
+					prefixCheck: function prefixCheck(property) {
+						/* If this property has already been checked, return the cached value. */
+						if (Velocity.State.prefixMatches[property]) {
+							return [Velocity.State.prefixMatches[property], true];
+						} else {
+							var vendors = ["", "Webkit", "Moz", "ms", "O"];
+	
+							for (var i = 0, vendorsLength = vendors.length; i < vendorsLength; i++) {
+								var propertyPrefixed;
+	
+								if (i === 0) {
+									propertyPrefixed = property;
+								} else {
+									/* Capitalize the first letter of the property to conform to JavaScript vendor prefix notation (e.g. webkitFilter). */
+									propertyPrefixed = vendors[i] + property.replace(/^\w/, function (match) {
+										return match.toUpperCase();
+									});
+								}
+	
+								/* Check if the browser supports this property as prefixed. */
+								if (Type.isString(Velocity.State.prefixElement.style[propertyPrefixed])) {
+									/* Cache the match. */
+									Velocity.State.prefixMatches[property] = propertyPrefixed;
+	
+									return [propertyPrefixed, true];
+								}
+							}
+	
+							/* If the browser doesn't support this property in any form, include a false flag so that the caller can decide how to proceed. */
+							return [property, false];
+						}
+					}
+				},
+				/************************
+	    CSS Property Values
+	    ************************/
+	
+				Values: {
+					/* Hex to RGB conversion. Copyright Tim Down: http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb */
+					hexToRgb: function hexToRgb(hex) {
+						var shortformRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+						    longformRegex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i,
+						    rgbParts;
+	
+						hex = hex.replace(shortformRegex, function (m, r, g, b) {
+							return r + r + g + g + b + b;
+						});
+	
+						rgbParts = longformRegex.exec(hex);
+	
+						return rgbParts ? [parseInt(rgbParts[1], 16), parseInt(rgbParts[2], 16), parseInt(rgbParts[3], 16)] : [0, 0, 0];
+					},
+					isCSSNullValue: function isCSSNullValue(value) {
+						/* The browser defaults CSS values that have not been set to either 0 or one of several possible null-value strings.
+	      Thus, we check for both falsiness and these special strings. */
+						/* Null-value checking is performed to default the special strings to 0 (for the sake of tweening) or their hook
+	      templates as defined as CSS.Hooks (for the sake of hook injection/extraction). */
+						/* Note: Chrome returns "rgba(0, 0, 0, 0)" for an undefined color whereas IE returns "transparent". */
+						return !value || /^(none|auto|transparent|(rgba\(0, ?0, ?0, ?0\)))$/i.test(value);
+					},
+					/* Retrieve a property's default unit type. Used for assigning a unit type when one is not supplied by the user. */
+					getUnitType: function getUnitType(property) {
+						if (/^(rotate|skew)/i.test(property)) {
+							return "deg";
+						} else if (/(^(scale|scaleX|scaleY|scaleZ|alpha|flexGrow|flexHeight|zIndex|fontWeight)$)|((opacity|red|green|blue|alpha)$)/i.test(property)) {
+							/* The above properties are unitless. */
+							return "";
+						} else {
+							/* Default to px for all other properties. */
+							return "px";
+						}
+					},
+					/* HTML elements default to an associated display type when they're not set to display:none. */
+					/* Note: This function is used for correctly setting the non-"none" display value in certain Velocity redirects, such as fadeIn/Out. */
+					getDisplayType: function getDisplayType(element) {
+						var tagName = element && element.tagName.toString().toLowerCase();
+	
+						if (/^(b|big|i|small|tt|abbr|acronym|cite|code|dfn|em|kbd|strong|samp|var|a|bdo|br|img|map|object|q|script|span|sub|sup|button|input|label|select|textarea)$/i.test(tagName)) {
+							return "inline";
+						} else if (/^(li)$/i.test(tagName)) {
+							return "list-item";
+						} else if (/^(tr)$/i.test(tagName)) {
+							return "table-row";
+						} else if (/^(table)$/i.test(tagName)) {
+							return "table";
+						} else if (/^(tbody)$/i.test(tagName)) {
+							return "table-row-group";
+							/* Default to "block" when no match is found. */
+						} else {
+							return "block";
+						}
+					},
+					/* The class add/remove functions are used to temporarily apply a "velocity-animating" class to elements while they're animating. */
+					addClass: function addClass(element, className) {
+						if (element) {
+							if (element.classList) {
+								element.classList.add(className);
+							} else if (Type.isString(element.className)) {
+								// Element.className is around 15% faster then set/getAttribute
+								element.className += (element.className.length ? " " : "") + className;
+							} else {
+								// Work around for IE strict mode animating SVG - and anything else that doesn't behave correctly - the same way jQuery does it
+								var currentClass = element.getAttribute(IE <= 7 ? "className" : "class") || "";
+	
+								element.setAttribute("class", currentClass + (currentClass ? " " : "") + className);
+							}
+						}
+					},
+					removeClass: function removeClass(element, className) {
+						if (element) {
+							if (element.classList) {
+								element.classList.remove(className);
+							} else if (Type.isString(element.className)) {
+								// Element.className is around 15% faster then set/getAttribute
+								// TODO: Need some jsperf tests on performance - can we get rid of the regex and maybe use split / array manipulation?
+								element.className = element.className.toString().replace(new RegExp("(^|\\s)" + className.split(" ").join("|") + "(\\s|$)", "gi"), " ");
+							} else {
+								// Work around for IE strict mode animating SVG - and anything else that doesn't behave correctly - the same way jQuery does it
+								var currentClass = element.getAttribute(IE <= 7 ? "className" : "class") || "";
+	
+								element.setAttribute("class", currentClass.replace(new RegExp("(^|\s)" + className.split(" ").join("|") + "(\s|$)", "gi"), " "));
+							}
+						}
+					}
+				},
+				/****************************
+	    Style Getting & Setting
+	    ****************************/
+	
+				/* The singular getPropertyValue, which routes the logic for all normalizations, hooks, and standard CSS properties. */
+				getPropertyValue: function getPropertyValue(element, property, rootPropertyValue, forceStyleLookup) {
+					/* Get an element's computed property value. */
+					/* Note: Retrieving the value of a CSS property cannot simply be performed by checking an element's
+	     style attribute (which only reflects user-defined values). Instead, the browser must be queried for a property's
+	     *computed* value. You can read more about getComputedStyle here: https://developer.mozilla.org/en/docs/Web/API/window.getComputedStyle */
+					function computePropertyValue(element, property) {
+						/* When box-sizing isn't set to border-box, height and width style values are incorrectly computed when an
+	      element's scrollbars are visible (which expands the element's dimensions). Thus, we defer to the more accurate
+	      offsetHeight/Width property, which includes the total dimensions for interior, border, padding, and scrollbar.
+	      We subtract border and padding to get the sum of interior + scrollbar. */
+						var computedValue = 0;
+	
+						/* IE<=8 doesn't support window.getComputedStyle, thus we defer to jQuery, which has an extensive array
+	      of hacks to accurately retrieve IE8 property values. Re-implementing that logic here is not worth bloating the
+	      codebase for a dying browser. The performance repercussions of using jQuery here are minimal since
+	      Velocity is optimized to rarely (and sometimes never) query the DOM. Further, the $.css() codepath isn't that slow. */
+						if (IE <= 8) {
+							computedValue = $.css(element, property); /* GET */
+							/* All other browsers support getComputedStyle. The returned live object reference is cached onto its
+	       associated element so that it does not need to be refetched upon every GET. */
+						} else {
+							/* Browsers do not return height and width values for elements that are set to display:"none". Thus, we temporarily
+	       toggle display to the element type's default value. */
+							var toggleDisplay = false;
+	
+							if (/^(width|height)$/.test(property) && CSS.getPropertyValue(element, "display") === 0) {
+								toggleDisplay = true;
+								CSS.setPropertyValue(element, "display", CSS.Values.getDisplayType(element));
+							}
+	
+							var revertDisplay = function revertDisplay() {
+								if (toggleDisplay) {
+									CSS.setPropertyValue(element, "display", "none");
+								}
+							};
+	
+							if (!forceStyleLookup) {
+								if (property === "height" && CSS.getPropertyValue(element, "boxSizing").toString().toLowerCase() !== "border-box") {
+									var contentBoxHeight = element.offsetHeight - (parseFloat(CSS.getPropertyValue(element, "borderTopWidth")) || 0) - (parseFloat(CSS.getPropertyValue(element, "borderBottomWidth")) || 0) - (parseFloat(CSS.getPropertyValue(element, "paddingTop")) || 0) - (parseFloat(CSS.getPropertyValue(element, "paddingBottom")) || 0);
+									revertDisplay();
+	
+									return contentBoxHeight;
+								} else if (property === "width" && CSS.getPropertyValue(element, "boxSizing").toString().toLowerCase() !== "border-box") {
+									var contentBoxWidth = element.offsetWidth - (parseFloat(CSS.getPropertyValue(element, "borderLeftWidth")) || 0) - (parseFloat(CSS.getPropertyValue(element, "borderRightWidth")) || 0) - (parseFloat(CSS.getPropertyValue(element, "paddingLeft")) || 0) - (parseFloat(CSS.getPropertyValue(element, "paddingRight")) || 0);
+									revertDisplay();
+	
+									return contentBoxWidth;
+								}
+							}
+	
+							var computedStyle;
+	
+							/* For elements that Velocity hasn't been called on directly (e.g. when Velocity queries the DOM on behalf
+	       of a parent of an element its animating), perform a direct getComputedStyle lookup since the object isn't cached. */
+							if (Data(element) === undefined) {
+								computedStyle = window.getComputedStyle(element, null); /* GET */
+								/* If the computedStyle object has yet to be cached, do so now. */
+							} else if (!Data(element).computedStyle) {
+								computedStyle = Data(element).computedStyle = window.getComputedStyle(element, null); /* GET */
+								/* If computedStyle is cached, use it. */
+							} else {
+								computedStyle = Data(element).computedStyle;
+							}
+	
+							/* IE and Firefox do not return a value for the generic borderColor -- they only return individual values for each border side's color.
+	       Also, in all browsers, when border colors aren't all the same, a compound value is returned that Velocity isn't setup to parse.
+	       So, as a polyfill for querying individual border side colors, we just return the top border's color and animate all borders from that value. */
+							if (property === "borderColor") {
+								property = "borderTopColor";
+							}
+	
+							/* IE9 has a bug in which the "filter" property must be accessed from computedStyle using the getPropertyValue method
+	       instead of a direct property lookup. The getPropertyValue method is slower than a direct lookup, which is why we avoid it by default. */
+							if (IE === 9 && property === "filter") {
+								computedValue = computedStyle.getPropertyValue(property); /* GET */
+							} else {
+								computedValue = computedStyle[property];
+							}
+	
+							/* Fall back to the property's style value (if defined) when computedValue returns nothing,
+	       which can happen when the element hasn't been painted. */
+							if (computedValue === "" || computedValue === null) {
+								computedValue = element.style[property];
+							}
+	
+							revertDisplay();
+						}
+	
+						/* For top, right, bottom, and left (TRBL) values that are set to "auto" on elements of "fixed" or "absolute" position,
+	      defer to jQuery for converting "auto" to a numeric value. (For elements with a "static" or "relative" position, "auto" has the same
+	      effect as being set to 0, so no conversion is necessary.) */
+						/* An example of why numeric conversion is necessary: When an element with "position:absolute" has an untouched "left"
+	      property, which reverts to "auto", left's value is 0 relative to its parent element, but is often non-zero relative
+	      to its *containing* (not parent) element, which is the nearest "position:relative" ancestor or the viewport (and always the viewport in the case of "position:fixed"). */
+						if (computedValue === "auto" && /^(top|right|bottom|left)$/i.test(property)) {
+							var position = computePropertyValue(element, "position"); /* GET */
+	
+							/* For absolute positioning, jQuery's $.position() only returns values for top and left;
+	       right and bottom will have their "auto" value reverted to 0. */
+							/* Note: A jQuery object must be created here since jQuery doesn't have a low-level alias for $.position().
+	       Not a big deal since we're currently in a GET batch anyway. */
+							if (position === "fixed" || position === "absolute" && /top|left/i.test(property)) {
+								/* Note: jQuery strips the pixel unit from its returned values; we re-add it here to conform with computePropertyValue's behavior. */
+								computedValue = $(element).position()[property] + "px"; /* GET */
+							}
+						}
+	
+						return computedValue;
+					}
+	
+					var propertyValue;
+	
+					/* If this is a hooked property (e.g. "clipLeft" instead of the root property of "clip"),
+	     extract the hook's value from a normalized rootPropertyValue using CSS.Hooks.extractValue(). */
+					if (CSS.Hooks.registered[property]) {
+						var hook = property,
+						    hookRoot = CSS.Hooks.getRoot(hook);
+	
+						/* If a cached rootPropertyValue wasn't passed in (which Velocity always attempts to do in order to avoid requerying the DOM),
+	      query the DOM for the root property's value. */
+						if (rootPropertyValue === undefined) {
+							/* Since the browser is now being directly queried, use the official post-prefixing property name for this lookup. */
+							rootPropertyValue = CSS.getPropertyValue(element, CSS.Names.prefixCheck(hookRoot)[0]); /* GET */
+						}
+	
+						/* If this root has a normalization registered, peform the associated normalization extraction. */
+						if (CSS.Normalizations.registered[hookRoot]) {
+							rootPropertyValue = CSS.Normalizations.registered[hookRoot]("extract", element, rootPropertyValue);
+						}
+	
+						/* Extract the hook's value. */
+						propertyValue = CSS.Hooks.extractValue(hook, rootPropertyValue);
+	
+						/* If this is a normalized property (e.g. "opacity" becomes "filter" in <=IE8) or "translateX" becomes "transform"),
+	      normalize the property's name and value, and handle the special case of transforms. */
+						/* Note: Normalizing a property is mutually exclusive from hooking a property since hook-extracted values are strictly
+	      numerical and therefore do not require normalization extraction. */
+					} else if (CSS.Normalizations.registered[property]) {
+						var normalizedPropertyName, normalizedPropertyValue;
+	
+						normalizedPropertyName = CSS.Normalizations.registered[property]("name", element);
+	
+						/* Transform values are calculated via normalization extraction (see below), which checks against the element's transformCache.
+	      At no point do transform GETs ever actually query the DOM; initial stylesheet values are never processed.
+	      This is because parsing 3D transform matrices is not always accurate and would bloat our codebase;
+	      thus, normalization extraction defaults initial transform values to their zero-values (e.g. 1 for scaleX and 0 for translateX). */
+						if (normalizedPropertyName !== "transform") {
+							normalizedPropertyValue = computePropertyValue(element, CSS.Names.prefixCheck(normalizedPropertyName)[0]); /* GET */
+	
+							/* If the value is a CSS null-value and this property has a hook template, use that zero-value template so that hooks can be extracted from it. */
+							if (CSS.Values.isCSSNullValue(normalizedPropertyValue) && CSS.Hooks.templates[property]) {
+								normalizedPropertyValue = CSS.Hooks.templates[property][1];
+							}
+						}
+	
+						propertyValue = CSS.Normalizations.registered[property]("extract", element, normalizedPropertyValue);
+					}
+	
+					/* If a (numeric) value wasn't produced via hook extraction or normalization, query the DOM. */
+					if (!/^[\d-]/.test(propertyValue)) {
+						/* For SVG elements, dimensional properties (which SVGAttribute() detects) are tweened via
+	      their HTML attribute values instead of their CSS style values. */
+						var data = Data(element);
+	
+						if (data && data.isSVG && CSS.Names.SVGAttribute(property)) {
+							/* Since the height/width attribute values must be set manually, they don't reflect computed values.
+	       Thus, we use use getBBox() to ensure we always get values for elements with undefined height/width attributes. */
+							if (/^(height|width)$/i.test(property)) {
+								/* Firefox throws an error if .getBBox() is called on an SVG that isn't attached to the DOM. */
+								try {
+									propertyValue = element.getBBox()[property];
+								} catch (error) {
+									propertyValue = 0;
+								}
+								/* Otherwise, access the attribute value directly. */
+							} else {
+								propertyValue = element.getAttribute(property);
+							}
+						} else {
+							propertyValue = computePropertyValue(element, CSS.Names.prefixCheck(property)[0]); /* GET */
+						}
+					}
+	
+					/* Since property lookups are for animation purposes (which entails computing the numeric delta between start and end values),
+	     convert CSS null-values to an integer of value 0. */
+					if (CSS.Values.isCSSNullValue(propertyValue)) {
+						propertyValue = 0;
+					}
+	
+					if (Velocity.debug >= 2) {
+						console.log("Get " + property + ": " + propertyValue);
+					}
+	
+					return propertyValue;
+				},
+				/* The singular setPropertyValue, which routes the logic for all normalizations, hooks, and standard CSS properties. */
+				setPropertyValue: function setPropertyValue(element, property, propertyValue, rootPropertyValue, scrollData) {
+					var propertyName = property;
+	
+					/* In order to be subjected to call options and element queueing, scroll animation is routed through Velocity as if it were a standard CSS property. */
+					if (property === "scroll") {
+						/* If a container option is present, scroll the container instead of the browser window. */
+						if (scrollData.container) {
+							scrollData.container["scroll" + scrollData.direction] = propertyValue;
+							/* Otherwise, Velocity defaults to scrolling the browser window. */
+						} else {
+							if (scrollData.direction === "Left") {
+								window.scrollTo(propertyValue, scrollData.alternateValue);
+							} else {
+								window.scrollTo(scrollData.alternateValue, propertyValue);
+							}
+						}
+					} else {
+						/* Transforms (translateX, rotateZ, etc.) are applied to a per-element transformCache object, which is manually flushed via flushTransformCache().
+	      Thus, for now, we merely cache transforms being SET. */
+						if (CSS.Normalizations.registered[property] && CSS.Normalizations.registered[property]("name", element) === "transform") {
+							/* Perform a normalization injection. */
+							/* Note: The normalization logic handles the transformCache updating. */
+							CSS.Normalizations.registered[property]("inject", element, propertyValue);
+	
+							propertyName = "transform";
+							propertyValue = Data(element).transformCache[property];
+						} else {
+							/* Inject hooks. */
+							if (CSS.Hooks.registered[property]) {
+								var hookName = property,
+								    hookRoot = CSS.Hooks.getRoot(property);
+	
+								/* If a cached rootPropertyValue was not provided, query the DOM for the hookRoot's current value. */
+								rootPropertyValue = rootPropertyValue || CSS.getPropertyValue(element, hookRoot); /* GET */
+	
+								propertyValue = CSS.Hooks.injectValue(hookName, propertyValue, rootPropertyValue);
+								property = hookRoot;
+							}
+	
+							/* Normalize names and values. */
+							if (CSS.Normalizations.registered[property]) {
+								propertyValue = CSS.Normalizations.registered[property]("inject", element, propertyValue);
+								property = CSS.Normalizations.registered[property]("name", element);
+							}
+	
+							/* Assign the appropriate vendor prefix before performing an official style update. */
+							propertyName = CSS.Names.prefixCheck(property)[0];
+	
+							/* A try/catch is used for IE<=8, which throws an error when "invalid" CSS values are set, e.g. a negative width.
+	       Try/catch is avoided for other browsers since it incurs a performance overhead. */
+							if (IE <= 8) {
+								try {
+									element.style[propertyName] = propertyValue;
+								} catch (error) {
+									if (Velocity.debug) {
+										console.log("Browser does not support [" + propertyValue + "] for [" + propertyName + "]");
+									}
+								}
+								/* SVG elements have their dimensional properties (width, height, x, y, cx, etc.) applied directly as attributes instead of as styles. */
+								/* Note: IE8 does not support SVG elements, so it's okay that we skip it for SVG animation. */
+							} else {
+								var data = Data(element);
+	
+								if (data && data.isSVG && CSS.Names.SVGAttribute(property)) {
+									/* Note: For SVG attributes, vendor-prefixed property names are never used. */
+									/* Note: Not all CSS properties can be animated via attributes, but the browser won't throw an error for unsupported properties. */
+									element.setAttribute(property, propertyValue);
+								} else {
+									element.style[propertyName] = propertyValue;
+								}
+							}
+	
+							if (Velocity.debug >= 2) {
+								console.log("Set " + property + " (" + propertyName + "): " + propertyValue);
+							}
+						}
+					}
+	
+					/* Return the normalized property name and value in case the caller wants to know how these values were modified before being applied to the DOM. */
+					return [propertyName, propertyValue];
+				},
+				/* To increase performance by batching transform updates into a single SET, transforms are not directly applied to an element until flushTransformCache() is called. */
+				/* Note: Velocity applies transform properties in the same order that they are chronogically introduced to the element's CSS styles. */
+				flushTransformCache: function flushTransformCache(element) {
+					var transformString = "",
+					    data = Data(element);
+	
+					/* Certain browsers require that SVG transforms be applied as an attribute. However, the SVG transform attribute takes a modified version of CSS's transform string
+	     (units are dropped and, except for skewX/Y, subproperties are merged into their master property -- e.g. scaleX and scaleY are merged into scale(X Y). */
+					if ((IE || Velocity.State.isAndroid && !Velocity.State.isChrome) && data && data.isSVG) {
+						/* Since transform values are stored in their parentheses-wrapped form, we use a helper function to strip out their numeric values.
+	      Further, SVG transform properties only take unitless (representing pixels) values, so it's okay that parseFloat() strips the unit suffixed to the float value. */
+						var getTransformFloat = function getTransformFloat(transformProperty) {
+							return parseFloat(CSS.getPropertyValue(element, transformProperty));
+						};
+	
+						/* Create an object to organize all the transforms that we'll apply to the SVG element. To keep the logic simple,
+	      we process *all* transform properties -- even those that may not be explicitly applied (since they default to their zero-values anyway). */
+						var SVGTransforms = {
+							translate: [getTransformFloat("translateX"), getTransformFloat("translateY")],
+							skewX: [getTransformFloat("skewX")], skewY: [getTransformFloat("skewY")],
+							/* If the scale property is set (non-1), use that value for the scaleX and scaleY values
+	       (this behavior mimics the result of animating all these properties at once on HTML elements). */
+							scale: getTransformFloat("scale") !== 1 ? [getTransformFloat("scale"), getTransformFloat("scale")] : [getTransformFloat("scaleX"), getTransformFloat("scaleY")],
+							/* Note: SVG's rotate transform takes three values: rotation degrees followed by the X and Y values
+	       defining the rotation's origin point. We ignore the origin values (default them to 0). */
+							rotate: [getTransformFloat("rotateZ"), 0, 0]
+						};
+	
+						/* Iterate through the transform properties in the user-defined property map order.
+	      (This mimics the behavior of non-SVG transform animation.) */
+						$.each(Data(element).transformCache, function (transformName) {
+							/* Except for with skewX/Y, revert the axis-specific transform subproperties to their axis-free master
+	       properties so that they match up with SVG's accepted transform properties. */
+							if (/^translate/i.test(transformName)) {
+								transformName = "translate";
+							} else if (/^scale/i.test(transformName)) {
+								transformName = "scale";
+							} else if (/^rotate/i.test(transformName)) {
+								transformName = "rotate";
+							}
+	
+							/* Check that we haven't yet deleted the property from the SVGTransforms container. */
+							if (SVGTransforms[transformName]) {
+								/* Append the transform property in the SVG-supported transform format. As per the spec, surround the space-delimited values in parentheses. */
+								transformString += transformName + "(" + SVGTransforms[transformName].join(" ") + ")" + " ";
+	
+								/* After processing an SVG transform property, delete it from the SVGTransforms container so we don't
+	        re-insert the same master property if we encounter another one of its axis-specific properties. */
+								delete SVGTransforms[transformName];
+							}
+						});
+					} else {
+						var transformValue, perspective;
+	
+						/* Transform properties are stored as members of the transformCache object. Concatenate all the members into a string. */
+						$.each(Data(element).transformCache, function (transformName) {
+							transformValue = Data(element).transformCache[transformName];
+	
+							/* Transform's perspective subproperty must be set first in order to take effect. Store it temporarily. */
+							if (transformName === "transformPerspective") {
+								perspective = transformValue;
+								return true;
+							}
+	
+							/* IE9 only supports one rotation type, rotateZ, which it refers to as "rotate". */
+							if (IE === 9 && transformName === "rotateZ") {
+								transformName = "rotate";
+							}
+	
+							transformString += transformName + transformValue + " ";
+						});
+	
+						/* If present, set the perspective subproperty first. */
+						if (perspective) {
+							transformString = "perspective" + perspective + " " + transformString;
+						}
+					}
+	
+					CSS.setPropertyValue(element, "transform", transformString);
+				}
+			};
+	
+			/* Register hooks and normalizations. */
+			CSS.Hooks.register();
+			CSS.Normalizations.register();
+	
+			/* Allow hook setting in the same fashion as jQuery's $.css(). */
+			Velocity.hook = function (elements, arg2, arg3) {
+				var value;
+	
+				elements = sanitizeElements(elements);
+	
+				$.each(elements, function (i, element) {
+					/* Initialize Velocity's per-element data cache if this element hasn't previously been animated. */
+					if (Data(element) === undefined) {
+						Velocity.init(element);
+					}
+	
+					/* Get property value. If an element set was passed in, only return the value for the first element. */
+					if (arg3 === undefined) {
+						if (value === undefined) {
+							value = CSS.getPropertyValue(element, arg2);
+						}
+						/* Set property value. */
+					} else {
+						/* sPV returns an array of the normalized propertyName/propertyValue pair used to update the DOM. */
+						var adjustedSet = CSS.setPropertyValue(element, arg2, arg3);
+	
+						/* Transform properties don't automatically set. They have to be flushed to the DOM. */
+						if (adjustedSet[0] === "transform") {
+							Velocity.CSS.flushTransformCache(element);
+						}
+	
+						value = adjustedSet;
+					}
+				});
+	
+				return value;
+			};
+	
+			/*****************
+	   Animation
+	   *****************/
+	
+			var animate = function animate() {
+				var opts;
+	
+				/******************
+	    Call Chain
+	    ******************/
+	
+				/* Logic for determining what to return to the call stack when exiting out of Velocity. */
+				function getChain() {
+					/* If we are using the utility function, attempt to return this call's promise. If no promise library was detected,
+	     default to null instead of returning the targeted elements so that utility function's return value is standardized. */
+					if (isUtility) {
+						return promiseData.promise || null;
+						/* Otherwise, if we're using $.fn, return the jQuery-/Zepto-wrapped element set. */
+					} else {
+						return elementsWrapped;
+					}
+				}
+	
+				/*************************
+	    Arguments Assignment
+	    *************************/
+	
+				/* To allow for expressive CoffeeScript code, Velocity supports an alternative syntax in which "elements" (or "e"), "properties" (or "p"), and "options" (or "o")
+	    objects are defined on a container object that's passed in as Velocity's sole argument. */
+				/* Note: Some browsers automatically populate arguments with a "properties" object. We detect it by checking for its default "names" property. */
+				var syntacticSugar = arguments[0] && (arguments[0].p || $.isPlainObject(arguments[0].properties) && !arguments[0].properties.names || Type.isString(arguments[0].properties)),
+	
+				/* Whether Velocity was called via the utility function (as opposed to on a jQuery/Zepto object). */
+				isUtility,
+	
+				/* When Velocity is called via the utility function ($.Velocity()/Velocity()), elements are explicitly
+	    passed in as the first parameter. Thus, argument positioning varies. We normalize them here. */
+				elementsWrapped,
+				    argumentIndex;
+	
+				var elements, propertiesMap, options;
+	
+				/* Detect jQuery/Zepto elements being animated via the $.fn method. */
+				if (Type.isWrapped(this)) {
+					isUtility = false;
+	
+					argumentIndex = 0;
+					elements = this;
+					elementsWrapped = this;
+					/* Otherwise, raw elements are being animated via the utility function. */
+				} else {
+					isUtility = true;
+	
+					argumentIndex = 1;
+					elements = syntacticSugar ? arguments[0].elements || arguments[0].e : arguments[0];
+				}
+	
+				/***************
+	    Promises
+	    ***************/
+	
+				var promiseData = {
+					promise: null,
+					resolver: null,
+					rejecter: null
+				};
+	
+				/* If this call was made via the utility function (which is the default method of invocation when jQuery/Zepto are not being used), and if
+	    promise support was detected, create a promise object for this call and store references to its resolver and rejecter methods. The resolve
+	    method is used when a call completes naturally or is prematurely stopped by the user. In both cases, completeCall() handles the associated
+	    call cleanup and promise resolving logic. The reject method is used when an invalid set of arguments is passed into a Velocity call. */
+				/* Note: Velocity employs a call-based queueing architecture, which means that stopping an animating element actually stops the full call that
+	    triggered it -- not that one element exclusively. Similarly, there is one promise per call, and all elements targeted by a Velocity call are
+	    grouped together for the purposes of resolving and rejecting a promise. */
+				if (isUtility && Velocity.Promise) {
+					promiseData.promise = new Velocity.Promise(function (resolve, reject) {
+						promiseData.resolver = resolve;
+						promiseData.rejecter = reject;
+					});
+				}
+	
+				if (syntacticSugar) {
+					propertiesMap = arguments[0].properties || arguments[0].p;
+					options = arguments[0].options || arguments[0].o;
+				} else {
+					propertiesMap = arguments[argumentIndex];
+					options = arguments[argumentIndex + 1];
+				}
+	
+				elements = sanitizeElements(elements);
+	
+				if (!elements) {
+					if (promiseData.promise) {
+						if (!propertiesMap || !options || options.promiseRejectEmpty !== false) {
+							promiseData.rejecter();
+						} else {
+							promiseData.resolver();
+						}
+					}
+					return;
+				}
+	
+				/* The length of the element set (in the form of a nodeList or an array of elements) is defaulted to 1 in case a
+	    single raw DOM element is passed in (which doesn't contain a length property). */
+				var elementsLength = elements.length,
+				    elementsIndex = 0;
+	
+				/***************************
+	    Argument Overloading
+	    ***************************/
+	
+				/* Support is included for jQuery's argument overloading: $.animate(propertyMap [, duration] [, easing] [, complete]).
+	    Overloading is detected by checking for the absence of an object being passed into options. */
+				/* Note: The stop/finish/pause/resume actions do not accept animation options, and are therefore excluded from this check. */
+				if (!/^(stop|finish|finishAll|pause|resume)$/i.test(propertiesMap) && !$.isPlainObject(options)) {
+					/* The utility function shifts all arguments one position to the right, so we adjust for that offset. */
+					var startingArgumentPosition = argumentIndex + 1;
+	
+					options = {};
+	
+					/* Iterate through all options arguments */
+					for (var i = startingArgumentPosition; i < arguments.length; i++) {
+						/* Treat a number as a duration. Parse it out. */
+						/* Note: The following RegEx will return true if passed an array with a number as its first item.
+	      Thus, arrays are skipped from this check. */
+						if (!Type.isArray(arguments[i]) && (/^(fast|normal|slow)$/i.test(arguments[i]) || /^\d/.test(arguments[i]))) {
+							options.duration = arguments[i];
+							/* Treat strings and arrays as easings. */
+						} else if (Type.isString(arguments[i]) || Type.isArray(arguments[i])) {
+							options.easing = arguments[i];
+							/* Treat a function as a complete callback. */
+						} else if (Type.isFunction(arguments[i])) {
+							options.complete = arguments[i];
+						}
+					}
+				}
+	
+				/*********************
+	    Action Detection
+	    *********************/
+	
+				/* Velocity's behavior is categorized into "actions": Elements can either be specially scrolled into view,
+	    or they can be started, stopped, paused, resumed, or reversed . If a literal or referenced properties map is passed in as Velocity's
+	    first argument, the associated action is "start". Alternatively, "scroll", "reverse", "pause", "resume" or "stop" can be passed in 
+	    instead of a properties map. */
+				var action;
+	
+				switch (propertiesMap) {
+					case "scroll":
+						action = "scroll";
+						break;
+	
+					case "reverse":
+						action = "reverse";
+						break;
+	
+					case "pause":
+	
+						/*******************
+	      Action: Pause
+	      *******************/
+	
+						var currentTime = new Date().getTime();
+	
+						/* Handle delay timers */
+						$.each(elements, function (i, element) {
+							pauseDelayOnElement(element, currentTime);
+						});
+	
+						/* Pause and Resume are call-wide (not on a per element basis). Thus, calling pause or resume on a 
+	      single element will cause any calls that containt tweens for that element to be paused/resumed
+	      as well. */
+	
+						/* Iterate through all calls and pause any that contain any of our elements */
+						$.each(Velocity.State.calls, function (i, activeCall) {
+	
+							var found = false;
+							/* Inactive calls are set to false by the logic inside completeCall(). Skip them. */
+							if (activeCall) {
+								/* Iterate through the active call's targeted elements. */
+								$.each(activeCall[1], function (k, activeElement) {
+									var queueName = options === undefined ? "" : options;
+	
+									if (queueName !== true && activeCall[2].queue !== queueName && !(options === undefined && activeCall[2].queue === false)) {
+										return true;
+									}
+	
+									/* Iterate through the calls targeted by the stop command. */
+									$.each(elements, function (l, element) {
+										/* Check that this call was applied to the target element. */
+										if (element === activeElement) {
+	
+											/* Set call to paused */
+											activeCall[5] = {
+												resume: false
+											};
+	
+											/* Once we match an element, we can bounce out to the next call entirely */
+											found = true;
+											return false;
+										}
+									});
+	
+									/* Proceed to check next call if we have already matched */
+									if (found) {
+										return false;
+									}
+								});
+							}
+						});
+	
+						/* Since pause creates no new tweens, exit out of Velocity. */
+						return getChain();
+	
+					case "resume":
+	
+						/*******************
+	      Action: Resume
+	      *******************/
+	
+						/* Handle delay timers */
+						$.each(elements, function (i, element) {
+							resumeDelayOnElement(element, currentTime);
+						});
+	
+						/* Pause and Resume are call-wide (not on a per elemnt basis). Thus, calling pause or resume on a 
+	      single element will cause any calls that containt tweens for that element to be paused/resumed
+	      as well. */
+	
+						/* Iterate through all calls and pause any that contain any of our elements */
+						$.each(Velocity.State.calls, function (i, activeCall) {
+							var found = false;
+							/* Inactive calls are set to false by the logic inside completeCall(). Skip them. */
+							if (activeCall) {
+								/* Iterate through the active call's targeted elements. */
+								$.each(activeCall[1], function (k, activeElement) {
+									var queueName = options === undefined ? "" : options;
+	
+									if (queueName !== true && activeCall[2].queue !== queueName && !(options === undefined && activeCall[2].queue === false)) {
+										return true;
+									}
+	
+									/* Skip any calls that have never been paused */
+									if (!activeCall[5]) {
+										return true;
+									}
+	
+									/* Iterate through the calls targeted by the stop command. */
+									$.each(elements, function (l, element) {
+										/* Check that this call was applied to the target element. */
+										if (element === activeElement) {
+	
+											/* Flag a pause object to be resumed, which will occur during the next tick. In
+	           addition, the pause object will at that time be deleted */
+											activeCall[5].resume = true;
+	
+											/* Once we match an element, we can bounce out to the next call entirely */
+											found = true;
+											return false;
+										}
+									});
+	
+									/* Proceed to check next call if we have already matched */
+									if (found) {
+										return false;
+									}
+								});
+							}
+						});
+	
+						/* Since resume creates no new tweens, exit out of Velocity. */
+						return getChain();
+	
+					case "finish":
+					case "finishAll":
+					case "stop":
+						/*******************
+	      Action: Stop
+	      *******************/
+	
+						/* Clear the currently-active delay on each targeted element. */
+						$.each(elements, function (i, element) {
+							if (Data(element) && Data(element).delayTimer) {
+								/* Stop the timer from triggering its cached next() function. */
+								clearTimeout(Data(element).delayTimer.setTimeout);
+	
+								/* Manually call the next() function so that the subsequent queue items can progress. */
+								if (Data(element).delayTimer.next) {
+									Data(element).delayTimer.next();
+								}
+	
+								delete Data(element).delayTimer;
+							}
+	
+							/* If we want to finish everything in the queue, we have to iterate through it
+	       and call each function. This will make them active calls below, which will
+	       cause them to be applied via the duration setting. */
+							if (propertiesMap === "finishAll" && (options === true || Type.isString(options))) {
+								/* Iterate through the items in the element's queue. */
+								$.each($.queue(element, Type.isString(options) ? options : ""), function (_, item) {
+									/* The queue array can contain an "inprogress" string, which we skip. */
+									if (Type.isFunction(item)) {
+										item();
+									}
+								});
+	
+								/* Clearing the $.queue() array is achieved by resetting it to []. */
+								$.queue(element, Type.isString(options) ? options : "", []);
+							}
+						});
+	
+						var callsToStop = [];
+	
+						/* When the stop action is triggered, the elements' currently active call is immediately stopped. The active call might have
+	      been applied to multiple elements, in which case all of the call's elements will be stopped. When an element
+	      is stopped, the next item in its animation queue is immediately triggered. */
+						/* An additional argument may be passed in to clear an element's remaining queued calls. Either true (which defaults to the "fx" queue)
+	      or a custom queue string can be passed in. */
+						/* Note: The stop command runs prior to Velocity's Queueing phase since its behavior is intended to take effect *immediately*,
+	      regardless of the element's current queue state. */
+	
+						/* Iterate through every active call. */
+						$.each(Velocity.State.calls, function (i, activeCall) {
+							/* Inactive calls are set to false by the logic inside completeCall(). Skip them. */
+							if (activeCall) {
+								/* Iterate through the active call's targeted elements. */
+								$.each(activeCall[1], function (k, activeElement) {
+									/* If true was passed in as a secondary argument, clear absolutely all calls on this element. Otherwise, only
+	         clear calls associated with the relevant queue. */
+									/* Call stopping logic works as follows:
+	         - options === true --> stop current default queue calls (and queue:false calls), including remaining queued ones.
+	         - options === undefined --> stop current queue:"" call and all queue:false calls.
+	         - options === false --> stop only queue:false calls.
+	         - options === "custom" --> stop current queue:"custom" call, including remaining queued ones (there is no functionality to only clear the currently-running queue:"custom" call). */
+									var queueName = options === undefined ? "" : options;
+	
+									if (queueName !== true && activeCall[2].queue !== queueName && !(options === undefined && activeCall[2].queue === false)) {
+										return true;
+									}
+	
+									/* Iterate through the calls targeted by the stop command. */
+									$.each(elements, function (l, element) {
+										/* Check that this call was applied to the target element. */
+										if (element === activeElement) {
+											/* Optionally clear the remaining queued calls. If we're doing "finishAll" this won't find anything,
+	           due to the queue-clearing above. */
+											if (options === true || Type.isString(options)) {
+												/* Iterate through the items in the element's queue. */
+												$.each($.queue(element, Type.isString(options) ? options : ""), function (_, item) {
+													/* The queue array can contain an "inprogress" string, which we skip. */
+													if (Type.isFunction(item)) {
+														/* Pass the item's callback a flag indicating that we want to abort from the queue call.
+	              (Specifically, the queue will resolve the call's associated promise then abort.)  */
+														item(null, true);
+													}
+												});
+	
+												/* Clearing the $.queue() array is achieved by resetting it to []. */
+												$.queue(element, Type.isString(options) ? options : "", []);
+											}
+	
+											if (propertiesMap === "stop") {
+												/* Since "reverse" uses cached start values (the previous call's endValues), these values must be
+	            changed to reflect the final value that the elements were actually tweened to. */
+												/* Note: If only queue:false animations are currently running on an element, it won't have a tweensContainer
+	            object. Also, queue:false animations can't be reversed. */
+												var data = Data(element);
+												if (data && data.tweensContainer && queueName !== false) {
+													$.each(data.tweensContainer, function (m, activeTween) {
+														activeTween.endValue = activeTween.currentValue;
+													});
+												}
+	
+												callsToStop.push(i);
+											} else if (propertiesMap === "finish" || propertiesMap === "finishAll") {
+												/* To get active tweens to finish immediately, we forcefully shorten their durations to 1ms so that
+	            they finish upon the next rAf tick then proceed with normal call completion logic. */
+												activeCall[2].duration = 1;
+											}
+										}
+									});
+								});
+							}
+						});
+	
+						/* Prematurely call completeCall() on each matched active call. Pass an additional flag for "stop" to indicate
+	      that the complete callback and display:none setting should be skipped since we're completing prematurely. */
+						if (propertiesMap === "stop") {
+							$.each(callsToStop, function (i, j) {
+								completeCall(j, true);
+							});
+	
+							if (promiseData.promise) {
+								/* Immediately resolve the promise associated with this stop call since stop runs synchronously. */
+								promiseData.resolver(elements);
+							}
+						}
+	
+						/* Since we're stopping, and not proceeding with queueing, exit out of Velocity. */
+						return getChain();
+	
+					default:
+						/* Treat a non-empty plain object as a literal properties map. */
+						if ($.isPlainObject(propertiesMap) && !Type.isEmptyObject(propertiesMap)) {
+							action = "start";
+	
+							/****************
+	       Redirects
+	       ****************/
+	
+							/* Check if a string matches a registered redirect (see Redirects above). */
+						} else if (Type.isString(propertiesMap) && Velocity.Redirects[propertiesMap]) {
+							opts = $.extend({}, options);
+	
+							var durationOriginal = opts.duration,
+							    delayOriginal = opts.delay || 0;
+	
+							/* If the backwards option was passed in, reverse the element set so that elements animate from the last to the first. */
+							if (opts.backwards === true) {
+								elements = $.extend(true, [], elements).reverse();
+							}
+	
+							/* Individually trigger the redirect for each element in the set to prevent users from having to handle iteration logic in their redirect. */
+							$.each(elements, function (elementIndex, element) {
+								/* If the stagger option was passed in, successively delay each element by the stagger value (in ms). Retain the original delay value. */
+								if (parseFloat(opts.stagger)) {
+									opts.delay = delayOriginal + parseFloat(opts.stagger) * elementIndex;
+								} else if (Type.isFunction(opts.stagger)) {
+									opts.delay = delayOriginal + opts.stagger.call(element, elementIndex, elementsLength);
+								}
+	
+								/* If the drag option was passed in, successively increase/decrease (depending on the presense of opts.backwards)
+	        the duration of each element's animation, using floors to prevent producing very short durations. */
+								if (opts.drag) {
+									/* Default the duration of UI pack effects (callouts and transitions) to 1000ms instead of the usual default duration of 400ms. */
+									opts.duration = parseFloat(durationOriginal) || (/^(callout|transition)/.test(propertiesMap) ? 1000 : DURATION_DEFAULT);
+	
+									/* For each element, take the greater duration of: A) animation completion percentage relative to the original duration,
+	         B) 75% of the original duration, or C) a 200ms fallback (in case duration is already set to a low value).
+	         The end result is a baseline of 75% of the redirect's duration that increases/decreases as the end of the element set is approached. */
+									opts.duration = Math.max(opts.duration * (opts.backwards ? 1 - elementIndex / elementsLength : (elementIndex + 1) / elementsLength), opts.duration * 0.75, 200);
+								}
+	
+								/* Pass in the call's opts object so that the redirect can optionally extend it. It defaults to an empty object instead of null to
+	        reduce the opts checking logic required inside the redirect. */
+								Velocity.Redirects[propertiesMap].call(element, element, opts || {}, elementIndex, elementsLength, elements, promiseData.promise ? promiseData : undefined);
+							});
+	
+							/* Since the animation logic resides within the redirect's own code, abort the remainder of this call.
+	       (The performance overhead up to this point is virtually non-existant.) */
+							/* Note: The jQuery call chain is kept intact by returning the complete element set. */
+							return getChain();
+						} else {
+							var abortError = "Velocity: First argument (" + propertiesMap + ") was not a property map, a known action, or a registered redirect. Aborting.";
+	
+							if (promiseData.promise) {
+								promiseData.rejecter(new Error(abortError));
+							} else if (window.console) {
+								console.log(abortError);
+							}
+	
+							return getChain();
+						}
+				}
+	
+				/**************************
+	    Call-Wide Variables
+	    **************************/
+	
+				/* A container for CSS unit conversion ratios (e.g. %, rem, and em ==> px) that is used to cache ratios across all elements
+	    being animated in a single Velocity call. Calculating unit ratios necessitates DOM querying and updating, and is therefore
+	    avoided (via caching) wherever possible. This container is call-wide instead of page-wide to avoid the risk of using stale
+	    conversion metrics across Velocity animations that are not immediately consecutively chained. */
+				var callUnitConversionData = {
+					lastParent: null,
+					lastPosition: null,
+					lastFontSize: null,
+					lastPercentToPxWidth: null,
+					lastPercentToPxHeight: null,
+					lastEmToPx: null,
+					remToPx: null,
+					vwToPx: null,
+					vhToPx: null
+				};
+	
+				/* A container for all the ensuing tween data and metadata associated with this call. This container gets pushed to the page-wide
+	    Velocity.State.calls array that is processed during animation ticking. */
+				var call = [];
+	
+				/************************
+	    Element Processing
+	    ************************/
+	
+				/* Element processing consists of three parts -- data processing that cannot go stale and data processing that *can* go stale (i.e. third-party style modifications):
+	    1) Pre-Queueing: Element-wide variables, including the element's data storage, are instantiated. Call options are prepared. If triggered, the Stop action is executed.
+	    2) Queueing: The logic that runs once this call has reached its point of execution in the element's $.queue() stack. Most logic is placed here to avoid risking it becoming stale.
+	    3) Pushing: Consolidation of the tween data followed by its push onto the global in-progress calls container.
+	    `elementArrayIndex` allows passing index of the element in the original array to value functions.
+	    If `elementsIndex` were used instead the index would be determined by the elements' per-element queue.
+	    */
+				function processElement(element, elementArrayIndex) {
+	
+					/*************************
+	     Part I: Pre-Queueing
+	     *************************/
+	
+					/***************************
+	     Element-Wide Variables
+	     ***************************/
+	
+					var /* The runtime opts object is the extension of the current call's options and Velocity's page-wide option defaults. */
+					opts = $.extend({}, Velocity.defaults, options),
+	
+					/* A container for the processed data associated with each property in the propertyMap.
+	     (Each property in the map produces its own "tween".) */
+					tweensContainer = {},
+					    elementUnitConversionData;
+	
+					/******************
+	     Element Init
+	     ******************/
+	
+					if (Data(element) === undefined) {
+						Velocity.init(element);
+					}
+	
+					/******************
+	     Option: Delay
+	     ******************/
+	
+					/* Since queue:false doesn't respect the item's existing queue, we avoid injecting its delay here (it's set later on). */
+					/* Note: Velocity rolls its own delay function since jQuery doesn't have a utility alias for $.fn.delay()
+	     (and thus requires jQuery element creation, which we avoid since its overhead includes DOM querying). */
+					if (parseFloat(opts.delay) && opts.queue !== false) {
+						$.queue(element, opts.queue, function (next) {
+							/* This is a flag used to indicate to the upcoming completeCall() function that this queue entry was initiated by Velocity. See completeCall() for further details. */
+							Velocity.velocityQueueEntryFlag = true;
+	
+							/* The ensuing queue item (which is assigned to the "next" argument that $.queue() automatically passes in) will be triggered after a setTimeout delay.
+	       The setTimeout is stored so that it can be subjected to clearTimeout() if this animation is prematurely stopped via Velocity's "stop" command, and
+	       delayBegin/delayTime is used to ensure we can "pause" and "resume" a tween that is still mid-delay. */
+	
+							/* Temporarily store delayed elements to facilite access for global pause/resume */
+							var callIndex = Velocity.State.delayedElements.count++;
+							Velocity.State.delayedElements[callIndex] = element;
+	
+							var delayComplete = function (index) {
+								return function () {
+									/* Clear the temporary element */
+									Velocity.State.delayedElements[index] = false;
+	
+									/* Finally, issue the call */
+									next();
+								};
+							}(callIndex);
+	
+							Data(element).delayBegin = new Date().getTime();
+							Data(element).delay = parseFloat(opts.delay);
+							Data(element).delayTimer = {
+								setTimeout: setTimeout(next, parseFloat(opts.delay)),
+								next: delayComplete
+							};
+						});
+					}
+	
+					/*********************
+	     Option: Duration
+	     *********************/
+	
+					/* Support for jQuery's named durations. */
+					switch (opts.duration.toString().toLowerCase()) {
+						case "fast":
+							opts.duration = 200;
+							break;
+	
+						case "normal":
+							opts.duration = DURATION_DEFAULT;
+							break;
+	
+						case "slow":
+							opts.duration = 600;
+							break;
+	
+						default:
+							/* Remove the potential "ms" suffix and default to 1 if the user is attempting to set a duration of 0 (in order to produce an immediate style change). */
+							opts.duration = parseFloat(opts.duration) || 1;
+					}
+	
+					/************************
+	     Global Option: Mock
+	     ************************/
+	
+					if (Velocity.mock !== false) {
+						/* In mock mode, all animations are forced to 1ms so that they occur immediately upon the next rAF tick.
+	      Alternatively, a multiplier can be passed in to time remap all delays and durations. */
+						if (Velocity.mock === true) {
+							opts.duration = opts.delay = 1;
+						} else {
+							opts.duration *= parseFloat(Velocity.mock) || 1;
+							opts.delay *= parseFloat(Velocity.mock) || 1;
+						}
+					}
+	
+					/*******************
+	     Option: Easing
+	     *******************/
+	
+					opts.easing = getEasing(opts.easing, opts.duration);
+	
+					/**********************
+	     Option: Callbacks
+	     **********************/
+	
+					/* Callbacks must functions. Otherwise, default to null. */
+					if (opts.begin && !Type.isFunction(opts.begin)) {
+						opts.begin = null;
+					}
+	
+					if (opts.progress && !Type.isFunction(opts.progress)) {
+						opts.progress = null;
+					}
+	
+					if (opts.complete && !Type.isFunction(opts.complete)) {
+						opts.complete = null;
+					}
+	
+					/*********************************
+	     Option: Display & Visibility
+	     *********************************/
+	
+					/* Refer to Velocity's documentation (VelocityJS.org/#displayAndVisibility) for a description of the display and visibility options' behavior. */
+					/* Note: We strictly check for undefined instead of falsiness because display accepts an empty string value. */
+					if (opts.display !== undefined && opts.display !== null) {
+						opts.display = opts.display.toString().toLowerCase();
+	
+						/* Users can pass in a special "auto" value to instruct Velocity to set the element to its default display value. */
+						if (opts.display === "auto") {
+							opts.display = Velocity.CSS.Values.getDisplayType(element);
+						}
+					}
+	
+					if (opts.visibility !== undefined && opts.visibility !== null) {
+						opts.visibility = opts.visibility.toString().toLowerCase();
+					}
+	
+					/**********************
+	     Option: mobileHA
+	     **********************/
+	
+					/* When set to true, and if this is a mobile device, mobileHA automatically enables hardware acceleration (via a null transform hack)
+	     on animating elements. HA is removed from the element at the completion of its animation. */
+					/* Note: Android Gingerbread doesn't support HA. If a null transform hack (mobileHA) is in fact set, it will prevent other tranform subproperties from taking effect. */
+					/* Note: You can read more about the use of mobileHA in Velocity's documentation: VelocityJS.org/#mobileHA. */
+					opts.mobileHA = opts.mobileHA && Velocity.State.isMobile && !Velocity.State.isGingerbread;
+	
+					/***********************
+	     Part II: Queueing
+	     ***********************/
+	
+					/* When a set of elements is targeted by a Velocity call, the set is broken up and each element has the current Velocity call individually queued onto it.
+	     In this way, each element's existing queue is respected; some elements may already be animating and accordingly should not have this current Velocity call triggered immediately. */
+					/* In each queue, tween data is processed for each animating property then pushed onto the call-wide calls array. When the last element in the set has had its tweens processed,
+	     the call array is pushed to Velocity.State.calls for live processing by the requestAnimationFrame tick. */
+					function buildQueue(next) {
+						var data, lastTweensContainer;
+	
+						/*******************
+	      Option: Begin
+	      *******************/
+	
+						/* The begin callback is fired once per call -- not once per elemenet -- and is passed the full raw DOM element set as both its context and its first argument. */
+						if (opts.begin && elementsIndex === 0) {
+							/* We throw callbacks in a setTimeout so that thrown errors don't halt the execution of Velocity itself. */
+							try {
+								opts.begin.call(elements, elements);
+							} catch (error) {
+								setTimeout(function () {
+									throw error;
+								}, 1);
+							}
+						}
+	
+						/*****************************************
+	      Tween Data Construction (for Scroll)
+	      *****************************************/
+	
+						/* Note: In order to be subjected to chaining and animation options, scroll's tweening is routed through Velocity as if it were a standard CSS property animation. */
+						if (action === "scroll") {
+							/* The scroll action uniquely takes an optional "offset" option -- specified in pixels -- that offsets the targeted scroll position. */
+							var scrollDirection = /^x$/i.test(opts.axis) ? "Left" : "Top",
+							    scrollOffset = parseFloat(opts.offset) || 0,
+							    scrollPositionCurrent,
+							    scrollPositionCurrentAlternate,
+							    scrollPositionEnd;
+	
+							/* Scroll also uniquely takes an optional "container" option, which indicates the parent element that should be scrolled --
+	       as opposed to the browser window itself. This is useful for scrolling toward an element that's inside an overflowing parent element. */
+							if (opts.container) {
+								/* Ensure that either a jQuery object or a raw DOM element was passed in. */
+								if (Type.isWrapped(opts.container) || Type.isNode(opts.container)) {
+									/* Extract the raw DOM element from the jQuery wrapper. */
+									opts.container = opts.container[0] || opts.container;
+									/* Note: Unlike other properties in Velocity, the browser's scroll position is never cached since it so frequently changes
+	         (due to the user's natural interaction with the page). */
+									scrollPositionCurrent = opts.container["scroll" + scrollDirection]; /* GET */
+	
+									/* $.position() values are relative to the container's currently viewable area (without taking into account the container's true dimensions
+	         -- say, for example, if the container was not overflowing). Thus, the scroll end value is the sum of the child element's position *and*
+	         the scroll container's current scroll position. */
+									scrollPositionEnd = scrollPositionCurrent + $(element).position()[scrollDirection.toLowerCase()] + scrollOffset; /* GET */
+									/* If a value other than a jQuery object or a raw DOM element was passed in, default to null so that this option is ignored. */
+								} else {
+									opts.container = null;
+								}
+							} else {
+								/* If the window itself is being scrolled -- not a containing element -- perform a live scroll position lookup using
+	        the appropriate cached property names (which differ based on browser type). */
+								scrollPositionCurrent = Velocity.State.scrollAnchor[Velocity.State["scrollProperty" + scrollDirection]]; /* GET */
+								/* When scrolling the browser window, cache the alternate axis's current value since window.scrollTo() doesn't let us change only one value at a time. */
+								scrollPositionCurrentAlternate = Velocity.State.scrollAnchor[Velocity.State["scrollProperty" + (scrollDirection === "Left" ? "Top" : "Left")]]; /* GET */
+	
+								/* Unlike $.position(), $.offset() values are relative to the browser window's true dimensions -- not merely its currently viewable area --
+	        and therefore end values do not need to be compounded onto current values. */
+								scrollPositionEnd = $(element).offset()[scrollDirection.toLowerCase()] + scrollOffset; /* GET */
+							}
+	
+							/* Since there's only one format that scroll's associated tweensContainer can take, we create it manually. */
+							tweensContainer = {
+								scroll: {
+									rootPropertyValue: false,
+									startValue: scrollPositionCurrent,
+									currentValue: scrollPositionCurrent,
+									endValue: scrollPositionEnd,
+									unitType: "",
+									easing: opts.easing,
+									scrollData: {
+										container: opts.container,
+										direction: scrollDirection,
+										alternateValue: scrollPositionCurrentAlternate
+									}
+								},
+								element: element
+							};
+	
+							if (Velocity.debug) {
+								console.log("tweensContainer (scroll): ", tweensContainer.scroll, element);
+							}
+	
+							/******************************************
+	       Tween Data Construction (for Reverse)
+	       ******************************************/
+	
+							/* Reverse acts like a "start" action in that a property map is animated toward. The only difference is
+	       that the property map used for reverse is the inverse of the map used in the previous call. Thus, we manipulate
+	       the previous call to construct our new map: use the previous map's end values as our new map's start values. Copy over all other data. */
+							/* Note: Reverse can be directly called via the "reverse" parameter, or it can be indirectly triggered via the loop option. (Loops are composed of multiple reverses.) */
+							/* Note: Reverse calls do not need to be consecutively chained onto a currently-animating element in order to operate on cached values;
+	       there is no harm to reverse being called on a potentially stale data cache since reverse's behavior is simply defined
+	       as reverting to the element's values as they were prior to the previous *Velocity* call. */
+						} else if (action === "reverse") {
+							data = Data(element);
+	
+							/* Abort if there is no prior animation data to reverse to. */
+							if (!data) {
+								return;
+							}
+	
+							if (!data.tweensContainer) {
+								/* Dequeue the element so that this queue entry releases itself immediately, allowing subsequent queue entries to run. */
+								$.dequeue(element, opts.queue);
+	
+								return;
+							} else {
+								/*********************
+	        Options Parsing
+	        *********************/
+	
+								/* If the element was hidden via the display option in the previous call,
+	        revert display to "auto" prior to reversal so that the element is visible again. */
+								if (data.opts.display === "none") {
+									data.opts.display = "auto";
+								}
+	
+								if (data.opts.visibility === "hidden") {
+									data.opts.visibility = "visible";
+								}
+	
+								/* If the loop option was set in the previous call, disable it so that "reverse" calls aren't recursively generated.
+	        Further, remove the previous call's callback options; typically, users do not want these to be refired. */
+								data.opts.loop = false;
+								data.opts.begin = null;
+								data.opts.complete = null;
+	
+								/* Since we're extending an opts object that has already been extended with the defaults options object,
+	        we remove non-explicitly-defined properties that are auto-assigned values. */
+								if (!options.easing) {
+									delete opts.easing;
+								}
+	
+								if (!options.duration) {
+									delete opts.duration;
+								}
+	
+								/* The opts object used for reversal is an extension of the options object optionally passed into this
+	        reverse call plus the options used in the previous Velocity call. */
+								opts = $.extend({}, data.opts, opts);
+	
+								/*************************************
+	        Tweens Container Reconstruction
+	        *************************************/
+	
+								/* Create a deepy copy (indicated via the true flag) of the previous call's tweensContainer. */
+								lastTweensContainer = $.extend(true, {}, data ? data.tweensContainer : null);
+	
+								/* Manipulate the previous tweensContainer by replacing its end values and currentValues with its start values. */
+								for (var lastTween in lastTweensContainer) {
+									/* In addition to tween data, tweensContainers contain an element property that we ignore here. */
+									if (lastTweensContainer.hasOwnProperty(lastTween) && lastTween !== "element") {
+										var lastStartValue = lastTweensContainer[lastTween].startValue;
+	
+										lastTweensContainer[lastTween].startValue = lastTweensContainer[lastTween].currentValue = lastTweensContainer[lastTween].endValue;
+										lastTweensContainer[lastTween].endValue = lastStartValue;
+	
+										/* Easing is the only option that embeds into the individual tween data (since it can be defined on a per-property basis).
+	          Accordingly, every property's easing value must be updated when an options object is passed in with a reverse call.
+	          The side effect of this extensibility is that all per-property easing values are forcefully reset to the new value. */
+										if (!Type.isEmptyObject(options)) {
+											lastTweensContainer[lastTween].easing = opts.easing;
+										}
+	
+										if (Velocity.debug) {
+											console.log("reverse tweensContainer (" + lastTween + "): " + JSON.stringify(lastTweensContainer[lastTween]), element);
+										}
+									}
+								}
+	
+								tweensContainer = lastTweensContainer;
+							}
+	
+							/*****************************************
+	       Tween Data Construction (for Start)
+	       *****************************************/
+						} else if (action === "start") {
+	
+							/*************************
+	       Value Transferring
+	       *************************/
+	
+							/* If this queue entry follows a previous Velocity-initiated queue entry *and* if this entry was created
+	       while the element was in the process of being animated by Velocity, then this current call is safe to use
+	       the end values from the prior call as its start values. Velocity attempts to perform this value transfer
+	       process whenever possible in order to avoid requerying the DOM. */
+							/* If values aren't transferred from a prior call and start values were not forcefed by the user (more on this below),
+	       then the DOM is queried for the element's current values as a last resort. */
+							/* Note: Conversely, animation reversal (and looping) *always* perform inter-call value transfers; they never requery the DOM. */
+	
+							data = Data(element);
+	
+							/* The per-element isAnimating flag is used to indicate whether it's safe (i.e. the data isn't stale)
+	       to transfer over end values to use as start values. If it's set to true and there is a previous
+	       Velocity call to pull values from, do so. */
+							if (data && data.tweensContainer && data.isAnimating === true) {
+								lastTweensContainer = data.tweensContainer;
+							}
+	
+							/***************************
+	       Tween Data Calculation
+	       ***************************/
+	
+							/* This function parses property data and defaults endValue, easing, and startValue as appropriate. */
+							/* Property map values can either take the form of 1) a single value representing the end value,
+	       or 2) an array in the form of [ endValue, [, easing] [, startValue] ].
+	       The optional third parameter is a forcefed startValue to be used instead of querying the DOM for
+	       the element's current value. Read Velocity's docmentation to learn more about forcefeeding: VelocityJS.org/#forcefeeding */
+							var parsePropertyValue = function parsePropertyValue(valueData, skipResolvingEasing) {
+								var endValue, easing, startValue;
+	
+								/* If we have a function as the main argument then resolve it first, in case it returns an array that needs to be split */
+								if (Type.isFunction(valueData)) {
+									valueData = valueData.call(element, elementArrayIndex, elementsLength);
+								}
+	
+								/* Handle the array format, which can be structured as one of three potential overloads:
+	        A) [ endValue, easing, startValue ], B) [ endValue, easing ], or C) [ endValue, startValue ] */
+								if (Type.isArray(valueData)) {
+									/* endValue is always the first item in the array. Don't bother validating endValue's value now
+	         since the ensuing property cycling logic does that. */
+									endValue = valueData[0];
+	
+									/* Two-item array format: If the second item is a number, function, or hex string, treat it as a
+	         start value since easings can only be non-hex strings or arrays. */
+									if (!Type.isArray(valueData[1]) && /^[\d-]/.test(valueData[1]) || Type.isFunction(valueData[1]) || CSS.RegEx.isHex.test(valueData[1])) {
+										startValue = valueData[1];
+										/* Two or three-item array: If the second item is a non-hex string easing name or an array, treat it as an easing. */
+									} else if (Type.isString(valueData[1]) && !CSS.RegEx.isHex.test(valueData[1]) && Velocity.Easings[valueData[1]] || Type.isArray(valueData[1])) {
+										easing = skipResolvingEasing ? valueData[1] : getEasing(valueData[1], opts.duration);
+	
+										/* Don't bother validating startValue's value now since the ensuing property cycling logic inherently does that. */
+										startValue = valueData[2];
+									} else {
+										startValue = valueData[1] || valueData[2];
+									}
+									/* Handle the single-value format. */
+								} else {
+									endValue = valueData;
+								}
+	
+								/* Default to the call's easing if a per-property easing type was not defined. */
+								if (!skipResolvingEasing) {
+									easing = easing || opts.easing;
+								}
+	
+								/* If functions were passed in as values, pass the function the current element as its context,
+	        plus the element's index and the element set's size as arguments. Then, assign the returned value. */
+								if (Type.isFunction(endValue)) {
+									endValue = endValue.call(element, elementArrayIndex, elementsLength);
+								}
+	
+								if (Type.isFunction(startValue)) {
+									startValue = startValue.call(element, elementArrayIndex, elementsLength);
+								}
+	
+								/* Allow startValue to be left as undefined to indicate to the ensuing code that its value was not forcefed. */
+								return [endValue || 0, easing, startValue];
+							};
+	
+							var fixPropertyValue = function fixPropertyValue(property, valueData) {
+								/* In case this property is a hook, there are circumstances where we will intend to work on the hook's root property and not the hooked subproperty. */
+								var rootProperty = CSS.Hooks.getRoot(property),
+								    rootPropertyValue = false,
+	
+								/* Parse out endValue, easing, and startValue from the property's data. */
+								endValue = valueData[0],
+								    easing = valueData[1],
+								    startValue = valueData[2],
+								    pattern;
+	
+								/**************************
+	        Start Value Sourcing
+	        **************************/
+	
+								/* Other than for the dummy tween property, properties that are not supported by the browser (and do not have an associated normalization) will
+	        inherently produce no style changes when set, so they are skipped in order to decrease animation tick overhead.
+	        Property support is determined via prefixCheck(), which returns a false flag when no supported is detected. */
+								/* Note: Since SVG elements have some of their properties directly applied as HTML attributes,
+	        there is no way to check for their explicit browser support, and so we skip skip this check for them. */
+								if ((!data || !data.isSVG) && rootProperty !== "tween" && CSS.Names.prefixCheck(rootProperty)[1] === false && CSS.Normalizations.registered[rootProperty] === undefined) {
+									if (Velocity.debug) {
+										console.log("Skipping [" + rootProperty + "] due to a lack of browser support.");
+									}
+									return;
+								}
+	
+								/* If the display option is being set to a non-"none" (e.g. "block") and opacity (filter on IE<=8) is being
+	        animated to an endValue of non-zero, the user's intention is to fade in from invisible, thus we forcefeed opacity
+	        a startValue of 0 if its startValue hasn't already been sourced by value transferring or prior forcefeeding. */
+								if ((opts.display !== undefined && opts.display !== null && opts.display !== "none" || opts.visibility !== undefined && opts.visibility !== "hidden") && /opacity|filter/.test(property) && !startValue && endValue !== 0) {
+									startValue = 0;
+								}
+	
+								/* If values have been transferred from the previous Velocity call, extract the endValue and rootPropertyValue
+	        for all of the current call's properties that were *also* animated in the previous call. */
+								/* Note: Value transferring can optionally be disabled by the user via the _cacheValues option. */
+								if (opts._cacheValues && lastTweensContainer && lastTweensContainer[property]) {
+									if (startValue === undefined) {
+										startValue = lastTweensContainer[property].endValue + lastTweensContainer[property].unitType;
+									}
+	
+									/* The previous call's rootPropertyValue is extracted from the element's data cache since that's the
+	         instance of rootPropertyValue that gets freshly updated by the tweening process, whereas the rootPropertyValue
+	         attached to the incoming lastTweensContainer is equal to the root property's value prior to any tweening. */
+									rootPropertyValue = data.rootPropertyValueCache[rootProperty];
+									/* If values were not transferred from a previous Velocity call, query the DOM as needed. */
+								} else {
+									/* Handle hooked properties. */
+									if (CSS.Hooks.registered[property]) {
+										if (startValue === undefined) {
+											rootPropertyValue = CSS.getPropertyValue(element, rootProperty); /* GET */
+											/* Note: The following getPropertyValue() call does not actually trigger a DOM query;
+	           getPropertyValue() will extract the hook from rootPropertyValue. */
+											startValue = CSS.getPropertyValue(element, property, rootPropertyValue);
+											/* If startValue is already defined via forcefeeding, do not query the DOM for the root property's value;
+	           just grab rootProperty's zero-value template from CSS.Hooks. This overwrites the element's actual
+	           root property value (if one is set), but this is acceptable since the primary reason users forcefeed is
+	           to avoid DOM queries, and thus we likewise avoid querying the DOM for the root property's value. */
+										} else {
+											/* Grab this hook's zero-value template, e.g. "0px 0px 0px black". */
+											rootPropertyValue = CSS.Hooks.templates[rootProperty][1];
+										}
+										/* Handle non-hooked properties that haven't already been defined via forcefeeding. */
+									} else if (startValue === undefined) {
+										startValue = CSS.getPropertyValue(element, property); /* GET */
+									}
+								}
+	
+								/**************************
+	        Value Data Extraction
+	        **************************/
+	
+								var separatedValue,
+								    endValueUnitType,
+								    startValueUnitType,
+								    operator = false;
+	
+								/* Separates a property value into its numeric value and its unit type. */
+								var separateValue = function separateValue(property, value) {
+									var unitType, numericValue;
+	
+									numericValue = (value || "0").toString().toLowerCase
+									/* Match the unit type at the end of the value. */
+									().replace(/[%A-z]+$/, function (match) {
+										/* Grab the unit type. */
+										unitType = match;
+	
+										/* Strip the unit type off of value. */
+										return "";
+									});
+	
+									/* If no unit type was supplied, assign one that is appropriate for this property (e.g. "deg" for rotateZ or "px" for width). */
+									if (!unitType) {
+										unitType = CSS.Values.getUnitType(property);
+									}
+	
+									return [numericValue, unitType];
+								};
+	
+								if (startValue !== endValue && Type.isString(startValue) && Type.isString(endValue)) {
+									pattern = "";
+									var iStart = 0,
+									    // index in startValue
+									iEnd = 0,
+									    // index in endValue
+									aStart = [],
+									    // array of startValue numbers
+									aEnd = [],
+									    // array of endValue numbers
+									inCalc = 0,
+									    // Keep track of being inside a "calc()" so we don't duplicate it
+									inRGB = 0,
+									    // Keep track of being inside an RGB as we can't use fractional values
+									inRGBA = 0; // Keep track of being inside an RGBA as we must pass fractional for the alpha channel
+	
+									startValue = CSS.Hooks.fixColors(startValue);
+									endValue = CSS.Hooks.fixColors(endValue);
+									while (iStart < startValue.length && iEnd < endValue.length) {
+										var cStart = startValue[iStart],
+										    cEnd = endValue[iEnd];
+	
+										if (/[\d\.-]/.test(cStart) && /[\d\.-]/.test(cEnd)) {
+											var tStart = cStart,
+											    // temporary character buffer
+											tEnd = cEnd,
+											    // temporary character buffer
+											dotStart = ".",
+											    // Make sure we can only ever match a single dot in a decimal
+											dotEnd = "."; // Make sure we can only ever match a single dot in a decimal
+	
+											while (++iStart < startValue.length) {
+												cStart = startValue[iStart];
+												if (cStart === dotStart) {
+													dotStart = ".."; // Can never match two characters
+												} else if (!/\d/.test(cStart)) {
+													break;
+												}
+												tStart += cStart;
+											}
+											while (++iEnd < endValue.length) {
+												cEnd = endValue[iEnd];
+												if (cEnd === dotEnd) {
+													dotEnd = ".."; // Can never match two characters
+												} else if (!/\d/.test(cEnd)) {
+													break;
+												}
+												tEnd += cEnd;
+											}
+											var uStart = CSS.Hooks.getUnit(startValue, iStart),
+											    // temporary unit type
+											uEnd = CSS.Hooks.getUnit(endValue, iEnd); // temporary unit type
+	
+											iStart += uStart.length;
+											iEnd += uEnd.length;
+											if (uStart === uEnd) {
+												// Same units
+												if (tStart === tEnd) {
+													// Same numbers, so just copy over
+													pattern += tStart + uStart;
+												} else {
+													// Different numbers, so store them
+													pattern += "{" + aStart.length + (inRGB ? "!" : "") + "}" + uStart;
+													aStart.push(parseFloat(tStart));
+													aEnd.push(parseFloat(tEnd));
+												}
+											} else {
+												// Different units, so put into a "calc(from + to)" and animate each side to/from zero
+												var nStart = parseFloat(tStart),
+												    nEnd = parseFloat(tEnd);
+	
+												pattern += (inCalc < 5 ? "calc" : "") + "(" + (nStart ? "{" + aStart.length + (inRGB ? "!" : "") + "}" : "0") + uStart + " + " + (nEnd ? "{" + (aStart.length + (nStart ? 1 : 0)) + (inRGB ? "!" : "") + "}" : "0") + uEnd + ")";
+												if (nStart) {
+													aStart.push(nStart);
+													aEnd.push(0);
+												}
+												if (nEnd) {
+													aStart.push(0);
+													aEnd.push(nEnd);
+												}
+											}
+										} else if (cStart === cEnd) {
+											pattern += cStart;
+											iStart++;
+											iEnd++;
+											// Keep track of being inside a calc()
+											if (inCalc === 0 && cStart === "c" || inCalc === 1 && cStart === "a" || inCalc === 2 && cStart === "l" || inCalc === 3 && cStart === "c" || inCalc >= 4 && cStart === "(") {
+												inCalc++;
+											} else if (inCalc && inCalc < 5 || inCalc >= 4 && cStart === ")" && --inCalc < 5) {
+												inCalc = 0;
+											}
+											// Keep track of being inside an rgb() / rgba()
+											if (inRGB === 0 && cStart === "r" || inRGB === 1 && cStart === "g" || inRGB === 2 && cStart === "b" || inRGB === 3 && cStart === "a" || inRGB >= 3 && cStart === "(") {
+												if (inRGB === 3 && cStart === "a") {
+													inRGBA = 1;
+												}
+												inRGB++;
+											} else if (inRGBA && cStart === ",") {
+												if (++inRGBA > 3) {
+													inRGB = inRGBA = 0;
+												}
+											} else if (inRGBA && inRGB < (inRGBA ? 5 : 4) || inRGB >= (inRGBA ? 4 : 3) && cStart === ")" && --inRGB < (inRGBA ? 5 : 4)) {
+												inRGB = inRGBA = 0;
+											}
+										} else {
+											inCalc = 0;
+											// TODO: changing units, fixing colours
+											break;
+										}
+									}
+									if (iStart !== startValue.length || iEnd !== endValue.length) {
+										if (Velocity.debug) {
+											console.error("Trying to pattern match mis-matched strings [\"" + endValue + "\", \"" + startValue + "\"]");
+										}
+										pattern = undefined;
+									}
+									if (pattern) {
+										if (aStart.length) {
+											if (Velocity.debug) {
+												console.log("Pattern found \"" + pattern + "\" -> ", aStart, aEnd, "[" + startValue + "," + endValue + "]");
+											}
+											startValue = aStart;
+											endValue = aEnd;
+											endValueUnitType = startValueUnitType = "";
+										} else {
+											pattern = undefined;
+										}
+									}
+								}
+	
+								if (!pattern) {
+									/* Separate startValue. */
+									separatedValue = separateValue(property, startValue);
+									startValue = separatedValue[0];
+									startValueUnitType = separatedValue[1];
+	
+									/* Separate endValue, and extract a value operator (e.g. "+=", "-=") if one exists. */
+									separatedValue = separateValue(property, endValue);
+									endValue = separatedValue[0].replace(/^([+-\/*])=/, function (match, subMatch) {
+										operator = subMatch;
+	
+										/* Strip the operator off of the value. */
+										return "";
+									});
+									endValueUnitType = separatedValue[1];
+	
+									/* Parse float values from endValue and startValue. Default to 0 if NaN is returned. */
+									startValue = parseFloat(startValue) || 0;
+									endValue = parseFloat(endValue) || 0;
+	
+									/***************************************
+	         Property-Specific Value Conversion
+	         ***************************************/
+	
+									/* Custom support for properties that don't actually accept the % unit type, but where pollyfilling is trivial and relatively foolproof. */
+									if (endValueUnitType === "%") {
+										/* A %-value fontSize/lineHeight is relative to the parent's fontSize (as opposed to the parent's dimensions),
+	          which is identical to the em unit's behavior, so we piggyback off of that. */
+										if (/^(fontSize|lineHeight)$/.test(property)) {
+											/* Convert % into an em decimal value. */
+											endValue = endValue / 100;
+											endValueUnitType = "em";
+											/* For scaleX and scaleY, convert the value into its decimal format and strip off the unit type. */
+										} else if (/^scale/.test(property)) {
+											endValue = endValue / 100;
+											endValueUnitType = "";
+											/* For RGB components, take the defined percentage of 255 and strip off the unit type. */
+										} else if (/(Red|Green|Blue)$/i.test(property)) {
+											endValue = endValue / 100 * 255;
+											endValueUnitType = "";
+										}
+									}
+								}
+	
+								/***************************
+	        Unit Ratio Calculation
+	        ***************************/
+	
+								/* When queried, the browser returns (most) CSS property values in pixels. Therefore, if an endValue with a unit type of
+	        %, em, or rem is animated toward, startValue must be converted from pixels into the same unit type as endValue in order
+	        for value manipulation logic (increment/decrement) to proceed. Further, if the startValue was forcefed or transferred
+	        from a previous call, startValue may also not be in pixels. Unit conversion logic therefore consists of two steps:
+	        1) Calculating the ratio of %/em/rem/vh/vw relative to pixels
+	        2) Converting startValue into the same unit of measurement as endValue based on these ratios. */
+								/* Unit conversion ratios are calculated by inserting a sibling node next to the target node, copying over its position property,
+	        setting values with the target unit type then comparing the returned pixel value. */
+								/* Note: Even if only one of these unit types is being animated, all unit ratios are calculated at once since the overhead
+	        of batching the SETs and GETs together upfront outweights the potential overhead
+	        of layout thrashing caused by re-querying for uncalculated ratios for subsequently-processed properties. */
+								/* Todo: Shift this logic into the calls' first tick instance so that it's synced with RAF. */
+								var calculateUnitRatios = function calculateUnitRatios() {
+	
+									/************************
+	         Same Ratio Checks
+	         ************************/
+	
+									/* The properties below are used to determine whether the element differs sufficiently from this call's
+	         previously iterated element to also differ in its unit conversion ratios. If the properties match up with those
+	         of the prior element, the prior element's conversion ratios are used. Like most optimizations in Velocity,
+	         this is done to minimize DOM querying. */
+									var sameRatioIndicators = {
+										myParent: element.parentNode || document.body, /* GET */
+										position: CSS.getPropertyValue(element, "position"), /* GET */
+										fontSize: CSS.getPropertyValue(element, "fontSize" /* GET */
+										) },
+	
+									/* Determine if the same % ratio can be used. % is based on the element's position value and its parent's width and height dimensions. */
+									samePercentRatio = sameRatioIndicators.position === callUnitConversionData.lastPosition && sameRatioIndicators.myParent === callUnitConversionData.lastParent,
+	
+									/* Determine if the same em ratio can be used. em is relative to the element's fontSize. */
+									sameEmRatio = sameRatioIndicators.fontSize === callUnitConversionData.lastFontSize;
+	
+									/* Store these ratio indicators call-wide for the next element to compare against. */
+									callUnitConversionData.lastParent = sameRatioIndicators.myParent;
+									callUnitConversionData.lastPosition = sameRatioIndicators.position;
+									callUnitConversionData.lastFontSize = sameRatioIndicators.fontSize;
+	
+									/***************************
+	         Element-Specific Units
+	         ***************************/
+	
+									/* Note: IE8 rounds to the nearest pixel when returning CSS values, thus we perform conversions using a measurement
+	         of 100 (instead of 1) to give our ratios a precision of at least 2 decimal values. */
+									var measurement = 100,
+									    unitRatios = {};
+	
+									if (!sameEmRatio || !samePercentRatio) {
+										var dummy = data && data.isSVG ? document.createElementNS("http://www.w3.org/2000/svg", "rect") : document.createElement("div");
+	
+										Velocity.init(dummy);
+										sameRatioIndicators.myParent.appendChild(dummy);
+	
+										/* To accurately and consistently calculate conversion ratios, the element's cascaded overflow and box-sizing are stripped.
+	          Similarly, since width/height can be artificially constrained by their min-/max- equivalents, these are controlled for as well. */
+										/* Note: Overflow must be also be controlled for per-axis since the overflow property overwrites its per-axis values. */
+										$.each(["overflow", "overflowX", "overflowY"], function (i, property) {
+											Velocity.CSS.setPropertyValue(dummy, property, "hidden");
+										});
+										Velocity.CSS.setPropertyValue(dummy, "position", sameRatioIndicators.position);
+										Velocity.CSS.setPropertyValue(dummy, "fontSize", sameRatioIndicators.fontSize);
+										Velocity.CSS.setPropertyValue(dummy, "boxSizing", "content-box");
+	
+										/* width and height act as our proxy properties for measuring the horizontal and vertical % ratios. */
+										$.each(["minWidth", "maxWidth", "width", "minHeight", "maxHeight", "height"], function (i, property) {
+											Velocity.CSS.setPropertyValue(dummy, property, measurement + "%");
+										});
+										/* paddingLeft arbitrarily acts as our proxy property for the em ratio. */
+										Velocity.CSS.setPropertyValue(dummy, "paddingLeft", measurement + "em");
+	
+										/* Divide the returned value by the measurement to get the ratio between 1% and 1px. Default to 1 since working with 0 can produce Infinite. */
+										unitRatios.percentToPxWidth = callUnitConversionData.lastPercentToPxWidth = (parseFloat(CSS.getPropertyValue(dummy, "width", null, true)) || 1) / measurement; /* GET */
+										unitRatios.percentToPxHeight = callUnitConversionData.lastPercentToPxHeight = (parseFloat(CSS.getPropertyValue(dummy, "height", null, true)) || 1) / measurement; /* GET */
+										unitRatios.emToPx = callUnitConversionData.lastEmToPx = (parseFloat(CSS.getPropertyValue(dummy, "paddingLeft")) || 1) / measurement; /* GET */
+	
+										sameRatioIndicators.myParent.removeChild(dummy);
+									} else {
+										unitRatios.emToPx = callUnitConversionData.lastEmToPx;
+										unitRatios.percentToPxWidth = callUnitConversionData.lastPercentToPxWidth;
+										unitRatios.percentToPxHeight = callUnitConversionData.lastPercentToPxHeight;
+									}
+	
+									/***************************
+	         Element-Agnostic Units
+	         ***************************/
+	
+									/* Whereas % and em ratios are determined on a per-element basis, the rem unit only needs to be checked
+	         once per call since it's exclusively dependant upon document.body's fontSize. If this is the first time
+	         that calculateUnitRatios() is being run during this call, remToPx will still be set to its default value of null,
+	         so we calculate it now. */
+									if (callUnitConversionData.remToPx === null) {
+										/* Default to browsers' default fontSize of 16px in the case of 0. */
+										callUnitConversionData.remToPx = parseFloat(CSS.getPropertyValue(document.body, "fontSize")) || 16; /* GET */
+									}
+	
+									/* Similarly, viewport units are %-relative to the window's inner dimensions. */
+									if (callUnitConversionData.vwToPx === null) {
+										callUnitConversionData.vwToPx = parseFloat(window.innerWidth) / 100; /* GET */
+										callUnitConversionData.vhToPx = parseFloat(window.innerHeight) / 100; /* GET */
+									}
+	
+									unitRatios.remToPx = callUnitConversionData.remToPx;
+									unitRatios.vwToPx = callUnitConversionData.vwToPx;
+									unitRatios.vhToPx = callUnitConversionData.vhToPx;
+	
+									if (Velocity.debug >= 1) {
+										console.log("Unit ratios: " + JSON.stringify(unitRatios), element);
+									}
+									return unitRatios;
+								};
+	
+								/********************
+	        Unit Conversion
+	        ********************/
+	
+								/* The * and / operators, which are not passed in with an associated unit, inherently use startValue's unit. Skip value and unit conversion. */
+								if (/[\/*]/.test(operator)) {
+									endValueUnitType = startValueUnitType;
+									/* If startValue and endValue differ in unit type, convert startValue into the same unit type as endValue so that if endValueUnitType
+	         is a relative unit (%, em, rem), the values set during tweening will continue to be accurately relative even if the metrics they depend
+	         on are dynamically changing during the course of the animation. Conversely, if we always normalized into px and used px for setting values, the px ratio
+	         would become stale if the original unit being animated toward was relative and the underlying metrics change during the animation. */
+									/* Since 0 is 0 in any unit type, no conversion is necessary when startValue is 0 -- we just start at 0 with endValueUnitType. */
+								} else if (startValueUnitType !== endValueUnitType && startValue !== 0) {
+									/* Unit conversion is also skipped when endValue is 0, but *startValueUnitType* must be used for tween values to remain accurate. */
+									/* Note: Skipping unit conversion here means that if endValueUnitType was originally a relative unit, the animation won't relatively
+	         match the underlying metrics if they change, but this is acceptable since we're animating toward invisibility instead of toward visibility,
+	         which remains past the point of the animation's completion. */
+									if (endValue === 0) {
+										endValueUnitType = startValueUnitType;
+									} else {
+										/* By this point, we cannot avoid unit conversion (it's undesirable since it causes layout thrashing).
+	          If we haven't already, we trigger calculateUnitRatios(), which runs once per element per call. */
+										elementUnitConversionData = elementUnitConversionData || calculateUnitRatios();
+	
+										/* The following RegEx matches CSS properties that have their % values measured relative to the x-axis. */
+										/* Note: W3C spec mandates that all of margin and padding's properties (even top and bottom) are %-relative to the *width* of the parent element. */
+										var axis = /margin|padding|left|right|width|text|word|letter/i.test(property) || /X$/.test(property) || property === "x" ? "x" : "y";
+	
+										/* In order to avoid generating n^2 bespoke conversion functions, unit conversion is a two-step process:
+	          1) Convert startValue into pixels. 2) Convert this new pixel value into endValue's unit type. */
+										switch (startValueUnitType) {
+											case "%":
+												/* Note: translateX and translateY are the only properties that are %-relative to an element's own dimensions -- not its parent's dimensions.
+	            Velocity does not include a special conversion process to account for this behavior. Therefore, animating translateX/Y from a % value
+	            to a non-% value will produce an incorrect start value. Fortunately, this sort of cross-unit conversion is rarely done by users in practice. */
+												startValue *= axis === "x" ? elementUnitConversionData.percentToPxWidth : elementUnitConversionData.percentToPxHeight;
+												break;
+	
+											case "px":
+												/* px acts as our midpoint in the unit conversion process; do nothing. */
+												break;
+	
+											default:
+												startValue *= elementUnitConversionData[startValueUnitType + "ToPx"];
+										}
+	
+										/* Invert the px ratios to convert into to the target unit. */
+										switch (endValueUnitType) {
+											case "%":
+												startValue *= 1 / (axis === "x" ? elementUnitConversionData.percentToPxWidth : elementUnitConversionData.percentToPxHeight);
+												break;
+	
+											case "px":
+												/* startValue is already in px, do nothing; we're done. */
+												break;
+	
+											default:
+												startValue *= 1 / elementUnitConversionData[endValueUnitType + "ToPx"];
+										}
+									}
+								}
+	
+								/*********************
+	        Relative Values
+	        *********************/
+	
+								/* Operator logic must be performed last since it requires unit-normalized start and end values. */
+								/* Note: Relative *percent values* do not behave how most people think; while one would expect "+=50%"
+	        to increase the property 1.5x its current value, it in fact increases the percent units in absolute terms:
+	        50 points is added on top of the current % value. */
+								switch (operator) {
+									case "+":
+										endValue = startValue + endValue;
+										break;
+	
+									case "-":
+										endValue = startValue - endValue;
+										break;
+	
+									case "*":
+										endValue = startValue * endValue;
+										break;
+	
+									case "/":
+										endValue = startValue / endValue;
+										break;
+								}
+	
+								/**************************
+	        tweensContainer Push
+	        **************************/
+	
+								/* Construct the per-property tween object, and push it to the element's tweensContainer. */
+								tweensContainer[property] = {
+									rootPropertyValue: rootPropertyValue,
+									startValue: startValue,
+									currentValue: startValue,
+									endValue: endValue,
+									unitType: endValueUnitType,
+									easing: easing
+								};
+								if (pattern) {
+									tweensContainer[property].pattern = pattern;
+								}
+	
+								if (Velocity.debug) {
+									console.log("tweensContainer (" + property + "): " + JSON.stringify(tweensContainer[property]), element);
+								}
+							};
+	
+							/* Create a tween out of each property, and append its associated data to tweensContainer. */
+							for (var property in propertiesMap) {
+	
+								if (!propertiesMap.hasOwnProperty(property)) {
+									continue;
+								}
+								/* The original property name's format must be used for the parsePropertyValue() lookup,
+	        but we then use its camelCase styling to normalize it for manipulation. */
+								var propertyName = CSS.Names.camelCase(property),
+								    valueData = parsePropertyValue(propertiesMap[property]);
+	
+								/* Find shorthand color properties that have been passed a hex string. */
+								/* Would be quicker to use CSS.Lists.colors.includes() if possible */
+								if (_inArray(CSS.Lists.colors, propertyName)) {
+									/* Parse the value data for each shorthand. */
+									var endValue = valueData[0],
+									    easing = valueData[1],
+									    startValue = valueData[2];
+	
+									if (CSS.RegEx.isHex.test(endValue)) {
+										/* Convert the hex strings into their RGB component arrays. */
+										var colorComponents = ["Red", "Green", "Blue"],
+										    endValueRGB = CSS.Values.hexToRgb(endValue),
+										    startValueRGB = startValue ? CSS.Values.hexToRgb(startValue) : undefined;
+	
+										/* Inject the RGB component tweens into propertiesMap. */
+										for (var i = 0; i < colorComponents.length; i++) {
+											var dataArray = [endValueRGB[i]];
+	
+											if (easing) {
+												dataArray.push(easing);
+											}
+	
+											if (startValueRGB !== undefined) {
+												dataArray.push(startValueRGB[i]);
+											}
+	
+											fixPropertyValue(propertyName + colorComponents[i], dataArray);
+										}
+										/* If we have replaced a shortcut color value then don't update the standard property name */
+										continue;
+									}
+								}
+								fixPropertyValue(propertyName, valueData);
+							}
+	
+							/* Along with its property data, store a reference to the element itself onto tweensContainer. */
+							tweensContainer.element = element;
+						}
+	
+						/*****************
+	      Call Push
+	      *****************/
+	
+						/* Note: tweensContainer can be empty if all of the properties in this call's property map were skipped due to not
+	      being supported by the browser. The element property is used for checking that the tweensContainer has been appended to. */
+						if (tweensContainer.element) {
+							/* Apply the "velocity-animating" indicator class. */
+							CSS.Values.addClass(element, "velocity-animating");
+	
+							/* The call array houses the tweensContainers for each element being animated in the current call. */
+							call.push(tweensContainer);
+	
+							data = Data(element);
+	
+							if (data) {
+								/* Store the tweensContainer and options if we're working on the default effects queue, so that they can be used by the reverse command. */
+								if (opts.queue === "") {
+	
+									data.tweensContainer = tweensContainer;
+									data.opts = opts;
+								}
+	
+								/* Switch on the element's animating flag. */
+								data.isAnimating = true;
+							}
+	
+							/* Once the final element in this call's element set has been processed, push the call array onto
+	       Velocity.State.calls for the animation tick to immediately begin processing. */
+							if (elementsIndex === elementsLength - 1) {
+								/* Add the current call plus its associated metadata (the element set and the call's options) onto the global call container.
+	        Anything on this call container is subjected to tick() processing. */
+								Velocity.State.calls.push([call, elements, opts, null, promiseData.resolver, null, 0]);
+	
+								/* If the animation tick isn't running, start it. (Velocity shuts it off when there are no active calls to process.) */
+								if (Velocity.State.isTicking === false) {
+									Velocity.State.isTicking = true;
+	
+									/* Start the tick loop. */
+									tick();
+								}
+							} else {
+								elementsIndex++;
+							}
+						}
+					}
+	
+					/* When the queue option is set to false, the call skips the element's queue and fires immediately. */
+					if (opts.queue === false) {
+						/* Since this buildQueue call doesn't respect the element's existing queue (which is where a delay option would have been appended),
+	      we manually inject the delay property here with an explicit setTimeout. */
+						if (opts.delay) {
+	
+							/* Temporarily store delayed elements to facilitate access for global pause/resume */
+							var callIndex = Velocity.State.delayedElements.count++;
+							Velocity.State.delayedElements[callIndex] = element;
+	
+							var delayComplete = function (index) {
+								return function () {
+									/* Clear the temporary element */
+									Velocity.State.delayedElements[index] = false;
+	
+									/* Finally, issue the call */
+									buildQueue();
+								};
+							}(callIndex);
+	
+							Data(element).delayBegin = new Date().getTime();
+							Data(element).delay = parseFloat(opts.delay);
+							Data(element).delayTimer = {
+								setTimeout: setTimeout(buildQueue, parseFloat(opts.delay)),
+								next: delayComplete
+							};
+						} else {
+							buildQueue();
+						}
+						/* Otherwise, the call undergoes element queueing as normal. */
+						/* Note: To interoperate with jQuery, Velocity uses jQuery's own $.queue() stack for queuing logic. */
+					} else {
+						$.queue(element, opts.queue, function (next, clearQueue) {
+							/* If the clearQueue flag was passed in by the stop command, resolve this call's promise. (Promises can only be resolved once,
+	       so it's fine if this is repeatedly triggered for each element in the associated call.) */
+							if (clearQueue === true) {
+								if (promiseData.promise) {
+									promiseData.resolver(elements);
+								}
+	
+								/* Do not continue with animation queueing. */
+								return true;
+							}
+	
+							/* This flag indicates to the upcoming completeCall() function that this queue entry was initiated by Velocity.
+	       See completeCall() for further details. */
+							Velocity.velocityQueueEntryFlag = true;
+	
+							buildQueue(next);
+						});
+					}
+	
+					/*********************
+	     Auto-Dequeuing
+	     *********************/
+	
+					/* As per jQuery's $.queue() behavior, to fire the first non-custom-queue entry on an element, the element
+	     must be dequeued if its queue stack consists *solely* of the current call. (This can be determined by checking
+	     for the "inprogress" item that jQuery prepends to active queue stack arrays.) Regardless, whenever the element's
+	     queue is further appended with additional items -- including $.delay()'s or even $.animate() calls, the queue's
+	     first entry is automatically fired. This behavior contrasts that of custom queues, which never auto-fire. */
+					/* Note: When an element set is being subjected to a non-parallel Velocity call, the animation will not begin until
+	     each one of the elements in the set has reached the end of its individually pre-existing queue chain. */
+					/* Note: Unfortunately, most people don't fully grasp jQuery's powerful, yet quirky, $.queue() function.
+	     Lean more here: http://stackoverflow.com/questions/1058158/can-somebody-explain-jquery-queue-to-me */
+					if ((opts.queue === "" || opts.queue === "fx") && $.queue(element)[0] !== "inprogress") {
+						$.dequeue(element);
+					}
+				}
+	
+				/**************************
+	    Element Set Iteration
+	    **************************/
+	
+				/* If the "nodeType" property exists on the elements variable, we're animating a single element.
+	    Place it in an array so that $.each() can iterate over it. */
+				$.each(elements, function (i, element) {
+					/* Ensure each element in a set has a nodeType (is a real element) to avoid throwing errors. */
+					if (Type.isNode(element)) {
+						processElement(element, i);
+					}
+				});
+	
+				/******************
+	    Option: Loop
+	    ******************/
+	
+				/* The loop option accepts an integer indicating how many times the element should loop between the values in the
+	    current call's properties map and the element's property values prior to this call. */
+				/* Note: The loop option's logic is performed here -- after element processing -- because the current call needs
+	    to undergo its queue insertion prior to the loop option generating its series of constituent "reverse" calls,
+	    which chain after the current call. Two reverse calls (two "alternations") constitute one loop. */
+				opts = $.extend({}, Velocity.defaults, options);
+				opts.loop = parseInt(opts.loop, 10);
+				var reverseCallsCount = opts.loop * 2 - 1;
+	
+				if (opts.loop) {
+					/* Double the loop count to convert it into its appropriate number of "reverse" calls.
+	     Subtract 1 from the resulting value since the current call is included in the total alternation count. */
+					for (var x = 0; x < reverseCallsCount; x++) {
+						/* Since the logic for the reverse action occurs inside Queueing and therefore this call's options object
+	      isn't parsed until then as well, the current call's delay option must be explicitly passed into the reverse
+	      call so that the delay logic that occurs inside *Pre-Queueing* can process it. */
+						var reverseOptions = {
+							delay: opts.delay,
+							progress: opts.progress
+						};
+	
+						/* If a complete callback was passed into this call, transfer it to the loop redirect's final "reverse" call
+	      so that it's triggered when the entire redirect is complete (and not when the very first animation is complete). */
+						if (x === reverseCallsCount - 1) {
+							reverseOptions.display = opts.display;
+							reverseOptions.visibility = opts.visibility;
+							reverseOptions.complete = opts.complete;
+						}
+	
+						animate(elements, "reverse", reverseOptions);
+					}
+				}
+	
+				/***************
+	    Chaining
+	    ***************/
+	
+				/* Return the elements back to the call chain, with wrapped elements taking precedence in case Velocity was called via the $.fn. extension. */
+				return getChain();
+			};
+	
+			/* Turn Velocity into the animation function, extended with the pre-existing Velocity object. */
+			Velocity = $.extend(animate, Velocity);
+			/* For legacy support, also expose the literal animate method. */
+			Velocity.animate = animate;
+	
+			/**************
+	   Timing
+	   **************/
+	
+			/* Ticker function. */
+			var ticker = window.requestAnimationFrame || rAFShim;
+	
+			/* Inactive browser tabs pause rAF, which results in all active animations immediately sprinting to their completion states when the tab refocuses.
+	   To get around this, we dynamically switch rAF to setTimeout (which the browser *doesn't* pause) when the tab loses focus. We skip this for mobile
+	   devices to avoid wasting battery power on inactive tabs. */
+			/* Note: Tab focus detection doesn't work on older versions of IE, but that's okay since they don't support rAF to begin with. */
+			if (!Velocity.State.isMobile && document.hidden !== undefined) {
+				var updateTicker = function updateTicker() {
+					/* Reassign the rAF function (which the global tick() function uses) based on the tab's focus state. */
+					if (document.hidden) {
+						ticker = function ticker(callback) {
+							/* The tick function needs a truthy first argument in order to pass its internal timestamp check. */
+							return setTimeout(function () {
+								callback(true);
+							}, 16);
+						};
+	
+						/* The rAF loop has been paused by the browser, so we manually restart the tick. */
+						tick();
+					} else {
+						ticker = window.requestAnimationFrame || rAFShim;
+					}
+				};
+	
+				/* Page could be sitting in the background at this time (i.e. opened as new tab) so making sure we use correct ticker from the start */
+				updateTicker();
+	
+				/* And then run check again every time visibility changes */
+				document.addEventListener("visibilitychange", updateTicker);
+			}
+	
+			/************
+	   Tick
+	   ************/
+	
+			/* Note: All calls to Velocity are pushed to the Velocity.State.calls array, which is fully iterated through upon each tick. */
+			function tick(timestamp) {
+				/* An empty timestamp argument indicates that this is the first tick occurence since ticking was turned on.
+	    We leverage this metadata to fully ignore the first tick pass since RAF's initial pass is fired whenever
+	    the browser's next tick sync time occurs, which results in the first elements subjected to Velocity
+	    calls being animated out of sync with any elements animated immediately thereafter. In short, we ignore
+	    the first RAF tick pass so that elements being immediately consecutively animated -- instead of simultaneously animated
+	    by the same Velocity call -- are properly batched into the same initial RAF tick and consequently remain in sync thereafter. */
+				if (timestamp) {
+					/* We normally use RAF's high resolution timestamp but as it can be significantly offset when the browser is
+	     under high stress we give the option for choppiness over allowing the browser to drop huge chunks of frames.
+	     We use performance.now() and shim it if it doesn't exist for when the tab is hidden. */
+					var timeCurrent = Velocity.timestamp && timestamp !== true ? timestamp : performance.now();
+	
+					/********************
+	     Call Iteration
+	     ********************/
+	
+					var callsLength = Velocity.State.calls.length;
+	
+					/* To speed up iterating over this array, it is compacted (falsey items -- calls that have completed -- are removed)
+	     when its length has ballooned to a point that can impact tick performance. This only becomes necessary when animation
+	     has been continuous with many elements over a long period of time; whenever all active calls are completed, completeCall() clears Velocity.State.calls. */
+					if (callsLength > 10000) {
+						Velocity.State.calls = compactSparseArray(Velocity.State.calls);
+						callsLength = Velocity.State.calls.length;
+					}
+	
+					/* Iterate through each active call. */
+					for (var i = 0; i < callsLength; i++) {
+						/* When a Velocity call is completed, its Velocity.State.calls entry is set to false. Continue on to the next call. */
+						if (!Velocity.State.calls[i]) {
+							continue;
+						}
+	
+						/************************
+	      Call-Wide Variables
+	      ************************/
+	
+						var callContainer = Velocity.State.calls[i],
+						    call = callContainer[0],
+						    opts = callContainer[2],
+						    timeStart = callContainer[3],
+						    firstTick = !!timeStart,
+						    tweenDummyValue = null,
+						    pauseObject = callContainer[5],
+						    millisecondsEllapsed = callContainer[6];
+	
+						/* If timeStart is undefined, then this is the first time that this call has been processed by tick().
+	      We assign timeStart now so that its value is as close to the real animation start time as possible.
+	      (Conversely, had timeStart been defined when this call was added to Velocity.State.calls, the delay
+	      between that time and now would cause the first few frames of the tween to be skipped since
+	      percentComplete is calculated relative to timeStart.) */
+						/* Further, subtract 16ms (the approximate resolution of RAF) from the current time value so that the
+	      first tick iteration isn't wasted by animating at 0% tween completion, which would produce the
+	      same style value as the element's current value. */
+						if (!timeStart) {
+							timeStart = Velocity.State.calls[i][3] = timeCurrent - 16;
+						}
+	
+						/* If a pause object is present, skip processing unless it has been set to resume */
+						if (pauseObject) {
+							if (pauseObject.resume === true) {
+								/* Update the time start to accomodate the paused completion amount */
+								timeStart = callContainer[3] = Math.round(timeCurrent - millisecondsEllapsed - 16);
+	
+								/* Remove pause object after processing */
+								callContainer[5] = null;
+							} else {
+								continue;
+							}
+						}
+	
+						millisecondsEllapsed = callContainer[6] = timeCurrent - timeStart;
+	
+						/* The tween's completion percentage is relative to the tween's start time, not the tween's start value
+	      (which would result in unpredictable tween durations since JavaScript's timers are not particularly accurate).
+	      Accordingly, we ensure that percentComplete does not exceed 1. */
+						var percentComplete = Math.min(millisecondsEllapsed / opts.duration, 1);
+	
+						/**********************
+	      Element Iteration
+	      **********************/
+	
+						/* For every call, iterate through each of the elements in its set. */
+						for (var j = 0, callLength = call.length; j < callLength; j++) {
+							var tweensContainer = call[j],
+							    element = tweensContainer.element;
+	
+							/* Check to see if this element has been deleted midway through the animation by checking for the
+	       continued existence of its data cache. If it's gone, or the element is currently paused, skip animating this element. */
+							if (!Data(element)) {
+								continue;
+							}
+	
+							var transformPropertyExists = false;
+	
+							/**********************************
+	       Display & Visibility Toggling
+	       **********************************/
+	
+							/* If the display option is set to non-"none", set it upfront so that the element can become visible before tweening begins.
+	       (Otherwise, display's "none" value is set in completeCall() once the animation has completed.) */
+							if (opts.display !== undefined && opts.display !== null && opts.display !== "none") {
+								if (opts.display === "flex") {
+									var flexValues = ["-webkit-box", "-moz-box", "-ms-flexbox", "-webkit-flex"];
+	
+									$.each(flexValues, function (i, flexValue) {
+										CSS.setPropertyValue(element, "display", flexValue);
+									});
+								}
+	
+								CSS.setPropertyValue(element, "display", opts.display);
+							}
+	
+							/* Same goes with the visibility option, but its "none" equivalent is "hidden". */
+							if (opts.visibility !== undefined && opts.visibility !== "hidden") {
+								CSS.setPropertyValue(element, "visibility", opts.visibility);
+							}
+	
+							/************************
+	       Property Iteration
+	       ************************/
+	
+							/* For every element, iterate through each property. */
+							for (var property in tweensContainer) {
+								/* Note: In addition to property tween data, tweensContainer contains a reference to its associated element. */
+								if (tweensContainer.hasOwnProperty(property) && property !== "element") {
+									var tween = tweensContainer[property],
+									    currentValue,
+	
+									/* Easing can either be a pre-genereated function or a string that references a pre-registered easing
+	         on the Velocity.Easings object. In either case, return the appropriate easing *function*. */
+									easing = Type.isString(tween.easing) ? Velocity.Easings[tween.easing] : tween.easing;
+	
+									/******************************
+	         Current Value Calculation
+	         ******************************/
+	
+									if (Type.isString(tween.pattern)) {
+										var patternReplace = percentComplete === 1 ? function ($0, index, round) {
+											var result = tween.endValue[index];
+	
+											return round ? Math.round(result) : result;
+										} : function ($0, index, round) {
+											var startValue = tween.startValue[index],
+											    tweenDelta = tween.endValue[index] - startValue,
+											    result = startValue + tweenDelta * easing(percentComplete, opts, tweenDelta);
+	
+											return round ? Math.round(result) : result;
+										};
+	
+										currentValue = tween.pattern.replace(/{(\d+)(!)?}/g, patternReplace);
+									} else if (percentComplete === 1) {
+										/* If this is the last tick pass (if we've reached 100% completion for this tween),
+	          ensure that currentValue is explicitly set to its target endValue so that it's not subjected to any rounding. */
+										currentValue = tween.endValue;
+									} else {
+										/* Otherwise, calculate currentValue based on the current delta from startValue. */
+										var tweenDelta = tween.endValue - tween.startValue;
+	
+										currentValue = tween.startValue + tweenDelta * easing(percentComplete, opts, tweenDelta);
+										/* If no value change is occurring, don't proceed with DOM updating. */
+									}
+									if (!firstTick && currentValue === tween.currentValue) {
+										continue;
+									}
+	
+									tween.currentValue = currentValue;
+	
+									/* If we're tweening a fake 'tween' property in order to log transition values, update the one-per-call variable so that
+	         it can be passed into the progress callback. */
+									if (property === "tween") {
+										tweenDummyValue = currentValue;
+									} else {
+										/******************
+	          Hooks: Part I
+	          ******************/
+										var hookRoot;
+	
+										/* For hooked properties, the newly-updated rootPropertyValueCache is cached onto the element so that it can be used
+	          for subsequent hooks in this call that are associated with the same root property. If we didn't cache the updated
+	          rootPropertyValue, each subsequent update to the root property in this tick pass would reset the previous hook's
+	          updates to rootPropertyValue prior to injection. A nice performance byproduct of rootPropertyValue caching is that
+	          subsequently chained animations using the same hookRoot but a different hook can use this cached rootPropertyValue. */
+										if (CSS.Hooks.registered[property]) {
+											hookRoot = CSS.Hooks.getRoot(property);
+	
+											var rootPropertyValueCache = Data(element).rootPropertyValueCache[hookRoot];
+	
+											if (rootPropertyValueCache) {
+												tween.rootPropertyValue = rootPropertyValueCache;
+											}
+										}
+	
+										/*****************
+	          DOM Update
+	          *****************/
+	
+										/* setPropertyValue() returns an array of the property name and property value post any normalization that may have been performed. */
+										/* Note: To solve an IE<=8 positioning bug, the unit type is dropped when setting a property value of 0. */
+										var adjustedSetData = CSS.setPropertyValue(element, /* SET */
+										property, tween.currentValue + (IE < 9 && parseFloat(currentValue) === 0 ? "" : tween.unitType), tween.rootPropertyValue, tween.scrollData);
+	
+										/*******************
+	          Hooks: Part II
+	          *******************/
+	
+										/* Now that we have the hook's updated rootPropertyValue (the post-processed value provided by adjustedSetData), cache it onto the element. */
+										if (CSS.Hooks.registered[property]) {
+											/* Since adjustedSetData contains normalized data ready for DOM updating, the rootPropertyValue needs to be re-extracted from its normalized form. ?? */
+											if (CSS.Normalizations.registered[hookRoot]) {
+												Data(element).rootPropertyValueCache[hookRoot] = CSS.Normalizations.registered[hookRoot]("extract", null, adjustedSetData[1]);
+											} else {
+												Data(element).rootPropertyValueCache[hookRoot] = adjustedSetData[1];
+											}
+										}
+	
+										/***************
+	          Transforms
+	          ***************/
+	
+										/* Flag whether a transform property is being animated so that flushTransformCache() can be triggered once this tick pass is complete. */
+										if (adjustedSetData[0] === "transform") {
+											transformPropertyExists = true;
+										}
+									}
+								}
+							}
+	
+							/****************
+	       mobileHA
+	       ****************/
+	
+							/* If mobileHA is enabled, set the translate3d transform to null to force hardware acceleration.
+	       It's safe to override this property since Velocity doesn't actually support its animation (hooks are used in its place). */
+							if (opts.mobileHA) {
+								/* Don't set the null transform hack if we've already done so. */
+								if (Data(element).transformCache.translate3d === undefined) {
+									/* All entries on the transformCache object are later concatenated into a single transform string via flushTransformCache(). */
+									Data(element).transformCache.translate3d = "(0px, 0px, 0px)";
+	
+									transformPropertyExists = true;
+								}
+							}
+	
+							if (transformPropertyExists) {
+								CSS.flushTransformCache(element);
+							}
+						}
+	
+						/* The non-"none" display value is only applied to an element once -- when its associated call is first ticked through.
+	      Accordingly, it's set to false so that it isn't re-processed by this call in the next tick. */
+						if (opts.display !== undefined && opts.display !== "none") {
+							Velocity.State.calls[i][2].display = false;
+						}
+						if (opts.visibility !== undefined && opts.visibility !== "hidden") {
+							Velocity.State.calls[i][2].visibility = false;
+						}
+	
+						/* Pass the elements and the timing data (percentComplete, msRemaining, timeStart, tweenDummyValue) into the progress callback. */
+						if (opts.progress) {
+							opts.progress.call(callContainer[1], callContainer[1], percentComplete, Math.max(0, timeStart + opts.duration - timeCurrent), timeStart, tweenDummyValue);
+						}
+	
+						/* If this call has finished tweening, pass its index to completeCall() to handle call cleanup. */
+						if (percentComplete === 1) {
+							completeCall(i);
+						}
+					}
+				}
+	
+				/* Note: completeCall() sets the isTicking flag to false when the last call on Velocity.State.calls has completed. */
+				if (Velocity.State.isTicking) {
+					ticker(tick);
+				}
+			}
+	
+			/**********************
+	   Call Completion
+	   **********************/
+	
+			/* Note: Unlike tick(), which processes all active calls at once, call completion is handled on a per-call basis. */
+			function completeCall(callIndex, isStopped) {
+				/* Ensure the call exists. */
+				if (!Velocity.State.calls[callIndex]) {
+					return false;
+				}
+	
+				/* Pull the metadata from the call. */
+				var call = Velocity.State.calls[callIndex][0],
+				    elements = Velocity.State.calls[callIndex][1],
+				    opts = Velocity.State.calls[callIndex][2],
+				    resolver = Velocity.State.calls[callIndex][4];
+	
+				var remainingCallsExist = false;
+	
+				/*************************
+	    Element Finalization
+	    *************************/
+	
+				for (var i = 0, callLength = call.length; i < callLength; i++) {
+					var element = call[i].element;
+	
+					/* If the user set display to "none" (intending to hide the element), set it now that the animation has completed. */
+					/* Note: display:none isn't set when calls are manually stopped (via Velocity("stop"). */
+					/* Note: Display gets ignored with "reverse" calls and infinite loops, since this behavior would be undesirable. */
+					if (!isStopped && !opts.loop) {
+						if (opts.display === "none") {
+							CSS.setPropertyValue(element, "display", opts.display);
+						}
+	
+						if (opts.visibility === "hidden") {
+							CSS.setPropertyValue(element, "visibility", opts.visibility);
+						}
+					}
+	
+					/* If the element's queue is empty (if only the "inprogress" item is left at position 0) or if its queue is about to run
+	     a non-Velocity-initiated entry, turn off the isAnimating flag. A non-Velocity-initiatied queue entry's logic might alter
+	     an element's CSS values and thereby cause Velocity's cached value data to go stale. To detect if a queue entry was initiated by Velocity,
+	     we check for the existence of our special Velocity.queueEntryFlag declaration, which minifiers won't rename since the flag
+	     is assigned to jQuery's global $ object and thus exists out of Velocity's own scope. */
+					var data = Data(element);
+	
+					if (opts.loop !== true && ($.queue(element)[1] === undefined || !/\.velocityQueueEntryFlag/i.test($.queue(element)[1]))) {
+						/* The element may have been deleted. Ensure that its data cache still exists before acting on it. */
+						if (data) {
+							data.isAnimating = false;
+							/* Clear the element's rootPropertyValueCache, which will become stale. */
+							data.rootPropertyValueCache = {};
+	
+							var transformHAPropertyExists = false;
+							/* If any 3D transform subproperty is at its default value (regardless of unit type), remove it. */
+							$.each(CSS.Lists.transforms3D, function (i, transformName) {
+								var defaultValue = /^scale/.test(transformName) ? 1 : 0,
+								    currentValue = data.transformCache[transformName];
+	
+								if (data.transformCache[transformName] !== undefined && new RegExp("^\\(" + defaultValue + "[^.]").test(currentValue)) {
+									transformHAPropertyExists = true;
+	
+									delete data.transformCache[transformName];
+								}
+							});
+	
+							/* Mobile devices have hardware acceleration removed at the end of the animation in order to avoid hogging the GPU's memory. */
+							if (opts.mobileHA) {
+								transformHAPropertyExists = true;
+								delete data.transformCache.translate3d;
+							}
+	
+							/* Flush the subproperty removals to the DOM. */
+							if (transformHAPropertyExists) {
+								CSS.flushTransformCache(element);
+							}
+	
+							/* Remove the "velocity-animating" indicator class. */
+							CSS.Values.removeClass(element, "velocity-animating");
+						}
+					}
+	
+					/*********************
+	     Option: Complete
+	     *********************/
+	
+					/* Complete is fired once per call (not once per element) and is passed the full raw DOM element set as both its context and its first argument. */
+					/* Note: Callbacks aren't fired when calls are manually stopped (via Velocity("stop"). */
+					if (!isStopped && opts.complete && !opts.loop && i === callLength - 1) {
+						/* We throw callbacks in a setTimeout so that thrown errors don't halt the execution of Velocity itself. */
+						try {
+							opts.complete.call(elements, elements);
+						} catch (error) {
+							setTimeout(function () {
+								throw error;
+							}, 1);
+						}
+					}
+	
+					/**********************
+	     Promise Resolving
+	     **********************/
+	
+					/* Note: Infinite loops don't return promises. */
+					if (resolver && opts.loop !== true) {
+						resolver(elements);
+					}
+	
+					/****************************
+	     Option: Loop (Infinite)
+	     ****************************/
+	
+					if (data && opts.loop === true && !isStopped) {
+						/* If a rotateX/Y/Z property is being animated by 360 deg with loop:true, swap tween start/end values to enable
+	      continuous iterative rotation looping. (Otherise, the element would just rotate back and forth.) */
+						$.each(data.tweensContainer, function (propertyName, tweenContainer) {
+							if (/^rotate/.test(propertyName) && (parseFloat(tweenContainer.startValue) - parseFloat(tweenContainer.endValue)) % 360 === 0) {
+								var oldStartValue = tweenContainer.startValue;
+	
+								tweenContainer.startValue = tweenContainer.endValue;
+								tweenContainer.endValue = oldStartValue;
+							}
+	
+							if (/^backgroundPosition/.test(propertyName) && parseFloat(tweenContainer.endValue) === 100 && tweenContainer.unitType === "%") {
+								tweenContainer.endValue = 0;
+								tweenContainer.startValue = 100;
+							}
+						});
+	
+						Velocity(element, "reverse", { loop: true, delay: opts.delay });
+					}
+	
+					/***************
+	     Dequeueing
+	     ***************/
+	
+					/* Fire the next call in the queue so long as this call's queue wasn't set to false (to trigger a parallel animation),
+	     which would have already caused the next call to fire. Note: Even if the end of the animation queue has been reached,
+	     $.dequeue() must still be called in order to completely clear jQuery's animation queue. */
+					if (opts.queue !== false) {
+						$.dequeue(element, opts.queue);
+					}
+				}
+	
+				/************************
+	    Calls Array Cleanup
+	    ************************/
+	
+				/* Since this call is complete, set it to false so that the rAF tick skips it. This array is later compacted via compactSparseArray().
+	    (For performance reasons, the call is set to false instead of being deleted from the array: http://www.html5rocks.com/en/tutorials/speed/v8/) */
+				Velocity.State.calls[callIndex] = false;
+	
+				/* Iterate through the calls array to determine if this was the final in-progress animation.
+	    If so, set a flag to end ticking and clear the calls array. */
+				for (var j = 0, callsLength = Velocity.State.calls.length; j < callsLength; j++) {
+					if (Velocity.State.calls[j] !== false) {
+						remainingCallsExist = true;
+	
+						break;
+					}
+				}
+	
+				if (remainingCallsExist === false) {
+					/* tick() will detect this flag upon its next iteration and subsequently turn itself off. */
+					Velocity.State.isTicking = false;
+	
+					/* Clear the calls array so that its length is reset. */
+					delete Velocity.State.calls;
+					Velocity.State.calls = [];
+				}
+			}
+	
+			/******************
+	   Frameworks
+	   ******************/
+	
+			/* Both jQuery and Zepto allow their $.fn object to be extended to allow wrapped elements to be subjected to plugin calls.
+	   If either framework is loaded, register a "velocity" extension pointing to Velocity's core animate() method.  Velocity
+	   also registers itself onto a global container (window.jQuery || window.Zepto || window) so that certain features are
+	   accessible beyond just a per-element scope. This master object contains an .animate() method, which is later assigned to $.fn
+	   (if jQuery or Zepto are present). Accordingly, Velocity can both act on wrapped DOM elements and stand alone for targeting raw DOM elements. */
+			global.Velocity = Velocity;
+	
+			if (global !== window) {
+				/* Assign the element function to Velocity's core animate() method. */
+				global.fn.velocity = animate;
+				/* Assign the object function's defaults to Velocity's global defaults object. */
+				global.fn.velocity.defaults = Velocity.defaults;
+			}
+	
+			/***********************
+	   Packaged Redirects
+	   ***********************/
+	
+			/* slideUp, slideDown */
+			$.each(["Down", "Up"], function (i, direction) {
+				Velocity.Redirects["slide" + direction] = function (element, options, elementsIndex, elementsSize, elements, promiseData) {
+					var opts = $.extend({}, options),
+					    begin = opts.begin,
+					    complete = opts.complete,
+					    inlineValues = {},
+					    computedValues = { height: "", marginTop: "", marginBottom: "", paddingTop: "", paddingBottom: "" };
+	
+					if (opts.display === undefined) {
+						/* Show the element before slideDown begins and hide the element after slideUp completes. */
+						/* Note: Inline elements cannot have dimensions animated, so they're reverted to inline-block. */
+						opts.display = direction === "Down" ? Velocity.CSS.Values.getDisplayType(element) === "inline" ? "inline-block" : "block" : "none";
+					}
+	
+					opts.begin = function () {
+						/* If the user passed in a begin callback, fire it now. */
+						if (elementsIndex === 0 && begin) {
+							begin.call(elements, elements);
+						}
+	
+						/* Cache the elements' original vertical dimensional property values so that we can animate back to them. */
+						for (var property in computedValues) {
+							if (!computedValues.hasOwnProperty(property)) {
+								continue;
+							}
+							inlineValues[property] = element.style[property];
+	
+							/* For slideDown, use forcefeeding to animate all vertical properties from 0. For slideUp,
+	       use forcefeeding to start from computed values and animate down to 0. */
+							var propertyValue = CSS.getPropertyValue(element, property);
+							computedValues[property] = direction === "Down" ? [propertyValue, 0] : [0, propertyValue];
+						}
+	
+						/* Force vertical overflow content to clip so that sliding works as expected. */
+						inlineValues.overflow = element.style.overflow;
+						element.style.overflow = "hidden";
+					};
+	
+					opts.complete = function () {
+						/* Reset element to its pre-slide inline values once its slide animation is complete. */
+						for (var property in inlineValues) {
+							if (inlineValues.hasOwnProperty(property)) {
+								element.style[property] = inlineValues[property];
+							}
+						}
+	
+						/* If the user passed in a complete callback, fire it now. */
+						if (elementsIndex === elementsSize - 1) {
+							if (complete) {
+								complete.call(elements, elements);
+							}
+							if (promiseData) {
+								promiseData.resolver(elements);
+							}
+						}
+					};
+	
+					Velocity(element, computedValues, opts);
+				};
+			});
+	
+			/* fadeIn, fadeOut */
+			$.each(["In", "Out"], function (i, direction) {
+				Velocity.Redirects["fade" + direction] = function (element, options, elementsIndex, elementsSize, elements, promiseData) {
+					var opts = $.extend({}, options),
+					    complete = opts.complete,
+					    propertiesMap = { opacity: direction === "In" ? 1 : 0 };
+	
+					/* Since redirects are triggered individually for each element in the animated set, avoid repeatedly triggering
+	     callbacks by firing them only when the final element has been reached. */
+					if (elementsIndex !== 0) {
+						opts.begin = null;
+					}
+					if (elementsIndex !== elementsSize - 1) {
+						opts.complete = null;
+					} else {
+						opts.complete = function () {
+							if (complete) {
+								complete.call(elements, elements);
+							}
+							if (promiseData) {
+								promiseData.resolver(elements);
+							}
+						};
+					}
+	
+					/* If a display was passed in, use it. Otherwise, default to "none" for fadeOut or the element-specific default for fadeIn. */
+					/* Note: We allow users to pass in "null" to skip display setting altogether. */
+					if (opts.display === undefined) {
+						opts.display = direction === "In" ? "auto" : "none";
+					}
+	
+					Velocity(this, propertiesMap, opts);
+				};
+			});
+	
+			return Velocity;
+		}(window.jQuery || window.Zepto || window, window, window ? window.document : undefined);
+	});
+	
+	/******************
+	 Known Issues
+	 ******************/
+	
+	/* The CSS spec mandates that the translateX/Y/Z transforms are %-relative to the element itself -- not its parent.
+	 Velocity, however, doesn't make this distinction. Thus, converting to or from the % unit with these subproperties
+	 will produce an inaccurate conversion value. The same issue exists with the cx/cy attributes of SVG circles and ellipses. */
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(186)(module)))
+
+/***/ }),
+/* 186 */
+/***/ (function(module, exports) {
+
+	"use strict";
+	
+	module.exports = function (module) {
+		if (!module.webpackPolyfill) {
+			module.deprecate = function () {};
+			module.paths = [];
+			// module.parent = undefined by default
+			module.children = [];
+			module.webpackPolyfill = 1;
+		}
+		return module;
+	};
 
 /***/ }),
 /* 187 */
@@ -22509,10 +27081,10 @@
 	            })[0];
 	
 	            rootElement.appendChild(_this2.container);
-	        });
+	        }
 	
 	        // When we show our search results, the page body should go away
-	        this._bodyElement = null;
+	        );this._bodyElement = null;
 	    }
 	
 	    _createClass(Marian, [{

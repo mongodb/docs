@@ -366,4 +366,9 @@ gulp.task('watch', function() {
   gulp.watch('./src/**/*.js', ['js'])
 })
 
+gulp.task('watch:prod', function() {
+  gulp.watch('./src/styles/**/*.scss', ['sass:prod'])
+  gulp.watch('./src/**/*.js', ['js:prod'])
+})
+
 gulp.task('default', ['sass', 'js', 'watch'])
