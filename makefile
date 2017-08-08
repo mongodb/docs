@@ -1,5 +1,5 @@
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-USER=`whoami`
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+USER=$(shell whoami)
 
 STAGING_URL="https://docs-staging.atlas.mongodb.com"
 STAGING_BUCKET=docs-atlas-staging
