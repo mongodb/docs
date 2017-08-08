@@ -22526,8 +22526,7 @@
 	            tabStripElements.push({ id: 'manual', label: 'MongoDB Manual' });
 	        }
 	
-	        // Holding off on this until we deploy to more properties
-	        // tabStripElements.push({id: 'all', label: 'All Results'})
+	        tabStripElements.push({ id: 'all', label: 'All Results' });
 	
 	        var tabStrip = new TabStrip('current', tabStripElements, function (tab) {
 	            tabStrip.update(tab.id);

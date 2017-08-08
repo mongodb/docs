@@ -49,8 +49,7 @@ export default class Marian {
             tabStripElements.push({id: 'manual', label: 'MongoDB Manual'})
         }
 
-        // Holding off on this until we deploy to more properties
-        // tabStripElements.push({id: 'all', label: 'All Results'})
+        tabStripElements.push({id: 'all', label: 'All Results'})
 
         const tabStrip = new TabStrip('current', tabStripElements, (tab) => {
             tabStrip.update(tab.id)
