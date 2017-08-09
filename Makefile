@@ -8,7 +8,7 @@ PROJECT=bi-connector
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
-STABLE_BRANCH=$(shell grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+')
+STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
 .PHONY: help html publish stage deploy deploy-search-index
 
@@ -46,8 +46,8 @@ check-redirects:
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-ifeq ($(STABLE_BRANCH), $(GIT_BRANCH))
-	mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/current -g -s
-else
-	mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s
-endif
+	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
+		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/current -g -s; \
+	else \
+		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
+	fi
