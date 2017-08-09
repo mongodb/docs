@@ -56,6 +56,9 @@ Definition
 Behavior
 --------
 
+If the name of a field repeats in the array,
+:expression:`$arrayToObject` uses the first value for that field.
+
 For more information on expressions, see :ref:`aggregation-expressions`.
 
 .. list-table::
@@ -83,7 +86,7 @@ For more information on expressions, see :ref:`aggregation-expressions`.
 
    * - .. code-block:: json
 
-          { $arrayToObject: { $literal: [{ "k": "item", "v": "123abc"}, { "k": "item", "v": "abc123" } ] } }
+          { $arrayToObject: { $literal: [ { "k": "item", "v": "123abc"}, { "k": "item", "v": "abc123" } ] } }
 
      - .. code-block:: json
 
@@ -102,7 +105,8 @@ Consider a ``inventory`` collection with the following documents:
 .. code-block:: javascript
 
    { "_id" : 1, "item" : "ABC1",  dimensions: [ { "k": "l", "v": 25} , { "k": "w", "v": 10 }, { "k": "uom", "v": "cm" } ] }
-   { "_id" : 2, "item" : "ABC2",  dimensions: [ [ "l", 50], [ "w",  25 ], [ "uom", "cm" ] ] }
+   { "_id" : 2, "item" : "ABC2",  dimensions: [ [ "l", 50 ], [ "w",  25 ], [ "uom", "cm" ] ] }
+   { "_id" : 3, "item" : "ABC3",  dimensions: [ [ "l", 50 ], [ "l",  25 ], [ "l", "cm" ] ] }
 
 The following aggregation pipeline operation use the
 :expression:`$arrayToObject` to return the ``dimensions`` field as a
@@ -128,21 +132,10 @@ The operation returns the following:
 
    { "_id" : 1, "item" : "ABC1", "dimensions" : { "l" : 25, "w" : 10, "uom" : "cm" } }
    { "_id" : 2, "item" : "ABC2", "dimensions" : { "l" : 50, "w" : 25, "uom" : "cm" } }
+   { "_id" : 3, "item" : "ABC3", "dimensions" : { "l" : 50 } }
 
-In case that our array field ``dimensions`` contains sub-documents with the same
-``k`` field value:
-
-.. code-block:: javascript
-    
-    { "_id" : 3, "item" : "ABC3", dimensions: [ { "k": "a", "v": 10}, { "k": "a", "v": 30 }  ]}
-
-:expression:`$arrayToObject` will return as key value pair, the first
-sub-document values in the array field:
-
-.. code-block:: javascript
-
-    { "_id" : 3, "item" : "ABC3", "dimensions" : { "a" : 10 } }
-
+If the name of a field repeats in the array,
+:expression:`$arrayToObject` uses the first value for that field.
 
 ``$objectToArray`` + ``$arrayToObject`` Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
