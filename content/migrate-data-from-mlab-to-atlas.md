@@ -122,13 +122,15 @@ migration process:
   See [the driver compatibility table](https://docs.mongodb.com/ecosystem/drivers/driver-compatibility-reference/)
   for complete documentation.
   
-- If the application server uses a MongoDB component such as the ``mongo``
-  shell to connect and perform operations on the MongoDB cluster, you must
-  update these components to match the MongoDB version of the destination
-  cluster. [Download the appropriate version of the MongoDB server
+- If the application server uses a MongoDB component such as the
+  [mongo](https://docs.mongodb.com/manual/reference/program/mongo/) shell to
+  connect and perform operations on the MongoDB cluster, you must update these
+  components to match the MongoDB version of the destination cluster.
+  [Download the appropriate version of the MongoDB server
   package](https://www.mongodb.com/download-center?jmp=docs#community). The
   server package includes the ``mongo`` shell and other components such as
-  ``mongodump`` and ``mongorestore``.
+  [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/)
+  and [mongorestore](https://docs.mongodb.com/manual/reference/program/mongorestore/).
 
 ## Migrate an mLab Cluster to Atlas
 
@@ -158,7 +160,8 @@ from the mLab cluster view:
 - The ``Password`` for the administrative user created in an [earlier step](#configure-compose-cluster-admin-user).
 
 The mLab cluster view displays the hostname and port of the primary replica set member
-as a part of the ``mongo`` shell connection dialog:
+as a part of the [mongo](https://docs.mongodb.com/manual/reference/program/mongo/)
+shell connection dialog:
 
 ```shell
 
