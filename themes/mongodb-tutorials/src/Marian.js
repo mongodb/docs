@@ -5,7 +5,7 @@ class TabStrip {
         this.element.className = 'tab-strip'
         this.element.role = 'tablist'
 
-        for (const tab of tabs) {
+        tabs.forEach((tab) => {
             const tabElement = document.createElement('li')
             tabElement.role = 'tab'
             tabElement.className = 'tab-strip__element'
@@ -14,19 +14,19 @@ class TabStrip {
 
             this.element.appendChild(tabElement)
             tab.element = tabElement
-        }
+        })
 
         this.update(initialSelection)
     }
 
     update(selectedId) {
-        for (const tab of this.tabs) {
+        this.tabs.forEach((tab) => {
             if (tab.id === selectedId) {
                 tab.element.setAttribute('aria-selected', true)
             } else {
                 tab.element.setAttribute('aria-selected', false)
             }
-        }
+        })
     }
 }
 
@@ -81,9 +81,11 @@ export default class Marian {
 
     get bodyElement() {
         if (!this._bodyElement) {
-            for (const candidate of ['.main__content', '.document']) {
+            const candidates = ['.main__content', '.document']
+            for (let i = 0; i < candidates.length; i += 1) {
+                const candidate = candidates[i]
                 this._bodyElement = document.querySelector(candidate)
-                if (this._bodyElement) { break }
+                if (this._bodyElement) { continue }
             }
 
             // If we can't find a page body, just use a dummy element
@@ -140,9 +142,9 @@ export default class Marian {
             const spellingErrors = Object.keys(data.spellingCorrections)
             if (spellingErrors.length > 0) {
                 let corrected = query
-                for (const orig of spellingErrors) {
+                spellingErrors.forEach((orig) => {
                     corrected = corrected.replace(orig, data.spellingCorrections[orig])
-                }
+                })
 
                 const li = document.createElement('li')
                 const correctLink = document.createElement('a')
@@ -156,7 +158,7 @@ export default class Marian {
                 this.listElement.appendChild(li)
             }
 
-            for (const result of data.results) {
+            data.results.forEach((result) => {
                 const li = document.createElement('li')
                 li.className = 'marian-result'
 
@@ -172,7 +174,7 @@ export default class Marian {
                 li.appendChild(titleLink)
                 li.appendChild(previewElement)
                 this.listElement.appendChild(li)
-            }
+            })
         }
 
         request.send()

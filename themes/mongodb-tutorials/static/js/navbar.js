@@ -22424,6 +22424,8 @@
 	
 	var TabStrip = function () {
 	    function TabStrip(initialSelection, tabs, onclick) {
+	        var _this = this;
+	
 	        _classCallCheck(this, TabStrip);
 	
 	        this.tabs = tabs;
@@ -22431,37 +22433,16 @@
 	        this.element.className = 'tab-strip';
 	        this.element.role = 'tablist';
 	
-	        var _iteratorNormalCompletion = true;
-	        var _didIteratorError = false;
-	        var _iteratorError = undefined;
+	        tabs.forEach(function (tab) {
+	            var tabElement = document.createElement('li');
+	            tabElement.role = 'tab';
+	            tabElement.className = 'tab-strip__element';
+	            tabElement.innerText = tab.label;
+	            tabElement.onclick = onclick.bind(null, tab);
 	
-	        try {
-	            for (var _iterator = tabs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	                var tab = _step.value;
-	
-	                var tabElement = document.createElement('li');
-	                tabElement.role = 'tab';
-	                tabElement.className = 'tab-strip__element';
-	                tabElement.innerText = tab.label;
-	                tabElement.onclick = onclick.bind(null, tab);
-	
-	                this.element.appendChild(tabElement);
-	                tab.element = tabElement;
-	            }
-	        } catch (err) {
-	            _didIteratorError = true;
-	            _iteratorError = err;
-	        } finally {
-	            try {
-	                if (!_iteratorNormalCompletion && _iterator.return) {
-	                    _iterator.return();
-	                }
-	            } finally {
-	                if (_didIteratorError) {
-	                    throw _iteratorError;
-	                }
-	            }
-	        }
+	            _this.element.appendChild(tabElement);
+	            tab.element = tabElement;
+	        });
 	
 	        this.update(initialSelection);
 	    }
@@ -22469,34 +22450,13 @@
 	    _createClass(TabStrip, [{
 	        key: 'update',
 	        value: function update(selectedId) {
-	            var _iteratorNormalCompletion2 = true;
-	            var _didIteratorError2 = false;
-	            var _iteratorError2 = undefined;
-	
-	            try {
-	                for (var _iterator2 = this.tabs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	                    var tab = _step2.value;
-	
-	                    if (tab.id === selectedId) {
-	                        tab.element.setAttribute('aria-selected', true);
-	                    } else {
-	                        tab.element.setAttribute('aria-selected', false);
-	                    }
+	            this.tabs.forEach(function (tab) {
+	                if (tab.id === selectedId) {
+	                    tab.element.setAttribute('aria-selected', true);
+	                } else {
+	                    tab.element.setAttribute('aria-selected', false);
 	                }
-	            } catch (err) {
-	                _didIteratorError2 = true;
-	                _iteratorError2 = err;
-	            } finally {
-	                try {
-	                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	                        _iterator2.return();
-	                    }
-	                } finally {
-	                    if (_didIteratorError2) {
-	                        throw _iteratorError2;
-	                    }
-	                }
-	            }
+	            });
 	        }
 	    }]);
 	
@@ -22505,7 +22465,7 @@
 	
 	var Marian = function () {
 	    function Marian(url, defaultProperties, defaultPropertiesLabel) {
-	        var _this = this;
+	        var _this2 = this;
 	
 	        _classCallCheck(this, Marian);
 	
@@ -22530,8 +22490,8 @@
 	
 	        var tabStrip = new TabStrip('current', tabStripElements, function (tab) {
 	            tabStrip.update(tab.id);
-	            _this.searchProperty = tab.id;
-	            _this.search(_this.query);
+	            _this2.searchProperty = tab.id;
+	            _this2.search(_this2.query);
 	        });
 	
 	        var titleElement = document.createElement('h3');
@@ -22548,7 +22508,7 @@
 	                return Boolean(el);
 	            })[0];
 	
-	            rootElement.appendChild(_this.container);
+	            rootElement.appendChild(_this2.container);
 	        });
 	
 	        // When we show our search results, the page body should go away
@@ -22570,7 +22530,7 @@
 	    }, {
 	        key: 'search',
 	        value: function search(query) {
-	            var _this2 = this;
+	            var _this3 = this;
 	
 	            this.query = query;
 	            if (!query) {
@@ -22600,87 +22560,45 @@
 	                    return;
 	                }
 	
-	                _this2.listElement.innerText = '';
+	                _this3.listElement.innerText = '';
 	                var data = JSON.parse(request.responseText);
 	
 	                var spellingErrors = Object.keys(data.spellingCorrections);
 	                if (spellingErrors.length > 0) {
 	                    var corrected = query;
-	                    var _iteratorNormalCompletion3 = true;
-	                    var _didIteratorError3 = false;
-	                    var _iteratorError3 = undefined;
-	
-	                    try {
-	                        for (var _iterator3 = spellingErrors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	                            var orig = _step3.value;
-	
-	                            corrected = corrected.replace(orig, data.spellingCorrections[orig]);
-	                        }
-	                    } catch (err) {
-	                        _didIteratorError3 = true;
-	                        _iteratorError3 = err;
-	                    } finally {
-	                        try {
-	                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	                                _iterator3.return();
-	                            }
-	                        } finally {
-	                            if (_didIteratorError3) {
-	                                throw _iteratorError3;
-	                            }
-	                        }
-	                    }
+	                    spellingErrors.forEach(function (orig) {
+	                        corrected = corrected.replace(orig, data.spellingCorrections[orig]);
+	                    });
 	
 	                    var li = document.createElement('li');
 	                    var correctLink = document.createElement('a');
 	                    correctLink.onclick = function () {
-	                        _this2.onchangequery(corrected);
+	                        _this3.onchangequery(corrected);
 	                    };
 	                    li.className = 'marian-result';
 	                    correctLink.className = 'marian-spelling-correction';
 	                    correctLink.innerText = 'Did you mean: ' + corrected;
 	                    li.appendChild(correctLink);
-	                    _this2.listElement.appendChild(li);
+	                    _this3.listElement.appendChild(li);
 	                }
 	
-	                var _iteratorNormalCompletion4 = true;
-	                var _didIteratorError4 = false;
-	                var _iteratorError4 = undefined;
+	                data.results.forEach(function (result) {
+	                    var li = document.createElement('li');
+	                    li.className = 'marian-result';
 	
-	                try {
-	                    for (var _iterator4 = data.results[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	                        var result = _step4.value;
+	                    var titleLink = document.createElement('a');
+	                    titleLink.innerText = result.title;
+	                    titleLink.className = 'marian-title';
+	                    titleLink.href = result.url;
 	
-	                        var _li = document.createElement('li');
-	                        _li.className = 'marian-result';
+	                    var previewElement = document.createElement('div');
+	                    previewElement.innerText = result.preview;
+	                    previewElement.className = 'marian-preview';
 	
-	                        var titleLink = document.createElement('a');
-	                        titleLink.innerText = result.title;
-	                        titleLink.className = 'marian-title';
-	                        titleLink.href = result.url;
-	
-	                        var previewElement = document.createElement('div');
-	                        previewElement.innerText = result.preview;
-	                        previewElement.className = 'marian-preview';
-	
-	                        _li.appendChild(titleLink);
-	                        _li.appendChild(previewElement);
-	                        _this2.listElement.appendChild(_li);
-	                    }
-	                } catch (err) {
-	                    _didIteratorError4 = true;
-	                    _iteratorError4 = err;
-	                } finally {
-	                    try {
-	                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                            _iterator4.return();
-	                        }
-	                    } finally {
-	                        if (_didIteratorError4) {
-	                            throw _iteratorError4;
-	                        }
-	                    }
-	                }
+	                    li.appendChild(titleLink);
+	                    li.appendChild(previewElement);
+	                    _this3.listElement.appendChild(li);
+	                });
 	            };
 	
 	            request.send();
@@ -22689,13 +22607,12 @@
 	        key: 'bodyElement',
 	        get: function get() {
 	            if (!this._bodyElement) {
-	                var _arr = ['.main__content', '.document'];
-	
-	                for (var _i = 0; _i < _arr.length; _i++) {
-	                    var candidate = _arr[_i];
+	                var candidates = ['.main__content', '.document'];
+	                for (var i = 0; i < candidates.length; i += 1) {
+	                    var candidate = candidates[i];
 	                    this._bodyElement = document.querySelector(candidate);
 	                    if (this._bodyElement) {
-	                        break;
+	                        continue;
 	                    }
 	                }
 	
