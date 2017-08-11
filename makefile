@@ -66,7 +66,7 @@ ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
 
-	mut-index upload build/public/cloud -o mms-cloud-${GIT_BRANCH}.json -u ${PRODUCTION_URL_CLOUDMGR} -g -s
+	mut-index upload build/public/cloud -o mms-cloud-${GIT_BRANCH}.json -u ${PRODUCTION_URL_CLOUDMGR} -g -s --exclude build/public/cloud/landing.html
 
 stage-opsmgr: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
