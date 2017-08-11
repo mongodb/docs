@@ -48,11 +48,11 @@ release = conf.version.release
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'http://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'https://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'manual': ('http://docs.mongodb.com/manual%s', ''),
-    'v2.2': ('http://docs.mongodb.com/v2.2%s', ''),
-    'v2.4': ('http://docs.mongodb.com/v2.4%s', ''),
+    'manual': ('https://docs.mongodb.com/manual%s', ''),
+    'v2.2': ('https://docs.mongodb.com/v2.2%s', ''),
+    'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
 }
 
 languages = [
@@ -149,6 +149,7 @@ try:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
+        release = ''
 
         project = u'MongoDB Cloud Manager'
 
