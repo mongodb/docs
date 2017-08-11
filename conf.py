@@ -149,7 +149,6 @@ try:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
-        release = ''
 
         project = u'MongoDB Cloud Manager'
 
