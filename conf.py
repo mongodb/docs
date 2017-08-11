@@ -124,8 +124,7 @@ try:
         project = u'MongoDB Ops Manager'
         latex_documents = onprem_latex_documents
 
-        html_title = 'MongoDB Ops Manager Manual'
-        html_short_title = 'Ops Manager Manual'
+        html_title = 'MongoDB Ops Manager'
 
         html_theme = 'mms-onprem'
         html_theme_options['pdfpath'] = '/'.join([conf.project.url,
@@ -136,7 +135,7 @@ try:
 
         if release == "Upcoming":
             rst_epilog.append(".. |release-string| replace:: \   ")
-            
+
             # If upcoming, pop in the latest stable/current version
             rst_epilog.append(".. |manifestlink| replace:: https://opsmanager.mongodb.com/static/version_manifest/{0}.json".format(conf.git.branches.current))
 
@@ -155,8 +154,7 @@ try:
 
         latex_documents = cloud_latex_documents
 
-        html_short_title = 'Cloud Manager Manual'
-        html_title = 'MongoDB Cloud Manager Manual'
+        html_title = 'MongoDB Cloud Manager'
 
         html_theme = 'mms-cloud'
         html_theme_options['edition'] = 'saas'
@@ -177,6 +175,7 @@ conf.runstate.edition = 'onprem'
 html_theme_options['version_selector'] = get_versions(conf)
 conf.runstate.edition = existing
 html_theme_options['basepath'] = get_current_path(conf)
+html_theme_options['project'] += '-' + conf.runstate.edition
 
 # -- Options for LaTeX output --------------------------------------------------
 
