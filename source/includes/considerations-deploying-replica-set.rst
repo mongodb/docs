@@ -1,19 +1,28 @@
 Architecture
 ~~~~~~~~~~~~
 
-In a production, deploy each member of the replica set to its own machine
-and if possible bind to the standard MongoDB port of ``27017``. Use the
-:setting:`bind_ip` option to ensure that MongoDB listens for connections
-from applications on configured addresses.
+In production, deploy each member of the replica set to its own machine
+and if possible bind to the standard MongoDB port of ``27017``. 
 
 See :doc:`/core/replica-set-architectures` for more information.
+
+IP Binding
+~~~~~~~~~~
+
+Use the :setting:`bind_ip` option to ensure that MongoDB listens for
+connections from applications on configured addresses.
+
+.. versionchanged:: 3.6
+
+   .. include:: /includes/fact-default-bind-ip.rst
 
 Connectivity
 ~~~~~~~~~~~~
 
-Ensure that network traffic can pass between all members of the set
-and all clients in the network securely and efficiently. Consider the
-following:
+Ensure that network traffic can pass between all members of the set and
+all clients in the network securely.
+
+Consider the following:
 
 - Establish a virtual private network. Ensure that your network topology
   routes all traffic between members within a single site over the local
@@ -24,7 +33,7 @@ following:
 
 - Configure networking and firewall rules so that incoming and outgoing
   packets are permitted only on the default MongoDB port and only from
-  within your deployment.
+  within your deployment. See the IP Binding considerations.
 
 Finally ensure that each member of a replica set is accessible by
 way of resolvable DNS or hostnames. You should either configure your
@@ -34,10 +43,12 @@ reflect this configuration.
 Configuration
 ~~~~~~~~~~~~~
 
-Specify the run time configuration on each system in a :doc:`configuration
-file </reference/configuration-options>` stored in ``/etc/mongod.conf``
-or a related location. Create the directory where MongoDB stores data
-files before deploying MongoDB.
+Create the directory where MongoDB stores data files before deploying
+MongoDB.
 
-For more information about the run time options used above and other
-configuration options, see :doc:`/reference/configuration-options`.
+Specify the :program:`mongod` configuration in a :doc:`configuration
+file </reference/configuration-options>` stored in ``/etc/mongod.conf``
+or a related location.
+
+For more information about configuration options, see
+:doc:`/reference/configuration-options`.
