@@ -15,8 +15,9 @@ PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prod
 
 PREFIX=
 
-### Must Change when we update the current version of OpsMgr
-CURRENT_V=v3.4
+# Parse our published-branches configuration file to get the name of
+# the current "stable" branch. This is weird and dumb, yes.
+STABLE_BRANCH=`grep 'manual' build/docs-tools/data/mms-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
 ##  I doubt that we'll ever have files named stage-cloud, fake-deploy-cloud, ... but eh
 .PHONY: help stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
@@ -95,4 +96,8 @@ deploy-opsmgr: build/public/onprem ## Deploy to the production bucket
 	$(MAKE) deploy-opsmgr-search-index
 
 deploy-opsmgr-search-index: ## Update the Ops Manager search index
-	mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-${GIT_BRANCH}.json -u ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH} -g -s
+	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
+		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-${GIT_BRANCH}.json -u ${PRODUCTION_URL_OPSMGR}/current -g -s; \
+	else \
+		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-${GIT_BRANCH}.json -u ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH} -s; \
+	fi
