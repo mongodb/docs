@@ -70,7 +70,7 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
     'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
-    'manual': ('https://docs.mongodb.org/manual%s', ''),
+    'manual': ('https://docs.mongodb.com/manual%s', ''),
     'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
