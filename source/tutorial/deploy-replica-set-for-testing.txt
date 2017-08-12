@@ -26,14 +26,19 @@ Before you can deploy a replica set, you must install MongoDB on
 each system that will be part of your :term:`replica set`.
 If you have not already installed MongoDB, see the :ref:`installation tutorials <tutorial-installation>`.
 
-Before creating your replica set, you should verify that your network
-configuration allows all possible connections between each member. For
-a successful replica set deployment, every member must be able to
-connect to every other member. For instructions on how to check
-your connection, see :ref:`replica-set-troubleshooting-check-connection`.
+Each member must be able to connect to every other member. For
+instructions on how to check your connection, see
+:ref:`replica-set-troubleshooting-check-connection`.
 
 Considerations
 --------------
+
+IP Binding
+~~~~~~~~~~
+
+.. include:: includes/fact-default-bind-ip.rst
+
+In this test deployment, the three members run on the same machine.
 
 Replica Set Naming
 ~~~~~~~~~~~~~~~~~~
@@ -45,10 +50,6 @@ The examples in this procedure create a new replica set named ``rs0``.
 
 .. include:: /includes/fact-unique-replica-set-names.rst
 
-You will begin by starting three :program:`mongod` instances as
-members of a replica set named ``rs0``.
-
-
 Procedure
 ---------
 
@@ -57,7 +58,7 @@ Procedure
 
    .. code-block:: sh
 
-      mkdir -p /srv/mongodb/rs0-0 /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
+      mkdir -p /srv/mongodb/rs0-0  /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
 
    This will create directories called "rs0-0", "rs0-1", and "rs0-2", which
    will contain the instances' database files.
@@ -69,24 +70,28 @@ Procedure
 
    .. code-block:: sh
 
-      mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0 --smallfiles --oplogSize 128
+      mongod --replSet rs0 --port 27017 --bind_ip localhost,11.1.111.11 --dbpath /srv/mongodb/rs0-0 --smallfiles --oplogSize 128
 
    Second member:
 
    .. code-block:: sh
 
-      mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0 --smallfiles --oplogSize 128
+      mongod --replSet rs0 --port 27018 --bind_ip localhost,11.1.111.11 --dbpath /srv/mongodb/rs0-1 --smallfiles --oplogSize 128
 
    Third member:
 
    .. code-block:: sh
 
-      mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0 --smallfiles --oplogSize 128
+      mongod --replSet rs0 --port 27019 --bind_ip localhost,11.1.111.11 --dbpath /srv/mongodb/rs0-2 --replSet rs0 --smallfiles --oplogSize 128
 
    This starts each instance as a member of a replica set named
    ``rs0``, each running on a distinct port, and specifies the path to
    your data directory with the :option:`--dbpath <dbpath>` setting.
    If you are already using the suggested ports, select different ports.
+
+   The instances bind to both the localhost and the ip address
+   ``11.1.111.11``. Remote clients would need to specify the ip address
+   or the associated hostname to connect.
 
    The :option:`--smallfiles <smallfiles>` and
    :option:`--oplogSize <oplogSize>` settings reduce the disk
@@ -112,14 +117,22 @@ Procedure
    .. code-block:: javascript
 
       rsconf = {
-                 _id: "rs0",
-                 members: [
-                            {
-                             _id: 0,
-                             host: "<hostname>:27017"
-                            }
-                          ]
-               }
+        _id: "rs0",
+        members: [
+          {
+           _id: 0,
+           host: "<hostname>:27017"
+          },
+          {
+           _id: 1,
+           host: "<hostname>:27018"
+          },
+          {
+           _id: 2,
+           host: "<hostname>:27019"
+          }
+         ]
+      }
 
    replacing ``<hostname>`` with your system's hostname,
    and then pass the ``rsconf`` file to :method:`rs.initiate()` as
@@ -136,33 +149,71 @@ Procedure
 
       rs.conf()
 
-   The replica set configuration object resembles the following
-
-   .. code-block:: javascript
-
+   The replica set configuration object resembles the following:
+   
+   .. code-block:: json
+   
       {
          "_id" : "rs0",
-         "version" : 4,
+         "version" : 1,
+         "protocolVersion" : NumberLong(1),
          "members" : [
             {
+               "_id" : 0,
+               "host" : "<hostname>:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
                "_id" : 1,
-               "host" : "localhost:27017"
+               "host" : "<hostname>:27018",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "<hostname>:27019",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+            
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
             }
-         ]
+         ],
+         "settings" : {
+            "chainingAllowed" : true,
+            "heartbeatIntervalMillis" : 2000,
+            "heartbeatTimeoutSecs" : 10,
+            "electionTimeoutMillis" : 10000,
+            "catchUpTimeoutMillis" : -1,
+            "getLastErrorModes" : {
+         
+            },
+            "getLastErrorDefaults" : {
+               "w" : 1,
+               "wtimeout" : 0
+            },
+            "replicaSetId" : ObjectId("598f630adc9053c6ee6d5f38")
+         }
       }
-
-#. In the :program:`mongo` shell connected to the :term:`primary`, add
-   the second and third :program:`mongod` instances to the replica set
-   using the :method:`rs.add()` method. Replace ``<hostname>`` with
-   your system's hostname in the following examples:
-
-   .. code-block:: javascript
-
-      rs.add("<hostname>:27018")
-      rs.add("<hostname>:27019")
-
-   When complete, you should have a fully functional replica set.
-   The new replica set will elect a :term:`primary`.
 
 Check the status of your replica set at any time with the
 :method:`rs.status()` operation.

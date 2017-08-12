@@ -32,9 +32,6 @@ Remote clients to this instance must specify the ip address
 .. code-block:: sh
 
    mongo --host 11.1.111.11
-   
+
    mongo --host My-Example-HostName-Associated-With-11.1.111.11
 
-To bind to all ip addresses, you can specify the bind ip address of
-``0.0.0.0`` or use the new :setting:`net.bindIpAll` setting or the new
-command-line option ``--bind_ip_all``.

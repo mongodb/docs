@@ -19,8 +19,8 @@ connections from applications on configured addresses.
 Connectivity
 ~~~~~~~~~~~~
 
-Ensure that network traffic can pass between all members of the set and
-all clients in the network securely.
+Ensure that network traffic can pass securely between all members of the set and
+all clients in the network .
 
 Consider the following:
 
@@ -35,10 +35,14 @@ Consider the following:
   packets are permitted only on the default MongoDB port and only from
   within your deployment. See the IP Binding considerations.
 
-Finally ensure that each member of a replica set is accessible by
+Ensure that each member of a replica set is accessible by
 way of resolvable DNS or hostnames. You should either configure your
 DNS names appropriately or set up your systems' ``/etc/hosts`` file to
 reflect this configuration.
+
+Each member must be able to connect to every other member. For
+instructions on how to check your connection, see
+:ref:`replica-set-troubleshooting-check-connection`.
 
 Configuration
 ~~~~~~~~~~~~~
