@@ -6,7 +6,7 @@ Authentication
 .. versionadded:: 2.2
 
    The |bi| now offers MySQL authentication plugins allowing you to
-   connect with authentication but without TLS/SSL.
+   connect with authentication or TLS/SSL.
 
 There are two options for authenticating your connection:
 
@@ -67,19 +67,20 @@ username as URI-style query parameters:
      - Specify the mechanism that the |bi| should use to
        authenticate the connection. Accepted values include:
 
-       - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+       - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` (default)
        - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
-       The ``PLAIN`` (LDAP) mechanism requires MongoDB Enterprise, and
-       requires that :urioption:`source` be ``$external``.
+       LDAP requires `MongoDB Enterprise
+       <https://www.mongodb.com/download-center?ct=atlasheader2#enterprise>`_.
+       Set the source to ``$external`` when using LDAP.
 
        .. note:: 
-          Neither Kerberos (``GSSAPI``) nor x.509 are supported.
+          Neither Kerberos nor x.509 are supported.
 
 .. example::
-   To authenticate as the user ``grace`` with authentication
-   mechanism ``PLAIN`` and using an external source, you would use the
-   following username:
+
+   To authenticate as user ``grace`` with the LDAP authentication
+   mechanism, use the following username:
 
    .. code::
 
