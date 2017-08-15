@@ -1,8 +1,5 @@
 Starting in MongoDB 3.6, MongoDB binaries, :program:`mongod` and
-:program:`mongos`, bind to localhost (``127.0.0.1``) by default.
-If the :setting:`net.ipv6` configuration file setting or the ``--ipv6``
-command line option is set for a binary, the binary additionally binds
-to the IPv6 address ``::1``.
+:program:`mongos`, bind to localhost by default.
 
 Previously, starting from MongoDB 2.6, only the binaries from the
 official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives)
@@ -19,19 +16,19 @@ To override and bind to other ip addresses, you can use the
 :setting:`net.bindIp` configuration file setting or the ``--bind_ip``
 command-line option to specify a list of ip addresses
 
-For example, the following :program:`mongod` instance accepts client
-connections from the localhost and another ip address
+For example, the following :program:`mongod` instance binds to both the
+localhost and another ip address:
 
 .. code-block:: sh
 
-   mongod --bind_ip localhost,11.1.111.11
+   mongod --bind_ip localhost,198.51.100.1
 
-Remote clients to this instance must specify the ip address
-``11.1.111.11`` or the associated hostname in order to connect:
+Remote clients must specify the ip address ``198.51.100.1`` or the
+associated hostname in order to connect to this instances:
 
 .. code-block:: sh
 
-   mongo --host 11.1.111.11
+   mongo --host 198.51.100.1
 
-   mongo --host My-Example-HostName-Associated-With-11.1.111.11
+   mongo --host My-Example-Associated-Hostname
 
