@@ -1,3 +1,5 @@
+NODE?=/usr/local/bin/node
+
 USER=`whoami`
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
@@ -16,10 +18,10 @@ help: ## Show this help message
 
 content-html: | tools/node_modules/.npm_pulled
 	rm -rf $@/*
+	rm -rf public
 	$(NODE) tools/genindex.js --config config.toml
 
 deploy: | content-html  ## Deploy the tutorials site
-	rm -rf public
 	ulimit -n 1024 && hugo -b ${PRODUCTION_URL}
 
 	mut-publish public/ ${PRODUCTION_BUCKET} --prefix=${PRODUCTION_PREFIX} --deploy --all-subdirectories --dry-run --verbose ${ARGS}
