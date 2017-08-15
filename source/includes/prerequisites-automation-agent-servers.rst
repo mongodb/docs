@@ -9,7 +9,7 @@ The hosts that serve the MongoDB deployments must:
 
   To find the :abbr:`FQDN (fully qualified domain name)` for each host:
 
-  - On Linux / macOS hosts, run the following command in the shell:
+  - On Linux / macOS hosts, run the following command in the Terminal:
 
     .. class:: copyable-code
     .. code-block:: sh

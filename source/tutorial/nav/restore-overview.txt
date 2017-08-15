@@ -1,0 +1,192 @@
+================
+Restore Overview
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To restore a deployment from a backup, select a point from which you
+want to restore your database. |mms| provides you with one or more
+files from which you can restore your database.
+
+You can restore a single MongoDB database, a :term:`replica set`, or a
+:term:`sharded cluster`. You may select to restore from:
+
+- An existing :term:`snapshot`,
+- A specific point in time,
+- A specific oplog timestamp, or
+- A specific :term:`sharded cluster` :term:`checkpoint`.
+
+Other than for existing snapshots, you must download the MongoDB Backup
+Restore Utility to your target host. The :abbr:`MBRU (MongoDB Backup
+Restore Utility)` requests and applies :term:`oplog` entries between the
+latest complete snapshot and the point in time you chose.
+
+.. note::
+   For sharded clusters,
+   :ref:`enable checkpoints <enable-cluster-checkpoints>` before
+   restoring to a point between snapshots.
+
+You can restore a backup in one of two ways. These ways depend upon if
+you have automated your deployments using |mms|:
+
+- If you use |mms| automation, |mms| can restore the files
+  :ref:`automatically to another cluster <mms-automated-restore>`.
+- If you do not use |mms| automation, you can copy restored files
+  :ref:`manually to the hosts you choose <mms-manual-restore>`.
+
+.. _mms-automated-restore:
+
+Automated Restore
+-----------------
+
+If you choose to have |mms| automation restore your backup, the
+:term:`Automation Agent` removes all existing data from the target hosts
+and replaces that data with new backup data from your :term:`snapshot`.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To perform automated restores, you must have:
+
+- An :term:`Automation Agent` installed on the source and target hosts.
+
+- A :term:`Monitoring Agent` on the target deployment that can connect
+  to the target deployment.
+
+- The :ref:`Backup Admin <backup-admin-role>` and
+  :ref:`Automation Admin <automation-admin-role>` roles in |mms|.
+
+Restore to Different Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-different-group-requirements.rst
+
+.. only:: onprem
+
+   Potential Causes for Automated Restore Failure
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Under certain conditions, an automated restore fails because either:
+
+   - The backup and target databases'
+     :term:`storage engines <storage engine>` do not match, or
+
+   - The target database uses settings that differ from the backup's
+     settings:
+
+     - :setting:`storage.directoryPerDB`
+     - :setting:`storage.mmapv1.nsSize`
+     - :setting:`storage.mmapv1.smallFiles`
+     - :setting:`storage.wiredTiger.collectionConfig.blockCompressor`
+     - :setting:`storage.wiredTiger.engineConfig.directoryForIndexes`
+
+   If the backup and target database
+   :term:`storage engines <storage engine>` or settings do not match,
+   ``mongod`` cannot start after the backup is restored. At this
+   point, you can either:
+
+   - Not restore this snapshot, or
+
+   - Change the :term:`storage engine` or settings of the target
+     :term:`sharded cluster` or :term:`replica set` to match the
+     :term:`snapshot` configuration.
+
+Restore Procedures
+~~~~~~~~~~~~~~~~~~
+
+To perform an automated restore, see the procedure for the deployment
+you want to restore:
+
+- :ref:`Single Database <restore-from-queryable-backup>`
+- :ref:`Replica Set <automatic-restore-replica-set>`
+- :ref:`Sharded Cluster <automatic-restore-sharded-cluster>`
+
+.. _mms-manual-restore:
+
+Manual Restore
+--------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To perform manual restores, you must have the
+:ref:`Backup Admin <backup-admin-role>` role in |mms| to restore a
+backup manually.
+
+.. include:: /includes/note-scp-key-pair-requirement.rst
+
+.. include:: /includes/note-windows-scp-issue.rst
+
+.. _delivery-methods-file-formats:
+
+Considerations
+~~~~~~~~~~~~~~
+
+Restore File Format
++++++++++++++++++++
+
+.. only:: onprem
+
+   |mms| provides each :term:`snapshot` as an uncompressed (``.tar``)
+   or compressed (``.tar.gz``) archive containing a complete copy of the
+   data directory.
+
+.. only:: cloud
+
+   |mms| provides each :term:`snapshot` as an uncompressed (``.tar``)
+   archive containing a complete copy of the data directory.
+
+- For a :term:`replica set`, |mms| provides one :term:`snapshot` that
+  you copy to each replica set member.
+
+- For a sharded cluster, |mms| provides one :term:`snapshot` for the
+  :term:`config servers <config server>` and separate
+  :term:`snapshots <snapshot>` for each :term:`shard`.
+
+If you choose to receive :term:`snapshots <snapshot>`, you must extract
+the contents of each snapshot, then reconstruct your data.
+
+Choosing compressed :term:`snapshots <snapshot>` results in faster
+delivery, but requires sufficient space on the target host for both the
+compressed snapshot and its extracted database files.
+
+File Delivery Methods
++++++++++++++++++++++
+
+With a manual restore, |mms| can deliver the
+:term:`snapshots <snapshot>` in two ways:
+
+- Provide a link to download the snapshots through
+  :abbr:`HTTP (HyperText Transport Protocol)`.
+
+- Transfer the snapshots to a target directory on a target
+  host that you choose using :abbr:`SCP (secure copy)`.
+
+.. only:: onprem
+
+   Restore Process Flows
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   The following pages illustrate the process flows for manual restores
+   for the different restore methods:
+
+   .. include:: /includes/toc/dfn-list-backup-restore-flows.rst
+
+   .. include:: /includes/toc/backup-restore-flows.rst
+
+Manual Restore Procedures
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform an manual restore, see the procedure for the deployment
+you want to restore:
+
+- :ref:`Single Database <manual-restore-from-backup>`
+- :ref:`Replica Set <manual-restore-replica-set>`
+- :ref:`Sharded Cluster <manual-restore-sharded-cluster>`
+
