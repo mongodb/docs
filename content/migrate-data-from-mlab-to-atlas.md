@@ -14,12 +14,16 @@ tags = [
 running, monitoring, and maintaining MongoDB Deployments, including the
 provisioning of dedicated servers for MongoDB instances.
 
-This procedure migrates a MongoDB cluster hosted on mLab to an Atlas cluster
-using the Atlas [Live
-Migration](https://docs.atlas.mongodb.com/import/live-import/) tool.
+The following procedure migrates a MongoDB cluster hosted on Compose.io to
+Atlas. Because the procedure uses the Atlas [Live
+Migration](https://docs.atlas.mongodb.com/import/live-import/) tool, the
+procedure only requires downtime while updating your applications to connect
+to the Atlas cluster.
 
-This procedure only requires downtime while updating your applications to
-connect to the Atlas cluster.
+The Atlas Live Migration tool requires that the source cluster runs MongoDB
+3.0 or later. See [Live Import Upgrade
+Path](https://docs.atlas.mongodb.com/import/live-import/#upgrade-path) for
+more information.
 
 **Important**: This procedure only applies to **Dedicated** mLab clusters.
 **Shared** or **Sandbox** mLab clusters are missing command and operational
@@ -102,11 +106,12 @@ source mLab cluster.
 You must [whitelist any other applications or services](https://docs.atlas.mongodb.com/security-whitelist/) 
 that need to connect to the Atlas cluster.
 
-### (AWS Only) Configure VPC Peering
+### VPC Peering  (AWS Only) 
 
-For Atlas clusters deployed on Amazon Web Services, you can [configure
-VPC Peering Connections](https://docs.atlas.mongodb.com/security-vpc-peering/) 
-between your Atlas cluster and any AWS VPCs in the same AWS region.
+The Atlas Live Migration tool does *not* leverage any VPC peering connections
+configured for the destination cluster. If you require that the live migration
+procedure leverage a VPC peering connection, please contact [MongoDB
+Support](https://www.mongodb.com/support/get-started).
 
 ## Configure your Application Server for Migration
 
@@ -118,12 +123,12 @@ migration process:
 
 - If the application server uses a MongoDB driver to connect and perform
   operations on the MongoDB cluster, you must update to a driver version that
-  is recommended for use with the MongoDB version of the destination cluster.
+  is recommended for the MongoDB version of the destination cluster.
   See [the driver compatibility table](https://docs.mongodb.com/ecosystem/drivers/driver-compatibility-reference/)
   for complete documentation.
   
-- If the application server uses a MongoDB component such as the
-  [mongo](https://docs.mongodb.com/manual/reference/program/mongo/) shell to
+- If the application server uses a MongoDB component, such as the
+  [mongo](https://docs.mongodb.com/manual/reference/program/mongo/) shell, to
   connect and perform operations on the MongoDB cluster, you must update these
   components to match the MongoDB version of the destination cluster.
   [Download the appropriate version of the MongoDB server
@@ -179,7 +184,7 @@ mLab's root certificate. [Follow mLab's documentation](http://docs.mlab.com/ssl-
 to retrieve the SSL certificate text. In general, you must:
 
 1. Download the root mLab certificate.
-2. mLab provides the root certificate in the DER binary format. You must conver this to a PEM ASCII-based format.
+2. mLab provides the root certificate in the DER binary format. You must convert this to a PEM ASCII-based format.
 
    The following example uses the ``openssl`` tool to convert the root mLab
    certificate to PEM:
@@ -211,24 +216,21 @@ If errors persist, open a support ticket in Atlas UI by clicking
 
 Once your connection is validated, click **Start Migration**. Atlas begins
 the migration procedure and displays a counter in the UI that represents
-the time remaining for the Atlas cluster to catch up to the mLab cluster.
+the time remaining for the Atlas cluster to catch up to the Compose.io cluster.
 
-When the timer turns green, click the **Start Cut Over** button. Atlas displays
-a walk-through with instructions on how to proceed with the cut over. In general,
-you must:
+When the timer turns green, click the **Start Cut Over** button. Atlas
+displays a walk-through with instructions on how to proceed with the cut over.
+Once you click the **Start Cut Over** button, Atlas starts an extendable 72
+hour timer to begin the cut over procedure. If the 72 hour period passes,
+Atlas stops synchronizing with the source cluster. You can extend the time
+remaining by 24 hours by clicking the **Extend time** hyperlink below the
+**<time> left to cut over** timer.
 
-- Stop all applications from reading or writing to the mLab cluster.
-
+- Stop all applications from reading or writing to the Compose.io cluster.
 - Wait for the timer to hit ``0:00``. 
-
-- Update applications with the Atlas cluster URI connection string as
-  displayed in Atlas. Update the ``<USERNAME>`` and ``<PASSWORD>``
-  placeholders with the username and password of a MongoDB user you created
-  when configuring your Atlas cluster. Update the ``<DATABASE>`` placeholder
-  with the database you want the application to connect to.
-
-- Restart your applications and confirm they are reading from and writing to
-  the Atlas cluster.
+- Update applications with the Atlas cluster connection URI as displayed in Atlas.
+- Update applications to use Atlas MongoDB users, such that they retain the same level of data and operational access.
+- Restart your applications and confirm they are reading from and writing to the Atlas cluster.
 
 Once your applications are up, you can confirm they have connected successfully to
 the Atlas cluster and are writing normally. When you have validated that your
