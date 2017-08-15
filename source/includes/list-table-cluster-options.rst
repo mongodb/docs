@@ -124,22 +124,22 @@
    * - :guilabel:`Do you want to enable backup?`
 
      - If enabled, |service| takes snapshots of your databases at
-       regular intervals and retains them according to your group's
+       regular intervals and retains them according to your project's
        :ref:`retention policy <retention-policy>`.
 
    * - :guilabel:`Admin Username & Password`
 
      - Creates a MongoDB admin user with the specified username and
        password. These fields appear only if no MongoDB user exists for
-       your |service| group, such as if you are creating the first
-       cluster in the group and have not set up MongoDB users
+       your |service| project, such as if you are creating the first
+       cluster in the project and have not set up MongoDB users
        beforehand.
 
        **When creating a new admin user, be sure to save the
        credentials.**
 
        The admin user has read and write access to any MongoDB database
-       in any cluster in your |service| group. The admin user can also
+       in any cluster in your |service| project. The admin user can also
        enable sharding.
 
        To have |service| generate the password for the admin user,

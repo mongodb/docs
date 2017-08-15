@@ -1,1 +1,1 @@
-|service| supports a maximum of 100 MongoDB users per |service| group.
+|service| supports a maximum of 100 MongoDB users per |service| project.

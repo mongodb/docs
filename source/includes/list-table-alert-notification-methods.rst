@@ -6,9 +6,9 @@
 
      - Description
 
-   * - Group
+   * - Project
 
-     - Sends the alert to a group, either by email or SMS. :guilabel:`SMS`
+     - Sends the alert to a project, either by email or SMS. :guilabel:`SMS`
        uses the number configured for each user's account. To send to specific
        roles, deselect :guilabel:`All Roles` and select the roles.
 
@@ -68,7 +68,7 @@
        and alert assignments directly in PagerDuty.
 
        This option is available only for alerts that require acknowledgement.
-       Informational alerts, such as the alert that a user has joined a group,
+       Informational alerts, such as the alert that a user has joined a project,
        cannot use this notification method.
 
        Users can acknowledge PagerDuty alerts only from the PagerDuty
@@ -79,7 +79,7 @@
      - Sends an HTTP POST request to an endpoint for programmatic processing.
        The request body contains a JSON document that uses the same format as
        the |service| API's ``Alerts`` resource. This option is available only
-       if you have configured Webhook settings on the ``Group Settings`` page.
+       if you have configured Webhook settings on the ``Project Settings`` page.
        
        Grant the following CIDR ranges access to the endpoint resource:
        
