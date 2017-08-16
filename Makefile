@@ -75,7 +75,7 @@ deploy: build/public ## Deploy to the production bucket
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o manual-current.json -u ${PRODUCTION_URL}/manual -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o manual-current.json --aliases manual-${GIT_BRANCH} -u ${PRODUCTION_URL}/manual -g -s; \
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o manual-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${GIT_BRANCH} -s; \
 	fi
