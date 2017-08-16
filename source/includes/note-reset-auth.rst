@@ -1,7 +1,7 @@
 .. note::
 
    If |mms| is not managing any MongoDB deployment, you can reset
-   :guilabel:`Authentication and SSL` settings for your group.
+   :guilabel:`Authentication and SSL` settings for your project.
 
    To remove all authentication and security settings as well as the users and
    roles you created using |mms|, click :guilabel:`Clear Settings` in the

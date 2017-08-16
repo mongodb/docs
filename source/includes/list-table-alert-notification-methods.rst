@@ -8,9 +8,9 @@
  
         - Description
  
-      * - Group *(group or global alerts only)*
+      * - Project *(project or global alerts only)*
  
-        - Sends the alert by email or SMS to the group. If you select
+        - Sends the alert by email or SMS to the project. If you select
           :guilabel:`SMS`, |mms| sends the text message to the number
           configured on each user's :ref:`Account page <profile-page>`. To
           send only to specific roles, deselect :guilabel:`All Roles` and
@@ -80,13 +80,13 @@
           Users can acknowledge PagerDuty alerts only from the PagerDuty
           dashboard.
  
-      * - Webhook *(group alerts only)*
+      * - Webhook *(project alerts only)*
  
         - Sends an HTTP POST request to an endpoint for programmatic
           processing. The request body contains a JSON document that uses
           the same format as the Public API's :doc:`Alerts resource
           </reference/api/alerts>`. This option is available only if you
-          have configured Webhook settings on the :ref:`Group Settings
+          have configured Webhook settings on the :ref:`Project Settings
           <group-settings-page>` page.
  
       * - Administrators *(global or system alerts only)*
@@ -108,9 +108,9 @@
    
         - Description
    
-      * - Group
+      * - Project
    
-        - Sends the alert by email or SMS to the group. If you select
+        - Sends the alert by email or SMS to the project. If you select
           :guilabel:`SMS`, |mms| sends the text message to the number
           configured on each user's :ref:`Account page <profile-page>`. To
           send only to specific roles, deselect :guilabel:`All Roles` and
@@ -185,6 +185,6 @@
           processing. The request body contains a JSON document that uses
           the same format as the Public API's :doc:`Alerts resource
           </reference/api/alerts>`. This option is available only if you
-          have configured Webhook settings on the :ref:`Group Settings
+          have configured Webhook settings on the :ref:`Project Settings
           <group-settings-page>` page.
 

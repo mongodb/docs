@@ -32,7 +32,7 @@
 
    * - ``groupId``
      - string
-     - The group for which the server is requested.
+     - The project for which the server is requested.
 
    * - ``properties``
      - object of key/value pairs

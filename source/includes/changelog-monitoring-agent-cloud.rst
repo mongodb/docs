@@ -210,7 +210,7 @@ Monitoring Agent ``3.1.0.173``
 
 .. only:: classic
 
-   - Ability to upgrade a group to Cloud |mms|, which provides Automation
+   - Ability to upgrade a project to Cloud |mms|, which provides Automation
      and the Metrics API. For information about Cloud |mms| pricing,
      please see `the pricing page <https://cloud.mongodb.com/pricing>`_.
 

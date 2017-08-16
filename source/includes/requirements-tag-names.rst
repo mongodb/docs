@@ -1,4 +1,4 @@
-A group can have up to 10 tags. Tags follow these rules:
+A project can have up to 10 tags. Tags follow these rules:
 
 - Are case-sensitive
 

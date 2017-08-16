@@ -34,5 +34,5 @@ To enable x.509 Authentication for |mms|, you must:
 
 .. important::
    If at any point you wish to reset the authentication settings for your
-   group and start again, see :doc:`/tutorial/clear-security-settings` for
+   project and start again, see :doc:`/tutorial/clear-security-settings` for
    more information.

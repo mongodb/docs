@@ -4,7 +4,7 @@ Monitoring Agent
 Do I need a Monitoring Agent for every MongoDB instance?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-No. In your |mms| group, a single Monitoring Agent connects to all
+No. In your |mms| project, a single Monitoring Agent connects to all
 MongoDB databases. Configure firewalls to allow the
 Monitoring Agent to connect across data centers and servers.
 
@@ -79,7 +79,7 @@ IP address. Preferred hostnames also allow you to specify the hostname to use fo
 servers with multiple aliases. This prevents servers from appearing
 multiple times under different names in the |mms| interface.
 
-To create a preferred hostname, go to :doc:`Group Settings
+To create a preferred hostname, go to :doc:`Project Settings
 </tutorial/manage-group-settings>` and add a :guilabel:`Preferred
 Hostnames` entry. For details, see
 :doc:`/tutorial/manage-group-settings`

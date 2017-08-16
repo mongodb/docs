@@ -1,11 +1,11 @@
 Managed Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Any users or roles you choose to manage in an |mms| group have their
+Any users or roles you choose to manage in an |mms| project have their
 :guilabel:`Synced` value set to ``Yes`` and are synced to all deployments in
-the group.
+the project.
 
-Any users or roles you do not choose to manage in an |mms| group have their
+Any users or roles you do not choose to manage in an |mms| project have their
 :guilabel:`Synced` value set to ``No`` and exist only in their respective
 MongoDB deployments.
 
@@ -20,24 +20,24 @@ Consistent Users and Roles
 :guilabel:`Enforce Consistent Set`:
 
 :guilabel:`Enforce Consistent Set` is ``YES``
-     In this mode, all deployments that the |mms| group manages have the same set
+     In this mode, all deployments that the |mms| project manages have the same set
      of MongoDB users and roles; specifically, all users and roles that the |mms|
-     group manages.
+     project manages.
 
-     Only the MongoDB users and roles that the |mms| group manages, that is
-     :guilabel:`Synced` value set to ``Yes``, can exist in the group's managed
-     deployments. Any users and roles that the |mms| group does not manage group
+     Only the MongoDB users and roles that the |mms| project manages, that is
+     :guilabel:`Synced` value set to ``Yes``, can exist in the project's managed
+     deployments. Any users and roles that the |mms| project does not manage project
      are deleted from these deployments.
 
 :guilabel:`Enforce Consistent Set` is ``NO``
-     In this mode, deployments that the |mms| group manages can have different sets
+     In this mode, deployments that the |mms| project manages can have different sets
      of MongoDB users and roles, including MongoDB users and roles not managed
-     through the |mms| group. To manage these users and roles, you must connect
+     through the |mms| project. To manage these users and roles, you must connect
      directly to the MongoDB deployment.
 
-     Users and roles that the |mms| group manages, where :guilabel:`Synced` value
-     set to ``Yes``, are created in all deployments the |mms| group manages. Users
-     and roles that the |mms| group does not manage, where :guilabel:`Synced` value
+     Users and roles that the |mms| project manages, where :guilabel:`Synced` value
+     set to ``Yes``, are created in all deployments the |mms| project manages. Users
+     and roles that the |mms| project does not manage, where :guilabel:`Synced` value
      set to ``No``, exist only in the specific deployment.
 
      .. note::

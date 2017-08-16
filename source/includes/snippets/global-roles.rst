@@ -5,8 +5,8 @@
    Global Roles
    ++++++++++++
 
-   Global roles have all the same privileges as the equivalent Group
-   roles, except that they have these privileges for all groups. They also
+   Global roles have all the same privileges as the equivalent Project
+   roles, except that they have these privileges for all projects. They also
    have some additional privileges as noted below.
 
    .. _global-read-only-role:
@@ -15,7 +15,7 @@
    ~~~~~~~~~~~~~~~~
 
    The **Global Read Only** role grants :ref:`read only <read-only-role>`
-   access to all groups. The role additionally grants access to do the
+   access to all projects. The role additionally grants access to do the
    following:
 
    - View :doc:`backups </tutorial/nav/backup-use>` and other statistics through the
@@ -29,10 +29,10 @@
    ~~~~~~~~~~~~~~~~~
 
    The **Global User Admin** role grants :ref:`user admin <user-admin-role>`
-   access to all groups. The role additionally grants access to do the
+   access to all projects. The role additionally grants access to do the
    following:
 
-   - Add new groups.
+   - Add new projects.
 
    - Manage UI messages.
 
@@ -48,7 +48,7 @@
    ~~~~~~~~~~~~~~~~~~~~~~~
 
    The **Global Monitoring Admin** role grants :ref:`monitoring admin
-   <monitoring-admin-role>` access to all groups. The role additionally
+   <monitoring-admin-role>` access to all projects. The role additionally
    grants access to do the following:
 
    - View system statistics through the :guilabel:`admin` UI.
@@ -59,7 +59,7 @@
    ~~~~~~~~~~~~~~~~~~~
 
    The **Global Backup Admin** role grants :ref:`backup admin
-   <backup-admin-role>` access to all groups. The role additionally grants
+   <backup-admin-role>` access to all projects. The role additionally grants
    access to do the following:
 
    - View system statistics through the :guilabel:`admin` UI.
@@ -76,7 +76,7 @@
    ~~~~~~~~~~~~~~~~~~~~~~~
 
    The **Global Automation Admin** role grants :ref:`automation admin
-   <automation-admin-role>` access to all groups. The role additionally grants
+   <automation-admin-role>` access to all projects. The role additionally grants
    access to view system statistics through the :guilabel:`admin` UI.
 
    .. _global-owner-role:

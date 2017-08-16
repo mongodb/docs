@@ -27,7 +27,7 @@
       * - :guilabel:`Receive Health Score Update`
 
         - Select whether to receive a weekly email on the health of each |mms|
-          group to which you belong.
+          project to which you belong.
 
           .. note::
-             You will receive one email per group per week.
+             You will receive one email per project per week.

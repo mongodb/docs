@@ -4,7 +4,7 @@ Multiple Monitoring Agents
 You can run multiple Monitoring Agents to distribute monitoring assignments
 and provide failover. |mms| distributes monitoring assignments among up to 100
 running agents. Each agent monitors a different set of MongoDB processes. One
-Monitoring Agent per group is the primary agent. The primary agent reports the
+Monitoring Agent per project is the primary agent. The primary agent reports the
 cluster's status to |mms|. As agents are added or shut down, |mms|
 redistributes assignments. If the primary agent fails, |mms| assigns another
 agent to be the primary agent.

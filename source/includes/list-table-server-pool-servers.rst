@@ -37,7 +37,7 @@
 
           * - ``AVAILABLE``
             - The server is available to host new MongoDB instances. It is not
-              bound to a group.
+              bound to a project.
 
           * - ``RESERVED``
             - The server has been selected as part of a multi-server request
@@ -45,17 +45,17 @@
 
           * - ``BOUND``
             - The server is hosting one or more MongoDB processes. The server
-              is visible only to the group that is running the processes.
+              is visible only to the project that is running the processes.
 
           * - ``NEEDS_CLEAN``
             - The server is no longer hosting MongoDB processes and no longer
-              bound to a group, but the server still contains the MongoDB data
+              bound to a project, but the server still contains the MongoDB data
               and logs. The server has not yet been returned to the server
               pool and is not visible to |onprem| users.
 
           * - ``TRASH``
             - The server is no longer hosting MongoDB processes and no longer
-              bound to a group. The server no longer contains the MongoDB data
+              bound to a project. The server no longer contains the MongoDB data
               and logs. The server has not yet been returned to the server
               pool and is not visible to |onprem| users.
 
@@ -64,4 +64,4 @@
 
    * - ``boundGroupId``
      - string
-     - The ID of the group where this server is in use.
+     - The ID of the project where this server is in use.

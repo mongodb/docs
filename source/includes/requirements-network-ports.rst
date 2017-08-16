@@ -26,7 +26,7 @@ Ports Required to Use |mms|
   non-default port for |mms|.
 * |mms| must be able to connect to the backing MongoDB databases
   running ``mongod``.
-* For each |mms| group, |mms| agents must be able to connect to all
+* For each |mms| project, |mms| agents must be able to connect to all
   client MongoDB processes (``mongod`` or ``mongos``).
 * The |mms| application must also be able to send email to |mms| users.
 
