@@ -35,14 +35,18 @@
      - boolean
      - Indicator that the :term:`snapshot` cannot be deleted.
 
-       If ``doNotDelete`` is set to ``true``, any value in ``expires``
-       is ignored.
-
    * - ``expires``
      - timestamp
-     - The date after which this :term:`snapshot` can be deleted in
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format at :abbr:`UTC (Coordinated Universal Time)`.
+     - The date in `ISO 8601
+       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+       and time format at :abbr:`UTC (Coordinated Universal Time)` after
+       which this :term:`snapshot` can be deleted.
+
+       If ``doNotDelete`` is set to ``true``, any value in ``expires``
+       is removed.
+
+       If the ``expires`` value is earlier than the current date and
+       time, it cannot be edited.
 
    * - ``groupId``
      - objectId
@@ -113,7 +117,9 @@
 
    * - ``missingShards.lastHeartbeat``
      - timestamp
-     - The exact point in time when the last heartbeat was received from
+     - The exact point in time in
+       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+       date and time format at :abbr:`UTC (Coordinated Universal Time)` when the last heartbeat was received from
        the missing :term:`shard`.
 
    * - ``parts``

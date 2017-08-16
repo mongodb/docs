@@ -40,9 +40,15 @@
 
    * - ``expires``
      - timestamp
-     - The date after which this :term:`snapshot` can be deleted in
+     - The date in
        `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format at :abbr:`UTC (Coordinated Universal Time)`.
+       date and time format at :abbr:`UTC (Coordinated Universal Time)` after which this :term:`snapshot` can be deleted.
+
+       If ``doNotDelete`` is set to ``true``, any value in ``expires``
+       is removed.
+
+       If the ``expires`` value is earlier than the current date and
+       time, it can no longer be edited.
 
    * - ``groupId``
      - objectId
