@@ -1,25 +1,24 @@
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-USER=`whoami`
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
-PRODUCTION_URL="https://docs.mongodb.org"
+PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prod
-PREFIX=php-library
+PROJECT=php-library
 
-.PHONY: help publish stage deploy
+# Parse our published-branches configuration file to get the name of
+# the current "stable" branch. This is weird and dumb, yes.
+STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-help:
-# Prints out the following help message.
-	@echo 'Targets'
-	@echo '  help         - Show this help message'
-	@echo '  publish      - Build docs locally'
-	@echo '  stage        - Host online for review'
-	@echo '  deploy       - Deploy to the production bucket'
-	@echo ''
+.PHONY: help publish stage deploy deploy-search-index
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo
 	@echo 'Variables'
-	@echo '  ARGS         - Arguments to pass to mut-publish'
+	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-publish:
+publish: ## Build docs locally
 # !!! DOES NOT PUT STUFF ONTO THE INTERNET !!!
 # Builds the artifacts that you will deploy with other targets.
 # Also builds an HTML rendering for local viewing.
@@ -34,23 +33,23 @@ publish:
 	# build the publish artefacts using giza:
 	giza make publish
 
-stage:
+stage: ## Host online for review
 # !!! DEPLOY HTML TO STAGING WEBSITE !!!
 # Deploys the HTML from the build/<branch> directory to the STAGING_BUCKET.
 #
 # mut-publish
 #       build/${GIT_BRANCH}/html  directory from which to grab the HTML to deploy to the STAGING_BUCKET
 #       STAGING_BUCKET            Amazon s3 bucket used for the staging site
-#         --prefix=${PREFIX}      ${PREFIX} is the folder in the staging bucket in which to place the HTML
+#         --prefix=${PROJECT}      ${PROJECT} is the folder in the staging bucket in which to place the HTML
 #      --stage                    indicates that mut-publish should publish to the staging bucket (not the prod bucket)
 #      if ${ARGS}, then additonal arguments
 
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 
 
-deploy: publish
+deploy: publish ## Deploy to the production bucket
 # !!! DEPLOY BUILD ARTIFACTS TO PRODUCTION !!!
 # Deploys the build artifacts from the build/public directory to the PRODUCTION_BUCKET,
 # first doing a 'dry run' that lists all of the files that will be uploaded/deleted/etc.
@@ -60,16 +59,27 @@ deploy: publish
 # mut-publish
 #      build/public         directory from which to grab the build artifacts to deploy to the PRODUCTION_BUCKET
 #      PRODUCTION_BUCKET    Amazon s3 bucket that holds the production docs
-#      --prefix=${PREFIX}   ${PREFIX} is the folder in the prod. bucket in which to place the artifacts
+#      --prefix=${PROJECT}   ${PROJECT} is the folder in the prod. bucket in which to place the artifacts
 #      --deploy             indicates that mut-publish should publish to the production bucket (not the staging bucket)
 #      --verbose            prints out a detail of what files are being uploaded/deleted/etc.
 #      --dry-run            instructs mut-publish to do everything *except* actually put stuff on the internet.
 #      if ${ARGS}, then additonal arguments
 	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --dry-run ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
+	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
+
+	$(MAKE) deploy-search-index
+
+deploy-search-index: ## Update the search index for this branch
+	@echo "Building search index"
+	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -g -s; \
+	else \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
+	fi
+
