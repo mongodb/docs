@@ -8,47 +8,57 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-ruby-driver
 
-PREFIX=ruby-driver
+PROJECT=ruby-driver
 TARGET_DIR=source-${GIT_BRANCH}
 
-.PHONY: help stage fake-deploy deploy check-redirects publish-build-only publish migrate
+# Parse our published-branches configuration file to get the name of
+# the current "stable" branch. This is weird and dumb, yes.
+STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-help:
-	@echo 'Targets'
-	@echo '  help         - Show this help message'
-	@echo '  stage        - Host online for review'
-	@echo '  fake-deploy-all  - Create a fake deployment in the staging bucket'
-	@echo '  deploy       - Deploy to the production bucket'
-	@echo ''
+.PHONY: help stage fake-deploy deploy deploy-search-index check-redirects publish-build-only publish migrate
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo
 	@echo 'Variables'
-	@echo '  ARGS         - Arguments to pass to mut-publish'
+	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html: migrate
+html: migrate ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-publish-build-only:  
+publish-build-only: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 
-publish: migrate 
+publish: migrate ## Build publishable artifacts, and also migrates assets
 	giza make publish
 
-stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
+stage: ## Host online for review
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
-fake-deploy: build/public/${GIT_BRANCH}
-	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
+fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the staging bucket
+	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
-deploy: build/public/${GIT_BRANCH} check-redirects
+deploy: build/public/${GIT_BRANCH} check-redirects ## Deploy to the production bucket
 	@echo "Doing a dry-run"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 
 	@echo ''
 	read -p "Press any key to perform the previous upload to ${PRODUCTION_BUCKET}"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}"
+	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}"
+
+	$(MAKE) deploy-search-index
+
+deploy-search-index: ## Update the search index for this branch
+	@echo "Building search index"
+	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -g -s; \
+	else \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
+	fi
 
 migrate: get-assets
 	@echo "Making target source directory -- doing this explicitly instead of via cp"
