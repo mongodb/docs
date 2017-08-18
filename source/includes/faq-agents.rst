@@ -80,7 +80,7 @@ servers with multiple aliases. This prevents servers from appearing
 multiple times under different names in the |mms| interface.
 
 To create a preferred hostname, go to :doc:`Project Settings
-</tutorial/manage-group-settings>` and add a :guilabel:`Preferred
+</tutorial/manage-project-settings>` and add a :guilabel:`Preferred
 Hostnames` entry. For details, see
 :doc:`/tutorial/manage-group-settings`
 
