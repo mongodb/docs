@@ -47,7 +47,7 @@ check-redirects:
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/current -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-current.json --aliases bi-connector-${GIT_BRANCH} -u ${PRODUCTION_URL}/${PROJECT}/current -g -s; \
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
 	fi
