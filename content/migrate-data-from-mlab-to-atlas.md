@@ -46,7 +46,7 @@ To create an administrative user:
 1. Select the source MongoDB cluster in the mLab user interface.
 2. From the **Databases** view, click the ``admin`` database.
 3. Click **Users**.
-4. Click **Add admin user**. Take note of the username and password you assign. Do **not** check the ``Make read-only`` box.
+4. Click **Add admin user**. Take note of the username and password you assign. This user may be read-only.
 5. Click **Create** to create the user.
 
 <span id="configure-atlas-cluster-whitelist"></span>
