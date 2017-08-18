@@ -14,10 +14,16 @@ class Navbar extends React.Component {
     this.state = JSON.parse(props.navprops)
     this.state.enableMarian = Boolean(document.body.getAttribute('data-enable-marian'))
 
+    // There are three supported configurations:
+    // 1) No Marian
+    // 2) data-project-title & data-search-properties are set
+    // 3) data-project-title & data-search-properties are empty
+    // 4) data-search-properties is not set, but data-project and data-branch are
+
     if (this.state.enableMarian) {
       let label = document.body.getAttribute('data-project-title')
       let searchProperties = document.body.getAttribute('data-search-properties')
-      if (!searchProperties) {
+      if (searchProperties === null) {
         const projectName = document.body.getAttribute('data-project')
         const projectBranch = document.body.getAttribute('data-branch')
         searchProperties = `${projectName}-${projectBranch}`
@@ -27,10 +33,6 @@ class Navbar extends React.Component {
             label += ' ' + projectBranch
           }
         }
-      }
-
-      if (!label) {
-        label = searchProperties
       }
 
       this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label)

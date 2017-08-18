@@ -40,24 +40,34 @@ export default class Marian {
         this.container.className = 'marian'
 
         this.query = ''
-        this.searchProperty = 'current'
+        this.searchProperty = ''
 
         // We have three options to search: the current site, the current MongoDB manual,
         // and all properties.
-        const tabStripElements = [{id: 'current', label: `${defaultPropertiesLabel}`}]
-        if (!defaultPropertiesLabel.match(/^MongoDB Manual/)) {
+        const tabStripElements = []
+        if (defaultPropertiesLabel) {
+            tabStripElements.push({id: 'current', label: `${defaultPropertiesLabel}`})
+            this.searchProperty = 'current'
+        }
+
+        if (!defaultPropertiesLabel || !defaultPropertiesLabel.match(/^MongoDB Manual/)) {
             tabStripElements.push({id: 'manual', label: 'MongoDB Manual'})
+
+            if (!this.searchProperty) {
+                this.searchProperty = 'manual'
+            }
         }
 
         tabStripElements.push({id: 'all', label: 'All Results'})
 
-        const tabStrip = new TabStrip('current', tabStripElements, (tab) => {
+        const tabStrip = new TabStrip(this.searchProperty, tabStripElements, (tab) => {
             tabStrip.update(tab.id)
             this.searchProperty = tab.id
             this.search(this.query)
         })
 
-        const titleElement = document.createElement('h3')
+        const titleElement = document.createElement('div')
+        titleElement.className = 'marian__heading'
         titleElement.innerText = 'Search Results'
 
         this.listElement = document.createElement('ul')
@@ -66,6 +76,7 @@ export default class Marian {
         this.container.appendChild(tabStrip.element)
         this.container.appendChild(this.listElement)
 
+        this.bodyElement = null
         document.addEventListener('DOMContentLoaded', () => {
             const rootElement = [
                 document.querySelector('.main-column'),
@@ -73,28 +84,19 @@ export default class Marian {
                 document.body].filter((el) => Boolean(el))[0]
 
             rootElement.appendChild(this.container)
-        })
 
-        // When we show our search results, the page body should go away
-        this._bodyElement = null
-    }
-
-    get bodyElement() {
-        if (!this._bodyElement) {
-            const candidates = ['.main__content', '.document']
+            const candidates = ['.main__cards', '.main__content', '.document']
             for (let i = 0; i < candidates.length; i += 1) {
                 const candidate = candidates[i]
-                this._bodyElement = document.querySelector(candidate)
-                if (this._bodyElement) { continue }
+                this.bodyElement = document.querySelector(candidate)
+                if (this.bodyElement) { break }
             }
 
             // If we can't find a page body, just use a dummy element
-            if (!this._bodyElement) {
-                this._bodyElement = document.createElement('div')
+            if (!this.bodyElement) {
+                this.bodyElement = document.createElement('div')
             }
-        }
-
-        return this._bodyElement
+        })
     }
 
     show() {
