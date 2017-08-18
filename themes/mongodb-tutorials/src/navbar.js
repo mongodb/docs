@@ -57,6 +57,7 @@ class Navbar extends React.Component {
 
     this.calculateBlurredWidth = this.calculateBlurredWidth.bind(this)
     this.calculateFocusWidth = this.calculateFocusWidth.bind(this)
+    this.animateSearch = this.animateSearch.bind(this)
   }
 
   onInput = (event) => {
@@ -81,17 +82,21 @@ class Navbar extends React.Component {
   }
 
   componentDidMount () {
-    if (this.state.enableMarian) { return }
+    // Pass the animateSearch function
+    var animateSearch = this.animateSearch;
+
+    if (this.state.enableMarian) { 
+      var input = document.querySelector('.navbar-search');
+      animateSearch(input);
+
+      return
+    }
 
     var cx = window.googleSearchCx;
     var gcse = document.createElement('script');
     gcse.type = 'text/javascript';
     gcse.async = true;
     gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-
-    // Pass the calculateBlurredWidth function
-    var calculateBlurredWidth = this.calculateBlurredWidth;
-    var calculateFocusWidth = this.calculateFocusWidth;
 
     gcse.onload = gcse.onreadystatechange = function() {
       // hack to set a placeholder in google's custom search input
@@ -107,33 +112,43 @@ class Navbar extends React.Component {
           elementClass(input).add('navbar-search')
           window.clearInterval(pollInput);
 
-          // Set the initial size of the search bar depending on browser size
-          document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+          animateSearch(input);
 
-          // Width of the search bar must be set manually when in or out of focus
-          input.onfocus = function() {
-            // Stop any executing animations, then start expanding
-            Velocity(input, "stop");
-            Velocity(input, { width: calculateFocusWidth() }, { duration: 200 });
-          }
-
-          input.onblur = function() {
-            // Stop any executing animations, then start collapsing
-            Velocity(input, "stop");
-            Velocity(input, { width: calculateBlurredWidth() }, { duration: 200 });
-          }
         }
       }, 10);
 
-      // Resize search bar when the browser is resized
-      window.addEventListener("resize", function(){
-        document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
-      })
     };
 
     var s = document.getElementsByTagName('script')[0];
     s.parentNode.insertBefore(gcse, s);
-}
+  }
+
+  // Animate the search bar on focus, blur and window resize
+  animateSearch (input) {
+    var calculateBlurredWidth = this.calculateBlurredWidth;
+    var calculateFocusWidth = this.calculateFocusWidth;
+
+    // Set the initial size of the search bar depending on browser size
+    input.style.width = calculateBlurredWidth();
+
+    // Width of the search bar must be set manually when in or out of focus
+    input.onfocus = function() {
+      // Stop any executing animations, then start expanding
+      Velocity(input, "stop");
+      Velocity(input, { width: calculateFocusWidth() }, { duration: 200 });
+    }
+
+    input.onblur = function() {
+      // Stop any executing animations, then start collapsing
+      Velocity(input, "stop");
+      Velocity(input, { width: calculateBlurredWidth() }, { duration: 200 });
+    }
+
+    // Resize search bar when the browser is resized
+    window.addEventListener("resize", function(){
+      document.querySelector('.navbar-search').style.width = calculateBlurredWidth();
+    })
+  }
 
   // Calculates the size of the search bar when it's not in focus
   calculateBlurredWidth () {
