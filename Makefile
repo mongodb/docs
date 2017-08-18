@@ -53,7 +53,7 @@ deploy: check-redirects ## Deploys the DIR (dirhtml) artifacts generated from "p
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PREFIX}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PREFIX}/current -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PREFIX}-current.json --aliases ${PREFIX}-${GIT_BRANCH} -u ${PRODUCTION_URL}/${PREFIX}/current -g -s; \
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o ${PREFIX}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH} -s; \
 	fi
