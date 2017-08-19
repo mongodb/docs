@@ -20,13 +20,17 @@ PREFIX=
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/mms-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
 ##  I doubt that we'll ever have files named stage-cloud, fake-deploy-cloud, ... but eh
-.PHONY: help stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
+.PHONY: help html stage-cloud fake-deploy-cloud deploy-cloud stage-onprem fake-deploy-onprem deploy-onprem deploy-opsmgr-current deploy-opsmgr-upcoming deploy-cloud-search-index deploy-opsmgr-search-index
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
+
+html: ##build both cloud/ops manager html files
+	giza make html
+
 
 stage-cloud: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html-cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --stage ${ARGS}
