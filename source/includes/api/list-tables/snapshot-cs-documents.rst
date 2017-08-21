@@ -58,9 +58,47 @@
      - objectId
      - ID of the :term:`snapshot`.
 
+   * - ``lastOplogAppliedTimestamp``
+     - document
+     - The components of a :ref:`timestamp <document-bson-type-timestamp>`.
+
+   * - ``lastOplogAppliedTimestamp.date``
+     - timestamp
+     - The exact point in time when the last :term:`oplog` was applied
+       in `ISO 8601
+       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+       and time format at :abbr:`UTC (Coordinated Universal Time)`.
+
+   * - ``lastOplogAppliedTimestamp.increment``
+     - integer
+     - The operation order in which last :term:`oplog` was applied at
+       this exact point in time. To learn how timestamps work in
+       MongoDB, see :ref:`document-bson-type-timestamp`.
+
    * - ``links``
      - document array
      - See `links Array`_.
+
+   * - ``namespaceFilterList``
+     - document array
+     - The :term:`namespaces <namespace>` that are included or excluded
+       from this :term:`snapshot`.
+
+   * - ``namespaceFilterListfilterList``
+     - string array
+     - A comma-separated list of any combination of databases or
+       :term:`namespaces <namespace>` that are exclusively included or
+       explicitly excluded from the snapshot.
+
+   * - ``namespaceFilterListfilterType``
+     - string
+     -
+       - If you want to exclude the namespaces in
+         ``namespaceFilterListfilterList``, set this value to
+         ``blacklist``.
+       - If you want to include only the namespaces in
+         ``namespaceFilterListfilterList``, set this value to
+         ``whitelist``.
 
    * - ``parts``
      - document array
