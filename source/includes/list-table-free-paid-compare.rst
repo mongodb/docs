@@ -5,11 +5,7 @@
    * -
      - Free Tier Cluster (``M0`` instance)
      - Paid Cluster (``M10+`` instance)
-     
-   * - Scaling
-     - No
-     - :doc:`Seamless cluster scaling </scale-cluster>`
-     
+          
    * - Data Visualization
      - No
      - |service| :ref:`Data Explorer <data-explorer>`

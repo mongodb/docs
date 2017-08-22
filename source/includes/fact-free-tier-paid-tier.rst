@@ -7,6 +7,9 @@ Paid clusters use |service| ``M10+`` instances and provide full access to
 clusters. 
 
 The following table highlights key differences between an ``M0`` Free Tier
-cluster and an ``M10+`` paid cluster:
+cluster and an ``M10+`` paid cluster. For a complete list of Free Tier
+limitations, see :ref:`atlas-free-tier`. You can :doc:`upgrade
+</scale-cluster>` an ``M0`` Free Tier cluster to an ``M10+`` paid cluster at
+any time.
 
 .. include:: /includes/list-table-free-paid-compare.rst
