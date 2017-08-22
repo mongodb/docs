@@ -1,5 +1,6 @@
 Starting in MongoDB 3.6, MongoDB binaries, :program:`mongod` and
-:program:`mongos`, bind to localhost by default.
+:program:`mongos`, bind to localhost (``127.0.0.1`` and ``::1``) by
+default.
 
 Previously, starting from MongoDB 2.6, only the binaries from the
 official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives)
