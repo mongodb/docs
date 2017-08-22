@@ -18,16 +18,17 @@ To override and bind to other ip addresses, you can use the
 command-line option to specify a list of ip addresses
 
 For example, the following :program:`mongod` instance binds to both the
-localhost and another ip address:
+localhost and the sample ip address ``198.51.100.1``:
 
-.. code-block:: sh
+.. code-block:: none
 
    mongod --bind_ip localhost,198.51.100.1
 
-Remote clients must specify the ip address ``198.51.100.1`` or the
-associated hostname in order to connect to this instances:
+In order to connect to this instance, remote clients must specify the
+ip address ``198.51.100.1`` or the hostname associated with the ip
+address:
 
-.. code-block:: sh
+.. code-block:: none
 
    mongo --host 198.51.100.1
 
