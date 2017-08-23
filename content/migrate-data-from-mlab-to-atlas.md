@@ -14,7 +14,7 @@ tags = [
 running, monitoring, and maintaining MongoDB Deployments, including the
 provisioning of dedicated servers for MongoDB instances.
 
-The following procedure migrates a MongoDB cluster hosted on Compose.io to
+The following procedure migrates a MongoDB cluster hosted on mLab to
 Atlas. Because the procedure uses the Atlas [Live
 Migration](https://docs.atlas.mongodb.com/import/live-import/) tool, the
 procedure only requires downtime while updating your applications to connect
@@ -29,7 +29,7 @@ more information.
 **Shared** or **Sandbox** mLab clusters are missing command and operational
 capabilities that the Live Migration tool requires to function.
 
-<span id="configure-compose-cluster"></span>
+<span id="configure-mlab-cluster"></span>
 
 ## Configure the Source mLab Cluster for Migration
 
@@ -37,7 +37,7 @@ Log into your mLab account and click on the MongoDB cluster you want to
 migrate. Keep this page open, as you will need the information presented on it
 for use with this procedure.
 
-<span id="configure-compose-cluster-admin-user"></span>
+<span id="configure-mlab-cluster-admin-user"></span>
 
 ### Create an Administrative User for Migration
 
@@ -143,7 +143,7 @@ migration process:
 cut over your applications to the Atlas cluster. Atlas provides a 
 72-hour extendable cutover period during which you can schedule the downtime.
 
-Before proceeding, ensure you have [configured the mLab source cluster](#configure-compose-cluster)
+Before proceeding, ensure you have [configured the mLab source cluster](#configure-mlab-cluster)
 and [configured the Atlas destination cluster](#configure-atlas-cluster).
 
 ### Step 1: Open the Live Migration Configuration Dialog
@@ -161,8 +161,8 @@ The Live Migration configuration dialog requires the following information
 from the mLab cluster view:
 
 - The ``Hostname`` and ``Port`` of the primary replica set member in the mLab cluster,
-- The ``Username`` for administrative user created in an [earlier step](#configure-compose-cluster-admin-user), and
-- The ``Password`` for the administrative user created in an [earlier step](#configure-compose-cluster-admin-user).
+- The ``Username`` for administrative user created in an [earlier step](#configure-mlab-cluster-admin-user), and
+- The ``Password`` for the administrative user created in an [earlier step](#configure-mlab-cluster-admin-user).
 
 The mLab cluster view displays the hostname and port of the primary replica set member
 as a part of the [mongo](https://docs.mongodb.com/manual/reference/program/mongo/)
