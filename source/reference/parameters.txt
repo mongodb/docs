@@ -703,12 +703,34 @@ Logging Parameters
 
    .. seealso:: :setting:`systemLog.traceAllExceptions`
 
-Diagnostic Parameters
----------------------
+.. _param-ftdc:
 
-To support the :ref:`diagnostic data capture
-<3.2-diagnostic-data-capture>`, MongoDB introduces the following
-parameters:
+Diagnostic Parameters
+~~~~~~~~~~~~~~~~~~~~~
+
+To facilitate analysis of the MongoDB server behavior by MongoDB
+engineers, MongoDB logs server statistics to diagnostic files at
+periodic intervals.
+
+For :program:`mongod`, the diagnostic data files are stored in the
+``diagnostic.data`` directory under the :program:`mongod` instance's
+``--dbpath`` or :setting:`storage.dbPath`.
+
+For :program:`mongos`, the diagnostic data files, by default, are
+stored in a directory under the :program:`mongos` instance's
+``--logpath`` or :setting:`systemLog.path` directory. The diagnostic
+data directory is computed by truncating the logpath's file
+extension(s) and concatenating ``diagnostic.data`` to the remaining
+name. 
+
+For example, if :program:`mongos` has ``--logpath
+/var/log/mongos.log.201708015``, then the diagnostic data directory is
+``/var/log/mongos.diagnostic.data/`` directory. To specify a different
+diagnostic data directory for :program:`mongos`, set the
+:parameter:`diagnosticDataCollectionDirectoryPath` parameter.
+
+The following parameters support :term:`diagnostic data capture (FTDC)
+<FTDC>`:
 
 .. note::
 
@@ -717,20 +739,18 @@ parameters:
    with minimal impact on performance and storage size. Typically, these
    values will only need modifications as requested by MongoDB engineers
    for specific diagnostic purposes.
-
-   Diagnostic data files are stored in the ``diagnostic.data`` directory
-   under the :program:`mongod` instance's ``--dbpath`` or
-   :setting:`storage.dbPath`.
-
+   
 .. parameter:: diagnosticDataCollectionEnabled
 
    .. versionadded:: 3.2
 
+   .. versionchanged:: 3.6
+
+      |both|
+
    *Type*: boolean
 
    *Default*: true
-
-   |mongod-only|
 
    Determines whether to enable the collecting and logging of data for
    diagnostic purposes. Diagnostic logging is enabled by default.
@@ -741,6 +761,34 @@ parameters:
 
       mongod --setParameter diagnosticDataCollectionEnabled=false
 
+.. parameter:: diagnosticDataCollectionDirectoryPath
+
+   .. versionadded:: 3.6
+
+   *Type*: String
+
+   |mongos-only|
+
+   Specify the the directory for the diagnostic directory for
+   :program:`mongos`. If the directory does not exist,
+   :program:`mongos` creates the directory.
+
+   If unspecified, the diagnostic data directory is computed by
+   truncating the :program:`mongos` instance's ``--logpath`` or
+   :setting:`systemLog.path` file extension(s) and concatenating
+   ``diagnostic.data``. 
+
+   For example, if :program:`mongos` has ``--logpath
+   /var/log/mongos.log.201708015``, then the diagnostic data directory is
+   ``/var/log/mongos.diagnostic.data/``.
+
+   .. important::
+
+      If :program:`mongos` cannot create the specified directory, e.g.
+      a file exists with the same name in the path or the process does
+      not have permissions to create the directory, the diagnostic data
+      capture will be disabled for that instance.
+
 .. parameter:: diagnosticDataCollectionDirectorySizeMB
 
    .. versionadded:: 3.2
@@ -748,11 +796,13 @@ parameters:
    .. versionchanged:: 3.4
       Increased default size to 200 megabytes.
 
+   .. versionchanged:: 3.6
+
+      |both|
+
    *Type*: integer
 
    *Default*: 200
-
-   |mongod-only|
 
    Specifies the maximum size, in megabytes, of the ``diagnostic.data``
    directory . If directory size exceeds this number, the oldest
@@ -777,11 +827,14 @@ parameters:
 
    .. versionadded:: 3.2
 
+   .. versionchanged:: 3.6
+
+      |both|
+
    *Type*: integer
 
    *Default*: 10
 
-   |mongod-only|
 
    Specifies the maximum size, in megabytes, of each :ref:`diagnostic
    file <3.2-diagnostic-data-capture>`. If the file exceeds the maximum
@@ -801,11 +854,13 @@ parameters:
 
    .. versionadded:: 3.2
 
+   .. versionchanged:: 3.6
+
+      |both|
+
    *Type*: integer
 
    *Default*: 1000
-
-   |mongod-only|
 
    Specifies the interval, in milliseconds, at which to collect
    diagnostic data.
