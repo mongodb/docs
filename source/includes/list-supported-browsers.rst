@@ -20,4 +20,6 @@
    * - `Apple Safari <https://www.apple.com/safari/>`_
      - latest stable version on MacOS 10.10.5 and later
 
-|onprem| displays a warning on non-supported browsers. 
+.. only:: onprem
+
+   |onprem| displays a warning on non-supported browsers. 
