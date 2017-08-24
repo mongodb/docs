@@ -39,6 +39,10 @@ export default class Marian {
         this.container = document.createElement('div')
         this.container.className = 'marian'
 
+        this.spinnerElement = document.createElement('div')
+        this.spinnerElement.className = 'spinner'
+
+        this.currentRequest = null
         this.query = ''
         this.searchProperty = ''
 
@@ -74,6 +78,7 @@ export default class Marian {
         this.listElement.className = 'marian-results'
         this.container.appendChild(titleElement)
         this.container.appendChild(tabStrip.element)
+        this.container.appendChild(this.spinnerElement)
         this.container.appendChild(this.listElement)
 
         this.bodyElement = null
@@ -118,7 +123,10 @@ export default class Marian {
         }
 
         this.show()
+
+        if (this.currentRequest !== null) { this.currentRequest.abort() }
         const request = new XMLHttpRequest()
+        this.currentRequest = request
         let requestUrl = this.url + '/search?q=' + encodeURIComponent(query)
 
         if (this.defaultProperties.length && this.searchProperty === 'current') {
@@ -127,58 +135,83 @@ export default class Marian {
             requestUrl += '&searchProperty=manual-current'
         }
 
+        this.listElement.innerText = ''
+        this.spinnerElement.className = 'spinner'
         request.open('GET', requestUrl)
         request.onreadystatechange = (ev) => {
             if (request.readyState !== 4) {
                 return
             }
 
+            this.currentRequest = null
+            this.spinnerElement.className = 'spinner spinner--hidden'
+
             if (!request.responseText) {
-                console.error('Error receiving search results')
+                if (request.status === 400) {
+                    this.renderError('Search request too long')
+                } else if (request.status === 503) {
+                    this.renderError('Search server is temporarily unavailable')
+                } else if (request.status !== 0) {
+                    this.renderError('Error receiving search results')
+                }
+
                 return
             }
 
-            this.listElement.innerText = ''
             const data = JSON.parse(request.responseText)
-
-            const spellingErrors = Object.keys(data.spellingCorrections)
-            if (spellingErrors.length > 0) {
-                let corrected = query
-                spellingErrors.forEach((orig) => {
-                    corrected = corrected.replace(orig, data.spellingCorrections[orig])
-                })
-
-                const li = document.createElement('li')
-                const correctLink = document.createElement('a')
-                correctLink.onclick = () => {
-                    this.onchangequery(corrected)
-                }
-                li.className = 'marian-result'
-                correctLink.className = 'marian-spelling-correction'
-                correctLink.innerText = `Did you mean: ${corrected}`
-                li.appendChild(correctLink)
-                this.listElement.appendChild(li)
-            }
-
-            data.results.forEach((result) => {
-                const li = document.createElement('li')
-                li.className = 'marian-result'
-
-                const titleLink = document.createElement('a')
-                titleLink.innerText = result.title
-                titleLink.className = 'marian-title'
-                titleLink.href = result.url
-
-                const previewElement = document.createElement('div')
-                previewElement.innerText = result.preview
-                previewElement.className = 'marian-preview'
-
-                li.appendChild(titleLink)
-                li.appendChild(previewElement)
-                this.listElement.appendChild(li)
-            })
+            this.render(data, query)
+        }
+        request.onerror = () => {
+            this.renderError('Network error when receiving search results')
         }
 
         request.send()
+    }
+
+    render(data, query) {
+        const spellingErrors = Object.keys(data.spellingCorrections)
+        if (spellingErrors.length > 0) {
+            let corrected = query
+            spellingErrors.forEach((orig) => {
+                corrected = corrected.replace(orig, data.spellingCorrections[orig])
+            })
+
+            const li = document.createElement('li')
+            const correctLink = document.createElement('a')
+            correctLink.onclick = () => {
+                this.onchangequery(corrected)
+            }
+            li.className = 'marian-result'
+            correctLink.className = 'marian-spelling-correction'
+            correctLink.innerText = `Did you mean: ${corrected}`
+            li.appendChild(correctLink)
+            this.listElement.appendChild(li)
+        }
+
+        data.results.forEach((result) => {
+            const li = document.createElement('li')
+            li.className = 'marian-result'
+
+            const titleLink = document.createElement('a')
+            titleLink.innerText = result.title
+            titleLink.className = 'marian-title'
+            titleLink.href = result.url
+
+            const previewElement = document.createElement('div')
+            previewElement.innerText = result.preview
+            previewElement.className = 'marian-preview'
+
+            li.appendChild(titleLink)
+            li.appendChild(previewElement)
+            this.listElement.appendChild(li)
+        })
+    }
+
+    renderError(message) {
+        console.error(message)
+        const li = document.createElement('li')
+        li.className = 'marian-result'
+        li.innerText = message
+        this.listElement.appendChild(li)
     }
 }
