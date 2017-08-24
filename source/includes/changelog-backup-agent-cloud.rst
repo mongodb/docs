@@ -1,3 +1,10 @@
+Backup Agent ``5.8.0.655``
+--------------------------
+
+*Released 2017-08-24*
+
+- Allow oplogs for a point in time restore to be applied client-side.
+
 Backup Agent ``5.7.0.637``
 --------------------------
 
