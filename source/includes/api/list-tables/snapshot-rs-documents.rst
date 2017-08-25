@@ -74,7 +74,9 @@
 
    * - ``lastOplogAppliedTimestamp``
      - document
-     - The components of a :ref:`timestamp <document-bson-type-timestamp>`.
+     - The components of the
+       :ref:`timestamp <document-bson-type-timestamp>`  of the last
+       oplog entry was applied.
 
    * - ``lastOplogAppliedTimestamp.date``
      - timestamp
@@ -107,12 +109,10 @@
    * - ``namespaceFilterListfilterType``
      - string
      -
-       - If you want to exclude the namespaces in
-         ``namespaceFilterListfilterList``, set this value to
-         ``blacklist``.
-       - If you want to include only the namespaces in
-         ``namespaceFilterListfilterList``, set this value to
-         ``whitelist``.
+       - If namespaces in ``namespaceFilterListfilterList`` were
+         excluded, this value was set to ``blacklist``.
+       - If namespaces in ``namespaceFilterListfilterList`` were
+         included, this value was set to ``whitelist``.
 
    * - ``missingShards``
      - document array
