@@ -50,7 +50,7 @@ Query Coverage
 ~~~~~~~~~~~~~~
 
 MongoDB will not use the partial index for a query or sort operation if
-using the index results in an incomplete result set. 
+using the index results in an incomplete result set.
 
 To use the partial index, a query must contain the filter expression
 (or a modified filter expression that specifies a subset of the filter
@@ -116,9 +116,9 @@ a partial index can implement the same behavior as a sparse index:
 
 .. code-block:: javascript
 
-   db.contacts.createIndex( 
-      { name: 1 }, 
-      { partialFilterExpression: { name: { $exists: true } } } 
+   db.contacts.createIndex(
+      { name: 1 },
+      { partialFilterExpression: { name: { $exists: true } } }
    )
 
 This partial index supports the same queries as a sparse index on the
@@ -137,16 +137,21 @@ filter expression is on the ``email`` field:
    )
 
 For the query optimizer to choose this partial index, the query
-predicate must include a non-null match on the ``email`` field as well
-as a condition on the ``name`` field.
+predicate must include a condition on the ``name`` field as well
+as a *non-null* match on the ``email`` field.
 
-For example, the following query can use the index:
+For example, the following query can use the index because it includes
+both a condition on the ``name`` field and a non-null match on the
+``email`` field:
 
 .. code-block:: javascript
 
    db.contacts.find( { name: "xyz", email: { $regex: /\.org$/ } } )
 
-However, the following query cannot use the index:
+However, the following query cannot use the index because it
+includes a null match on the ``email`` field, which is not permitted
+by the filter expression
+``{ email: { $exists: true } }``:
 
 .. code-block:: javascript
 
@@ -207,8 +212,8 @@ field is ``A``:
 
 .. code-block:: javascript
 
-   db.restaurants.createIndex( 
-      { borough: 1, cuisine: 1 }, 
+   db.restaurants.createIndex(
+      { borough: 1, cuisine: 1 },
       { partialFilterExpression: { 'rating.grade': { $eq: "A" } } }
    )
 
