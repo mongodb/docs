@@ -7,7 +7,7 @@
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 .. only:: html
@@ -26,10 +26,10 @@ Description
 .. include:: /includes/fact-bi-enterprise.rst
 
 :program:`mongodrdl` produces a schema based on contents of one or more
-:program:`mongod` :term:`collections <collection>` and writes them out into
+MongoDB :term:`collections <collection>` and writes them out into
 ``.drdl`` files understood by :program:`mongosqld`.
 
-See :doc:`/schema-configuration` for details on this format.
+For details on the ``.drdl`` format, see :doc:`/schema-configuration`.
 
 .. include:: /includes/fact-restart-mongosqld.rst
 
@@ -111,32 +111,38 @@ Authentication Options
 Custom Filters
 ~~~~~~~~~~~~~~
 
+|bi-short| uses a MongoDB :manual:`aggregation pipeline </aggregation>`
+to perform queries against a MongoDB database.
 You can add a special field to your schema to pass a custom
-MongoDB :pipeline:`$match` query string to your MongoDB instance.
+MongoDB :manual:`$match </reference/operator/aggregation/match>`
+query string to your MongoDB instance.
 
 Use the ``--customFilterField`` option with :program:`mongodrdl` to name
 a custom filter field. This field passes a native MongoDB
-:pipeline:`$match` stage to use as the first stage of the aggregation
-pipeline. The |bi| applies this stage before any additional stages
+:manual:`$match </reference/operator/aggregation/match>`
+stage to use as the first stage of the aggregation pipeline,
+which filters any results returned from MongoDB.
+The |bi-short| applies this stage before any additional stages
 pushed down from SQL.
 
 The query can refer to any field in the collection, even if the fields
-were not exposed in the relational schema.
+are not exposed in the relational schema.
 
-For an example, see :ref:`mongodrdl-custom-filters-example`.
+For an example of custom filter usage, see
+:ref:`mongodrdl-custom-filters-example`.
 
-Usage
------
+Usage Examples
+--------------
 
-Generate a Schema
-~~~~~~~~~~~~~~~~~
+Schema Generation Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-mongodrdl-example.rst
 
 .. _mongodrdl-custom-filters-example:
 
-Custom Filter
-~~~~~~~~~~~~~
+Custom Filter Example
+~~~~~~~~~~~~~~~~~~~~~
 
 To use this field, specify the ``--customFilterField`` flag with the name you
 want this field to have:
@@ -168,7 +174,7 @@ SQL syntax:
      WHERE active='t' AND
        "_MONGOFILTER"='{"addr":{"$elemMatch":{"city":"Springfield","state":"CA"}}}'
 
-The |bi| will translate the above SQL into the following MongoDB
+The |bi-short| will translate the above SQL into the following MongoDB
 :ref:`aggregation <aggregation-framework>` expression:
 
 .. code-block:: javascript
@@ -184,19 +190,51 @@ on your special field and providing the value to match as a single quoted string
 representing valid :term:`JSON`. All quotes inside the JSON must be double
 quotes.
 
-.. seealso:: :ref:`bi-connector`
+Authentication Example
+~~~~~~~~~~~~~~~~~~~~~~
 
-Usage with Atlas
-----------------
+If your MongoDB server is running with :manual:`authentication
+</core/authentication/>` enabled, you must specify a username,
+password, and authentication database as options to your
+:program:`mongodrdl` command.
+
+To create a :ref:`.drdl <drdl>` file from a
+:manual:`mongod </reference/mongod>` instance with authentication
+enabled, use the following command format:
+
+.. example::
+
+   .. class:: copyable-code
+   .. code-block:: shell
+
+      mongodrdl --host myhost.example.net:27017 \
+                --username dbUser \
+                --password myPassword \
+                --db reports \
+                --collection FY2017 \
+                --authenticationDatabase admin \
+                --out schema.drdl
+
+MongoDB Atlas Example
+---------------------
 
 `Atlas <https://docs.atlas.mongodb.com/>`_ is a cloud service for
 running, monitoring, and maintaining MongoDB deployments, including the
 provisioning of dedicated servers for the MongoDB instances.
 
-To create a :ref:`DRDL <drdl>` file from an Atlas database, use the
+To create a :ref:`.drdl <drdl>` file from an Atlas database, use the
 following command format:
 
-.. class:: copyable-code
-.. code-block:: sh
+.. example::
 
-   mongodrdl --host <domain0>.mongodb.net:27017,<domain1>.mongodb.net:27017,... -u <username> -p <password> --ssl --authenticationDatabase=admin -d <database>
+   
+
+   .. class:: copyable-code
+   .. code-block:: shell
+
+      mongodrdl --host <domain0>.mongodb.net:27017,<domain1>.mongodb.net:27017,... \
+                --username <username> \
+                --password <password> \
+                --ssl \
+                --authenticationDatabase admin \
+                --db <database>

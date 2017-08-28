@@ -9,14 +9,14 @@ database ``test``:
        "detail": { "a": 2, "b": 3 }
    }
 
-You can use :program:`mongodrdl` to generate a schema based on this collection
-by running the following command:
+Run :program:`mongodrdl` to generate a schema based on this collection:
 
+.. class:: copyable-code
 .. code-block:: sh
 
    mongodrdl -d test -c abc -o schema.drdl
 
-The generated schema file ``schema.drdl`` will look similar to the following:
+The generated schema file (``schema.drdl``) looks similar to the following:
 
 .. code-block:: yaml
 
