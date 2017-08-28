@@ -87,19 +87,27 @@
      - The :term:`namespaces <namespace>` that are included or excluded
        from this :term:`snapshot`.
 
-   * - ``namespaceFilterListfilterList``
+   * - ``namespaceFilterList.filterList``
      - string array
      - A comma-separated list of any combination of databases or
        :term:`namespaces <namespace>` that are exclusively included or
        explicitly excluded from the snapshot.
 
-   * - ``namespaceFilterListfilterType``
+       The default value is an empty array (``[]``).
+
+   * - ``namespaceFilterList.filterType``
      - string
-     -
-       - If namespaces in ``namespaceFilterListfilterList`` were
-         excluded, this value was set to ``blacklist``.
-       - If namespaces in ``namespaceFilterListfilterList`` were
-         included, this value was set to ``whitelist``.
+     - A value that determines how :term:`namespaces <namespace>` are
+       filtered for this snapshot.
+
+       - If this value is set to ``blacklist``, namespaces in
+         ``namespaceFilterList.filterList`` are excluded from the
+         snapshot.
+       - If this value is set to ``whitelist``, only namespaces in
+         ``namespaceFilterList.filterList`` are included in the
+         snapshot.
+
+       The default value is ``blacklist``.
 
    * - ``parts``
      - document array
