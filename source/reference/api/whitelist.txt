@@ -4,24 +4,15 @@ Whitelist
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: twocols
-
-.. include:: /includes/fact-groups-projects-synonyms.rst
-
 The ``whitelist`` resource lets you retrieve and update a user's
 :ref:`whitelist <whitelist-for-api-operations>`, which controls the user's
 access to whitelisted API operations. Users can issue whitelisted API
-operations only from addresses on their own whitelists.
+operations only from addresses on their own whitelists. To use the 
+``whitelist`` resource you must know the ID of the user who owns
+the whitelist. To retrieve a user's ID, see :ref:`api-get-all-users-in-group`.
 
 The ``whitelist`` resource's ``POST`` and ``DELETE`` operations are themselves
 whitelisted. They must originate from an address already on the user's whitelist.
-
-To use the ``whitelist`` resource you must know the ID of the user who owns
-the whitelist. To retrieve a user's ID, see :ref:`api-get-all-users-in-group`.
 
 You can access whitelist information only for the user issuing the request.
 The ``USER-ID`` in the URL *must* match the ID of the user associated with the
@@ -30,289 +21,39 @@ The ``USER-ID`` in the URL *must* match the ID of the user associated with the
 Endpoints
 ---------
 
-Get the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   GET /api/public/v1.0/users/USER-ID/whitelist
-
-Get the Whitelist Entity for a Specific IP Address
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following retrieves the whitelist entry that contains an ``ipAddress``
-value that matches ``IP-ADDRESS``.
-
-.. code-block:: none
-
-   GET /api/public/v1.0/users/USER-ID/whitelist/IP-ADDRESS
-
-This retrieves a whitelist entity if the value of ``IP-ADDRESS`` equals the
-value of the entity's ``ipAddress`` field. This does not retrieve an object
-where the value of ``IP-ADDRESS`` is contained within the values allowed by
-the ``cidrBlock`` field.
-
-Add Entries to the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   POST /api/public/v1.0/users/USER-ID/whitelist
-
-The entity body must be an array of whitelist entities, even if there is
-only one. The only field you need to specify for each entity is the
-``ipAddress``.
-
-If an IP address is already in the whitelist, it will be ignored.
-
-If you specify a single IP address with the ``/32`` subnet mask, |mms| does not
-store the ``/32``, as the ``/32`` does not change the address. For example, an
-address of ``12.34.56.78`` is the same as ``12.34.56.78/32``.
-
-Delete an Entry from the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/users/USER-ID/whitelist/IP-ADDRESS
-
-.. code-block:: none
-
-   DELETE /api/public/v1.0/users/USER-ID/whitelist/CIDR-BLOCK
-
-You cannot remove your current IP address from the whitelist.
-
-Sample Entity
--------------
-
-.. code-block:: javascript
-
-   {
-     "cidrBlock" : "1.2.3.4/32",
-     "created": "2014-01-02T12:34:56Z",
-     "ipAddress": "1.2.3.4",
-     "lastUsed" : "2016-04-25T15:42:50Z",
-     "lastUsedAddress" : "1.2.3.4",
-     "count": 1234
-   }
-
-Entity Fields
--------------
-
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``cidrBlock``
-     - string
-     - A CIDR-notated range of IP addresses. Entering ``0.0.0.0/0`` gives
-       unrestricted access to whitelisted operations.
-
-   * - ``created``
-     - date
-     - The date this IP address was added to the whitelist.
-
-   * - ``ipAddress``
-     - string
-     - A whitelisted IP address.
-
-   * - ``lastUsed``
-     - date
-     - The date of the most recent request that originated from this IP address.
-       Note that this field is *only* updated when a resource that is protected
-       by the whitelist is accessed.
-
-   * - ``lastUsedAddress``
-     - string
-     - The last call to the API was issued from this address.
-
-   * - ``count``
-     - number
-     - The total number of requests that originated from this IP address.
-       Note that this field is *only* updated when a resource that is protected
-       by the whitelist is accessed.
-
-Links
------
+The following endpoints are available for ``hosts``.
 
 .. list-table::
    :header-rows: 1
+   :widths: 10 60 30
 
-   * - Relation
+   * - Method
+     - Endpoint
      - Description
-   * - ``self``
-     - Me
-   * - ``http://mms.mongodb.com/user``
-     - The user that owns this whitelist.
+   
+   * - ``GET``
+     - :doc:`/api/public/v1.0/users/{USER-ID}/whitelist </reference/api/whitelist-get-for-current-user>`
+     - Retrieves the whitelist for the current user.
 
-Examples
---------
+   * - ``GET``
+     - :doc:`/api/public/v1.0/users/{USER-ID}/whitelist/{IP-ADDRESS} </reference/api/whitelist-get-for-ip-address>`
+     - Retrieves the whitelist for the specified IP address.
 
-Get the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * - ``POST``
+     - :doc:`/api/public/v1.0/users/{USER-ID}/whitelist/{IP-ADDRESS} </reference/api/whitelist-add-entries>`
+     - Adds entries to the whitelist for the current user.
 
-Request
-```````
+   * - ``DELETE``
+     - :doc:`/api/public/v1.0/users/{USER-ID}/whitelist/{IP-ADDRESS} </reference/api/whitelist-delete-entry>`
+     - Deletes an entry from the whitelist for the current user.
 
-.. only:: cloud
 
-   .. code-block:: none
+.. class:: hidden
 
-      curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist"
+   .. toctree::
+      :titlesonly:
 
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "results" : [ {
-       "cidrBlock" : "5.6.7.8/30",
-       "count" : 482,
-       "created" : "2014-04-23T16:17:44Z",
-       "lastUsed" : "2016-04-19T14:15:52Z",
-       "lastUsedAddress" : "5.6.7.7",
-       "links" : [ ... ]
-     }, {
-       "cidrBlock" : "1.2.3.4/32",
-       "count" : 9,
-       "created" : "2016-02-19T14:46:14Z",
-       "ipAddress" : "1.2.3.4",
-       "lastUsed" : "2016-04-25T15:42:50Z",
-       "lastUsedAddress" : "1.2.3.4",
-       "links" : [ ... ]
-     } ],
-     "totalCount" : 2,
-     "links" : [ ... ]
-   }
-
-Get the Whitelist Entity for a Specific IP Address
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist/12.34.56.78"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist/12.34.56.78"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
-
-   {
-     "cidrBlock" : "12.34.56.78/32",
-     "ipAddress" : "12.34.56.78",
-     "created" : "2014-04-23T16:17:44Z",
-     "count" : 482,
-     "links" : [ ... ]
-   }
-
-Add Entries to the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://cloud.mongodb.com/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist" --data '
-      [ {
-          "ipAddress" : "76.54.32.10"
-        }, {
-          "ipAddress" : "2.3.4.5"
-      } ]'
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" -H "Content-Type: application/json" --digest -X POST "https://<ops-manager-host>/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist" --data '
-      [ {
-          "ipAddress" : "76.54.32.10"
-        }, {
-          "ipAddress" : "2.3.4.5"
-      } ]'
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 201 Created
-
-   {
-     "totalCount" : 3,
-     "results" : [ {
-       "cidrBlock" : "12.34.56.78/32",
-       "ipAddress" : "12.34.56.78",
-       "created" : "2014-04-23T16:17:44Z",
-       "lastUsed" : "2016-08-17T19:34:05Z",
-       "lastUsedAddress" : "12.34.56.78",
-       "count" : 0,
-       "links" : [ ... ]
-     }, {
-       "cidrBlock" : "76.54.32.10/32",
-       "ipAddress" : "76.54.32.10",
-       "created" : "2016-08-17T19:34:05Z",
-       "count" : 0,
-       "links" : [ ... ]
-     }, {
-       "cidrBlock" : "2.3.4.5/32",
-       "ipAddress" : "2.3.4.5",
-       "created" : "2016-08-17T19:34:05Z",
-       "count" : 0,
-       "links" : [ ... ]
-     } ],
-     "links" : [ ... ]
-   }
-
-Delete an Entry from the API Whitelist for the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Request
-```````
-
-.. only:: cloud
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" --digest -X DELETE "https://cloud.mongodb.com/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist/2.3.4.5"
-
-.. only:: onprem
-
-   .. code-block:: none
-
-      curl -i -u "username:apiKey" --digest -X DELETE "https://<ops-manager-host>/api/public/v1.0/users/5356823b3004dee37132bb7b/whitelist/2.3.4.5"
-
-Response
-````````
-
-.. code-block:: none
-
-   HTTP/1.1 200 OK
+      /reference/api/whitelist-get-for-current-user
+      /reference/api/whitelist-get-for-ip-address
+      /reference/api/whitelist-add-entries
+      /reference/api/whitelist-delete-entry
