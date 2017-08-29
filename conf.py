@@ -55,11 +55,12 @@ rst_epilog = '\n'.join([
     '.. |ent-build| replace:: MongoDB Enterprise',
     '.. |hardlink| replace:: https://docs.mongodb.com/bi-connector/',
     '.. |bi| replace:: MongoDB Connector for BI',
+    '.. |bi-short| replace:: BI Connector',
 ])
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'manual': ('http://docs.mongodb.com/manual%s', '')
+    'manual': ('http://docs.mongodb.com/manual%s', ''),
 }
 
 intersphinx_mapping = {}
