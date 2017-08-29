@@ -123,6 +123,32 @@ For the specified index to cover the query, the projection document
 must explicitly specify ``_id: 0`` to exclude the ``_id`` field from
 the result since the index does not include the ``_id`` field.
 
+.. versionchanged:: 3.6
+   An index can cover a query on fields within embedded documents.
+   [#index-embedded-document-fields]_
+
+For example, consider a collection ``userdata`` with documents of the
+following form:
+
+.. code-block:: javascript
+
+   { _id: 1, user: { login: "tester" } }
+
+The collection has the following index:
+
+.. code-block:: none
+
+   { "user.login": 1 }
+
+The ``{ "user.login": 1 }`` index will cover the query below:
+
+.. code-block:: none
+
+   db.userdata.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
+
+.. [#index-embedded-document-fields] To index fields
+   in embedded documents, use :term:`dot notation`.
+
 Performance
 ~~~~~~~~~~~
 
@@ -150,31 +176,6 @@ An index **cannot** cover a query if:
 
 - .. include:: /includes/fact-geospatial-index-covered-query.rst
 
-- any of the indexed fields in the query predicate or returned in the
-  projection are fields in embedded documents.
-  [#index-embedded-document-fields]_ For example, consider a collection
-  ``users`` with documents of the following form:
-
-  .. code-block:: javascript
-
-     { _id: 1, user: { login: "tester" } }
-
-  The collection has the following index:
-
-  .. code-block:: none
-
-     { "user.login": 1 }
-
-  The ``{ "user.login": 1 }`` index will **not** cover the
-  query below because this index is on a field in an embedded document:
-
-  .. code-block:: none
-
-     db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
-
-  This query can still use the ``{ "user.login": 1 }`` index to find
-  matching documents but it will examine and fetch documents to satisfy the
-  query.
 
 .. _covered-index-sharded-collection:
 
@@ -193,9 +194,6 @@ method and review the :ref:`results <explain-output-covered-queries>`.
 .. include:: /includes/fact-explain-collection-method.rst
 
 For more information see :ref:`indexes-measuring-use`.
-
-.. [#index-embedded-document-fields] To index fields
-   in embedded documents, use :term:`dot notation`.
 
 .. class:: hidden
 
