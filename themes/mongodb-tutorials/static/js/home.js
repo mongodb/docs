@@ -23346,6 +23346,8 @@
 	        this.app.on('submit', function (event) {
 	            _this.sendRating(event.vote, event.fields).then(function () {
 	                _this.app.set({ state: 'Voted' });
+	            }).catch(function (err) {
+	                console.error('Error submitting feedback');
 	            });
 	        });
 	    }
@@ -23568,38 +23570,15 @@
 	}();
 	
 	function create_main_fragment(state, component) {
-		var div_class_value, div_1_class_value, div_2_class_value;
-	
-		var div = createElement('div');
-		div.className = div_class_value = state.delugeClass;
-		var div_1 = createElement('div');
-		appendNode(div_1, div);
-		div_1.className = div_1_class_value = state.delugeHeaderClass;
+		var div, div_class_value, div_1, div_1_class_value, text, span, text_1, text_2, text_4, div_2, div_2_class_value, text_5;
 	
 		function click_handler(event) {
 			component.toggle();
 		}
 	
-		addListener(div_1, 'click', click_handler);
-	
 		var if_block = state.state === 'Initial' && create_if_block(state, component);
 	
-		if (if_block) if_block.mount(div_1, null);
-		var text = createText("\n\n        ");
-		appendNode(text, div_1);
-		var span = createElement('span');
-		appendNode(span, div_1);
-		span.className = "deluge-helpful";
-		appendNode(createText("Was this page helpful?"), span);
-		appendNode(createText("\n\n    "), div_1);
-	
 		var if_block_1 = state.state !== 'Initial' && create_if_block_1(state, component);
-	
-		if (if_block_1) if_block_1.mount(div_1, null);
-		appendNode(createText("\n\n    "), div);
-		var div_2 = createElement('div');
-		appendNode(div_2, div);
-		div_2.className = div_2_class_value = state.delugeBodyClass;
 	
 		function get_block(state) {
 			if (state.state === 'Voted') return create_if_block_2;
@@ -23612,17 +23591,48 @@
 		var current_block = get_block(state);
 		var if_block_2 = current_block && current_block(state, component);
 	
-		if (if_block_2) if_block_2.mount(div_2, null);
-		var text_4 = createText("\n\n    ");
-		appendNode(text_4, div_2);
-	
-		var if_block_5 = state.state !== 'Initial' && create_if_block_9(state, component);
-	
-		if (if_block_5) if_block_5.mount(div_2, null);
+		var if_block_5 = (state.state === false || state.state === 'Voted') && create_if_block_9(state, component);
 	
 		return {
+			create: function create() {
+				div = createElement('div');
+				div_1 = createElement('div');
+				if (if_block) if_block.create();
+				text = createText("\n\n        ");
+				span = createElement('span');
+				text_1 = createText("Was this page helpful?");
+				text_2 = createText("\n\n    ");
+				if (if_block_1) if_block_1.create();
+				text_4 = createText("\n\n    ");
+				div_2 = createElement('div');
+				if (if_block_2) if_block_2.create();
+				text_5 = createText("\n\n    ");
+				if (if_block_5) if_block_5.create();
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				div.className = div_class_value = state.delugeClass;
+				div_1.className = div_1_class_value = state.delugeHeaderClass;
+				addListener(div_1, 'click', click_handler);
+				span.className = "deluge-helpful";
+				div_2.className = div_2_class_value = state.delugeBodyClass;
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(div, target, anchor);
+				appendNode(div_1, div);
+				if (if_block) if_block.mount(div_1, null);
+				appendNode(text, div_1);
+				appendNode(span, div_1);
+				appendNode(text_1, span);
+				appendNode(text_2, div_1);
+				if (if_block_1) if_block_1.mount(div_1, null);
+				appendNode(text_4, div);
+				appendNode(div_2, div);
+				if (if_block_2) if_block_2.mount(div_2, null);
+				appendNode(text_5, div_2);
+				if (if_block_5) if_block_5.mount(div_2, null);
 			},
 	
 			update: function update(changed, state) {
@@ -23637,6 +23647,7 @@
 				if (state.state === 'Initial') {
 					if (!if_block) {
 						if_block = create_if_block(state, component);
+						if_block.create();
 						if_block.mount(div_1, text);
 					}
 				} else if (if_block) {
@@ -23648,6 +23659,7 @@
 				if (state.state !== 'Initial') {
 					if (!if_block_1) {
 						if_block_1 = create_if_block_1(state, component);
+						if_block_1.create();
 						if_block_1.mount(div_1, null);
 					}
 				} else if (if_block_1) {
@@ -23668,14 +23680,16 @@
 						if_block_2.destroy();
 					}
 					if_block_2 = current_block && current_block(state, component);
-					if (if_block_2) if_block_2.mount(div_2, text_4);
+					if (if_block_2) if_block_2.create();
+					if (if_block_2) if_block_2.mount(div_2, text_5);
 				}
 	
-				if (state.state !== 'Initial') {
+				if (state.state === false || state.state === 'Voted') {
 					if (if_block_5) {
 						if_block_5.update(changed, state);
 					} else {
 						if_block_5 = create_if_block_9(state, component);
+						if_block_5.create();
 						if_block_5.mount(div_2, null);
 					}
 				} else if (if_block_5) {
@@ -23704,10 +23718,18 @@
 	}
 	
 	function create_if_block(state, component) {
-		var span = createElement('span');
-		span.className = "fa fa-comments deluge-comment-icon";
+		var span;
 	
 		return {
+			create: function create() {
+				span = createElement('span');
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				span.className = "fa fa-comments deluge-comment-icon";
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(span, target, anchor);
 			},
@@ -23721,10 +23743,18 @@
 	}
 	
 	function create_if_block_1(state, component) {
-		var span = createElement('span');
-		span.className = "fa fa-angle-down deluge-close-icon";
+		var span;
 	
 		return {
+			create: function create() {
+				span = createElement('span');
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				span.className = "fa fa-angle-down deluge-close-icon";
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(span, target, anchor);
 			},
@@ -23738,12 +23768,17 @@
 	}
 	
 	function create_if_block_6(state, component) {
-		var li = createElement('li');
-		appendNode(createText("We're sorry! Please help us improve this page."), li);
+		var li, text;
 	
 		return {
+			create: function create() {
+				li = createElement('li');
+				text = createText("We're sorry! Please help us improve this page.");
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(li, target, anchor);
+				appendNode(text, li);
 			},
 	
 			unmount: function unmount() {
@@ -23755,7 +23790,7 @@
 	}
 	
 	function create_each_block(state, each_block_value, question, question_index, component) {
-		var li = createElement('li');
+		var li;
 	
 		function get_block(state, each_block_value, question, question_index) {
 			if (question.type === 'binary') return create_if_block_7;
@@ -23766,11 +23801,15 @@
 		var current_block = get_block(state, each_block_value, question, question_index);
 		var if_block_4 = current_block && current_block(state, each_block_value, question, question_index, component);
 	
-		if (if_block_4) if_block_4.mount(li, null);
-	
 		return {
+			create: function create() {
+				li = createElement('li');
+				if (if_block_4) if_block_4.create();
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(li, target, anchor);
+				if (if_block_4) if_block_4.mount(li, null);
 			},
 	
 			update: function update(changed, state, each_block_value, question, question_index) {
@@ -23782,6 +23821,7 @@
 						if_block_4.destroy();
 					}
 					if_block_4 = current_block && current_block(state, each_block_value, question, question_index, component);
+					if (if_block_4) if_block_4.create();
 					if (if_block_4) if_block_4.mount(li, null);
 				}
 			},
@@ -23798,8 +23838,8 @@
 	}
 	
 	function create_if_block_7(state, each_block_value, question, question_index, component) {
+	
 		var binaryquestion = new _BinaryQuestion2.default({
-			target: null,
 			_root: component._root,
 			data: {
 				name: question.name,
@@ -23821,6 +23861,10 @@
 		};
 	
 		return {
+			create: function create() {
+				binaryquestion._fragment.create();
+			},
+	
 			mount: function mount(target, anchor) {
 				binaryquestion._fragment.mount(target, anchor);
 			},
@@ -23834,7 +23878,7 @@
 				if ('questions' in changed) binaryquestion_changes.name = question.name;
 				if ('questions' in changed) binaryquestion_changes.caption = question.caption;
 	
-				if (Object.keys(binaryquestion_changes).length) binaryquestion.set(binaryquestion_changes);
+				if (Object.keys(binaryquestion_changes).length) binaryquestion._set(binaryquestion_changes);
 			},
 	
 			unmount: function unmount() {
@@ -23848,8 +23892,8 @@
 	}
 	
 	function create_if_block_8(state, each_block_value, question, question_index, component) {
+	
 		var freeformquestion = new _FreeformQuestion2.default({
-			target: null,
 			_root: component._root,
 			data: {
 				name: question.name,
@@ -23871,6 +23915,10 @@
 		};
 	
 		return {
+			create: function create() {
+				freeformquestion._fragment.create();
+			},
+	
 			mount: function mount(target, anchor) {
 				freeformquestion._fragment.mount(target, anchor);
 			},
@@ -23884,7 +23932,7 @@
 				if ('questions' in changed) freeformquestion_changes.name = question.name;
 				if ('questions' in changed) freeformquestion_changes.caption = question.caption;
 	
-				if (Object.keys(freeformquestion_changes).length) freeformquestion.set(freeformquestion_changes);
+				if (Object.keys(freeformquestion_changes).length) freeformquestion._set(freeformquestion_changes);
 			},
 	
 			unmount: function unmount() {
@@ -23898,12 +23946,17 @@
 	}
 	
 	function create_if_block_2(state, component) {
-		var p = createElement('p');
-		appendNode(createText("Thank you for your feedback!"), p);
+		var p, text;
 	
 		return {
+			create: function create() {
+				p = createElement('p');
+				text = createText("Thank you for your feedback!");
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(p, target, anchor);
+				appendNode(text, p);
 			},
 	
 			update: noop,
@@ -23917,12 +23970,17 @@
 	}
 	
 	function create_if_block_3(state, component) {
-		var p = createElement('p');
-		appendNode(createText("Submitting feedback..."), p);
+		var p, text;
 	
 		return {
+			create: function create() {
+				p = createElement('p');
+				text = createText("Submitting feedback...");
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(p, target, anchor);
+				appendNode(text, p);
 			},
 	
 			update: noop,
@@ -23936,31 +23994,39 @@
 	}
 	
 	function create_if_block_4(state, component) {
-		var a = createElement('a');
-		a.className = "deluge-vote-button";
+		var a, text, text_1, a_1, text_2;
 	
 		function click_handler(event) {
 			component.rate(true);
 		}
 	
-		addListener(a, 'click', click_handler);
-		appendNode(createText("Yes"), a);
-		var text_1 = createText("\n        ");
-		var a_1 = createElement('a');
-		a_1.className = "deluge-vote-button";
-	
 		function click_handler_1(event) {
 			component.rate(false);
 		}
 	
-		addListener(a_1, 'click', click_handler_1);
-		appendNode(createText("No"), a_1);
-	
 		return {
+			create: function create() {
+				a = createElement('a');
+				text = createText("Yes");
+				text_1 = createText("\n        ");
+				a_1 = createElement('a');
+				text_2 = createText("No");
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				a.className = "deluge-vote-button";
+				addListener(a, 'click', click_handler);
+				a_1.className = "deluge-vote-button";
+				addListener(a_1, 'click', click_handler_1);
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(a, target, anchor);
+				appendNode(text, a);
 				insertNode(text_1, target, anchor);
 				insertNode(a_1, target, anchor);
+				appendNode(text_2, a_1);
 			},
 	
 			update: noop,
@@ -23979,60 +24045,80 @@
 	}
 	
 	function create_if_block_5(state, component) {
-		var div = createElement('div');
-		div.className = "deluge-questions";
-		var ul = createElement('ul');
-		appendNode(ul, div);
-		setAttribute(ul, 'ref', true);
+		var div, ul, if_block_3_anchor, text, div_1, button, text_1, text_2, button_1, text_3;
 	
 		var if_block_3 = state.state === false && create_if_block_6(state, component);
 	
-		if (if_block_3) if_block_3.mount(ul, null);
-		var if_block_3_anchor = createComment();
-		appendNode(if_block_3_anchor, ul);
 		var each_block_value = state.questions;
 	
 		var each_block_iterations = [];
 	
 		for (var i = 0; i < each_block_value.length; i += 1) {
 			each_block_iterations[i] = create_each_block(state, each_block_value, each_block_value[i], i, component);
-			each_block_iterations[i].mount(ul, null);
 		}
-	
-		appendNode(createText("\n\n            "), div);
-		var div_1 = createElement('div');
-		appendNode(div_1, div);
-		div_1.className = "deluge-button-group";
-		var button = createElement('button');
-		appendNode(button, div_1);
 	
 		function click_handler(event) {
 			component.toggle();
 		}
 	
-		addListener(button, 'click', click_handler);
-		appendNode(createText("Cancel"), button);
-		appendNode(createText("\n                "), div_1);
-		var button_1 = createElement('button');
-		appendNode(button_1, div_1);
-		button_1.className = "primary";
-	
 		function click_handler_1(event) {
 			component.submit();
 		}
 	
-		addListener(button_1, 'click', click_handler_1);
-		appendNode(createText("Submit"), button_1);
-	
 		return {
+			create: function create() {
+				div = createElement('div');
+				ul = createElement('ul');
+				if (if_block_3) if_block_3.create();
+				if_block_3_anchor = createComment();
+	
+				for (var i = 0; i < each_block_iterations.length; i += 1) {
+					each_block_iterations[i].create();
+				}
+	
+				text = createText("\n\n            ");
+				div_1 = createElement('div');
+				button = createElement('button');
+				text_1 = createText("Cancel");
+				text_2 = createText("\n                ");
+				button_1 = createElement('button');
+				text_3 = createText("Submit");
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				div.className = "deluge-questions";
+				setAttribute(ul, 'ref', true);
+				div_1.className = "deluge-button-group";
+				addListener(button, 'click', click_handler);
+				button_1.className = "primary";
+				addListener(button_1, 'click', click_handler_1);
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(div, target, anchor);
+				appendNode(ul, div);
+				if (if_block_3) if_block_3.mount(ul, null);
+				appendNode(if_block_3_anchor, ul);
+	
+				for (var i = 0; i < each_block_iterations.length; i += 1) {
+					each_block_iterations[i].mount(ul, null);
+				}
+	
+				appendNode(text, div);
+				appendNode(div_1, div);
+				appendNode(button, div_1);
+				appendNode(text_1, button);
+				appendNode(text_2, div_1);
+				appendNode(button_1, div_1);
+				appendNode(text_3, button_1);
 			},
 	
 			update: function update(changed, state) {
 				if (state.state === false) {
 					if (!if_block_3) {
 						if_block_3 = create_if_block_6(state, component);
+						if_block_3.create();
 						if_block_3.mount(ul, if_block_3_anchor);
 					}
 				} else if (if_block_3) {
@@ -24049,6 +24135,7 @@
 							each_block_iterations[i].update(changed, state, each_block_value, each_block_value[i], i);
 						} else {
 							each_block_iterations[i] = create_each_block(state, each_block_value, each_block_value[i], i, component);
+							each_block_iterations[i].create();
 							each_block_iterations[i].mount(ul, null);
 						}
 					}
@@ -24082,23 +24169,29 @@
 	}
 	
 	function create_if_block_9(state, component) {
-		var a_title_value;
-	
-		var a = createElement('a');
-		a.className = "deluge-fix-button jira-link jirafeedback";
-		a.target = "_blank";
-		a.title = a_title_value = "Report a problem with " + state.pagename + " on Jira";
+		var a, a_title_value, text;
 	
 		function click_handler(event) {
 			component.showCollectorDialog();
 		}
 	
-		addListener(a, 'click', click_handler);
-		appendNode(createText("Fix This Page"), a);
-	
 		return {
+			create: function create() {
+				a = createElement('a');
+				text = createText("Fix This Page");
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				a.className = "deluge-fix-button jira-link jirafeedback";
+				a.target = "_blank";
+				a.title = a_title_value = "Report a problem with " + state.pagename + " on Jira";
+				addListener(a, 'click', click_handler);
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(a, target, anchor);
+				appendNode(text, a);
 			},
 	
 			update: function update(changed, state) {
@@ -24133,11 +24226,27 @@
 		this._yield = options._yield;
 	
 		this._torndown = false;
-		this._renderHooks = [];
+	
+		if (!options._root) {
+			this._oncreate = [];
+			this._beforecreate = [];
+			this._aftercreate = [];
+		}
 	
 		this._fragment = create_main_fragment(this._state, this);
-		if (options.target) this._fragment.mount(options.target, null);
-		this._flush();
+	
+		if (options.target) {
+			this._fragment.create();
+			this._fragment.mount(options.target, null);
+		}
+	
+		if (!options._root) {
+			this._lock = true;
+			callAll(this._beforecreate);
+			callAll(this._oncreate);
+			callAll(this._aftercreate);
+			this._lock = false;
+		}
 	}
 	
 	assign(MainWidget.prototype, template.methods, {
@@ -24145,8 +24254,7 @@
 		fire: fire,
 		observe: observe,
 		on: on,
-		set: set,
-		_flush: _flush
+		set: set
 	});
 	
 	MainWidget.prototype._set = function _set(newState) {
@@ -24156,7 +24264,6 @@
 		dispatchObservers(this, this._observers.pre, newState, oldState);
 		this._fragment.update(newState, this._state);
 		dispatchObservers(this, this._observers.post, newState, oldState);
-		this._flush();
 	};
 	
 	MainWidget.prototype.teardown = MainWidget.prototype.destroy = function destroy(detach) {
@@ -24170,50 +24277,52 @@
 		this._torndown = true;
 	};
 	
+	function differs(a, b) {
+		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
+	}
+	
 	function createElement(name) {
 		return document.createElement(name);
-	}
-	
-	function insertNode(node, target, anchor) {
-		target.insertBefore(node, anchor);
-	}
-	
-	function detachNode(node) {
-		node.parentNode.removeChild(node);
-	}
-	
-	function appendNode(node, target) {
-		target.appendChild(node);
-	}
-	
-	function addListener(node, event, handler) {
-		node.addEventListener(event, handler, false);
-	}
-	
-	function removeListener(node, event, handler) {
-		node.removeEventListener(event, handler, false);
 	}
 	
 	function createText(data) {
 		return document.createTextNode(data);
 	}
 	
-	function setAttribute(node, attribute, value) {
-		node.setAttribute(attribute, value);
+	function addListener(node, event, handler) {
+		node.addEventListener(event, handler, false);
 	}
+	
+	function insertNode(node, target, anchor) {
+		target.insertBefore(node, anchor);
+	}
+	
+	function appendNode(node, target) {
+		target.appendChild(node);
+	}
+	
+	function detachNode(node) {
+		node.parentNode.removeChild(node);
+	}
+	
+	function removeListener(node, event, handler) {
+		node.removeEventListener(event, handler, false);
+	}
+	
+	function noop() {}
 	
 	function createComment() {
 		return document.createComment('');
+	}
+	
+	function setAttribute(node, attribute, value) {
+		node.setAttribute(attribute, value);
 	}
 	
 	function destroyEach(iterations, detach, start) {
 		for (var i = start; i < iterations.length; i += 1) {
 			if (iterations[i]) iterations[i].destroy(detach);
 		}
-	}
-	
-	function differs(a, b) {
-		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
 	}
 	
 	function assign(target) {
@@ -24231,30 +24340,11 @@
 		return target;
 	}
 	
-	function dispatchObservers(component, group, newState, oldState) {
-		for (var key in group) {
-			if (!(key in newState)) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			if (differs(newValue, oldValue)) {
-				var callbacks = group[key];
-				if (!callbacks) continue;
-	
-				for (var i = 0; i < callbacks.length; i += 1) {
-					var callback = callbacks[i];
-					if (callback.__calling) continue;
-	
-					callback.__calling = true;
-					callback.call(component, newValue, oldValue);
-					callback.__calling = false;
-				}
-			}
+	function callAll(fns) {
+		while (fns && fns.length) {
+			fns.pop()();
 		}
 	}
-	
-	function noop() {}
 	
 	function get(key) {
 		return key ? this._state[key] : this._state;
@@ -24304,14 +24394,34 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		this._root._flush();
+		if (this._root._lock) return;
+		this._root._lock = true;
+		callAll(this._root._beforecreate);
+		callAll(this._root._oncreate);
+		callAll(this._root._aftercreate);
+		this._root._lock = false;
 	}
 	
-	function _flush() {
-		if (!this._renderHooks) return;
+	function dispatchObservers(component, group, newState, oldState) {
+		for (var key in group) {
+			if (!(key in newState)) continue;
 	
-		while (this._renderHooks.length) {
-			this._renderHooks.pop()();
+			var newValue = newState[key];
+			var oldValue = oldState[key];
+	
+			if (differs(newValue, oldValue)) {
+				var callbacks = group[key];
+				if (!callbacks) continue;
+	
+				for (var i = 0; i < callbacks.length; i += 1) {
+					var callback = callbacks[i];
+					if (callback.__calling) continue;
+	
+					callback.__calling = true;
+					callback.call(component, newValue, oldValue);
+					callback.__calling = false;
+				}
+			}
 		}
 	}
 	
@@ -24365,48 +24475,52 @@
 	}();
 	
 	function create_main_fragment(state, component) {
-		var span_class_value, span_1_class_value;
-	
-		var div = createElement('div');
-		var raw_before = createElement('noscript');
-		appendNode(raw_before, div);
-		var raw_after = createElement('noscript');
-		appendNode(raw_after, div);
-		var raw_value = state.caption;
-		raw_before.insertAdjacentHTML('afterend', raw_value);
-		var text = createText("\n");
-		var div_1 = createElement('div');
-		var span = createElement('span');
-		appendNode(span, div_1);
-		span.className = span_class_value = "switch fa fa-thumbs-up good " + state.upvoteSelected;
+		var div, raw_value, raw_before, raw_after, text, div_1, span, span_class_value, text_1, span_1, span_1_class_value;
 	
 		function click_handler(event) {
 			component.change(true);
 		}
 	
-		addListener(span, 'click', click_handler);
-		appendNode(createText("\n    "), div_1);
-		var span_1 = createElement('span');
-		appendNode(span_1, div_1);
-		span_1.className = span_1_class_value = "switch fa fa-thumbs-down bad " + state.downvoteSelected;
-	
 		function click_handler_1(event) {
 			component.change(false);
 		}
 	
-		addListener(span_1, 'click', click_handler_1);
-	
 		return {
+			create: function create() {
+				div = createElement('div');
+				raw_before = createElement('noscript');
+				raw_after = createElement('noscript');
+				text = createText("\n");
+				div_1 = createElement('div');
+				span = createElement('span');
+				text_1 = createText("\n    ");
+				span_1 = createElement('span');
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				span.className = span_class_value = "switch fa fa-thumbs-up good " + state.upvoteSelected;
+				addListener(span, 'click', click_handler);
+				span_1.className = span_1_class_value = "switch fa fa-thumbs-down bad " + state.downvoteSelected;
+				addListener(span_1, 'click', click_handler_1);
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(div, target, anchor);
+				appendNode(raw_before, div);
+				appendNode(raw_after, div);
+				raw_before.insertAdjacentHTML('afterend', raw_value = state.caption);
 				insertNode(text, target, anchor);
 				insertNode(div_1, target, anchor);
+				appendNode(span, div_1);
+				appendNode(text_1, div_1);
+				appendNode(span_1, div_1);
 			},
 	
 			update: function update(changed, state) {
 				if (raw_value !== (raw_value = state.caption)) {
 					detachBetween(raw_before, raw_after);
-					raw_before.insertAdjacentHTML('afterend', raw_value);
+					raw_before.insertAdjacentHTML('afterend', raw_value = state.caption);
 				}
 	
 				if (span_class_value !== (span_class_value = "switch fa fa-thumbs-up good " + state.upvoteSelected)) {
@@ -24451,7 +24565,11 @@
 		this._torndown = false;
 	
 		this._fragment = create_main_fragment(this._state, this);
-		if (options.target) this._fragment.mount(options.target, null);
+	
+		if (options.target) {
+			this._fragment.create();
+			this._fragment.mount(options.target, null);
+		}
 	}
 	
 	assign(BinaryQuestion.prototype, template.methods, {
@@ -24459,8 +24577,7 @@
 		fire: fire,
 		observe: observe,
 		on: on,
-		set: set,
-		_flush: _flush
+		set: set
 	});
 	
 	BinaryQuestion.prototype._set = function _set(newState) {
@@ -24483,16 +24600,24 @@
 		this._torndown = true;
 	};
 	
+	function differs(a, b) {
+		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
+	}
+	
 	function createElement(name) {
 		return document.createElement(name);
 	}
 	
-	function insertNode(node, target, anchor) {
-		target.insertBefore(node, anchor);
+	function createText(data) {
+		return document.createTextNode(data);
 	}
 	
-	function detachNode(node) {
-		node.parentNode.removeChild(node);
+	function addListener(node, event, handler) {
+		node.addEventListener(event, handler, false);
+	}
+	
+	function insertNode(node, target, anchor) {
+		target.insertBefore(node, anchor);
 	}
 	
 	function appendNode(node, target) {
@@ -24505,20 +24630,12 @@
 		}
 	}
 	
-	function createText(data) {
-		return document.createTextNode(data);
-	}
-	
-	function addListener(node, event, handler) {
-		node.addEventListener(event, handler, false);
+	function detachNode(node) {
+		node.parentNode.removeChild(node);
 	}
 	
 	function removeListener(node, event, handler) {
 		node.removeEventListener(event, handler, false);
-	}
-	
-	function differs(a, b) {
-		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
 	}
 	
 	function assign(target) {
@@ -24534,29 +24651,6 @@
 		}
 	
 		return target;
-	}
-	
-	function dispatchObservers(component, group, newState, oldState) {
-		for (var key in group) {
-			if (!(key in newState)) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			if (differs(newValue, oldValue)) {
-				var callbacks = group[key];
-				if (!callbacks) continue;
-	
-				for (var i = 0; i < callbacks.length; i += 1) {
-					var callback = callbacks[i];
-					if (callback.__calling) continue;
-	
-					callback.__calling = true;
-					callback.call(component, newValue, oldValue);
-					callback.__calling = false;
-				}
-			}
-		}
 	}
 	
 	function get(key) {
@@ -24607,14 +24701,40 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		this._root._flush();
+		if (this._root._lock) return;
+		this._root._lock = true;
+		callAll(this._root._beforecreate);
+		callAll(this._root._oncreate);
+		callAll(this._root._aftercreate);
+		this._root._lock = false;
 	}
 	
-	function _flush() {
-		if (!this._renderHooks) return;
+	function dispatchObservers(component, group, newState, oldState) {
+		for (var key in group) {
+			if (!(key in newState)) continue;
 	
-		while (this._renderHooks.length) {
-			this._renderHooks.pop()();
+			var newValue = newState[key];
+			var oldValue = oldState[key];
+	
+			if (differs(newValue, oldValue)) {
+				var callbacks = group[key];
+				if (!callbacks) continue;
+	
+				for (var i = 0; i < callbacks.length; i += 1) {
+					var callback = callbacks[i];
+					if (callback.__calling) continue;
+	
+					callback.__calling = true;
+					callback.call(component, newValue, oldValue);
+					callback.__calling = false;
+				}
+			}
+		}
+	}
+	
+	function callAll(fns) {
+		while (fns && fns.length) {
+			fns.pop()();
 		}
 	}
 	
@@ -24651,32 +24771,39 @@
 	}();
 	
 	function create_main_fragment(state, component) {
-		var textarea_placeholder_value,
+		var textarea,
+		    textarea_placeholder_value,
 		    textarea_updating = false;
-	
-		var textarea = createElement('textarea');
-		textarea.placeholder = textarea_placeholder_value = state.caption;
 	
 		function textarea_input_handler() {
 			textarea_updating = true;
-			component._set({ answer: textarea.value });
+			component.set({ answer: textarea.value });
 			textarea_updating = false;
 		}
-	
-		addListener(textarea, 'input', textarea_input_handler);
 	
 		function input_handler(event) {
 			var state = component.get();
 			component.fire('change', state.answer);
 		}
 	
-		addListener(textarea, 'input', input_handler);
-	
-		textarea.value = state.answer;
-	
 		return {
+			create: function create() {
+				textarea = createElement('textarea');
+				this.hydrate();
+			},
+	
+			hydrate: function hydrate(nodes) {
+				textarea.placeholder = textarea_placeholder_value = state.caption;
+	
+				addListener(textarea, 'input', textarea_input_handler);
+	
+				addListener(textarea, 'input', input_handler);
+			},
+	
 			mount: function mount(target, anchor) {
 				insertNode(textarea, target, anchor);
+	
+				textarea.value = state.answer;
 			},
 	
 			update: function update(changed, state) {
@@ -24717,7 +24844,11 @@
 		this._torndown = false;
 	
 		this._fragment = create_main_fragment(this._state, this);
-		if (options.target) this._fragment.mount(options.target, null);
+	
+		if (options.target) {
+			this._fragment.create();
+			this._fragment.mount(options.target, null);
+		}
 	}
 	
 	assign(FreeformQuestion.prototype, template.methods, {
@@ -24725,8 +24856,7 @@
 		fire: fire,
 		observe: observe,
 		on: on,
-		set: set,
-		_flush: _flush
+		set: set
 	});
 	
 	FreeformQuestion.prototype._set = function _set(newState) {
@@ -24752,16 +24882,16 @@
 		return document.createElement(name);
 	}
 	
+	function addListener(node, event, handler) {
+		node.addEventListener(event, handler, false);
+	}
+	
 	function insertNode(node, target, anchor) {
 		target.insertBefore(node, anchor);
 	}
 	
 	function detachNode(node) {
 		node.parentNode.removeChild(node);
-	}
-	
-	function addListener(node, event, handler) {
-		node.addEventListener(event, handler, false);
 	}
 	
 	function removeListener(node, event, handler) {
@@ -24781,29 +24911,6 @@
 		}
 	
 		return target;
-	}
-	
-	function dispatchObservers(component, group, newState, oldState) {
-		for (var key in group) {
-			if (!(key in newState)) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			if (differs(newValue, oldValue)) {
-				var callbacks = group[key];
-				if (!callbacks) continue;
-	
-				for (var i = 0; i < callbacks.length; i += 1) {
-					var callback = callbacks[i];
-					if (callback.__calling) continue;
-	
-					callback.__calling = true;
-					callback.call(component, newValue, oldValue);
-					callback.__calling = false;
-				}
-			}
-		}
 	}
 	
 	function get(key) {
@@ -24854,14 +24961,40 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		this._root._flush();
+		if (this._root._lock) return;
+		this._root._lock = true;
+		callAll(this._root._beforecreate);
+		callAll(this._root._oncreate);
+		callAll(this._root._aftercreate);
+		this._root._lock = false;
 	}
 	
-	function _flush() {
-		if (!this._renderHooks) return;
+	function dispatchObservers(component, group, newState, oldState) {
+		for (var key in group) {
+			if (!(key in newState)) continue;
 	
-		while (this._renderHooks.length) {
-			this._renderHooks.pop()();
+			var newValue = newState[key];
+			var oldValue = oldState[key];
+	
+			if (differs(newValue, oldValue)) {
+				var callbacks = group[key];
+				if (!callbacks) continue;
+	
+				for (var i = 0; i < callbacks.length; i += 1) {
+					var callback = callbacks[i];
+					if (callback.__calling) continue;
+	
+					callback.__calling = true;
+					callback.call(component, newValue, oldValue);
+					callback.__calling = false;
+				}
+			}
+		}
+	}
+	
+	function callAll(fns) {
+		while (fns && fns.length) {
+			fns.pop()();
 		}
 	}
 	
