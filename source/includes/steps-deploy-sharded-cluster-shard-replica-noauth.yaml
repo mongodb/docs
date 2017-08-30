@@ -1,65 +1,88 @@
 title: Start each member of the shard replica set.
 level: 4
-stepnum: 1
-source:
-  file: steps-deploy-replica-set-with-auth.yaml
-  ref: deploy-repset-start-members
+ref: sharded-cluster-deploy-shard-repl
 pre: |
-  Start *each* :program:`mongod` in the replica set using either 
-  a configuration file or the command line.
+   When starting *each* :program:`mongod`, specify the
+   :program:`mongod` settings either via a configuration file or the
+   command line.
 action:
   - pre: |
       **Configuration File**
-      
-      If using a configuration file, set the :setting:`replication.replSetName`
-      to the desired name of the replica set, and the 
-      :setting:`sharding.clusterRole` option to ``shardsvr``.
-    language: yaml
-    code: |
-      sharding:
-        clusterRole: shardsvr
-      replication:
-        replSetName: <replSetName>
-    post: |
-      Include any other options as appropriate for your deployment. See
-      :doc:`/reference/configuration-options` for settings available.
-  - pre: |
-       Start the :program:`mongod` specifying the ``--config`` option
-       and the path to the configuration file.
+
+      If using a configuration file, set:
+
+      .. cssclass:: copyable-code
+
+      .. code-block:: yaml
+
+         sharding:
+            clusterRole: shardsvr
+         replication:
+            replSetName: <replSetName>
+         net:
+            bindIp: localhost,<ip address>
+
+      - :setting:`replication.replSetName` to the desired name of the
+        replica set,
+
+      - :setting:`sharding.clusterRole` option to ``shardsvr``,
+
+      - :setting:`net.bindIp` option to the ip or a comma-delimited
+        list of ips that remote clients (including the other members of
+        the config server replica set as well as other members of the
+        sharded cluster) can use to connect to the instance.
+
+      - Additional settings as appropriate to your deployment, such as
+        :setting:`storage.dbPath` and :setting:`net.port`. For more
+        information on the configuration file, see :doc:`configuration
+        options</reference/configuration-options>`.
+
+      Start the :program:`mongod` with the ``--config`` option set to
+      the configuration file path.
+    copyable: true
     language: sh
     code: |
        mongod --config <path-to-config-file>
   - pre: |
       **Command Line**
-      
-      If using the command line option, when starting the component, specify 
-      the ``replSet``, and ``--shardsvr`` parameters, as in the
-      following example:
+
+      If using the command line option,  start the :program:`mongod` with
+      the ``--replSet``, and ``--shardsvr``, ``--bind_ip`` options,
+      and other options as appropriate to your deployment.  For example:
+
+    copyable: true
     language: sh
     code: |
-       mongod --shardsvr --replSet <replSetname>
+       mongod --shardsvr --replSet <replSetname>  --dbpath <path> --bind_ip localhost,<ip address of the mongod host>
     post: |
-       Include any other options as appropriate for your deployment.
+       For more information on startup parameters, see the
+       :program:`mongod` reference page.
 ---
-title: Connect to a member of the shard replica set.
-stepnum: 2
+title: Connect to one member of the shard replica set.
 level: 4
 ref: deploy-repset-connect
 pre: |
   Connect a :program:`mongo` shell to one of the replica set members.
 action:
+  copyable: true
   language: sh
   code: |
     mongo --host <hostname> --port <port>
 ---
-stepnum: 3
+title: Initiate the replica set.
 level: 4
-source:
-  file: steps-deploy-replica-set-with-auth.yaml
-  ref: deploy-repset-initiate
+ref: deploy-repset-initiate
+pre: |
+   .. include:: /includes/initiate-replica-set.rst
 action:
   - pre: |
-      The following example initates a three member replica set.
+      The following example initiates a three member replica set.
+
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+    copyable: true
     language: javascript
     code: |
       rs.initiate(

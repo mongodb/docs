@@ -17,25 +17,28 @@ Hashed shard keys use a :ref:`hashed index <index-hashed-index>` of a
 single field as the :term:`shard key` to partition data across your
 sharded cluster.
 
-Hashed sharding provides more even data distribution across the sharded 
-cluster at the cost of reducing :ref:`sharding-query-isolation`. Post-hash, 
-documents with "close" shard key values are unlikely to be on the same 
-chunk or shard - the :program:`mongos` is more likely to perform 
-:ref:`sharding-mongos-broadcast` to fulfill a given query.
+Hashed sharding provides a more even data distribution across the sharded
+cluster at the cost of reducing :ref:`sharding-query-isolation`. With
+hashed sharding, documents with "close" shard key values are unlikely
+to be on the same chunk or shard, and the :program:`mongos` is more
+likely to perform :ref:`sharding-mongos-broadcast` to fulfill a given
+query.
 
 If you already have a sharded cluster deployed, skip to 
 :ref:`deploy-hashed-sharded-cluster-shard-collection`.
 
-CloudManager and OpsManager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Atlas, CloudManager and OpsManager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are currently using or are planning to use Cloud Manager or
-Ops Manager, consider using their built-in features for
-deploying a :term:`sharded cluster`.
+If you are currently using or are planning to use Atlas, Cloud Manager
+or Ops Manager, refer to their respective manual for instructions on
+deploying a :term:`sharded cluster`:
 
-See ``Deploy a Sharded Cluster`` in the
-:mms-docs:`Cloud Manager manual</tutorial/deploy-sharded-cluster>` or in the
-:opsmgr:`Ops Manager manual</tutorial/deploy-sharded-cluster>`.
+- `Create a Cluster (Atlas) <https://docs.atlas.mongodb.com/create-new-cluster/>`_
+
+- :mms-docs:`Deploy a Sharded Cluster (Cloud Manager) </tutorial/deploy-sharded-cluster>`
+
+- :opsmgr:`Deploy a Sharded Cluster (Ops Manager) </tutorial/deploy-sharded-cluster>`.
 
 Considerations
 --------------
@@ -46,6 +49,16 @@ Operating System
 This tutorial uses the :program:`mongod` and :program:`mongos`
 programs. Windows users should use the :program:`mongod.exe` and
 :program:`mongos.exe` programs instead.
+
+IP Binding
+~~~~~~~~~~
+
+Use the :setting:`bind_ip` option to ensure that MongoDB listens for
+connections from applications on configured addresses.
+
+.. versionchanged:: 3.6
+
+   .. include:: /includes/fact-default-bind-ip.rst
 
 Security
 ~~~~~~~~
@@ -58,13 +71,13 @@ tutorial on deploying a sharded cluster with a
 
 In production environments, sharded clusters should employ at
 minimum :doc:`/core/security-x.509` security for internal authentication
-and client access.
+and client acces:
 
-For details on using x.509 for internal authentication, see
-:doc:`/tutorial/configure-x509-member-authentication`.
+- For details on using x.509 for internal authentication, see
+  :doc:`/tutorial/configure-x509-member-authentication`.
 
-For details on using x.509 for client authentication, see
-:doc:`/tutorial/configure-x509-client-authentication`.
+- For details on using x.509 for client authentication, see
+  :doc:`/tutorial/configure-x509-client-authentication`.
 
 .. note::
 
@@ -76,9 +89,6 @@ For details on using x.509 for client authentication, see
 Deploy Sharded Cluster with Hashed Sharding
 -------------------------------------------
 
-The following procedures involve creating a new sharded cluster that consists
-of a :program:`mongos`, the config servers, and two shards.
-
 .. _deploy-hashed-sharded-cluster-config-server:
 
 Create the Config Server Replica Set
@@ -86,9 +96,27 @@ Create the Config Server Replica Set
 
 The following steps deploys a config server replica set.
 
-For a production deployment, deploys a config server replica set with at
+For a production deployment, deploy a config server replica set with at
 least three members. For testing purposes, you can create a
 single-member replica set.
+
+For this tutorial, the config server replica set members are associated
+with the following hosts:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Config Server Replica Set Member
+     - Hostname
+
+   * - Member 0
+     - ``cfg1.example.net``
+
+   * - Member 1
+     - ``cfg2.example.net``
+
+   * - Member 2
+     - ``cfg3.example.net``
 
 .. include:: /includes/steps/deploy-sharded-cluster-config-server-noauth.rst
 
@@ -99,8 +127,10 @@ Create the Shard Replica Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For a production deployment, use a replica set with at least three
-members. For testing purposes, you can create a single-member replica
-set.
+members for each shard. For testing purposes, you can create a
+single-member replica set.
+
+For each shard, use the following steps to create the shard replica set.
 
 .. include:: /includes/steps/deploy-sharded-cluster-shard-replica-noauth.rst
 
@@ -109,13 +139,21 @@ Connect a ``mongos`` to the Sharded Cluster
 
 .. include:: /includes/steps/deploy-sharded-cluster-connect-noauth.rst
 
+Once you have connected the :program:`mongo` shell to the
+:program:`mongos`, continue to the next procedure to add shards to
+the cluster.
+
 Add Shards to the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :method:`sh.addShard()` method to add each shard to the cluster. If
-the shard is a replica set, specify the name of the replica set and specify a
-member of the set. In production deployments, *all* shards should be replica
-sets.
+In the :program:`mongo` shell connected to the :program:`mongos`, use
+the :method:`sh.addShard()` method to add each shard to the cluster. If
+the shard is a replica set, specify the name of the replica set and
+specify a member of the set.
+
+.. tip::
+
+   In production deployments, *all* shards should be replica sets.
 
 The following operation adds a single shard replica set to the cluster:
 
@@ -123,26 +161,26 @@ The following operation adds a single shard replica set to the cluster:
 
    sh.addShard( "<replSetName>/s1-mongo1.example.net:27018")
 
-The following operation is an example of adding a standalone :program:`mongod`
-shard to the cluster:
+Repeat to add all shards.
+
+If in a development environment, the shard is a standalone
+:program:`mongod` instance, specify the instance's hostname and port.
+The following operation is an example of adding a standalone
+:program:`mongod` shard to the cluster:
 
 .. code-block:: javascript
 
    sh.addShard( "s1-mongo1.example.net:27018")
-
-Repeat these steps until the cluster includes all shards.
 
 .. _deploy-hashed-sharded-cluster-shard-database:
 
 Enable Sharding for a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To proceed, you must be connected to a :program:`mongos` associated to the
-target sharded cluster.
-
-Enabling sharding on a database makes it possible to shard collections
-within a database. Use the :method:`sh.enableSharding()` method to
-enable sharding on the target database.
+From the :program:`mongo` shell connected to the :program:`mongos`, use
+the :method:`sh.enableSharding()` method to enable sharding on the
+target database. Enabling sharding on a database makes it possible to
+shard collections within a database.
 
 .. code-block:: javascript
 
@@ -153,18 +191,15 @@ enable sharding on the target database.
 Shard a Collection using Hashed Sharding
 ----------------------------------------
 
-To proceed, you must be connected to a :program:`mongos` associated to the
-target sharded cluster.
+From the :program:`mongo` shell connected to the :program:`mongos`, use
+the :method:`sh.shardCollection()` method to shard a collection.
 
-To shard a collection, use the :method:`sh.shardCollection()` method. You must
-specify the full namespace of the collection and a document containing the
-shard key. The database must have sharding
-:ref:`enabled<deploy-ranged-sharded-cluster-shard-database>`.
+.. note:: 
 
-Your selection of shard key affects the efficiency of sharding, as well as
-your ability to take advantage of certain sharding features such as
-:ref:`zones <zone-sharding>`. See the selection considerations listed
-in the :ref:`hashed-sharding-shard-key`.
+   You must have :ref:`enabled sharding
+   <deploy-ranged-sharded-cluster-shard-database>` for the database
+   where the collection resides. See
+   :ref:`deploy-hashed-sharded-cluster-shard-database`.
 
 If the collection already contains data, you must create a
 :ref:`index-type-hashed` on the :term:`shard key` using the
@@ -179,4 +214,13 @@ The following operation shards the target collection using the
 
 .. code-block:: javascript
 
-   sh.shardCollection("<database>.<collection>", { <key> : "hashed" } )
+   sh.shardCollection("<database>.<collection>", { <shard key> : "hashed" } )
+
+- You must specify the full namespace of the collection and the shard
+  key.
+
+- Your selection of shard key affects the efficiency of sharding, as
+  well as your ability to take advantage of certain sharding features
+  such as :ref:`zones <zone-sharding>`. See the selection
+  considerations listed in the :ref:`hashed-sharding-shard-key`.
+

@@ -3,46 +3,61 @@ stepnum: 1
 level: 4
 ref: sharded-cluster-deploy-config-server
 pre: |
-   Start *each* :program:`mongod` in the config server replica set.
 
-   You can specify the :program:`mongod` settings either via a
-   configuration file or the command line.
+   When starting *each* :program:`mongod`, specify the
+   :program:`mongod` settings either via a configuration file or the
+   command line.
 
 action:
   - pre: |
       **Configuration File**
-      
-      If using a configuration file, set :setting:`sharding.clusterRole` 
-      to ``configsvr``, and :setting:`replication.replSetName` to the 
-      desired name of the config server replica set.
-    language: yaml
-    code: |
-      sharding:
-        clusterRole: configsvr
-      replication:
-        replSetName: <setname>
-    post: |
-       Include additional settings as appropriate to your deployment.
-       For more information on the configuration file, see
-       :doc:`configuration options</reference/configuration-options>`.
 
-  - pre: |
-      Start the :program:`mongod` specifying the ``--config`` option and the 
-      path to the configuration file.
-    language: shell
+      If using a configuration file, set:
+
+      .. cssclass:: copyable-code
+
+      .. code-block:: yaml
+
+         sharding:
+           clusterRole: configsvr
+         replication:
+           replSetName: <replica set name>
+         net:
+           bindIp: localhost,<ip address>
+
+      - :setting:`sharding.clusterRole` to ``configsvr``, 
+
+      - :setting:`replication.replSetName` to the desired name of the
+        config server replica set,
+
+      - :setting:`net.bindIp` option to the ip or a comma-delimited
+        list of ips that remote clients (including the other members of
+        the config server replica set as well as other members of the
+        sharded cluster) can use to connect to the instance.
+
+      - Additional settings as appropriate to your deployment, such as
+        :setting:`storage.dbPath` and :setting:`net.port`. For more
+        information on the configuration file, see :doc:`configuration
+        options</reference/configuration-options>`.
+
+      Start the :program:`mongod` with the ``--config`` option
+      set to the configuration file path.
+    copyable: true
+    language: sh
     code: |
       mongod --config <path-to-config-file>
-     
   - pre: |
       **Command Line**
       
-      If using the command line parameters, start the :program:`mongod` with 
-      the ``--configsvr``, and ``--replSet`` parameters.
+      If using the command line options, start the :program:`mongod`
+      with the ``--configsvr``, ``--replSet``, ``--bind_ip``,
+      and other options as appropriate to your deployment. For example:
+
+    copyable: true
     language: sh
     code: |
-       mongod --configsvr --replSet <setname> --dbpath <path>
+       mongod --configsvr --replSet <replica set name> --dbpath <path> --bind_ip localhost,<ip address of the mongod host>
     post: |
-       Include additional settings as appropriate to your deployment.
        For more information on startup parameters, see the
        :program:`mongod` reference page.
 ---
@@ -54,35 +69,39 @@ pre: |
   Connect a :program:`mongo` shell to one of the config server 
   members. 
 action:
+  copyable: true
   language: sh
   code: |
     mongo --host <hostname> --port <port>
 ---
 stepnum: 3
+title: Initiate the replica set.
 level: 4
 ref: csrs-initiate
 pre: |
 
-  The :method:`rs.initiate()` method initiates the replica set and can
-  take an optional :doc:`replica set configuration document
-  </reference/replica-configuration>`. In the :doc:`replica set
-  configuration document </reference/replica-configuration>`, include:
+  From the :program:`mongo` shell, run the :method:`rs.initiate()` method.
 
-  - The :rsconf:`_id`. The :rsconf:`_id` *must* match the ``--replSet``
-    parameter passed to the :program:`mongod`.
-    
-  - The :rsconf:`members` field. The :rsconf:`members` field is an
-    array and requires a document per each member of the replica set.
-    
-  - The :rsconf:`configsvr` field. The :rsconf:`configsvr` field must
-    be set to ``true`` for the config server replica set.
+  :method:`rs.initiate()` can take an optional :doc:`replica set
+  configuration document </reference/replica-configuration>`. In the
+  :doc:`replica set configuration document
+  </reference/replica-configuration>`, include:
 
-  See :doc:`/reference/replica-configuration` for more information on 
-  replica set configuration documents.
+  - The :rsconf:`_id` set to the replica set name specified in either
+    the :setting:`replication.replSetName` or the ``--replSet`` option.
+
+  - The :rsconf:`configsvr` field  set to ``true`` for the config server replica set.
+
+  - The :rsconf:`members` array with a document per each member of the replica set.
+
 action:
   - pre: |
-      Initiate the replica set using the :method:`rs.initiate()` method
-      and a configuration document:
+
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+    copyable: true
     language: javascript
     code: |
       rs.initiate(
@@ -96,4 +115,7 @@ action:
           ]
         }
       )
+post: |
+   See :doc:`/reference/replica-configuration` for more information on 
+   replica set configuration documents.
 ...
