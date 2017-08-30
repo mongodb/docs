@@ -7,52 +7,49 @@
      - Type
      - Description
 
-   * - ``batchId``
-     - ObjectId
-     - ID of the batch to which this restore job belongs. Only
-       present for a restore of a sharded cluster.
-
-   * - ``clusterId``
-     - ObjectId
-     - ID of the cluster represented by the restore job.
-
    * - ``delivery``
      - object
-     - The method and details of how the restored snapshot data will
-       be delivered.
+     - The method and details of how the restored :term:`snapshot` data
+       will be delivered.
 
    * - ``delivery.expires``
      - timestamp
-     - Date after which the URL is no longer available. Only
-       present if ``delivery.methodName`` is ``HTTP``.
+     - Date after which the :abbr:`URL (Uniform Resource Locator)` is no
+       longer available.
+
+       Only present if ``"delivery.methodName" : "HTTP"``.
 
    * - ``delivery.expirationHours``
      - number
-     - The number of hours the download URL is valid once the
-       restore job is complete. Only present if
-       ``delivery.methodName`` is ``HTTP``.
+     - The number of hours the download :abbr:`URL (Uniform Resource
+       Locator)` is valid once the restore job is complete.
+
+       Only needed if ``"delivery.methodName" : "HTTP"``.
 
    * - ``delivery.formatName``
      - string
-     - Format in which data from an SCP restore should be written
-       to the destination. Only present if
-       ``delivery.methodName`` is ``SCP``. Value may be one of
-       the following:
+     - Format in which data from an :abbr:`SCP (secure copy)` restore
+       should be written to the destination. Value may be one of the
+       following:
 
        - ``ARCHIVE``
        - ``INDIVIDUAL``
 
+       Only needed if ``"delivery.methodName" : "SCP"``.
+
    * - ``delivery.hostname``
      - string
      - Hostname of the server to which the data should be written
-       for an SCP restore. Only present if
-       ``delivery.methodName`` is ``SCP``.
+       for an :abbr:`SCP (secure copy)` restore.
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
 
    * - ``delivery.maxDownloads``
      - number
-     - The number of times the download URL can be used. This
-       must be ``1`` or greater. Only present if
-       ``delivery.methodName`` is ``HTTP``.
+     - The number of times the download :abbr:`URL (Uniform Resource
+       Locator)` can be used. This must be ``1`` or greater.
+
+       Only needed if ``"delivery.methodName" : "HTTP"``.
 
    * - ``delivery.methodName``
      - string
@@ -68,10 +65,30 @@
 
        ..    ``AUTOMATED_RESTORE`` can be specified in the request for this resource but the response shows the ``delivery.methodName`` as ``HTTP``. An automated restore uses the ``HTTP`` method to deliver the restore job to the target host.
 
+   * - ``delivery.password``
+     - string
+     - Password to use for :abbr:`SCP (secure copy)`.
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
+
+       .. note::
+          It is never exposed in a restore job response document.
+
+   * - ``delivery.passwordTypeName``
+     - string
+     - Type of authentication to use for :abbr:`SCP (secure copy)`.
+       Value may be one of the following:
+
+       - ``PASSWORD``
+       - ``SSH_KEY``
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
+
    * - ``delivery.port``
      - number
-     - Port to use for ``SCP``. Only present if
-       ``delivery.methodName`` is ``SCP``.
+     - Port to use for ``SCP``.
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
 
    * - ``delivery.statusName``
      - string
@@ -86,69 +103,54 @@
        - ``EXPIRED``
        - ``MAX_DOWNLOADS_EXCEEDED``
 
+   * - ``delivery.targetDirectory``
+     - string
+     - Target directory to which the data should be written for an
+       :abbr:`SCP (secure copy)` restore.
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
+
    * - ``delivery.url``
      - string
-     - The URL from which the restored snapshot data can be
-       downloaded. Only present if ``delivery.methodName`` is
-       ``HTTP``.
+     - The :abbr:`URL (Uniform Resource Locator)` from which the
+       restored snapshot data can be downloaded.
+
+       Only needed if ``"delivery.methodName" : "HTTP"``.
+
+   * - ``delivery.username``
+     - string
+     - Username to use for :abbr:`SCP (secure copy)`.
+
+       Only needed if ``"delivery.methodName" : "SCP"``.
 
    * - ``encryptionEnabled``
      - boolean
      - Indicates whether the restored snapshot data is encrypted.
 
-   * - ``groupId``
-     - ObjectId
-     - ID of the :term:`group` that owns the restore job.
-
-   * - ``hostId``
-     - ObjectId
-     - ID of the :term:`config server` to which this restore job
-       belongs. Only present for a restore of a legacy mirrored
-       :term:`config server`.
-
    * - ``masterKeyUUID``
      - string
      - The :abbr:`KMIP (Key Management Interoperability Protocol)`
-       master key ID used to encrypt the snapshot data. This field is
-       present only if ``encryptionEnabled`` is true for the snapshot.
+       :doc:`master key ID </tutorial/encrypt-snapshots>` used to
+       encrypt the snapshot data. This field is present only if
+       ``encryptionEnabled`` is true for the snapshot.
 
-   * - ``password``
-     - string
-     - Password to use for ``SCP``. If ``delivery.methodName`` is
-       ``SCP``, then you must include this field when creating the
-       restore job. However, it is never exposed when a restore job
-       entity is returned.
-
-   * - ``passwordTypeName``
-     - string
-     - Type of authentication to use for ``SCP``. Only present if
-       ``delivery.methodName`` is ``SCP``. Value may be one of the
-       following:
-
-       - ``PASSWORD``
-       - ``SSH_KEY``
+       Only needed if ``"encryptionEnabled" : true`` for the snapshot.
 
    * - ``pointInTime``
      - boolean
-     - Indicates that the job is a point-in-time restore.
+     - Indicates that the job is a :abbr:`PIT (point-in-time)` restore.
 
    * - ``snapshotId``
-     - ObjectId
+     - :ref:`ObjectId <document-bson-type-object-id>`
      - ID of the :term:`snapshot` to restore.
-
-   * - ``targetDirectory``
-     - string
-     - Target directory to which the data should be written for an
-       SCP restore. Only present if ``delivery.methodName`` is
-       ``SCP``.
 
    * - ``timestamp``
      - BSON timestamp
-     - Timestamp of the latest oplog entry in the restored
-       :term:`snapshot`.
+     - Timestamp of the latest :term:`oplog <Oplog Store Database>`
+       entry in the restored :term:`snapshot`.
 
-       If you include this parameter, you are requesting a point-in-time
-       restore job.
+       If you include this parameter, you are requesting a :abbr:`PIT
+       (point-in-time)` restore job.
 
        .. important::
 
@@ -164,18 +166,13 @@
    * - ``timestamp.date``
      - timestamp
      - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format at :abbr:`UTC (Coordinated Universal
-       Time)` of the latest oplog entry in the restored
-       :term:`snapshot`.
+       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+       and time format in :abbr:`UTC (Coordinated Universal Time)` of
+       the latest :term:`oplog <Oplog Store Database>` entry in the
+       restored :term:`snapshot`.
 
    * - ``timestamp.increment``
      - number
-     - Order of operation of all operations completed at the
-       latest oplog entry in the restored :term:`snapshot`.
-
-   * - ``username``
-     - string
-     - Username to use for ``SCP``. Only present if
-       ``delivery.methodName`` is ``SCP``.
-
+     - Order of operation of all operations completed at the latest
+       :term:`oplog <Oplog Store Database>` entry in the restored
+       :term:`snapshot`.

@@ -1,5 +1,5 @@
 Response Document
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 The response JSON document includes an array of ``result`` documents, an
 array of ``link`` documents and a count of the total number of documents
@@ -23,7 +23,7 @@ retrieved.
      - The ``links`` array includes one or more links to sub-resources
        and/or related resources. The relations between URLs are
        explained in the `Web Linking Specification
-       <http://tools.ietf.org/html/rfc5988>`_
+       <http://tools.ietf.org/html/rfc5988>`_.
    * - ``totalCount``
      - number
      - The count of the total number of items in the result set. It may
