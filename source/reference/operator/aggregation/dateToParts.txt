@@ -1,0 +1,154 @@
+==========================
+$dateToParts (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+   
+Definition
+----------
+
+.. expression:: $dateToParts
+
+   .. versionadded:: 3.6
+
+   Returns the constituent parts of a given ISO-formatted date as
+   individual object properties.
+
+   The :expression:`$dateToParts` expression has the following syntax:
+
+   .. code-block:: javascript
+
+      { 
+          $dateToParts: {
+              ‘date’ : <isoDateExpression>,
+              ‘timezone’ : <timezone>,
+              ‘iso8601’ : <boolean>
+          }
+      }
+	  
+   The :pipeline:`$dateToParts` takes a document with the following fields:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 60
+
+      * - Field
+        - Required/Optional
+        - Description
+
+      * - ``date``
+        - Required 
+        - The date to convert to string. ``<isoDateExpression>`` can be
+          any :ref:`expression <aggregation-expressions>` that
+          evaluates to an ISO-formatted date. For more information on
+          expressions, see :ref:`aggregation-expressions`.
+
+      * - ``timezone``
+        - Optional
+        - The timezone to use to format the date. By default,
+          :pipeline:`$dateToParts` uses UTC.
+
+          ``<timezone>`` can be any :ref:`expression
+          <aggregation-expressions>` that evaluates to a string whose
+          value is either:
+
+          - an `Olson Timezone Identifier
+            <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_, 
+            such as ``"Europe/London"`` or ``"America/New_York"``, or
+
+          - a UTC offset in the form:
+
+            - ``+/-[hh]:[mm]``, e.g. ``"+04:45"``, or
+
+            - ``+/-[hh][mm]``, e.g. ``"-0530"``, or
+
+            - ``+/-[hh]``, e.g. ``"+03"``.
+
+          For more information on expressions, see
+          :ref:`aggregation-expressions`.
+		  
+      * - ``iso8601``
+        - Optional
+        - If set to ``true``, modifies the output document to use ISO
+          formatting. Defaults to ``false``.
+
+Example
+-------
+
+Consider a ``sales`` collection with the following document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "item" : "abc",
+     "price" : 10,
+     "quantity" : 2,
+     "date" : ISODate("2017-02-08T12:29:09.123Z")
+   }
+
+The following aggregation uses :expression:`$dateToParts` to
+return the constituent parts of the ``date`` field in a new document:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        { 
+            date: { 
+                $dateToParts: {date: ISODate(“2017-02-08T12:29:09.123Z”)} 
+            } 
+        }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   {
+     date: {
+       ‘year’: 2017, ‘month’: 2, ‘day’: 8,
+       ‘hour’: 12, ‘minute’: 29, ‘second’: 9, ‘millisecond’: 123
+     }
+   }
+   
+The following aggregation implements the ``iso8601`` option of
+:expression:`$dateToParts` to return the constituent parts of the ``date``
+field in ISO format.
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        { 
+            date: { 
+                $dateToParts: {
+                    date: ISODate(“2017-02-08T12:29:09.123Z”),
+                    iso8601: true
+                } 
+            } 
+        }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   {
+     date: {
+         ‘isoYear’: 2017, ‘isoWeekYear’: 6, ‘isoDayOfWeek’: 3,
+         ‘hour’: 12, ‘minute’: 29, ‘second’: 9, ‘millisecond’: 123
+       }
+   }
