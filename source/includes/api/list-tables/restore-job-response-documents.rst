@@ -17,6 +17,8 @@
      - :ref:`ObjectId <document-bson-type-object-id>`
      - ID of the :term:`cluster` represented by the restore job.
 
+       Only present for a restore of a :term:`cluster`.
+
    * - ``created``
      - timestamp
      - The exact point in time when the restore job was requested in
