@@ -193,6 +193,6 @@
 
    * - ``timestamp.increment``
      - number
-     - Order of operation of all operations completed at the latest
+     - Order of all operations completed at the latest
        :term:`oplog <Oplog Store Database>` entry in the restored
        :term:`snapshot`.
