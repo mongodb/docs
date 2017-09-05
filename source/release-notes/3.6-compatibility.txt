@@ -116,3 +116,92 @@ For more information on the validate operation, see the
 :dbcommand:`validate` command and the
 :method:`db.collection.validate()` method.
 
+``$type : 'array'`` Behavior Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6 [#rebuild]_, ``$type : 'array'`` [#typecode]_ expression 
+matches with fields that contain both nested arrays and non-nested arrays.
+
+In earlier versions, ``$type : 'array'`` would only match with fields
+that contained a nested array.
+
+For example, a collection named ``c`` contains two documents:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "a": [
+         1,
+         2,
+         3
+      ]
+   },
+   {
+      "_id": 2,
+      "a": [
+         1,
+         2,
+         [ 3, 4 ]
+      ]
+   }
+
+Before 3.6, the following query returns any document in which field ``a`` 
+contains an element of :term:`BSON` type ``array``.
+
+.. code-block:: javascript
+
+  db.c.find( { 'a' : { $type : 'array' } } )
+
+In this case, the above query will return the second document.
+
+.. code-block:: javascript
+
+   {
+      "_id": 2,
+      "a": [
+         1,
+         2,
+         [ 3, 4 ]
+      ]
+   }
+
+Starting in 3.6, the same query returns both documents in the collection. 
+This is because the ``$type`` query can now detect that field ``'a'`` is 
+itself an array.
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "a": [
+         1,
+         2,
+         3
+      ]
+   },
+   {
+      "_id": 2,
+      "a": [
+         1,
+         2,
+         [ 3, 4 ]
+      ]
+   }
+
+For more information on the ``$type : 'array'`` expression, see
+:ref:`document-querying-by-array-type`.
+
+.. [#rebuild]
+
+   Affects users on 3.4.x with partial indexes whose partialFilterExpression 
+   has a ``$type : 'array'`` expression. If such users wish to upgrade to 3.6, 
+   they must rebuild any such partial index when first starting a 3.6 node. 
+   Failing to do so may cause conflicting ``$type : 'array'`` semantics.
+
+.. [#typecode]
+
+   This behavior change also applies to the ``$type : 4`` expression since 4 
+   is the type code for BSON arrays.
+
+.. _3.6-type-array-compatibility:
