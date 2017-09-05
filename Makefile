@@ -12,42 +12,29 @@ STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches
 
 .PHONY: help html publish-artifacts stage fake-deploy deploy deploy-search-index
 
-help:
-	@echo 'Targets'
-	@echo '  help               - Show this help message'
-	@echo '  html               - Build html files'
-	@echo '  publish-artifacts  - Build artifacts to deploy'
-	@echo '  stage              - Host online for review'
-	@echo '  fake-deploy        - Create a fake deployment in the staging bucket'
-	@echo '  deploy             - Deploy to the production bucket'
-	@echo ''
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo
 	@echo 'Variables'
-	@echo '  ARGS               - Arguments to pass to mut-publish'
+	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html:
+html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-## makes just the artifacts
-publish:
+publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 
-stage:
+stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 
-fake-deploy: build/public/${GIT_BRANCH}
+fake-deploy: build/public/${GIT_BRANCH} ## Do a fake deploy on the staging bucket
 	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PROJECT} --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/index.html"
 
-deploy:
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy  --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the preceding statements to ${PRODUCTION_BUCKET}."
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy ${ARGS} --verbose  --redirects build/public/.htaccess
-
+deploy: ## Deploy to the production bucket
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
 	$(MAKE) deploy-search-index
