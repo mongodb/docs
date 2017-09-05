@@ -37,6 +37,12 @@ Behavior
 :query:`$type` returns documents where the BSON type of the ``field``
 matches the BSON type passed to :query:`$type`.
 
+.. versionchanged:: 3.6
+
+:query:`$type` now works with arrays in the same way it works with 
+other BSON types. Previous versions only matched documents where the
+``field`` contained a nested array.
+
 .. _document-type-available-types:
 
 Available Types
@@ -62,17 +68,6 @@ following :term:`BSON` types:
 - decimal
 
 See :ref:`document-querying-by-data-type`
-
-Arrays
-~~~~~~
-
-When applied to arrays, :query:`$type` matches any **inner** element, 
-in addition to a ``field`` match, of the specified :term:`BSON` type.
-For example, when matching for ``$type : 'array'``, the document will match 
-if the field itself is an array **and** if it has a nested array.
-
-See :ref:`document-querying-by-array-type` for an example.
-
 
 MinKey and MaxKey
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -339,8 +334,7 @@ A collection named ``SensorReading`` contains the following documents:
    }
 
 The following query returns any document in which the ``readings``
-field contains an element of :term:`BSON` type ``array`` and in
-which the field itself is an array.
+field is an array, empty or non-empty.
 
 .. code-block:: javascript
 
@@ -379,76 +373,10 @@ The above query returns the following documents:
    {
       "_id": 4,
       "readings": []
-   },
-
-In the documents with ``_id : 1``, ``_id : 2``, ``_id : 3`` 
-and ``_id : 4``, the ``readings`` field either is an array or
-contains at least one element which is an array, while the
-document with ``_id : 5`` does not.
-
-Querying for Documents Where a Given Field is an Array
-------------------------------------------------------
-
-Use the following query constructions to find
-documents in which the specified field is itself an array.
-
-The following query uses the :query:`$elemMatch` and
-the :query:`$exists` operator to find all
-documents where the ``readings`` fields is a :term:`BSON` ``array``
-array with one or more elements.
-
-.. code-block:: javascript
-
-   db.SensorReading.find( { "readings" : { $elemMatch: { $exists: true } } } )
-
-The above query returns the following documents:
-
-.. code-block:: javascript
-
-   {
-      "_id": 1,
-      "readings": [
-         25,
-         23,
-         [ "Warn: High Temp!", 55 ],
-         [ "ERROR: SYSTEM SHUTDOWN!", 66 ]
-      ]
-   },
-   {
-      "_id": 2,
-      "readings": [
-         25,
-         25,
-         24,
-         23
-      ]
-   },
-   {
-      "_id": 3,
-      "readings": [
-         22,
-         24,
-         []
-      ]
    }
 
-To find all documents in the collection in which the ``readings``
-field is an array, either empty or non-empty, the following query
-uses two clauses: the first checks whether ``readings`` is a
-non-empty array, and the second checks whether it is an empty array.
-
-.. code-block:: javascript
-
-   db.SensorReading.find( {
-     $or: [
-       { "readings": { $elemMatch: { $exists: true } } },
-       { "readings": [] }
-     ]
-   } )
-
-The above query returns the first four documents in the collection and
-excludes the one with ``_id : 5``, in which the ``readings`` field is
-an integer instead of an array.
+In the documents with ``_id : 1``, ``_id : 2``, ``_id : 3``, 
+and ``_id : 4``, the ``readings`` field is an array.
 
 Additional Information
 ----------------------
