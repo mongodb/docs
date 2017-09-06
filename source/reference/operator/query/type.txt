@@ -16,17 +16,34 @@ Definition
 .. query:: $type
 
    :query:`$type` selects the documents where the *value* of the
-   ``field`` is an instance of the specified :term:`BSON` type.
+   ``field`` is an instance of the specified :term:`BSON` type(s).
    Querying by data type is useful when dealing with highly
    unstructured data where data types are not predictable.
 
-   A :query:`$type` expression has the following syntax:
+   A :query:`$type` expression for a single :term:`BSON` type has 
+   the following syntax:
 
    .. versionchanged:: 3.2
 
    .. code-block:: javascript
 
-     { field: { $type: <BSON type number> | <String alias> } }
+     { field: { $type: <BSON type> } }
+
+   You can specify either the number or alias for the :ref:`BSON 
+   type<document-type-available-types>`
+
+   The :query:`$type` expression can also accept an array of :term:`BSON` 
+   types and has the following syntax:
+
+   .. code-block:: javascript
+
+     { field: { $type: [ <BSON type1> , <BSON type2>, ... ] } }
+
+   The above query will match documents where the ``field`` value is
+   any of the listed types. The types specified in the array can be 
+   either numeric or string aliases.
+
+   See :ref:`document-querying-by-multiple-data-types` for an example.
 
    :ref:`document-type-available-types` describes the BSON types and
    their corresponding numeric and string aliases.
@@ -167,6 +184,42 @@ These queries return:
    { "_id" : 2, address : "156 Lunar Place", zipCode : 43339374 }
    { "_id" : 3, address : "2324 Pluto Place", zipCode: NumberLong(3921412) }
    { "_id" : 4, address : "55 Saturn Ring" , zipCode : 88602117 }
+
+.. _document-querying-by-multiple-data-types
+
+Querying by Multiple Data Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains names and averages, where 
+``classAverage`` has ``string``, ``int``, and ``double`` values:
+
+.. code-block:: javascript
+
+   db.grades.insertMany(
+      [
+         { "_id" : 1, name : "Alice King" , classAverage : 87.333333333333333 },
+         { "_id" : 2, name : "Bob Jenkins", classAverage : "83.52" },
+         { "_id" : 3, name : "Cathy Hart", classAverage: "94.06" },
+         { "_id" : 4, name : "Drew Williams" , classAverage : 93 }
+      ]
+   )
+
+The following queries return all documents where ``classAverage`` is the 
+:term:`BSON` type ``string`` or ``double``. The first query uses numeric aliases
+while the second query uses string aliases.
+
+.. code-block:: javascript
+
+   db.addressBook.find( { "zipCode" : { $type : [ 2 , 1 ] } } );
+   db.addressBook.find( { "zipCode" : { $type : [ "string" , "double" ] } } );
+   
+These queries return the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, name : "Alice King" , classAverage : 87.333333333333333 }
+   { "_id" : 2, name : "Bob Jenkins", classAverage : "83.52" }
+   { "_id" : 3, name : "Cathy Hart", classAverage: "94.06" }
 
 .. _document-querying-by-MinKey-And-MaxKey:
 
