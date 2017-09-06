@@ -52,43 +52,66 @@ operation resembles the following:
 
 Replace ``bristol01`` with the name of the shard to remove. When you
 run :dbcommand:`removeShard`, the command returns immediately,
-with the following message:
+with a message that resembles the following:
 
 .. code-block:: javascript
 
    {
-       "msg" : "draining started successfully",
-       "state" : "started",
-       "shard" : "bristol01",
-       "ok" : 1
+      "msg" : "draining started successfully",
+      "state" : "started",
+      "shard" : "bristol01",
+      "note" : "you need to drop or movePrimary these databases", 
+      "dbsToMove" : [
+         "fizz",
+         "buzz"
+      ],
+      "ok" : 1
    }
 
-The balancer begins migrating chunks from the shard named
-``bristol01`` to other shards in the cluster. These migrations happens
-slowly to avoid placing undue load on the overall cluster.
+The balancer begins migrating chunks from the shard named ``bristol01``
+to other shards in the cluster. These migrations happen slowly in order to
+avoid placing undue load on the cluster. Since ``bristol01`` is
+the primary shard for the ``fizz`` and ``buzz`` databases,
+:dbcommand:`removeShard` notes that you must use the 
+:dbcommand:`movePrimary` command to move those
+databases to another shard. Alternatively, you can use :dbcommand:`dropDatabase`
+to drop the database and delete its associated data files.
 
-If you run the command again, :dbcommand:`removeShard` returns the
-following progress output:
+.. note:: 
+   If the shard you are removing is not the primary shard for any
+   databases, the ``dbsToMove`` array will be empty and
+   :dbcommand:`removeShard` can complete the migration without
+   intervention.
+
+If you run the command again, :dbcommand:`removeShard` returns output
+that resembles the following:
 
 .. code-block:: javascript
 
    {
-       "msg" : "draining ongoing",
-       "state" : "ongoing",
-       "remaining" : {
-           "chunks" : 23,
-           "dbs" : 1
-       },
-       "ok" : 1
+      "msg" : "draining ongoing",
+      "state" : "ongoing",
+      "remaining" : {
+         "chunks" : NumberLong(2),
+         "dbs" : NumberLong(2)
+      },
+      "note" : "you need to drop or movePrimary these databases",
+      "dbsToMove" : [
+         "fizz",
+         "buzz"
+      ],
+      "ok" : 1
    }
 
 The ``remaining`` :term:`document` specifies how many chunks and databases
-remain on the shard. Use :method:`db.printShardingStatus()` to list the
-databases that you must move from the shard. Use the
-:dbcommand:`movePrimary` to move databases.
+remain on the shard. Use the :dbcommand:`movePrimary` command to move 
+each database listed in ``dbsToMove`` to another shard.
+Alternatively, use :dbcommand:`dropDatabase` to drop the database.
 
-After removing all chunks and databases from the shard, you can issue
-:dbcommand:`removeShard` again see the following:
+When the balancer completes moving all chunks off of the shard and 
+you have either moved or dropped any database listed in ``dbsToMove``, 
+running :dbcommand:`removeShard` again returns output that
+resembles the following:
 
 .. code-block:: javascript
 
