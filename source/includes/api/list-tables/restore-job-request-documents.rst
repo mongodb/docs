@@ -56,14 +56,17 @@
      - How the data will be delivered. Value may be one of the
        following:
 
-       .. - ``AUTOMATED_RESTORE``
+       - ``AUTOMATED_RESTORE``
        - ``HTTP``
        - ``QUERY``
        - ``SCP``
 
-       .. .. note::
+       .. note::
 
-       ..    ``AUTOMATED_RESTORE`` can be specified in the request for this resource but the response shows the ``delivery.methodName`` as ``HTTP``. An automated restore uses the ``HTTP`` method to deliver the restore job to the target host.
+          ``AUTOMATED_RESTORE`` can be specified in the request for this
+          resource but the response shows the ``delivery.methodName`` as
+          ``HTTP``. An automated restore uses the ``HTTP`` method to
+          deliver the restore job to the target host.
 
    * - ``delivery.password``
      - string
