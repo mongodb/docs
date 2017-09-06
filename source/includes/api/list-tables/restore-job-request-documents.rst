@@ -63,10 +63,10 @@
 
        .. note::
 
-          ``AUTOMATED_RESTORE`` can be specified in the request for this
-          resource but the response shows the ``delivery.methodName`` as
-          ``HTTP``. An automated restore uses the ``HTTP`` method to
-          deliver the restore job to the target host.
+          If you specify ``AUTOMATED_RESTORE`` in the request , the
+          response shows the ``delivery.methodName`` as ``HTTP``. An
+          automated restore uses the ``HTTP`` method to deliver the
+          restore job to the target host.
 
    * - ``delivery.password``
      - string
