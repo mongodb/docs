@@ -17,8 +17,15 @@ Definition
 
    .. versionadded:: 3.6
 
-   Returns the constituent parts of a given ISO-formatted date as
-   individual object properties.
+   Returns a document that contains the constituent parts of a given
+   ISO-formatted date as individual properties. The properties returned
+   are ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``
+   and ``millisecond``.
+
+   You can set the ``iso8601`` property to ``true`` to return the parts
+   in ISO-format instead. This will return a document where the
+   properties are ``isoYear``, ``isoWeekYear``, ``isoDayOfWeek``,
+   ``hour``, ``minute``, ``second`` and ``millisecond``.
 
    The :expression:`$dateToParts` expression has the following syntax:
 
@@ -26,9 +33,9 @@ Definition
 
       { 
           $dateToParts: {
-              ‘date’ : <isoDateExpression>,
-              ‘timezone’ : <timezone>,
-              ‘iso8601’ : <boolean>
+              'date' : <isoDateExpression>,
+              'timezone' : <timezone>,
+              'iso8601' : <boolean>
           }
       }
 	  
@@ -44,10 +51,10 @@ Definition
 
       * - ``date``
         - Required 
-        - The date to convert to string. ``<isoDateExpression>`` can be
-          any :ref:`expression <aggregation-expressions>` that
-          evaluates to an ISO-formatted date. For more information on
-          expressions, see :ref:`aggregation-expressions`.
+        - The input date for which to return parts.
+          ``<isoDateExpression>`` can be any :ref:`expression <aggregation-expressions>`
+          that evaluates to an ISO-formatted date. For more information
+          on expressions, see :ref:`aggregation-expressions`.
 
       * - ``timezone``
         - Optional
@@ -93,62 +100,63 @@ Consider a ``sales`` collection with the following document:
      "date" : ISODate("2017-02-08T12:29:09.123Z")
    }
 
-The following aggregation uses :expression:`$dateToParts` to
-return the constituent parts of the ``date`` field in a new document:
+The following aggregation uses :expression:`$dateToParts` to return the
+constituent parts of the ``date`` field in new documents.
 
 .. cssclass:: copyable-code
 
 .. code-block:: javascript
 
-   db.sales.aggregate(
-      [
-        { 
-            date: { 
-                $dateToParts: {date: ISODate(“2017-02-08T12:29:09.123Z”)} 
-            } 
-        }
-      ]
-   )
-
-The operation returns the following result:
-
-.. code-block:: javascript
-
+   db.sales.aggregate( [
    {
-     date: {
-       ‘year’: 2017, ‘month’: 2, ‘day’: 8,
-       ‘hour’: 12, ‘minute’: 29, ‘second’: 9, ‘millisecond’: 123
-     }
+      $project: {
+         date: {
+            $dateToParts: { date: "$date" } 
+         },
+         date_iso: { 
+            $dateToParts: { date: "$date", iso8601: true }
+         },
+         date_timezone: {
+            $dateToParts: {
+               date: ISODate("2017-01-01T01:29:09.123Z"),
+               timezone: "America/New_York"
+            }
+         }  
+      }
    }
-   
-The following aggregation implements the ``iso8601`` option of
-:expression:`$dateToParts` to return the constituent parts of the ``date``
-field in ISO format.
-
-.. cssclass:: copyable-code
-
-.. code-block:: javascript
-
-   db.sales.aggregate(
-      [
-        { 
-            date: { 
-                $dateToParts: {
-                    date: ISODate(“2017-02-08T12:29:09.123Z”),
-                    iso8601: true
-                } 
-            } 
-        }
-      ]
-   )
+   ] )
 
 The operation returns the following result:
 
 .. code-block:: javascript
 
    {
-     date: {
-         ‘isoYear’: 2017, ‘isoWeekYear’: 6, ‘isoDayOfWeek’: 3,
-         ‘hour’: 12, ‘minute’: 29, ‘second’: 9, ‘millisecond’: 123
-       }
+     "_id" : 1,
+     "date" : {
+       "year" : 2017,
+       "month" : 2,
+       "day" : 8,
+       "hour" : 12,
+       "minute" : 29,
+       "second" : 9,
+       "millisecond" : 123
+     },
+     "date_iso" : {
+       "isoYear" : 2017,
+       "isoWeekYear" : 6,
+       "isoDayOfWeek" : 3,
+       "hour" : 12,
+       "minute" : 29,
+       "second" : 9,
+       "millisecond" : 123
+     },
+     "date_timezone" : {
+       "year" : 2016,
+       "month" : 12,
+       "day" : 31,
+       "hour" : 20,
+       "minute" : 29,
+       "second" : 9,
+       "millisecond" : 123
+     }
    }

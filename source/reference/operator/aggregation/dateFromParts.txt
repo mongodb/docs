@@ -18,8 +18,7 @@ Definition
    .. versionadded:: 3.6
 
    Constructs and returns a date object in ISO format given the date's
-   constituent properties. You must specify a ``year`` property; all other
-   fields are optional.
+   constituent properties.
    
    The :expression:`$dateFromParts` expression has the following syntax:
    
@@ -27,10 +26,9 @@ Definition
 
       { 
           $dateFromParts : {
-              ‘year’: <year>, ‘month’: <month>, ‘day’: <day>,
-              ‘hour’: <hour>, ‘minute’: <minute>, ‘second’: <second>,
-              ‘milliseconds’: <ms>,
-              ‘timezone’: <tzExpression>
+              'year': <year>, 'month': <month>, 'day': <day>,
+              'hour': <hour>, 'minute': <minute>, 'second': <second>,
+              'milliseconds': <ms>, 'timezone': <tzExpression>
           }
       }
 
@@ -41,10 +39,9 @@ Definition
    
       {
           $dateFromParts : {
-              ‘isoYear’: <year>, ‘isoWeekYear: <month>, ‘isoDayOfWeek’: <day>,
-              ‘hour’: <hour>, ‘minute’: <minute>, ‘second’: <second>,
-              ‘milliseconds’: <ms>,
-              ‘timezone’: <tzExpression>
+              'isoYear': <year>, 'isoWeekYear': <month>, 'isoDayOfWeek': <day>,
+              'hour': <hour>, 'minute': <minute>, 'second': <second>,
+              'milliseconds': <ms>, 'timezone': <tzExpression>
           }
       }
 	  
@@ -71,42 +68,42 @@ Definition
 		
       * - ``month``
         - Optional
-        - Month (2 digits, zero padded)
+        - Month (2 digits, zero padded). Defaults to ``01``.
         - ``01``-``12``
 		
       * - ``isoWeekYear``
         - Optional
-        - Week of year (2 digits, zero padded)
-        - ``00``-``53``
+        - Week of year (2 digits, zero padded). Defaults to ``01``.
+        - ``01``-``53``
 
       * - ``day``
         - Optional
-        - Day of month (2 digits, zero padded)
+        - Day of month (2 digits, zero padded) Defaults to ``01``.
         - ``01``-``31``
 
       * - ``isoDayOfWeek``
         - Optional
-        - Day of week (1-Sunday, 7-Saturday)
+        - Day of week (1-Sunday, 7-Saturday). Defaults to ``1``.
         - ``1``-``7``
 
       * - ``hour``
         - Optional
-        - Hour (2 digits, zero padded, 24-hour clock)
+        - Hour (2 digits, zero padded, 24-hour clock). Defaults to ``00``.
         - ``00``-``23``
 
       * - ``minute``
         - Optional
-        - Minute (2 digits, zero padded)
+        - Minute (2 digits, zero padded). Defaults to ``00``.
         - ``00``-``59``
 
       * - ``second``
         - Optional
-        - Second (2 digits, zero padded)
+        - Second (2 digits, zero padded). Defaults to ``00``.
         - ``00``-``60``
 
-      * - ``milliseconds``
+      * - ``millisecond``
         - Optional
-        - Milliseconds (3 digits, zero padded)
+        - Millisecond (3 digits, zero padded). Defaults to ``000``.
         - ``000``-``999``
 
       * - ``timezone``
@@ -135,38 +132,49 @@ Definition
        You cannot combine the use of ISO format and non-ISO format
        fields when constructing your :expression:`$dateFromParts` input
        document.
-	   
-   .. note::
-       ``month``, ``isoWeekYear``, ``day`` and ``isoDayOfWeek`` will
-       default to ``1`` if not provided.
-
-       ``hour``, ``minute``, ``second`` and ``milliseconds`` will
-       default to ``0`` if not provided.
 
 Example
 -------
 The following aggregation uses :expression:`$dateFromParts` to
-construct a date object from the provided input fields:
+construct three date objects from the provided input fields:
 
 .. cssclass:: copyable-code
 
 .. code-block:: javascript
 
-   db.tz.aggregate( [ 
-   { 
-       date: 
-       {
-           $dateFromParts: 
-           {
-               ‘year’ : 2017, ‘month’ : 2, ‘day’: 8, ‘hour’ : 12
-           }
-       }
-   } ] );
+   db.sales.aggregate( [
+   {
+      $project: {
+         date: {
+            $dateFromParts: {
+               'year' : 2017, 'month' : 2, 'day': 8, 'hour' : 12
+            }
+         },
+         date_iso: {
+            $dateFromParts: {
+               'isoYear' : 2017, 'isoWeekYear' : 6, 'isoDayOfWeek': 3, 'hour' : 12
+            }
+         },
+         date_timezone: {
+            $dateFromParts: {
+               'year' : 2016, 'month' : 12, 'day': 31, 'hour' : 23,
+               'minute': 46, 'second': 12, 'timezone': "America/New_York"
+            }
+         }
+      }
+   }
+   ] )
 
-The operation returns the following result:
+The operation returns the following result for each document in the
+``sales`` collection.
 
 .. code-block:: javascript
 
-   { date: ISODate( “2017-02-08T12:00:00Z” ) }
+   {
+     "_id" : ObjectId("<id>"),
+     "date" : ISODate("2017-02-08T12:00:00Z"),
+     "date_iso" : ISODate("2017-02-08T12:00:00Z"),
+     "date_timezone" : ISODate("2017-01-01T04:46:12Z")
+   }
    
    
