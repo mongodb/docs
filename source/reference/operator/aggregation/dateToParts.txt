@@ -18,14 +18,16 @@ Definition
    .. versionadded:: 3.6
 
    Returns a document that contains the constituent parts of a given
-   ISO-formatted date as individual properties. The properties returned
+   BSON Date value as individual properties. The properties returned
    are ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``
    and ``millisecond``.
 
    You can set the ``iso8601`` property to ``true`` to return the parts
-   in ISO-format instead. This will return a document where the
-   properties are ``isoYear``, ``isoWeekYear``, ``isoDayOfWeek``,
-   ``hour``, ``minute``, ``second`` and ``millisecond``.
+   representing an
+   `ISO week date <https://en.wikipedia.org/wiki/ISO_week_date>`_
+   instead. This will return a document where the properties are
+   ``isoYear``, ``isoWeekYear``, ``isoDayOfWeek``, ``hour``,
+   ``minute``, ``second`` and ``millisecond``.
 
    The :expression:`$dateToParts` expression has the following syntax:
 
@@ -52,9 +54,11 @@ Definition
       * - ``date``
         - Required 
         - The input date for which to return parts.
-          ``<isoDateExpression>`` can be any :ref:`expression <aggregation-expressions>`
-          that evaluates to an ISO-formatted date. For more information
-          on expressions, see :ref:`aggregation-expressions`.
+          ``<isoDateExpression>`` can be any
+          :ref:`expression <aggregation-expressions>` that evaluates to
+          a BSON Date, Timestamp or ObjectID value. For more
+          information on expressions, see
+          :ref:`aggregation-expressions`.
 
       * - ``timezone``
         - Optional
@@ -83,7 +87,13 @@ Definition
       * - ``iso8601``
         - Optional
         - If set to ``true``, modifies the output document to use ISO
-          formatting. Defaults to ``false``.
+          week date fields. Defaults to ``false``.
+
+Behavior
+--------
+
+.. include:: /includes/fact-olson-tz-behavior.rst
+
 
 Example
 -------
@@ -93,21 +103,20 @@ Consider a ``sales`` collection with the following document:
 .. code-block:: javascript
 
    {
-     "_id" : 1,
+     "_id" : 2,
      "item" : "abc",
      "price" : 10,
      "quantity" : 2,
-     "date" : ISODate("2017-02-08T12:29:09.123Z")
+     "date" : ISODate("2017-01-01T01:29:09.123Z")
    }
 
-The following aggregation uses :expression:`$dateToParts` to return the
-constituent parts of the ``date`` field in new documents.
+The following aggregation uses :expression:`$dateToParts` to return a
+document that contains the constituent parts of the ``date`` field.
 
 .. cssclass:: copyable-code
-
 .. code-block:: javascript
 
-   db.sales.aggregate( [
+   db.sales.aggregate([
    {
       $project: {
          date: {
@@ -117,46 +126,42 @@ constituent parts of the ``date`` field in new documents.
             $dateToParts: { date: "$date", iso8601: true }
          },
          date_timezone: {
-            $dateToParts: {
-               date: ISODate("2017-01-01T01:29:09.123Z"),
-               timezone: "America/New_York"
-            }
+            $dateToParts: { date: "$date", timezone: "America/New_York" }
          }  
       }
-   }
-   ] )
+  }])
 
 The operation returns the following result:
 
 .. code-block:: javascript
 
    {
-     "_id" : 1,
-     "date" : {
-       "year" : 2017,
-       "month" : 2,
-       "day" : 8,
-       "hour" : 12,
-       "minute" : 29,
-       "second" : 9,
-       "millisecond" : 123
-     },
-     "date_iso" : {
-       "isoYear" : 2017,
-       "isoWeekYear" : 6,
-       "isoDayOfWeek" : 3,
-       "hour" : 12,
-       "minute" : 29,
-       "second" : 9,
-       "millisecond" : 123
-     },
-     "date_timezone" : {
-       "year" : 2016,
-       "month" : 12,
-       "day" : 31,
-       "hour" : 20,
-       "minute" : 29,
-       "second" : 9,
-       "millisecond" : 123
-     }
+      "_id" : 2,
+      "date" : {
+         "year" : 2017,
+         "month" : 1,
+         "day" : 1,
+         "hour" : 1,
+         "minute" : 29,
+         "second" : 9,
+         "millisecond" : 123
+      },
+      "date_iso" : {
+         "isoYear" : 2016,
+         "isoWeekYear" : 52,
+         "isoDayOfWeek" : 7,
+         "hour" : 1,
+         "minute" : 29,
+         "second" : 9,
+         "millisecond" : 123
+      },
+      "date_timezone" : {
+         "year" : 2016,
+         "month" : 12,
+         "day" : 31,
+         "hour" : 20,
+         "minute" : 29,
+         "second" : 9,
+         "millisecond" : 123
+      }
    }
