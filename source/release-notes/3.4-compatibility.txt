@@ -75,6 +75,37 @@ To convert your existing config servers from SCCC to CSRS, see
 
    :ref:`Sharded Cluster Release Notes Section <3.4-rel-notes-sharded-cluster>`
 
+.. _3.4-compatibility-initial-sync:
+
+Initial Sync and ``renameCollection``
+-------------------------------------
+
+If a collection is renamed on the sync source while an :ref:`initial
+sync <replica-set-initial-sync>` is running, the initial sync process
+fails and restarts to avoid possible data corruption. See
+:issue:`SERVER-26117`.
+
+Operations that rename collections include:
+
+- :dbcommand:`renameCollection` command and
+  :method:`db.collection.renameCollection()` method.
+
+- Aggregation (:method:`db.collection.aggregate()` method or
+  :dbcommand:`aggregate` command) with the :pipeline:`$out` stage.
+
+- Map-reduce (:method:`db.collection.mapReduce()` method or
+  :dbcommand:`mapReduce` command) with the ``out`` option.
+
+- :dbcommand:`convertToCapped` command.
+
+As such, when upgrading from 3.2.11 or earlier versions to 3.4, initial
+syncs may start failing if they encounter ``renameCollection``
+operations.
+
+In MongoDB versions 3.2.11 or earlier versions, initial sync process
+would proceed when encountering ``renameCollection`` operations, which
+could potentially corrupt data. See :issue:`SERVER-4941`.
+
 .. _3.4-compatibility-deprecated:
 
 Deprecated Operations
