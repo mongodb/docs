@@ -31,7 +31,7 @@ class TabStrip {
 }
 
 export default class Marian {
-    constructor(url, defaultProperties, defaultPropertiesLabel) {
+    constructor(url, defaultProperties, defaultPropertiesLabel, initialSearchProperty, initialQuery) {
         this.url = url.replace(/\/+$/, '')
         this.defaultProperties = defaultProperties
         this.onchangequery = () => {}
@@ -43,15 +43,19 @@ export default class Marian {
         this.spinnerElement.className = 'spinner'
 
         this.currentRequest = null
-        this.query = ''
-        this.searchProperty = ''
+
+        this.query = initialQuery
+        this.searchProperty = initialSearchProperty
 
         // We have three options to search: the current site, the current MongoDB manual,
         // and all properties.
         const tabStripElements = []
         if (defaultPropertiesLabel) {
             tabStripElements.push({id: 'current', label: `${defaultPropertiesLabel}`})
-            this.searchProperty = 'current'
+
+            if (!this.searchProperty) {
+                this.searchProperty = 'current'
+            }
         }
 
         if (!defaultPropertiesLabel || !defaultPropertiesLabel.match(/^MongoDB Manual/)) {
@@ -101,6 +105,8 @@ export default class Marian {
             if (!this.bodyElement) {
                 this.bodyElement = document.createElement('div')
             }
+
+            this.search(this.query)
         })
     }
 

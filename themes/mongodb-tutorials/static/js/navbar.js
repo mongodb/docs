@@ -140,9 +140,15 @@
 	        }
 	      }
 	
-	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
+	      // Obey a search request, if we have one
+	      var locationQuery = window.location.search.match(/query=([^&#]*)/);
+	      locationQuery = locationQuery !== null ? locationQuery[1] : '';
+	      var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
+	      locationSearchProperty = locationSearchProperty !== null ? locationSearchProperty[1] : '';
+	
+	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label, locationSearchProperty, locationQuery);
 	      _this.state.timeout = -1;
-	      _this.state.searchText = '';
+	      _this.state.searchText = locationQuery;
 	
 	      _this.state.marian.onchangequery = function (newQuery) {
 	        _this.setState({
@@ -27271,7 +27277,7 @@
 	}();
 	
 	var Marian = function () {
-	    function Marian(url, defaultProperties, defaultPropertiesLabel) {
+	    function Marian(url, defaultProperties, defaultPropertiesLabel, initialSearchProperty, initialQuery) {
 	        var _this2 = this;
 	
 	        _classCallCheck(this, Marian);
@@ -27287,15 +27293,19 @@
 	        this.spinnerElement.className = 'spinner';
 	
 	        this.currentRequest = null;
-	        this.query = '';
-	        this.searchProperty = '';
+	
+	        this.query = initialQuery;
+	        this.searchProperty = initialSearchProperty;
 	
 	        // We have three options to search: the current site, the current MongoDB manual,
 	        // and all properties.
 	        var tabStripElements = [];
 	        if (defaultPropertiesLabel) {
 	            tabStripElements.push({ id: 'current', label: '' + defaultPropertiesLabel });
-	            this.searchProperty = 'current';
+	
+	            if (!this.searchProperty) {
+	                this.searchProperty = 'current';
+	            }
 	        }
 	
 	        if (!defaultPropertiesLabel || !defaultPropertiesLabel.match(/^MongoDB Manual/)) {
@@ -27346,6 +27356,8 @@
 	            if (!_this2.bodyElement) {
 	                _this2.bodyElement = document.createElement('div');
 	            }
+	
+	            _this2.search(_this2.query);
 	        });
 	    }
 	
