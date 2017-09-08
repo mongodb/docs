@@ -16,15 +16,15 @@
    .. raw:: html
 
       <div class="tabs">
-        <ul tab-strip tab-strip--singleton" role="tablist">
-          {{ for tab in tabs getLanguageNames}}
+        <ul class="tab-strip tab-strip--singleton" role="tablist">
+          {{ for tab in tabs }}
           {{ # Only render the tab here if i < 5 }}
           {{ if i lessThan(5) }}
           <li class="tab-strip__element" data-tabid="{{ tab.id }}" role="tab" aria-selected="{{ if i zero }}true{{ else }}false{{ end }}">{{ tab.name }}</li>
           {{ end }}
           {{ end }}
         </ul>
-        <div class="tab-content">
+        <div class="tabs__content" role="tabpanel">
           {{ for tab in tabs }}
           <div class="tabpanel-{{ tab.id }}">
 
