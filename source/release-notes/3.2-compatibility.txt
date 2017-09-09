@@ -149,6 +149,39 @@ minor :program:`mongo` shell improvements and compatibility changes.
 See :doc:`/release-notes/3.2-javascript` for more information about
 this change.
 
+.. _init-sync-compatibility:
+
+Initial Sync and ``renameCollection``
+-------------------------------------
+
+.. versionchanged:: 3.2.12
+
+Starting in MongoDB 3.2.12, a collection is renamed on the sync source
+while an :ref:`initial sync <replica-set-initial-sync>` is running, the
+initial sync process fails and restarts to avoid possible data
+corruption. See :issue:`SERVER-26117`.
+
+Operations that rename collections include:
+
+- :dbcommand:`renameCollection` command and
+  :method:`db.collection.renameCollection()` method.
+
+- Aggregation (:method:`db.collection.aggregate()` method or
+  :dbcommand:`aggregate` command) with the :pipeline:`$out` stage.
+
+- Map-reduce (:method:`db.collection.mapReduce()` method or
+  :dbcommand:`mapReduce` command) with the ``out`` option.
+
+- :dbcommand:`convertToCapped` command.
+
+As such, when upgrading from 3.2.11 or earlier versions to 3.2.12 or
+later, initial syncs may start failing if they encounter
+``renameCollection`` operations.
+
+In MongoDB versions 3.2.11 or earlier versions, initial sync process
+would proceed when encountering ``renameCollection`` operations, which
+could potentially corrupt data. See :issue:`SERVER-4941`.
+
 Replica Set Configuration Validation
 ------------------------------------
 
