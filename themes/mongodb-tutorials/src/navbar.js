@@ -37,9 +37,9 @@ class Navbar extends React.Component {
 
       // Obey a search request, if we have one
       let locationQuery = window.location.search.match(/query=([^&#]*)/)
-      locationQuery = (locationQuery !== null)? locationQuery[1] : ''
+      locationQuery = (locationQuery !== null)? decodeURIComponent(locationQuery[1]) : ''
       let locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/)
-      locationSearchProperty = (locationSearchProperty !== null)? locationSearchProperty[1] : ''
+      locationSearchProperty = (locationSearchProperty !== null)? decodeURIComponent(locationSearchProperty[1]) : ''
 
       this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label, locationSearchProperty, locationQuery)
       this.state.timeout = -1

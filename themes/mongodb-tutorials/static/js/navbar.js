@@ -142,9 +142,9 @@
 	
 	      // Obey a search request, if we have one
 	      var locationQuery = window.location.search.match(/query=([^&#]*)/);
-	      locationQuery = locationQuery !== null ? locationQuery[1] : '';
+	      locationQuery = locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
 	      var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
-	      locationSearchProperty = locationSearchProperty !== null ? locationSearchProperty[1] : '';
+	      locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
 	
 	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label, locationSearchProperty, locationQuery);
 	      _this.state.timeout = -1;
