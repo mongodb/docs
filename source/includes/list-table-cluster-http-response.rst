@@ -13,6 +13,10 @@
    * - ``groupId``
      - string
      - ID of the group the cluster belongs to.
+       
+   * - ``id``
+     - string
+     - ID of the cluster.
 
    * - ``mongoDBVersion``
      - string     
@@ -100,12 +104,16 @@
        .. list-table::
           :header-rows: 1
           
-          * - AWS
-            - GCP
-            - Azure
+          * - Provider
+            - Regions
             
-          * - .. include:: /includes/fact-aws-region-names.rst
+          * - AWS 
+            - .. include:: /includes/fact-aws-region-names.rst
+              
+          * - GCP
             - .. include:: /includes/fact-gcp-region-names.rst
+              
+          * - Azure
             - .. include:: /includes/fact-azure-region-names.rst
 
    * - ``providerSettings.instanceSizeName``
