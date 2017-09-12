@@ -1,3 +1,10 @@
+Backup Agent ``5.9.0.662``
+--------------------------
+
+*Released 2017-09-13*
+
+- Use BSON.d for missing docs.
+
 Backup Agent ``5.8.0.655``
 --------------------------
 
