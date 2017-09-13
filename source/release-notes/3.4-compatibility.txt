@@ -258,3 +258,48 @@ Driver Compatibility Changes
 To use the various new features such as the new :ref:`3.4-decimal` and
 :ref:`collation` with a MongoDB driver, an upgrade to a driver version
 that supports these features is necessary.
+
+Single Element ``$in`` With ``upsert``
+--------------------------------------
+
+When an ``upsert`` operation finds no matching documents, it creates a 
+document to insert based on the equality statements in the query and then 
+applies the update modifiers to this seeded document. For example:
+
+.. code-block:: javascript
+
+   db.c.drop()
+   db.c.update( { a : 3, b: "foo" }, { $set : { c : 15 } }, { upsert : true } )
+   db.c.find()
+   { "_id" : ObjectId("59c03009529946822d0afb8c"), "a" : 3, "b" : "foo", "c" : 15 }
+
+Prior to 3.4, a single-element $in query did not seed the ``upsert`` 
+document. In the example below, the :update:`$addToSet` update expression 
+is successful because of this behavior:
+
+.. code-block:: javascript
+
+  db.c.drop()
+  db.c.update( { a : { $in : [1] } }, { $addToSet : { a : 2 } }, { upsert : true } )
+  db.c.find()
+  { "_id" : ObjectId("58bdb00eb39e8f87607e9222"), "a" : [ 2 ] }
+
+In 3.4 and newer versions, however, a single-element :query:`$in` behaves
+like an equality statement for upserts. If the query includes this condition 
+on a field, the field value is set to the element. 
+
+As a result of this behavior, certain upsert operations may fail in 3.4. In 
+example above, the :query:`$addToSet` upsert would fail because the ``a`` 
+field would be seeded with a single value, and :query:`$addToSet` cannot be 
+applied to a scalar field. To avoid this error, you must wrap the :query:`$in` 
+expression in an :query:`$elemMatch` expression:
+
+.. code-block:: javascript
+
+   db.c.drop()
+   db.c.update( 
+      { a : { $elemMatch : { $in : [ 2 ] } } }, 
+      { $addToSet : { a: 3 } },
+      { upsert: true } )
+   db.c.find()
+   { "_id" : ObjectId("..."), "a" : [ 3 ] }
