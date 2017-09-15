@@ -13,10 +13,10 @@ aggregate
 .. dbcommand:: aggregate
 
    Performs aggregation operation using the :doc:`aggregation pipeline
-   </reference/operator/aggregation-pipeline>`. The pipeline allows
-   users to process data from a collection with a sequence of
+   </reference/operator/aggregation-pipeline>`. The pipeline allows users 
+   to process data from a collection or other source with a sequence of 
    stage-based manipulations.
-
+   
    The command has following syntax:
 
    .. versionchanged:: 3.6
@@ -24,7 +24,7 @@ aggregate
    .. code-block:: javascript
 
       {
-        aggregate: "<collection>",
+        aggregate: "<collection>" || 1,
         pipeline: [ <stage>, <...> ],
         explain: <boolean>,
         allowDiskUse: <boolean>,
@@ -71,8 +71,8 @@ Example
    their driver. In 2.6 and later, the
    :method:`db.collection.aggregate()` helper always returns a cursor.
 
-   Except for the first example which demonstrates the command syntax,
-   the examples in this page use the
+   Except for the first two examples which demonstrate the command 
+   syntax, the examples in this page use the
    :method:`db.collection.aggregate()` helper.
 
 Aggregate Data with Multi-Stage Pipeline
@@ -115,6 +115,37 @@ In the :program:`mongo` shell, this operation can use the
       { $unwind: "$tags" },
       { $group: { _id: "$tags", count: { $sum : 1 } } }
    ] )
+
+Use $currentOp on an Admin Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs a pipeline with two stages on the admin
+database. The first stage runs the :pipeline:`$currentOp` operation 
+and the second stage filters the results of that operation. 
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+      aggregate : 1, 
+      pipeline : [ { 
+         $currentOp : { allUsers : true, idleConnections : true } }, { 
+         $match : { shard : "shard01" } 
+         } 
+      ], 
+      cursor : { } 
+   } )
+
+.. note::
+
+   The :dbcommand:`aggregate` command does not specify a collection and
+   instead takes the form `{aggregate: 1}`. This is because the initial 
+   :pipeline:`$currentOp` stage does not draw input from a collection. It
+   produces its own data that the rest of the pipeline uses. 
+
+   The new :method:`db.aggregate()` helper has been added to assist in
+   running collectionless aggregations such as this. The above aggregation
+   could also be run like :ref:`this <admin-pipeline-currentOp>` example.
+
    
 Return Information on the Aggregation Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -239,7 +270,7 @@ force the usage of the specified index:
    )
 
 Override Default Read Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To override the default read concern level of :readconcern:`"local"`,
 use the ``readConcern`` option. The :dbcommand:`getMore` command uses
