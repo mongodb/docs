@@ -86,7 +86,7 @@ set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set) with
 [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``bravo``.
 ``shard0001`` has two members on ``bravo`` and one [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``alfa``.
 
-<img src="images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability"><span id="sharding-high-availability-tags"></span>
+<img src="../images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability"><span id="sharding-high-availability-tags"></span>
 
 
 ### Tags
