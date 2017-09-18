@@ -36,11 +36,7 @@ fake-deploy: build/public
 	@echo "Hosted at ${STAGING_URL}/index.html"
 
 deploy: build/public
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --all-subdirectories  --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the previous"
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
