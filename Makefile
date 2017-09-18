@@ -29,7 +29,7 @@ stage: ## Host online for review
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 deploy: build/public ## Deploy to the production bucket
-	mut-redirects config/redirects -o build/public/.htaccess
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='bi-connector' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
