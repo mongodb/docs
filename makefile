@@ -55,11 +55,7 @@ endif
 	cp -p build/landing/style.min.css build/public/cloud/_static/
 	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
 
-	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_CLOUDMGR}"
-	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --verbose --all-subdirectories --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the preceding upload statements to ${PRODUCTION_BUCKET_CLOUDMGR}"
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-cloud -o build/public/cloud/.htaccess; fi
 	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
@@ -88,11 +84,7 @@ deploy-opsmgr: build/public/onprem ## Deploy to the production bucket
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
-	@echo "Doing a dry-run to ${PRODUCTION_BUCKET_OPSMGR}"
-	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy --verbose  --redirects build/public/onprem/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to publish preceding upload statements to ${PRODUCTION_BUCKET_OPSMGR}"
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-onprem -o build/public/onprem/.htaccess; fi
 	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
