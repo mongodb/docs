@@ -34,7 +34,7 @@ fake-deploy: build/public/${GIT_BRANCH} ## Do a fake deploy on the staging bucke
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/index.html"
 
 deploy: ## Deploy to the production bucket
-	mut-redirects config/redirects -o build/public/${GIT_BRANCH}/.htaccess
+	mut-redirects config/redirects -o build/public/.htaccess
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
