@@ -78,7 +78,7 @@ The following table lists the configuration limitations of Free Tier clusters:
    * - Do You Want To Enable Backup
      - You cannot enable backups.
 
-   * - Do You Want To :guilabel:`Test Primary Failovers`
+   * - Test Failovers
      - You cannot perform primary failover testing.
 
 The following table lists the operational limitations of |service| Free Tier
@@ -160,19 +160,18 @@ clusters:
    * - Database Logs
      - Free Tier (M0) clusters do not provide downloadable logs.
 
-Test Primary Failover and Elections
------------------------------------
+Test Failover
+-------------
 
 Replica set elections are necessary every time |service| makes
 configuration changes as well as during failure scenarios.
 Configuration changes may occur as a result of patch updates or scaling
-events. As a result, you should write your applications to be resilient
-to these elections occurring during expected operations.
+events. As a result, you should write your applications to be capable
+of handling elections without any downtime.
 
 You can use the following procedure to test the failure of a
 :term:`primary` replica set member in your |service| cluster and
-observe how your application and connection handling responds to a
-replica set failover and election:
+observe how your application responds to a replica set failover:
 
 1. Click :guilabel:`Clusters`.
 
@@ -183,38 +182,37 @@ replica set failover and election:
 
 #. |service| displays a Test Failover modal with the steps |service|
    will take to simulate a failover event. Click
-   :guilabel:`Restart Primary` to begin the test. During this process,
-   |service|:
+   :guilabel:`Restart Primary` to begin the test. During this process:
 
-   a. Shuts down the current :term:`primary`.
+   a. |service| shuts down the current :term:`primary`.
 
-   #. Holds an election to choose which of the secondaries will become the
-      new primary.
+   #. The members of the replica set hold an election to choose which
+      of the secondaries will become the new primary.
 
-   #. Brings the original primary back to the :term:`replica set` as a
-      :term:`secondary`. When the old primary rejoins the replica set,
-      it will sync with the new primary to catch up any writes that
-      occurred during its downtime.
+   #. |service| brings the original primary back to the
+      :term:`replica set` as a :term:`secondary`. When the old primary
+      rejoins the replica set, it will sync with the new primary to
+      catch up any writes that occurred during its downtime.
 
       .. note::
-        If the original primary accepted write operations that the
-        secondaries did not successfully replicate when the primary
-        stepped down, the primary rolls back those write operations
-        when it re-joins the replica set and begins synchronizing. For
-        more information on rollbacks, see
+        If the original primary accepted write operations that had not
+        been successfully replicated to the secondaries when the
+        primary stepped down, the primary rolls back those write
+        operations when it re-joins the replica set and begins
+        synchronizing. For more information on rollbacks, see
         `Rollbacks During Replica Set Failover <https://docs.mongodb.com/manual/core/replica-set-rollbacks/>`_.
 
         Contact MongoDB support for assistance with resolving rollbacks.
 
-   #. Notifies you in the Test Failover modal the results of your
+   #. |service| notifies you in the Test Failover modal the results of your
       failover process.
 
-If your application does not handle the failover gracefully, check the
+If your application does not handle the failover gracefully, ensure the
 following:
 
-- All members of the replica set are used in the connection string.
+- The connection string includes all members of the replica set.
 - You are using the latest version of the driver.
-- If necessary, implement appropriate re-try logic in your application code.
+- You have implemented appropriate retry logic in your application.
 
 Terminate a Cluster
 -------------------
