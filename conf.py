@@ -84,14 +84,13 @@ html_static_path = ['source/.static']
 html_last_updated_fmt = '%b %d, %Y'
 
 html_copy_source = False
-html_use_smartypants = True
 html_domain_indices = True
 html_use_index = False
 html_split_index = False
 html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
-html_add_permalinks = None
+html_add_permalinks = ''
 
 manual_edition_path = '{0}/{1}/{2}.{3}'
 

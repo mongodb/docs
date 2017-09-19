@@ -38,13 +38,9 @@ fake-deploy: ## Deploys the DIR (dirhtml) artifacts generated from "publish" to 
 	mut-publish build/public/${GIT_BRANCH} ${STAGING_BUCKET} --prefix=${PREFIX}/${GIT_BRANCH} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
 
-deploy: check-redirects ## Deploys the DIR (dirhtml) artifacts generated from "publish" to the production bucket.
-	@echo "Doing a dry-run"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the previous"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose   --redirects build/public/.htaccess  ${ARGS}
+deploy: ## Deploys the DIR (dirhtml) artifacts generated from "publish" to the production bucket.
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --redirects build/public/.htaccess  ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}/index.html"
 
