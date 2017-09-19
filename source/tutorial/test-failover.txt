@@ -1,0 +1,62 @@
+=============
+Test Failover
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Replica set elections are necessary every time |service| makes
+configuration changes as well as during failure scenarios.
+Configuration changes may occur as a result of patch updates or scaling
+events. As a result, you should write your applications to be capable
+of handling elections without any downtime.
+
+You can use the following procedure to test the failure of a
+:term:`primary` replica set member in your |service| cluster and
+observe how your application responds to a replica set failover:
+
+1. Click :guilabel:`Clusters`.
+
+#. For the cluster you wish to perform failover testing, click on the
+   :guilabel:`...` button.
+
+#. Click :guilabel:`Test Failover`.
+
+#. |service| displays a Test Failover modal with the steps |service|
+   will take to simulate a failover event. Click
+   :guilabel:`Restart Primary` to begin the test. During this process:
+
+   a. |service| shuts down the current :term:`primary`.
+
+   #. The members of the replica set hold an election to choose which
+      of the secondaries will become the new primary.
+
+   #. |service| brings the original primary back to the
+      :term:`replica set` as a :term:`secondary`. When the old primary
+      rejoins the replica set, it will sync with the new primary to
+      catch up any writes that occurred during its downtime.
+
+      .. note::
+        If the original primary accepted write operations that had not
+        been successfully replicated to the secondaries when the
+        primary stepped down, the primary rolls back those write
+        operations when it re-joins the replica set and begins
+        synchronizing. For more information on rollbacks, see
+        `Rollbacks During Replica Set Failover <https://docs.mongodb.com/manual/core/replica-set-rollbacks/>`_.
+
+        Contact MongoDB support for assistance with resolving rollbacks.
+
+   #. |service| notifies you in the Test Failover modal the results of your
+      failover process.
+
+If your application does not handle the failover gracefully, ensure the
+following:
+
+- The connection string includes all members of the replica set.
+- You are using the latest version of the driver.
+- You have implemented appropriate retry logic in your application.
