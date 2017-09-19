@@ -40,13 +40,9 @@ fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the stagi
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
-deploy: build/public/${GIT_BRANCH} check-redirects ## Deploy to the production bucket
-	@echo "Doing a dry-run"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the previous upload to ${PRODUCTION_BUCKET}"
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
+deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}"
 
@@ -73,7 +69,3 @@ migrate: get-assets
 	
 get-assets:
 	giza generate assets
-
-#This workaround is because the redirects for symlink version does not prefix with ruby-driver.
-check-redirects:
-	perl -pi -e  's/301 \/v/301 \/ruby-driver\/v/g' build/public/.htaccess 
