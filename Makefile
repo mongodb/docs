@@ -64,11 +64,7 @@ deploy: publish ## Deploy to the production bucket
 #      --verbose            prints out a detail of what files are being uploaded/deleted/etc.
 #      --dry-run            instructs mut-publish to do everything *except* actually put stuff on the internet.
 #      if ${ARGS}, then additonal arguments
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose --dry-run ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the previous"
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
