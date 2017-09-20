@@ -15,7 +15,9 @@ binaries bound only to localhost.
 
 To override and bind to other ip addresses, you can use the
 :setting:`net.bindIp` configuration file setting or the ``--bind_ip``
-command-line option to specify a list of ip addresses
+command-line option to specify a list of ip addresses.
+
+.. include:: /includes/warning-bind-ip-security-considerations.rst
 
 For example, the following :program:`mongod` instance binds to both the
 localhost and the sample ip address ``198.51.100.1``:
