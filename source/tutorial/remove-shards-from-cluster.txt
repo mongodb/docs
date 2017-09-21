@@ -77,31 +77,14 @@ This operation returns immediately, with the following response:
 .. code-block:: javascript
 
    {
-      "msg" : "draining started successfully",
-      "state" : "started",
-      "shard" : "mongodb0",
-      "note" : "you need to drop or movePrimary these databases", 
-      "dbsToMove" : [
-         "fiz",
-         "buzz"
-      ],
-      "ok" : 1
+       "msg" : "draining started successfully",
+       "state" : "started",
+       "shard" : "mongodb0",
+       "ok" : 1
    }
 
-The balancer begins migrating chunks from the shard named ``bristol01``
-to other shards in the cluster. These migrations happens slowly to
-avoid placing undue load on the overall cluster.
 Depending on your network capacity and the amount of data, this
 operation can take from a few minutes to several days to complete.
-
-.. note::
-
-   Each database in a sharded cluster has a primary shard. If the shard you
-   want to remove is also the primary of one of the cluster's databases,
-   :dbcommand:`removeShard` lists the database in the ``dbsToMove`` field.
-   To finish removing the shard, you must either move the database
-   to a new shard after migrating all data from the shard or drop the
-   database, deleting the associated data files.
 
 .. _remove-shard-check-migration-status:
 
@@ -122,18 +105,13 @@ The command returns output similar to the following:
 .. code-block:: javascript
 
    {
-      "msg" : "draining ongoing",
-      "state" : "ongoing",
-      "remaining" : {
-         "chunks" : NumberLong(2),
-         "dbs" : NumberLong(2)
-      },
-      "note" : "you need to drop or movePrimary these databases",
-      "dbsToMove" : [
-         "fizz",
-         "buzz"
-      ],
-      "ok" : 1
+        "msg" : "draining ongoing",
+       "state" : "ongoing",
+       "remaining" : {
+           "chunks" : 42,
+           "dbs" : 1
+       },
+       "ok" : 1
    }
 
 In the output, the ``remaining`` document displays the remaining number
@@ -147,43 +125,53 @@ use :method:`sh._adminCommand` to run the command on ``admin``.
 
 .. _remove-shard-move-unsharded-databases:
 
-Move Databases to Another Primary Shard
----------------------------------------
+Move Unsharded Data
+-------------------
 
 If the shard is the :term:`primary shard` for one or more databases in
-the cluster, then you must make that database use a different shard
-as its primary shard. :dbcommand:`removeShard` lists any databases
-that you need to move in the ``dbsToMove`` field in the command output.
-If the shard is
+the cluster, then the shard will have unsharded data. If the shard is
 not the primary shard for any databases, skip to the next task,
 :ref:`remove-shard-finalize-migration`.
+
+In a cluster, a database with unsharded collections stores those
+collections only on a single shard. That shard becomes the primary shard
+for that database. (Different databases in a cluster can have different
+primary shards.)
 
 .. warning::
 
    Do not perform this procedure until you have finished draining the
    shard.
 
-To move a database to another shard, use the :dbcommand:`movePrimary`
-command. 
+1. To determine if the shard you are removing is the primary shard for
+   any of the cluster's databases, issue one of the following methods:
 
-.. important::
+   - :method:`sh.status()`
 
-   To ensure a smooth migration, refer to the considerations in the
-   :dbcommand:`movePrimary` command documentation before running
-   :dbcommand:`movePrimary`.
+   - :method:`db.printShardingStatus()`
 
-To migrate the ``fizz`` database from
-``mongodb0`` to ``mongodb1``, issue the following command:
+   In the resulting document, the ``databases`` field lists each
+   database and its primary shard. For example, the following
+   ``database`` field shows that the ``products`` database uses
+   ``mongodb0`` as the primary shard:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   db.runCommand( { movePrimary: "fizz", to: "mongodb1" })
+      {  "_id" : "products",  "partitioned" : true,  "primary" : "mongodb0" }
 
-This command does not return until MongoDB completes moving all data. 
-The response from this command will
-resemble the following:
+#. To move a database to another shard, use the :dbcommand:`movePrimary`
+   command. For example, to migrate all remaining unsharded data from
+   ``mongodb0`` to ``mongodb1``, issue the following command:
 
-.. code-block:: javascript
+   .. code-block:: javascript
+
+      db.runCommand( { movePrimary: "products", to: "mongodb1" })
+
+   This command does not return until MongoDB completes moving all data,
+   which may take a long time. The response from this command will
+   resemble the following:
+
+   .. code-block:: javascript
 
       { "primary" : "mongodb1", "ok" : 1 }
 
@@ -213,4 +201,4 @@ A success message appears at completion:
    }
 
 Once the value of the ``state`` field is "completed", you may safely
-stop the instances comprising the ``mongodb0`` shard.
+stop the processes comprising the ``mongodb0`` shard.
