@@ -26,11 +26,7 @@ publish: | content-html ## Build publishable artifacts under public/
 
 deploy: ## Deploy the tutorials site
 	$(MAKE) publish
-
-	mut-publish public/ ${PRODUCTION_BUCKET} --prefix=${PRODUCTION_PREFIX} --deploy --all-subdirectories --dry-run --verbose ${ARGS}
-	@echo ''
-	read -p "Press any key to perform the previous"
-	mut-publish public/ ${PRODUCTION_BUCKET} --prefix=${PRODUCTION_PREFIX} --deploy --all-subdirectories --verbose ${ARGS}
+	mut-publish public/ ${PRODUCTION_BUCKET} --prefix=${PRODUCTION_PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Deployed"
 
