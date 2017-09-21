@@ -15,7 +15,9 @@ For example, consider a ``sales`` collection with the following document:
    }
 
 The following aggregation illustrates how MongoDB handles the DST
-offset for the Olson Timezone Identifier:
+offset for the Olson Timezone Identifier. The example uses the
+:expression:`$hour` and :expression:`$minute` operators to return the
+corresponding portions of the ``date`` field:
 
 .. cssclass:: copyable-code
 .. code-block:: javascript
