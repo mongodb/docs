@@ -18,28 +18,32 @@ Definition
    The :dbcommand:`dbStats` command returns storage statistics for a
    given database. The command takes the following syntax:
 
-   .. code-block:: javascript
-
-      { dbStats: 1, scale: 1 }
-
-   The values of the options above do not affect the output of the
-   command. The ``scale`` option allows you to specify how to scale byte
-   values. For example, a ``scale`` value of ``1024`` will display the
-   results in kilobytes rather than in bytes:
+   .. _scale-argument:
 
    .. code-block:: javascript
 
-      { dbStats: 1, scale: 1024 }
+      db.runCommand({ dbStats: 1, scale: 1 })
 
-   .. note::
+   ``scale`` is optional and defaults to ``1``.
 
-      Scaling rounds values to whole numbers.
-   
    In the :program:`mongo` shell, the :method:`db.stats()` function
    provides a wrapper around :dbcommand:`dbStats`.
 
 Behavior
 --------
+
+The ``scale`` argument allows you to specify how to scale byte
+values. For example, a ``scale`` value of ``1024`` will display the
+results in kilobytes rather than in bytes:
+
+.. code-block:: javascript
+
+   db.runCommand({ dbStats: 1, scale: 1024 })
+
+.. note::
+
+   Scaling rounds values to whole numbers.
+
 
 The time required to run the command depends on the total size of the
 database. Because the command must touch all data files, the command
@@ -74,32 +78,34 @@ Output
 .. data:: dbStats.avgObjSize
 
    The average size of each document in bytes. This is the
-   :data:`~dbStats.dataSize` divided by the number of documents.
+   :data:`~dbStats.dataSize` divided by the number of documents. The
+   :ref:`scale argument <scale-argument>` does not affect the
+   ``avgObjSize`` value.
 
 .. data:: dbStats.dataSize
 
-   The total size in bytes of the uncompressed data held in this database. The
-   ``scale`` argument affects this value. The :data:`~dbStats.dataSize` will decrease
+   The total size of the uncompressed data held in this database.
+   The :data:`~dbStats.dataSize` decreases
    when you remove :term:`documents <document>`.
 
    For databases using the :doc:`MMAPv1 </core/mmapv1>` storage engine, ``dataSize`` includes
-   preallocated space and the :term:`padding factor`. The ``dataSize`` will not decrease when
+   preallocated space and the :term:`padding factor`. The ``dataSize`` does not decrease when
    documents shrink. 
 
    For databases using the :ref:`WiredTiger <storage-wiredtiger-compression>` storage engine,
    ``dataSize`` may be larger than ``storageSize`` if compression is enabled.  The ``dataSize``
-   will decrease when documents shrink.
+   decreases when documents shrink.
 
    .. sum of all records not counting deleted records
 
 .. data:: dbStats.storageSize
 
-   The total amount of space in bytes allocated to collections in this database
-   for :term:`document` storage. The ``scale`` argument affects this
-   value. The :data:`~dbStats.storageSize` does not decrease as you remove or
+   The total amount of space allocated to collections in this database
+   for :term:`document` storage. The :data:`~dbStats.storageSize` does
+   not decrease as you remove or
    shrink documents. This value may be smaller than ``dataSize`` for databases
-   using the WiredTiger storage engine with :ref:`compression <storage-wiredtiger-compression>`
-   enabled.
+   using the WiredTiger storage engine with
+   :ref:`compression <storage-wiredtiger-compression>` enabled.
 
    .. sum of all extents (no indexes or the $freelist)
    .. include links to eventual documentation of storage management
@@ -116,20 +122,18 @@ Output
 
 .. data:: dbStats.indexSize
 
-   The total size in bytes of all indexes created on this database. The
-   ``scale`` arguments affects this value.
+   The total size of all indexes created on this database.
 
    .. uses the dataSize member
 
 .. data:: dbStats.fileSize
 
-   The total size in bytes of the data files that hold the database. This value
+   The total size of the data files that hold the database. This value
    includes preallocated space and the :term:`padding factor`. The
    value of :data:`~dbStats.fileSize` only reflects the size of the data files
    for the database and not the namespace file.
 
-   The ``scale`` argument affects this value. Only present when using
-   the ``mmapv1`` storage engine.
+   Only present when using the ``mmapv1`` storage engine.
 
 .. data:: dbStats.nsSizeMB
 
@@ -182,5 +186,22 @@ Output
 
    Total size of the extents on the freelist.
 
-   The ``scale`` argument affects this value. Only present when using
-   the ``mmapv1`` storage engine.
+   Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.fsUsedSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk space in use on the filesystem where MongoDB
+   stores data.
+
+   .. seealso::
+
+      :option:`--dbpath`
+
+.. data:: dbStats.fsTotalSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk capacity on the filesystem where MongoDB
+   stores data.
