@@ -1,0 +1,117 @@
+=====
+$expr
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 3.6
+
+.. expression:: $expr
+
+   Allows the use of aggregation expressions within the query 
+   language. 
+
+   :expression:`$expr` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $expr: { <expression> } }
+
+   The arguments can be any valid :ref:`expression 
+   <aggregation-expressions>`. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+:expression:`$expr` can build query expressions that compare fields 
+from the same document in a :pipeline:`$match` stage.
+
+If the :pipeline:`$match` stage is part of a :pipeline:`$lookup` stage, 
+:expression:`$expr` can compare fields using ``let`` variables. See
+:ref:`lookup-multiple-joins:` for an example. 
+
+Examples
+--------
+
+Compare Two Fields from A Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``monthlyBudget`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "food", "budget": 400, "spent": 450 }
+   { "_id" : 2, "category" : "drinks", "budget": 100, "spent": 150 }
+   { "_id" : 3, "category" : "clothes", "budget": 100, "spent": 50 }
+   { "_id" : 4, "category" : "misc", "budget": 500, "spent": 300 }
+   { "_id" : 5, "category" : "travel", "budget": 200, "spent": 650 }
+
+The following operation uses :expression:`$expr` to find documents 
+where the ``spent`` amount exceeds the ``budget``:
+
+.. code-block:: javascript
+
+   db.monthlyBudget.find( { $expr: { $gt: [ "$spent" , "$budget" ] } } )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "food", "budget" : 400, "spent" : 450 }
+   { "_id" : 2, "category" : "drinks", "budget" : 100, "spent" : 150 }
+   { "_id" : 5, "category" : "travel", "budget" : 200, "spent" : 650 }
+
+
+Using ``$expr`` With Conditional Statements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``supplies`` collection with the following documents. If 
+the ``qty`` is at least ``100``, a ``50%`` discount is applied. 
+Otherwise, a ``25%`` discount is applied:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "binder", "qty": 100 , "price": 12 }
+   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
+   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
+   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
+
+The following operation uses :expression:`$expr` with :expression:`$cond`
+to mimic a conditional statement. It finds documents where the ``price`` 
+is less than ``5`` after the applied discounts. 
+
+If the document has a ``qty`` value greater than or equal to ``100``, 
+the query divides the ``price`` by ``2``. Otherwise, it divides the ``price`` 
+by ``4``:
+
+.. code-block:: javascript
+
+    db.supplies.find( {
+        $expr: { 
+           $lt:[ { 
+              $cond: {
+                 if: { $gte: ["$qty", 100] },
+                 then: { $divide: ["$price", 2] },
+                 else: { $divide: ["$price", 4] }
+               }
+           }, 
+           5 ] }
+    } )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : "notebook", "qty": 200 , "price": 8 }
+   { "_id" : 3, "item" : "pencil", "qty": 50 , "price": 6 }
+   { "_id" : 4, "item" : "eraser", "qty": 150 , "price": 3 }
