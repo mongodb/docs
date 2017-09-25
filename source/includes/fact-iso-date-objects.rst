@@ -6,7 +6,7 @@ The argument must be a valid :ref:`expression
 
 - A document of the following form:
 
-  .. versionchanged:: 3.6
+  .. versionadded:: 3.6
 
   .. code-block:: javascript
 
@@ -31,6 +31,3 @@ The argument must be a valid :ref:`expression
      * - ``timezone``
 
        - .. include:: /includes/fact-timezone-description.rst
-
-         .. versionadded:: 3.6
-
