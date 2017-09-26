@@ -1,0 +1,118 @@
+=========
+Redirects
+=========
+
+Introduction
+------------
+
+Whenever a page created by the MongoDB Documentation Project is
+deleted or renamed, a redirect rule should be created.
+
+The master redirect file for a project generally exists under
+``config/redirects``.
+
+Redirect Syntax
+---------------
+
+The mut redirect configuration file is a UTF-8 file containing
+three types of lines:
+
+* Pragmas (``define``, ``include``, ``symlink``)
+* Rules
+* Comments
+
+Pragmas
+~~~~~~~
+
+* ``define: <var> <value>``
+
+  - Defines a variable that may be substituted in rules and pragmas
+    using ``${var}`` syntax in rules and other ``define`` stanzas.
+
+* ``include: <path>``
+
+  - Injects another file into the parsing state machine. As a matter of
+    style, a redirects file should contain either rules **or** ``include``
+    stanzas, but not both.
+
+* ``symlink: <alias> -> <target>``
+
+  - For each rule involving the version <target>, also creates a rule
+    for version <alias>.
+  - Create a symbolic link called ``/build/public/<alias>`` pointing to
+    ``/build/public/<target>``. Must overwrite any existing symbolic link,
+    and remove any existing symbolic link not mentioned by a symlink rule.
+  - Must throw an error if ``<target>`` is not mentioned in the
+    ``${versions}`` variable.
+  - <alias> may specify a nested path; e.g. symlink onprem/upcoming -> master
+
+Rules
+~~~~~
+
+* ``raw: <source> -> <target>``
+
+  - A raw redirect rule, generating a single output redirect, and
+    prohibiting use of the version variable.
+
+* ``[\[(][0-9.-a-z]+[\])]: <source> -> <target>``
+
+  - A version rule, generating an output redirect for each of the
+    versions covered by the specified version range, using the version
+    order defined in the versions variable.
+
+    *Square brackets* (``[`` and ``]``) indicate an *inclusive* endpoint,
+    while *parenthesis* (``(`` and ``)``) indicate an *exclusive* endpoint.
+
+    For example, ``[v1.0-v2.0)`` would match ``v1.0`` and ``v1.5``, but **NOT**
+    ``v2.0``.
+
+Comments
+~~~~~~~~
+
+Any line beginning with a ``#`` character is a comment, and is ignored
+by the parser.
+
+Example
+~~~~~~~
+
+.. code-block:: none
+
+   # You should define variables to reduce duplication and make future maintenance
+   # easier. The *base* variable is common, and indicates the base for where
+   # redirects should point.
+   define: base https://docs.mongodb.com/bi-connector
+
+   # The *versions* variable is special: it contains a whitespace-delimited
+   # list of versions over which to generate redirects. Version ordering
+   # is taken from this list, rather than using lexographic ordering.
+   define: versions v1.1 v2.0 v2.1 master
+
+   # These rules create symbolic links in the build directory, and also
+   # create additional redirect rules.
+   symlink: v2.2 -> master
+   symlink: current -> master
+
+   # These rules are *raw* rules: a raw rule corresponds to exactly one output redirect.
+   raw: bi-connector/ -> ${base}/current
+   raw: bi-connector/schema-configuration -> ${base}/master/schema-configuration
+
+   # These rules are *version* rules, generating an output redirect *for each*
+   # of the selected version strings.
+   [*-v2.1]: bi-connector/${version}/connect/mysql -> ${base}/${version}/tutorial/connecting
+   (v2.1-*]: bi-connector/${version}/tutorial/connecting-to-atlas -> ${base}/${version}/reference/mongosqld
+
+Generating Redirects
+--------------------
+
+.. cssclass:: copyable
+.. code-block:: sh
+
+    mut-redirects config/redirects -o build/public/.htaccess
+
+When placed in a project's Makefile, this command should only be run if
+the ``master`` branch is currently checked out:
+
+.. cssclass:: copyable
+.. code-block:: sh
+
+   if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
