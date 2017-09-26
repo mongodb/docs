@@ -60,15 +60,16 @@ args: <db.collection>
 description: |
   .. versionadded:: 2.3
 
-  Specifies a database and collection to sample data from for use in
-  the schema. It is also possible to specify multiple collections from
-  a single databases, or multiple collections from multiple databases.
-  See :ref:`examples <sampleNamespaces-example>` below.
+  ``--sampleNamespaces`` specifies a database and collection to sample
+  data from to create the schema. It is also possible to specify
+  multiple collections from a single databases, or multiple collections
+  from multiple databases. See :ref:`examples <sampleNamespaces-example>`
+  below.
 
-  If you do not use the ``--sampleNamespaces`` option,
-  :program:`mongosqld` samples data from all available MongoDB
-  databases and collections except the ``admin`` and ``local``
-  databases.
+  If you do not use the ``--sampleNamespaces`` option or the
+  :option:`--schema` option, ``mongosqld`` samples data
+  from all available MongoDB databases and collections except the
+  ``admin`` and ``local`` databases.
 ---
 program: mongosqld
 name: sampleSource
@@ -77,9 +78,57 @@ args: <db-name>
 description: |
   .. versionadded:: 2.3
 
-  Specifies a database to use for the storage of sampling information.
-  If you do not specify a schema file with the :option:`--schema`
-  option, you must use the ``--sampleSource`` option.
+  Specifies a database to store schema information. If you do not
+  specify either a schema file with the :option:`--schema` option or
+  a database with the ``--sampleSource`` option,
+  :program:`mongosqld` holds its schema in memory.
+---
+program: mongosqld
+name: sampleSize
+directive: option
+args: <number>
+description: |
+  .. versionadded:: 2.3
+
+  The number of documents per database to sample when gathering schema
+  information.
+default: 1000  
+---
+program: mongosqld
+name: sampleMode
+directive: option
+args: <[read|write]>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies whether :program:`mongosqld` may write schema information
+  to the MongoDB database named in the :option:`--sampleSource` option
+  or only read from it.
+
+  If you use the :option:`--sampleSource` option to specify a database
+  to store schema information, set :option:`--sampleMode` to
+  ``write`` to allow :program:`mongosqld` to persist data in the
+  specified database.
+default: read
+---
+program: mongosqld
+name: sampleRefreshIntervalSecs
+directive: option
+args: <number>
+description: |
+  .. versionadded:: 2.3
+
+  The interval in seconds at which :program:`mongosqld` re-samples
+  data to create its schema. The default value is ``0``, which means
+  that after the initial sampling no re-sampling occurs for the
+  duration of the connection. The specified value must be a positive
+  integer.
+
+  If you specify a non-zero value for ``--sampleRefreshIntervalSecs``
+  and a schema database with the :option:`--sampleSource` option,
+  you must also set the :option:`--sampleMode` option to ``write``.
+  Otherwise, :program:`mongosqld` halts with an error.
+default: 0
 ---
 program: mongosqld
 name: mongo-versionCompatibility
@@ -128,6 +177,14 @@ description: |
 
 optional: true
 default: mongodb://localhost:27017
+---
+program: mongosqld
+name: uuidSubtype3Encoding
+directive: option
+inherit:
+  name: uuidSubtype3Encoding
+  program: _shared
+  file: options-shared.yaml
 ---
 program: mongosqld
 name: mongo-ssl
