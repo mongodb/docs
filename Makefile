@@ -41,6 +41,7 @@ publish: migrate ## Builds this branch's publishable HTML and other artifacts un
 	mkdir build/public/${GIT_BRANCH}/api
 
 	yard doc ${SOURCE_FILE_DIR}   --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
@@ -51,7 +52,6 @@ fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the stagi
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
 
 deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
-	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}"
