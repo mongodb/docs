@@ -45,10 +45,6 @@ stage: ## Host online for review
 # The recursive behavior would CHANGE if --all-subdirectories were
 # given: ALL contents of build/public/<branch> would be upload
 deploy: build/public ## Deploy to the production bucket
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --all-subdirectories --verbose --dry-run ${ARGS}
-
-	@echo 'Press any key to perform the previous' && read result
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
