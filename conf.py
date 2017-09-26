@@ -83,7 +83,6 @@ html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
 html_copy_source = False
 html_logo = None
 html_static_path = ['source/_static']
-html_use_smartypants = True
 html_use_index = True
 html_split_index = False
 html_use_modindex = False
