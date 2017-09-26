@@ -15,8 +15,9 @@ Definition
 
 .. method:: db.createUser ( user, writeConcern )
 
-   Creates a new user for the database where the method runs. :method:`db.createUser()`
-   returns a *duplicate user* error if the user already exists on the database.
+   Creates a new user for the database on which the method is run.
+   :method:`db.createUser()` returns a *duplicate user* error if the
+   user already exists on the database.
 
    The :method:`db.createUser()` method has the following syntax:
 
@@ -26,12 +27,20 @@ Definition
 
    .. code-block:: javascript
 
-      { user: "<name>",
+      { 
+        user: "<name>",
         pwd: "<cleartext password>",
         customData: { <any information> },
         roles: [
           { role: "<role>", db: "<database>" } | "<role>",
           ...
+        ],
+        authenticationRestrictions: [ 
+           { 
+             clientSource: ["<IP>" | "<CIDR range>", ...]
+             serverAddress: ["<IP>" | "<CIDR range>", ...]
+           },
+           ...
         ]
       }
 
@@ -40,10 +49,18 @@ Definition
    .. |local-cmd-name| replace:: :method:`db.createUser()`
    .. include:: /includes/apiargs/method-db.createUser-user-doc-param.rst
 
-   .. include:: /includes/fact-roles-array-contents.rst
+Roles
+~~~~~
 
-   The :method:`db.createUser()` method wraps the :dbcommand:`createUser`
-   command.
+.. include:: /includes/fact-roles-array-contents.rst
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+The :method:`db.createUser()` method wraps the :dbcommand:`createUser`
+command.
 
 Behavior
 --------
@@ -79,6 +96,7 @@ Examples
 The following :method:`db.createUser()` operation creates the
 ``accountAdmin01`` user on the ``products`` database.
 
+.. cssclass:: copyable-code
 .. code-block:: javascript
 
    use products
@@ -103,6 +121,7 @@ Create User with Roles
 The following operation creates ``accountUser`` in the ``products`` database
 and gives the user the ``readWrite`` and ``dbAdmin`` roles.
 
+.. cssclass:: copyable-code
 .. code-block:: javascript
 
    use products
@@ -114,12 +133,13 @@ and gives the user the ``readWrite`` and ``dbAdmin`` roles.
       }
    )
 
-Create User Without Roles
+Create User without Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following operation creates a user named ``reportsUser`` in the ``admin``
 database but does not yet assign roles:
 
+.. cssclass:: copyable-code
 .. code-block:: javascript
 
    use admin
@@ -139,6 +159,7 @@ The following operation creates a user named ``appAdmin`` in the
 ``config`` database, which lets the user change certain settings for
 sharded clusters, such as to the balancer setting.
 
+.. cssclass:: copyable-code
 .. code-block:: javascript
 
    use admin
@@ -151,5 +172,28 @@ sharded clusters, such as to the balancer setting.
             { role: "readWrite", db: "config" },
             "clusterAdmin"
           ]
+      }
+   )
+
+Create User with Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a user named ``restricted`` in the
+``admin`` database. This user may only authenticate if connecting from
+IP address ``192.0.2.0`` to IP address ``198.51.100.0``.
+
+.. cssclass:: copyable-code
+.. code-block:: javascript
+
+   use admin
+   db.createUser(
+      {
+        user: "restricted",
+        pwd: "password",
+        roles: [ ],
+        authenticationRestrictions: [ {
+           clientSource: ["192.0.2.0"],
+           serverAddress: ["198.51.100.0"]
+        } ]
       }
    )

@@ -35,12 +35,19 @@ Definition
          {
            customData : { <any information> },
            roles : [
-                     { role: "<role>", db: "<database>" } | "<role>",
-                     ...
-                   ],
-           pwd: "<cleartext password>"
-          },
-          writeConcern: { <write concern> }
+             { role: "<role>", db: "<database>" } | "<role>",
+             ...
+           ],
+           pwd: "<cleartext password>",
+           authenticationRestrictions: [
+              { 
+                clientSource: ["<IP>" | "<CIDR range>", ...],
+                serverAddress: ["<IP>", ...]
+              },
+              ...
+           ]
+         },
+         writeConcern: { <write concern> }
       )
 
    The :method:`db.updateUser()` method has the following arguments.
@@ -55,11 +62,19 @@ Definition
 
    .. include:: /includes/apiargs/method-db.updateUser-update-fields.rst
 
-   .. |local-cmd-name| replace:: :method:`db.updateUser()`
-   .. include:: /includes/fact-roles-array-contents.rst
+Roles
+~~~~~
 
-   The :method:`db.updateUser()` method wraps the :dbcommand:`updateUser`
-   command.
+.. |local-cmd-name| replace:: :method:`db.updateUser()`
+.. include:: /includes/fact-roles-array-contents.rst
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+The :method:`db.updateUser()` method wraps the :dbcommand:`updateUser`
+command.
 
 Behavior
 --------
@@ -84,34 +99,40 @@ user info:
 .. code-block:: javascript
 
    {
-      "_id" : "products.appClient01",
-      "user" : "appClient01",
-      "db" : "products",
-      "customData" : { "empID" : "12345", "badge" : "9156" },
-      "roles" : [
-          { "role" : "readWrite",
-            "db" : "products"
+      _id : "products.appClient01",
+      user : "appClient01",
+      db : "products",
+      customData : { empID : "12345", badge : "9156" },
+      roles : [
+          { 
+            role : "readWrite",
+            db : "products"
           },
-          { "role" : "read",
-            "db" : "inventory"
+          { 
+            role : "read",
+            db : "inventory"
           }
-      ]
+      ],
+      authenticationRestrictions : [ {
+         clientSource: ["69.89.31.226"],
+         serverAddress: ["172.16.254.1"]
+      } ]
    }
 
 The following :method:`db.updateUser()` method **completely** replaces the
 user's ``customData`` and ``roles`` data:
 
+.. cssclass:: copyable-code
 .. code-block:: javascript
 
    use products
    db.updateUser( "appClient01",
-                  {
-                    customData : { employeeId : "0x3039" },
-                    roles : [
-                              { role : "read", db : "assets"  }
-                            ]
-                   }
-                )
+   {
+      customData : { employeeId : "0x3039" },
+      roles : [
+         { role : "read", db : "assets"  }
+      ]
+   } )
 
 The user ``appClient01`` in the ``products`` database now has the following
 user information:
@@ -119,13 +140,14 @@ user information:
 .. code-block:: javascript
 
    {
-      "_id" : "products.appClient01",
-      "user" : "appClient01",
-      "db" : "products",
-      "customData" : { "employeeId" : "0x3039" },
-      "roles" : [
-          { "role" : "read",
-            "db" : "assets"
+      _id : "products.appClient01",
+      user : "appClient01",
+      db : "products",
+      customData : { employeeId : "0x3039" },
+      roles : [
+          { 
+            role : "read",
+            db : "assets"
           }
       ]
    }
