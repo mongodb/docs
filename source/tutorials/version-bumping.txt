@@ -1,0 +1,175 @@
+===============
+Version Bumping
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Introduction
+------------
+
+Periodically the documentation team must document a new product version.
+The process broadly follows these steps:
+
+* Create a branch for the previous version, leaving ``master`` as the branch
+  for the new release.
+* Update the ``config/build_conf.yaml`` file's ``version.release`` key
+  to the new version.
+* In the ``docs-tools`` repository under the ``data/`` directory, update
+  the project's published branches configuration file.
+* Update the :doc:`redirects </redirects>` configuration file.
+* Publish all branches.
+
+Tutorial
+--------
+
+Consider a hypothetical project called ``bi-connector``. This product
+is currently on version 2.2, but documentation work must begin for
+version 2.3.
+
+As part of this release, the ``tutorial/connecting-to-atlas`` path has
+been removed, and users should be redirected to ``reference/mongosqld``.
+
+Step 1: Branch
+~~~~~~~~~~~~~~
+
+.. code-block:: sh
+
+   git checkout -b v2.2
+   git push origin v2.2
+   git checkout master
+
+Step 2: Update project version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``bi-connector`` repository under the ``config/`` directory, you
+will find a file called  ``build_conf.yaml``. Update this file's
+``version.release`` key to ``2.3``:
+
+.. code-block:: yaml
+   :emphasize-lines: 2
+
+   version:
+     release: '2.3'
+     branch: 'master'
+
+Step 3: Update published branches configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``docs-tools`` repository under the ``data/`` directory, you will
+find a file called ``bi-connector-published-branches.yaml``. Update this
+file to include a ``2.3`` version and a ``v2.2`` branch; and set the
+``version.upcoming`` key to ``2.3``.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Before
+     - After
+
+   * - .. code-block:: yaml
+
+          version:
+            published:
+
+              - '2.2'
+              - '2.1'
+              - '2.0'
+              - '1.1'
+            active:
+
+              - '2.2'
+              - '2.1'
+              - '2.0'
+              - '1.1'
+            stable: '2.2'
+            upcoming:
+          git:
+            branches:
+              manual: 'master'
+              published:
+                - 'master'
+
+                - 'v2.1'
+                - 'v2.0'
+                - 'v1.1'
+          ...
+
+     - .. code-block:: yaml
+          :emphasize-lines: 3,9,15,21
+
+          version:
+            published:
+              - '2.3'
+              - '2.2'
+              - '2.1'
+              - '2.0'
+              - '1.1'
+            active:
+              - '2.3'
+              - '2.2'
+              - '2.1'
+              - '2.0'
+              - '1.1'
+            stable: '2.2'
+            upcoming: '2.3'
+          git:
+            branches:
+              manual: 'master'
+              published:
+                - 'master'
+                - 'v2.2'
+                - 'v2.1'
+                - 'v2.0'
+                - 'v1.1'
+          ...
+
+
+Step 4: Update redirects configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``bi-connector`` repository under the ``config/`` directory, you
+will find a file called  ``redirects``. Update this file accordingly:
+
+* Add ``v2.2`` to the ``versions`` list,
+* Add an ``upcoming`` symlink,
+* Add a ``v2.3`` symlink so that users can refer to ``master``, ``upcoming``,
+  and ``v2.3`` interchangeably,
+* Update the ``current`` symlink to point to ``v2.2``, and
+* Add a redirect for the removed file.
+
+Before
+  .. code-block:: none
+
+     define: prefix bi-connector
+     define: base https://docs.mongodb.com/${prefix}
+     define: versions v1.1 v2.0 v2.1 master
+     symlink: v2.2 -> master
+     symlink: current -> master
+After
+  .. code-block:: none
+     :emphasize-lines: 3,4,5,6,8
+
+     define: prefix bi-connector
+     define: base https://docs.mongodb.com/${prefix}
+     define: versions v1.1 v2.0 v2.1 v2.2 master
+     symlink: v2.3 -> master
+     symlink: upcoming -> master
+     symlink: current -> v2.2
+
+     [v2.3-*]: ${prefix}/${version}/tutorial/connecting-to-atlas -> ${base}/${version}/reference/mongosqld
+
+Step 5: Redeploy
+~~~~~~~~~~~~~~~~
+
+* Wipe your ``build`` directory. Sphinx will not properly rebuild files
+  to include changes to the version selector.
+* Run ``make publish`` on the ``master`` branch first. This ensures that
+  ``mut-redirects`` creates symbolic links under ``build/public`` for future
+  builds.
+* Run ``make-publish`` on each branch, going from oldest to newest. For each
+  branch, check the output's version selector to make sure that the version
+  selector looks correct, and then run ``make deploy``.
