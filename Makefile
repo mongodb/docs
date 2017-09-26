@@ -39,6 +39,7 @@ html: examples ## Builds this branch's HTML under build/<branch>/html
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 # - Enter build/<branch>/html, and recurse over each regular file
 #   <basename>/<filename>.
@@ -62,7 +63,6 @@ stage: ## Host online for review
 # The recursive behavior would CHANGE if --all-subdirectories were
 # given: ALL contents of build/public/<branch> would be upload
 deploy: build/public ## Deploy to the production bucket
-	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
