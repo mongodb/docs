@@ -22,6 +22,7 @@ html: ## Builds this branch's HTML under build/<branch>/html
 
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 lint: ## Checks URLs in the built corpus underneath build/<branch>/html
 	mut-lint --linters=links ./build/master/source/ ${ARGS}
@@ -31,7 +32,6 @@ stage: ## Host online for review
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 deploy: build/public ## Deploy to the production bucket
-	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='ecosystem' --all-subdirectories  ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
