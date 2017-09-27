@@ -34,6 +34,90 @@ passing through the pipeline.
 Pipeline Sequence Optimization
 ------------------------------
 
+.. _agg-project-addFields-match-optimization:
+
+``$project`` or ``$addFields`` + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an aggregation pipeline that contains a projection stage
+(:pipeline:`$project` or :pipeline:`$addFields`) followed by a
+:pipeline:`$match` stage, MongoDB moves any filters in the
+:pipeline:`$match` stage that do not require values computed in the
+projection stage to a new :pipeline:`$match` stage before the
+projection.
+
+If an aggregation pipeline contains multiple projection and/or
+:pipeline:`$match` stages, MongoDB performs this optimization for each
+:pipeline:`$match` stage, moving each :pipeline:`$match` filter before
+all projection stages that the filter does not depend on.
+
+Consider a pipeline of the following stages:
+
+.. code-block:: javascript
+   :emphasize-lines: 9-14
+
+   { $addFields: {
+       maxTime: { $max: "$times" },
+       minTime: { $min: "$times" }
+   } },
+   { $project: {
+       _id: 1, name: 1, times: 1, maxTime: 1, minTime: 1,
+       avgTime: { $avg: ["$maxTime", "$minTime"] }
+   } },
+   { $match: {
+       name: "Joe Schmoe",
+       maxTime: { $lt: 20 },
+       minTime: { $gt: 5 },
+       avgTime: { $gt: 7 }
+   } }
+
+The optimizer breaks up the :pipeline:`$match` stage into four
+individual filters, one for each key in the :pipeline:`$match` query
+document. The optimizer then moves each filter before as many projection
+stages as possible, creating new :pipeline:`$match` stages as needed.
+Given this example, the optimizer produces the following *optimized*
+pipeline:
+
+.. code-block:: javascript
+   :emphasize-lines: 1, 6, 11
+
+   { $match: { name: "Joe Schmoe" } },
+   { $addFields: {
+       maxTime: { $max: "$times" },
+       minTime: { $min: "$times" }
+   } },
+   { $match: { maxTime: { $lt: 20 }, minTime: { $gt: 5 } } },
+   { $project: {
+       _id: 1, name: 1, times: 1, maxTime: 1, minTime: 1,
+       avgTime: { $avg: ["$maxTime", "$minTime"] }
+   } },
+   { $match: { avgTime: { $gt: 7 } } }
+
+The :pipeline:`$match` filter ``{ avgTime: { $gt: 7 } }`` depends on the
+:pipeline:`$project` stage to compute the ``avgTime`` field. The
+:pipeline:`$project` stage is the last projection stage in this
+pipeline, so the :pipeline:`$match` filter on ``avgTime`` could not be
+moved.
+
+The ``maxTime`` and ``minTime`` fields are computed in the
+:pipeline:`$addFields` stage but have no dependency on the
+:pipeline:`$project` stage. The optimizer created a new
+:pipeline:`$match` stage for the filters on these fields and placed it
+before the :pipeline:`$project` stage.
+
+The :pipeline:`$match` filter ``{ name: "Joe Schmoe" }`` does not
+use any values computed in either the :pipeline:`$project` or
+:pipeline:`$addFields` stages so it was moved to a new
+:pipeline:`$match` stage before both of the projection stages.
+
+.. note::
+   After optimization, the filter ``{ name: "Joe Schmoe" }`` is in
+   a :pipeline:`$match` stage at the beginning of the pipeline. This has
+   the added benefit of allowing the aggregation to use an index on the
+   ``name`` field when initially querying the collection.
+   See :ref:`aggregation-pipeline-operators-and-performance` for more
+   information.
+
 .. _agg-sort-match-optimization:
 
 ``$sort`` + ``$match`` Sequence Optimization
@@ -56,6 +140,34 @@ the following:
 
    { $match: { status: 'A' } },
    { $sort: { age : -1 } }
+
+``$redact`` + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When possible, when the pipeline has the :pipeline:`$redact` stage
+immediately followed by the :pipeline:`$match` stage, the aggregation
+can sometimes add a portion of the :pipeline:`$match` stage before the
+:pipeline:`$redact` stage. If the added :pipeline:`$match` stage is at
+the start of a pipeline, the aggregation can use an index as well as
+query the collection to limit the number of documents that enter the
+pipeline. See :ref:`aggregation-pipeline-operators-and-performance` for
+more information.
+
+For example, if the pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
+   { $match: { year: 2014, category: { $ne: "Z" } } }
+
+The optimizer can add the same :pipeline:`$match` stage before the
+:pipeline:`$redact` stage:
+
+.. code-block:: javascript
+
+   { $match: { year: 2014 } },
+   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
+   { $match: { year: 2014, category: { $ne: "Z" } } }
 
 .. _agg-skip-limit-optimization:
 
@@ -91,34 +203,6 @@ example.
 For aggregation operations on :doc:`sharded collections
 <aggregation-pipeline-sharded-collections>`, this optimization reduces
 the results returned from each shard.
-
-``$redact`` + ``$match`` Sequence Optimization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When possible, when the pipeline has the :pipeline:`$redact` stage
-immediately followed by the :pipeline:`$match` stage, the aggregation
-can sometimes add a portion of the :pipeline:`$match` stage before the
-:pipeline:`$redact` stage. If the added :pipeline:`$match` stage is at
-the start of a pipeline, the aggregation can use an index as well as
-query the collection to limit the number of documents that enter the
-pipeline. See :ref:`aggregation-pipeline-operators-and-performance` for
-more information.
-
-For example, if the pipeline consists of the following stages:
-
-.. code-block:: javascript
-
-   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
-   { $match: { year: 2014, category: { $ne: "Z" } } }
-
-The optimizer can add the same :pipeline:`$match` stage before the
-:pipeline:`$redact` stage:
-
-.. code-block:: javascript
-
-   { $match: { year: 2014 } },
-   { $redact: { $cond: { if: { $eq: [ "$level", 5 ] }, then: "$$PRUNE", else: "$$DESCEND" } } },
-   { $match: { year: 2014, category: { $ne: "Z" } } }
 
 .. _agg-project-skip-limit-optimization:
 
