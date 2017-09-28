@@ -36,10 +36,6 @@ fake-deploy: build/public
 	@echo "Hosted at ${STAGING_URL}/${PREFIX}/index.html"
 
 deploy: build/public ## Deploy to the production bucket
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --verbose --dry-run ${ARGS}
-
-	@echo 'Press any key to perform the previous' && read result
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
