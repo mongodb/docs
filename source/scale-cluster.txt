@@ -19,6 +19,8 @@ For an existing |service| cluster in your project, you can modify:
 
 - the MongoDB version of a cluster running 3.2 to 3.4.
 
+- the number of regions in which to deploy your cluster.
+
 Considerations
 --------------
 
@@ -31,20 +33,20 @@ migrations can take a significant amount of time.
 
 To maximize availability:
 
-- For a replica set, |service| migrates one member at a time, starting
-  with the secondary members first and then the primary.
+- For a replica set, |service| migrates one node at a time, starting
+  with the secondary nodes first and then the primary.
 
 - For a sharded cluster, |service| performs the migration of the shards
   independently of each other. For each shard (i.e. replica set),
-  |service| migrates one member at a time, starting with the secondary
-  members first and then the primary.
+  |service| migrates one node at a time, starting with the secondary
+  nodes first and then the primary.
 
 Downtime occurs during the migration of the primary when the current
 primary becomes unavailable and lasts until the election of a new
 primary, generally under a minute.
 
 Migration can affect performance if your primary is already reaching
-operational capacity: each newly migrated replica set member must
+operational capacity: each newly migrated replica set node must
 perform an :term:`initial sync` from the primary, adding to the
 operational load. Migrations can also affect performance if
 :manual:`read preferences </core/read-preference>` are set to read from
@@ -69,8 +71,169 @@ the cost of the selected configuration, excluding data transfer.
    cluster starts billing for the cluster. See :doc:`billing` for complete
    documentation on |service| billing.
 
-Scale an Existing Cluster
--------------------------
+Scale a Cluster
+---------------
 
-.. include:: /includes/steps/scale-cluster.rst
+|service| Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. list-table::
+
+   * - :ref:`MongoDB Version <scale-cluster-version>`
+
+     - The MongoDB version of the cluster. You can only upgrade
+       clusters running MongoDB 3.2 to MongoDB 3.4.
+
+   * - :ref:`Region <scale-cluster-region>`
+     - Deploy or modify a cross-region cluster.
+
+   * - :ref:`Instance Size <scale-cluster-instance>`
+
+     - The instance size of the cluster.
+
+   * - :ref:`Replication Factor <scale-cluster-replication>`
+
+     - The number of replica set nodes in the cluster. For sharded clusters,
+       the number of replica set nodes in each shard.
+       
+       Only available for clusters with an :guilabel:`Instance Size` of
+       ``M10`` or larger.
+
+   * - :ref:`Do you want a sharded cluster? <scale-cluster-sharding>`
+
+     - If your cluster is a replica set, you can change the deployment to a
+       sharded cluster.
+       
+       Only available for clusters with an :guilabel:`Instance Size` of
+       ``M30`` or larger.
+
+   * - :ref:`Number of shards <scale-cluster-shardNum>`
+
+     - Configure the number of shards in the sharded cluster. This field only
+       appears if the deployment is a sharded cluster.
+
+   * - :ref:`Do you want to enable backup? <scale-cluster-backups>`
+
+     - Enable or disable backups for the cluster. Only available for clusters
+       with an :guilabel:`Instance Size` of ``M10`` or larger.
+
+   * - :ref:`Confirm and Deploy <scale-cluster-payment>`
+
+     - Confirm and deploy your cluster with the selected changes.
+
+Walkthrough
+~~~~~~~~~~~
+
+The following sections provide complete documentation for each of the
+|service| cluster scaling configuration options.
+
+.. _scale-cluster-open-dialog:
+
+A. Display the :guilabel:`Upgrade cluster` modal
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   For the cluster you want to modify, click the ellipses :guilabel:`...`
+   icon, then select :guilabel:`Edit Configuration`.
+
+   Alternatively, if you are already viewing the specific cluster, click the
+   :guilabel:`Configuration` button.
+
+   For ``M0`` Free Tier clusters, you can also click the :guilabel:`Upgrade`
+   button for the cluster.
+
+.. _scale-cluster-version:
+
+B. Upgrade the :guilabel:`MongoDB Version` of the cluster
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   You can upgrade a cluster running MongoDB 3.2 to MongoDB 3.4. |service|
+   always upgrades the cluster to the latest stable release of the specified
+   version.
+
+   .. important::
+
+      You cannot downgrade an existing cluster from MongoDB 3.4 to MongoDB 3.2.
+
+.. _scale-cluster-region:
+
+C. Deploy your cluster across more than one :guilabel:`Region`
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. include:: /includes/extracts/cluster-option-clusterProviderRegionOnly.rst
+
+.. _scale-cluster-instance:
+
+D. Change the :guilabel:`Instance Size` of the cluster
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. admonition:: Free Tier
+      :class: note
+
+      You cannot downgrade a cluster to an ``M0`` Free Tier cluster.
+
+   You can change the instance size, as well as the memory, storage, and IOPS
+   (speed) specifications for the selected instance size.
+
+   .. include:: /includes/extracts/cluster-option-clusterInstance.rst
+
+.. _scale-cluster-replication:
+
+E. Change the Replication Factor of the cluster
++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. include:: /includes/extracts/cluster-option-clusterReplication.rst
+
+.. _scale-cluster-sharding:
+
+F. Convert your replica set to a sharded cluster
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. include:: /includes/extracts/cluster-option-clusterSharding.rst
+
+.. _scale-cluster-shardNum:
+
+G. Change the :guilabel:`Number of Shards` in your sharded cluster
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. include:: /includes/extracts/cluster-option-clusterShardingNum.rst
+
+.. _scale-cluster-backups:
+
+H. Enable or Disable Backup for the cluster
++++++++++++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   .. include:: /includes/extracts/cluster-option-clusterBackup.rst
+
+   You can disable backups by toggling this option to :guilabel:`No`. Once you
+   disable backup, |service| immediately deletes any backup snapshots for the
+   cluster. See :doc:`/backup-cluster` for more information.
+
+.. _scale-cluster-payment:
+
+I. Confirm and deploy your changes
+++++++++++++++++++++++++++++++++++
+
+.. container:: admonition
+
+   Click :guilabel:`Confirm & Deploy` deploy your changes.
+
+   If you are upgrading from an ``M0`` Free Tier cluster, |service| prompts
+   you to enter payment information before deploying your changes.
+
+.. include:: /includes/footnote-databearing.rst

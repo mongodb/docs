@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 20 30 30
+   :widths: 15 20 30 30
    :header-rows: 1
    
    * -
@@ -24,7 +24,7 @@
      - :doc:`Full metrics </monitor-cluster-metrics>`, including the 
        :ref:`Real Time Performance Tab <real-time-metrics-status-tab>`
        
-   * - VPC Peering (:ref:`amazon-aws` clusters only)
+   * - VPC Peering (:ref:`AWS <amazon-aws>` clusters only)
      - No
      - No
      - :ref:`VPC Peering Connection wizard <vpc-peering>`
@@ -38,6 +38,13 @@
        :doc:`Amazon Web Services </reference/amazon-aws>`, 
        :doc:`Google Cloud Platform </reference/google-gcp>`, and 
        :doc:`Microsoft Azure </reference/microsoft-azure>`
+       
+   * - Cross-Region Deployments
+     - No
+     - No
+     - Yes. Specify additional regions for high
+       availability or local reads when :doc:`creating </create-new-cluster>`
+       or :doc:`scaling </scale-cluster>` a cluster.
      
    * - Backups
      - No
