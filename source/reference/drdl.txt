@@ -1,0 +1,484 @@
+=======================================
+Document Relational Definition Language
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _drdl:
+
+Document Relational Definition Language (``DRDL``) defines a
+relational view of a MongoDB schema.
+
+:program:`mongodrdl` samples documents from your MongoDB collections and
+derives a ``DRDL`` file from those documents. :program:`mongosqld` then
+uses the schema defined in ``DRDL`` files to allow MySQL clients to
+query your MongoDB data.
+
+File Format
+-----------
+
+The ``DRDL`` file lists your databases, tables, and columns in
+`YAML <http://yaml.org/>`_ format.
+
+.. code-block:: yaml
+
+   schema:
+   - db: <database name>
+     tables:
+     - table: <SQL table name>
+       collection: <MongoDB collection name>
+       pipeline:
+       - <optional pipeline elements>
+       columns:
+       - Name: <MongoDB field name>
+         MongoType: <MongoDB field type>
+         SqlName: <mapped SQL column name>
+         SqlType: <mapped SQL column type>
+
+Example
+```````
+
+.. include:: /includes/fact-mongodrdl-example.rst
+
+Field Types
+-----------
+
+|bi-short| maps fields that always contain the same data
+type into the relational model. Schema generation deals specially
+with the following cases:
+
+.. list-table::
+   :stub-columns: 1
+   :widths: 20 80
+
+   * - Numeric
+     - |bi-short| uses the most precise numeric type that matches the
+       sampled documents.
+
+       If a field in a collection always has the same data type,
+       |bi-short| uses that type.
+
+       If a field in a collection can contain either floating point
+       values or integers, |bi-short| uses type ``numeric``.
+
+   * - Dates
+     - |bi-short| treats any field of type :bsontype:`data_date` as the
+       :term:`SQL` ``timestamp`` type.
+
+   * - Timestamps
+     - |bi-short| ignores any field of type :bsontype:`data_timestamp`.
+
+   * - ObjectID
+     - |bi-short| treats any field of type :bsontype:`data_oid` as
+       the SQL type ``varchar``.
+
+   * - UUID
+     - |bi-short| treats any field of type UUID as the SQL type
+       ``varchar``.
+
+   * - Geospatial
+     - If a collection contains a
+       :manual:`geospatial index </applications/geospatial-indexes>`,
+       |bi-short| maps the indexed field into an array of numeric
+       longitude-latitude coordinates.
+
+       See :ref:`bi-geospatial` for an example.
+
+       .. include:: /includes/fact-geospatial-views.rst
+
+   * - Heterogeneous Fields
+     - .. _drdl-heterogeneous:
+
+       If a field contains inconsistent types, |bi-short| chooses the
+       most frequently sampled type.
+
+       If a field can contain either a type or an array of that type, the
+       generated schema always specifies that the field contains an array.
+
+       .. seealso::
+
+          :ref:`bi-skip-incompatible-types`
+
+Embedded Documents
+------------------
+
+|bi-short| maps embedded documents to simple fields
+that have a ``.`` separator character, making them appear similar
+to the way you would reference them using :ref:`dot notation
+<document-dot-notation>` in a MongoDB query.
+
+While :doc:`Tableau </connect/tableau>` properly quotes
+identifiers, within ad-hoc SQL expressions you must double-quote
+every identifier that contains ``.`` characters or mixed-case
+characters.
+
+Example
+```````
+
+Consider the following document:
+
+.. code-block:: javascript
+
+   {
+       "_id": 1,
+       "familyName": "Partridge",
+       "hometown" : "Hollywood Hills",
+       "address" : { "street": "123 Main Street",
+                     "city" : "Hollywood",
+                     "state" : "CA",
+                     "zip" : "90210" },
+       "members_since" : ISODate("2002-04-12T00:00:00Z")
+   }
+
+Running :program:`mongodrdl` on a collection containing this document
+results in the following fields in the generated schema:
+
+.. list-table::
+
+   * - ``_id``
+
+     - ``numeric``
+
+   * - ``familyName``
+
+     - ``varchar``
+
+   * - ``hometown``
+
+     - ``varchar``
+
+   * - ``address.street``
+
+     - ``varchar``
+
+   * - ``address.city``
+
+     - ``varchar``
+
+   * - ``address.state``
+
+     - ``varchar``
+
+   * - ``address.zip``
+
+     - ``varchar``
+
+   * - ``members_since``
+
+     - ``timestamp``
+
+Arrays
+~~~~~~
+
+|bi-short| exposes arrays to business intelligence tools using two
+collections: one without the array, and the other having one document
+per array element.
+
+Example
+```````
+
+If you run :program:`mongodrdl` on a collection named ``families``
+which contains the following document:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "familyName": "Partridge",
+      "hometown" : "Hollywood Hills",
+      "familyMembers" : [
+        {
+            "firstname" : "Shirley",
+            "age" : 42,
+            "attributes" : [
+                { "name" : "instrument", "value" : "singer" },
+                { "name" : "role", "value" : "mom" }
+            ]
+        },
+        {
+            "firstname" : "Keith",
+            "age" : 18,
+            "attributes" : [
+                { "name" : "instrument", "value" : "guitar" },
+                { "name" : "role", "value" : "son" }
+            ]
+        },
+        {
+            "firstname" : "Laurie",
+            "age" : 16,
+            "attributes" : [
+                { "name" : "instrument", "value" : "keyboard" },
+                { "name" : "role", "value" : "sister" }
+            ]
+        }]
+   }
+
+This results in the following three tables:
+
+``families``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+``families_familyMembers``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyMembers.age``
+
+       - ``numeric``
+
+     * - ``familyMembers.firstname``
+
+       - ``varchar``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+``families_familyMembers_attributes``
+  .. list-table::
+
+     * - ``_id``
+
+       - ``numeric``
+
+     * - ``familyMembers.attributes.name``
+
+       - ``varchar``
+
+     * - ``familyMembers.attributes.value``
+
+       - ``varchar``
+
+     * - ``familyMembers.attributes_idx``
+
+       - ``numeric``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+You can join these tables together to view the data in a denormalized
+format. For example, you can list the people named in the above schema
+together with their family information using the following query:
+
+.. code-block:: sql
+
+   SELECT f.*, m.`familyMembers.firstname`
+   FROM families_familyMembers m
+   JOIN families f
+   ON m._id = f._id;
+
+Pre-Joining
+```````````
+
+If you provide the :option:`--preJoined` option to :program:`mongodrdl`,
+|bi-short| adds the fields in the containing document to each
+array element's document, thus "pre-joining" the table.
+
+In the previous example, the tables would contain the following
+additional columns:
+
+``families_familyMembers``
+  .. list-table::
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+``families_familyMembers_attributes``
+  .. list-table::
+
+     * - ``familyMembers.age``
+
+       - ``numeric``
+
+     * - ``familyMembers.firstname``
+
+       - ``varchar``
+
+     * - ``familyMembers_idx``
+
+       - ``numeric``
+
+     * - ``familyName``
+
+       - ``varchar``
+
+     * - ``hometown``
+
+       - ``varchar``
+
+Custom Filters
+--------------
+
+You can add a column of type ``mongo.Filter`` to a collection in your
+``DRDL`` file. This column type allows you to perform a custom
+:manual:`$match </reference/operator/aggregation/$match>` query.
+
+For example, given the following schema describing a cloud of points with
+up to three components:
+
+.. code-block:: yaml
+
+   schema:
+   - db: test
+     tables:
+     - table: points
+       collection: points
+       pipeline: []
+       columns:
+       - Name: _id
+         MongoType: bson.ObjectId
+         SqlName: _id
+         SqlType: varchar
+       - Name: x
+         MongoType: float64
+         SqlName: x
+         SqlType: numeric
+       - Name: "y"
+         MongoType: float64
+         SqlName: "y"
+         SqlType: numeric
+       - Name: z
+         MongoType: float64
+         SqlName: z
+         SqlType: numeric
+       - Name: filter
+         MongoType: mongo.Filter
+         SqlName: filter
+         SqlType: varchar
+
+You can select only three-dimensional points using the following query:
+
+.. code-block:: sql
+
+   SELECT x, y, z
+   FROM points
+   WHERE filter='{"z": {"$exists": true}}';
+
+.. _bi-pipeline:
+
+Aggregation Pipelines
+---------------------
+
+Aggregation Pipelines using Views
+`````````````````````````````````
+
+.. include:: /includes/fact-pipeline-views.rst
+
+Aggregation Pipelines in DRDL
+`````````````````````````````
+
+|bi-short| can use :ref:`aggregation pipelines <aggregation-pipeline>` as
+part of the schema to transform documents from the collection into the
+proper form for the relational tables.
+
+For example, consider a simple document in a collection named
+``simpleFamilies``:
+
+.. code-block:: javascript
+
+   {
+      "_id": 1,
+      "familyName": "Partridge",
+      "familyMembers" : [ "Shirley", "Keith", "Laurie"]
+   }
+
+
+:program:`mongodrdl` generates a schema with the tables
+``simpleFamilies`` and ``simpleFamilies_familyMembers``.
+
+The table ``simpleFamilies_familyMembers`` enumerates each family
+member and has the following pipeline:
+
+.. code-block:: yaml
+
+   pipeline:
+   - $unwind:
+       includeArrayIndex: familyMembers_idx
+       path: $familyMembers
+
+This pipeline uses :pipeline:`$unwind` to create a new record for each
+member of ``familyMembers``. The schema tracks the array index in
+the field ``familyMembers_idx``.
+
+.. _bi-geospatial:
+
+Geospatial Data
+---------------
+
+.. versionadded:: 1.1.0
+
+If a collection contains a
+:manual:`geospatial index </applications/geospatial-indexes>`, the
+connector maps the indexed field into an array of numeric
+longitude-latitude coordinates.
+
+Example
+```````
+
+Given the following collection:
+
+.. code-block:: javascript
+
+   db.points.createIndex( { pos : "2dsphere" } )
+   db.points.insert({
+       pos : { type: "Point", coordinates: [ -73.97, 40.77 ] },
+       name: "Central Park",
+       category : "Parks"
+   })
+
+:program:`mongodrdl` generates the following schema:
+
+.. code-block:: yaml
+
+   schema:
+   - db: test
+     tables:
+     - table: points
+       collection: points
+       pipeline: []
+       columns:
+       - Name: _id
+         MongoType: bson.ObjectId
+         SqlName: _id
+         SqlType: varchar
+       - Name: category
+         MongoType: string
+         SqlName: category
+         SqlType: varchar
+       - Name: name
+         MongoType: string
+         SqlName: name
+         SqlType: varchar
+       - Name: pos.coordinates
+         MongoType: geo.2darray
+         SqlName: pos.coordinates
+         SqlType: numeric[]
+
+.. include:: /includes/fact-geospatial-views.rst
