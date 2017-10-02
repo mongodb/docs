@@ -1,3 +1,5 @@
+.. include:: /includes/unicode-checkmark.rst
+
 =====================
 MongoDB Wire Protocol
 =====================
@@ -33,12 +35,13 @@ instances is 27017. The port number for :program:`mongod` and
 Byte Ordering
 ~~~~~~~~~~~~~
 
-All data in the MongoDB wire protocol is little-endian.
+All integers in the MongoDB wire protocol use little-endian byte order:
+that is, least-significant byte first.
 
 Messages Types and Formats
 --------------------------
 
-There are two types of messages, client requests and database responses.
+There are two types of messages: client requests and database responses.
 
 .. note::
 
@@ -74,7 +77,7 @@ follows:
        int32   requestID;     // identifier for this message
        int32   responseTo;    // requestID from the original request
                               //   (used in responses from db)
-       int32   opCode;        // request type - see table below
+       int32   opCode;        // request type - see table below for details
    }
 
 .. list-table::
@@ -110,7 +113,7 @@ follows:
 
    * - ``opCode``
 
-     - Type of message. See :ref:`wp-request-opcodes`.
+     - Type of message. See :ref:`wp-request-opcodes` for details.
 
 .. _wp-request-opcodes:
 
@@ -124,15 +127,16 @@ Request Opcodes
    instead of ``OP_INSERT``, ``OP_UPDATE``, and ``OP_DELETE`` for
    acknowledged writes. Most drivers continue to use opcodes for
    unacknowledged writes.
-   
-.. important::
+
+.. warning::
 
    ``OP_COMMAND`` and ``OP_COMMANDREPLY`` are cluster internal and should not
    be implemented by clients or drivers.
 
-   The ``OP_COMMAND`` and ``OP_COMMANDREPLY`` format and protocol are not
-   stable and may change between releases without maintaining backwards
-   compatibility.
+   .. versionchanged:: 3.6
+
+      The ``OP_COMMAND`` and ``OP_COMMANDREPLY`` format and protocol are
+      deprecated and may be removed in a future release of MongoDB.
 
 The following are the supported ``opCode``:
 
@@ -173,6 +177,9 @@ The following are the supported ``opCode``:
    * - ``OP_COMMANDREPLY``
      - 2011
      - Cluster internal protocol representing a reply to an ``OP_COMMAND``.
+   * - ``OP_MSG``
+     - 2013
+     - Send a message using the format introduced in MongoDB 3.6.
 
 Client Request Messages
 -----------------------
@@ -622,13 +629,15 @@ for the cursor id), there is no need to kill the cursor.
 OP_COMMAND
 ~~~~~~~~~~
 
+.. versionchanged:: 3.6
+
+   The ``OP_COMMAND`` format and protocol is deprecated and may be removed
+   in a future release of MongoDB.
+
 .. warning::
 
    ``OP_COMMAND`` is cluster internal and should not be implemented
    by clients or drivers.
-
-   The ``OP_COMMAND`` format and protocol is not stable and may change between
-   releases without maintaining backwards compatibility. 
 
 ``OP_COMMAND`` is a wire protocol message used internally for intra-cluster
 database command requests issued by one MongoDB server to another. The
@@ -641,7 +650,7 @@ as a response to a ``OP_COMMAND``.
       MsgHeader header;     // standard message header
       cstring database;     // the name of the database to run the command on
       cstring commandName;  // the name of the command
-      document metadata;    // a BSON document containing any metadata  
+      document metadata;    // a BSON document containing any metadata
       document commandArgs; // a BSON document containing the command arguments
       inputDocs;            // a set of zero or more documents
    }
@@ -681,9 +690,179 @@ as a response to a ``OP_COMMAND``.
 
    * - ``inputDocs``
 
-     - Zero or more documents acting as input to the command. Useful for 
+     - Zero or more documents acting as input to the command. Useful for
        commands that can require a large amount of data sent from the client,
        such as a batch insert.
+
+.. _wire-op-msg:
+
+OP_MSG
+~~~~~~
+
+.. versionadded:: MongoDB 3.6
+
+``OP_MSG`` is an extensible message format designed to subsume the
+functionality of other opcodes. This opcode has the following format:
+
+.. code-block:: none
+
+   OP_MSG {
+       MsgHeader header;          // standard message header
+       uint32 flagBits;           // message flags
+       Sections[] sections;       // data sections
+       optional<uint32> checksum; // optional CRC-32C checksum
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``header``
+
+     - Standard message header, as described in :ref:`wp-message-header`.
+
+   * - ``flagBits``
+
+     - An integer bitmask containing message flags, as described in
+       :ref:`wire-msg-flags`.
+
+   * - ``sections``
+
+     - Message body sections, as described in :ref:`wire-msg-sections`.
+
+   * - ``checksum``
+
+     - An optional CRC-32C checksum, as described in
+       :ref:`wire-msg-checksum`.
+
+.. _wire-msg-flags:
+
+Flag Bits
+`````````
+
+The ``flagBits`` integer is a bitmask encoding flags that modify the
+format and behavior of ``OP_MSG``.
+
+The first 16 bits (0-15) are *required* and parsers **MUST**
+error if an unknown bit is set.
+
+The last 16 bits (16-31) are *optional*, and parsers **MUST**
+ignore any unknown set bits. Proxies and other message forwarders
+**MUST** clear any unknown optional bits before forwarding messages.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 10 10 60
+
+   * - Bit
+     - Name
+     - Request
+     - Response
+     - Description
+
+   * - 0
+     - ``checksumPresent``
+     - |checkmark|
+     - |checkmark|
+     - The message ends with 4 bytes containing a CRC-32C [#f1]_
+       checksum. See :ref:`wire-msg-checksum` for details.
+
+   * - 1
+     - ``moreToCome``
+     - |checkmark|
+     - |checkmark|
+     - Another message will follow this one without further action from
+       the receiver. The receiver **MUST NOT** send another message until
+       receiving one with ``moreToCome`` set to 0 as sends may block,
+       causing deadlock. Requests with the ``moreToCome``
+       bit set will not receive a reply. Replies will only have this
+       set in response to requests with the ``exhaustAllowed`` bit set.
+
+   * - 16
+     - ``exhaustAllowed``
+     - |checkmark|
+     -
+     - The client is prepared for multiple replies to this request using
+       the ``moreToCome`` bit. The server will never produce replies with
+       the ``moreToCome`` bit set unless the request has this bit set.
+
+       This ensures that multiple replies are only sent when the network
+       layer of the requester is prepared for them.
+
+       .. important::
+
+          MongoDB 3.6 ignores this flag, and will respond with a single
+          message.
+
+.. _wire-msg-sections:
+
+Sections
+````````
+
+An ``OP_MSG`` message contains one or more sections. Each section starts
+with a ``kind`` byte indicating its type. Everything after the ``kind``
+byte constitutes the section's payload.
+
+The available kinds of sections follow.
+
+Kind 0: Body
+''''''''''''
+
+A body section is encoded as a **single** :ref:`BSON object <bson-types>`.
+The size in the BSON object also serves as the size of the section. This
+section kind is the standard command request and reply body.
+
+All top-level fields **MUST** have a unique name.
+
+Kind 1: Document Sequence
+'''''''''''''''''''''''''
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Type
+     - Description
+
+   * - int32
+     - Size of the section in bytes.
+
+   * - C String
+     - Document sequence identifier. In all current commands this field
+       is the (possibly nested) field that it is replacing from the body
+       section.
+
+       This field **MUST NOT** also exist in the body section.
+
+   * - Zero or more BSON objects
+     - - Objects are sequenced back to back with no separators.
+
+       - Each object is limited to the ``maxBSONObjectSize`` of the
+         server. The combination of all objects is not limited to
+         ``maxBSONObjSize``.
+
+       - The document sequence ends once ``size`` bytes have been consumed.
+
+       - Parsers **MAY** choose to merge these objects into the body as
+         an array at the path specified by the sequence identifier when
+         converting to language-level objects.
+
+.. _wire-msg-checksum:
+
+Checksum
+````````
+
+.. note::
+
+   MongoDB 3.6 does not support validating the message checksum, but
+   will correctly skip it if present.
+
+Each message **MAY** end with a CRC-32C [#f1]_ checksum that covers all
+bytes in the message except for the checksum itself. The presence of a
+checksum is indicated by the ``checksumPresent`` flag bit.
 
 Database Response Messages
 --------------------------
@@ -771,17 +950,19 @@ The ``OP_REPLY`` message is sent by the database in response to an
 OP_COMMANDREPLY
 ~~~~~~~~~~~~~~~
 
+.. versionchanged:: 3.6
+
+   The ``OP_COMMANDREPLY``  format and protocol is deprecated and may be
+   removed in a future release of MongoDB.
+
 .. warning::
 
    ``OP_COMMANDREPLY`` is cluster internal and should not be implemented
    by clients or drivers.
 
-   The ``OP_COMMANDREPLY``  format and protocol is not stable and may change between
-   releases without maintaining backwards compatibility.
-
 The ``OP_COMMANDREPLY`` is a wire protocol message used internally for
 replying to intra-cluster :ref:`OP_COMMAND <wire-op-command>` requests issued
-by one MongoDB server to another. 
+by one MongoDB server to another.
 
 The format of an ``OP_COMMANDREPLY`` is:
 
@@ -793,32 +974,36 @@ The format of an ``OP_COMMANDREPLY`` is:
       document commandReply;  // A BSON document containing the command reply
       document outputDocs;    // A variable number of BSON documents
    }
-   
+
 .. list-table::
    :widths: 20 80
    :header-rows: 1
-   
+
    * - Field
      - Description
-   
+
    * - ``header``
-   
+
      - Standard message header, as described in :ref:`wp-message-header`.
-     
+
    * - ``metadata``
-   
+
      - Available for the system to attach any metadata to internal commands
        that is not part of the command parameters proper, as supplied by the
        client driver.
-     
+
    * - ``commandReply``
-   
+
      - A BSON document containing the command reply.
-     
+
    * - ``outputDocs``
-   
+
      - Useful for commands that can return a large amount of data, such as
        find or aggregate.
-       
+
        This field is not currently in use.
-   
+
+.. rubric:: Footnotes
+
+.. [#f1] 32-bit :abbr:`CRC (cyclic redundancy check)` computed with the Castagnoli polynomial as
+   described by https://tools.ietf.org/html/rfc4960#page-140.
