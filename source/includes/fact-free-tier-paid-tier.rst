@@ -23,6 +23,12 @@ low-traffic websites and applications. ``M30`` or larger instances
 should be used for high-traffic websites, large data sets, and sharded
 clusters.
 
+.. admonition:: Beta
+   :class: alert-info
+
+   Support for ``M2`` and ``M5`` clusters is available as a Beta feature.
+   These clusters do not yet support backups.
+
 The following table highlights key differences between an ``M0`` Free Tier
 cluster, an ``M2`` or ``M5`` shared starter cluster, and an ``M10+``  
 dedicated cluster. 
