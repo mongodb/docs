@@ -91,6 +91,31 @@ an array; i.e. no document contains array values for both ``a`` and
 attempt to insert a document where both ``a`` and ``b`` fields are
 arrays, MongoDB will fail the insert.
 
+Indexing multiple fields within the same array field is also permitted. Consider
+a collection that contains the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ { "sub_field_a": 1, "sub_field_b": 2 }, { "sub_field_b": 1 } ],  category: "A array" }
+   { _id: 2, a: [ { "sub_field_a": 1 }, { "sub_field_b": 2 } ],  category: "A array" }
+
+A compound multikey index ``{ "a.sub_field_a": 1, "a.sub_field_b": 1 }`` is
+permissible. An index entry will be created for each element consisting
+of the two subfields. If the index were unique, the following document would fail
+to be inserted:
+
+.. code-block:: javascript
+
+   { _id: 3, a: [ { "sub_field_b": 1 }  ],  category: "A array" }
+   
+However, the following document would be inserted because the multikey index is on
+each element, not the cartesian product of each field in the array referenced by the
+index:
+
+.. code-block:: javascript
+
+   { _id: 3, a: [ { "sub_field_a": 1 }, { "sub_field_b": 1 } ],  category: "A array" }
+
 Shard Keys
 ~~~~~~~~~~
 
