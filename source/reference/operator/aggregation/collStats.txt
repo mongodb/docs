@@ -27,18 +27,42 @@ Definition
         $collStats:
           {
             latencyStats: { histograms: <boolean> },
-            storageStats: {}
+            storageStats: {},
+            count: {}
           }
       }
 
-   All of the fields in the argument document are optional.
+   The ``$collStats`` stage accepts an argument document with the
+   following *optional* fields:
 
-   * ``latencyStats`` adds latency statistics to the return document.
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
 
-   * ``latencyStats.histograms`` adds latency histogram information to
-     ``latencyStats`` if ``true``.
+      * - Field Name
+        - Description
 
-   * ``storageStats`` adds storage statistics to the return document.
+      * - ``latencyStats``
+
+        - Adds :ref:`latency statistics<latency-stats-document>` to the
+          return document.
+
+      * - ``latencyStats.histograms``
+
+        - Adds latency histogram information to the embedded documents
+          in ``latencyStats`` if ``true``.
+
+      * - ``storageStats``
+
+        - Adds :ref:`storage statistics<storage-stats-document>` to the
+          return document.
+
+      * - ``count``
+
+        - Adds the total number of documents in the collection to the
+          return document.
+
+          .. versionadded:: 3.6
 
    The return document includes the following fields:
 
@@ -72,6 +96,13 @@ Definition
         Only exists given the ``storageStats: {}`` option. Returns an
         error if applied to a :doc:`view </core/views>`.
 
+    * - ``count``
+      - The total number of documents in the collection. This data is
+        also available in ``storageStats.count``.
+
+        Only exists given the ``count: {}`` option. Returns an error if
+        applied to a :doc:`view </core/views>`.
+
 Behavior
 --------
 
@@ -84,7 +115,7 @@ else the pipeline returns an error.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``latencyStats`` embedded document only exists in the output if
-``$collStats`` receives the ``latencyStats`` option.
+you specify the ``latencyStats`` option.
 
 .. include:: /includes/fact-latencystats-reference.rst
 
@@ -134,8 +165,8 @@ This query will return a result similar to the following:
 ``storageStats`` Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``storageStats`` embedded document only exists in the output if
-``$collStats`` receives the ``storageStats`` option.
+The ``storageStats`` embedded document only exists in the output if you
+specify the ``storageStats`` option.
 
 The contents of this document are dependent on the storage engine in use.
 See :ref:`collStats-output` for a reference on this document.
@@ -178,6 +209,35 @@ This query will return a result similar to the following:
 
 Performing ``$collStats`` with the ``storageStats`` option on a
 :doc:`view </core/views>` results in an error.
+
+``count`` Field
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+The ``count`` field only exists in the output if you specify the
+``count`` option.
+
+For example, if you run ``$collStats`` with the ``count: {}`` option on
+a ``matrices`` collection:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+
+The query will return a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "localTime" : ISODate("2016-10-25T19:43:56.599Z"),
+     "count" : 4
+   }
+
+The total number of documents in the collection is also available as
+``storageStats.count`` when ``storageStats: {}`` is specified. For more
+information, see :ref:`storage-stats-document`.
 
 .. seealso::
 
