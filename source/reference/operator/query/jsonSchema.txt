@@ -1,0 +1,163 @@
+===========
+$jsonSchema
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $jsonSchema
+
+.. versionadded:: 3.6
+
+   The :query:`$jsonSchema` operator matches documents that validate against 
+   the given JSON Schema.
+
+   .. code-block:: javascript
+
+      { $jsonSchema: <schema> }
+
+   .. note::
+
+      MongoDB 3.6 supports draft 4 of JSON Schema, including 
+      `core specification <https://tools.ietf.org/html/draft-zyp-json-schema-04>`_ 
+      and `validation specification 
+      <https://tools.ietf.org/html/draft-fge-json-schema-validation-00>`_,
+      with some differences. See `Extensions` and `Omissions` for details.
+
+      For more information about JSON Schema, see the 
+      `official website <http://json-schema.org/>`_.
+
+Behavior
+--------
+
+:query:`$jsonSchema` can be used in a document validator, which enforces that
+inserted or updated documents are valid against the schema. It can also be used
+to query for documents with the :dbcommand:`find` command or :pipeline:`$match`
+aggregation stage.
+
+.. warning::
+
+   ``featureCompatibilityVersion`` must be set to ``"3.6"`` or higher in order to 
+   use :query:`$jsonSchema` in a document validator. Any such validator must be 
+   removed, either by dropping the collection or by using :dbcommand:`collMod`, 
+   before downgrading to version 3.4 of the server.
+
+Available Keywords
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-json-schema-validation-keywords.rst
+
+Extensions
+----------
+
+MongoDB's implementation of JSON Schema includes the addition of the ``bsonType``
+keyword, which allows you to use all :term:`BSON` types in the 
+:query:`$jsonSchema` operator. ``bsonType`` accepts the same string aliases used 
+for the :query:`$type` operator.
+
+Omissions
+---------
+
+The following will not be supported in MongoDB's implemenation of JSON Schema:
+
+- `Hypertext definitions <https://tools.ietf.org/html/draft-luff-json-hyper-schema-00>`_ 
+  in draft 4 of the JSON Schema spec.
+
+- The keywords:
+
+  - ``$ref``
+
+  - ``$schema``
+
+  - ``default``
+
+  - ``definitions``
+
+  - ``format``
+
+  - ``id``
+
+- The ``integer`` type. You must use the :term:`BSON` type ``int`` or ``long``
+  with the ``bsonType`` keyword.
+
+- Hypermedia and linking properties of JSON Schema, including the use of
+  JSON References and JSON Pointers.
+
+- Unknown keywords.
+
+Examples
+--------
+
+.. _doc-insert-schema-validation:
+
+Schema Validation
+~~~~~~~~~~~~~~~~~
+
+The following :method:`db.createCollection()` method creates a collection
+named ``students`` and uses the ``validator`` to set multiple rules for the
+schema design:
+
+.. code-block:: javascript
+   
+   db.createCollection("students", {
+      validator: {
+         $jsonSchema: {
+            bsonType: "object",
+            required: [ "name", "year", "major", "gpa" ],
+            properties: {
+               name: {
+                  bsonType: "string",
+                  description: "must be a string and is required"
+               },
+               gender: {
+                  bsonType: "string",
+                  description: "must be a string and is not required"
+               },
+               year: {
+                  bsonType: "int",
+                  minimum: 2017,
+                  maximum: 3017,
+                  exclusiveMaximum: false,
+                  description: "must be an integer in [ 2017, 3017 ] and is required"
+               },
+               major: {
+                  enum: [ "Math", "English", "Computer Science", "History", null ],
+                  description: "can only be one of the enum values and is required"
+               },
+               gpa: {
+                  bsonType: [ "double" ],
+                  description: "must be a double and is required"
+               }
+            }
+         }
+      }
+   })
+
+Given the created ``validator`` for the collection, the following insert
+operation will fail because ``gpa`` is an integer when the ``validator``
+requires a ``double``. 
+
+.. code-block:: javascript
+
+   db.students.insert({
+      name: "Alice",
+      grad_year: NumberInt(2019),
+      major: "History",
+      gpa: NumberInt(3)
+   })
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 121,
+         "errmsg" : "Document failed validation"
+      }
+   })
+
