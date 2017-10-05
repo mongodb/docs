@@ -207,6 +207,136 @@ expression, you must rebuild these indexes after upgrading to avoid conflicting
 For more information on the ``$type : 'array'`` expression, see
 :ref:`document-querying-by-array-type`.
 
+.. _3.6-sort-behavior-compatibility:
+
+Array Sort Behavior
+~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, when sorting a field containing an array, MongoDB
+orders the field with the lowest-valued element of the array first for
+ascending sorts and the highest-valued element of the array first for
+descending sorts. A sort no longer takes the query predicate into
+account when choosing the array element which will act as the
+**sort key**. This behavior change applies to both the
+:doc:`find </reference/command/find/>` command and the 
+:doc:`aggregation pipeline </core/aggregation-pipeline>`.
+
+As a result of this change, applications that currently sort by an
+array field may experience a different sort order.
+
+.. note ::
+
+   As of version 3.6, the query engine cannot use a
+   :doc:`multikey index </core/index-multikey/>` to provide a
+   non-blocking sort by an array field. If you try to sort in this
+   manner, the query plan will include a blocking SORT stage, which
+   may negatively impact performance.
+
+.. _3.6-find-method-sort:
+
+``find`` Method Sorting
+```````````````````````
+A **sort key** is the array element MongoDB uses during the sorting
+process to compare and ultimately order documents containing an array.
+In an ascending sort, documents containing arrays with the
+lowest-valued sort keys are ordered first. Likewise, in a descending
+sort, documents containing arrays with the highest-valued sort keys are
+ordered first.
+
+In MongoDB 3.4 and earlier, a sort by an array field took into account
+the query predicate when determining the sort key.
+
+For example, a collection ``coll`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 0, a: [-3, -2, 2, 3] }
+   { _id: 1, a: [ 5, -4 ] }
+
+Consider following sort operation on the array field ``a`` of the
+collection:
+
+.. code-block:: javascript
+
+   db.coll.find({a: {$gte: 0}}).sort({a: 1});
+
+In MongoDB 3.6, the sort operation no longer takes into account the
+query predicate when determining its sort key. As a result, the sort
+key is the lowest-valued element for each document:
+
+- ``-3`` for the document with ``_id: 0`` and
+- ``-4`` for the document with ``_id: 1``.
+
+The operation returns the documents in the following order:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "a" : [ 5, -4 ] }
+   { "_id" : 0, "a" : [ -3, -2, 2, 3 ] }
+
+Previous MongoDB versions use the lowest-valued array element that
+matches the query predicate of ``{$gte: 0}`` as the sort key:
+
+- ``2`` for the document with ``_id: 0`` and
+- ``5`` for the document with ``_id: 1``,
+
+and would return the documents in the following order:
+
+.. code-block:: javascript
+
+   { _id: 0, a: [-3, -2, 2, 3] }
+   { _id: 1, a: [ 5, -4 ] }
+
+.. _3.6-agg-method-sort:
+
+``aggregate`` Method Sorting
+````````````````````````````
+
+In MongoDB 3.6, when sorting array fields with the
+:method:`db.collection.aggregate()` method, only a single array element
+is used as the sort key.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   // Documents.
+   { "_id" : 1, "timestamps" : [ ISODate("2017-07-15T15:31:01Z"), ISODate("2017-07-21T18:31:01Z") ] }
+   { "_id" : 0, "timestamps" : [ ISODate("2017-07-21T15:31:01Z"), ISODate("2017-07-21T13:31:01Z") ] }
+
+   // Query.
+   db.c.aggregate([{$sort: {timestamps: -1}}])
+
+For a descending sort, the most recent time in the array is used as the
+sort key: ``3:31 PM on July 21`` for the document with ``_id: 0`` and
+``5:31 PM on July 21`` for the document with ``_id: 1``. Since the sort
+is descending, these keys are then ordered from most recent to least
+recent, resulting in the document with ``_id: 1`` sorting before the
+document with ``_id: 0``.
+
+Before 3.6, the *entire array* is used as the sort
+key for aggregation sorts. The array sort keys are compared
+element-wise to determine the sort order of the result set. 
+
+.. example::
+
+   .. code-block:: javascript
+
+      // Documents.
+      {_id: 0, a: [3, 1, 5]}
+      {_id: 1, a: [3, 4, 0]}
+   
+      // Query.
+      db.coll.aggregate([{$sort: {a: 1}}])      
+
+Prior to 3.6, the sort keys are [3, 1, 5] and [3, 4, 0] respectively.
+Since the first array elements are equal, the second array element
+breaks the tie and the document with ``_id: 0`` sorts first.
+
+For more information on sorting with the
+:doc:`Aggregation Pipeline </reference/operator/aggregation/>`, see
+:doc:`$sort </reference/operator/aggregation/sort/>`.
+
 .. _3.6-index-asterisk:
 
 Indexes Named ``*``
