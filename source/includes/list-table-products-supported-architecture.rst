@@ -18,25 +18,25 @@ version of MongoDB products:
      - |checkmark|
 
 
-   * - `BI Connector <https://docs.mongodb.com/bi-connector/v2.0/>`_
+   * - `BI Connector <https://docs.mongodb.com/bi-connector/v2.0/>`__
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - 
 
-   * - `Compass <https://docs.mongodb.com/compass/current/>`_
+   * - `Compass <https://docs.mongodb.com/compass/current/>`__
      - |checkmark|
      -
      -
      -
 
-   * - `Spark Connector <https://docs.mongodb.com/spark-connector/v2.0/>`_
+   * - `Spark Connector <https://docs.mongodb.com/spark-connector/v2.0/>`__
      - |checkmark|
      -
      -
      -
 
-   * - `Ops Manager <https://docs.opsmanager.mongodb.com/current/>`_
+   * - `Ops Manager <https://docs.opsmanager.mongodb.com/current/>`__
      - |checkmark|
      -
      -
