@@ -13,26 +13,11 @@ Merge Chunks in a Sharded Cluster
 Overview
 --------
 
-The :dbcommand:`mergeChunks` command allows you to collapse empty chunks
-into neighboring chunks on the same shard. A :term:`chunk` is empty if
-it has no documents associated with its shard key range.
+.. versionchanged:: 3.0
 
-.. important::
-
-   Empty :term:`chunks <chunk>` can make the :term:`balancer` assess
-   the cluster as properly balanced when it is not.
-
-Empty chunks can occur under various circumstances, including:
-
-- If a :doc:`pre-split </tutorial/create-chunks-in-sharded-cluster>`
-  creates too many chunks, the distribution of data to chunks may be
-  uneven.
-
-- If you delete many documents from a sharded collection, some chunks
-  may no longer contain data.
-
-This tutorial explains how to identify chunks available to merge, and
-how to merge those chunks with neighboring chunks.
+The :dbcommand:`mergeChunks` command allows you to combine continuous
+chunks on the same shard into a single chunk. This tutorial explains
+how to merge neighboring chunks in a sharded cluster.
 
 Procedure
 ---------
@@ -108,34 +93,11 @@ collection, as in the following excerpts:
 
       { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0)
 
-Verify a Chunk is Empty
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The :dbcommand:`mergeChunks` command requires at least one empty input
-chunk. In the :program:`mongo` shell, check the amount of data in a
-chunk using an operation that resembles:
-
-.. code-block:: javascript
-
-   db.runCommand({
-      "dataSize": "test.users",
-      "keyPattern": { username: 1 },
-      "min": { "username": "user36583" },
-      "max": { "username": "user43229" }
-   })
-
-If the input chunk to :dbcommand:`dataSize` is empty,
-:dbcommand:`dataSize` produces output similar to:
-
-.. code-block:: javascript
-
-   { "size" : 0, "numObjects" : 0, "millis" : 0, "ok" : 1 }
 
 Merge Chunks
 ~~~~~~~~~~~~
 
-Merge two contiguous :term:`chunks <chunk>` on the same :term:`shard`,
-where at least one of the contains no data, with an operation that
+Merge two contiguous :term:`chunks <chunk>` on the same :term:`shard`, with an operation that
 resembles the following:
 
 .. code-block:: javascript
@@ -157,7 +119,7 @@ where the value of the ``ok`` field is ``0``.
 View Merged Chunks Ranges
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After merging all empty chunks, confirm the new chunk, as follows:
+After merging the identified chunks, confirm the new chunk, as follows:
 
 .. code-block:: javascript
 
