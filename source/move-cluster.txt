@@ -1,0 +1,89 @@
+==============
+Move a Cluster
+==============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: move
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| supports moving ``M2+`` single-region and multi-region clusters
+to new regions. 
+
+
+Considerations
+--------------
+
+Migration, Downtime and Performance Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+Depending on the amount of data to migrate, migrations can take a
+significant amount of time. To maximize availability for a replica set,
+|service| migrates one member at a time, starting with the secondary
+members first and then the primary.
+
+Migration can affect performance if your primary is already reaching
+operational capacity: each newly migrated replica set member must
+perform an :term:`initial sync` from the primary, adding to the
+operational load. Migrations can also affect performance if
+:manual:`read preferences </core/read-preference>` are set to read from
+secondaries: the replica set is down one secondary during the migration.
+
+
+VPC Peering (AWS Only)
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you move a cluster out of a region that has a :doc:`VPC
+(Virtual Private Cloud) <security-vpc-peering>` peering connection,
+the moved cluster can no longer use that peering connection to communicate
+with servers in the VPC. Any other clusters with nodes remaining in the
+original region can continue to use the VPC peering connection.
+
+You can create multiple VPC connections for each region, including
+a new VPC peering connection with the region to which you moved a cluster. 
+However, AWS does not support VPC peering connections between regions.
+
+.. note::
+
+   Cluster nodes moved out of a region can no longer inherit access
+   rules from an AWS security group or IP whitelisted VPC CIDR blocks
+   configured for the VPC peering connection. You must :ref:`add-to-whitelist`
+   for all the virtual servers residing in the VPC. Cluster nodes remaining
+   in the region are unnaffected.
+
+Move a Single-Region Cluster
+----------------------------
+
+Use the following procedure to move nodes to an ``M2+`` single-region cluster:
+   
+.. note::
+
+   You cannot change the cloud provider of an ``M10+`` cluster. You
+   may change both the cloud provider and the region for ``M0``, ``M2``
+   and ``M5`` clusters if the desired cloud provider and region supports
+   those instance types.
+
+.. include:: /includes/steps/move-single-region-cluster.rst
+
+Move a Multi-Region Cluster
+---------------------------
+
+Use the following procedure to move nodes to one or more regions in an ``M10+`` multi-region cluster:
+
+.. note::
+
+   Each node in the preferred and electable regions can participate in 
+   :manual:`replica set elections </core/replica-set-elections>` and can
+   become the :term:`primary` as long as the majority of nodes in the
+   replica set are available. The total number of electable nodes in the
+   cluster, nodes that participate in elections, must be 3, 5, or 7.
+
+.. include:: /includes/steps/move-multi-region-cluster.rst
+
+    
