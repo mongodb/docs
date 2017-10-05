@@ -4,6 +4,7 @@
    :class: compatibility
 
    * - Platform
+     - 3.6 Community & Enterprise
      - 3.4 Community & Enterprise
      - 3.2 Community & Enterprise
      - 3.0 Community & Enterprise
@@ -11,11 +12,14 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
    * - Debian 7
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
    * - Debian 8
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      -
@@ -23,7 +27,9 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
    * - RHEL/CentOS 7.0 and later
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -31,11 +37,14 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
    * - SLES 12
+     - |checkmark|
      - |checkmark|
      -
      -
    * - Solaris 11 64-bit
+     -
      - Community only
      - Community only
      - Community only
@@ -43,23 +52,29 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
    * - Ubuntu 14.04
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
    * - Ubuntu 16.04
      - |checkmark|
      - |checkmark|
+     - |checkmark|
      -
-   * - Windows Server 2008R2 and later
+   * - Windows Vista
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - Windows Vista and later
+   * - Windows 7/Server 2008 R2 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OS X 10.7 and later
+     - |checkmark|
+   * - macOS 10.7 and later
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      -
