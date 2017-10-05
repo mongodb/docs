@@ -83,6 +83,37 @@ create the schema.
 
 See additional :ref:`usage examples <usage-examples>` below.
 
+.. _security-considerations:
+
+Security Considerations
+-----------------------
+
+A :program:`mongosqld` process which connects to a MongoDB instance
+with authentication enabled must use authentication and pass MongoDB
+user credentials, either through :ref:`command line options
+<mongosqld-command-line-options>` or with a :ref:`configuration
+file <config-format>`.
+
+The user credentials you use with :program:`mongosqld` must
+belong to a MongoDB user with the ``listDatabases`` privilege and
+have read permissions on all the namespaces you wish to sample.
+The MongoDB :manual:`built-in All-Database Roles
+</reference/built-in-roles/index.html#all-database-roles>` provide
+the ``listDatabases`` privilege.
+
+The MongoDB credentials which |bi-short| users provide to connect
+via an SQL client can be for a different MongoDB user with fewer
+permissions. SQL client users must have the ``listCollections``
+privilege, which is included with the :manual:`built-in
+Database User Roles
+</reference/built-in-roles/index.html#database-user-roles>`
+
+For more information on MongoDB
+users and roles, see :manual:`Role-Based Access Control`.
+
+See the :ref:`example <mongosqld-auth-example>` below of
+:program:`mongosqld` with authentication.
+
 .. _mongosqld-command-line-options:
 
 Command Line Options
@@ -677,6 +708,34 @@ interval of 3600 seconds.
 .. code-block:: shell
 
    mongosqld --sampleRefreshIntervalSecs 3600
+
+.. _mongosqld-auth-example:
+
+``mongosqld`` with Authentication Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect :program:`mongosqld` to a MongoDB instance running
+with :manual:`authentication </core/authentication>` enabled,
+use the :option:`--auth` option and provide MongoDB user
+credentials.
+
+The following example starts :program:`mongosqld` with
+credentials for a user named ``reportsUser`` with password
+``reportsPass``, who has access to the ``reports.inventory``
+namespace.
+
+.. code-block:: shell
+
+   mongosqld --auth \
+             --mongo-username reportsUser \
+             --mongo-password reportsPass \
+             --sampleNamespaces reports.inventory
+
+This example does not specify an authenticating database with the
+:option:`--mongo-authenticationSource` option, so it defaults to
+``admin``. It does not specify an authentication mechanism with the
+:option:`--mongo-authenticationMechanism` option, so it defaults to
+``SCRAM-SHA-1``.
 
 ``mongosqld`` with a Configuration File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
