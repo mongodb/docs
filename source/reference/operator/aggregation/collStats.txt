@@ -64,7 +64,12 @@ Definition
 
           .. versionadded:: 3.6
 
-   The return document includes the following fields:
+   For a collection in a replica set or a
+   :ref:`non-sharded collection<sharded-vs-non-sharded-collections>` in
+   a cluster, ``$collStats`` outputs a single document. For a
+   :ref:`sharded collection<sharded-vs-non-sharded-collections>`,
+   ``$collStats`` outputs one document per shard. The output document
+   includes the following fields:
 
    .. list-table::
     :header-rows: 1
@@ -76,6 +81,21 @@ Definition
     * - ``ns``
       - The :term:`namespace` of the requested collection or view.
 
+    * - ``shard``
+      - The name of the shard the output document corresponds to.
+
+        Only present when ``$collStats`` runs on a sharded cluster. Both
+        :ref:`sharded and non-sharded collections<sharded-vs-non-sharded-collections>`
+        will produce this field.
+
+        .. versionadded:: 3.6
+
+    * - ``host``
+      - The hostname and port of the `mongod` process which produced
+        the output document.
+
+        .. versionadded:: 3.6
+
     * - ``localTime``
       - The current time on the MongoDB server, expressed as UTC
         milliseconds since the :term:`Unix epoch`.
@@ -85,7 +105,7 @@ Definition
         collection or :doc:`view </core/views>`. See
         :ref:`latency-stats-document` for details on this document.
 
-        Only exists given the ``latencyStats: {}`` option.
+        Only present when the ``latencyStats: {}`` option is specified.
 
     * - ``storageStats``
 
@@ -93,15 +113,15 @@ Definition
         engine. See :ref:`storage-stats-document` for details on this
         document.
 
-        Only exists given the ``storageStats: {}`` option. Returns an
-        error if applied to a :doc:`view </core/views>`.
+        Only present when the ``storageStats: {}`` option is specified.
+        Returns an error if applied to a :doc:`view </core/views>`.
 
     * - ``count``
       - The total number of documents in the collection. This data is
         also available in ``storageStats.count``.
 
-        Only exists given the ``count: {}`` option. Returns an error if
-        applied to a :doc:`view </core/views>`.
+        Only present when the ``count: {}`` option is specified. Returns
+        an error if applied to a :doc:`view </core/views>`.
 
 Behavior
 --------
@@ -126,12 +146,13 @@ on a ``matrices`` collection:
 
    db.matrices.aggregate( [ { $collStats: { latencyStats: { histograms: true } } } ] )
 
-This query will return a result similar to the following:
+This query returns a result similar to the following:
 
 .. code-block:: javascript
 
    { "ns" : "test.matrices",
-     "localTime" : ISODate("2016-10-25T21:47:54.233Z"),
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
      "latencyStats" :
        { "reads" :
            { "histogram" : [
@@ -178,31 +199,30 @@ option on a ``matrices`` collection using the :ref:`storage-mmapv1`:
 
    db.matrices.aggregate( [ { $collStats: { storageStats: { } } } ] )
 
-This query will return a result similar to the following:
+This query returns a result similar to the following:
 
 .. code-block:: javascript
 
    {
      "ns" : "test.matrices",
-     "localTime" : ISODate("2016-10-25T19:43:56.599Z"),
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
      "storageStats" : {
-       "size" : 192,
-       "count" : 4,
-       "avgObjSize" : 48,
-       "numExtents" : 1,
-       "storageSize" : 8192,
-       "lastExtentSize" : 8192,
-       "paddingFactor" : 1,
-       "paddingFactorNote" : "paddingFactor is unused and unmaintained in 3.0. It    remains hard coded to 1.0 for compatibility only.",
-       "userFlags" : 1,
+       "size" : 608500363,
+       "count" : 1104369,
+       "avgObjSize" : 550,
+       "storageSize" : 352878592,
        "capped" : false,
+       "wiredTiger" : {
+         ...
+       },
        "nindexes" : 1,
        "indexDetails" : {
-
+         ...
        },
-       "totalIndexSize" : 8176,
+       "totalIndexSize" : 9891840,
        "indexSizes" : {
-         "_id_" : 8176
+         "_id_" : 9891840
        }
      }
    }
@@ -225,19 +245,54 @@ a ``matrices`` collection:
 
    db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
 
-The query will return a result similar to the following:
+The query returns a result similar to the following:
 
 .. code-block:: javascript
 
    {
      "ns" : "test.matrices",
-     "localTime" : ISODate("2016-10-25T19:43:56.599Z"),
-     "count" : 4
+     "host" : mongo.example.net:27017",
+     "localTime" : ISODate("2017-10-06T19:43:56.599Z"),
+     "count" : 1103869
    }
 
 The total number of documents in the collection is also available as
 ``storageStats.count`` when ``storageStats: {}`` is specified. For more
 information, see :ref:`storage-stats-document`.
+
+``$collStats`` on Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$collStats`` outputs one document per shard when run on
+:ref:`sharded collections<sharded-vs-non-sharded-collections>`. Each
+output document contains a ``shard`` field with the name of the shard
+the document corresponds to.
+
+For example, if you run ``$collStats`` on a sharded collection with the
+``count: {}`` option on a collection named ``matrices``:
+
+.. code-block:: javascript
+
+   db.matrices.aggregate( [ { $collStats: { count: { } } } ] )
+
+The query returns a result similar to the following:
+
+.. code-block:: javascript
+
+   {
+     "ns" : "test.matrices",
+     "shard" : "s1",
+     "host" : "s1-mongo1.example.net:27017",
+     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+     "count" : 661705
+   }
+   {
+     "ns" : "test.matrices",
+     "shard" : "s2",
+     "host" : "s2-mongo1.example.net:27017",
+     "localTime" : ISODate("2017-10-06T15:14:21.258Z"),
+     "count" : 442164
+   }
 
 .. seealso::
 
