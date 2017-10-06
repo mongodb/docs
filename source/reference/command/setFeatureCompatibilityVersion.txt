@@ -17,59 +17,59 @@ Definition
 
    .. versionadded:: 3.4
 
-   Enables or disables :ref:`MongoDB 3.4 features that persist data
-   that are backwards-incompatible with MongoDB 3.2
-   <setFeatureCompatibilityVersion-features>`. You can only issue the
+   .. versionchanged:: 3.6
+
+   Enables or disables the features that are backwards-incompatible
+   with earlier versions. You can only issue the
    :dbcommand:`setFeatureCompatibilityVersion` against the ``admin``
    database.
-
+   
    The command takes the following form:
 
    .. code-block:: javascript
 
       db.adminCommand( { setFeatureCompatibilityVersion: <version> } )
 
-   where ``<version>`` can be:
+   The values for the ``version`` are:
 
-   - ``"3.4"`` to enable the backward incompatible features, or
-   - ``"3.2"`` to disable these features.
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+
+      * - Version
+        - Description
+
+      * - ``"3.6"``
+
+        - Enables the 3.6 features that are :ref:`backward incompatible
+          <3.6-compatibility-enabled>`.
+
+          **Available on MongoDB 3.6 Deployments Only**
+
+      * - ``"3.4"``
+
+        - Enables the 3.4 features that are :ref:`backward incompatible
+          <3.4-compatibility-enabled>` with earlier
+          versions and disables the 3.6 or later features that are
+          backward incompatible with 3.4
+
+          **Available on MongoDB 3.6 and MongoDB 3.4 Deployments Only**
+
+          .. include:: /includes/3.4-featureCompatibility-caveat.rst
+
+      * - ``"3.2"``
+
+        - Disables the 3.4 or later features that are
+          backwards-incompatible with MongoDB 3.2.
+
+          **Available on MongoDB 3.4 and MongoDB 3.2 Deployments Only**
 
    .. note::
 
       .. include:: /includes/list-run-command-targets.rst
 
-   The command can also take the following options:
-
-   .. include:: /includes/extracts/sessions-option-table-options.rst
-
 Behavior
 --------
-
-.. _setFeatureCompatibilityVersion-features:
- 
-Affected Features
-~~~~~~~~~~~~~~~~~
-
-The following 3.4 features persist data that earlier MongogDB versions
-cannot correctly handle and require that
-``featureCompatibilityVersion`` be set to ``"3.4"``:
-
-- :ref:`3.4-relnotes-views`
-
-- :ref:`3.4-relnotes-collation`
-
-- :ref:`3.4-decimal`
-
-- Index version ``v: 2``. ``v:2`` indexes add support for collation and
-  decimal data type. Earlier index versions support neither collation
-  nor the decimal data type.
-
-  If ``featureCompatibilityVersion: "3.4"``, indexes created in MongoDB
-  3.4 default to ``v: 2`` . Otherwise, new indexes default to ``v: 1``.
-
-.. warning::
-
-   .. include:: /includes/3.4-featureCompatibility-caveat.rst
 
 Default Values
 ~~~~~~~~~~~~~~
@@ -86,17 +86,53 @@ safely retry the command as the operation is idempotent.
 Examples
 --------
 
-Enable 3.4 Backwards Incompatible Features
+View FeatureCompatibilityVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the ``featureCompatibilityVersion`` for a :program:`mongod`
+instance, run the following command on a :program:`mongod` instance:
+
+.. note::
+   The operation is undefined on the :program:`mongos` instances.
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+Enable 3.6 Backwards Incompatible Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable the :ref:`3.4 backwards-incompatible features
-<setFeatureCompatibilityVersion-features>`, run the
+To enable the 3.6 features that are :ref:`backward incompatible
+<3.6-compatibility-enabled>`, run the
 ``setFeatureCompatibilityVersion`` command against the ``admin``
 database:
 
 .. note::
 
    .. include:: /includes/list-run-command-targets.rst
+
+   - ``"3.6"`` featureCompatibilityVersion is supported on MongoDB
+     3.6 Deployments Only.
+
+.. code-block:: javascript
+
+   db.adminCommand( { setFeatureCompatibilityVersion: "3.6" } )
+
+Enable 3.4 Backwards Incompatible Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable the 3.4 features that are :ref:`backward incompatible
+<3.4-compatibility-enabled>`, run the
+``setFeatureCompatibilityVersion`` command against the ``admin``
+database:
+
+.. note::
+
+   .. include:: /includes/list-run-command-targets.rst
+   
+   - ``"3.4"`` featureCompatibilityVersion is supported on MongoDB
+     3.6 and MongoDB 3.4 Deployments Only.
+
 
 .. code-block:: javascript
 
@@ -110,13 +146,16 @@ Disable 3.4 Backwards Incompatible Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To disable the :ref:`3.4 backwards-incompatible features
-<setFeatureCompatibilityVersion-features>`, run the
+<3.4-compatibility-enabled>`, run the
 ``setFeatureCompatibilityVersion`` command against the ``admin``
 database:
 
 .. note::
 
    .. include:: /includes/list-run-command-targets.rst
+
+   - ``"3.2"`` featureCompatibilityVersion is supported on MongoDB
+     3.4 and MongoDB 3.2 Deployments Only.
 
 .. code-block:: javascript
 
@@ -129,16 +168,3 @@ features.
 If performed as part of a downgrade to 3.2 procedure, you must also
 manually remove the existing usage before downgrading the binaries. For
 details, see :ref:`3.4-downgrade-features-prereq`.
-
-View FeatureCompatibilityVersion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To view the ``featureCompatibilityVersion`` for a :program:`mongod`
-instance, run the following command on a :program:`mongod` instance:
-
-.. note::
-   The operation is undefined on the :program:`mongos` instances.
-
-.. code-block:: javascript
-
-   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
