@@ -30,6 +30,8 @@ A MongoDB :term:`sharded cluster` consists of the following components:
   servers store metadata and configuration settings for the cluster. As
   of MongoDB 3.4, config servers must be deployed as a replica set (CSRS).
 
+.. _sc-production-configuration:
+
 Production Configuration
 ------------------------
 
@@ -48,12 +50,29 @@ Sharding requires at least two shards to distribute sharded data. Single
 shard sharded clusters may be useful if you plan on enabling sharding in the 
 near future, but do not need to at the time of deployment.
 
-You can deploy a :program:`mongos` router on each application server to ensure
-each server has consistent access to the sharded cluster. Alternatively, 
-deploy a group of :program:`mongos` routers and use a proxy or load balancer 
-between the application and the :program:`mongos` group. In these deployments,
-you *must* configure the load balancer for *client affinity* such that every
-connection from a single client reaches the same :program:`mongos`.
+Deploying multiple :program:`mongos` routers supports high availability
+and scalability. A common pattern is to place a :program:`mongos` on
+each application server. Deploying one :program:`mongos` router on each
+application server reduces network latency between the application and
+the router.
+
+Alternatively, you can place a :program:`mongos` router on each shard
+primary. This approach also reduces network latency between the
+application and the router: applications use a :term:`connection
+string` listing all the hostnames of each shard primary. The MongoDB
+driver then determines the network latency for each :program:`mongos`
+and load balances randomly across the routers that fall within a set
+:ref:`latency window <selection-discovery-options>`. Ensure that the
+server hosting the shard primary and :program:`mongos` router has
+sufficient capacity to accommodate the extra CPU and memory
+requirements.
+
+There is no limit to the number of :program:`mongos` routers you can
+have in a deployment. However, as :program:`mongos` routers communicate
+frequently with your config servers, monitor config server performance
+closely as you increase the number of routers. If you see performance
+degradation, it may be beneficial to cap the number of
+:program:`mongos` routers in your deployment.
 
 .. include:: /images/sharded-cluster-production-architecture.rst
 
