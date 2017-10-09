@@ -18,8 +18,7 @@
      - latest stable
 
    * - `Apple Safari <https://www.apple.com/safari/>`_
-     - latest stable version on the latest and two previous versions of
-       `macOS <https://www.apple.com/macos>`_.
+     - latest stable
 
 .. only:: onprem
 
