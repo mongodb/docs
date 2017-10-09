@@ -4,7 +4,7 @@
 
    * - Supported Web Browser
      - Supported Version(s)
-     
+
    * - `Google Chrome <https://www.google.com/chrome/>`_
      - latest stable
 
@@ -18,8 +18,9 @@
      - latest stable
 
    * - `Apple Safari <https://www.apple.com/safari/>`_
-     - latest stable version on MacOS 10.10.5 and later
+     - latest stable version on the latest and two previous versions of
+       `macOS <https://www.apple.com/macos>`_.
 
 .. only:: onprem
 
-   |onprem| displays a warning on non-supported browsers. 
+   |onprem| displays a warning on non-supported browsers.
