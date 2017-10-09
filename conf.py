@@ -70,6 +70,8 @@ pygments_style = 'sphinx'
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
+    'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
+
     'compass': ('https://docs.mongodb.com/compass%s', '')
 }
 
