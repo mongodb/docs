@@ -259,6 +259,8 @@ To use the various new features such as the new :ref:`3.4-decimal` and
 :ref:`collation` with a MongoDB driver, an upgrade to a driver version
 that supports these features is necessary.
 
+.. _3.4-single-elt-upsert:
+
 Single Element ``$in`` With ``upsert``
 --------------------------------------
 
@@ -303,3 +305,69 @@ expression in an :query:`$elemMatch` expression:
       { upsert: true } )
    db.c.find()
    { "_id" : ObjectId("..."), "a" : [ 3 ] }
+
+.. _3.4-project-stage:
+
+``$project`` Compatibility Changes
+----------------------------------
+
+In 3.4, when trying to :pipeline:`$project` a missing field, the aggregation
+only returns an empty object for that field instead of the entire document.
+
+Consider the collection ``c`` below:
+
+.. code-block:: javascript
+   
+   { "_id" : 1, "a" : 4, "c" : 5 }
+   { "_id" : 2, "a" : 3 }
+
+The following aggregation sets ``b`` to the value of ``c``. 
+
+.. code-block:: javascript
+
+   db.c.aggregate( [ { $project : { a : {b : "$c" } } } ] )
+
+In the first document, field ``c`` exists so a new sub-field ``b`` is created and
+set to ``5``. In the second document, field ``c`` does not exist, so the value of
+field ``a`` is set to an empty object. 
+
+.. code-block:: javascript
+
+   { "_id" : 1, "a" : { "b" : 5 } }
+   { "_id" : 2, "a" : {  } }
+
+Prior to 3.4, field ``a`` in the second document would be replaced with an empty 
+object when running the same aggregation:
+
+.. code-block:: javascript
+   
+   { "_id" : 2, { } } 
+
+.. _3.4-group-stage:
+
+``$group`` Compatibility Changes
+--------------------------------
+
+In 3.4, accessing field names with dots is no longer supported in the 
+:pipeline:`$group` stage.
+
+Consider the collection ``c`` below:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "a" : 3 }
+   { "_id" : 2, "a" : 4, "c" : 5 }
+   { "_id" : 3, "a" : 4 }
+
+The following aggregation groups documents by field ``a`` and creates 
+an array of documents named ``d``. It fails because ``d.z`` is an
+invalid field name.
+
+.. code-block:: javascript
+
+   db.c.aggregate( [ { $group : { _id : "$a", d : { $push : { "d.z" : "$d" } } } } ] )
+
+   assert: command failed: {
+      "ok" : 0,
+      "errmsg" : "dotted field names are only allowed at the top level",
+      "code" : 16405
