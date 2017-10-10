@@ -24,7 +24,7 @@
   1. Remove the configuration settings specific to the newer MongoDB
      version. Deploy those changes.
 
-     .. example:: 
+     .. example::
         If you are running MongoDB version 3.0 with the :guilabel:`engine`
         option set to ``mmapv1``, and want to downgrade to MongoDB 2.6, you
         must first remove the :guilabel:`engine` option. MongoDB 2.6 does not
@@ -32,11 +32,23 @@
 
   2. Update the MongoDB version. Deploy that change.
 
-  .. note::
+.. admonition:: Downgrade Limitations
+   :class: note
 
-     - You may not downgrade a MongoDB deployment from version 3.4 to 
-       :manual:`any version before 3.2.8 </release-notes/3.4-downgrade>`.
+   **Downgrading from 3.6**
 
-     - |mms| blocks users attempts to downgrade from
-       ``featureCompatibilityVersion=3.4`` to
-       ``featureCompatiblityVersion=3.2``.
+   - You may not downgrade a MongoDB deployment from version 3.6 to
+     :ref:`any version before 3.4 <3.6-compatibility-enabled>`.
+
+   - |mms| blocks users attempts to downgrade from
+     ``featureCompatibilityVersion=3.6`` to
+     ``featureCompatiblityVersion=3.4``.
+
+   **Downgrading from 3.4**
+
+   - You may not downgrade a MongoDB deployment from version 3.4 to
+     :manual:`any version before 3.2.8 </release-notes/3.4-downgrade>`.
+
+   - |mms| blocks users attempts to downgrade from
+     ``featureCompatibilityVersion=3.4`` to
+     ``featureCompatiblityVersion=3.2``.
