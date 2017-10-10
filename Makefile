@@ -26,10 +26,6 @@ stage: build
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/tools/index.html"
 
 deploy: build
-	mut-publish build ${PRODUCTION_BUCKET} --prefix='/' --deploy --dry-run --verbose --all-subdirectories ${ARGS}
-
-	@echo ''
-	read -p "Press any key to perform the previous"
 	mut-publish build ${PRODUCTION_BUCKET} --prefix='/' --deploy --all-subdirectories ${ARGS}
 
 	@echo "Deployed"
@@ -42,6 +38,7 @@ build: style.min.css
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
 	@# Copy CSS and JS files to output directories
+	cp static/favicon.png $@/favicon.ico
 	cp -r static/images static/fonts static/css static/js $@/
 	cp -r static/images static/fonts static/css static/js $@/cloud
 	cp -r static/images static/fonts static/css static/js $@/tools
