@@ -16,8 +16,8 @@ When upgrading, consider the following:
 Upgrade Version Path
 ~~~~~~~~~~~~~~~~~~~~
 
-To upgrade an existing MongoDB deployment to |newversion|, you must be running a
-|oldseries| release.
+To upgrade an existing MongoDB deployment to |newversion|, you must be
+running a |oldseries| release.
 
 To upgrade from a version earlier than the |oldseries|, you must
 successively upgrade major releases until you have upgraded to
@@ -36,7 +36,13 @@ Before upgrading MongoDB, always test your application in a staging
 environment before deploying the upgrade to your production
 environment.
 
+
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/3.4-downgrade-path.rst
+|downgradepath|
+
+
+
+
+
