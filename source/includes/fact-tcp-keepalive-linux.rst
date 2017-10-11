@@ -15,6 +15,11 @@
 
   The value is measured in seconds.
 
+  .. note::
+
+     Although the path includes ``ipv4``, the ``tcp_keepalive_time`` value
+     applies to both IPv4 and IPv6.
+
 - To change the ``tcp_keepalive_time`` value, you can use one of the
   following command:
 
