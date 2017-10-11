@@ -103,6 +103,18 @@
      - The cloud service provider on which the servers are provisioned.
 
        .. include:: /includes/fact-cloud-service-providers.rst
+       
+       - ``TENANT`` - Indicates an ``M2`` or ``M5`` multi-tenant cluster. 
+         See ``providerSettings.backingProviderName`` for the cloud service
+         provider on which the server hosting the cluster is provisioned.
+         
+   * - ``providerSettings.backingProviderName``
+     - string
+     - The cloud service provider on which the multi-tenant server is
+       provisioned. Only visible if ``providerSettings.providerName`` is 
+       ``TENANT``.
+       
+       .. include:: /includes/fact-cloud-service-providers.rst
 
    * - ``providerSettings.regionName``
      - string
