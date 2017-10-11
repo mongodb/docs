@@ -16,7 +16,7 @@
 
   .. code-block:: powershell
 
-     reg add HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\ /v KeepAliveTime /d <value>
+     reg add HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\ /t REG_DWORD /v KeepAliveTime /d <value>
 
   Windows users should consider the `Windows Server Technet Article on
   KeepAliveTime
