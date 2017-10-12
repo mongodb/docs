@@ -1,0 +1,253 @@
+.. index:: changeStreams notification
+
+======================
+Change Stream Examples
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Open a Change Stream
+--------------------
+
+The following example opens a change stream against a MongoDB 3.6 replica set:
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient( new MongoClientURI("mongodb://host1:port1,host2:port2..."));
+
+   // Select the MongoDB database and collection to open the change stream against
+
+   MongoDatabase db = mongoClient.getDatabase("myTargetDatabase");
+
+   MongoCollection<Document> collection = database.getCollection("myTargetCollection");
+
+   // Create the change stream cursor
+
+   MongoCursor<Document> cursor = collection.watch().iterator();
+
+This example opens a change stream against the ``myTargetCollection``
+collection in the ``myTargetDatabase`` database using the
+:method:`db.collection.watch()` method. :method:`~db.collection.watch()`
+returns a cursor that remains open as long as a connection to the MongoDB
+deployment remains open *and* the collection exists.
+
+Iterate the change stream ``cursor`` to retrieve data change notifications:
+
+.. code-block:: java
+
+   next = cursor.next();
+   System.out.println(next.toJson());
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+Lookup Full Document for Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, change streams only return the delta of fields changed during
+an update operation. Pass the ``fullDocument : updateLookup`` option to the
+:method:`db.collection.watch()` method to direct the change stream to look up
+the most current majority-committed version of the updated document.
+
+If there are one or more majority-committed operations that modified the
+updated document *after* the update operation but *before* the lookup, the
+full document returned may differ significantly from the document at the time
+of the update operation.
+
+The delta changes always correctly describe the document changes as a result
+of the update operation.
+
+The following example opens a change stream against a MongoDB 3.6 replica set.
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient( new MongoClientURI("mongodb://host1:port1,host2:port2..."));
+
+   // Select the MongoDB database and collection to open the change stream against
+
+   MongoDatabase db = mongoClient.getDatabase("myTargetDatabase");
+
+   MongoCollection<Document> collection = database.getCollection("myTargetCollection");
+
+   // Create the change stream cursor
+   // The fullDocument(FullDocument.UPDATE_LOOKUP) modifier directs the
+   // change stream to include a lookup of the full document for
+   // update operations.
+
+   MongoCursor<Document> cursor = collection.watch()
+      .fullDocument(FullDocument.UPDATE_LOOKUP)
+      .iterator();
+
+This example opens a change stream against the ``myTargetCollection``
+collection in the ``myTargetDatabase`` database using the
+:method:`db.collection.watch()` method. :method:`~db.collection.watch()`
+returns a cursor that remains open as long as a connection to the MongoDB
+deployment remains open.
+
+The ``fullDocument`` modifier directs the change stream to look up the
+*current* version of the updated document. Depending on the number of
+interleaving update or replacement operations that occur on the document,
+the document at the time of lookup may vary from the document at the time of
+the update operation.
+
+Iterate the change stream ``cursor`` to return the result of the change stream
+document. Update operations notifications include a ``fullDocument``
+field that represents the *current* version of the document affected by the
+update operation.
+
+Iterate the ``cursor`` and observe the response document:
+
+.. code-block:: java
+
+   next = cursor.next();
+   System.out.println(next.toJson());
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+Modify Change Stream Output using Aggregation Pipelines
+-------------------------------------------------------
+
+You can control change stream output by providing an array of one or
+more of the following pipeline stages when configuring the change stream:
+
+- :pipeline:`$match`
+- :pipeline:`$project`
+- :pipeline:`$addFields`
+- :pipeline:`$replaceRoot`
+- :pipeline:`$redact`
+
+The following example opens a change stream against a MongoDB 3.6 replica set.
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient( new MongoClientURI("mongodb://host1:port1,host2:port2..."));
+
+   // Select the MongoDB database and collection to open the change stream against
+
+   MongoDatabase db = mongoClient.getDatabase("myTargetDatabase");
+
+   MongoCollection<Document> collection = database.getCollection("myTargetCollection");
+
+   // Create $match pipeline stage.
+   List<Bson> pipeline = singletonList(
+      Aggregates.match(
+         Filters.or(
+            Document.parse("{'fullDocument.username': 'alice'}"),
+            Filters.in("operationType", asList("delete"))
+         )
+      )
+   );
+
+   // Create the change stream cursor, passing the pipeline to the
+   // collection.watch() method
+
+   MongoCursor<Document> cursor = collection.watch(pipeline)
+      .iterator();
+
+This example opens a change stream against the ``myTargetCollection``
+collection in the ``myTargetDatabase`` database using the
+:method:`db.collection.watch()` method. :method:`~db.collection.watch()`
+returns a cursor that remains open as long as a connection to the MongoDB
+deployment remains open.
+
+The ``pipeline`` list includes a single :pipeline:`$match` stage that
+filters any operations where the ``username`` is ``alice``, or
+operations where the ``operationType`` is ``delete``.
+
+Passing the ``pipeline`` to the :method:`~db.collection.watch()` method directs the
+change stream to return notifications after passing them through the
+specified ``pipeline``.
+
+Iterate the ``cursor`` and observe the response document:
+
+.. code-block:: java
+
+   next = cursor.next();
+   System.out.println(next.toJson());
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+.. _change-stream-resume:
+
+Resume a Change Stream
+----------------------
+
+The following example resumes a change stream against a MongoDB 3.6 replica set.
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient( new MongoClientURI("mongodb://host1:port1,host2:port2..."));
+
+   // Select the MongoDB database and collection to open the change stream against
+
+   MongoDatabase db = mongoClient.getDatabase("myTargetDatabase");
+
+   MongoCollection<Document> collection = database.getCollection("myTargetCollection");
+
+   // Create the change stream cursor
+   MongoCursor<Document> cursor = collection.watch()
+      .iterator();
+
+   // assume at least one or more data changing operations occur here
+
+   // Get the resume token from the last document we saw in the previous
+   // change stream cursor.
+   Document resumeToken = cursor.next.get("_id", Document.class);
+
+   // Pass the resume token to the resume after function to continue the
+   // change stream cursor.
+   cursor = collection.watch().resumeAfter(resumeToken).iterator();
+
+This example opens a change stream against the ``myTargetCollection``
+collection in the ``myTargetDatabase`` database using the
+:method:`db.collection.watch()` method. :method:`~db.collection.watch()`
+returns a cursor that remains open as long as a connection to the MongoDB
+deployment remains open.
+
+Each change stream response document has an ``_id`` field that contains a
+document containing a resume token. The ``resumeToken`` document stores the
+``_id`` from the change stream notification we want to resume from.
+
+The ``resumeAfter`` modifier takes a parameter that must resolve to a resume
+token. Passing the ``resumeToken`` to the ``resumeAfter`` modifier directs
+the change stream to attempt to resume notifications starting at the
+operation specified in the resume token.
+
+As long as that operation has not rolled off the :term:`oplog`, the
+change stream can successfully resume notifications.
+
+Iterate the ``cursor`` and observe the response document:
+
+.. code-block:: java
+
+   next = cursor.next();
+   System.out.println(next.toJson());
+
+See :ref:`change-stream-output` for more information on the change stream
+response document format.
+
+Requirements
+------------
+
+You can only open a change stream against a replica set or a :term:`sharded
+cluster` with replica set :term:`shards <shard>`. For a sharded cluster, you
+must open change stream against the :program:`mongos`.
+
+You cannot open a change stream against a standalone :program:`mongod`.
+
+For clusters that were upgraded to MongoDB 3.6 from an older version of
+MongoDB, each :program:`mongod` in your cluster must meet the following
+requirements:
+
+- Replica set protocol version must be :rsconf:`pv1 <protocolVersion>`.
+
+- Storage engine must be :ref:`WiredTiger <storage-wiredtiger>`, including
+  :ref:`encrypted WiredTiger <encrypted-storage-engine>`.
