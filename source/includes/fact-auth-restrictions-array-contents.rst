@@ -1,6 +1,6 @@
 .. versionadded:: 3.6
 
-The ``authenticaionRestrictions`` document can contain the
+The ``authenticationRestrictions`` document can contain the
 following fields:
 
 .. list-table::
