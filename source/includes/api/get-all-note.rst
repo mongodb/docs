@@ -1,9 +1,9 @@
 Response Document
 ~~~~~~~~~~~~~~~~~
 
-The response JSON document includes an array of ``result`` documents, an
-array of ``link`` documents and a count of the total number of documents
-retrieved.
+The response JSON document includes an array of ``result`` objects, an
+array of ``link`` objects and a count of the total number of ``result``
+objects retrieved.
 
 .. list-table::
    :widths: 10 10 80
@@ -15,12 +15,12 @@ retrieved.
      - Description
 
    * - ``results``
-     - document array
-     - This document array includes one document for each item detailed
+     - array of objects
+     - This array includes one object for each item detailed
        in the `results Embedded Document`_ section.
    * - ``links``
-     - document array
-     - The ``links`` array includes one or more links to sub-resources
+     - array of objects
+     - This array includes one or more links to sub-resources
        and/or related resources. The relations between URLs are
        explained in the `Web Linking Specification
        <http://tools.ietf.org/html/rfc5988>`_.
