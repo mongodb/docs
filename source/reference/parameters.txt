@@ -913,7 +913,7 @@ Logical Session Parameters
 
    *Default*: 30
 
-   .. admonition:: For testing purposes only.
+   .. admonition:: For testing purposes only
       :class: warning
 
       This parameter is intended for testing purposes only and not for
@@ -1211,6 +1211,49 @@ Sharding Parameters
       - :parameter:`ShardingTaskExecutorPoolMaxSize`
 
       - :parameter:`ShardingTaskExecutorPoolMinSize`
+
+.. parameter:: orphanCleanupDelaySecs
+
+   .. versionadded:: 3.6
+
+   Default: 900 (15 minutes)
+
+   |mongod-only|
+
+   Minimum delay before a migrated :term:`chunk` is deleted from the source
+   shard.
+
+   Before deleting the chunk during chunk migration, MongoDB waits for
+   :parameter:`orphanCleanupDelaySecs` or for in-progress queries involving
+   the chunk to complete on the shard primary, whichever is longer.
+
+   However, because the shard primary has no knowledge of in-progress queries
+   run on the shard secondaries, queries that use the chunk but are run on
+   secondaries may see documents disappear if these queries take longer than
+   the time to complete the shard primary queries and the
+   :parameter:`orphanCleanupDelaySecs`.
+
+   .. note::
+
+      This behavior only affects in-progress queries that start before the
+      chunk migration. Queries that start after the chunk migration starts
+      will not use the migrating chunk.
+
+   If a shard has storage constraints, consider reducing this value
+   temporarily. If running queries that exceed 15 minutes on shard
+   secondaries, consider increasing this value.
+
+   The following sets the :parameter:`orphanCleanupDelaySecs` to 20 minutes:
+
+   .. code-block:: sh
+
+      mongod --setParameter orphanCleanupDelaySecs=1200
+
+   This may also be set using the :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, orphanCleanupDelaySecs: 1200 } )
 
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
