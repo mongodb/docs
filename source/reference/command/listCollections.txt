@@ -22,7 +22,7 @@ Definition
    document that contains information with which to create a
    cursor to the collection information. The :program:`mongo` shell
    provides the :method:`db.getCollectionInfos()` and the
-   :method:`db.getCollectionNames()`.
+   :method:`db.getCollectionNames()` helper methods.
 
    The command has the following form:
 
@@ -41,26 +41,11 @@ Behavior
 --------
 
 Use a filter to limit the results of :dbcommand:`listCollections`. You
-can specify a ``filter`` on the collection ``name`` and the following
-collection options:
+can specify a filter on any of the :ref:`fields returned
+<list-collection-output>` in the :dbcommand:`listCollections` result
+set.
 
-- ``"options.capped"``
-- ``"options.autoIndexId"``
-- ``"options.size"``
-- ``"options.max"``
-- ``"options.flags"``
-- ``"options.storageEngine"``
-
-The options correspond directly to the options available in
-:method:`db.createCollection()`, with the exception of the
-``"options.flags"``. The ``"options.flags"`` corresponds to the
-``usePowerOf2Sizes`` and the ``noPadding`` options in the
-:method:`db.createCollection()` method:
-
-.. include:: /includes/list-collection-user-flags.rst
-
-For the descriptions on the options, see
-:method:`db.createCollection()`.
+.. _list-collection-output:
 
 Output
 ------
@@ -70,8 +55,62 @@ Output
    A document that contains information with which to create a cursor
    to documents that contain collection names and options. The cursor
    information includes the cursor id, the full namespace for the
-   command, as well as the first batch of results.
+   command, as well as the first batch of results. Each document in the
+   batch output contains the following fields:
 
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 10 30
+
+      * - Field
+        - Type
+        - Description
+
+      * - name
+        - String
+        - Name of the collection.
+
+      * - type
+        - String
+        - Type of data store:
+        
+          - ``collection`` for :manual:`collections
+            </core/databases-and-collections/#collections>`.
+
+          - ``view`` for :manual:`views </core/views/>`.
+
+      * - options
+        - Document
+        - Collection options.
+        
+          These options correspond directly to the options available in
+          :method:`db.createCollection()`, with the exception of the
+          ``"options.flags"``. The ``"options.flags"`` corresponds to
+          the ``usePowerOf2Sizes`` and the ``noPadding`` options in the
+          :method:`db.createCollection()` method:
+
+          .. include:: /includes/list-collection-user-flags.rst
+
+          For the descriptions on the options, see
+          :method:`db.createCollection()`.
+
+      * - info
+        - Document
+        - Lists the following fields related to the collection:
+
+          readOnly
+             ``boolean``. If ``true``, the data store is read only.
+
+      * - idIndex
+        - Document
+        - Provides information on the ``_id`` index for the
+          collection.
+
+.. data:: listCollections.ok
+
+   The return value for the command. A value of ``1`` indicates
+   success.
+   
 .. data:: listCollections.ok
 
    The return value for the command. A value of ``1`` indicates
@@ -81,7 +120,6 @@ Required Access
 ---------------
 
 .. include:: /includes/extracts/actions-listCollections.rst
-
 
 Example
 -------
