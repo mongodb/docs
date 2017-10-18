@@ -43,32 +43,33 @@ Definition
 Behavior
 --------
 
-:dbcommand:`renameCollection` is suitable for production
-environments; *however*:
+:dbcommand:`renameCollection` is **not** compatible with sharded collections.
 
-- :dbcommand:`renameCollection` blocks all database activity for the
-  duration of the operation.
+:dbcommand:`renameCollection` fails if ``target`` is the name of an existing
+collection *and* you do not specify ``dropTarget: true``.
 
-- :dbcommand:`renameCollection` is **not** compatible with sharded
-  collections.
+.. versionchanged:: 3.6
 
-- :dbcommand:`renameCollection` fails if ``target`` is the name of an
-  existing collection *and* you do not specify ``dropTarget: true``.
+:dbcommand:`renameCollection` has different performance implications depending
+on the target :term:`namespace`.
 
-.. warning::
+If the target database is the same as the source database,
+:dbcommand:`renameCollection` simply changes the namespace. This is a quick
+operation.
 
-   If the :dbcommand:`renameCollection` operation does not complete,
-   the ``target`` collection and indexes will not be usable and
-   will require manual intervention to clean up.
-
+If the target database differs from the source database,
+:dbcommand:`renameCollection` copies all documents from the source collection
+to the target collection. Depending on the size of the collection, this
+may take longer to complete. Other operations which require exclusive
+access to the affected databases will be blocked until the rename completes.
+See :ref:`faq-concurrency-operations-locks` for operations which require
+exclusive access to all databases.
 
 Example
 -------
 
 The following example renames a collection named ``orders`` in the
 ``test`` database to ``orders2014`` in the ``test`` database.
-
-.. include:: /includes/warning-blocking-global.rst
 
 .. code-block:: javascript
 
