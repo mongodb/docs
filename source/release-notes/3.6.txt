@@ -116,10 +116,6 @@ New Aggregation Operators
    * - :expression:`$dateToParts`
      - Returns a document containing the constituent parts of a date.
 
-   * - :expression:`$expr`
-
-     - Allows the use of aggregation expressions within the
-       query language.
 
 New Aggregation Helper
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -162,6 +158,7 @@ operators </reference/operator/aggregation-date>`.
 
 .. seealso:: :ref:`Aggregation Compatibility Changes <aggregate-compatibility>`
 
+
 Array Update Operator Enhancements
 ----------------------------------
 
@@ -175,6 +172,7 @@ parameter to specify which elements to modify in an array field:
 
 .. list-table::
    :header-rows: 1
+   :widths: 30 70
 
    * - Commands
      - Methods
@@ -239,6 +237,7 @@ The following options are available for all commands:
 
 .. list-table::
    :header-rows: 1
+   :widths: 15 15 50
 
    * - Option
      - Type
@@ -260,6 +259,7 @@ available:
 
 .. list-table::
    :header-rows: 1
+   :widths: 15 15 50
 
    * - Option
      - Type
@@ -275,14 +275,6 @@ available:
 .. |operations| replace:: write operations
 
 .. |operation| replace:: write
-
-Indexes
--------
-
-- An index can cover a query on fields within nested documents.
-
-- Multikey indexes can cover queries over non-array keys if the index
-  tracks which fields make it multikey.
 
 Replica Sets
 ------------
@@ -303,22 +295,98 @@ Replica Sets
   set protocol versions, see
   :doc:`/reference/replica-set-protocol-versions`.
 
-Wire Protocol
--------------
+Sharded Clusters
+----------------
 
-MongoDB 3.6 introduces a new :doc:`wire protocol
-</reference/mongodb-wire-protocol>` opcode called :ref:`wire-op-msg`.
-This opcode's message format is extensible and designed to subsume the
-functionality of other opcodes.
+- Added :parameter:`ShardingTaskExecutorPoolMaxConnecting` parameter
+  for :program:`mongos` to control the rate at which :program:`mongos`
+  adds connections to a :program:`mongod` instance.
+
+
+Query Operators
+---------------
+
+New Operators
+~~~~~~~~~~~~~
+
+MongoDB 3.6 adds the following new query operators:
+
+- The new :query:`$jsonSchema` operator matches documents that validate
+  against the given JSON Schema. To use :query:`$jsonSchema`,
+  ``featureCompatibilityVersion`` must be set to "3.6".
+
+- The :query:`$expr` allows the use of aggregation expressions within
+  the query language.
+
+.. seealso::
+
+   :ref:`3.6-compatibility-enabled`
+
+Removed Operators
+~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the deprecated ``$pushAll`` operator. For more
+information, see :ref:`3.6-pushall-compatibility`.
+
 
 General Enhancements
 --------------------
 
 MongoDB 3.6 includes the following enhancements:
 
-- Added :parameter:`ShardingTaskExecutorPoolMaxConnecting` parameter
-  for :program:`mongos` to control the rate at which :program:`mongos`
-  adds connections to a :program:`mongod` instance.
+- Collections have an immutable :ref:`unique identifier
+  <collections-uuids>`.
+
+- Added support for specifying full Unix domain socket paths with
+  :option:`--bind_ip`.
+
+- Added support for the ``zlib`` compressor for
+  ``--networkMessageCompressors`` option (or
+  :setting:`net.compression.compressors` setting if using the
+  configuration file). ``--networkMessageCompressors`` option (or
+  :setting:`net.compression.compressors` setting) enables network
+  compression for communication between :program:`mongod`,
+  :program:`mongos`, and :program:`mongo` shell.
+
+- Added support for Diagnostics Capture (also known as ``FTDC``) in
+  :program:`mongos`. In previous versions, the feature was available
+  for :program:`mongod` only. See :ref:`param-ftdc`.
+
+  .. note:: FTDC is enabled by default.
+  
+- :program:`mongod` now offers a :option:`--timeZoneInfo` option. Use
+  this option to specify the path to your system time zone database.
+  The default configuration file included with Linux packages sets this
+  to ``/usr/share/zoneinfo``.
+
+- The new :parameter:`honorSystemUmask` startup option for
+  :program:`mongod` causes new files created by MongoDB to have
+  the read/write permissions specified by the `umask
+  <https://en.wikipedia.org/wiki/Umask>`_ of the user who runs the
+  :program:`mongod` process. Only available on Linux and OS X systems.
+
+- Date operations now accept consistent date ranges across all supported
+  operating systems. You may safely work with years in the range ``0``
+  through ``9999``.
+
+- MongoDB 3.6 introduces a new :doc:`wire protocol
+  </reference/mongodb-wire-protocol>` opcode called :ref:`wire-op-msg`.
+  This opcode's message format is extensible and designed to subsume
+  the functionality of other opcodes.
+
+Indexes
+~~~~~~~
+
+- An index can cover a query on fields within nested documents.
+
+- Multikey indexes can cover queries over non-array keys if the index
+  tracks which fields make it multikey.
+
+- When creating an index, you cannot specify ``*`` as the name of the
+  index. See :ref:`3.6-index-asterisk`.
+
+Commands
+~~~~~~~~
 
 - Added the following options to the :dbcommand:`listDatabases` admin
   command:
@@ -330,62 +398,18 @@ MongoDB 3.6 includes the following enhancements:
   - ``filter`` to return databases that match the specified match
     criteria on the outputs.
 
-- Added support for the ``zlib`` compressor for
-  ``--networkMessageCompressors`` option (or
-  :setting:`net.compression.compressors` setting if using the
-  configuration file). ``--networkMessageCompressors`` option (or
-  :setting:`net.compression.compressors` setting) enables network
-  compression for communication between :program:`mongod`,
-  :program:`mongos`, and :program:`mongo` shell.
-
-- Removes the deprecated ``$pushAll`` operator. For more information,
-  see :ref:`3.6-pushall-compatibility`.
-
 - Modified behavior of the :dbcommand:`validate` command and the
   :method:`db.collection.validate()` method such that only for ``full``
   validation does the WiredTiger storage engine force a checkpoint,
   flush all in-memory data to disk, then verify the on-disk data. See
   also :ref:`3.6-validate-compatibility`.
 
-- Added support for Diagnostics Capture (also known as ``FTDC``) in
-  :program:`mongos`. In previous versions, the feature was available for
-  :program:`mongod` only. See :ref:`param-ftdc`.
-
-  .. note:: FTDC is enabled by default.
-
-- Added support for specifying full Unix domain socket paths with
-  :option:`--bind_ip`.
-
 - The ``<database>.system.profile`` entry for :dbcommand:`update` and
   :dbcommand:`delete` contains the entire update/delete document applied
   to the named collection.
 
-- When creating an index, you cannot specify ``*`` as the name of the
-  index. See :ref:`3.6-index-asterisk`.
-
-- Collections have an immutable :ref:`unique identifier
-  <collections-uuids>`.
-
-- :program:`mongod` now offers a :option:`--timeZoneInfo` option. Use
-  this option to specify the path to your system time zone database.
-  The default configuration file included with Linux packages sets this
-  to ``/usr/share/zoneinfo``.
-
 - :dbcommand:`dropDatabase` waits until all collections drops in the
   database have propagated to a majority of the replica set members.
-
-- Date operations now accept consistent date ranges across all supported
-  operating systems. You may safely work with years in the range ``0``
-  through ``9999``.
-
-- The new :query:`$jsonSchema` operator matches documents that validate
-  against the given JSON Schema.
-
-- The new :parameter:`honorSystemUmask` startup option for
-  :program:`mongod` causes new files created by MongoDB to have
-  the read/write permissions specified by the `umask
-  <https://en.wikipedia.org/wiki/Umask>`_ of the user who runs the
-  :program:`mongod` process. Only available on Linux and OS X systems.
 
 Changes Affecting Compatibility
 -------------------------------
