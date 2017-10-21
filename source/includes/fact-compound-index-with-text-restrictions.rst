@@ -6,3 +6,5 @@
   ``text`` index key, to perform a :query:`$text` search, the query
   predicate must include **equality match conditions** on the preceding
   keys.
+
+- When creating a compound index all ``text`` fields must be adjacent.
