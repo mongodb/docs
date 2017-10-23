@@ -340,6 +340,61 @@ The change applies to the following aggregation operators:
 
 - :expression:`$toUpper`
 
+Update Behavior Changes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+New Fields in Updates
+`````````````````````
+
+Starting in MongoDB 3.6, new fields added through :dbcommand:`update`
+operations are appended in lexicographic order.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: 0 }
+
+The following update operation adds two new fields to the document:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {b: 0, a: 0}})
+
+Starting in 3.6, MongoDB appends the new fields in lexicographic order. The
+updated document would be ``{_id : 0, x: 0, a: 0, b: 0}``.
+
+Earlier versions of MongoDB append the new fields in order of appearance in
+the update document. The updated document would be ``{_id : 0, x: 0, b: 0, a:
+0}``.
+
+Fields Conflicting with ``arrayFilters`` Identifiers
+````````````````````````````````````````````````````
+
+Starting in MongoDB 3.6, fields that conflict with ``arrayFilters``
+identifiers can no longer be updated.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: { "$[]": 0 } }
+
+The following update succeeds in earlier versions of MongoDB:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {"x.$[]": 1}})
+
+In MongoDB 3.6 the update fails since the field name "$[]" conflicts with
+``arrayFilters`` identifier syntax. For more information on
+``arrayFilters`` see :ref:`update-command-arrayFilters`.
+
+.. note::
+
+   The new update behaviors apply only when ``featureCompatibilityVersion`` is
+   set to 3.6.
+
 
 .. _3.6-index-asterisk:
 
