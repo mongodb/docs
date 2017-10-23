@@ -6,6 +6,16 @@
      - Type
      - Description
 
+   * - ``autoScaling``
+     - document
+     - Information on whether disk auto-scaling is enabled. The document contains
+       ``diskGBEnabled`` field set to:
+
+       - ``true`` if enabled.
+       - ``false`` if disabled.
+
+       Default is true.
+
    * - ``name``
      - string
      - The name of the cluster as it appears in |service|.
