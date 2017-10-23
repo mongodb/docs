@@ -88,12 +88,6 @@ the MongoDB Connector for BI.
        files should take up before deletion. The default is ``0.02``.
        *Conditional: requires* ``mongosqlds.logRotate``.
 
-   * - ``mongosqlds.maxMemPerStageBytes``
-     - number
-     - The maximum amount of memory in bytes that a query 
-       :manual:`execution stage </reference/operator/aggregation-pipeline>`
-       may use.
-
    * - ``mongosqlds.mongoUri``
      - string
      - The :abbr:`URI (Uniform Resource Identifier)` for the MongoDB
