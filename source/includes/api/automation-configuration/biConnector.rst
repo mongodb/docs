@@ -16,11 +16,7 @@ the MongoDB Connector for BI.
            "numUncompressed" : "<number>",
            "percentOfDiskspace" : "<number>"
          },
-         "mongoUri" : "<string>",
          "mongodbSSLEnabled" : "<boolean>",
-         "namespaces" : [
-           "<string>"
-         ],
          "port" : "<number>",
          "sslMode" : "<string>",
          "sslPEMKeyFile" : "<string>",
@@ -88,24 +84,11 @@ the MongoDB Connector for BI.
        files should take up before deletion. The default is ``0.02``.
        *Conditional: requires* ``mongosqlds.logRotate``.
 
-   * - ``mongosqlds.mongoUri``
-     - string
-     - The :abbr:`URI (Uniform Resource Identifier)` for the MongoDB
-       instance to which `mongosqld` connects given in the MongoDB
-       :manual:`Connection String </reference/connection-string>`
-       format.
-
    * - ``mongosqlds.mongodbSSLEnabled``
      - boolean
      - Indicator that the MongoDB instance to which ``mongosqld`` is
        connected has :abbr:`TLS (Transport Security Layer)` /
        :abbr:`SSL (Secure Sockets Layer)` enabled. *Optional.*
-
-   * - ``mongosqlds.namespaces``
-     - array of strings
-     - *Optional*. An array of :term:`namespaces <namespace>` from the
-       ``mongosqld.mongoUri`` that the ``mongosqld`` samples to create a
-       relational schema. The default is all namespaces.
 
    * - ``mongosqlds.port``
      - number
