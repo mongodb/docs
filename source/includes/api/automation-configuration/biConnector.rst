@@ -7,13 +7,13 @@ the MongoDB Connector for BI.
      "mongosqlds" : [
        {
          "hostname" : "<string>",
-         "id" : "<number>",
+         "id" : "<ObjectId>",
          "logPath" : "<string>",
          "logPathWindows" : "<string>",
          "logRotate" : {
            "sizeThresholdMB" : "<number>",
            "timeThresholdHrs" : "<number>",
-           "numUncompressed" : "<number>",
+           "numUncompressed" : "<string>",
            "percentOfDiskspace" : "<number>"
          },
          "mongodbSSLEnabled" : "<boolean>",
@@ -22,9 +22,8 @@ the MongoDB Connector for BI.
          "sslPEMKeyFile" : "<string>",
          "sslPEMKeyPassword" : "<string>",
          "urls" : {
-           "<platform>" : {
-             "<distribution>" : "<url>",
-           }
+           "<platform>" : "<string>",
+           "default" : "<string>"
          },
          "version" : "<string>"
        }
@@ -45,50 +44,47 @@ the MongoDB Connector for BI.
      - The host onto which to deploy the ``mongosqld``.
 
    * - ``mongosqlds.id``
-     - number
+     - ObjectId
      - The unique identifier for the ``mongosqld`` instance.
 
    * - ``mongosqlds.logPath``
      - string
-     - UNIX path to the ``mongosqld`` log file. *Not needed for Windows
-       servers hosting * ``mongosqld``.
+     - UNIX path to the ``mongosqld`` log file.
 
    * - ``mongosqlds.logPathWindows``
      - string
-     - Windows path to the ``mongosqld`` log file. *Not needed for UNIX
-       servers hosting* ``mongosqld``.
+     - Windows path to the ``mongosqld`` log file.
 
    * - ``mongosqlds.logRotate``
      - object
-     - Enables log rotation for the ``mongosqld`` logs. *Optional*.
+     - *Optional*. Enables log rotation for the ``mongosqld`` logs.
 
    * - ``mongosqlds.logRotate.sizeThresholdMB``
      - number
      - The maximum size in MB for an individual log file before
-       rotation. *Conditional: requires* ``mongosqlds.logRotate``.
+       rotation.
 
    * - ``mongosqlds.logRotate.timeThresholdHrs``
-     - number
+     - integer
      - The maximum time in hours for an individual log file before
-       rotation. *Conditional: requires* ``mongosqlds.logRotate``.
+       rotation.
 
    * - ``mongosqlds.logRotate.numUncompressed``
-     - number
-     - The maximum number of total log files to leave
+     - integer
+     - *Optional*. The maximum number of total log files to leave
        uncompressed, including the current log file. The default is
-       ``5``. *Conditional: requires* ``mongosqlds.logRotate``.
+       ``5``.
 
    * - ``mongosqlds.logRotate.percentOfDiskspace``
      - number
      - *Optional*. The maximum percentage of total disk space all log
        files should take up before deletion. The default is ``0.02``.
-       *Conditional: requires* ``mongosqlds.logRotate``.
 
    * - ``mongosqlds.mongodbSSLEnabled``
      - boolean
      - Indicator that the MongoDB instance to which ``mongosqld`` is
        connected has :abbr:`TLS (Transport Security Layer)` /
-       :abbr:`SSL (Secure Sockets Layer)` enabled. *Optional.*
+       :abbr:`SSL (Secure Sockets Layer)` enabled.
 
    * - ``mongosqlds.port``
      - number
@@ -97,18 +93,15 @@ the MongoDB Connector for BI.
    * - ``mongosqlds.sslMode``
      - string
      - State of SSL deployment: ``none``, ``allowSSL`` or
-       ``requireSSL``. *Optional.*
+       ``requireSSL``.
 
    * - ``mongosqlds.sslPEMKeyFile``
      - string
      - Path to the :abbr:`SSL (Secure Socket Layer)` ``.pem`` file.
-       *Conditional: requires* ``mongosqlds.sslMode`` *to be set to*
-       ``allowSSL`` or ``requireSSL``.
 
    * - ``mongosqlds.sslPEMKeyPassword``
      - string
-     - Password for the ``.pem`` key file if
-       ``mongosqlds.sslPEMKeyFile`` was encrypted.
+     - Password for the ``.pem`` key file if it was encrypted.
 
    * - ``mongosqlds.urls.<platform>``
      - objects
@@ -117,7 +110,9 @@ the MongoDB Connector for BI.
        object contains a key- value pair. Each key is either the name of
        a build (an operating system and, optionally, its version) or
        ``default``. Each value is a :abbr:`URL (Uniform Resource
-       Locator)` for downloading the ``mongosqld``.
+       Locator)` for downloading the ``mongosqld``. The object must
+       include the ``default`` key set to the default download
+       :abbr:`URLs (Uniform Resource Locators)` for the platform.
 
    * - ``mongosqlds.version``
      - number
