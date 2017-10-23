@@ -1,7 +1,18 @@
+.. _backup-6.0.0.680:
+
 Backup Agent ``6.0.0.680``
 --------------------------
 
 *Released 2017-10-26*
+
+- Support for upcoming release of MongoDB 3.6.
+
+.. _backup-6.0.0.676:
+
+Backup Agent 6.0.0.676
+----------------------
+
+*Released 2017-10-25*
 
 - Support for upcoming release of MongoDB 3.6.
 
