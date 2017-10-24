@@ -8,6 +8,21 @@
 
             db.inventory.find( { item: "canvas" } )
 
+     - id: compass
+       content: |
+         .. figure:: /images/compass-query-collection.png
+
+         Specify a filter in the MongoDB Compass query bar and click
+         :guilabel:`Find` to execute the query.
+
+         The above filter specifies that MongoDB Compass only return
+         documents where the ``item`` field is equal to ``canvas``.
+
+         For more information on the MongoDB Compass Query Bar, see the
+         Compass
+         `Query Bar <https://docs.mongodb.com/compass/master/query-bar/>`_
+         documentation.
+
      - id: python
        content: |
          .. class:: copyable-code
