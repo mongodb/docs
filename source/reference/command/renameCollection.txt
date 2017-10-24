@@ -19,6 +19,13 @@ Definition
    to :dbcommand:`renameCollection` in the form of a complete
    :term:`namespace` (``<database>.<collection>``).
 
+   .. warning::
+
+      This command obtains a database-level write lock for renames
+      within the same database and a global write lock for
+      cross-database renames. Write locks will block other database
+      activity for the duration of the rename operation.
+
    Issue the :dbcommand:`renameCollection` command against the
    :term:`admin database`.
 
@@ -43,24 +50,35 @@ Definition
 Behavior
 --------
 
-:dbcommand:`renameCollection` is suitable for production
-environments; *however*:
-
-- :dbcommand:`renameCollection` blocks all database activity for the
-  duration of the operation.
-
-- :dbcommand:`renameCollection` is **not** compatible with sharded
-  collections.
-
-- :dbcommand:`renameCollection` fails if ``target`` is the name of an
-  existing collection *and* you do not specify ``dropTarget: true``.
+The :dbcommand:`renameCollection` command should be used with caution
+in production environments.
 
 .. warning::
 
-   If the :dbcommand:`renameCollection` operation does not complete,
-   the ``target`` collection and indexes will not be usable and
-   will require manual intervention to clean up.
+  - :dbcommand:`renameCollection` is **not** compatible with sharded
+    collections.
 
+  - If the :dbcommand:`renameCollection` operation does not complete,
+    the ``target`` collection and indexes will not be usable and
+    will require manual intervention to clean up.
+
+  - If the ``source`` collection is not in the same database as the
+    ``target`` collection, :dbcommand:`renameCollection` will acquire
+    a global write lock that blocks all database activity for the
+    duration of the rename operation.
+
+  .. versionchanged:: 3.6
+
+  - If the ``source`` collection is in the same database as the
+    ``target`` collection, :dbcommand:`renameCollection` will acquire
+    a database-level write lock. This will block activity for
+    the affected database for the duration of the rename operation,
+    but is less disruptive than the global write lock required for
+    a cross-database collection rename.
+  
+The :dbcommand:`renameCollection` command will fail if ``target``
+is the name of an existing collection *and* you do not specify
+``dropTarget: true``.
 
 Example
 -------
@@ -68,12 +86,9 @@ Example
 The following example renames a collection named ``orders`` in the
 ``test`` database to ``orders2014`` in the ``test`` database.
 
-.. include:: /includes/warning-blocking-global.rst
-
 .. code-block:: javascript
 
-   use admin
-   db.runCommand( { renameCollection: "test.orders", to: "test.orders2014" } )
+   db.adminCommand( { renameCollection: "test.orders", to: "test.orders2014" } )
 
 The :program:`mongo` shell provides the
 :method:`db.collection.renameCollection()` helper for the command to
