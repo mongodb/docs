@@ -79,22 +79,8 @@
 
        The possible values are ``1`` through ``12``.
 
-   * - ``replicationFactor``
-     - number
-     - The number of :term:`replica set` members. Each member keeps a copy of
-       your databases, providing high availability and data redundancy.
-
-       If your cluster is a sharded cluster, each shard is a replica set with
-       the specified replication factor.
-
-       For information on how the replication factor affects costs, see
-       :ref:`server-number-costs`. For more information on MongoDB replica
-       sets, see :manual:`Replication </replication>` in the MongoDB manual.
-
-       The possible values are ``3``, ``5``, or ``7``.
-
    * - ``providerSettings``
-     - object
+     - document
      - The configuration for the provisioned servers on which MongoDB runs.
        The available options are specific to the cloud service provider.
 
@@ -163,6 +149,56 @@
      - *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
        server's root volume for both data at rest within the volume and for
        data moving between the volume and the instance.
+
+   * - ``replicationFactor``
+     - number
+     - The number of :term:`replica set` members. Each member keeps a copy of
+       your databases, providing high availability and data redundancy.
+
+       If your cluster is a sharded cluster, each shard is a replica set with
+       the specified replication factor.
+
+       For information on how the replication factor affects costs, see
+       :ref:`server-number-costs`. For more information on MongoDB replica
+       sets, see :manual:`Replication </replication>` in the MongoDB manual.
+
+       The possible values are ``3``, ``5``, or ``7``.
+
+   * - ``replicationSpec``
+     - document
+     - The configuration of each region in the cluster. Each element
+       in this document represents a region where |service| deploys your 
+       cluster.
+
+   * - ``replicationSpec.<region>``
+     - document
+     - The physical location of the region. The ``<region>`` string 
+       corresponds to a region where |service| deploys your cluster. 
+       
+       Each ``<region>`` document describes the region's priority in
+       elections and the number and type of MongoDB nodes |service| deploys
+       to the region.
+
+   * - ``replicationSpec.<region>.electableNodes``
+     - integer
+     - The number of electable nodes in the region. Electable nodes can become
+       the :term:`primary` and can facilitate local reads.
+
+   * - ``replicationSpec.<region>.priority``
+     - integer
+     - The election priority of the region. The highest possible priority is
+       ``7``, which identifies the **Preferred Region** of the cluster.
+       |service| places the :term:`primary` node in the **Preferred Region**.
+       The lowest possible priority is ``0``, which identifies a read only region.
+
+       You can have any number of priority ``0`` read only regions. 
+       Priorities ``1`` through ``7`` are exclusive - no more than one
+       region per cluster can be assigned a given priority.
+
+   * - ``replicationSpec.<region>.readOnlyNodes``
+     - integer
+     - The number of read-only nodes in the region. Read-only nodes can never
+       become the :term:`primary`, but can facilitate local-reads.
 
    * - ``diskSizeGB``
      - double

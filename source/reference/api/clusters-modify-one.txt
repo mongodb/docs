@@ -54,9 +54,10 @@ Request Body Parameters
 
 .. important::
 
-   If modifying any of the ``providerSettings`` values, you *must* specify the
-   ``providerSettings.providerName``. For ``M2`` and ``M5`` clusters, you must
-   also specify the ``providerSettings.backingProviderName``.
+   If modifying any of the ``providerSettings`` or ``replicationSpec`` values,
+   you *must* specify the ``providerSettings.providerName``. For ``M2`` and
+   ``M5`` clusters, you must also specify the
+   ``providerSettings.backingProviderName``.
 
 .. list-table::
    :widths: 20 10 70
@@ -80,7 +81,7 @@ Request Body Parameters
      - string
      - Specify ``3.4`` to direct |service| to upgrade the cluster to MongoDB
        3.4. You cannot downgrade a cluster running on ``3.4`` to ``3.2``.
-       
+
        |service| always upgrades the cluster to the latest stable release of the
        specified version.
 
@@ -102,22 +103,8 @@ Request Body Parameters
 
        The possible values are ``1`` through ``12``.
 
-   * - ``replicationFactor``
-     - number
-     - The number of :term:`replica set` members. Each member keeps a copy of
-       your databases, providing high availability and data redundancy.
-
-       If your cluster is a sharded cluster, each shard is a replica set with
-       the specified replication factor.
-
-       For information on how the replication factor affects costs, see
-       :ref:`server-number-costs`. For more information on MongoDB replica
-       sets, see :manual:`Replication </replication>` in the MongoDB manual.
-
-       The possible values are ``3``, ``5``, or ``7``.
-
    * - ``providerSettings``
-     - object
+     - document
      - The configuration for the provisioned servers on which MongoDB runs.
        The available options are specific to the cloud service provider.
 
@@ -152,17 +139,20 @@ Request Body Parameters
      - The physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
+       |service| ignores this value if you specify the ``replicationSpec``
+       document.
+
        .. include:: /includes/fact-group-region-association.rst
 
        The following regions are valid for ``M10+`` clusters.
 
        .. list-table::
           :header-rows: 1
-          
+
           * - AWS
             - GCP
-            - Azure
-            
+            - AZURE
+
           * - .. include:: /includes/fact-aws-region-names.rst
             - .. include:: /includes/fact-gcp-region-names.rst
             - .. include:: /includes/fact-azure-region-names.rst
@@ -174,7 +164,7 @@ Request Body Parameters
 
           * - AWS
             - GCP
-            - Azure
+            - AZURE
 
           * - .. include:: /includes/fact-aws-m2-m5-region-names.rst
             - .. include:: /includes/fact-gcp-m2-m5-region-names.rst
@@ -202,7 +192,7 @@ Request Body Parameters
        select :guilabel:`Build a New Cluster`; select your preferred cloud
        service provider and region; view the available instance sizes; close
        the window without saving changes.
-       
+
        You must include ``providerSettings.providerName`` if modifying this
        value.
        
@@ -215,9 +205,9 @@ Request Body Parameters
        size has a specific set of available IOPS values. To view available
        values: open the |service| web interface; select :guilabel:`Build a New
        Cluster`; select your preferred cloud service provider and region; click
-       an instance size to view the available values; close the window without 
+       an instance size to view the available values; close the window without
        saving changes.
-       
+
        You must include ``providerSettings.providerName`` if modifying this
        value.
 
@@ -226,9 +216,116 @@ Request Body Parameters
      - *AWS only*. If enabled, the Amazon EBS encryption feature encrypts the
        server's root volume for both data at rest within the volume and for
        data moving between the volume and the instance.
-       
+
        You must include ``providerSettings.providerName`` if modifying this
        value.
+
+   * - ``replicationFactor``
+     - number
+     - The number of :term:`replica set` members. Each member keeps a copy of
+       your databases, providing high availability and data redundancy.
+
+       If your cluster is a sharded cluster, each shard is a replica set with
+       the specified replication factor.
+
+       For information on how the replication factor affects costs, see
+       :ref:`server-number-costs`. For more information on MongoDB replica
+       sets, see :manual:`Replication </replication>` in the MongoDB manual.
+
+       The possible values are ``3``, ``5``, or ``7``.
+
+       |service| ignores this value if you specify the ``replicationSpec``
+       document.
+
+   * - ``replicationSpec``
+     - document
+     - *Optional*
+
+       The configuration of each region in a multi-region cluster. Each
+       element in this document represents a region where |service| deploys
+       your cluster.
+
+       For single-region clusters, you can either specify the
+       ``providerSettings.regionName`` and ``replicationFactor``, *or* you can
+       use the ``replicationSpec`` document to define a single region.
+
+       If you specify ``replicationSpec``, |service| overrides any values you
+       specify to the ``providerSettings.regionName`` or ``replicationFactor``
+       field with values derived from ``replicationSpec``.
+
+       .. important::
+
+          You **must** order each element in this document by
+          ``replicationSpec.<region>.priority`` descending.
+
+   * - ``replicationSpec.<region>``
+     - document
+     - *Required if specifying* ``replicationSpec``
+
+       The physical location of the region. Replace ``<region>`` with the name
+       of the region.
+       
+       Each ``<region>`` document describes the region's priority in
+       elections and the number and type of MongoDB nodes |service| deploys
+       to the region.
+
+       You must specify at least one ``replicationSpec.<region>`` document.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       .. list-table::
+          :header-rows: 1
+
+          * - AWS
+            - GCP
+            - AZURE
+
+          * - .. include:: /includes/fact-aws-region-names.rst
+            - .. include:: /includes/fact-gcp-region-names.rst
+            - .. include:: /includes/fact-azure-region-names.rst
+
+       For each ``<region>`` document, you must specify
+       the ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
+
+   * - ``replicationSpec.<region>.electableNodes``
+     - integer
+     - *Required*
+
+       The number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the :term:`primary` and can facilitate
+       local reads.
+
+       The total number of ``electableNodes`` across all
+       ``replicationSpec.<region>`` documents must be ``3``, ``5``, or ``7``.
+
+       Specify ``0`` if you do not want any electable nodes in the
+       region.
+
+       You cannot create electable nodes if the
+       ``replicationSpec.<region>.priority`` is 0.
+
+   * - ``replicationSpec.<region>.priority``
+     - integer
+     - *Required*
+
+       The election priority of the region. The highest possible priority is
+       ``7``, which identifies the **Preferred Region** of the cluster.
+       |service| places the :term:`primary` node in the **Preferred Region**.
+       The lowest possible priority is ``0``, which identifies a read only region.
+
+       You can have any number of priority ``0`` read only regions. 
+       Priorities ``1`` through ``7`` are exclusive - no more than one
+       region per cluster can be assigned a given priority.
+
+   * - ``replicationSpec.<region>.readOnlyNodes``
+     - integer
+     - *Required*
+
+       The number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify ``0`` if you do not want any read-only nodes in the region.
 
    * - ``diskSizeGB``
      - double
@@ -257,6 +354,9 @@ Example
 Request
 ~~~~~~~
 
+Single Region Modification Request
+++++++++++++++++++++++++++++++++++
+
 .. code-block:: none
 
    curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/datastore2" --data '
@@ -272,8 +372,42 @@ Request
      "replicationFactor" : 3
    }'
 
+Multi Region Modification Request
++++++++++++++++++++++++++++++++++
+
+.. code-block:: none
+
+   curl -i -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters" --data '
+   {
+     "providerSettings" : {
+       "providerName" : "AWS",
+       "diskIOPS" : 480,
+       "instanceSizeName" : "M10"
+     },
+     "replicationSpec": {
+         "US_EAST_1": {
+           "electableNodes": 3,
+           "priority": 7,
+           "readOnlyNodes" : 0
+         },
+         "US_EAST_2": {
+           "electableNodes": 0,
+           "priority" : 6,
+           "readOnlyNodes" : 2
+         },
+         "US_WEST_1": {
+           "electableNodes" : 0,
+           "priority" : 5,
+           "readOnlyNodes": 2
+         }
+      }
+   }'
+
 Response
 ~~~~~~~~
+
+Single Region Modification Response
++++++++++++++++++++++++++++++++++++
 
 .. code-block:: none
 
@@ -284,8 +418,9 @@ Response
      "backupEnabled" : true,
      "diskSizeGB" : 320,
      "groupId" : "5356823b3794de37132bb7b",
+     "id": "59ef6621c0c6e378559875ed",
      "mongoDBVersion" : "3.2.8",
-     "mongoURI" : "mongodb://datastore2-shard-00-00-ub6lu.mongodb.net:27017,datastore2-shard-00-01-ub6lu.mongodb.net:27017,datastore2-shard-00-02-ub6lu.mongodb.net:27017",
+     "mongoURI" : "mongodb://datastore2-shard-00-00.example.net:27017,datastore2-shard-00-01.example.net:27017,datastore2-shard-00-02.example.net:27017",
      "mongoURIUpdated" : "2016-08-03T15:19:24Z",
      "numShards" : 1,
      "providerSettings" : {
@@ -297,4 +432,51 @@ Response
      },
      "replicationFactor" : 3,
      "stateName" : "UPDATING"
+   }
+
+Multi Region Modification Response
+++++++++++++++++++++++++++++++++++
+
+.. code-block:: none
+
+   {
+      "name" : "datastore2",
+   	"backupEnabled": false,
+   	"diskSizeGB": 160.0,
+   	"groupId": "5356823b3794de37132bb7b",
+   	"id": "59ef6621c0c6e378559875ed",
+   	"links": [{
+   		"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/DataStore2",
+   		"rel": "self"
+   	}],
+   	"mongoDBMajorVersion": "3.4",
+   	"mongoDBVersion": "3.4.9",
+           "mongoURI" : "mongodb://datastore2-shard-00-00.example.net:27017,datastore2-shard-00-01.example.net:27017,datastore2-shard-00-02.example.net:27017",
+   	"mongoURIUpdated": "2017-10-24T16:11:13Z",
+   	"name": "DataStore2",
+   	"numShards": 1,
+   	"providerSettings": {
+   		"providerName": "AWS",
+   		"diskIOPS": 480,
+   		"encryptEBSVolume": true,
+   		"instanceSizeName": "M10"
+   	},
+   	"replicationSpec": {
+   		"US_EAST_1": {
+   			"electableNodes": 3,
+   			"priority": 7,
+   			"readOnlyNodes": 0
+   		},
+   		"US_EAST_2": {
+   			"electableNodes": 2,
+   			"priority": 6,
+   			"readOnlyNodes": 0
+   		},
+   		"US_WEST_1": {
+   			"electableNodes": 2,
+   			"priority": 5,
+   			"readOnlyNodes": 2
+   		}
+   	},
+   	"stateName": "UPDATING"
    }

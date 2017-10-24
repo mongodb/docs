@@ -68,22 +68,22 @@ Request Body Parameters
      - string
      - The name of the cluster as it appears in |service|. Once the cluster is
        created, its name cannot be changed.
-       
+
    * - ``mongoDBMajorVersion``
      - string
-     - The version of the cluster to deploy. |service| supports the following 
+     - The version of the cluster to deploy. |service| supports the following
        MongoDB versions:
-       
+
        - 3.2
        - 3.4
-       
+
        |service| always deploys the cluster with the latest stable release of
        the specified version.
 
    * - ``numShards``
      - integer
      - *Optional*
-     
+
        Selects whether the cluster is a :term:`replica set` or a
        :term:`sharded cluster`.
 
@@ -102,26 +102,8 @@ Request Body Parameters
 
        The default value is ``1``.
 
-   * - ``replicationFactor``
-     - number
-     - *Optional*
-     
-       The number of :term:`replica set` members. Each member keeps a copy of
-       your databases, providing high availability and data redundancy.
-
-       If your cluster is a sharded cluster, each shard is a replica set with
-       the specified replication factor.
-
-       For information on how the replication factor affects costs, see
-       :ref:`server-number-costs`. For more information on MongoDB replica
-       sets, see :manual:`Replication </replication>` in the MongoDB manual.
-
-       The possible values are ``3``, ``5``, or ``7``.
-
-       The default value is ``3``.
-
    * - ``providerSettings``
-     - object
+     - document
      - The configuration for the provisioned servers on which MongoDB runs.
        The available options are specific to the cloud service provider.
 
@@ -150,6 +132,9 @@ Request Body Parameters
      - The physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
+       |service| ignores this value if you pass the
+       ``replicationSpec`` document.
+
        .. include:: /includes/fact-group-region-association.rst
 
        The following regions are valid for ``M10+`` clusters:
@@ -160,7 +145,7 @@ Request Body Parameters
           * - AWS
             - GCP
             - AZURE
-            
+
           * - .. include:: /includes/fact-aws-region-names.rst
             - .. include:: /includes/fact-gcp-region-names.rst
             - .. include:: /includes/fact-azure-region-names.rst
@@ -203,7 +188,7 @@ Request Body Parameters
    * - ``providerSettings.diskIOPS``
      - integer
      - *Optional*
-       
+
        The maximum input/output operations per second (IOPS) the system can
        perform. The available :abbr:`IOPS (Input/Output Operations per
        Second)` depend on the instance size: each instance size has a specific
@@ -227,10 +212,121 @@ Request Body Parameters
 
        The default value is ``false``.
 
+   * - ``replicationFactor``
+     - number
+     - *Optional*
+
+       The number of :term:`replica set` members. Each member keeps a copy of
+       your databases, providing high availability and data redundancy.
+
+       If your cluster is a sharded cluster, each shard is a replica set with
+       the specified replication factor.
+
+       For information on how the replication factor affects costs, see
+       :ref:`server-number-costs`. For more information on MongoDB replica
+       sets, see :manual:`Replication </replication>` in the MongoDB manual.
+
+       The possible values are ``3``, ``5``, or ``7``.
+
+       The default value is ``3``.
+
+       |service| ignores this value if you pass the ``replicationSpec``
+       document.
+
+   * - ``replicationSpec``
+     - document
+     - *Optional*
+
+       The configuration of each region in a multi-region cluster. Each
+       element in this document represents a region where |service| deploys
+       your cluster.
+
+       For single-region clusters, you can either specify the
+       ``providerSettings.regionName`` and ``replicationFactor``, *or* you can
+       use the ``replicationSpec`` document to define a single region.
+
+       If you specify ``replicationSpec``, |service| overrides any values you
+       specify to the ``providerSettings.regionName`` or ``replicationFactor``
+       field with values derived from ``replicationSpec``.
+
+       .. important::
+
+          You **must** order each element in this document by
+          ``replicationSpec.<region>.priority`` descending.
+
+   * - ``replicationSpec.<region>``
+     - document
+     - *Required if specifying* ``replicationSpec``
+
+       The physical location of the region. Replace ``<region>`` with the name
+       of the region.
+       
+       Each ``<region>`` document describes the region's priority in
+       elections and the number and type of MongoDB nodes |service| deploys
+       to the region.
+
+       You must specify at least one ``replicationSpec.<region>`` document.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       .. list-table::
+          :header-rows: 1
+
+          * - AWS
+            - GCP
+            - AZURE
+
+          * - .. include:: /includes/fact-aws-region-names.rst
+            - .. include:: /includes/fact-gcp-region-names.rst
+            - .. include:: /includes/fact-azure-region-names.rst
+
+       For each ``<region>`` document, you must specify
+       the ``electableNodes``, ``priority``, and ``readOnlyNodes`` fields.
+
+   * - ``replicationSpec.<region>.electableNodes``
+     - integer
+     - *Required*
+
+       The number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the :term:`primary` and can facilitate
+       local reads.
+
+       The total number of ``electableNodes`` across all
+       ``replicationSpec.<region>`` document must be ``3``, ``5``, or ``7``.
+
+       Specify ``0`` if you do not want any electable nodes in the
+       region.
+
+       You cannot create electable nodes if the
+       ``replicationSpec.<region>.priority`` is 0.
+
+   * - ``replicationSpec.<region>.priority``
+     - integer
+     - *Required*
+
+       The election priority of the region. The highest possible priority is
+       ``7``, which identifies the **Preferred Region** of the cluster.
+       |service| places the :term:`primary` node in the **Preferred Region**.
+       The lowest possible priority is ``0``, which identifies a read only region.
+
+       You can have any number of priority ``0`` read only regions. 
+       Priorities ``1`` through ``7`` are exclusive - no more than one
+       region per cluster can be assigned a given priority.
+
+   * - ``replicationSpec.<region>.readOnlyNodes``
+     - integer
+     - *Required*
+
+       The number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify ``0`` if you do not want any read-only nodes in the region.
+
    * - ``diskSizeGB``
      - double
      - *Optional*
-       
+
        The size in gigabytes of the server's root volume. You can add capacity
        by increasing this number, up to a maximum possible value of ``16384``
        (i.e., 16 TB).
@@ -262,6 +358,9 @@ Example
 Request
 ~~~~~~~
 
+Single Region Cluster Creation
+++++++++++++++++++++++++++++++
+
 .. code-block:: none
 
    curl -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters" --data '
@@ -282,8 +381,46 @@ Request
      "autoScaling":{"diskGBEnabled":true}
    }'
 
+Multi Region Cluster Creation
++++++++++++++++++++++++++++++
+
+.. code-block:: none
+
+   curl -u "username:apiKey" --digest -H "Content-Type: application/json" -X POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters" --data '
+   {
+     "name" : "DataStore2",
+     "diskSizeGB" : 160,
+     "numShards" : 1,
+     "providerSettings" : {
+       "providerName" : "AWS",
+       "diskIOPS" : 480,
+       "instanceSizeName" : "M10"
+     },
+     "replicationSpec": {
+         "US_EAST_1": {
+           "electableNodes": 3,
+           "priority": 7,
+           "readOnlyNodes" : 0
+         },
+         "US_EAST_2": {
+           "electableNodes": 2,
+           "priority" : 6,
+           "readOnlyNodes" : 0
+         },
+         "US_WEST_1": {
+           "electableNodes" : 2,
+           "priority" : 5,
+           "readOnlyNodes": 2
+         }
+     },
+     "backupEnabled" : false
+   }'
+
 Response
 ~~~~~~~~
+
+Single Region Cluster Response
+++++++++++++++++++++++++++++++
 
 .. code-block:: none
 
@@ -292,7 +429,7 @@ Response
       "backupEnabled" : true,
       "diskSizeGB" : 160,
       "groupId" : "5356823b3794de37132bb7b",
-      "id":"59ee5e7980eef57aadc85370",
+      "id": "59ef6621c0c6e378559875ed",
       "links" : [
          {
             "href" : "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/DataStore2",
@@ -312,8 +449,57 @@ Response
          "regionName" : "US_EAST_1"
       },
       "replicationFactor" : 3,
-      "replicationSpec":{"US_EAST_1":{"electableNodes":3,"priority":7,"readOnlyNodes":0}},
+      "replicationSpec": {
+          "US_EAST_1": {
+              "electableNodes": 3,
+              "priority": 7,
+              "readOnlyNodes": 0
+          }
+      },
       "stateName" : "CREATING"
    }
 
-   
+Multi Region Cluster Response
++++++++++++++++++++++++++++++
+
+.. code-block:: none
+
+   {
+   	"backupEnabled": false,
+   	"diskSizeGB": 160.0,
+   	"groupId": "5356823b3794de37132bb7b",
+   	"id": "59ef6621c0c6e378559875ed",
+   	"links": [{
+   		"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/5356823b3794de37132bb7b/clusters/DataStore2",
+   		"rel": "self"
+   	}],
+   	"mongoDBMajorVersion": "3.4",
+   	"mongoDBVersion": "3.4.9",
+   	"mongoURIUpdated": "2017-10-24T16:11:13Z",
+   	"name": "DataStore2",
+   	"numShards": 1,
+   	"providerSettings": {
+   		"providerName": "AWS",
+   		"diskIOPS": 480,
+   		"encryptEBSVolume": true,
+   		"instanceSizeName": "M10"
+   	},
+   	"replicationSpec": {
+   		"US_EAST_1": {
+   			"electableNodes": 3,
+   			"priority": 7,
+   			"readOnlyNodes": 0
+   		},
+   		"US_EAST_2": {
+   			"electableNodes": 2,
+   			"priority": 6,
+   			"readOnlyNodes": 0
+   		},
+   		"US_WEST_1": {
+   			"electableNodes": 2,
+   			"priority": 5,
+   			"readOnlyNodes": 2
+   		}
+   	},
+   	"stateName": "CREATING"
+   }
