@@ -1,6 +1,6 @@
-===================
-|onprem| Components
-===================
+=====================
+|onprem| Architecture
+=====================
 
 .. default-domain:: mongodb
 
@@ -10,97 +10,88 @@
    :depth: 1
    :class: singlecol
 
-An |onprem| installation includes servers running |onprem| and servers
-hosting dedicated MongoDB databases for storing application data and
-snapshots.
-
-Network Diagram
----------------
+An |onprem| installation includes hosts running |onprem| and hosts
+serving and storing application data and snapshots.
 
 .. include:: /images/opsmanager-network-diagram.rst
 
-|onprem|
---------
-
-The |onprem| installation package consists of the :ref:`application` and 
-:ref:`backup-daemon`. The |onprem| application requires an |onprem| Application
-Database (a dedicated MongoDB database to hold operational data) as well as
-dedicated MongoDB Backup Database(s).
-
+The |application| requires a dedicated :term:`Application Database` and,
+if you enabled backups, :term:`Snapshot Stores <snapshot store>`.
 
 .. _mms-http-service:
 .. _application:
 .. _mms-application-package:
 
 |application|
-~~~~~~~~~~~~~
+-------------
 
-The |application| contains the user interface and the HTTP services the
-Agents use to transmit data to and from |onprem|.
-These are all stateless and start automatically when the |application| starts.
-Multiple instances of the |application| can run as long as each instance has
-the same configuration. Users and agents can interact with any instance.
+The |application| provides the user interface and the :abbr:`HTTP
+(HyperText Transport Protocol)` services the Agents use to transmit data
+to and from |onprem|. These are all stateless and start automatically
+when the |application| starts. Multiple instances of the |application|
+can run if each instance uses the same configuration and application
+database. Users and agents can interact with any instance.
 
-The |http-service| runs on port ``8080`` by default and contains the web
-interface for managing |onprem| users, monitoring of MongoDB servers, and
-managing those server’s backups. Users can sign up, create new accounts and
-projects, as well as join an existing project.
+By default, the |application| runs on port ``8080`` and contains the web
+interface for managing |onprem| users, monitoring of MongoDB hosts, and
+managing host backups.
+
+For a list of |onprem|'s default ports and health-check endpoints, see
+:doc:`/reference/firewall-configuration`.
 
 .. _backup-daemon:
 
 Backup Daemon Service
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
-Any Ops Manager instance can be configured to run the Backup Daemon service to
-provide backup capabilities. The Backup Daemon service manages both the local
-copies of the backed-up databases and each backup's snapshots. The daemon does
-scheduled work based on data coming into the |http-service| from the Backup
-Agents. No client applications talk directly to the daemon. Its state and job
-queues come from the :ref:`mms-application-database`.
+You can configure any |onprem| instance to run the :term:`Backup Daemon`
+service to back up MongoDB databases. The Backup Daemon service manages
+the local copies of the backed-up databases and snapshots for each
+database. The daemon does scheduled work based on data coming into the
+|onprem| from its :term:`Backup Agents <Backup Agent>`. No client
+applications can talk directly to the daemon. Its state and job queues
+come from the :ref:`mms-application-database`.
 
-The Backup Daemon's local copy of a backed-up deployment is called the
-:term:`head database`. The daemon stores all its head databases in its
-:setting:`rootDirectory` path. To create each head database, the daemon's
-server acts as though it were an "invisible" :term:`secondary` for each
+The local backup copy of a deployment is called the :term:`head
+database`. The :term:`Backup Daemon` stores all its head databases in
+its :term:`head directory` path. To create each head database, the
+daemon's host acts as an "invisible" :term:`secondary` for each
 :term:`replica set` designated for backup.
 
-If you run multiple Backup Daemons, |onprem| selects the Backup Daemon to use
-when a user enables backup for a deployment. The local copy of the deployment
-resides with that daemon's server.
+The daemon takes scheduled snapshots and stores these snapshots in a
+:term:`snapshot store`. The daemon retrieves data from the snapshot
+store when it receives a restore request. It then delivers the snapshot
+to the requested destination.
 
-The daemon takes scheduled snapshots and stores the snapshots in either
-databases (the :ref:`backup-database`) or on the file system (the file system
-store). It also acts on restore requests by retrieving data from the Backup
-Database and delivering it to the requested destination.
+:ref:`Multiple Backup Daemons <multiple-backup-daemons>` can scale 
+horizontally to increase your storage and can provide *manual* 
+failover.
 
-:ref:`Multiple Backup Daemons <multiple-backup-daemons>` scale horizontally
-to increase your storage and can provide **manual** failover.
-
-The Backup Daemon exposes a health-check endpoint. 
-See :doc:`/reference/firewall-configuration`.
+If you run multiple Backup Daemons, |onprem| selects the Backup Daemon
+to use when a user enables backup for a deployment. The 
+:term:`head database` resides with the daemon's host.
 
 .. _backing-database:
 
-Dedicated MongoDB Databases for Operational Data
-------------------------------------------------
-
-|onprem| uses dedicated MongoDB databases to store the |application|'s
-monitoring data and the Backup Daemon's operational backup data. The backing
-databases run as :term:`replica sets <replica set>` to ensure redundancy and
-high availability. The replica sets host **only** |onprem| data. You must
-:doc:`provision the replica sets </tutorial/prepare-backing-mongodb-instances>` 
-before installing |onprem|.
+Dedicated Storage for Operational Data
+--------------------------------------
 
 .. _mms-application-database:
 
 |application| Database
 ~~~~~~~~~~~~~~~~~~~~~~
 
+|onprem| uses a dedicated MongoDB database to store the |onprem|\'s
+operational data. The :term:`application database` runs as a 
+:term:`replica set` to ensure redundancy and high availability. This 
+replica set hosts *only* |onprem| data. Before installing |onprem|, 
+you must :doc:`provision the application database </tutorial/prepare-backing-mongodb-instances>`.
 This database contains :ref:`application` metadata:
 
 - Monitoring data collected from Monitoring Agents.
 
-- Metadata for |onprem| users, projects, hosts, monitoring data, and backup state.
+- Metadata for |onprem| users, projects, hosts, monitoring data, and  
+  backup state.
 
 For topology and specifications, see 
 :ref:`mms-application-database-specifications`.
@@ -108,43 +99,45 @@ For topology and specifications, see
 .. _backup-database:
 .. _mms-backup-blockstore-database:
 
-Backup Data Storage
-~~~~~~~~~~~~~~~~~~~
+Snapshot Storage
+~~~~~~~~~~~~~~~~
 
-|mms| backs up snapshots of deployments. These snapshots are stored in either
-databases or file systems. There can be more than one database and/or file
-system paths to which snapshots are written. The recent history of the
-deployment database is written to a separate database regardless of where the
-snapshots are written.
+|mms| creates snapshots of deployments to back up data. You can have
+|mms| store these snapshots in 
+:term:`snapshot stores <snapshot store>`. Snapshot stores can be local 
+databases, local file systems, or cloud-based data stores. There can be
+more than one snapshot store per project. |onprem| writes the recent
+history of the deployment database to a separate database regardless of
+where the snapshots are written.
 
-The components of backup data storage include:
+The components of snapshot storage include:
 
-- Snapshots. Snapshots can be written to one of three destinations:
+Snapshot Stores
++++++++++++++++
 
-  - A :term:`Blockstore <Backup Blockstore Database>`, a MongoDB 
-    database stored in your environment. To learn about the requirements 
-    and procedures for Blockstores, see 
-    :doc:`/tutorial/manage-blockstore-storage`.
+Snapshots can be written to one of three target storage systems:
 
-  - A :term:`S3 Snapshot Store`, blocks stored in 
-    :abbr:`AWS (Amazon Web Services)` 
-    :abbr:`S3 (Simple Storage Service)`. To learn about the requirements 
-    and procedures for S3 Snapshot Stores, see 
-    :doc:`/tutorial/manage-s3-blockstore-storage`.
+- A :term:`Blockstore <Backup Blockstore Database>`: a MongoDB 
+  database stored in a local host. To learn about the requirements 
+  and procedures for Blockstores, see 
+  :doc:`/tutorial/manage-blockstore-storage`.
 
-  - A :term:`File System Store <File System Store>` a file system, in 
-    the directory of your choosing. To learn about the requirements 
-    and procedures for File System Stores, see 
-    :doc:`/tutorial/manage-filestore-storage`.
+- An :term:`S3 Snapshot Store`: a cloud data store in 
+  :abbr:`AWS (Amazon Web Services)` 
+  :abbr:`S3 (Simple Storage Service)`. To learn about the 
+  requirements and procedures for S3 Snapshot Stores, see
+  :doc:`/tutorial/manage-s3-blockstore-storage`.
 
-- :term:`Oplog Slices <oplog slice>`. The 
-  :term:`Oplog Store <Oplog Store Database>` retains oplog entries the 
-  :term:`Backup Daemon` applies to its local copies of your backed-up 
-  deployments. To learn about the requirements and procedures for Oplog 
-  Stores, see :doc:`/tutorial/manage-oplog-storage`.
+- A :term:`File System Store <File System Store>`: a local file 
+  system in the directory of your choosing. To learn about the 
+  requirements and procedures for File System Stores, see
+  :doc:`/tutorial/manage-filestore-storage`.
 
-Default Ports
--------------
+:term:`Oplog Store <Oplog Store Database>`
+++++++++++++++++++++++++++++++++++++++++++
 
-For a list of |onprem|'s default ports and health-check endpoints, see
-:doc:`/reference/firewall-configuration`.
+This store retains :term:`oplog` entries the :term:`Backup Daemon`
+applies to its local copies of your backed-up deployments. To learn
+about the requirements and procedures for Oplog Stores, see
+:doc:`/tutorial/manage-oplog-storage`.
+
