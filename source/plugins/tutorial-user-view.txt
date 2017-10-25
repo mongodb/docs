@@ -1,0 +1,186 @@
+===========================
+Database User View Tutorial
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Introduction
+------------
+
+This tutorial demonstrates a Compass plugin which displays the
+:manual:`users </core/security-users/>` of a database and their
+respective :manual:`roles </core/authorization/>`.
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-plugins-min-version.rst
+
+.. include:: /includes/fact-plugins-prereqs.rst
+
+Creating the Plugin
+-------------------
+
+.. include:: /includes/extracts/plugin-instantiate-users.rst
+
+When prompted, enter the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 60
+
+   * - Field
+     - Description
+
+   * - Name
+     - ``users``
+
+   * - Description
+     - Displays database users and their respective roles.
+
+   * - Role
+     - :ref:`Database.Tab <plugin-ref-database-tabs>`
+
+This plugin is uses the :ref:`Database.Tab <plugin-ref-database-tabs>`
+role, meaning it exists in its own tab in the |compass| database view.
+
+Finally, run the following command to install the plugin's dependencies:
+
+.. cssclass:: copyable-code
+.. code-block:: sh
+
+   cd users && npm install
+
+Creating the Store
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-tutorial-create-store.rst
+
+The user plugin's store is called ``UsersStore``. It keeps the
+following state variables:
+
+.. list-table::
+   :widths: 10 60
+
+   * - ``users``
+     - An array of objects representing the users of the currently
+       selected database. For details on the fields returned in these
+       objects, see :ref:`User Object <user-object>`.
+
+   * - ``database``
+     - A string representing the name of the currently selected
+       database. This string is used in the *store* to filter
+       the users displayed. Compass will only display users whose
+       authentication database is the database currently being viewed.
+
+   * - ``error``
+     - An :abbr:`optional (may be null)` object containing error
+       information.
+
+
+.. _user-object:
+
+User Object
+```````````
+
+The objects in the ``users`` state variable take the following form:
+
+.. list-table::
+   :widths: 10 60
+
+   * - ``_id``
+     - A unique identifier for the user, incorporating the user's name
+       and authentication database.
+
+   * - ``user``
+     - The user's username.
+
+   * - ``db``
+     - The database on which the user was created.
+
+   * - ``roles``
+     - An array of objects representing the
+       :manual:`roles </core/authorization/>` of the user and the
+       databases in which those roles apply.
+
+       For example:
+
+       .. code-block:: javascript
+
+          "roles" : [
+            {
+              "role" : "readWrite",
+              "db" : "test"
+            }
+          ]
+
+.. note ::
+
+   A user can have roles pertaining to different databases than the
+   one on which they were created. For more information on roles, see
+   :manual:`Role-Based Access Control </core/authorization/>`.
+
+Implementing the Store
+``````````````````````
+
+Update ``src/stores/store.js`` to match the following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-user-view/store.js
+   :language: js
+   :linenos:
+
+Creating the Component
+~~~~~~~~~~~~~~~~~~~~~~
+
+The users view contains a *component*, which is a view which renders
+based on the ``UsersStore`` store.
+
+Components are written in JSX, which allows HTML to be inserted and
+rendered elegantly with ReactJS. HTML is rendered by the ``render``
+method.
+
+Update ``src/components/users/users.jsx`` to match the following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-user-view/users.jsx
+   :language: jsx
+   :linenos:
+
+This component displays a table showing each user whose authentication
+database is the database currently being viewed, along with all of the
+roles assigned to that user.
+
+Styling the Component
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``users.jsx`` component imports its styles from the ``users.less``
+file also located in the ``src/components/users/`` directory.
+
+Update ``src/components/users/users.less`` to match the following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-user-view/users.less
+   :language: jsx
+   :linenos:
+
+|compass| plugins implement
+`CSS Modules <https://github.com/css-modules/css-modules>`_ and
+`Less syntax <http://lesscss.org/>`_ to style components.
+
+For more information on styling your |compass| plugins, see
+:ref:`Styling <plugin-ref-styling>`.
+
+
+Running the Plugin
+------------------
+
+.. include:: /includes/fact-compile-plugin.rst
+
+

@@ -1,0 +1,144 @@
+==============================
+Video Playback Plugin Tutorial
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Introduction
+------------
+
+This tutorial creates a |compass| plugin to view
+`WebM <https://www.webmproject.org/>`__ videos embedded within documents
+in a MongoDB collection. While these videos must fit within the
+:ref:`maximum BSON document size <limit-bson-document-size>` of 16MB,
+this is enough space to store several minutes of modest-quality video.
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-plugins-min-version.rst
+
+.. include:: /includes/fact-plugins-prereqs.rst
+
+Creating the Plugin
+-------------------
+
+.. include:: /includes/extracts/plugin-instantiate-media.rst
+
+When prompted, enter the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 60
+
+   * - **Field**
+     - **Description**
+
+   * - Name
+     - ``media-player``
+
+   * - Description
+     - Plays WebM video files embedded in a MongoDB collection.
+
+   * - Role
+     - :ref:`Collection.Tab <plugin-ref-collection-tabs>`
+
+This plugin is implemented with the :ref:`Collection.Tab
+<plugin-ref-collection-tabs>` role, meaning it will reside in its own
+tab in the |compass| collection view.
+
+Finally, run the following command to install the plugin's dependencies:
+
+.. cssclass:: copyable-code
+.. code-block:: sh
+
+   cd media-player && npm install
+
+Creating the Store
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-tutorial-create-store.rst
+
+The media player plugin's store is called ``MediaPlayerStore``, and it
+keeps the following state variables:
+
+.. list-table::
+   :widths: 10 60
+
+   * - ``videoURLs``
+     - An array of strings where each string is a URL referring to a
+       WebM video. These URLs are created using
+       `URL.createObjectURL <https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL>`__,
+       and must be deleted using
+       `URL.revokeObjectURL <https://developer.mozilla.org/en-US/docs/Web/API/URL/revokeObjectURL>`__.
+
+   * - ``storeState``
+     - A string indicating the current state of the store. Must be one of the following:
+
+       - ``initial``
+       - ``fetching``
+       - ``done``
+       - ``outdated``
+
+   * - ``error``
+     - An :abbr:`optional (may be null)` object containing error
+       information.
+
+Registering Actions
+```````````````````
+
+First you must register the actions that the store will respond to.
+``MediaPlayerStore`` will accept the following two actions:
+
+.. list-table::
+   :widths: 10 60
+
+   * - ``fetchVideos``
+     - Fetch any documents associated with the query bar's current query
+       information.
+
+   * - ``reset``
+     - Clear the store's query information and any stored state.
+
+Update ``src/actions/actions.js`` to match the following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-video-player/actions.js
+   :language: js
+   :emphasize-lines: 4,5
+   :linenos:
+
+Implementing the Store
+``````````````````````
+
+Update ``src/stores/store.js`` to match the following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-video-player/store.js
+   :language: js
+   :linenos:
+
+Creating the Component
+~~~~~~~~~~~~~~~~~~~~~~
+
+The media player contains a *component*, which is a view which renders
+based on the ``MediaPlayerStore`` store.
+
+Update ``src/components/media-player/media-player.jsx`` to match the
+following:
+
+.. cssclass:: copyable-code
+.. literalinclude:: example-video-player/media-player.jsx
+   :language: jsx
+   :linenos:
+
+Running the Plugin
+------------------
+
+.. include:: /includes/fact-compile-plugin.rst

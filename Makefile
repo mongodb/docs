@@ -10,7 +10,7 @@ PROJECT=compass
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-.PHONY: help html publish-artifacts stage fake-deploy deploy deploy-search-index
+.PHONY: help html publish-artifacts stage fake-deploy deploy deploy-search-index migrate-assets
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -18,10 +18,10 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html: ## Builds this branch's HTML under build/<branch>/html
+html: migrate-assets ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+publish: migrate-assets ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
@@ -46,3 +46,8 @@ deploy-search-index: ## Update the search index for this branch
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
 	fi
+
+migrate-assets:
+	-rm -r source/plugins/example-user-view
+	mkdir -p source/plugins/example-user-view
+	cp plugin-examples/users/src/{components/Users/Users.jsx,stores/store.js,components/Users/Users.less} source/plugins/example-user-view/
