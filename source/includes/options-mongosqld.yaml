@@ -34,31 +34,34 @@ aliases: -v
 description: |
   Specifies that {{program}} should provide more detailed log output.
 
-  You can provide this option repeatedly (up to three times) or with an
-  integer between ``1`` and ``3`` to provide greater application detail.
   The following table describes the information provided at each log
   level:
 
   .. list-table::
-     :widths: 10 20 10 60
+     :widths: 10 20 70
      :header-rows: 1
 
      * - Letter Option
-       - Number Option
        - Log Level
        - Message Content
+
+     * - ``--quiet``
+       - None
+       - Log nothing.
+
+     * - No flag
+       - Default
+       - Log messages that notify user of basic :program:`mongosqld` 
+         events and state changes.
+
      * - ``-v``
-       - ``--verbose=1``
-       - ``INFO``
-       - Shows progress of the |bi|.
+       - Administrator
+       - Log messages that provie information to :program:`mongosqld` 
+         administrators.
+
      * - ``-vv``
-       - ``--verbose=2``
-       - ``DEBUG``
-       - Provides details for diagnosing |bi| issues.
-     * - ``-vvv``
-       - ``--verbose=3``
-       - ``DEBUG2``
-       - Shows the actions of |bi| components.
+       - Developer
+       - Log messages useful to MongoDB support and development.
 
 optional: true
 ---
@@ -78,6 +81,83 @@ description: |
   .. deprecated:: 2.2
 
   Use :option:`--schema` instead.
+---
+program: mongosqld
+name: sampleNamespaces
+directive: option
+args: <db.collection>
+description: |
+  .. versionadded:: 2.3
+
+  ``--sampleNamespaces`` specifies a database and collection to sample
+  data from to create the schema. It is also possible to specify
+  multiple collections from a single databases, or multiple collections
+  from multiple databases. See :ref:`examples <sampleNamespaces-example>`
+  below.
+
+  If you do not use the ``--sampleNamespaces`` option or the
+  :option:`--schema` option, ``mongosqld`` samples data
+  from all available MongoDB databases and collections except the
+  ``admin`` and ``local`` databases.
+---
+program: mongosqld
+name: sampleSource
+directive: option
+args: <db-name>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies a database to store schema information. If you do not
+  specify either a schema file with the :option:`--schema` option or
+  a database with the ``--sampleSource`` option,
+  :program:`mongosqld` holds its schema in memory.
+---
+program: mongosqld
+name: sampleSize
+directive: option
+args: <number>
+description: |
+  .. versionadded:: 2.3
+
+  The number of documents per database to sample when gathering schema
+  information.
+default: 1000
+---
+program: mongosqld
+name: sampleMode
+directive: option
+args: <[read|write]>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies whether :program:`mongosqld` may write schema information
+  to the MongoDB database named in the :option:`--sampleSource` option
+  or only read from it.
+
+  If you use the :option:`--sampleSource` option to specify a database
+  to store schema information, set :option:`--sampleMode` to
+  ``write`` to allow :program:`mongosqld` to persist data in the
+  specified database.
+default: read
+---
+program: mongosqld
+name: sampleRefreshIntervalSecs
+directive: option
+args: <number>
+description: |
+  .. versionadded:: 2.3
+
+  The interval in seconds at which :program:`mongosqld` re-samples
+  data to create its schema. The default value is ``0``, which means
+  that after the initial sampling no re-sampling occurs for the
+  duration of the connection. The specified value must be a positive
+  integer.
+
+  If you specify a non-zero value for ``--sampleRefreshIntervalSecs``
+  and a schema database with the :option:`--sampleSource` option,
+  you must also set the :option:`--sampleMode` option to ``write``.
+  Otherwise, :program:`mongosqld` halts with an error.
+default: 0
 ---
 program: mongosqld
 name: mongo-versionCompatibility
@@ -128,6 +208,14 @@ optional: true
 default: mongodb://localhost:27017
 ---
 program: mongosqld
+name: uuidSubtype3Encoding
+directive: option
+inherit:
+  name: uuidSubtype3Encoding
+  program: _shared
+  file: options-shared.yaml
+---
+program: mongosqld
 name: mongo-ssl
 directive: option
 inherit:
@@ -140,7 +228,7 @@ name: mongo-sslFIPSMode
 directive: option
 args: null
 description: |
-  Enable FIPS mode in the installed OpenSSL library.
+  Enables FIPS mode in the installed OpenSSL library.
 optional: true
 ---
 program: mongosqld
@@ -196,6 +284,43 @@ inherit:
   file: options-shared.yaml
 replacement:
   ssl-option: ":option:`--mongo-ssl`"
+---
+program: mongosqld
+name: sslMode
+directive: option
+args: <mode>
+description: |
+  .. versionadded:: 2.3
+
+  Enable or disable :abbr:`TLS (Transport Level Security)`/:abbr:`SSL
+  (Secure Sockets Layer)` for connections to :doc:`mongosqld
+  </reference/mongosqld>`. The argument to the ``sslMode`` option can
+  be one of the following:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+
+     * - Value
+
+       - Description
+
+     * - ``disabled``
+
+       - :doc:`mongosqld </reference/mongosqld>` cannot accept
+         connections secured using TLS/SSL.
+
+     * - ``allowSSL``
+
+       - :doc:`mongosqld </reference/mongosqld>` can accept connections
+         secured using TLS/SSL.
+
+     * - ``requireSSL``
+
+       - :doc:`mongosqld </reference/mongosqld>` can only accept
+         connections secured using TLS/SSL.
+optional: true
+default: disabled
 ---
 program: mongosqld
 name: sslPEMKeyFile
@@ -257,7 +382,7 @@ name: auth
 directive: option
 args: null
 description: |
-  Require authentication for incoming client requests.
+  Requires authentication for incoming client requests.
 optional: true
 ---
 program: mongosqld
@@ -304,8 +429,31 @@ name: logAppend
 directive: option
 args: null
 description: |
-  Append new logging output to an existing log file specified by
+  Appends new logging output to an existing log file specified by
   :option:`--logPath`.
+
+  Requires :option:`--logRotate`.
+optional: true
+---
+program: mongosqld
+name: logRotate
+directive: option
+args: reopen | rename
+description: |
+  Specifies that you want to rotate logs and how they should be rotated.
+
+  When this option is set, the logs rotate when you issue a ``FLUSH LOGS``
+  command to the |bi| or when you restart ``mongosqld``.
+
+  If you set :option:`--logRotate` to ``rename``:
+     The existing log file is closed.
+     An `RFC3339 <https://www.ietf.org/rfc/rfc3339.txt>`_-formatted
+     timestamp is appended to the closed log file.
+     A new log file is created.
+
+  If you set :option:`--logRotate` to ``reopen``:
+    The existing log file is closed and reopened.
+default: rename
 optional: true
 ---
 program: mongosqld
@@ -345,7 +493,7 @@ name: unixSocketPrefix
 directive: option
 args: <path>
 description: |
-  Specify an alternative directory for the {{program}} Unix domain
+  Specifies an alternative directory for the {{program}} Unix domain
   socket.
 
   {{program}} will create a socket file called ``mysql.sock`` underneath
@@ -382,4 +530,56 @@ description: |
   {{program}} encounters a string that is longer than the maximum length,
   {{program}} truncates it to the maximum length and logs a warning.
 optional: true
+---
+program: mongosqld
+name: mongo-username
+aliases: -u
+directive: option
+args: <username>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies the authentication username to use for schema discovery.
+  Only required if :option:`--auth` is enabled. The user specified by
+  ``--mongo-username`` must be a valid MongoDB user with the
+  ``listDatabases`` privilege. See :ref:`mongosqld Security
+  Considerations <security-considerations>`.
+---
+program: mongosqld
+name: mongo-password
+aliases: -p
+directive: option
+args: <password>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies the authentication password to use for schema discovery.
+  Only required if :option:`--auth` is enabled. Use in conjunction with
+  :option:`--mongo-username`.
+---
+program: mongosqld
+name: mongo-authenticationSource
+directive: option
+args: <auth-db-name>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies the database that holds the credentials for the schema
+  discovery user. Only available if :option:`--auth` is enabled. Use
+  in conjunction with credential options :option:`--mongo-username` and
+  :option:`--mongo-password`.
+default: admin
+---
+program: mongosqld
+name: mongo-authenticationMechanism
+directive: option
+args: <[SCRAM-SHA-1|PLAIN]>
+description: |
+  .. versionadded:: 2.3
+
+  Specifies the authentication mechanism to use for schema discovery.
+  Only available if :option:`--auth` is enabled. Use in conjunction with
+  credential options :option:`--mongo-username` and
+  :option:`--mongo-password`.
+default: SCRAM-SHA-1
 ...

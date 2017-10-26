@@ -23,26 +23,18 @@ html: ## Builds this branch's HTML under build/<branch>/html
 
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
+	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
-deploy: build/public check-redirects ## Deploy to the production bucket
-	@echo "Doing a dry-run"
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --verbose --dry-run --redirect-prefix='bi-connector' ${ARGS}
-
-	@echo 'Press any key to perform the previous' && read result
+deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='bi-connector' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
 
 	$(MAKE) deploy-search-index
-
-#This workaround is because the redirects for symlink version does not prefix with ruby-driver.
-check-redirects:
-	perl -pi -e  's/301 \/v/301 \/bi-connector\/v/g' build/public/.htaccess
-	perl -pi -e  's/301 \/current/301 \/bi-connector\/current/g' build/public/.htaccess
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"

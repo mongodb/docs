@@ -101,7 +101,6 @@ html_static_path = ['source/.static']
 html_last_updated_fmt = '%b %d, %Y'
 
 html_copy_source = False
-html_use_smartypants = True
 html_domain_indices = True
 html_use_index = True
 html_split_index = False
