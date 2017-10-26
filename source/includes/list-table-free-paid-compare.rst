@@ -33,8 +33,8 @@
      - :ref:`VPC Peering Connection wizard <vpc-peering>`
      
    * - Global Region Selection
-     - No, Free Tier clusters are deployed in a US-based :abbr:`AWS
-       (Amazon Web Services)` datacenter.
+     - |service| supports deploying ``M0`` instances in a subset of regions
+       in AWS only.
      - |service| supports deploying ``M2`` and ``M5`` clusters in a
        subset of regions in AWS, GCP, and Azure.
      - |service| supports deploying clusters globally on 
