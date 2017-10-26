@@ -1,3 +1,10 @@
+Monitoring Agent ``6.1.0.387``
+------------------------------
+
+*Released 2017-10-26*
+
+- Rename "Group" to "Project" on the Windows installer
+
 Monitoring Agent ``6.0.0.381``
 ------------------------------
 
