@@ -1,15 +1,14 @@
 .. important::
 
-   - Messages are compressed when both parties enable network
-     compression. Otherwise, messages between the parties are
-     uncompressed.
+   Messages are compressed when both parties enable network
+   compression. Otherwise, messages between the parties are
+   uncompressed.
 
 You can specify the following compressors:
 
-- :term:`snappy`
+- :term:`snappy` (Default)
 
 - :term:`zlib`
-
 
 If you specify multiple compressors, then the order in which you list
 the compressors matter as well as the communication initiator. For
