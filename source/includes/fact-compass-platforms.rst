@@ -4,7 +4,7 @@
    :class: compatibility
 
    * - Platform
-     - MacOS
+     - macOS
      - Windows
      - Linux
    * - Supported?
