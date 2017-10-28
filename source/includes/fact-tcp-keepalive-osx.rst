@@ -1,4 +1,4 @@
-**For MacOS systems**:
+**For macOS systems**:
 
 - To view the keep alive setting, issue the following command:
 
