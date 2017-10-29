@@ -31,7 +31,14 @@
 5. Create the MongoDB Compass plugins directory. Compass looks for plugins in this
    directory:
 
-   .. cssclass:: copyable-code
-   .. code-block:: sh
+   |compass|
+     .. cssclass:: copyable-code
+     .. code-block:: sh
 
-      mkdir -p ~/.mongodb/compass/plugins
+        mkdir -p ~/.mongodb/compass/plugins
+
+   |compass| Community Edition
+     .. cssclass:: copyable-code
+     .. code-block:: sh
+
+        mkdir -p ~/.mongodb/compass-community/plugins

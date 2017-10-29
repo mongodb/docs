@@ -1,3 +1,3 @@
 .. note::
 
-   Plugins require |compass| 1.10 or later.
+   Plugins require |compass| 1.11 or later.
