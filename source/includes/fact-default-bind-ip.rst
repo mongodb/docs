@@ -11,9 +11,9 @@ default.
 
 When bound only to the localhost, these MongoDB 3.6 binaries can only
 accept connections from clients (including the :program:`mongo` shell,
-other :program:`mongod` instances and :program:`mongos` instances) that
-are running on the same machine. Remote clients cannot connect to the
-binaries bound only to localhost.
+other members in your deployment for replica sets and sharded clusters)
+that are running on the same machine. Remote clients cannot connect to
+the binaries bound only to localhost.
 
 To override and bind to other ip addresses, you can use the
 :setting:`net.bindIp` configuration file setting or the ``--bind_ip``

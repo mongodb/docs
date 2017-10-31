@@ -4,19 +4,21 @@ level: 4
 ref: add-user-useradmin
 pre: |
 
-  The :authrole:`userAdminAnyDatabase` role grants access to user creation
+  Connect to the :term:`primary` to create a user with
+  :authrole:`userAdminAnyDatabase` role. The
+  :authrole:`userAdminAnyDatabase` role grants access to user creation
   on any database in the deployment.
-
-  You must connect to the :term:`primary` to create users.
 
   The following example creates the user ``fred`` with the
   :authrole:`userAdminAnyDatabase` role on the ``admin`` database.
 
   .. important::
-     Passwords should be random, long, and complex to ensure system security
-     and to prevent or delay malicious access.
+     Passwords should be random, long, and complex to ensure system
+     security and to prevent or delay malicious access.
 
 action:
+  pre: |
+
   language: javascript
   code: |
     admin = db.getSiblingDB("admin")
@@ -43,11 +45,11 @@ level: 4
 ref: add-user-clusteradmin
 pre: |
 
-  The :authrole:`clusterAdmin` role grants access to replication
-  operations, such as configuring the replica set.
-  
-  You must connect to the :term:`primary` to create users.
-  
+  Connect to the :term:`primary` to create a user with
+  :authrole:`clusterAdmin` role. The :authrole:`clusterAdmin` role
+  grants access to replication operations, such as configuring the
+  replica set.
+
   The following example creates the user ``ravi`` with the
   :authrole:`clusterAdmin` role on the ``admin`` database.
   
@@ -179,11 +181,21 @@ ref: restart-secondaries
 level: 4
 pre: |
 
-  Restart each :term:`secondary` or :term:`arbiter` member in the replica set,
-  specifying the :option:`--transitionToAuth` option and an internal
-  authentication mechanism such as :option:`--keyfile`. You must do this one
-  at a time to ensure a majority of members in the replica set remain online.
-  
+  Restart each :term:`secondary` or :term:`arbiter` member in the
+  replica set, including in the configuration:
+     
+  - The :setting:`security.transitionToAuth` setting. Starting the
+    :program:`mongod` with :setting:`security.transitionToAuth` set to
+    ``true`` places the instance in a transition state where it can
+    accept and create both authenticated and non-authenticated
+    connections.
+
+  - An internal authentication mechanism such as
+    :setting:`security.keyFile`.
+
+  You must restart each member one at a time to ensure a majority of
+  members in the replica set remain online.
+
 action:
   - heading: Shut down the secondary or arbiter members.
     pre: |
@@ -197,20 +209,15 @@ action:
   
   - heading: Restart the secondary or arbiter members with ``transitionToAuth``
     pre: |
-      Restart the :program:`mongod`, this time specifying the 
-      :option:`--transitionToAuth` option and an internal authentication
-      mechanism such as :option:`--keyfile`.
-    
-      Starting the :program:`mongod` with :option:`--transitionToAuth` places
-      the instance in a transition state where it can accept and create both
-      authenticated and non-authenticated connections.
-  
       Specify the following settings in your :ref:`configuration file
       <configuration-file>`.
 
       - :setting:`security.keyFile`, with the path to the keyfile.
       - :setting:`replication.replSetName` to the original replica set name.
       - :setting:`security.transitionToAuth` to ``true``.
+
+      .. include:: /includes/extracts/default-bind-ip-security-config-file.rst
+
       
     language: yaml
     code: |
@@ -235,14 +242,15 @@ action:
     
 post: |
 
-  You can also use the equivalent :program:`mongod` options when starting your
-  mongod. See the :program:`mongod` reference page for a complete list of
-  options.
+  Alternatively, you can use the equivalent :program:`mongod`
+  command-line options (e.g. :option:`--transitionToAuth` and
+  :option:`--keyfile`) when starting your mongod. See the
+  :program:`mongod` reference page for a complete list of options.
 
   Include additional settings as appropriate to your deployment.
 
-  At the end of this step, all secondaries and arbiters should be up and
-  running with :option:`--transitionToAuth`.
+  At the end of this step, all secondaries and arbiters should be up
+  and running with :setting:`security.transitionToAuth` set to ``true``.
   
 ---
 stepnum: 8
@@ -251,11 +259,18 @@ ref: enable-auth-primary
 title: Step down the primary member of the replica set and restart it with ``--transitionToAuth``.
 ref: shutdown-repset-primary
 pre: |
+   
+   Restart the :term:`primary` member in the replica set, including in
+   its configuration:
+  
+   - The :setting:`security.transitionToAuth` setting. Starting the
+     :program:`mongod` with :setting:`security.transitionToAuth` set to
+     ``true`` places the instance in a transition state where it can
+     accept and create both authenticated and non-authenticated
+     connections.
 
-  Restart the :term:`primary` member in the replica set, specifying the
-  :option:`--transitionToAuth` option and an internal authentication mechanism
-  such as :option:`--keyfile`.
-
+   - An internal authentication mechanism such as
+     :setting:`security.keyFile`.
 action:
   - heading: Step down the primary replica set member
     pre: |
@@ -282,13 +297,6 @@ action:
       admin.shutdownServer()
   - heading: Restart the old primary with ``transitionToAuth``
     pre: |
-      Restart the :program:`mongod`, this time specifying the 
-      :option:`--transitionToAuth` option and an internal authentication
-      mechanism such as :option:`--keyfile`.
-    
-      Starting the :program:`mongod` with :option:`--transitionToAuth` places
-      the instance in a transition state where it can accept and create both
-      authenticated and non-authenticated connections.
   
       Specify the following settings in your :ref:`configuration file
       <configuration-file>`.
@@ -296,7 +304,9 @@ action:
       - :setting:`security.keyFile`, with the path to the keyfile.
       - :setting:`replication.replSetName` to the original replica set name.
       - :setting:`security.transitionToAuth` to ``true``.
-      
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
     language: yaml
     code: |
       security:
@@ -318,14 +328,16 @@ action:
     
 post: |
 
-  You can also use the equivalent :program:`mongod` options when starting your
-  mongod. See the :program:`mongod` reference page for a complete list of
-  options.
-  
+  Alternatively, you can use the equivalent :program:`mongod`
+  command-line options (e.g. :option:`--transitionToAuth` and
+  :option:`--keyfile`) when starting your mongod. See the
+  :program:`mongod` reference page for a complete list of options.
+
   Include additional settings as appropriate to your deployment.
-  
-  At the end of this step, all members of the replica set should be up and
-  running with :option:`--transitionToAuth` and :option:`--keyfile`.
+
+  At the end of this step, all members of the replica set should be up
+  and running with :setting:`security.transitionToAuth` set to ``true``
+  and :setting:`security.keyFile` set to the keyfile path.
   
 ---
 stepnum: 9
@@ -334,7 +346,7 @@ ref: remove-transition-secondaries
 level: 4
 pre: |
   Restart each :term:`secondary` or :term:`arbiter` member in the replica set,
-  removing the :option:`--transitionToAuth` option on restart. You must do
+  removing the :setting:`security.transitionToAuth` option on restart. You must do
   this one at a time to ensure a majority of members in the replica set remain
   online.
 
@@ -352,23 +364,21 @@ action:
     code: |
       admin = db.getSiblingDB("admin")
       admin.shutdownServer()
-  
+
   - heading: Restart the secondary or arbiter members without ``transitionToAuth``
     pre: |
       Restart the :program:`mongod`, this time *without* the 
-      :option:`--transitionToAuth` option and *with* internal authentication
-      mechanism such as :option:`--keyfile`.
-  
-      Starting the :program:`mongod` with :option:`--transitionToAuth` places
-      the instance in a transition state where it can accept and create both
-      authenticated and non-authenticated connections.
+      :setting:`security.transitionToAuth` option but *with* internal authentication
+      mechanism such as :setting:`security.keyFile`.
 
       Specify the following settings in your :ref:`configuration file
       <configuration-file>`.
 
       - :setting:`security.keyFile`, with the path to the keyfile.
       - :setting:`replication.replSetName` to the original replica set name.
-      
+
+      .. include:: /includes/extracts/bind-ip-security-additional-config-file.rst
+
     language: yaml
     code: |
       security:
@@ -390,14 +400,14 @@ action:
     
 post: |
   You can also use the equivalent :program:`mongod` options when starting your
-  mongod. See the :program:`mongod` reference page for a complete list of
+  :program:`mongod`. See the :program:`mongod` reference page for a complete list of
   options.
 
   Include additional settings as appropriate to your deployment.
 
   At the end of this step, all secondaries and arbiters should be up and
   running with internal authentication configured, but *without*
-  :option:`--transitionToAuth`. Clients can only connect to these
+  :setting:`security.keyFile`. Clients can only connect to these
   :program:`mongod` instances by using the configured client authentication
   mechanism.
   
@@ -410,7 +420,7 @@ level: 4
 pre: |
 
   Step down the :term:`primary` member in the replica set, then restart it
-  without the :option:`--transitionToAuth` option.
+  without the :setting:`security.keyFile` option.
   
   .. important::
     
@@ -446,12 +456,8 @@ action:
     pre: |
       
       Restart the :program:`mongod`, this time *without* the 
-      :option:`--transitionToAuth` option and *with* internal authentication
-      mechanism such as :option:`--keyfile`.
-  
-      Starting the :program:`mongod` with :option:`--transitionToAuth` places
-      the instance in a transition state where it can accept and create both
-      authenticated and non-authenticated connections.
+      :setting:`security.keyFile` option but *with* the internal authentication
+      mechanism such as :setting:`security.keyFile`.
 
       Specify the following settings in your :ref:`configuration file
       <configuration-file>`.

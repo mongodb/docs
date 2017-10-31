@@ -21,35 +21,38 @@ pre: |
   .. include:: /includes/extracts/keyfile-distribution-replica-set.rst
 ---
 stepnum: 3
-title: Enforce access control on each member of the replica set.
+title: Start each member of the replica set with access control enabled.
 level: 4
 ref: deploy-repset-start-members
 pre: |
-  Running a :program:`mongod` with the ``keyFile`` parameter enforces both
-  :doc:`/core/security-internal-authentication` and
-  :doc:`/core/authorization`.
 
-  For *each* :program:`mongod` in the replica set, start the
-  :program:`mongod` using either a configuration file or the command line.
-
-  .. important::
-     You cannot change the name of a replica set after initiating it.
-     Choose an appropriate replica set name at this stage to reduce
-     complications later.
+   For each member in the replica set, start the :program:`mongod` with
+   either the :setting:`security.keyFile` configuration file setting or
+   the ``--keyFile`` command-line option. Running :program:`mongod`
+   with the ``--keyFile`` command-line option or the
+   :setting:`security.keyFile` configuration file setting enforces both
+   :doc:`/core/security-internal-authentication` and
+   :doc:`/core/authorization`.
 
 action:
-  - pre: |
-      **Configuration File**
+  - heading: Configuration File
+    pre: |
+      If using a configuration file, set
 
-      If using a configuration file, set the :setting:`security.keyFile` option
-      to the keyfile's path, and the :setting:`replication.replSetName` option
-      to the replica set name:
+      - :setting:`security.keyFile` to the keyfile's path, and
+
+      - :setting:`replication.replSetName` to the replica set name.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
     language: yaml
     code: |
       security:
         keyFile: <path-to-keyfile>
       replication:
         replSetName: <replicaSetName>
+      net:
+         bindIp: localhost,<ip address>
   - pre: |
       Start the :program:`mongod` using the configuration file:
     language: shell
@@ -57,27 +60,32 @@ action:
       mongod --config <path-to-config-file>
     post: |
       For more information on the configuration file, see
-      :doc:`configuration options</reference/configuration-options>`.
-  - pre: |
-      **Command Line**
+      :doc:`configuration options </reference/configuration-options>`.
+  - heading: Command Line
+    pre: |
+      If using the command line options, start the :program:`mongod` with the following options:
 
-      If using the command line option, start the :program:`mongod` with the
-      ``--keyFile`` and ``--replSet`` parameters:
+      - ``--keyFile`` set to  the keyfile's path, and
+
+      - ``--replSet`` set to the replica set name.
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+      
     language: sh
     code: |
-       mongod --keyFile <path-to-keyfile> --replSet <replicaSetName>
-post: |
-  For more information on startup parameters,
-  see the :program:`mongod` reference page.
+       mongod --keyFile <path-to-keyfile> --replSet <replicaSetName> --bind_ip localhost,<ip address of the mongod host>
+    post: |
 
-  Include additional settings as appropriate to your deployment.
+       For more information on command-line options, see the
+       :program:`mongod` reference page.
 ---
 stepnum: 4
 title: Connect to a member of the replica set over the localhost interface.
 level: 4
 ref: deploy-repset-connect-to-member
 pre: |
-  Connect a :program:`mongo` shell to one of the config server
+  Connect a :program:`mongo` shell to one of the 
   {{program}} instances over the :ref:`localhost
   interface<localhost-exception>`. You must run the :program:`mongo`
   shell on the same physical machine as the :program:`mongod` instance.
