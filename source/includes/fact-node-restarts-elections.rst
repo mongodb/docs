@@ -6,15 +6,16 @@
    a restart only for the specified changes:
 
 
-      * ``security.clusterAuthMode``: Changing the value from ``keyfile``
-        to ``sendKeyFile`` triggers a restart. All other changes to this
-        option do not.
+   - ``security.clusterAuthMode``: Changing the value from ``keyfile``
+     to ``sendKeyFile`` triggers a restart. All other changes to this
+     option do not.
 
-      * ``net.ssl.mode``: Changing the value from ``disabled`` to ``allowSSL``
-        triggers a restart. All other changes to this option do not.
+   - ``net.ssl.mode``: Changing the value from ``disabled`` to
+     ``allowSSL`` triggers a restart. All other changes to this option
+     do not.
 
    A restarted node triggers an election if the node was the primary.
-   In addition, modifying the `member settings 
-   <https://docs.mongodb.com/manual/reference/replica-configuration/#members>`_
+   In addition, modifying the :manual:`member settings 
+   </reference/replica-configuration/#members>`
    of the current primary may trigger an election.
 ---
