@@ -842,3 +842,99 @@ server certificate:
 
 Refer to :doc:`/connect/mysql` for more details on using the
 ``mysql`` client with the |bi-short|.
+
+Sampling Mode Reference Chart
+-----------------------------
+
+The chart below describes types of :program:`mongosqld`
+startup configurations and the :ref:`options <msqld-core-options>` used
+with each.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 35 40
+
+   * - Mode
+     - ``mongosqld`` Options
+     - Behavior
+
+   * - Standalone Reader
+     - - :option:`--sampleMode` ``read``
+       - :option:`--sampleSource` *not used*
+     - :manual:`Standalone </reference/glossary/#term-standalone>`
+       :program:`mongod` instance. :program:`mongosqld`
+       samples data upon startup. If :option:`--sampleRefreshIntervalSecs`
+       > 0, resample at specified interval.
+
+       .. example::
+
+          .. code-block:: sh
+
+             mongosqld --sampleMode read
+
+   * - Clustered Reader
+     - - :option:`--sampleMode` ``read``
+       - :option:`--sampleSource` <dbName>
+       - :option:`--sampleRefreshIntervalSecs` *not used*
+     - In a :manual:`replica set </replication/>` or
+       :manual:`sharded cluster </sharding>`
+       environment, sample data only at startup. Read schema data
+       from specified schema database on the :manual:`primary
+       </core/replica-set-primary/>`.
+
+       .. example::
+
+          .. code-block:: sh
+
+             mongosqld --sampleMode read \
+                       --sampleSource schemaDb
+
+   * - Clustered Writer
+     - - :option:`--sampleMode` ``write``
+       - :option:`--sampleSource` <dbName>
+       - :option:`--sampleRefreshIntervalSecs` > 0
+     - Read and persist schema data in a user-specified schema
+       database.
+
+       .. example::
+
+          .. code-block:: sh
+
+              mongosqld --sampleMode write \
+                        --sampleSource schemaDb \
+                        --sampleRefreshIntervalSecs 3600
+
+Invalid Configurations
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following :program:`mongosqld` option configurations are invalid
+and cause an error at startup.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 35 40
+
+   * - Mode
+     - ``mongosqld`` Options
+     - Behavior
+
+   * - Standalone Writer (**invalid**)
+     - - :option:`--sampleMode` ``write``
+       - :option:`--sampleSource` *not used*
+     - This configuration is invalid for a :manual:`standalone
+       </reference/glossary/#term-standalone>`
+       :program:`mongod` instance because in ``write`` mode there
+       must be a writeable database specified.
+
+   * - Clustered Sampling Reader (**invalid**)
+     - - :option:`--sampleMode` ``read``
+       - :option:`--sampleSource` <dbName>
+       - :option:`--sampleRefreshIntervalSecs` > 0
+     - When used in a MongoDB :manual:`replica set
+       </replication/>` or :manual:`sharded cluster </sharding>`,
+       this configuration is invalid. When a
+       database is specified for storing schema data with
+       :option:`--sampleSource`, :option:`--sampleMode` must be set to
+       ``write`` so that the schema may be updated from
+       the :manual:`primary </core/replica-set-primary/>` to
+       maintain cluster-wide consistency.     
