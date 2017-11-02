@@ -24,6 +24,7 @@ stage: build
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/cloud/index.html"
 	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/tools/index.html"
+	@echo "Hosted at ${URL}/${PREFIX}/${USER}/${GIT_BRANCH}/evaluate/index.html"
 
 deploy: build
 	mut-publish build ${PRODUCTION_BUCKET} --prefix='/' --deploy --all-subdirectories ${ARGS}
@@ -37,11 +38,13 @@ build: style.min.css
 	mkdir -p $@
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
+	mkdir -p $@/evaluate
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
 	cp -r static/images static/fonts static/css static/js $@/
-	cp -r static/images static/fonts static/css static/js $@/cloud
 	cp -r static/images static/fonts static/css static/js $@/tools
+	cp -r static/images static/fonts static/css static/js $@/cloud
+	cp -r static/images static/fonts static/css static/js $@/evaluate
 	@# Run the script to generate each landing page
 	python3 ./gen_landings.py $@
 
