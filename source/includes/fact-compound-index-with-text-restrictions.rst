@@ -7,4 +7,5 @@
   predicate must include **equality match conditions** on the preceding
   keys.
 
-- When creating a compound index all ``text`` fields must be adjacent.
+- When creating a compound ``text`` index, all ``text`` index keys must
+  be listed adjacently in the index specification document.
