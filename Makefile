@@ -18,7 +18,7 @@ TEST_FILE=./build/${GIT_BRANCH}/tests.js
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/manual-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
 
-.PHONY: help lint html stage deploy deploy-search-index examples
+.PHONY: help lint html markdown stage deploy deploy-search-index examples
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -36,6 +36,10 @@ test: html ## Runs test framework over the corpus
 
 html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
+
+markdown: examples ## Build markdown and merge into docs-tutorials
+	giza make markdown
+	./build/docs-tools/tools/migrate-markdown.py build/${GIT_BRANCH}/markdown
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish

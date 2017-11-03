@@ -39,7 +39,8 @@ extensions = [
     'directives',
     'intermanual',
     'testcode',
-    'tabs'
+    'tabs',
+    'markdown'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
