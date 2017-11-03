@@ -27744,9 +27744,35 @@
 	                  'li',
 	                  { className: 'submenu__item submenu__item--nested' },
 	                  _react2.default.createElement(
-	                    'a',
-	                    { href: 'https://docs.mongodb.com/tools/' },
-	                    'Tools'
+	                    _submenu2.default,
+	                    { title: 'Tools', open: true },
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/compass/current/' },
+	                        'MongoDB Compass'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/bi-connector/current/' },
+	                        'MongoDB BI Connector'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/spark-connector/current/' },
+	                        'MongoDB Spark Connector'
+	                      )
+	                    )
 	                  )
 	                ),
 	                _react2.default.createElement(
