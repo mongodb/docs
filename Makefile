@@ -48,6 +48,7 @@ deploy-search-index: ## Update the search index for this branch
 	fi
 
 migrate-assets:
-	-rm -r source/plugins/example-user-view
-	mkdir -p source/plugins/example-user-view
+	-rm -r source/plugins/example-{user-view,video-player}
+	mkdir -p source/plugins/example-{video-player,user-view}
+	cp plugin-examples/media-player/src/{actions/actions.js,components/media-player/media-player.jsx,stores/store.js} source/plugins/example-video-player/
 	cp plugin-examples/users/src/{components/Users/Users.jsx,stores/store.js,components/Users/Users.less} source/plugins/example-user-view/
