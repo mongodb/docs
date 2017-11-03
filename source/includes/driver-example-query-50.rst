@@ -1,4 +1,4 @@
-.. tabs::
+.. tabs-drivers::
 
    tabs:
      - id: shell
