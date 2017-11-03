@@ -6,7 +6,7 @@
 
 You can specify the following compressors:
 
-- :term:`snappy` (Default)
+- :term:`snappy`
 
 - :term:`zlib`
 
