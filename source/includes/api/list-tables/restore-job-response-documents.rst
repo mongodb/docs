@@ -1,4 +1,4 @@
-].. list-table::
+.. list-table::
    :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
@@ -9,46 +9,43 @@
 
    * - batchId
      - string
-     - ID of the :term:`batch` to which this restore job belongs.
+     - Unique identifier of the :term:`batch` to which this restore 
+       job belongs.
 
        Only present for a restore of a :term:`sharded cluster`.
 
    * - clusterId
      - string
-     - ID of the :term:`cluster` represented by the restore job.
+     - Unique identifier of the :term:`cluster` that the restore job 
+       represents.
 
        Only present for a restore of a :term:`cluster`.
 
    * - created
-     - timestamp
-     - The exact point in time when the restore job was requested in
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-       date and time format in :abbr:`UTC (Coordinated Universal Time)`.
+     - string
+     - Timestamp in `ISO 8601
+       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+       and time format in :abbr:`UTC (Coordinated Universal Time)` when the restore job was requested.
 
    * - delivery
      - object
-     - The method and details of how the restored :term:`snapshot` data
-       shall be delivered.
+     - Method and details of how the restored :term:`snapshot` data
+       is delivered.
 
    * - delivery.expires
-     - timestamp
-     - Date after which the :abbr:`URL (Uniform Resource Locator)` is no
-       longer available.
-
-       Only present if ``"delivery.methodName" : "HTTP"``.
-
-   * - delivery.expirationHours
-     - number
-     - The number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
+     - string
+     - Timestamp in `ISO 8601
+       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+       and time format in :abbr:`UTC (Coordinated Universal Time)` 
+       after which the :abbr:`URL (Uniform Resource Locator)` is 
+       no longer available.
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
    * - delivery.formatName
      - string
      - Format in which data from an :abbr:`SCP (secure copy)` restore
-       should be written to the destination. Value may be one of the
-       following:
+       should be written to the destination. Accepted values are:
 
        - ``ARCHIVE``
        - ``INDIVIDUAL``
@@ -62,17 +59,9 @@
 
        Only present if ``"delivery.methodName" : "SCP"``.
 
-   * - delivery.maxDownloads
-     - number
-     - The number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
-
-       Only present if ``"delivery.methodName" : "HTTP"``.
-
    * - delivery.methodName
      - string
-     - How the data will be delivered. Value may be one of the
-       following:
+     - Means by which the data is delivered. Accepted values are:
 
        - ``HTTP``
        - ``QUERY``
@@ -88,8 +77,7 @@
 
    * - delivery.statusName
      - string
-     - Current status of the downloadable file. Value may be one
-       of the following:
+     - Current status of the downloadable file. Accepted values are:
 
        - ``NOT_STARTED``
        - ``IN_PROGRESS``
@@ -99,28 +87,43 @@
        - ``EXPIRED``
        - ``MAX_DOWNLOADS_EXCEEDED``
 
+   * - delivery.targetClusterId
+     - string
+     - Unique identifier of the destination cluster to perform the 
+       restore job. 
+       
+       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       
    * - delivery.targetDirectory
      - string
      - Target directory to which the data should be written for an
-       SCP restore.
+       :abbr:`SCP (secure copy)` restore.
 
        Only present if ``"delivery.methodName" : "SCP"``.
 
+   * - delivery.targetGroupId
+     - string
+     - Unique identifier of the project that contains the destination 
+       cluster for the restore job.
+
+       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+
    * - delivery.url
      - string
-     - The :abbr:`URL (Uniform Resource Locator)` from which the
+     - :abbr:`URL (Uniform Resource Locator)` from which the
        restored :term:`snapshot` data can be downloaded.
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
    * - encryptionEnabled
      - boolean
-     - Indicates whether the restored :term:`snapshot` data is
+     - Flag indicating whether the restored :term:`snapshot` data is
        encrypted.
 
    * - groupId
      - string
-     - ID of the :term:`group` that owns the restore job.
+     - Unique identifier of the :term:`group` that owns the restore 
+       job.
 
    * - hashes
      - object array
@@ -135,21 +138,21 @@
 
    * - hashes.typeName
      - string
-     - The hashing algorithm used to compute the hash value. If present,
-       this value is ``SHA1``.
+     - Hashing algorithm used to compute the hash value. If 
+       present, this value is ``SHA1``.
 
    * - hashes.fileName
      - string
-     - The name of the file that has been hashed.
+     - Name of the snapshot file that has been hashed.
 
    * - hashes.hash
      - string
-     - The hash of the file.
+     - Hash of the snapshot file.
 
    * - hostId
      - string
-     - ID of the :term:`config server` to which this restore job
-       belongs.
+     - Unique identifier of the :term:`config server` to which this 
+       restore job belongs.
 
        Only present for a restore of a mirrored :term:`config server`
        (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
@@ -164,22 +167,24 @@
 
    * - masterKeyUUID
      - string
-     - The :abbr:`KMIP (Key Management Interoperability Protocol)`
+     - :abbr:`KMIP (Key Management Interoperability Protocol)`
        :doc:`master key ID </tutorial/encrypt-snapshots>` used to
-       encrypt the :term:`snapshot` data. This field is present only if
-       ``encryptionEnabled`` is true for the snapshot.
+       encrypt the :term:`snapshot` data. 
+
+       Only present only if ``"encryptionEnabled" : true``.
 
    * - pointInTime
      - boolean
-     - Indicates that the job for a :abbr:`PIT (point-in-time)` restore.
+     - Flag indicating that the job for a :abbr:`PIT (point-in-time)` 
+       restore.
 
    * - snapshotId
      - string
-     - ID of the :term:`snapshot` to restore.
+     - Unique identifier of the :term:`snapshot` to restore.
 
    * - statusName
      - string
-     - Current status of the job. Value may be one of the following:
+     - Current status of the job. Accepted values are:
 
        - ``FINISHED``
        - ``IN_PROGRESS``
@@ -187,12 +192,13 @@
        - ``KILLED``
 
    * - timestamp
-     - BSON timestamp
-     - Timestamp of the latest :term:`oplog <Oplog Store Database>`
+     - object
+     - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
+       the latest :term:`oplog <Oplog Store Database>`
        entry in the restored :term:`snapshot`.
 
    * - timestamp.date
-     - timestamp
+     - string
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
