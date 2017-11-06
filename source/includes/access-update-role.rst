@@ -5,8 +5,9 @@ You must have the :authaction:`grantRole` :ref:`action
 <security-user-actions>` on the database of each role in the ``roles`` array
 to update the array.
 
-You must have the :authaction:`grantRole` action on the database of each
-privilege in the ``privileges`` array to update the array. If a privilege's
+You must have the :authaction:`grantRole`
+:ref:`action <security-user-actions>` on the database of each privilege
+in the ``privileges`` array to update the array. If a privilege's
 resource spans databases, you must have :authaction:`grantRole` on the
 ``admin`` database. A privilege spans databases if the privilege is any of
 the following:
@@ -16,3 +17,7 @@ the following:
 - all collections and all database
 
 - the ``cluster`` resource
+
+You must have the :authaction:`setAuthenticationRestriction`
+:ref:`action <security-user-actions>` on the database of the target
+role to update a role's ``authenticationRestrictions`` document.

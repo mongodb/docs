@@ -35,5 +35,15 @@ following fields:
    if the server does not recognize a field contained within the
    ``authenticationRestrictions`` document, it throws an error.
 
+.. warning::
+
+   If a user inherits multiple roles with incompatible authentication
+   restrictions, that user becomes unusable.
+
+   For example, if a user inherits one role in which the
+   ``clientSource`` field is ``["198.51.100.0"]`` and another role in
+   which the ``clientSource`` field is ``["203.0.113.0"]`` the server is
+   unable to authenticate the user.
+
 For more information on authentication in MongoDB, see
 :doc:`Authentication </core/authentication/>`.
