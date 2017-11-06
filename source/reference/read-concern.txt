@@ -12,19 +12,29 @@ Read Concern
    :depth: 1
    :class: singlecol
 
+.. versionchanged:: 3.6
+
+   Add support for :ref:`afterClusterTime` for :readconcern:`"local"`
+   and :readconcern:`"majority"` read concern level.
+
+.. versionchanged:: 3.4
+
+     Adds support for :readconcern:`"linearizable"` read concern level.
+
 .. versionadded:: 3.2
 
 The ``readConcern`` query option for replica sets and replica set
-shards determines which data to return from a query. 
+shards determines which data to return from a query.
+
+.. code-block:: javascript
+
+   readConcern: { level: <"majority"|"local"|"linearizable"> }
+   readConcern: { level: <"majority"|"local"> , afterClusterTime: <Timestamp> }
 
 .. _read-concern-levels:
 
 Read Concern Levels
 -------------------
-
-.. versionchanged:: 3.4
-
-   Adds support for :readconcern:`"linearizable"` read concern.
 
 The following read concern levels are available:
 
@@ -76,12 +86,40 @@ The following read concern levels are available:
           indefinitely and instead ensures that the operation returns
           an error if the read concern cannot be fulfilled.
 
-       Lineariable read concern is available for both MMAPv1 and
+       Linearizable read concern is available for both MMAPv1 and
        WiredTiger. See :ref:`read-concern-storage-engine-drivers`.
 
        .. versionadded:: 3.4
 
 .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. _afterClusterTime:
+
+``afterClusterTime``
+--------------------
+
+.. versionadded:: 3.6
+
+Starting in version 3.6, MongoDB introduces the ``afterClusterTime``
+option that can be set by the drivers. Read operations with a specified
+``afterClusterTime`` return data that meets the level requirement and
+the specified after cluster time requirement.
+
+:ref:`Causally consistent sessions<causal-consistency>` use
+``afterClusterTime`` to provide :ref:`causal consistency`.
+
+``afterClusterTime`` is available for :readconcern:`"local"` (default)
+and :readconcern:`"majority"` read concern levels:
+
+.. code-block:: javascript
+
+   readConcern: { level: <"majority"|"local"> , afterClusterTime: <Timestamp> }
+
+.. important::
+
+   Do not manually set the ``afterClusterTime``. MongoDB drivers set
+   this value automatically for operations associated with
+   :ref:`causally consistent sessions <causal-consistency>`.
 
 .. _read-concern-storage-engine-drivers:
 
@@ -123,7 +161,9 @@ a read concern option.
 ``readConcern`` Option
 ----------------------
 
-Use the ``readConcern`` option to specify the read concern level.
+.. versionchanged:: 3.6
+
+Use the ``readConcern`` option to specify the read concern level [#after-cluster-time]_ :
 
 .. code-block:: javascript
 
@@ -146,15 +186,23 @@ The ``readConcern`` option is available for the following operations:
 
 - :dbcommand:`geoSearch` command
 
-To specify the read concern for the :program:`mongo` shell method
+To specify the read concern level for the :program:`mongo` shell method
 :method:`db.collection.find()`, use the :method:`cursor.readConcern()`
 method.
+
+.. [#after-cluster-time]
+
+   For :ref:`causally consistent sessions <causal-consistency>`,
+   MongoDB drivers automatically specifies the :ref:`afterClusterTime`
+   value in the read concern.
 
 Considerations
 --------------
 
 Read Your Own Writes
 ~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
 
 .. include:: /includes/fact-read-own-writes.rst
 
