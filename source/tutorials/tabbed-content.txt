@@ -1,0 +1,286 @@
+==============
+Tabbed Content
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The tabbed content extension can be used in any MongoDB docs repository
+that uses `docs-tools <https://github.com/mongodb/docs-tools>`_. 
+
+Importing the Tabs Extension
+----------------------------
+
+The tabs extension must be imported before it can be used in a docs
+repository. Locate the ``extensions`` array in the desired repository's
+``conf.py`` file and add ``'tabs'`` to the array:
+
+.. code-block:: python
+   :emphasize-lines: 7
+
+   extensions = [
+       'sphinx.ext.extlinks',
+       'sphinx.ext.todo',
+       'mongodb',
+       'directives',
+       'intermanual',
+       'tabs'
+   ]
+
+Choosing a Tab Set
+------------------
+
+There are two types of directives in the tabs extension:
+
+- :ref:`Pre-defined Tab Sets<pre-defined-tab-set>`: Used for common
+  groups of tabs that are shared across several pages. Pre-defined
+  tab sets do not require the writer to specify the tab's display name
+  and also provide error and consistency checking.
+
+- :ref:`Custom Tab Set<custom-tab-set>`: Used for a group of tabs that 
+  only apply to a single unique page. Custom tab sets are flexible but
+  require the writer to provide the tab's display name and do not offer
+  any error or consistency checking.
+
+Usage
+~~~~~
+
+The following usage guidelines apply to both pre-defined tab sets and
+custom tab sets:
+
+Use a tabs directive to indicate blocks of dynamic content on a page.
+Dynamic content is any content on the page that will show or hide
+depending on the tab selected. There is no limit to the number of tabs
+directives per page, but if there is more than one they should be of the
+same type. For example, once ``.. tabs-drivers::`` is used all tab
+instances on the page should also be ``.. tabs-drivers::``.
+
+The tab directive may be used to display content for a single tab
+or a small subset of tabs. For example, the tabs directive can be used
+to display a specific caveat for the Mongo Shell on a drivers page
+without needing to specify blank stubs for all other languages on the
+page:
+
+.. code-block:: rst
+
+   .. tabs-drivers::
+   
+      tabs:
+        - id: shell
+          content: |
+            .. note::
+               Some caveat about the shell. Don't show anything for
+               other languages or make the writer list all other
+               languages in this directive instance.
+
+Ensure all required tabs are present in the first use of tabs. The
+tab selector at the top of the page is built using the first instance
+of tabs in the document.
+
+.. _pre-defined-tab-set:
+
+Using a Pre-defined Tab Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When two or more pages share the same or similar set of tabs, use a
+pre-defined tab set. Pre-defined tab sets perform the following across
+all pages that use the same tab set:
+
+- Save the user's preference and automatically apply it when they visit
+  pages using the same tab set
+
+- Ensure tabs appear in the same order
+
+- Eliminate the need for the writer to specify the tab display name 
+  (tab label)
+
+The following pre-defined tab sets are currently available:
+
+- ``tabs-drivers``
+
+Pre-defined tab sets require the following fields for each tab:
+
+- ``id``
+- ``content``
+
+The following example uses the ``tabs-drivers`` directive to display
+code examples stored in different files:
+
+.. cssclass:: copyable-code
+.. code-block:: rst
+
+   .. tabs-drivers::
+   
+      tabs:
+        - id: shell
+          content: |
+            .. class:: copyable-code
+            .. code-block:: javascript
+   
+               db.inventory.find( {} )
+   
+        - id: python
+          content: |
+            .. class:: copyable-code
+            .. literalinclude:: /driver-examples/test_examples.py
+               :language: python
+               :dedent: 8
+               :start-after: Start Example 7
+               :end-before: End Example 7
+   
+        - id: java-sync
+          content: |
+            .. class:: copyable-code
+            .. literalinclude:: /driver-examples/DocumentationSamples.java
+               :language: java
+               :dedent: 8
+               :start-after: Start Example 7
+               :end-before: End Example 7
+   
+        - id: java-async
+          content: |
+            .. class:: copyable-code
+            .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+               :language: java
+               :dedent: 8
+               :start-after: Start Example 7
+               :end-before: End Example 7
+   
+        - id: nodejs
+          content: |
+            .. class:: copyable-code
+            .. literalinclude:: /driver-examples/examples_tests.js
+               :language: javascript
+               :dedent: 8
+               :start-after: Start Example 7
+               :end-before: End Example 7
+
+.. _defining-tab-set:
+
+Defining a New Tab Set
+~~~~~~~~~~~~~~~~~~~~~~
+
+Create a new tab set if a pre-defined tab set best suits your use case
+but does not exist. New tab sets are defined in the
+``docs-tools/sphinxext/tabs.py`` file.
+
+The following guide walks through creating the drivers tab set and the
+``tabs-drivers`` directive:
+
+#. Define an array of tuples using the ``('id', 'displayName')`` format.
+
+   .. code-block:: python
+
+      LANGUAGES_RAW = [('shell', 'Mongo Shell'),
+                   ('compass', 'Compass'),
+                   ('python', 'Python'),
+                   ('java-sync', 'Java (Sync)'),
+                   ('nodejs', 'Node.js'),
+                   ('php', 'PHP'),
+                   ('java-async', 'Java (Async)'),
+                   ('c', 'C'),
+                   ('cpp11', 'C++11'),
+                   ('csharp', 'C#'),
+                   ('perl', 'Perl'),
+                   ('ruby', 'Ruby'),
+                   ('scala', 'Scala')
+                   ]
+
+#. Using the array of tuples above to define an array of ids and an
+   array of display names.
+
+   .. code-block:: python
+
+      LANGUAGES_IDS = [lang[0] for lang in LANGUAGES_RAW]
+      LANGUAGES_DISPLAY = [lang[1] for lang in LANGUAGES_RAW]
+
+#. Define a filter to look up the display names for each tab and sort
+   them. Filters also provide error checking by throwing exceptions when
+   a tab ``id`` does not exist in the array of tuples.
+   
+   .. code-block:: python
+
+      def sortLanguages(tabData):
+          # Create a list for the sorted data
+          sorted = [None] * len(LANGUAGES_RAW)
+    
+          for tab in tabData:
+              index = LANGUAGES_IDS.index(tab['id'])
+              tab['name'] = LANGUAGES_DISPLAY[index]
+              sorted[index] = tab
+
+          return filter(None, sorted)
+
+#. Create the directive. Specify a name for the directive and pass the
+   filter's function name and the desired field name for saving the
+   user's preference to the ``buildTemplate`` method. Use the following
+   template:
+
+   .. code-block:: python
+
+      directive = template.create_directive('directiveName', buildTemplate("filterName", "preferenceName"), template.BUILT_IN_PATH, True)
+      app.add_directive('directiveName', directive)
+
+   The following example creates the ``tabs-driver`` directive:
+
+   .. code-block:: python
+
+      directive = template.create_directive('tabs-drivers', buildTemplate("sortLanguages", "drivers"), template.BUILT_IN_PATH, True)
+      app.add_directive('tabs-drivers', directive)
+
+#. Test changes with a clean build of a docs repo. You must create a
+   symlink from the ``build/docs-tools`` directory to the ``docs-tools``
+   directory containing the changes. Check in the changes and then begin
+   using the new directive on your page.
+
+.. _custom-tab-set:
+
+Using a Custom Tab Set
+~~~~~~~~~~~~~~~~~~~~~~
+
+The custom tab set is best suited for unique pages that will not
+share a similar set of tabs with another page. User preference will be
+saved on a per page basis when the custom tab set is used.
+
+The custom tab directive requires the following fields for each tab:
+
+- ``id``
+- ``name``
+- ``content``
+
+The following example uses the custom tabs set to organize
+information on different types of Ops Manager logs:
+
+.. cssclass:: copyable-code
+.. code-block:: rst
+
+   .. tabs::
+
+      tabs:
+        - id: realtime
+          name: Real-Time Logs
+          content: |
+            The Monitoring Agent collects real-time log information...
+
+        - id: ondisk
+          name: On-Disk Logs
+          content: |
+            Ops Manager can collect on-disk logs...
+
+        - id: agent
+          name: Agent Logs
+          content: |
+            Ops Manager collects logs for all your Automation Agents...
+
+.. important::
+   The custom directive does not check for errors or consistency. If the
+   ``id`` and ``name`` pairs differ from instance to instance on the
+   same docs page, they will be treated as different tabs.
+
+.. note::
+   If there are multiple pages with similar tabs, a pre-defined tab set
+   should be created with these values. For more information, see
+   :ref:`defining-tab-set`.
