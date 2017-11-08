@@ -22,14 +22,28 @@ For replica sets, secondaries will begin building indexes *after* the
 set for each shard, which then replicate to the secondaries after the
 primary finishes building the index.
 
-To minimize the impact of building an index on your replica set, use
-the following procedure to build indexes:
 
-.. see:: :doc:`/administration/indexes` and :doc:`/core/indexes` for
-   more information.
+To minimize the impact of building an index on your replica set, you
+can use the following procedure to build indexes.
 
 Considerations
 --------------
+
+.. important::
+
+   To create :ref:`unique indexes <index-type-unique>` using the
+   following procedure, you must stop all writes to the collection
+   during this procedure.
+
+   If you cannot stop all writes to the collection during this
+   procedure, do not use the procedure on this page. Instead, build
+   your unique index on the collection by:
+
+   - issuing :method:`db.collection.createIndex()` on the primary for a
+     replica set, or
+
+   - issuing :method:`db.collection.createIndex()` on the
+     :program:`mongos` for a sharded cluster.
 
 - Ensure that your :term:`oplog` is large enough to permit the
   indexing or re-indexing operation to complete without falling
@@ -44,9 +58,7 @@ Considerations
 - Before version 2.6 :ref:`Background index creation operations
   <index-creation-background>` become *foreground* indexing operations
   on :term:`secondary` members of replica sets. After 2.6, background
-  index builds replicate as background index builds on the
-  secondaries.
-
+  index builds replicate as background index builds on the secondaries.
 
 Procedure
 ---------
@@ -56,6 +68,13 @@ Procedure
    If you need to build an index in a :term:`sharded cluster`, repeat
    the following procedure for each replica set that provides each
    :term:`shard`.
+
+   To create :ref:`unique indexes <index-type-unique>` using the
+   following procedure, you must stop all writes to the collection
+   during the index build. Otherwise, you may end up with inconsistent
+   data across the replica set members. If you cannot stop all writes to
+   the collection, do not use the following procedure to create unique
+   indexes.
 
 .. _tutorial-index-on-replica-sets-stop-one-member:
 
