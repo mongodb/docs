@@ -8,6 +8,18 @@
 
             db.inventory.find( { status: "A", qty: { $lt: 30 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A", qty: { $lt: 30 } }
+
+         .. figure:: /images/compass-find-filter-and.png
+
      - id: python
        content: |
          .. class:: copyable-code

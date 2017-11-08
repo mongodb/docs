@@ -11,6 +11,18 @@
                  $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
             } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A", $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ] }
+
+         .. figure:: /images/compass-find-filter-and-or.png
+
 
      - id: python
        content: |

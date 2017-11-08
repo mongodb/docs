@@ -8,6 +8,18 @@
 
             db.inventory.find( { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } }
+
+         .. figure:: /images/compass-array-compound-multiple-criteria.png
+
      - id: python
        content: |
          .. class:: copyable-code
@@ -61,7 +73,7 @@
             :dedent: 4
             :start-after: Start Example 26
             :end-before: End Example 26
- 
+
      - id: ruby
        content: |
          .. class:: copyable-code

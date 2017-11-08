@@ -8,6 +8,18 @@
 
             db.inventory.find( { tags: "red" } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { tags: "red" }
+
+         .. figure:: /images/compass-array-elem-match.png
+
      - id: python
        content: |
          .. class:: copyable-code

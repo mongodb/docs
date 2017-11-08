@@ -8,6 +8,18 @@
 
             db.inventory.find( { "size.h": { $lt: 15 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "size.h": { $lt: 15 } }
+
+         .. figure:: /images/compass-find-nested-query-op.png
+
      - id: python
        content: |
          .. class:: copyable-code
