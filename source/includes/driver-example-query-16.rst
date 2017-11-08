@@ -8,6 +8,10 @@
 
             db.inventory.find(  { size: { w: 21, h: 14, uom: "cm" } }  )
 
+     - id: compass
+       content: |
+         .. figure:: /images/compass-find-embedded-no-match.png
+
      - id: python
        content: |
          .. class:: copyable-code

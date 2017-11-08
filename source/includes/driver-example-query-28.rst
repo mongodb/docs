@@ -8,6 +8,18 @@
 
             db.inventory.find( { "tags": { $size: 3 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "tags": { $size: 3 } }
+
+         .. figure:: /images/compass-array-query-by-size.png
+
      - id: python
        content: |
          .. class:: copyable-code

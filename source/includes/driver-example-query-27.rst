@@ -8,6 +8,18 @@
 
             db.inventory.find( { "dim_cm.1": { $gt: 25 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "dim_cm.1": { $gt: 25 } }
+
+         .. figure:: /images/compass-array-match-by-index.png
+
      - id: python
        content: |
          .. class:: copyable-code

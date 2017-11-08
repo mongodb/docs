@@ -8,6 +8,11 @@
 
             db.inventory.find( {} )
 
+     - id: compass
+       content: |
+
+         .. figure:: /images/compass-select-all.png
+
      - id: python
        content: |
          .. class:: copyable-code

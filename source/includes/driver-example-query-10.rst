@@ -8,6 +8,18 @@
 
             db.inventory.find( { status: { $in: [ "A", "D" ] } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: { $in: [ "A", "D" ] } }
+
+         .. figure:: /images/compass-find-filter-query-op.png
+
      - id: python
        content: |
          .. class:: copyable-code
