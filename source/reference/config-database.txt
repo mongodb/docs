@@ -15,9 +15,13 @@ Config Database
    :depth: 1
    :class: singlecol
 
-The ``config`` database supports :term:`sharded cluster`
-operation. See the :doc:`/sharding` section of this manual for full
-documentation of sharded clusters.
+The collections in the ``config`` database support:
+
+- :doc:`sharded cluster operations </sharding>`, and
+
+- starting in MongoDB 3.6, :ref:`causally consistent sessions` for
+  standalones, replica sets, and sharded clusters and retryable writes
+  for replica sets and sharded clusters.
 
 .. important:: The schema of the ``config`` database is
    *internal* and may change between releases of MongoDB. The
@@ -25,24 +29,28 @@ documentation of sharded clusters.
    write data to the ``config`` database in the course of normal
    operation or maintenance.
 
-To access the ``config`` database, connect to a :program:`mongos`
-instance in a sharded cluster, and use the following helper:
+Collections to Support Sharded Cluster Operations
+-------------------------------------------------
+
+.. if we add a collection to the config database here, also update the
+   list on the sharding-internals page.
+
+To access the ``config`` database and view the list of collections that
+support sharding operations, connect a :program:`mongo` shell to a
+:program:`mongos` instance in a sharded cluster and issue the following:
 
 .. code-block:: javascript
 
    use config
 
-You can return a list of the collections, with the following helper:
-
-.. code-block:: javascript
-
    show collections
 
 The config database is mainly for internal use, and during normal
 operations you should never manually insert or store data in it.
-However, if you need to verify the write availability of a config
-server, you can insert a document into a test collection (after making
-sure that no collection of that name already exists):
+However, if you need to verify the write availability of the config
+server for a sharded cluster, you can insert a document into a test
+collection (after making sure that no collection of that name already
+exists):
 
 .. warning:: Modification of the ``config`` database on a functioning
    system may lead to instability or inconsistent data sets. If you
@@ -60,13 +68,8 @@ Future releases of the server may include different collections in
 the config database, so be careful when selecting a name for your
 test collection.
 
-Collections
------------
-
-.. if we add a collection to the config database here, also update the
-   list on the sharding-internals page.
-
-.. data:: config
+The following collections in the ``config`` database support sharding
+operations:
 
 .. data:: config.changelog
 
@@ -382,3 +385,49 @@ Collections
 
       mongos> db.getCollection("version").find()
       { "_id" : 1, "version" : 3 }
+
+Collections to Support Sessions
+-------------------------------
+
+.. versionadded:: 3.6
+
+Starting in MongoDB 3.6, the ``config`` database contains the
+*internal* collections to support :ref:`causally consistent sessions`
+for standalones, replica sets, and sharded clusters and retryable
+writes for replica sets and sharded clusters.
+
+.. warning::
+
+   Do not manually modify or drop these collections.
+
+To access these collections for a :program:`mongod` or
+:program:`mongos` instance, connect :program:`mongo` shell to the
+instance.
+
+The following collection in the ``config`` database support
+:ref:`sessions`:
+
+.. data:: config.system.sessions
+
+   The ``system.sessions`` collection stores session records that are
+   available to all members of the deployment.
+
+   When a user creates a session on a :program:`mongod` or
+   :program:`mongos` instance, the record of the session initially
+   exists only in-memory on the instance. Periodically, the instance
+   will sync its cached sessions to the ``system.sessions`` collection;
+   at which time, they are visible to all members of the deployment.
+
+   To view records in the ``system.sessions`` collection, use
+   :pipeline:`$listSessions`.
+
+   .. warning::
+
+      Do not manually modify or drop the ``system.sessions`` collection.
+
+   In a sharded cluster, the ``system.sessions`` collection is sharded.
+   When adding a shard to the sharded cluster, if the shard to add
+   already contains its own ``system.sessions`` collection, MongoDB
+   drops the new shard's ``system.sessions`` collection during the add
+   process.
+
