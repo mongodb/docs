@@ -62,6 +62,7 @@ members of your replica set. For example, to shut down, use the
 
 .. code-block:: sh
 
+   use admin
    db.shutdownServer()
 
 Restart this :program:`mongod` as a standalone instance
@@ -110,15 +111,20 @@ collection:
 
    db.temp.drop()
 
-Use the :method:`db.collection.save()` method and a sort on
-reverse :term:`natural order` to find the last entry and save it
-to a temporary collection:
+Retrieve the latest oplog entry by sorting on reverse :term:`natural order`.
+Modify the entry to set ``op`` to "n" (representing a no-op) and clear the
+``o`` and ``o2`` fields. Then insert the modified oplog entry into a temporary
+collection.
 
 .. _last-oplog-entry:
 
 .. code-block:: javascript
 
-   db.temp.save( db.oplog.rs.find( { }, { ts: 1, h: 1 } ).sort( {$natural : -1} ).limit(1).next() )
+   var oplogEntry = db.oplog.rs.find().sort({$natural: -1}).limit(1).next();
+   oplogEntry.op = 'n'; // Change the entry to a no-op.
+   oplogEntry.o = {};   // Remove any update modifiers that would prevent saving the oplog entry to a normal collection.
+   oplogEntry.o2 = {};
+   db.temp.insert(oplogEntry);
 
 To see this oplog entry, use the following operation:
 
@@ -159,12 +165,12 @@ Upon success, this command returns the following status:
 Insert the Last Entry of the Old Oplog into the New Oplog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Insert the previously saved last entry from the old oplog into the
-new oplog. For example:
+Insert the previously inserted latest entry from the old oplog into the new
+oplog. For example:
 
 .. code-block:: javascript
 
-   db.oplog.rs.save( db.temp.findOne() )
+   db.oplog.rs.insert( db.temp.findOne() )
 
 To confirm the entry is in the new oplog, use the following operation:
 
