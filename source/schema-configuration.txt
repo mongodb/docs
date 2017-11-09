@@ -1,6 +1,6 @@
-====================
-Schema Configuration
-====================
+================================
+Schema Generation and Management
+================================
 
 .. default-domain:: mongodb
 
@@ -10,503 +10,122 @@ Schema Configuration
    :depth: 1
    :class: singlecol
 
+Overview
+--------
+
 Business intelligence tools connect to a data source and, given a fixed
-tabular schema, allow the user to visually explore their data. As
-MongoDB uses a :manual:`flexible schema </data-modeling>`, these tools
-currently cannot use MongoDB as a native data source.
+tabular schema, allow users to visually explore their data.
+MongoDB uses a :manual:`flexible schema </data-modeling>`, so some
+business intelligence tools cannot use MongoDB as a native data source.
 
 To use MongoDB with a relational business intelligence tool such as
-`Tableau <https://www.tableau.com/>`_, you must define a relational
-mapping for your MongoDB data.
+:doc:`Tableau </connect/tableau>`, you must define a relational
+mapping for your MongoDB data. |bi| provides several methods for
+creating and managing a relational schema.
 
-The schema generation tool :program:`mongodrdl` outputs such a schema in the
-:ref:`Document Relational Definition Language <drdl>` (DRDL) format, but you
-should verify that the schema it proposes matches your data requirements.
-Examine both the table structure and field types to ensure that you can
-generate your intended reports.
+|bi-short|'s proxy server, :program:`mongosqld`, has startup options
+which determine how it handles schema management. These are covered in
+detail in the :program:`mongosqld` usage documentation.
 
-You may have to manually edit the schema definition files to remove
-unneeded fields; add fields that :program:`mongodrdl` did not discover
-within the subset of documents that it sampled; and modify erroneous
-field types.
+Cached Sampling
+---------------
 
-You may edit DRDL files to:
+*New in version 2.3:*
 
-- Add :ref:`aggregation pipeline <aggregation-pipeline>` stages,
-- Add fields,
-- Remove fields,
-- Remove tables,
-- Rename tables, so long as the ``collection`` field remains the same,
+When :program:`mongosqld` starts up, it can sample documents on
+a MongoDB instance to generate a relational representation of the
+schema, which it caches in memory. This is the default mode, which
+:program:`mongosqld` uses unless you specify a schema file with
+the :option:`--schema` option or a schema database with the
+:option:`--sampleSource` option.
+
+You can configure :program:`mongosqld` to automatically resample on a
+fixed schedule with the :option:`--sampleRefreshIntervalSecs`
+option. If you do not specify a resampling interval,
+:program:`mongosqld` uses its initial schema for as long as the
+process runs.
+
+If you need to manually edit your schema to ensure correct
+representation of your data, you can use a
+:ref:`schema file <schema-with-drdl-file>` instead.
+
+.. _resample-schema-data:
+
+Resample Schema Data with ``FLUSH SAMPLE``
+------------------------------------------
+
+When the :program:`mongosqld` process starts it creates a
+:doc:`schema </schema-configuration>`, either from a
+:ref:`schema file <msqld-schema-options>` or by sampling data from a
+MongoDB instance. If the data in your MongoDB instance changes shape
+significantly with new fields or collections, you may wish to
+regenerate the schema |bi-short| uses. You can regenerate
+the schema either by restarting :program:`mongosqld` or by issuing
+the ``FLUSH SAMPLE`` command from within the
+:ref:`MySQL shell <connect-with-mysql>`.
+
+The :option:`--sampleRefreshIntervalSecs` option provides another way
+for :program:`mongosqld` to regenerate the schema by resampling data
+at a user-specified interval.
+
+.. note::
+
+   You cannot use the ``FLUSH SAMPLE`` command if :program:`mongosqld`
+   starts with a :ref:`schema file <schema-with-drdl-file>`
+   via the :option:`--schema` option.
+
+.. seealso::
+
+   :option:`--sampleNamespaces`
+
+   :option:`--sampleSource`
+
+   :option:`--sampleMode`
+
+Persist a Schema in MongoDB
+---------------------------
+
+The :option:`--sampleSource` option directs :program:`mongosqld` to
+use a particular database for schema storage. :program:`mongosqld`
+can either create a new database to use for schema storage or use
+an existing database.
+
+If you specify an existing database which has been used previously
+for schema storage, the :option:`--sampleMode` option determines
+whether :program:`mongosqld` writes new schema data to the specified
+database or only reads from it. If you specify a database which
+doesn't currently exist, you must set :option:`--sampleMode` to
+``write``.
+
+The :option:`--sampleRefreshIntervalSecs`
+option determines how frequently :program:`mongosqld` resamples data
+to update the schema.
+
+.. include:: /includes/fact-resample-schema-data.rst
+
+.. _schema-with-drdl-file:
+
+Load a Schema from a DRDL File
+------------------------------
+
+The :option:`--schema` option allows you to specify a schema file
+for :program:`mongosqld` to use.
+
+The schema generation tool :program:`mongodrdl` outputs a schema file
+in :ref:`Document Relational Definition Language <drdl>` (DRDL)
+format, but you should verify that the schema it proposes matches your
+data requirements. Examine both the table structure and field types
+to ensure that you can generate your intended reports.
+
+It is possible to manually edit the schema
+definition files to perform the following actions:
+
+- Add :ref:`aggregation pipeline <aggregation-pipeline>` stages
+- Add fields that :program:`mongodrdl` did not discover within
+  the subset of documents that it sampled
+- Remove fields
+- Remove tables
+- Rename tables, so long as the ``collection`` field remains the same
 - Rename fields using the ``sqlname`` option
 
 .. include:: /includes/fact-restart-mongosqld.rst
-
-.. _drdl:
-
-Document Relational Definition Language
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The Document Relational Definition Language (``DRDL``) defines a
-relational view of a MongoDB schema.
-
-:program:`mongodrdl` samples documents from your MongoDB collections, and
-derives a ``DRDL`` file from those documents. :program:`mongosqld` then
-uses the schema defined in ``DRDL`` files to allow MySQL clients to
-query your MongoDB data.
-
-File Format
-```````````
-
-The ``DRDL`` file lists your databases, tables, and columns in
-`YAML <http://yaml.org/>`_ format.
-
-.. code-block:: yaml
-
-   schema:
-   - db: <database name>
-     tables:
-     - table: <SQL table name>
-       collection: <MongoDB collection name>
-       pipeline:
-       - <optional pipeline elements>
-       columns:
-       - Name: <MongoDB field name>
-         MongoType: <MongoDB field type>
-         SqlName: <mapped SQL column name>
-         SqlType: <mapped SQL column type>
-
-Example
-```````
-
-.. include:: /includes/fact-mongodrdl-example.rst
-
-Field Types
-~~~~~~~~~~~
-
-The |bi| correctly maps fields that always contain the same data
-type into the relational model. Schema generation deals specially
-with the following cases:
-
-.. list-table::
-   :stub-columns: 1
-   :widths: 20 80
-
-   * - Numeric
-     - The |bi| uses the most precise numeric type that matches the
-       sampled documents.
-
-       If a field in a collection always has the same data type, the |bi|
-       uses that type.
-
-       If a field in a collection can contain either floating point
-       values or integers, the |bi| uses type ``numeric``.
-
-   * - Dates
-     - The |bi| treats any field of type :bsontype:`data_date` as the
-       :term:`SQL` ``timestamp`` type.
-
-   * - Timestamps
-     - The |bi| ignores any field of type :bsontype:`data_timestamp`.
-
-   * - ObjectID
-     - The |bi| treats any field of type :bsontype:`data_oid` as
-       the SQL type ``varchar``.
-
-   * - UUID
-     - The |bi| treats any field of type UUID as the SQL type
-       ``varchar``.
-
-   * - Geospatial
-     - If a collection contains a
-       :manual:`geospatial index </applications/geospatial-indexes>`, the
-       connector maps the indexed field into an array of numeric
-       longitude-latitude coordinates.
-
-       See :ref:`bi-geospatial` for an example.
-
-       .. include:: /includes/fact-geospatial-views.rst
-
-   * - Heterogeneous Fields
-     - .. _drdl-heterogeneous:
-
-       If a field contains inconsistent types, the |bi| chooses the most
-       frequently sampled type.
-
-       If a field can contain either a type or an array of that type, the
-       generated schema always specifies that the field contains an array.
-
-       .. seealso::
-
-          :ref:`bi-skip-incompatible-types`
-
-Embedded Documents
-~~~~~~~~~~~~~~~~~~
-
-The |bi| maps embedded documents to simple fields
-that have a ``.`` separator character, making them appear similar to the way you
-would reference them using :ref:`dot notation <document-dot-notation>` in a
-MongoDB query.
-
-While Tableau properly quotes identifiers, within ad-hoc
-SQL expressions you must double-quote every identifier that contains ``.``
-characters or mixed-case characters.
-
-Example
-```````
-
-Consider the following document:
-
-.. code-block:: javascript
-
-   {
-       "_id": 1,
-       "familyName": "Partridge",
-       "hometown" : "Hollywood Hills",
-       "address" : { "street": "123 Main Street",
-                     "city" : "Hollywood",
-                     "state" : "CA",
-                     "zip" : "90210" },
-       "members_since" : ISODate("2002-04-12T00:00:00Z")
-   }
-
-Running :program:`mongodrdl` on a collection containing this document
-results in the following fields in the generated schema:
-
-.. list-table::
-
-   * - ``_id``
-
-     - ``numeric``
-
-   * - ``familyName``
-
-     - ``varchar``
-
-   * - ``hometown``
-
-     - ``varchar``
-
-   * - ``address.street``
-
-     - ``varchar``
-
-   * - ``address.city``
-
-     - ``varchar``
-
-   * - ``address.state``
-
-     - ``varchar``
-
-   * - ``address.zip``
-
-     - ``varchar``
-
-   * - ``members_since``
-
-     - ``timestamp``
-
-Arrays
-~~~~~~
-
-The |bi| exposes arrays to business intelligence tools using two
-collections: one without the array, and the other having one document
-per array element.
-
-Example
-```````
-
-If you run :program:`mongodrdl` on a collection ``families`` with the
-following document:
-
-.. code-block:: javascript
-
-   {
-      "_id": 1,
-      "familyName": "Partridge",
-      "hometown" : "Hollywood Hills",
-      "familyMembers" : [
-        {
-            "firstname" : "Shirley",
-            "age" : 42,
-            "attributes" : [
-                { "name" : "instrument", "value" : "singer" },
-                { "name" : "role", "value" : "mom" }
-            ]
-        },
-        {
-            "firstname" : "Keith",
-            "age" : 18,
-            "attributes" : [
-                { "name" : "instrument", "value" : "guitar" },
-                { "name" : "role", "value" : "son" }
-            ]
-        },
-        {
-            "firstname" : "Laurie",
-            "age" : 16,
-            "attributes" : [
-                { "name" : "instrument", "value" : "keyboard" },
-                { "name" : "role", "value" : "sister" }
-            ]
-        }]
-   }
-
-This results in the following three tables:
-
-``families``
-  .. list-table::
-
-     * - ``_id``
-
-       - ``numeric``
-
-     * - ``familyName``
-
-       - ``varchar``
-
-     * - ``hometown``
-
-       - ``varchar``
-
-``families_familyMembers``
-  .. list-table::
-
-     * - ``_id``
-
-       - ``numeric``
-
-     * - ``familyMembers.age``
-
-       - ``numeric``
-
-     * - ``familyMembers.firstname``
-
-       - ``varchar``
-
-     * - ``familyMembers_idx``
-
-       - ``numeric``
-
-``families_familyMembers_attributes``
-  .. list-table::
-
-     * - ``_id``
-
-       - ``numeric``
-
-     * - ``familyMembers.attributes.name``
-
-       - ``varchar``
-
-     * - ``familyMembers.attributes.value``
-
-       - ``varchar``
-
-     * - ``familyMembers.attributes_idx``
-
-       - ``numeric``
-
-     * - ``familyMembers_idx``
-
-       - ``numeric``
-
-You can join these tables together to view the data in a denormalized
-format. For example, you can list the people named in the above schema
-together with their family information using the following query:
-
-.. code-block:: sql
-
-   SELECT f.*, m.`familyMembers.firstname` FROM families_familyMembers m JOIN families f ON m._id = f._id;
-
-Pre-Joining
-```````````
-
-If you provide the :option:`--preJoined` option to :program:`mongodrdl`,
-then the |bi| adds the fields in the containing document to each
-array element's document, thus "pre-joining" the table.
-
-In the previous example, the tables would contain the following
-additional columns:
-
-``families_familyMembers``
-  .. list-table::
-
-     * - ``familyName``
-
-       - ``varchar``
-
-     * - ``hometown``
-
-       - ``varchar``
-
-``families_familyMembers_attributes``
-  .. list-table::
-
-     * - ``familyMembers.age``
-
-       - ``numeric``
-
-     * - ``familyMembers.firstname``
-
-       - ``varchar``
-
-     * - ``familyMembers_idx``
-
-       - ``numeric``
-
-     * - ``familyName``
-
-       - ``varchar``
-
-     * - ``hometown``
-
-       - ``varchar``
-
-Custom Filters
-~~~~~~~~~~~~~~
-
-You can add a column of type ``mongo.Filter`` to a collection in your
-``DRDL`` file. This column type allows you to perform a custom
-:manual:`$match </reference/operator/aggregation/$match>` query.
-
-For example, given the following schema describing a cloud of points with
-up to three components:
-
-.. code-block:: yaml
-
-   schema:
-   - db: test
-     tables:
-     - table: points
-       collection: points
-       pipeline: []
-       columns:
-       - Name: _id
-         MongoType: bson.ObjectId
-         SqlName: _id
-         SqlType: varchar
-       - Name: x
-         MongoType: float64
-         SqlName: x
-         SqlType: numeric
-       - Name: "y"
-         MongoType: float64
-         SqlName: "y"
-         SqlType: numeric
-       - Name: z
-         MongoType: float64
-         SqlName: z
-         SqlType: numeric
-       - Name: filter
-         MongoType: mongo.Filter
-         SqlName: filter
-         SqlType: varchar
-
-You can select only three-dimensional points using the following query:
-
-.. code-block:: sql
-
-   SELECT x, y, z FROM points WHERE filter='{"z": {"$exists": true}}';
-
-.. _bi-pipeline:
-
-Aggregation Pipelines
-~~~~~~~~~~~~~~~~~~~~~
-
-Aggregation Pipelines using Views
-`````````````````````````````````
-
-.. include:: /includes/fact-pipeline-views.rst
-
-Aggregation Pipelines in DRDL
-`````````````````````````````
-
-The |bi| can use :ref:`aggregation pipelines <aggregation-pipeline>` as
-part of the schema to transform documents from the collection into the
-proper form for the relational tables.
-
-For example, consider a simple document in the collection
-``simpleFamilies``:
-
-.. code-block:: javascript
-
-   {
-      "_id": 1,
-      "familyName": "Partridge",
-      "familyMembers" : [ "Shirley", "Keith", "Laurie"]
-   }
-
-
-:program:`mongodrdl` will generate a schema with the tables
-``simpleFamilies`` and ``simpleFamilies_familyMembers``.
-
-The table ``simpleFamilies_familyMembers`` enumerates each family
-members, and has the following pipeline:
-
-.. code-block:: yaml
-
-   pipeline:
-   - $unwind:
-       includeArrayIndex: familyMembers_idx
-       path: $familyMembers
-
-This pipeline uses :pipeline:`$unwind` to create a new record for each
-member of ``familyMembers``. The schema tracks the array index in
-the field ``familyMembers_idx``.
-
-.. _bi-geospatial:
-
-Geospatial Data
-~~~~~~~~~~~~~~~
-
-.. versionadded:: 1.1.0
-
-If a collection contains a
-:manual:`geospatial index </applications/geospatial-indexes>`, the
-connector maps the indexed field into an array of numeric
-longitude-latitude coordinates.
-
-Example
-```````
-
-Given the following collection:
-
-.. code-block:: javascript
-
-   db.points.createIndex( { pos : "2dsphere" } )
-   db.points.insert({
-       pos : { type: "Point", coordinates: [ -73.97, 40.77 ] },
-       name: "Central Park",
-       category : "Parks"
-   })
-
-:program:`mongodrdl` generates the following schema:
-
-.. code-block:: yaml
-
-   schema:
-   - db: test
-     tables:
-     - table: points
-       collection: points
-       pipeline: []
-       columns:
-       - Name: _id
-         MongoType: bson.ObjectId
-         SqlName: _id
-         SqlType: varchar
-       - Name: category
-         MongoType: string
-         SqlName: category
-         SqlType: varchar
-       - Name: name
-         MongoType: string
-         SqlName: name
-         SqlType: varchar
-       - Name: pos.coordinates
-         MongoType: geo.2darray
-         SqlName: pos.coordinates
-         SqlType: numeric[]
-
-.. include:: /includes/fact-geospatial-views.rst
