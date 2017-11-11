@@ -32,9 +32,9 @@ two:
   information, and schema from the requesting BI tool via the MySQL
   wire protocol.
 
-  :program:`mongosqld` requires at least one :ref:`DRDL` file to start.
-  You will need to have defined your schema with
-  :program:`mongodrdl` before starting :program:`mongosqld`.
+  :program:`mongosqld` requires at least one :ref:`DRDL <drdl>` file to start.
+  You will need to have defined your schema with   :program:`mongodrdl` before
+  starting :program:`mongosqld`.
 
 SQL Compatibility
 ~~~~~~~~~~~~~~~~~
