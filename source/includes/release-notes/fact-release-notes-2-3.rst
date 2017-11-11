@@ -15,8 +15,8 @@ Kerberos Authentication Support
 an enterprise security protocol that authenticates clients through
 a trusted third server.
 
-Log Rotation (beta)
-~~~~~~~~~~~~~~~~~~~
+Log Rotation
+~~~~~~~~~~~~
 
 With version 2.3, you can rotate the :doc:`mongosqld
 </reference/mongosqld>` logs. To rotate the logs, :ref:`issue a command
