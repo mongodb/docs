@@ -5,7 +5,7 @@ import Menu from './menu.js'
 import Submenu from './submenu.js'
 
 class NavbarDropdown extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       open: false,
@@ -18,7 +18,7 @@ class NavbarDropdown extends React.Component {
     })
   }
 
-  render () {
+  render() {
     const dropDownClass = classNames({
       'navbar-dropdown': true,
       'navbar-dropdown--open': this.state.open,
@@ -40,12 +40,12 @@ class NavbarDropdown extends React.Component {
               <a href="https://docs.mongodb.com/">Docs Home</a>
             </li>
             <li className="menu__item">
-              <Submenu title="Documentation">
+              <Submenu title="Documentation" open={true}>
                 <li className="submenu__item">
                   <a href="https://docs.mongodb.com/manual/">Server</a>
                 </li>
                 <li className="submenu__item">
-                  <Submenu title="Drivers">
+                  <Submenu title="Drivers" open={false}>
                     <li className="submenu__item">
                       <a href="http://mongoc.org/libmongoc/current/">C</a>
                     </li>
@@ -78,8 +78,10 @@ class NavbarDropdown extends React.Component {
                     </li>
                   </Submenu>
                 </li>
+
+
                 <li className="submenu__item submenu__item--nested">
-                  <Submenu title="Cloud">
+                  <Submenu title="Cloud" open={true}>
                     <li className="submenu__item">
                       <a href="https://docs.mongodb.com/stitch/">MongoDB Stitch</a>
                     </li>
@@ -94,9 +96,22 @@ class NavbarDropdown extends React.Component {
                     </li>
                   </Submenu>
                 </li>
+
                 <li className="submenu__item submenu__item--nested">
-                  <a href="https://docs.mongodb.com/tools/">Tools</a>
+                  <Submenu title="Tools" open={true}>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/compass/current/">MongoDB Compass</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/bi-connector/current/">MongoDB BI Connector</a>
+                    </li>
+                    <li className="submenu__item">
+                      <a href="https://docs.mongodb.com/spark-connector/current/">MongoDB Spark Connector</a>
+                    </li>
+                  </Submenu>
                 </li>
+
+
                 <li className="submenu__item">
                   <a href="https://docs.mongodb.com/tutorials/">Tutorials</a>
                 </li>
@@ -106,7 +121,7 @@ class NavbarDropdown extends React.Component {
               <a href="https://www.mongodb.com/">Company</a>
             </li>
             <li className="menu__item">
-              <a href="https://university.mongodb.com/">University</a>
+              <a href="https://university.mongodb.com/">Learn</a>
             </li>
             <li className="menu__item">
               <a href="https://www.mongodb.com/community">Community</a>

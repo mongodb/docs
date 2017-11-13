@@ -27588,7 +27588,7 @@
 	              { className: 'menu__item' },
 	              _react2.default.createElement(
 	                _submenu2.default,
-	                { title: 'Documentation' },
+	                { title: 'Documentation', open: true },
 	                _react2.default.createElement(
 	                  'li',
 	                  { className: 'submenu__item' },
@@ -27603,7 +27603,7 @@
 	                  { className: 'submenu__item' },
 	                  _react2.default.createElement(
 	                    _submenu2.default,
-	                    { title: 'Drivers' },
+	                    { title: 'Drivers', open: false },
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
@@ -27701,7 +27701,7 @@
 	                  { className: 'submenu__item submenu__item--nested' },
 	                  _react2.default.createElement(
 	                    _submenu2.default,
-	                    { title: 'Cloud' },
+	                    { title: 'Cloud', open: true },
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },
@@ -27744,9 +27744,35 @@
 	                  'li',
 	                  { className: 'submenu__item submenu__item--nested' },
 	                  _react2.default.createElement(
-	                    'a',
-	                    { href: 'https://docs.mongodb.com/tools/' },
-	                    'Tools'
+	                    _submenu2.default,
+	                    { title: 'Tools', open: true },
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/compass/current/' },
+	                        'MongoDB Compass'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/bi-connector/current/' },
+	                        'MongoDB BI Connector'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/spark-connector/current/' },
+	                        'MongoDB Spark Connector'
+	                      )
+	                    )
 	                  )
 	                ),
 	                _react2.default.createElement(
@@ -27775,7 +27801,7 @@
 	              _react2.default.createElement(
 	                'a',
 	                { href: 'https://university.mongodb.com/' },
-	                'University'
+	                'Learn'
 	              )
 	            ),
 	            _react2.default.createElement(
@@ -27894,7 +27920,7 @@
 	    };
 	
 	    _this.state = {
-	      open: false
+	      open: props.open
 	    };
 	    return _this;
 	  }
