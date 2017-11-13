@@ -1,8 +1,11 @@
+.. versionchanged:: 3.6
+
 The argument must be a valid :ref:`expression
 <aggregation-expressions>` that resolves to one of the following:
 
-- A :ref:`Date <document-bson-type-date>` or
-  :ref:`Timestamp <document-bson-type-timestamp>`.
+- A :ref:`Date <document-bson-type-date>`, a
+  :ref:`Timestamp <document-bson-type-timestamp>`,
+  or an :ref:`ObjectID <document-bson-object-id>`.
 
 - A document of the following form:
 
@@ -24,9 +27,10 @@ The argument must be a valid :ref:`expression
 
        - The date to which the operator is applied.
          ``<dateExpression>`` must be a valid :ref:`expression
-         <aggregation-expressions>` that resolves to either a
-         :ref:`Date <document-bson-type-date>` or a
-         :ref:`Timestamp <document-bson-type-timestamp>`.
+         <aggregation-expressions>` that resolves to a
+         :ref:`Date <document-bson-type-date>`, a
+         :ref:`Timestamp <document-bson-type-timestamp>`,
+         or an :ref:`ObjectID <document-bson-object-id>`.
 
      * - ``timezone``
 
