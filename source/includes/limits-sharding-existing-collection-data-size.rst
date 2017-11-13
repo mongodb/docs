@@ -23,7 +23,7 @@ collection size.
    megabyte.
 
 If ``maxCollectionSize`` is less than or nearly equal to the target
-collection, increase the chunk size to ensure sucessful initial sharding.
+collection, increase the chunk size to ensure successful initial sharding.
 If there is doubt as to whether the result of the calculation is too
 'close' to the target collection size, it is likely better to increase the
 chunk size.
