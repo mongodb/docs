@@ -65,7 +65,7 @@ Run :dbcommand:`listDatabases` against the ``admin`` database:
 .. code-block:: javascript
 
    db.adminCommand( { listDatabases: 1 } )
-      
+
 The following is an example of a :dbcommand:`listDatabases` result:
 
 .. code-block:: json
@@ -125,7 +125,6 @@ when run with the ``nameOnly: true`` option:
       "ok" : 1
    }
 
-
 List Databases That Match the Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -141,5 +140,60 @@ name matches the specified :query:`regular expression <regex>`:
 .. code-block:: javascript
 
    db.adminCommand( { listDatabases: 1, filter: { "name": /^rep/ } } )
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+When executed against a :program:`mongos` instance,
+:dbcommand:`listDatabases`:
+
+- adds a ``shards`` embedded document to each database's summary
+  document if ``nameOnly: false``, and
+- excludes the ``local`` database.
+
+Each element in the ``shards`` embedded document consists of a field
+whose key gives the name of a collection on that shard, and whose value
+represents the collection's size in bytes.
+
+The ``sizeOnDisk`` field represents the total size of all
+listed collections.
+
+For example:
+
+.. code-block:: javascript
+
+   {
+     "databases" : [
+       {
+         "name" : "admin",
+         "sizeOnDisk" : 16384,
+         "empty" : false,
+         "shards" : {
+           "config" : 16384
+         }
+       },
+       {
+         "name" : "config",
+         "sizeOnDisk" : 176128,
+         "empty" : false,
+         "shards" : {
+           "clients" : 28672,
+           "patients" : 8192,
+           "config" : 139264
+         }
+       },
+       {
+         "name" : "test",
+         "sizeOnDisk" : 12288,
+         "empty" : false,
+         "shards" : {
+           "clients" : 12288
+         }
+       }
+     ],
+     "totalSize" : 204800,
+     "totalSizeMb" : 0,
+     "ok" : 1
+   }
 
 .. seealso:: :doc:`/tutorial/use-database-commands`.
