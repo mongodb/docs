@@ -21,6 +21,10 @@ versions.
        - 3.2.0 or later
        - 3.4.0 or later
 
+   * - 3.6.X
+     - 
+       - 3.4.0 or later
+
 For more information on MongoDB version numbers, see 
 :ref:`release-version-numbers` in the MongoDB Manual.
 
