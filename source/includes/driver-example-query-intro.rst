@@ -9,6 +9,13 @@
          ``inventory`` collection. To populate the ``inventory``
          collection, run the following:
 
+     - id: compass
+       content: |
+         This page provides examples of |query_operations| in
+         :ref:`MongoDB Compass <compass-index>`. The examples on this
+         page use the ``inventory`` collection. Populate the
+         ``inventory`` collection with the following documents:
+
      - id: python
        content: |
          This page provides examples of |query_operations| using the
