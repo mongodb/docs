@@ -8,6 +8,18 @@
 
             db.inventory.find( { "instock": { warehouse: "A", qty: 5 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "instock": { warehouse: "A", qty: 5 } }
+
+         .. figure:: /images/compass-find-nested-in-array.png
+
      - id: python
        content: |
          .. class:: copyable-code

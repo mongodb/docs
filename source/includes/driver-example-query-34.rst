@@ -8,6 +8,18 @@
 
             db.inventory.find( { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } }
+
+         .. figure:: /images/compass-array-multiple-cond-single-doc.png
+
      - id: python
        content: |
          .. class:: copyable-code

@@ -8,6 +8,18 @@
 
             db.inventory.find( { "instock.qty": { $gt: 10,  $lte: 20 } } )
 
+     - id: compass
+       content: |
+         Copy the following filter into the Compass query bar and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "instock.qty": { $gt: 10,  $lte: 20 } }
+
+         .. figure:: /images/compass-array-match-combination-of-elements.png
+
      - id: python
        content: |
          .. class:: copyable-code
