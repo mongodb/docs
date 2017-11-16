@@ -20,10 +20,15 @@ versions.
        - 3.0.8 or later
        - 3.2.0 or later
        - 3.4.0 or later
+       - 3.6.0 or later (if 
+         :manual:`featureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion>` 
+         is set to ``3.4``)
 
    * - 3.6.X
      - 
+       - 3.2.0 or later
        - 3.4.0 or later
+       - 3.6.0 or later
 
 For more information on MongoDB version numbers, see 
 :ref:`release-version-numbers` in the MongoDB Manual.
