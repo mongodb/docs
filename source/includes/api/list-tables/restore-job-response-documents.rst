@@ -78,6 +78,8 @@
        - ``QUERY``
        - ``SCP``
 
+       .. include:: /includes/note-scp-deprecation.rst
+
    * - ``delivery.port``
      - number
      - Port to use for ``SCP``.

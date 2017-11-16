@@ -68,6 +68,8 @@
           automated restore uses the ``HTTP`` method to deliver the
           restore job to the target host.
 
+       .. include:: /includes/note-scp-deprecation.rst
+
    * - ``delivery.password``
      - string
      - Password to use for :abbr:`SCP (secure copy)`.
