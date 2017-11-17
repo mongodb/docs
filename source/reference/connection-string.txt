@@ -131,6 +131,78 @@ The components of this string are:
 
       mongodb://r1.example.net:27017,r2.example.net:27017/
 
+.. index:: connections; dns-seedlist
+.. _connections-dns-seedlist:
+      
+      
+DNS Seedlist Connection Format
+------------------------------
+
+In addition to the standard connection format, MongoDB supports a DNS-constructed
+seedlist. Using the DNS to construct the available servers list allows more flexibility
+of deployment and the ability to change the servers in rotation without reconfiguring
+clients.
+
+In order to leverage the DNS seedlist, use a connection string prefix of ``mongodb+srv:`` 
+in place of the ``mongodb:`` string above.
+
+The ``+srv`` indicates to the mongo client that the hostname that follows corresponds to a 
+DNS SRV record. The client driver will then query the DNS for the record to determine the hosts that
+are running the mongod instances.
+
+For example, to connect to a DNS listed hostname:
+
+    .. code-block:: none
+       
+       mongodb+srv://server.mongodb.com/
+       
+A typical DNS configuration for the connection string above might look something
+like this:
+
+    .. code-block:: none
+    
+       Record                            TTL   Class    Priority Weight Port  Target
+       _mongodb._tcp.server.mongodb.com. 86400 IN SRV   0        5      27317 mongodb1.mongodb.com.
+       _mongodb._tcp.server.mongodb.com. 86400 IN SRV   0        5      27017 mongodb2.mongodb.com.
+
+The DNS seedlist connection string can also provide options with a trailing "/?" as in
+the standard connection string above. However, the ``+srv`` string in the connection URI will 
+signal to the driver to query the DNS for options as configured TXT records. For example:
+
+    .. code-block:: none
+
+       Record              TTL   Class    Text
+       server.mongodb.com. 86400 IN TXT   "ssl=true&connectTimeoutMS=250000"
+       server.mongodb.com. 86400 IN TXT   "readPreference=secondaryPreferred&readPreferenceTags=dc:ny,rack:1"
+
+In this case, taking into account both
+the DNS SRV records and the options retrieved from the TXT records, the parsed string will look like:
+
+    .. code-block:: none
+
+       mongodb://mongodb1.mongodb.com:27317,mongodb2.mongodb.com:27107/?ssl=true&
+       connectTimeoutMS=250000&readPreference=secondaryPreferred&readPreferenceTags=dc:ny,rack:1
+       
+The TXT records can be overridden by passing in a query string with the uri. In the example below,
+the only option that would be overridden in the text record would be the ``connectTimeoutMS``.
+
+    .. code-block:: none
+
+       mongodb+srv://server.mongodb.com/?connectTimeoutMS=300000
+       
+The rest of the option string will remain, and we can expect that the resulting uri 
+would look like this (after parse).
+
+    .. code-block:: none
+
+       mongodb://mongodb1.mongodb.com:27317,mongodb2.mongodb.com:27107/?ssl=true&connectTimeoutMS=300000&read
+       Preference=secondaryPreferred&readPreferenceTags=dc:ny,rack:1
+       
+.. note::
+   The ``mongodb+srv`` option will fail if there is no available DNS with records which correspond to the
+   hostname identified in the connect string.
+
+
 .. index:: connections; options
 .. _connections-connection-options:
 
