@@ -262,11 +262,13 @@ See :ref:`changeStreams` for more information.
    "3.6". For more information, see :ref:`view-fcv` and
    :dbcommand:`setFeatureCompatibilityVersion`.
 
-.. _3.6-sessions:
-
+.. _3.6-client-sessions:
 
 Client Sessions
 ---------------
+
+Causal Consistency
+~~~~~~~~~~~~~~~~~~
 
 To provide causal consistency, MongoDB 3.6 enables :ref:`causal
 consistency <causal-consistency>` in :ref:`client sessions <sessions>`. A
@@ -286,57 +288,49 @@ thread at a time executes these operations in a client session.
    - Clients require MongoDB drivers updated for MongoDB 3.6:
      Java, C#, Python, Node, C
 
-   - ``featureCompatibilityVersion`` must be set to "3.6". For more
+   - ``featureCompatibilityVersion`` must be "3.6". For more
      information, see :ref:`view-fcv` and
      :dbcommand:`setFeatureCompatibilityVersion`.
 
+.. _3.6-retryable-writes:
 
-Server Sessions Commands
-~~~~~~~~~~~~~~~~~~~~~~~~
+Retryable Writes
+~~~~~~~~~~~~~~~~
 
-.. note::
+.. important::
 
-   Server sessions are distinct from client sessions.
+   For retryable writes:
 
-The following server session commands are available:
+   - Clients require MongoDB drivers updated for MongoDB 3.6:
+     Java, C#, Python, Node, C
 
-.. list-table::
-   :header-rows: 1
-   :widths: 15 50
+   - ``featureCompatibilityVersion`` must be "3.6". For more
+     information, see :ref:`view-fcv` and
+     :dbcommand:`setFeatureCompatibilityVersion`.
 
-   * - Commands
-     - Descriptions
+Starting in MongoDB 3.6, :ref:`certain acknowledged write
+operations <retryable-ops>` on replica sets and sharded clusters are
+"retryable" to provide handling of transient network errors or replica
+set elections.
 
-   * - :dbcommand:`endSessions`
+With retryable writes, MongoDB drivers automatically retries these
+operations upon encountering network errors or encountering a
+:ref:`replica set failover <replication-auto-failover>` during which
+time the replica set has no primary. To enable retryable writes for the
+3.6 drivers, see :urioption:`retryWrites`.
 
-     - Expire specified server sessions.
+As the retry attempt is made only once, the retryable feature can help
+address transient network errors but not persistent network errors. 
 
-   * - :dbcommand:`killAllSessions`
-
-     - Kill all server sessions.
-
-   * - :dbcommand:`killAllSessionsByPattern`
-
-     - Kill all server sessions that match the specified pattern.
-
-   * - :dbcommand:`killSessions`
-
-     - Kill specified server sessions.
-
-   * - :dbcommand:`refreshSessions`
-
-     - Refresh idle server sessions.
-
-   * - :dbcommand:`startSession`
-
-     - Starts a new server session.
+For more information on retryable writes, see :ref:`retryable-writes`.
 
 ``mongo`` Shell Changes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB 3.6 adds the new command-line option :option:`--retryWrites` to
-the :program:`mongo` shell. The option enables retryable writes as the
-default for sessions in the :program:`mongo` shell.
+the :program:`mongo` shell. The option enables
+:ref:`3.6-retryable-writes` in the
+:program:`mongo` shell.
 
 The following new methods have been added to the ``Mongo()`` connection
 object in the :program:`mongo` shell:
@@ -348,6 +342,74 @@ object in the :program:`mongo` shell:
 - Various :method:`Session` methods
 
 - Various :method:`SessionOptions` methods
+
+Server Sessions
+---------------
+
+MongoDB's server sessions, or logical sessions, are the underlying
+framework that support causal consistency and retryable writes.
+
+.. note::
+
+   Server sessions are distinct from :ref:`client sessions
+   <3.6-client-sessions>`. Applications use :ref:`client sessions
+   <3.6-client-sessions>` to interface with server sessions.
+
+Server sessions are available for standalone :program:`mongod`
+instances, replica sets, and sharded clusters. 
+
+Server Session Commands
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6, MongoDB drivers associate all operations with a server
+session, with the exception of unacknowledged writes. If the deployment
+enforces authentication/authorization, server sessions are associated
+with the authenticated users. 
+
+The following commands can be used to list, manage, and kill server
+sessions throughout MongoDB clusters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 50
+
+   * - Commands
+     - Descriptions
+
+   * - :dbcommand:`endSessions`
+
+     - Expires specified server sessions.
+
+   * - :dbcommand:`killAllSessions`
+
+     - Kills all server sessions.
+
+   * - :dbcommand:`killAllSessionsByPattern`
+
+     - Kills all server sessions that match the specified pattern.
+
+   * - :dbcommand:`killSessions`
+
+     - Kills specified server sessions.
+
+   * - :dbcommand:`refreshSessions`
+
+     - Refreshes idle server sessions.
+
+   * - :dbcommand:`startSession`
+
+     - Starts a new server session.
+
+Parameters
+~~~~~~~~~~
+
+The following new parameters are available for server sessions:
+
+- :parameter:`logicalSessionRefreshMinutes`
+
+- :parameter:`localLogicalSessionTimeoutMinutes`
+
+- :parameter:`maxAcceptableLogicalClockDriftSecs`
 
 Aggregation Stages
 ~~~~~~~~~~~~~~~~~~
@@ -378,10 +440,15 @@ General
 :dbcommand:`serverStatus` returns information on the number of
 :ref:`server-status-logicalSessions`.
 
+.. _3.6-server-sessions-command-options:
+
 Command Options
 ~~~~~~~~~~~~~~~
 
-The following options are available for all commands:
+Starting in 3.6, MongoDB drivers associate all operations with a server
+session, with the exception of unacknowledged writes. The following
+options are available for all commands to support association with a
+server session:
 
 .. list-table::
    :header-rows: 1
@@ -422,17 +489,6 @@ available:
 .. |operations| replace:: write operations
 
 .. |operation| replace:: write
-
-Parameters
-~~~~~~~~~~
-
-The following new parameters are available for server sessions:
-
-- :parameter:`logicalSessionRefreshMinutes`
-
-- :parameter:`localLogicalSessionTimeoutMinutes`
-
-- :parameter:`maxAcceptableLogicalClockDriftSecs`
 
 
 JSON Schema

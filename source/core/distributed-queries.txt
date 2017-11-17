@@ -13,8 +13,60 @@ Distributed Queries
    :depth: 1
    :class: singlecol
 
-.. might make sense to break this in half and move it to
-   replication/sharding and cross reference here?
+Read Operations to Replica Sets
+-------------------------------
+
+By default, clients reads from a replica set's :term:`primary`;
+however, clients can specify a :doc:`read preference
+</core/read-preference>` to direct read operations to other members.
+For example, clients can configure read preferences to read from
+secondaries or from nearest member to:
+
+- reduce latency in multi-data-center deployments,
+
+- improve read throughput by distributing high read-volumes (relative
+  to write volume),
+
+- perform backup operations, and/or
+
+- allow reads until a :ref:`new primary is elected
+  <replica-set-failover>`.
+
+.. include:: /images/replica-set-read-preference.rst
+
+Read operations from secondary members of replica sets may not reflect
+the current state of the primary. Read preferences that direct read
+operations to different servers may result in non-monotonic reads.
+
+.. versionchanged:: 3.6
+
+   Starting in MongoDB 3.6, clients can use :ref:`causally consistent
+   <causal-consistency>` sessions, which provides various guarantees,
+   including monotonic reads.
+
+You can configure the read preference on a per-connection or
+per-operation basis. For more information on read preference or on the
+read preference modes, see :doc:`/core/read-preference` and
+:ref:`replica-set-read-preference-modes`. 
+
+.. _write-operations-replica-sets:
+
+Write Operations on Replica Sets
+--------------------------------
+
+In :term:`replica sets <replica set>`, all write operations go to the
+set's :term:`primary`. The primary applies the write operation and
+records the operations on the primary's operation log or :term:`oplog`.
+The oplog is a reproducible sequence of operations to the data set.
+:term:`Secondary` members of the set continuously replicate the oplog
+and apply the operations to themselves in an asynchronous process.
+
+.. include:: /images/replica-set-read-write-operations-primary.rst
+
+For more information on replica sets and write operations, see
+:doc:`/replication` and
+:doc:`/reference/write-concern`.
+
 
 Read Operations to Sharded Clusters
 -----------------------------------
@@ -60,42 +112,183 @@ For more information on read operations in sharded clusters, see the
 :doc:`/core/sharded-cluster-query-router` and :ref:`sharding-shard-key`
 sections.
 
+.. _write-operations-sharded-clusters:
+
+Write Operations on Sharded Clusters
+------------------------------------
+
+For sharded collections in a :term:`sharded cluster`, the
+:program:`mongos` directs write operations from applications to the
+shards that are responsible for the specific *portion* of the data
+set. The :program:`mongos` uses the cluster metadata from the
+:ref:`config database <sharding-config-server>` to route the write
+operation to the appropriate shards.
+
+.. include:: /images/sharded-cluster.rst
+
+MongoDB partitions data in a sharded collection into *ranges* based on
+the values of the :term:`shard key`. Then, MongoDB distributes these
+chunks to shards. The shard key determines the distribution of chunks to
+shards. This can affect the performance of write operations in the
+cluster.
+
+.. include:: /images/sharding-range-based.rst
+
+.. important:: Update operations that affect a *single* document
+   **must** include the :term:`shard key` or the ``_id``
+   field. Updates that affect multiple documents are more efficient in
+   some situations if they have the :term:`shard key`, but can be
+   broadcast to all shards.
+
+If the value of the shard key increases or decreases with every
+insert, all insert operations target a single shard. As a result, the
+capacity of a single shard becomes the limit for the insert capacity
+of the sharded cluster.
+
+For more information, see :doc:`/sharding` and
+:doc:`/core/bulk-write-operations`.
+
+.. _retryable-writes:
+
+Retryable Writes
+----------------
+
+.. versionadded:: 3.6
+
+Starting in MongoDB 3.6 for the WiredTiger and in-memory storage
+engines, certain write operations on replica sets and sharded
+clusters are "retryable" to provide handling of transient network
+errors or replica set elections.
+
+With retryable writes, MongoDB drivers automatically retry these
+operations upon encountering network errors or encountering a
+:ref:`replica set failover <replication-auto-failover>` during which
+time the replica set has no primary. Upon encountering a failover, the
+drivers first waits for :urioption:`serverSelectionTimeoutMS` to
+determine the new primary before retrying.
+
+.. note:: The writes are retried once.
+
+.. _retryable-write-ops:
+
+Retryable Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following write operations are retryable when issued with
+acknowledged write concern; e.g., :doc:`/reference/write-concern`
+cannot be :writeconcern:`{w: 0} </<number/>>`.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Methods
+     - Descriptions
+
+   * - | :method:`db.collection.insertOne()`
+       | :method:`db.collection.insert()`
+       | :method:`db.collection.insertMany()`
+
+     - Insert operations.
+
+   * - | :method:`db.collection.updateOne()`
+       | :method:`db.collection.replaceOne()`
+       | :method:`db.collection.save()`
+       | :method:`db.collection.update()` where ``multi`` is ``false``
+
+     - Single-document update operations.
+
+   * - | :method:`db.collection.deleteOne()`
+       | :method:`db.collection.remove()` where ``justOne`` is ``true``
+
+     - Single document delete operations.
+
+   * - | :method:`db.collection.findAndModify()`
+       | :method:`db.collection.findOneAndDelete()`
+       | :method:`db.collection.findOneAndReplace()`
+       | :method:`db.collection.findOneAndUpdate()`
+
+     - ``findAndModify`` operations. All ``findAndModify`` operations
+       are single document operations.
+
+   * - :method:`db.collection.bulkWrite()` with the following write
+       operations:
+
+       - :ref:`bulkwrite-write-operations-insertOne`
+
+       - :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
+
+       - :ref:`bulkwrite-write-operations-replaceOne`
+
+       - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
+
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``updateMany``.
+
+
+   * - :method:`Bulk <Bulk()>` operations for:
+   
+       - :method:`Bulk.find.removeOne()`
+       - :method:`Bulk.find.replaceOne()`
+       - :method:`Bulk.find.replaceOne()`
+
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``update`` which
+       specifies ``true`` for the ``multi`` option.
+
+
+Limitations
+~~~~~~~~~~~
+
+Supported Deployment Topologies
+   Available on replica sets and sharded clusters only.
+
+Supported Storage Engine
+   Available for the :doc:`WiredTiger storage engine
+   </core/wiredtiger>` and :doc:`in-memory storage engine
+   </core/inmemory>`.
+
+   Retryable writes are not available on storage engines that don't
+   support doc level locking; e.g. MMAPv1.
+
+3.6 MongoDB Drivers
+   Available for the 3.6 updated drivers: Java, C#, Python, Node, C.
+
+   To enable retryable writes for the 3.6 drivers, see
+   :urioption:`retryWrites`.
+
+Feature Compabitiliby Version
+   ``featureCompatibilityVersion`` must be at least "3.6". For more
+   information, see :dbcommand:`setFeatureCompatibilityVersion`.
+
+Request Write Acknowledgement
+   :doc:`/reference/write-concern` must be an acknowledge write
+   concern. For example, write operations issued with :writeconcern:`{w: 0}
+   </<number/>>` are not retryable.
+
+Persistent Network Errors
+   As the retry attempt is made only once, the retryable feature can
+   help address transient network errors but not persistent network
+   errors.
+
+Failover Period Exceeds 30 Seconds
+   Upon encountering a failover and receiving the ``not master`` error,
+   the drivers wait 30 seconds before retrying once. The retryable
+   feature does not addresss instance where the failover period exceeds
+   30 seconds.
+
+.. warning::
+
+   If the client application becomes temporarily unresponsive for more
+   than the :parameter:`localLogicalSessionTimeoutMinutes` after
+   issuing a write operation, there is a chance that when the client
+   applications starts responding (without a restart), the write
+   operation may be retried and applied again.
+
 .. index:: read operation; connection pooling
 .. index:: connection pooling; read operations
 .. _read-operations-connection-pooling:
 
-Read Operations to Replica Sets
--------------------------------
-
-By default, clients reads from a replica set's :term:`primary`;
-however, clients can specify a :doc:`read preference
-</core/read-preference>` to direct read operations to other members.
-For example, clients can configure read preferences to read from
-secondaries or from nearest member to:
-
-- reduce latency in multi-data-center deployments,
-
-- improve read throughput by distributing high read-volumes (relative
-  to write volume),
-
-- perform backup operations, and/or
-
-- allow reads until a :ref:`new primary is elected
-  <replica-set-failover>`.
-
-.. include:: /images/replica-set-read-preference.rst
-
-Read operations from secondary members of replica sets may not reflect
-the current state of the primary. Read preferences that direct read
-operations to different servers may result in non-monotonic reads.
-
-.. versionchanged:: 3.6
-
-   Starting in MongoDB 3.6, clients can use :ref:`causally consistent
-   <causal-consistency>` sessions, which provides various guarantees,
-   including monotonic reads.
-
-You can configure the read preference on a per-connection or
-per-operation basis. For more information on read preference or on the
-read preference modes, see :doc:`/core/read-preference` and
-:ref:`replica-set-read-preference-modes`. 
