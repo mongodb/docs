@@ -11,6 +11,10 @@
                { "size.uom": 0 }
             )
 
+     - id: compass
+       content: |
+         .. figure:: /images/compass-project-suppress-embedded-field.png
+
      - id: python
        content: |
          .. class:: copyable-code

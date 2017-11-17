@@ -11,6 +11,10 @@
                { item: 1, status: 1, "size.uom": 1 }
             )
 
+     - id: compass
+       content: |
+         .. figure:: /images/compass-project-embedded-fields.png
+
      - id: python
        content: |
          .. class:: copyable-code
