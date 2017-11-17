@@ -8,6 +8,10 @@
 
             db.inventory.find( { status: "A" } )
 
+     - id: compass
+       content: |
+         .. figure:: /images/compass-project-all-fields.png
+
      - id: python
        content: |
          .. class:: copyable-code
