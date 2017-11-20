@@ -37,7 +37,6 @@ build: style.min.css
 	mkdir -p $@
 	mkdir -p $@/cloud
 	mkdir -p $@/tools
-	mkdir -p $@/evaluate
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
 	cp -r static/images static/fonts static/css static/js $@/
