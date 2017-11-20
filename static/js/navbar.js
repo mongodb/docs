@@ -27595,7 +27595,16 @@
 	                  _react2.default.createElement(
 	                    'a',
 	                    { href: 'https://docs.mongodb.com/manual/' },
-	                    'Server'
+	                    'MongoDB Server'
+	                  )
+	                ),
+	                _react2.default.createElement(
+	                  'li',
+	                  { className: 'submenu__item' },
+	                  _react2.default.createElement(
+	                    'a',
+	                    { href: 'https://docs.mongodb.com/stitch/' },
+	                    'MongoDB Stitch'
 	                  )
 	                ),
 	                _react2.default.createElement(
@@ -27702,15 +27711,6 @@
 	                  _react2.default.createElement(
 	                    _submenu2.default,
 	                    { title: 'Cloud', open: true },
-	                    _react2.default.createElement(
-	                      'li',
-	                      { className: 'submenu__item' },
-	                      _react2.default.createElement(
-	                        'a',
-	                        { href: 'https://docs.mongodb.com/stitch/' },
-	                        'MongoDB Stitch'
-	                      )
-	                    ),
 	                    _react2.default.createElement(
 	                      'li',
 	                      { className: 'submenu__item' },

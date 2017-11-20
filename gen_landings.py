@@ -17,11 +17,7 @@ SITES = [
     Site('./src/html/tools.html',
          os.path.join(BUILD_DIR, 'tools', 'index.html'),
          'MongoDB Tools — MongoDB Documentation',
-         'bi-connector-current,spark-connector-current,compass-master'),
-    Site('./src/html/evaluate.html',
-         os.path.join(BUILD_DIR, 'evaluate', 'index.html'),
-         'Evaluate mongoDB — MongoDB Documentation',
-         '')
+         'bi-connector-current,spark-connector-current,compass-master')
 ]
 
 
