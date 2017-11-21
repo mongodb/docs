@@ -1,0 +1,240 @@
+=====================
+db.collection.watch()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.watch( pipeline, options )
+
+   Opens a :ref:`change stream cursor <changeStreams>` on the 
+   collection. 
+
+   .. include:: /includes/apiargs/method-db.collection.watch-param.rst
+
+   The ``options`` document can contain the following fields and values:
+
+   .. include:: /includes/apiargs/method-db.collection.watch-options.rst
+
+   :returns:
+      A :term:`cursor` that remains open as long as a connection to the
+      MongoDB deployment remains open *and* the collection exists.
+      See :doc:`/reference/change-events` for examples of change
+      event documents.
+
+Behavior
+--------
+
+:method:`~db.collection.watch()` requires that the target MongoDB
+deployment is either a :term:`replica set` or a :term:`sharded cluster`
+with replica set :term:`shards <shard>`. You cannot use
+change streams on a standalone MongoDB deployment.
+
+You can only use :method:`~db.collection.watch()` on replica sets or
+sharded clusters where each data bearing :program:`mongod` runs with
+the :ref:`Wired Tiger storage engine <storage-wiredtiger>`.
+
+:method:`~db.collection.watch()` only notifies on data changes that
+have persisted to a majority of data-bearing members in the replica
+set or shard replica set.
+
+Resumability
+~~~~~~~~~~~~
+
+The :program:`mongo` shell does not automatically attempt to resume a
+change stream cursor after an error as the MongoDB 
+:ecosystem:`3.6-series drivers </drivers>` do. The MongoDB 3.6-series 
+drivers make *one* attempt to automatically resume  a change stream 
+cursor after certain errors.
+
+If the operation identified by the resume token passed to the
+``resumeAfter`` option has already dropped off the cluster's
+:term:`oplog`, :method:`~db.collection.watch()` cannot resume the
+change stream.
+
+:method:`~db.collection.watch()` uses information stored in the oplog
+related to a given data changing operation to produce the change event
+description and generate a resume token associated to that operation. If
+enough time has passed such that the data changing operation which
+generated the resume token is no longer present in the oplog, you cannot
+use that token to resume the change stream.
+
+Attempting to resume a change stream against a dropped collection
+results in an error.
+
+See :ref:`change-stream-resume` for complete documentation on
+resuming a change stream.
+
+Full Document Lookup of Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The result of a full document lookup may differ from the delta
+of fields changed by the update operation if other majority-committed
+operations modified the document between the original update operation
+and the full document lookup.
+
+Depending on the number of changes applied during the update operation
+and the size of the full document, there is a risk that the size of the
+change event document for an update operation is greater than the 16MB
+BSON document limit. If this occurs, the server closes the change stream
+cursor and returns an error.
+
+Examples
+--------
+
+Open a Change Stream
+~~~~~~~~~~~~~~~~~~~~
+
+The following operation opens a change stream cursor against the 
+``data.sensors`` collection:
+
+.. code-block:: javascript
+
+   watchCursor = db.getSiblingDB("data").sensors.watch()
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!watchCursor.isExhausted()){
+      if (watchCursor.hasNext()){
+         watchCursor.next();
+      }
+   }
+
+For complete documentation on change stream output, see
+:ref:`change-stream-output`.
+
+Change Stream with Full Document Update Lookup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``fullDocument`` option to ``"updateLookup"`` to direct the
+change stream cursor to lookup the most current majority-committed
+version of the document associated to an update change stream event.
+
+The following operation opens a change stream cursor against
+the ``data.sensors`` collection using the 
+``fullDocument : "updateLookup"`` option.
+
+.. code-block:: javascript
+
+   watchCursor = db.getSiblingDB("data").sensors.watch(
+      [],
+      { fullDocument : "updateLookup" }
+   )
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!watchCursor.isExhausted()){
+      if (watchCursor.hasNext()){
+         watchCursor.next();
+      }
+   }
+
+For any update operation, the change event returns the result of the
+document lookup in the ``fullDocument`` field.
+
+For an example of the full document update output, see  :ref:`change
+stream update event <change-streams-update-event>`.
+
+For complete documentation on change stream output, see
+:ref:`change-stream-output`.
+
+Change Stream with Aggregation Pipeline Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation opens a change stream cursor against the 
+``data.sensors`` collection using an aggregation pipeline to
+filter only ``insert`` events:
+
+.. code-block:: javascript
+
+   watchCursor = db.getSiblingDB("data").sensors.watch(
+      [
+         { $match : {"operationType" : "insert" } }
+      ]
+   )
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!watchCursor.isExhausted()){
+      if (watchCursor.hasNext()){
+         watchCursor.next();
+      }
+   }
+
+The change stream cursor only returns change events where the 
+``operationType`` is ``insert``. For complete documentation on
+change stream output, see :ref:`change-stream-output`. 
+
+Resuming a Change Stream
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every  document returned by a change stream cursor includes a resume
+token as the ``_id`` field. To resume a change stream, pass the entire
+``_id`` document of the change event you want to resume from to
+the ``resumeAfter`` option of :method:`~db.collection.watch()`. 
+
+The following operation resumes a change stream cursor against the 
+``data.sensors`` collection using a resume token. This
+assumes that the operation that generated the resume token has not
+rolled off the cluster's oplog. 
+
+.. code-block:: javascript
+
+   let watchCursor = db.getSiblingDB("data").sensors.watch();
+   let firstChange;
+
+   while (!watchCursor.isExhausted()) {
+      if (watchCursor.hasNext()) {
+        firstChange = watchCursor.next();
+        break;
+      }
+   }
+
+   watchCursor.close();
+
+   let resumeToken = firstChange._id;
+
+   resumedWatchCursor = db.getSiblingDB("data").sensors.watch(
+   [],
+      { resumeAfter : resumeToken }
+   )
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!resumedWatchCursor.isExhausted()){
+      if (resumedWatchCursor.hasNext()){
+         resumedWatchCursor.next();
+      }
+   }
+
+See :ref:`change-stream-resume` for complete documentation on
+resuming a change stream.
+
