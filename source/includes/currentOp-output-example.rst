@@ -7,7 +7,6 @@
             "threadId" : <string>,
             "connectionId" : <number>,
             "client" : <string>,
-            "appName" : <string>,
             "opid" : <number>,
             "active" : <boolean>,
             "secs_running" : <NumberLong()>,
