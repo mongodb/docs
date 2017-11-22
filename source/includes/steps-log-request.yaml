@@ -1,19 +1,19 @@
-title: "For the deployment you want to download logs, click :guilabel:`Request Logs`"
+title: "Click the deployment whose logs you want to download, then click :guilabel:`Request Logs`"
 stepnum: 1
 level: 4
 ref: request-logs
 content: |
-  On the line for any process, :term:`replica set`, or 
-  :term:`sharded cluster` in the project, click the ellipsis 
-  [:guilabel:`...`] icon then click  :guilabel:`Request Logs`
+  Click the ellipsis [:guilabel:`...`] icon on the line for any process,
+  :term:`replica set`, or :term:`sharded cluster` in the project, then click
+  :guilabel:`Request Logs`.
 ---
-title: "Select which types of log |mms| should collect and the maximum size per process you would like."
+title: "Select which types of log |mms| per process to collect and the maximum cumulative size of these logs."
 stepnum: 2
 level: 4
 ref: request-logs-options
 content: |
 
-  Take the following actions to choose logs to download.
+  To choose logs to download, perform the following actions:
 
   .. list-table::
      :widths: 30 70
@@ -40,30 +40,91 @@ content: |
 
      * - Click :guilabel:`Backup Agent Logs`
        
-       - Gather logs from the deployed :term:`Backup
+       - Gather logs from all deployed :term:`Backup
          Agents <Backup Agent>`.
+
+         .. note::
+
+            This differs from other logs. The logs collected are not
+            limited to the selected hosts, but include all Backup Agent
+            logs in the deployment.
 
      * - Click :guilabel:`Monitoring Agent Logs`
        
-       - Gather logs from the deployed
+       - Gather logs from all deployed
          :term:`Monitoring Agent`.
+
+         .. note::
+
+            This differs from other logs. The logs collected are not
+            limited to the selected hosts, but include all Monitoring
+            Agent logs in the deployment.
 
      * - Set :guilabel:`Size per Log Type` in MB
 
-       - Enter the maximum uncompressed size in megabytes of each log 
-         file to be retrieved. 
+       - Enter the maximum cumulative uncompressed size in megabytes  
+         of all selected log files.
 
-         - This limit is per log file type. If you set this value to
-           ``50`` MB, |mms| gathers 50 MB of uncompressed log file for
-           each type of log you chose to download. Those log files are
+         - This limit is *cumulative*. If you set this value to ``50`` 
+           MB, |mms| gathers a total of 50 MB of uncompressed log file
+           from all logs you chose to download. Those log files are 
            then archived and compressed.
 
-         - If the current log file is less than the requested size,
-           |mms| gathers the most recent rotated file as well
+         - If the current log file is less than the specified size,
+           |mms| gathers the most recent rotated file as well.
 
-         - If the total size of the log files reach the requested size
-           part way through a log file, the log file is truncated to the
-           most recent line.
+         - If the total size of the log files reaches the specified 
+           size part way through a log file, this last log file is 
+           truncated to the most recent line that falls within the 
+           specified size.
+
+         - The maximum amount of log files that can be collected is 
+           20 GB. Requesting more than 20 GB (20000 MB) results in an 
+           error.
+
+  .. example::
+
+     You want 20 MB total from all of the logs from a :term:`replica
+     set` of three :program:`mongod` processes on three hosts:
+
+     - ``host1:27017``
+     - ``host2:27017``
+     - ``host2:27018``
+
+     Your deployment runs the following agents:
+
+     .. list-table::
+        :widths: 60 40
+
+     * - Automation Agent
+       - ``host1``, ``host2``
+
+     * - Backup Agent
+       - ``host4``
+
+     * - Monitoring Agent
+       - ``host4``, ``host5`` 
+
+     When you choose all the log types for this replica set, limited to
+     20 MB, |mms| scans the ``mongod`` processes and their  :abbr:`FTDC
+     (full-time diagnostic data capture)` directories in descending
+     order until the cumulative size of the collected logs reaches 20
+     MB. All the monitoring and backup agents are also scanned. The
+     resulting archive structure is:
+
+      .. code-block: sh
+
+         host1/27017/mongodb
+         host1/27017/ftdc
+         host1/automation_agent
+         host2/27017/mongodb
+         host2/27017/ftdc
+         host2/27018/mongodb
+         host2/27018/ftdc
+         host2/automation_agent
+         host4/backup_agent
+         host4/monitoring_agent
+         host5/monitoring_agent
 
 ---
 title: "View the progress on the :guilabel:`Log Request History` page."
@@ -71,12 +132,13 @@ stepnum: 3
 level: 4
 ref: switch-log-request-history
 content: |
-  Entry Status shows :guilabel:`Collecting Logs...` Refresh the page to 
-  see if the log collection has completed.
 
-  - If |mms| fails to gather or receive log files from the agents and/or
-    the MongoDB processes, click :guilabel:`Retry` to complete the
-    failed attempt.
+  Entry Status shows :guilabel:`Collecting Logs...` and automatically
+  updates its status as log collection continues.
+
+  - If |mms| fails to gather or receive log files from the agents 
+    and/or the MongoDB processes, click :guilabel:`Retry` to gather 
+    the log files again.
 
   - If a failure has occurred, you can still download the archive. Some
     of the requested log files will be missing.
@@ -89,9 +151,12 @@ ref: download-logs
 content: |
   Click the :guilabel:`Download icon`.
 
-  The size listed for the archive on the :guilabel:`Log Request History`
-  page is the uncompressed size. The archive will consume that amount of
-  disk space on the target host once it is extracted.
+  The size listed for the archive on the :guilabel:`Log Request 
+  History` page is the uncompressed size. The archive consumes 
+  that amount of disk space on the target host once it is extracted.
+
+  This download can only be restarted and not resumed. If the download
+  fails, you must download the logs again.
 
   The archive is named ``mongodb-logfiles_<instance_or_process>_<ISO8601_Format_Date>.tar.gz``.
 
