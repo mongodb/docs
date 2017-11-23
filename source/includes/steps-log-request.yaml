@@ -78,41 +78,57 @@ content: |
            truncated to the most recent line that falls within the 
            specified size.
 
-         - The maximum amount of log files that can be collected is 
-           20 GB. Requesting more than 20 GB (20000 MB) results in an 
-           error.
+         - The maximum amount of log files that can be collected is 20
+           GB. This maximum includes all collected log files that have
+           not expired. If you request additional logs and collecting
+           those logs results in more than 20 GB of logs collected,
+           |mms| generates an error. The total amount of logs 
+           collected compared to the limit is displayed as  
+           :guilabel:`Estimated Total Size`.
 
   .. example::
 
-     You want 20 MB total from all of the logs from a :term:`replica
-     set` of three :program:`mongod` processes on three hosts:
+     You choose to collect 20 MB of logs from all processes in a
+     :term:`replica set`. This replica set has three :program:`mongod`
+     processes on two hosts:
 
      - ``host1:27017``
      - ``host2:27017``
      - ``host2:27018``
 
-     Your deployment runs the following agents:
+     This replica set also runs the following agents:
 
      .. list-table::
         :widths: 60 40
 
-     * - Automation Agent
-       - ``host1``, ``host2``
+        * - Automation Agent
+          - ``host1``, ``host2``, ``host4``, ``host5``
 
-     * - Backup Agent
-       - ``host4``
+        * - Backup Agent
+          - ``host4``
 
-     * - Monitoring Agent
-       - ``host4``, ``host5`` 
+        * - Monitoring Agent
+          - ``host4``, ``host5`` 
 
-     When you choose all the log types for this replica set, limited to
-     20 MB, |mms| scans the ``mongod`` processes and their  :abbr:`FTDC
-     (full-time diagnostic data capture)` directories in descending
-     order until the cumulative size of the collected logs reaches 20
-     MB. All the monitoring and backup agents are also scanned. The
-     resulting archive structure is:
+     When you choose all the log types for this replica set, and limit
+     to 20 MB per process, |mms| shows that the :guilabel:`Estimated
+     Total Size` is 220 MB (11 processes * 20 MB) out of 20 GB. 
 
-      .. code-block: sh
+     Once the log collection begins, |mms| scans the log directories 
+     for the ``mongod`` processes and their associated 
+     :abbr:`FTDC (full- time diagnostic data capture)` from the most 
+     current log entry until 20 MB of log files or the end of the last 
+     log is collected. All the monitoring and backup agents in the 
+     deployment are also scanned.
+
+     - The Backup Agent has 60 MB of logs.
+     - Each MongoDB process (3) has 7 MB of logs plus 15 MB of FTDC data. 
+     - Each Monitoring Agent (2) has 30 MB of logs.
+     - Each Automation Agent (4) has 12 MB of logs.
+
+     The resulting archive structure within the downloaded archive is:
+
+      .. code-block:: sh
 
          host1/27017/mongodb
          host1/27017/ftdc
@@ -123,8 +139,14 @@ content: |
          host2/27018/ftdc
          host2/automation_agent
          host4/backup_agent
+         host4/automation_agent
          host4/monitoring_agent
+         host5/automation_agent
          host5/monitoring_agent
+
+     The total size of logs collected is **174 MB**:
+
+     (20 + (3 * (7 + 15)) + (2 * 20) + (4 * 12)) = 174
 
 ---
 title: "View the progress on the :guilabel:`Log Request History` page."
@@ -136,9 +158,8 @@ content: |
   Entry Status shows :guilabel:`Collecting Logs...` and automatically
   updates its status as log collection continues.
 
-  - If |mms| fails to gather or receive log files from the agents 
-    and/or the MongoDB processes, click :guilabel:`Retry` to gather 
-    the log files again.
+  - If |mms| fails to retrieve log files, click :guilabel:`Retry` to 
+    retrieve the failed log files again.
 
   - If a failure has occurred, you can still download the archive. Some
     of the requested log files will be missing.
@@ -159,5 +180,36 @@ content: |
   fails, you must download the logs again.
 
   The archive is named ``mongodb-logfiles_<instance_or_process>_<ISO8601_Format_Date>.tar.gz``.
+
+  The extracted files use the following directory structure:
+
+  .. code-block:: sh
+
+     <host>
+       automation_agent
+         automation-agent-verbose.log
+         automation-agent-verbose.log.<ISO8601_Format_Date>
+       backup_agent
+         backup-agent-verbose.log
+         backup-agent-verbose.log.<ISO8601_Format_Date>
+       monitoring_agent
+         monitoring-agent-verbose.log
+         monitoring-agent-verbose.log.<ISO8601_Format_Date>
+       <process>
+         <port>
+           ftdc
+             metrics.<ISO8601_Format_Date>
+             metrics.interim
+           mongodb
+             mongodb.log
+             mongodb.log.<ISO8601_Format_Date>
+
+  .. note::
+
+     When you extract the ``tar`` archive on a Microsoft Windows host, 
+     use an archive extraction utility that supports `PAX extended 
+     headers <https://www.gnu.org/software/tar/manual/html_section/tar_71.html#SEC148>`_. 
+     Some Windows archive utilities have issues with PAX extended 
+     headers for ``tar``.
 
 ...
