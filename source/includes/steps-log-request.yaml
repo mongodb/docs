@@ -96,10 +96,10 @@ content: |
      - ``host2:27017``
      - ``host2:27018``
 
-     This replica set also runs the following agents:
+     Your deployment runs the following agents:
 
      .. list-table::
-        :widths: 60 40
+        :widths: 50 50
 
         * - Automation Agent
           - ``host1``, ``host2``, ``host4``, ``host5``
@@ -116,37 +116,47 @@ content: |
 
      Once the log collection begins, |mms| scans the log directories 
      for the ``mongod`` processes and their associated 
-     :abbr:`FTDC (full- time diagnostic data capture)` from the most 
+     :abbr:`FTDC (full-time diagnostic data capture)` from the most 
      current log entry until 20 MB of log files or the end of the last 
      log is collected. All the monitoring and backup agents in the 
      deployment are also scanned.
 
      - The Backup Agent has 60 MB of logs.
-     - Each MongoDB process (3) has 7 MB of logs plus 15 MB of FTDC data. 
+     - Each MongoDB process (3) has 7 MB of logs plus 15 MB of 
+       :abbr:`FTDC (full-time diagnostic data capture)` data per 
+       process.
      - Each Monitoring Agent (2) has 30 MB of logs.
-     - Each Automation Agent (4) has 12 MB of logs.
+     - Each Automation Agent (2) has 12 MB of logs.
+
+     The total size of logs collected is **150 MB**:
+
+     (20 + (3 * (7 + 15)) + (2 * 20) + (2 * 12)) = 150
+
+     - The maximum of 20 MB of logs from the Backup Agent is collected.
+     - All of the logs for each MongoDB process are collected: 
+       7 MB of MongoDB + 15 MB of 
+       :abbr:`FTDC (full-time diagnostic data capture)` data. 
+     - The maximum of 20 MB of logs from each Monitoring Agent is 
+       collected. 
+     - All of the Automation Agent logs from ``host1`` and ``host2`` 
+       are collected. ``host4`` and ``host5`` do not host any processes
+       in the :term:`replica set`.
 
      The resulting archive structure within the downloaded archive is:
 
-      .. code-block:: sh
+     .. code-block:: sh
 
-         host1/27017/mongodb
-         host1/27017/ftdc
-         host1/automation_agent
-         host2/27017/mongodb
-         host2/27017/ftdc
-         host2/27018/mongodb
-         host2/27018/ftdc
-         host2/automation_agent
-         host4/backup_agent
-         host4/automation_agent
-         host4/monitoring_agent
-         host5/automation_agent
-         host5/monitoring_agent
-
-     The total size of logs collected is **174 MB**:
-
-     (20 + (3 * (7 + 15)) + (2 * 20) + (4 * 12)) = 174
+        host1/27017/mongodb
+        host1/27017/ftdc
+        host1/automation_agent
+        host2/27017/mongodb
+        host2/27017/ftdc
+        host2/27018/mongodb
+        host2/27018/ftdc
+        host2/automation_agent
+        host4/backup_agent
+        host4/monitoring_agent
+        host5/monitoring_agent
 
 ---
 title: "View the progress on the :guilabel:`Log Request History` page."
@@ -195,7 +205,7 @@ content: |
        monitoring_agent
          monitoring-agent-verbose.log
          monitoring-agent-verbose.log.<ISO8601_Format_Date>
-       <process>
+       <replica_set> // Sharded Cluster Only
          <port>
            ftdc
              metrics.<ISO8601_Format_Date>
@@ -203,6 +213,13 @@ content: |
            mongodb
              mongodb.log
              mongodb.log.<ISO8601_Format_Date>
+       <port> // Replica Set or Standalone
+         ftdc
+           metrics.<ISO8601_Format_Date>
+           metrics.interim
+         mongodb
+           mongodb.log
+           mongodb.log.<ISO8601_Format_Date>
 
   .. note::
 
@@ -212,4 +229,8 @@ content: |
      Some Windows archive utilities have issues with PAX extended 
      headers for ``tar``.
 
+
+   Collected logs expire and are removed after 7 days. To extend the 
+   lifetime of a particular log file, click the :guilabel:`extend` link
+   for that archive on the :guilabel:`Log Request History` page.
 ...
