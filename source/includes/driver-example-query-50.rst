@@ -6,7 +6,7 @@
          .. class:: copyable-code
          .. code-block:: javascript
 
-            db.inventory.find( { status: "A" }, { name: 1, status: 1, instock: { $slice: -1 } } )
+            db.inventory.find( { status: "A" }, { item: 1, status: 1, instock: { $slice: -1 } } )
 
      - id: python
        content: |
