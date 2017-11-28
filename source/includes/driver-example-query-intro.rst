@@ -11,7 +11,7 @@
 
      - id: compass
        content: |
-         This page provides examples of |query_operations| in
+         This page provides examples of |query_operations| using
          :ref:`MongoDB Compass <compass-index>`. The examples on this
          page use the ``inventory`` collection. Populate the
          ``inventory`` collection with the following documents:

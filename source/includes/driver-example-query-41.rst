@@ -8,6 +8,19 @@
 
             db.inventory.find( { item : { $exists: false } } )
 
+     - id: compass
+       content: |
+        Copy the following query filter document into the
+        :ref:`query bar <compass-query-bar>` and click
+        :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { item : { $exists: false } }
+
+         .. figure:: /images/compass-find-null-existence-check.png
+
      - id: python
        content: |
          .. class:: copyable-code

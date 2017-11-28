@@ -8,6 +8,19 @@
 
             db.inventory.find( { item : { $type: 10 } } )
 
+     - id: compass
+       content: |
+         Copy the following query filter document into the
+         :ref:`query bar <compass-query-bar>` and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { item : { $type: 10 } }
+
+         .. figure:: /images/compass-find-null-type-check.png
+
      - id: python
        content: |
          .. class:: copyable-code

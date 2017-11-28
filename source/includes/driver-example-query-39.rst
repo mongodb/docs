@@ -8,6 +8,19 @@
 
             db.inventory.find( { item: null } )
 
+     - id: compass
+       content: |
+         Copy the following query filter document into the
+         :ref:`query bar <compass-query-bar>` and click
+         :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { item: null }
+
+         .. figure:: /images/compass-find-null-field.png
+
      - id: python
        content: |
          .. class:: copyable-code
