@@ -49,7 +49,7 @@
      - Community only
      - Community only
    * - Ubuntu 12.04
-     - |checkmark|
+     - deprecated
      - |checkmark|
      - |checkmark|
      - |checkmark|
