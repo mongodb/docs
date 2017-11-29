@@ -11,6 +11,9 @@ installation option.
    These instructions assume that you have installed MongoDB
    to ``C:\Program Files\MongoDB\Server\3.6\``.
 
+During the installation process you will be given the option to install
+:ref:`MongoDB Compass <compass-index>` in addition to MongoDB Server.
+
 MongoDB is self-contained and does not have any other system
 dependencies. You can run MongoDB from any folder you choose. You may
 install MongoDB in any folder (e.g. ``D:\test\mongodb``).
