@@ -14,6 +14,8 @@
                }
             )
 
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
      - id: python
        content: |
          .. class:: copyable-code
@@ -22,6 +24,8 @@
             :dedent: 8
             :start-after: Start Example 53
             :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
 
      - id: java-sync
        content: |
@@ -32,6 +36,8 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
      - id: java-async
        content: |
          .. class:: copyable-code
@@ -40,6 +46,8 @@
             :dedent: 8
             :start-after: Start Example 53
             :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
 
      - id: nodejs
        content: |
@@ -50,6 +58,8 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
      - id: php
        content: |
          .. class:: copyable-code
@@ -58,6 +68,8 @@
             :dedent: 8
             :start-after: Start Example 53
             :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
 
      - id: perl
        content: |
@@ -68,6 +80,8 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
      - id: ruby
        content: |
          .. class:: copyable-code
@@ -76,6 +90,8 @@
             :dedent: 8
             :start-after: Start Example 53
             :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
 
      - id: scala
        content: |
@@ -86,6 +102,8 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
      - id: csharp
        content: |
          .. class:: copyable-code
@@ -94,3 +112,5 @@
             :dedent: 12
             :start-after: Start Example 53
             :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
