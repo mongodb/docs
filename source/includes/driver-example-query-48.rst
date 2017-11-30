@@ -13,6 +13,23 @@
 
      - id: compass
        content: |
+         Copy the following expression into the :guilabel:`Filter` bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A" }
+
+         Copy the following expression into the :guilabel:`Project`
+         bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { "size.uom": 0 }
+
+         Click :guilabel:`Find`.
+
          .. figure:: /images/compass-project-suppress-embedded-field.png
 
      - id: python
