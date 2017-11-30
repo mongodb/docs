@@ -45,91 +45,8 @@ MongoDB.
        | ``jsonp``
        | ``rest``
 
-General Compatibility Changes
------------------------------
-
-.. _3.6-compatibility-arbiter-priority:
-
-Arbiter and Priority
-~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-arbiter-priority.rst
-
-.. _aggregate-compatibility:
-
-``aggregate`` Command and Results
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 3.6 removes the option for the :dbcommand:`aggregate` command
-to return its results as a single document.
-
-If you run the :dbcommand:`aggregate` command, you must include either
-the ``cursor`` option or the ``explain`` option.
-
-Rather than run the :dbcommand:`aggregate` command directly, most users
-should use the :method:`db.collection.aggregate()` helper provided in
-the mongo shell or the equivalent helper in their driver. These helpers
-return a cursor unless using the ``explain`` option.
-
-Stricter Validation of ``$pop`` Arguments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in 3.6 [#upgraded]_, :update:`$pop` operator performs
-a stricter validation of its argument to require either:
-
-- ``-1`` to remove the first element of an array, or
-
-- ``1`` to remove the last element in an array.
-
-In earlier versions, :update:`$pop` allowed:
-
-- any value less than ``0`` to remove the first element of an array, and
-
-- any value greater than or equal to ``0`` as well as non-numeric value
-  to remove the last element in an array.
-
-.. [#upgraded]
-
-   Affects MongoDB deployments with ``featureCompatibilityVersion`` set
-   to ``3.6``; e.g. new 3.6 deployments, upgraded deployments that have
-   set ``featureCompatibilityVersion`` to ``3.6``.
-
-.. _3.6-pushall-compatibility:
-
-Remove ``$pushAll`` Update Operator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 3.6 removes the deprecated ``$pushAll`` operator. The operator
-has been deprecated since 2.4.
-
-Instead of ``$pushAll``, use the :update:`$push` operator with the
-:update:`$each` modifier. For example:
-
-.. code-block:: javascript
-
-   db.students.update(
-      { name: "joe" },
-      { $push: { scores: { $each: [ 90, 92, 85 ] } } }
-   )
-
-Remove Diagnostic Logging Command and Option
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 3.6 removes the deprecated :dbcommand:`diagLogging` command and
-:program:`mongod` ``--diaglog`` option. Instead, use
-:program:`mongoreplay` to capture, replay, and profile commands sent to
-your MongoDB deployment.
-
-.. _3.6-validate-compatibility:
-
-``validate`` Operation
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-validate-wiredtiger-full-option.rst
-
-For more information on the validate operation, see the
-:dbcommand:`validate` command and the
-:method:`db.collection.validate()` method.
+Array Operation Compatibility Changes
+-------------------------------------
 
 .. _3.6-type-array-compatibility:
 
@@ -191,7 +108,7 @@ ascending sorts and the highest-valued element of the array first for
 descending sorts. A sort no longer takes the query predicate into
 account when choosing the array element which will act as the
 **sort key**. This behavior change applies to both the
-:doc:`find </reference/command/find/>` command and the 
+:doc:`find </reference/command/find/>` command and the
 :doc:`aggregation pipeline </core/aggregation-pipeline>`.
 
 As a result of this change, applications that currently sort by an
@@ -209,6 +126,7 @@ array field may experience a different sort order.
 
 ``find`` Method Sorting
 ```````````````````````
+
 A **sort key** is the array element MongoDB uses during the sorting
 process to compare and ultimately order documents containing an array.
 In an ascending sort, documents containing arrays with the
@@ -289,7 +207,7 @@ document with ``_id: 0``.
 
 Before 3.6, the *entire array* is used as the sort
 key for aggregation sorts. The array sort keys are compared
-element-wise to determine the sort order of the result set. 
+element-wise to determine the sort order of the result set.
 
 .. example::
 
@@ -298,9 +216,9 @@ element-wise to determine the sort order of the result set.
       // Documents.
       {_id: 0, a: [3, 1, 5]}
       {_id: 1, a: [3, 4, 0]}
-   
+
       // Query.
-      db.coll.aggregate([{$sort: {a: 1}}])      
+      db.coll.aggregate([{$sort: {a: 1}}])
 
 Prior to 3.6, the sort keys are [3, 1, 5] and [3, 4, 0] respectively.
 Since the first array elements are equal, the second array element
@@ -309,6 +227,134 @@ breaks the tie and the document with ``_id: 0`` sorts first.
 For more information on sorting with the
 :doc:`Aggregation Pipeline </reference/operator/aggregation/>`, see
 :doc:`$sort </reference/operator/aggregation/sort/>`.
+
+Update Operation Changes
+------------------------
+
+New Fields in Updates
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, new fields added through :dbcommand:`update`
+operations are appended in lexicographic order.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: 0 }
+
+The following update operation adds two new fields to the document:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {b: 0, a: 0}})
+
+Starting in 3.6, MongoDB appends the new fields in lexicographic order. The
+updated document would be ``{_id : 0, x: 0, a: 0, b: 0}``.
+
+Earlier versions of MongoDB append the new fields in order of appearance in
+the update document. The updated document would be ``{_id : 0, x: 0, b: 0, a:
+0}``.
+
+Fields Conflicting with ``arrayFilters`` Identifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, fields that conflict with ``arrayFilters``
+identifiers can no longer be updated.
+
+For example, a collection ``coll`` has the following document:
+
+.. code-block:: javascript
+
+   { _id: 0, x: { "$[]": 0 } }
+
+The following update succeeds in earlier versions of MongoDB:
+
+.. code-block:: javascript
+
+   db.coll.update({_id: 0}, {$set: {"x.$[]": 1}})
+
+In MongoDB 3.6 the update fails since the field name "$[]" conflicts with
+``arrayFilters`` identifier syntax. For more information on
+``arrayFilters`` see :ref:`update-command-arrayFilters`.
+
+.. note::
+
+   The new update behaviors apply only when ``featureCompatibilityVersion`` is
+   set to 3.6.
+
+Stricter Validation of ``$pop`` Arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 3.6 [#upgraded]_, :update:`$pop` operator performs
+a stricter validation of its argument to require either:
+
+- ``-1`` to remove the first element of an array, or
+
+- ``1`` to remove the last element in an array.
+
+In earlier versions, :update:`$pop` allowed:
+
+- any value less than ``0`` to remove the first element of an array, and
+
+- any value greater than or equal to ``0`` as well as non-numeric value
+  to remove the last element in an array.
+
+.. [#upgraded]
+
+   Affects MongoDB deployments with ``featureCompatibilityVersion`` set
+   to ``3.6``; e.g. new 3.6 deployments, upgraded deployments that have
+   set ``featureCompatibilityVersion`` to ``3.6``.
+
+.. _3.6-pushall-compatibility:
+
+Remove ``$pushAll`` Update Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the deprecated ``$pushAll`` operator. The operator
+has been deprecated since 2.4.
+
+Instead of ``$pushAll``, use the :update:`$push` operator with the
+:update:`$each` modifier. For example:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { name: "joe" },
+      { $push: { scores: { $each: [ 90, 92, 85 ] } } }
+   )
+
+Platform Support
+----------------
+
+MongoDB 3.6 discontinues support for versions of Windows prior to Windows
+Server 2008 R2 and Windows 7.
+
+General Compatibility Changes
+-----------------------------
+
+.. _3.6-compatibility-arbiter-priority:
+
+Arbiter and Priority
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-arbiter-priority.rst
+
+.. _aggregate-compatibility:
+
+``aggregate`` Command and Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 3.6 removes the option for the :dbcommand:`aggregate` command
+to return its results as a single document.
+
+If you run the :dbcommand:`aggregate` command, you must include either
+the ``cursor`` option or the ``explain`` option.
+
+Rather than run the :dbcommand:`aggregate` command directly, most users
+should use the :method:`db.collection.aggregate()` helper provided in
+the mongo shell or the equivalent helper in their driver. These helpers
+return a cursor unless using the ``explain`` option.
 
 Aggregation Date to String Coercion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -348,61 +394,35 @@ The change applies to the following aggregation operators:
 
 - :expression:`$toUpper`
 
-Update Behavior Changes
-~~~~~~~~~~~~~~~~~~~~~~~
+Remove Diagnostic Logging Command and Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-New Fields in Updates
-`````````````````````
+MongoDB 3.6 removes the deprecated :dbcommand:`diagLogging` command and
+:program:`mongod` ``--diaglog`` option. Instead, use
+:program:`mongoreplay` to capture, replay, and profile commands sent to
+your MongoDB deployment.
 
-Starting in MongoDB 3.6, new fields added through :dbcommand:`update`
-operations are appended in lexicographic order.
+.. _3.6-validate-compatibility:
 
-For example, a collection ``coll`` has the following document:
+``validate`` Operation
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+.. include:: /includes/fact-validate-wiredtiger-full-option.rst
 
-   { _id: 0, x: 0 }
+For more information on the validate operation, see the
+:dbcommand:`validate` command and the
+:method:`db.collection.validate()` method.
 
-The following update operation adds two new fields to the document:
 
-.. code-block:: javascript
+``--nojournal`` Option with WiredTiger
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.coll.update({_id: 0}, {$set: {b: 0, a: 0}})
+.. include:: /includes/wiredtiger-node-nojournal.rst
 
-Starting in 3.6, MongoDB appends the new fields in lexicographic order. The
-updated document would be ``{_id : 0, x: 0, a: 0, b: 0}``.
+Deprecate Master-Slave Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Earlier versions of MongoDB append the new fields in order of appearance in
-the update document. The updated document would be ``{_id : 0, x: 0, b: 0, a:
-0}``.
-
-Fields Conflicting with ``arrayFilters`` Identifiers
-````````````````````````````````````````````````````
-
-Starting in MongoDB 3.6, fields that conflict with ``arrayFilters``
-identifiers can no longer be updated.
-
-For example, a collection ``coll`` has the following document:
-
-.. code-block:: javascript
-
-   { _id: 0, x: { "$[]": 0 } }
-
-The following update succeeds in earlier versions of MongoDB:
-
-.. code-block:: javascript
-
-   db.coll.update({_id: 0}, {$set: {"x.$[]": 1}})
-
-In MongoDB 3.6 the update fails since the field name "$[]" conflicts with
-``arrayFilters`` identifier syntax. For more information on
-``arrayFilters`` see :ref:`update-command-arrayFilters`.
-
-.. note::
-
-   The new update behaviors apply only when ``featureCompatibilityVersion`` is
-   set to 3.6.
-
+MongoDB 3.6 deprecates master-slave replication.
 
 .. _3.6-index-asterisk:
 
@@ -416,21 +436,6 @@ index keys.
 To delete existing indexes named ``*``, delete the index before
 upgrading. To rename them, delete and recreate the index.
 
-``--nojournal`` Option with WiredTiger
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/wiredtiger-node-nojournal.rst
-
-Deprecate Master-Slave Replication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 3.6 deprecates master-slave replication.
-
-Platform Support
-----------------
-
-MongoDB 3.6 discontinues support for versions of Windows prior to Windows
-Server 2008 R2 and Windows 7.
 
 .. _3.6-compatibility-enabled:
 
@@ -439,11 +444,26 @@ Backwards Incompatible Features
 
 .. include:: /includes/3.6-backwards-incompatible-features.rst
 
-To set the ``featureCompatibilityVersion``, see
-:dbcommand:`setFeatureCompatibilityVersion` command.
-
 3.6 deployments have the following default
 ``featureCompatibilityVersion`` values:
 
-.. include:: /includes/list-table-featureCompatibilityVersion-defaults.rst
+.. list-table::
+   :header-rows: 1
+   :widths: 38 62
 
+   * - Deployments
+     - ``featureCompatibilityVersion``
+
+   * - For new 3.6 deployments
+     - ``"3.6"``
+
+   * - For deployments :ref:`upgraded from 3.4 <3.6-upgrade>`
+
+     - ``"3.4"`` until you :dbcommand:`setFeatureCompatibilityVersion`
+       to ``"3.6"``.
+
+To view the ``featureCompatibilityVersion``, see :ref:`view-fcv`.
+
+If you need to downgrade from 3.6, you must remove data related to all
+persisted incompatible features from your database before downgrading
+the binaries. See the 3.6 downgrade procedures.
