@@ -25,6 +25,6 @@ repository. This repository contains the following packages:
    * - ``mongodb-enterprise-tools``
      - Contains the following MongoDB tools: :program:`mongoimport`
        :program:`bsondump`, :program:`mongodump`, :program:`mongoexport`,
-       :program:`mongofiles`, :program:`mongooplog`,
+       :program:`mongofiles`,
        :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
        and :program:`mongotop`.
