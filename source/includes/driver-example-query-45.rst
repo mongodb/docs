@@ -10,6 +10,23 @@
 
      - id: compass
        content: |
+         Copy the following expression into the :guilabel:`Filter` bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A" }
+
+         Copy the following expression into the :guilabel:`Project`
+         bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { item: 1, status: 1, _id: 0 }
+
+         Click :guilabel:`Find`.
+
          .. figure:: /images/compass-project-suppress-id.png
 
      - id: python

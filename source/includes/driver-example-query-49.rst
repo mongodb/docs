@@ -10,6 +10,23 @@
 
      - id: compass
        content: |
+         Copy the following expression into the :guilabel:`Filter` bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A" }
+
+         Copy the following expression into the :guilabel:`Project`
+         bar:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { item: 1, status: 1, "instock.qty": 1 }
+
+         Click :guilabel:`Find`.
+
          .. figure:: /images/compass-project-embedded-array-docs.png
 
      - id: python

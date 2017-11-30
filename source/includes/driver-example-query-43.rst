@@ -10,6 +10,15 @@
 
      - id: compass
        content: |
+         Copy the following expression into the :guilabel:`Filter` bar
+         and click :guilabel:`Find`:
+
+         .. class:: copyable-code
+         .. code-block:: javascript
+
+            { status: "A" }
+
+
          .. figure:: /images/compass-project-all-fields.png
 
      - id: python
