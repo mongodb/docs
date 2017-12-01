@@ -15,6 +15,22 @@ Document Validation
 MongoDB provides the capability to validate documents during updates and
 insertions. 
 
+Specify Validation Rules
+------------------------
+
+To specify document validation rules when creating a new collection,
+use :method:`db.createCollection()` with the ``validator`` option.
+
+To add document validation to an existing collection, use
+:dbcommand:`collMod` command with the ``validator`` option. 
+
+MongoDB also provides the ``validationLevel`` option, which determines
+how strictly MongoDB applies validation rules to existing documents
+during an update, and the ``validationAction`` option, which determines
+whether MongoDB should ``error`` and reject documents
+that violate the validation rules or ``warn`` about the violations
+in the log but allow invalid documents.
+
 Validation Rules
 ----------------
 
@@ -25,84 +41,78 @@ validation rules or expressions. Specify the expressions using any
 :query:`$near`, :query:`$nearSphere`, :query:`$text`, and
 :query:`$where`.
 
+
 JSON Schema
 ~~~~~~~~~~~
 
 .. versionadded:: 3.6
 
 MongoDB 3.6 adds the :query:`$jsonSchema` operator to support
-:doc:`document validation </core/document-validation>` using JSON
+:doc:`document validation </core/document-validation>` that uses JSON
 Schema. With the addition of the :query:`$jsonSchema` operator, you can
 write queries to express a richer set of schema validation rules.
 
-For example, the following example uses :query:`$jsonSchema` to specify
-various validation rules.
+.. example:: Example 1
 
-.. code-block:: javascript
+   The following operation uses :query:`$jsonSchema` to specify various
+   validation rules.
+
+   .. code-block:: javascript
    
-   db.createCollection("students", {
-      validator: {
-         $jsonSchema: {
-            bsonType: "object",
-            required: [ "name", "year", "major", "gpa" ],
-            properties: {
-               name: {
-                  bsonType: "string",
-                  description: "must be a string and is required"
-               },
-               gender: {
-                  bsonType: "string",
-                  description: "must be a string and is not required"
-               },
-               year: {
-                  bsonType: "int",
-                  minimum: 2017,
-                  maximum: 3017,
-                  exclusiveMaximum: false,
-                  description: "must be an integer in [ 2017, 3017 ] and is required"
-               },
-               major: {
-                  enum: [ "Math", "English", "Computer Science", "History", null ],
-                  description: "can only be one of the enum values and is required"
-               },
-               gpa: {
-                  bsonType: [ "double" ],
-                  description: "must be a double and is required"
+      db.createCollection("students", {
+         validator: {
+            $jsonSchema: {
+               bsonType: "object",
+               required: [ "name", "year", "major", "gpa" ],
+               properties: {
+                  name: {
+                     bsonType: "string",
+                     description: "must be a string and is required"
+                  },
+                  gender: {
+                     bsonType: "string",
+                     description: "must be a string and is not required"
+                  },
+                  year: {
+                     bsonType: "int",
+                     minimum: 2017,
+                     maximum: 3017,
+                     exclusiveMaximum: false,
+                     description: "must be an integer in [ 2017, 3017 ] and is required"
+                  },
+                  major: {
+                     enum: [ "Math", "English", "Computer Science", "History", null ],
+                     description: "can only be one of the enum values and is required"
+                  },
+                  gpa: {
+                     bsonType: [ "double" ],
+                     description: "must be a double and is required"
+                  }
                }
             }
          }
-      }
-   })
+      })
 
-For more information, see :query:`$jsonSchema`.
+   For more information, see :query:`$jsonSchema`.
 
-Specify Document Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. example:: Example 2
 
-Add document validation to an existing collection using the
-:dbcommand:`collMod` command with the ``validator`` option. You can also
-specify document validation rules when creating a new collection using
-:method:`db.createCollection()` with the ``validator`` option, as
-in the following:
+   The following operation specifies validator rules using the
+   :query:`$type`, :query:`$regex`, and the :query:`$in` query operators:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   db.createCollection( "contacts",
-      { validator: { $or:
-         [
-            { phone: { $type: "string" } },
-            { email: { $regex: /@mongodb\.com$/ } },
-            { status: { $in: [ "Unknown", "Incomplete" ] } }
-         ]
-      }
-   } )
+      db.createCollection( "contacts",
+         { validator: { $or:
+            [
+               { phone: { $type: "string" } },
+               { email: { $regex: /@mongodb\.com$/ } },
+               { status: { $in: [ "Unknown", "Incomplete" ] } }
+            ]
+         }
+      } )
 
-MongoDB also provides the ``validationLevel`` option, which determines
-how strictly MongoDB applies validation rules to existing documents
-during an update, and the ``validationAction`` option, which determines
-whether MongoDB should ``error`` and reject documents
-that violate the validation rules or ``warn`` about the violations
-in the log but allow invalid documents.
+.. seealso:: :ref:`query operators <query-selectors>`
 
 Behavior
 --------
