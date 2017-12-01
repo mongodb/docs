@@ -245,45 +245,61 @@ Which will return the document:
 Add Document Validation to an Existing Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example adds a validator to a collection named ``contacts``.
-The validator specifies that inserted or updated documents should meet at least
-one of the following conditions:
+The following example adds a validator to an existing collection named
+``contacts``.
 
-- the ``phone`` field is a string
-- the ``email`` field matches the regular expression
-- the ``status`` field is either ``Unknown`` or ``Incomplete``.
+.. note::
 
-The ``moderate`` :collflag:`validationLevel` specifies that only updates
-to existing *valid* documents will be checked against the validator, and
-the ``warn`` :collflag:`validationAction` means that the write operation
-will log a validation failure for any document that does not pass
-validation.
+   MongoDB 3.6 adds the :query:`$jsonSchema` operator to support JSON
+   Schema validation.
 
 .. code-block:: javascript
 
-   db.runCommand( { collMod: "contacts",
-                    validator: { $or:
-                       [
-                          { phone: { $type: "string" } },
-                          { email: { $regex: /@mongodb\.com$/ } },
-                          { status: { $in: [ "Unknown", "Incomplete" ] } }
-                       ]
-                    },
-                    validationLevel: "moderate",
-                    validationAction: "warn"
-
+   db.createCollection( "contacts", {
+      validator: { $jsonSchema: {
+         bsonType: "object",
+         required: [ "phone" ],
+         properties: {
+            phone: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            email: {
+               bsonType : "string",
+               pattern : "@mongodb\.com$",
+               description: "must be a string and match the regular expression pattern"
+            },
+            status: {
+               enum: [ "Unknown", "Incomplete" ],
+               description: "can only be one of the enum values"
+            }
+         }
+      } },
+      validationLevel: "moderate",
+      validationAction: "warn"
    } )
 
-With the validator in place, the following insert operation fails validation:
+With the ``moderate`` :collflag:`validationLevel`, MongoDB applies
+validation rules to insert operations and to update operationss to
+existing documents that already fulfill the validation criteria.
+Updates to existing documents that do not fulfill the validation
+criteria are not checked for validity.
+ 
+With the ``warn`` :collflag:`validationAction`, MongoDB logs any
+violations but allows the insertion or update to proceed.
+
+For example, the following insert operation violates the validation rule.
 
 .. code-block:: javascript
 
    db.contacts.insert( { name: "Amanda", status: "Updated" } )
 
-The write operation logs the failure and succeeds:
+However, since the ``validationAction`` is ``warn`` only, MongoDB only
+logs the validation violation message and allows the operation to
+proceed:
 
 .. code-block:: sh
 
-   2015-10-15T11:20:44.260-0400 W STORAGE  [conn3] Document would fail validation collection: example.contacts doc: { _id: ObjectId('561fc44c067a5d85b96274e4'), name: "Amanda", status: "Updated" }
+   2017-12-01T12:31:23.738-0500 W STORAGE  [conn1] Document would fail validation collection: example.contacts doc: { _id: ObjectId('5a2191ebacbbfc2bdc4dcffc'), name: "Amanda", status: "Updated" }
 
 For more information, see :doc:`/core/document-validation`.
