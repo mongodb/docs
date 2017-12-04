@@ -23,7 +23,11 @@ The following table lists upgrade paths for all versions:
      - 1. Upgrade from |onprem| 2.0.x to version 3.4.x. For the specific
           upgrade path for your version, refer to :v3.4:`v3.4 upgrade
           documentation </tutorial/nav/upgrade-application>`.
-       
+
+       #. .. include:: /includes/3.6-upgrade-check.rst
+
+          For more information, see :ref:`data-migration-status`.
+
        #. Use this tutorial to upgrade from |onprem| 3.4.x to version 
           3.6+.
 
