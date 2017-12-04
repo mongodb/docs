@@ -1,3 +1,14 @@
+.. _monitoring-6.1.1.395:
+
+Monitoring Agent ``6.1.1.395``
+------------------------------
+
+*Released with Ops Manager 3.6.0 on 2017-12-05*
+
+- Support for MongoDB 3.6.
+
+- Support for new Agent API Key model.
+
 .. _monitoring-5.4.5.370:
 
 Monitoring Agent ``5.4.5.370``

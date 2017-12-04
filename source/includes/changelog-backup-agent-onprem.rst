@@ -1,3 +1,16 @@
+.. _backup-6.0.3.689:
+
+Backup Agent 6.0.3.689
+-------------------------
+
+*Released with Ops Manager 3.6.0 on 2017-12-05*
+
+- Support for MongoDB 3.6.
+
+- Performance optimizations.
+
+- Support for new Agent API Key model.
+
 
 .. _backup-5.0.10.634-1:
 
