@@ -15,7 +15,6 @@ un-sharded collections.
 The :update:`$isolated` update modifier does not work in sharded
 environments.
 
-:operator:`$snapshot` queries do not work in sharded environments.
 
 The :dbcommand:`geoSearch` command is not supported in sharded
 environments.
