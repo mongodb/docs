@@ -9,14 +9,14 @@
      - JIRA
      - Online Course
 
-   * - `C <http://mongoc.org/>`__
+   * - `C <http://mongoc.org/?jmp=docs>`__
      - `Releases <https://github.com/mongodb/mongo-c-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-c-driver>`__
      - `API <http://mongoc.org/>`__
      - `JIRA <https://jira.mongodb.org/browse/CDRIVER>`__
      -
 
-   * - `C++11 <https://mongodb.github.io/mongo-cxx-driver/>`__
+   * - `C++11 <https://mongodb.github.io/mongo-cxx-driver/?jmp=docs>`__
      - `Releases <https://github.com/mongodb/mongo-cxx-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-cxx-driver>`__
      - `API <http://mongodb.github.io/mongo-cxx-driver/api/current/>`__
@@ -29,14 +29,14 @@
      - `JIRA <https://jira.mongodb.org/browse/CSHARP>`__
      - `Course <https://university.mongodb.com/courses/M101N/about>`__
 
-   * - :doc:`Java </drivers/java>`
+   * - `Java <http://mongodb.github.io/mongo-java-driver/?jmp=docs>`_
      - `Releases <https://github.com/mongodb/mongo-java-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-java-driver>`__
      - `API <http://api.mongodb.com/java/current>`__
      - `JIRA <https://jira.mongodb.org/browse/JAVA>`__
      - `Course <https://university.mongodb.com/courses/M101J/about>`__
 
-   * - :doc:`Node.js </drivers/node-js>`
+   * - `Node.js <https://mongodb.github.io/node-mongodb-native/?jmp=docs>`_
      - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`__
      - `Source <https://github.com/mongodb/node-mongodb-native>`__
      - `API <https://mongodb.github.io/node-mongodb-native/>`__
@@ -71,7 +71,7 @@
      - `JIRA <https://jira.mongodb.org/browse/MOTOR>`__
      -
 
-   * - :doc:`Ruby </drivers/ruby>`
+   * - `Ruby <https://docs.mongodb.com/ruby-driver/master/>`_
      - `Releases <https://rubygems.org/gems/mongo>`__
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`__
      - `API <http://api.mongodb.com/ruby/current/>`__
