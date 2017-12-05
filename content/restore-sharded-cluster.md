@@ -13,7 +13,7 @@ tags = [
 
 ## Overview
 
-Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](https://docs.mongodb.com/manual/tutorial/upgrade-config-servers-to-replica-set).The following procedure applies to 3.4 config servers.
+Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](https://docs.mongodb.com/manual/tutorial/upgrade-config-servers-to-replica-set). The following procedure applies to 3.6 config servers.
 
 You can restore a [*sharded cluster*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster) either from [snapshots](../backup-with-filesystem-snapshots/) or from [*BSON*](https://docs.mongodb.com/manual/reference/glossary/#term-bson)
 [database dumps](../backup-sharded-cluster-with-database-dumps/) created by the
@@ -250,6 +250,8 @@ mongorestore --drop --oplogReplay /data/dump/shardA --port <port>
 
 After you have finished restoring all the shards, shut down all shard
 instances.
+
+Note: *New in version 3.6:* All MongoDB collections have UUIDs (Universally unique identifiers) by default. When MongoDB restores collections, the restored collections retain their original UUIDs. When restoring a collection where no UUID was present, MongoDB generates a UUID for the restored collection. For more information on collection UUIDs, see [Collections](https://docs.mongodb.com/v3.6/core/databases-and-collections/#collections).
 
 
 #### Step 7: Restore the config server data.

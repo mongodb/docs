@@ -10,7 +10,7 @@ tags = [
 
 # Migrate a Sharded Cluster to Different Hardware
 
-The tutorial is specific to MongoDB 3.4. For earlier versions of
+The tutorial is specific to MongoDB 3.6. For earlier versions of
 MongoDB, refer to the corresponding version of the MongoDB Manual.
 
 Changed in version 3.2.
@@ -94,12 +94,15 @@ Important: Replace the secondary members before replacing the primary.
 
 ### Step 1: Start the replacement config server.
 
-Start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance, specifying both the ``--configsvr``
-and ``--replSet`` options.
+Start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance, specifying the ``--configsvr``,
+``--replSet``, ``--bind_ip`` options, and other options as
+appropriate to your deployment.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongod --configsvr --replSet <replicaSetName>
+mongod --configsvr --replSet <replicaSetName> --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
@@ -189,7 +192,7 @@ remove the arbiter after completing the migration.
    ```javascript
 
    cfg = rs.conf()
-   cfg.members[2].host = "pocatello.example.net:27017"
+   cfg.members[2].host = "pocatello.example.net:27018"
    rs.reconfig(cfg)
 
    ```

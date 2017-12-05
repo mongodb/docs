@@ -29,7 +29,7 @@ area:
 The following diagram illustrates a sharded cluster that uses geographic based
 zones to manage and satisfy data segmentation requirements.
 
-<img src="../images/sharding-segmenting-data-by-location-overview.bakedsvg.svg" width="700px" alt="Diagram geo distribution based on zones">
+<img src="images/sharding-segmenting-data-by-location-overview.bakedsvg.svg" width="700px" alt="Diagram geo distribution based on zones">
 
 
 ## Scenario
@@ -96,7 +96,7 @@ general instructions on selecting a shard key.
 The sharded cluster has shards in two data centers - one in Europe, and
 one in North America.
 
-<img src="../images/sharding-segmenting-data-by-location-architecture.bakedsvg.svg" width="700px" alt="Diagram of zones used for supporting geo distribution architecture">
+<img src="images/sharding-segmenting-data-by-location-architecture.bakedsvg.svg" width="700px" alt="Diagram of zones used for supporting geo distribution architecture">
 
 
 ### Zones

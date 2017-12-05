@@ -15,6 +15,8 @@ Use this tutorial to install [MongoDB Enterprise](https://www.mongodb.com/produc
 systems. MongoDB Enterprise is available on select platforms and contains
 support for several features related to security and monitoring.
 
+Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 
 ## Prerequisites
 
@@ -22,16 +24,6 @@ MongoDB Enterprise Server for Windows requires Windows Server 2008 R2 or
 later. The ``.msi`` installer includes all other software dependencies and will
 automatically upgrade any older version of MongoDB installed using an ``.msi``
 file.
-
-
-## Get MongoDB Enterprise
-
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-windows/).
-
-
-### Step 1: Download MongoDB Enterprise for Windows.
-
-Download the latest production release of [MongoDB Enterprise](http://www.mongodb.com/products/mongodb-enterprise?jmp=docs).
 
 To find which version of Windows you are running, enter the following
 commands in the Command Prompt or Powershell:
@@ -44,13 +36,18 @@ wmic os get osarchitecture
 ```
 
 
+## Get MongoDB Enterprise
+
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-windows/).
+
+Download the latest production release of MongoDB from the [MongoDB
+Download Center](https://www.mongodb.com/download-center#enterprise).
+
+
 ## Install MongoDB Enterprise
 
 
 ### Interactive Installation
-
-
-#### Step 1: Install MongoDB Enterprise for Windows.
 
 In Windows Explorer, locate the downloaded MongoDB ``.msi`` file, which
 typically is located in the default ``Downloads`` folder. Double-click
@@ -60,7 +57,10 @@ installation process.
 You may specify an installation directory if you choose the "Custom"
 installation option.
 
-Note: These instructions assume that you have installed MongoDB to ``C:\Program Files\MongoDB\Server\3.2\``.
+Note: These instructions assume that you have installed MongoDB to ``C:\Program Files\MongoDB\Server\3.6\``.
+
+During the installation process you will be given the option to install
+[*MongoDB Compass*](https://docs.mongodb.com/compass/current/#compass-index) in addition to MongoDB Server.
 
 MongoDB is self-contained and does not have any other system
 dependencies. You can run MongoDB from any folder you choose. You may
@@ -73,15 +73,23 @@ You may install MongoDB unattended on Windows from the command line
 using ``msiexec.exe``.
 
 
-#### Step 1: Install MongoDB Enterprise for Windows.
+#### Step 1: Open an Administrator command prompt.
+
+Press the ``Win`` key, type ``cmd.exe``, and press ``Ctrl + Shift + Enter``
+to run the Command Prompt as Administrator.
+
+Execute the remaining steps from the Administrator command prompt.
+
+
+#### Step 2: Install MongoDB for Windows.
 
 Change to the directory containing the ``.msi`` installation binary of your
 choice and invoke:
 
 ```powershell
 
-msiexec.exe /q /i mongodb-win32-x86_64-2008plus-ssl-3.4.2-signed.msi ^
-            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.4.2\" ^
+msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-rc7-signed.msi ^
+            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0-rc7\" ^
             ADDLOCAL="all"
 
 ```
@@ -101,14 +109,14 @@ component sets:
 | ``Client`` | ``mongo.exe`` |
 | ``MonitoringTools`` | ``mongostat.exe``, ``mongotop.exe`` |
 | ``ImportExportTools`` | ``mongodump.exe``, ``mongorestore.exe``, ``mongoexport.exe``, ``mongoimport.exe`` |
-| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongooplog.exe``, ``mongoperf.exe`` |
+| ``MiscellaneousTools`` | ``bsondump.exe``, ``mongofiles.exe``, ``mongoperf.exe`` |
 
 For instance, to install *only* the MongoDB utilities, invoke:
 
 ```powershell
 
-msiexec.exe /q /i mongodb-win32-x86_64-2008plus-ssl-3.4.2-signed.msi ^
-            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.4.2\" ^
+msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-rc7-signed.msi ^
+            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0-rc7\" ^
             ADDLOCAL="MonitoringTools,ImportExportTools,MiscellaneousTools"
 
 ```
@@ -139,7 +147,7 @@ You can specify an alternate path for data files using the
 
 ```powershell
 
-"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe" --dbpath d:\test\mongodb\data
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --dbpath d:\test\mongodb\data
 
 ```
 
@@ -148,7 +156,7 @@ quotes, for example:
 
 ```powershell
 
-"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe" --dbpath "d:\test\mongo db data"
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe" --dbpath "d:\test\mongo db data"
 
 ```
 
@@ -162,7 +170,7 @@ Command Prompt:
 
 ```powershell
 
-"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe"
+"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe"
 
 ```
 
@@ -172,7 +180,7 @@ connections`` message in the console output indicates that the
 
 Depending on the security level of your system, Windows may pop up a
 Security Alert dialog box about blocking "some features" of
-``C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe`` from communicating
+``C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe`` from communicating
 on networks. All users should select ``Private Networks, such as my home or
 work network`` and click ``Allow access``. For additional information on
 security and MongoDB, please see the [Security Documentation](https://docs.mongodb.com/manual/security).
@@ -185,7 +193,7 @@ open another Command Prompt.
 
 ```powershell
 
-"C:\Program Files\MongoDB\Server\3.4\bin\mongo.exe
+"C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
 
 ```
 
@@ -196,8 +204,8 @@ of [C# and MongoDB](https://docs.mongodb.com/ecosystem/drivers/csharp) for more 
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.
@@ -235,7 +243,7 @@ Create a configuration file. The file **must** set [``systemLog.path``](https://
 Include additional
 [configuration options](https://docs.mongodb.com/manual/reference/configuration-options) as appropriate.
 
-For example, create a file at ``C:\Program Files\MongoDB\Server\3.4\mongod.cfg`` that specifies both
+For example, create a file at ``C:\Program Files\MongoDB\Server\3.6\mongod.cfg`` that specifies both
 [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path) and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath):
 
 ```yaml
@@ -311,7 +319,7 @@ You can set up the MongoDB server as a Windows Service that
 starts automatically at boot time.
 
 The following procedure assumes you have installed MongoDB using the
-``.msi`` installer with the path ``C:\Program Files\MongoDB\Server\3.2\``.
+``.msi`` installer with the path ``C:\Program Files\MongoDB\Server\3.4\``.
 
 If you have installed in an alternative directory, you will need to
 adjust the paths as appropriate.
@@ -343,7 +351,7 @@ Create a configuration file. The file **must** set [``systemLog.path``](https://
 Include additional
 [configuration options](https://docs.mongodb.com/manual/reference/configuration-options) as appropriate.
 
-For example, create a file at ``C:\Program Files\MongoDB\Server\3.4\mongod.cfg`` that specifies both
+For example, create a file at ``C:\Program Files\MongoDB\Server\3.6\mongod.cfg`` that specifies both
 [``systemLog.path``](https://docs.mongodb.com/manual/reference/configuration-options/#systemLog.path) and [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath):
 
 ```yaml
@@ -363,12 +371,12 @@ Create the MongoDB service.
 
 ```powershell
 
-sc.exe create MongoDB binPath= "\"C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe\" --service --config=\"C:\Program Files\MongoDB\Server\3.4\mongod.cfg\"" DisplayName= "MongoDB" start= "auto"
+sc.exe create MongoDB binPath= "\"C:\Program Files\MongoDB\Server\3.6\bin\mongod.exe\" --service --config=\"C:\Program Files\MongoDB\Server\3.6\mongod.cfg\"" DisplayName= "MongoDB" start= "auto"
 
 ```
 
 ``sc.exe`` requires a space between "=" and the configuration values
-(eg "binPath= "), and a "\" to escape double quotes.
+(eg "binPath= "), and a "" to escape double quotes.
 
 If successfully created, the following log message will display:
 

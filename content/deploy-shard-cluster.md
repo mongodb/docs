@@ -96,41 +96,46 @@ must then use ``localhost`` as the host for all other shards in the cluster.
 
 The following steps deploys a config server replica set.
 
-For a production deployment, deploys a config server replica set with at
+For a production deployment, deploy a config server replica set with at
 least three members. For testing purposes, you can create a
 single-member replica set.
 
 
 #### Step 1: Start each member of the config server replica set.
 
-Start *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the config server replica set.
-
-You can specify the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) settings either via a
-configuration file or the command line.
+When starting *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specify the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) settings either via a configuration file or the
+command line.
 
 **Configuration File**
 
-If using a configuration file, set [``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole)
-to ``configsvr``, and [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the
-desired name of the config server replica set.
+If using a configuration file, set:
 
 ```yaml
 
 sharding:
   clusterRole: configsvr
 replication:
-  replSetName: <setname>
+  replSetName: <replica set name>
+net:
+  bindIp: localhost,<ip address>
 
 ```
 
-Include additional settings as appropriate to your deployment.
-For more information on the configuration file, see
-[configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
+* [``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) to ``configsvr``,
 
-Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) specifying the ``--config`` option and the
-path to the configuration file.
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the desired name of the config server replica set,
 
-```shell
+* [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) option to the ip or a comma-delimited list of ips that remote clients (including the other members of the config server replica set as well as other members of the sharded cluster) can use to connect to the instance.
+
+  Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
+* Additional settings as appropriate to your deployment, such as [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath) and [``net.port``](https://docs.mongodb.com/manual/reference/configuration-options/#net.port). For more information on the configuration file, see [configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
+
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``--config`` option
+set to the configuration file path.
+
+```sh
 
 mongod --config <path-to-config-file>
 
@@ -138,16 +143,18 @@ mongod --config <path-to-config-file>
 
 **Command Line**
 
-If using the command line parameters, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with
-the ``--configsvr``, and ``--replSet`` parameters.
+If using the command line options, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
+with the ``--configsvr``, ``--replSet``, ``--bind_ip``,
+and other options as appropriate to your deployment. For example:
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongod --configsvr --replSet <setname> --dbpath <path>
+mongod --configsvr --replSet <replica set name> --dbpath <path> --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
-Include additional settings as appropriate to your deployment.
 For more information on startup parameters, see the
 [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
 
@@ -164,23 +171,21 @@ mongo --host <hostname> --port <port>
 ```
 
 
-#### Step 3
+#### Step 3: Initiate the replica set.
 
-The [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method initiates the replica set and can
-take an optional [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration). In the [replica set
-configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
+From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run the [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method.
 
-* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id). The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
+[``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) can take an optional [replica set
+configuration document](https://docs.mongodb.com/manual/reference/replica-configuration). In the
+[replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
 
-* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field. The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field is an array and requires a document per each member of the replica set.
+* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) set to the replica set name specified in either the [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) or the ``--replSet`` option.
 
-* The [``configsvr``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.configsvr) field. The [``configsvr``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.configsvr) field must be set to ``true`` for the config server replica set.
+* The [``configsvr``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.configsvr) field  set to ``true`` for the config server replica set.
 
-See [Replica Set Configuration](https://docs.mongodb.com/manual/reference/replica-configuration) for more information on
-replica set configuration documents.
+* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) array with a document per each member of the replica set.
 
-Initiate the replica set using the [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method
-and a configuration document:
+Important: Run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on *just one and only one* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance for the replica set.
 
 ```javascript
 
@@ -189,14 +194,17 @@ rs.initiate(
     _id: "<replSetName>",
     configsvr: true,
     members: [
-      { _id : 0, host : "cfg1.example.net:27017" },
-      { _id : 1, host : "cfg2.example.net:27017" },
-      { _id : 2, host : "cfg3.example.net:27017" }
+      { _id : 0, host : "cfg1.example.net:27019" },
+      { _id : 1, host : "cfg2.example.net:27019" },
+      { _id : 2, host : "cfg3.example.net:27019" }
     ]
   }
 )
 
 ```
+
+See [Replica Set Configuration](https://docs.mongodb.com/manual/reference/replica-configuration) for more information on
+replica set configuration documents.
 
 Once the config server replica set (CSRS) is initiated and up, proceed
 to creating the shard replica sets.
@@ -211,29 +219,37 @@ set.
 
 #### Step 1: Start each member of the shard replica set.
 
-Start *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the replica set using either
-a configuration file or the command line.
+When starting *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specify the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) settings either via a configuration file or the
+command line.
 
 **Configuration File**
 
-If using a configuration file, set the [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName)
-to the desired name of the replica set, and the
-[``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) option to ``shardsvr``.
+If using a configuration file, set:
 
 ```yaml
 
 sharding:
-  clusterRole: shardsvr
+   clusterRole: shardsvr
 replication:
-  replSetName: <replSetName>
+   replSetName: <replSetName>
+net:
+   bindIp: localhost,<ip address>
 
 ```
 
-Include any other options as appropriate for your deployment. See
-[Configuration File Options](https://docs.mongodb.com/manual/reference/configuration-options) for settings available.
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the desired name of the replica set,
 
-Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) specifying the ``--config`` option
-and the path to the configuration file.
+* [``sharding.clusterRole``](https://docs.mongodb.com/manual/reference/configuration-options/#sharding.clusterRole) option to ``shardsvr``,
+
+* [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) option to the ip or a comma-delimited list of ips that remote clients (including the other members of the config server replica set as well as other members of the sharded cluster) can use to connect to the instance.
+
+  Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
+* Additional settings as appropriate to your deployment, such as [``storage.dbPath``](https://docs.mongodb.com/manual/reference/configuration-options/#storage.dbPath) and [``net.port``](https://docs.mongodb.com/manual/reference/configuration-options/#net.port). For more information on the configuration file, see [configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
+
+Start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``--config`` option set to
+the configuration file path.
 
 ```sh
 
@@ -243,25 +259,21 @@ mongod --config <path-to-config-file>
 
 **Command Line**
 
-If using the command line option, when starting the component, specify
-the ``replSet``, and ``--shardsvr`` parameters, as in the
-following example:
+If using the command line option,  start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with
+the ``--replSet``, and ``--shardsvr``, ``--bind_ip`` options,
+and other options as appropriate to your deployment.  For example:
 
 ```sh
 
-mongod --shardsvr --replSet <replSetname>
+mongod --shardsvr --replSet <replSetname>  --dbpath <path> --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
-Include any other options as appropriate for your deployment.
-
-For more information on startup parameters,
-see the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
-
-Include additional settings as appropriate to your deployment.
+For more information on startup parameters, see the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
 
 
-#### Step 2: Connect to a member of the shard replica set.
+#### Step 2: Connect to one member of the shard replica set.
 
 Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the replica set members.
 
@@ -274,19 +286,19 @@ mongo --host <hostname> --port <port>
 
 #### Step 3: Initiate the replica set.
 
-The [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method initiates the replica set and can
-take an optional [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration).
+From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run the [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) method.
 
-In the [replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
+[``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) can take an optional [replica set
+configuration document](https://docs.mongodb.com/manual/reference/replica-configuration). In the
+[replica set configuration document](https://docs.mongodb.com/manual/reference/replica-configuration), include:
 
-* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) field. The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) *must* match the ``--replSet`` parameter passed to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
+* The [``_id``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf._id) field set to the replica set name specified in either the [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) or the ``--replSet`` option.
 
-* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field. The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) field is an array and requires a document per each member of the replica set.
+* The [``members``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members) array with a document per each member of the replica set.
 
-See [Replica Set Configuration](https://docs.mongodb.com/manual/reference/replica-configuration) for more information on
-replica set configuration documents.
+The following example initiates a three member replica set.
 
-The following example initates a three member replica set.
+Important: Run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on *just one and only one* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance for the replica set.
 
 ```javascript
 
@@ -294,20 +306,14 @@ rs.initiate(
   {
     _id : <replicaSetName>,
     members: [
-      { _id : 0, host : "s1-mongo1.example.net:27017" },
-      { _id : 1, host : "s1-mongo2.example.net:27017" },
-      { _id : 2, host : "s1-mongo3.example.net:27017" }
+      { _id : 0, host : "s1-mongo1.example.net:27018" },
+      { _id : 1, host : "s1-mongo2.example.net:27018" },
+      { _id : 2, host : "s1-mongo3.example.net:27018" }
     ]
   }
 )
 
 ```
-
-[``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) triggers an [*election*](https://docs.mongodb.com/manual/reference/glossary/#term-election) and
-elects one of the members to be the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary).
-
-Connect to the primary before continuing. Use [``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status) to
-locate the primary member.
 
 <span id="sharding-setup-start-mongos"></span>
 
@@ -317,8 +323,8 @@ locate the primary member.
 
 #### Step 1: Connect a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) to the cluster
 
-Start a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) specifying
-using either a configuration file or a command line parameter.
+Start a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) using either a configuration file or a
+command line parameter to specify the config servers.
 
 **Configuration File**
 
@@ -326,10 +332,14 @@ If using a configuration file, set the [``sharding.configDB``](https://docs.mong
 the config server replica set name and at least one member of the replica
 set in ``<replSetName>/<host:port>`` format.
 
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
 ```yaml
 
 sharding:
-  configDB: <configReplSetName>/cfg1.example.net:27017,cfg2.example.net:27017,...
+  configDB: <configReplSetName>/cfg1.example.net:27019,cfg2.example.net:27019
+net:
+  bindIp: localhost,<ip address>
 
 ```
 
@@ -348,11 +358,14 @@ For more information on the configuration file, see
 **Command Line**
 
 If using command line parameters start the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) and specify
-the ``--configdb`` parameter.
+the ``--configdb``,  ``--bind_ip``,
+and other options as appropriate to your deployment. For example:
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongos --configdb <configReplSetName>/cfg1.example.net:27017,cfg2.example.net:27017,...
+mongos --configdb <configReplSetName>/cfg1.example.net:27019,cfg2.example.net:27019 --bind_ip localhost,<ip address of the mongos host>
 
 ```
 

@@ -96,8 +96,6 @@ modification to the document.
 
 ### Procedure
 
-[1] In [some circumstances](https://docs.mongodb.com/manual/reference/read-preference/#edge-cases), two nodes in a replica set may *transiently* believe that they are the primary, but at most, one of them will be able to complete writes with [``{ w: "majority" }``](https://docs.mongodb.com/manual/reference/write-concern/#writeconcern."majority") write concern. The node that can complete [``{ w: "majority" }``](https://docs.mongodb.com/manual/reference/write-concern/#writeconcern."majority") writes is the current primary, and the other node is a former primary that has not yet recognized its demotion, typically due to a [*network partition*](https://docs.mongodb.com/manual/reference/glossary/#term-network-partition). When this occurs, clients that connect to the former primary may observe stale data despite having requested read preference [``primary``](https://docs.mongodb.com/manual/reference/read-preference/#primary), and new writes to the former primary will eventually roll back.
-
 
 ### Step 1: Create a unique index.
 

@@ -27,6 +27,8 @@ sure you have sufficient drive space available for the
 [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) export file and the data files of your new
 [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance running with WiredTiger.
 
+Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility). The tutorial runs [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) and [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore) from the same host as the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) they are connecting to. If run remotely, [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) and [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore) must specify the ip address or the associated hostname in order to connect to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
+
 You must be using MongoDB version 3.0 or greater in order to use the
 WiredTiger storage engine. If upgrading from an earlier version of
 MongoDB, see the guides on [Upgrading to MongoDB 3.0](../3.0-upgrade/) or [Upgrading to MongoDB 3.2](../3.2-upgrade/) before proceeding with changing your
@@ -68,12 +70,14 @@ a different storage engine.
 
 Start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying ``wiredTiger`` as the
 [``--storageEngine``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-storageengine) and the newly created data directory for
-WiredTiger as the [``--dbpath``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-dbpath). Specify additional options as
-appropriate.
+WiredTiger as the [``--dbpath``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-dbpath). Specify additional options,
+such as [``--bind_ip``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-bind-ip), as appropriate.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath>
+mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --bind_ip localhost,<ipaddresses>
 
 ```
 

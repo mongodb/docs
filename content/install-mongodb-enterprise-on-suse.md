@@ -24,7 +24,7 @@ repository. This repository contains the following packages:
 | ``mongodb-enterprise-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
 | ``mongodb-enterprise-mongos`` | Contains the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) daemon. |
 | ``mongodb-enterprise-shell`` | Contains the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell. |
-| ``mongodb-enterprise-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles), [``mongooplog``](https://docs.mongodb.com/manual/reference/program/mongooplog/#bin.mongooplog),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
+| ``mongodb-enterprise-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
 
 
 ## Considerations
@@ -36,19 +36,19 @@ Use the provided distribution packages as described in this page if possible.
 These packages will automatically install all of MongoDB's dependencies, and are
 the recommended installation method.
 
-Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows.The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
+Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows. The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
 
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-suse/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-suse/).
 
 
 ### Step 1: Import the MongoDB public key
 
 ```sh
 
-sudo rpm --import https://www.mongodb.org/static/pgp/server-3.4.asc
+sudo rpm --import https://www.mongodb.org/static/pgp/server-3.6.asc
 
 ```
 
@@ -62,14 +62,14 @@ Run the command appropriate for your version of SUSE:
 SUSE 11
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/3.4/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/testing/x86_64/" mongodb
 
    ```
 
 SUSE 12
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/12/mongodb-enterprise/3.4/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/12/mongodb-enterprise/testing/x86_64/" mongodb
 
    ```
 
@@ -88,7 +88,7 @@ sudo zypper addrepo --no-gpgcheck https://repo.mongodb.com/zypper/suse/11/mongod
 
 ### Step 3: Install the MongoDB packages and associated tools.
 
-To install the latest stable version of MongoDB, issue the following
+To install the 3.6 release candidate version of MongoDB, issue the following
 command:
 
 ```sh
@@ -203,8 +203,8 @@ by watching the output in the ``/var/log/mongodb/mongod.log`` file.
 #### Step 5: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

@@ -18,13 +18,15 @@ supported packages.
 
 Note: Do not use this installation method unless you have a specific need that the available [Linux Packages](https://docs.mongodb.com/manual/administration/install-on-linux/#recommended-linux-install) do not address.
 
+Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 
 ## Install MongoDB Community Edition
 
 MongoDB only provides archives for 64-bit builds of Linux. Follow the
 installation procedure appropriate for your system.
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-linux/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-linux/).
 
 
 ### Install for 64-bit Linux
@@ -32,14 +34,14 @@ Note: To install a version of MongoDB prior to 3.2, please refer to that version
 
 #### Step 1: Download the binary files for the desired release of MongoDB.
 
-Download the binaries from ``https://www.mongodb.com/download-center``.
+Download the binaries from the [MongoDB Download Center](https://www.mongodb.com/download-center).
 
 For example, to download the latest release through the shell, issue
 the following:
 
 ```sh
 
-curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.4.2.tgz
+curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.0-rc7.tgz
 
 ```
 
@@ -50,7 +52,7 @@ For example, from a system shell, you can extract through the ``tar`` command:
 
 ```sh
 
-tar -zxvf mongodb-linux-x86_64-3.4.2.tgz
+tar -zxvf mongodb-linux-x86_64-3.6.0-rc7.tgz
 
 ```
 
@@ -62,7 +64,7 @@ Copy the extracted folder to the location from which MongoDB will run.
 ```sh
 
 mkdir -p mongodb
-cp -R -n mongodb-linux-x86_64-3.4.2/ mongodb
+cp -R -n mongodb-linux-x86_64-3.6.0-rc7/ mongodb
 
 ```
 
@@ -166,8 +168,8 @@ mongod --dbpath <path to data directory>
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

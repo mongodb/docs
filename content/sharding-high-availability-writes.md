@@ -19,7 +19,7 @@ sharded cluster deployment and application-side logic to support distributed
 local writes, as well as high write availability in the event of a replica set
 election or datacenter failure.
 
-Important: The concepts discussed in this tutorial require a specific deployment architecture, as well as application-level logic.These concepts require familiarity with MongoDB [*sharded clusters*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster), [*replica sets*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set), and the general behavior of [zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding).This tutorial assumes an insert-only or insert-intensive workload. The concepts and strategies discussed in this tutorial are not well suited for use cases that require fast reads or updates.
+Important: The concepts discussed in this tutorial require a specific deployment architecture, as well as application-level logic. These concepts require familiarity with MongoDB [*sharded clusters*](https://docs.mongodb.com/manual/reference/glossary/#term-sharded-cluster), [*replica sets*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set), and the general behavior of [zones](https://docs.mongodb.com/manual/core/zone-sharding/#zone-sharding). This tutorial assumes an insert-only or insert-intensive workload. The concepts and strategies discussed in this tutorial are not well suited for use cases that require fast reads or updates.
 
 
 ## Scenario
@@ -86,7 +86,7 @@ set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set) with
 [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``bravo``.
 ``shard0001`` has two members on ``bravo`` and one [priority 0 member](https://docs.mongodb.com/manual/core/replica-set-priority-0-member/#replica-set-secondary-only-members) on ``alfa``.
 
-<img src="../images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability"><span id="sharding-high-availability-tags"></span>
+<img src="images/sharded-cluster-high-availability-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for high availability"><span id="sharding-high-availability-tags"></span>
 
 
 ### Tags

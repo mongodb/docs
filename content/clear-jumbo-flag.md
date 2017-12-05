@@ -99,7 +99,7 @@ such as a chunk with a range of single shard key value, and the
 preferred method to clear the flag is not applicable. In such cases,
 you can clear the flag using the following steps.
 
-Important: Only use this method if the [preferred method](#preferred-method-clear-jumbo) is *not* applicable.Before modifying the [config database](https://docs.mongodb.com/manual/reference/config-database), *always* back up the config database.
+Important: Only use this method if the [preferred method](#preferred-method-clear-jumbo) is *not* applicable. Before modifying the [config database](https://docs.mongodb.com/manual/reference/config-database), *always* back up the config database.
 
 If you clear the ``jumbo`` flag for a chunk that still exceeds the
 chunk size and/or the document number limit, MongoDB will re-label the

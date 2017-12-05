@@ -23,12 +23,12 @@ repository. This repository contains the following packages:
 | ``mongodb-enterprise-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
 | ``mongodb-enterprise-mongos`` | Contains the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) daemon. |
 | ``mongodb-enterprise-shell`` | Contains the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell. |
-| ``mongodb-enterprise-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles), [``mongooplog``](https://docs.mongodb.com/manual/reference/program/mongooplog/#bin.mongooplog),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
+| ``mongodb-enterprise-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
 
 
 ## Install MongoDB Enterprise
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-debian/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -42,11 +42,11 @@ the recommended installation method.
 The Ubuntu package management tools (i.e. ``dpkg`` and ``apt``) ensure
 package consistency and authenticity by requiring that distributors
 sign packages with GPG keys. Issue the following command to import the
-[MongoDB public GPG Key](https://www.mongodb.org/static/pgp/server-3.4.asc):
+[MongoDB public GPG Key](https://www.mongodb.org/static/pgp/server-3.6.asc):
 
 ```sh
 
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
 
 ```
 
@@ -59,14 +59,14 @@ of Debian:
 Debian 7 "Wheezy"
    ```sh
 
-   echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 Debian 8 "Jessie"
    ```sh
 
-   echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
@@ -99,7 +99,7 @@ sudo apt-get update
 ### Step 4: Install the MongoDB Enterprise packages.
 
 
-#### Install the latest stable version of MongoDB Enterprise.
+#### Install the 3.6 release candidate version of MongoDB Enterprise.
 
 Issue the following command:
 
@@ -195,8 +195,8 @@ sudo service mongod restart
 ### Step 5: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

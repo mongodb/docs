@@ -115,7 +115,7 @@ mongod --basisTechRootDirectory=/opt/basis
 ## Additional Information
 
 For installation help, see the RLP Quick Start manual or Chapter 2 of
-the Rosette Linguistics Platform Application Developer’s Guide.
+the Rosette Linguistics Platform Application Developer's Guide.
 
 For debugging any RLP specific issues, you can set the ``rlpVerbose``
 parameter to ``true`` (i.e. ``--setParameter rlpVerbose=true``) to view

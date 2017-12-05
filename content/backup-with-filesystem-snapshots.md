@@ -21,7 +21,7 @@ additional system configuration outside of MongoDB.
 Changed in version 3.2: MongoDB 3.2 added support for volume-level back up of MongoDB instances
 using the [WiredTiger](https://docs.mongodb.com/manual/core/wiredtiger) storage engine when
 the MongoDB instance's data files and journal files reside on separate
-volumes.Prior to MongoDB 3.2, creating volume-level backups
+volumes. Prior to MongoDB 3.2, creating volume-level backups
 of MongoDB instances using WiredTiger required that the data files and journal
 reside on the same volume.
 
@@ -171,7 +171,7 @@ data on the disk, but rather the quantity of differences between the
 current state of ``/dev/vg0/mongodb`` and the creation of the snapshot
 (i.e. ``/dev/vg0/mdb-snap01``.)
 
-Warning: Ensure that you create snapshots with enough space to account for data growth, particularly for the period of time that it takes to copy data out of the system or to a temporary image.If your snapshot runs out of space, the snapshot image becomes unusable. Discard this logical volume and create another.
+Warning: Ensure that you create snapshots with enough space to account for data growth, particularly for the period of time that it takes to copy data out of the system or to a temporary image. If your snapshot runs out of space, the snapshot image becomes unusable. Discard this logical volume and create another.
 
 The snapshot will exist when the command returns. You can restore
 directly from the snapshot at any time or by creating a new logical
@@ -226,7 +226,7 @@ The above sequence does the following:
 
 * Creates a new logical volume named ``mdb-new``, in the ``/dev/vg0`` volume group. The path to the new device will be ``/dev/vg0/mdb-new``.
 
-  Warning: This volume will have a maximum size of 1 gigabyte. The original file system must have had a total size of 1 gigabyte or smaller, or else the restoration will fail.Change ``1G`` to your desired volume size.
+  Warning: This volume will have a maximum size of 1 gigabyte. The original file system must have had a total size of 1 gigabyte or smaller, or else the restoration will fail. Change ``1G`` to your desired volume size.
 
 * Uncompresses and unarchives the ``mdb-snap01.gz`` into the ``mdb-new`` disk image.
 
@@ -250,6 +250,8 @@ dd if=/dev/vg0/mdb-snap01 of=/dev/vg0/mdb-new
 mount /dev/vg0/mdb-new /srv/mongodb
 
 ```
+
+Note: *New in version 3.6:* All MongoDB collections have UUIDs (Universally unique identifiers) by default. When MongoDB restores collections, the restored collections retain their original UUIDs. When restoring a collection where no UUID was present, MongoDB generates a UUID for the restored collection. For more information on collection UUIDs, see [Collections](https://docs.mongodb.com/v3.6/core/databases-and-collections/#collections).
 
 
 ### Remote Backup Storage

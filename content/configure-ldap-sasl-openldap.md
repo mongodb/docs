@@ -133,6 +133,10 @@ testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
 
 ```
 
+* ``0: OK "Success"`` indicates successful authentication.
+
+* ``0: NO "authentication failed"`` indicates a username, password, or configuration error.
+
 Note: ``/var/run/saslauthd`` directory must have permissions set to ``755`` for MongoDB to successfully authenticate.
 
 <span id="configure-mongodb-auth-users-openldap"></span>
@@ -169,19 +173,13 @@ information about creating and managing users, see
 ### Step 2: Configure MongoDB server.
 
 To configure the MongoDB server to use the ``saslauthd`` instance for
-proxy authentication, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the following
-options:
+proxy authentication, include the following options when starting [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod):
 
-* [``--auth``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-auth),
+* [``--auth``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-auth) command line option or [``security.authorization``](https://docs.mongodb.com/manual/reference/configuration-options/#security.authorization) setting,
 
 * [``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) parameter set to ``PLAIN``, and
 
 * [``saslauthdPath``](https://docs.mongodb.com/manual/reference/parameters/#param.saslauthdPath) parameter set to the path to the Unix-domain Socket of the ``saslauthd`` instance.
-
-Configure the MongoDB server using either the command line option
-[--setParameter](https://docs.mongodb.com/manual/reference/parameters) or the
-[configuration file](https://docs.mongodb.com/manual/reference/configuration-options). Specify
-additional configurations as appropriate for your configuration.
 
 If you use the [``authorization``](https://docs.mongodb.com/manual/reference/configuration-options/#security.authorization) option to enforce
 authentication, you will need privileges to create a user.
@@ -198,6 +196,12 @@ as in the following command line example:
 mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
 
 ```
+
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 Or if using a [YAML format configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the following settings in
 the file:
@@ -236,6 +240,12 @@ mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMecha
 
 ```
 
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 Or if using a [YAML format configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the following settings in
 the file:
 
@@ -259,6 +269,12 @@ setParameter=saslauthdPath=""
 setParameter=authenticationMechanisms=PLAIN
 
 ```
+
+Include additional  options as required
+for your configuration. For instance, if you wish remote clients to
+connect to your deployment or your deployment members are run on
+different hosts, specify the [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) setting. For more
+information, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 
 ### Step 3: Authenticate the user in the ``mongo`` shell.

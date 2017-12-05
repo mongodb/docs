@@ -35,7 +35,7 @@ be isolated to specific shards. Additionally, each shard can have specific
 hardware allocated to fit the performance requirement of the data stored on
 that shard.
 
-<img src="../images/sharding-segmenting-shards-overview.bakedsvg.svg" width="700px" alt="Overview of zones used for supporting data segmentation">
+<img src="images/sharding-segmenting-shards-overview.bakedsvg.svg" width="700px" alt="Overview of zones used for supporting data segmentation">
 
 
 ## Scenario
@@ -90,14 +90,14 @@ The application requires adding shard to a zone associated to a specific
 
 The sharded cluster deployment currently consists of four [*shards*](https://docs.mongodb.com/manual/reference/glossary/#term-shard).
 
-<img src="../images/sharding-segmenting-shards-architecture.bakedsvg.svg" width="700px" alt="Diagram of Data Segmentation Architecture using zones">
+<img src="images/sharding-segmenting-shards-architecture.bakedsvg.svg" width="700px" alt="Diagram of Data Segmentation Architecture using zones">
 
 
 ### Zones
 
 For this application, there are two client zones.
 
-<img src="../images/sharding-segmenting-shards-tags.bakedsvg.svg" width="700px" alt="Diagram of zones used for supporting data segmentation">
+<img src="images/sharding-segmenting-shards-tags.bakedsvg.svg" width="700px" alt="Diagram of zones used for supporting data segmentation">
 
 Robot client ("robot")
    This zone represents all documents where ``client : robot``.

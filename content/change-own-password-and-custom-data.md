@@ -48,7 +48,7 @@ to manage users and roles, such as a user with
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -115,7 +115,7 @@ section.
 
 ```javascript
 
-mongo --port 27017 -u user123 -p 12345678 --authenticationDatabase test
+mongo --port 27017 -u user123 -p '12345678' --authenticationDatabase 'test'
 
 ```
 

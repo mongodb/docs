@@ -18,7 +18,7 @@ MongoDB Community Edition packages are generally more up-to-date.
 
 Platform Support: MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
-These packages may work with other Ubuntu releases, however, they are not supported.
+These packages may work with other Ubuntu releases, however, they are not supported. MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
 
 Package Updates required on Ubuntu 16.04 for IBM POWER Systems: Due to a lock elision bug present in older versions of the ``glibc``
 package on Ubuntu 16.04 for POWER, you must upgrade the ``glibc``
@@ -33,12 +33,13 @@ corruption, and are unsuitable for production deployments of MongoDB
 MongoDB provides officially supported packages in their own repository. This
 repository contains the following packages:
 
+| Package Name | Description |
 | - | - | - |
 | ``mongodb-org`` | A ``metapackage`` that will automatically installthe four component packages listed below. |
 | ``mongodb-org-server`` | Contains the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) daemon and associatedconfiguration and init scripts. |
 | ``mongodb-org-mongos`` | Contains the [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) daemon. |
 | ``mongodb-org-shell`` | Contains the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell. |
-| ``mongodb-org-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles), [``mongooplog``](https://docs.mongodb.com/manual/reference/program/mongooplog/#bin.mongooplog),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
+| ``mongodb-org-tools`` | Contains the following MongoDB tools: [``mongoimport``](https://docs.mongodb.com/manual/reference/program/mongoimport/#bin.mongoimport)[``bsondump``](https://docs.mongodb.com/manual/reference/program/bsondump/#bin.bsondump), [``mongodump``](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump), [``mongoexport``](https://docs.mongodb.com/manual/reference/program/mongoexport/#bin.mongoexport),[``mongofiles``](https://docs.mongodb.com/manual/reference/program/mongofiles/#bin.mongofiles),[``mongoperf``](https://docs.mongodb.com/manual/reference/program/mongoperf/#bin.mongoperf), [``mongorestore``](https://docs.mongodb.com/manual/reference/program/mongorestore/#bin.mongorestore), [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat),and [``mongotop``](https://docs.mongodb.com/manual/reference/program/mongotop/#bin.mongotop). |
 
 The ``mongodb-org-server`` package provides an initialization script
 that starts [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``/etc/mongod.conf``
@@ -58,11 +59,13 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-ubuntu/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-ubuntu/).
 
 MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
 These packages may work with other Ubuntu releases, however, they are not supported.
+
+MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
 
 
 ### Step 1: Import the public key used by the package management system.
@@ -70,38 +73,38 @@ These packages may work with other Ubuntu releases, however, they are not suppor
 The Ubuntu package management tools (i.e. ``dpkg`` and ``apt``) ensure
 package consistency and authenticity by requiring that distributors
 sign packages with GPG keys. Issue the following command to import the
-[MongoDB public GPG Key](https://www.mongodb.org/static/pgp/server-3.4.asc):
+[MongoDB public GPG Key](https://www.mongodb.org/static/pgp/server-3.6.asc):
 
 ```sh
 
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
 
 ```
 
 
 ### Step 2: Create a list file for MongoDB.
 
-Create the ``/etc/apt/sources.list.d/mongodb-org-3.4.list`` list file using
+Create the ``/etc/apt/sources.list.d/mongodb-org-3.6.list`` list file using
 the command appropriate for your version of Ubuntu:
 
-Ubuntu 12.04
+Ubuntu 12.04 (deprecated)
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
 Ubuntu 14.04
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
 Ubuntu 16.04
    ```sh
 
-   echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+   echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
@@ -203,8 +206,8 @@ sudo service mongod restart
 ### Step 5: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

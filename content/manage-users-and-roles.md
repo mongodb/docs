@@ -68,6 +68,12 @@ Built-in roles [``userAdmin``](https://docs.mongodb.com/manual/reference/built-i
 [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) provide [``createRole``](https://docs.mongodb.com/manual/reference/privilege-actions/#createRole) and
 [``grantRole``](https://docs.mongodb.com/manual/reference/privilege-actions/#grantRole) actions on their respective [resources](https://docs.mongodb.com/manual/reference/resource-document).
 
+To create a role with ``authenticationRestrictions`` specified, you
+must have the [``setAuthenticationRestriction``](https://docs.mongodb.com/manual/reference/privilege-actions/#setAuthenticationRestriction)
+[action](https://docs.mongodb.com/manual/reference/privilege-actions/#security-user-actions) on the
+[database resource](https://docs.mongodb.com/manual/reference/resource-document/#resource-specific-db) which the role is
+created.
+
 <span id="create-role-to-manage-ops"></span>
 
 
@@ -90,7 +96,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -146,7 +152,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -177,6 +183,61 @@ db.createRole(
 
 [2] The built-in role [``clusterMonitor``](https://docs.mongodb.com/manual/reference/built-in-roles/#clusterMonitor) also provides the privilege to run [``mongostat``](https://docs.mongodb.com/manual/reference/program/mongostat/#bin.mongostat) along with other privileges.
 
+<span id="create-role-for-system-views"></span>
+
+
+### Create a Role to Drop ``system.views`` Collection across Databases
+
+The following example creates a role named
+``dropSystemViewsAnyDatabase`` that provides the privileges to drop the
+``system.views`` collection in any database.
+
+
+#### Step 1: Connect to MongoDB with the appropriate privileges.
+
+Connect to [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) with the privileges
+specified in the [Prerequisites](#define-roles-prereq) section.
+
+The following procedure uses the ``myUserAdmin`` created in
+[Enable Auth](../enable-authentication/).
+
+```javascript
+
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
+
+```
+
+The ``myUserAdmin`` has privileges to create roles in the ``admin``
+as well as other databases.
+
+
+#### Step 2: Create a new role to drop the ``system.views`` collection in any database.
+
+For the role, specify a [privilege](https://docs.mongodb.com/manual/core/authorization/#privileges) that consists
+of:
+
+* an ``actions`` array that contains the [``dropCollection``](https://docs.mongodb.com/manual/reference/privilege-actions/#dropCollection) action, and
+
+* a [resource document](https://docs.mongodb.com/manual/reference/resource-document) that specifies an empty string (``""``) for the database and the string ``"system.views"`` for the collection. See [Specify Collections Across Databases as Resource](https://docs.mongodb.com/manual/reference/resource-document/#resource-specific-collection) for more information.
+
+```javascript
+
+use admin
+db.createRole(
+   {
+     role: "dropSystemViewsAnyDatabase",
+     privileges: [
+       {
+         actions: [ "dropCollection" ],
+         resource: { db: "", collection: "system.views" }
+       }
+     ],
+     roles: []
+   }
+)
+
+```
+
 
 ## Modify Access for an Existing User
 
@@ -205,7 +266,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -321,7 +382,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -368,7 +429,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 
@@ -426,7 +487,7 @@ The following procedure uses the ``myUserAdmin`` created in
 
 ```javascript
 
-mongo --port 27017 -u myUserAdmin -p abc123 --authenticationDatabase admin
+mongo --port 27017 -u myUserAdmin -p 'abc123' --authenticationDatabase 'admin'
 
 ```
 

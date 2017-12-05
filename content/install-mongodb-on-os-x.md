@@ -7,24 +7,26 @@ tags = [
 "beginner" ]
 +++
 
-# Install MongoDB Community Edition on OS X
+# Install MongoDB Community Edition on macOS
 
 
 ## Overview
 
-Use this tutorial to install MongoDB Community Edition on OS X systems.
+Use this tutorial to install MongoDB Community Edition on macOS systems.
 
-Platform Support: Starting in version 3.0, MongoDB only supports OS X versions 10.7 (Lion)
+Platform Support: Starting in version 3.0, MongoDB only supports macOS versions 10.7 (Lion)
 and later on Intel x86-64.
 
 You may download MongoDB Community Edition through either the [MongoDB
-Download site](https://www.mongodb.com/download-center) or the
-popular OS X package manager [Homebrew](http://brew.sh/).
+Download Center](https://www.mongodb.com/download-center) or the
+popular macOS package manager [Homebrew](http://brew.sh/).
+
+Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 
 ## Install MongoDB Community Edition
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-on-os-x/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-os-x/).
 
 
 ### Install MongoDB Community Edition Manually
@@ -32,14 +34,14 @@ Note: To install a version of MongoDB prior to 3.2, please refer to that version
 
 #### Step 1: Download the binary files for the desired release of MongoDB.
 
-Download the binaries from ``https://www.mongodb.com/download-center``.
+Download the binaries from the [MongoDB Download Center](https://www.mongodb.com/download-center).
 
 For example, to download the latest release through the shell, issue
 the following:
 
 ```sh
 
-curl -O https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.4.2.tgz
+curl -O https://fastdl.mongodb.org/osx-ssl/mongodb-osx-ssl-x86_64-3.6.0-rc7.tgz
 
 ```
 
@@ -50,7 +52,7 @@ For example, from a system shell, you can extract through the ``tar`` command:
 
 ```sh
 
-tar -zxvf mongodb-osx-x86_64-3.4.2.tgz
+tar -zxvf mongodb-osx-ssl-x86_64-3.6.0-rc7.tgz
 
 ```
 
@@ -62,7 +64,7 @@ Copy the extracted folder to the location from which MongoDB will run.
 ```sh
 
 mkdir -p mongodb
-cp -R -n mongodb-osx-x86_64-3.4.2/ mongodb
+cp -R -n mongodb-osx-ssl-x86_64-3.6.0-rc7/ mongodb
 
 ```
 
@@ -117,18 +119,6 @@ one of the following operations:
 
 To install the MongoDB binaries, issue the following command in a
 system shell:
-
-```sh
-
-brew install mongodb
-
-```
-
-
-##### Install the MongoDB Binaries with TLS/SSL Support
-
-To install the MongoDB binaries that have TLS/SSL support,
-issue the following from a system shell:
 
 ```sh
 
@@ -225,8 +215,8 @@ mongod --dbpath <path to data directory>
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

@@ -40,12 +40,12 @@ from the [key server](https://www.mongodb.org/static/pgp/) in both textual
 Download the binaries from ``https://www.mongodb.org/downloads``
 based on your environment.
 
-For example, to download the ``3.4.0`` release for OS X through the
+For example, to download the ``3.4.9`` release for macOS through the
 shell, run this command:
 
 ```sh
 
-curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.4.0.tgz
+curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.9.tgz
 
 ```
 
@@ -54,7 +54,7 @@ curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.4.0.tgz
 
 ```sh
 
-curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.4.0.tgz.sig
+curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.9.tgz.sig
 
 ```
 
@@ -75,9 +75,9 @@ PGP should return this response:
 
 ```sh
 
-gpg: key A15703C6: public key "MongoDB 3.4 Release Signing Key <packaging@mongodb.com>" imported
+gpg: key BC711F9BA15703C6: public key "MongoDB 3.4 Release Signing Key <packaging@mongodb.com>" imported
 gpg: Total number processed: 1
-gpg:               imported: 1  (RSA: 1)
+gpg:               imported: 1
 
 ```
 
@@ -88,7 +88,7 @@ Run this command:
 
 ```sh
 
-gpg --verify mongodb-osx-x86_64-3.4.0.tgz.sig mongodb-osx-x86_64-3.4.0.tgz
+gpg --verify mongodb-osx-ssl-x86_64-3.4.9.tgz.sig mongodb-osx-ssl-x86_64-3.4.9.tgz
 
 ```
 
@@ -96,8 +96,9 @@ GPG should return this response:
 
 ```sh
 
-gpg: Signature made Fri 12 Aug 2016 03:44:49 PM EDT using RSA key ID A15703C6
-gpg: Good signature from "MongoDB 3.4 Release Signing Key <packaging@mongodb.com>"
+gpg: Signature made Mon Sep 11 12:03:48 2017 EDT
+gpg:                using RSA key BC711F9BA15703C6
+gpg: Good signature from "MongoDB 3.4 Release Signing Key <packaging@mongodb.com>" [unknown]
 
 ```
 
@@ -106,7 +107,7 @@ public key:
 
 ```sh
 
-gpg: Signature made Mon 27 Jul 2015 07:51:53 PM EDT using RSA key ID A15703C6
+gpg: Signature made Mon Sep 11 12:03:48 2017 EDT using RSA key BC711F9BA15703C6
 gpg: Can't check signature: public key not found
 
 ```
@@ -132,12 +133,12 @@ Primary key fingerprint: 0C49 F373 0359 A145 1858  5931 BC71 1F9B A157 03C6
 Download the binaries from ``https://www.mongodb.org/downloads``
 based on your environment.
 
-For example, to download the ``3.0.5`` release for OS X through the
+For example, to download the ``3.4.9`` release for macOS through the
 shell, type this command:
 
 ```sh
 
-curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.0.5.tgz
+curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.9.tgz
 
 ```
 
@@ -146,7 +147,7 @@ curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.0.5.tgz
 
 ```sh
 
-curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.0.5.tgz.sha256
+curl -LO https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.4.9.tgz.sha256
 
 ```
 
@@ -157,7 +158,7 @@ Compute the checksum of the package file:
 
 ```sh
 
-shasum -c mongodb-osx-x86_64-3.0.5.tgz.sha256
+shasum -c mongodb-osx-ssl-x86_64-3.4.9.tgz.sha256
 
 ```
 
@@ -166,6 +167,6 @@ package:
 
 ```sh
 
-mongodb-osx-x86_64-3.0.5.tgz: OK
+mongodb-osx-ssl-x86_64-3.4.9.tgz: OK
 
 ```

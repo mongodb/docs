@@ -10,7 +10,7 @@ tags = [
 
 # Replace a Config Server
 
-Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](https://docs.mongodb.com/manual/tutorial/upgrade-config-servers-to-replica-set).The following procedure applies to 3.4 config servers.For replacing config servers for other MongoDB versions, refer to the appropriate version of the MongoDB Manual. For example, if you are running a v3.2 sharded cluster with SCCC, see the following tutorials in the v3.2 manual: [/tutorial/migrate-config-servers-with-same-hostname](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-same-hostname) and [/tutorial/migrate-config-servers-with-different-hostnames](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-different-hostnames)
+Important: In version 3.4, MongoDB removes support for SCCC config servers. To upgrade your config servers from SCCC to CSRS, see [Upgrade Config Servers to Replica Set](https://docs.mongodb.com/manual/tutorial/upgrade-config-servers-to-replica-set). The following procedure applies to 3.6 config servers. For replacing config servers for other MongoDB versions, refer to the appropriate version of the MongoDB Manual. For example, if you are running a v3.2 sharded cluster with SCCC, see the following tutorials in the v3.2 manual: [/tutorial/migrate-config-servers-with-same-hostname](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-same-hostname) and [/tutorial/migrate-config-servers-with-different-hostnames](https://docs.mongodb.com/v3.2/tutorial/migrate-config-servers-with-different-hostnames)
 
 
 ## Overview
@@ -26,7 +26,7 @@ replace it as soon as possible. The following procedure replaces a member
 of a [config server replica set](https://docs.mongodb.com/manual/core/sharded-cluster-config-servers/#sharding-config-server) with a new
 member.
 
-The tutorial is specific to MongoDB 3.4. For earlier versions of
+The tutorial is specific to MongoDB 3.6. For earlier versions of
 MongoDB, refer to the corresponding version of the MongoDB Manual.
 
 
@@ -47,12 +47,15 @@ for config servers:
 
 ### Step 1: Start the replacement config server.
 
-Start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance, specifying both the ``--configsvr``
-and ``--replSet`` options.
+Start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance, specifying the ``--configsvr``,
+``--replSet``, ``--bind_ip`` options, and other options as
+appropriate to your deployment.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongod --configsvr --replSet <replicaSetName>
+mongod --configsvr --replSet <replicaSetName> --bind_ip localhost,<ip address of the mongod host>
 
 ```
 

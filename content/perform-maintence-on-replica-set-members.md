@@ -19,7 +19,7 @@ remain available during the majority of a maintenance window.
 This document outlines the basic procedure for performing maintenance on
 each of the members of a replica set. Furthermore, this particular
 sequence strives to minimize the amount of time that the
-[*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) is unavailable and controlling the impact on the
+[*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) is unavailable and control the impact on the
 entire deployment.
 
 Use these steps as the basis for common replica set operations,
@@ -57,9 +57,11 @@ At the operating system shell prompt, restart [``mongod``](https://docs.mongodb.
 as a standalone instance running on a different port and *without*
 the ``--replSet`` parameter:
 
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
 ```sh
 
-mongod --port 37017 --dbpath /srv/mongodb
+mongod --port 37017 --dbpath /srv/mongodb --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
@@ -90,6 +92,7 @@ server after completing the maintenance:
 
 ```javascript
 
+use admin
 db.shutdownServer()
 
 ```
@@ -97,6 +100,9 @@ db.shutdownServer()
 Restart the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance as a member of
 the replica set using its normal command-line arguments or
 configuration file.
+
+When it has started, connect the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the
+restarted instance.
 
 The secondary takes time to [catch up to the primary](https://docs.mongodb.com/manual/core/replica-set-sync). From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, use the
 following command to verify that the member has caught up from the

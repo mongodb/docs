@@ -49,10 +49,14 @@ mongod --dbpath /data/db --replSet <replName>
 
 ```
 
+Note: *New in version 3.6:* All MongoDB collections have UUIDs (Universally unique identifiers) by default. When MongoDB restores collections, the restored collections retain their original UUIDs. When restoring a collection where no UUID was present, MongoDB generates a UUID for the restored collection. For more information on collection UUIDs, see [Collections](https://docs.mongodb.com/v3.6/core/databases-and-collections/#collections).
+
 
 ### Step 3: Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the ``mongod`` instance.
 
-For example, to connect to a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) running on localhost on
+From the same machine where one of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) is running
+(in this tutorial, ``mongodb0.example.net``), start the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo)
+shell. To connect to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) listening to localhost on
 the default port of ``27017``, simply issue:
 
 ```sh
@@ -60,6 +64,9 @@ the default port of ``27017``, simply issue:
 mongo
 
 ```
+
+Depending on your path, you may need to specify the path to the
+[``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) binary.
 
 
 ### Step 4: Initiate the new replica set.

@@ -32,7 +32,7 @@ Level Agreement (SLA) or Service Level Objective (SLO):
 The following diagram illustrates a sharded cluster that uses hardware based
 zones to satisfy data access SLAs or SLOs.
 
-<img src="../images/sharding-tiered-slas-overview.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
+<img src="images/sharding-tiered-slas-overview.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 
 ## Scenario
@@ -82,7 +82,7 @@ on the creation date.
 
 The sharded cluster deployment currently consists of three [*shards*](https://docs.mongodb.com/manual/reference/glossary/#term-shard).
 
-<img src="../images/sharding-tiered-slas-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
+<img src="images/sharding-tiered-slas-architecture.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 
 ### Zones
@@ -91,7 +91,7 @@ The application requires adding each shard to a zone based on its
 hardware tier. Each hardware tier represents a specific hardware configuration
 designed to satisfy a given SLA or SLO.
 
-<img src="../images/sharding-tiered-slas-tags.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
+<img src="images/sharding-tiered-slas-tags.bakedsvg.svg" width="700px" alt="Diagram of sharded cluster architecture for tiered SLA">
 
 Fast Tier ("recent")
    These are the fastest performing machines, with large
@@ -122,7 +122,7 @@ scale horizontally.
 When defining zone ranges based on time spans, weigh the benefits of
 infrequent updates to the zone ranges against the amount of data that
 must be migrated on an update. For example, setting a limit of 1 year for
-data to be considered 'recent' likely covers more data than setting a limit
+data to be considered ‘recent' likely covers more data than setting a limit
 of 1 month. While there are more migrations required when rotating on a
 1 month scale, the amount of documents that must be migrated is lower than
 rotating on a 1 year scale.

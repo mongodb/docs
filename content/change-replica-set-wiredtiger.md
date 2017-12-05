@@ -76,12 +76,15 @@ a different storage engine.
 
 Start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying ``wiredTiger`` as the
 [``--storageEngine``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-storageengine) and the prepared data directory for
-WiredTiger as the [``--dbpath``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-dbpath). Specify additional options as
-appropriate for this replica set member.
+WiredTiger as the [``--dbpath``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-dbpath). Specify additional options,
+such as [``--bind_ip``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-bind-ip), as appropriate for this replica set
+member.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```sh
 
-mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName>
+mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<ipaddresses>
 
 ```
 

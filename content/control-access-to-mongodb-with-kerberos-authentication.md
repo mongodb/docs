@@ -61,6 +61,10 @@ If a Kerberos user is already in MongoDB and has the
 [privileges required to create a user](https://docs.mongodb.com/manual/reference/command/createUser/#createuser-required-access), you can start
 [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with Kerberos support.
 
+Include additional settings as appropriate to your deployment.
+
+Note: Starting in MongoDB 3.6, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) bind to localhost by default. If the members of your deployment are run on different hosts or if you wish remote clients to connect to your deployment, you must specify ``--bind_ip`` or [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp). For more information, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 
 ### Step 2: Connect to ``mongod``.
 
@@ -115,10 +119,16 @@ following form:
 
 env KRB5_KTNAME=<path to keytab file> \
 mongod \
---setParameter authenticationMechanisms=GSSAPI
+--setParameter authenticationMechanisms=GSSAPI \
 <additional mongod options>
 
 ```
+
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 For example, the following starts a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
 instance with Kerberos support:
@@ -128,14 +138,13 @@ instance with Kerberos support:
 env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
 /opt/mongodb/bin/mongod --auth \
 --setParameter authenticationMechanisms=GSSAPI \
---dbpath /opt/mongodb/data
+--dbpath /opt/mongodb/data --bind_ip localhost,<ip address>
 
 ```
 
-The path to your [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) as well as your [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) may differ. Modify or include additional
-[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options as required for your configuration. The
-[keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) must be only accessible to the
-owner of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) process.
+The path to your [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) as well as your [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files) may differ. The [keytab file](https://docs.mongodb.com/manual/core/kerberos/#keytab-files)
+must be only accessible to the owner of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod)
+process.
 
 With the official ``.deb`` or ``.rpm`` packages, you can set the
 ``KRB5_KTNAME`` in a environment settings file. See
@@ -221,6 +230,12 @@ mongos \
 
 ```
 
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 For example, the following starts a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance with
 Kerberos support:
 
@@ -230,7 +245,8 @@ env KRB5_KTNAME=/opt/mongodb/mongos.keytab \
 mongos \
 --setParameter authenticationMechanisms=GSSAPI \
 --configdb shard0.example.net, shard1.example.net,shard2.example.net \
---keyFile /opt/mongodb/mongos.keyfile
+--keyFile /opt/mongodb/mongos.keyfile \
+--bind_ip localhost,<ip address>
 
 ```
 
@@ -247,7 +263,7 @@ members, you can use [x.509 member authentication](https://docs.mongodb.com/manu
 
 To configure [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) or [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) for Kerberos
 support using a [configuration file](https://docs.mongodb.com/manual/reference/configuration-options), specify the
-[``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) setting in the configuration file:
+[``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms) setting in the configuration file.
 
 If using the [YAML configuration file format](https://docs.mongodb.com/manual/reference/configuration-options):
 
@@ -258,18 +274,14 @@ setParameter:
 
 ```
 
-Or, if using the older ``.ini`` configuration file format:
+Include additional  options as required
+for your configuration. For instance, if you wish remote clients to
+connect to your deployment or your deployment members are run on
+different hosts, specify the [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) setting. For more
+information, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
-```sh
-
-setParameter=authenticationMechanisms=GSSAPI
-
-```
-
-Modify or include any additional [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) options as required
-for your configuration. For example, if
-``/opt/mongodb/mongod.conf`` contains the following configuration
-settings for a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod):
+For example, if ``/opt/mongodb/mongod.conf`` contains the following
+configuration settings for a standalone [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod):
 
 ```yaml
 
@@ -279,16 +291,8 @@ setParameter:
    authenticationMechanisms: GSSAPI
 storage:
    dbPath: /opt/mongodb/data
-
-```
-
-Or, if using the [older configuration file format](https://docs.mongodb.com/v2.4/reference/configuration-options):
-
-```ini
-
-auth = true
-setParameter=authenticationMechanisms=GSSAPI
-dbpath=/opt/mongodb/data
+net:
+   bindIp: localhost,<ip address>
 
 ```
 
@@ -342,4 +346,4 @@ not affect MongoDB's internal authentication of cluster members.
 
 * [MongoDB LDAP and Kerberos Authentication with Dell (Quest) Authentication Services](https://www.mongodb.com/blog/post/mongodb-ldap-and-kerberos-authentication-dell-quest-authentication-services?jmp=docs)
 
-* [MongoDB with Red Hat Enterprise Linux Identity Management and Kerberos](http://docs.mongodb.org/ecosystem/tutorial/manage-red-hat-enterprise-linux-identity-management?jmp=docs)
+* [MongoDB with Red Hat Enterprise Linux Identity Management and Kerberos](https://docs.mongodb.com/ecosystem/tutorial/manage-red-hat-enterprise-linux-identity-management?jmp=docs)

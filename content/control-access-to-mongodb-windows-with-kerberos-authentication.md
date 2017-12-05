@@ -43,6 +43,10 @@ If a Kerberos user is already in MongoDB and has the
 [privileges required to create a user](https://docs.mongodb.com/manual/reference/command/createUser/#createuser-required-access), you can start
 [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) with Kerberos support.
 
+Include additional settings as appropriate to your deployment.
+
+Note: Starting in MongoDB 3.6, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) bind to localhost by default. If the members of your deployment are run on different hosts or if you wish remote clients to connect to your deployment, you must specify ``--bind_ip`` or [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp). For more information, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 
 ### Step 2: Connect to ``mongod``.
 
@@ -99,17 +103,20 @@ mongod.exe --setParameter authenticationMechanisms=GSSAPI <additional mongod.exe
 
 ```
 
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 For example, the following starts a standalone [``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe)
 instance with Kerberos support:
 
 ```sh
 
-mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI
+mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI --bind_ip localhost,<ip address>
 
 ```
-
-Modify or include additional
-[``mongod.exe``](https://docs.mongodb.com/manual/reference/program/mongod.exe/#bin.mongod.exe) options as required for your configuration.
 
 
 ### Step 5: Connect ``mongo.exe`` shell to ``mongod.exe`` and authenticate.
@@ -118,6 +125,16 @@ Connect the ``mongo.exe`` shell client as the Kerberos
 principal ``application@EXAMPLE.NET``.
 
 You can connect and authenticate from the command line.
+
+Using ``cmd.exe``:
+
+```sh
+
+mongo.exe --host hostname.example.net --authenticationMechanism=GSSAPI --authenticationDatabase=$external --username reportingapp@EXAMPLE.NET
+
+```
+
+Using ``Windows PowerShell``:
 
 ```sh
 
@@ -155,7 +172,7 @@ db.auth( { mechanism: "GSSAPI", user: "reportingapp@EXAMPLE.NET" } )
 To start [``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe) with Kerberos support, set the
 [``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe) parameter [``authenticationMechanisms``](https://docs.mongodb.com/manual/reference/parameters/#param.authenticationMechanisms)
 to ``GSSAPI``. You must start [``mongos.exe``](https://docs.mongodb.com/manual/reference/program/mongos.exe/#bin.mongos.exe) as the
-[service principal account](#assign-service-principal-name).:
+[service principal account](#assign-service-principal-name):
 
 ```sh
 
@@ -163,12 +180,18 @@ mongos.exe --setParameter authenticationMechanisms=GSSAPI <additional mongos opt
 
 ```
 
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 For example, the following starts a [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos) instance with
 Kerberos support:
 
 ```sh
 
-mongos.exe --setParameter authenticationMechanisms=GSSAPI --configdb shard0.example.net, shard1.example.net,shard2.example.net --keyFile C:\<path>\mongos.keyfile
+mongos.exe --setParameter authenticationMechanisms=GSSAPI --configdb shard0.example.net, shard1.example.net,shard2.example.net --keyFile C:\<path>\mongos.keyfile --bind_ip localhost,<ip address>
 
 ```
 

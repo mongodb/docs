@@ -83,8 +83,7 @@ from the ``admin`` database in a [``mongo``](https://docs.mongodb.com/manual/ref
 
 ```sh
 
-use admin
-db.runCommand( { logRotate : 1 } )
+db.adminCommand( { logRotate : 1 } )
 
 ```
 
@@ -150,8 +149,7 @@ from the ``admin`` database in a [``mongo``](https://docs.mongodb.com/manual/ref
 
 ```sh
 
-use admin
-db.runCommand( { logRotate : 1 } )
+db.adminCommand( { logRotate : 1 } )
 
 ```
 

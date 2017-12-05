@@ -17,10 +17,12 @@ Installing the tarballs on a platform not listed on
 [Supported Platforms](https://docs.mongodb.com/manual/administration/production-notes/#prod-notes-supported-platforms) may result in unpredictable
 behavior.
 
+Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
+
 
 ## Install MongoDB
 
-Note: To install a version of MongoDB prior to 3.2, please refer to that version's documentation. For example, see version [3.0](../install-mongodb-enterprise-on-linux/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-linux/).
 
 
 ### Step 1: Install any missing dependencies.
@@ -32,35 +34,35 @@ Red Hat Enterprise Linux/CentOS
    Version 6
       ```sh
 
-      yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs net-snmp openssl libcurl
+      yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs libcurl libpcap net-snmp openldap openssl
 
       ```
 
    Version 7
       ```sh
 
-      yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs lm_sensors-libs net-snmp-agent-libs net-snmp openssl rpm-libs tcp_wrappers-libs libcurl
+      yum install cyrus-sasl cyrus-sasl-gssapi cyrus-sasl-plain krb5-libs libcurl libpcap lm_sensors-libs net-snmp net-snmp-agent-libs openldap openssl rpm-libs tcp_wrappers-libs
 
       ```
 
 Ubuntu & Debian
    ```sh
 
-   sudo apt-get install libcurl3 libgssapi-krb5-2 libldap-2.4-2 libpcap0.8 libpci3 libsasl2-2 libsensors4 libsnmp30 libssl1.0.0 libwrap0
+   sudo apt-get install libcurl3 libgssapi-krb5-2 libkrb5-dbg libldap-2.4-2 libpcap0.8 libpci3 libsasl2-2 libsensors4 libsnmp30 libssl1.0.0 libwrap0
 
    ```
 
 SUSE
    ```sh
 
-   zypper install krb5 libcurl4 libldap-2_4-2 libopenssl1_0_0 cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5 libsensors4 libsnmp30 libwrap0
+   zypper install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5 libcurl4 libldap-2_4-2 libopenssl1_0_0 libsensors4 libsnmp30 libpcap1 libwrap0 rpm
 
    ```
 
 Amazon Linux
    ```sh
 
-   yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs lm_sensors-libs net-snmp-agent-libs net-snmp openssl rpm-libs tcp_wrappers-libs libcurl
+   yum install cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi krb5-libs libcurl libpcap net-snmp openldap openssl
 
    ```
 
@@ -68,8 +70,8 @@ Amazon Linux
 ### Step 2: Download and extract the MongoDB Enterprise packages.
 
 After you have installed the required prerequisite packages, download
-and extract the MongoDB Enterprise tarball for your system from
-[https://www.mongodb.com/download-center#enterprise](https://www.mongodb.com/download-center#enterprise).
+and extract the MongoDB Enterprise tarball for your system from the
+[MongoDB Download Center](https://www.mongodb.com/download-center#enterprise).
 
 
 ### Step 3: Ensure that the MongoDB binaries are in your ``PATH``.
@@ -164,8 +166,8 @@ mongod --dbpath <path to data directory>
 ### Step 4: Begin using MongoDB.
 
 To help you start using MongoDB, MongoDB provides [Getting
-Started Guides](https://docs.mongodb.com/manual/#getting-started) in various driver editions. See
-[Getting Started](https://docs.mongodb.com/manual/#getting-started) for the available editions.
+Started Guides](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) in various driver editions. See
+[Getting Started](https://docs.mongodb.com/manual/tutorial/getting-started/#getting-started) for the available editions.
 
 Before deploying MongoDB in a production environment, consider the
 [Production Notes](https://docs.mongodb.com/manual/administration/production-notes) document.

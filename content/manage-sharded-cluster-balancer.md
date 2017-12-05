@@ -154,7 +154,7 @@ MongoDB evaluates the start and stop times relative to the time
 zone of the member which is serving as a primary in the config
 server replica set.
 
-Note: The balancer window must be sufficient to *complete* the migration of all data inserted during the day.As data insert rates can change based on activity and usage patterns, it is important to ensure that the balancing window you select will be sufficient to support the needs of your deployment.Do not use the [``sh.startBalancer()``](https://docs.mongodb.com/manual/reference/method/sh.startBalancer/#sh.startBalancer) method when you have set an ``activeWindow``.
+Note: The balancer window must be sufficient to *complete* the migration of all data inserted during the day. As data insert rates can change based on activity and usage patterns, it is important to ensure that the balancing window you select will be sufficient to support the needs of your deployment. Do not use the [``sh.startBalancer()``](https://docs.mongodb.com/manual/reference/method/sh.startBalancer/#sh.startBalancer) method when you have set an ``activeWindow``.
 
 <span id="sharding-balancing-remove-window"></span>
 

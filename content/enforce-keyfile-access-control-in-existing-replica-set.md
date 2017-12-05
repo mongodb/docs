@@ -14,7 +14,8 @@ tags = [
 
 ## Overview
 
-Enforcing access control on a [*replica set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set) requires configuring:
+Enforcing access control on an existing [*replica set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set) requires
+configuring:
 
 * Security between members of the replica set using [Internal Authentication](https://docs.mongodb.com/manual/core/security-internal-authentication), and
 
@@ -26,18 +27,30 @@ authentication mechanism and settings.
 Enforcing internal authentication also enforces user access control. To
 connect to the replica set, clients like the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell need to
 use a [user account](https://docs.mongodb.com/manual/core/authorization). See
-[Access Control](#security-replset-auth-access-control).
+[Users](#security-replset-auth-access-control).
 
 
 ### Cloud Manager and Ops Manager
 
-If Cloud Manager or Ops Manager is managing your deployment,
-see: ``Configure Access Control for MongoDB Deployments``
-in the [Cloud Manager manual](https://docs.cloudmanager.mongodb.com/tutorial/edit-host-authentication-credentials)
-or in the [Ops Manager manual](https://docs.opsmanager.mongodb.com/current/tutorial/edit-host-authentication-credentials) for enforcing access control.
+If Cloud Manager or Ops Manager is managing your deployment, see the
+[Cloud Manager manual](https://docs.cloudmanager.mongodb.com/tutorial/edit-host-authentication-credentials) or the [Ops
+Manager manual](https://docs.opsmanager.mongodb.com/current/tutorial/edit-host-authentication-credentials) for
+enforcing access control.
 
 
 ## Considerations
+
+
+### IP Binding
+
+Changed in version 3.6.
+
+Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and
+[``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default.
+Previously, starting in MongoDB 2.6, only the binaries from the
+official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives)
+and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by
+default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 
 ### Operating System
@@ -55,7 +68,7 @@ development environments. For production environments we recommend using
 <span id="security-replset-auth-access-control"></span>
 
 
-### Access Control
+### Users
 
 This tutorial covers creating the minimum number of administrative
 users on the ``admin`` database *only*. For the user authentication,
@@ -89,20 +102,21 @@ instead.
 
 ### Step 1: Create a keyfile.
 
-The contents of the [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) serves as
-the shared password for the members of the replica set. The
-content of the keyfile must be the same for all members of the
-replica set.
+With [keyfile](https://docs.mongodb.com/manual/core/security-internal-authentication/#internal-auth-keyfile) authentication, each
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances in the replica set uses the contents of the keyfile as the
+shared password for authenticating other members in the deployment. Only
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances with the correct keyfile can join the replica set.
 
-You can generate a keyfile using any method you choose. The contents
-of the keyfile must be between 6 and 1024 characters long.
+The content of the keyfile must be between 6 and 1024 characters
+long and must be the same for all members of the replica set.
 
 Note: On UNIX systems, the keyfile must not have group or world permissions. On Windows systems, keyfile permissions are not checked.
 
-The following operation uses ``openssl`` to generate a complex
+You can generate a keyfile using any method you choose. For example,
+the following operation uses ``openssl`` to generate a complex
 pseudo-random 1024 character string to use for a keyfile. It then
-uses ``chmod`` to change file permissions to provide read permissions
-for the file owner only:
+uses ``chmod`` to change file permissions to provide read
+permissions for the file owner only:
 
 ```sh
 
@@ -117,12 +131,13 @@ for using keyfiles.
 
 ### Step 2: Copy the keyfile to each replica set member.
 
-Copy the keyfile to each server hosting the replica set members. Use a
-consistent location for each server.
+Copy the keyfile to each server hosting the replica set members.
+Ensure that the user running the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances is the owner of the
+file and can access the keyfile.
 
-Important: Do not use shared network locations or storage mediums such as USB drives for storing the keyfile.
-
-Ensure that the user running the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances can access the keyfile.
+Avoid storing the keyfile on storage mediums that can be easily
+disconnected from the hardware hosting the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances, such as a
+USB drive or a network attached storage device.
 
 
 ### Step 3: Shut down all members of the replica set.
@@ -149,22 +164,28 @@ At the end of this step, *all* members of the replica set should be offline.
 
 ### Step 4: Restart each member of the replica set with access control enforced.
 
-Running a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the ``keyFile`` parameter enforces both
+Restart *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the replica set with either the
+[``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile) configuration file setting or the
+``--keyFile`` command-line option. Running [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with
+the ``--keyFile`` command-line option or the
+[``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile) configuration file setting enforces both
 [Internal Authentication](https://docs.mongodb.com/manual/core/security-internal-authentication) and
 [Role-Based Access Control](https://docs.mongodb.com/manual/core/authorization).
 
-Start *each* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) in the replica set using either
-a configuration file or the command line.
 
-Use the original replica set name for ``replSetName`` when starting each
-member. You cannot change the name of a replica set, and attempting to do
-so results in errors.
+#### Configuration File
 
-**Configuration File**
+If using a configuration file, set
 
-If using a configuration file, set the [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile) option
-to the keyfile's path, and the [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) option
-to the replica set name:
+* [``security.keyFile``](https://docs.mongodb.com/manual/reference/configuration-options/#security.keyFile) to the keyfile's path, and
+
+* [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) to the replica set name.
+
+Include additional  options as required
+for your configuration. For instance, if you wish remote clients to
+connect to your deployment or your deployment members are run on
+different hosts, specify the [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) setting. For more
+information, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 ```yaml
 
@@ -172,6 +193,8 @@ security:
   keyFile: <path-to-keyfile>
 replication:
   replSetName: <replicaSetName>
+net:
+   bindIp: localhost,<ip address>
 
 ```
 
@@ -186,47 +209,50 @@ mongod --config <path-to-config-file>
 For more information on the configuration file, see
 [configuration options](https://docs.mongodb.com/manual/reference/configuration-options).
 
-**Command Line**
 
-If using the command line option, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the
-``--keyFile`` and ``--replSet`` parameters:
+#### Command Line
+
+If using the command line options, start the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with the following options:
+
+* ``--keyFile`` set to  the keyfile's path, and
+
+* ``--replSet`` set to the replica set name.
+
+Include additional options as required for your configuration. For
+instance, if you wish remote clients to connect to your deployment
+or your deployment members are run on different hosts, specify the
+``--bind_ip``. For more information, see
+[Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
 
 ```sh
 
-mongod --keyFile <path-to-keyfile> --replSet <replicaSetName>
+mongod --keyFile <path-to-keyfile> --replSet <replicaSetName> --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
-For more information on startup parameters,
-see the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
-
-Include additional settings as appropriate to your deployment.
+For more information on command-line options, see the
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) reference page.
 
 
-### Step 5
+### Step 5: Connect to the primary using the localhost interface.
 
-Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the config server
+Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the
 [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances over the [localhost
 interface](https://docs.mongodb.com/manual/core/security-users/#localhost-exception). You must run the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo)
 shell on the same physical machine as the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance.
 
 Use [``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status) to identify the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) replica set
-member. If you are connected to the primary, continue to the next step. If
-not, identify the primary [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and connect to it using a
-[``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell over the [localhost
+member. If you are connected to the primary, continue to the next
+step. If not, connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to the primary
+over the [localhost
 interface](https://docs.mongodb.com/manual/core/security-users/#localhost-exception).
-
-You must connect using the [localhost interface](https://docs.mongodb.com/manual/core/security-users/#localhost-exception)
-because no users have been created for the deployment. After creating
-the first user, you must authenticate using that user to proceed regardless
-of how you are connected to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod).
 
 Important: You must connect to the [*primary*](https://docs.mongodb.com/manual/reference/glossary/#term-primary) before proceeding.
 
 
 ### Step 6: Create the user administrator.
 
-Important: After you create the first user, the [localhost exception](https://docs.mongodb.com/manual/core/security-users/#localhost-exception) is no longer available.The first user must have privileges to create other users, such as a user with the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase). This ensures that you can create additional users after the [Localhost Exception](https://docs.mongodb.com/manual/core/security-users/#localhost-exception) closes.If at least one user does *not* have privileges to create users, once the localhost exception closes you may be unable to create or modify users with new privileges, and therefore unable to access necessary operations.
+Important: After you create the first user, the [localhost exception](https://docs.mongodb.com/manual/core/security-users/#localhost-exception) is no longer available. The first user must have privileges to create other users, such as a user with the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase). This ensures that you can create additional users after the [Localhost Exception](https://docs.mongodb.com/manual/core/security-users/#localhost-exception) closes. If at least one user does *not* have privileges to create users, once the localhost exception closes you may be unable to create or modify users with new privileges, and therefore unable to access necessary operations.
 
 Add a user using the [``db.createUser()``](https://docs.mongodb.com/manual/reference/method/db.createUser/#db.createUser) method. The user should
 have at minimum the [``userAdminAnyDatabase``](https://docs.mongodb.com/manual/reference/built-in-roles/#userAdminAnyDatabase) role on the

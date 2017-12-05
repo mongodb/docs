@@ -16,7 +16,7 @@ tags = [
 
 This tutorial converts a single three-member replica set to a sharded
 cluster with two shards. Each shard is an independent three-member
-replica set. This tutorial is specific to MongoDB 3.4. For other
+replica set. This tutorial is specific to MongoDB 3.6. For other
 versions of MongoDB, refer to the corresponding version of the MongoDB
 Manual.
 
@@ -63,62 +63,117 @@ The replica set members are on the following hosts:
 
 #### Step 1: Start each member of the replica set with the appropriate options.
 
-For each member, start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying the replica set
-name through the ``replSet`` option. Include any other parameters
-specific to your deployment. For replication-specific parameters, see
-[Replication Options](https://docs.mongodb.com/manual/reference/program/mongod/#cli-mongod-replica-set).
+For each member, start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance with the
+following settings:
 
-```javascript
+* Set [``replication.replSetName``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) option to the replica set name,
 
-mongod --replSet "rs0"
+  If your application connects to more than one replica set, each set
+  should have a distinct name. Some drivers group replica set
+  connections by replica set name.
+
+* Set [``net.bindIp``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) option to the ip or a comma-delimited list of ips, and
+
+* Set any other settings as appropriate for your deployment.
+
+In this tutorial, the three [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instances are
+associated with the following hosts:
+
+| Replica Set Member | Hostname |
+| - | - | - |
+| Member 0 | ``mongodb0.example.net`` |
+| Member 1 | ``mongodb1.example.net`` |
+| Member 2 | ``mongodb2.example.net`` |
+
+The following example specifies the replica set name and the ip
+binding through the [``--replSet``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-replset) and [``--bind_ip``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-bind-ip)
+command-line options:
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
+```sh
+
+mongod --replSet "rs0" --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
-Repeat this step for the other two members of the ``rs0`` replica set.
+For ``<ip address>``, specify the ip address or hostname for your
+[``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance that remote clients (including the other
+members of the replica set) can use to connect to the instance.
 
+Alternatively, you can also specify the [``replica set name``](https://docs.mongodb.com/manual/reference/configuration-options/#replication.replSetName) and the [``ip addresses``](https://docs.mongodb.com/manual/reference/configuration-options/#net.bindIp) in a [configuration file](https://docs.mongodb.com/manual/reference/configuration-options):
 
-#### Step 2: Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to a replica set member.
+```yaml
 
-Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to *one* member of the replica set
-(e.g. ``mongodb0.example.net``)
-
-```javascript
-
-mongo mongodb0.example.net
+replication:
+   replSetName: "rs0"
+net:
+   bindIp: localhost,<ip address>
 
 ```
+
+To start [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) with a configuration file, specify the
+configuration file's path with the ``--config`` option:
+
+```sh
+
+mongod --config <path-to-config>
+
+```
+
+In production deployments, you can configure a [*init script*](https://docs.mongodb.com/manual/reference/glossary/#term-init-script)
+to manage this process. Init scripts are beyond the scope of this
+document.
+
+
+#### Step 2: Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the ``mongod`` instances.
+
+From the same machine where one of the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) is running
+(in this tutorial, ``mongodb0.example.net``), start the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo)
+shell. To connect to the [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) listening to localhost on
+the default port of ``27017``, simply issue:
+
+```sh
+
+mongo
+
+```
+
+Depending on your path, you may need to specify the path to the
+[``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) binary.
 
 
 #### Step 3: Initiate the replica set.
 
-From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to
-initiate a replica set that consists of the current member.
+From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on
+replica set member 0.
+
+Important: Run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on *just one and only one* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance for the replica set.
 
 ```javascript
 
 rs.initiate( {
    _id : "rs0",
-   members: [ { _id : 0, host : "mongodb0.example.net:27017" } ]
+   members: [
+      { _id: 0, host: "mongodb0.example.net:27017" },
+      { _id: 1, host: "mongodb1.example.net:27017" },
+      { _id: 2, host: "mongodb2.example.net:27017" }
+   ]
 })
 
 ```
 
-
-#### Step 4: Add the remaining members to the replica set.
-
-```javascript
-
-rs.add("mongodb1.example.net")
-rs.add("mongodb2.example.net")
-
-```
+MongoDB initiates a replica set, using
+the default replica set configuration.
 
 
-#### Step 5: Create and populate a new collection.
+#### Step 4: Create and populate a new collection.
 
 The following step adds one million documents to the collection
 ``test_collection`` and can take several minutes depending on
 your system.
+
+To determine the primary, use [``rs.status()``](https://docs.mongodb.com/manual/reference/method/rs.status/#rs.status).
 
 Issue the following operations on the primary of the replica set:
 
@@ -160,15 +215,20 @@ Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#b
 
 #### Step 2: Restart secondary members with the ``--shardsvr`` option.
 
-One secondary at a time, restart each [secondary](https://docs.mongodb.com/manual/core/replica-set-members/#replica-set-secondary-members) with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option.
-To continue to use the same port, include the ``--port`` option.
+One secondary at a time, restart each [secondary](https://docs.mongodb.com/manual/core/replica-set-members/#replica-set-secondary-members) with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr)
+option. To continue to use the same port, include the ``--port``
+option. Include additional options, such as [``--bind_ip``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-bind-ip), as
+appropriate for your deployment.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
 
 ```javascript
 
-mongod --replSet "rs0" --shardsvr --port 27017
+mongod --replSet "rs0" --shardsvr --port 27017 --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
+Include any other options as appropriate for your deployment.
 Repeat this step for the other secondary.
 
 
@@ -190,9 +250,11 @@ To continue to use the same port, include the ``--port`` option.
 
 ```javascript
 
-mongod --replSet "rs0" --shardsvr --port 27017
+mongod --replSet "rs0" --shardsvr --port 27017 --bind_ip localhost,<ip address of the mongod host>
 
 ```
+
+Include any other options as appropriate for your deployment.
 
 <span id="convert-deploy-sharding-infrastructure"></span>
 
@@ -215,9 +277,11 @@ Start a config server on ``mongodb7.example.net``,
 same replica set name. The config servers use the default data
 directory ``/data/configdb`` and the default port ``27019``.
 
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
 ```sh
 
-mongod --configsvr --replSet configReplSet
+mongod --configsvr --replSet configReplSet --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
@@ -227,6 +291,8 @@ specific to your deployment, see [mongod](https://docs.mongodb.com/manual/refere
 
 Connect a [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell to one of the config servers and
 run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to initiate the replica set.
+
+Important: Run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on *just one and only one* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance for the replica set.
 
 ```javascript
 
@@ -251,7 +317,7 @@ one of the config server hostnames and ports.
 
 ```sh
 
-mongos --configdb configReplSet/mongodb07.example.net:27019,mongodb08.example.net:27019,mongodb09.example.net:27019
+mongos --configdb configReplSet/mongodb07.example.net:27019,mongodb08.example.net:27019,mongodb09.example.net:27019  --bind_ip localhost,<ip address of the mongos host>
 
 ```
 
@@ -305,13 +371,17 @@ Note: Default port for [``mongod``](https://docs.mongodb.com/manual/reference/pr
 
 For each member, start a [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod), specifying the replica
 set name through the ``replSet`` option and its role as a
-shard with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option. Include any other
-parameters specific to your deployment. For replication-specific
-parameters, see [Replication Options](https://docs.mongodb.com/manual/reference/program/mongod/#cli-mongod-replica-set).
+shard with the [``--shardsvr``](https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-shardsvr) option. Specify additional options,
+such as [``--bind_ip``](https://docs.mongodb.com/manual/reference/program/mongos/#cmdoption-bind-ip), as appropriate.
+
+Warning: Before you bind to other ip addresses, consider [enabling access control](https://docs.mongodb.com/manual/administration/security-checklist/#checklist-auth) and other security measures listed in [Security Checklist](https://docs.mongodb.com/manual/administration/security-checklist) to prevent unauthorized access.
+
+For replication-specific parameters, see
+[Replication Options](https://docs.mongodb.com/manual/reference/program/mongod/#cli-mongod-replica-set).
 
 ```javascript
 
-mongod --replSet "rs1" --shardsvr --port 27017
+mongod --replSet "rs1" --shardsvr --port 27017 --bind_ip localhost,<ip address of the mongod host>
 
 ```
 
@@ -334,6 +404,8 @@ mongo mongodb3.example.net
 
 From the [``mongo``](https://docs.mongodb.com/manual/reference/program/mongo/#bin.mongo) shell, run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) to
 initiate a replica set that consists of the current member.
+
+Important: Run [``rs.initiate()``](https://docs.mongodb.com/manual/reference/method/rs.initiate/#rs.initiate) on *just one and only one* [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) instance for the replica set.
 
 ```javascript
 

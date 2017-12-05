@@ -48,9 +48,10 @@ Changed in version 3.2:
 
 * Members with [``priority``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members[n].priority) greater than 0 cannot have 0 [``votes``](https://docs.mongodb.com/manual/reference/replica-configuration/#rsconf.members[n].votes).
 
-For [arbiters](https://docs.mongodb.com/manual/core/replica-set-arbiter), the default
-``priority`` value is ``1``; however, arbiters cannot
-become primary regardless of the configured value.
+Changed in version 3.6: Starting in MongoDB 3.6, arbiters have priority ``0``. When you upgrade
+a replica set to MongoDB 3.6, if the existing configuration has an
+arbiter with priority ``1``, MongoDB 3.6 reconfigures the arbiter to
+have priority ``0``.
 
 Adjust priority settings during a scheduled maintenance window.
 Reconfiguring priority can force the current primary to step down,
