@@ -140,15 +140,9 @@
 	        }
 	      }
 	
-	      // Obey a search request, if we have one
-	      var locationQuery = window.location.search.match(/query=([^&#]*)/);
-	      locationQuery = locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
-	      var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
-	      locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
-	
-	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label, locationSearchProperty, locationQuery);
+	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
 	      _this.state.timeout = -1;
-	      _this.state.searchText = locationQuery;
+	      _this.state.searchText = _this.state.marian.query;
 	
 	      _this.state.marian.onchangequery = function (newQuery) {
 	        _this.setState({
@@ -27277,7 +27271,7 @@
 	}();
 	
 	var Marian = function () {
-	    function Marian(url, defaultProperties, defaultPropertiesLabel, initialSearchProperty, initialQuery) {
+	    function Marian(url, defaultProperties, defaultPropertiesLabel) {
 	        var _this2 = this;
 	
 	        _classCallCheck(this, Marian);
@@ -27294,8 +27288,8 @@
 	
 	        this.currentRequest = null;
 	
-	        this.query = initialQuery;
-	        this.searchProperty = initialSearchProperty;
+	        this.query = '';
+	        this.searchProperty = '';
 	
 	        // We have three options to search: the current site, the current MongoDB manual,
 	        // and all properties.
@@ -27318,8 +27312,8 @@
 	
 	        tabStripElements.push({ id: 'all', label: 'All Results' });
 	
-	        var tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
-	            tabStrip.update(tab.id);
+	        this.tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
+	            _this2.tabStrip.update(tab.id);
 	            _this2.searchProperty = tab.id;
 	            _this2.search(_this2.query);
 	        });
@@ -27331,7 +27325,7 @@
 	        this.listElement = document.createElement('ul');
 	        this.listElement.className = 'marian-results';
 	        this.container.appendChild(titleElement);
-	        this.container.appendChild(tabStrip.element);
+	        this.container.appendChild(this.tabStrip.element);
 	        this.container.appendChild(this.spinnerElement);
 	        this.container.appendChild(this.listElement);
 	
@@ -27357,11 +27351,39 @@
 	                _this2.bodyElement = document.createElement('div');
 	            }
 	
-	            _this2.search(_this2.query);
+	            _this2.parseUrl();
 	        });
 	    }
 	
 	    _createClass(Marian, [{
+	        key: 'pushHistory',
+	        value: function pushHistory() {
+	            var locationSansQuery = window.location.href.replace(/\?.*/, '');
+	
+	            var newURL = void 0;
+	            if (this.query) {
+	                newURL = locationSansQuery + '?searchProperty=' + encodeURIComponent(this.searchProperty) + '&query=' + encodeURIComponent(this.query);
+	            } else {
+	                newURL = locationSansQuery;
+	            }
+	
+	            window.history.replaceState(null, null, newURL);
+	        }
+	    }, {
+	        key: 'parseUrl',
+	        value: function parseUrl() {
+	            var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
+	            locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
+	            if (locationSearchProperty) {
+	                this.searchProperty = locationSearchProperty;
+	                this.tabStrip.update(this.searchProperty);
+	            }
+	
+	            var locationQuery = window.location.search.match(/query=([^&#]*)/);
+	            locationQuery = locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
+	            this.search(locationQuery);
+	        }
+	    }, {
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
@@ -27379,6 +27401,7 @@
 	            var _this3 = this;
 	
 	            this.query = query;
+	            this.pushHistory();
 	            if (!query) {
 	                this.listElement.innerText = '';
 	                this.hide();
@@ -27403,7 +27426,7 @@
 	            this.listElement.innerText = '';
 	            this.spinnerElement.className = 'spinner';
 	            request.open('GET', requestUrl);
-	            request.onreadystatechange = function (ev) {
+	            request.onreadystatechange = function () {
 	                if (request.readyState !== 4) {
 	                    return;
 	                }

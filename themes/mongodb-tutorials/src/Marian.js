@@ -31,7 +31,7 @@ class TabStrip {
 }
 
 export default class Marian {
-    constructor(url, defaultProperties, defaultPropertiesLabel, initialSearchProperty, initialQuery) {
+    constructor(url, defaultProperties, defaultPropertiesLabel) {
         this.url = url.replace(/\/+$/, '')
         this.defaultProperties = defaultProperties
         this.onchangequery = () => {}
@@ -44,8 +44,8 @@ export default class Marian {
 
         this.currentRequest = null
 
-        this.query = initialQuery
-        this.searchProperty = initialSearchProperty
+        this.query = ''
+        this.searchProperty = ''
 
         // We have three options to search: the current site, the current MongoDB manual,
         // and all properties.
@@ -68,8 +68,8 @@ export default class Marian {
 
         tabStripElements.push({id: 'all', label: 'All Results'})
 
-        const tabStrip = new TabStrip(this.searchProperty, tabStripElements, (tab) => {
-            tabStrip.update(tab.id)
+        this.tabStrip = new TabStrip(this.searchProperty, tabStripElements, (tab) => {
+            this.tabStrip.update(tab.id)
             this.searchProperty = tab.id
             this.search(this.query)
         })
@@ -81,7 +81,7 @@ export default class Marian {
         this.listElement = document.createElement('ul')
         this.listElement.className = 'marian-results'
         this.container.appendChild(titleElement)
-        this.container.appendChild(tabStrip.element)
+        this.container.appendChild(this.tabStrip.element)
         this.container.appendChild(this.spinnerElement)
         this.container.appendChild(this.listElement)
 
@@ -106,8 +106,34 @@ export default class Marian {
                 this.bodyElement = document.createElement('div')
             }
 
-            this.search(this.query)
+            this.parseUrl()
         })
+    }
+
+    pushHistory() {
+        const locationSansQuery = window.location.href.replace(/\?.*/, '')
+
+        let newURL
+        if (this.query) {
+            newURL = `${locationSansQuery}?searchProperty=${encodeURIComponent(this.searchProperty)}&query=${encodeURIComponent(this.query)}`
+        } else {
+            newURL = locationSansQuery
+        }
+
+        window.history.replaceState(null, null, newURL)
+    }
+
+    parseUrl() {
+        let locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/)
+        locationSearchProperty = (locationSearchProperty !== null)? decodeURIComponent(locationSearchProperty[1]) : ''
+        if (locationSearchProperty) {
+            this.searchProperty = locationSearchProperty
+            this.tabStrip.update(this.searchProperty)
+        }
+
+        let locationQuery = window.location.search.match(/query=([^&#]*)/)
+        locationQuery = (locationQuery !== null)? decodeURIComponent(locationQuery[1]) : ''
+        this.search(locationQuery)
     }
 
     show() {
@@ -122,6 +148,7 @@ export default class Marian {
 
     search(query) {
         this.query = query
+        this.pushHistory()
         if (!query) {
             this.listElement.innerText = ''
             this.hide()
@@ -144,7 +171,7 @@ export default class Marian {
         this.listElement.innerText = ''
         this.spinnerElement.className = 'spinner'
         request.open('GET', requestUrl)
-        request.onreadystatechange = (ev) => {
+        request.onreadystatechange = () => {
             if (request.readyState !== 4) {
                 return
             }
