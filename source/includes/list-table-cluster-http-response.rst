@@ -80,6 +80,10 @@
 
        The possible values are ``1`` through ``12``.
 
+   * - ``paused``
+     - boolean
+     - A flag that indicates whether the cluster is paused or not.
+
    * - ``providerSettings``
      - document
      - The configuration for the provisioned servers on which MongoDB runs.
