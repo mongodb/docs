@@ -48,12 +48,12 @@ packages have ``bind_ip`` set to ``127.0.0.1`` by default. Modify
 this setting as needed for your environment before initializing a
 [*replica set*](https://docs.mongodb.com/manual/reference/glossary/#term-replica-set).
 
-Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows. The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
+Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows.The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
 
 
 ## Install MongoDB Community Edition
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-suse/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-suse/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -74,21 +74,21 @@ Add the repository so that you can install MongoDB using ``zypper``.
 Changed in version 3.0: MongoDB Linux packages are in a new repository beginning with 3.0.
 
 
-#### For the release candidate of MongoDB 3.6
+#### For MongoDB 3.6
 
 Run the command appropriate for your version of SUSE:
 
 SUSE 11
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.org/zypper/suse/11/mongodb-org/testing/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.org/zypper/suse/11/mongodb-org/3.6/x86_64/" mongodb
 
    ```
 
 SUSE 12
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.org/zypper/suse/12/mongodb-org/testing/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.org/zypper/suse/12/mongodb-org/3.6/x86_64/" mongodb
 
    ```
 
@@ -96,20 +96,20 @@ SUSE 12
 #### For versions of MongoDB *earlier* than 3.6
 
 To install MongoDB packages from a previous [release
-series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as 3.0, you can
+series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers) such as 3.4, you can
 specify the release series in the repository configuration.
 
-For example, to restrict your SUSE 11 system to the 3.0 release
+For example, to restrict your SUSE 11 system to the 3.4 release
 series, use the following command:
 
 ```sh
 
-sudo zypper addrepo --no-gpgcheck https://repo.mongodb.org/zypper/suse/11/mongodb-org/3.0/x86_64/ mongodb
+sudo zypper addrepo --no-gpgcheck https://repo.mongodb.org/zypper/suse/11/mongodb-org/3.4/x86_64/ mongodb
 
 ```
 
 
-### Step 3: Install the MongoDB packages and associated tools.
+### Step 3: Install the MongoDB packages.
 
 To install the latest stable version of MongoDB, issue the following
 command:
@@ -117,6 +117,27 @@ command:
 ```sh
 
 sudo zypper -n install mongodb-org
+
+```
+
+To install a specific release of MongoDB, specify each
+component package individually and append the version number to the
+package name, as in the following example:
+
+```sh
+
+sudo zypper install mongodb-org-3.6.0 mongodb-org-server-3.6.0 mongodb-org-shell-3.6.0 mongodb-org-mongos-3.6.0 mongodb-org-tools-3.6.0
+
+```
+
+You can specify any available version of MongoDB. However ``zypper``
+will upgrade the packages when a newer version becomes available. To
+prevent unintended upgrades, pin the packages by running the following
+command:
+
+```sh
+
+sudo zypper addlock mongodb-org-3.6.0 mongodb-org-server-3.6.0 mongodb-org-shell-3.6.0 mongodb-org-mongos-3.6.0 mongodb-org-tools-3.6.0
 
 ```
 

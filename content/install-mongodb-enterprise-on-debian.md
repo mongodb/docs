@@ -28,7 +28,7 @@ repository. This repository contains the following packages:
 
 ## Install MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-debian/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -59,26 +59,26 @@ of Debian:
 Debian 7 "Wheezy"
    ```sh
 
-   echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/3.6 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 Debian 8 "Jessie"
    ```sh
 
-   echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/3.6 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 If you'd like to install MongoDB Enterprise packages from a
-particular [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as
-2.6, you can specify the release series in the repository
-configuration. For example, to restrict your system to the 2.6
+particular [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers) such as
+3.4, you can specify the release series in the repository
+configuration. For example, to restrict your system to the 3.4
 release series, add the following repository:
 
 ```sh
 
-echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/2.6 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-2.6.list
+echo "deb http://repo.mongodb.com/apt/debian wheezy/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-3.4.list
 
 ```
 
@@ -99,7 +99,7 @@ sudo apt-get update
 ### Step 4: Install the MongoDB Enterprise packages.
 
 
-#### Install the 3.6 release candidate version of MongoDB Enterprise.
+#### Install MongoDB Enterprise version 3.6.
 
 Issue the following command:
 
@@ -109,9 +109,41 @@ sudo apt-get install -y mongodb-enterprise
 
 ```
 
-Versions of the MongoDB packages before 2.6 use a different repository
-location. Refer to the version of the documentation appropriate for
-your MongoDB version.
+
+#### Install a specific release of MongoDB Enterprise.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo apt-get install -y mongodb-enterprise=3.6.0 mongodb-enterprise-server=3.6.0 mongodb-enterprise-shell=3.6.0 mongodb-enterprise-mongos=3.6.0 mongodb-enterprise-tools=3.6.0
+
+```
+
+If you only install ``mongodb-enterprise=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB Enterprise.
+
+Although you can specify any available version of MongoDB,
+``apt-get`` will upgrade the packages when a newer version
+becomes available. To prevent unintended upgrades, pin the
+package. To pin the version of MongoDB at the currently
+installed version, issue the following command sequence:
+
+```sh
+
+echo "mongodb-enterprise hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-server hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-shell hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-mongos hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-tools hold" | sudo dpkg --set-selections
+
+```
 
 <span id="install-debian-from-tarball"></span>
 

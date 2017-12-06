@@ -33,7 +33,7 @@ repository. This repository contains the following packages:
 
 ## Install MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-amazon/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-amazon/).
 
 
 ### Step 1: Configure repository.
@@ -42,7 +42,7 @@ Create an ``/etc/yum.repos.d/mongodb-enterprise.repo`` file so that
 you can install MongoDB enterprise directly, using ``yum``.
 
 
-#### For the 3.6 release candidate version of MongoDB Enterprise
+#### For the 3.6 version of MongoDB Enterprise
 
 Use the following repository file:
 
@@ -50,7 +50,7 @@ Use the following repository file:
 
 [mongodb-enterprise]
 name=MongoDB Enterprise Repository
-baseurl=https://repo.mongodb.com/yum/amazon/2013.03/mongodb-enterprise/testing/$basearch/
+baseurl=https://repo.mongodb.com/yum/amazon/2013.03/mongodb-enterprise/3.6/$basearch/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
@@ -58,13 +58,16 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
 ```
 
 ``.repo`` files for each release can also be found [in the repository itself](https://repo.mongodb.com/yum/amazon/).
-Remember that odd-numbered minor release versions (e.g. 2.5) are development versions and are unsuitable
+Remember that odd-numbered minor release versions (e.g. 3.5) are development versions and are unsuitable
 for production deployment.
 
 
-### Step 2: Install the MongoDB Enterprise packages and associated tools.
+### Step 2: Install the MongoDB Enterprise packages.
 
-To install MongoDB Enterprise, issue the following command:
+
+#### Install the 3.6 release candidate version of MongoDB Enterprise.
+
+Issue the following command:
 
 ```sh
 
@@ -73,7 +76,36 @@ sudo yum install -y mongodb-enterprise
 ```
 
 
-### Step 3: When the install completes, you can run MongoDB.
+#### Install a specific release of MongoDB Enterprise.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo yum install -y mongodb-enterprise-3.6.0 mongodb-enterprise-server-3.6.0 mongodb-enterprise-shell-3.6.0 mongodb-enterprise-mongos-3.6.0 mongodb-enterprise-tools-3.6.0
+
+```
+
+If you only install ``mongodb-enterprise=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB Enterprise.
+
+Although you can specify any available version of MongoDB
+Enterprise, ``yum`` will upgrade the packages when a newer
+version becomes available. To prevent unintended upgrades, pin
+the package by adding the following ``exclude`` directive to your
+``/etc/yum.conf`` file:
+
+```sh
+
+exclude=mongodb-enterprise,mongodb-enterprise-server,mongodb-enterprise-shell,mongodb-enterprise-mongos,mongodb-enterprise-tools
+
+```
 
 <span id="install-amazon-from-tarball"></span>
 

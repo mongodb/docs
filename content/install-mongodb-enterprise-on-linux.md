@@ -22,7 +22,7 @@ Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongo
 
 ## Install MongoDB
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-linux/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-linux/).
 
 
 ### Step 1: Install any missing dependencies.

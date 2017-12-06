@@ -51,7 +51,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-debian/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-debian/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -82,14 +82,14 @@ of Debian:
 Debian 7 "Wheezy"
    ```sh
 
-   echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+   echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.6 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
 Debian 8 "Jessie"
    ```sh
 
-   echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/testing main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+   echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.6 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
@@ -117,6 +117,42 @@ Issue the following command:
 ```sh
 
 sudo apt-get install -y mongodb-org
+
+```
+
+
+#### Install a specific release of MongoDB.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo apt-get install -y mongodb-org=3.6.0 mongodb-org-server=3.6.0 mongodb-org-shell=3.6.0 mongodb-org-mongos=3.6.0 mongodb-org-tools=3.6.0
+
+```
+
+If you only install ``mongodb-org=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB.
+
+Although you can specify any available version of MongoDB,
+``apt-get`` will upgrade the packages when a newer version
+becomes available. To prevent unintended upgrades, pin the
+package. To pin the version of MongoDB at the currently
+installed version, issue the following command sequence:
+
+```sh
+
+echo "mongodb-org hold" | sudo dpkg --set-selections
+echo "mongodb-org-server hold" | sudo dpkg --set-selections
+echo "mongodb-org-shell hold" | sudo dpkg --set-selections
+echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
+echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 
 ```
 

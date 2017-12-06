@@ -38,7 +38,7 @@ wmic os get osarchitecture
 
 ## Get MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-windows/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-windows/).
 
 Download the latest production release of MongoDB from the [MongoDB
 Download Center](https://www.mongodb.com/download-center#enterprise).
@@ -88,8 +88,8 @@ choice and invoke:
 
 ```powershell
 
-msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-rc7-signed.msi ^
-            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0-rc7\" ^
+msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-signed.msi ^
+            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0\" ^
             ADDLOCAL="all"
 
 ```
@@ -115,8 +115,8 @@ For instance, to install *only* the MongoDB utilities, invoke:
 
 ```powershell
 
-msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-rc7-signed.msi ^
-            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0-rc7\" ^
+msiexec.exe /q /i mongodb-win32-x86_64-enterprise-windows-64-3.6.0-signed.msi ^
+            INSTALLLOCATION="C:\Program Files\MongoDB\Server\3.6.0\" ^
             ADDLOCAL="MonitoringTools,ImportExportTools,MiscellaneousTools"
 
 ```

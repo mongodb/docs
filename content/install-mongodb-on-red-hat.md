@@ -17,7 +17,7 @@ CentOS Linux versions 6 and 7 using ``.rpm`` packages. While Red Hat
 includes its own MongoDB packages, use the official MongoDB Community
 Edition packages to ensure that you have the latest release.
 
-Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details. MongoDB 3.4 removes support for Red Hat Enterprise Linux 5.
+Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.MongoDB 3.4 removes support for Red Hat Enterprise Linux 5.
 
 
 ## Packages
@@ -48,7 +48,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-red-hat/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-red-hat/).
 
 This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.
 
@@ -61,7 +61,7 @@ you can install MongoDB directly, using ``yum``.
 Changed in version 3.0: MongoDB Linux packages are in a new repository beginning with 3.0.
 
 
-#### For the release candidate of MongoDB 3.6
+#### For MongoDB 3.6
 
 Use the following repository file:
 
@@ -69,7 +69,7 @@ Use the following repository file:
 
 [mongodb-org-3.6]
 name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/testing/x86_64/
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.6/x86_64/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
@@ -77,31 +77,31 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
 ```
 
 
-#### For versions of MongoDB *earlier* than 3.0
+#### For versions of MongoDB *earlier* than 3.6
 
-To install the packages from an earlier [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as 2.4 or 2.6, you can specify
+To install the packages from an earlier [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers) such as 3.4, you can specify
 the release series in the repository configuration. For example,
-to restrict your system to the 2.6 release series, create a
-``/etc/yum.repos.d/mongodb-org-2.6.repo`` file to hold the
-following configuration information for the MongoDB 2.6
+to restrict your system to the 3.4 release series, create a
+``/etc/yum.repos.d/mongodb-org-3.4.repo`` file to hold the
+following configuration information for the MongoDB 3.4
 repository:
 
 ```cfg
 
-[mongodb-org-2.6]
-name=MongoDB 2.6 Repository
-baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
+[mongodb-org-3.4]
+name=MongoDB 3.4 Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.4/x86_64/
 gpgcheck=0
 enabled=1
 
 ```
 
 You can find ``.repo`` files for each release [in the repository itself](https://repo.mongodb.org/yum/redhat/).
-Remember that odd-numbered minor release versions (e.g. 2.5) are development versions and are unsuitable
+Remember that odd-numbered minor release versions (e.g. 3.5) are development versions and are unsuitable
 for production use.
 
 
-### Step 2: Install the MongoDB packages and associated tools.
+### Step 2: Install the MongoDB packages.
 
 To install the latest stable version of MongoDB, issue the following
 command:
@@ -109,6 +109,27 @@ command:
 ```sh
 
 sudo yum install -y mongodb-org
+
+```
+
+To install a specific release of MongoDB, specify each
+component package individually and append the version number to the
+package name, as in the following example:
+
+```sh
+
+sudo yum install -y mongodb-org-3.6.0 mongodb-org-server-3.6.0 mongodb-org-shell-3.6.0 mongodb-org-mongos-3.6.0 mongodb-org-tools-3.6.0
+
+```
+
+You can specify any available version of MongoDB. However ``yum``
+will upgrade the packages when a newer version becomes available. To
+prevent unintended upgrades, pin the package. To pin a package, add
+the following ``exclude`` directive to your ``/etc/yum.conf`` file:
+
+```ini
+
+exclude=mongodb-org,mongodb-org-server,mongodb-org-shell,mongodb-org-mongos,mongodb-org-tools
 
 ```
 

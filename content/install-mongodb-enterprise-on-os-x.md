@@ -13,7 +13,8 @@ Use this tutorial to install [MongoDB Enterprise](https://www.mongodb.com/produc
 is available on select platforms and contains support for several features
 related to security and monitoring.
 
-Platform Support: MongoDB only supports macOS versions 10.7 (Lion) and later on Intel x86-64.
+Platform Support: MongoDB 3.6 is not tested on APFS, the new filesystem in macOS 10.13
+and may encounter errors.MongoDB only supports macOS versions 10.7 (Lion) and later on Intel x86-64.
 Versions of MongoDB Enterprise prior to 3.2 did not support macOS.
 
 Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongodb.com/manual/reference/program/mongod/#bin.mongod) and [``mongos``](https://docs.mongodb.com/manual/reference/program/mongos/#bin.mongos), bind to localhost by default. Previously, starting in MongoDB 2.6, only the binaries from the official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and derivatives) packages bind to localhost by default. For more details, see [Localhost Binding Compatibility Changes](https://docs.mongodb.com/manual/release-notes/3.6-compatibility/#bind-ip-compatibility).
@@ -33,7 +34,7 @@ For example, from a system shell, you can extract through the ``tar`` command:
 
 ```sh
 
-tar -zxvf mongodb-osx-ssl-x86_64-enterprise-3.6.0-rc7.tgz
+tar -zxvf mongodb-osx-ssl-x86_64-enterprise-3.6.0.tgz
 
 ```
 
@@ -45,7 +46,7 @@ Copy the extracted folder to the location from which MongoDB will run.
 ```sh
 
 mkdir -p mongodb
-cp -R -n mongodb-osx-ssl-x86_64-enterprise-3.6.0-rc7/ mongodb
+cp -R -n mongodb-osx-ssl-x86_64-enterprise-3.6.0/ mongodb
 
 ```
 

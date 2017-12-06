@@ -14,7 +14,8 @@ tags = [
 
 Use this tutorial to install MongoDB Community Edition on macOS systems.
 
-Platform Support: Starting in version 3.0, MongoDB only supports macOS versions 10.7 (Lion)
+Platform Support: MongoDB 3.6 is not tested on APFS, the new filesystem in macOS 10.13
+and may encounter errors.Starting in version 3.0, MongoDB only supports macOS versions 10.7 (Lion)
 and later on Intel x86-64.
 
 You may download MongoDB Community Edition through either the [MongoDB
@@ -26,7 +27,7 @@ Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongo
 
 ## Install MongoDB Community Edition
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-os-x/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-os-x/).
 
 
 ### Install MongoDB Community Edition Manually
@@ -36,15 +37,6 @@ Note: To install a different version of MongoDB, please refer to that version's 
 
 Download the binaries from the [MongoDB Download Center](https://www.mongodb.com/download-center).
 
-For example, to download the latest release through the shell, issue
-the following:
-
-```sh
-
-curl -O https://fastdl.mongodb.org/osx-ssl/mongodb-osx-ssl-x86_64-3.6.0-rc7.tgz
-
-```
-
 
 #### Step 2: Extract the files from the downloaded archive.
 
@@ -52,7 +44,7 @@ For example, from a system shell, you can extract through the ``tar`` command:
 
 ```sh
 
-tar -zxvf mongodb-osx-ssl-x86_64-3.6.0-rc7.tgz
+tar -zxvf mongodb-osx-ssl-x86_64-3.6.0.tgz
 
 ```
 
@@ -64,7 +56,7 @@ Copy the extracted folder to the location from which MongoDB will run.
 ```sh
 
 mkdir -p mongodb
-cp -R -n mongodb-osx-ssl-x86_64-3.6.0-rc7/ mongodb
+cp -R -n mongodb-osx-ssl-x86_64-3.6.0/ mongodb
 
 ```
 

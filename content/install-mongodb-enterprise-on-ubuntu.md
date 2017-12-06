@@ -14,7 +14,7 @@ Use this tutorial to install [MongoDB Enterprise](https://www.mongodb.com/produc
 
 Platform Support: MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
-These packages may work with other Ubuntu releases, however, they are not supported. MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
+These packages may work with other Ubuntu releases, however, they are not supported.MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
 
 Package Updates required on Ubuntu 16.04 for IBM POWER Systems: Due to a lock elision bug present in older versions of the ``glibc``
 package on Ubuntu 16.04 for POWER, you must upgrade the ``glibc``
@@ -37,7 +37,7 @@ repository. This repository contains the following packages:
 
 ## Install MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-ubuntu/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-ubuntu/).
 
 MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
@@ -72,33 +72,33 @@ Ubuntu:
 Ubuntu 12.04 (deprecated)
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu precise/mongodb-enterprise/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu precise/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 Ubuntu 14.04
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu trusty/mongodb-enterprise/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb [ arch=amd64 ] http://repo.mongodb.com/apt/ubuntu trusty/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 Ubuntu 16.04
    ```sh
 
-   echo "deb [ arch=amd64,arm64,ppc64el,s390x ] http://repo.mongodb.com/apt/ubuntu xenial/mongodb-enterprise/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+   echo "deb [ arch=amd64,arm64,ppc64el,s390x ] http://repo.mongodb.com/apt/ubuntu xenial/mongodb-enterprise/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    ```
 
 If you'd like to install MongoDB Enterprise packages from a
-particular [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as
-2.4 or 2.6, you can specify the release series in the repository
-configuration. For example, to restrict your system to the 2.6
+particular [release series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers) such as
+3.4, you can specify the release series in the repository
+configuration. For example, to restrict your system to the 3.4
 release series, add the following repository:
 
 ```sh
 
-echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/2.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-2.6.list
+echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-3.4.list
 
 ```
 
@@ -117,7 +117,7 @@ sudo apt-get update
 ### Step 4: Install the MongoDB Enterprise packages.
 
 
-#### Install the 3.6 release candidate version of MongoDB Enterprise.
+#### Install MongoDB Enterprise version 3.6.
 
 Issue the following command:
 
@@ -127,9 +127,41 @@ sudo apt-get install -y mongodb-enterprise
 
 ```
 
-Versions of the MongoDB packages before 2.6 use a different repository
-location. Refer to the version of the documentation appropriate for
-your MongoDB version.
+
+#### Install a specific release of MongoDB Enterprise.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo apt-get install -y mongodb-enterprise=3.6.0 mongodb-enterprise-server=3.6.0 mongodb-enterprise-shell=3.6.0 mongodb-enterprise-mongos=3.6.0 mongodb-enterprise-tools=3.6.0
+
+```
+
+If you only install ``mongodb-enterprise=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB Enterprise.
+
+Although you can specify any available version of MongoDB,
+``apt-get`` will upgrade the packages when a newer version
+becomes available. To prevent unintended upgrades, pin the
+package. To pin the version of MongoDB at the currently
+installed version, issue the following command sequence:
+
+```sh
+
+echo "mongodb-enterprise hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-server hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-shell hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-mongos hold" | sudo dpkg --set-selections
+echo "mongodb-enterprise-tools hold" | sudo dpkg --set-selections
+
+```
 
 <span id="install-ubuntu-from-tarball"></span>
 

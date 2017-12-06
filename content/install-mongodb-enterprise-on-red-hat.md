@@ -12,7 +12,7 @@ tags = [ "mongodb-enterprise", "administration", "beginner" ]
 Use this tutorial to install [MongoDB Enterprise](https://www.mongodb.com/products/mongodb-enterprise-advanced?jmp=docs) on Red Hat Enterprise Linux or CentOS
 Linux versions 6 and 7 from ``.rpm`` packages.
 
-Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details. MongoDB 3.4 removes support for Red Hat Enterprise Linux 5.
+Platform Support: This installation guide only supports 64-bit systems. See [Platform Support](https://docs.mongodb.com/manual/release-notes/3.0-compatibility/#compatibility-platform-support) for details.MongoDB 3.4 removes support for Red Hat Enterprise Linux 5.
 
 MongoDB provides officially supported Enterprise packages in their own
 repository. This repository contains the following packages:
@@ -33,7 +33,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-red-hat/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-red-hat/).
 
 Use the provided distribution packages as described in this page if possible.
 These packages will automatically install all of MongoDB's dependencies, and are
@@ -46,7 +46,7 @@ Create an ``/etc/yum.repos.d/mongodb-enterprise.repo`` file so that
 you can install MongoDB enterprise directly, using ``yum``.
 
 
-#### For the 3.6 release candidate version of MongoDB Enterprise
+#### For the 3.6 version of MongoDB Enterprise
 
 Use the following repository file:
 
@@ -54,7 +54,7 @@ Use the following repository file:
 
 [mongodb-enterprise]
 name=MongoDB Enterprise Repository
-baseurl=https://repo.mongodb.com/yum/redhat/$releasever/mongodb-enterprise/testing/$basearch/
+baseurl=https://repo.mongodb.com/yum/redhat/$releasever/mongodb-enterprise/3.6/$basearch/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
@@ -62,13 +62,16 @@ gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
 ```
 
 ``.repo`` files for each release can also be found [in the repository itself](https://repo.mongodb.com/yum/redhat/).
-Remember that odd-numbered minor release versions (e.g. 2.5) are development versions and are unsuitable
+Remember that odd-numbered minor release versions (e.g. 3.5) are development versions and are unsuitable
 for production deployment.
 
 
-### Step 2: Install the MongoDB Enterprise packages and associated tools.
+### Step 2: Install the MongoDB Enterprise packages.
 
-To install MongoDB Enterprise, issue the following command:
+
+#### Install the 3.6 release candidate version of MongoDB Enterprise.
+
+Issue the following command:
 
 ```sh
 
@@ -77,7 +80,36 @@ sudo yum install -y mongodb-enterprise
 ```
 
 
-### Step 3: When the install completes, you can run MongoDB.
+#### Install a specific release of MongoDB Enterprise.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo yum install -y mongodb-enterprise-3.6.0 mongodb-enterprise-server-3.6.0 mongodb-enterprise-shell-3.6.0 mongodb-enterprise-mongos-3.6.0 mongodb-enterprise-tools-3.6.0
+
+```
+
+If you only install ``mongodb-enterprise=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB Enterprise.
+
+Although you can specify any available version of MongoDB
+Enterprise, ``yum`` will upgrade the packages when a newer
+version becomes available. To prevent unintended upgrades, pin
+the package by adding the following ``exclude`` directive to your
+``/etc/yum.conf`` file:
+
+```sh
+
+exclude=mongodb-enterprise,mongodb-enterprise-server,mongodb-enterprise-shell,mongodb-enterprise-mongos,mongodb-enterprise-tools
+
+```
 
 <span id="install-redhat-from-tarball"></span>
 

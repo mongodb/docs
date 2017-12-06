@@ -36,12 +36,12 @@ Use the provided distribution packages as described in this page if possible.
 These packages will automatically install all of MongoDB's dependencies, and are
 the recommended installation method.
 
-Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows. The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
+Note: SUSE Linux Enterprise Server and potentially other SUSE distributions ship with virtual memory address space limited to 8 GB by default. You *must* adjust this in order to prevent virtual memory allocation failures as the database grows.The SLES packages for MongoDB adjust these limits in the default scripts, but you will need to make this change manually if you are using custom scripts and/or the tarball release rather than the SLES packages.
 
 
 ## Install MongoDB Enterprise
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-enterprise-on-suse/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-enterprise-on-suse/).
 
 
 ### Step 1: Import the MongoDB public key
@@ -62,38 +62,59 @@ Run the command appropriate for your version of SUSE:
 SUSE 11
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/testing/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/3.6/x86_64/" mongodb
 
    ```
 
 SUSE 12
    ```sh
 
-   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/12/mongodb-enterprise/testing/x86_64/" mongodb
+   sudo zypper addrepo --gpgcheck "https://repo.mongodb.com/zypper/suse/12/mongodb-enterprise/3.6/x86_64/" mongodb
 
    ```
 
 If you'd like to install MongoDB packages from a previous [release
-series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers), such as 2.6, you can
+series](https://docs.mongodb.com/manual/release-notes/#release-version-numbers) such as 3.4, you can
 specify the release series in the repository configuration. For
-example, to restrict your SUSE 11 system to the 2.6 release series,
+example, to restrict your SUSE 11 system to the 3.4 release series,
 use the following command:
 
 ```sh
 
-sudo zypper addrepo --no-gpgcheck https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/2.6/x86_64/ mongodb
+sudo zypper addrepo --no-gpgcheck https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/3.4/x86_64/ mongodb
 
 ```
 
 
-### Step 3: Install the MongoDB packages and associated tools.
+### Step 3: Install the MongoDB packages.
 
-To install the 3.6 release candidate version of MongoDB, issue the following
+To install MongoDB 3.6, issue the following
 command:
 
 ```sh
 
 sudo zypper -n install mongodb-enterprise
+
+```
+
+To install a specific release of MongoDB, specify each
+component package individually and append the version number to the
+package name, as in the following example:
+
+```sh
+
+sudo zypper install mongodb-enterprise-3.6.0 mongodb-enterprise-server-3.6.0 mongodb-enterprise-shell-3.6.0 mongodb-enterprise-mongos-3.6.0 mongodb-enterprise-tools-3.6.0
+
+```
+
+You can specify any available version of MongoDB. However ``zypper``
+will upgrade the packages when a newer version becomes available. To
+prevent unintended upgrades, pin the packages by running the following
+command:
+
+```sh
+
+sudo zypper addlock mongodb-enterprise-3.6.0 mongodb-enterprise-server-3.6.0 mongodb-enterprise-shell-3.6.0 mongodb-enterprise-mongos-3.6.0 mongodb-enterprise-tools-3.6.0
 
 ```
 

@@ -18,7 +18,7 @@ MongoDB Community Edition packages are generally more up-to-date.
 
 Platform Support: MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
-These packages may work with other Ubuntu releases, however, they are not supported. MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
+These packages may work with other Ubuntu releases, however, they are not supported.MongoDB 3.6 deprecates support for Ubuntu 12.04 LTS (precise).
 
 Package Updates required on Ubuntu 16.04 for IBM POWER Systems: Due to a lock elision bug present in older versions of the ``glibc``
 package on Ubuntu 16.04 for POWER, you must upgrade the ``glibc``
@@ -59,7 +59,7 @@ this setting as needed for your environment before initializing a
 
 ## Install MongoDB Community Edition
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-ubuntu/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-ubuntu/).
 
 MongoDB only provides packages for 64-bit LTS (long-term support) Ubuntu releases.
 For example, 12.04 LTS (precise), 14.04 LTS (trusty), 16.04 LTS (xenial), and so on.
@@ -90,21 +90,21 @@ the command appropriate for your version of Ubuntu:
 Ubuntu 12.04 (deprecated)
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+   echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
 Ubuntu 14.04
    ```sh
 
-   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+   echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
 Ubuntu 16.04
    ```sh
 
-   echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/testing multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+   echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
    ```
 
@@ -130,6 +130,42 @@ Issue the following command:
 ```sh
 
 sudo apt-get install -y mongodb-org
+
+```
+
+
+#### Install a specific release of MongoDB.
+
+To install a specific release, you must specify each component package
+individually along with the version number, as in the
+following example:
+
+```sh
+
+sudo apt-get install -y mongodb-org=3.6.0 mongodb-org-server=3.6.0 mongodb-org-shell=3.6.0 mongodb-org-mongos=3.6.0 mongodb-org-tools=3.6.0
+
+```
+
+If you only install ``mongodb-org=3.6.0`` and do not include the
+component packages, the latest version of each MongoDB package will be
+installed regardless of what version you specified.
+
+
+#### Pin a specific version of MongoDB.
+
+Although you can specify any available version of MongoDB,
+``apt-get`` will upgrade the packages when a newer version
+becomes available. To prevent unintended upgrades, pin the
+package. To pin the version of MongoDB at the currently
+installed version, issue the following command sequence:
+
+```sh
+
+echo "mongodb-org hold" | sudo dpkg --set-selections
+echo "mongodb-org-server hold" | sudo dpkg --set-selections
+echo "mongodb-org-shell hold" | sudo dpkg --set-selections
+echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
+echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 
 ```
 

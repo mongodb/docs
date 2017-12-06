@@ -26,7 +26,7 @@ Note: Starting in MongoDB 3.6, MongoDB binaries, [``mongod``](https://docs.mongo
 MongoDB only provides archives for 64-bit builds of Linux. Follow the
 installation procedure appropriate for your system.
 
-Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.2](../install-mongodb-on-linux/).
+Note: To install a different version of MongoDB, please refer to that version's documentation. For example, see version [3.4](../install-mongodb-on-linux/).
 
 
 ### Install for 64-bit Linux
@@ -41,7 +41,7 @@ the following:
 
 ```sh
 
-curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.0-rc7.tgz
+curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.0.tgz
 
 ```
 
@@ -52,7 +52,7 @@ For example, from a system shell, you can extract through the ``tar`` command:
 
 ```sh
 
-tar -zxvf mongodb-linux-x86_64-3.6.0-rc7.tgz
+tar -zxvf mongodb-linux-x86_64-3.6.0.tgz
 
 ```
 
@@ -64,7 +64,7 @@ Copy the extracted folder to the location from which MongoDB will run.
 ```sh
 
 mkdir -p mongodb
-cp -R -n mongodb-linux-x86_64-3.6.0-rc7/ mongodb
+cp -R -n mongodb-linux-x86_64-3.6.0/ mongodb
 
 ```
 
