@@ -139,7 +139,7 @@
    * - maxItems
      - arrays
      - integer
-     - Indicates the maximum length of arrayy
+     - Indicates the maximum length of array
    
    * - minItems
      - arrays
