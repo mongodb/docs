@@ -23092,6 +23092,7 @@
 	                searchProperty = 'manual-current';
 	            }
 	
+	            this.listElement.innerText = '';
 	            this.spinnerElement.className = 'spinner';
 	            this.marian.search(query, searchProperty);
 	        }
