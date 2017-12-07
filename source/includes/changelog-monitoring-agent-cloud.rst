@@ -1,3 +1,11 @@
+Monitoring Agent ``6.2.0.397``
+------------------------------
+
+*Released 2017-12-07*
+
+- Performance improvement: Make all uses of listDatabases use nameOnly
+  flag.
+
 Monitoring Agent ``6.1.0.387``
 ------------------------------
 
