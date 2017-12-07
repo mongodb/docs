@@ -84,8 +84,6 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var baseURL = window.location.origin;
-	
 	var App = function (_React$Component) {
 	  _inherits(App, _React$Component);
 	
@@ -95,14 +93,18 @@
 	    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 	
 	    _this.onResults = function (results) {
-	      _this.setState({ searchResults: results });
+	      _this.setState({ searchResults: results.results });
+	    };
+	
+	    _this.onError = function (msg) {
+	      console.error(msg);
 	    };
 	
 	    _this.state = {
 	      searchResults: null,
 	      options: [],
 	      tutorials: [],
-	      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix || ''
+	      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix.replace(/\/+$/, '') || ''
 	    };
 	
 	    _this.updateFacet = _this.updateFacet.bind(_this);
@@ -115,7 +117,7 @@
 	    value: function componentDidMount() {
 	      var _this2 = this;
 	
-	      fetch(baseURL + this.state.assetsPrefix + '/tags.json').then(function (response) {
+	      fetch(this.state.assetsPrefix + '/tags.json').then(function (response) {
 	        return response.json();
 	      }).then(function (data) {
 	        _this2.setState({
@@ -202,14 +204,16 @@
 	        var tutorialsSet = new Set(tutorialsMatchingFacets.map(function (tutorial) {
 	          return tutorial.url;
 	        }));
+	        tutorials = this.state.searchResults.filter(function (result) {
+	          var slug = result.url.match(/(\/[^/]+)\/index\.html$/);
+	          if (slug) {
+	            result.url = slug[1];
+	          }
 	
-	        var tutorialURLs = this.state.searchResults.filter(function (slug) {
-	          return tutorialsSet.has(slug);
-	        });
-	
-	        tutorials = tutorialURLs.map(function (url) {
+	          return tutorialsSet.has(result.url);
+	        }).map(function (tutorial) {
 	          return tutorialsMatchingFacets.find(function (t) {
-	            return t.url === url;
+	            return t.url === tutorial.url;
 	          });
 	        });
 	      }
@@ -250,14 +254,14 @@
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'tutorial-search__wrapper' },
-	            _react2.default.createElement(_search2.default, { baseURL: baseURL + this.state.assetsPrefix, onResults: this.onResults })
+	            _react2.default.createElement(_search2.default, { baseURL: this.state.assetsPrefix, onResults: this.onResults, onError: this.onError })
 	          ),
 	          _react2.default.createElement(
 	            'h1',
 	            { className: 'main__title' },
 	            'Tutorials'
 	          ),
-	          _react2.default.createElement(_tutorialList2.default, { tutorials: tutorials, baseURL: baseURL + this.state.assetsPrefix })
+	          _react2.default.createElement(_tutorialList2.default, { tutorials: tutorials, baseURL: this.state.assetsPrefix })
 	        )
 	      );
 	    }
@@ -22758,9 +22762,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _SearchChannel = __webpack_require__(189);
-	
-	var _SearchChannel2 = _interopRequireDefault(_SearchChannel);
+	var _Marian = __webpack_require__(189);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22789,24 +22791,18 @@
 	
 	      // This prevents users from searching before the search has loaded
 	      _this.setState({ timeout: _this.state.timeout = setTimeout(function () {
-	          _this.state.searcher.search(_this.state.searchText);
+	          _this.state.searcher.search(_this.state.searchText, 'tutorials-master');
 	        }, 250) });
 	    };
 	
 	    _this.state = {
-	      searcher: new _SearchChannel2.default(props.baseURL, '/search.json'),
+	      searcher: new _Marian.Marian(),
 	      timeout: -1,
-	      loaded: false,
 	      searchText: ''
 	    };
 	
-	    _this.state.searcher.load().then(function () {
-	      _this.setState({ loaded: true });
-	    }).catch(function (err) {
-	      return console.error(err);
-	    });
-	
 	    _this.state.searcher.onresults = props.onResults;
+	    _this.state.searcher.onerror = props.onError;
 	    return _this;
 	  }
 	
@@ -22815,20 +22811,10 @@
 	    value: function render() {
 	      return _react2.default.createElement('input', { type: 'search',
 	        className: 'tutorial-search',
-	        placeholder: this.placeholder,
+	        placeholder: 'Search Tutorials',
 	        value: this.state.searchText,
-	        disabled: !this.state.searcher.loaded,
 	        onInput: this.onInput
 	      });
-	    }
-	  }, {
-	    key: 'placeholder',
-	    get: function get() {
-	      if (!this.state.searcher.loaded) {
-	        return 'Loading...';
-	      }
-	
-	      return 'Search Tutorials';
 	    }
 	  }]);
 	
@@ -22844,83 +22830,329 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var SearchChannel = function () {
-	  function SearchChannel(baseURL, url) {
-	    var _this = this;
+	var TabStrip = function () {
+	    function TabStrip(initialSelection, tabs, onclick) {
+	        var _this = this;
 	
-	    _classCallCheck(this, SearchChannel);
+	        _classCallCheck(this, TabStrip);
 	
-	    this.worker = new Worker(baseURL + '/worker-search.js');
+	        this.tabs = tabs;
+	        this.element = document.createElement('ul');
+	        this.element.className = 'tab-strip';
+	        this.element.role = 'tablist';
 	
-	    this.pending = null;
-	    this.busy = false;
+	        tabs.forEach(function (tab) {
+	            var tabElement = document.createElement('li');
+	            tabElement.role = 'tab';
+	            tabElement.className = 'tab-strip__element';
+	            tabElement.innerText = tab.label;
+	            tabElement.onclick = onclick.bind(null, tab);
 	
-	    this.loaded = false;
-	    this.loadingTime = null;
-	    this.loadWaiter = new Promise(function (resolve) {
-	      _this.worker.onmessage = function (ev) {
-	        if (ev.data.loaded) {
-	          _this.loaded = true;
-	          _this.loadingTime = ev.data.loaded;
-	          return resolve(_this.loadingTime);
-	        }
-	
-	        if (ev.data.results) {
-	          _this.onresults(ev.data.results);
-	        }
-	
-	        _this.busy = false;
-	
-	        if (_this.pending !== null) {
-	          _this.search(_this.pending);
-	        }
-	      };
-	    });
-	
-	    this.worker.postMessage({ 'load': baseURL + url });
-	    this.onresults = function (results) {};
-	  }
-	
-	  _createClass(SearchChannel, [{
-	    key: 'search',
-	    value: function search(query) {
-	      if (!this.busy) {
-	        if (!query) {
-	          this.onresults(null);
-	        } else {
-	          this.worker.postMessage({ 'search': query });
-	          this.busy = true;
-	        }
-	        this.pending = null;
-	      } else {
-	        this.pending = query;
-	      }
-	    }
-	  }, {
-	    key: 'load',
-	    value: function load() {
-	      var _this2 = this;
-	
-	      if (this.loadingTime !== null) {
-	        return new Promise(function (resolve, reject) {
-	          return resolve(_this2.loadingTime);
+	            _this.element.appendChild(tabElement);
+	            tab.element = tabElement;
 	        });
-	      }
-	      return this.loadWaiter;
-	    }
-	  }]);
 	
-	  return SearchChannel;
+	        this.update(initialSelection);
+	    }
+	
+	    _createClass(TabStrip, [{
+	        key: 'update',
+	        value: function update(selectedId) {
+	            this.tabs.forEach(function (tab) {
+	                if (tab.id === selectedId) {
+	                    tab.element.setAttribute('aria-selected', true);
+	                } else {
+	                    tab.element.setAttribute('aria-selected', false);
+	                }
+	            });
+	        }
+	    }]);
+	
+	    return TabStrip;
 	}();
 	
-	exports.default = SearchChannel;
+	var Marian = exports.Marian = function () {
+	    function Marian() {
+	        _classCallCheck(this, Marian);
+	
+	        this.currentRequest = null;
+	        this.onresults = function () {};
+	        this.onerror = function () {};
+	    }
+	
+	    _createClass(Marian, [{
+	        key: 'search',
+	        value: function search(query, properties) {
+	            var _this2 = this;
+	
+	            if (!query) {
+	                this.onresults({
+	                    results: null,
+	                    spellingCorrections: {} }, query);
+	                return;
+	            }
+	
+	            if (this.currentRequest !== null) {
+	                this.currentRequest.abort();
+	            }
+	            var request = new XMLHttpRequest();
+	            this.currentRequest = request;
+	            var requestUrl = 'https://marian.mongodb.com/search?q=' + encodeURIComponent(query);
+	
+	            if (properties) {
+	                requestUrl += '&searchProperty=' + encodeURIComponent(properties);
+	            }
+	
+	            request.open('GET', requestUrl);
+	            request.onreadystatechange = function () {
+	                if (request.readyState !== 4) {
+	                    return;
+	                }
+	
+	                _this2.currentRequest = null;
+	
+	                if (!request.responseText) {
+	                    if (request.status === 400) {
+	                        _this2.onerror('Search request too long');
+	                    } else if (request.status === 503) {
+	                        _this2.onerror('Search server is temporarily unavailable');
+	                    } else if (request.status !== 0) {
+	                        _this2.onerror('Error receiving search results');
+	                    }
+	
+	                    return;
+	                }
+	
+	                var data = JSON.parse(request.responseText);
+	                _this2.onresults(data, query);
+	            };
+	
+	            request.onerror = function () {
+	                _this2.onerror('Network error when receiving search results');
+	            };
+	
+	            request.send();
+	        }
+	    }]);
+	
+	    return Marian;
+	}();
+	
+	var MarianUI = exports.MarianUI = function () {
+	    function MarianUI(defaultProperties, defaultPropertiesLabel) {
+	        var _this3 = this;
+	
+	        _classCallCheck(this, MarianUI);
+	
+	        this.marian = new Marian();
+	        this.marian.onerror = this.renderError.bind(this);
+	        this.marian.onresults = this.render.bind(this);
+	
+	        this.defaultProperties = defaultProperties;
+	        this.onchangequery = function () {};
+	
+	        this.container = document.createElement('div');
+	        this.container.className = 'marian';
+	
+	        this.spinnerElement = document.createElement('div');
+	        this.spinnerElement.className = 'spinner';
+	
+	        this.query = '';
+	        this.searchProperty = '';
+	
+	        // We have three options to search: the current site, the current MongoDB manual,
+	        // and all properties.
+	        var tabStripElements = [];
+	        if (defaultPropertiesLabel) {
+	            tabStripElements.push({ id: 'current', label: '' + defaultPropertiesLabel });
+	
+	            if (!this.searchProperty) {
+	                this.searchProperty = 'current';
+	            }
+	        }
+	
+	        if (!defaultPropertiesLabel || !defaultPropertiesLabel.match(/^MongoDB Manual/)) {
+	            tabStripElements.push({ id: 'manual', label: 'MongoDB Manual' });
+	
+	            if (!this.searchProperty) {
+	                this.searchProperty = 'manual';
+	            }
+	        }
+	
+	        tabStripElements.push({ id: 'all', label: 'All Results' });
+	
+	        this.tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
+	            _this3.tabStrip.update(tab.id);
+	            _this3.searchProperty = tab.id;
+	            _this3.search(_this3.query);
+	        });
+	
+	        var titleElement = document.createElement('div');
+	        titleElement.className = 'marian__heading';
+	        titleElement.innerText = 'Search Results';
+	
+	        this.listElement = document.createElement('ul');
+	        this.listElement.className = 'marian-results';
+	        this.container.appendChild(titleElement);
+	        this.container.appendChild(this.tabStrip.element);
+	        this.container.appendChild(this.spinnerElement);
+	        this.container.appendChild(this.listElement);
+	
+	        this.query = this.parseUrl();
+	
+	        this.bodyElement = null;
+	        document.addEventListener('DOMContentLoaded', function () {
+	            var rootElement = [document.querySelector('.main-column'), document.querySelector('.main'), document.body].filter(function (el) {
+	                return Boolean(el);
+	            })[0];
+	
+	            rootElement.appendChild(_this3.container);
+	
+	            var candidates = ['.main__cards', '.main__content', '.document'];
+	            for (var i = 0; i < candidates.length; i += 1) {
+	                var candidate = candidates[i];
+	                _this3.bodyElement = document.querySelector(candidate);
+	                if (_this3.bodyElement) {
+	                    break;
+	                }
+	            }
+	
+	            // If we can't find a page body, just use a dummy element
+	            if (!_this3.bodyElement) {
+	                _this3.bodyElement = document.createElement('div');
+	            }
+	
+	            _this3.search(_this3.query);
+	        });
+	    }
+	
+	    _createClass(MarianUI, [{
+	        key: 'pushHistory',
+	        value: function pushHistory() {
+	            var locationSansQuery = window.location.href.replace(/\?.*/, '');
+	
+	            var newURL = void 0;
+	            if (this.query) {
+	                newURL = locationSansQuery + '?searchProperty=' + encodeURIComponent(this.searchProperty) + '&query=' + encodeURIComponent(this.query);
+	            } else {
+	                newURL = locationSansQuery;
+	            }
+	
+	            window.history.replaceState(null, null, newURL);
+	        }
+	    }, {
+	        key: 'parseUrl',
+	        value: function parseUrl() {
+	            var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
+	            locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
+	            if (locationSearchProperty) {
+	                this.searchProperty = locationSearchProperty;
+	                this.tabStrip.update(this.searchProperty);
+	            }
+	
+	            var locationQuery = window.location.search.match(/query=([^&#]*)/);
+	            return locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
+	        }
+	    }, {
+	        key: 'show',
+	        value: function show() {
+	            this.container.className = 'marian marian--shown';
+	            this.bodyElement.style.display = 'none';
+	        }
+	    }, {
+	        key: 'hide',
+	        value: function hide() {
+	            this.container.className = 'marian';
+	            this.bodyElement.style.removeProperty('display');
+	        }
+	    }, {
+	        key: 'search',
+	        value: function search(query) {
+	            this.query = query;
+	            this.pushHistory();
+	            if (!query) {
+	                this.listElement.innerText = '';
+	                this.hide();
+	                return;
+	            }
+	
+	            this.show();
+	
+	            var searchProperty = '';
+	            if (this.defaultProperties.length && this.searchProperty === 'current') {
+	                searchProperty = this.defaultProperties;
+	            } else if (this.searchProperty === 'manual') {
+	                searchProperty = 'manual-current';
+	            }
+	
+	            this.spinnerElement.className = 'spinner';
+	            this.marian.search(query, searchProperty);
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render(data, query) {
+	            var _this4 = this;
+	
+	            this.spinnerElement.className = 'spinner spinner--hidden';
+	
+	            var spellingErrors = Object.keys(data.spellingCorrections);
+	            if (spellingErrors.length > 0) {
+	                var corrected = query;
+	                spellingErrors.forEach(function (orig) {
+	                    corrected = corrected.replace(orig, data.spellingCorrections[orig]);
+	                });
+	
+	                var li = document.createElement('li');
+	                var correctLink = document.createElement('a');
+	                correctLink.onclick = function () {
+	                    _this4.onchangequery(corrected);
+	                };
+	                li.className = 'marian-result';
+	                correctLink.className = 'marian-spelling-correction';
+	                correctLink.innerText = 'Did you mean: ' + corrected;
+	                li.appendChild(correctLink);
+	                this.listElement.appendChild(li);
+	            }
+	
+	            data.results.forEach(function (result) {
+	                var li = document.createElement('li');
+	                li.className = 'marian-result';
+	
+	                var titleLink = document.createElement('a');
+	                titleLink.innerText = result.title;
+	                titleLink.className = 'marian-title';
+	                titleLink.href = result.url;
+	
+	                var previewElement = document.createElement('div');
+	                previewElement.innerText = result.preview;
+	                previewElement.className = 'marian-preview';
+	
+	                li.appendChild(titleLink);
+	                li.appendChild(previewElement);
+	                _this4.listElement.appendChild(li);
+	            });
+	        }
+	    }, {
+	        key: 'renderError',
+	        value: function renderError(message) {
+	            this.spinnerElement.className = 'spinner spinner--hidden';
+	
+	            var li = document.createElement('li');
+	            li.className = 'marian-result';
+	            li.innerText = message;
+	            this.listElement.appendChild(li);
+	        }
+	    }]);
+
+	    return MarianUI;
+	}();
 
 /***/ }),
 /* 190 */

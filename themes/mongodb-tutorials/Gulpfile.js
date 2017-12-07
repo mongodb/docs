@@ -119,30 +119,6 @@ gulp.task('js:build-navbar', function() {
     .pipe(gulp.dest('./static/js/'))
 })
 
-gulp.task('js:build-search', function() {
-  gulp.src(['whatwg-fetch', './src/worker-search.js'])
-    .pipe(gulpWebpack({
-      output: {
-        filename: 'worker-search.js'
-      },
-      devtool: 'source-maps'
-    }))
-    .pipe(gulp.dest('./static/js/'))
-})
-
-gulp.task('js:prod:build-search', function(cb) {
-  pump([
-    gulp.src(['whatwg-fetch', './src/worker-search.js']),
-    gulpWebpack({
-      output: {
-        filename: 'worker-search.min.js'
-      }
-    }),
-    babili(),
-    gulp.dest('./static/js/')
-  ], cb)
-})
-
 gulp.task('js:prod:build-navbar', function(cb) {
   pump([
     gulp.src('./src/navbar.js'),
@@ -344,7 +320,6 @@ gulp.task('js', [
   'js:build-home',
   'js:build-single',
   'js:build-navbar',
-  'js:build-search',
   'js:build-landing'
 ])
 
@@ -352,7 +327,6 @@ gulp.task('js:prod', [
   'js:prod:build-home',
   'js:prod:build-single',
   'js:prod:build-navbar',
-  'js:prod:build-search',
   'js:prod:build-landing'
 ])
 

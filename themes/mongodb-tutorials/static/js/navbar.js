@@ -70,8 +70,6 @@
 	
 	var _Marian = __webpack_require__(189);
 	
-	var _Marian2 = _interopRequireDefault(_Marian);
-	
 	var _navbarDropdown = __webpack_require__(190);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
@@ -140,7 +138,7 @@
 	        }
 	      }
 	
-	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label);
+	      _this.state.marian = new _Marian.MarianUI(searchProperties, label);
 	      _this.state.timeout = -1;
 	      _this.state.searchText = _this.state.marian.query;
 	
@@ -27270,13 +27268,83 @@
 	    return TabStrip;
 	}();
 	
-	var Marian = function () {
-	    function Marian(url, defaultProperties, defaultPropertiesLabel) {
-	        var _this2 = this;
-	
+	var Marian = exports.Marian = function () {
+	    function Marian() {
 	        _classCallCheck(this, Marian);
 	
-	        this.url = url.replace(/\/+$/, '');
+	        this.currentRequest = null;
+	        this.onresults = function () {};
+	        this.onerror = function () {};
+	    }
+	
+	    _createClass(Marian, [{
+	        key: 'search',
+	        value: function search(query, properties) {
+	            var _this2 = this;
+	
+	            if (!query) {
+	                this.onresults({
+	                    results: null,
+	                    spellingCorrections: {} }, query);
+	                return;
+	            }
+	
+	            if (this.currentRequest !== null) {
+	                this.currentRequest.abort();
+	            }
+	            var request = new XMLHttpRequest();
+	            this.currentRequest = request;
+	            var requestUrl = 'https://marian.mongodb.com/search?q=' + encodeURIComponent(query);
+	
+	            if (properties) {
+	                requestUrl += '&searchProperty=' + encodeURIComponent(properties);
+	            }
+	
+	            request.open('GET', requestUrl);
+	            request.onreadystatechange = function () {
+	                if (request.readyState !== 4) {
+	                    return;
+	                }
+	
+	                _this2.currentRequest = null;
+	
+	                if (!request.responseText) {
+	                    if (request.status === 400) {
+	                        _this2.onerror('Search request too long');
+	                    } else if (request.status === 503) {
+	                        _this2.onerror('Search server is temporarily unavailable');
+	                    } else if (request.status !== 0) {
+	                        _this2.onerror('Error receiving search results');
+	                    }
+	
+	                    return;
+	                }
+	
+	                var data = JSON.parse(request.responseText);
+	                _this2.onresults(data, query);
+	            };
+	
+	            request.onerror = function () {
+	                _this2.onerror('Network error when receiving search results');
+	            };
+	
+	            request.send();
+	        }
+	    }]);
+	
+	    return Marian;
+	}();
+	
+	var MarianUI = exports.MarianUI = function () {
+	    function MarianUI(defaultProperties, defaultPropertiesLabel) {
+	        var _this3 = this;
+	
+	        _classCallCheck(this, MarianUI);
+	
+	        this.marian = new Marian();
+	        this.marian.onerror = this.renderError.bind(this);
+	        this.marian.onresults = this.render.bind(this);
+	
 	        this.defaultProperties = defaultProperties;
 	        this.onchangequery = function () {};
 	
@@ -27285,8 +27353,6 @@
 	
 	        this.spinnerElement = document.createElement('div');
 	        this.spinnerElement.className = 'spinner';
-	
-	        this.currentRequest = null;
 	
 	        this.query = '';
 	        this.searchProperty = '';
@@ -27313,9 +27379,9 @@
 	        tabStripElements.push({ id: 'all', label: 'All Results' });
 	
 	        this.tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
-	            _this2.tabStrip.update(tab.id);
-	            _this2.searchProperty = tab.id;
-	            _this2.search(_this2.query);
+	            _this3.tabStrip.update(tab.id);
+	            _this3.searchProperty = tab.id;
+	            _this3.search(_this3.query);
 	        });
 	
 	        var titleElement = document.createElement('div');
@@ -27329,33 +27395,35 @@
 	        this.container.appendChild(this.spinnerElement);
 	        this.container.appendChild(this.listElement);
 	
+	        this.query = this.parseUrl();
+	
 	        this.bodyElement = null;
 	        document.addEventListener('DOMContentLoaded', function () {
 	            var rootElement = [document.querySelector('.main-column'), document.querySelector('.main'), document.body].filter(function (el) {
 	                return Boolean(el);
 	            })[0];
 	
-	            rootElement.appendChild(_this2.container);
+	            rootElement.appendChild(_this3.container);
 	
 	            var candidates = ['.main__cards', '.main__content', '.document'];
 	            for (var i = 0; i < candidates.length; i += 1) {
 	                var candidate = candidates[i];
-	                _this2.bodyElement = document.querySelector(candidate);
-	                if (_this2.bodyElement) {
+	                _this3.bodyElement = document.querySelector(candidate);
+	                if (_this3.bodyElement) {
 	                    break;
 	                }
 	            }
 	
 	            // If we can't find a page body, just use a dummy element
-	            if (!_this2.bodyElement) {
-	                _this2.bodyElement = document.createElement('div');
+	            if (!_this3.bodyElement) {
+	                _this3.bodyElement = document.createElement('div');
 	            }
 	
-	            _this2.parseUrl();
+	            _this3.search(_this3.query);
 	        });
 	    }
 	
-	    _createClass(Marian, [{
+	    _createClass(MarianUI, [{
 	        key: 'pushHistory',
 	        value: function pushHistory() {
 	            var locationSansQuery = window.location.href.replace(/\?.*/, '');
@@ -27380,8 +27448,7 @@
 	            }
 	
 	            var locationQuery = window.location.search.match(/query=([^&#]*)/);
-	            locationQuery = locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
-	            this.search(locationQuery);
+	            return locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
 	        }
 	    }, {
 	        key: 'show',
@@ -27398,8 +27465,6 @@
 	    }, {
 	        key: 'search',
 	        value: function search(query) {
-	            var _this3 = this;
-	
 	            this.query = query;
 	            this.pushHistory();
 	            if (!query) {
@@ -27410,55 +27475,22 @@
 	
 	            this.show();
 	
-	            if (this.currentRequest !== null) {
-	                this.currentRequest.abort();
-	            }
-	            var request = new XMLHttpRequest();
-	            this.currentRequest = request;
-	            var requestUrl = this.url + '/search?q=' + encodeURIComponent(query);
-	
+	            var searchProperty = '';
 	            if (this.defaultProperties.length && this.searchProperty === 'current') {
-	                requestUrl += '&searchProperty=' + encodeURIComponent(this.defaultProperties);
+	                searchProperty = this.defaultProperties;
 	            } else if (this.searchProperty === 'manual') {
-	                requestUrl += '&searchProperty=manual-current';
+	                searchProperty = 'manual-current';
 	            }
 	
-	            this.listElement.innerText = '';
 	            this.spinnerElement.className = 'spinner';
-	            request.open('GET', requestUrl);
-	            request.onreadystatechange = function () {
-	                if (request.readyState !== 4) {
-	                    return;
-	                }
-	
-	                _this3.currentRequest = null;
-	                _this3.spinnerElement.className = 'spinner spinner--hidden';
-	
-	                if (!request.responseText) {
-	                    if (request.status === 400) {
-	                        _this3.renderError('Search request too long');
-	                    } else if (request.status === 503) {
-	                        _this3.renderError('Search server is temporarily unavailable');
-	                    } else if (request.status !== 0) {
-	                        _this3.renderError('Error receiving search results');
-	                    }
-	
-	                    return;
-	                }
-	
-	                var data = JSON.parse(request.responseText);
-	                _this3.render(data, query);
-	            };
-	            request.onerror = function () {
-	                _this3.renderError('Network error when receiving search results');
-	            };
-	
-	            request.send();
+	            this.marian.search(query, searchProperty);
 	        }
 	    }, {
 	        key: 'render',
 	        value: function render(data, query) {
 	            var _this4 = this;
+	
+	            this.spinnerElement.className = 'spinner spinner--hidden';
 	
 	            var spellingErrors = Object.keys(data.spellingCorrections);
 	            if (spellingErrors.length > 0) {
@@ -27500,18 +27532,17 @@
 	    }, {
 	        key: 'renderError',
 	        value: function renderError(message) {
-	            console.error(message);
+	            this.spinnerElement.className = 'spinner spinner--hidden';
+	
 	            var li = document.createElement('li');
 	            li.className = 'marian-result';
 	            li.innerText = message;
 	            this.listElement.appendChild(li);
 	        }
 	    }]);
-	
-	    return Marian;
+
+	    return MarianUI;
 	}();
-	
-	exports.default = Marian;
 
 /***/ }),
 /* 190 */

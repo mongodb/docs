@@ -7,9 +7,6 @@ import TutorialList from './tutorialList.js'
 import util from './util.js'
 import 'whatwg-fetch'
 
-
-const baseURL = window.location.origin
-
 class App extends React.Component {
   constructor (props) {
     super(props)
@@ -17,7 +14,7 @@ class App extends React.Component {
       searchResults: null,
       options: [],
       tutorials: [],
-      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix || '',
+      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix.replace(/\/+$/, '') || '',
     }
 
     this.updateFacet = this.updateFacet.bind(this)
@@ -25,7 +22,7 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    fetch(baseURL + this.state.assetsPrefix + '/tags.json').then((response) => {
+    fetch(this.state.assetsPrefix + '/tags.json').then((response) => {
       return response.json()
     }).then((data) => {
       this.setState({
@@ -67,7 +64,11 @@ class App extends React.Component {
   }
 
   onResults = (results) => {
-    this.setState({searchResults: results})
+    this.setState({searchResults: results.results})
+  }
+
+  onError = (msg) => {
+    console.error(msg)
   }
 
   render () {
@@ -108,13 +109,15 @@ class App extends React.Component {
 
     if (this.state.searchResults !== null) {
       const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
+      tutorials = this.state.searchResults.filter(result => {
+        const slug = result.url.match(/(\/[^/]+)\/index\.html$/)
+        if (slug) {
+          result.url = slug[1]
+        }
 
-      const tutorialURLs = this.state.searchResults.filter(slug => {
-        return tutorialsSet.has(slug)
-      })
-
-      tutorials = tutorialURLs.map(url => {
-        return tutorialsMatchingFacets.find(t => t.url === url)
+        return tutorialsSet.has(result.url)
+      }).map(tutorial => {
+        return tutorialsMatchingFacets.find(t => t.url === tutorial.url)
       })
     }
 
@@ -132,16 +135,16 @@ class App extends React.Component {
 
         <div className="main__content">
           <div className="tutorial-search__wrapper">
-            <Search baseURL={baseURL + this.state.assetsPrefix} onResults={this.onResults} />
+            <Search baseURL={this.state.assetsPrefix} onResults={this.onResults} onError={this.onError} />
           </div>
 
           <h1 className="main__title">Tutorials</h1>
-          <TutorialList tutorials={ tutorials } baseURL={baseURL + this.state.assetsPrefix} />
+          <TutorialList tutorials={ tutorials } baseURL={this.state.assetsPrefix} />
         </div>
       </div>
     )
   }
 }
 
-var main = document.getElementById('main')
+const main = document.getElementById('main')
 ReactDOM.render(<App {...(main.dataset)} />, main)

@@ -4,7 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Velocity from 'velocity-animate'
 
-import Marian from './Marian.js'
+import {MarianUI} from './Marian.js'
 import NavbarDropdown from './navbar-dropdown.js'
 
 
@@ -35,7 +35,7 @@ class Navbar extends React.Component {
         }
       }
 
-      this.state.marian = new Marian('https://marian.mongodb.com', searchProperties, label)
+      this.state.marian = new MarianUI(searchProperties, label)
       this.state.timeout = -1
       this.state.searchText = this.state.marian.query
 

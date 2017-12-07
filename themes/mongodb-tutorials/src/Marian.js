@@ -30,9 +30,68 @@ class TabStrip {
     }
 }
 
-export default class Marian {
-    constructor(url, defaultProperties, defaultPropertiesLabel) {
-        this.url = url.replace(/\/+$/, '')
+export class Marian {
+    constructor() {
+        this.currentRequest = null
+        this.onresults = () => {}
+        this.onerror = () => {}
+    }
+
+    search(query, properties) {
+        if (!query) {
+            this.onresults({
+                results: null,
+                spellingCorrections: {}}, query)
+            return
+        }
+
+        if (this.currentRequest !== null) { this.currentRequest.abort() }
+        const request = new XMLHttpRequest()
+        this.currentRequest = request
+        let requestUrl = 'https://marian.mongodb.com/search?q=' + encodeURIComponent(query)
+
+        if (properties) {
+            requestUrl += `&searchProperty=${encodeURIComponent(properties)}`
+        }
+
+        request.open('GET', requestUrl)
+        request.onreadystatechange = () => {
+            if (request.readyState !== 4) {
+                return
+            }
+
+            this.currentRequest = null
+
+            if (!request.responseText) {
+                if (request.status === 400) {
+                    this.onerror('Search request too long')
+                } else if (request.status === 503) {
+                    this.onerror('Search server is temporarily unavailable')
+                } else if (request.status !== 0) {
+                    this.onerror('Error receiving search results')
+                }
+
+                return
+            }
+
+            const data = JSON.parse(request.responseText)
+            this.onresults(data, query)
+        }
+
+        request.onerror = () => {
+            this.onerror('Network error when receiving search results')
+        }
+
+        request.send()
+    }
+}
+
+export class MarianUI {
+    constructor(defaultProperties, defaultPropertiesLabel) {
+        this.marian = new Marian()
+        this.marian.onerror = this.renderError.bind(this)
+        this.marian.onresults = this.render.bind(this)
+
         this.defaultProperties = defaultProperties
         this.onchangequery = () => {}
 
@@ -41,8 +100,6 @@ export default class Marian {
 
         this.spinnerElement = document.createElement('div')
         this.spinnerElement.className = 'spinner'
-
-        this.currentRequest = null
 
         this.query = ''
         this.searchProperty = ''
@@ -85,6 +142,8 @@ export default class Marian {
         this.container.appendChild(this.spinnerElement)
         this.container.appendChild(this.listElement)
 
+        this.query = this.parseUrl()
+
         this.bodyElement = null
         document.addEventListener('DOMContentLoaded', () => {
             const rootElement = [
@@ -106,7 +165,7 @@ export default class Marian {
                 this.bodyElement = document.createElement('div')
             }
 
-            this.parseUrl()
+            this.search(this.query)
         })
     }
 
@@ -132,8 +191,7 @@ export default class Marian {
         }
 
         let locationQuery = window.location.search.match(/query=([^&#]*)/)
-        locationQuery = (locationQuery !== null)? decodeURIComponent(locationQuery[1]) : ''
-        this.search(locationQuery)
+        return (locationQuery !== null)? decodeURIComponent(locationQuery[1]) : ''
     }
 
     show() {
@@ -157,51 +215,20 @@ export default class Marian {
 
         this.show()
 
-        if (this.currentRequest !== null) { this.currentRequest.abort() }
-        const request = new XMLHttpRequest()
-        this.currentRequest = request
-        let requestUrl = this.url + '/search?q=' + encodeURIComponent(query)
-
+        let searchProperty = ''
         if (this.defaultProperties.length && this.searchProperty === 'current') {
-            requestUrl += `&searchProperty=${encodeURIComponent(this.defaultProperties)}`
+            searchProperty = this.defaultProperties
         } else if (this.searchProperty === 'manual') {
-            requestUrl += '&searchProperty=manual-current'
+            searchProperty = 'manual-current'
         }
 
-        this.listElement.innerText = ''
         this.spinnerElement.className = 'spinner'
-        request.open('GET', requestUrl)
-        request.onreadystatechange = () => {
-            if (request.readyState !== 4) {
-                return
-            }
-
-            this.currentRequest = null
-            this.spinnerElement.className = 'spinner spinner--hidden'
-
-            if (!request.responseText) {
-                if (request.status === 400) {
-                    this.renderError('Search request too long')
-                } else if (request.status === 503) {
-                    this.renderError('Search server is temporarily unavailable')
-                } else if (request.status !== 0) {
-                    this.renderError('Error receiving search results')
-                }
-
-                return
-            }
-
-            const data = JSON.parse(request.responseText)
-            this.render(data, query)
-        }
-        request.onerror = () => {
-            this.renderError('Network error when receiving search results')
-        }
-
-        request.send()
+        this.marian.search(query, searchProperty)
     }
 
     render(data, query) {
+        this.spinnerElement.className = 'spinner spinner--hidden'
+
         const spellingErrors = Object.keys(data.spellingCorrections)
         if (spellingErrors.length > 0) {
             let corrected = query
@@ -241,7 +268,8 @@ export default class Marian {
     }
 
     renderError(message) {
-        console.error(message)
+        this.spinnerElement.className = 'spinner spinner--hidden'
+
         const li = document.createElement('li')
         li.className = 'marian-result'
         li.innerText = message

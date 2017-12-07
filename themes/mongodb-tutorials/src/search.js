@@ -1,31 +1,18 @@
 import React from 'react'
-
-import SearchChannel from './SearchChannel.js'
+import {Marian} from './Marian.js'
 
 export default class Search extends React.Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      searcher: new SearchChannel(props.baseURL, '/search.json'),
+      searcher: new Marian(),
       timeout: -1,
-      loaded: false,
       searchText: ''
     }
 
-    this.state.searcher.load().then(() => {
-      this.setState({loaded: true})
-    }).catch((err) => console.error(err))
-
     this.state.searcher.onresults = props.onResults
-  }
-
-  get placeholder() {
-    if (!this.state.searcher.loaded) {
-      return 'Loading...'
-    }
-
-    return 'Search Tutorials'
+    this.state.searcher.onerror = props.onError
   }
 
   onInput = (event) => {
@@ -40,17 +27,16 @@ export default class Search extends React.Component {
     // This prevents users from searching before the search has loaded
     this.setState({timeout:
       this.state.timeout = setTimeout(() => {
-        this.state.searcher.search(this.state.searchText)
+        this.state.searcher.search(this.state.searchText, 'tutorials-master')
       }, 250)})
   }
 
   render() {
     return (
-      <input type="search" 
+      <input type="search"
              className="tutorial-search"
-             placeholder={this.placeholder}
+             placeholder="Search Tutorials"
              value={this.state.searchText}
-             disabled={!this.state.searcher.loaded}
              onInput={this.onInput}
       />
     )
