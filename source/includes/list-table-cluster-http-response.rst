@@ -44,21 +44,59 @@
 
    * - ``mongoURI``
      - string
-     - The :manual:`connection string </reference/connection-string>` for
-       connecting to the cluster through a :manual:`MongoDB driver
-       </applications/drivers>` or the :program:`mongo` shell. To download the
-       :program:`mongo` shell, click a cluster's :guilabel:`Connect` button
-       and follow the download instructions.
+     - The base 
+       :manual:`connection string </reference/connection-string>` for
+       the cluster. Include the following query parameters
+       to use the ``mongoURI`` for connecting to the |service| cluster
 
-       When you create a new cluster, the ``mongoURI`` will not show up while
-       the cluster is being built. |service| provides the connection string
-       only after the cluster is running.
+       - ``replicaSet=<replica set name>`` (replica set clusters only)
+       - ``ssl=true``
+       - ``authSource=admin``
+
+       Include a username and password for a MongoDB user associated to
+       the |service| project directly after the ``mongodb://`` protocol
+       portion of the ``mongoURI``. To review the connection string 
+       format, see the  :manual:`connection string format documentation
+       </reference/connection-string>`. To add MongoDB users to a 
+       |service| project, see :ref:`mongodb-users`.
+
+       You cannot connect to a |service| cluster using ``mongoURI``
+       without all the specified query parameters and the user
+       authentication information.
+
+       |service| only displays this field after the cluster is
+       operational, not while it builds the cluster.
 
    * - ``mongoURIUpdated``
      - string
      - Lists when the connection string was last updated. The connection
        string changes, for example, if you change a replica set to a sharded
        cluster.
+
+       |service| only displays this field after the cluster is
+       operational, not while it builds the cluster.
+
+   * - ``mongoURIWithOptions``
+     - string
+
+     - The :manual:`connection string </reference/connection-string>` 
+       for connecting to the |service| cluster. Includes
+       the ``replicaSet``, ``ssl``, and ``authSource`` query parameters
+       in the connection string with values appropriate for the cluster.
+
+       Include a username and password for a MongoDB user associated to
+       the |service| project directly after the ``mongodb://`` protocol
+       portion of the ``mongoURI``. To review the connection string 
+       format, see the  :manual:`connection string format documentation
+       </reference/connection-string>`. To add MongoDB users to a 
+       |service| project, see :ref:`mongodb-users`.
+
+       You cannot connect to a |service| cluster using
+       ``mongoURIWithOptions`` without the user authentication
+       information.
+
+       |service| only displays this field after the cluster is
+       operational, not while it builds the cluster.
 
    * - ``numShards``
      - integer
