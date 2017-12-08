@@ -48,8 +48,9 @@ deploy-search-index: ## Update the search index for this branch
 	fi
 
 migrate-assets:
-	-rm -r source/plugins/example-{user-view,video-player,ssh-tunnel-status}
-	mkdir -p source/plugins/example-{video-player,user-view,ssh-tunnel-status}
+	-rm -r source/plugins/example-{user-view,video-player,server-version,ssh-tunnel-status}
+	mkdir -p source/plugins/example-{video-player,user-view,server-version,ssh-tunnel-status}
 	cp plugin-examples/media-player/src/{actions/actions.js,components/media-player/media-player.jsx,stores/store.js} source/plugins/example-video-player/
 	cp plugin-examples/users/src/{components/Users/Users.jsx,stores/store.js,components/Users/Users.less} source/plugins/example-user-view/
-	cp plugin-examples/ssh-tunnel-status/src/{stores/store.js,components/ssh-tunnel-status/ssh-tunnel-status.jsx,components/ssh-tunnel-status/ssh-tunnel-status.less} source/plugins/example-ssh-tunnel-status/
+	cp plugin-examples/server-version/src/{components/server-version/server-version.jsx,stores/store.js,constants/server-version.js,components/server-version/server-version.less,index.js} source/plugins/example-server-version/
+	cp plugin-examples/ssh-tunnel-status/src/{{stores/store.js,components/ssh-tunnel-status/ssh-tunnel-status.jsx,components/ssh-tunnel-status/ssh-tunnel-status.less} source/plugins/example-ssh-tunnel-status/

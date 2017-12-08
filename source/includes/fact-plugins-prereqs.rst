@@ -1,3 +1,12 @@
+The following are required to begin building |compass| plugins:
+
+- |compass| (version 1.11 or greater)
+- Node Version Manager (NVM)
+- NodeJS
+- Khaos
+
+The following procedure outlines how to install these dependencies:
+
 1. Install the latest version of |compass| for your operating system
    from the
    `MongoDB Download Center <https://www.mongodb.com/download-center#compass>`__.
@@ -28,7 +37,7 @@
 
       npm install -g khaos
 
-5. Create the MongoDB Compass plugins directory. Compass looks for plugins in this
+5. Create the |compass| plugins directory. Compass looks for plugins in this
    directory:
 
    |compass|
