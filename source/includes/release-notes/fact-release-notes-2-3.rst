@@ -8,13 +8,6 @@ In |bi-short| 2.3, :doc:`mongosqld </reference/mongosqld>` includes the
 schema mapping functionality previously found in
 :doc:`mongodrdl </reference/mongodrdl>`.
 
-Kerberos Authentication Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|bi-short| supports `Kerberos <https://web.mit.edu/kerberos/>`_,
-an enterprise security protocol that authenticates clients through
-a trusted third server.
-
 Log Rotation
 ~~~~~~~~~~~~
 
