@@ -1,3 +1,12 @@
+.. _backup-6.1.1.693:
+
+Backup Agent ``6.1.1.693``
+--------------------------
+
+*Released 2017-11-19*
+
+Fix: Upgrades of the Backup Agent performed by the Automation Agent were missing a parameter on Windows.
+
 .. _backup-6.0.0.688:
 
 Backup Agent ``6.1.0.688``
