@@ -19,7 +19,7 @@ compressors ``zlib,snappy`` and the :program:`mongod` specifies
 
 If the parties do not share at least one common compressor, messages
 between the parties are uncompressed. For example, if a
-:program:`mongo` shell specifies the following network compressors
-``zlib`` and :program:`mongod` species only ``snappy``, messages
+:program:`mongo` shell specifies the network compressor
+``zlib`` and :program:`mongod` specifies ``snappy``, messages
 between :program:`mongo` shell and :program:`mongod` are not compressed.
 
