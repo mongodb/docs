@@ -27,6 +27,12 @@ The ``auth`` object is optional and defines :manual:`authentication-related
                "otherDBRoles" : {
                    <string> : [ <string>, ... ]
                }
+               "authenticationRestrictions" : [
+                  {
+                     "clientSource": ["<IP>" | "<CIDR range>", ...],
+                     "serverAddress": ["<IP>" | "<CIDR range>", ...]
+                  }, ...
+               ]    
            }
        ]
    }
@@ -34,6 +40,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
 .. list-table::
    :widths: 30 10 80
    :header-rows: 1
+   :class: table-large
 
    * - Name
      - Type
@@ -54,10 +61,9 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        an instance.
 
    * - ``auth.disabled``
-     - Boolean
-     - Specifies whether authentication is enabled or disabled. Set to
-       ``true`` to disable authentication, or ``false`` to enable
-       authentication.
+     - boolean
+     - *Optional*. Indicates if auth is disabled. If not specified,
+       ``disabled`` defaults to ``false``.
 
    * - ``auth.deploymentAuthMechanisms``
      - array
@@ -83,11 +89,6 @@ The ``auth`` object is optional and defines :manual:`authentication-related
           
           * - ``GSSAPI``
             - :ref:`Kerberos <security-auth-kerberos>`
-
-   * - ``auth.disabled``
-     - boolean
-     - *Optional*. Indicates if auth is disabled. If not specified,
-       ``disabled`` defaults to ``false``.
 
    * - ``auth.key``
      - string
@@ -116,11 +117,11 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        must contain two fields: the ``auth.usersDeleted.user`` field
        and the ``auth.usersDeleted.dbs`` field.
 
-   * - ``auth.usersDeleted.user``
+   * - ``auth.usersDeleted[n].user``
      - string
      - The user's name.
 
-   * - ``auth.usersDeleted.dbs``
+   * - ``auth.usersDeleted[n].dbs``
      - array
      - String values that list the names of the databases from which the
        authenticated user is to be deleted.
@@ -135,37 +136,37 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        ``auth.usersWanted.initPwd``, or
        ``auth.usersWanted.userSource``.
 
-   * - ``auth.usersWanted.db``
+   * - ``auth.usersWanted[n].db``
      - string
      - The database to which to add the user.
 
-   * - ``auth.usersWanted.user``
+   * - ``auth.usersWanted[n].user``
      - string
      - The name of the user.
 
-   * - ``auth.usersWanted.roles``
+   * - ``auth.usersWanted[n].roles``
      - array
      - String values that list the :term:`roles <role>` to be assigned the
        user from the user's database, which is specified in ``auth.usersWanted.db``.
 
-   * - ``auth.usersWanted.pwd``
+   * - ``auth.usersWanted[n].pwd``
      - 32-character hex string
      - The :ref:`MONGODB-CR <mongodb-cr>` hash of the password
        assigned to the user. If you set this field, **do not** set the
        ``auth.usersWanted.initPwd`` or
        ``auth.usersWanted.userSource`` fields.
 
-   * - ``auth.usersWanted.initPwd``
+   * - ``auth.usersWanted[n].initPwd``
      - string
      - An initial cleartext password assigned to the user. If you set this
        field, **do not** set the ``auth.usersWanted.pwd`` or
        ``auth.usersWanted.userSource`` fields.
 
-   * - ``auth.usersWanted.userSource``
+   * - ``auth.usersWanted[n].userSource``
      - string
      - No longer supported.
 
-   * - ``auth.usersWanted.otherDBRoles``
+   * - ``auth.usersWanted[n].otherDBRoles``
      - object
      - *Optional*. If the ``auth.usersWanted.db`` field specifies
        ``admin`` as the user's database, then this object can assign to
@@ -173,3 +174,37 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        key-value pairs where the key is the name of the database and the
        value is an array of string values that list the roles be assigned
        from that database.
+
+   * - ``auth.usersWanted[n].authenticationRestrictions``
+     - array of documents
+     - *Optional*. The authentication restrictions that the server enforces
+       on the user.
+
+       .. only:: onprem
+
+           *New in version 3.6.1.*
+
+       .. include:: /includes/warning-inheriting-incompatible-auths.rst
+
+   * - ``auth.usersWanted[n].
+       authenticationRestrictions[k].clientSource``
+     - array of IP addresses and/or CIDR ranges
+     - If present, when authenticating a user, the server verifies that
+       client's IP address is either in the given list or belongs to a 
+       :abbr:`CIDR (Classless Inter-Domain Routing)` range in the list. 
+       If the client's IP address is not present, the server does not
+       authenticate the user.
+
+   * - ``auth.usersWanted[n].
+       authenticationRestrictions[k].serverAddress``
+     - array of IP addresses and/or CIDR ranges
+     - A comma-separated array of IP addresses to which the client can connect. If present,
+       the server will verify that the client's connection was accepted
+       from an IP address in the given array. If the connection was accepted
+       from an unrecognized IP address, the server does not authenticate
+       the user.
+       
+       
+       
+       
+        
