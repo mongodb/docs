@@ -15,45 +15,43 @@ Build Indexes on Replica Sets
    :depth: 1
    :class: singlecol
 
-For replica sets, secondaries will begin building indexes *after* the
-:term:`primary` finishes building the index. In :term:`sharded clusters
-<sharded cluster>`, the :program:`mongos` will send :method:`createIndex()
-<db.collection.createIndex()>` to the primary members of the replica
-set for each shard, which then replicate to the secondaries after the
-primary finishes building the index.
+To minimize the impact of building an index on replica sets and sharded
+clusters with replica set shards, use the following procedure to build
+indexes in a rolling fashion.
 
-To minimize the impact of building an index on your replica set, you
-can use the following procedure to build indexes.
-
+This procedure *does* take one member out of the replica set at a time.
+However, this procedure will only affect one member of the set at a
+time rather than *all* secondaries at the same time.
 
 Considerations
 --------------
 
-.. important::
+Unique Indexes
+~~~~~~~~~~~~~~
 
-   To create :ref:`unique indexes <index-type-unique>` using the
-   following procedure, you must stop all writes to the collection
-   during this procedure.
+To create :ref:`unique indexes <index-type-unique>` using the following
+procedure, you must stop all writes to the collection during this
+procedure.
 
-   If you cannot stop all writes to the collection during this
-   procedure, do not use the procedure on this page. Instead, build
-   your unique index on the collection by:
+If you cannot stop all writes to the collection during this procedure,
+do not use the procedure on this page. Instead, build your unique index
+on the collection by:
 
-   - issuing :method:`db.collection.createIndex()` on the primary for a
-     replica set, or
+- issuing :method:`db.collection.createIndex()` on the primary for a
+  replica set, or
 
-   - issuing :method:`db.collection.createIndex()` on the
-     :program:`mongos` for a sharded cluster.
+- issuing :method:`db.collection.createIndex()` on the
+  :program:`mongos` for a sharded cluster.
 
-- Ensure that your :term:`oplog` is large enough to permit the
-  indexing or re-indexing operation to complete without falling
-  too far behind to catch up. See the :ref:`oplog sizing
-  <replica-set-oplog-sizing>` documentation for additional
-  information.
 
-- This procedure *does* take one member out of the replica set at a
-  time. However, this procedure will only affect one member of the
-  set at a time rather than *all* secondaries at the same time.
+Oplog Size
+~~~~~~~~~~
+
+Ensure that your :term:`oplog` is large enough to permit the indexing
+or re-indexing operation to complete without falling too far behind to
+catch up. See the :ref:`oplog sizing <replica-set-oplog-sizing>`
+documentation for additional information.
+
 
 Procedure
 ---------
@@ -129,41 +127,31 @@ Modify the port number (e.g. ``27017``) or the replica set name
 
 Allow replication to catch up on this member.
 
-Build Indexes on all Secondaries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Repeat the Procedure for the Remaining Secondaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For each secondary in the set, build an index according to the
-following steps:
+Once the member catches up with the other members of the set, repeat
+the procedure one member at a time for the remaining secondary members:
 
 #. :ref:`tutorial-index-on-replica-sets-stop-one-member`
+
 #. :ref:`tutorial-index-on-replica-sets-build-index`
+
 #. :ref:`tutorial-index-on-replica-sets-restart-mongod`
 
 Build the Index on the Primary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To build an index on the primary you can either:
+When all the secondaries have the new index, step down the primary,
+restart it as a standalone, and build the index on the former primary:
 
-#. :ref:`Build the index in the background
-   <index-creation-background>` on the primary.
+#. Use the :method:`rs.stepDown()` method in the :program:`mongo` shell
+   to step down the primary. Upon successful stepdown, the current primary
+   becomes a secondary and the replica set members elect a new primary.
 
-#. Step down the primary using the :method:`rs.stepDown()` method in
-   the :program:`mongo` shell to cause the current primary to become a
-   secondary graceful and allow the set to elect another member as
-   primary.
+#. :ref:`tutorial-index-on-replica-sets-stop-one-member`
 
-   Then repeat the index building procedure, listed below, to build the
-   index on the primary:
+#. :ref:`tutorial-index-on-replica-sets-build-index`
 
-   #. :ref:`tutorial-index-on-replica-sets-stop-one-member`
+#. :ref:`tutorial-index-on-replica-sets-restart-mongod`
 
-   #. :ref:`tutorial-index-on-replica-sets-build-index`
-
-   #. :ref:`tutorial-index-on-replica-sets-restart-mongod`
-
-Building the index on the background, takes longer than the foreground
-index build and results in a less compact index structure. Additionally,
-the background index build may impact write performance on the
-primary. However, building the index in the background allows the set to
-be continuously up for write operations while MongoDB builds the
-index.
