@@ -69,3 +69,8 @@
      - No
      - No
      - Yes
+
+   * - |bic|
+     - No
+     - No
+     - Yes
