@@ -16,6 +16,29 @@
 
        Default is true.
 
+   * - ``biConnector``
+     - document
+     - Information on whether |bic| is enabled or disabled for the cluster.
+
+       .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
+
+       The ``biConnector`` document includes the following fields:
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 80
+
+          * - Field
+            - Description
+
+          * - ``enabled``
+            - | ``true`` if |bic| is enabled.
+              | ``false`` if |bic| is disabled.
+
+          * - ``readPreference``
+            - | ``"primary"`` if |bic| reads from the primary.
+              | ``"secondary"`` if |bic| reads from a secondary.
+
    * - ``name``
      - string
      - The name of the cluster as it appears in |service|.
