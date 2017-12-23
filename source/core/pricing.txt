@@ -13,19 +13,132 @@ Edit Billing Information
 Overview
 --------
 
-.. admonition:: new
+Billing is at the organization level. Each organization has its own
+account, plan, and billing method. All projects in an organization
+share the same billing settings.
 
-   Billing is at the organization level. Previously, billing was at the
-   project/group level.
+.. _pricing-information:
 
-Each organization has its own account, plan, and billing method. All
-projects in an organization share the same billing settings.
-
-View Pricing Information for |mms| Features
--------------------------------------------
+Pricing Information for |mms| Features
+--------------------------------------
 
 |mms| pricing is described at
 `https://www.mongodb.com/cloud/cloud-manager <https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_.
+
+Monthly Billing
+---------------
+
+Your credit card is charged monthly.
+
+|mms| Standard
+~~~~~~~~~~~~~~
+
+For |mms| Standard, |mms| monthly charges are based on :ref:`Server
+Hours <server-pricing>` and :ref:`backup-pricing`.
+
+|mms| Premium
+~~~~~~~~~~~~~~
+
+For |mms| Premium, |mms| monthly charges are based on
+:ref:`backup-pricing`.
+
+.. _server-pricing:
+
+Server Hours (|mms| Standard)
+-----------------------------
+
+The following charges are for |mms| Standard only.
+
+The monthly charges include a charge for each billable server. A server
+is billable if it is running a :program:`mongod` process and is a data
+bearing node. Servers that act solely as config servers, arbiters and
+:program:`mongos` routers are not billable.
+
+The monthly rate is as specified on
+`https://www.mongodb.com/cloud/cloud-manager
+<https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. The monthly
+rate for each server is annualized and then divided by ``365 * 24`` to
+calculate an an Hourly Server Rate for each server. We sample your
+account once per hour to determine the number of servers running.
+
+.. _backup-pricing:
+
+Backup Costs
+------------
+
+Backup costs are affected by both the size of your backed-up snapshots
+and on your settings for snapshot frequency and retention.
+
+Size
+~~~~
+
+Monthly backup costs are based on the size per-gigabyte of your most
+recent snapshot.
+
+The cost per GB per month for backup pricing is as specified on
+`https://www.mongodb.com/cloud/cloud-manager
+<https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. The monthly
+rate is annualized and then divided by 365 to arrive at a Daily Backup
+Rate per GB. The first 1 GB per replica set is free.
+
+The size of the snapshot is roughly equivalent to the size of all
+documents and all indexes for all the databases backed up. To retrieve
+the size in gigabyte of the documents and indexes for a given database,
+you can issue the :manual:`db.stats() </reference/method/db.stats>`
+method and sum the ``dataSize`` and ``indexSize`` fields.
+
+.. code-block:: javascript
+
+   db.stats(1024*1024*1024).dataSize + db.stats(1024*1024*1024).indexSize
+
+Snapshot Frequency and Retention
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The rate is based on your having 28 snapshots at steady state: 
+
+- The six-hour snapshots are kept for two days; 
+
+- The daily snapshots for one week,
+
+- The weekly snapshots for one month,
+
+- The monthly for one year. 
+
+Adding that up, you get 8 + 5 + 3 + 12 = 28 snapshots. We adjust the
+backup rate each day based on the following formula:
+
+.. code-block:: none
+
+   backupRatePerMonth = $1.25 + snapshotAtSteadyState/28 * $1.25
+
+.. seealso:: :ref:`snapshot-frequency-and-retention`.
+
+Lowering the Monthly Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Frequency and Retention Settings
+````````````````````````````````
+
+Lowering snapshot frequency or retaining fewer snapshots lowers the
+cost per gigabyte. Retaining an increased number of snapshots or
+increasing the snapshot retention increases the cost per gigabyte.
+
+To change a backed-up deployment's schedule, click :guilabel:`Backup`, then
+the ellipsis icon for the backup, then :guilabel:`Edit Snapshot Schedule`.
+Administrators can change frequency and retention through the
+:doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in the
+API. Lowering snapshot frequency increases how long it takes to build a
+point-in-time restore.
+
+
+Excluding Databases or Collections
+``````````````````````````````````
+
+To reduce the size of your snapshots, you can exclude non-mission
+critical databases and collections from your backup. From the Backup
+Dashboard, click on the gear icon, select :guilabel:`Edit Excluded
+Namespaces` and enter the namespaces that you wish to exclude.
+
 
 View Your Plan Type
 -------------------
@@ -36,17 +149,6 @@ information on each plan, see
 <https://www.mongodb.com/cloud/cloud-manager?jmp=docs>`_. For
 monitoring metrics for each plan, see
 :doc:`/reference/monitoring-metrics-per-plan`.
-
-.. _pricing-information:
-
-View Pricing Information for Your Account
------------------------------------------
-
-#. Select your organization in the :guilabel:`Context` dropdown.
-
-#. Click :guilabel:`Settings`, then :guilabel:`Billing Overview`.
-
-2. Click :guilabel:`Understanding Your Bill`.
 
 .. _view-your-costs:
 
@@ -82,7 +184,6 @@ number (if applicable), do the following:
    :ref:`Invoice address <company-address>`, if set. If you set an
    Invoice Address, you have the option to use this address for the
    Billing Address.
-
 
 .. note::
 
@@ -145,71 +246,3 @@ Once you verify your credit card, retry the payment:
 1. Click :guilabel:`Settings`, then :guilabel:`Payment History`.
 
 2. On the line for the failed payment, click :guilabel:`Retry`.
-
-.. _backup-pricing:
-
-Backup Costs
-------------
-
-Backup costs are affected by the size of your backed-up snapshots and on your
-settings for :ref:`snapshot frequency and retention <snapshot-frequency-and-retention>`.
-
-Snapshot Size
-~~~~~~~~~~~~~
-
-The per-gigabyte charge for Backup is applied to the size of your most
-recent snapshot. A snapshot is roughly equivalent to the size of all
-documents and all indexes for all the databases backed up.
-
-To retrieve the size of the documents and indexes in a given database,
-issue the :manual:`dbStats </reference/command/dbStats>` command and sum
-the ``dataSize`` and ``indexSize`` fields. In the following example output
-of a :manual:`dbStats </reference/command/dbStats>` command that was
-issued to return gigabytes, the size of the database's documents and
-indexes is roughly 79.07GB, as found by adding the ``dataSize`` and
-``indexSize`` fields:
-
-.. code-block:: javascript
-
-   {
-       "db" : "mmsdbconfig",
-       "collections" : 88,
-       "objects" : 115153078,
-       "avgObjSize" : 551.9170146368124,
-       "dataSize" : 59.1901531778276,
-       "storageSize" : 64.05994385480881,
-       "numExtents" : 553,
-       "indexes" : 235,
-       "indexSize" : 19.876188188791275,
-       "fileSize" : 89.89453125,
-       "nsSizeMB" : 16,
-       "extentFreeList" : {
-           "num" : 19,
-           "totalSize" : 0
-       },
-       "dataFileVersion" : {
-           "major" : 4,
-           "minor" : 22
-       },
-       "ok" : 1
-   }
-
-Frequency and Retention Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The cost per gigabyte on the |mms| :ref:`Understanding Your Bill <pricing-information>`
-page assumes an installation that uses the default settings for :ref:`snapshot
-frequency and retention <snapshot-frequency-and-retention>`. Lowering snapshot
-frequency or retaining fewer snapshots lowers the rate. Retaining an increased
-number of snapshots increases the rate.
-
-To view your rate, click the
-:guilabel:`Usage Details` link on the :guilabel:`Billing/Subscriptions`
-page.
-
-To change a backed-up deployment's schedule, click :guilabel:`Backup`, then
-the ellipsis icon for the backup, then :guilabel:`Edit Snapshot Schedule`.
-Administrators can change frequency and retention through the
-:doc:`snapshotSchedule resource </reference/api/snapshot-schedule>` in the
-API. Lowering snapshot frequency increases how long it takes to build a
-point-in-time restore.
