@@ -1,0 +1,158 @@
+============================
+Change a Snapshot Expiration
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. include:: /includes/api-requirements.rst
+
+.. include:: /includes/api-base-url.rst
+
+Syntax
+------
+
+.. code-block:: none
+
+   PATCH /api/atlas/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-NAME}/snapshots/{SNAPSHOT-ID}
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 10 75
+
+   * - Path Element
+     - Required/Optional
+     - Description
+
+   * - ``GROUP-ID``
+
+     - Required
+
+     - The unique identifier of the :ref:`group <group-id>` that owns
+       the snapshots.
+
+   * - ``CLUSTER-NAME``
+
+     - Required
+
+     - The name of the cluster that contains the snapshots that you want
+       to retrieve.
+
+   * - ``SNAPSHOT-ID``
+
+     - Required
+
+     - The ID of the desired snapshot.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This endpoint may use any of the HTTP request query parameters available
+to all |service| API resources. These are all optional.
+
+.. include:: /includes/base-query-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``doNotDelete``
+     - boolean
+     - Indicator that the snapshot cannot be deleted.
+
+       .. important::
+          You cannot set ``doNotDelete`` to ``true`` *and* set a
+          timestamp for ``expires`` in the same request. If you do,
+          |mms| returns an error: ``Cannot modify snapshot because of
+          invalid fields.``
+
+   * - ``expires``
+     - timestamp
+     - The date in `ISO 8601
+       <https://en.wikipedia.org/wiki/ISO_8601>`_ date
+       and time format in :abbr:`UTC (Coordinated Universal Time)` after
+       which this snapshot can be deleted.
+
+       If ``doNotDelete`` is set to ``true``, any existing value in
+       ``expires`` is removed.
+
+       If ``expires`` is set to a timestamp at or before the current
+       date and time, |mms| deletes the snapshot at its next
+       opportunity. There is no guarantee that the snapshot would be
+       deleted immediately.
+
+       If the current ``expires`` timestamp has already passed, the
+       snapshot cannot be edited.
+
+Response Elements
+-----------------
+
+.. include:: /includes/list-table-snapshots-http-response.rst
+
+Examples
+--------
+
+Example Request
+~~~~~~~~~~~~~~~
+
+.. cssclass:: copyable-code
+.. code-block:: sh
+
+   curl -X PATCH -i -u "{username}:{apiKey}" -H "Content-Type: application/json" --digest "https://cloud.mongodb.com/api/atlas/v1.0/groups/6c7498dg87d9e6526801572b/clusters/Cluster0/snapshots/6b5380e6jvn128560506942b" --data '{"expires":"2018-12-01"}'
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+	"clusterId": "57c2487d833e9e75286093696",
+	"complete": true,
+	"created": {
+		"date": "2017-12-26T16:32:16Z",
+		"increment": 1
+	},
+	"doNotDelete": false,
+	"expires": "2018-12-01T00:00:00Z",
+	"groupId": "56c7498dg87d9e6526801572b",
+	"id": "5a4279d4fcc178500596745a",
+	"lastOplogAppliedTimestamp": {
+		"date": "2017-12-26T16:32:15Z",
+		"increment": 1
+	},
+	"links": [{
+		"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/6c7498dg87d9e6526801572b/clusters/Cluster0/snapshots/5a4279d4fcc178500596745a",
+		"rel": "self"
+	}],
+	"parts": [{
+		"clusterId": "57c2487d833e9e75286093696",
+		"compressionSetting": "GZIP",
+		"dataSizeBytes": 4502,
+		"encryptionEnabled": false,
+		"fileSizeBytes": 324760,
+		"mongodVersion": "3.4.10",
+		"replicaSetName": "Cluster0-shard-0",
+		"storageSizeBytes": 53248,
+		"typeName": "REPLICA_SET"
+	}]
+   }
