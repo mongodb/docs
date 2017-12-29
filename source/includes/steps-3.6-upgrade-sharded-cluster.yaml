@@ -38,38 +38,38 @@ title: "Upgrade the config servers."
 level: 4
 ref: 3.6-upgrade-config-servers
 content: |-
-   If the config servers are replica sets:
-      
    1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
       members of the replica set one at a time:
 
       a. Shut down the secondary :binary:`~bin.mongod` instance and replace
          the |oldversion| binary with the |newversion| binary.
 
-      #. Start the |newversion| binary with both the ``--configsvr``,
-         ``--port`` options, 
+      #. Start the |newversion| binary with the :option:`--configsvr`,
+         :option:`--replSet`, :option:`--port`, and :option:`--bind_ip`
+         options. Include any optional command line options used by the
+         previous deployment:
 
-         If the sharded cluster members are run on different hosts or
-         if you wish remote clients to connect to the sharded cluster,
-         you must also specify ``--bind_ip`` (or the
-         :setting:`net.bindIp` setting). For more information, see
-         :ref:`3.6-bind_ip-compatibility`.
-
+         .. cssclass:: copyable-code
          .. code-block:: sh
 
-            mongod --configsvr --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+            mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+
+         .. included:: /includes/fact-bind-ip-sharded-clusters.rst
 
          If using a :doc:`configuration file
          </reference/configuration-options>`, update the file to
          specify :setting:`sharding.clusterRole: configsvr
-         <sharding.clusterRole>` and :setting:`net.port` (and
-         :setting:`net.bindIp` setting if needed) and start the
-         |newversion| binary:
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp`
+         then start the |newversion| binary:
 
+         .. cssclass:: copyable-code
          .. code-block:: yaml
 
             sharding:
                clusterRole: configsvr
+            replication:
+               replSetName: <string>
             net:
                port: <port>
                bindIp: localhost,<ip address>
@@ -90,6 +90,7 @@ content: |-
          :method:`rs.stepDown()` to step down the primary and force an
          election of a new primary:
 
+         .. cssclass:: copyable-code
          .. code-block:: javascript
 
             rs.stepDown()
@@ -99,31 +100,32 @@ content: |-
          the stepped-down primary and replace the :binary:`~bin.mongod` binary
          with the |newversion| binary.
 
-      #. Start the |newversion| binary with both the ``--configsvr`` and
-         ``--port`` options:
+      #. Start the |newversion| binary with the :option:`--configsvr`,
+         :option:`--replSet`, :option:`--port`, and :option:`--bind_ip`
+         options. Include any optional command line options used by the
+         previous deployment:
 
-         If the sharded cluster members are run on different hosts or
-         if you wish remote clients to connect to the sharded cluster,
-         you must also specify ``--bind_ip`` (or the
-         :setting:`net.bindIp` setting). For more information, see
-         :ref:`3.6-bind_ip-compatibility`.
-
+         .. cssclass:: copyable-code
          .. code-block:: sh
 
-            mongod --configsvr --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+            mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
 
+         .. included:: /includes/fact-bind-ip-sharded-clusters.rst
 
          If using a :doc:`configuration file
          </reference/configuration-options>`, update the file to
          specify :setting:`sharding.clusterRole: configsvr
-         <sharding.clusterRole>` and :setting:`net.port` (and
-         :setting:`net.bindIp` setting if needed), and start the
-         |newversion| binary:
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp`
+         then start the |newversion| binary:
 
+         .. cssclass:: copyable-code
          .. code-block:: yaml
 
             sharding:
                clusterRole: configsvr
+            replication:
+               replSetName: <string>
             net:
                port: <port>
                bindIp: localhost,<ip address>
@@ -136,7 +138,11 @@ title: Upgrade the shards.
 level: 4
 ref: 3.6-upgrade-shards
 content: |-
-   Upgrade the shards one at a time. If the shards are replica sets, for each shard:
+   Upgrade the shards one at a time. If you are running standalone
+   shards, first convert them to a
+   :doc:`replica set</tutorial/convert-standalone-to-replica-set>`.
+   
+   For each shard:
 
    1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
       members of the replica set one at a time:
@@ -144,29 +150,31 @@ content: |-
       a. Shut down the :binary:`~bin.mongod` instance and replace the |oldversion|
          binary with the |newversion| binary.
 
-      #. Start the |newversion| binary with the ``--shardsvr`` and
-         ``--port`` command line options.
+      #. Start the |newversion| binary with the :option:`--shardsvr`,
+         :option:`--replSet`, :option:`--port`, and :option:`--bind_ip`
+         options. Include any optional command line options used by the
+         previous deployment:
 
-         If the sharded cluster members are run on different hosts or
-         if you wish remote clients to connect to the sharded cluster,
-         you must also specify ``--bind_ip`` (or the
-         :setting:`net.bindIp` setting). For more information, see
-         :ref:`3.6-bind_ip-compatibility`.
-
+         .. cssclass:: copyable-code
          .. code-block:: sh
 
-            mongod --shardsvr --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+            mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
 
-         Of if using a :doc:`configuration file
+         .. included:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         If using a :doc:`configuration file
          </reference/configuration-options>`, update the file to
-         include :setting:`sharding.clusterRole: shardsvr
-         <sharding.clusterRole>` and :setting:`net.port` (and
-         :setting:`net.bindIp` setting if needed) and start:
+         include :setting:`sharding.clusterRole: shardsvr <sharding.clusterRole>`,
+         :setting:`replication.replSetName`, :setting:`net.port`, and
+         :setting:`net.bindIp` then start the |newversion| binary:
 
+         .. cssclass:: copyable-code
          .. code-block:: yaml
 
             sharding:
                clusterRole: shardsvr
+            replication:
+               replSetName: <string>
             net:
                port: <port>
                bindIp: localhost,<ip address>
@@ -188,6 +196,7 @@ content: |-
       :method:`rs.stepDown()` to step down the primary and force an
       election of a new primary:
 
+      .. cssclass:: copyable-code
       .. code-block:: javascript
 
          rs.stepDown()
@@ -199,30 +208,32 @@ content: |-
       1. Shut down the stepped-down primary and replace the
          :binary:`~bin.mongod` binary with the |newversion| binary.
 
-      #. Start the |newversion| binary with the ``--shardsvr`` and
-         ``--port`` command line options.
+      #. Start the |newversion| binary with the :option:`--shardsvr`,
+         :option:`--replSet`, :option:`--port`, and :option:`--bind_ip`
+         options. Include any optional command line options used by the
+         previous deployment:
 
-         If the sharded cluster members are run on different hosts or
-         if you wish remote clients to connect to the sharded cluster,
-         you must also specify ``--bind_ip`` (or the
-         :setting:`net.bindIp` setting). For more information, see
-         :ref:`3.6-bind_ip-compatibility`.
-
+         .. cssclass:: copyable-code
          .. code-block:: sh
 
-            mongod --shardsvr --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+            mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
 
-         Of if using a :doc:`configuration file
+         .. included:: /includes/fact-bind-ip-sharded-clusters.rst
+
+         If using a :doc:`configuration file
          </reference/configuration-options>`, update the file to
          specify :setting:`sharding.clusterRole: shardsvr
-         <sharding.clusterRole>` and :setting:`net.port` (and
-         :setting:`net.bindIp` setting if needed) and start the
+         <sharding.clusterRole>`, :setting:`replication.replSetName`,
+         :setting:`net.port`, and :setting:`net.bindIp` then start the
          |newversion| binary:
 
+         .. cssclass:: copyable-code
          .. code-block:: yaml
 
             sharding:
                clusterRole: shardsvr
+            replication:
+               replSetName: <string>
             net:
                port: <port>
                bindIp: localhost,<ip address>
@@ -245,6 +256,7 @@ content: |-
    :setting:`net.bindIp` setting). For more information, see
    :ref:`3.6-bind_ip-compatibility`.
 
+   .. cssclass:: copyable-code
    .. code-block:: sh
 
       mongos --configdb csReplSet/<rsconfigsver1:port1>,<rsconfigsver2:port2>,<rsconfigsver3:port3> --bind_ip localhost,<ip address>
@@ -259,7 +271,6 @@ content: |-
    :method:`sh.setBalancerState()` to re-enable the balancer:
 
    .. cssclass:: copyable-code
-
    .. code-block:: javascript
    
       sh.setBalancerState(true)
@@ -286,9 +297,11 @@ action:
       On a :binary:`~bin.mongos` instance, run the
       :dbcommand:`setFeatureCompatibilityVersion` command in the ``admin``
       database:
+   copyable: true
    language: javascript
    code: |
       db.adminCommand( { setFeatureCompatibilityVersion: "3.6" } )
+
    post: |
       This command must perform writes to an internal system
       collection. If for any reason the command does not complete
