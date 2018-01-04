@@ -234,27 +234,56 @@ directive: option
 args: null
 description: |
   After restoring the database dump, replays the :term:`oplog` entries
-  from the :file:`oplog.bson` file located in the top level of the dump
-  directory. When used in conjunction with :option:`mongodump --oplog`,
-  :binary:`~bin.mongorestore --oplogReplay <mongorestore>`
+  from a bson file.
+  When used in conjunction with :option:`mongodump --oplog
+  <--oplog>`, :binary:`~bin.mongorestore --oplogReplay <mongorestore>`
   restores the database to the point-in-time backup captured with the
-  ``mongodump --oplog`` command.
+  ``mongodump --oplog`` command. 
+  
+  {{program}} searches for any valid source  for the bson file
+  in the following locations:
 
+  - The top level of the dump directory, as in the case of a dump created
+    with :option:`mongodump --oplog <--oplog>`.
+
+  - The path specified by :option:`--oplogFile`.
+
+  - ``<dump-directory>/local/oplog.rs.bson``, as in the case of a dump
+    of the ``oplog.rs`` collection in the ``local`` database
+    on a :binary:`~bin.mongod` that is a member of a replica set.
+
+  - ``<dump-directory>/local/oplog.$main.bson``, as in the case of a dump
+    of the ``oplog.rs`` collection in the ``local`` database
+    on a :binary:`~bin.mongod` that uses master-slave replication.
+
+  If there is an ``oplog.bson`` file at the top level of the dump
+  directory **and** a path specified by :option:`--oplogFile`,
+  {{program}} returns an error.
+     
+  If there is an ``oplog.bson`` file at the top level of the dump directory,
+  {{program}} restores that file as the oplog. If there are also bson
+  files in the ``dump/local`` directory, {{program}} restores them like
+  normal collections.
+  
+  If you specify an oplog file using :option:`--oplogFile`,
+  {{program}} restores that file as the oplog. If there are also bson
+  files in the ``dump/local`` directory, {{program}} restores them like
+  normal collections.
+  
+  If there is both an ``oplog.rs.bson`` and an ``oplog.$main.bson``
+  file in the ``dump/local`` directory **and** there is no
+  ``oplog.bson`` file at the top level of the dump directory or file
+  specified with :option:`--oplogFile`, {{program}} returns an error.
+  
   For an example of {{role}}, see :ref:`backup-restore-oplogreplay`.
-
-  :binary:`~bin.mongorestore --oplogReplay <mongorestore>` replays any
-  valid :file:`oplog.bson` file found in the top level of the dump
-  directory. That is, if you have a bson file that contains valid oplog
-  entries, you can name the file ``oplog.bson`` and move it to the top
-  level of the dump directory for :binary:`~bin.mongorestore --oplogReplay
-  <mongorestore>` to replay.
 
   .. note::
 
-     When using :binary:`~bin.mongorestore` with {{role}}, you must
-     restore a full dump of a :term:`replica set` member created
-     using :binary:`~bin.mongodump --oplog <mongodump>`.
-     :binary:`~bin.mongorestore` with {{role}} fails if you use any of
+     When using :binary:`~bin.mongorestore` with {{role}} to restore
+     a replica set, you must 
+     restore a full dump of a :term:`replica set` member created 
+     using :binary:`~bin.mongodump --oplog <mongodump>`. 
+     :binary:`~bin.mongorestore` with {{role}} fails if you use any of 
      the following options to limit the data be restored:
 
      - :option:`--db`
@@ -418,7 +447,11 @@ description: |
   .. versionadded:: 3.2
 
   Restores from compressed files or data stream created by
+<<<<<<< HEAD
   :binary:`mongodump --archive <bin.mongodump>`
+=======
+  :binary:`~bin.mongodump --archive <mongodump>`
+>>>>>>> DOCSP-980: clarify oplogReplay behaviour for 3.4
 
   To restore from a dump directory that contains compressed files, run
   :binary:`~bin.mongorestore` with the new ``--gzip`` option.
@@ -508,7 +541,11 @@ pre: |
 
 description: |
   Specifies the path to the oplog file containing oplog data for the
-  restore.
+  restore. Use with :option:`--oplogReplay`. 
+  
+  If you specify {{role}} and there is an :file:`oplog.bson`
+  file at the top level of the dump directory, {{program}} returns an 
+  error.
 optional: true
 ---
 program: mongorestore
