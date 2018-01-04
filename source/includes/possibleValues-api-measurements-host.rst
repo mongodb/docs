@@ -24,10 +24,10 @@ Host Measurements
 
    * - - ``CACHE_BYTES_READ_INTO``
        - ``CACHE_BYTES_WRITTEN_FROM``
-       - ``CACHE_USAGE_DIRTY``
-       - ``CACHE_USAGE_USED``
+       - ``CACHE_DIRTY_BYTES``
+       - ``CACHE_USED_BYTES``
        - ``TICKETS_AVAILABLE_READS``
-       - ``TICKETS_AVAILABLE_WRITES``
+       - ``TICKETS_AVAILABLE_WRITE``
 
      - Apply to a MongoDB process's :manual:`WiredTiger </core/wiredtiger>`
        storage engine, as collected from the MongoDB :manual:`serverStatus
@@ -139,10 +139,10 @@ Host Measurements
        </reference/command/serverStatus>` command's
        :serverstatus:`opcountersRepl` document.
 
-   * - - ``DOCUMENT_RETURNED``
-       - ``DOCUMENT_INSERTED``
-       - ``DOCUMENT_UPDATED``
-       - ``DOCUMENT_DELETED``
+   * - - ``DOCUMENT_METRICS_RETURNED``
+       - ``DOCUMENT_METRICS_INSERTED``
+       - ``DOCUMENT_METRICS_UPDATED``
+       - ``DOCUMENT_METRICS_DELETED``
 
      - The average rate per second of documents returned, inserted, updated,
        or deleted for a selected time period. These measurements are found on
@@ -156,9 +156,9 @@ Host Measurements
        measurement is found on the host's ``Scan and Order`` chart. To view
        the chart, see :ref:`access-host-statistics`.
 
-   * - - ``AVG_READ_EXECUTION_TIME``
-       - ``AVG_WRITE_EXECUTION_TIME``
-       - ``AVG_COMMAND_EXECUTION_TIME``
+   * - - ``OP_EXECUTION_TIME_READS``
+       - ``OP_EXECUTION_TIME_WRITES``
+       - ``OP_EXECUTION_TIME_COMMANDS``
 
      - Available to hosts running MongoDB v3.4+. The average execution
        time in milliseconds per read, write, or command operation
