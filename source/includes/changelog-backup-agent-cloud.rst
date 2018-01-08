@@ -1,3 +1,14 @@
+.. _backup-6.2.0.714:
+
+Backup Agent ``6.2.0.714``
+--------------------------
+
+- Fix: Relax validation when krb5ConfigLocation parameter is specified. 
+  This no longer implies that krb5Principal and krb5Keytab are required.
+
+- Fix:  Use correct format for point in time restore oplog seed when no 
+  oplog are available
+
 .. _backup-6.1.1.693:
 
 Backup Agent ``6.1.1.693``

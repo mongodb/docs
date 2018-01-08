@@ -1,3 +1,11 @@
+Monitoring Agent ``6.3.0.401``
+------------------------------
+
+*Released 2018-01-08*
+
+- Fix: Relax validation when krb5ConfigLocation parameter is specified.
+  This no longer implies that krb5Principal and krb5Keytab are required.
+
 Monitoring Agent ``6.2.0.397``
 ------------------------------
 
