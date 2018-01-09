@@ -16,24 +16,24 @@ repository contains the following packages:
        the four component packages listed below.
 
    * - ``mongodb-org-server``
-     - Contains the :program:`mongod` daemon and associated
+     - Contains the :binary:`~bin.mongod` daemon and associated
        configuration and init scripts.
 
    * - ``mongodb-org-mongos``
-     - Contains the :program:`mongos` daemon.
+     - Contains the :binary:`~bin.mongos` daemon.
 
    * - ``mongodb-org-shell``
-     - Contains the :program:`mongo` shell.
+     - Contains the :binary:`~bin.mongo` shell.
 
    * - ``mongodb-org-tools``
-     - Contains the following MongoDB tools: :program:`mongoimport`
-       :program:`bsondump`, :program:`mongodump`, :program:`mongoexport`,
-       :program:`mongofiles`,
-       :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
-       and :program:`mongotop`.
+     - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
+       :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
+       :binary:`~bin.mongofiles`,
+       :binary:`~bin.mongoperf`, :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
+       and :binary:`~bin.mongotop`.
 
 The ``mongodb-org-server`` package provides an initialization script
-that starts :program:`mongod` with the ``/etc/mongod.conf``
+that starts :binary:`~bin.mongod` with the ``/etc/mongod.conf``
 configuration file.
 
 .. Links to the section in the including page having this title.

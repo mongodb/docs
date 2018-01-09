@@ -10,7 +10,7 @@
      - :replstate:`STARTUP`
 
      - Not yet an active member of any set. All members start up in
-       this state. The :program:`mongod` parses the :doc:`replica set
+       this state. The :binary:`~bin.mongod` parses the :doc:`replica set
        configuration document
        </administration/replica-set-member-configuration>` while in
        :replstate:`STARTUP`.

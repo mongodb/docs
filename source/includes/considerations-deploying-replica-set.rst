@@ -50,7 +50,7 @@ Configuration
 Create the directory where MongoDB stores data files before deploying
 MongoDB.
 
-Specify the :program:`mongod` configuration in a :doc:`configuration
+Specify the :binary:`~bin.mongod` configuration in a :doc:`configuration
 file </reference/configuration-options>` stored in ``/etc/mongod.conf``
 or a related location.
 
