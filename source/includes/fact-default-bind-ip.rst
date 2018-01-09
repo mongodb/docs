@@ -17,7 +17,7 @@ the binaries bound only to localhost.
 
 To override and bind to other ip addresses, you can use the
 :setting:`net.bindIp` configuration file setting or the
-:option:`--bind_ip` command-line option to specify a list of ip
+``--bind_ip`` command-line option to specify a list of ip
 addresses.
 
 .. include:: /includes/warning-bind-ip-security-considerations.rst
