@@ -297,14 +297,6 @@ function main() {
         process.exit(1)
     }
 
-    let tags = []
-
-    for (const tag of Object.keys(tagManifest)) {
-      let tagWithId = tagManifest[tag]
-      tagWithId.id = tag
-      tags.push(tagWithId)
-    }
-
     try {
         fs.mkdirSync('public')
     } catch (error) {}
@@ -312,7 +304,6 @@ function main() {
     let sortedTutorials = sortFeatured(tutorials)
 
     fs.writeFileSync('public/tags.json', JSON.stringify({
-        tags: tags,
         tutorials: sortedTutorials
     }))
 }

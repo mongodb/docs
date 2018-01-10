@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import Facet from './facet.js'
 import Search from './search.js'
 import TutorialList from './tutorialList.js'
 import util from './util.js'
@@ -12,13 +11,9 @@ class App extends React.Component {
     super(props)
     this.state = {
       searchResults: null,
-      options: [],
       tutorials: [],
       assetsPrefix: JSON.parse(props.mainprops).assetsPrefix.replace(/\/+$/, '') || '',
     }
-
-    this.updateFacet = this.updateFacet.bind(this)
-    this.clearFacets = this.clearFacets.bind(this)
   }
 
   componentDidMount () {
@@ -26,41 +21,13 @@ class App extends React.Component {
       return response.json()
     }).then((data) => {
       this.setState({
-        options: data.tags,
         tutorials: data.tutorials,
       })
     }).catch((err) => {
-      // TODO: do something here
+      console.error(err)
     })
 
     util.setupFeedback()
-  }
-
-  clearFacets () {
-    const options = this.state.options.map(option => {
-      option.active = false
-      return option
-    })
-
-    this.setState({ options })
-  }
-
-  updateFacet (event) {
-    const optionName = event.target.innerHTML
-
-    const index = this.state.options.findIndex(option => option.name == optionName)
-
-    let options = this.state.options
-    let option = options[index]
-    option.active = !option.active
-
-    options = [
-      ...options.slice(0, index),
-      option,
-      ...options.slice(index + 1, options.length)
-    ]
-
-    this.setState({ options })
   }
 
   onResults = (results) => {
@@ -72,43 +39,10 @@ class App extends React.Component {
   }
 
   render () {
-    // TODO: This should be possible with reduce
-    let facetNames = []
-    this.state.options.map(option => {
-      if (facetNames.indexOf(option.facet) == -1) {
-        facetNames = [
-          ...facetNames,
-          option.facet
-        ]
-      }
-    })
-
-    const facets = facetNames.map((facet, i) => {
-      const options = this.state.options.filter(o => o.facet == facet)
-      return <Facet key={i} name={facet} options={options} updateFacet={this.updateFacet} />
-    })
-
-    const activeOptions = this.state.options.filter(option => option.active)
-
-    const tutorialsMatchingFacets = this.state.tutorials.filter(tutorial => {
-      let shouldInclude = true // by default show all the tutorials
-
-      activeOptions.map(activeOption => {
-        // Store each tutorial option ID in array
-        const tutorialOptionIds = tutorial.options.map(tutorialOption => tutorialOption.id)
-          // If an active option ID is not in the array, hide tutorial
-          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
-            shouldInclude = false
-          }
-      })
-
-      return shouldInclude
-    })
-
-    let tutorials = tutorialsMatchingFacets
+    let tutorials = this.state.tutorials.slice()
 
     if (this.state.searchResults !== null) {
-      const tutorialsSet = new Set(tutorialsMatchingFacets.map(tutorial => tutorial.url))
+      const tutorialsSet = new Set(tutorials.map(tutorial => tutorial.url))
       tutorials = this.state.searchResults.filter(result => {
         const slug = result.url.match(/(\/[^/]+)\/index\.html$/)
         if (slug) {
@@ -117,22 +51,12 @@ class App extends React.Component {
 
         return tutorialsSet.has(result.url)
       }).map(tutorial => {
-        return tutorialsMatchingFacets.find(t => t.url === tutorial.url)
+        return tutorials.find(t => t.url === tutorial.url)
       })
     }
 
     return (
       <div className="main">
-        <aside className="main__sidebar">
-          <div className="filter-header">
-            <h5 className="filter-header__title">Filters</h5>
-            <a onClick={this.clearFacets}><h5 className="filter-header__clear">X Clear Filters</h5></a>
-          </div>
-          <div className="filters">
-            { facets }
-          </div>
-        </aside>
-
         <div className="main__content">
           <div className="tutorial-search__wrapper">
             <Search baseURL={this.state.assetsPrefix} onResults={this.onResults} onError={this.onError} />

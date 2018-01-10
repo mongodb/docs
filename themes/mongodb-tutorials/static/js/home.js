@@ -56,27 +56,21 @@
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _facet = __webpack_require__(184);
-	
-	var _facet2 = _interopRequireDefault(_facet);
-	
-	var _search = __webpack_require__(188);
+	var _search = __webpack_require__(184);
 	
 	var _search2 = _interopRequireDefault(_search);
 	
-	var _tutorialList = __webpack_require__(190);
+	var _tutorialList = __webpack_require__(186);
 	
 	var _tutorialList2 = _interopRequireDefault(_tutorialList);
 	
-	var _util = __webpack_require__(192);
+	var _util = __webpack_require__(188);
 	
 	var _util2 = _interopRequireDefault(_util);
 	
-	__webpack_require__(200);
+	__webpack_require__(196);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -102,13 +96,9 @@
 	
 	    _this.state = {
 	      searchResults: null,
-	      options: [],
 	      tutorials: [],
 	      assetsPrefix: JSON.parse(props.mainprops).assetsPrefix.replace(/\/+$/, '') || ''
 	    };
-	
-	    _this.updateFacet = _this.updateFacet.bind(_this);
-	    _this.clearFacets = _this.clearFacets.bind(_this);
 	    return _this;
 	  }
 	
@@ -121,87 +111,21 @@
 	        return response.json();
 	      }).then(function (data) {
 	        _this2.setState({
-	          options: data.tags,
 	          tutorials: data.tutorials
 	        });
 	      }).catch(function (err) {
-	        // TODO: do something here
+	        console.error(err);
 	      });
 	
 	      _util2.default.setupFeedback();
 	    }
 	  }, {
-	    key: 'clearFacets',
-	    value: function clearFacets() {
-	      var options = this.state.options.map(function (option) {
-	        option.active = false;
-	        return option;
-	      });
-	
-	      this.setState({ options: options });
-	    }
-	  }, {
-	    key: 'updateFacet',
-	    value: function updateFacet(event) {
-	      var optionName = event.target.innerHTML;
-	
-	      var index = this.state.options.findIndex(function (option) {
-	        return option.name == optionName;
-	      });
-	
-	      var options = this.state.options;
-	      var option = options[index];
-	      option.active = !option.active;
-	
-	      options = [].concat(_toConsumableArray(options.slice(0, index)), [option], _toConsumableArray(options.slice(index + 1, options.length)));
-	
-	      this.setState({ options: options });
-	    }
-	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _this3 = this;
-	
-	      // TODO: This should be possible with reduce
-	      var facetNames = [];
-	      this.state.options.map(function (option) {
-	        if (facetNames.indexOf(option.facet) == -1) {
-	          facetNames = [].concat(_toConsumableArray(facetNames), [option.facet]);
-	        }
-	      });
-	
-	      var facets = facetNames.map(function (facet, i) {
-	        var options = _this3.state.options.filter(function (o) {
-	          return o.facet == facet;
-	        });
-	        return _react2.default.createElement(_facet2.default, { key: i, name: facet, options: options, updateFacet: _this3.updateFacet });
-	      });
-	
-	      var activeOptions = this.state.options.filter(function (option) {
-	        return option.active;
-	      });
-	
-	      var tutorialsMatchingFacets = this.state.tutorials.filter(function (tutorial) {
-	        var shouldInclude = true; // by default show all the tutorials
-	
-	        activeOptions.map(function (activeOption) {
-	          // Store each tutorial option ID in array
-	          var tutorialOptionIds = tutorial.options.map(function (tutorialOption) {
-	            return tutorialOption.id;
-	          });
-	          // If an active option ID is not in the array, hide tutorial
-	          if (tutorialOptionIds.indexOf(activeOption.id) == -1) {
-	            shouldInclude = false;
-	          }
-	        });
-	
-	        return shouldInclude;
-	      });
-	
-	      var tutorials = tutorialsMatchingFacets;
+	      var tutorials = this.state.tutorials.slice();
 	
 	      if (this.state.searchResults !== null) {
-	        var tutorialsSet = new Set(tutorialsMatchingFacets.map(function (tutorial) {
+	        var tutorialsSet = new Set(tutorials.map(function (tutorial) {
 	          return tutorial.url;
 	        }));
 	        tutorials = this.state.searchResults.filter(function (result) {
@@ -212,7 +136,7 @@
 	
 	          return tutorialsSet.has(result.url);
 	        }).map(function (tutorial) {
-	          return tutorialsMatchingFacets.find(function (t) {
+	          return tutorials.find(function (t) {
 	            return t.url === tutorial.url;
 	          });
 	        });
@@ -221,33 +145,6 @@
 	      return _react2.default.createElement(
 	        'div',
 	        { className: 'main' },
-	        _react2.default.createElement(
-	          'aside',
-	          { className: 'main__sidebar' },
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'filter-header' },
-	            _react2.default.createElement(
-	              'h5',
-	              { className: 'filter-header__title' },
-	              'Filters'
-	            ),
-	            _react2.default.createElement(
-	              'a',
-	              { onClick: this.clearFacets },
-	              _react2.default.createElement(
-	                'h5',
-	                { className: 'filter-header__clear' },
-	                'X Clear Filters'
-	              )
-	            )
-	          ),
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'filters' },
-	            facets
-	          )
-	        ),
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'main__content' },
@@ -22293,476 +22190,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _lodash = __webpack_require__(185);
-	
-	var _lodash2 = _interopRequireDefault(_lodash);
-	
-	var _classnames = __webpack_require__(186);
-	
-	var _classnames2 = _interopRequireDefault(_classnames);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Facet = function (_React$Component) {
-	  _inherits(Facet, _React$Component);
-	
-	  function Facet(props) {
-	    _classCallCheck(this, Facet);
-	
-	    var _this = _possibleConstructorReturn(this, (Facet.__proto__ || Object.getPrototypeOf(Facet)).call(this, props));
-	
-	    _this.genButton = _this.genButton.bind(_this);
-	    return _this;
-	  }
-	
-	  _createClass(Facet, [{
-	    key: 'genButton',
-	    value: function genButton(option, index) {
-	      var buttonClass = (0, _classnames2.default)({
-	        'button': true,
-	        'button--active': option.active
-	      });
-	
-	      return _react2.default.createElement(
-	        'button',
-	        { key: index, className: buttonClass, onClick: this.props.updateFacet },
-	        option.name
-	      );
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render() {
-	      var buttons = this.props.options.map(this.genButton);
-	
-	      return _react2.default.createElement(
-	        'div',
-	        { className: 'facet' },
-	        _react2.default.createElement(
-	          'h4',
-	          { className: 'facet__title' },
-	          (0, _lodash2.default)(this.props.name)
-	        ),
-	        buttons
-	      );
-	    }
-	  }]);
-	
-	  return Facet;
-	}(_react2.default.Component);
-	
-	exports.default = Facet;
-
-/***/ }),
-/* 185 */
-/***/ (function(module, exports) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	/**
-	 * lodash (Custom Build) <https://lodash.com/>
-	 * Build: `lodash modularize exports="npm" -o ./`
-	 * Copyright jQuery Foundation and other contributors <https://jquery.org/>
-	 * Released under MIT license <https://lodash.com/license>
-	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
-	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
-	 */
-	
-	/** Used as references for various `Number` constants. */
-	var INFINITY = 1 / 0;
-	
-	/** `Object#toString` result references. */
-	var symbolTag = '[object Symbol]';
-	
-	/** Used to compose unicode character classes. */
-	var rsAstralRange = '\\ud800-\\udfff',
-	    rsComboMarksRange = '\\u0300-\\u036f\\ufe20-\\ufe23',
-	    rsComboSymbolsRange = '\\u20d0-\\u20f0',
-	    rsVarRange = '\\ufe0e\\ufe0f';
-	
-	/** Used to compose unicode capture groups. */
-	var rsAstral = '[' + rsAstralRange + ']',
-	    rsCombo = '[' + rsComboMarksRange + rsComboSymbolsRange + ']',
-	    rsFitz = '\\ud83c[\\udffb-\\udfff]',
-	    rsModifier = '(?:' + rsCombo + '|' + rsFitz + ')',
-	    rsNonAstral = '[^' + rsAstralRange + ']',
-	    rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}',
-	    rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]',
-	    rsZWJ = '\\u200d';
-	
-	/** Used to compose unicode regexes. */
-	var reOptMod = rsModifier + '?',
-	    rsOptVar = '[' + rsVarRange + ']?',
-	    rsOptJoin = '(?:' + rsZWJ + '(?:' + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ')' + rsOptVar + reOptMod + ')*',
-	    rsSeq = rsOptVar + reOptMod + rsOptJoin,
-	    rsSymbol = '(?:' + [rsNonAstral + rsCombo + '?', rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ')';
-	
-	/** Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode). */
-	var reUnicode = RegExp(rsFitz + '(?=' + rsFitz + ')|' + rsSymbol + rsSeq, 'g');
-	
-	/** Used to detect strings with [zero-width joiners or code points from the astral planes](http://eev.ee/blog/2015/09/12/dark-corners-of-unicode/). */
-	var reHasUnicode = RegExp('[' + rsZWJ + rsAstralRange + rsComboMarksRange + rsComboSymbolsRange + rsVarRange + ']');
-	
-	/** Detect free variable `global` from Node.js. */
-	var freeGlobal = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) == 'object' && global && global.Object === Object && global;
-	
-	/** Detect free variable `self`. */
-	var freeSelf = (typeof self === 'undefined' ? 'undefined' : _typeof(self)) == 'object' && self && self.Object === Object && self;
-	
-	/** Used as a reference to the global object. */
-	var root = freeGlobal || freeSelf || Function('return this')();
-	
-	/**
-	 * Converts an ASCII `string` to an array.
-	 *
-	 * @private
-	 * @param {string} string The string to convert.
-	 * @returns {Array} Returns the converted array.
-	 */
-	function asciiToArray(string) {
-	  return string.split('');
-	}
-	
-	/**
-	 * Checks if `string` contains Unicode symbols.
-	 *
-	 * @private
-	 * @param {string} string The string to inspect.
-	 * @returns {boolean} Returns `true` if a symbol is found, else `false`.
-	 */
-	function hasUnicode(string) {
-	  return reHasUnicode.test(string);
-	}
-	
-	/**
-	 * Converts `string` to an array.
-	 *
-	 * @private
-	 * @param {string} string The string to convert.
-	 * @returns {Array} Returns the converted array.
-	 */
-	function stringToArray(string) {
-	  return hasUnicode(string) ? unicodeToArray(string) : asciiToArray(string);
-	}
-	
-	/**
-	 * Converts a Unicode `string` to an array.
-	 *
-	 * @private
-	 * @param {string} string The string to convert.
-	 * @returns {Array} Returns the converted array.
-	 */
-	function unicodeToArray(string) {
-	  return string.match(reUnicode) || [];
-	}
-	
-	/** Used for built-in method references. */
-	var objectProto = Object.prototype;
-	
-	/**
-	 * Used to resolve the
-	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
-	 * of values.
-	 */
-	var objectToString = objectProto.toString;
-	
-	/** Built-in value references. */
-	var _Symbol = root.Symbol;
-	
-	/** Used to convert symbols to primitives and strings. */
-	var symbolProto = _Symbol ? _Symbol.prototype : undefined,
-	    symbolToString = symbolProto ? symbolProto.toString : undefined;
-	
-	/**
-	 * The base implementation of `_.slice` without an iteratee call guard.
-	 *
-	 * @private
-	 * @param {Array} array The array to slice.
-	 * @param {number} [start=0] The start position.
-	 * @param {number} [end=array.length] The end position.
-	 * @returns {Array} Returns the slice of `array`.
-	 */
-	function baseSlice(array, start, end) {
-	  var index = -1,
-	      length = array.length;
-	
-	  if (start < 0) {
-	    start = -start > length ? 0 : length + start;
-	  }
-	  end = end > length ? length : end;
-	  if (end < 0) {
-	    end += length;
-	  }
-	  length = start > end ? 0 : end - start >>> 0;
-	  start >>>= 0;
-	
-	  var result = Array(length);
-	  while (++index < length) {
-	    result[index] = array[index + start];
-	  }
-	  return result;
-	}
-	
-	/**
-	 * The base implementation of `_.toString` which doesn't convert nullish
-	 * values to empty strings.
-	 *
-	 * @private
-	 * @param {*} value The value to process.
-	 * @returns {string} Returns the string.
-	 */
-	function baseToString(value) {
-	  // Exit early for strings to avoid a performance hit in some environments.
-	  if (typeof value == 'string') {
-	    return value;
-	  }
-	  if (isSymbol(value)) {
-	    return symbolToString ? symbolToString.call(value) : '';
-	  }
-	  var result = value + '';
-	  return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-	}
-	
-	/**
-	 * Casts `array` to a slice if it's needed.
-	 *
-	 * @private
-	 * @param {Array} array The array to inspect.
-	 * @param {number} start The start position.
-	 * @param {number} [end=array.length] The end position.
-	 * @returns {Array} Returns the cast slice.
-	 */
-	function castSlice(array, start, end) {
-	  var length = array.length;
-	  end = end === undefined ? length : end;
-	  return !start && end >= length ? array : baseSlice(array, start, end);
-	}
-	
-	/**
-	 * Creates a function like `_.lowerFirst`.
-	 *
-	 * @private
-	 * @param {string} methodName The name of the `String` case method to use.
-	 * @returns {Function} Returns the new case function.
-	 */
-	function createCaseFirst(methodName) {
-	  return function (string) {
-	    string = toString(string);
-	
-	    var strSymbols = hasUnicode(string) ? stringToArray(string) : undefined;
-	
-	    var chr = strSymbols ? strSymbols[0] : string.charAt(0);
-	
-	    var trailing = strSymbols ? castSlice(strSymbols, 1).join('') : string.slice(1);
-	
-	    return chr[methodName]() + trailing;
-	  };
-	}
-	
-	/**
-	 * Checks if `value` is object-like. A value is object-like if it's not `null`
-	 * and has a `typeof` result of "object".
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category Lang
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
-	 * @example
-	 *
-	 * _.isObjectLike({});
-	 * // => true
-	 *
-	 * _.isObjectLike([1, 2, 3]);
-	 * // => true
-	 *
-	 * _.isObjectLike(_.noop);
-	 * // => false
-	 *
-	 * _.isObjectLike(null);
-	 * // => false
-	 */
-	function isObjectLike(value) {
-	  return !!value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object';
-	}
-	
-	/**
-	 * Checks if `value` is classified as a `Symbol` primitive or object.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category Lang
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
-	 * @example
-	 *
-	 * _.isSymbol(Symbol.iterator);
-	 * // => true
-	 *
-	 * _.isSymbol('abc');
-	 * // => false
-	 */
-	function isSymbol(value) {
-	  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'symbol' || isObjectLike(value) && objectToString.call(value) == symbolTag;
-	}
-	
-	/**
-	 * Converts `value` to a string. An empty string is returned for `null`
-	 * and `undefined` values. The sign of `-0` is preserved.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category Lang
-	 * @param {*} value The value to process.
-	 * @returns {string} Returns the string.
-	 * @example
-	 *
-	 * _.toString(null);
-	 * // => ''
-	 *
-	 * _.toString(-0);
-	 * // => '-0'
-	 *
-	 * _.toString([1, 2, 3]);
-	 * // => '1,2,3'
-	 */
-	function toString(value) {
-	  return value == null ? '' : baseToString(value);
-	}
-	
-	/**
-	 * Converts the first character of `string` to upper case and the remaining
-	 * to lower case.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 3.0.0
-	 * @category String
-	 * @param {string} [string=''] The string to capitalize.
-	 * @returns {string} Returns the capitalized string.
-	 * @example
-	 *
-	 * _.capitalize('FRED');
-	 * // => 'Fred'
-	 */
-	function capitalize(string) {
-	  return upperFirst(toString(string).toLowerCase());
-	}
-	
-	/**
-	 * Converts the first character of `string` to upper case.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category String
-	 * @param {string} [string=''] The string to convert.
-	 * @returns {string} Returns the converted string.
-	 * @example
-	 *
-	 * _.upperFirst('fred');
-	 * // => 'Fred'
-	 *
-	 * _.upperFirst('FRED');
-	 * // => 'FRED'
-	 */
-	var upperFirst = createCaseFirst('toUpperCase');
-	
-	module.exports = capitalize;
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ }),
-/* 186 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-	
-	/*!
-	  Copyright (c) 2016 Jed Watson.
-	  Licensed under the MIT License (MIT), see
-	  http://jedwatson.github.io/classnames
-	*/
-	/* global define */
-	
-	(function () {
-		'use strict';
-	
-		var hasOwn = {}.hasOwnProperty;
-	
-		function classNames() {
-			var classes = [];
-	
-			for (var i = 0; i < arguments.length; i++) {
-				var arg = arguments[i];
-				if (!arg) continue;
-	
-				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
-	
-				if (argType === 'string' || argType === 'number') {
-					classes.push(arg);
-				} else if (Array.isArray(arg)) {
-					classes.push(classNames.apply(null, arg));
-				} else if (argType === 'object') {
-					for (var key in arg) {
-						if (hasOwn.call(arg, key) && arg[key]) {
-							classes.push(key);
-						}
-					}
-				}
-			}
-	
-			return classes.join(' ');
-		}
-	
-		if (typeof module !== 'undefined' && module.exports) {
-			module.exports = classNames;
-		} else if ("function" === 'function' && _typeof(__webpack_require__(187)) === 'object' && __webpack_require__(187)) {
-			// register as 'classnames', consistent with npm package name
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
-				return classNames;
-			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else {
-			window.classNames = classNames;
-		}
-	})();
-
-/***/ }),
-/* 187 */
-/***/ (function(module, exports) {
-
-	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ }),
-/* 188 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _Marian = __webpack_require__(189);
+	var _Marian = __webpack_require__(185);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -22824,7 +22252,7 @@
 	exports.default = Search;
 
 /***/ }),
-/* 189 */
+/* 185 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -23156,7 +22584,7 @@
 	}();
 
 /***/ }),
-/* 190 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23171,7 +22599,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _tutorial = __webpack_require__(191);
+	var _tutorial = __webpack_require__(187);
 	
 	var _tutorial2 = _interopRequireDefault(_tutorial);
 	
@@ -23251,7 +22679,7 @@
 	exports.default = TutorialList;
 
 /***/ }),
-/* 191 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23326,7 +22754,7 @@
 	exports.default = Tutorial;
 
 /***/ }),
-/* 192 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23335,9 +22763,9 @@
 	  value: true
 	});
 	
-	var _rigningNonGreni = __webpack_require__(193);
+	var _rigningNonGreni = __webpack_require__(189);
 	
-	var _elementClass = __webpack_require__(197);
+	var _elementClass = __webpack_require__(193);
 	
 	var _elementClass2 = _interopRequireDefault(_elementClass);
 	
@@ -23349,7 +22777,7 @@
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _velocityAnimate = __webpack_require__(198);
+	var _velocityAnimate = __webpack_require__(194);
 	
 	var _velocityAnimate2 = _interopRequireDefault(_velocityAnimate);
 	
@@ -23516,7 +22944,7 @@
 	exports.default = utils;
 
 /***/ }),
-/* 193 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23528,7 +22956,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _MainWidget = __webpack_require__(194);
+	var _MainWidget = __webpack_require__(190);
 	
 	var _MainWidget2 = _interopRequireDefault(_MainWidget);
 	
@@ -23624,7 +23052,7 @@
 	}();
 
 /***/ }),
-/* 194 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23636,11 +23064,11 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /* ../src/components/MainWidget.html generated by Svelte v1.40.0 */
 	
 	
-	var _BinaryQuestion = __webpack_require__(195);
+	var _BinaryQuestion = __webpack_require__(191);
 	
 	var _BinaryQuestion2 = _interopRequireDefault(_BinaryQuestion);
 	
-	var _FreeformQuestion = __webpack_require__(196);
+	var _FreeformQuestion = __webpack_require__(192);
 	
 	var _FreeformQuestion2 = _interopRequireDefault(_FreeformQuestion);
 	
@@ -24668,7 +24096,7 @@
 	exports.default = MainWidget;
 
 /***/ }),
-/* 195 */
+/* 191 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -24989,7 +24417,7 @@
 	exports.default = BinaryQuestion;
 
 /***/ }),
-/* 196 */
+/* 192 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -25273,7 +24701,7 @@
 	exports.default = FreeformQuestion;
 
 /***/ }),
-/* 197 */
+/* 193 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -25340,7 +24768,7 @@
 	};
 
 /***/ }),
-/* 198 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {"use strict";
@@ -30063,10 +29491,10 @@
 	/* The CSS spec mandates that the translateX/Y/Z transforms are %-relative to the element itself -- not its parent.
 	 Velocity, however, doesn't make this distinction. Thus, converting to or from the % unit with these subproperties
 	 will produce an inaccurate conversion value. The same issue exists with the cx/cy attributes of SVG circles and ellipses. */
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(199)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(195)(module)))
 
 /***/ }),
-/* 199 */
+/* 195 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -30083,7 +29511,7 @@
 	};
 
 /***/ }),
-/* 200 */
+/* 196 */
 /***/ (function(module, exports) {
 
 	'use strict';
