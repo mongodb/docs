@@ -28,7 +28,8 @@ extensions = [
     'sphinx.ext.extlinks',
     'intermanual',
     'directives',
-    'mongodb'
+    'mongodb',
+    'fasthtml'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
