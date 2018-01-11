@@ -40,7 +40,8 @@ extensions = [
     'intermanual',
     'testcode',
     'tabs',
-    'markdown'
+    'markdown',
+    'fasthtml'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
