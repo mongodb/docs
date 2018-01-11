@@ -1,6 +1,6 @@
 To use :term:`read concern` level of :readconcern:`"majority"`, 
 
-- you must start the :program:`mongod` instances with the
+- you must start the :binary:`~bin.mongod` instances with the
   :option:`--enableMajorityReadConcern` command line option (or the
   :setting:`replication.enableMajorityReadConcern` set to ``true`` if
   using a configuration file).
