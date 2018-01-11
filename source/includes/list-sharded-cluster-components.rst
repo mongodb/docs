@@ -10,7 +10,7 @@
   example, |service| might deploy the config servers across three distinct
   availability zones and three distinct regions, if possible.
 
-- |service| deploys six routers (:program:`mongos <bin.mongos>` programs) for a
+- |service| deploys six routers (:binary:`mongos <bin.mongos>` programs) for a
   sharded cluster. |service| runs the routers on the shard servers. 
   For cross-region clusters, |service| spreads the routers across the
   selected regions.

@@ -1,10 +1,10 @@
-Because :program:`mongomirror` tails the source oplog and *applies* the
+Because :binary:`~bin.mongomirror` tails the source oplog and *applies* the
 entries to the destination cluster, the destination oplog is not an
 exact duplicate of the source's oplog. Instead, the tailed entries from
 the source oplog become part of an ``applyOps`` entry in the
 destination oplog.
 
-For example, after :program:`mongomirror` has performed the initial
+For example, after :binary:`~bin.mongomirror` has performed the initial
 sync, the source replica set receives three insert operations and has
 the following oplog entries for these operations:
 
@@ -14,7 +14,7 @@ the following oplog entries for these operations:
    {"ts":<ts2>,"t":<t2>,"h":<h2>,"v":2,"op":"i","ns":"test.foo","o":{"_id":1,"a":1}}
    {"ts":<ts3>,"t":<t3>,"h":<h3>,"v":2,"op":"i","ns":"test.foo","o":{"_id":2,"a":2}}
 
-As :program:`mongomirror` tails the source ``oplog`` and applies these
+As :binary:`~bin.mongomirror` tails the source ``oplog`` and applies these
 operations to the destination cluster, the three entries become part of
 a single entry in the destination cluster's oplog:
 

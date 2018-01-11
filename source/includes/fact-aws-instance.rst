@@ -1,5 +1,5 @@
-|service| deploys :program:`mongod <bin.mongod>` process to its own instance.
-For sharded clusters, the six routers (the :program:`mongos <bin.mongos>`
+|service| deploys :binary:`mongod <bin.mongod>` process to its own instance.
+For sharded clusters, the six routers (the :binary:`mongos <bin.mongos>`
 processes) run on six of the shard servers; i.e. each of the six
-:program:`mongos` processes shares an instance with one :program:`mongod
+:binary:`mongos` processes shares an instance with one :binary:`mongod
 <bin.mongod>` process.

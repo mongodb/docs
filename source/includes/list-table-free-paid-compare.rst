@@ -62,7 +62,7 @@
    * - Dedicated Instance
      - No, ``M0`` Free Tier clusters run in a shared environment
      - No, ``M2`` and ``M5`` clusters run in a shared environment
-     - Yes, ``M10+`` clusters deploy each :program:`mongod` process to its
+     - Yes, ``M10+`` clusters deploy each :binary:`mongod` process to its
        own instance. 
 
    * - Performance Advisor
