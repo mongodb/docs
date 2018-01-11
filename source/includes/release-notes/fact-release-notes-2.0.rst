@@ -26,15 +26,15 @@ two:
   generates a :ref:`Document-Relational Definition Language (DRDL) <drdl>`
   file, which maps a given collection shape to relational schema.
 
-:program:`mongosqld`
+:binary:`~bin.mongosqld`
   Once installed and run as a daemon,
-  :program:`mongosqld` responds to SQL queries, requests for DB
+  :binary:`~bin.mongosqld` responds to SQL queries, requests for DB
   information, and schema from the requesting BI tool via the MySQL
   wire protocol.
 
-  :program:`mongosqld` requires at least one :ref:`DRDL <drdl>` file to start.
+  :binary:`~bin.mongosqld` requires at least one :ref:`DRDL <drdl>` file to start.
   You will need to have defined your schema with   :program:`mongodrdl` before
-  starting :program:`mongosqld`.
+  starting :binary:`~bin.mongosqld`.
 
 SQL Compatibility
 ~~~~~~~~~~~~~~~~~

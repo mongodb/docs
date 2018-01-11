@@ -36,7 +36,7 @@ There are two options for authenticating your connection:
        TLS/SSL. See :ref:`Connect from MySQL with Authentication and
        TLS/SSL <connect-with-tls-ssl>` for more information.
 
-The |bi| requires authentication when running with :option:`--auth`.
+The |bi| requires authentication when running with :option:`--auth <mongosqld --auth>`.
 When the |bi| receives a connection with authentication credentials
 from a client, it passes those credentials through to the underlying
 MongoDB instance.

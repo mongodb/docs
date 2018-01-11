@@ -1,4 +1,4 @@
-To run :program:`mongosqld` in the background, use the ``nohup``
+To run :binary:`~bin.mongosqld` in the background, use the ``nohup``
 command:
 
 .. code-block:: sh
