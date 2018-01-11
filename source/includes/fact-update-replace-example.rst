@@ -7,7 +7,5 @@ document. In the replacement document, you can omit the ``_id`` field
 since the ``_id`` field is immutable; however, if you do include the
 ``_id`` field, it must have the same value as the current value.
 
-.. _write-op-replaceOne:
-
 The following example replaces the *first* document from the
 ``inventory`` collection where ``item: "paper"``:
