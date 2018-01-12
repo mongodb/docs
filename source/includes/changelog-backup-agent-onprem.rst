@@ -1,7 +1,14 @@
+.. _backup-6.0.5.716-1:
+
+Backup Agent: 6.0.5.716-1
+-------------------------
+
+*Released with Ops Manager 3.6.2 on 2018-01-11*
+
 .. _backup-6.0.3.689:
 
 Backup Agent 6.0.3.689
--------------------------
+----------------------
 
 *Released with Ops Manager 3.6.0 on 2017-12-05*
 
