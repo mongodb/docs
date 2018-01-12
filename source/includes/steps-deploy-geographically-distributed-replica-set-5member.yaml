@@ -1,7 +1,69 @@
-stepnum: 1
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: start-mongod
+title: "Start each member of the replica set with the appropriate options."
+level: 4
+ref: start-mongod
+content: |
+
+   For each member, start a :binary:`~bin.mongod` instance with the
+   following settings:
+
+   - Set :setting:`replication.replSetName` option to the replica set name,
+
+     .. include:: /includes/fact-unique-replica-set-names.rst
+
+   - Set any other settings as appropriate for your deployment.
+
+   In this tutorial, the five :binary:`~bin.mongod` instances are
+   associated with the following hosts:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Replica Set Member
+        - Hostname
+
+      * - Member 0
+        - ``mongodb0.example.net``
+
+      * - Member 1
+        - ``mongodb1.example.net``
+
+      * - Member 2
+        - ``mongodb2.example.net``
+
+      * - Member 3
+        - ``mongodb3.example.net``
+
+      * - Member 4
+        - ``mongodb4.example.net``
+
+   The following example specifies the replica set name through the
+   :option:`--replSet <mongod --replSet>` command-line option:
+
+   .. code-block:: sh
+
+      mongod --replSet "rs0"
+
+   Alternatively, you can also specify the :setting:`replica set name
+   <replication.replSetName>` in a :doc:`configuration file
+   </reference/configuration-options>`:
+
+   .. code-block:: yaml
+
+      replication:
+         replSetName: "rs0"
+
+   To start :binary:`~bin.mongod` with a configuration file, specify the
+   configuration file's path with the :option:`--config <mongod
+   --config>` option:
+         
+   .. code-block:: sh
+
+      mongod --config <path-to-config>
+
+   In production deployments, you can configure a :term:`init script`
+   to manage this process. Init scripts are beyond the scope of this
+   document.
+
 ---
 stepnum: 2
 source:
@@ -9,48 +71,43 @@ source:
   ref: open-shell
 ---
 stepnum: 3
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: initiate-rs
+title: "Initiate the replica set."
+level: 4
+ref: initiate-rs
+pre: |
+
+  From the :binary:`~bin.mongo` shell, run :method:`rs.initiate()` on
+  replica set member 0.
+
+  .. important::
+
+     .. include:: /includes/fact-rs-initiate-once-only.rst
+
+action:
+  language: javascript
+  code: |
+    rs.initiate( {
+       _id : "rs0",
+       members: [
+          { _id: 0, host: "mongodb0.example.net:27017" },
+          { _id: 1, host: "mongodb1.example.net:27017" },
+          { _id: 2, host: "mongodb2.example.net:27017" },
+          { _id: 3, host: "mongodb3.example.net:27017" },
+          { _id: 4, host: "mongodb4.example.net:27017", arbiterOnly: true }
+       ]
+    })
+post: |
+  The last member is added as an :doc:`arbiter </core/replica-set-arbiter>`.
+  
+  .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
 ---
 stepnum: 4
 source:
   file: steps-deploy-replica-set.yaml
   ref: verify-rsconf
 ---
-title: Add the remaining secondary members to the replica set.
-stepnum: 5
-level: 4
-ref: add-members
-action:
-  pre: |
-    Use :method:`rs.add()` in a :binary:`~bin.mongo` shell connected to the
-    current primary. The commands should resemble the following:
-  language: javascript
-  code: |
-    rs.add("mongodb1.example.net")
-    rs.add("mongodb2.example.net")
-    rs.add("mongodb3.example.net")
-post: |
-  When complete, you should have a fully functional replica set. The new
-  replica set will elect a :term:`primary`.
----
-title: Add the arbiter.
-stepnum: 6
-level: 4
-ref: add-arbiter
-action:
-  pre: |
-    In the same shell session, issue the following command to add the
-    arbiter (e.g. ``mongodb4.example.net``):
-  language: javascript
-  code: |
-    rs.addArb("mongodb4.example.net")
-post: |
-   .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
----
 title: Optional. Configure the member eligibility for becoming primary.
-stepnum: 7
+stepnum: 5
 level: 4
 ref: verify-priority
 pre: |
@@ -78,7 +135,7 @@ action:
       After these commands return, you have a geographically redundant
       five-member replica set.
 ---
-stepnum: 8
+stepnum: 6
 source:
   file: steps-deploy-replica-set.yaml
   ref: check-status

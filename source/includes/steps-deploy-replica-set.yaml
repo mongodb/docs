@@ -1,69 +1,115 @@
 # This file ref'd in steps-convert-replica-set-shard-deploy-test-data.yaml
+# steps-deploy-geographically-distributed-replica-set-3member.yaml
 # This file is tweaked to work with the other step file, as well.
 #
 title: "Start each member of the replica set with the appropriate options."
 level: 4
-stepnum: 1
 ref: start-mongod
-pre: |
-  For each member, start a :binary:`~bin.mongod` and specify the replica set
-  name through the :setting:`replSet` option. Specify any other parameters
-  specific to your deployment. For replication-specific parameters, see
-  :ref:`cli-mongod-replica-set`.
+content: |
 
-  .. include:: /includes/fact-unique-replica-set-names.rst
-action:
-  - pre: |
-      The following example specifies the replica set name through the
-      :option:`--replSet` command-line option:
-    language: sh
-    code: |
+   For each member, start a :binary:`~bin.mongod` instance with the
+   following settings:
+
+   - Set :setting:`replication.replSetName` option to the replica set name,
+
+     .. include:: /includes/fact-unique-replica-set-names.rst
+
+   - Set any other settings as appropriate for your deployment.
+
+   In this tutorial, the three :binary:`~bin.mongod` instances are
+   associated with the following hosts:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Replica Set Member
+        - Hostname
+
+      * - Member 0
+        - ``mongodb0.example.net``
+
+      * - Member 1
+        - ``mongodb1.example.net``
+
+      * - Member 2
+        - ``mongodb2.example.net``
+
+   The following example specifies the replica set name through the
+   :option:`--replSet <mongod --replSet>` command-line option:
+
+   .. code-block:: sh
+
       mongod --replSet "rs0"
-  - pre: |
-      You can also specify the :setting:`replica set name
-      <replication.replSetName>` in a :doc:`configuration file
-      </reference/configuration-options>`. To start :binary:`~bin.mongod`
-      with a configuration file, specify the configuration file's path with
-      the :option:`--config <mongod --config>` option:
-    language: sh
-    code: |
+
+   Alternatively, you can also specify the :setting:`replica set name
+   <replication.replSetName>` in a :doc:`configuration file
+   </reference/configuration-options>`:
+
+   .. code-block:: yaml
+
+      replication:
+         replSetName: "rs0"
+
+   To start :binary:`~bin.mongod` with a configuration file, specify the
+   configuration file's path with the :option:`--config <mongod
+   --config>` option:
+         
+   .. code-block:: sh
+
       mongod --config <path-to-config>
-post: |
-  In production deployments, you can configure a :term:`init script` to
-  manage this process. Init scripts are beyond the scope of this document.
+
+   In production deployments, you can configure a :term:`init script`
+   to manage this process. Init scripts are beyond the scope of this
+   document.
+
 ---
-title: "Connect a :binary:`~bin.mongo` shell to a replica set member."
+title: "Connect a :binary:`~bin.mongo` shell to one of the ``mongod`` instances."
 level: 4
-stepnum: 2
 ref: open-shell
 pre: |
-  For example, to connect to a :binary:`~bin.mongod` running on localhost on
+
+  From the same machine where one of the :binary:`~bin.mongod` is running
+  (in this tutorial, ``mongodb0.example.net``), start the :binary:`~bin.mongo`
+  shell. To connect to the :binary:`~bin.mongod` listening to localhost on
   the default port of ``27017``, simply issue:
 action:
   language: sh
   code: |
     mongo
+post: |
+
+  Depending on your path, you may need to specify the path to the
+  :binary:`~bin.mongo` binary.
 ---
 title: "Initiate the replica set."
 level: 4
-stepnum: 3
 ref: initiate-rs
 pre: |
-  Use :method:`rs.initiate()` on *one and only one* member of the replica set:
+
+  From the :binary:`~bin.mongo` shell, run :method:`rs.initiate()` on
+  replica set member 0.
+
+  .. important::
+
+     .. include:: /includes/fact-rs-initiate-once-only.rst
+
 action:
   language: javascript
   code: |
     rs.initiate( {
        _id : "rs0",
-       members: [ { _id : 0, host : "mongodb0.example.net:27017" } ]
+       members: [
+          { _id: 0, host: "mongodb0.example.net:27017" },
+          { _id: 1, host: "mongodb1.example.net:27017" },
+          { _id: 2, host: "mongodb2.example.net:27017" }
+       ]
     })
 post: |
-  MongoDB initiates a set that consists of the current member and that
-  uses the default replica set configuration.
+  MongoDB initiates a replica set, using 
+  the default replica set configuration.
 ---
-title: "Verify the initial replica set configuration."
+title: "View the replica set configuration."
 level: 4
-stepnum: 4
 ref: verify-rsconf
 action:
   - pre: |
@@ -89,20 +135,47 @@ action:
                "hidden" : false,
                "priority" : 1,
                "tags" : {
-            
+
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 1,
+               "host" : "mongodb1.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "mongodb2.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+
                },
                "slaveDelay" : NumberLong(0),
                "votes" : 1
             }
+            
          ],
          "settings" : {
             "chainingAllowed" : true,
             "heartbeatIntervalMillis" : 2000,
             "heartbeatTimeoutSecs" : 10,
             "electionTimeoutMillis" : 10000,
-            "catchUpTimeoutMillis" : 2000,
+            "catchUpTimeoutMillis" : -1,
             "getLastErrorModes" : {
-         
+
             },
             "getLastErrorDefaults" : {
                "w" : 1,
@@ -112,39 +185,9 @@ action:
          }
       }
 ---
-title: "Add the remaining members to the replica set."
+title: "Ensure that the replica set has a primary."
 level: 4
-stepnum: 5
-ref: add-remaining-members
-pre: |
-  Add the remaining members with the :method:`rs.add()` method. You must be
-  connected to the :term:`primary` to add members to a replica set.
-
-  :method:`rs.add()` can, in some cases, trigger an election.
-  If the :term:`mongod` you are connected to becomes a :term:`secondary`, you
-  need to connect the :term:`mongo` shell to the new primary to
-  continue adding new replica set members.
-  Use :method:`rs.status()` to identify the primary in the replica set.
-  
-action:
-  pre: |
-    The following example adds two members:
-  language: javascript
-  code: |
-      rs.add("mongodb1.example.net")
-      rs.add("mongodb2.example.net")
-post: |
-  When complete, you have a fully functional replica set. The new replica
-  set will elect a :term:`primary`.
----
-title: "Check the status of the replica set."
-level: 4
-stepnum: 6
 ref: check-status
-action:
-  pre: |
-    Use the :method:`rs.status()` operation:
-  language: javascript
-  code: |
-    rs.status()
+pre: |
+  Use :method:`rs.status()` to identify the primary in the replica set.
 ...
