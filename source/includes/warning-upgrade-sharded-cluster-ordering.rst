@@ -1,4 +1,4 @@
 .. warning::
 
-   Do not upgrade the :program:`mongod` instances until after you have
-   upgraded *all* the :program:`mongos` instances.
+   Do not upgrade the :binary:`~bin.mongod` instances until after you have
+   upgraded *all* the :binary:`~bin.mongos` instances.

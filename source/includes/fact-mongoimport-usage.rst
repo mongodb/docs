@@ -1,11 +1,11 @@
 Simple Usage
 ````````````
 
-:program:`mongoimport` restores a database from a backup taken with
-:program:`mongoexport`. Most of the arguments to :program:`mongoexport` also
-exist for :program:`mongoimport`.
+:binary:`~bin.mongoimport` restores a database from a backup taken with
+:binary:`~bin.mongoexport`. Most of the arguments to :binary:`~bin.mongoexport` also
+exist for :binary:`~bin.mongoimport`.
 
-In the following example, :program:`mongoimport` imports the data in
+In the following example, :binary:`~bin.mongoimport` imports the data in
 the :term:`JSON` data from the ``contacts.json`` file into the collection
 ``contacts`` in the ``users`` database.
 
@@ -16,12 +16,12 @@ the :term:`JSON` data from the ``contacts.json`` file into the collection
 Import ``JSON`` to Remote Host Running with Authentication
 ``````````````````````````````````````````````````````````
 
-In the following example, :program:`mongoimport` imports data from the
+In the following example, :binary:`~bin.mongoimport` imports data from the
 file ``/opt/backups/mdb1-examplenet.json`` into the ``contacts`` collection
 within the database ``marketing`` on a remote MongoDB
 database with authentication enabled.
 
-:program:`mongoimport` connects to the :program:`mongod` instance running on
+:binary:`~bin.mongoimport` connects to the :binary:`~bin.mongod` instance running on
 the host ``mongodb1.example.net`` over port ``37017``. It authenticates with the
 username ``user`` and the password ``pass``.
 
@@ -32,21 +32,21 @@ username ``user`` and the password ``pass``.
 ``CSV`` Import
 ``````````````
 
-In the following example, :program:`mongoimport` imports the :term:`csv`
+In the following example, :binary:`~bin.mongoimport` imports the :term:`csv`
 formatted data in the ``/opt/backups/contacts.csv`` file into the
 collection ``contacts`` in the ``users`` database on the MongoDB
 instance running on the localhost port numbered
 ``27017``.
 
 Specifying :option:`--headerline <mongoimport --headerline>` instructs
-:program:`mongoimport` to determine the name of the fields using the first
+:binary:`~bin.mongoimport` to determine the name of the fields using the first
 line in the CSV file.
 
 .. code-block:: sh
 
    mongoimport --db users --collection contacts --type csv --headerline --file /opt/backups/contacts.csv
 
-:program:`mongoimport` uses the input file name, without the
+:binary:`~bin.mongoimport` uses the input file name, without the
 extension, as the collection name if ``-c`` or ``--collection`` is
 unspecified. The following example is therefore equivalent:
 

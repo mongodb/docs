@@ -9,7 +9,7 @@ database ``test``:
        "detail": { "a": 2, "b": 3 }
    }
 
-You can use :program:`mongodrdl` to generate a schema based on this collection
+You can use :binary:`~bin.mongodrdl` to generate a schema based on this collection
 by running the following command:
 
 .. code-block:: sh

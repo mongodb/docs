@@ -1,4 +1,4 @@
-To run :program:`mongodump` against a MongoDB deployment that has
+To run :binary:`~bin.mongodump` against a MongoDB deployment that has
 :doc:`access control </core/authorization>` enabled, you must have
 privileges that grant :authaction:`find` action for each database to
 back up. The built-in :authrole:`backup` role provides the required

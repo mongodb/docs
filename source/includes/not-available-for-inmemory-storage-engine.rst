@@ -1,2 +1,2 @@
-Not available for :program:`mongod` instances that use the in-memory
+Not available for :binary:`~bin.mongod` instances that use the in-memory
 storage engine.
