@@ -1,7 +1,7 @@
 In MongoDB 2.4, :dbcommand:`map-reduce operations <mapReduce>`, the
 :dbcommand:`group` command, and :query:`$where` operator expressions
 **cannot** access certain global functions or properties, such as
-``db``, that are available in the :program:`mongo` shell.
+``db``, that are available in the :binary:`~bin.mongo` shell.
 
 When upgrading to MongoDB 2.4, you will need to refactor your code if
 your :dbcommand:`map-reduce operations <mapReduce>`, :dbcommand:`group`

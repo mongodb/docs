@@ -3,11 +3,11 @@ Export in CSV Format
 
 .. include:: /includes/fact-3.0-mongoexport-drop-csv-option.rst
 
-In the following example, :program:`mongoexport` exports data from the
+In the following example, :binary:`~bin.mongoexport` exports data from the
 collection ``contacts`` collection in the ``users`` database in :term:`CSV`
 format to the file ``/opt/backups/contacts.csv``.
 
-The :program:`mongod` instance that :program:`mongoexport` connects to is
+The :binary:`~bin.mongod` instance that :binary:`~bin.mongoexport` connects to is
 running on the localhost port number ``27017``.
 
 When you export in CSV format, you must specify the fields in the documents
@@ -38,7 +38,7 @@ the file:
    mongoexport --db users --collection contacts --type=csv --fieldFile fields.txt --out /opt/backups/contacts.csv
 
 .. versionchanged:: 3.0.0
-   :program:`mongoexport` removed the ``--csv`` option and replaced with
+   :binary:`~bin.mongoexport` removed the ``--csv`` option and replaced with
    the :option:`--type` option.
 
 Export in JSON Format

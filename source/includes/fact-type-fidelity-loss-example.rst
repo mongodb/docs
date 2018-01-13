@@ -1,8 +1,8 @@
-To preserve type information, :program:`mongoexport` and :program:`mongoimport`
+To preserve type information, :binary:`~bin.mongoexport` and :binary:`~bin.mongoimport`
 uses the :doc:`strict mode representation </reference/mongodb-extended-json>`
 for certain types.
 
-For example, the following insert operation in the :program:`mongo`
+For example, the following insert operation in the :binary:`~bin.mongo`
 shell uses the :doc:`shell mode representation
 </reference/mongodb-extended-json>` for the BSON types
 :bsontype:`data_date` and :bsontype:`data_numberlong`:
@@ -15,7 +15,7 @@ shell uses the :doc:`shell mode representation
 The argument to :bsontype:`data_numberlong` must be quoted to avoid potential
 loss of accuracy.
 
-Use :program:`mongoexport` to export the data:
+Use :binary:`~bin.mongoexport` to export the data:
 
 .. code-block:: none
 

@@ -11,24 +11,24 @@ repository contains the following packages:
 
 - ``mongodb-org-server``
 
-  This package contains the :program:`mongod` daemon and associated
+  This package contains the :binary:`~bin.mongod` daemon and associated
   configuration and init scripts.
 
 - ``mongodb-org-mongos``
 
-  This package contains the :program:`mongos` daemon.
+  This package contains the :binary:`~bin.mongos` daemon.
 
 - ``mongodb-org-shell``
 
-  This package contains the :program:`mongo` shell.
+  This package contains the :binary:`~bin.mongo` shell.
 
 - ``mongodb-org-tools``
 
-  This package contains the following MongoDB tools: :program:`mongoimport`
-  :program:`bsondump`, :program:`mongodump`, :program:`mongoexport`,
-  :program:`mongofiles`, :program:`mongooplog`,
-  :program:`mongoperf`, :program:`mongorestore`, :program:`mongostat`,
-  and :program:`mongotop`.
+  This package contains the following MongoDB tools: :binary:`~bin.mongoimport`
+  :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
+  :binary:`~bin.mongofiles`, :binary:`~bin.mongooplog`,
+  :binary:`~bin.mongoperf`, :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
+  and :binary:`~bin.mongotop`.
 
 Init Scripts
 ------------
@@ -43,7 +43,7 @@ the :doc:`Configuration File </reference/configuration-options>`
 reference for documentation of settings available in the configuration file.
 
 As of version |release|, there are no init scripts for
-:program:`mongos`. The :program:`mongos` process is used only in
+:binary:`~bin.mongos`. The :binary:`~bin.mongos` process is used only in
 :doc:`sharding </core/sharding>`. You can use the ``mongod`` init script
-to derive your own :program:`mongos` init script for use in such
-environments. See the :program:`mongos` reference for configuration details.
+to derive your own :binary:`~bin.mongos` init script for use in such
+environments. See the :binary:`~bin.mongos` reference for configuration details.
