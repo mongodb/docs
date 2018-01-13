@@ -5,7 +5,7 @@
    .. versionadded:: 2.4
 
    Specifies the database that holds the user's (e.g
-   :option:`--username <|binary-name| --username>`) credentials.
+   ``--username``) credentials.
 
    .. build system replaces this with
       /includes/fact-authentication-source-mongo on the mongo shell
