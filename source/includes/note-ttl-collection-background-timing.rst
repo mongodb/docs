@@ -9,4 +9,4 @@
      the background process runs.
 
    - The duration of the removal operations depend on the workload of
-     your :program:`mongod` instance.
+     your :binary:`~bin.mongod` instance.

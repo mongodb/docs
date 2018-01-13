@@ -127,12 +127,12 @@ another important characteristic of shard keys.
 Querying
 ~~~~~~~~
 
-The :program:`mongos` provides an interface for applications to
+The :binary:`~bin.mongos` provides an interface for applications to
 interact with sharded clusters that hides the complexity of :term:`data
-partitioning <partition>`. A :program:`mongos` receives queries from
+partitioning <partition>`. A :binary:`~bin.mongos` receives queries from
 applications, and uses metadata from the :ref:`config server
-<sharding-config-server>`, to route queries to the :program:`mongod`
-instances with the appropriate data. While the :program:`mongos`
+<sharding-config-server>`, to route queries to the :binary:`~bin.mongod`
+instances with the appropriate data. While the :binary:`~bin.mongos`
 succeeds in making all querying operational in sharded environments,
 the :term:`shard key` you select can have a profound affect on query
 performance.
@@ -148,18 +148,18 @@ Query Isolation
 ```````````````
 
 The fastest queries in a sharded environment are those that
-:program:`mongos` will route to a single shard, using the
+:binary:`~bin.mongos` will route to a single shard, using the
 :term:`shard key` and the cluster meta data from the :ref:`config server
 <sharding-config-server>`. For queries that don't include the shard
-key, :program:`mongos` must query all shards, wait for their response
+key, :binary:`~bin.mongos` must query all shards, wait for their response
 and then return the result to the application. These "scatter/gather"
 queries can be long running operations.
 
 If your query includes the first component of a compound shard
-key [#shard-key-index]_, the :program:`mongos` can route the
+key [#shard-key-index]_, the :binary:`~bin.mongos` can route the
 query directly to a single shard, or a small number of shards, which
 provides better performance. Even if you query values of the shard
-key reside in different chunks, the :program:`mongos` will route
+key reside in different chunks, the :binary:`~bin.mongos` will route
 queries directly to specific shards.
 
 To select a shard key for a collection:
@@ -179,7 +179,7 @@ compound shard key.
 .. see:: :ref:`sharding-mongos` for more information on query
    operations in the context of sharded clusters. Specifically the
    :ref:`sharding-query-routing` sub-section outlines the procedure
-   that :program:`mongos` uses to route read operations to the shards.
+   that :binary:`~bin.mongos` uses to route read operations to the shards.
 
 .. [#shard-key-index] In many ways, you can think of the shard key a
    cluster-wide unique index. However, be aware that sharded systems
@@ -190,7 +190,7 @@ compound shard key.
 Sorting
 ```````
 
-In sharded systems, the :program:`mongos` performs a merge-sort of all
+In sharded systems, the :binary:`~bin.mongos` performs a merge-sort of all
 sorted query results from the shards. See the :ref:`sharded query
 routing <sharding-query-routing>` and :ref:`index-sort` sections for
 more information.
@@ -208,18 +208,18 @@ are:
 
 - to scale writes across the cluster, and
 
-- to ensure that :program:`mongos` can isolate most queries to a specific
-  :program:`mongod`.
+- to ensure that :binary:`~bin.mongos` can isolate most queries to a specific
+  :binary:`~bin.mongod`.
 
 Furthermore:
 
 - Each shard should be a :term:`replica set`, if a specific
-  :program:`mongod` instance fails, the replica set members will elect
+  :binary:`~bin.mongod` instance fails, the replica set members will elect
   another to be :term:`primary` and continue operation. However, if an
   entire shard is unreachable or fails for some reason, that data will
   be unavailable.
 
-- If the shard key allows the :program:`mongos` to isolate most
+- If the shard key allows the :binary:`~bin.mongos` to isolate most
   operations to a single shard, then the failure of a single shard
   will only render *some* data unavailable.
 
@@ -332,10 +332,10 @@ process and operations. For a higher level introduction see the
 Balancing Internals
 ~~~~~~~~~~~~~~~~~~~
 
-A balancing round originates from an arbitrary :program:`mongos`
+A balancing round originates from an arbitrary :binary:`~bin.mongos`
 instance from one of the cluster's
-:program:`mongos` instances. When a balancer process is active, the
-responsible :program:`mongos` acquires a "lock" by modifying a
+:binary:`~bin.mongos` instances. When a balancer process is active, the
+responsible :binary:`~bin.mongos` acquires a "lock" by modifying a
 document in the ``lock`` collection in the :ref:`config-database`.
 
 By default, the balancer process is always running. When the number of
@@ -357,16 +357,16 @@ when the distribution of chunks passes the :ref:`migration thresholds
 The migration process ensures consistency and maximizes availability
 of chunks during balancing: when MongoDB begins migrating a chunk, the
 database begins copying the data to the new server and tracks incoming
-write operations. After migrating chunks, the "from" :program:`mongod`
+write operations. After migrating chunks, the "from" :binary:`~bin.mongod`
 sends all new writes to the "receiving" server. Finally,
-:program:`mongos` updates the chunk record in the :term:`config
+:binary:`~bin.mongos` updates the chunk record in the :term:`config
 database` to reflect the new location of the chunk.
 
 .. note::
 
    .. versionchanged:: 2.0
       Before MongoDB version 2.0, large differences in timekeeping
-      (i.e. clock skew) between :program:`mongos` instances could lead
+      (i.e. clock skew) between :binary:`~bin.mongos` instances could lead
       to failed distributed locks, which carries the possibility of
       data loss, particularly with skews larger than 5 minutes.
       Always use the network time protocol (NTP) by running ``ntpd``
@@ -409,7 +409,7 @@ than two* or a chunk migration fails.
    <sharding-schedule-balancing-window>` for more information.
 
    The specification of the balancing window is relative to the local
-   time zone of all individual :program:`mongos` instances in the
+   time zone of all individual :binary:`~bin.mongos` instances in the
    sharded cluster.
 
 .. index:: sharding; chunk size
@@ -423,9 +423,9 @@ Chunk Size
 The default :term:`chunk` size in MongoDB is 64 megabytes.
 
 When chunks grow beyond the :ref:`specified chunk size
-<sharding-chunk-size>` a :program:`mongos` instance will split the
+<sharding-chunk-size>` a :binary:`~bin.mongos` instance will split the
 chunk in half. This will eventually lead to migrations, when chunks
-become unevenly distributed among the cluster. The :program:`mongos`
+become unevenly distributed among the cluster. The :binary:`~bin.mongos`
 instances will initiate a round of migrations to redistribute data in
 the cluster.
 
@@ -433,7 +433,7 @@ Chunk size is arbitrary and must account for the following:
 
 #. Small chunks lead to a more even distribution of data at the
    expense of more frequent migrations, which creates expense at the
-   query routing (:program:`mongos`) layer.
+   query routing (:binary:`~bin.mongos`) layer.
 
 #. Large chunks lead to fewer migrations, which is more efficient both
    from the networking perspective *and* in terms internal overhead at
@@ -524,12 +524,12 @@ If enabled, the ``_secondaryThrottle`` setting causes the balancer to
 wait for replication to secondaries. For more information, see
 :ref:`sharded-cluster-config-secondary-throttle`.
 
-Detect Connections to :program:`mongos` Instances
+Detect Connections to :binary:`~bin.mongos` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your application must detect if the MongoDB instance its connected
-to is :program:`mongos`, use the :dbcommand:`isMaster` command. When a
-client connects to a :program:`mongos`, :dbcommand:`isMaster` returns
+to is :binary:`~bin.mongos`, use the :dbcommand:`isMaster` command. When a
+client connects to a :binary:`~bin.mongos`, :dbcommand:`isMaster` returns
 a document with a ``msg`` field that holds the string
 ``isdbgrid``. For example:
 
@@ -542,7 +542,7 @@ a document with a ``msg`` field that holds the string
       "ok" : 1
    }
 
-If the application is instead connected to a :program:`mongod`, the
+If the application is instead connected to a :binary:`~bin.mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
 .. index:: config database
@@ -560,7 +560,7 @@ used by sharding.
    any maintenance on the config server.
 
 To access the ``config`` database, issue the following command from the
-:program:`mongo` shell:
+:binary:`~bin.mongo` shell:
 
 .. code-block:: javascript
 

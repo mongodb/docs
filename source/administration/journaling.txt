@@ -18,13 +18,13 @@ should terminate or encounter an error before it can write the changes
 from the journal to the data files, MongoDB can re-apply the write
 operation and maintain a consistent state.
 
-*Without* a journal, if :program:`mongod` exits unexpectedly, you must assume
+*Without* a journal, if :binary:`~bin.mongod` exits unexpectedly, you must assume
 your data is in an inconsistent state, and you must run either
 :doc:`repair </tutorial/recover-data-following-unexpected-shutdown>`
 or, preferably, :ref:`resync <replica-set-resync-stale-member>` from a
 clean member of the replica set.
 
-With journaling enabled, if :program:`mongod` stops unexpectedly,
+With journaling enabled, if :binary:`~bin.mongod` stops unexpectedly,
 the program can recover everything written to the journal, and the
 data remains in a consistent state. By default, the greatest extent of lost
 writes, i.e., those not made to the journal, are those made in the last
@@ -40,7 +40,7 @@ views, see :ref:`journaling-storage-views`.
 .. important::
 
    .. versionchanged:: 2.0
-      For 64-bit builds of :program:`mongod`, journaling is enabled by default.
+      For 64-bit builds of :binary:`~bin.mongod`, journaling is enabled by default.
       For other platforms, see :setting:`journal`.
 
 Procedures
@@ -50,16 +50,16 @@ Enable Journaling
 ~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 2.0
-   For 64-bit builds of :program:`mongod`, journaling is enabled by default.
+   For 64-bit builds of :binary:`~bin.mongod`, journaling is enabled by default.
 
-To enable journaling, start :program:`mongod` with the
+To enable journaling, start :binary:`~bin.mongod` with the
 :option:`--journal <mongod --journal>` command line option.
 
-If no journal files exist, when :program:`mongod` starts, it must
+If no journal files exist, when :binary:`~bin.mongod` starts, it must
 preallocate new journal files. During this operation, the
-:program:`mongod` is not listening for connections until preallocation
+:binary:`~bin.mongod` is not listening for connections until preallocation
 completes: for some systems this may take a several minutes. During
-this period your applications and the :program:`mongo` shell are not
+this period your applications and the :binary:`~bin.mongo` shell are not
 available.
 
 Disable Journaling
@@ -68,13 +68,13 @@ Disable Journaling
 .. warning::
 
    Do not disable journaling on production systems. If your
-   :program:`mongod` instance stops without shutting down cleanly
+   :binary:`~bin.mongod` instance stops without shutting down cleanly
    unexpectedly for any reason, (e.g. power failure) and you are
    not running with journaling, then you must recover from an
    unaffected :term:`replica set` member or backup, as described in
    :doc:`repair  </tutorial/recover-data-following-unexpected-shutdown>`.
 
-To disable journaling, start :program:`mongod` with the
+To disable journaling, start :binary:`~bin.mongod` with the
 :option:`--nojournal <mongod --nojournal>` command line option.
 
 Get Commit Acknowledgment
@@ -91,14 +91,14 @@ Avoid Preallocation Lag
 
 To avoid :ref:`preallocation lag <journaling-journal-files>`, you can
 preallocate files in the journal directory by copying them from another
-instance of :program:`mongod`.
+instance of :binary:`~bin.mongod`.
 
 Preallocated files do not contain data. It is safe to later remove them.
-But if you restart :program:`mongod` with journaling, :program:`mongod`
+But if you restart :binary:`~bin.mongod` with journaling, :binary:`~bin.mongod`
 will create them again.
 
 .. example:: The following sequence preallocates journal files for an
-   instance of :program:`mongod` running on port ``27017`` with a database
+   instance of :binary:`~bin.mongod` running on port ``27017`` with a database
    path of ``/data/db``.
 
    For demonstration purposes, the sequence starts by creating a set of
@@ -111,29 +111,29 @@ will create them again.
 
          mkdir ~/tmpDbpath
 
-   #. Create a set of journal files by staring a :program:`mongod`
+   #. Create a set of journal files by staring a :binary:`~bin.mongod`
       instance that uses the temporary directory:
 
       .. code-block:: sh
 
          mongod --port 10000 --dbpath ~/tmpDbpath --journal
 
-   #. When you see the following log output, indicating :program:`mongod` has the files,
-      press CONTROL+C to stop the :program:`mongod` instance:
+   #. When you see the following log output, indicating :binary:`~bin.mongod` has the files,
+      press CONTROL+C to stop the :binary:`~bin.mongod` instance:
 
       .. code-block:: sh
 
          web admin interface listening on port 11000
 
    #. Preallocate journal files for the new instance of
-      :program:`mongod` by moving the journal files from the data directory
+      :binary:`~bin.mongod` by moving the journal files from the data directory
       of the existing instance to the data directory of the new instance:
 
       .. code-block:: sh
 
          mv ~/tmpDbpath/journal /data/db/
 
-   #. Start the new :program:`mongod` instance:
+   #. Start the new :binary:`~bin.mongod` instance:
 
       .. code-block:: sh
 
@@ -184,7 +184,7 @@ Recover Data After Unexpected Shutdown
 
 On a restart after a crash, MongoDB replays all journal files in the
 journal directory before the server becomes available. If MongoDB must
-replay journal files, :program:`mongod` notes these events in the log
+replay journal files, :binary:`~bin.mongod` notes these events in the log
 output.
 
 There is no reason to run :dbcommand:`repairDatabase` in these situations.
@@ -217,7 +217,7 @@ write *many* bytes of data per-second, the journal directory should
 contain only two or three journal files.
 
 To limit the size of each journal file to 128 megabytes, use the
-:setting:`smallfiles` run time option when starting :program:`mongod`.
+:setting:`smallfiles` run time option when starting :binary:`~bin.mongod`.
 
 To speed the frequent sequential writes that occur to the current
 journal file, you can ensure that the journal directory is on a
@@ -232,7 +232,7 @@ different system.
 .. note::
 
    Depending on your file system, you might experience a preallocation
-   lag the first time you start a :program:`mongod` instance with
+   lag the first time you start a :binary:`~bin.mongod` instance with
    journaling enabled. MongoDB preallocates journal files if it is
    faster on your file system to create files of a
    pre-defined. The amount of time required to pre-allocate
@@ -251,7 +251,7 @@ Journaling adds three storage views to MongoDB.
 
 The ``shared view`` stores modified data for upload to the MongoDB
 data files. The ``shared view`` is the only view with direct access
-to the MongoDB data files. When running with journaling, :program:`mongod`
+to the MongoDB data files. When running with journaling, :binary:`~bin.mongod`
 asks the operating system to map your existing on-disk data files to the
 ``shared view`` memory view. The operating system maps the files but
 does not load them. MongoDB later loads data files to ``shared view`` as
@@ -265,7 +265,7 @@ and is the first place MongoDB applies new :doc:`write operations
 The journal is an on-disk view that stores new write operations
 after MongoDB applies the operation to the ``private cache`` but
 before applying them to the data files. The journal provides durability.
-If the :program:`mongod` instance were to crash without having applied
+If the :binary:`~bin.mongod` instance were to crash without having applied
 the writes to the data files, the journal could replay the writes to
 the ``shared view`` for eventual upload to the data files.
 
