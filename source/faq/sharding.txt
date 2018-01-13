@@ -85,8 +85,8 @@ of data from one shard to another.
 What happens if a client updates a document in a chunk during a migration?
 --------------------------------------------------------------------------
 
-The :program:`mongos` routes the operation to the "old" shard, where
-it will succeed immediately. Then the :term:`shard` :program:`mongod`
+The :binary:`~bin.mongos` routes the operation to the "old" shard, where
+it will succeed immediately. Then the :term:`shard` :binary:`~bin.mongod`
 instances will replicate the modification to the "new" shard before
 the :term:`sharded cluster` updates that chunk's "ownership," which
 effectively finalizes the migration process.
@@ -101,7 +101,7 @@ However, a client may set the ``partial`` query bit, which will then
 return results from all available shards, regardless of whether a
 given shard is unavailable.
 
-If a shard is responding slowly, :program:`mongos` will merely wait
+If a shard is responding slowly, :binary:`~bin.mongos` will merely wait
 for the shard to return results.
 
 How does MongoDB distribute queries among shards?
@@ -118,22 +118,22 @@ the sharded cluster. Consider a sharded collection, using the
 - For a query that selects one or more values for the ``user_id``
   key:
 
-  :program:`mongos` determines which shard or shards contains the
+  :binary:`~bin.mongos` determines which shard or shards contains the
   relevant data, based on the cluster metadata, and directs a query to
   the required shard or shards, and returns those results to the
   client.
 
 - For a query that selects ``user_id`` and also performs a sort:
 
-  :program:`mongos` can make a straightforward translation of this
+  :binary:`~bin.mongos` can make a straightforward translation of this
   operation into a number of queries against the relevant shards,
   ordered by ``user_id``. When the sorted queries return from all
-  shards, the :program:`mongos` merges the sorted results and returns
+  shards, the :binary:`~bin.mongos` merges the sorted results and returns
   the complete result to the client.
 
 - For queries that select on ``last_login``:
 
-  These queries must run on all shards: :program:`mongos` must
+  These queries must run on all shards: :binary:`~bin.mongos` must
   parallelize the query over the shards and perform a merge-sort on
   the ``email`` of the documents found.
 
@@ -141,8 +141,8 @@ How does MongoDB sort queries in sharded environments?
 ------------------------------------------------------
 
 If you call the :method:`cursor.sort()` method on a query in a sharded
-environment, the :program:`mongod` for each shard will sort its
-results, and the :program:`mongos` merges each shard's results before returning
+environment, the :binary:`~bin.mongod` for each shard will sort its
+results, and the :binary:`~bin.mongos` merges each shard's results before returning
 them to the client.
 
 How does MongoDB ensure unique ``_id`` field values when using a shard key *other* than ``_id``?
@@ -180,7 +180,7 @@ present in your cluster.
 Is it safe to remove old files in the ``moveChunk`` directory?
 --------------------------------------------------------------
 
-Yes. :program:`mongod` creates these files as backups during normal
+Yes. :binary:`~bin.mongod` creates these files as backups during normal
 :term:`shard` balancing operations. If some error occurs during a
 :doc:`migration </core/sharding-chunk-migration>`, these files may be
 helpful in recovering documents affected during the migration.
@@ -191,18 +191,18 @@ Or, if you have an existing backup of the database that you can use
 for recovery, you may also delete these files after migration.
 
 To determine if all migrations are complete, run
-:method:`sh.isBalancerRunning()` while connected to a :program:`mongos`
+:method:`sh.isBalancerRunning()` while connected to a :binary:`~bin.mongos`
 instance.
 
 How does ``mongos`` use connections?
 ------------------------------------
 
-Each client maintains a connection to a :program:`mongos` instance.
-Each :program:`mongos` instance maintains a pool of connections to the
+Each client maintains a connection to a :binary:`~bin.mongos` instance.
+Each :binary:`~bin.mongos` instance maintains a pool of connections to the
 members of a replica set supporting the sharded cluster.  Clients use
-connections between :program:`mongos` and :program:`mongod` instances
+connections between :binary:`~bin.mongos` and :binary:`~bin.mongod` instances
 one at a time. Requests are not multiplexed or pipelined. When client
-requests complete, the :program:`mongos` returns the connection to the
+requests complete, the :binary:`~bin.mongos` returns the connection to the
 pool.
 
 See the :ref:`System Resource Utilization
@@ -212,18 +212,18 @@ See the :ref:`System Resource Utilization
 Why does ``mongos`` hold connections open?
 ------------------------------------------
 
-:program:`mongos` uses a set of connection pools to communicate with
+:binary:`~bin.mongos` uses a set of connection pools to communicate with
 each :term:`shard`.  These pools do not shrink when the number of
 clients decreases.
 
-This can lead to an unused :program:`mongos` with a large number
-of open connections. If the :program:`mongos` is no longer in use,
+This can lead to an unused :binary:`~bin.mongos` with a large number
+of open connections. If the :binary:`~bin.mongos` is no longer in use,
 it is safe to restart the process to close existing connections.
 
 Where does MongoDB report on connections used by ``mongos``?
 ------------------------------------------------------------
 
-Connect to the :program:`mongos` with the :program:`mongo` shell, and
+Connect to the :binary:`~bin.mongos` with the :binary:`~bin.mongo` shell, and
 run the following command:
 
 .. code-block:: sh
@@ -236,7 +236,7 @@ What does ``writebacklisten`` in the log mean?
 ----------------------------------------------
 
 The writeback listener is a process that opens a long poll to relay
-writes back from a :program:`mongod` or :program:`mongos` after
+writes back from a :binary:`~bin.mongod` or :binary:`~bin.mongos` after
 migrations to make sure they have not gone to the wrong server.  The
 writeback listener sends writes back to the correct server if
 necessary.
@@ -262,41 +262,41 @@ migrating and replacing config servers.
 When do the ``mongos`` servers detect config server changes?
 ------------------------------------------------------------
 
-:program:`mongos` instances maintain a cache of the :term:`config
+:binary:`~bin.mongos` instances maintain a cache of the :term:`config
 database` that holds the metadata for the :term:`sharded cluster`. This
 metadata includes the mapping of :term:`chunks <chunk>` to
 :term:`shards <shard>`.
 
-:program:`mongos` updates its cache lazily by issuing a request to a
+:binary:`~bin.mongos` updates its cache lazily by issuing a request to a
 shard and discovering that its metadata is out of date.  There is no
 way to control this behavior from the client, but you can run the
-:dbcommand:`flushRouterConfig` command against any :program:`mongos`
+:dbcommand:`flushRouterConfig` command against any :binary:`~bin.mongos`
 to force it to refresh its cache.
 
 Is it possible to quickly update ``mongos`` servers after updating a replica set configuration?
 -----------------------------------------------------------------------------------------------
 
-The :program:`mongos` instances will detect these changes without
+The :binary:`~bin.mongos` instances will detect these changes without
 intervention over time. However, if you want to force the
-:program:`mongos` to reload its configuration, run the
+:binary:`~bin.mongos` to reload its configuration, run the
 :dbcommand:`flushRouterConfig` command against to each
-:program:`mongos` directly.
+:binary:`~bin.mongos` directly.
 
 What does the ``maxConns`` setting on ``mongos`` do?
 ----------------------------------------------------
 
 The :setting:`~net.maxIncomingConnections` option limits the number of connections
-accepted by :program:`mongos`.
+accepted by :binary:`~bin.mongos`.
 
 If your client driver or application creates a large number of
 connections but allows them to time out rather than closing them
 explicitly, then it might make sense to limit the number of
-connections at the :program:`mongos` layer.
+connections at the :binary:`~bin.mongos` layer.
 
 Set :setting:`~net.maxIncomingConnections` to a value slightly higher than the
 maximum number of connections that the client creates, or the maximum
 size of the connection pool. This setting prevents the
-:program:`mongos` from causing connection spikes on the individual
+:binary:`~bin.mongos` from causing connection spikes on the individual
 :term:`shards <shard>`. Spikes like these may disrupt the operation
 and memory allocation of the :term:`sharded cluster`.
 
@@ -304,13 +304,13 @@ How do indexes impact queries in sharded systems?
 -------------------------------------------------
 
 If the query does not include the :term:`shard key`, the
-:program:`mongos` must send the query to all shards as a
+:binary:`~bin.mongos` must send the query to all shards as a
 "scatter/gather" operation. Each shard will, in turn, use *either* the
 shard key index or another more efficient index to fulfill the query.
 
 If the query includes multiple sub-expressions that reference the
 fields indexed by the shard key *and* the secondary index, the
-:program:`mongos` can route the queries to a specific shard and the
+:binary:`~bin.mongos` can route the queries to a specific shard and the
 shard will use the index that will allow it to fulfill most
 efficiently. See `this presentation <http://www.slideshare.net/mongodb/how-queries-work-with-sharding>`_
 for more information.
@@ -429,7 +429,7 @@ cluster with an uneven chunk distribution:
          When changing the ``maxSize`` in the :term:`config database`:
 
          - in versions 2.0+, run the :dbcommand:`flushRouterConfig` command
-           to refresh the :program:`mongos`.
+           to refresh the :binary:`~bin.mongos`.
 
-         - in versions pre-2.0, you need to restart :program:`mongos`.
+         - in versions pre-2.0, you need to restart :binary:`~bin.mongos`.
            solutions:

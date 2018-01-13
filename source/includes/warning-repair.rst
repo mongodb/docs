@@ -2,7 +2,7 @@
 
    During normal operations, only use the :dbcommand:`repairDatabase`
    command and wrappers including :method:`db.repairDatabase()` in the
-   :program:`mongo` shell and :option:`mongod --repair`, to compact
+   :binary:`~bin.mongo` shell and :option:`mongod --repair`, to compact
    database files and/or reclaim disk space. Be aware that these
    operations remove and do not save any corrupt data during the
    repair process.

@@ -36,7 +36,7 @@ document on disk will error.
 
 .. index-field-limit-restore-import
 
-:program:`mongorestore` and :program:`mongoimport` will not insert
+:binary:`~bin.mongorestore` and :binary:`~bin.mongoimport` will not insert
 documents that contain an indexed field whose corresponding index entry
 would exceed the |limit|.
 

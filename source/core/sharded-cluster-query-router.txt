@@ -14,22 +14,22 @@ Sharded Cluster Query Routing
    :depth: 1
    :class: singlecol
 
-MongoDB :program:`mongos` instances route queries and write operations
-to :term:`shards <shard>` in a sharded cluster. :program:`mongos` provide the
+MongoDB :binary:`~bin.mongos` instances route queries and write operations
+to :term:`shards <shard>` in a sharded cluster. :binary:`~bin.mongos` provide the
 only interface to a sharded cluster from the perspective of
 applications. Applications never connect or communicate directly with
 the shards.
 
-The :program:`mongos` tracks what data is on which shard by caching
+The :binary:`~bin.mongos` tracks what data is on which shard by caching
 the metadata from the :ref:`config servers
-<sharded-cluster-config-server>`. The :program:`mongos` uses the
+<sharded-cluster-config-server>`. The :binary:`~bin.mongos` uses the
 metadata to route operations from applications and clients to the
-:program:`mongod` instances. A :program:`mongos` has no *persistent*
+:binary:`~bin.mongod` instances. A :binary:`~bin.mongos` has no *persistent*
 state and consumes minimal system resources.
 
-The most common practice is to run :program:`mongos` instances on the
+The most common practice is to run :binary:`~bin.mongos` instances on the
 same systems as your application servers, but you can maintain
-:program:`mongos` instances on the shards or on other dedicated
+:binary:`~bin.mongos` instances on the shards or on other dedicated
 resources.
 
 .. note::
@@ -38,7 +38,7 @@ resources.
 
    Some aggregation operations using the :dbcommand:`aggregate`
    command (i.e. :method:`db.collection.aggregate()`) will cause
-   :program:`mongos` instances to require more CPU resources than in
+   :binary:`~bin.mongos` instances to require more CPU resources than in
    previous versions. This modified performance profile may dictate
    alternate architecture decisions if you use the :term:`aggregation
    framework` extensively in a sharded environment.
@@ -46,13 +46,13 @@ resources.
 Routing Process
 ---------------
 
-A :program:`mongos` instance uses the following processes to route
+A :binary:`~bin.mongos` instance uses the following processes to route
 queries and return results.
 
 How ``mongos`` Determines which Shards Receive a Query
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A :program:`mongos` instance routes a query to a :term:`cluster <sharded
+A :binary:`~bin.mongos` instance routes a query to a :term:`cluster <sharded
 cluster>` by:
 
 1. Determining the list of :term:`shards <shard>` that must receive the
@@ -61,8 +61,8 @@ cluster>` by:
 #. Establishing a cursor on all targeted shards.
 
 In some cases, when the :term:`shard key` or a prefix of the shard
-key is a part of the query, the :program:`mongos` can route the
-query to a subset of the shards. Otherwise, the :program:`mongos`
+key is a part of the query, the :binary:`~bin.mongos` can route the
+query to a subset of the shards. Otherwise, the :binary:`~bin.mongos`
 must direct the query to *all* shards that hold documents for that
 collection.
 
@@ -75,7 +75,7 @@ collection.
       { zipcode: 1, u_id: 1, c_date: 1 }
 
    Depending on the distribution of chunks in the cluster, the
-   :program:`mongos` may be able to target the query at a subset of
+   :binary:`~bin.mongos` may be able to target the query at a subset of
    shards, if the query contains the following fields:
 
    .. code-block:: javascript
@@ -87,41 +87,41 @@ collection.
 How ``mongos`` Handles Query Modifiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the result of the query is not sorted, the :program:`mongos`
+If the result of the query is not sorted, the :binary:`~bin.mongos`
 instance opens a result cursor that "round robins" results from all
 cursors on the shards.
 
 .. versionchanged:: 2.0.5
-   In versions prior to 2.0.5, the :program:`mongos` exhausted each
+   In versions prior to 2.0.5, the :binary:`~bin.mongos` exhausted each
    cursor, one by one.
 
 If the query specifies sorted results using the
-:method:`~cursor.sort()` cursor method, the :program:`mongos` instance
+:method:`~cursor.sort()` cursor method, the :binary:`~bin.mongos` instance
 passes the :operator:`$orderby` option to the shards. The primary
 shard for the database receives and performs a merge sort for all
 results before returning the data to the client via the
-:program:`mongos`.
+:binary:`~bin.mongos`.
 
 If the query limits the size of the result set using the
-:method:`~cursor.limit()` cursor method, the :program:`mongos`
+:method:`~cursor.limit()` cursor method, the :binary:`~bin.mongos`
 instance passes that limit to the shards and then re-applies the limit
 to the result before returning the result to the client.
 
 If the query specifies a number of records to *skip* using the
-:method:`~cursor.skip()` cursor method, the :program:`mongos` *cannot*
+:method:`~cursor.skip()` cursor method, the :binary:`~bin.mongos` *cannot*
 pass the skip to the shards, but rather retrieves unskipped results
 from the shards and skips the appropriate number of documents when assembling
 the complete result. However, when used in conjunction with a
-:method:`~cursor.limit()`, the :program:`mongos` will pass the *limit*
+:method:`~cursor.limit()`, the :binary:`~bin.mongos` will pass the *limit*
 plus the value of the :method:`~cursor.skip()` to the shards to
 improve the efficiency of these operations.
 
-Detect Connections to :program:`mongos` Instances
+Detect Connections to :binary:`~bin.mongos` Instances
 -------------------------------------------------
 
 To detect if the MongoDB instance that your client is connected
-to is :program:`mongos`, use the :dbcommand:`isMaster` command. When a
-client connects to a :program:`mongos`, :dbcommand:`isMaster` returns
+to is :binary:`~bin.mongos`, use the :dbcommand:`isMaster` command. When a
+client connects to a :binary:`~bin.mongos`, :dbcommand:`isMaster` returns
 a document with a ``msg`` field that holds the string
 ``isdbgrid``. For example:
 
@@ -134,7 +134,7 @@ a document with a ``msg`` field that holds the string
       "ok" : 1
    }
 
-If the application is instead connected to a :program:`mongod`, the
+If the application is instead connected to a :binary:`~bin.mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
 Broadcast Operations and Targeted Operations
@@ -156,8 +156,8 @@ key.
 Broadcast Operations
 ~~~~~~~~~~~~~~~~~~~~
 
-:program:`mongos` instances broadcast queries to all shards for the
-collection **unless** the :program:`mongos` can
+:binary:`~bin.mongos` instances broadcast queries to all shards for the
+collection **unless** the :binary:`~bin.mongos` can
 determine which shard or subset of shards stores this data.
 
 .. include:: /images/sharded-cluster-scatter-gather-query.rst
@@ -187,7 +187,7 @@ target to one shard.
    .. include:: /includes/fact-single-modification-in-sharded-collections.rst
 
 For queries that include the shard key or portion of the shard key,
-:program:`mongos` can target the query at a specific shard or set of
+:binary:`~bin.mongos` can target the query at a specific shard or set of
 shards. This is the case only if the portion of the shard key included
 in the query is a *prefix* of the shard key. For example, if the shard
 key is:
@@ -196,7 +196,7 @@ key is:
 
    { a: 1, b: 1, c: 1 }
 
-The :program:`mongos` program *can* route queries that include the full
+The :binary:`~bin.mongos` program *can* route queries that include the full
 shard key or either of the following shard key prefixes at a
 specific shard or set of shards:
 
@@ -208,10 +208,10 @@ specific shard or set of shards:
 .. include:: /images/sharded-cluster-targeted-query.rst
 
 Depending on the distribution of data in the cluster and the
-selectivity of the query, :program:`mongos` may still have to
+selectivity of the query, :binary:`~bin.mongos` may still have to
 contact multiple shards [#possible-all]_ to fulfill these queries.
 
-.. [#possible-all] :program:`mongos` will route some queries, even
+.. [#possible-all] :binary:`~bin.mongos` will route some queries, even
    some that include the shard key, to all shards, if needed.
 
 Sharded and Non-Sharded Data
@@ -228,7 +228,7 @@ shard.
 
 Regardless of the data architecture of your :term:`sharded cluster`,
 ensure that all queries and operations use the :term:`mongos` router to
-access the data cluster. Use the :program:`mongos` even for operations
+access the data cluster. Use the :binary:`~bin.mongos` even for operations
 that do not impact the sharded data.
 
 .. include:: /images/sharded-cluster-mixed.rst

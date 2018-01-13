@@ -1,9 +1,9 @@
 Be aware of the following properties of |copydb|:
 
-- |copydb| runs on the destination :program:`mongod`
+- |copydb| runs on the destination :binary:`~bin.mongod`
   instance, i.e. the host receiving the copied data.
 
-- If the destination :program:`mongod` has
+- If the destination :binary:`~bin.mongod` has
   :setting:`~security.authorization`
   enabled, |copydb| *must* specify the credentials of a user present
   in the *source* database who has the privileges described in
@@ -14,7 +14,7 @@ Be aware of the following properties of |copydb|:
 - |copydb| requires enough free disk space on the host
   instance for the copied database. Use the :method:`db.stats()`
   operation to check the size of the database on the source
-  :program:`mongod` instance.
+  :binary:`~bin.mongod` instance.
 
 - |copydb| and :dbcommand:`clone` do not produce
   point-in-time snapshots of the source database. Write traffic to

@@ -4,11 +4,11 @@ database being restored.
 
 The :authrole:`readWriteAnyDatabase` role and the :authrole:`restore`
 role each provide access to restore any database. If running
-:program:`mongorestore` with :option:`--oplogReplay`, however, neither
+:binary:`~bin.mongorestore` with :option:`--oplogReplay`, however, neither
 role is sufficient. Instead, create a :ref:`user-defined role
 <user-defined-roles>` that has :authaction:`anyAction` on
 :ref:`resource-anyresource` and grant only to users who must run
-:program:`mongorestore` with :option:`--oplogReplay`.
+:binary:`~bin.mongorestore` with :option:`--oplogReplay`.
 
 .. COMMENT per the following commit, choosing the anyAction/anyResource
    over the __system role.
