@@ -19,7 +19,7 @@ MongoDB drivers use the following procedures to direct operations to
 replica sets and sharded clusters. To determine how to route their
 operations, applications periodically update their view of the replica
 set's state, identifying which members are up or down, which member is
-:term:`primary`, and verifying the latency to each :program:`mongod`
+:term:`primary`, and verifying the latency to each :binary:`~bin.mongod`
 instance.
 
 .. index:: read preference; ping time
@@ -32,7 +32,7 @@ instance.
 Member Selection
 ----------------
 
-Clients, by way of their drivers, and :program:`mongos` instances for
+Clients, by way of their drivers, and :binary:`~bin.mongos` instances for
 sharded clusters, periodically update their view of the replica set's state.
 
 When you select non-:readmode:`primary` read preference, the driver
@@ -53,7 +53,7 @@ will determine which member to target using the following process:
    Applications can configure the threshold used in this stage. The
    default "acceptable latency" is 15 milliseconds, which you can
    override in the drivers with their own
-   ``secondaryAcceptableLatencyMS`` option. For :program:`mongos` you
+   ``secondaryAcceptableLatencyMS`` option. For :binary:`~bin.mongos` you
    can use the :option:`--localThreshold <mongos --localThreshold>` or
    :setting:`localThreshold` runtime options to set this value.
 
@@ -90,7 +90,7 @@ The thread will continue to read from the same member until:
 - The thread terminates, or
 
 - The client receives a socket exception, as is the case when there's
-  a network error or when the :program:`mongod` closes connections
+  a network error or when the :binary:`~bin.mongod` closes connections
   during a :term:`failover`.  This triggers a :ref:`retry
   <replica-set-read-preference-behavior-retry>`, which may be
   transparent to the application.
@@ -104,7 +104,7 @@ between threads and members.
 Auto-Retry
 ----------
 
-Connections between MongoDB drivers and :program:`mongod` instances in
+Connections between MongoDB drivers and :binary:`~bin.mongod` instances in
 a :term:`replica set` must balance two concerns:
 
 #. The client should attempt to prefer current results, and any
@@ -115,15 +115,15 @@ a :term:`replica set` must balance two concerns:
    inaccessible as the result of a connection issue, networking
    problem, or :term:`failover` in a replica set.
 
-As a result, MongoDB drivers and :program:`mongos`:
+As a result, MongoDB drivers and :binary:`~bin.mongos`:
 
-- Reuse a connection to specific :program:`mongod` for as long as
+- Reuse a connection to specific :binary:`~bin.mongod` for as long as
   possible after establishing a connection to that instance. This
-  connection is *pinned* to this :program:`mongod`.
+  connection is *pinned* to this :binary:`~bin.mongod`.
 
 - Attempt to reconnect to a new member, obeying existing :ref:`read
   preference modes <replica-set-read-preference-modes>`, if the connection
-  to :program:`mongod` is lost.
+  to :binary:`~bin.mongod` is lost.
 
   Reconnections are transparent to the application itself. If
   the connection permits reads from :term:`secondary` members, after
@@ -160,7 +160,7 @@ Read Preference in Sharded Clusters
 -----------------------------------
 
 .. versionchanged:: 2.2
-   Before version 2.2, :program:`mongos` did not support the
+   Before version 2.2, :binary:`~bin.mongos` did not support the
    :ref:`read preference mode semantics <replica-set-read-preference-modes>`.
 
 In most :term:`sharded clusters <sharded cluster>`, each shard consists of a :term:`replica
@@ -169,26 +169,26 @@ With regard to read preference, read operations in a sharded cluster
 are identical to unsharded replica sets.
 
 Unlike simple replica sets, in sharded clusters, all interactions with
-the shards pass from the clients to the :program:`mongos` instances
-that are actually connected to the set members. :program:`mongos` is then
+the shards pass from the clients to the :binary:`~bin.mongos` instances
+that are actually connected to the set members. :binary:`~bin.mongos` is then
 responsible for the application of read preferences, which is
 transparent to applications.
 
 There are no configuration changes required for full support of read
 preference modes in sharded environments, as long as the
-:program:`mongos` is at least version 2.2. All :program:`mongos`
+:binary:`~bin.mongos` is at least version 2.2. All :binary:`~bin.mongos`
 maintain their own connection pool to the replica set members. As a
 result:
 
 - A request without a specified preference has
-  :readmode:`primary`, the default, unless, the :program:`mongos`
+  :readmode:`primary`, the default, unless, the :binary:`~bin.mongos`
   reuses an existing connection that has a different mode set.
 
   To prevent confusion, always explicitly set your read preference mode.
 
 - All :readmode:`nearest` and latency calculations reflect the
-  connection between the :program:`mongos` and the :program:`mongod`
-  instances, not the client and the :program:`mongod` instances.
+  connection between the :binary:`~bin.mongos` and the :binary:`~bin.mongod`
+  instances, not the client and the :binary:`~bin.mongod` instances.
 
   This produces the desired result, because all results must pass
-  through the :program:`mongos` before returning to the client.
+  through the :binary:`~bin.mongos` before returning to the client.

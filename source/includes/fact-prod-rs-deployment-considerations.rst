@@ -39,7 +39,7 @@
 - You must specify the run time configuration on each system in a
   :doc:`configuration file </reference/configuration-options>` stored
   in ``/etc/mongodb.conf`` or a related location. *Do not* specify the
-  set's configuration in the :program:`mongo` shell.
+  set's configuration in the :binary:`~bin.mongo` shell.
 
   Use the following configuration for each of your MongoDB instances.
   You should set values that are appropriate for your systems, as needed:
@@ -56,14 +56,14 @@
 
      replSet = rs0
 
-  The :setting:`dbpath` indicates where you want :program:`mongod` to
+  The :setting:`dbpath` indicates where you want :binary:`~bin.mongod` to
   store data files. The :setting:`dbpath` must exist before you start
-  :program:`mongod`. If it does not exist, create the directory and
-  ensure :program:`mongod` has permission to read and write data to this
+  :binary:`~bin.mongod`. If it does not exist, create the directory and
+  ensure :binary:`~bin.mongod` has permission to read and write data to this
   path. For more information on permissions, see the :ref:`security
   operations documentation <security-operations>`.
 
-  Modifying :setting:`bind_ip` ensures that :program:`mongod` will only
+  Modifying :setting:`bind_ip` ensures that :binary:`~bin.mongod` will only
   listen for connections from applications on the configured address.
 
   For more information about the run time options used above and other

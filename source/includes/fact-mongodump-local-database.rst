@@ -1,2 +1,2 @@
-.. important:: :program:`mongodump` does *not* dump the content of the
+.. important:: :binary:`~bin.mongodump` does *not* dump the content of the
    ``local`` database.

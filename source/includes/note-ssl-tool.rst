@@ -1,5 +1,5 @@
 .. versionadded:: 2.4
-   MongoDB added support for SSL connections to :program:`mongod`
+   MongoDB added support for SSL connections to :binary:`~bin.mongod`
    instances in |tool-binary|.
 
 .. note::
@@ -10,5 +10,5 @@
    and MongoDB.
 
    Additionally, |tool-binary| does not support connections to
-   :program:`mongod` instances that require client certificate
+   :binary:`~bin.mongod` instances that require client certificate
    validation.

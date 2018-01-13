@@ -11,7 +11,7 @@ a. Issue the following command to determine the
    in the list. You must record *array position*, not ``_id``, as these
    ordinals will be different if you remove a member.
 
-#. In the :program:`mongo` shell connected to the replica set's
+#. In the :binary:`~bin.mongo` shell connected to the replica set's
    primary, issue a command sequence similar to the following:
 
    .. code-block:: javascript

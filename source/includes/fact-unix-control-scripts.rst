@@ -4,6 +4,6 @@ configure MongoDB using the ``/etc/mongodb.conf`` file in conjunction
 with the control scripts.
 
 As of version |release|, there are no control scripts for
-:program:`mongos`. :program:`mongos` is only used in :doc:`sharding
+:binary:`~bin.mongos`. :binary:`~bin.mongos` is only used in :doc:`sharding
 deployments </core/sharding>`. You can use the ``mongod`` init script
-to derive your own :program:`mongos` control script.
+to derive your own :binary:`~bin.mongos` control script.

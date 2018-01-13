@@ -7,6 +7,6 @@ seconds*. As a result, documents may remain in a collection *after*
 they expire but *before* the background task runs or completes.
 
 The duration of the removal operation depends on the workload of
-your :program:`mongod` instance. Therefore, expired data may exist
+your :binary:`~bin.mongod` instance. Therefore, expired data may exist
 for some time *beyond* the 60 second period between runs of the
 background task.

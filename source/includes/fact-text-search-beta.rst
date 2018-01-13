@@ -6,5 +6,5 @@ The :ref:`text search <text-search-text-command>` is currently a
 
 - To enable text search on :doc:`replica sets </core/replication>` and
   :doc:`sharded clusters </core/sharding>`, you need to
-  enable on **each and every** :program:`mongod` for replica
-  sets and on **each and every** :program:`mongos` for sharded clusters.
+  enable on **each and every** :binary:`~bin.mongod` for replica
+  sets and on **each and every** :binary:`~bin.mongos` for sharded clusters.

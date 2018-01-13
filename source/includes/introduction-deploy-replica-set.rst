@@ -1,5 +1,5 @@
 This tutorial describes how to create a three-member
-:term:`replica set` from three existing :program:`mongod` instances.
+:term:`replica set` from three existing :binary:`~bin.mongod` instances.
 
 If you wish to deploy a replica set from a single MongoDB
 instance, see :doc:`/tutorial/convert-standalone-to-replica-set`. For
@@ -18,6 +18,6 @@ members. This ensures that :doc:`elections
 designing replica sets, see :doc:`the Replication overview
 </core/replication-introduction>`.
 
-The basic procedure is to start the :program:`mongod` instances that
+The basic procedure is to start the :binary:`~bin.mongod` instances that
 will become members of the replica set, configure the
-replica set itself, and then add the :program:`mongod` instances to it.
+replica set itself, and then add the :binary:`~bin.mongod` instances to it.

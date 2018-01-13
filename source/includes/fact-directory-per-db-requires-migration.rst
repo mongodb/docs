@@ -1,4 +1,4 @@
-If you have an existing :program:`mongod` instance and
+If you have an existing :binary:`~bin.mongod` instance and
 :setting:`dbpath`, and you want to enable
 |directoryperdb-option-name|, you **must** migrate your existing
 databases to directories before setting |directoryperdb-option-name|
