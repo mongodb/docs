@@ -4,7 +4,7 @@
      - id: shell
        content: |
          To create an index in the
-         :doc:`Mongo Shell </getting-started/shell/client/>`, use
+         :doc:`Mongo Shell </tutorial/getting-started/>`, use
          :method:`db.collection.createIndex()`.
 
          .. class:: copyable-code
