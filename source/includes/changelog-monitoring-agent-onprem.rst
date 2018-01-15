@@ -1,3 +1,10 @@
+.. _monitoring-6.1.2.402-1:
+
+Monitoring Agent ``6.1.2.402-1``
+--------------------------------
+
+*Released with Ops Manager 3.6.2 on 2018-01-11*
+
 .. _monitoring-6.1.1.395:
 
 Monitoring Agent ``6.1.1.395``
@@ -48,11 +55,13 @@ Monitoring Agent ``5.4.2.354``
 
 - Added support for monitoring of MongoDB 3.4 deployments
 
-- Added support for monitoring at higher resolutions, including support for gathering of metrics by multiple active Monitoring Agents
+- Added support for monitoring at higher resolutions, including support 
+  for gathering of metrics by multiple active Monitoring Agents
 
 - Built using Go 1.6.
 
-- Added ability to run managed Monitoring Agents as a service on Windows.
+- Added ability to run managed Monitoring Agents as a service on 
+  Windows.
 
 - Added enhancement to manage appropriate ``ulimits`` in the package.
 
