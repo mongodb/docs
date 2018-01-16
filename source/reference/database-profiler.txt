@@ -42,9 +42,9 @@ following:
 Example ``system.profile`` Document
 -----------------------------------
 
-The documents in the :data:`system.profile
-<<database>.system.profile>` collection have the following form. This
-example document reflects a find operation:
+The documents in the :data:`system.profile <<database>.system.profile>`
+collection have the following form. This example document reflects a
+find operation on a standalone :program:`mongod`:
 
 .. code-block:: javascript
 
@@ -55,14 +55,19 @@ example document reflects a find operation:
          "find" : "c",
          "filter" : {
             "a" : 1
-         }
+         },
+         "$clusterTime" : {
+               "clusterTime" : Timestamp(1516119535, 1),
+               "signature" : {
+                  "hash" : BinData(0,"h6fRyauI8KAejCbq4DvwvJAoJ1s="),
+                  "keyId" : NumberLong("6511683304255651841")
+               }
+         },
+         "$db" : "test"
       },
       "keysExamined" : 2,
       "docsExamined" : 2,
       "cursorExhausted" : true,
-      "keysInserted" : 0,
-      "keysDeleted" : 0,
-      "writeConflicts" : 0,
       "numYield" : 0,
       "locks" : {
          "Global" : {
@@ -83,7 +88,9 @@ example document reflects a find operation:
       },
       "nreturned" : 2,
       "responseLength" : 108,
+      "protocol" : "op_msg",
       "millis" : 0,
+      "planSummary" : "IXSCAN { a: 1 }",
       "execStats" : {
          "stage" : "FETCH",
          "nReturned" : 2,
@@ -115,6 +122,9 @@ example document reflects a find operation:
             },
             "indexName" : "a_1",
             "isMultiKey" : false,
+            "multiKeyPaths" : {
+               "a" : [ ]
+            },
             "isUnique" : false,
             "isSparse" : false,
             "isPartial" : false,
@@ -126,6 +136,7 @@ example document reflects a find operation:
                ]
             },
             "keysExamined" : 2,
+            "seeks" : 1,
             "dupsTested" : 0,
             "dupsDropped" : 0,
             "seenInvalidated" : 0
@@ -134,8 +145,13 @@ example document reflects a find operation:
       "ts" : ISODate("2015-09-03T15:26:14.948Z"),
       "client" : "127.0.0.1",
       "appName" : "MongoDB Shell",
-      "allUsers" : [ ],
-      "user" : ""
+      "allUsers" : [
+            {
+               "user" : "report1",
+               "db" : "test"
+            }
+         ],
+         "user" : "report1@test"
    }
 
 Output Reference
@@ -340,6 +356,24 @@ operation.
    - Are upserts (that result in an insert)
    - Do not use a modifier operation such as :update:`$set`
 
+.. data:: system.profile.fromMultiPlanner
+
+   .. versionadded:: 3.2.5
+
+   A boolean that indicates whether the query planner evaluated multiple
+   plans before choosing the winning execution plan for the query.
+
+   Only present when value is ``true``.
+
+.. data:: system.profile.replanned
+
+   .. versionadded:: 3.2.5
+
+   A boolean that indicates whether the query system evicted a cached
+   plan and re-evaluated all candidate plans.
+
+   Only present when value is ``true``.
+
 .. data:: system.profile.keysInserted
 
    The number of index keys inserted for a given write operation.
@@ -441,12 +475,22 @@ operation.
       the :data:`~system.profile.responseLength` value is in a field
       named ``reslen``.
 
+.. data:: system.profile.protocol
+
+   The :doc:`/reference/mongodb-wire-protocol` request message format.
+
 .. data:: system.profile.millis
 
    The time in milliseconds from the perspective of the
    :binary:`~bin.mongod` from the beginning of the operation to the end of
    the operation.
 
+.. data:: system.profile.planSummary
+
+   .. versionadded:: 3.4
+
+   A summary of the execution plan.
+   
 .. data:: system.profile.execStats
 
    .. versionchanged:: 3.0
