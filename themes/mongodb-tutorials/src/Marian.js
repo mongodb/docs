@@ -170,7 +170,7 @@ export class MarianUI {
     }
 
     pushHistory() {
-        const locationSansQuery = window.location.href.replace(/\?.*/, '')
+        const locationSansQuery = window.location.href.replace(/\?[^#]*/, '')
 
         let newURL
         if (this.query) {
@@ -179,7 +179,7 @@ export class MarianUI {
             newURL = locationSansQuery
         }
 
-        window.history.replaceState(null, null, newURL)
+        window.history.replaceState({href: newURL}, null, newURL)
     }
 
     parseUrl() {

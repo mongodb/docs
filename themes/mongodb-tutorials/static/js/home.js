@@ -22464,7 +22464,7 @@
 	    _createClass(MarianUI, [{
 	        key: 'pushHistory',
 	        value: function pushHistory() {
-	            var locationSansQuery = window.location.href.replace(/\?.*/, '');
+	            var locationSansQuery = window.location.href.replace(/\?[^#]*/, '');
 	
 	            var newURL = void 0;
 	            if (this.query) {
@@ -22473,7 +22473,7 @@
 	                newURL = locationSansQuery;
 	            }
 	
-	            window.history.replaceState(null, null, newURL);
+	            window.history.replaceState({ href: newURL }, null, newURL);
 	        }
 	    }, {
 	        key: 'parseUrl',
