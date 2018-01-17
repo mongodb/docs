@@ -12,10 +12,8 @@ the documentation locally if you have `giza
      cd docs/
      make html
 
-Visit ``docs/mongodb/build/html/index.html`` to view the current state
-of the documentation. See `MongoDB Documentation Buildsystem
-<https://docs.mongodb.com/meta/build/>`_ for complete
-instructions on building the MongoDB documentation.
+Contribute
+----------
 
 The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
@@ -26,8 +24,14 @@ GitHub and issue a pull request. If you have not done so already,
 please sign the `MongoDB Contributor Agreement
 <https://www.mongodb.com/legal/contributor-agreement>`_
 
+Report Issues
+-------------
+
 To file issues or requests regarding the documentation, go to the
 `Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
+
+Additional Information
+----------------------
 
 For an overview of the documentation style, process, and overall
 organization, see the following pages:
@@ -36,6 +40,9 @@ organization, see the following pages:
 - `Documentation Practices <http://docs.mongodb.com/meta/practices>`_
 - `Documentation Organization <https://docs.mongodb.com/meta/organization>`_
 - `Build Instructions <https://docs.mongodb.com/meta/build>`_
+
+License
+-------
 
 All documentation is available under the terms of a `Creative Commons
 License <https://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
