@@ -219,6 +219,4 @@ def setup(app):
         from sphinx.versioning import add_uids
         list(add_uids(doctree, nodes.TextElement))
 
-    app.add_role('hardlink', make_link_role(base_url="{0}/{1}/%s".format(conf.project.url, conf.git.branches.current),
-                                            prefix=''))
     app.connect('doctree-read', doctree_read)
