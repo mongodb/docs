@@ -12,15 +12,7 @@ Configure Hardware Monitoring with ``munin-node``
    :depth: 1
    :class: singlecol
 
-.. important:: 
-
-   As of Automation Agent 2.7.0, hardware monitoring using ``munin-node`` is
-   deprecated.
-
-   If you run ``munin-node`` on your MongoDB servers then install or upgrade to
-   Automation Agent version 2.7.0 or later, |mms| displays the hardware data
-   that the Automation Agent collected, **not what Munin had collected**. The
-   historical hardware data Munin collected **is neither displayed nor saved**.
+.. include:: /includes/fact-change-to-hardware-monitoring.rst
 
 Overview
 --------
@@ -39,32 +31,36 @@ plugins:
 Install the ``munin-node`` Package
 ----------------------------------
 
-You
-must install the ``munin-node`` package on all of the host systems that
-you wish to monitor. Ensure that the Monitoring Agent can connect to the
-``munin-node`` process on port 4949 of the monitored host to collect data.
+You must install the ``munin-node`` package on all of the host systems
+that you wish to monitor. Ensure that the Monitoring Agent can connect
+to the ``munin-node`` process on port 4949 of the monitored host to
+collect data.
 
 .. note::
 
-   ``munin-node`` and hardware monitoring is only available for
+   ``munin-node`` and hardware monitoring is only available for managed
    MongoDB instances running on Linux hosts.
 
-For details on installing ``munin-node`` beyond the information provided
-here, please see `<http://guide.munin-monitoring.org/en/latest/installation/install.html>`_.
+For details on installing ``munin-node`` beyond the information 
+provided here, please see `Munin documentation 
+<http://guide.munin-monitoring.org/en/latest/installation/install.html>`_.
 
 On Debian and Ubuntu systems, issue the following command to install
 ``munin-node``:
 
 .. code-block:: sh
+   :class: copyable-code
 
    sudo apt-get install munin-node
 
-On Red Hat, CentOS, and Fedora systems, you may need to first install the
-EPEL repository before installing ``munin-node``. See
-`<https://fedoraproject.org/wiki/EPEL>`_. To install ``munin-node`` issue
-the following command:
+On Red Hat, CentOS, and Fedora systems, you may need to first install
+the :abbr:`EPEL (Extra Packages for Enterprise Linux)` repository 
+before installing ``munin-node``. To install :abbr:`EPEL (Extra Packages for Enterprise Linux)`, see 
+`<https://fedoraproject.org/wiki/EPEL>`_. To install ``munin-node``
+issue the following command:
 
 .. code-block:: sh
+   :class: copyable-code
 
    yum install munin-node
 
@@ -73,14 +69,14 @@ Configure ``munin-node``
 
 When installation is complete, ensure that ``munin-node``:
 
-- is running. Use the command, "``ps -ef | grep "munin"``" to confirm. If
-  the process is not running, issue the appropriate command to start it,
-  depending on your operating system.
+- is running. Use the command, "``ps -ef | grep "munin"``" to confirm.
+  If the process is not running, issue the appropriate command to start
+  it, depending on your operating system.
 
   .. note::
 
-     If you use ``systemctl``, and if the munin-node service is not shown,
-     try to reload the SystemD configuration and unit files.
+     If you use ``systemctl``, and if the ``munin-node`` service is 
+     not shown, try to reload the SystemD configuration and unit files.
 
 - will start following the next system reboot. This is the default
   behavior on most Debian-based systems. Red Hat and related
@@ -93,6 +89,7 @@ When installation is complete, ensure that ``munin-node``:
   test access:
 
   .. code-block:: sh
+     :class: copyable-code
 
      telnet [HOSTNAME] 4949
      fetch iostat
@@ -100,8 +97,8 @@ When installation is complete, ensure that ``munin-node``:
      fetch cpu
 
   Replace ``[HOSTNAME]`` with the hostname of the monitored
-  system. Run these commands from the system where the Monitoring Agent is
-  running. If these "``fetch``" commands return data, then
+  system. Run these commands from the system where the Monitoring 
+  Agent is running. If these "``fetch``" commands return data, then
   ``munin-node`` is running and accessible by the Monitoring Agent.
 
 .. note::
@@ -109,13 +106,14 @@ When installation is complete, ensure that ``munin-node``:
    On some platforms, ``munin-node`` does not have all required
    plugins enabled.
 
-   For CentOS and Ubuntu, the ``munin-node`` package does not have the ``iostat``
-   and ``iostat_ios`` plugins enabled. Use the following operation to enable
-   these plugins:
+   For CentOS and Ubuntu, the ``munin-node`` package does not have the
+   ``iostat`` and ``iostat_ios`` plugins enabled. Use the following
+   operation to enable these plugins:
 
    .. code-block:: sh
+      :class: copyable-code
 
-      sudo ln -s /usr/share/munin/plugins/iostat /etc/munin/plugins/iostat
+      sudo ln -s /usr/share/munin/plugins/iostat /etc/munin/plugins/iostat; \
       sudo ln -s /usr/share/munin/plugins/iostat_ios /etc/munin/plugins/iostat_ios
 
    Then restart ``munin-node``.
@@ -137,6 +135,7 @@ Additional Considerations for ``munin-node``
   the following value:
 
   .. code-block:: ini
+     :class: copyable-code
 
      [iostat]
          env.SHOW_NUMBERED 1
@@ -156,6 +155,7 @@ Additional Considerations for ``munin-node``
   setup, you might have to use a different permission level:
 
   .. code-block:: sh
+    :class: copyable-code
 
      touch /var/lib/munin/plugin-state/iostat-ios.state
      chown -R [username]:[group] /var/lib/munin/plugin-state/
@@ -164,17 +164,18 @@ Additional Considerations for ``munin-node``
   Replace ``[username]`` and ``[group]`` with the username and group
   that the ``munin-node`` process runs with.
 
-- Add the host running the Monitoring Agent to the *allow* directive in the
-  ``munin-node.conf`` file. The *allow* directive lists hosts
-  allowed to query the munin-node process. Otherwise, traffic from the |mms| host
-  will be allowed via firewall but will not be collected by munin.
+- Add the host running the Monitoring Agent to the *allow* directive in
+  the ``munin-node.conf`` file. The *allow* directive lists hosts
+  allowed to query the munin-node process. Otherwise, traffic from the
+  |mms| host is allowed via firewall but Munin does not collect it.
 
   The ``munin-node.conf`` file is located in one of the following
   directories, depending on your distribution: ``/etc/munin-node``,
   ``/etc/munin``, or ``/etc``.
 
-If you encounter any other problems, check the log files for ``munin-node`` to
-ensure that there are no errors with Munin. ``munin-node`` writes logs files in
-the ``/var/log/`` directory on the monitored system.
+If you encounter any other problems, check the log files for  
+``munin-node`` to ensure that there are no errors with Munin. 
+``munin-node`` writes logs files in the ``/var/log/`` directory on the 
+monitored system.
 
 .. seealso:: :ref:`Munin Diagnostics <troubleshooting-munin>`.
