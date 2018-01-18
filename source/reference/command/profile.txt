@@ -10,62 +10,47 @@ profile
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. dbcommand:: profile
 
-   Use the :dbcommand:`profile` command to enable, disable, or change
-   the query profiling level. This allows administrators to capture
-   data regarding performance. The database profiling system can
-   impact performance and can allow the server to write the contents
-   of queries to the log.  Your deployment should carefully consider the
-   security implications of this. The profiler is off by default.
-   
-   .. |command| replace:: ``profile``
+   Enables, disables, or configures the
+   :doc:`/tutorial/manage-the-database-profiler`.
+   The profiler captures and records data on the performance of write
+   operations, cursors, and database commands on a running
+   :binary:`~bin.mongod` instance.
 
-   .. include:: /includes/fact-dbcommand.rst
+   The profiler is off by default.
+
+   .. include:: /includes/warning-profiler-performance.rst
 
    The :dbcommand:`profile` command has the following syntax:
 
    .. code-block:: javascript
 
-      { profile: <level> }
-
-   The following profiling levels are available:
-
-   =========  ==============================================
-   **Level**  **Setting**
-   ---------  ----------------------------------------------
-     -1       No change. Returns the current profile level.
-      0       Off. No profiling. The default profiler level.
-      1       On. Only includes slow operations.
-      2       On. Includes all operations.
-   =========  ==============================================
+      {
+        profile: <level>,
+        slowms: <threshold>,
+        sampleRate: <rate>
+      }
 
    .. _slowms-threshold-option:
 
-   You may optionally set a threshold in milliseconds for profiling using
-   the ``slowms`` option, as follows:
+   .. include:: /includes/apiargs/dbcommand-profile-fields.rst
 
-   .. code-block:: javascript
+The :method:`db.getProfilingStatus()` and
+:method:`db.setProfilingLevel()` :doc:`shell methods
+</reference/method>` provide wrappers around the :dbcommand:`profile`
+command.
 
-      { profile: 1, slowms: 200 }
+Behavior
+--------
 
-   :program:`mongod` writes the output of the database profiler to the
-   ``system.profile`` collection.
+The :dbcommand:`profile` command obtains a write lock on the affected
+database while enabling or disabling the profiler. This is typically a
+short operation. The lock blocks other operations until the
+:dbcommand:`profile` command has completed.
 
-   :program:`mongod` records queries that take longer than
-   the :setting:`~operationProfiling.slowOpThresholdMs` to the server log even when the database profiler is
-   not active.
-
-   .. seealso:: Additional documentation regarding :ref:`Database Profiling <database-profiling>`.
-
-   .. seealso:: ":method:`db.getProfilingStatus()`" and
-                ":method:`db.setProfilingLevel()`" provide wrappers
-                around this functionality in the :program:`mongo`
-                shell.
-
-   .. note::
-
-      This command obtains a write lock on the affected database and
-      blocks other operations until it has completed.  However, the write
-      lock is only held while enabling or disabling the
-      profiler.  This is typically a short operation.
+.. seealso::
+   :ref:`Database Profiling <database-profiling>`.

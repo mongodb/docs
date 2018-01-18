@@ -14,28 +14,28 @@ mongos
    :depth: 1
    :class: singlecol
 
-MongoDB :program:`mongos` instances route queries and write operations
-to :term:`shards <shard>` in a sharded cluster. :program:`mongos` provide the
+MongoDB :binary:`~bin.mongos` instances route queries and write operations
+to :term:`shards <shard>` in a sharded cluster. :binary:`~bin.mongos` provide the
 only interface to a sharded cluster from the perspective of
 applications. Applications never connect or communicate directly with
 the shards.
 
-The :program:`mongos` tracks what data is on which shard by caching
+The :binary:`~bin.mongos` tracks what data is on which shard by caching
 the metadata from the :ref:`config servers
-<sharded-cluster-config-server>`. The :program:`mongos` uses the
+<sharded-cluster-config-server>`. The :binary:`~bin.mongos` uses the
 metadata to route operations from applications and clients to the
-:program:`mongod` instances. A :program:`mongos` has no *persistent*
+:binary:`~bin.mongod` instances. A :binary:`~bin.mongos` has no *persistent*
 state and consumes minimal system resources.
 
-The most common practice is to run :program:`mongos` instances on the
+The most common practice is to run :binary:`~bin.mongos` instances on the
 same systems as your application servers, but you can maintain
-:program:`mongos` instances on the shards or on other dedicated
+:binary:`~bin.mongos` instances on the shards or on other dedicated
 resources.
 
 Routing And Results Process
 ---------------------------
 
-A :program:`mongos` instance routes a query to a :term:`cluster <sharded
+A :binary:`~bin.mongos` instance routes a query to a :term:`cluster <sharded
 cluster>` by:
 
 1. Determining the list of :term:`shards <shard>` that must receive the
@@ -43,11 +43,11 @@ cluster>` by:
 
 #. Establishing a cursor on all targeted shards.
 
-The :program:`mongos` then merges the data from each of the
+The :binary:`~bin.mongos` then merges the data from each of the
 targeted shards and returns the result document. Certain
 query modifiers, such as :ref:`sorting<sharding-mongos-sort>`,
 are performed on a shard such as the :term:`primary shard` before
-:program:`mongos` retrieves the results.
+:binary:`~bin.mongos` retrieves the results.
 
 .. versionchanged:: 3.2
 
@@ -58,11 +58,11 @@ are performed on a shard such as the :term:`primary shard` before
    shard for that database.
 
 In some cases, when the :term:`shard key` or a prefix of the shard key is a
-part of the query, the :program:`mongos` performs a :ref:`targeted
+part of the query, the :binary:`~bin.mongos` performs a :ref:`targeted
 operation<sharding-mongos-targeted>`, routing queries to a subset of
 shards in the cluster.
 
-:program:`mongos` performs a :ref:`broadcast
+:binary:`~bin.mongos` performs a :ref:`broadcast
 operation<sharding-mongos-broadcast>` for queries that do *not* include the
 :term:`shard key`, routing queries to *all* shards in the cluster. Some
 queries that do include the shard key may still result in a broadcast
@@ -80,22 +80,22 @@ How ``mongos`` Handles Query Modifiers
 Sorting
 ~~~~~~~
 
-If the result of the query is not sorted, the :program:`mongos`
+If the result of the query is not sorted, the :binary:`~bin.mongos`
 instance opens a result cursor that "round robins" results from all
 cursors on the shards.
 
 If the query specifies sorted results using the
-:method:`~cursor.sort()` cursor method, the :program:`mongos` instance
+:method:`~cursor.sort()` cursor method, the :binary:`~bin.mongos` instance
 passes the :operator:`$orderby` option to the shards. The :term:`primary
 shard` for the database receives and performs a merge sort for all
 results before returning the data to the client via the
-:program:`mongos`.
+:binary:`~bin.mongos`.
 
 Limits
 ~~~~~~
 
 If the query limits the size of the result set using the
-:method:`~cursor.limit()` cursor method, the :program:`mongos`
+:method:`~cursor.limit()` cursor method, the :binary:`~bin.mongos`
 instance passes that limit to the shards and then re-applies the limit
 to the result before returning the result to the client.
 
@@ -103,13 +103,13 @@ Skips
 ~~~~~
 
 If the query specifies a number of records to *skip* using the
-:method:`~cursor.skip()` cursor method, the :program:`mongos` *cannot*
+:method:`~cursor.skip()` cursor method, the :binary:`~bin.mongos` *cannot*
 pass the skip to the shards, but rather retrieves unskipped results
 from the shards and skips the appropriate number of documents when assembling
 the complete result.
 
 When used in conjunction with a :method:`~cursor.limit()`, the
-:program:`mongos` will pass the *limit* plus the value of the
+:binary:`~bin.mongos` will pass the *limit* plus the value of the
 :method:`~cursor.skip()` to the shards to improve the efficiency of these
 operations.
 
@@ -117,8 +117,8 @@ Confirm Connection to ``mongos`` Instances
 ------------------------------------------
 
 To detect if the MongoDB instance that your client is connected
-to is :program:`mongos`, use the :dbcommand:`isMaster` command. When a
-client connects to a :program:`mongos`, :dbcommand:`isMaster` returns
+to is :binary:`~bin.mongos`, use the :dbcommand:`isMaster` command. When a
+client connects to a :binary:`~bin.mongos`, :dbcommand:`isMaster` returns
 a document with a ``msg`` field that holds the string
 ``isdbgrid``. For example:
 
@@ -132,7 +132,7 @@ a document with a ``msg`` field that holds the string
       ...
    }
 
-If the application is instead connected to a :program:`mongod`, the
+If the application is instead connected to a :binary:`~bin.mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
 .. index:: shard key; query isolation
@@ -144,13 +144,13 @@ Query Isolation
 ---------------
 
 Generally, the fastest queries in a sharded environment are those that
-:program:`mongos` route to a single shard, using the :term:`shard key` and the
+:binary:`~bin.mongos` route to a single shard, using the :term:`shard key` and the
 cluster meta data from the :ref:`config server <sharding-config-server>`.
 These :ref:`targeted operations<sharding-mongos-targeted>` use the
 shard key value to locate the shard or subset of shards that satisfy the
 query document.
 
-For queries that don't include the shard key, :program:`mongos` must query all
+For queries that don't include the shard key, :binary:`~bin.mongos` must query all
 shards, wait for their responses and then return the result to the
 application. These "scatter/gather" queries can be long running operations.
 
@@ -159,13 +159,13 @@ application. These "scatter/gather" queries can be long running operations.
 Broadcast Operations
 ~~~~~~~~~~~~~~~~~~~~
 
-:program:`mongos` instances broadcast queries to all shards for the
-collection **unless** the :program:`mongos` can
+:binary:`~bin.mongos` instances broadcast queries to all shards for the
+collection **unless** the :binary:`~bin.mongos` can
 determine which shard or subset of shards stores this data.
 
 .. include:: /images/sharded-cluster-scatter-gather-query.rst
 
-After the :program:`mongos` receives responses from all shards, it merges
+After the :binary:`~bin.mongos` receives responses from all shards, it merges
 the data and returns the result document. The performance of a broadcast
 operation depends on the overall load of the cluster, as well as variables
 like network latency, individual shard load, and number of documents returned
@@ -184,9 +184,9 @@ operations, unless the query document specifies the shard key in full.
 Targeted Operations
 ~~~~~~~~~~~~~~~~~~~
 
-:program:`mongos` can route queries that include the shard key or the prefix
+:binary:`~bin.mongos` can route queries that include the shard key or the prefix
 of a :term:`compound<compound index>` shard key a specific shard or set of
-shards. :program:`mongos` uses the shard key value to locate the
+shards. :binary:`~bin.mongos` uses the shard key value to locate the
 :term:`chunk` whose range includes the shard key value and directs the
 query at the :term:`shard` containing that chunk.
 
@@ -198,7 +198,7 @@ For example, if the shard key is:
 
    { a: 1, b: 1, c: 1 }
 
-The :program:`mongos` program *can* route queries that include the full
+The :binary:`~bin.mongos` program *can* route queries that include the full
 shard key or either of the following shard key prefixes at a
 specific shard or set of shards:
 
@@ -219,20 +219,20 @@ document. MongoDB returns an error if these methods are used without
 the shard key or ``_id``.
 
 Depending on the distribution of data in the cluster and the selectivity of
-the query, :program:`mongos` may still perform a :ref:`broadcast
+the query, :binary:`~bin.mongos` may still perform a :ref:`broadcast
 operation<sharding-mongos-broadcast>` to fulfill these queries.
 
 Index Use
 ~~~~~~~~~
 
 If the query does not include the :term:`shard key`, the
-:program:`mongos` must send the query to all shards as a
+:binary:`~bin.mongos` must send the query to all shards as a
 "scatter/gather" operation. Each shard will, in turn, use *either* the
 shard key index or another more efficient index to fulfill the query.
 
 If the query includes multiple sub-expressions that reference the
 fields indexed by the shard key *and* the secondary index, the
-:program:`mongos` can route the queries to a specific shard and the
+:binary:`~bin.mongos` can route the queries to a specific shard and the
 shard will use the index that will allow it to fulfill most
 efficiently.
 
@@ -241,7 +241,7 @@ Sharded Cluster Security
 
 Use :doc:`/core/security-internal-authentication` to enforce intra-cluster
 security and prevent unauthorized cluster components from accessing the
-cluster. You must start each :program:`mongod` or :program:`mongos` in the
+cluster. You must start each :binary:`~bin.mongod` or :binary:`~bin.mongos` in the
 cluster with the appropriate security settings in order to enforce internal
 authentication.
 
@@ -253,15 +253,15 @@ Cluster Users
 
 Sharded clusters support :doc:`/core/authorization` *(RBAC)* for restricting
 unauthorized access to cluster data and operations. You must start each
-:program:`mongod` in the cluster, including the :term:`config servers <config
-server>`, with the :option:`--auth` option in order to enforce RBAC.
+:binary:`~bin.mongod` in the cluster, including the :term:`config servers <config
+server>`, with the :option:`--auth <mongod --auth>` option in order to enforce RBAC.
 Alternatively, enforcing :doc:`/core/security-internal-authentication` for
 inter-cluster security also enables user access controls via RBAC.
 
-With RBAC enforced, clients must specify a :option:`--username`,
-:option:`--password`, and
-:option:`--authenticationDatabase` when
-connecting to the :program:`mongos` in order to access cluster resources.
+With RBAC enforced, clients must specify a :option:`--username <mongo --username>`,
+:option:`--password <mongo --password>`, and
+:option:`--authenticationDatabase <mongo --authenticationDatabase>` when
+connecting to the :binary:`~bin.mongos` in order to access cluster resources.
 
 Each cluster has its own cluster users. These users cannot be used
 to access individual shards.

@@ -40,6 +40,6 @@
 
      net.ipv4.tcp_keepalive_time = <value>
 
-  On Linux, :program:`mongod` and :program:`mongos` processes limit the
+  On Linux, :binary:`~bin.mongod` and :binary:`~bin.mongos` processes limit the
   keepalive to a maximum of 300 seconds (5 minutes) on their own
   sockets by overriding keepalive values greater than 5 minutes.

@@ -79,7 +79,7 @@ Memory Use
 
 With the :ref:`MMAPv1 <storage-mmapv1>` storage engine, MongoDB uses
 memory-mapped files to store data. Given a data set of sufficient size,
-the :program:`mongod` process will allocate all available memory on the system
+the :binary:`~bin.mongod` process will allocate all available memory on the system
 for its use.
 
 While this is intentional and aids performance, the memory mapped files make it
@@ -95,7 +95,7 @@ memory *and* there is a significant amount of data on disk that isn't in RAM,
 you may have exceeded the capacity of your system.
 
 You can inspect :serverstatus:`mem.mapped` to check the
-amount of mapped memory that :program:`mongod` is using. If this value is
+amount of mapped memory that :binary:`~bin.mongod` is using. If this value is
 greater than the amount of system memory, some operations will require a
 :term:`page faults <page fault>` to read data from disk.
 
@@ -121,14 +121,14 @@ aggregate, large volumes of page faults typically indicate that MongoDB
 is reading too much data from disk.
 
 MongoDB can often "yield" read locks after a page fault, allowing other database
-processes to read while :program:`mongod` loads the next page into memory.
+processes to read while :binary:`~bin.mongod` loads the next page into memory.
 Yielding the read lock following a page fault improves concurrency, and also
 improves overall throughput in high volume systems.
 
 Increasing the amount of RAM accessible to MongoDB may help reduce the
 frequency of page faults. If this is not possible, you may want to consider
 deploying a :term:`sharded cluster` or adding :term:`shards <shard>`
-to your deployment to distribute load among :program:`mongod` instances.
+to your deployment to distribute load among :binary:`~bin.mongod` instances.
 
 See :ref:`faq-storage-page-faults` for more information.
 
@@ -159,7 +159,7 @@ distribute read operations to :term:`secondary` members.
 
 For write-heavy applications, deploy :term:`sharding` and add one or more
 :term:`shards <shard>` to a :term:`sharded cluster` to distribute load among
-:program:`mongod` instances.
+:binary:`~bin.mongod` instances.
 
 Spikes in the number of connections can also be the result of
 application or driver errors. All of the officially supported MongoDB
@@ -179,74 +179,28 @@ information.
 Database Profiling
 ------------------
 
-MongoDB's "Profiler" is a database profiling system that can help identify
-inefficient queries and operations.
+The :doc:`/tutorial/manage-the-database-profiler` collects detailed
+information about operations run against a mongod instance. The
+profiler's output can help to identify inefficient queries and
+operations.
+
+You can enable and configure profiling for individual databases or for
+all databases on a :binary:`~bin.mongod` instance.
+Profiler settings affect only a single :binary:`~bin.mongod` instance and
+will not propagate across a :term:`replica set` or :term:`sharded
+cluster`.
+
+See :doc:`/tutorial/manage-the-database-profiler` for information on
+enabling and configuring the profiler.
 
 The following profiling levels are available:
 
-.. list-table::
-   :header-rows: 1
+.. include:: /includes/database-profiler-levels.rst
 
-   * - **Level**
-
-     - **Setting**
-
-   * - 0
-
-     - Off. No profiling
-
-   * - 1
-
-     - On. Only includes *"slow"* operations
-
-   * - 2
-
-     - On. Includes *all* operations
-
-Enable the profiler by setting the
-:dbcommand:`profile` value using the following command in the
-:program:`mongo` shell:
-
-.. code-block:: javascript
-
-   db.setProfilingLevel(1)
-
-The :setting:`~operationProfiling.slowOpThresholdMs` setting defines what constitutes a "slow"
-operation. To set the threshold above which the profiler considers
-operations "slow" (and thus, included in the level ``1`` profiling
-data), you can configure :setting:`~operationProfiling.slowOpThresholdMs` at runtime as an argument to
-the :method:`db.setProfilingLevel()` operation.
-
-.. see:: The documentation of :method:`db.setProfilingLevel()` for more
-   information.
-
-By default, :program:`mongod` records all "slow" queries to its
-:setting:`log <logpath>`, as defined by :setting:`~operationProfiling.slowOpThresholdMs`.
+.. include:: /includes/warning-profiler-performance.rst
 
 .. note::
-
-   Because the database profiler can negatively impact
-   performance, only enable profiling for strategic intervals and as
-   minimally as possible on production systems.
-
-   You may enable profiling on a per-:program:`mongod` basis. This
-   setting will not propagate across a :term:`replica set` or
-   :term:`sharded cluster`.
-
-You can view the output of the profiler in the ``system.profile``
-collection of your database by issuing the ``show profile`` command in
-the :program:`mongo` shell, or with the following operation:
-
-.. code-block:: javascript
-
-   db.system.profile.find( { millis : { $gt : 100 } } )
-
-This returns all operations that lasted longer than 100 milliseconds.
-Ensure that the value specified here (``100``, in this example) is above the
-:setting:`~operationProfiling.slowOpThresholdMs` threshold.
-
-You must use the :operator:`$query` operator to access the ``query``
-field of documents within ``system.profile``.
+   .. include:: /includes/fact-log-slow-queries.rst
 
 .. class:: hidden
 

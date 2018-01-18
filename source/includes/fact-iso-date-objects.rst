@@ -5,7 +5,7 @@ The argument must be a valid :ref:`expression
 
 - A :ref:`Date <document-bson-type-date>`, a
   :ref:`Timestamp <document-bson-type-timestamp>`,
-  or an :ref:`ObjectID <document-bson-object-id>`.
+  or an :ref:`ObjectID <document-bson-type-object-id>`.
 
 - A document of the following form:
 
@@ -30,7 +30,7 @@ The argument must be a valid :ref:`expression
          <aggregation-expressions>` that resolves to a
          :ref:`Date <document-bson-type-date>`, a
          :ref:`Timestamp <document-bson-type-timestamp>`,
-         or an :ref:`ObjectID <document-bson-object-id>`.
+         or an :ref:`ObjectID <document-bson-type-object-id>`.
 
      * - ``timezone``
 

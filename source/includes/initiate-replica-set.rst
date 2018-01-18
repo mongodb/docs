@@ -1,4 +1,4 @@
-From the :program:`mongo` shell, run the :method:`rs.initiate()` method.
+From the :binary:`~bin.mongo` shell, run the :method:`rs.initiate()` method.
 
 :method:`rs.initiate()` can take an optional :doc:`replica set
 configuration document </reference/replica-configuration>`. In the

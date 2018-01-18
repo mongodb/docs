@@ -9,8 +9,8 @@ following key differences:
 - The :method:`db.collection.explain().find()` returns a cursor, which
   requires a call to ``.next()``, or its alias ``.finish()``, to return
   the ``explain()`` results.
-  If run interactively in the :program:`mongo` shell, the
-  :program:`mongo` shell automatically calls ``.finish()`` to return
+  If run interactively in the :binary:`~bin.mongo` shell, the
+  :binary:`~bin.mongo` shell automatically calls ``.finish()`` to return
   the results. For scripts, however, you must explicitly call
   ``.next()``, or ``.finish()``, to return the results. For list of
   cursor-related methods, see

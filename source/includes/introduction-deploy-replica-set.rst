@@ -1,5 +1,5 @@
 This tutorial describes how to create a three-member :term:`replica
-set` from three existing :program:`mongod` instances running with
+set` from three existing :binary:`~bin.mongod` instances running with
 :doc:`access control </core/authorization>` disabled.
 
 To deploy a replica set with enabled :doc:`access control

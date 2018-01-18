@@ -2,6 +2,10 @@ Possible read concern levels are:
 
 - :readconcern:`"local"`. This is the default read concern level.
 
+- :readconcern:`"available"`. This is the default for reads against 
+  secondaries when :ref:`afterClusterTime` and `"level"` are unspecified.  The 
+  query returns the the instance's most recent data.
+
 - :readconcern:`"majority"`. Available for replica sets that use
   :ref:`WiredTiger storage engine <storage-wiredtiger>`.
 

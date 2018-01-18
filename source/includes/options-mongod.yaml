@@ -167,7 +167,7 @@ description: |
    setting the ``listenBacklog`` parameter to a higher value may reduce
    operation latency as observed by the client by reducing the number
    of connections which are forced into a backoff state.
-   
+
 optional: true
 ---
 program: mongod
@@ -232,7 +232,7 @@ args: null
 directive: option
 description: |
   {{intro}} new entries to the end of the existing log file when the {{program}}
-  instance restarts. Without this option, :program:`mongod` will back up the
+  instance restarts. Without this option, :binary:`~bin.mongod` will back up the
   existing log and create a new file.
 optional: true
 replacement:
@@ -316,10 +316,11 @@ description: |
   {{verb}} facility level used when logging messages to syslog.
   The value you specify must be supported by your
   operating system's implementation of syslog. To use this option, you
-  must enable the :option:`--syslog` option.
+  must  {{option}}
 optional: true
 replacement:
   verb: "Specifies the"
+  option: enable the :option:`--syslog` option.
 ---
 program: mongod
 name: pidfilepath
@@ -328,12 +329,13 @@ directive: option
 description: |
   {{intro}} file location to hold the process ID of the {{program}}
   process where {{program}} will write its PID. This is useful for
-  tracking the {{program}} process in combination with the
-  :option:`--fork` option. Without a specified {{role}} option, the
+  tracking the {{program}} process in combination with
+  {{option}}. Without a specified {{role}} option, the
   process creates no PID file.
 optional: true
 replacement:
   intro: "Specifies a"
+  option: the :option:`--fork` option
 ---
 program: mongod
 name: keyFile
@@ -389,12 +391,14 @@ description: |
 
   - :setting:`net.unixDomainSocket.enabled` is ``false``
 
-  - :option:`--nounixsocket` is set
+  - {{option}} is set
 
   - :setting:`net.bindIp` is not set
 
   - :setting:`net.bindIp` does not specify ``127.0.0.1``
 optional: true
+replacement:
+   option: ":option:`--nounixsocket`"
 ---
 program: mongod
 name: filePermissions
@@ -488,14 +492,14 @@ description: |
   .. versionchanged:: 3.0
 
      To change the {{role}} option for existing deployments, you must
-     restart the :program:`mongod` instances with the new {{role}}
+     restart the :binary:`~bin.mongod` instances with the new {{role}}
      value **and** a new data directory ({{newdbpath}}), and then
      repopulate the data.
 
-     - For standalone instances, you can use :program:`mongodump` on
+     - For standalone instances, you can use :binary:`~bin.mongodump` on
        the existing instance, stop the instance, restart with the new
        {{role}} value **and** a new data directory, and use
-       :program:`mongorestore` to populate the new data directory.
+       :binary:`~bin.mongorestore` to populate the new data directory.
 
      - For replica sets, you can update in a rolling manner by stopping
        a secondary member, restart with the new {{role}} value **and**
@@ -693,76 +697,6 @@ replacement:
   verb: "Specifies the"
 ---
 program: mongod
-name: profile
-args: <level>
-default: 0
-directive: option
-description: |
-  Changes the level of database profiling, which inserts information about
-  operation performance into the ``system.profile`` collection. Specify one
-  of the following levels:
-
-  .. list-table::
-     :header-rows: 1
-     :widths: 20 40
-
-     * - Level
-
-       - Setting
-
-     * - 0
-
-       - Off. No profiling.
-
-     * - 1
-
-       - On. Only includes slow operations.
-
-     * - 2
-
-       - On. Includes all operations.
-
-  Database profiling can impact database
-  performance. Enable this option only after careful consideration.
-optional: true
----
-program: mongod
-name: profilingmode
-args: <level>
-default: "off"
-directive: option
-description: |
-  {{intro}} level of database profiling, which inserts information about
-  operation performance into the ``system.profile`` collection. Specify one
-  of the following levels:
-
-  .. list-table::
-     :header-rows: 1
-     :widths: 20 40
-
-     * - Level
-
-       - Setting
-
-     * - ``off``
-
-       - Off. No profiling.
-
-     * - ``slowOp``
-
-       - On. Only includes slow operations.
-
-     * - ``all``
-
-       - On. Includes all operations.
-
-  Database profiling can impact database
-  performance. Enable this option only after careful consideration.
-optional: true
-replacement:
-  intro: "Changes the"
----
-program: mongod
 name: quota
 args: null
 directive: option
@@ -825,7 +759,7 @@ default: |
 directive: option
 description: |
   {{intro}} working directory that MongoDB will use during the
-  :option:`--repair` operation. When :option:`--repair` completes, the
+  :option:`--repair <mongod --repair>` operation. When ``--repair`` completes, the
   {{role}} directory is empty, and
   :setting:`~storage.dbPath` contains the repaired files.
 post: |
@@ -833,7 +767,7 @@ post: |
   specify a symlink to {{role}} to use a path on a different file
   system.
 
-  Only available for :program:`mongod` instance using the MMAPv1 storage engine.
+  Only available for :binary:`~bin.mongod` instance using the MMAPv1 storage engine.
 
   .. SEE: SERVER-4266
 optional: true
@@ -852,16 +786,40 @@ description: |
 optional: true
 ---
 program: mongod
+name: profile
+args: <level>
+default: 0
+directive: option
+description: |
+  Configures the :doc:`database profiler
+  </tutorial/manage-the-database-profiler>` level.
+  The following profiler levels are available:
+
+  .. include:: /includes/database-profiler-levels.rst
+
+  .. include:: /includes/warning-profiler-performance.rst
+
+optional: true
+---
+program: mongod
 name: slowms
 args: <integer>
 default: 100
 directive: option
 description: |
-  The threshold in milliseconds at which the database profiler considers a
-  query slow. MongoDB records all slow queries to the log, even when the
-  database profiler is off. When the profiler is on, it writes to the
-  ``system.profile`` collection. See the :dbcommand:`profile` command for
-  more information on the database profiler.
+  .. include:: /includes/dbcommand-slowms-definition.rst
+  
+  .. seealso:: :doc:`/tutorial/manage-the-database-profiler`
+optional: true
+---
+program: mongod
+name: slowOpSampleRate
+args: <double>
+default: 1.0
+directive: option
+description: |
+  The fraction of *slow* operations that should be profiled.
+  ``sampleRate`` accepts values between 0 and 1, inclusive.
 optional: true
 ---
 program: mongod
@@ -1004,9 +962,14 @@ description: |
   {{intro}} maximum size in megabytes for the replication operation log
   (i.e., the :term:`oplog`). The {{program}} process creates an
   :term:`oplog` based on the maximum amount of space available. For 64-bit
-  systems, the oplog is typically 5% of available disk space. Once the
-  {{program}} has created the oplog for the first time, changing the
-  {{role}} option will not affect the size of the oplog.
+  systems, the oplog is typically 5% of available disk space. 
+
+  Once the {{program}} has created the oplog for the first time,
+  changing the {{role}} option will not affect the size of the oplog.
+  Use the :dbcommand:`replSetResizeOplog` administrative command to
+  change the oplog size of a running {{program}} replica set member.
+  :dbcommand:`replSetResizeOplog` enables you to resize the oplog
+  dynamically without restarting the :binary:`~bin.mongod` process.
 
   See :ref:`replica-set-oplog-sizing` for more information.
 optional: true
@@ -1153,7 +1116,7 @@ description: |
   .. important::
 
      Starting in 3.4, you must deploy config servers as a replica set.
-     The use of the deprecated mirrored :program:`mongod` instances as
+     The use of the deprecated mirrored :binary:`~bin.mongod` instances as
      config servers (SCCC) is no longer supported. To convert your
      config servers from SCCC to CSRS, see
      :doc:`/tutorial/upgrade-config-servers-to-replica-set`.
@@ -1190,7 +1153,7 @@ description: |
 
   With {{role}}, a {{program}} requires TLS/SSL encryption for all
   connections on the default MongoDB port, or the port specified by
-  :option:`--port`. By default, {{role}} is
+  {{option}}. By default, {{role}} is
   disabled.
 
   .. include:: /includes/fact-ssl-supported.rst
@@ -1198,6 +1161,7 @@ optional: true
 replacement:
   verb: "Enables"
   alternative: ":option:`--sslMode requireSSL <--sslMode>`"
+  option: ":option:`--port`"
 ---
 program: mongod
 name: sslMode
@@ -1415,11 +1379,11 @@ directive: option
 description: |
   .. versionadded:: 3.0
 
-  Disables the validation of the hostnames in TLS/SSL certificates, when
-  connecting to other {{program}} instances for inter-process
-  authentication. This allows {{program}} to connect to other
-  {{program}} instances if the hostnames in their certificates do not
-  match their configured hostname.
+  Disables the validation of the hostnames in TLS/SSL certificates,
+  when connecting to other members of the replica set or sharded cluster
+  for inter-process authentication. This allows {{program}} to connect
+  to other members if the hostnames in their certificates do not match
+  their configured hostname.
 
   .. include:: /includes/fact-ssl-supported.rst
 optional: true
@@ -1503,11 +1467,14 @@ description: |
      * - ``file``
 
        - Output the audit events to the file specified in
-         :option:`--auditPath` in the format specified in
-         :option:`--auditFormat`.
+         {{optionpath}} in the format specified in
+         {{optionformat}}.
 
   .. include:: /includes/note-audit-in-enterprise-only.rst
 optional: true
+replacement:
+  optionpath: ":option:`--auditPath`"
+  optionformat: ":option:`--auditFormat`"
 ---
 program: mongod
 name: auditFormat
@@ -1531,12 +1498,12 @@ description: |
      * - ``JSON``
 
        - Output the audit events in JSON format to the file specified
-         in :option:`--auditPath`.
+         in {{path}}.
 
      * - ``BSON``
 
        - Output the audit events in BSON binary format to the file
-         specified in :option:`--auditPath`.
+         specified in {{path}}.
 
   Printing audit events to a file in JSON format degrades server
   performance more than printing to a file in BSON format.
@@ -1546,6 +1513,7 @@ optional: true
 replacement:
   intro: "Specifies the"
   destination: ":option:`--auditDestination`"
+  path: ":option:`--auditPath`"
 ---
 program: mongod
 name: auditPath
@@ -1671,7 +1639,7 @@ description: |
   ``collection``.
 
   By using a symbolic link, you can specify a different location for
-  the indexes. Specifically, when :program:`mongod` instance is **not**
+  the indexes. Specifically, when :binary:`~bin.mongod` instance is **not**
   running, move the ``index`` subdirectory to the destination and
   create a symbolic link named ``index`` under the data directory to
   the new destination.
@@ -1679,7 +1647,7 @@ description: |
 optional: true
 replacement:
   intro: "When you start {{program}} with {{role}}"
-  dbpath: ":option:`--dbpath``"
+  dbpath: ":option:`--dbpath`"
 ---
 program: mongod
 name: storageEngine
@@ -1917,7 +1885,7 @@ description: |
    Unique KMIP identifier for an existing key within the KMIP server.
    Include to use the key associated with the identifier as the system
    key. You can only use the setting the first time you enable
-   encryption for the :program:`mongod` instance. Requires
+   encryption for the :binary:`~bin.mongod` instance. Requires
    :setting:`enableEncryption` to be true.
 
    If unspecified, MongoDB will request that the KMIP server create a
@@ -2043,7 +2011,7 @@ description: |
    **Available in MongoDB 3.2 version only**
 
    If set to ``sccc``, indicates that the config servers are deployed
-   as three mirrored :program:`mongod` instances, even if one or more
+   as three mirrored :binary:`~bin.mongod` instances, even if one or more
    config servers is also a member of a replica set. ``configsvrMode``
    only accepts the value ``sccc``.
 
@@ -2067,7 +2035,7 @@ description: |
 
    Maximum amount of memory to allocate for :doc:`in-memory storage
    engine </core/inmemory>` data, including indexes, oplog if the
-   :program:`mongod` is part of replica set, replica set or sharded
+   :binary:`~bin.mongod` is part of replica set, replica set or sharded
    cluster metadata, etc.
 
    .. include:: /includes/fact-inmemory-storage-engine-default-ram.rst
@@ -2114,17 +2082,17 @@ description: |
   .. versionadded:: 3.4
 
      Allows the {{program}} to accept and create authenticated and
-     non-authenticated connections to and from other :program:`mongod`
-     and :program:`mongos` instances in the deployment. Used for
+     non-authenticated connections to and from other :binary:`~bin.mongod`
+     and :binary:`~bin.mongos` instances in the deployment. Used for
      performing rolling transition of replica sets or sharded clusters
      from a no-auth configuration to :ref:`internal authentication
      <inter-process-auth>`. Requires specifying a :ref:`internal
      authentication <inter-process-auth>` mechanism such as
-     :option:`--keyfile`.
+     {{option}}.
 
   For example, if using :ref:`keyfiles <internal-auth-keyfile>` for
   :ref:`internal authentication <inter-process-auth>`, the {{program}} creates
-  an authenticated connection with any :program:`mongod` or :program:`mongos`
+  an authenticated connection with any :binary:`~bin.mongod` or :binary:`~bin.mongos`
   in the deployment using a matching keyfile. If the security mechanisms do
   not match, the {{program}} utilizes a non-authenticated connection instead.
 
@@ -2139,7 +2107,8 @@ description: |
      using :ref:`user access controls <authorization>`. Update clients to
      connect to the {{program}} using the appropriate :ref:`user <users>`
      prior to restarting {{program}} without {{role}}.
-
+replacement:
+   option: ":option:`--keyFile`"
 optional: true
 ---
 program: mongod
@@ -2260,11 +2229,13 @@ description: |
 
   .. note::
 
-     Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
-     instead of {{role}} and :option:`--ldapQueryPassword`. You cannot specify
-     both {{role}} and :option:`--ldapBindWithOSDefaults` at the same time.
+     Windows MongoDB deployments can use {{bindWithOSDefaults}} 
+     instead of {{role}} and {{queryPassword}}. You cannot specify
+     both {{role}} and {{bindWithOSDefaults}} at the same time.
 replacement:
   queryUser: ":option:`--ldapQueryUser`"
+  bindWithOSDefaults: ":option:`--ldapBindWithOSDefaults`"
+  queryPassword: ":option:`--ldapQueryPassword`"
 ---
 program: mongod
 name: ldapBindWithOSDefaults
@@ -2283,15 +2254,15 @@ description: |
   Only required if:
 
   - Using :ref:`LDAP authorization <security-ldap-external>`.
-  - Using an LDAP query for :option:`username transformation
-    <--ldapUserToDNMapping>`.
+  - Using an LDAP query for {{userMapping}}.
   - The LDAP server disallows anonymous binds
 
-  Use {{role}} to replace :option:`--ldapQueryUser` and
-  :option:`--ldapQueryPassword`.
+  Use {{role}} to replace {{queryUser}} and
+  {{queryPassword}}.
 replacement:
   queryUser: ":option:`--ldapQueryUser`"
   queryPassword: ":option:`--ldapQueryPassword`"
+  userMapping: ":option:`username transformation <--ldapUserToDNMapping>`"
 ---
 program: mongod
 name: ldapBindMethod
@@ -2416,7 +2387,7 @@ description: |
     authenticate to MongoDB with usernames that are not full LDAP DNs.
 
   - Using an :option:`LDAP authorization query template
-    <--ldapAuthzQueryTemplate>` that requires a DN.
+    <mongod --ldapAuthzQueryTemplate>` that requires a DN.
 
   - Transforming the usernames of clients authenticating to Mongo DB using
     different authentication mechanisms (e.g. x.509, kerberos) to a full LDAP
@@ -2557,7 +2528,7 @@ description: |
   <https://tools.ietf.org/search/rfc4515>`_ and `RFC4516
   <https://tools.ietf.org/html/rfc4516>`_ that {{program}} executes to obtain
   the LDAP groups to which the authenticated user belongs to. The query is
-  relative to the host or hosts specified in :option:`--ldapServer`.
+  relative to the host or hosts specified in {{ldapServers}}.
 
   Use the ``{USER}`` placeholder in the URL to substitute the authenticated
   username, or the transformed username if a {{mapping}} is specified.
@@ -2608,6 +2579,7 @@ description: |
      use your preferred LDAP resource.
 replacement:
   mapping: ":option:`username mapping <--ldapUserToDNMapping>`"
+  ldapServers: ":option:`--ldapServers`"
 ---
 program: mongod
 name: timeZoneInfo
@@ -2647,7 +2619,7 @@ description: |
    - other members of the sharded cluster, if the instance is part of a
      sharded cluster
 
-   - a :program:`mongo` shell,
+   - a :binary:`~bin.mongo` shell,
 
    - drivers that support the ``OP_COMPRESSED`` message format.
 
