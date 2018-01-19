@@ -10,8 +10,8 @@ Billing
    :depth: 1
    :class: singlecol
 
-Billing is at the organization level. All projects within an
-organization share the same billing settings.
+Billing is at the organization level while preserving visibility into
+usage in each project.
 
 |service| charges by the hour for your MongoDB clusters. |service|
 tabulates costs daily and displays your current monthly costs in the
@@ -26,6 +26,9 @@ transfer, in a :guilabel:`Cluster Overview` box.
 
    The :guilabel:`Cluster Overview` box does not display :ref:`data transfer
    costs <data-transfer-costs>`.
+
+.. seealso:: `Atlas pricing page <https://www.mongodb.com/cloud/atlas/pricing>`_
+
 
 .. _region-costs:
 
@@ -205,26 +208,63 @@ reflected in the cost of the cluster.
 Backup
 ------
 
-For each replica set in a cluster, |service| charges US$2.50 / GB / month to
-store backup data. The first 1GB of backup data is free.
+Backup costs are affected by both the size of your backed-up snapshots
+and on your settings for snapshot frequency and retention.
 
-|service| discounts the cost of backup data storage if the frequency of
-snapshots is reduced. To modify the backup schedule for a cluster, see
-:ref:`modify-backup-schedule`.
+Backup Cost Rate
+~~~~~~~~~~~~~~~~
 
-.. note::
+The backup cost per GB per month (US$2.50 / GB / month) is as specified
+on the `Atlas pricing page
+<https://www.mongodb.com/cloud/atlas/pricing?jmp=docs>`__. The monthly
+rate is annualized and then divided by 365 to arrive at a Daily Backup
+Rate per GB. The first 1GB of backup data is free.
 
-   Backup data consists of your logical data and indexes on that data.
+The rate is based on your having 28 snapshots at steady state: 
+
+- The six-hour snapshots are kept for two days; 
+
+- The daily snapshots for one week,
+
+- The weekly snapshots for one month,
+
+- The monthly for one year. 
+
+Adding that up, you get 8 + 5 + 3 + 12 = 28 snapshots. We adjust the
+backup rate daily based on the following formula:
+
+.. code-block:: none
+
+   backupRatePerMonth = $1.25 + snapshotAtSteadyState/28 * $1.25
+
+Size
+~~~~
+
+Monthly backup costs are based on the size per-gigabyte of the data to
+back up. This size is roughly equivalent to the size of all documents
+and all indexes for all the databases backed up. 
+
+To retrieve the size in gigabyte of the documents and indexes for a
+given database, you can issue the :manual:`db.stats()
+</reference/method/db.stats>` method and sum the ``dataSize`` and
+``indexSize`` fields.
+
+.. code-block:: javascript
+
+   db.stats(1024*1024*1024).dataSize + db.stats(1024*1024*1024).indexSize
+
+|service| charges for each replica set in a cluster. For a replica set
+deployment, backup costs is the cost to backup data for the replica
+set. For a sharded cluster deployment, |service| sums the cost to
+backup the data for each shard replica set *and* the config server
+replica set.
 
 .. example::
 
    For a three-member replica set with 30GB of data, |service| charges
-   US$72.50 each month.
+   US$72.50 each month (using the deafault backup rate).
 
    ``(30GB - 1GB) × US$2.50 = US$72.50``
-
-For sharded clusters, |service| sums the cost of backup data  for each
-shard replica set *and* the config server replica set.
 
 .. example::
 
@@ -232,9 +272,20 @@ shard replica set *and* the config server replica set.
    containing 30GB of data each. The config server replica set
    contains 5GB of data.
 
-   For this sharded cluster, |service| charges US$227.50 per month.
+   For this sharded cluster, |service| charges US$227.50 per month
+   (using the deafault backup rate).
 
    ``((30GB - 1GB) × US$2.50) × 3) + ((5GB - 1GB) × US$2.50) = US$227.50``
+
+Lowering the Monthly Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lowering snapshot frequency or lowering snapshot retention lowers the
+cost per gigabyte. Increasing the snapshot frequency or the snapshot
+retention increases the cost per gigabyte.
+
+To modify the snapshot frequency or retention for a cluster, see
+:ref:`modify-backup-schedule`.
 
 |bic|
 -----
@@ -250,8 +301,8 @@ If |bic| is enabled for your cluster:
 Billing Information
 -------------------
 
-Billing is at the organization level. All projects within an
-organization share the same billing settings.
+Billing is at the organization level while preserving visibility into
+usage in each project.
 
 To access billing information, for the organization, click
 :guilabel:`Settings`, then :guilabel:`Billing Overview`.
@@ -277,3 +328,5 @@ To retry the payment, click :guilabel:`Settings`, then :guilabel:`Payment
 History`. On the line for the failed payment, click :guilabel:`Retry`.
 
 .. include:: /includes/footnote-databearing.rst
+
+
