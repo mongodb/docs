@@ -20,7 +20,7 @@
      - `1.4.29 <https://github.com/mongodb/node-mongodb-native/releases>`_
 
    * - :ecosystem:`Perl </drivers/perl>`
-     - `0.708.0.0 <http://search.cpan.org/dist/MongoDB/>`_
+     - `1.0.0 <https://metacpan.org/release/MongoDB>`_
 
    * - :ecosystem:`PHP </drivers/php>`
      - `1.6 <http://pecl.php.net/package/mongo>`_
