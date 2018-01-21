@@ -33,9 +33,9 @@
      - `Node.js Driver API <http://mongodb.github.io/node-mongodb-native/?jmp=docs>`_
 
    * - :ecosystem:`Perl </drivers/perl?jmp=docs>`
-     - `Perl Driver Releases <http://search.cpan.org/dist/MongoDB/?jmp=docs>`_
+     - `Perl Driver Releases <https://metacpan.org/release/MongoDB>`_
      - `Perl Driver Source Code <https://github.com/mongodb/mongo-perl-driver?jmp=docs>`_
-     - `Current Perl Driver API <https://metacpan.org/pod/MongoDB?jmp=docs>`_
+     - `Current Perl Driver API <https://metacpan.org/pod/MongoDB>`_
 
    * - :ecosystem:`PHP </drivers/php?jmp=docs>`
      - `PHP Driver Releases <http://pecl.php.net/package/mongo?jmp=docs>`_
