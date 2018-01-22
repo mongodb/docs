@@ -15,25 +15,18 @@ Description
 
 .. dbcommand:: replSetStepDown
 
-   Forces the :term:`primary` of the replica set to become a
-   :term:`secondary`, triggering an :ref:`election for primary
-   <replica-set-election-internals>`. The command steps down the
-   primary for a specified number of seconds; during this period, the
-   stepdown member is ineligible from becoming primary.
+   .. |command-method| replace:: command
+   .. |stepdown-secs| replace:: ``replSetStepDown: <seconds>``
+   .. |behavior-ref| replace:: :ref:`replSetStepDown-behavior`
 
-   By default, the command only steps down the primary if an
-   :data:`electable <~replSetGetConfig.members[n].priority>`
-   secondary is up-to-date with the primary, waiting up to 10 seconds
-   for a secondary to catch up.
+   .. include:: /includes/stepdown-intro.rst
 
-   The command is only valid against the primary and will error if run
-   on a non-primary member. :dbcommand:`replSetStepDown` can
-   only run in the ``admin`` database and has the following prototype
-   form:
+   The :dbcommand:`replSetStepDown` can only run on the ``admin`` database
+   and has the following prototype form:
 
    .. code-block:: javascript
 
-      db.runCommand( { 
+      db.adminCommand( { 
           replSetStepDown: <seconds>,
           secondaryCatchUpPeriodSecs: <seconds>,
           force: <true|false>
@@ -43,39 +36,18 @@ Description
 
    .. include:: /includes/apiargs/command-replSetStepDown-field.rst
 
+.. _replSetStepDown-behavior:
+
 Behavior
 --------
 
-.. versionadded:: 3.0
+.. |force-option| replace:: You can override this behavior and issue with command with the ``force: true`` option to immediately step down the primary.
 
-Before stepping down, :dbcommand:`replSetStepDown` will attempt to
-terminate long running user operations that would block the primary
-from stepping down, such as an index build, a write operation or a
-map-reduce job.
+.. |command-method-name| replace:: :dbcommand:`replSetStepDown`
 
-To avoid rollbacks, :dbcommand:`replSetStepDown`, by default, only
-steps down the primary if an electable secondary is completely caught up
-with the primary. The command will wait up to the
-``secondaryCatchUpPeriodSecs`` for a secondary to catch up.
+.. include:: /includes/stepdown-behavior.rst
 
-If no electable secondary meets this criterion by the waiting period,
-the primary does not step down and the command errors. However, you can
-override this behavior by including the ``force: true`` option.
-
-Upon successful stepdown, :dbcommand:`replSetStepDown` forces all
-clients currently connected to the database to disconnect. This helps
-ensure that the clients maintain an accurate view of the replica set.
-
-Because the disconnect includes the connection used to run the command,
-you cannot retrieve the return status of the command if the command
-completes successfully; i.e. you can only retrieve the return status of
-the command if it errors. When running the command in a script, the
-script should account for this behavior.
-
-.. note::
-
-   :dbcommand:`replSetStepDown` blocks all writes to the primary while
-   it runs.
+.. include:: /includes/fact-stepdown-write-fail.rst
 
 Examples
 --------
@@ -86,14 +58,13 @@ Step Down with Default Options
 The following example, run on the current primary, attempts to step
 down the member for ``120`` seconds.
 
-The operation will wait up to the default ``10`` seconds for a
+The operation waits up to the default ``10`` seconds for a
 secondary to catch up. If no suitable secondary exists, the primary
 does not step down and the command errors.
 
-.. note::
+.. include:: /includes/fact-stepdown-write-fail.rst
 
-   The command blocks all writes to the primary while it runs.
-
+.. class:: copyable-code
 .. code-block:: javascript
 
    db.adminCommand( { replSetStepDown: 120 } )
@@ -106,10 +77,9 @@ down the member for ``120`` seconds, waiting up to ``15`` seconds for
 an electable secondary to catch up. If no suitable secondary exists,
 the primary does not step down and the command errors.
 
-.. note::
+.. include:: /includes/fact-stepdown-write-fail.rst
 
-   The command blocks all writes to the primary while it runs.
-
+.. class:: copyable-code
 .. code-block:: javascript
 
    db.adminCommand( { replSetStepDown: 120, secondaryCatchUpPeriodSecs: 15 } )
@@ -122,10 +92,9 @@ down the member for ``120`` seconds, waiting up to ``15`` seconds for
 an electable secondary to catch up. Because of the ``force: true``
 option, the primary steps down even if no suitable secondary exists.
 
-.. note::
+.. include:: /includes/fact-stepdown-write-fail.rst
 
-   The command blocks all writes to the primary while it runs.
-
+.. class:: copyable-code
 .. code-block:: javascript
 
    db.adminCommand( { replSetStepDown: 120, secondaryCatchUpPeriodSecs: 15, force: true } )
