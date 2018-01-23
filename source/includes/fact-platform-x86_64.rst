@@ -59,7 +59,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OS X 10.7 and later
+   * - macOS 10.8 and later
      - |checkmark|
      - |checkmark|
      -
