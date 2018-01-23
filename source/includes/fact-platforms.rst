@@ -63,7 +63,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OSX 10.7+
+   * - macOS 10.8 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
