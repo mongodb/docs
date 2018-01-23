@@ -88,11 +88,44 @@ What AWS Regions does |service| support?
 |service| supports all AWS regions other than those in China and US GovCloud.
 For more information, see :doc:`/reference/amazon-aws`.
 
-Do you handle OS patches?
--------------------------
+How does |service-fullname| deliver high availability?
+------------------------------------------------------
 
-Yes. |service| will automatically and transparently upgrade the OS
-patches in a rolling fashion to maintain cluster availability.
+|service| clusters use MongoDB's replication capability to deliver high
+availability. All |service| clusters are either replica sets or sharded
+clusters where each shard is a replica set. For complete documentation
+on MongoDB replica sets and replication, see :manual:`Replication
+</replication>`.
+
+For maintenance or infrastructure operations, |service| uses a rolling
+upgrade strategy:
+
+- |service| applies the changes to each secondary node in the cluster.
+- |service| directs the primary node to step down to the secondary state
+  and trigger an election of a new primary.
+- Once the cluster has a new primary, |service| applies the changes to
+  the former primary node.
+
+This strategy ensures that the cluster remains available for the
+majority of the operation, with only a brief period during the replica
+set elections where applications must hold writes until the election
+completes.
+
+For ``M10+`` clusters, |service| provides a :doc:`Test Failover
+</tutorial/test-failover>` feature for application developers to check
+that their applications are designed to detect and react appropriately
+to a replica set election. By designing applications that can seamlessly
+handle a replica set election, developers no longer have to worry about
+the underlying maintenance occurring on their clusters.
+
+|service| maintenance operations include OS patches and maintenance
+patches for the MongoDB database itself (e.g. v3.6.3 to v3.6.4).
+Infrastructure operations include repair operations required to replace
+faulty infrastructure, and scheduled infrastructure replacements
+such as changing the cluster size.
+
+Please contact |service| support if your organization has specific 
+needs or requirements for maintenance or infrastructure operations.
 
 How can I pay for |service-fullname| without a credit card?
 -----------------------------------------------------------
