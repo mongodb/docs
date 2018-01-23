@@ -50,12 +50,12 @@
      - Flag indicating whether this oplog store only accepts 
        connections encrypted using 
        :abbr:`TLS (Transport Layer Security)`.
-   
+
    * - usedSize
      - number
      - The amount of backup capacity in :abbr:`MB (megabytes)` that
        the existing backups consume.
-   
+
    * - writeConcern
      - string
      - The write concern used for this :term:`oplog store`.

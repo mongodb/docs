@@ -55,7 +55,7 @@
      - number
      - The amount of backup capacity in :abbr:`MB (megabytes)` that
        the existing backups consume.
-   
+
    * - writeConcern
      - string
      - The write concern used for this sync store.
