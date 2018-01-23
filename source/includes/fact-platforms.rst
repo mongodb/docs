@@ -93,7 +93,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - OS X 10.7+
+   * - macOS 10.8 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
