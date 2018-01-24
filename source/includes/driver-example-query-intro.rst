@@ -25,6 +25,15 @@
          collection. To populate the ``inventory`` collection, run the
          following:
 
+     - id: motor
+       content: |
+         This page provides examples of |query_operations| using the
+         :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.find`
+         method in the `Motor <https://motor.readthedocs.io/en/stable/>`_
+         driver. The examples on this page use the ``inventory``
+         collection. To populate the ``inventory`` collection, run the
+         following:
+
      - id: java-sync
        content: |
          This page provides examples of |query_operations| using the

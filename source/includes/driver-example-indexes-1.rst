@@ -113,6 +113,30 @@
          method only creates an index if an index of the same
          specification does not already exist.
 
+     - id: motor
+       content: |
+         To create an index using the
+         `Motor driver <https://motor.readthedocs.io/en/stable/>`_,
+         use
+         :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.create_index`.
+
+         .. class:: copyable-code
+         .. code-block:: python
+
+            await db.collection.create_index([(<key and index type specification>)], <options> )
+
+         The following example creates a single key descending index on
+         the ``name`` field:
+
+         .. class:: copyable-code
+         .. code-block:: python
+
+            await collection.create_index([("name", pymongo.DESCENDING)])
+
+         The :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.create_index`
+         method only creates an index if an index of the same
+         specification does not already exist.
+
      - id: java-sync
        content: |
          To create an index using the

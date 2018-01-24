@@ -29,6 +29,15 @@
             :start-after: Start Example 32
             :end-before: End Example 32
 
+     - id: motor
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Example 32
+            :end-before: End Example 32
+
      - id: java-sync
        content: |
          .. class:: copyable-code

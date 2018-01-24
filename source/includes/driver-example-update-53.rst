@@ -25,6 +25,15 @@
             :start-after: Start Example 53
             :end-before: End Example 53
 
+     - id: motor
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
          .. include:: /includes/fact-update-many-operation-uses.rst
 
      - id: java-sync

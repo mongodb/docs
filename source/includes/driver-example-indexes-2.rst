@@ -15,6 +15,10 @@
        content: |
          .. include:: /includes/fact-collation-driver.rst
 
+     - id: motor
+       content: |
+         .. include:: /includes/fact-collation-driver.rst
+
      - id: java-sync
        content: |
          .. include:: /includes/fact-collation-driver.rst

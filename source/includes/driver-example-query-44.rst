@@ -38,6 +38,15 @@
             :start-after: Start Example 44
             :end-before: End Example 44
 
+     - id: motor
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Example 44
+            :end-before: End Example 44
+
      - id: java-sync
        content: |
          To specify a projection document, chain the

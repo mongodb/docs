@@ -14,6 +14,13 @@
          :py:class:`pymongo.results.DeleteResult` with the status of the
          operation.
 
+     - id: motor
+       content: |
+         The :py:meth:`~motor.motor_asyncio.AsyncIOMotorCollection.delete_many`
+         coroutine asynchronously returns an instance of
+         :py:class:`pymongo.results.DeleteResult` with the status of the
+         operation.
+
      - id: java-sync
        content: |
          The com.mongodb.client.MongoCollection.deleteMany_
@@ -28,7 +35,7 @@
          <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#deleteMany(org.bson.conversions.Bson)>`_
          returns a `Publisher <http://www.reactive-streams.org/reactive-streams-1.0.1-javadoc/org/reactivestreams/Publisher.html>`_
          object of type com.mongodb.client.result.DeleteResult_ if
-         successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful. 
+         successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful.
 
      - id: nodejs
        content: |
@@ -68,7 +75,7 @@
        content: |
          Upon successful execution, the
          :scala-api:`collection.deleteMany()<deleteMany(filter:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.DeleteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.DeleteResult]>` method
-         returns an 
+         returns an
          `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
          with a single element with a ``DeleteResult`` type parameter or with
          an ``com.mongodb.MongoException``.
