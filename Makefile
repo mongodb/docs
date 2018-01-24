@@ -12,7 +12,7 @@ PRODUCTION_BUCKET=docs-ruby-driver
 PROJECT=mongoid
 TARGET_DIR=source-${GIT_BRANCH}
 
-SOURCE_FILE_DIR=build/mongoid-master
+SOURCE_FILE_DIR=build/mongoid-${GIT_BRANCH}
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
