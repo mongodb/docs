@@ -194,10 +194,12 @@
      - string
      - The name of the instance size used for the |service| cluster.
 
-       To view available instance sizes: open the |service| web interface;
-       select :guilabel:`Build a New Cluster`; select your preferred cloud
-       service provider and region; view the available instance sizes; close
-       the window without saving changes.
+       .. include:: /includes/extracts/fact-cluster-instance-sizes-basic.rst
+
+       See :doc:`/reference/microsoft-azure`, 
+       :doc:`/reference/google-gcp`, or :doc:`/reference/amazon-aws` for
+       complete documentation of each instance size and its default
+       resources for a given cloud service provider.
 
    * - ``providerSettings.diskIOPS``
      - integer
