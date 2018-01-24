@@ -74,6 +74,19 @@
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 
+   * - DataDog
+
+     - Sends the alert to a `DataDog 
+       <https://www.datadoghq.com/alerts/>`_ account as a DataDog 
+       `event <https://docs.datadoghq.com/graphing/event_stream/>`_. 
+
+       When the alert is first opened, |service| sends the alert as an
+       "error" event. Subsequent updates are sent as "info" events.
+       When the alert is closed, |service| sends a "success" event.
+
+       If prompted, enter your DataDog API key under :guilabel:`API Key`
+       and click :guilabel:`Validate Datadog API Key`. 
+
    * - Webhook
 
      - Sends an HTTP POST request to an endpoint for programmatic processing.
