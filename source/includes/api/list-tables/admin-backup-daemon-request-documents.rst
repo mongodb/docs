@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,68 +9,89 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be assigned backup 
-       jobs.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       can be assigned backup jobs.
 
    * - backupJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be used to backup 
-       databases.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       can be used to backup databases.
 
    * - configured
      - boolean
-     - Flag indicating whether this Backup Daemon is ready to use.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       is ready to use.
 
    * - garbageCollectionEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon has garbage collection 
-       set.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       has garbage collection set.
 
    * - headDiskType
      - string
-     - The type of disk used to store the head directory.
+     - *Optional.* The type of disk used to store the 
+       :term:`head directory`.
+
+       The accepted values for this option are:
+
+       - ``HDD``
+       - ``SSD``
 
    * - labels
      - array of strings
-     - Array of names that snapshot stores used to be assigned to this 
-       Backup Daemon.
+     - *Optional.* Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       :term:`Backup Daemons <Backup Daemon>`. 
+
+       Setting these tags limits which backup jobs this Backup Daemon 
+       can process. If omitted, this Backup Daemon can only process 
+       backup jobs for projects that do not use labels to filter their 
+       jobs. 
 
    * - machine
-     - array of strings
-     - Array of Backup Daemon hosts and their head directories.
+     - object
+     - :term:`Backup Daemon` host and its 
+       :term:`head directories <head directory>`.
 
    * - machine.headRootDirectory
      - string
-     - *Optional.* The head directory location found on this Backup 
-       Daemon host.
+     - *Optional.* The root-relative 
+       `URL-encoded path <https://en.wikipedia.org/wiki/Percent-encoding?oldid=810929127>`_ 
+       of the :term:`head directory` on this :term:`Backup Daemon` 
+       host.
 
        .. note:: 
           Requests should encode slashes in the URL path. 
 
           .. example:: 
 
-             http://localhost:8080/api/public/v1.0/admin/backup/daemon/config/localhost/%2Ffoo%2Fbar%2F
+             For Linux platforms, the head directory would be added in 
+             this format:
+
+             .. code-block:: sh
+
+                http://localhost:8080/api/public/v1.0/admin/backup/daemon/config/localhost/%2Fdata%2Fbackup%2F
 
    * - machine.machine
      - string
-     - The hostname or IP address of the Backup Daemon host.
+     - The hostname or IP address of the :term:`Backup Daemon` host.
 
    * - numWorkers
      - number
      - The number of worker processes that can perform tasks (i.e. 
-       backup, restore, or groom) for the Backup Daemon.
+       backup, restore, or groom) for the :term:`Backup Daemon`.
 
    * - resourceUsageEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon has its resource usage 
-       monitored.
+     - Flag indicating whether this :term:`Backup Daemon` has its 
+       resource usage monitored.
 
    * - restoreJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be used to restore 
-       snapshots.
+     - Flag indicating whether this :term:`Backup Daemon` can be used 
+       to restore snapshots.
 
    * - restoreQueryableJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can perform quearyable 
-       restores.
+     - Flag indicating whether this :term:`Backup Daemon` can perform 
+       :doc:`queryable restores </tutorial/query-backup>`.

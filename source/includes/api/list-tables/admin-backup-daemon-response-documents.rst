@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,75 +9,77 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be assigned backup 
-       jobs.
+     - Flag indicating whether this :term:`Backup Daemon` 
+       can be assigned backup jobs.
 
    * - backupJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be used to backup 
-       databases.
+     - Flag indicating whether this :term:`Backup Daemon` 
+       can be used to backup databases.
 
    * - configured
      - boolean
-     - Flag indicating whether this Backup Daemon is ready to use.
+     - Flag indicating whether this :term:`Backup Daemon` 
+       is ready to use.
 
    * - garbageCollectionEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon has garbage collection 
-       set.
+     - Flag indicating whether this :term:`Backup Daemon` 
+       has garbage collection set.
 
    * - headDiskType
      - string
-     - The type of disk used to store the head directory.
+     - The type of disk used to store the :term:`head directory`.
+
+       The accepted values for this option are:
+
+       - ``HDD``
+       - ``SSD``
 
    * - id
      - string
-     - The Unique Identifier of this Backup Daemon.
+     - The unique identifier of this :term:`Backup Daemon`.
 
    * - labels
      - array of strings
-     - Array of names that snapshot stores used to be assigned to this 
-       Backup Daemon.
+     - Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       :term:`Backup Daemons <Backup Daemon>`. 
 
    * - links
      - array of objects
      - .. include:: /includes/api/links-explanation.rst
 
    * - machine
-     - array of strings
-     - Array of Backup Daemon hosts and their head directories.
+     - object
+     - :term:`Backup Daemon` host and its 
+       :term:`head directories <head directory>`.
 
    * - machine.headRootDirectory
      - string
-     - The head directory location found on this Backup Daemon host.
-
-       .. note:: 
-          Requests should encode slashes in the URL path. 
-
-          .. example:: 
-
-             http://localhost:8080/api/public/v1.0/admin/backup/daemon/config/localhost/%2Ffoo%2Fbar%2F
+     - The root-relative path of the :term:`head directory` on this 
+       :term:`Backup Daemon` host.
 
    * - machine.machine
      - string
-     - The hostname or IP address of the Backup Daemon host.
+     - The hostname or IP address of the :term:`Backup Daemon` host.
 
    * - numWorkers
      - number
      - The number of worker processes that can perform tasks (i.e. 
-       backup, restore, or groom) for the Backup Daemon.
+       backup, restore, or groom) for the :term:`Backup Daemon`.
 
    * - resourceUsageEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon has its resource usage 
-       monitored.
+     - Flag indicating whether this :term:`Backup Daemon` has its 
+       resource usage monitored.
 
    * - restoreJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can be used to restore 
-       snapshots.
+     - Flag indicating whether this :term:`Backup Daemon` can be used 
+       to restore snapshots.
 
    * - restoreQueryableJobsEnabled
      - boolean
-     - Flag indicating whether this Backup Daemon can perform quearyable 
-       restores.
+     - Flag indicating whether this :term:`Backup Daemon` can perform 
+       :doc:`queryable restores </tutorial/query-backup>`.

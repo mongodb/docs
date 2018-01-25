@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -15,25 +15,22 @@
    * - encryptedCredentials
      - boolean
      - Flag indicating whether the username and password for this 
-       sync store were encrypted using the credentialstool.
+       sync store were encrypted using the 
+       :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
    
    * - id
      - string
-     - The Unique Identifier that represents this sync store.
+     - The unique identifier that represents this sync store.
    
    * - labels
      - array of strings
-     - Names used to assign sync stores to specific projects.
+     - Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       :term:`sync stores <sync store>`. 
    
    * - links
      - array of objects
      - .. include:: /includes/api/links-explanation.rst
-   
-   * - loadFactor
-     - number
-     - A positive integer that expresses how much backup work you want 
-       this :term:`snapshot store` to perform compared to another 
-       snapshot store.
    
    * - maxCapacityGB
      - number
@@ -59,3 +56,15 @@
    * - writeConcern
      - string
      - The write concern used for this sync store.
+
+       The accepted values for this option are:
+       
+       - ``ACKNOWLEDGED``
+       - ``W2``
+       - ``JOURNALED``
+       - ``MAJORITY``
+
+       .. seealso::
+
+          To learn about write acknowledgement levels in MongoDB, see 
+          :manual:`Write Concern </reference/write-concern>`

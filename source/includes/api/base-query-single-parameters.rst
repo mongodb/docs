@@ -8,16 +8,6 @@
      - Description
      - Default
 
-   * - pageNum
-     - integer
-     - Page number (1-based).
-     - ``1``
-
-   * - itemsPerPage
-     - integer
-     - Maximum number of items to return, up to a maximum of 100.
-     - ``100``
-
    * - pretty
      - boolean
      - Flag indicating whether the response body should be in a 
@@ -36,16 +26,9 @@
        For endpoints that return one result, response body 
        includes:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
+       status
+         HTTP response code
+       envelope
+         The expected response body 
 
-          * - status
-            - HTTP response code
-          * - envelope
-            - The expected response body 
-
-       For endpoints that return a list of results, the ``results`` 
-       object is an envelope. |mms| adds the ``status`` field to the 
-       response body.
+     - ``false``

@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,7 +9,8 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this data store can be assigned backups.
+     - Flag indicating whether this data store can be assigned
+       backup jobs.
  
    * - awsAccessKey
      - string
@@ -24,25 +25,22 @@
    * - encryptedCredentials
      - boolean
      - Flag indicating whether the username and password for this S3 
-       oplog store were encrypted using the credentialstool.
+       oplog store were encrypted using the 
+       :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
  
    * - id
      - string
-     - The Unique Identifier that represents this S3 oplog store.
+     - The unique identifier that represents this S3 oplog store.
  
    * - labels
      - array of strings
-     - Names used to assign s3 oplog stores to specific projects.
+     - Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       S3 oplog stores. 
  
    * - links
      - array of objects
      - .. include:: /includes/api/links-explanation.rst
- 
-   * - loadFactor
-     - number
-     - A positive integer that expresses how much backup work you want
-       this snapshot store to perform compared to another snapshot 
-       store.
  
    * - s3BucketEndpoint
      - string
@@ -54,15 +52,28 @@
  
    * - uri
      - string
-     - A comma-separated list of hosts in the <hostname:port> format  
+     - A comma-separated list of hosts in the ``<hostname:port>`` format  
        that can be used to access this S3 oplog store.
  
    * - ssl
      - boolean
      - Flag indicating whether this S3 oplog store only accepts 
-       connections encrypted using TLS.
+       connections encrypted using 
+       :abbr:`TLS (Transport Layer Security)`.
  
    * - writeConcern
      - string
      - The write concern used for this oplog store.
  
+        The accepted values for this option are:
+       
+       - ``ACKNOWLEDGED``
+       - ``W2``
+       - ``JOURNALED``
+       - ``MAJORITY``
+
+       .. seealso::
+
+          To learn about write acknowledgement levels in MongoDB, see 
+          :manual:`Write Concern </reference/write-concern>`
+

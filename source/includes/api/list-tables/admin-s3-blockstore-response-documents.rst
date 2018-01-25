@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,7 +9,8 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this data store can be assigned backups.
+     - Flag indicating whether this data store can be assigned
+       backup jobs.
  
    * - awsAccessKey
      - string
@@ -24,15 +25,18 @@
    * - encryptedCredentials
      - boolean
      - Flag indicating whether the username and password for this S3 
-       blockstore were encrypted using the credentialstool.
+       blockstore were encrypted using the 
+       :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
  
    * - id
      - string
-     - The Unique Identifier that represents this S3 blockstore.
+     - The unique identifier that represents this S3 blockstore.
  
    * - labels
      - array of strings
-     - Names used to assign s3 blockstores to specific projects.
+     - Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       :term:`S3 blockstores <S3 blockstore>`. 
  
    * - links
      - array of objects
@@ -40,10 +44,16 @@
  
    * - loadFactor
      - number
-     - A positive integer that expresses how much backup work you want
-       this snapshot store to perform compared to another snapshot 
-       store.
- 
+     - A positive, non-zero integer that expresses how much backup work
+       this :term:`snapshot store` should perform compared to another
+       snapshot store. This option is needed only if more than one 
+       snapshot store is in use.
+
+       .. seealso::
+
+          To learn more about :guilabel:`Load Factor`, see 
+          :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
+  
    * - s3BucketEndpoint
      - string
      - The URL used to access this AWS S3 or S3-compatible bucket.
@@ -54,15 +64,27 @@
  
    * - uri
      - string
-     - A comma-separated list of hosts in the <hostname:port> format  
+     - A comma-separated list of hosts in the ``<hostname:port>`` format  
        that can be used to access this S3 blockstore.
  
    * - ssl
      - boolean
      - Flag indicating whether this S3 blockstore only accepts 
-       connections encrypted using TLS.
+       connections encrypted using 
+       :abbr:`TLS (Transport Layer Security)`.
  
    * - writeConcern
      - string
      - The write concern used for this blockstore.
  
+       The accepted values for this option are:
+       
+       - ``ACKNOWLEDGED``
+       - ``W2``
+       - ``JOURNALED``
+       - ``MAJORITY``
+
+       .. seealso::
+
+          To learn about write acknowledgement levels in MongoDB, see 
+          :manual:`Write Concern </reference/write-concern>`

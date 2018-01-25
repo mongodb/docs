@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 10 10 80
+   :widths: 15 15 70
    :header-rows: 1
    :stub-columns: 1
 
@@ -9,28 +9,30 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this :term:`oplog store` can be assigned
-       backup jobs.
+     - *Optional.* Flag indicating whether this :term:`oplog store` can 
+       be assigned backup jobs.
    
    * - encryptedCredentials
      - boolean
-     - Flag indicating whether the username and password for this 
-       oplog store were encrypted using the credentialstool.
+     - *Optional.* Flag indicating whether the username and password for 
+       this oplog store were encrypted using the
+       :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
    
    * - labels
      - array of strings
-     - Names used to assign oplog stores to specific projects.
-   
-   * - loadFactor
-     - number
-     - A positive integer that expresses how much backup work you want 
-       this :term:`snapshot store` to perform compared to another 
-       snapshot store.
+     - *Optional.* Array of tags to manage which 
+       :term:`backup jobs <backup job>` |onprem| can assign to which 
+       :term:`oplog stores <oplog store>`. 
+
+       Setting these tags limits which backup jobs this oplog
+       store can process. If omitted, this oplog store can only
+       process backup jobs for projects that do not use labels to filter
+       their jobs.
    
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this :term:`oplog store` can 
-       store.
+     - *Optional.* The maximum amount of data in GB this 
+       :term:`oplog store` can store.
    
    * - uri
      - string
@@ -39,10 +41,22 @@
    
    * - ssl
      - boolean
-     - Flag indicating whether this oplog store only accepts 
+     - *Optional.* Flag indicating whether this oplog store only accepts 
        connections encrypted using 
        :abbr:`TLS (Transport Layer Security)`.
    
    * - writeConcern
      - string
-     - The write concern used for this :term:`oplog store`.
+     - *Optional.* The write concern used for this :term:`oplog store`.
+
+       The accepted values for this option are:
+       
+       - ``ACKNOWLEDGED``
+       - ``W2``
+       - ``JOURNALED``
+       - ``MAJORITY``
+
+       .. seealso::
+
+          To learn about write acknowledgement levels in MongoDB, see 
+          :manual:`Write Concern </reference/write-concern>`
