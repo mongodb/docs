@@ -49,18 +49,43 @@ query modifiers, such as :ref:`sorting<sharding-mongos-sort>`,
 are performed on a shard such as the :term:`primary shard` before
 :binary:`~bin.mongos` retrieves the results.
 
-.. versionchanged:: 3.2
+.. versionchanged:: 3.6
 
    For :doc:`aggregation operations </core/aggregation-pipeline>` that
    run on multiple shards, if the operations do not require running on
-   the database's :term:`primary shard`, these operations can route the results
-   to any shard to merge the results and avoid overloading the primary
-   shard for that database.
+   the database's :term:`primary shard`, these operations may route the
+   results back to the :binary:`~bin.mongos` where the results are then
+   merged.
 
-In some cases, when the :term:`shard key` or a prefix of the shard key is a
-part of the query, the :binary:`~bin.mongos` performs a :ref:`targeted
-operation<sharding-mongos-targeted>`, routing queries to a subset of
-shards in the cluster.
+   There are two cases in which a pipeline is ineligible to run on
+   :binary:`~bin.mongos`.
+   
+   The first case occurs when the merge part of the split pipeline
+   contains a stage which *must* run on a primary shard. For instance,
+   if ``$lookup`` requires access to an unsharded collection in the same
+   database as the sharded collection on which the aggregation is running,
+   the merge is obliged to run on the primary shard.
+
+   The second case occurs when the merge part of the split pipeline
+   contains a stage which may write temporary data to disk, such as
+   ``$group``, and the client has specified ``allowDiskUse:true``. In this
+   case, assuming that there are no other stages in the merge pipeline
+   which require the primary shard, the merge will run on a
+   randomly-selected shard in the set of shards targeted by the
+   aggregation.
+
+   For more information on how the work of aggregation is split among
+   components of a sharded cluster query, use ``explain:true`` as a
+   parameter to the :method:`~db.collection.aggregation()` call. The
+   return will include three json objects. ``mergeType`` shows where the
+   stage of the merge happens ("primaryShard", "anyShard", or "mongos").
+   ``splitPipeline`` shows which operations in your pipeline have run on
+   individual shards. ``shards`` shows the work each shard has done.
+
+In some cases, when the :term:`shard key` or a prefix of the shard key
+is a part of the query, the :binary:`~bin.mongos` performs a
+:ref:`targeted operation<sharding-mongos-targeted>`, routing queries to
+a subset of shards in the cluster.
 
 :binary:`~bin.mongos` performs a :ref:`broadcast
 operation<sharding-mongos-broadcast>` for queries that do *not* include the
