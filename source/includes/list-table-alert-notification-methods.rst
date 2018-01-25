@@ -1,17 +1,15 @@
 .. only:: onprem
 
    .. list-table::
-      :widths: 25 75
+      :widths: 20 15 65
       :header-rows: 1
  
       * - Notification Option
- 
+        - For Alert Type
         - Description
  
-      * - Project *(project or global alerts only)*
-          (group or :doc:`global </tutorial/manage-global-alerts>`
-          alerts only)
- 
+      * - Project 
+        - Project or :doc:`Global </tutorial/manage-global-alerts>` only
         - Sends the alert by email or SMS to the project. If you select
           :guilabel:`SMS`, |mms| sends the text message to the number
           configured on each user's :ref:`Account page <profile-page>`.
@@ -19,15 +17,27 @@
           and select the desired roles.
 
       * - |mms| User
- 
+        - Any 
         - Sends the alert by email or 
           :abbr:`SMS (Short Message Service)` to a specified |mms| 
           user. If you select :guilabel:`SMS`, |mms| sends the text 
           message to the number configured on the user's
           :ref:`Account page <profile-page>`.
  
-      * - :abbr:`SNMP (Simple Network Management Protocol)` Host
+      * - |mms| Team
+        - Any
+        - Sends the alert by email or 
+          :abbr:`SMS (Short Message Service)` to a specified |mms| 
+          team. If you select :guilabel:`SMS`, |mms| sends the text 
+          message to the number configured on each team user's
+          :ref:`Account page <profile-page>`.
+
+          .. note::
+             This option appears only after at least 
+             :ref:`one team has been created <create-team>`.
  
+      * - :abbr:`SNMP (Simple Network Management Protocol)` Host
+        - Any
         - Specify the hostname that will receive the v2c trap on 
           standard port ``162``. The 
           :abbr:`MIB (management information base)` file for 
@@ -35,24 +45,24 @@
           `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_.
  
       * - Email
- 
+        - Any
         - Sends the alert to a specified email address.
  
       * - :abbr:`SMS (Short Message Service)`
- 
+        - Any
         - Sends the alert to a specified mobile number.
  
           Available only if |onprem| is configured for 
           :ref:`Twilio <twilio-sms-alert-settings>` integration.
  
       * - `HipChat <https://www.atlassian.com/software/hipchat/enterprise/data-center>`_
- 
+        - Any
         - Sends the alert to a HipChat room message stream. Enter the 
           HipChat room name and 
           :abbr:`API (application programming interface)` token.
  
       * - `Slack <https://slack.com/>`_
- 
+        - Any
         - Sends the alert to a Slack channel. Enter the channel name 
           and either an :abbr:`API (application programming interface)`
           token or a Bot token. To create an 
@@ -62,7 +72,7 @@
           `Bot Users <https://api.slack.com/bot-users>`_.
  
       * - `FlowDock <https://www.flowdock.com/>`_
- 
+        - Any
         - Sends the alert to a Flowdock account. Enter the following:
  
           - :guilabel:`Organization Name`: The Flowdock organization 
@@ -79,7 +89,7 @@
             of your Flowdock account.
  
       * - `PagerDuty <https://www.pagerduty.com/>`_
- 
+        - Any
         - Sends the alert to a `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
           account. Enter only the PagerDuty service key. Define 
           escalation rules and alert assignments directly in PagerDuty.
@@ -92,8 +102,8 @@
           Users can acknowledge PagerDuty alerts only from the
           PagerDuty dashboard.
  
-      * - Webhook *(project alerts only)*
- 
+      * - Webhook
+        - Project only
         - Sends an :abbr:`HTTP (HyperText Transport Protocol)` POST
           request to an endpoint for programmatic processing. The 
           request body contains a 
@@ -105,16 +115,14 @@
           the :ref:`Group Settings <group-settings-page>` page.
  
       * - Administrators
-          (:doc:`global </tutorial/manage-global-alerts>` or 
-          :doc:`system </core/system-alerts>` alerts only)
- 
+        - :doc:`Global </tutorial/manage-global-alerts>` or 
+          :doc:`System </core/system-alerts>` only
         - Sends the alert to the email address specified in the 
           :guilabel:`Admin Email Address` field in the |onprem| 
           configuration options.
  
       * - Global Alerts Summary Email
-          (:doc:`global </tutorial/manage-global-alerts>` alerts only)
- 
+        - :doc:`Global </tutorial/manage-global-alerts>` only
         - Sends a summary email of all global alerts to the specified 
           email address.
  
@@ -144,7 +152,19 @@
           user. If you select :guilabel:`SMS`, |mms| sends the text 
           message to the number configured on the user's
           :ref:`Account page <profile-page>`.
-   
+
+      * - |mms| Team
+
+        - Sends the alert by email or 
+          :abbr:`SMS (Short Message Service)` to a specified |mms| 
+          team. If you select :guilabel:`SMS`, |mms| sends the text 
+          message to the number configured on each team user's
+          :ref:`Account page <profile-page>`.
+
+          .. note::
+             This option appears only after at least 
+             :ref:`one team has been created <create-team>`.
+
       * - Email
    
         - Sends the alert to a specified email address.
