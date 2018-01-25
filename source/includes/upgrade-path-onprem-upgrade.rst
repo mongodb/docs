@@ -1,22 +1,36 @@
 The version of your existing |onprem| installation determines the 
-upgrade path you must take to upgrade to Ops Manager 3.6+. You must
-follow the upgrade path for your currently installed version to perform
-necessary database migrations. To protect your data, Ops Manager refuses
-to start direct upgrades from versions 1.8.x and 2.0.x to version 3.6+.
+upgrade path you must take to upgrade to Ops Manager 3.6 or later. 
+
+.. important::
+
+   - You must follow the upgrade path for your existing version to
+     perform necessary database migrations.
+
+   - To protect your data, Ops Manager refuses to start direct upgrades
+     from versions 1.8.x and 2.0.x to version 3.6 or later.
+
+   - In :doc:`high availability environments </tutorial/configure-application-high-availability>`, 
+     you must shut down every |onprem| application server before 
+     starting any |onprem| application servers with the new version 
+     installed.
 
 The following table lists upgrade paths for all versions:
 
 .. list-table::
-   :widths: 25 75
+   :widths: 20 80
    :header-rows: 1
 
    * - Existing Version
 
      - Upgrade Path
 
+   * - 3.6.x
+     - Use this tutorial to upgrade from |onprem| on 3.6.x to a more 
+       recent 3.6.x version.
+
    * - 3.4.x
-     - 1. Use this tutorial to upgrade from |onprem| 3.4.x to version 
-          3.6+.
+     - Use this tutorial to upgrade from |onprem| 3.4.x to version 
+       3.6.x.
 
    * - 2.x
 
