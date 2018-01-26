@@ -17,7 +17,7 @@
           and select the desired roles.
 
       * - |mms| User
-        - Any 
+        - Project only 
         - Sends the alert by email or 
           :abbr:`SMS (Short Message Service)` to a specified |mms| 
           user. If you select :guilabel:`SMS`, |mms| sends the text 
@@ -25,7 +25,7 @@
           :ref:`Account page <profile-page>`.
  
       * - |mms| Team
-        - Any
+        - Project only
         - Sends the alert by email or 
           :abbr:`SMS (Short Message Service)` to a specified |mms| 
           team. If you select :guilabel:`SMS`, |mms| sends the text 
