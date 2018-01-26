@@ -22265,6 +22265,10 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	function decodeUrlParameter(uri) {
+	    return decodeURIComponent(uri.replace(/\+/g, '%20'));
+	}
+	
 	var TabStrip = function () {
 	    function TabStrip(initialSelection, tabs, onclick) {
 	        var _this = this;
@@ -22479,14 +22483,14 @@
 	        key: 'parseUrl',
 	        value: function parseUrl() {
 	            var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
-	            locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
+	            locationSearchProperty = locationSearchProperty !== null ? decodeUrlParameter(locationSearchProperty[1]) : '';
 	            if (locationSearchProperty) {
 	                this.searchProperty = locationSearchProperty;
 	                this.tabStrip.update(this.searchProperty);
 	            }
 	
 	            var locationQuery = window.location.search.match(/query=([^&#]*)/);
-	            return locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
+	            return locationQuery !== null ? decodeUrlParameter(locationQuery[1]) : '';
 	        }
 	    }, {
 	        key: 'show',

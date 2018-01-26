@@ -1,3 +1,7 @@
+function decodeUrlParameter(uri) {
+    return decodeURIComponent(uri.replace(/\+/g, '%20'))
+}
+
 class TabStrip {
     constructor(initialSelection, tabs, onclick) {
         this.tabs = tabs
@@ -184,14 +188,14 @@ export class MarianUI {
 
     parseUrl() {
         let locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/)
-        locationSearchProperty = (locationSearchProperty !== null)? decodeURIComponent(locationSearchProperty[1]) : ''
+        locationSearchProperty = (locationSearchProperty !== null)? decodeUrlParameter(locationSearchProperty[1]) : ''
         if (locationSearchProperty) {
             this.searchProperty = locationSearchProperty
             this.tabStrip.update(this.searchProperty)
         }
 
         let locationQuery = window.location.search.match(/query=([^&#]*)/)
-        return (locationQuery !== null)? decodeURIComponent(locationQuery[1]) : ''
+        return (locationQuery !== null)? decodeUrlParameter(locationQuery[1]) : ''
     }
 
     show() {
