@@ -8,13 +8,13 @@
      - Description
 
    * - ``batchId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
+     - string
      - ID of the :term:`batch` to which this restore job belongs.
 
        Only present for a restore of a :term:`sharded cluster`.
 
    * - ``clusterId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
+     - string
      - ID of the :term:`cluster` represented by the restore job.
 
        Only present for a restore of a :term:`cluster`.
@@ -119,7 +119,7 @@
        encrypted.
 
    * - ``groupId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
+     - string
      - ID of the :term:`group` that owns the restore job.
 
    * - ``hashes``
@@ -147,12 +147,16 @@
      - The hash of the file.
 
    * - ``hostId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
+     - string
      - ID of the :term:`config server` to which this restore job
        belongs.
 
        Only present for a restore of a mirrored :term:`config server`
        (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+
+   * - ``id``
+     - string
+     - Unique identifier of the restore job.
 
    * - ``links``
      - document array
@@ -170,7 +174,7 @@
      - Indicates that the job for a :abbr:`PIT (point-in-time)` restore.
 
    * - ``snapshotId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
+     - string
      - ID of the :term:`snapshot` to restore.
 
    * - ``statusName``
