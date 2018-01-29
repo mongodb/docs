@@ -1,15 +1,15 @@
 |service| uses the specified :abbr:`CIDR (Classless Inter-Domain Routing)`
 block for all other VPC peering connections created in the project.
 
-The Atlas :abbr:`CIDR (Classless Inter-Domain Routing)` block must be at least
-a ``/24`` and at most a ``/21`` in one of the following 
+The |service| :abbr:`CIDR (Classless Inter-Domain Routing)` block must
+be at least a ``/24`` and at most a ``/21`` in one of the following
 `private networks <https://tools.ietf.org/html/rfc1918#section-3>`_.
 
-- ``10.0.0.0/8``
+- ``10.0.0.0`` - ``10.255.255.255``  (10/8 prefix)
 
-- ``172.16.0.0/12``
+- ``172.16.0.0`` - ``172.31.255.255``  (172.16/12 prefix)
 
-- ``192.168.0.0/16``
+- ``192.168.0.0`` - ``192.168.255.255`` (192.168/16 prefix)
 
 |service| locks this value if an ``M10+`` cluster or a VPC peering connection
 already exists. To modify the :abbr:`CIDR (Classless Inter-Domain Routing)`
