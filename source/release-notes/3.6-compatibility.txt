@@ -12,7 +12,7 @@ Compatibility Changes in MongoDB 3.6
 
 The following 3.6 changes can affect the compatibility with older
 versions of MongoDB.
- 
+
 .. _3.6-bind_ip-compatibility:
 
 Localhost Binding Compatibility Changes
@@ -232,6 +232,75 @@ breaks the tie and the document with ``_id: 0`` sorts first.
 For more information on sorting with the
 :doc:`Aggregation Pipeline </reference/operator/aggregation/>`, see
 :doc:`$sort </reference/operator/aggregation/sort/>`.
+
+Sorting with a Compound Sort Pattern on Multiple Array Fields with ``aggregate``
+````````````````````````````````````````````````````````````````````````````````
+
+In MongoDB 3.6, when sorting in an
+:doc:`aggregation pipeline </core/aggregation-pipeline/>`, MongoDB can
+no longer sort with keys that are *parallel arrays*. Arrays are
+considered parallel if they are sibling elements of the BSON object.
+Sort keys involving nested arrays are not considered parallel, nor are
+sort keys which share the same array as a prefix.
+
+.. note::
+
+   This behavior has always existed for sorting with
+   :method:`find <db.collection.find()>`, but now in 3.6
+   :method:`find <db.collection.find()>` and
+   :method:`aggregate <db.collection.aggregate()>` share the same
+   semantics.
+
+.. example::
+
+   A collection contains the following document:
+
+   .. code-block:: javascript
+
+      {a: [ {b: [1, 2]}, {b: [3, 4]} ]}
+
+   The following aggregation succeeds because the sort is performed on
+   a nested array:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([{$sort: {"a.b": 1}}])
+
+.. example::
+
+   Similarly, if a collection contains the following document:
+
+   .. code-block:: javascript
+
+      {a: [{b: 1, c: 1}, {b: 2, c: 2}]}
+
+   The following aggregation succeeds because the sort keys share the
+   same array as a prefix:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([{$sort: {"a.b": 1, "a.c": 1}}])
+
+.. example::
+
+   However, in a collection that contains the following documents:
+
+   .. code-block:: javascript
+
+      { _id: 1, a: [ 1, 2 ], b: [ 1, 2 ]}
+      { _id: 2, a: [ -3, 5 ], b: 0 }
+      { _id: 3, a: [ -6, 12 ], b: 100 }
+
+   The following sort operation fails:
+
+   .. code-block:: javascript
+
+      db.coll.aggregate([ { $sort: {a: 1, b: 1} } ])
+
+   MongoDB cannot sort on both the ``a`` and ``b`` fields because
+   in the document with ``_id : 1`` , both the ``a`` and ``b`` fields
+   are arrays. As a result, MongoDB encounters a parallel array during
+   sort key generation and returns an error.
 
 Update Operation Changes
 ------------------------
