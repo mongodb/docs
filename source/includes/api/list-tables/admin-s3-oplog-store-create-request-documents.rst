@@ -25,31 +25,23 @@
    * - encryptedCredentials
      - boolean
      - *Optional.* Flag indicating whether the username and password for 
-       this S3 blockstore were encrypted using the
+       this S3 oplog store were encrypted using the
        :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
  
+   * - id
+     - string
+     - The unique name that labels this S3 oplog store.
+   
    * - labels
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 blockstore>`. 
+       S3 oplog stores. 
 
-       Setting these tags limits which backup jobs this S3 blockstore 
-       can process. If omitted, this S3 blockstore can only process 
-       backup jobs for projects that do not use labels to filter their 
-       jobs. 
- 
-   * - loadFactor
-     - number
-     - *Optional.* A positive, non-zero integer that expresses how much 
-       backup work this :term:`snapshot store` should perform compared 
-       to another snapshot store. This option is needed only if more 
-       than one snapshot store is in use.
-
-       .. seealso::
-
-          To learn more about :guilabel:`Load Factor`, see 
-          :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
+       Setting these tags limits which backup jobs this S3 oplog
+       store can process. If omitted, this S3 oplog store can only
+       process backup jobs for projects that do not use labels to filter
+       their jobs.
  
    * - pathStyleAccessEnabled
      - boolean
@@ -69,29 +61,29 @@
  
    * - s3BucketName
      - string
-     - The name of the S3 bucket that hosts the S3 blockstore.
+     - The name of the S3 bucket that hosts the S3 oplog store.
 
    * - sseEnabled
      - boolean
      - *Optional.* Flag indicating whether this S3 blockstore 
         enables `server-side encryption <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`_.
- 
+
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>`` format  
-       that can be used to access this S3 blockstore.
+       that can be used to access this S3 oplog store.
  
    * - ssl
      - boolean
-     - *Optional.* Flag indicating whether this S3 blockstore only 
+     - *Optional.* Flag indicating whether this S3 oplog store only 
        accepts connections encrypted using
        :abbr:`TLS (Transport Layer Security)`.
  
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this blockstore.
+     - *Optional.* The write concern used for this oplog store.
  
-        The accepted values for this option are:
+       The accepted values for this option are:
        
        - ``ACKNOWLEDGED``
        - ``W2``

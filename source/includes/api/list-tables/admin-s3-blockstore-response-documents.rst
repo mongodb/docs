@@ -30,7 +30,7 @@
  
    * - id
      - string
-     - The unique identifier that represents this S3 blockstore.
+     - The unique name that labels this S3 blockstore.
  
    * - labels
      - array of strings
@@ -54,6 +54,14 @@
           To learn more about :guilabel:`Load Factor`, see 
           :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
   
+   * - pathStyleAccessEnabled
+     - boolean
+     - *Optional.* Flag indicating whether this S3 blockstore 
+       uses a path-style :abbr:`URL (Uniform Resource Locator)` 
+       endpoint (``s3.amazonaws.com/<bucket>``) instead of a
+       virtual-host-style :abbr:`URL (Uniform Resource Locator)` 
+       endpoint (``<bucket>.s3.amazonaws.com``).
+
    * - s3BucketEndpoint
      - string
      - The URL used to access this AWS S3 or S3-compatible bucket.
@@ -62,6 +70,11 @@
      - string
      - The name of the S3 bucket that hosts the S3 blockstore.
  
+   * - sseEnabled
+     - boolean
+     - *Optional.* Flag indicating whether this S3 blockstore 
+        enables `server-side encryption <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`_.
+
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>`` format  

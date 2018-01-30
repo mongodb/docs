@@ -78,20 +78,20 @@
 
    * - numWorkers
      - number
-     - The number of worker processes that can perform tasks (i.e. 
-       backup, restore, or groom) for the :term:`Backup Daemon`.
+     - *Optional.* The number of worker processes that can perform tasks 
+       (i.e. backup, restore, or groom) for the :term:`Backup Daemon`.
 
    * - resourceUsageEnabled
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` has its 
-       resource usage monitored.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       has its resource usage monitored.
 
    * - restoreJobsEnabled
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` can be used 
-       to restore snapshots.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       can be used to restore snapshots.
 
    * - restoreQueryableJobsEnabled
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` can perform 
-       :doc:`queryable restores </tutorial/query-backup>`.
+     - *Optional.* Flag indicating whether this :term:`Backup Daemon` 
+       can perform :doc:`queryable restores </tutorial/query-backup>`.

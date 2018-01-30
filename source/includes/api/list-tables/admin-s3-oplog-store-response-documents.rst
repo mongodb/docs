@@ -30,7 +30,7 @@
  
    * - id
      - string
-     - The unique identifier that represents this S3 oplog store.
+     - The unique name that labels this S3 oplog store.
  
    * - labels
      - array of strings
@@ -42,6 +42,14 @@
      - array of objects
      - .. include:: /includes/api/links-explanation.rst
  
+   * - pathStyleAccessEnabled
+     - boolean
+     - *Optional.* Flag indicating whether this S3 oplog store 
+       uses a path-style :abbr:`URL (Uniform Resource Locator)` 
+       endpoint (``s3.amazonaws.com/<bucket>``) instead of a
+       virtual-host-style :abbr:`URL (Uniform Resource Locator)` 
+       endpoint (``<bucket>.s3.amazonaws.com``).
+
    * - s3BucketEndpoint
      - string
      - The URL used to access this AWS S3 or S3-compatible bucket.
@@ -49,7 +57,12 @@
    * - s3BucketName
      - string
      - The name of the S3 bucket that hosts the S3 oplog store.
- 
+  
+   * - sseEnabled
+     - boolean
+     - *Optional.* Flag indicating whether this S3 blockstore 
+        enables `server-side encryption <http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html>`_.
+
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>`` format  

@@ -9,13 +9,13 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this :term:`blockstore` can be assigned
-       backup jobs.
+     - *Optional.* Flag indicating whether this :term:`blockstore` can 
+       be assigned backup jobs.
    
    * - encryptedCredentials
      - boolean
-     - Flag indicating whether the username and password for this 
-       blockstore were encrypted using the 
+     - *Optional.* Flag indicating whether the username and password 
+       for this blockstore were encrypted using the
        :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
    
    * - id
@@ -24,20 +24,21 @@
    
    * - labels
      - array of strings
-     - Array of tags to manage which 
+     - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
        :term:`blockstores <blockstore>`. 
 
-   * - links
-     - array of objects
-     - .. include:: /includes/api/links-explanation.rst
-   
+       Setting these tags limits which backup jobs this blockstore 
+       can process. If omitted, this blockstore can only process 
+       backup jobs for projects that do not use labels to filter their 
+       jobs. 
+
    * - loadFactor
      - number
-     - A positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` should perform compared to another
-       snapshot store. This option is needed only if more than one 
-       snapshot store is in use.
+     - *Optional.* A positive, non-zero integer that expresses how much 
+       backup work this :term:`snapshot store` should perform compared 
+       to another snapshot store. This option is needed only if more 
+       than one snapshot store is in use.
 
        .. seealso::
 
@@ -46,8 +47,8 @@
    
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this :term:`blockstore` can 
-       store.
+     - *Optional.* The maximum amount of data in GB this 
+       :term:`blockstore` can store.
    
    * - uri
      - string
@@ -56,18 +57,13 @@
    
    * - ssl
      - boolean
-     - Flag indicating whether this blockstore only accepts 
+     - *Optional.* Flag indicating whether this blockstore only accepts 
        connections encrypted using 
        :abbr:`TLS (Transport Layer Security)`.
    
-   * - usedSize
-     - number
-     - The amount of backup capacity in :abbr:`MB (megabytes)` that
-       the existing backups consume.
-   
    * - writeConcern
      - string
-     - The write concern used for this :term:`blockstore`.
+     - *Optional.* The write concern used for this :term:`blockstore`.
 
        The accepted values for this option are:
        

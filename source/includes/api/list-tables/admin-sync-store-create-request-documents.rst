@@ -9,13 +9,13 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this sync store can be assigned
-       backup jobs.
+     - *Optional.* Flag indicating whether this sync store can be 
+       assigned backup jobs.
    
    * - encryptedCredentials
      - boolean
-     - Flag indicating whether the username and password for this 
-       sync store were encrypted using the 
+     - *Optional.* Flag indicating whether the username and password for 
+       this sync store were encrypted using the
        :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
    
    * - id
@@ -24,17 +24,18 @@
    
    * - labels
      - array of strings
-     - Array of tags to manage which 
+     - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
        :term:`sync stores <sync store>`. 
-   
-   * - links
-     - array of objects
-     - .. include:: /includes/api/links-explanation.rst
-   
+
+       Setting these tags limits which backup jobs this sync
+       store can process. If omitted, this sync store can only
+       process backup jobs for projects that do not use labels to filter
+       their jobs.
+
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this sync store can 
+     - *Optional.* The maximum amount of data in GB this sync store can 
        store.
    
    * - uri
@@ -44,18 +45,13 @@
    
    * - ssl
      - boolean
-     - Flag indicating whether this sync store only accepts 
+     - *Optional.* Flag indicating whether this sync store only accepts 
        connections encrypted using 
        :abbr:`TLS (Transport Layer Security)`.
    
-   * - usedSize
-     - number
-     - The amount of backup capacity in :abbr:`MB (megabytes)` that
-       the existing backups consume.
-
    * - writeConcern
      - string
-     - The write concern used for this sync store.
+     - *Optional.* The write concern used for this sync store.
 
        The accepted values for this option are:
        

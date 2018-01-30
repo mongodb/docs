@@ -20,7 +20,7 @@
    
    * - id
      - string
-     - The unique identifier that represents this :term:`oplog store`.
+     - The unique name that labels this :term:`oplog store`.
    
    * - labels
      - array of strings

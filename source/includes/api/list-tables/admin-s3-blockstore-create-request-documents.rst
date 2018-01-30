@@ -28,6 +28,10 @@
        this S3 blockstore were encrypted using the
        :ref:`credentialstool <encrypt-mongodb-user-credentials>`.
  
+   * - id
+     - string
+     - The unique name that labels this :term:`S3 blockstore`.
+   
    * - labels
      - array of strings
      - *Optional.* Array of tags to manage which 
