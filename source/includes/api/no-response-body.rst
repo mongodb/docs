@@ -1,1 +1,2 @@
-This endpoint returns an empty JSON Object.
+This endpoint does not return a response body.
+
