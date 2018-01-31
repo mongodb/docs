@@ -39,7 +39,7 @@
      - |checkmark|
      - |checkmark|
    * - Solaris 11 64-bit
-     - |checkmark|
+     - :ref:`MMAPv1<storage-mmapv1>`-only
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -68,3 +68,7 @@
      - |checkmark|
      - |checkmark|
      -
+
+.. note::
+   The MongoDB distribution for Solaris does not include support
+   for the :ref:`WiredTiger storage engine <storage-wiredtiger>`.
