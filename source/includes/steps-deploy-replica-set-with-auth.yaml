@@ -1,61 +1,33 @@
-title: Start one member of the replica set.
-stepnum: 1
-level: 4
-ref: start-first-replica-set-member
-content: |
-  This :binary:`~bin.mongod`  should *not* enable :setting:`auth`.
----
-title: Create administrative users.
-stepnum: 2
-level: 4
-ref: create-administrative-users
-pre: |
-  The following operations will create two users: a user administrator
-  that will be able to create and modify users (``myUserAdmin``),
-  and a :authrole:`root` user (``siteRootAdmin``) that you will use to
-  complete the remainder of the tutorial:
-action:
-  language: javascript
-  code: |
-    use admin
-    db.createUser( {
-        user: "myUserAdmin",
-        pwd: "<password>",
-        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
-      });
-    db.createUser( {
-        user: "siteRootAdmin",
-        pwd: "<password>",
-        roles: [ { role: "root", db: "admin" } ]
-      });
----
-title: Stop the ``mongod`` instance.
-stepnum: 3
-level: 4
-ref: stop-first-replica-set-member
----
 title: Create the key file to be used by each member of the replica set.
-stepnum: 4
 level: 4
+stepnum: 1
 ref: generate-keyfile
 source:
   file: steps-generate-key-file.yaml
   ref: generate
 ---
 title: Copy the key file to each member of the replica set.
-stepnum: 5
 level: 4
+stepnum: 2
 ref: copy-key-file
 content: |
-  Copy the ``mongodb-keyfile`` to all hosts where components of a
-  MongoDB deployment run. Set the permissions of these files to
-  ``600`` so that only the *owner* of the file can read or write this
-  file to prevent other users on the system from accessing the shared
-  secret.
+
+  Copy the ``mongodb-keyfile`` to all hosts where the replica set
+  members run.
+  
+  On UNIX systems, the keyfile must not have group or world
+  permissions:
+     
+  - Ensure that the user running the :program:`mongod` is the owner of
+    the file.
+
+  - Set the permissions of these files to ``400`` so that only the
+    *owner* of the file can read this file.
+
 ---
 title: Start each member of the replica set with the appropriate options.
 level: 4
-stepnum: 6
+stepnum: 3
 ref: start-mongod
 pre: |
   For each member, start a :binary:`~bin.mongod` and specify the key file and
@@ -72,55 +44,83 @@ action:
     code: |
       mongod --keyFile /mysecretdirectory/mongodb-keyfile --replSet "rs0"
   - pre: |
-      The following example specifies parameters through a configuration file:
-    language: javascript
+      If using a configuration file, set the :setting:`security.keyFile` option
+      to the keyfile's path, and the :setting:`replication.replSetName` option
+      to the replica set name:
+
+      .. code-block:: yaml
+
+         security:
+           keyFile: /mysecretdirectory/mongodb-keyfile
+         replication:
+           replSetName: "rs0"
+
+      Start the :binary:`~bin.mongod` using the configuration file:
+    language: shell
     code: |
-      mongod --config $HOME/.mongodb/config
-post: |
-  In production deployments, you can configure a :term:`init script` to
-  manage this process. Init scripts are beyond the scope of this document.
+      mongod --config <path-to-config-file>
+    post: |
+      For more information on the configuration file, see
+      :doc:`configuration options</reference/configuration-options>`.
 ---
-title: "Connect to the member of the replica set where you created the administrative users."
+stepnum: 4
+title: Initiate the replica set. 
 level: 4
-stepnum: 7
+ref: initiate-rs
+pre: |
+    Connect a :program:`mongo` shell to one member of the replica set and run
+    :method:`rs.initiate()` method initiates the replica set.
+
+    For example:
+
+    .. code-block:: javascript
+
+       rs.initiate( {
+           _id : "rs0",
+           members: [
+             { _id : 0, host : "mongo1.example.net:27017" },
+             { _id : 1, host : "mongo2.example.net:27017" },
+             { _id : 2, host : "mongo3.example.net:27017" }
+           ]
+        })
+
+    The :rsconf:`_id` *must* match the ``--replSet`` parameter or the
+    :setting:`replication.replSetName` specified during startup.
+
+---
+stepnum: 5
+title: Create administrative users.
+level: 4
+ref: create-administrative-users
+pre: |
+
+  Connected to the primary, create a root user (``siteRootAdmin``)
+  that you will use to complete the remainder of the tutorial: 
+action:
+  language: javascript
+  code: |
+    use admin
+    db.createUser( {
+       user: "siteRootAdmin",
+       pwd: "<password>",
+       roles: [ { role: "root", db: "admin" } ]
+    });
+---
+title: "Authenticate as the newly created user."
+level: 4
+stepnum: 6
 ref: connect-and-auth
 pre: |
-  Connect to the replica set member you started and authenticate as
-  the ``siteRootAdmin`` user. From the :binary:`~bin.mongo` shell, use the
-  following operation to authenticate:
+
 action:
   language: javascript
   code: |
     use admin
     db.auth("siteRootAdmin", "<password>");
 ---
-stepnum: 8
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: initiate-rs
----
-stepnum: 9
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: verify-rsconf
----
-stepnum: 10
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: add-remaining-members
----
-stepnum: 11
-level: 4
-source:
-  file: steps-deploy-replica-set.yaml
-  ref: check-status
----
 title: Create additional users to address operational requirements.
 level: 4
-stepnum: 12
+stepnum: 7
 ref: create-records-db-owner
 pre: |
   You can use :doc:`built-in roles </reference/built-in-roles>` to create
