@@ -1,3 +1,13 @@
+.. _backup-6.0.6.724-1:
+
+Backup Agent: 6.0.6.724-1
+-------------------------
+
+*Released with Ops Manager 3.6.3*
+
+- Fix: For MongoDB 3.6 deployments, the initial sync of a backup could
+  fail creating an index on a collection with a collation specified.
+
 .. _backup-6.0.5.716-1:
 
 Backup Agent: 6.0.5.716-1
