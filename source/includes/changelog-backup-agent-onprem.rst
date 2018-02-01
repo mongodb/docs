@@ -28,6 +28,15 @@ Backup Agent 6.0.3.689
 
 - Support for new Agent API Key model.
 
+.. _backup-5.0.12.725-1:
+
+Backup Agent 5.0.12.725-1
+-------------------------
+
+*Released with Ops Manager 3.4.12 on 2018-02-01*
+
+- Fix: For MongoDB 3.6 deployments, the initial sync of a backup could
+  fail creating an index on a collection with a collation specified.
 
 .. _backup-5.0.10.634-1:
 
