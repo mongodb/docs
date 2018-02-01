@@ -23,7 +23,7 @@ There are two options for authenticating your connection:
       - The ``PLAIN`` mechanism sends the password in cleartext.
 
       See :doc:`/reference/auth-plugin-c` or :ref:`Install the JDBC
-      Authentication Plugin <install-jdbc-plugin>` for more information
+      Authentication Plugin <install-auth-jdbc-plugin>` for more information
       on the plugins.
 
 #. Provide cleartext credentials for simple username/password
