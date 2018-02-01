@@ -73,7 +73,7 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
-
+    'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
     'compass': ('https://docs.mongodb.com/compass%s', '')
 }
 
