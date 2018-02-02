@@ -20,12 +20,13 @@
      - No
      - |service| :ref:`Data Explorer <data-explorer>`
    
-   * - Metrics
+   * - Metrics and Alerts
    
      - Limited
      - Limited
      - :doc:`Full metrics </monitor-cluster-metrics>`, including the 
-       :ref:`Real Time Performance Tab <real-time-metrics-status-tab>`
+       :ref:`Real Time Performance Tab <real-time-metrics-status-tab>`,
+       and full :doc:`alert configuration options</configure-alerts>`.
        
    * - VPC Peering (:ref:`AWS <amazon-aws>` clusters only)
      - No
