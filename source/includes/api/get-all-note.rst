@@ -15,11 +15,11 @@ array of :guilabel:`link` objects and a count of the total number of
      - Description
 
    * - results
-     - array of objects
+     - object array
      - This array includes one object for each item detailed
        in the `results Embedded Document`_ section.
    * - links
-     - array of objects
+     - object array
      - This array includes one or more links to sub-resources
        and/or related resources. The relations between URLs are
        explained in the `Web Linking Specification

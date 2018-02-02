@@ -23,6 +23,8 @@ that run managed :program:`mongod` and :program:`mongos` processes.
 
    Requests to this resource are subject to rate limiting.
 
+.. include:: /includes/api/base-api-uri.rst
+
 .. _measurements-query-parameters:
 
 Query Parameters
@@ -41,7 +43,7 @@ Each endpoint supports the following query parameters:
    * - Parameter
      - Description
 
-   * - ``granularity``
+   * - granularity
 
      - An `ISO-8601
        <http://www.iso.org/iso/home/standards/iso8601.htm>`_-formatted time
@@ -52,7 +54,7 @@ Each endpoint supports the following query parameters:
        in the :guilabel:`Granularity` drop-down list when you view metrics in
        the |mms| interface.
 
-   * - ``period``
+   * - period
 
      - How far back in the past to retrieve measurements, as specified by an
        ISO-8601 period string. For example, setting ``PT24H`` specifies 24
@@ -60,19 +62,19 @@ Each endpoint supports the following query parameters:
        the past to query. For example, to request the last 36 hours, specify:
        ``period=P1DT12H``.
 
-   * - ``start``
+   * - start
 
      - The time at which to start retrieving measurements, as specified by an
        ISO-8601 timestamp string. If you specify ``start`` you must also
        specify ``end``.
 
-   * - ``end``
+   * - end
 
      - The time at which to stop retrieving measurements, as specified by an
        ISO-8601 timestamp string. If you specify ``end`` you must also
        specify ``start``.
 
-   * - ``m``
+   * - m
 
      - Specifies which measurements to return. If ``m`` is not specified, all
        measurements are returned.
@@ -96,9 +98,9 @@ Get Host, Process, and System Measurements
 You must include the ``granularity`` :ref:`parameter <measurements-query-parameters>`
 and either the ``period`` or ``start`` and ``end`` parameters.
 
-.. code-block:: none
+.. code-block:: http
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/measurements?granularity=ISO-8601-PERIOD&period=ISO-8601-PERIOD
+   GET /groups/GROUP-ID/hosts/HOST-ID/measurements?granularity=ISO-8601-PERIOD&period=ISO-8601-PERIOD
 
 Host measurements provide data on the state of the MongoDB process. The Monitoring
 Agent collects host measurements through the MongoDB :manual:`serverStatus
@@ -115,9 +117,9 @@ Get Disk Partition Measurements
 You must include the ``granularity`` :ref:`parameter <measurements-query-parameters>`
 and either the ``period`` or ``start`` and ``end`` parameters.
 
-.. code-block:: none
+.. code-block:: http
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/disks/PARTITION-NAME/measurements
+   GET /groups/GROUP-ID/hosts/HOST-ID/disks/PARTITION-NAME/measurements
 
 Disk measurements provide data on IOPS, disk use, and disk latency on the
 servers running MongoDB, as collected by the Automation Agent. You must run
@@ -129,9 +131,9 @@ Get Database Measurements
 You must include the ``granularity`` :ref:`parameter <measurements-query-parameters>`
 and either the ``period`` or ``start`` and ``end`` parameters.
 
-.. code-block:: none
+.. code-block:: http
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/databases/DATABASE-NAME/measurements
+   GET /groups/GROUP-ID/hosts/HOST-ID/databases/DATABASE-NAME/measurements
 
 Database measurements provide statistics on database performance and storage. The
 Monitoring Agent collects database measurements through the :manual:`dbStats
@@ -145,9 +147,9 @@ document, issue the following ``GET`` command with a value of ``PT5M`` for both 
 ``granularity`` and ``period``. This returns a document with only one data
 point for each measurement.
 
-.. code-block:: none
+.. code-block:: http
 
-   GET /api/public/v1.0/groups/GROUP-ID/hosts/HOST-ID/measurements?granularity=PT5M&period=PT5M
+   GET /groups/GROUP-ID/hosts/HOST-ID/measurements?granularity=PT5M&period=PT5M
 
 |mms| filters out any measurement types that are **not** applicable. For
 example, if you are querying a replica set's :term:`primary`, |mms| will not
@@ -178,7 +180,7 @@ Sample Entity
          "units" : "PERCENT"
        }
      ],
-     "links" : [ ... ]
+     "links" : []
    }
 
 Entity Fields
@@ -187,38 +189,39 @@ Entity Fields
 .. list-table::
    :widths: 10 10 80
    :header-rows: 1
+   :stub-columns: 1
 
    * - Name
      - Type
      - Description
 
-   * - ``groupId``
+   * - groupId
      - string
-     - ID of the group that owns the host.
+     - Unique identifier of the group that owns the host.
 
-   * - ``hostId``
+   * - hostId
      - string
-     - ID of the host to which the measurements pertain.
+     - Unique identifier of the host to which the measurements pertain.
 
-   * - ``start``
+   * - start
      - string
      - The beginning of the period for which to retrieve measurements,
        specified as an `ISO-8601
        <http://www.iso.org/iso/home/standards/iso8601.htm>`_ timestamp.
 
-   * - ``end``
+   * - end
      - string
      - The end of the period for which to retrieve measurements, specified as
        an `ISO-8601 <http://www.iso.org/iso/home/standards/iso8601.htm>`_
        timestamp.
 
-   * - ``granularity``
+   * - granularity
      - string
      - An `ISO-8601 <http://www.iso.org/iso/home/standards/iso8601.htm>`_-formatted
        time period that specifies the size of the interval covered by each
        data point. For example, ``PT5M`` specifies a 5-minute granularity.
 
-   * - ``databaseName``
+   * - databaseName
      - string
      - The database to which the measurement applies. Only present for the
        following endpoint and its children:
@@ -227,31 +230,31 @@ Entity Fields
 
           ../groups/GROUP-ID/hosts/HOST-ID/databases/DATABASE-NAME/measurements
 
-   * - ``measurements``
+   * - measurements
      - object array
      - An array of measurements and their data points.
 
-   * - ``measurements.dataPoints``
+   * - measurements.dataPoints
      - object array
      - An array of objects, where each object represents a single data
        point. If there is no data point available for a particular moment in
        time (i.e., a timestamp), the ``value`` field is set to ``null``.
 
-   * - ``measurements.dataPoints.timestamp``
+   * - measurements.dataPoints.timestamp
      - string
      - The timestamp of the beginning of the time interval represented by this
        data point.
 
-   * - ``measurements.dataPoints.value``
+   * - measurements.dataPoints.value
      - float
      - The value of the data point.
 
-   * - ``measurements.name``
+   * - measurements.name
      - string
      - The name of the measurement. For possible values, see
        :ref:`measurement-types` below on this page.
 
-   * - ``measurements.units``
+   * - measurements.units
      - string
      - How the measurement is quantified. Possible units are:
 
@@ -409,7 +412,7 @@ Links
    * - Relation
      - Description
 
-   * - ``self``
+   * - self
      - Me
 
    * - ``http://mms.mongodb.com/group``
@@ -437,29 +440,43 @@ Request
 
 .. only:: cloud
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/measurements?granularity=PT10M&period=PT48H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/measurements?granularity=PT10M&period=PT48H"
 
 .. only:: onprem
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/measurements?granularity=PT10M&period=PT48H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/measurements?granularity=PT10M&period=PT48H"
 
 Response
 ````````
 
-.. code-block:: none
+Response Header
+~~~~~~~~~~~~~~~
 
-   HTTP/1.1 200 OK
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
 
    {
      "end" : "2016-08-10T20:47:41Z",
      "granularity" : "PT10M",
      "groupId" : "533c5895b910306f21033a",
      "hostId" : "814e70da8167883b9939608a12a",
-     "links" : [ ... ],
+     "links" : [],
      "measurements" : [ {
        "dataPoints" : [ {
          "timestamp" : "2016-08-10T20:47:41Z",
@@ -486,29 +503,43 @@ Request
 
 .. only:: cloud
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/disks/xvdf/measurements?granularity=PT5M&period=PT24H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/disks/xvdf/measurements?granularity=PT5M&period=PT24H"
 
 .. only:: onprem
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/disks/xvdf/measurements?granularity=PT5M&period=PT24H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/814e70da8167883b9939608a12a/disks/xvdf/measurements?granularity=PT5M&period=PT24H"
 
 Response
 ````````
 
-.. code-block:: none
+Response Header
+~~~~~~~~~~~~~~~
 
-   HTTP/1.1 200 OK
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
 
    {
      "end" : "2016-08-10T03:40:38Z",
      "granularity" : "PT5M",
      "groupId" : "533c5895b910306f21033a",
      "hostId" : "814e70da8167883b9939608a12a",
-     "links" : [ ... ],
+     "links" : [],
      "measurements" : [ {
        "dataPoints" : [ {
          "timestamp" : "2016-08-10T03:40:38Z",
@@ -536,22 +567,36 @@ Request
 
 .. only:: cloud
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/fd5b59188dc13ad142493/databases/markets/measurements?granularity=PT5M&period=PT6H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/533c5895b910306f21033a/hosts/fd5b59188dc13ad142493/databases/markets/measurements?granularity=PT5M&period=PT6H"
 
 .. only:: onprem
 
-   .. code-block:: none
+   .. code-block:: sh
 
-      curl -i -u "username:apiKey" --digest "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/fd5b59188dc13ad142493/databases/markets/measurements?granularity=PT5M&period=PT6H"
+      curl --user "{username}:{apiKey}" --digest \
+       --header "Accept: application/json" \
+       --include \
+       --request GET "https://<ops-manager-host>/api/public/v1.0/groups/533c5895b910306f21033a/hosts/fd5b59188dc13ad142493/databases/markets/measurements?granularity=PT5M&period=PT6H"
 
 Response
 ````````
 
-.. code-block:: none
+Response Header
+~~~~~~~~~~~~~~~
 
-   HTTP/1.1 200 OK
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
 
    {
      "databaseName" : "markets",
@@ -582,5 +627,5 @@ Response
        "units" : "SCALAR"
      } ],
      "start" : "2016-08-11T21:08:40Z",
-     "links" : [ ... ]
+     "links" : []
    }

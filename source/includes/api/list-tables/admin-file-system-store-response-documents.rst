@@ -23,7 +23,7 @@
        :term:`file system stores <file system store>`. 
  
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
  
    * - loadFactor

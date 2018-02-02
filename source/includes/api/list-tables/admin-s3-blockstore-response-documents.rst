@@ -39,7 +39,7 @@
        :term:`S3 blockstores <S3 blockstore>`. 
  
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
  
    * - loadFactor

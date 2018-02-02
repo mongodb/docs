@@ -47,7 +47,7 @@
        :term:`Backup Daemons <Backup Daemon>`. 
 
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
 
    * - machine

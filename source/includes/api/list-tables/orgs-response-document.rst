@@ -6,14 +6,14 @@
      - Type
      - Description
 
-   * - ``id``
+   * - id
      - string
      - Unique identifier for the organization.
 
-   * - ``name``
+   * - name
      - string
      - Name of the team.
 
-   * - ``links``
-     - document array
+   * - links
+     - object array
      - .. include:: /includes/api/links-explanation.rst

@@ -29,7 +29,7 @@
        :term:`sync stores <sync store>`. 
    
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
    
    * - maxCapacityGB

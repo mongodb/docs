@@ -16,7 +16,7 @@ The ``balancer`` object is optional and defines balancer settings for each clust
      - Type
      - Description
 
-   * - ``balancer``
+   * - balancer
      - object
      - *Optional*. This object contains fields named according to
        clusters, each field containing an object with the desired

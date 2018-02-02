@@ -38,8 +38,8 @@ The ``roles`` array is optional and describes user-defined roles.
      - Type
      - Description
 
-   * - ``roles``
-     - array of objects
+   * - roles
+     - object array
      - *Optional*. The ``roles`` array contains objects that
        describe the cluster's user-defined roles. Each object describes
        a different user-defined role. Objects in this array contain the

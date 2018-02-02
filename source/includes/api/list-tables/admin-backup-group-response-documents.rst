@@ -8,7 +8,7 @@
      - Description
 
    * - daemonFilter
-     - array of objects
+     - object array
      - An array of pairs of :term:`Backup Daemon` hosts and 
        their :term:`head directories <head directory>` that to which  
        this project's backup jobs are limited.
@@ -40,7 +40,7 @@
        client certificate.
 
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
 
    * - labelFilter
@@ -58,7 +58,7 @@
        oplog stores are used.
 
    * - snapshotStoreFilter
-     - array of objects
+     - object array
      - Array of unique identifiers representing specific 
        :term:`snapshot stores <snapshot store>` and their types that can 
        be used with this project's backup jobs. If omitted, all 

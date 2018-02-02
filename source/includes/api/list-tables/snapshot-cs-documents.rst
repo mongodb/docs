@@ -6,39 +6,39 @@
      - Type
      - Description
 
-   * - ``clusterId``
+   * - clusterId
      - :ref:`objectId <document-bson-type-object-id>`
      - ID of the cluster the :term:`snapshot` represents.
 
-   * - ``complete``
+   * - complete
      - boolean
      - Indicator that the :term:`snapshot` has been created. This is
        ``false`` if the snapshot creation job is still in progress.
 
-   * - ``created``
+   * - created
      - document
      - The components of a :ref:`timestamp <document-bson-type-timestamp>`.
 
-   * - ``created.date``
+   * - created.date
      - timestamp
      - The exact point in time when the snapshot was taken in
        `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
        date and time format at :abbr:`UTC (Coordinated Universal Time)`.
 
-   * - ``created.increment``
+   * - created.increment
      - integer
      - The operation order in which this :term:`snapshot` took place at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
-   * - ``doNotDelete``
+   * - doNotDelete
      - boolean
      - Indicator that the :term:`snapshot` cannot be deleted.
 
        If ``doNotDelete`` is set to ``true``, any value in ``expires``
        is ignored.
 
-   * - ``expires``
+   * - expires
      - timestamp
      - The date in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
@@ -51,43 +51,43 @@
        If the ``expires`` value is earlier than the current date and
        time, it can no longer be edited.
 
-   * - ``groupId``
+   * - groupId
      - objectId
      - ID of the :term:`group` that owns the :term:`snapshot`.
 
-   * - ``id``
+   * - id
      - objectId
      - ID of the :term:`snapshot`.
 
-   * - ``lastOplogAppliedTimestamp``
+   * - lastOplogAppliedTimestamp
      - document
      - The components of the
        :ref:`timestamp <document-bson-type-timestamp>`  of the last
        oplog entry was applied.
 
-   * - ``lastOplogAppliedTimestamp.date``
+   * - lastOplogAppliedTimestamp.date
      - timestamp
      - The exact point in time when the last :term:`oplog` was applied
        in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format at :abbr:`UTC (Coordinated Universal Time)`.
 
-   * - ``lastOplogAppliedTimestamp.increment``
+   * - lastOplogAppliedTimestamp.increment
      - integer
      - The operation order in which last :term:`oplog` was applied at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
-   * - ``links``
-     - document array
-     - See `links Array`_.
+   * - links
+     - object array
+     - .. include:: /includes/api/links-explanation.rst
 
-   * - ``namespaceFilterList``
-     - document array
+   * - namespaceFilterList
+     - object array
      - The :term:`namespaces <namespace>` that are included or excluded
        from this :term:`snapshot`.
 
-   * - ``namespaceFilterList.filterList``
+   * - namespaceFilterList.filterList
      - string array
      - A comma-separated list of any combination of databases or
        :term:`namespaces <namespace>` that are exclusively included or
@@ -95,7 +95,7 @@
 
        The default value is an empty array (``[]``).
 
-   * - ``namespaceFilterList.filterType``
+   * - namespaceFilterList.filterType
      - string
      - A value that determines how :term:`namespaces <namespace>` are
        filtered for this snapshot.
@@ -109,29 +109,29 @@
 
        The default value is ``blacklist``.
 
-   * - ``parts``
-     - document array
+   * - parts
+     - object array
      - The individual parts that comprise the complete :term:`snapshot`.
        This array contains a single document.
 
-   * - ``parts.dataSizeBytes``
+   * - parts.dataSizeBytes
      - number
      - The total size of the data in the :term:`snapshot` in bytes.
 
-   * - ``parts.encryptionEnabled``
+   * - parts.encryptionEnabled
      - boolean
      - Indicator of the state of encryption of the :term:`snapshot`
        data.
 
-   * - ``parts.fileSizeBytes``
+   * - parts.fileSizeBytes
      - number
      - The total size of the data files in bytes.
 
-   * - ``parts.hostId``
+   * - parts.hostId
      - string
      - ID of a config server.
 
-   * - ``parts.masterKeyUUID``
+   * - parts.masterKeyUUID
      - objectId
      - The :abbr:`KMIP (Key Management Interoperability Protocol)`
        master key ID used to encrypt the snapshot data.
@@ -140,16 +140,16 @@
           This parameter appears only if this snapshot has
           ``parts.encryptionEnabled : true``.
 
-   * - ``parts.mongodVersion``
+   * - parts.mongodVersion
      - string
      - The version of ``mongod`` that was running when the
        :term:`snapshot` was created.
 
-   * - ``parts.storageSizeBytes``
+   * - parts.storageSizeBytes
      - number
      - The total size of space allocated for document storage.
 
-   * - ``parts.typeName``
+   * - parts.typeName
      - string
      - The type of server that the part represents:
 

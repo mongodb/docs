@@ -8,7 +8,7 @@
      - Description
 
    * - daemonFilter
-     - array of objects
+     - object array
      - *Optional.* An array of pairs of :term:`Backup Daemon` hosts and 
        their :term:`head directories <head directory>` that to which  
        this project's backup jobs are limited. If omitted, all available 
@@ -58,7 +58,7 @@
        oplog stores are used.
 
    * - snapshotStoreFilter
-     - array of objects
+     - object array
      - *Optional.* Array of unique identifiers representing specific 
        :term:`snapshot stores <snapshot store>` and their types that can 
        be used with this project's backup jobs. If omitted, all 

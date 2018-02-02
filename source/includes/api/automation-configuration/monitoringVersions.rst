@@ -34,24 +34,24 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
      - Type
      - Description
 
-   * - ``monitoringVersions``
-     - array of objects
+   * - monitoringVersions
+     - object array
      - *Optional*. Objects that define version information for each Monitoring Agent.
 
-   * - ``monitoringVersions.name``
+   * - monitoringVersions.name
      - string
      - The desired version of the Monitoring Agent (e.g. "2.9.1.176-1").
 
        For MongoDB compatibility with Automation, see
        :doc:`/reference/mongodb-compatibility`.
 
-   * - ``monitoringVersions.hostname``
+   * - monitoringVersions.hostname
      - string
      - The hostname of the machine that runs the Monitoring Agent. If the
        Monitoring Agent is not running on the machine, |mms| installs the
        agent from the location specified in ``monitoringVersions.urls``.
 
-   * - ``monitoringVersions.urls``
+   * - monitoringVersions.urls
      - object
      - The platform- and build-specific URLs from which to download the
        Monitoring Agent.
@@ -65,37 +65,37 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
        object must include the ``default`` key set to the default
        download URL for the platform.
 
-   * - ``monitoringVersions.baseUrl``
+   * - monitoringVersions.baseUrl
      - string
      - The base URL used for the ``mmsBaseUrl`` setting in the
        :doc:`/reference/monitoring-agent`.
 
-   * - ``monitoringVersions.logPath``
+   * - monitoringVersions.logPath
      - string
      - *Optional*. The directory where the agent stores its logs. The
        default is to store logs in ``/dev/null``. To update, see the
        :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - ``monitoringVersions.logRotate``
+   * - monitoringVersions.logRotate
      - object
      - *Optional*. Enables log rotation for the MongoDB logs for a
        process. To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - ``monitoringVersions.logRotate.sizeThresholdMB``
+   * - monitoringVersions.logRotate.sizeThresholdMB
      - number
      - The maximum size in MB for an individual log file before rotation.
        To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - ``monitoringVersions.logRotate.timeThresholdHrs``
+   * - monitoringVersions.logRotate.timeThresholdHrs
      - integer
      - The maximum time in hours for an individual log file before
        rotation. To update, see the :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - ``monitoringVersions.logRotate.numUncompressed``
+   * - monitoringVersions.logRotate.numUncompressed
      - integer
      - *Optional*. The maximum number of total log files to leave
        uncompressed, including the current log file. The default is ``5``.
@@ -105,7 +105,7 @@ The ``monitoringVersions`` array is optional and specifies the version of the Mo
        :ref:`monitoringAgentConfig
        <update-monitoring-or-backup-agent-via-api>` endpoint.
 
-   * - ``monitoringVersions.logRotate.percentOfDiskspace``
+   * - monitoringVersions.logRotate.percentOfDiskspace
      - number
      - *Optional*. The maximum percentage of total disk space all log
        files should take up before deletion. The default is ``.02``.

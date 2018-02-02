@@ -29,7 +29,7 @@
        :term:`blockstores <blockstore>`. 
 
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
    
    * - loadFactor

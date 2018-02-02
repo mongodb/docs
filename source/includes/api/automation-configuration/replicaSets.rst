@@ -29,8 +29,8 @@ field is required for deployments with replica sets.
      - Type
      - Description
 
-   * - ``replicaSets``
-     - array of objects
+   * - replicaSets
+     - object array
      - *Optional*. Objects that define the configuration of each
        :term:`replica set`. The Automation Agent uses the values in this
        array to create valid :manual:`replica set configuration documents
@@ -47,12 +47,12 @@ field is required for deployments with replica sets.
      - string
      - The name of the replica set.
 
-   * - ``replicaSets.version``
+   * - replicaSets.version
      - integer
      - The version of the replica set configuration.
 
-   * - ``replicaSets.members``
-     - array of objects
+   * - replicaSets.members
+     - object array
      - Objects that define each member of the replica set. The
        ``members.host`` field must specify the host's name as listed in
        ``processes.name``. The Automation Agent expands the ``host`` field
@@ -60,7 +60,7 @@ field is required for deployments with replica sets.
        on ``members`` objects, see :manual:`replSetGetConfig
        </reference/command/replSetGetConfig>` in the MongoDB manual.
 
-   * - ``replicaSets.force``
+   * - replicaSets.force
      - object
      - *Optional*. An object that contains the ``currentVersion`` field
        set to a version number. Automation will force a reconfiguration of

@@ -6,10 +6,10 @@
      - Type
      - Description
 
-   * - ``id``
+   * - id
      - string
      - Unique identifier for the team.
 
-   * - ``name``
+   * - name
      - string
      - Name of the team.

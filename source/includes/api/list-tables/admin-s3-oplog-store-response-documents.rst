@@ -39,7 +39,7 @@
        S3 oplog stores. 
  
    * - links
-     - array of objects
+     - object array
      - .. include:: /includes/api/links-explanation.rst
  
    * - pathStyleAccessEnabled

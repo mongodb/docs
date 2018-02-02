@@ -12,6 +12,6 @@ This lists the version of the automation configuration.
      - Type
      - Description
 
-   * - ``version``
+   * - version
      - integer
      - The version of the configuration.

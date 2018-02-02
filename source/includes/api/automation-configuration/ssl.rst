@@ -14,7 +14,7 @@ The ``ssl`` object is optional and enables SSL for encrypting connections.
      - Type
      - Description
 
-   * - ``ssl``
+   * - ssl
      - object
      - *Optional*. Enables SSL for encrypting connections. To use SSL,
        be sure to choose a package that supports SSL.
@@ -26,11 +26,11 @@ The ``ssl`` object is optional and enables SSL for encrypting connections.
        <http://www.mongodb.com/products/mongodb-enterprise>`_ supported
        platforms include SSL support.
 
-   * - ``ssl.CAFilePath``
+   * - ssl.CAFilePath
      - string
      - The path to the certificate used to authenticate through SSL.
        
-   * - ``ssl.clientCertificateMode``
+   * - ssl.clientCertificateMode
      - string
      - Specifies whether connections to |mms| require an SSL certificate.
        Valid values are ``OPTIONAL`` and ``REQUIRED``.
