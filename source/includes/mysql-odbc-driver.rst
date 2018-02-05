@@ -1,4 +1,4 @@
-This procedure requires the Enterprise edition of the `MySQL ODBC
+This procedure uses the Enterprise edition of the `MySQL ODBC
 driver <https://www.mysql.com/downloads/>`_. MySQL Enterprise uses
 OpenSSL, which is compatible with |bic| for TLS/SSL connections.
 
