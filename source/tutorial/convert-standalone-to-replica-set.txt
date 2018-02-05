@@ -10,15 +10,15 @@ Convert a Standalone to a Replica Set
    :depth: 1
    :class: singlecol
 
-This tutorial describes the process for converting a
-:term:`standalone` :binary:`~bin.mongod` instance into a three-member
-:term:`replica set`.  Use standalone instances for testing and
-development, but always use replica sets in production. To install a
-standalone instance, see the :ref:`installation tutorials
-<tutorials-installation>`.
+This tutorial describes the process for converting a :term:`standalone`
+:binary:`~bin.mongod` instance into a :term:`replica set`. Use
+standalone instances for testing and development, but always use
+replica sets in production. To install a standalone instance, see the
+:ref:`installation tutorials <tutorials-installation>`.
 
-To deploy a replica set without using a pre-existing :binary:`~bin.mongod`
-instance, see :doc:`/tutorial/deploy-replica-set`.
+To deploy a replica set without using a pre-existing
+:binary:`~bin.mongod` instance, see :doc:`/tutorial/deploy-replica-set`
+instead.
 
 Procedure
 ---------
@@ -40,6 +40,10 @@ Procedure
 
    .. include:: /includes/fact-unique-replica-set-names.rst
 
+   If converting a shard standalone instance to a shard replica set,
+   the shard replica set name must not use the same name as the config
+   server replica set.
+
    For more information on configuration options, see
    :doc:`/reference/configuration-options` and the :binary:`~bin.mongod`
    manual page.
@@ -52,36 +56,57 @@ Procedure
 
       rs.initiate()
 
-   The replica set is now operational.
+   The replica set is now operational. To view the replica set
+   configuration, use :method:`rs.conf()`. To check the status of the
+   replica set, use :method:`rs.status()`.
 
-   To view the replica set configuration, use :method:`rs.conf()`. To
-   check the status of the replica set, use :method:`rs.status()`.
+   .. important::
 
-.. _expand-the-replica-set:
+      If converting a shard standalone instance to a shard replica set, you
+      must also :ref:`update the shard information <update-shard-host-info>`.
 
 To add members to this replica set, use the :method:`rs.add()` method.
 For more information on adding members to a replica set, see
 :doc:`/tutorial/expand-replica-set`.
 
+.. _update-shard-host-info:
+
 Sharding Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If the new replica set is part of a :term:`sharded cluster`, change
-the shard host information in the :term:`config database` by doing
-the following:
+If the new replica set is a shard replica set, change the shard
+information in the :term:`config database` by doing the following:
 
 #. Connect to one of the sharded cluster's :binary:`~bin.mongos`
-   instances and issue a command in the following form:
+   instances and retrieve the shard information:
 
    .. code-block:: javascript
 
-      db.getSiblingDB("config").shards.save( {_id: "<name>", host: "<replica-set>/<member,><member,><...>" } )
+      var myShard = db.getSiblingDB("config").shards.findOne( { _id: "<name>"} )
 
-   Replace ``<name>`` with the name of the shard. Replace
-   ``<replica-set>`` with the name of the replica set. Replace
-   ``<member,><member,><>`` with the list of the members of the
-   replica set.
+   Replace ``<name>`` with the name of the shard.
 
-#. Restart all :binary:`~bin.mongos` instances. If possible, restart all
-   components of the replica sets (i.e., all :binary:`~bin.mongos` and
-   all shard :binary:`~bin.mongod` instances).
+   .. note:: 
+
+      The ``<name>`` of the shard is separate from the shard replica
+      set name. To retrieve the name of the shard, see the
+      :data:`shards <sh.status.shards._id>` section in the results from
+      the :method:`sh.status()` method.
+
+#. Update the ``host`` information with the replica set information:
+
+   .. code-block:: javascript
+
+      myShard.host = "<replica-set>/<member,><member,><...>"
+
+   Replace ``<replica-set>`` with the name of the replica set. Replace
+   ``<member,><member,><...>`` with the list of the replica set members.
+
+#. Save the information.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("config").shards.save( myShard )
+
+#. Restart all :binary:`~bin.mongos` instances and all shard binaries.
+
