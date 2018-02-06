@@ -1,42 +1,44 @@
 .. _backup-6.3.0.728:
 
-Backup Agent ``6.3.0.728``
---------------------------
+Backup Agent 6.3.0.728
+----------------------
 
 *Released 2018-01-23*
 
-- Fix: Send compound index keys as ordered BSON
+- **Fix:** Send compound index keys as ordered BSON
 
-- Fix: Send less detailed data in the initial summary payload at the
+- **Fix:** Send less detailed data in the initial summary payload at the
   start of an initial sync. Collect more detailed data for each
   collection individually.
   
 .. _backup-6.2.0.714:
 
-Backup Agent ``6.2.0.714``
---------------------------
+Backup Agent 6.2.0.714
+----------------------
 
 *Released 2018-01-08*
 
-- Fix: Relax validation when krb5ConfigLocation parameter is specified. 
-  This no longer implies that krb5Principal and krb5Keytab are required.
+- **Fix:** Relax validation when ``krb5ConfigLocation`` parameter is 
+  specified. This no longer implies that ``krb5Principal`` and 
+  ``krb5Keytab`` are required.
 
-- Fix:  Use correct format for point in time restore oplog seed when no 
-  oplog are available
+- **Fix:**  Use correct format for point in time restore oplog seed 
+  when no oplog are available.
 
 .. _backup-6.1.1.693:
 
-Backup Agent ``6.1.1.693``
---------------------------
+Backup Agent 6.1.1.693
+----------------------
 
 *Released 2017-11-19*
 
-Fix: Upgrades of the Backup Agent performed by the Automation Agent were missing a parameter on Windows.
+**Fix:** Upgrades of the Backup Agent performed by the Automation Agent 
+were missing a parameter on Windows.
 
 .. _backup-6.0.0.688:
 
-Backup Agent ``6.1.0.688``
---------------------------
+Backup Agent 6.1.0.688
+----------------------
 
 *Released 2017-11-14*
 
@@ -44,8 +46,8 @@ Support for upcoming release of MongoDB 3.6.
 
 .. _backup-6.0.0.680:
 
-Backup Agent ``6.0.0.680``
---------------------------
+Backup Agent 6.0.0.680
+----------------------
 
 *Released 2017-10-26*
 
@@ -60,65 +62,82 @@ Backup Agent 6.0.0.676
 
 - Support for upcoming release of MongoDB 3.6.
 
-Backup Agent ``5.9.0.662``
---------------------------
+.. _backup-5.9.0.662:
+
+Backup Agent 5.9.0.662
+----------------------
 
 *Released 2017-09-13*
 
 - Use BSON.d for missing docs.
 
-Backup Agent ``5.8.0.655``
---------------------------
+.. _backup-5.8.0.655:
+
+Backup Agent 5.8.0.655
+----------------------
 
 *Released 2017-08-25*
 
 - Allow oplogs for a point in time restore to be applied client-side.
 
-Backup Agent ``5.7.0.637``
---------------------------
+.. _backup-5.7.0.637:
+
+Backup Agent 5.7.0.637
+----------------------
 
 *Released 2017-08-01*
 
 - Support for optimized point in time restores.
 
 
-Backup Agent ``5.6.0.61``
---------------------------
+.. _backup-5.6.0.61:
+
+Backup Agent 5.6.0.61
+---------------------
 
 *Released 2017-07-11*
 
 - During initial sync, add verification that shard name matches
   the expected shard name.
 
-Backup Agent ``5.5.0.512``
---------------------------
+.. _backup-5.5.0.512:
+
+Backup Agent 5.5.0.512
+----------------------
 
 *Released 2017-06-15*
 
-- Use HTTP basic auth to authenticate HTTPS requests between the Backup Agent
-  and cloud.mongodb.com.
+- Use HTTP basic auth to authenticate HTTPS requests between the 
+  Backup Agent and cloud.mongodb.com.
 
 - Performance enhancement: Use ``bson.Raw`` for initial sync.
 
-Backup Agent ``5.4.0.493``
---------------------------
+.. _backup-5.4.0.493:
+
+Backup Agent 5.4.0.493
+----------------------
 
 *Released 2017-04-19*
 
 - Reduce memory used during initial sync.
 
-- Ensure messages printed to ``STDOUT`` and ``STDERR`` will also be
+- Ensure messages printed to ``STDOUT`` and ``STDERR`` is also
   included in the Backup Agent log file.
 
-Backup Agent ``5.3.0.484``
---------------------------
+.. _backup-5.3.0.484:
+
+Backup Agent 5.3.0.484
+----------------------
 
 *Released 2017-03-29*
 
-- Optimization for collection of data in the initial sync phase. (Recompiled with the MGO-128 fix.)
+- Optimization for collection of data in the initial sync phase. 
+  (Recompiled with the MGO-128 fix.)
 
-Backup Agent ``5.2.0.473``
---------------------------
+.. _backup-5.2.0.473:
+
+Backup Agent 5.2.0.473
+----------------------
 
 *Released 2017-01-23*
 
@@ -126,18 +145,23 @@ Backup Agent ``5.2.0.473``
 
 - Compiled with Go 1.7.4.
 
-- Fix: Can send logs to Cloud Manager for Backup Agents running on Windows.
+- **Fix:** Can send logs to Cloud Manager for Backup Agents running on 
+  Windows.
 
-Backup Agent ``5.1.0.467``
---------------------------
+.. _backup-5.1.0.467:
+
+Backup Agent 5.1.0.467
+----------------------
 
 *Released 2016-12-13*
 
-- Handle capped collections that are capped using a floating point size
+- Handle capped collections that are capped using a floating point size.
 
 
-Backup Agent ``5.0.3.465``
---------------------------
+.. _backup-5.0.3.465:
+
+Backup Agent 5.0.3.465
+----------------------
 
 *Released 2016-11-21*
 
@@ -145,15 +169,19 @@ Backup Agent ``5.0.3.465``
 
 - Support for MongoDB 3.4 featureCompatiblityVersion.
 
-Backup Agent ``5.0.1.453``
---------------------------
+.. _backup-5.0.1.453:
+
+Backup Agent 5.0.1.453
+----------------------
 
 *Released 2016-11-07*
 
 - Allow managed Backup Agents to be run as a service on Windows.
 
-Backup Agent ``4.6.0.425``
---------------------------
+.. _backup-4.6.0.425:
+
+Backup Agent 4.6.0.425
+----------------------
 
 *Released 2016-09-14*
 
@@ -163,29 +191,37 @@ Backup Agent ``4.6.0.425``
 
 - Partial support for Kerberos on Windows.
 
-Backup Agent ``4.5.0.412``
---------------------------
+.. _backup-4.5.0.412:
+
+Backup Agent 4.5.0.412
+----------------------
 
 *Released 2016-08-24*
 
 - Support for Power Linux.
 
-Backup Agent ``4.4.0.396``
---------------------------
+.. _backup-4.4.0.396:
+
+Backup Agent 4.4.0.396
+----------------------
 
 *Released 2016-07-12*
 
 - Agent support for restarting incremental initial syncs.
 
-Backup Agent ``4.3.0.384``
---------------------------
+.. _backup-4.3.0.384:
+
+Backup Agent 4.3.0.384
+----------------------
 
 *Released 2016-05-16*
 
 - Updated to use Go 1.6.
 
-Backup Agent ``4.2.0.373``
---------------------------
+.. _backup-4.2.0.373:
+
+Backup Agent 4.2.0.373
+----------------------
 
 *Released 2016-04-20*
 
@@ -193,17 +229,21 @@ Backup Agent ``4.2.0.373``
 
 - Added a sticky header to log files.
 
-Backup Agent ``4.1.0.347``
---------------------------
+.. _backup-4.1.0.347:
+
+Backup Agent 4.1.0.347
+----------------------
 
 *Released 2016-02-18*
 
-- Use systemD management on RHEL7 and Ubuntu 16.04
+- Use systemD management on RHEL7 and Ubuntu 16.04.
 
-- Set ``ulimits`` in the packaged builds
+- Set ``ulimits`` in the packaged builds.
 
-Backup Agent ``4.0.0.343``
---------------------------
+.. _backup-4.0.0.343:
+
+Backup Agent 4.0.0.343
+----------------------
 
 *Released 2016-01-07*
 
@@ -216,8 +256,10 @@ Backup Agent ``4.0.0.343``
   channels according to the size of the documents: this can lower memory
   consumption.
 
-Backup Agent ``3.9.0.336``
---------------------------
+.. _backup-3.9.0.336:
+
+Backup Agent 3.9.0.336
+----------------------
 
 *Released 2015-11-02*
 
@@ -225,24 +267,30 @@ Backup Agent ``3.9.0.336``
 
 - Support for MongoDB 3.2 clusters with config server replica sets.
 
-Backup Agent ``3.8.1.320``
---------------------------
+.. _backup-3.8.1.320:
+
+Backup Agent 3.8.1.320
+----------------------
 
 *Released 2015-10-14*
 
 - Upgraded to Go 1.5.1.
 
-Backup Agent ``3.8.0.315``
---------------------------
+.. _backup-3.8.0.315:
+
+Backup Agent 3.8.0.315
+----------------------
 
 *Released 2015-09-16*
 
 - Built with Go 1.5.0.
 
-- Fix: Ignore collections deleted during an initial sync.
+- **Fix:** Ignore collections deleted during an initial sync.
 
-Backup Agent ``3.7.0.300``
---------------------------
+.. _backup-3.7.0.300:
+
+Backup Agent 3.7.0.300
+----------------------
 
 *Released 2015-08-10*
 
@@ -250,111 +298,140 @@ Backup Agent ``3.7.0.300``
 
 - Upgraded to new version of snappy compression library.
 
-Backup Agent ``3.6.0.292``
---------------------------
+.. _backup-3.6.0.292:
+
+Backup Agent 3.6.0.292
+----------------------
 
 *Released 2015-07-15*
 
 - Added minor optimization to explicitly set the ``Content-Type`` on
   HTTP requests.
 
-Backup Agent ``3.5.0.286-1``
-------------------------------
+Backup .. _bgent-5.0.286-1:
+
+Backup Agent 3.5.0.286-1
+------------------------
 
 *Released 2015-06-24*
 
-- Updated documentation and setting URLs to cloud.mongodb.com
+- Updated documentation and setting URLs to cloud.mongodb.com.
 
 - Added support for backing up selected namespaces. This functionality
   is not yet exposed in the |mms| user interface.
 
-Backup Agent ``3.4.0.273``
---------------------------
+.. _backup-3.4.0.273:
+
+Backup Agent 3.4.0.273
+----------------------
 
 *Released 2015-04-22*
 
-- Added an explicit timeout for SSL connections to :program:`mongod` instances
-- Added an optimization for syncs of collections with lots of small documents
+- Added an explicit timeout for SSL connections to :program:`mongod` 
+  instances.
+
+- Added an optimization for syncs of collections with lots of small 
+  documents.
+
 - The Kerberos credentials cache now uses a fixed name.
 
-Backup Agent ``3.3.0.261``
---------------------------
+.. _backup-3.3.0.261:
+
+Backup Agent 3.3.0.261
+----------------------
 
 *Released 2015-03-10*
 
 Logging improvements.
 
-Backup Agent ``3.2.0.262``
---------------------------
+.. _backup-3.2.0.262:
+
+Backup Agent 3.2.0.262
+----------------------
 
 *Released 2015-02-23*
 
 .. only:: cloud
 
    Ability to monitor and back up deployments without managing them
-   through Automation. Specifically, you can :doc:`import an existing
-   deployment into Monitoring </tutorial/add-existing-mongodb-processes>` and
-   then use |mms| to back up the deployment.
+   through Automation. Specifically, you can 
+   :doc:`import an existing deployment into Monitoring </tutorial/add-existing-mongodb-processes>` 
+   and then use |mms| to back up the deployment.
 
    - Support for x.509 certificate authentication.
 
-   - Fixes a race condition which could result in inconsistent
+   - **Fix:** A race condition which could result in inconsistent
      clustershots for MongoDB 3.0+ sharded clusters using the
-     :authrole:`backup` role.
+     :authrole:`backup` role no longer occurs.
 
 .. only:: classic
 
-   Ability to upgrade a project in Cloud |mms|, which provides Automation
-   and the Metrics API. For information about new Cloud |mms| pricing, please
-   see `the pricing page <https://cloud.mongodb.com/pricing>`_.
+   Ability to upgrade a project in Cloud |mms|, which provides 
+   Automation and the Metrics API. For information about new Cloud 
+   |mms| pricing, see 
+   `the pricing page <https://cloud.mongodb.com/pricing>`_.
 
-Backup Agent ``3.1.0.250``
---------------------------
+.. _backup-3.1.0.250:
+
+Backup Agent 3.1.0.250
+----------------------
 
 *Released 2015-01-08*
 
 Logging improvements for Windows.
 
-Backup Agent ``3.0.0.246``
---------------------------
+.. _backup-3.0.0.246:
+
+Backup Agent 3.0.0.246
+----------------------
 
 *Released 2015-01-08*
 
 Enhancements to support backup of MongoDB 3.0.
 
-Backup Agent ``2.9.1.235-1``
-----------------------------
+.. _backup-9.1.235-1:
+
+Backup Agent 2.9.1.235-1
+------------------------
 
 *Released 2014-12-17*
 
 Agent now encodes all collection meta-data. Avoids edge-case issues
 with unexpected characters in collection settings.
 
-Backup Agent ``2.9.0.223``
---------------------------
+.. _backup-2.9.0.223:
+
+Backup Agent 2.9.0.223
+----------------------
 
 *Released 2014-12-04*
 
 Can now explicitly pass collections options for the WiredTiger storage
 engine from the backed up :program:`mongod` to |mms|.
 
-Backup Agent ``2.8.0.204``
---------------------------
+.. _backup-2.8.0.204:
+
+Backup Agent 2.8.0.204
+----------------------
 
 *Released 2014-11-12*
 
 The Backup Agent will now identify itself to the |mms| servers using the
 fully qualified domain name (FQDN) of the server on which it is running.
 
-Backup Agent ``2.7.1.206``
---------------------------
+.. _backup-2.7.1.206:
+
+Backup Agent 2.7.1.206
+----------------------
 
 *Released 2014-11-06*
 
 Use no-timeout cursors to work around :issue:`MGO-53`.
 
-Backup Agent ``2.7.0.193``
-----------------------------
+.. _backup-2.7.0.193:
+
+Backup Agent 2.7.0.193
+----------------------
 
 *Released 2014-10-29*
 
@@ -365,24 +442,30 @@ Backup Agent ``2.7.0.193``
 
 - Adds support for RHEL7.
 
-Backup Agent ``2.6.0.176``
---------------------------
+.. _backup-2.6.0.176:
+
+Backup Agent 2.6.0.176
+----------------------
 
 *Released 2014-09-30*
 
 Minor logging change, clarifying when stopping the balancer if there
 is no balancer settings document.
 
-Backup Agent ``2.5.0``
-----------------------
+.. _backup-2.5.0:
+
+Backup Agent 2.5.0
+------------------
 
 *Released 2014-09-10*
 
 Added support for authentication using MongoDB 2.4 style client
 certificates.
 
-Backup Agent ``2.4.0.156``
---------------------------
+.. _backup-2.4.0.156:
+
+Backup Agent 2.4.0.156
+----------------------
 
 *Released 2014-08-19*
 
@@ -391,12 +474,14 @@ stop the balancer. These checkpoints are *not* guaranteed to be
 consistent, because of in-progress chunk migrations.  The user
 interface identifies these checkpoints.
 
-Backup Agent ``2.3.0.149``
---------------------------
+.. _backup-2.3.0.149:
+
+Backup Agent 2.3.0.149
+----------------------
 
 *Released 2014-07-29*
 
-- Upgraded agent to use to Go 1.3
+- Upgraded agent to use to Go 1.3.
 
 - Added support for ``version`` and ``-version.``
 
@@ -407,16 +492,20 @@ Backup Agent ``2.3.0.149``
 
 - Agent now supports configuring HTTP with the config file.
 
-Backup Agent ``2.2.2.125``
---------------------------
+.. _backup-2.2.2.125:
+
+Backup Agent 2.2.2.125
+----------------------
 
 *Released 2014-07-09*
 
 Fixes issue with agent on Windows using the ``MONGODB-CR``
 authentication mechanism.
 
-Backup Agent ``2.2.1.122``
---------------------------
+.. _backup-2.2.1.122:
+
+Backup Agent 2.2.1.122
+----------------------
 
 *Released 2014-07-08*
 
@@ -428,16 +517,20 @@ Backup Agent ``2.2.1.122``
 
 - Fixes regression in the Agent's rollback handling.
 
-Backup Agent ``2.1.0.106-1``
-----------------------------
+.. _backup-2.1.0.106-1:
+
+Backup Agent 2.1.0.106-1
+------------------------
 
 *Released 2014-06-17*
 
 Support for a new API t hat allows |mms| to ingest oplog entries before
 the entire payload has reached the |mms| servers.
 
-Backup Agent ``2.0.0.90-1``
----------------------------
+.. _backup-2.0.0.90-1:
+
+Backup Agent 2.0.0.90-1
+-----------------------
 
 *Released 2014-05-28*
 
@@ -447,59 +540,76 @@ Backup Agent ``2.0.0.90-1``
 - Improved stability around oplog tokens for environments with
   unstable networks.
 
-Backup Agent ``1.6.1.87-1``
----------------------------
+.. _backup-1.6.1.87-1:
+
+Backup Agent 1.6.1.87-1
+-----------------------
 
 *Released 2014-05-19*
 
-Critical update for users running the MongoDB 2.6 series that use
-authorization.
+- Critical update for users running the MongoDB 2.6 series that use
+  authorization.
 
-The Backup Agent now includes :data:`system.version` and :data:`system.role`
-collections from the admin database in the initial sync.
+- The Backup Agent now includes :data:`system.version` and 
+  :data:`system.role` collections from the ``admin`` database in the 
+  initial sync.
 
-Backup Agent ``1.6.0.55-1``
----------------------------
+.. _backup-1.6.0.55-1:
+
+Backup Agent 1.6.0.55-1
+-----------------------
 
 *Released 2014-05-09*
 
 The agent now sends oplog slices to |mms| in batches to increase
 throughout and stability.
 
-Backup Agent ``1.4.6.43-1``
----------------------------
+.. _backup-1.4.6.43-1:
+
+Backup Agent 1.4.6.43-1
+-----------------------
 
 - Major stability update.
 
 - Prevent a file descriptor leak.
 
-- Correct handling of timeouts for connections hung in the SSL handshaking phase.
+- Correct handling of timeouts for connections hung in the |tls-ssl| 
+  handshaking phase.
 
-Backup Agent ``1.4.4.34-1``
----------------------------
+.. _backup-1.4.4.34-1:
+
+Backup Agent 1.4.4.34-1
+-----------------------
 
 Support for using the Backup Agent via an HTTP proxy
 
-Backup Agent ``1.4.3.28-1``
----------------------------
+.. _backup-1.4.3.28-1:
 
-- Allow upgrading the agent using the Windows MSI installer
+Backup Agent 1.4.3.28-1
+-----------------------
 
-- Improved logging
+- Allow upgrading the agent using the Windows MSI installer.
 
-- Fix an open files leak on bad HTTP responses
+- Improved logging.
 
-Backup Agent ``1.4.2.23-1``
----------------------------
+- Fix an open files leak on bad HTTP responses.
 
-- Added support for Windows MSI installer
+.. _backup-1.4.2.23-1:
 
-- For sharded clusters, less aggressive polling to determine if balancer has been stopped
+Backup Agent 1.4.2.23-1
+-----------------------
 
-- Fail fast on connections to mongods that are not responding
+- Added support for Windows MSI installer.
 
-Backup Agent ``1.4.0.17``
--------------------------
+- For sharded clusters, less aggressive polling to determine if 
+  balancer has been stopped.
+
+- Fail fast on connections to mongods that are not responding.
+
+.. _backup-1.4.0.17:
+
+Backup Agent 1.4.0.17
+---------------------
 
 Added support for sharded cluster checkpoints that add additional
 points-in-time, in between scheduled snapshots, that |mms| can use to
@@ -509,18 +619,22 @@ Schedule* link and interface.
 This version marks a change in the numbering scheme of Backup Agents
 to support improved packaging options for the Backup Agent.
 
-Backup Agent ``v20131216.1``
-----------------------------
+ .. _backup-v20131216.1:
+
+Backup Agent v20131216.1
+------------------------
 
 - Added support for connecting to MongoDB instances running SSL. See
   the :doc:`/tutorial/configure-backup-agent-for-ssl` documentation for
   more information.
 
-- The agent will try to use additional MongoS instances to take a
-  cluster snapshot if the first MongoS is unavailable.
+- The agent will try to use additional ``mongos`` instances to take a
+  cluster snapshot if the first ``mongos`` is unavailable.
 
-Backup Agent ``v20131118.0``
-----------------------------
+.. _backup-v20131118.0:
+
+Backup Agent v20131118.0
+------------------------
 
 - Significantly reduced the amount of time needed by the agent to
   detect situations that require a resync.
@@ -529,22 +643,28 @@ Backup Agent ``v20131118.0``
   clusters. The agent can now resync automatically from these
   servers.
 
-Backup Agent ``v20130923.0``
-----------------------------
+.. _backup-v20130923.0:
+
+Backup Agent v20130923.0
+------------------------
 
 When the agent sends the initial meta-data about the data to back up
 (e.g. the list of databases, collections,and indexes,) to the |mms|
 API, the agent will not include any databases or collections in the
 "excluded namespace" configuration.
 
-Backup Agent ``v20130826.0``
-----------------------------
+.. _backup-v20130826.0:
 
-Adds support for managing excluded namespaces: Backup Agent will no
-longer send data for excluded collections or databases.
+Backup Agent v20130826.0
+------------------------
 
-Backup Agent ``v20130812.1``
-----------------------------
+Adds support for managing excluded namespaces: Backup Agent no
+longer sends data for excluded collections or databases.
+
+.. _backup-v20130812.1:
+
+Backup Agent v20130812.1
+------------------------
 
 *Major stability update*
 
