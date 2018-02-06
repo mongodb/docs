@@ -9,7 +9,7 @@
 
    * - ``delivery``
      - object
-     - The method and details of how the restored :term:`snapshot` data
+     - The method and details of how the restored snapshot data
        will be delivered.
 
    * - ``delivery.expirationHours``
@@ -55,4 +55,4 @@
 
    * - ``snapshotId``
      - :ref:`ObjectId <document-bson-type-object-id>`
-     - ID of the :term:`snapshot` to restore.
+     - ID of the snapshot to restore.

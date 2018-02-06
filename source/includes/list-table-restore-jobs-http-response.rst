@@ -8,7 +8,7 @@
        
    * - ``batchId``
      - string
-     - ID of the :term:`batch` to which this restore job belongs.
+     - ID of the batch to which this restore job belongs.
 
        Only present for a restore of a :term:`sharded cluster`.
 
@@ -26,7 +26,7 @@
 
    * - ``delivery``
      - object
-     - The method and details of how the restored :term:`snapshot` data
+     - The method and details of how the restored snapshot data
        shall be delivered.
 
    * - ``delivery.expires``
@@ -74,18 +74,18 @@
    * - ``delivery.url``
      - string
      - The :abbr:`URL (Uniform Resource Locator)` from which the
-       restored :term:`snapshot` data can be downloaded.
+       restored snapshot data can be downloaded.
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
    * - ``encryptionEnabled``
      - boolean
-     - Indicates whether the restored :term:`snapshot` data is
+     - Indicates whether the restored snapshot data is
        encrypted.
 
    * - ``groupId``
      - string
-     - ID of the :term:`group` that owns the restore job.
+     - ID of the project that owns the restore job.
 
    * - ``hashes``
      - object array
@@ -124,13 +124,13 @@
    * - ``masterKeyUUID``
      - string
      - The :abbr:`KMIP (Key Management Interoperability Protocol)`
-       :doc:`master key ID </tutorial/encrypt-snapshots>` used to
-       encrypt the :term:`snapshot` data. This field is present only if
+       master key ID used to
+       encrypt the snapshot data. This field is present only if
        ``encryptionEnabled`` is true for the snapshot.
 
    * - ``snapshotId``
      - :ref:`ObjectId <document-bson-type-object-id>`
-     - ID of the :term:`snapshot` to restore.
+     - ID of the snapshot to restore.
 
    * - ``statusName``
      - string
@@ -143,19 +143,19 @@
 
    * - ``timestamp``
      - object
-     - Timestamp of the latest :term:`oplog <Oplog Store Database>`
-       entry in the restored :term:`snapshot`.
+     - Timestamp of the latest oplog
+       entry in the restored snapshot.
 
    * - ``timestamp.date``
      - timestamp
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
-       the latest :term:`oplog <Oplog Store Database>` entry in the
-       restored :term:`snapshot`.
+       the latest oplog entry in the
+       restored snapshot.
 
    * - ``timestamp.increment``
      - number
      - Order of all operations completed at the latest
-       :term:`oplog <Oplog Store Database>` entry in the restored
-       :term:`snapshot`.
+       oplog entry in the restored
+       snapshot.
