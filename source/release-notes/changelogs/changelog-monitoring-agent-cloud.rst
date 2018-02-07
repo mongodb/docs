@@ -88,9 +88,9 @@ Monitoring Agent 5.4.1.350
 
 - Allow managed Monitoring Agents to be run as a service on Windows.
 
-.. _monitoring-5.2.0.331:
+.. _monitoring-5.3.0.341:
 
-Monitoring Agent 5.2.0.331
+Monitoring Agent 5.3.0.341
 --------------------------
 
 *Released 2016-09-14*

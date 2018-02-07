@@ -18,4 +18,3 @@
    In addition, modifying the :manual:`member settings 
    </reference/replica-configuration/#members>`
    of the current primary may trigger an election.
----

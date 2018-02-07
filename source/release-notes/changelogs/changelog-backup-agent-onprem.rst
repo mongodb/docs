@@ -189,6 +189,7 @@ Backup Agent 3.4.2.314
   during the sync.
 
 .. _backup-3.3.1.283:
+.. _backup-3.4.1.283:
 
 Backup Agent 3.4.1.283
 ----------------------

@@ -88,9 +88,9 @@
             `Tokens <https://www.flowdock.com/account/tokens>`_ page
             of your Flowdock account.
  
-      * - `PagerDuty <https://www.pagerduty.com/>`_
+      * - `PagerDuty <https://www.pagerduty.com/>`__
         - Any
-        - Sends the alert to a `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
+        - Sends the alert to a `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
           account. Enter only the PagerDuty service key. Define 
           escalation rules and alert assignments directly in PagerDuty.
  
@@ -218,9 +218,9 @@
             `Tokens <https://www.flowdock.com/account/tokens>`_ page 
             of your Flowdock account.
    
-      * - `PagerDuty <https://www.pagerduty.com/>`_
+      * - `PagerDuty <https://www.pagerduty.com/>`__
    
-        - Sends the alert to a `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
+        - Sends the alert to a `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
           account. Enter only the PagerDuty service key. Define 
           escalation rules and alert assignments directly in PagerDuty.
    

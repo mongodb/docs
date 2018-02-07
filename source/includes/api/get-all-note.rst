@@ -23,7 +23,7 @@ array of :guilabel:`link` objects and a count of the total number of
      - This array includes one or more links to sub-resources
        and/or related resources. The relations between URLs are
        explained in the `Web Linking Specification
-       <http://tools.ietf.org/html/rfc5988>`_.
+       <http://tools.ietf.org/html/rfc5988>`__.
    * - totalCount
      - number
      - The count of the total number of items in the result set. It may
