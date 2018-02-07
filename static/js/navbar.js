@@ -70,8 +70,6 @@
 	
 	var _Marian = __webpack_require__(189);
 	
-	var _Marian2 = _interopRequireDefault(_Marian);
-	
 	var _navbarDropdown = __webpack_require__(190);
 	
 	var _navbarDropdown2 = _interopRequireDefault(_navbarDropdown);
@@ -140,15 +138,9 @@
 	        }
 	      }
 	
-	      // Obey a search request, if we have one
-	      var locationQuery = window.location.search.match(/query=([^&#]*)/);
-	      locationQuery = locationQuery !== null ? decodeURIComponent(locationQuery[1]) : '';
-	      var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
-	      locationSearchProperty = locationSearchProperty !== null ? decodeURIComponent(locationSearchProperty[1]) : '';
-	
-	      _this.state.marian = new _Marian2.default('https://marian.mongodb.com', searchProperties, label, locationSearchProperty, locationQuery);
+	      _this.state.marian = new _Marian.MarianUI(searchProperties, label);
 	      _this.state.timeout = -1;
-	      _this.state.searchText = locationQuery;
+	      _this.state.searchText = _this.state.marian.query;
 	
 	      _this.state.marian.onchangequery = function (newQuery) {
 	        _this.setState({
@@ -27235,6 +27227,10 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	function decodeUrlParameter(uri) {
+	    return decodeURIComponent(uri.replace(/\+/g, '%20'));
+	}
+	
 	var TabStrip = function () {
 	    function TabStrip(initialSelection, tabs, onclick) {
 	        var _this = this;
@@ -27276,13 +27272,83 @@
 	    return TabStrip;
 	}();
 	
-	var Marian = function () {
-	    function Marian(url, defaultProperties, defaultPropertiesLabel, initialSearchProperty, initialQuery) {
-	        var _this2 = this;
-	
+	var Marian = exports.Marian = function () {
+	    function Marian() {
 	        _classCallCheck(this, Marian);
 	
-	        this.url = url.replace(/\/+$/, '');
+	        this.currentRequest = null;
+	        this.onresults = function () {};
+	        this.onerror = function () {};
+	    }
+	
+	    _createClass(Marian, [{
+	        key: 'search',
+	        value: function search(query, properties) {
+	            var _this2 = this;
+	
+	            if (!query) {
+	                this.onresults({
+	                    results: null,
+	                    spellingCorrections: {} }, query);
+	                return;
+	            }
+	
+	            if (this.currentRequest !== null) {
+	                this.currentRequest.abort();
+	            }
+	            var request = new XMLHttpRequest();
+	            this.currentRequest = request;
+	            var requestUrl = 'https://marian.mongodb.com/search?q=' + encodeURIComponent(query);
+	
+	            if (properties) {
+	                requestUrl += '&searchProperty=' + encodeURIComponent(properties);
+	            }
+	
+	            request.open('GET', requestUrl);
+	            request.onreadystatechange = function () {
+	                if (request.readyState !== 4) {
+	                    return;
+	                }
+	
+	                _this2.currentRequest = null;
+	
+	                if (!request.responseText) {
+	                    if (request.status === 400) {
+	                        _this2.onerror('Search request too long');
+	                    } else if (request.status === 503) {
+	                        _this2.onerror('Search server is temporarily unavailable');
+	                    } else if (request.status !== 0) {
+	                        _this2.onerror('Error receiving search results');
+	                    }
+	
+	                    return;
+	                }
+	
+	                var data = JSON.parse(request.responseText);
+	                _this2.onresults(data, query);
+	            };
+	
+	            request.onerror = function () {
+	                _this2.onerror('Network error when receiving search results');
+	            };
+	
+	            request.send();
+	        }
+	    }]);
+	
+	    return Marian;
+	}();
+	
+	var MarianUI = exports.MarianUI = function () {
+	    function MarianUI(defaultProperties, defaultPropertiesLabel) {
+	        var _this3 = this;
+	
+	        _classCallCheck(this, MarianUI);
+	
+	        this.marian = new Marian();
+	        this.marian.onerror = this.renderError.bind(this);
+	        this.marian.onresults = this.render.bind(this);
+	
 	        this.defaultProperties = defaultProperties;
 	        this.onchangequery = function () {};
 	
@@ -27292,10 +27358,8 @@
 	        this.spinnerElement = document.createElement('div');
 	        this.spinnerElement.className = 'spinner';
 	
-	        this.currentRequest = null;
-	
-	        this.query = initialQuery;
-	        this.searchProperty = initialSearchProperty;
+	        this.query = '';
+	        this.searchProperty = '';
 	
 	        // We have three options to search: the current site, the current MongoDB manual,
 	        // and all properties.
@@ -27318,10 +27382,10 @@
 	
 	        tabStripElements.push({ id: 'all', label: 'All Results' });
 	
-	        var tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
-	            tabStrip.update(tab.id);
-	            _this2.searchProperty = tab.id;
-	            _this2.search(_this2.query);
+	        this.tabStrip = new TabStrip(this.searchProperty, tabStripElements, function (tab) {
+	            _this3.tabStrip.update(tab.id);
+	            _this3.searchProperty = tab.id;
+	            _this3.search(_this3.query);
 	        });
 	
 	        var titleElement = document.createElement('div');
@@ -27331,9 +27395,11 @@
 	        this.listElement = document.createElement('ul');
 	        this.listElement.className = 'marian-results';
 	        this.container.appendChild(titleElement);
-	        this.container.appendChild(tabStrip.element);
+	        this.container.appendChild(this.tabStrip.element);
 	        this.container.appendChild(this.spinnerElement);
 	        this.container.appendChild(this.listElement);
+	
+	        this.query = this.parseUrl();
 	
 	        this.bodyElement = null;
 	        document.addEventListener('DOMContentLoaded', function () {
@@ -27341,27 +27407,54 @@
 	                return Boolean(el);
 	            })[0];
 	
-	            rootElement.appendChild(_this2.container);
+	            rootElement.appendChild(_this3.container);
 	
 	            var candidates = ['.main__cards', '.main__content', '.document'];
 	            for (var i = 0; i < candidates.length; i += 1) {
 	                var candidate = candidates[i];
-	                _this2.bodyElement = document.querySelector(candidate);
-	                if (_this2.bodyElement) {
+	                _this3.bodyElement = document.querySelector(candidate);
+	                if (_this3.bodyElement) {
 	                    break;
 	                }
 	            }
 	
 	            // If we can't find a page body, just use a dummy element
-	            if (!_this2.bodyElement) {
-	                _this2.bodyElement = document.createElement('div');
+	            if (!_this3.bodyElement) {
+	                _this3.bodyElement = document.createElement('div');
 	            }
 	
-	            _this2.search(_this2.query);
+	            _this3.search(_this3.query);
 	        });
 	    }
 	
-	    _createClass(Marian, [{
+	    _createClass(MarianUI, [{
+	        key: 'pushHistory',
+	        value: function pushHistory() {
+	            var locationSansQuery = window.location.href.replace(/\?[^#]*/, '');
+	
+	            var newURL = void 0;
+	            if (this.query) {
+	                newURL = locationSansQuery + '?searchProperty=' + encodeURIComponent(this.searchProperty) + '&query=' + encodeURIComponent(this.query);
+	            } else {
+	                newURL = locationSansQuery;
+	            }
+	
+	            window.history.replaceState({ href: newURL }, null, newURL);
+	        }
+	    }, {
+	        key: 'parseUrl',
+	        value: function parseUrl() {
+	            var locationSearchProperty = window.location.search.match(/searchProperty=([^&#]*)/);
+	            locationSearchProperty = locationSearchProperty !== null ? decodeUrlParameter(locationSearchProperty[1]) : '';
+	            if (locationSearchProperty) {
+	                this.searchProperty = locationSearchProperty;
+	                this.tabStrip.update(this.searchProperty);
+	            }
+	
+	            var locationQuery = window.location.search.match(/query=([^&#]*)/);
+	            return locationQuery !== null ? decodeUrlParameter(locationQuery[1]) : '';
+	        }
+	    }, {
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
@@ -27376,9 +27469,8 @@
 	    }, {
 	        key: 'search',
 	        value: function search(query) {
-	            var _this3 = this;
-	
 	            this.query = query;
+	            this.pushHistory();
 	            if (!query) {
 	                this.listElement.innerText = '';
 	                this.hide();
@@ -27387,55 +27479,23 @@
 	
 	            this.show();
 	
-	            if (this.currentRequest !== null) {
-	                this.currentRequest.abort();
-	            }
-	            var request = new XMLHttpRequest();
-	            this.currentRequest = request;
-	            var requestUrl = this.url + '/search?q=' + encodeURIComponent(query);
-	
+	            var searchProperty = '';
 	            if (this.defaultProperties.length && this.searchProperty === 'current') {
-	                requestUrl += '&searchProperty=' + encodeURIComponent(this.defaultProperties);
+	                searchProperty = this.defaultProperties;
 	            } else if (this.searchProperty === 'manual') {
-	                requestUrl += '&searchProperty=manual-current';
+	                searchProperty = 'manual-current';
 	            }
 	
 	            this.listElement.innerText = '';
 	            this.spinnerElement.className = 'spinner';
-	            request.open('GET', requestUrl);
-	            request.onreadystatechange = function (ev) {
-	                if (request.readyState !== 4) {
-	                    return;
-	                }
-	
-	                _this3.currentRequest = null;
-	                _this3.spinnerElement.className = 'spinner spinner--hidden';
-	
-	                if (!request.responseText) {
-	                    if (request.status === 400) {
-	                        _this3.renderError('Search request too long');
-	                    } else if (request.status === 503) {
-	                        _this3.renderError('Search server is temporarily unavailable');
-	                    } else if (request.status !== 0) {
-	                        _this3.renderError('Error receiving search results');
-	                    }
-	
-	                    return;
-	                }
-	
-	                var data = JSON.parse(request.responseText);
-	                _this3.render(data, query);
-	            };
-	            request.onerror = function () {
-	                _this3.renderError('Network error when receiving search results');
-	            };
-	
-	            request.send();
+	            this.marian.search(query, searchProperty);
 	        }
 	    }, {
 	        key: 'render',
 	        value: function render(data, query) {
 	            var _this4 = this;
+	
+	            this.spinnerElement.className = 'spinner spinner--hidden';
 	
 	            var spellingErrors = Object.keys(data.spellingCorrections);
 	            if (spellingErrors.length > 0) {
@@ -27477,18 +27537,17 @@
 	    }, {
 	        key: 'renderError',
 	        value: function renderError(message) {
-	            console.error(message);
+	            this.spinnerElement.className = 'spinner spinner--hidden';
+	
 	            var li = document.createElement('li');
 	            li.className = 'marian-result';
 	            li.innerText = message;
 	            this.listElement.appendChild(li);
 	        }
 	    }]);
-	
-	    return Marian;
+
+	    return MarianUI;
 	}();
-	
-	exports.default = Marian;
 
 /***/ }),
 /* 190 */
