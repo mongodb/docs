@@ -208,17 +208,42 @@ reflected in the cost of the cluster.
 Backup
 ------
 
-Backup costs are affected by both the size of your backed-up snapshots
-and on your settings for snapshot frequency and retention.
+The |service| :doc:`backup-cluster` supports 
+:doc:`/backup/continuous-backups` and 
+:doc:`/backup/cloud-provider-snapshots`. Each backup method has
+its own cost calculations and considerations.
 
-Backup Cost Rate
-~~~~~~~~~~~~~~~~
+|service| charges for each replica set in a cluster. For a replica set
+deployment, the backup costs are the cost to backup data for the replica
+set. For a sharded cluster deployment, |service| sums the cost to
+backup the data for each shard replica set *and* the config server
+replica set.
 
-The backup cost per GB per month (US$2.50 / GB / month) is as specified
-on the `Atlas pricing page
+|service| charges for the network transfer costs of restoring a 
+snapshot. See :ref:`data-transfer-costs` for more information on how
+|service| charges for network data.
+
+Continuous Backups
+~~~~~~~~~~~~~~~~~~
+
+The backup cost for continuous backups is per GB per month 
+(US$2.50 / GB / month) as specified on the `Atlas pricing page
 <https://www.mongodb.com/cloud/atlas/pricing?jmp=docs>`__. The monthly
 rate is annualized and then divided by 365 to arrive at a Daily Backup
 Rate per GB. The first 1GB of backup data is free.
+
+Monthly backup costs are primarily based on the size per-gigabyte of 
+the data to back up. This size is roughly equivalent to the uncompressed
+size of all documents and all indexes for all the databases backed up. 
+
+To retrieve the size in gigabyte of the documents and indexes for a
+given database, you can issue the :manual:`db.stats()
+</reference/method/db.stats>` method and sum the ``dataSize`` and
+``indexSize`` fields.
+
+.. code-block:: javascript
+
+   db.stats(1024*1024*1024).dataSize + db.stats(1024*1024*1024).indexSize
 
 The rate is based on your having 28 snapshots at steady state: 
 
@@ -237,32 +262,14 @@ backup rate daily based on the following formula:
 
    backupRatePerMonth = $1.25 + snapshotAtSteadyState/28 * $1.25
 
-Size
-~~~~
-
-Monthly backup costs are based on the size per-gigabyte of the data to
-back up. This size is roughly equivalent to the size of all documents
-and all indexes for all the databases backed up. 
-
-To retrieve the size in gigabyte of the documents and indexes for a
-given database, you can issue the :manual:`db.stats()
-</reference/method/db.stats>` method and sum the ``dataSize`` and
-``indexSize`` fields.
-
-.. code-block:: javascript
-
-   db.stats(1024*1024*1024).dataSize + db.stats(1024*1024*1024).indexSize
-
-|service| charges for each replica set in a cluster. For a replica set
-deployment, backup costs is the cost to backup data for the replica
-set. For a sharded cluster deployment, |service| sums the cost to
-backup the data for each shard replica set *and* the config server
-replica set.
+Changing the snapshot frequency or retention period affects the
+base rate per GB. See :ref:`modify-backup-schedule` and
+:ref:`retention-policy` for more information.
 
 .. example::
 
    For a three-member replica set with 30GB of data, |service| charges
-   US$72.50 each month (using the deafault backup rate).
+   US$72.50 each month (using the default backup rate).
 
    ``(30GB - 1GB) × US$2.50 = US$72.50``
 
@@ -277,15 +284,50 @@ replica set.
 
    ``((30GB - 1GB) × US$2.50) × 3) + ((5GB - 1GB) × US$2.50) = US$227.50``
 
+Cloud Provider Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The backup cost for cloud provider snapshots is the *total* size
+of all snapshots per GB per month. The rate per GB depends on the region
+of the cluster. For multi-region clusters, the rate per GB depends on 
+the cluster's preferred region.
+
+.. example::
+
+   For a three member replica set deployed to the Azure ``useast2``
+   region (Virginia, USA) with three snapshots of 10, 20, and 30GB
+   respectively, |service| charges US$20.40.
+
+   ``(10GB * US$0.34) + (20GB * US$0.34) + (30GB * US$0.34)``
+
+   **note**: The US$0.34 rate per GB is specific to the 
+   :ref:`Azure <windows-azure>` ``useast2`` region at the time of 
+   writing. |service| displays the most current cost per GB for
+   the cluster's selected region during cluster configuration.
+   See :doc:`/create-new-cluster` or :doc:`scale-cluster` for
+   more information on cluster configuration.
+
+For manual downloads via HTTPS, |service| also charges per-hour that
+the download link remains active. The charge per hour depends on the
+instance size of the snapshot cluster. Contact MongoDB Support
+for more information. From the |service| project or cluster view, 
+click :guilabel:`Support` in the left-hand navigation bar.
+
 Lowering the Monthly Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Lowering snapshot frequency or lowering snapshot retention lowers the
-cost per gigabyte. Increasing the snapshot frequency or the snapshot
-retention increases the cost per gigabyte.
+For continuous snapshots, lowering snapshot frequency or lowering
+snapshot retention lowers the cost per gigabyte. Increasing the snapshot
+frequency or the snapshot retention increases the cost per gigabyte.
 
 To modify the snapshot frequency or retention for a cluster, see
 :ref:`modify-backup-schedule`.
+
+For cloud provider snapshots, the cost of backups is dependent
+on the location of your preferred region. Chosing a different
+preferred region may reduce the cost per gigabyte. You can
+change preferred regions by :ref:`scaling the cluster 
+<scale-cluster-region>`.
 
 |bic|
 -----

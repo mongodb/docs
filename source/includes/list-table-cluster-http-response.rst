@@ -281,9 +281,9 @@
 
    * - ``backupEnabled``
      - Boolean
-     - If enabled, the |service| :doc:`Backup </backup-cluster>` service takes
-       snapshots of your databases at regular intervals and retains them
-       according to your group's :ref:`retention policy <retention-policy>`.
+     - ``true`` if you enabled 
+       :doc:`continuous backups </backup/continuous-backups>` for the 
+       cluster.
 
    * - ``stateName``
      - string

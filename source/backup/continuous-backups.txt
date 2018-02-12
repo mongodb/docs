@@ -1,0 +1,136 @@
+.. _backup-continuous:
+
+==================
+Continuous Backups
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| continuous backups take incremental backups of data in your
+cluster, ensuring your backups are typically just a few seconds behind 
+the operational system. |service| continuous backups allow you to 
+:doc:`restore </restore-cluster>` from stored snapshots or from a 
+selected point in time within the last 24 hours. You can also
+:doc:`query a continuous backup snapshots </query-backup>`
+
+For sharded clusters, the backup service temporarily stops the balancer
+via the :binary:`mongos <bin.mongos>` in order to insert a marker token
+into all shards and config servers in the cluster. |service| takes a
+snapshot when the marker tokens appear in the backup data.
+
+Enable Backup
+-------------
+
+You can enable continuous backups during the :doc:`cluster creation
+</create-new-cluster>` or during the :doc:`modification of an existing
+cluster </scale-cluster>`. 
+
+From the the cluster configuration modal, toggle ``Do you want to enable
+backup?`` to ``Yes``. For clusters deployed to 
+:ref:`Azure <microsoft-azure>`, select the :guilabel:`Continuous` 
+card.
+
+.. include:: /includes/fact-backup-method-selection.rst
+
+.. _continuous-snapshot-storage-location:
+
+Snapshot Storage Location
+-------------------------
+
+Each project has *one* backup data center location dictated by the *first*
+backup-enabled cluster created in that project. 
+
+For single-region |service| clusters created after June 21st, 2017,
+|service| stores backup data for an |service| cluster in a data center
+specific to the cluster's geographic region. 
+
+For multi-region |service| clusters, |service| stores backup data for the
+cluster in a data center specific to the geographical location of the
+cluster's Preferred Region.
+
+.. important::
+   
+   All additional backup-enabled clusters created in the project use the
+   backup data center selected during deployment of the project's first
+   backup-enabled cluster regardless of the geographical location of the
+   cluster region or regions.
+   
+   To change the data center location of a cluster, you must disable
+   backups for *all* clusters in the project. You can then enable
+   backups for a cluster whose geographic region corresponds to the data
+   center location of your choice.
+   
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Cluster Location
+     - Backup Service Location
+     
+   * - USA
+     - USA
+     
+   * - Germany
+     - Germany
+     
+   * - United Kingdom
+     - United Kingdom
+     
+   * - Australia
+     - Australia
+     
+   * - All other cluster locations
+     - Ireland
+
+|service| retains these snapshots based on the :ref:`retention policy
+<retention-policy>`.
+
+.. _modify-backup-schedule:
+
+Modify Backup Schedule
+----------------------
+
+If you enable backup for a cluster, |service| takes a base snapshot of
+your data every 6 hours.
+
+To change a deployment's backup schedule, go to :guilabel:`Backup`. For
+the cluster whose backup schedule you wish to modify, click the
+ellipsis and select :guilabel:`Edit Snapshot Schedule` menu option.
+
+.. _retention-policy:
+
+Retention Policy
+----------------
+
+|service| retains snapshots for the time periods listed in the
+following table. If you disable backup for a cluster or terminate a
+cluster, |service| immediately deletes the backup snapshots for the
+cluster.
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Snapshot
+     - Default Retention Policy
+     - Maximum Retention Setting
+   * - Base snapshot.
+     - 2 days
+     - 5 days.
+   * - Daily snapshot
+     - 7 days
+     - 360 days
+   * - Weekly snapshot
+     - 4 weeks
+     - 52 weeks
+   * - Monthly snapshot
+     - 13 months
+     - 36 months
