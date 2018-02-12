@@ -13,6 +13,8 @@ MongoDB deployments.
    If you toggle :guilabel:`Synced` to ``OFF`` after import, any users or
    roles you create are deleted.
 
+.. _consistent-users-and-roles:
+
 Consistent Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
