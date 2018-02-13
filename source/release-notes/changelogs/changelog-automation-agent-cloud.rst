@@ -1,3 +1,12 @@
+.. _automation-4.9.0.2490:
+
+Automation Agent 4.9.0.2490
+---------------------------
+
+*Released 2018-02-13*
+
+- Support for upcoming improvements to real time performance monitoring
+
 .. _automation-4.8.2.2459:
 
 Automation Agent 4.8.2.2459

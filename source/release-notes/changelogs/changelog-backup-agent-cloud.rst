@@ -1,3 +1,15 @@
+.. _backup-6.4.0.734:
+
+Backup Agent 6.4.0.734
+----------------------
+
+*Released 2018-02-13*
+
+- During a PIT restore, suppress errors when dropping non-existent
+  namespaces.
+
+- During a PIT restore, always apply oplogs with upsert=true.
+
 .. _backup-6.3.0.728:
 
 Backup Agent 6.3.0.728
@@ -5,7 +17,7 @@ Backup Agent 6.3.0.728
 
 *Released 2018-01-23*
 
-- **Fix:** Send compound index keys as ordered BSON
+- **Fix:** Send compound index keys as ordered BSON.
 
 - **Fix:** Send less detailed data in the initial summary payload at the
   start of an initial sync. Collect more detailed data for each
