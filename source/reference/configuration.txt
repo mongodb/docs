@@ -12,9 +12,6 @@
    :depth: 1
    :class: twocols
 
-Overview
---------
-
 |onprem| stores configuration settings both globally in the
 |application| Database and locally on each server. Global settings
 apply to all your |onprem| servers. Local settings apply to the server
@@ -41,7 +38,7 @@ installed |onprem|, as described in the table below.
 
    * - Install method
 
-     - conf-mms.properties location
+     - ``conf-mms.properties`` location
 
    * - ``rpm`` or ``deb`` package
 
@@ -56,6 +53,120 @@ installed |onprem|, as described in the table below.
      - ``<install-folder>\Server\Config``
 
        By default, this is: ``C:\MMSData\Server\Config``.
+
+Bypass Initial Configuration via the User Interface
+---------------------------------------------------
+
+If you would like to skip the initial setup wizard after creating the 
+first account and either edit the ``conf-mms.properties`` file or use 
+the API to configure |onprem|, change the following settings. This 
+setting can help if you are automating the deployment of |onprem| 
+instances.
+
+.. setting:: mms.ignoreInitialUiSetup
+
+   *Type*: boolean
+
+   Set this to ``true`` to allow full use of |onprem| without 
+   requiring the first user account to complete the initial setup 
+   wizard.
+
+   .. warning::
+
+      |onprem| performs its regular pre-flight check to verify that it
+      has all of the required settings. If one or more of those
+      settings are not included in ``conf-mms.properties``, |onprem|
+      refuses to start and lists which fields are missing in
+      the log file.
+
+   Before starting |onprem|, add the following required settings to 
+   ``conf-mms.properties`` to enable basic |onprem| functionality:
+
+   .. list-table::
+      :widths: 40 40 20
+      :header-rows: 1
+
+      * - UI Setting
+        - ``conf-mms.properties`` Setting
+        - Required
+      * - :setting:`URL to Access Ops Manager`
+        - ``mms.centralUrl``
+        - Required
+      * - None
+        - :setting:`mongo.mongoUri`
+        - Required
+      * - :setting:`Client Certificate Mode`
+        - ``mms.https.ClientCertificateMode``
+        - Required
+      * - :setting:`"From" Email Address <From Email Address>`
+        - ``mms.fromEmailAddr``
+        - Required
+      * - :setting:`"Reply To" Email Address <Reply To Email Address>`
+        - ``mms.replyToEmailAddr``
+        - Required
+      * - :setting:`Admin Email Address`
+        - ``mms.adminEmailAddr``
+        - Required
+      * - :setting:`Email Delivery Method Configuration`
+        - ``mms.emailDaoClass``
+        - Required
+      * - :setting:`Transport`
+        - ``mms.mail.transport``
+        - Required
+      * - :setting:`SMTP Server Hostname`
+        - ``mms.mail.hostname``
+        - Required
+      * - :setting:`SMTP Server Port`
+        - ``mms.mail.port``
+        - Required
+      * - :setting:`User Authentication Method`
+        - ``mms.userSvcClass``
+        - Optional
+      * - :setting:`Snapshot Interval`
+        - ``brs.snapshotSchedule.interval``
+        - Optional
+      * - :setting:`Base Retention of Snapshots`
+        - ``brs.snapshotSchedule.retention.base``
+        - Optional
+      * - :setting:`Daily Retention of Snapshots`
+        - ``brs.snapshotSchedule.retention.daily``
+        - Optional
+      * - :setting:`Weekly Retention of Snapshots`
+        - ``brs.snapshotSchedule.retention.weekly``
+        - Optional
+      * - :setting:`Monthly Retention of Snapshots`
+        - ``brs.snapshotSchedule.retention.monthly``
+        - Optional
+      * - :setting:`Versions Directory`
+        - ``automation.versions.directory``
+        - Optional
+
+   .. note::
+
+      Fields marked as *Optional* have default values. If you want to change
+      them, you can provide the setting a nd a new value.
+
+   .. example::
+
+      To configure |a-mms| installation with the minimum functionality, 
+      add the following settings to ``conf-mms.properties``:
+
+      .. code-block:: ini
+         :class: copyable-code
+
+         mms.ignoreInitialUiSetup=true
+         mongo.mongoUri=mongodb://db1.example.com:27017,db2.example.com:27017,db3.example.com:27017
+         mms.centralUrl=http://localhost:8080
+         mms.fromEmailAddr=example@example.com
+         mms.replyToEmailAddr=example@example.com
+         mms.adminEmailAddr=example@example.com
+         mms.mail.transport=smtps
+         mms.mail.hostname=mail.example.com
+         mms.mail.port=465
+
+      The values are examples. Substitute values appropriate to your 
+      |onprem| installation. You may add any of the other settings 
+      specified in this reference. 
 
 Web Server Settings
 -------------------
@@ -418,8 +529,23 @@ User Authentication Method
 
    *Type*: string
 
+   *Default*: ``com.xgen.svc.mms.svc.user.UserSvcDb``
+
    Select whether to store authentication credentials in the |onprem|
    Application Database or in an external authentication source.
+
+   .. list-table::
+      :widths: 40 60
+      :header-rows: 1
+
+      * - Auth Method
+        - Accepted Value
+
+      * - External Source
+        - ``com.xgen.svc.mms.svc.user.UserSvcCrowd``
+      
+      * - Internal Database
+        - ``com.xgen.svc.mms.svc.user.UserSvcDb``
 
    Corresponds to configuration file setting: ``mms.userSvcClass``
 
@@ -1079,6 +1205,14 @@ binaries when deploying MongoDB.
 
    *Type*: string
 
+   *Default*: 
+
+   Windows:
+     ``C:\MMSData\MongoDBReleases``
+
+   Linux / macOS:
+     ``/opt/mongodb/mms/mongodb-releases/``
+
    Specify the directory on the |application| server where |onprem|
    stores the MongoDB binaries. The Automation Agent accesses the
    binaries when installing or changing versions of MongoDB on your
@@ -1086,6 +1220,8 @@ binaries when deploying MongoDB.
    ``Local`` mode, the Backup Daemons also access the MongoDB binaries
    from this directory. See :doc:`/tutorial/configure-local-mode` for
    more information.
+
+   Corresponds to configuration file setting: ``automation.versions.directory``
 
 .. _mongodb-release-autodownload:
 
@@ -1247,7 +1383,7 @@ page, and then the :guilabel:`Backup` section.
    to the ``brs.snapshotSchedule.retention.weekly`` configuration 
    file setting.
 
-.. setting:: Monthly Retention of Snapshot (in Months)
+.. setting:: Monthly Retention of Snapshots (in Months)
 
    *Type*: integer
 
@@ -1255,7 +1391,7 @@ page, and then the :guilabel:`Backup` section.
 
    Specifies how many months a monthly snapshot is stored.
 
-   :guilabel:`Monthly Retention of Snapshot (in Months)` corresponds 
+   :guilabel:`Monthly Retention of Snapshots (in Months)` corresponds 
    to the ``brs.snapshotSchedule.retention.monthly`` configuration 
    file setting.
 
@@ -2071,4 +2207,3 @@ tab, go to :guilabel:`Ops Manager Config` and select the
 .. setting:: automation.default.certificateAuthorityFileWindows
 
    The default path for the Certificate Authority (CA) file on Windows.
-
