@@ -7,6 +7,16 @@ Automation Agent 4.9.0.2490
 
 - Support for upcoming improvements to real time performance monitoring
 
+.. _automation-4.8.2.2491:
+
+Automation Agent 4.8.2.2491
+---------------------------
+
+*Released 2018-02-10*
+
+- When performing an automated restore, remove all elements in the
+  config.mongos collection that are included in the restore files.
+  
 .. _automation-4.8.2.2459:
 
 Automation Agent 4.8.2.2459
@@ -35,6 +45,8 @@ Automation Agent 4.8.0.2438
 
 - Support MongoDB authentication for managed BI Connectors, without also
   requiring |tls-ssl|.
+
+
 
 .. _automation-4.7.0.2418:
 
