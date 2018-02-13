@@ -9,7 +9,7 @@ collection:
 
    db.runCommand( { create: "numericGrades", viewOn: "grades", pipeline: [ { "$match": { "grade": { "$type": "number" } } } ] } )
 
-You can then use :program:`mongodrdl` to generate a schema from this view
+You can then use :binary:`~bin.mongodrdl` to generate a schema from this view
 as you would a collection:
 
 .. code-block:: sh

@@ -9,7 +9,7 @@ database ``test``:
        "detail": { "a": 2, "b": 3 }
    }
 
-Run :program:`mongodrdl` to generate a schema based on this collection:
+Run :binary:`~bin.mongodrdl` to generate a schema based on this collection:
 
 .. class:: copyable-code
 .. code-block:: sh
