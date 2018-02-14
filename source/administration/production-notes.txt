@@ -559,6 +559,43 @@ possible, use XFS as it generally performs better with MongoDB.
    *on directories*. For example, HGFS and Virtual Box's shared
    folders do *not* support this operation.
 
+Set ``vm.swappiness`` at least ``1``
+````````````````````````````````````
+
+“Swappiness” is a Linux kernel setting that influences the behavior of
+the Virtual Memory manager when it needs to allocate a swap, ranging
+from ``0`` to ``100``, inclusive. 
+
+- A setting of ``0`` tells the kernel to swap only to avoid
+  out-of-memory problems. 
+
+- A setting of ``100`` tells it to swap aggressively to disk.
+
+If your host runs kernel versions ``3.5`` or later, or ``2.6.32-303`` 
+or later, setting this value to ``0`` could disable swapping. Set this 
+to ``1``.
+
+To see what the current swappiness level is, run:
+
+.. code-block:: sh
+
+   example@example:$ cat /proc/sys/vm/swappiness
+
+   60
+
+To change swappiness while the system is running, run: 
+
+.. code-block:: sh
+
+   example@example:$ sysctl vm.swappiness=1
+
+To change swappiness permanently, edit the ``/etc/sysctl.conf`` file in
+your preferred text editor and change this value:
+
+.. code-block:: ini
+
+   vm.swappiness = 1
+
 .. _linux-recommended-configuration:
 
 Recommended Configuration
@@ -740,20 +777,36 @@ accommodate Windows' commitment rules during peak database use.
 MongoDB on Virtual Environments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes considerations when running MongoDB in some of the
-more common virtual environments.
+This section describes considerations when running MongoDB in some of 
+the more common virtual environments.
 
 For all platforms, consider :ref:`virtualized-disks-scheduling`.
 
-EC2
-```
+:abbr:`AWS (Amazon Web Services)` :abbr:`EC2 (Elastic Compute Cloud)`
+`````````````````````````````````````````````````````````````````````
 
-When available, enable AWS's `Enhanced Networking
-<http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_
-for your instance. Not all instance types support Enhanced Networking.
-Refer to the `AWS documentation
-<http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_
-for more information.
+- When available, enable :abbr:`AWS (Amazon Web Services)`
+  `Enhanced Networking <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_ 
+  for your instance. Not all instance types support Enhanced Networking. 
+
+  To learn more about Enhanced Networking, see to the 
+  `AWS documentation <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_.
+
+- Use provisioned IOPS for the storage, with separate devices for
+  journal and data. Do not use the ephemeral storage available on some
+  instance types as their performance changes moment to moment.
+
+- Disable hyperthreading, 
+  :abbr:`DVFS (dynamic voltage and frequency scaling)`, 
+  :abbr:`CPU (central processing unit)` power saving modes.
+
+  .. seealso::
+
+     - `Amazon blog post on disabling Hyper-Threading <https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-linux/>`_.
+
+     - `Amazon documentation on Processor State Control <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/processor_state_control.html>`_
+
+- Use ``numactl`` to bind memory locality to a single socket.
 
 .. _windows-azure-production-notes:
 
