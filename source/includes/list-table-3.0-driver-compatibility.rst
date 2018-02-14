@@ -5,10 +5,10 @@
      - |driver-compatibility-heading|
 
    * - :ecosystem:`C </drivers/c>`
-     - `1.1.0 <https://github.com/mongodb/mongo-c-driver/releases>`_
+     - `1.1.0 <https://github.com/mongodb/mongo-c-driver/releases>`__
 
    * - `C++ <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`_
+     - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`__
 
    * - :ecosystem:`C# </drivers/csharp>`
      - `1.10 <https://github.com/mongodb/mongo-csharp-driver/releases>`_

@@ -7,6 +7,6 @@ conjunction with the init scripts. See
 the :doc:`Configuration File </reference/configuration-options>`
 reference for documentation of settings available in the configuration file.
 
-There are no init scripts for :binary:`~bin.mongos. You can use the ``mongod``
+There are no init scripts for :binary:`~bin.mongos`. You can use the ``mongod``
 init script to derive your own :binary:`~bin.mongos` init script for use in such
 environments. See the :binary:`~bin.mongos` reference for configuration details.
