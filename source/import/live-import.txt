@@ -1,6 +1,6 @@
-==================================
-Live Migrate Your Cluster to Atlas
-==================================
+======================================
+Live Migrate Your Replica Set to Atlas
+======================================
 
 .. default-domain:: mongodb
 
@@ -22,12 +22,17 @@ until you cut your applications over to the |service| cluster.
    the source or destination for live migration. To migrate data from an
    ``M0`` (Free Tier) or ``M2/M5`` shared cluster to a paid cluster, see
    :doc:`/scale-cluster`.
-   
-   |service| does not support live migrations from or to a sharded 
-   cluster.
 
-Considerations
---------------
+|service| requires a period of downtime during the cut over process. 
+Consider scheduling a maintenance period for your application to
+cover this downtime and allow |service| live migration to fully
+sync with the source cluster data.
+
+For a procedure on live migrating a sharded cluster, see 
+:doc:`/import/live-import-sharded`.
+
+Prerequisites
+-------------
 
 .. _live-import-upgrade-path:
 
@@ -39,8 +44,8 @@ Upgrade Path
 .. list-table::
    :header-rows: 1
 
-   * - Source Replica Set Version
-     - Destination Cluster version
+   * - Source Replica Set MongoDB Version
+     - Destination |service| Replica Set MongoDB Version
 
    * - 2.6
      - 3.2 or 3.4 or 3.6
@@ -62,39 +67,13 @@ Upgrade Path
    to a newer version of MongoDB, plan for updating and testing
    your application in context of the destination migration cluster.
 
-Supported Authentication Mechanism
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| only supports :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>` for
-connecting to source clusters enforcing authentication.
-
-If the source cluster uses a different authentication mechanism, to connect
-you can use the :doc:`/import/mongomirror` tool to migrate data from the
-source cluster to the destination |service| cluster.
-
-MongoDB Users and Roles
-~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| does not migrate any user or role data to the destination cluster.
-
-If the source cluster enforced authentication, you must re-create the
-credentials used by your applications on the destination |service| cluster.
-|service| only supports :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>` for
-user authentication. See :doc:`/security-add-mongodb-users` for a tutorial on
-creating MongoDB users in |service|.
-
-MongoDB Config Database
-~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| does not migrate the ``config`` database.
-
 .. _live-import-ip-whitelist:
 
-IP Whitelisting
-~~~~~~~~~~~~~~~
+Network Access
+~~~~~~~~~~~~~~
 
-Source Cluster IP Whitelist
-+++++++++++++++++++++++++++
+Source Cluster Firewall Must Allow Access from Live Migration Server
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If your source cluster is protected by a firewall, grant access to the
 following |service| IP ranges:
@@ -102,8 +81,8 @@ following |service| IP ranges:
 - ``4.71.186.128/25``
 - ``4.35.16.128/25``
 
-|service| Cluster IP Whitelist
-++++++++++++++++++++++++++++++
+|Service| Cluster IP Whitelist Must Allow Access From Your Application Servers
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 |service| only allows connections to a cluster from entries in the project’s
 :doc:`whitelist </security-whitelist>`. You must add IP addresses such as
@@ -111,32 +90,58 @@ application servers to the project whitelist manually. Do this before beginning
 the migration procedure.
 
 |service| temporarily adds the IP address of the |service| migration
-to the project whitelist. During the migration procedure, you cannot edit
-or delete this entry. |service| removes the entry automatically once the
-procedure completes.
+servers to the project whitelist. During the migration procedure, you
+cannot edit or delete this entry. |service| removes the entry
+automatically once the procedure completes.
 
 For documentation on adding entries to the |service| whitelist, see
 :doc:`/security-whitelist`.
 
-Cut Over Downtime
-~~~~~~~~~~~~~~~~~
+.. _live-import-migration-validation:
 
-The live migration procedure requires shutting down your applications as part
-of the cut over process. This results in some downtime while the migration
-procedure completes, as well as the time required to update your applications
-to point to the destination cluster and restart them.
+Pre-Migration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Source Cluster Requirements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|service| performs a number of validation checks on the source
+and destination cluster before starting the Live Migration procedure.
 
-- The source MongoDB deployment must be a replica set. If the source is
-  a standalone MongoDB deployment, convert to a replica set first to 
-  use |service| Live Migration. See 
-  :manual:`Convert a Standalone to a Replica Set
-  </tutorial/convert-standalone-to-replica-set/>`.
+- The source cluster is a replica set.
+  
+  If the source is a standalone,
+  :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
+  before using :doc:`Live Migration </import/live-import>`.
 
-- You should not change the ``featureCompatibilityVersion`` flag while
-  |service| Live Migration is running.
+- The destination |service| cluster must be a replica set.
+
+.. _live-import-security:
+
+Source Cluster Security
+~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| only supports 
+:manual:`SCRAM </core/security-scram-sha-1>` for
+connecting to source clusters enforcing authentication.
+
+If the source cluster enforces authentication, create a user with the
+same name and password that exists on every shard *and* the config
+server replica set. The user must have permission to:
+
+- Read all databases and collections.
+- Read the oplog.
+
+The :authrole:`dbAdmin` and :authrole:`clusterAdmin` built-in roles 
+provide sufficient privilege for |service| to perform the 
+Live Migration procedure.
+
+Specify the user name and password to |service| when prompted by
+the Live Migration procedure.
+
+If the source cluster uses a different authentication mechanism, to connect
+you can use the :doc:`/import/mongomirror` tool to migrate data from the
+source cluster to the destination |service| cluster.
+
+Considerations
+--------------
 
 Destination Cluster Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -162,17 +167,20 @@ When configuring the destination cluster, consider the following:
 - You cannot select an ``M0`` (Free Tier) or ``M2/M5`` shared tier 
   cluster as the destination for live migration.
 
-- You should not change the ``featureCompatibilityVersion`` flag while
+- Do **not** change the ``featureCompatibilityVersion`` flag while
   |service| Live Migrate is running.
 
-Data Transfer Charges
-~~~~~~~~~~~~~~~~~~~~~
+MongoDB Users and Roles
+~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| charges for data transfer between the |service| cluster and
-another server. The migration procedure incurs data charges based on the
-amount of data transferred from the source cluster to the |service| cluster.
+|service| does not migrate any user or role data to the destination 
+cluster.
 
-For more information on data transfer charges, see :ref:`data-transfer-costs`.
+If the source cluster enforced authentication, you must re-create the
+credentials used by your applications on the destination |service|
+cluster. |service| uses :manual:`SCRAM </core/security-scram-sha-1>` for
+user authentication. See :doc:`/security-add-mongodb-users` for a
+tutorial on creating MongoDB users in |service|.
 
 Procedure
 ---------
@@ -191,6 +199,13 @@ Procedure
    Once you have tested your application, perform the full migration
    procedure using a separate |service| cluster to create your
    |service|-backed production environment.
+
+.. important::
+
+   Avoid making changes to the source cluster configuration while the
+   Live Migration procedure runs, such as removing replica set members
+   or modifying :binary:`mongod <bin.mongod>` runtime settings
+   like ``featureCompatibilityVersion``. 
 
 .. include:: /includes/steps/atlas-live-import.rst
 

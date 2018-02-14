@@ -10,8 +10,8 @@ Import Data into Cluster
    :depth: 1
    :class: singlecol
 
-Data Import Programs
---------------------
+Data Import Tools
+-----------------
 
 You can bring data from existing MongoDB deployments or JSON/CSV files
 into |service| using one of the following:
@@ -20,20 +20,57 @@ into |service| using one of the following:
    :header-rows: 1
    :widths: 35 65
 
-   * - Program
+   * - Tools
      - Use Case
 
-   * - :doc:`Live Migrate </import/live-import>` feature.
+   * - :doc:`Live Migrate a replica set </import/live-import>`.
 
-     - To migrate from a MongoDB *replica set* into an |service| cluster.
+     - To migrate from a MongoDB *replica set*
+       into an |service| replica set cluster.
 
-       .. important::
+       |service| replica set live migration supports the following 
+       migration paths:
 
-          - The source MongoDB replica set must be version 2.6 or 
-            greater, excluding version 3.6.
+       .. list-table::
+          :header-rows: 1
+ 
+          * - Source Replica Set MongoDB Version
+            - Destination |service| Replica Set MongoDB Version
+ 
+          * - 2.6
+            - 3.2 or 3.4 or 3.6
+ 
+          * - 3.0
+            - 3.2 or 3.4 or 3.6
+ 
+          * - 3.2
+            - 3.2 or 3.4 or 3.6
+ 
+          * - 3.4
+            - 3.4 or 3.6
 
-          - :doc:`Live Migrate </import/live-import>` does not import
-            user/role data or copy the ``config`` database.
+       See :doc:`replica set live migration </import/live-import>`
+       documentation for complete prerequisites and instructions.
+
+   * - :doc:`Live Migrate a sharded cluster </import/live-import-sharded>`.
+
+     - To migrate from a MongoDB sharded cluster to an |service| 
+       sharded cluster.
+
+       .. list-table::
+          :header-rows: 1
+
+          * - Source Sharded Cluster MongoDB Version
+            - Destination Sharded Cluster MongoDB Version
+        
+          * - 3.2
+            - 3.2
+        
+          * - 3.4
+            - 3.4
+
+       See :doc:`sharded cluster live migration </import/live-import-sharded>`
+       documentation for complete prerequisites and instructions.
 
    * - :doc:`mongomirror </import/mongomirror>`
 
@@ -110,6 +147,37 @@ configurations:
        cluster runs with authentication, you must have credentials that
        provide read access to the primary and its :term:`oplog`.
 
+       See :ref:`live-import-migration-validation` for the full
+       list of migration requirements.
+
+   * - A sharded cluster with multiple shards.
+
+     - If your application can tolerate a short period of downtime,
+       use :doc:`Live Migrate </import/live-import-sharded>`. The source
+       cluster must run MongoDB 3.2 or 3.4.
+
+       If the source cluster enforces authentication, specify a user to
+       |service| that exists on every shard *and* the config server
+       replica set. The user must have permission to:
+
+       - Stop or start the sharded cluster balancer.
+       - Read all databases and collections on the host.
+       - Read the oplog on the host.
+
+       See :ref:`live-import-sharded-migration-validation` for the full
+       list of migration requirements.
+
+       If near-continuous uptime is a requirement, please contact
+       MongoDB. From the |service| UI, click :guilabel:`Support`. Fill
+       out a Support ticket, noting your uptime requirements and cluster
+       configuration in the :guilabel:`More details` text entry.
+
+       If some downtime is OK and your sharded cluster does not run a 
+       supported MongoDB version, you may use :binary:`mongodump` and
+       :binary:`mongorestore`. See :doc:`/import/mongorestore` and
+       :manual:`Backup Sharded Cluster with Database Dumps
+       </tutorial/backup-sharded-cluster-with-database-dumps>`.
+
    * - A "single :term:`shard`" :term:`sharded cluster` in ``Compose``. This is
        the standard configuration for new MongoDB deployments in ``Compose``.
 
@@ -121,6 +189,9 @@ configurations:
 
        You must specify the hostname and credentials for the oplog proxy when
        connecting from Live Migrate.
+
+       See :ref:`live-import-migration-validation` for the full
+       list of migration requirements.
 
    * - A standalone MongoDB node.
 
@@ -146,18 +217,6 @@ configurations:
        If you are running with authentication enabled, you must have
        credentials that provide read access to the primary.
 
-   * - A sharded cluster with multiple shards.
-
-     - If near-continuous uptime is a requirement, please contact MongoDB.
-       From the |service| UI, click :guilabel:`Support`. Fill out a Support
-       ticket, noting your uptime requirements and cluster configuration in
-       the :guilabel:`More details` text entry.
-
-       If some downtime is OK, you may use :binary:`mongodump` and
-       :binary:`mongorestore`. See :doc:`/import/mongorestore` and
-       :manual:`Backup Sharded Cluster with Database Dumps
-       </tutorial/backup-sharded-cluster-with-database-dumps>`.
-
 
 |service| has built-in support for :doc:`scaling </scale-cluster>` an ``M0``
 Free Tier cluster to an ``M10+`` paid cluster. Alternatively, use
@@ -170,6 +229,7 @@ Free Tier cluster to an ``M10+`` cluster. See :doc:`/import/mongorestore`.
       :titlesonly:
 
       /import/live-import
+      /import/live-import-sharded
       /import/mongomirror
       /import/mongorestore
       /import/mongoimport
