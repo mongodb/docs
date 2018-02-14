@@ -114,6 +114,15 @@
           is available only if you have configured Webhook settings on 
           the :ref:`Group Settings <group-settings-page>` page.
  
+      * - `DataDog <https://www.datadoghq.com/>`_
+        - Any
+        - Sends the alert to a DataDog account. Enter the following:
+
+          - :guilabel:`datadogApiKey`: The DataDog 
+            `API Key <https://docs.datadoghq.com/api/?lang=python#authentication>`_.
+            This key can be found in
+            `your DataDog account <https://app.datadoghq.com/account/settings#api>`_.
+
       * - Administrators
         - :doc:`Global </tutorial/manage-global-alerts>` or 
           :doc:`System </core/system-alerts>` only
