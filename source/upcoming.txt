@@ -1,0 +1,47 @@
+========================
+Upcoming Features in 4.0
+========================
+
+.. default-domain:: mongodb
+
+.. note::
+
+   .. include:: /includes/fact-upcoming.rst
+
+|arrow| Multi-document Transactions
+   MongoDB 4.0 will add multi-document transactions for replica sets.
+
+   .. example::
+
+      Consider a scenario where for each order shipment, you need to
+      decrease the inventory for the item shipped. If either write fails,
+      you want the undo both operations.
+
+      The following Python code shows a sample usage of transactions
+      where either both write operations succeed or both operations
+      fail.
+
+      .. code-block:: python
+
+         client = pymongo.MongoClient(...)
+         db = client.test
+ 
+         s = client.start_session()
+         s.start_transaction()
+ 
+         try:
+             db.inventory.update_one({"sku": "abc123"}, {"$inc": {"qty": -100}}, session=s)
+             db.shipment.insert_one({"sku": "abc123", "qty": 100}, session=s)
+         except Exception:
+             s.abort_transaction()
+         else:
+             s.commit_transaction()
+         s.end_session()
+   
+   .. admonition:: Beta Program
+      :class: important
+
+      Sign up for the `multi-document transactions beta program
+      <https://www.mongodb.com/transactions?jmp=docs>`__.
+
+.. |arrow| unicode:: U+27A4
