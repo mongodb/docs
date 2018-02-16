@@ -115,6 +115,19 @@
 
        Only needed if ``"delivery.methodName" : "SCP"``.
 
+   * - delivery.targetClusterId
+     - string
+     - ID of the destination cluster to perform the restore job. 
+       
+       Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       
+   * - delivery.targetGroupId
+     - string
+     - ID of the project that contains the destination cluster for the
+       restore job.
+
+       Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+
    * - delivery.url
      - string
      - The :abbr:`URL (Uniform Resource Locator)` from which the
