@@ -329,6 +329,75 @@ content: |
 
   You will need to remove or replace the obsolete property in the
   ``conf-mms.properties`` file before you can start |mms|.
+
+  Logs Display java.lang.OutOfMemoryError
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  If your logs display ``java.lang.OutOfMemoryError: Java heap space``, 
+  you can adjust the Java Heap memory settings. Repeat the following 
+  steps for every host running |a-mms| instance except dedicated 
+  Backup Daemon hosts.
+
+  1. Open ``mms.conf`` in your preferred text editor.
+  2. Find this line:
+
+     .. code-block:: ini
+
+        JAVA_MMS_UI_OPTS="${JAVA_MMS_UI_OPTS} -d64 -Xss228k -Xmx4352m -Xms4352m -XX:NewSize=600m -Xmn1500m -XX:ReservedCodeCacheSize=128m -XX:-OmitStackTraceInFastThrow"
+
+     The key values in this line are:
+
+     .. list-table::
+        :widths: 40 60
+        :stub-columns: 1
+
+        * - ``-Xmx``
+          - Java Heap Maximum Memory
+        * - ``-Xms``
+          - Java Heap Starting Memory
+
+     By default, these values are both set to 
+     4.3 :abbr:`GB (Gigabytes)` (4352m).
+
+     .. admonition:: Do not change other Java Options
+        :class: warning
+
+        Changing any option values other than ``-Xmx`` and ``-Xms``
+        could have unexpected impact on the |application|. Do not change
+        other values without consulting MongoDB Support. 
+
+  3. Change the ``-Xmx`` and ``-Xms`` values to a larger value. Both 
+     parameters should be set to the same value to remove any 
+     performance impact from the VM constantly reclaiming memory from 
+     the heap.
+
+     The value is specified as ``#k|m|g``: a number followed by 
+
+     - ``k`` (kilobytes),
+     - ``m`` (megabytes), or 
+     - ``g`` (gigabytes)
+
+     .. example::
+
+        To set the Java heap to 10 :abbr:`GB (Gigabytes)`, set this
+        value to: ``-Xmx10g -Xms10g``
+
+     The optimal value for your |onprem| installation depends upon your
+     |onprem| hosts' architecture: platform, physical memory, JVM type,
+     and the like. The goal of heap tuning is to balance the time the
+     :abbr:`JVM (Java Virtual Machine)` spends reclaiming memory from
+     objects that are no longer running, also known as garbage 
+     collection.
+
+     Large heap sizes mean less frequent and slower garbage collection.
+     Small heap sizes mean more frequent and faster garbage collection.
+
+     .. important::
+   
+        Your Java heap size must not be set to a value greater than the
+        amount of physical memory in the |onprem| host or less than the
+        default value of ``4352m``.
+
 ---
 ref: troubleshooting-system
 edition: cloud
