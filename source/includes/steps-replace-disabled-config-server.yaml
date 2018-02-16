@@ -1,5 +1,4 @@
 title: Start the replacement config server.
-stepnum: 1
 ref: start-config-server
 pre: |
 
@@ -15,15 +14,20 @@ action:
       mongod --configsvr --replSet <replicaSetName> --bind_ip localhost,<ip address of the mongod host>
 ---
 title: Add the new config server to the replica set.
-stepnum: 2
 ref: add-to-replica-set
 pre: |
     Connect a :binary:`~bin.mongo` shell to the primary of the config server
     replica set and use :method:`rs.add()` to add the new member.
+    
+    .. tip:: 
+
+       .. include:: /includes/tip-repl-set-add-members.rst
+
 action:
    language: javascript
    code: |
-     rs.add("<hostnameNew>:<portNew>")
+      rs.add( { host: "<hostnameNew>:<portNew>", priority: 0, votes: 0 } )
+      
 post: |
    The initial sync process copies all the data from one member of the
    config server replica set to the new member without restarting.
@@ -31,15 +35,44 @@ post: |
    :binary:`~bin.mongos` instances automatically recognize the change in the
    config server replica set members without restarting.
 ---
+title: Update the newly added config server's votes and priority settings.
+ref: reconfig
+
+content: |
+
+   a. Ensure that the new member has reached :replstate:`SECONDARY`
+      state. To check the state of the replica set members, run
+      :method:`rs.status()`:
+
+      .. cssclass:: copyable-code
+      .. code-block:: javascript
+
+         rs.status()
+      
+   #. Reconfigure the replica set to update the votes and priority of
+      the new member:
+
+      .. code-block:: javascript
+
+         var cfg = rs.conf();
+
+         cfg.members[n].priority = 1;  // Substitute the correct array index for the new member
+         cfg.members[n].votes = 1;     // Substitute the correct array index for the new member
+
+         rs.reconfig(cfg)
+ 
+      where ``n`` is the array index of the new member in the
+      :rsconf:`members` array.
+
+   .. include:: /includes/warning-rs-reconfig.rst
+---
 title: Shut down the member to replace.
-stepnum: 3
 ref: shut-down-old-member
 content: |
    If replacing the primary member, step down the primary first before
    shutting down.
 ---
 title: Remove the member to replace from the config server replica set.
-stepnum: 4
 ref: remove-old-member
 pre: |
     Upon completion of initial sync of the replacement config server,
@@ -56,7 +89,6 @@ post: |
    .. end-for-migration-steps
 ---
 title: "If necessary, update ``mongos`` configuration or DNS entry."
-stepnum: 5
 ref: update-mongos-setting
 pre: |
     With replica set config servers, the :binary:`~bin.mongos` instances specify
