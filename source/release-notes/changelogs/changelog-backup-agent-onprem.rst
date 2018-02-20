@@ -40,6 +40,13 @@ Backup Agent 5.0.12.725-1
   could fail creating an index on a collection with a collation 
   specified.
 
+.. _backup-5.0.11.663-1:
+
+Backup Agent 5.0.11.663-1
+-------------------------
+
+*Released with Ops Manager 3.4.9 on 2017-10-05*
+
 .. _backup-5.0.10.634-1:
 
 Backup Agent 5.0.10.634-1

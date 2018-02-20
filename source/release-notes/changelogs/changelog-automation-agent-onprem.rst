@@ -70,6 +70,13 @@ multi-server deployments using the ``ldap.bind.queryPassword`` parameter.
 This is now resolved and rolling changes will proceed correctly on these
 deployments.
 
+.. _automation-3.2.16.2263-1:
+
+Automation Agent 3.2.16.2263-1
+------------------------------
+
+*Released with Ops Manager 3.4.10 on 2017-11-02*
+
 .. _automation-3.2.15.2257-1:
 
 Automation Agent 3.2.15.2257-1
