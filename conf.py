@@ -29,7 +29,8 @@ extensions = [
     'intermanual',
     'directives',
     'mongodb',
-    'fasthtml'
+    'fasthtml',
+    'fixed_only'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
