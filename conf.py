@@ -5,28 +5,23 @@
 #
 # This file is execfile()d with the current directory set to its containing dir.
 
+import base64
 import sys
-import os
+import os.path
 import datetime
 
-from sphinx.errors import SphinxError
+project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(project_root)
 
 from giza.config.runtime import RuntimeStateConfig
 from giza.config.helper import fetch_config, get_versions, get_manual_path
 
 conf = fetch_config(RuntimeStateConfig())
+intersphinx_libs = conf.system.files.data.intersphinx
+pdfs = conf.system.files.data.pdfs
 sconf = conf.system.files.data.sphinx_local
 
 sys.path.append(os.path.join(conf.paths.projectroot, conf.paths.buildsystem, 'sphinxext'))
-
-try:
-    tags
-except NameError:
-    class Tags(object):
-        def has(self, *args):
-            return False
-
-    tags = Tags()
 
 # -- General configuration ----------------------------------------------------
 
@@ -38,14 +33,9 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
-    'testcode',
-    'tabs',
-    'markdown',
-    'fasthtml'
+    'guides',
+    'tabs'
 ]
-
-locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
-gettext_compact = False
 
 templates_path = ['.templates']
 exclude_patterns = []
@@ -56,54 +46,29 @@ master_doc = sconf.master_doc
 language = 'en'
 project = sconf.project
 copyright = u'2008-{0}'.format(datetime.date.today().year)
+
 version = conf.version.branch
 release = conf.version.release
 
 rst_epilog = '\n'.join([
-    '.. |copy| unicode:: U+000A9',
-    '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |year| replace:: {0}'.format(datetime.date.today().year),
-    '.. |hardlink| replace:: {0}/{1}'.format(conf.project.url, conf.git.branches.current),
     '.. |branch| replace:: ``{0}``'.format(conf.git.branches.current),
+    '.. |copy| unicode:: U+000A9',
+    '.. |year| replace:: {0}'.format(datetime.date.today().year),
+    '.. |ent-build| replace:: MongoDB Enterprise',
+    '.. |hardlink| replace:: https://docs.mongodb.com/bi-connector/',
     '.. |bi| replace:: MongoDB Connector for BI',
-    '.. |version| replace:: {0}'.format(version),
-    '.. |compass| replace:: MongoDB Compass'
+    '.. |bi-short| replace:: BI Connector',
 ])
 
-pygments_style = 'sphinx'
-
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'api': ('https://api.mongodb.com/%s', ''),
-    'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
-    'manual': ('https://docs.mongodb.com/manual%s', ''),
-    'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
-    'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
-    'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
-    'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
-    'products': ('https://www.mongodb.com/products%s', ''),
-    'wtdocs': ('http://source.wiredtiger.com/mongodb-3.4%s', ''),
-    'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
-    'node-docs': ('http://mongodb.github.io/node-mongodb-native/2.2/%s', ''),
-    'node-api': ('http://mongodb.github.io/node-mongodb-native/2.2/api/%s', ''),
-    'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
-    'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
-    'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
-    'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
-    'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
-    'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', '')
+    'manual': ('http://docs.mongodb.com/manual%s', ''),
 }
 
-## add `extlinks` for each published version.
-for i in conf.git.branches.published:
-    extlinks[i] = ( ''.join([ conf.project.url, '/', i, '%s' ]), '' )
-
 intersphinx_mapping = {}
-for i in conf.system.files.data.intersphinx:
-    intersphinx_mapping[i.name] = ( i.url, os.path.join(conf.paths.projectroot,
-                                                        conf.paths.output,
-                                                        i.path))
+for i in intersphinx_libs:
+    intersphinx_mapping[i.name] = (i.url, os.path.join(conf.paths.projectroot,
+                                                       conf.paths.output, i.path))
 
 languages = [
     ("ar", "Arabic"),
@@ -133,8 +98,9 @@ html_theme_path = [ os.path.join(conf.paths.buildsystem, 'themes') ]
 html_title = conf.project.title
 htmlhelp_basename = 'MongoDBdoc'
 
-html_logo = sconf.logo
-html_static_path = sconf.paths.static
+html_logo = ".static/logo-mongodb.png"
+html_static_path = ['source/.static']
+html_last_updated_fmt = '%b %d, %Y'
 
 html_copy_source = False
 html_domain_indices = True
@@ -144,96 +110,41 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = '{0}/{1}/{2}'.format(conf.project.url,
-                                           conf.git.branches.current,
-                                           sconf.theme.book_path_base)
+manual_edition_path = '{0}/{1}/{2}.{3}'
 
 html_theme_options = {
     'branch': conf.git.branches.current,
-    'pdfpath': manual_edition_path + '-' + conf.git.branches.current + '.pdf',
-    'epubpath': manual_edition_path + '.epub',
-    'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
-    'repo_name': sconf.theme.repo,
-    'jira_project': sconf.theme.jira,
+    'manual_path': "bi-connector",
+    'repo_name': 'docs-bi-connector',
+    'jira_project': 'DOCS',
     'google_analytics': sconf.theme.google_analytics,
-    'project': sconf.theme.project,
-    'version': version,
-    'version_selector': get_versions(conf),
-    'active_branches': conf.version.active,
-    'stable': conf.version.stable,
-    'sitename': sconf.theme.sitename,
+    'project': sconf.project,
+    'epubpath': manual_edition_path.format(conf.project.url,
+                                           conf.project.basepath,
+                                           'mongodb-bi-connector', 'epub'),
     'nav_excluded': sconf.theme.nav_excluded,
-    'upcoming': conf.version.upcoming,
+    'version_selector': get_versions(conf),
+    'is_upcoming': False,
 }
 
 html_sidebars = sconf.sidebars
 
-# -- Options for LaTeX output --------------------------------------------------
-
-latex_documents = []
-if 'pdfs' in conf.system.files.data:
-    for pdf in conf.system.files.data.pdfs:
-        latex_documents.append((pdf.source, pdf.output, pdf.title, pdf.author, pdf.doc_class))
-
-latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
-                            r'\DeclareUnicodeCharacter{FF0E}{.}',
-                            r'\DeclareUnicodeCharacter{2713}{Y}',
-                            r'\PassOptionsToPackage{hyphens}{url}',
-                            r'\usepackage{upquote}',
-                            r'\pagestyle{plain}',
-                            r'\pagenumbering{arabic}' ]
-latex_elements = {
-    'preamble': '\n'.join(latex_preamble_elements),
-    'pointsize': '10pt',
-    'papersize': 'letterpaper',
-    'tableofcontents': '\\textcopyright{ MongoDB, Inc. 2008 - 2016 } This work is licensed under a \href{http://creativecommons.org/licenses/by-nc-sa/3.0/us/}{Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States License}\\clearpage\\tableofcontents'
-}
-
-latex_paper_size = 'letter'
-latex_use_parts = False
-latex_show_pagerefs = True
-latex_show_urls = 'footnote'
-latex_domain_indices = False
-latex_logo = None
-latex_appendices = []
-
-# -- Options for manual page output --------------------------------------------
-
-man_pages = []
-if 'manpages' in conf.system.files.data:
-    for mp in conf.system.files.data.manpages:
-        man_pages.append((mp.file, mp.name, mp.title, mp.authors, mp.section))
 
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
 epub_title = conf.project.title
-epub_author = u'MongoDB, Inc.'
+epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB, Inc.'
-epub_copyright = u'MongoDB, Inc. 2008 - 2016'
+epub_copyright = copyright
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
-epub_language = language
+epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = ''.join([conf.project.url, '/', conf.git.branches.current])
+epub_identifier = 'http://docs.mongodb.org/bi-connector/'
 epub_exclude_files = []
-
 epub_pre_files = []
 epub_post_files = []
-
-# put it into your conf.py
-def setup(app):
-    # disable versioning for speed
-    from sphinx.builders.gettext import I18nBuilder
-    I18nBuilder.versioning_method = 'none'
-
-    def doctree_read(app, doctree):
-        if not isinstance(app.builder, I18nBuilder):
-            return
-        from docutils import nodes
-        from sphinx.versioning import add_uids
-        list(add_uids(doctree, nodes.TextElement))
-    app.connect('doctree-read', doctree_read)
