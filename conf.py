@@ -60,7 +60,8 @@ rst_epilog = [
     '.. |mms| replace:: Cloud Manager',
     '.. |stitch-docs| replace:: MongoDB Stitch',
     '.. _stitch-docs: https://docs.mongodb.com/stitch',
-    '.. |bic| replace:: Atlas BI Connector',
+    '.. |bic| replace:: BI Connector for Atlas',
+    '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     
 ]
 
