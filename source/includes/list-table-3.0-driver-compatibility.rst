@@ -8,7 +8,7 @@
      - `1.1.0 <https://github.com/mongodb/mongo-c-driver/releases>`_
 
    * - `C++ <https://github.com/mongodb/mongo-cxx-driver>`_
-     - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`_
+     - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`__
 
    * - :ecosystem:`C# </drivers/csharp>`
      - `1.10 <https://github.com/mongodb/mongo-csharp-driver/releases>`_
@@ -20,7 +20,7 @@
      - `1.4.29 <https://github.com/mongodb/node-mongodb-native/releases>`_
 
    * - :ecosystem:`Perl </drivers/perl>`
-     - `1.0.0 <https://metacpan.org/release/MongoDB>`_
+     - `1.0.0 <https://metacpan.org/release/MongoDB>`__
 
    * - :ecosystem:`PHP </drivers/php>`
      - `1.6 <http://pecl.php.net/package/mongo>`_
