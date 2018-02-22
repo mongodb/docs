@@ -1,6 +1,6 @@
-.. _automation-4.5.12.2503:
+.. _automation-4.9.1.2502:
 
-Automation Agent 4.5.12.2503
+Automation Agent 4.9.1.2502
 ---------------------------
 
 *Released 2018-02-22*
