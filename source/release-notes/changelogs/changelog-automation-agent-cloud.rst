@@ -1,3 +1,12 @@
+.. _automation-4.5.12.2503:
+
+Automation Agent 4.5.12.2503
+---------------------------
+
+*Released 2018-02-22*
+
+- Support for MongoDB Connector for Business Intelligence 2.4.0
+
 .. _automation-4.9.0.2490:
 
 Automation Agent 4.9.0.2490
