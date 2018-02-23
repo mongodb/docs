@@ -1,0 +1,155 @@
+.. _ldaps-authentication-authorization:
+
+======================================================
+Set up User Authentication and Authorization with LDAP 
+======================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+Overview
+--------
+
+|service| provides the ability to manage user authentication and authorization
+from all Mongo clients using your own Lightweight Directory Access Protocol
+(LDAP) server over SSL. A single LDAPS (LDAP over SSL) configuration applies
+to all clusters in a project. 
+
+If you enable user authorization with LDAP, you can create LDAP groups on the 
+``admin`` database by mapping LDAP groups to MongoDB roles on your |service|
+databases.  To use LDAP groups effectively, :doc:`create additional projects
+</tutorial/manage-projects>` within |service| to control access to specific
+deployments in your organization, such as creating separate |service|
+projects for development and production environments. You can then map an
+LDAP group to a role in the |service| project to provide access to the
+desired deployment.
+
+.. note::
+
+   When user authorization is enabled and an LDAP user does not belong
+   to any LDAP group, |service| does not assign any database roles to the user.
+   When user authentication is enabled and user authorization is disabled,
+   |service| assigns MongoDB database roles to the LDAP user.
+
+If you have multiple departments with their own billing needs, alert settings,
+and project members, create a new :doc:`organization </tutorial/manage-organizations>`
+for each department.
+
+.. note::
+
+   An explanation of LDAP is out of scope for the MongoDB documentation.
+   Please review `RFC4515 <https://tools.ietf.org/search/rfc4515>`_
+   and `RFC 4516 <https://tools.ietf.org/html/rfc4516>`_  or refer to your
+   preferred LDAP documentation.
+
+Prerequisites
+-------------
+
+You must meet the following prerequisites to manage user authentication
+and authorization using LDAP in |service|:
+
+- |service| cluster using MongoDB 3.4+
+
+- LDAP server using SSL that is accessible to |service| from the Internet
+  or :doc:`VPC </security-vpc-peering>` (AWS only)
+
+- (user authorization only) LDAP group memberships for each user are embedded
+  as an attribute in each user's LDAP entry
+
+- :doc:`VPC </security-vpc-peering>` where the LDAP server runs
+
+.. note::
+
+   MongoDB recommends running your server in a :doc:`VPC </security-vpc-peering>`
+   and establishing a peering connection to your |service| project. Alternatively,
+   run your LDAPS server in your data center where it is accessible from the Internet.
+
+Considerations
+--------------
+
+Usernames
+~~~~~~~~~
+
+|service| uses the full Distinguished Name (DN) of users in your LDAP server
+as the |service| username. For example, an example LDAP user named ``ralph``
+has the following username in |service|:
+
+``cn=ralph,cn=Users,dc=aws-atlas-ldap-01,dc=myteam,dc=com``
+
+Connection String
+~~~~~~~~~~~~~~~~~
+
+If the administrator enables user authentication or both user authentication
+and authorization with LDAP, database users must override the following
+parameters in the connection string for their clients.
+
+* ``authSource`` must be ``$external``
+
+* ``authenticationMechanism`` must be ``PLAIN``
+
+The following connection string for the ``mongo`` client authenticates
+an LDAP user named ``rob``:
+
+``mongo "mongodb+srv://cluster0-tijis.mongodb.net/test?authSource=%24external" --authenticationMechanism PLAIN --username cn=rob,cn=Users,dc=atlas-ldaps-01,dc=myteam,dc=com``
+
+You can copy the connection string by clicking :guilabel:`Connect` on the
+:guilabel:`Clusters` page. Edit the string with your ``User DN`` and password.
+
+.. note::
+
+   Use escape characters in place of special characters in MongoDB connection
+   strings. The example above passes '%24' for the '$'.
+
+Limitatons
+~~~~~~~~~~
+
+Using LDAP for user authentication and authorization has the following
+limitations:
+
+- Cannot establish a peering connection between a :doc:`Virtual Private Cloud
+  (VPC) </security-vpc-peering>` and clusters running on Azure Virtual Networks
+  and Google Cloud Platform (GCP) Virtual Private Clouds.
+
+- Cannot provide public NAT addresses to whitelist |service| traffic
+  to your LDAP server.
+
+- Cannot use both LDAP and SCRAM authentication for the same MongoDB user 
+
+Procedures
+----------
+
+Configure Authentication with LDAP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following procedure to configure user authentication with LDAP for
+all clusters in a project.
+
+.. include:: /includes/steps/configure-authentication-ldaps.rst
+
+Configure Authorization
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following procedure to configure user authorization with LDAP for
+all clusters in a project.
+
+.. note::
+
+  You must enable authentication with LDAP before enabling authorization.
+
+.. important::
+
+   When the administrator configures LDAP authorization, previous database
+   users configured for LDAP authentication only can no longer access
+   databases.
+
+.. include:: /includes/steps/configure-authorization-ldaps.rst
