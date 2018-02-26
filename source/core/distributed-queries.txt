@@ -47,7 +47,7 @@ operations to different servers may result in non-monotonic reads.
 You can configure the read preference on a per-connection or
 per-operation basis. For more information on read preference or on the
 read preference modes, see :doc:`/core/read-preference` and
-:ref:`replica-set-read-preference-modes`. 
+:ref:`replica-set-read-preference-modes`.
 
 .. _write-operations-replica-sets:
 
@@ -148,150 +148,8 @@ of the sharded cluster.
 For more information, see :doc:`/sharding` and
 :doc:`/core/bulk-write-operations`.
 
-.. _retryable-writes:
-
-Retryable Writes
-----------------
-
-.. versionadded:: 3.6
-
-Starting in MongoDB 3.6 for the WiredTiger and in-memory storage
-engines, certain write operations on replica sets and sharded
-clusters are "retryable" to provide handling of transient network
-errors or replica set elections.
-
-With retryable writes, MongoDB drivers automatically retry these
-operations upon encountering network errors or encountering a
-:ref:`replica set failover <replication-auto-failover>` during which
-time the replica set has no primary. Upon encountering a failover, the
-drivers first waits for :urioption:`serverSelectionTimeoutMS` to
-determine the new primary before retrying.
-
-.. note:: The writes are retried once.
-
-.. _retryable-write-ops:
-
-Retryable Write Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following write operations are retryable when issued with
-acknowledged write concern; e.g., :doc:`/reference/write-concern`
-cannot be :writeconcern:`{w: 0} </<number/>>`.
-
-.. list-table::
-   :header-rows: 1
-
-   * - Methods
-     - Descriptions
-
-   * - | :method:`db.collection.insertOne()`
-       | :method:`db.collection.insert()`
-       | :method:`db.collection.insertMany()`
-
-     - Insert operations.
-
-   * - | :method:`db.collection.updateOne()`
-       | :method:`db.collection.replaceOne()`
-       | :method:`db.collection.save()`
-       | :method:`db.collection.update()` where ``multi`` is ``false``
-
-     - Single-document update operations.
-
-   * - | :method:`db.collection.deleteOne()`
-       | :method:`db.collection.remove()` where ``justOne`` is ``true``
-
-     - Single document delete operations.
-
-   * - | :method:`db.collection.findAndModify()`
-       | :method:`db.collection.findOneAndDelete()`
-       | :method:`db.collection.findOneAndReplace()`
-       | :method:`db.collection.findOneAndUpdate()`
-
-     - ``findAndModify`` operations. All ``findAndModify`` operations
-       are single document operations.
-
-   * - :method:`db.collection.bulkWrite()` with the following write
-       operations:
-
-       - :ref:`bulkwrite-write-operations-insertOne`
-
-       - :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
-
-       - :ref:`bulkwrite-write-operations-replaceOne`
-
-       - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
-
-     - Bulk write operations that only consist of the single-document
-       write operations. A retryable bulk operation can include any
-       combination of the specified write operations but cannot include
-       any multi-document write operations, such as ``updateMany``.
-
-
-   * - :method:`Bulk <Bulk()>` operations for:
-   
-       - :method:`Bulk.find.removeOne()`
-       - :method:`Bulk.find.replaceOne()`
-       - :method:`Bulk.find.replaceOne()`
-
-     - Bulk write operations that only consist of the single-document
-       write operations. A retryable bulk operation can include any
-       combination of the specified write operations but cannot include
-       any multi-document write operations, such as ``update`` which
-       specifies ``true`` for the ``multi`` option.
-
-
-Limitations
-~~~~~~~~~~~
-
-Supported Deployment Topologies
-   Available on replica sets and sharded clusters only.
-
-Supported Storage Engine
-   Available for the :doc:`WiredTiger storage engine
-   </core/wiredtiger>` and :doc:`in-memory storage engine
-   </core/inmemory>`.
-
-   Retryable writes are not available on storage engines that don't
-   support doc level locking; e.g. MMAPv1.
-
-3.6 MongoDB Drivers
-   Clients require MongoDB drivers updated for MongoDB 3.6:
-
-   .. include:: /includes/3.6-drivers.rst
-
-   To enable retryable writes for the 3.6 drivers, see
-   :urioption:`retryWrites`.
-
-Feature Compatibility Version
-   ``featureCompatibilityVersion`` must be at least "3.6". For more
-   information, see :dbcommand:`setFeatureCompatibilityVersion`.
-
-Request Write Acknowledgement
-   :doc:`/reference/write-concern` must be an acknowledge write
-   concern. For example, write operations issued with :writeconcern:`{w: 0}
-   </<number/>>` are not retryable.
-
-Persistent Network Errors
-   As the retry attempt is made only once, the retryable feature can
-   help address transient network errors but not persistent network
-   errors.
-
-Failover Period Exceeds :urioption:`serverSelectionTimeoutMS`
-   Upon encountering a failover and receiving the ``not master`` error,
-   the drivers wait :urioption:`serverSelectionTimeoutMS` seconds to
-   determine the new primary before retrying. The retryable feature
-   does not addresss instance where the failover period exceeds
-   :urioption:`serverSelectionTimeoutMS`.
-
-.. warning::
-
-   If the client application becomes temporarily unresponsive for more
-   than the :parameter:`localLogicalSessionTimeoutMinutes` after
-   issuing a write operation, there is a chance that when the client
-   applications starts responding (without a restart), the write
-   operation may be retried and applied again.
+.. seealso:: :ref:`retryable-writes`
 
 .. index:: read operation; connection pooling
 .. index:: connection pooling; read operations
 .. _read-operations-connection-pooling:
-
