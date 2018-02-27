@@ -59,6 +59,11 @@ new IS or S requests have been queued in the meantime. As a grant
 will always move all other requests ahead in the queue, no starvation
 of any request is possible.
 
+In :method:`db.serverStatus()` and :method:`db.currentOp()` output, the
+lock modes are represented as follows:
+
+.. include:: /includes/fact-lock-modes.rst
+
 .. [#mgl-ref] See the Wikipedia page on
    `Multiple granularity locking
    <http://en.wikipedia.org/wiki/Multiple_granularity_locking>`_ for
@@ -113,6 +118,11 @@ in the :doc:`current operation reporting </reference/method/db.currentOp>`
 provides insight into the type of locks and amount of lock
 contention in your :binary:`~bin.mongod` instance.
 
+In :method:`db.serverStatus()` and :method:`db.currentOp()` output, the
+lock modes are represented as follows:
+
+.. include:: /includes/fact-lock-modes.rst
+
 To terminate an operation, use :method:`db.killOp()`.
 
 .. include:: /includes/replacement-mms.rst
@@ -130,6 +140,22 @@ also yield locks between individual document modifications in write
 operations that affect multiple documents like
 :method:`~db.collection.update()` with the ``multi`` parameter.
 
+For storage engines supporting document level :term:`concurrency
+control`, such as :doc:`WiredTiger </core/wiredtiger>`, yielding is not
+necessary when accessing storage as the :term:`intent locks <intent
+lock>`, held at the global, database and collection level, do not block
+other readers and writers. However, operations will periodically yield,
+such as:
+
+- to avoid long-lived storage transactions because these can
+  potentially require holding a large amount of data in memory;
+
+- to serve as interruption points so that you can kill long running
+  operations;
+
+- to allow operations that require exclusive access to a collection
+  such as index/collection drops and creations.
+
 MongoDB's :ref:`MMAPv1 <storage-mmapv1>` storage engine uses
 heuristics based on its access pattern to predict whether data is
 likely in physical memory before performing a read. If MongoDB
@@ -138,28 +164,76 @@ will yield its lock while MongoDB loads the data into memory. Once
 data is available in memory, the operation will reacquire the lock
 to complete the operation.
 
-For storage engines supporting document level :term:`concurrency
-control`, such as :doc:`WiredTiger </core/wiredtiger>`, yielding is not
-necessary when accessing storage as the :term:`intent locks <intent
-lock>`, held at the global, database and collection level, do not block
-other readers and writers.
-
-.. versionchanged:: 2.6
-   MongoDB does not yield locks when scanning an index even if it
-   predicts that the index is not in memory.
-
 .. _faq-concurrency-operations-locks:
 
-Which operations lock the database?
------------------------------------
+What locks are taken by some common client operations?
+------------------------------------------------------
 
-The following table lists common database operations and the types of
-locks they use.
+The following table lists some operations and the types of locks they
+use for document level locking storage engines:
 
-.. todo In the table below (in the include), the issue of blocked
-   JavaScript might no longer apply in version 2.4, which will use V8.
+.. list-table::
+   :header-rows: 1
 
-.. include:: /includes/table/lock-behavior-per-operation.rst
+   * - Operation
+
+     - Database
+
+     - Collection
+
+   * - Issue a query
+
+     - ``r`` (Intent Shared)
+
+     - ``r`` (Intent Shared)
+
+   * - Insert data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Remove data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Update data
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - Perform Aggregation
+
+     - ``r`` (Intent Shared)
+
+     - ``r`` (Intent Shared)
+
+   * - Create an index (Foreground)
+
+     - ``W`` (Exclusive)
+
+     - 
+
+   * - Create an index (Background)
+
+     - ``w`` (Intent Exclusive)
+
+     - ``w`` (Intent Exclusive)
+
+   * - List collections
+
+     - ``R`` (Shared)
+
+     - 
+
+   * - Map-reduce
+
+     - ``W`` (Exclusive) and ``R`` (Shared)
+
+     - ``w`` (Intent Exclusive) and ``r`` (Intent Shared)
 
 Which administrative commands lock the database?
 ------------------------------------------------
@@ -174,30 +248,83 @@ other members of the set service load while maintenance is in progress.
 The following administrative operations require an exclusive
 lock at the database level for extended periods:
 
-- :method:`db.collection.createIndex()`, when issued
-  *without* setting ``background`` to ``true``,
-- :dbcommand:`reIndex`,
-- :dbcommand:`compact`,
-- :method:`db.repairDatabase()`,
-- :method:`db.createCollection()`, when creating a very large
-  (i.e. many gigabytes) capped collection,
-- :method:`db.collection.validate()`, and
-- :method:`db.copyDatabase()`. This operation may lock all
-  databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
-- :dbcommand:`convertToCapped`
-- :dbcommand:`cloneCollectionAsCapped`
+.. list-table::
 
-The following administrative commands lock the database but only hold
+   * - Commands
+     - Methods
+
+   * - :dbcommand:`cloneCollectionAsCapped`
+     -
+
+   * - :dbcommand:`compact`
+     -
+
+   * - :dbcommand:`convertToCapped`
+     -
+
+   * - :dbcommand:`copydb`. This operation may lock all databases. See
+       :ref:`faq-concurrency-lock-multiple-dbs`.
+
+     - :method:`db.copyDatabase()`. This operation may lock all
+       databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
+
+   * - :dbcommand:`create` when creating a very large (i.e. many
+       gigabytes) capped collection
+     - :method:`db.createCollection()` when creating a very large (i.e.
+       many gigabytes) capped collection
+
+   * - :dbcommand:`createIndexes` for indexes *without* ``background``
+       set to ``true``
+
+     - :method:`db.collection.createIndex()` and
+       :method:`db.collection.createIndexes()` issued *without*
+       ``background`` set to ``true``
+
+   * - :dbcommand:`reIndex`
+     - :method:`db.collection.reIndex()`
+
+   * - :dbcommand:`repairDatabase`
+     - :method:`db.repairDatabase()`
+
+
+The following administrative operations lock the database but only hold
 the lock for a very short time:
 
-- :method:`db.collection.dropIndex()`,
-- :method:`db.getLastError()`,
-- :method:`db.isMaster()`,
-- :method:`rs.status()` (i.e. :dbcommand:`replSetGetStatus`),
-- :method:`db.serverStatus()`,
-- :method:`db.auth()`, and
-- :method:`db.addUser()`.
-- :method:`db.collection.renameCollection()`
+.. list-table::
+
+   * - Commands
+     - Methods
+
+   * - :dbcommand:`authenticate`
+
+     - :method:`db.auth()`
+
+
+   * - :dbcommand:`createUser`
+     - :method:`db.createUser()`
+   
+
+   * - :dbcommand:`dropIndexes`
+     - :method:`db.collection.dropIndex()`
+
+   * - :dbcommand:`getLastError`
+     - :method:`db.getLastError()`
+
+   * - :dbcommand:`isMaster`
+     - :method:`db.isMaster()`
+
+   * - :dbcommand:`replSetGetStatus`
+     - :method:`rs.status()`
+
+
+   * - :dbcommand:`renameCollection`
+     - :method:`db.collection.renameCollection()`
+
+   * - :dbcommand:`serverStatus`
+
+     - :method:`db.serverStatus()`
+
+.. seealso:: :ref:`faq-concurrency-lock-multiple-dbs`
 
 .. _faq-concurrency-lock-multiple-dbs:
 
@@ -212,10 +339,6 @@ The following MongoDB operations lock multiple databases:
 - :method:`db.repairDatabase()` obtains a global write lock and will block
   other operations until it finishes.
 
-- :term:`Journaling <journal>`, which is an internal operation, locks
-  all databases for short intervals. All databases share a single
-  journal.
-
 - :doc:`User authentication </core/authentication>` requires a read
   lock on the ``admin`` database for deployments using :ref:`2.6 user
   credentials <admin-system-users-collection>`. For deployments using
@@ -227,6 +350,9 @@ The following MongoDB operations lock multiple databases:
   time. The lock for the ``local`` database allows the
   :binary:`~bin.mongod` to write to the primary's :term:`oplog` and
   accounts for a small portion of the total time of the operation.
+
+- Replica set member :doc:`state transitions
+  </reference/replica-states>` take global exlusive lock.
 
 How does sharding affect concurrency?
 -------------------------------------
