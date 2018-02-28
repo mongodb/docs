@@ -8,8 +8,8 @@
      - API Documentation
 
    * - :ecosystem:`Go </drivers/go>` (mgo)
-     - `Go Driver Releases <http://labix.org/mgo>`_
-     - `Go Driver Source Code <https://launchpad.net/mgo>`_
+     - `Go Driver Releases <https://github.com/globalsign/mgo/releases>`_
+     - `Go Driver Source Code <https://github.com/globalsign/mgo>`_
      - `Go Driver API <http://godoc.org/labix.org/v2/mgo>`_
 
    * - :ecosystem:`Erlang </drivers/erlang>`
