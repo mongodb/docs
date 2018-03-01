@@ -1,3 +1,12 @@
+.. _automation-4.9.2.2525:
+
+Automation Agent 4.9.2.2525
+---------------------------
+
+*Released 2018-03-01*
+
+- Support for upcoming enhancements to Data Explorer.
+
 .. _automation-4.9.1.2502:
 
 Automation Agent 4.9.1.2502
