@@ -1,3 +1,14 @@
+.. _backup-6.0.8.752-1:
+
+Backup Agent 6.0.8.752-1:
+-------------------------
+
+*Released with Ops Manager 3.6.4*
+
+- **Fix:** Backup Agent should produce an error message and not crash 
+  when erroneous authentication credentials are provided for a source 
+  cluster.
+
 .. _backup-6.0.6.724-1:
 
 Backup Agent 6.0.6.724-1

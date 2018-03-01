@@ -1,3 +1,40 @@
+.. _automation-4.5.12.2514-1:
+
+Automation Agent 4.5.12.2514-1
+------------------------------
+
+:ref:`Released with Ops Manager 3.6.4 on 2018-03-01 <opsmgr-server-3.6.4>`
+
+- Changes made to any storage-affecting options in MongoDB will 
+  automatically result in a rolling initial sync of the replica set. 
+  
+  For single node replica sets and standalones a 
+  :binary:`mongodump <bin.mongodump>` / 
+  :binary:`mongorestore <bin.mongorestore>`
+  will be performed. These options include 
+  ``security.enableEncryption``, 
+  ``storage.smallfiles``, ``storage.directoryPerDb`` and 
+  ``wiredTiger.directoryForIndexes``. (The ``storage.engine`` parameter 
+  has always had this treatment.)
+
+- **Fix:** Automation Agent correctly resizes the :term:`oplog` for 
+  MongoDB clusters that use X-509 for cluster authentication.
+
+.. admonition:: RELEASE ADVISORY
+   :class: note
+
+   :ref:`Ops Manager 3.6.4 <opsmgr-server-3.6.4>` fixes an issue in 
+   which setting a value for a ``setParameter`` field using Automation 
+   may not have resulted in appropriate restart of the MongoDB cluster. 
+   As a consequence of this fix, clusters in which a ``setParameter`` 
+   field is specifically set to the default value for the 
+   ``setParameter`` may experience a rolling restart on upgrade to 
+   :ref:`Ops Manager 3.6.4 <opsmgr-server-3.6.4>`.
+
+   When configuring a ``setParameter`` field in the MongoDB 
+   configuration via Automation, always perform a rolling restart.
+
+
 .. _automation-4.5.11.2453-1:
 
 Automation Agent 4.5.11.2453-1
@@ -6,12 +43,12 @@ Automation Agent 4.5.11.2453-1
 :ref:`Released with Ops Manager 3.6.3 on 2018-02-01 <opsmgr-server-3.6.3>`
 
 - **Fix:** Automation Agent determination of Goal State was incorrect
-  for multi-server deployments using the ldap.bind.queryPassword
+  for multi-server deployments using the ``ldap.bind.queryPassword``
   parameter. This is now resolved and rolling changes will proceed
   correctly on these deployments.
 
-- **Fix:** Rotation of BI Connector logs by the Automation Agent for
-  timezones with positive GMT offsets.
+- **Fix:** Rotation of :bic:`BI Connector </>` logs by the Automation 
+  Agent for timezones with positive GMT offsets.
 
 .. _automation-4.5.10.2429-1:
 

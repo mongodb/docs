@@ -55,6 +55,7 @@ extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'v2.2': ('https://docs.mongodb.com/v2.2%s', ''),
     'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
+    'bic': ('https://docs.mongodb.com/bi-connector/current%s','')
 }
 
 languages = [
