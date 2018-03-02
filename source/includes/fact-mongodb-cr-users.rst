@@ -7,10 +7,11 @@ upgraded the authentication schema, you can continue to use
   features, you will continue to use ``MONGODB-CR``.
 
 - For drivers that support MongoDB 3.0+ features (see
-  :ref:`compatibility-driver-versions`), you must explicitly specify
-  ``MONGODB-CR`` as the authentication mechanism. Otherwise, the
-  credentials are temporarily converted to use SCRAM during
-  authentication; this temporary conversion does not affect how the
+  :ref:`compatibility-driver-versions`), you can explicitly specify
+  ``MONGODB-CR`` as the authentication mechanism to use ``MONGODB-CR``.
+  Otherwise, the credentials are temporarily converted to use SCRAM
+  during authentication to provide improved protection from passive
+  eavesdroppers; this temporary conversion does not affect how the
   credentials are stored.
 
 To upgrade the authentication schema model to SCRAM, see
