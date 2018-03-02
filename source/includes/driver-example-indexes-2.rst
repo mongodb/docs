@@ -2,8 +2,12 @@
 
    tabs:
 
+     - id: shell
+       content: |
+
      - id: compass
        content: |
+
          .. important::
 
             |compass| does not support collation for indexes.
