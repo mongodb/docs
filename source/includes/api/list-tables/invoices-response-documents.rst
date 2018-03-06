@@ -1,5 +1,6 @@
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
    :widths: 10 10 80
 
    * - Name
@@ -35,7 +36,8 @@
 
    * - groupId 
      - string
-     - 
+     - Unique identifier of the :term:`project` that was included in 
+       this invoice.
 
    * - links
      - object array
@@ -50,7 +52,8 @@
 
    * - note 
      - string
-     - 
+     - Annotation on this invoice that explains or clarifies 
+       information within the invoice.
 
    * - orgId 
      - string
@@ -59,15 +62,11 @@
 
    * - paymentMethod 
      - string
-     - 
-
-   * - salesforceOpportunityId 
-     - string
-     - 
+     - Means by which this invoice has been paid. 
 
    * - salesTaxCents 
      - number
-     - // tax on subtotal. 
+     - Amount of taxes levied on **subtotalCents**. 
 
    * - startDate 
      - string
@@ -82,11 +81,47 @@
 
    * - status 
      - string
-     - 
+     - State of this invoice. Accepted values are:
+
+       .. list-table::
+          :widths: 30 70
+          :header-rows: 1
+          :stub-columns: 1
+
+          * - Status
+            - Description
+
+          * - PENDING
+            - Includes charges for the current subscription cycle. A customer 
+              should never have more than one invoice in this state.
+
+          * - CLOSED
+            - All charges for the subscription cycle have been 
+              finalized, the balance is more than zero, and the 
+              customer has not been charged yet.
+
+          * - FORGIVEN
+            - The customer has been charged, but the charge has been 
+              forgiven.
+
+          * - CHARGE_FAILED
+            - An attempt to charge the credit card for the amount due 
+              failed.
+
+          * - PAID
+            - The funds have been transferred to MongoDB, Inc.
+
+          * - FREE
+            - The amount turned out to be zero, so the customer is not 
+              charged.
+
+          * - PREPAID
+            - The customer is on a prepaid plan, so the customer is not
+              charged.
 
    * - subtotalCents 
      - number
-     - Sum of all positive line items in cents.
+     - Sum of all positive invoice line items in cents.
 
    * - updated 
      - string
