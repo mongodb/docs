@@ -1,3 +1,15 @@
+.. _automation-5.0.0.2526:
+
+Automation Agent 5.0.0.2526
+---------------------------
+
+*Released 2018-03-06*
+
+- Allow Automation Agent user password to be changed.
+
+- Always download needed versions of MongoDB, before performing a
+  bounce restart of a cluster.
+
 .. _automation-4.9.2.2525:
 
 Automation Agent 4.9.2.2525

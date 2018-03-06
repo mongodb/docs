@@ -1,3 +1,14 @@
+.. _backup-6.5.0.756:
+
+Backup Agent 6.5.0.756
+----------------------
+
+*Released 2018-03-06*
+
+- **Fix:** Backup Agent should produce an error message and not crash
+  when erroneous authentication credentials are provided for a source
+  cluster.
+
 .. _backup-6.4.0.734:
 
 Backup Agent 6.4.0.734
