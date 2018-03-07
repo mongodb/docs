@@ -38,9 +38,12 @@
      - `Current Perl Driver API <https://metacpan.org/pod/MongoDB>`_
 
    * - :ecosystem:`PHP </drivers/php?jmp=docs>`
-     - `PHP Driver Releases <http://pecl.php.net/package/mongo?jmp=docs>`_
-     - `PHP Driver Source Code <https://github.com/mongodb/mongo-php-driver?jmp=docs>`_
-     - `Current PHP Driver API <http://php.net/mongo?jmp=docs>`_
+     - `PHP Driver Releases <https://pecl.php.net/package/mongodb?jmp=docs>`_,
+       `PHP Library Releases <https://packagist.org/packages/mongodb/mongodb?jmp=docs>`_
+     - `PHP Driver Source Code <https://github.com/mongodb/mongo-php-driver?jmp=docs>`_,
+       `PHP Library Source Code <https://github.com/mongodb/mongo-php-library?jmp=docs>`_
+     - `Current PHP Driver API <https://php.net/manual/en/set.mongodb.php?jmp=docs>`_,
+       `Current PHP Library API <https://docs.mongodb.com/php-library/current/?jmp=docs>`_
 
    * - :ecosystem:`Python </drivers/python?jmp=docs>`
      - `Python Driver Releases <https://pypi.python.org/pypi/pymongo/?jmp=docs>`_
