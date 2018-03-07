@@ -1,7 +1,8 @@
 .. versionadded:: 3.6
 
-The ``authenticationRestrictions`` document can contain the
-following fields:
+The ``authenticationRestrictions`` document can contain *only* the
+following fields. The server throws an error if the 
+``authenticationRestrictions`` document contains an unrecognized field:
 
 .. list-table::
    :header-rows: 1
@@ -29,13 +30,6 @@ following fields:
        server does not authenticate the user.
 
 .. important::
-
-   These are the only fields recognized by the server in the
-   ``authenticationRestrictions`` document. When creating a user,
-   if the server does not recognize a field contained within the
-   ``authenticationRestrictions`` document, it throws an error.
-
-.. warning::
 
    If a user inherits multiple roles with incompatible authentication
    restrictions, that user becomes unusable.
