@@ -23,7 +23,8 @@
      - `1.0.0 <https://metacpan.org/release/MongoDB>`__
 
    * - :ecosystem:`PHP </drivers/php>`
-     - `1.6 <http://pecl.php.net/package/mongo>`_
+     - `ext-mongo 1.6 <https://pecl.php.net/package/mongo>`_,
+       `ext-mongodb 1.0 <https://pecl.php.net/package/mongodb>`_
 
    * - :ecosystem:`Python </drivers/python>`
      - `2.8 <https://pypi.python.org/pypi/pymongo/>`_
