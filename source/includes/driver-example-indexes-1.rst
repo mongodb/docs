@@ -218,13 +218,13 @@
      - id: php
        content: |
          To create an index using the
-         `PHP driver <http://php.net/manual/en/set.mongodb.php>`_, use
-         `MongoCollection::createIndex() <http://php.net/manual/en/mongocollection.createindex.php>`_.
+         `PHP driver <https://docs.mongodb.com/php-library/current/>`_, use
+         :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`.
 
          .. class:: copyable-code
          .. code-block:: php
 
-            $collection->createIndex(array(<key and index type specification>), array(<options>));
+            $collection->createIndex(<key and index type specification>, <options>);
 
          The following example creates a single key descending index on
          the ``name`` field:
@@ -232,9 +232,9 @@
          .. class:: copyable-code
          .. code-block:: php
 
-            $collection->createIndex(array('name' => -1));
+            $collection->createIndex(['name' => -1]);
 
-         The `MongoCollection::createIndex() <http://php.net/manual/en/mongocollection.createindex.php>`_
+         The :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`
          method only creates an index if an index of the same
          specification does not already exist.
 
