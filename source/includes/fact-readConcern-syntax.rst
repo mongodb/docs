@@ -4,7 +4,8 @@ The readConcern option has the following syntax:
 
 .. code-block:: javascript
 
-   readConcern: { level: <value>, afterClusterTime: <Timestamp> }
+   readConcern: { level: <value>,
+                  afterClusterTime: <Timestamp> }
 
 .. important::
 
