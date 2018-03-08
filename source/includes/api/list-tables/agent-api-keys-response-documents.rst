@@ -22,11 +22,11 @@
 
    * - desc
      - string
-     - Label for this Agent API Key.
+     - Label for this Agent API Key. Limited to 1,000 characters.
 
    * - createdTime
-     - number
-     - |epoch-time| when the Agent API Key was created.
+     - string
+     - |iso8601-time| when the Agent API Key was created.
 
    * - createdUserId
      - string
@@ -38,11 +38,11 @@
 
    * - createdBy
      - string
-     - Means that created this Agent API Key. Accepted values are:
+     - Source of this Agent API Key. Accepted values are:
 
-       - USER
-       - OLD_KEY
-       - PROVISIONING
-       - ATLAS
-       - SERVER_POOLS
-       - PUBLIC_API
+       - ``USER``
+       - ``OLD_KEY``
+       - ``PROVISIONING``
+       - ``ATLAS``
+       - ``SERVER_POOLS``
+       - ``PUBLIC_API``
