@@ -12,24 +12,68 @@ Retryable Writes
    :depth: 1
    :class: singlecol
 
-.. |enable-retryable-writes| replace:: To enable retryable writes in the
-   3.6 drivers, see :urioption:`retryWrites`. To enable retryable writes
-   in the :binary:`~bin.mongo` shell, provide the
-   :option:`--retryWrites <mongo --retryWrites>` option.
-
 .. versionadded:: 3.6
 
-Certain write operations on replica sets and sharded clusters using the
-:ref:`WiredTiger <storage-wiredtiger>` and
-:ref:`in-memory <storage-inmemory>` storage engines are "retryable", and
-automatically handle transient network errors and replica set election.
+Retryable writes allow MongoDB drivers to automatically retry certain
+write operations a single time if they encounter network errors, or if
+they cannot find a healthy :term:`primary` in the
+:ref:`replica sets <replication>` or :ref:`sharded cluster
+<sharding-introduction>`.
 
-.. note::
+Prerequisites
+-------------
 
-   MongoDB drivers do **not** enable retryable writes for connections by
-   default. |enable-retryable-writes|
+Retryable writes have the following requirements:
 
-   Writes are retried only once.
+Supported Deployment Topologies
+  Retryable writes require a :ref:`replica set <replication>`
+  or :ref:`sharded cluster <sharding-introduction>`, and do **not**
+  support :term:`standalone instances <standalone>`.
+
+Supported Storage Engine
+  Retryable writes require a storage engine supporting document-level
+  locking, such as the :doc:`WiredTiger </core/wiredtiger>` or
+  :doc:`in-memory </core/inmemory>` storage engines.
+
+  :ref:`storage-mmapv1` does **not** support retryable writes.
+
+3.6 MongoDB Drivers
+  Clients require MongoDB drivers updated for MongoDB 3.6:
+
+  .. include:: /includes/3.6-drivers.rst
+
+MongoDB Version
+  The MongoDB version of every node in the cluster must be ``3.6`` or
+  greater, and the ``featureCompatibilityVersion`` of each node in the
+  cluster must be ``3.6`` or greater. See
+  :dbcommand:`setFeatureCompatibilityVersion` for more information on
+  the ``featureCompatibilityVersion`` flag.
+
+Write Acknowledgment
+  Write operations issued with a :doc:`/reference/write-concern` of ``0``
+  are **not** retryable.
+
+Enabling Retryable Writes
+-------------------------
+
+MongoDB drivers do **not** enable retryable writes by default.
+
+MongoDB Drivers
+  To enable retryable writes in MongoDB drivers, add the
+  :urioption:`retryWrites` option to your
+  :ref:`connection string <mongodb-uri>`:
+
+  .. code-block:: none
+
+     mongodb://localhost/?retryWrites=true
+
+:binary:`~bin.mongo` shell
+  To enable retryable writes in the :binary:`~bin.mongo` shell, use
+  the :option:`--retryWrites <mongo --retryWrites>` command line option:
+
+  .. code-block:: sh
+
+     mongo --retryWrites
 
 .. _retryable-write-ops:
 
@@ -101,48 +145,25 @@ cannot be :writeconcern:`{w: 0} </<number/>>`.
        any multi-document write operations, such as ``update`` which
        specifies ``true`` for the ``multi`` option.
 
-
-Limitations
------------
-
-Supported Deployment Topologies
-   Available on replica sets and sharded clusters only.
-
-Supported Storage Engine
-   Available for the :doc:`WiredTiger storage engine
-   </core/wiredtiger>` and :doc:`in-memory storage engine
-   </core/inmemory>`.
-
-   Retryable writes are not available on storage engines that don't
-   support doc level locking; e.g. MMAPv1.
-
-3.6 MongoDB Drivers
-   Clients require MongoDB drivers updated for MongoDB 3.6:
-
-   .. include:: /includes/3.6-drivers.rst
-
-   |enable-retryable-writes|
-
-Feature Compatibility Version
-   ``featureCompatibilityVersion`` must be at least "3.6". For more
-   information, see :dbcommand:`setFeatureCompatibilityVersion`.
-
-Request Write Acknowledgement
-   :doc:`/reference/write-concern` must be an acknowledge write
-   concern. For example, write operations issued with :writeconcern:`{w: 0}
-   </<number/>>` are not retryable.
+Behavior
+--------
 
 Persistent Network Errors
-   As the retry attempt is made only once, the retryable feature can
-   help address transient network errors but not persistent network
-   errors.
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Failover Period Exceeds :urioption:`serverSelectionTimeoutMS`
-   Upon encountering a failover and receiving the ``not master`` error,
-   the drivers wait :urioption:`serverSelectionTimeoutMS` seconds to
-   determine the new primary before retrying. The retryable feature
-   does not addresss instance where the failover period exceeds
-   :urioption:`serverSelectionTimeoutMS`.
+MongoDB retryable writes make only **one** retry attempt. This helps
+address transient network errors and
+:ref:`replica set elections <replica-set-elections>`, but not persistent
+network errors.
+
+Failover Period
+~~~~~~~~~~~~~~~
+
+If the driver cannot find a healthy :term:`primary` in the destination
+replica set or sharded cluster shard, the drivers wait
+:urioption:`serverSelectionTimeoutMS` milliseconds to determine the new
+primary before retrying. Retryable writes do not address instances where
+the failover period exceeds :urioption:`serverSelectionTimeoutMS`.
 
 .. warning::
 
