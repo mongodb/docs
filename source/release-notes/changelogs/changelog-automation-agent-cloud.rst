@@ -1,3 +1,13 @@
+.. _automation-5.0.1.2538:
+
+Automation Agent 5.0.0.2526
+---------------------------
+
+*Released 2018-03-12*
+
+- Fix: Disable MongoDB's TTL monitor thread while applying oplogs
+  during a point in time restore.
+
 .. _automation-5.0.0.2526:
 
 Automation Agent 5.0.0.2526
