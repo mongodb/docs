@@ -1,0 +1,348 @@
+stepnum: 1
+level: 4
+source:
+  file: steps-source-backup-tab.yaml
+  ref: select-backup-tab-overview-page
+---
+stepnum: 2
+level: 4
+source:
+  file: steps-source-prepare-restore-snapshot.yaml
+  ref: click-deployment-select-restore
+---
+stepnum: 3
+title: "Select the restore point."
+level: 4
+ref: select-shard-pit
+content: |
+
+  a. Choose the point from which you want to restore your backup.
+
+     .. list-table::
+        :widths: 20 40 40
+        :header-rows: 1
+
+        * - Restore Type
+
+          - Description
+
+          - Action
+
+        * - :guilabel:`Snapshot`
+
+          - Allows you to choose one 
+            :term:`stored snapshot <snapshot>`.
+
+          - Select an existing :term:`snapshot <snapshot>` to restore.
+
+        * - :guilabel:`Point In Time`
+
+          - Creates a custom snapshot that includes all operations up 
+            to but not including the selected time. By default, the
+            :term:`oplog` stores 24 hours of data.
+
+            .. example::
+
+               If you select ``12:00``, the last operation in the
+               restore is ``11:59:59`` or earlier.
+
+            .. important::
+
+               You cannot perform a :abbr:`PIT (Point in Time)` restore
+               that covers any time prior to the latest backup resync.
+               For the conditions that cause a resync, see
+               :doc:`/tutorial/resync-backup`.
+
+          - Select a :guilabel:`Date` and :guilabel:`Time`.
+
+  b. Click :guilabel:`Next`.
+
+  c. If you chose :guilabel:`Point In Time` and :term:`checkpoints
+     <checkpoint>` are enabled, a list of :guilabel:`Checkpoints`
+     appears. You may choose a checkpoint to be your point in time, or
+     click :guilabel:`Choose another point in time` to remove the list
+     of checkpoints and select the date and time from the menus.
+
+---
+title: "Click :guilabel:`Download` to restore the files manually."
+stepnum: 4
+level: 4
+ref: select-restore-method
+
+---
+stepnum: 5
+level: 4
+source:
+  file: steps-source-download-restore-snapshot.yaml
+  ref: select-restore-destination
+---
+stepnum: 6
+title: "Retrieve the snapshots."
+level: 4
+ref: retrieve
+content: |
+
+  |mms| creates links to the snapshot. By default, these links are 
+  available for an hour and can be used just once.
+
+  To download the snapshots:
+
+  a. If you closed the restore panel, click :guilabel:`Backup`, then
+     :guilabel:`Restore History`.
+
+  b. When the restore job completes, click :guilabel:`(get link)`
+     for each :term:`shard` and for one of the :term:`config servers
+     <config server>` appears.
+
+  c. Click:
+
+     - The copy button to the right of the link to copy the link to 
+       use it later, or
+     - :guilabel:`Download` to download the snapshot immediately.
+
+  .. admonition:: Extra step for point-in-time restores
+     :class: important
+
+     For point-in-time and oplog timestamp restores, additional
+     instructions are shown. The final step shows the full command
+     you must run using the :abbr:`MBRU (MongoDB Backup Restore
+     Utility)`. It includes all of the necessary options to ensure a
+     full restore.
+
+     Select and copy the ``mongodb-backup-restore-util`` command
+     provided under :guilabel:`Run Binary with PIT Options`.
+
+---
+stepnum: 7
+title: "Restore the snapshot data files to the destination host."
+level: 4
+ref: copy
+content: |
+  Extract the snapshot archive for the :term:`config server` and for
+  each :term:`shard` to a temporary location.
+
+  .. example::
+
+     .. code-block:: sh
+
+        tar -xvf {backupRestoreName}.tar.gz
+        mv {backupRestoreName} {temp-database-path}
+---
+stepnum: 8
+title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
+level: 4
+ref: mbru-binary
+content: |
+
+  a. Download the MongoDB Backup Restore Utility to your host.
+
+     .. note::
+
+        If you closed the restore panel, click :guilabel:`Backup`, then
+        :guilabel:`More` and then :guilabel:`Download MongoDB Backup
+        Restore Utility`.
+
+  b. Run the MongoDB Backup Restore Utility on your destination host.
+     Run it once for the config server and each shard.
+
+     .. admonition:: Pre-configured MBRU command
+        :class: important
+
+        |mms| provides the ``mongodb-backup-restore-util`` with the
+        appropriate options for your restore on the restore panel under
+        :guilabel:`Run Binary with PIT Options`.
+
+        You should copy the ``mongodb-backup-restore-util`` command
+        provided in the |application|.
+
+     .. class:: copyable-code
+     .. code-block:: sh
+
+        ./mongodb-backup-restore-util --https --host <targetHost> \
+          --port <targetPort> \
+          --opStart <opLogStartTimeStamp> \
+          --opEnd <opLogEndTimeStamp> \
+          --logFile <logPath> \
+          --oplogSourceAddr <oplogSourceAddr> \
+          --apiKey <apiKey> \
+          --groupId <groupId> \
+          --rsId <rsId> \
+          --whitelist <database1.collection1, database2, etc.> \
+          --blacklist <database1.collection1, database2, etc.> \
+          --seedReplSetMember \
+          --oplogSizeMB <size> \
+          --seedTargetPort <port> \
+          --ssl \
+          --sslCAFile <path> \
+          --sslPEMKeyFile <path>
+
+     The ``mongodb-backup-restore-util`` command uses the following
+     options:
+
+     .. list-table::
+        :widths: 30 10 60
+        :header-rows: 1
+
+        * - Option
+          - Required
+          - Description
+
+        * - ``--https``
+          - Optional
+          - Use if you need :abbr:`TLS (Transport Security Layer)`/
+            :abbr:`SSL (Secure Sockets Layer)` to connect to the
+            ``--oplogSourceAddr``.
+
+        * - ``--host``
+          - Required
+          - Provide the hostname or :abbr:`IP (Internet Protocol)`
+            address for the host that serves the :program:`mongod` to
+            which the :term:`oplog <Oplog Store Database>` should be
+            applied.
+
+        * - ``--port``
+          - Required
+          - Provide the port for the host that serves the
+            :program:`mongod` to which the :term:`oplog <Oplog Store
+            Database>` should be applied.
+
+        * - ``--opStart``
+          - Required
+          - Provide the 
+            :ref:`BSON timestamp <document-bson-type-timestamp>`
+            for the first :term:`oplog <Oplog Store Database>` entry
+            you want to include in the restore.
+
+        * - ``--opEnd``
+          - Required
+          - Provide the 
+            :ref:`BSON timestamp <document-bson-type-timestamp>`
+            for the last :term:`oplog <Oplog Store Database>` entry
+            you want to include in the restore.
+
+        * - ``--logFile``
+          - Optional
+          - Provide a path, including file name, where the
+            :abbr:`MBRU (MongoDB Backup Restore Utility)` log is
+            written.
+
+        * - ``--oplogSourceAddr``
+          - Required
+          - Provide the URL for the :term:`oplog <Oplog Store
+            Database>`.
+
+        * - ``--apiKey``
+          - Required
+          - Provide your |mms| Agent
+            :doc:`API Key </tutorial/manage-agent-api-key>`.
+
+        * - ``--groupId``
+          - Required
+          - Provide the :term:`group` ID.
+
+        * - ``--rsId``
+          - Required
+          - Provide the :term:`replica set` ID.
+
+        * - ``--whitelist``
+          - Optional
+          - Provide a list of databases and/or collections to which you
+            want to limit the restore.
+
+        * - ``--blacklist``
+          - Optional
+          - Provide a list of databases and/or collections to which you
+            want to exclude from the restore.
+
+        * - ``--seedReplSetMember``
+          - Optional
+          - Use if you need a replica set member to re-create the
+            :term:`oplog <Oplog Store Database>` collection and seed
+            it with the correct timestamp.
+
+            Requires ``--oplogSizeMB`` and ``--seedTargetPort``.
+
+        * - ``--oplogSizeMB``
+          - Conditional
+          - Provide the :term:`oplog <Oplog Store Database>` size 
+            in MB.
+
+            Required if ``--seedReplSetMember`` is set.
+
+        * - ``--seedTargetPort``
+          - Conditional
+          - Provide the port for the :term:`replica set`'s
+            :term:`primary`. This may be different from the `ephemeral
+            port <https://en.wikipedia.org/wiki/Ephemeral_port?oldid=797306581>`_
+            used.
+
+            Required if ``--seedReplSetMember`` is set.
+
+        * - ``--ssl``
+          - Optional
+          - Use if you need :abbr:`TLS (Transport Security Layer)` /
+            :abbr:`SSL (Secure Sockets Layer)` to apply :term:`oplogs
+            <Oplog Store Database>` to the :program:`mongod`.
+            Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.
+
+        * - ``--sslCAFile``
+          - Conditional
+          - Provide the path to the :abbr:`CA (Certificate Authority)`
+            file.
+
+            Required if ``--ssl`` is set.
+
+        * - ``--sslPEMKeyFile``
+          - Conditional
+          - Provide the path to the :abbr:`PEM (privacy-enhanced mail)`
+            certificate file.
+
+            Required if ``--ssl`` is set.
+
+---
+stepnum: 9
+title: "Copy the completed snapshots to restore to other hosts."
+level: 4
+ref: distribute
+content: |
+
+  - For the config server, copy the restored config server database to
+    the working database path of each :term:`replica set` member.
+
+  - For each shard, copy the restored shard database to the working
+    database path of each replica set member.
+
+---
+stepnum: 10
+title: "Unmanage the Sharded Cluster."
+level: 4
+ref: unmanage
+content: |
+
+  Before attempting to restore the data manually, 
+  :doc:`remove the sharded cluster from Automation 
+  </tutorial/unmanage-deployment>`.
+
+---
+stepnum: 11
+title: "Restore the Sharded Cluster Manually."
+level: 4
+ref: restore-manually
+content: |
+
+  Follow the tutorial from the MongoDB Manual to 
+  :manual:`restore the sharded cluster </tutorial/restore-sharded-cluster>`.
+
+---
+stepnum: 12
+title: "Reimport the Sharded Cluster."
+level: 4
+ref: reimport
+content: |
+
+  To manage the sharded cluster with automation again,
+  :doc:`import the sharded cluster </tutorial/add-existing-mongodb-processes>`
+  back into |mms|.
+
+...
+

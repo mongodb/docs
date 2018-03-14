@@ -61,22 +61,6 @@ MongoDB binaries:
 Required Inbound Access
 -----------------------
 
-Backup SCP Restores
-~~~~~~~~~~~~~~~~~~~
-
-If you use SCP as the 
-:ref:`delivery method <delivery-methods-file-formats>` when restoring a
-snapshot, you must grant SSH access to the following ranges at minimum:
-
-- ``4.71.186.128/25``
-
-- ``4.35.16.128/25``
-
-.. important::
-
-   MongoDB reserves the right to change these IP addresses at any
-   time without user notice.
-
 Required Ports on Your Network
 ------------------------------
 

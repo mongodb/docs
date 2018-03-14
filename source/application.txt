@@ -10,37 +10,18 @@
    :depth: 1
    :class: singlecol
 
-Overview
---------
-
-|mms-full| is a service for managing, monitoring and backing up a MongoDB
-infrastructure.  In addition, |mms| allows Administrators to
-maintain a server pool to facilitate the deployment of MongoDB.
-
-|mms| provides the services described here.
-
-.. _monitoring-functional-overview:
-
-Monitoring
-----------
-
-|mms| Monitoring provides real-time reporting, visualization, and alerting
-on key database and hardware indicators.
-
-**How it Works:** A lightweight Monitoring Agent runs within your infrastructure and
-collects statistics from the nodes in your MongoDB deployment. The agent
-transmits database statistics back to |mms| to provide real-time
-reporting. You can set alerts on indicators you choose.
+|mms-full| can automate, monitor, and back up your MongoDB 
+infrastructure.  
 
 .. _automation:
 
 Automation
 ----------
 
-.. only:: onprem
+|mms| Automation enables you to configure and maintain MongoDB nodes 
+and clusters.
 
-   |mms| Automation provides an interface for configuring MongoDB nodes
-   and clusters and for upgrading your MongoDB deployment.
+.. only:: onprem
 
    .. image:: /figures/how-it-works-ops.png
       :alt: "Automation coordinates MongoDB instances running in a public cloud, in your private data center, or on your local system."
@@ -49,35 +30,74 @@ Automation
 
 .. only:: cloud
 
-   |mms| Automation provides an interface for provisioning machines,
-   configuring MongoDB nodes and clusters, and upgrading your MongoDB
-   deployment.
-
    .. image:: /figures/how-it-works.png
       :alt: "Automation coordinates MongoDB instances running in a public cloud, in your private data center, or on your local system."
       :width: 700px
       :align: center
 
-**How it Works:** Automation Agents on each server maintain your deployments. The
-Automation Agent also maintains the Monitoring and Backup agents and
-starts, restarts, and upgrades the agents as needed.
+How it Works
+~~~~~~~~~~~~
 
-Automation allows only one agent of each type per machine and will remove
-additional agents. For example, when maintaining Backup Agents, automation
-will remove a Backup Agent from a machine that has two Backup Agents.
+:doc:`Automation Agents </tutorial/nav/automation-agent>` on each 
+MongoDB host maintain your deployments. You can 
+:doc:`install </tutorial/nav/install-automation-agent>` the Automation 
+Agent so it can :doc:`provision hosts </tutorial/nav/add-servers>` and 
+:doc:`deploy clusters </tutorial/nav/manage-hosts>` in your MongoDB 
+infrastructure.
+
+.. only:: onprem
+   
+   You can also create and maintain a 
+   :doc:`server pool </tutorial/server-pool>` to facilitate the 
+   deployment of MongoDB.
+
+The Automation Agent also maintains the 
+:term:`Monitoring <Monitoring Agent>` and
+:term:`Backup Agents <Backup Agent>` and starts, restarts, and 
+upgrades the agents as needed.
+
+Automation allows only one Monitoring or Backup Agent per host. It 
+removes additional agents. 
+
+.. example::
+
+   When maintaining Backup Agents, Automation removes a Backup Agent 
+   from a host that has two Backup Agents.
+
+.. _monitoring-functional-overview:
+
+Monitoring
+----------
+
+|mms| Monitoring provides real-time reporting, visualization, and 
+alerting on key database and hardware indicators.
+
+How it Works
+~~~~~~~~~~~~
+
+A lightweight :doc:`Monitoring Agent </tutorial/nav/monitoring-agent>`
+runs within your infrastructure and collects statistics from the nodes 
+in your MongoDB deployment. The agent transmits database statistics 
+back to |mms| to report deployment status in real time. You can 
+:doc:`set alerts </tutorial/nav/alerts>` on indicators you choose.
 
 .. _mms-backup-functional-overview:
 
 Backup
 ------
 
-|mms| Backup provides scheduled snapshots and point-in-time recovery of
-your MongoDB :term:`replica sets <replica set>` and :term:`sharded
-clusters <sharded cluster>`.
+The |mms| Backup Agent provides scheduled 
+:doc:`snapshots </tutorial/nav/backup-use-operations>` and 
+point-in-time 
+:doc:`recovery </tutorial/nav/backup-restore-deployments>` 
+of your MongoDB :term:`replica sets <replica set>` and
+:term:`sharded clusters <sharded cluster>`.
 
-**How it Works:** A lightweight Backup Agent runs within your
-infrastructure and backs up data from the MongoDB processes you have
-specified.
+How it Works
+~~~~~~~~~~~~
+
+A lightweight Backup Agent runs within your infrastructure and backs up
+data from the MongoDB processes you have specified.
 
 .. note::
 
@@ -85,33 +105,34 @@ specified.
 
 .. _data-backup:
 
-Data Backup
+Backup Data
 ~~~~~~~~~~~
 
-When you start Backup for a MongoDB deployment, the agent performs an
+When you start backing up a MongoDB deployment, the agent performs an
 :term:`initial sync` of the deployment's data as if it were creating a
-new, "invisible" member of a replica set. For a sharded cluster the agent
-performs a sync of each shard's :term:`primary` and of each config server.
-The agent ships initial sync and oplog data over HTTPS back to |mms|.
+new, "invisible" member of a :term:`replica set`. For a sharded 
+cluster, the agent syncs each shard's :term:`primary` member and each
+:term:`config server`. The agent sends the initial sync and 
+:term:`oplog` data over |https| back to |mms|.
 
 .. include:: /includes/extracts/functional-overview-data-backup.rst
 
-Backup performs the initial sync and the tailing of the oplog using
-standard MongoDB queries. The production replica set is not aware of the
-copy of the backup data.
+The Backup Agent executes the initial sync and the tailing of the oplog
+using standard MongoDB queries. The cluster being backed up is unaware
+of the additional copy of the backup data.
 
-Backup uses a :program:`mongod` with a version equal to or greater than
-the version of the replica set it backs up.
+The Backup Agent uses a MongoDB instance version equal to or
+greater than the version of the replica set it backs up.
 
-Backup takes and stores snapshots based on a user-defined :ref:`snapshot
-retention policy <snapshot-frequency-and-retention>`.
-Sharded clusters snapshots temporarily stop the
-balancer via the :program:`mongos` so that they can insert a marker
-token into all shards and config servers in the cluster. |mms| takes a
-snapshot when the marker tokens appear in the backup data.
+The Backup Agent takes and stores snapshots based on a user-defined 
+:ref:`snapshot retention policy <snapshot-frequency-and-retention>`.
+Sharded cluster snapshots temporarily stop the balancer so that they 
+can insert a marker token into all shards and config servers in the 
+cluster. |mms| takes a :term:`snapshot` when the marker tokens appear 
+in the snapshot data.
 
-The procedures used to reduce the storage space required to store a snapshot
-depend on where it is stored, as described in the following table:
+The procedures used to reduce the storage space required to store a 
+:term:`snapshot` depend on where it is stored:
 
 .. list-table::
    :header-rows: 1
@@ -121,46 +142,53 @@ depend on where it is stored, as described in the following table:
      - Description
    
    * - MongoDB blockstore
-     - Each successive snapshot stores only the differences from the
-       previous snapshot. Compression and block-level de-duplication
-       reduce the size of snapshot data. 
+     - Only the differences of each successive :term:`snapshot` are 
+       stored. Compression and block-level de-duplication reduce the 
+       size of snapshot data.
 
-   * - AWS S3 bucket
-     - Each successive snapshot stores only the differences from the
-       previous snapshot. Compression and block-level de-duplication
-       reduce the size of snapshot data.
+   * - :abbr:`AWS (Amazon Web Services)` :abbr:`S3 (Simple Storage Service)` bucket
+     - Only the differences of each successive :term:`snapshot` are 
+       stored. Compression and block-level de-duplication reduce the 
+       size of snapshot data.
 
    * - File system store
      - Depending on the configuration, compression reduces the size of
-       the snapshot data.
+       the :term:`snapshot` data.
 
-All snapshots represent a full backup. See :doc:`Backup Configuration Options </core/backup-preparations>`
-for more information about backup configurations.
+All snapshots represent a full backup. 
+
+To learn more about how to configure backups, see 
+:doc:`Backup Configuration Options </core/backup-preparations>`.
 
 .. _restores:
 
-Data Restoration
-~~~~~~~~~~~~~~~~
+Restore Data
+~~~~~~~~~~~~
 
-|mms| Backup lets you restore data from a scheduled snapshot or from a
-selected point between snapshots. For sharded clusters you can restore
-from :ref:`checkpoints <checkpoint>` between snapshots. For replica sets,
-you can restore from selected points in time.
+|mms| Backup Agents can restore data from a complete scheduled 
+snapshot or from a selected point between snapshots.
 
-When you restore from a snapshot, |mms| reads directly from the snapshot
-storage and transfers files either through an HTTPS download link
-or by sending them via HTTPS or SCP.
+- For :term:`sharded clusters <sharded cluster>` you can restore from 
+  :ref:`checkpoints <checkpoint>` between snapshots.
+- For :term:`replica sets <replica set>`, you can restore from selected
+  points in time.
 
-When you restore from a checkpoint or point in time, |mms| first creates a
-local restore of a snapshot from the snapshot storage and then applies stored
-oplogs until the specified point is reached. |mms| delivers the backup via
-the same HTTPS or SCP mechanisms. To enable checkpoints, see
+When you restore from a :term:`snapshot`, |mms| reads directly from 
+the snapshot storage and you can download the snapshot files from an 
+|https| link.
+
+When you restore from a checkpoint or point in time, |mms| first
+restores a full snapshot from the snapshot storage and then applies 
+stored :term:`oplogs <oplog>` until the specified point is reached. 
+|mms| delivers the snapshot and oplog updates using the same |https| 
+mechanisms. To enable checkpoints, see 
 :ref:`enable-cluster-checkpoints`.
 
 .. only:: onprem
 
-   The amount of oplog to keep per backup is configurable and affects the
-   time window available for checkpoint and point-in-time restores.
+   You can configure how much of the oplog you want to keep per backup.
+   This affects how much time a checkpoint and point-in-time restore 
+   can cover.
 
 .. include:: /includes/extracts/server-pool-intro.rst
 

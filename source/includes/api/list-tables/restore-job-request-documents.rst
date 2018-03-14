@@ -12,29 +12,19 @@
      - Method and details of how the restored :term:`snapshot` data
        is delivered.
 
+   * - delivery.expires
+     - timestamp
+     - Date after which the :abbr:`URL (Uniform Resource Locator)` is 
+       no longer available.
+
+       Only present if ``"delivery.methodName" : "HTTP"``.
+
    * - delivery.expirationHours
      - number
      - Number of hours the download :abbr:`URL (Uniform Resource
        Locator)` is valid once the restore job is complete.
 
        Only needed if ``"delivery.methodName" : "HTTP"``.
-
-   * - delivery.formatName
-     - string
-     - Format in which data from an :abbr:`SCP (secure copy)` restore
-       should be written to the destination. Accepted values are:
-
-       - ``ARCHIVE``
-       - ``INDIVIDUAL``
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
-
-   * - delivery.hostname
-     - string
-     - Hostname of the server to which the data should be written
-       for an :abbr:`SCP (secure copy)` restore.
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
 
    * - delivery.maxDownloads
      - number
@@ -50,7 +40,6 @@
        - ``AUTOMATED_RESTORE``
        - ``HTTP``
        - ``QUERY``
-       - ``SCP``
 
        .. note::
 
@@ -59,47 +48,15 @@
           automated restore uses the ``HTTP`` method to deliver the
           restore job to the target host.
 
-       .. include:: /includes/note-scp-deprecation.rst
-
-   * - delivery.password
-     - string
-     - Password to use for :abbr:`SCP (secure copy)`.
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
-
-       .. note::
-          It is never exposed in a restore job response document.
-
-   * - delivery.passwordTypeName
-     - string
-     - Type of authentication to use for :abbr:`SCP (secure copy)`.
-       Accepted values are:
-
-       - ``PASSWORD``
-       - ``SSH_KEY``
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
-
-   * - delivery.port
-     - number
-     - Port to use for ``SCP``.
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
+       .. include:: /includes/note-scp-removed.rst
 
    * - delivery.targetClusterId
      - string
-     - Unique identifier of the destination cluster to perform the 
+     - Unique identifier of the destination cluster to perform the
        restore job. 
        
        Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
        
-   * - delivery.targetDirectory
-     - string
-     - Target directory to which the data should be written for an
-       :abbr:`SCP (secure copy)` restore.
-
-       Only needed if ``"delivery.methodName" : "SCP"``.
-
    * - delivery.targetGroupId
      - string
      - Unique identifier of the project that contains the destination 
@@ -107,11 +64,12 @@
 
        Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
 
-   * - delivery.username
+   * - delivery.url
      - string
-     - Username to use for :abbr:`SCP (secure copy)`.
+     - The :abbr:`URL (Uniform Resource Locator)` from which the
+       restored snapshot data can be downloaded.
 
-       Only needed if ``"delivery.methodName" : "SCP"``.
+       Only needed if ``"delivery.methodName" : "HTTP"``.
 
    * - snapshotId
      - string

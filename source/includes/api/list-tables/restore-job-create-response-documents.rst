@@ -49,23 +49,6 @@
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
-   * - delivery.formatName
-     - string
-     - Format in which data from an :abbr:`SCP (secure copy)` restore
-       should be written to the destination. Accepted values are:
-
-       - ``ARCHIVE``
-       - ``INDIVIDUAL``
-
-       Only present if ``"delivery.methodName" : "SCP"``.
-
-   * - delivery.hostname
-     - string
-     - Hostname of the server to which the data should be written
-       for an SCP restore.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
-
    * - delivery.maxDownloads
      - number
      - Number of times the download :abbr:`URL (Uniform Resource
@@ -79,15 +62,8 @@
 
        - ``HTTP``
        - ``QUERY``
-       - ``SCP``
 
-       .. include:: /includes/note-scp-deprecation.rst
-
-   * - delivery.port
-     - number
-     - Port to use for ``SCP``.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
+       .. include:: /includes/note-scp-removed.rst
 
    * - delivery.statusName
      - string
@@ -108,13 +84,6 @@
        
        Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
        
-   * - delivery.targetDirectory
-     - string
-     - Target directory to which the data should be written for an
-       :abbr:`SCP (secure copy)` restore.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
-
    * - delivery.targetGroupId
      - string
      - Unique identifier of the project that contains the destination 

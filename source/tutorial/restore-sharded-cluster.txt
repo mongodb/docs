@@ -1,6 +1,6 @@
-=======================================
-Restore a Sharded Cluster from a Backup
-=======================================
+=========================================
+Restore a Sharded Cluster from a Snapshot
+=========================================
 
 .. default-domain:: mongodb
 
@@ -10,9 +10,11 @@ Restore a Sharded Cluster from a Backup
    :depth: 1
    :class: singlecol
 
-When you restore a cluster from a backup, |mms| provides you with a
-restore files for the selected restore point. For an overview of the
-restore process, please see :doc:`/tutorial/nav/restore-overview`.
+When you restore a cluster from a snapshot, |mms| provides you with
+restore files for the selected restore point. 
+
+To learn about the restore process, see 
+:doc:`/tutorial/nav/restore-overview`.
 
 .. only:: onprem
 
@@ -21,20 +23,28 @@ restore process, please see :doc:`/tutorial/nav/restore-overview`.
 Considerations
 --------------
 
-``BinData``
-+++++++++++
+Review change to ``BinData`` BSON sub-type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/considerations-restore-bindata-change.rst
 
-The backup restore file includes a metadata file, ``restoreInfo.txt``.
-This file captures the options the database used when the snapshot was
-taken. The database must be run with the listed options after it has
-been restored.
-
-``restoreInfo.txt``
-+++++++++++++++++++
+Restore using settings given in ``restoreInfo.txt``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/fact-restoreInfo-file.rst
+
+Snapshots when Agent Cannot Stop Balancer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| displays a warning next to cluster snapshots taken while the
+:term:`balancer <balancer>` is enabled. If you restore from such a
+snapshot, you run the risk of lost or orphaned data. For more
+information, see :ref:`snapshot-while-balancer-enabled`.
+
+Secure Copy (``SCP``) Delivery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/note-scp-removed.rst
 
 Prerequisites
 -------------
@@ -43,128 +53,31 @@ Prerequisites
 
 .. include:: /includes/extracts/encrypted-backup-display-kmip-info.rst
 
-Client Requests During Restoration
-++++++++++++++++++++++++++++++++++
+Disable Client Requests to MongoDB during Restore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/considerations-restore-in-isolation.rst
 
-Snapshots when Agent Cannot Stop Balancer
-+++++++++++++++++++++++++++++++++++++++++
+Restore a Snapshot
+------------------
 
-|mms| displays a warning next to cluster snapshots taken while the
-:term:`balancer <balancer>` is enabled. If you restore from such a
-snapshot, you run the risk of lost or orphaned data. For more
-information, see :ref:`snapshot-while-balancer-enabled`.
+.. tabs::
 
-Secure Copy (``SCP``) Delivery
-++++++++++++++++++++++++++++++
+   tabs:
+    - id: automatic
+      name: Automatic Restore
+      content: |
 
-.. include:: /includes/note-scp-deprecation.rst
+         .. _automatic-restore-sharded-cluster:
 
-.. include:: /includes/note-scp-key-pair-requirement.rst
+         To have |mms| automatically restore the snapshot:
 
-.. include:: /includes/note-windows-scp-issue.rst
+         .. include:: /includes/steps/restore-automatic-sharded-cluster.rst
 
-When copying files individually, the ``MaxStartups`` value in
-``sshd_config`` should be increased to:
+    - id: manual
+      name: Manual Restore
+      content: |
 
-``(4 × (number of shards + number of config servers)) + 10``
+         .. _manual-restore-sharded-cluster:
 
-``SCP`` is performed in parallel and, by default, Secure Shell Daemon
-(``sshd``) installations use a small number of concurrent connections.
-Changing this setting in ``sshd_config`` allows ``SCP`` to support
-sufficient connections to complete the restore.
-
-.. example::
-
-   For a sharded cluster with 7 shards and 3 config servers, change
-   ``MaxStartups`` to ``50``:
-
-   ``MaxStartups  50``
-
-.. _automatic-restore-sharded-cluster:
-
-Automatic Restore
------------------
-
-To have |mms| automatically restore the backup, perform the
-:ref:`select the snapshot <select-snapshot-sharded-cluster>` procedure.
-
-.. _manual-restore-sharded-cluster:
-
-Manual Restore
---------------
-
-To restore the backup manually, perform the following:
-
-1. :ref:`Select and Prepare the Snapshot<select-snapshot-sharded-cluster>`.
-
-#. :ref:`Retrieve the Snapshot using HTTPS
-   <retrieve-snapshot-sharded-cluster>` or
-   :ref:`Send the Snapshot using SCP
-   <send-snapshot-sharded-cluster-by-scp>`.
-
-#. :ref:`Prepare and Distribute Snapshot <prep-and-distro-snapshot-sharded-cluster>`
-
-#. :ref:`Unmanage the Sharded Cluster<unmanage-cluster>`.
-
-#. :ref:`Restore the Sharded Cluster Manually<restore-cluster-manually>`.
-
-#. :ref:`Reimport the Sharded Cluster<reimport-cluster>`.
-
-.. _select-snapshot-sharded-cluster:
-
-Select and Prepare the Snapshot
-+++++++++++++++++++++++++++++++
-
-.. include:: /includes/steps/prepare-snapshot-sharded-cluster.rst
-
-.. _retrieve-snapshot-sharded-cluster:
-
-Retrieve the Snapshot using HTTPS
-+++++++++++++++++++++++++++++++++
-
-.. include:: /includes/steps/download-snapshot-sharded-cluster.rst
-
-.. _send-snapshot-sharded-cluster-by-scp:
-
-Send Snapshot using SCP
-+++++++++++++++++++++++
-
-Direct |mms| to copy the restore files to your server via ``SCP``.
-
-.. include:: /includes/steps/send-snapshot-sharded-cluster-scp.rst
-
-.. _prep-and-distro-snapshot-sharded-cluster:
-
-Prepare and Distribute Snapshots
-++++++++++++++++++++++++++++++++
-
-.. include:: /includes/steps/send-pit-sharded-cluster.rst
-
-.. _restore-primary-member:
-.. _unmanage-cluster:
-
-Unmanage the Sharded Cluster
-++++++++++++++++++++++++++++
-
-Before attempting to restore the data manually,
-:doc:`remove the sharded cluster from Automation </tutorial/unmanage-deployment>`.
-
-.. _restore-cluster-manually:
-
-Restore the Sharded Cluster Manually
-++++++++++++++++++++++++++++++++++++
-
-Follow the tutorial from the MongoDB Manual to
-:manual:`restore the sharded cluster </tutorial/restore-sharded-cluster>`.
-
-.. _reimport-cluster:
-
-Reimport the Sharded Cluster
-++++++++++++++++++++++++++++
-
-To manage the sharded cluster with automation again,
-:doc:`import the sharded cluster </tutorial/add-existing-mongodb-processes>`
-back into |mms|.
-
+         .. include:: /includes/steps/restore-manual-sharded-cluster.rst

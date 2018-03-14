@@ -34,8 +34,8 @@
 
    * - delivery.expirationHours
      - number
-     - Number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
+     - Number of hours the download |url| is valid once the restore 
+       job is complete.
 
        Only needed if ``"delivery.methodName" : "HTTP"``.
 
@@ -49,27 +49,17 @@
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
-   * - delivery.formatName
-     - string
-     - Format in which data from an :abbr:`SCP (secure copy)` restore
-       should be written to the destination. Accepted values are:
+   * - delivery.expirationHours
+     - number
+     - The number of hours the download |url| is valid once the 
+       restore job is complete.
 
-       - ``ARCHIVE``
-       - ``INDIVIDUAL``
-
-       Only present if ``"delivery.methodName" : "SCP"``.
-
-   * - delivery.hostname
-     - string
-     - Hostname of the server to which the data should be written
-       for an SCP restore.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
+       Only present if ``"delivery.methodName" : "HTTP"``.
 
    * - delivery.maxDownloads
      - number
-     - Number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
+     - Number of times the download |url| can be used. This must be 
+       ``1`` or greater.
 
        Only needed if ``"delivery.methodName" : "HTTP"``.
 
@@ -79,15 +69,8 @@
 
        - ``HTTP``
        - ``QUERY``
-       - ``SCP``
 
-       .. include:: /includes/note-scp-deprecation.rst
-
-   * - delivery.port
-     - number
-     - Port to use for ``SCP``.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
+       .. include:: /includes/note-scp-removed.rst
 
    * - delivery.statusName
      - string
@@ -100,27 +83,6 @@
        - ``INTERRUPTED``
        - ``EXPIRED``
        - ``MAX_DOWNLOADS_EXCEEDED``
-
-   * - delivery.targetClusterId
-     - string
-     - Unique identifier of the destination cluster to perform the 
-       restore job. 
-       
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
-       
-   * - delivery.targetDirectory
-     - string
-     - Target directory to which the data should be written for an
-       :abbr:`SCP (secure copy)` restore.
-
-       Only present if ``"delivery.methodName" : "SCP"``.
-
-   * - delivery.targetGroupId
-     - string
-     - Unique identifier of the project that contains the destination 
-       cluster for the restore job.
-
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
 
    * - delivery.url
      - string
@@ -209,7 +171,7 @@
      - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
        the latest :term:`oplog <Oplog Store Database>`
        entry in the restored :term:`snapshot`.
-
+ 
    * - timestamp.date
      - string
      - Timestamp in `ISO 8601
@@ -217,7 +179,7 @@
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
        the latest :term:`oplog <Oplog Store Database>` entry in the
        restored :term:`snapshot`.
-
+ 
    * - timestamp.increment
      - number
      - Order of all operations completed at the latest
