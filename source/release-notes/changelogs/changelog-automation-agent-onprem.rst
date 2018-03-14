@@ -95,17 +95,14 @@ Automation Agent 4.5.7.2375
 
 - Support for new Agent API Key model.
 
-.. _automation-3.2.16.2455-1:
+.. _automation-3.2.16.2444-1:
 
-Automation Agent 3.2.16.2455-1
+Automation Agent 3.2.16.2444-1
 ------------------------------
 
 *Released with Ops Manager 3.4.12 on 2018-02-01*
 
-**Fix:** Automation Agent determination of Goal State was incorrect for
-multi-server deployments using the ``ldap.bind.queryPassword`` parameter.
-This is now resolved and rolling changes will proceed correctly on these
-deployments.
+- Logging enhancements
 
 .. _automation-3.2.16.2263-1:
 
