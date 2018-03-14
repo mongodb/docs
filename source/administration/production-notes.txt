@@ -13,6 +13,11 @@ Production Notes
 This page details system configurations that affect MongoDB,
 especially when running in production.
 
+.. admonition:: Deprecated
+   :class: warning
+
+   .. include:: /includes/fact-4.0-mmapv1-deprecated.rst
+
 .. include:: /includes/fact-mms-summary.rst
 
 MongoDB Binaries
@@ -100,24 +105,6 @@ engine other than the one specified by :option:`--storageEngine <mongod --storag
 Concurrency
 -----------
 
-MMAPv1
-~~~~~~
-
-.. versionchanged:: 3.0
-
-   Beginning with MongoDB 3.0, :ref:`MMAPv1 <storage-mmapv1>` provides
-   *collection-level locking*: All collections have a unique
-   readers-writer lock that allows multiple clients to modify documents
-   in different collections at the same time.
-
-   For MongoDB versions 2.2 through 2.6 series, each database has a
-   readers-writer lock that allows concurrent read access to a
-   database, but gives exclusive access to a single write operation per
-   database. See the :doc:`Concurrency </faq/concurrency>` page for
-   more information. In earlier versions of MongoDB, all write
-   operations contended for a single readers-writer lock for the entire
-   :binary:`~bin.mongod` instance.
-
 .. _prod-notes-wired-tiger-concurrency:
 
 WiredTiger
@@ -131,6 +118,22 @@ can modify different documents in a collection at the same time.
 .. seealso:: :ref:`prod-notes-ram` provides information about how WiredTiger
    takes advantage of multiple CPU cores and how to improve operation
    throughput.
+
+MMAPv1 (*Deprecated in MongoDB 4.0*)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Beginning with MongoDB 3.0, :ref:`MMAPv1 <storage-mmapv1>` provides
+*collection-level locking*: All collections have a unique
+readers-writer lock that allows multiple clients to modify documents in
+different collections at the same time.
+
+For MongoDB versions 2.2 through 2.6 series, each database has a
+readers-writer lock that allows concurrent read access to a database,
+but gives exclusive access to a single write operation per database.
+See the :doc:`Concurrency </faq/concurrency>` page for more
+information. In earlier versions of MongoDB, all write operations
+contended for a single readers-writer lock for the entire
+:binary:`~bin.mongod` instance.
 
 Data Consistency
 ----------------
@@ -238,8 +241,8 @@ libraries (i.e. drivers) can run on big or little endian systems.
 Allocate Sufficient RAM and CPU
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MMAPv1
-``````
+MMAPv1 (*Deprecated in MongoDB 4.0*)
+````````````````````````````````````
 
 Due to its concurrency model, the :ref:`MMAPv1 <storage-mmapv1>` storage engine does not
 require many CPU cores. As such, increasing the number of cores can
@@ -553,16 +556,16 @@ Set ``vm.swappiness`` to ``1``
 
 “Swappiness” is a Linux kernel setting that influences the behavior of
 the Virtual Memory manager when it needs to allocate a swap, ranging
-from ``0`` to ``100``, inclusive. 
+from ``0`` to ``100``, inclusive.
 
 - A setting of ``0`` tells the kernel to swap only to avoid
-  out-of-memory problems. 
+  out-of-memory problems.
 
 - A setting of ``100`` tells it to swap aggressively to disk.
 
-If your host runs kernel versions ``3.5`` or later, or 
-:abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS kernel ``2.6.32-303`` 
-or later, setting this value to ``0`` could disable swapping. Set this 
+If your host runs kernel versions ``3.5`` or later, or
+:abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS kernel ``2.6.32-303``
+or later, setting this value to ``0`` could disable swapping. Set this
 to ``1``.
 
 To see what the current swappiness level is, run:
@@ -573,7 +576,7 @@ To see what the current swappiness level is, run:
 
    60
 
-To change swappiness while the system is running, run: 
+To change swappiness while the system is running, run:
 
 .. code-block:: sh
 
@@ -645,7 +648,7 @@ For the **WiredTiger** storage engine:
   <https://www.mongodb.com/products/enterprise-grade-support>`_ can provide
   advice and guidance on non-zero readahead configurations.
 
-For the **MMAPv1** storage engine:
+For the **MMAPv1** storage engine (*Deprecated in MongoDB 4.0*):
 
 - Ensure that readahead settings for the block devices that store the
   database files are appropriate. For random access use patterns, set
@@ -722,8 +725,8 @@ cache that uses 40% or more of the total memory can lead to increased
 memory pressure and poor performance. Use ``SetSystemFileCacheSize`` to
 limit the amount of memory that the file system cache can use.
 
-MongoDB Using MMAPv1
-````````````````````
+MongoDB Using MMAPv1 (*Deprecated in MongoDB 4.0*)
+``````````````````````````````````````````````````
 
 Install Hotfix for MongoDB 2.6.6 and Later
 ++++++++++++++++++++++++++++++++++++++++++
@@ -767,7 +770,7 @@ accommodate Windows' commitment rules during peak database use.
 MongoDB on Virtual Environments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes considerations when running MongoDB in some of 
+This section describes considerations when running MongoDB in some of
 the more common virtual environments.
 
 For all platforms, consider :ref:`virtualized-disks-scheduling`.
@@ -780,22 +783,22 @@ There are two performance configurations to consider:
 - Reproducible performance for performance testing or benchmarking, and
 - Raw maximum performance
 
-To tune performance on :abbr:`EC2 (Elastic Compute Cloud)` for either 
+To tune performance on :abbr:`EC2 (Elastic Compute Cloud)` for either
 configuration, you should:
 
 - Enable :abbr:`AWS (Amazon Web Services)`
-  `Enhanced Networking <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_ 
-  for your instance. Not all instance types support Enhanced Networking. 
+  `Enhanced Networking <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_
+  for your instance. Not all instance types support Enhanced Networking.
 
-  To learn more about Enhanced Networking, see to the 
+  To learn more about Enhanced Networking, see to the
   `AWS documentation <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html#enabling_enhanced_networking>`_.
 
-If you are concerned more about reproducible performance on 
+If you are concerned more about reproducible performance on
 :abbr:`EC2 (Elastic Compute Cloud)`, you should also:
 
-- Use provisioned :abbr:`IOPS (Input/Output Operations Per Second)` 
-  for the storage, with separate devices for journal and data. Do not 
-  use the ephemeral (:abbr:`SSD (Solid State Disk)`) storage available 
+- Use provisioned :abbr:`IOPS (Input/Output Operations Per Second)`
+  for the storage, with separate devices for journal and data. Do not
+  use the ephemeral (:abbr:`SSD (Solid State Disk)`) storage available
   on most instance types as their performance changes moment to moment.
   (The ``i`` series is a notable exception, but very expensive.)
 
