@@ -60,16 +60,6 @@ representation of your data, you can use a
 
 .. _user-permissions-include:
 
-User Permissions for Cached Sampling
-------------------------------------
-
-.. include:: /includes/user-permissions.rst
-
-.. seealso::
-
-   - :option:`--auth <mongosqld --auth>`
-   - :manual:`Enable Authentication </tutorial/enable-authentication>`
-
 .. _bi-persistent-schema:
 
 Persist a Schema in MongoDB
@@ -90,6 +80,8 @@ doesn't currently exist, you must set :option:`--sampleMode
 <mongosqld --sampleMode>` to
 ``write``.
 
+.. include:: /includes/sampleSource-example.rst
+
 The :option:`--sampleRefreshIntervalSecs
 <mongosqld --sampleRefreshIntervalSecs>`
 option determines how frequently :binary:`~bin.mongosqld` resamples data
@@ -98,31 +90,6 @@ to update the schema.
 .. include:: /includes/fact-resample-schema-data.rst
 
 .. include:: /includes/sampling-ref-chart-link.rst
-
-User Permissions for Persisted Schemas
---------------------------------------
-
-When using a persisted schema, the required user permissions are
-similar to those for :ref:`cached sampling <bi-cached-sampling>`, with
-the addition of a required ``write`` permission on the specified
-schema database. To create a user with the necessary permissions to
-run :binary:`~bin.mongosqld` with a persisted schema, execute the
-following command in the :binary:`~bin.mongo` shell, with the
-placeholder values ``<username>``, ``<password>``, and ``<dbname>``
-filled in with your own values:
-
-.. code-block:: javascript
-
-   db.getSiblingDB("admin").createUser(
-     {
-       user: "<username>",
-       pwd: "<password>",
-       roles: [
-                { "role": "readAnyDatabase", "db": "admin"  },
-                { "role": "readWrite", "db": "<dbname>"  }
-              ]
-     }
-   )
 
 .. _resample-schema-data:
 
@@ -157,6 +124,92 @@ at a user-specified interval.
    :option:`--sampleSource <mongosqld --sampleSource>`
 
    :option:`--sampleMode <mongosqld --sampleMode>`
+
+.. _schema-with-views:
+
+Managing Schema with MongoDB Views
+----------------------------------
+
+Another way to control the data visible to |bi-short| without
+using a :ref:`.drdl file <schema-with-drdl-file>` is to read from a
+:manual:`view </core/views/>`. Views allow you to take a source
+collection and choose which fields to display, change the names of
+fields, sort data, and perform any kind of transformation that
+the :manual:`aggregation pipeline </aggregation>` can accomplish.
+
+You can use the :binary:`~bin.mongo`
+shell method :manual:`createView </reference/method/db.createView>`
+to define a view on a collection and then use that view as a
+specified namespace when starting :binary:`~bin.mongosqld`.
+
+Examples
+~~~~~~~~
+
+Consider a collection named ``salaries`` in the
+``employees`` database. By creating a view on the ``salaries``
+collection that excludes all personally identifiable information,
+|bi-short| can safely facilitate data analysis on the view without
+compromising the private data in the source collection.
+
+The following command starts :binary:`~bin.mongosqld`
+with data from a view named ``salaries_redacted`` in the
+``employees`` database:
+
+.. code-block:: shell
+
+   mongosqld --sampleNamespaces "employees.salaries_redacted"
+
+.. seealso::
+
+   - :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
+
+Another use case for managing your schema with a MongoDB view is
+if your working data set includes a sparsely populated but important
+field which may be excluded in the |bi-short| sampling process.
+
+Consider a collection named ``sparseCollection`` which contains one
+field which occurs in every document and another field which occurs
+only occasionally. A portion of the collection might look like this:
+
+.. code-block:: javascript
+
+   { "_id" : 0, "mainField": 247 }
+   { "_id" : 1, "mainField": 71 }
+   { "_id" : 2, "mainField": 981 }
+   { "_id" : 3, "mainField": 712 }
+   { "_id" : 4, "mainField": 781, "sparseField": 1000 }
+   { "_id" : 5, "mainField": 256 }
+   { "_id" : 6, "mainField": 910 }
+
+To ensure that ``sparseField`` is included when |bi-short| creates
+its schema, create a view in which ``sparseField`` is populated with
+zeroes in every document in which it does not occur.
+
+.. code-block:: javascript
+
+   db.runCommand (
+     {
+       create: "denseCollection",
+       viewOn: "sparseCollection",
+       pipeline: [
+         {
+           $addFields: {
+              rareField: { $ifNull: [ "$rareField", 0 ] }
+           }
+         }
+       ]
+     }
+   )
+
+To use the view as a data source when starting
+:binary:`~bin.mongosqld`, specify it with the
+:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
+
+.. code-block:: shell
+
+   mongosqld --sampleNamespaces "myDatabase.denseCollection"
+
+.. include:: /includes/fact-geospatial-views.rst
 
 .. _schema-with-drdl-file:
 
