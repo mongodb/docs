@@ -39,6 +39,12 @@ the :option:`--schema <mongosqld --schema>` option or a schema
 database with the
 :option:`--sampleSource <mongosqld --sampleSource>` option.
 
+.. note::
+
+   If you have :option:`authentication <mongosqld --auth>` enabled,
+   ensure that your MongoDB user has the correct permissions. See
+   :ref:`User Permissions <user-permissions-include>` below.
+
 You can configure :binary:`~bin.mongosqld` to automatically resample on a
 fixed schedule with the :option:`--sampleRefreshIntervalSecs
 <mongosqld --sampleRefreshIntervalSecs>`
@@ -50,39 +56,78 @@ If you need to manually edit your schema to ensure correct
 representation of your data, you can use a
 :ref:`schema file <schema-with-drdl-file>` instead.
 
-User Permissions
-~~~~~~~~~~~~~~~~
+.. include:: /includes/sampling-ref-chart-link.rst
 
-To run |bi-short| in cached sampling mode, a MongoDB user needs
-permission to create a schema from any database in the deployment. Give
-this user the :authrole:`readAnyDatabase` role.
+.. _user-permissions-include:
 
-.. example::
+User Permissions for Cached Sampling
+------------------------------------
 
-   Use the MongoDB shell to add a user to the ``admin`` database with
-   the proper permissions to read any database and read and write the
-   schema database.
-
-   .. code-block:: javascript
-      :class: copyable
- 
-      db.getSiblingDB("admin").createUser(
-        {
-          user: "<username>",
-          pwd: "<password>",
-          roles: ["readAnyDatabase"]
-        }
-      )
+.. include:: /includes/user-permissions.rst
 
 .. seealso::
 
    - :option:`--auth <mongosqld --auth>`
    - :manual:`Enable Authentication </tutorial/enable-authentication>`
 
+.. _bi-persistent-schema:
+
+Persist a Schema in MongoDB
+---------------------------
+
+The :option:`--sampleSource <mongosqld --sampleSource>`
+option directs :binary:`~bin.mongosqld` to
+use a particular database for schema storage. :binary:`~bin.mongosqld`
+can either create a new database to use for schema storage or use
+an existing database.
+
+If you specify an existing database which has been used previously
+for schema storage, the :option:`--sampleMode 
+<mongosqld --sampleMode>` option determines
+whether :binary:`~bin.mongosqld` writes new schema data to the specified
+database or only reads from it. If you specify a database which
+doesn't currently exist, you must set :option:`--sampleMode
+<mongosqld --sampleMode>` to
+``write``.
+
+The :option:`--sampleRefreshIntervalSecs
+<mongosqld --sampleRefreshIntervalSecs>`
+option determines how frequently :binary:`~bin.mongosqld` resamples data
+to update the schema.
+
+.. include:: /includes/fact-resample-schema-data.rst
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+User Permissions for Persisted Schemas
+--------------------------------------
+
+When using a persisted schema, the required user permissions are
+similar to those for :ref:`cached sampling <bi-cached-sampling>`, with
+the addition of a required ``write`` permission on the specified
+schema database. To create a user with the necessary permissions to
+run :binary:`~bin.mongosqld` with a persisted schema, execute the
+following command in the :binary:`~bin.mongo` shell, with the
+placeholder values ``<username>``, ``<password>``, and ``<dbname>``
+filled in with your own values:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [
+                { "role": "readAnyDatabase", "db": "admin"  },
+                { "role": "readWrite", "db": "<dbname>"  }
+              ]
+     }
+   )
+
 .. _resample-schema-data:
 
 Resample Schema Data with ``FLUSH SAMPLE``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 When the :binary:`~bin.mongosqld` process starts it creates a
 :doc:`schema </schema-configuration>`, either from a
@@ -112,154 +157,6 @@ at a user-specified interval.
    :option:`--sampleSource <mongosqld --sampleSource>`
 
    :option:`--sampleMode <mongosqld --sampleMode>`
-
-.. _bi-persistent-schema:
-
-Persist a Schema in MongoDB
----------------------------
-
-The :option:`--sampleSource <mongosqld --sampleSource>`
-option directs :binary:`~bin.mongosqld` to
-use a particular database for schema storage. :binary:`~bin.mongosqld`
-can either create a new database to use for schema storage or use
-an existing database.
-
-If you specify an existing database which has been used previously
-for schema storage, the :option:`--sampleMode 
-<mongosqld --sampleMode>` option determines
-whether :binary:`~bin.mongosqld` writes new schema data to the specified
-database or only reads from it. If you specify a database which
-doesn't currently exist, you must set :option:`--sampleMode
-<mongosqld --sampleMode>` to
-``write``.
-
-The :option:`--sampleRefreshIntervalSecs
-<mongosqld --sampleRefreshIntervalSecs>`
-option determines how frequently :binary:`~bin.mongosqld` resamples data
-to update the schema.
-
-.. include:: /includes/fact-resample-schema-data.rst
-
-User Permissions
-~~~~~~~~~~~~~~~~
-
-To run |bi-short| in persisted schema mode, a MongoDB user needs
-permission to create a schema from any database in the deployment and
-read and write entries into the schema database. Give this user the
-:authrole:`readAnyDatabase` role and the :authrole:`readWrite` role on
-the database that stores the schema (set using :option:`--sampleMode
-<mongosqld --sampleMode>`)
-
-.. example::
-
-   Use the MongoDB shell to add a user to the ``admin`` database with the proper
-   permissions to read any database and read and write the schema
-   database.
-
-   .. code-block:: javascript
-      :class: copyable
- 
-      db.getSiblingDB("admin").createUser(
-        {
-          user: "<username>",
-          pwd: "<password>",
-          roles: [
-            "readAnyDatabase",
-            { role: "readWrite", db: "<schemaDb>" }
-          ]
-        }
-      )
-
-.. seealso:: 
-
-   - :option:`--auth <mongosqld --auth>`
-   - :manual:`Enable Authentication </tutorial/enable-authentication>`
-
-.. _schema-with-views:
-
-Managing Schema with MongoDB Views
-----------------------------------
-
-Another way to control the data visible to |bi-short| without
-using a :ref:`.drdl file <schema-with-drdl-file>` is to read from a
-:manual:`view </core/views/>`. Views allow you to take a source
-collection and choose which fields to display, change the names of
-fields, sort data, and perform any kind of transformation that
-the :manual:`aggregation pipeline </aggregation>` can accomplish.
-
-You can use the :binary:`~bin.mongo`
-shell method :manual:`createView </reference/method/db.createView>`
-to define a view on a collection and then use that view as a
-specified namespace when starting :binary:`~bin.mongosqld`.
-
-Examples
-~~~~~~~~
-
-Consider a collection named ``salaries`` in the
-``employees`` database. By creating a view on the ``salaries``
-collection that excludes all personally identifiable information,
-|bi-short| can safely facilitate data analysis on the view without
-compromising the private data in the source collection.
-
-The following command starts :binary:`~bin.mongosqld`
-with data from a view named ``salaries_redacted`` in the
-``employees`` database:
-
-.. code-block:: shell
-
-   mongosqld --sampleNamespaces "employees.salaries_redacted"
-
-.. seealso::
-
-   - :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
-
-Another use case for managing your schema with a MongoDB view is
-if your working data set includes a sparsely populated but important
-field which may be excluded in the |bi-short| sampling process.
-
-Consider a collection named ``sparseCollection`` which contains one
-field which occurs in every document and another field which occurs
-only occasionally. A portion of the collection might look like this:
-
-.. code-block:: javascript
-
-   { "_id" : 0, "mainField": 247 }
-   { "_id" : 1, "mainField": 71 }
-   { "_id" : 2, "mainField": 981 }
-   { "_id" : 3, "mainField": 712 }
-   { "_id" : 4, "mainField": 781, "sparseField": 1000 }
-   { "_id" : 5, "mainField": 256 }
-   { "_id" : 6, "mainField": 910 }
-
-To ensure that ``sparseField`` is included when |bi-short| creates
-its schema, create a view in which ``sparseField`` is populated with
-zeroes in every document in which it does not occur.
-
-.. code-block:: javascript
-
-   db.runCommand (
-     {
-       create: "denseCollection",
-       viewOn: "sparseCollection",
-       pipeline: [
-         {
-           $addFields: {
-              rareField: { $ifNull: [ "$rareField", 0 ] }
-           }
-         }
-       ]
-     }
-   )
-
-To use the view as a data source when starting
-:binary:`~bin.mongosqld`, specify it with the
-:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
-
-.. code-block:: shell
-
-   mongosqld --sampleNamespaces "myDatabase.denseCollection"
-
-.. include:: /includes/fact-geospatial-views.rst
 
 .. _schema-with-drdl-file:
 
