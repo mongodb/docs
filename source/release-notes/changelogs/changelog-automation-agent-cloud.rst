@@ -3,7 +3,7 @@
 Automation Agent 5.0.3.2562
 ---------------------------
 
-*Released Released 2018-03-14*
+*Released 2018-03-14*
 
 - Support for new ``security.ldap.validateLDAPServerConfig`` 
   configuration parameter
