@@ -9,7 +9,6 @@ since a replica set can have up to 50 members. To deploy config servers
 as a replica set, the config servers must run the :doc:`WiredTiger
 storage engine </core/wiredtiger>`.
 
-In version 3.4, MongoDB removes support for SCCC config servers. To
-upgrade your config servers from SCCC to CSRS, see
-:doc:`/tutorial/upgrade-config-servers-to-replica-set`.
+In version 3.4, MongoDB :ref:`removes support for SCCC config servers
+<3.4-compat-remove-sccc>`.
 
