@@ -2,11 +2,9 @@
 
 The |bi| provides a MySQL authentication plugin which implements the
 client side of MongoDB-supported authentication mechanisms. The
-``mongosql_auth`` plugin allows you to use |bi| with a MongoDB
-instance running with authentication enabled without needing to
-generate your own SSL certificates for authentication.
-
-This plugin supports the following authentication mechanisms:
+``mongosql_auth`` plugin allows a client to authenticate with a
+|bi-short| and MongoDB deployment running with authentication enabled
+using one of the following authentication mechanisms:
 
 * ``SCRAM-SHA-1``
 * ``PLAIN``
