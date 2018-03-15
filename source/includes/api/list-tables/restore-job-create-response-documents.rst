@@ -186,11 +186,6 @@
 
        Only present only if ``"encryptionEnabled" : true``.
 
-   * - pointInTime
-     - boolean
-     - Flag indicating that the job for a :abbr:`PIT (point-in-time)` 
-       restore.
-
    * - snapshotId
      - string
      - Unique identifier of the :term:`snapshot` to restore.
@@ -204,22 +199,3 @@
        - ``BROKEN``
        - ``KILLED``
 
-   * - timestamp
-     - object
-     - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
-       the latest :term:`oplog <Oplog Store Database>`
-       entry in the restored :term:`snapshot`.
-
-   * - timestamp.date
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` of
-       the latest :term:`oplog <Oplog Store Database>` entry in the
-       restored :term:`snapshot`.
-
-   * - timestamp.increment
-     - number
-     - Order of all operations completed at the latest
-       :term:`oplog <Oplog Store Database>` entry in the restored
-       :term:`snapshot`.

@@ -86,18 +86,6 @@
 
        Only needed if ``"delivery.methodName" : "SCP"``.
 
-   * - delivery.statusName
-     - string
-     - Current status of the downloadable file. Accepted values are:
-
-       - ``NOT_STARTED``
-       - ``IN_PROGRESS``
-       - ``READY``
-       - ``FAILED``
-       - ``INTERRUPTED``
-       - ``EXPIRED``
-       - ``MAX_DOWNLOADS_EXCEEDED``
-
    * - delivery.targetClusterId
      - string
      - Unique identifier of the destination cluster to perform the 
@@ -124,18 +112,6 @@
      - Username to use for :abbr:`SCP (secure copy)`.
 
        Only needed if ``"delivery.methodName" : "SCP"``.
-
-   * - encryptionEnabled
-     - boolean
-     - Flag indicating whether the restored snapshot data is encrypted.
-
-   * - masterKeyUUID
-     - string
-     - :abbr:`KMIP (Key Management Interoperability Protocol)`
-       :doc:`master key ID </tutorial/encrypt-snapshots>` used to
-       encrypt the :term:`snapshot` data. 
-
-       Only present only if ``"encryptionEnabled" : true``.
 
    * - snapshotId
      - string
