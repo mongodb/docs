@@ -1,0 +1,150 @@
+=================================
+Writing Mocha Scripts for Compass
+=================================
+
+Screen capture scripts are written in
+`Spectron <https://github.com/electron/spectron>`_, a testing
+framework for `Electron <https://electronjs.org/>`_ applications.
+Specifically, Compass screenshots are created using
+`MochaJS <https://mochajs.org/>`_ tests built into Spectron.
+
+At a high-level, Mocha test scripts perform a series of actions,
+checking that the state of the application after each action performed
+matches the expected state. It is possible to take a screenshot
+after each action, or wait until after all actions have been completed
+to take a screenshot of the final state of the application.
+
+Example
+-------
+
+Consider the following example Mocha test which performs the following
+actions:
+
+1. Launch Compass, displaying the Feature Tour dialog.
+
+2. Close the Feature Tour dialog, displaying Compass Privacy Settings
+   dialog.
+
+3. Change some Privacy Settings Options.
+
+4. Close the Privacy Settings Dialog, displaying the main Connect View.
+
+.. code-block:: javascript
+   :emphasize-lines: 27, 40, 49, 74
+
+   const { launchCompass, quitCompass } = require('./support/spectron-support');
+   const electron = require('electron');
+   const $ = require('jquery');
+   const fs = require('fs');
+   const util = require('./util.js');
+
+   describe('#compass-screenshot', function() {
+     this.slow(30000);
+     this.timeout(60000);
+     let app = null;
+     let client = null;
+
+     var screenshot_filename = 'init';
+
+     before(function() {
+       return launchCompass().then(function(application) {
+         app = application;
+         client = application.client;
+       });
+     });
+
+     it('displays the feature tour modal', function() {
+       return client
+         .waitForFeatureTourModal()
+         .getText('h2[data-hook=title]')
+         .should.eventually.equal('Welcome to MongoDB Compass')
+         .then(takeScreenshot('./compass-screenshots-temp/feature-tour.png'));
+     });
+
+     it('displays the privacy settings', function() {
+       return client
+         .clickCloseFeatureTourButton()
+         .waitForPrivacySettingsModal()
+         .clickEnableProductFeedbackCheckbox()
+         .clickEnableCrashReportsCheckbox()
+         .clickEnableUsageStatsCheckbox()
+         .clickEnableAutoUpdatesCheckbox()
+         .getModalTitle()
+         .should.eventually.equal('Privacy Settings')
+         .then(takeScreenshot('./compass-screenshots-temp/privacy-settings.png'));
+     });
+
+     it('renders the connect screen', function() {
+       return client
+         .clickClosePrivacySettingsButton()
+         .waitForConnectView()
+         .getConnectHeaderText()
+         .should.eventually.be.equal('Connect to Host')
+         .then(takeScreenshot('./compass-screenshots-temp/connect.png'))
+     });
+
+     it('should select id file', function() {
+       return client
+         .waitUntilWindowLoaded()
+         .selectSSHIdentityFile()
+     });
+
+     after(function() {
+       var elem_size = {};
+       var elem_pos = {};
+       var rectangle = {};
+
+       return client
+         .getLocation('#ssh-tunnel')
+         .then(function(sshPosition) {
+           elem_pos = sshPosition;
+         })
+         .getElementSize('#ssh-tunnel')
+         .then(function(sshSize) {
+           elem_size = sshSize;
+           rectangle = {x: elem_pos.x, y: elem_pos.y, width: elem_size.width, height: elem_size.height};
+           return rectangle;
+         })
+         .then(takeScreenshot('./compass-screenshots-temp/connect-ssh-tunnel.png', rectangle));
+       });
+
+     function screenshotAndQuit(filename, rectangle = {x: 0, y: 0, width: 1500, height: 1000}) {
+       app.app.browserWindow.capturePage(rectangle).then(function(imageBuffer) {
+         fs.writeFile(filename, imageBuffer, function(err) {
+           if (err) return done(err);
+           console.log("Took screenshot! ", filename);
+         });
+       });
+     }
+
+     function takeScreenshot(filename, rectangle = {x: 0, y: 0, width: 1500, height: 1000}) {
+       return function(done) {
+         app.app.browserWindow.capturePage(rectangle).then(function(imageBuffer) {
+           fs.writeFile(filename, imageBuffer, function(err) {
+             if (err) return done(err);
+             console.log("Took screenshot: ", filename);
+             return;
+           });
+         });
+       };
+     }
+   });
+
+This script takes a screenshot during each action using
+the ``.then(takeScreenshot())`` function. Refer to the
+`MochaJS documentation <https://mochajs.org/#hooks>`_ for more
+information on flow control in Mocha and additional examples
+of functions run before, during, and after tests.
+
+Selecting a Region of the Page to Capture in Mocha
+--------------------------------------------------
+
+It is possible to take a screenshot of either the entire page, or a
+specific section of the page using a CSS selector.
+
+Notice in the above example the ``after()`` function where the
+ ``.getLocation()`` and ``.getElementSize()`` functions are used
+ to determine the location and size of the ``#ssh-tunnel`` element.
+ The script then uses this information to create a rectangle object
+ to pass to the ``takeScreenshot`` function, so the screenshot is
+ clipped accordingly.

@@ -1,0 +1,168 @@
+============================
+Automated Screencapture Tool
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Introduction
+------------
+
+We have developed a tool which automatically captures and updates
+screenshots in our documentation repositories. The goal of this tool is
+to make it easier to incorporate screenshots into our documentation and
+ultimately benefit our readers by providing more visual aids to remove
+ambiguity when referring to UI elements and provide additional clarity
+when listing out steps for lengthy procedures.
+
+Screencapture scripts for web-based tools such as Atlas and Charts are
+written using `NightmareJS <https://github.com/segmentio/nightmare>`_
+and scripts for Compass are written using
+`MochaJS <https://mochajs.org/>`_.
+
+Writing Screencapture Scripts
+-----------------------------
+
+Refer to either
+
+- :doc:`Writing NightmareJS Scripts </tutorials/screencapture-tool-nightmare>`
+  for web-based tools (i.e. Atlas and Charts) or
+
+- :doc:`Writing MochaJS Scripts for Compass </tutorials/screencapture-tool-mocha>`
+
+for details and examples for writing each type of screencapture script.
+
+Editing the Makefile to Include Screencapture Scripts
+-----------------------------------------------------
+
+Once you have completed writing a screencapture script and saved it to
+the repository's ``screenshot-scripts`` directory, add it to the
+list of scripts in the ``screenshots`` section of the ``Makefile``.
+This allows the ``make screenshots`` command to run the script.
+
+By default, the ``make screenshots`` command runs all screenshot scripts
+listed in the Makefile. To only have the command run specific
+screenshot scripts, comment out the scripts which should not be run.
+
+.. important::
+
+   When copying the code from the following example, you must replace
+   the **space** indentation with **tab** indentation in order for the
+   Makefile to be parsed correctly.
+
+.. example::
+
+   The following ``screenshots`` command of the Charts documentation
+   Makefile only runs the ``data-sources.js`` script:
+
+   .. code-block:: make
+
+      screenshots:
+      	giza generate assets
+      	@echo "Running screenshot tool"
+      	-rm -r screenshots-temp/*
+      	mkdir -p screenshots-temp/charts/
+      	cd build/docs-tools/tools/screenshot-tool && npm install
+      	# node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/dashboard-landing.js
+      	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/data-sources.js
+
+.. important::
+
+   Some scripts require login information to be provided in a
+   ``.properties.ini`` file. In these cases, the location of the
+   ``properties.ini`` file must be passed as a third command line
+   parameter. For example, the following command runs the
+   ``create-cluster.js`` script, passing in the ``.properties.ini``
+   file containing login information:
+
+   .. code-block:: sh
+
+      node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/create-cluster.js `pwd`/screenshot-scripts/.properties.ini
+
+   For details on how to format the ``.properties.ini`` file, see the
+   :ref:`Login Information <nightmare_login_information>` section.
+
+Running the Screencapture Tool
+------------------------------
+
+After writing a screenshot script and saving it in the
+``screenshot-scripts`` directory, from the **root directory** of the
+repository run the following command to run the screenshot tool:
+
+.. code-block:: sh
+
+   make screenshots
+
+If everything is configured correctly, this command should open an
+automation browser which will execture your script.
+
+.. note::
+
+   The tool's browser does not have to be visible on your machine to
+   run. The script still runs effectively when minimized. For details
+   on showing or hiding the browser instance, refer to the
+   meta-documentation page for writing your specific script type.
+
+Troubleshooting and Best Practices
+----------------------------------
+
+- If Atlas is unable to login with the credentials provided in your
+  ``.properties.ini`` file in the ``Makefile`` command, ensure that the
+  file exists in the ``screenshot-scripts`` directory of your
+  repository. Also ensure that the credentials match the Atlas
+  environment you are connecting to.
+
+- In the event you run a screencapture script, update the original image,
+  and re-run the script and the script still shows a high mismatch
+  percentage, check the following:
+
+  - The original image was actually replaced, and the image in
+    ``source/images`` was updated as expected.
+
+  - If there are any timestamps in the image which may be updating
+    each time the screenshot is taken.
+
+  - If there are any *transitions* in the UI which might cause the
+    content to be captured at slightly different locations on the page.
+    If this is the case, consider adding a slightly longer ``wait()``
+    time before capturing the page.
+
+  - The image analysis file placed in the ``screenshots-temp`` folder.
+
+- When the captured image has large dimensions, consider using the
+  `figwidth <http://docutils.sourceforge.net/docs/ref/rst/directives.html#figure>`_
+  option in the reStructuredText to cleanly scale down the image to fit
+  in the document pane.
+
+  - To have an image fill the entire width of the HTML content pane, set
+    ``figwidth`` to ``750px``.
+
+  - To have an image fill an admonition block, such as an example, set
+    ``figwidth`` to ``720px``.
+
+  .. example::
+
+     The following example sets the width of ``picture.png`` to fill
+     the entire HTML content pane:
+
+     .. code-block:: rst
+
+        .. figure:: picture.png
+           :figwidth: 750px
+
+- Inpsecting an element in a browser will provide an option to copy
+  the CSS selector, which is useful when specifying a
+  selector in the screenshot script.
+
+.. cssclass:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /tutorials/screencapture-tool-nightmare
+      /tutorials/screencapture-tool-mocha
+
+
