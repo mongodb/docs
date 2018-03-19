@@ -43,7 +43,7 @@ database with the
 
    If you have :option:`authentication <mongosqld --auth>` enabled,
    ensure that your MongoDB user has the correct permissions. See
-   :ref:`User Permissions <user-permissions-include>` below.
+   :ref:`User Permissions <cached-sampling-user-permissions>` below.
 
 You can configure :binary:`~bin.mongosqld` to automatically resample on a
 fixed schedule with the :option:`--sampleRefreshIntervalSecs
@@ -58,7 +58,106 @@ representation of your data, you can use a
 
 .. include:: /includes/sampling-ref-chart-link.rst
 
-.. _user-permissions-include:
+.. _cached-sampling-user-permissions:
+
+User Permissions for Cached Sampling
+------------------------------------
+
+If your MongoDB instance uses :manual:`authentication
+</core/authentication/>` and you wish to use cached sampling, your
+|bi-short| instance must also use authentication. The user that
+connects to MongoDB via the :binary:`~bin.mongosqld` program must
+have permission to read from all the namespaces you wish to sample data
+from.
+
+The :authaction:`listCollections` and :authaction:`find` privileges
+are required to do data sampling with :binary:`~bin.mongosqld`.
+To create a user with the necessary privileges, you can use one of the
+following two methods:
+
+- Create a :manual:`custom role </core/security-user-defined-roles/>`
+  with the minimum necessary privileges. The following
+  :manual:`mongo shell </mongo>` example creates a custom role
+  called ``samplingReader`` and assigns it to a new user:
+
+  .. code-block:: javascript
+
+     use admin
+
+     db.createRole(
+       {
+         role: "samplingReader",
+         privileges: [
+           {
+             resource: {
+               db: "test",
+               collection: ""
+             },
+             actions: [ "find", "listCollections" ]
+           }
+         ],
+         roles: []
+       }
+     )
+
+    db.createUser(
+      {
+        user: "<username>",
+        pwd: "<password>",
+        roles: [ "samplingReader" ]
+      }
+    )
+
+  .. note::
+
+     The user in the example above does not have the
+     :authaction:`listDatabases` privilege, so you must specify a
+     database to sample data from with the
+     :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
+     option when running :binary:`~bin.mongosqld`.
+
+- Create a user with the built-in :manual:`readAnyDatabase
+  </core/security-built-in-roles/>` role.
+
+  .. code-block:: javascript
+
+     use admin
+
+     db.createUser(
+       {
+         user: "<username>",
+         pwd: "<password>",
+         roles: [
+                 { "role": "readAnyDatabase", "db": "admin"  }
+                ]
+       }
+     )
+
+  The user in the example above may read from any database in your
+  MongoDB instance.
+
+  .. note::
+
+     Be aware of all privileges included with the
+     :manual:`readAnyDatabase
+     </reference/built-in-roles/#readAnyDatabase>` role before
+     granting it to a user.
+
+To run :binary:`~bin.mongosqld` with authentication enabled, use the
+:option:`--auth <mongosqld --auth>` option.
+
+In the following example, a user named ``bicUser`` with the password
+``myPass`` provides credentials to sample data from all collections
+in the ``test`` database.
+
+.. code-block:: shell
+
+   mongosqld --auth --mongo-username bicUser --mongo-password myPass --sampleNamespaces 'test.*'
+
+.. seealso::
+
+   - :option:`--auth <mongosqld --auth>`
+   - :manual:`Enable Authentication </tutorial/enable-authentication>`
 
 .. _bi-persistent-schema:
 
@@ -90,6 +189,44 @@ to update the schema.
 .. include:: /includes/fact-resample-schema-data.rst
 
 .. include:: /includes/sampling-ref-chart-link.rst
+
+User Permissions for Persisted Schemas
+--------------------------------------
+
+When using a persisted schema, the required user permissions are
+similar to those for :ref:`cached sampling <bi-cached-sampling>`, with
+the addition of a required ``write`` permission on the specified
+schema database.
+
+To create a user with the necessary permissions to run
+:binary:`~bin.mongosqld` with a persisted schema, you can either create
+a custom role with the minimum required permissions as described in
+:ref:`User Permissions for Cached Sampling
+<cached-sampling-user-permissions>`, or use the built-in
+:manual:`readAnyDatabase </core/security-built-in-roles/>` role. In
+either case, the user also needs ``write`` permission on the
+specified schema database.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [
+                { "role": "readAnyDatabase", "db": "admin"  },
+                { "role": "readWrite", "db": "<dbname>"  }
+              ]
+     }
+   )
+
+In the following example, a user named ``bicUser`` with the password
+``myPass`` provides credentials to read from and update a schema
+database called ``schemaDb``.
+
+.. code-block:: shell
+
+   mongosqld --auth -u bicUser -p myPass --sampleSource schemaDb --sampleMode write
 
 .. _resample-schema-data:
 
