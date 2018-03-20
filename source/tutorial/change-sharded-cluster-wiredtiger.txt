@@ -4,53 +4,96 @@ Change Sharded Cluster to WiredTiger
 
 .. default-domain:: mongodb
 
-.. versionadded:: 3.0
-   The WiredTiger storage engine is available. Also, sharded clusters
-   may have individual shards with different storage engine
-   configurations.
+Starting in version 3.2, WiredTiger is the default storage engine
+for MongoDB.
 
-.. versionchanged:: 3.2
-   WiredTiger is the new default storage engine for MongoDB.
+Use this tutorial to update MongoDB 3.6 sharded clusters to use
+:ref:`WiredTiger <storage-wiredtiger>`.
 
-This tutorial gives an overview of changing the storage engines of a
-component of a :term:`sharded cluster` to :ref:`WiredTiger
-<storage-wiredtiger>`.
+For earlier versions of MongoDB:
+
+- To convert a 3.4 sharded cluster that uses MMAPv1, see the
+  :v3.4:`MongoDB 3.4 manual
+  </tutorial/change-sharded-cluster-wiredtiger>`.
+
+- To convert a 3.2 sharded cluster that uses MMAPv1, see the
+  :v3.2:`MongoDB 3.2 manual
+  </tutorial/change-sharded-cluster-wiredtiger>`.
 
 Considerations
 --------------
 
-This procedure may involve downtime, especially if one or more of your
-shards is a :term:`standalone`. If you change the host or port of any
+Downtime
+~~~~~~~~
+
+If you change the host or port of any
 :term:`shard`, you must update the shard configuration as well.
 
-.. include:: /includes/fact-wiredtiger-minimum-version.rst
+MongoDB 3.0 or Greater
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/2.6-3.0-mixed-version-wiredTiger-restriction.rst
+.. container:: admonition
 
-Change Shards to WiredTiger
----------------------------
+   .. include:: /includes/fact-wiredtiger-minimum-version.rst
+
+Default Bind to Localhost
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container:: admonition
+
+   .. include:: /includes/fact-default-bind-ip-change.rst
+
+Config Servers
+~~~~~~~~~~~~~~
+
+Starting in version 3.4, config servers must be :ref:`deployed as
+replica sets (CSRS) <3.4-remove-sccc>`. As such, version 3.4+ config
+servers already use the WiredTiger storage engine.
+
+Procedure
+---------
 
 .. note::
 
    A sharded cluster **can** have mixed storage engines for its
    individual :term:`shards <shard>`.
 
-To change the storage engine for the :term:`shards <shard>` to
-WiredTiger, refer to the appropriate procedure for each shard:
+To change the storage engine for a replica set :term:`shard <shard>` to
+WiredTiger:
 
-- If the shard is a :term:`standalone`, see
-  :doc:`/tutorial/change-standalone-wiredtiger`.
+A. Update the secondary members to WiredTiger.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- If the shard is a :term:`replica set`, see
-  :doc:`/tutorial/change-replica-set-wiredtiger`.
+Update the secondary members one at a time:
 
-Change Config Servers to WiredTiger
------------------------------------
+.. container:: admonition
 
-Starting in MongoDB 3.4, MongoDB removes support for SCCC config
-servers. Before you can upgrade your sharded clusters to 3.4, you must
-convert your config servers from SCCC to CSRS. The upgrade to CSRS
-procedure includes steps to change the config servers to use WiredTiger.
+   .. include:: /includes/steps/change-replica-set-wiredtiger.rst
 
-For details, see the MongoDB 3.4 Manual :v3.4:`Upgrade Config Servers
-to Replica Set </tutorial/upgrade-config-servers-to-replica-set>`.
+Repeat the steps for the remaining secondary members, updating them one
+at a time.
+
+B. Step down the primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once all the secondary members have been upgraded to WiredTiger,
+connect a :binary:`~bin.mongo` shell to the primary and use
+:method:`rs.stepDown()` to step down the primary and force an election
+of a new primary.
+
+.. container:: admonition
+
+   .. code-block:: javascript
+
+      rs.stepDown()
+
+C. Update the old primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the primary has stepped down and become a secondary, update the
+secondary to use WiredTiger as before:
+
+.. container:: admonition
+
+   .. include:: /includes/steps/change-replica-set-wiredtiger.rst
+
