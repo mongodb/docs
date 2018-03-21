@@ -5,6 +5,15 @@ actions:
 
 - Upgrade the monitoring schema.
 
+  To monitor the schema upgrade:
+
+  a. Click :guilabel:`Admin`.
+  b. Click :guilabel:`Ops Manager Config`.
+  c. Click the :guilabel:`Miscellaneous` tab.
+
+     The progress should be shown before the 
+     :guilabel:`Default Monitoring Data Retention` heading.
+
 - Change :setting:`mms.minimumTLSVersion` if you must support
   older |tls| versions. 
 
