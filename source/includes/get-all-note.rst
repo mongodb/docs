@@ -2,7 +2,7 @@ Response Document
 ~~~~~~~~~~~~~~~~~
 
 The response JSON document includes an array of :guilabel:`result` objects, an
-array of :guilabel:`link` objects and a count of the total number of
+array of :guilabel:`link` objects, and a count of the total number of
 :guilabel:`result` objects retrieved.
 
 .. list-table::
@@ -17,7 +17,7 @@ array of :guilabel:`link` objects and a count of the total number of
    * - ``results``
      - object array
      - This array includes one object for each item detailed
-       in the `results Embedded Document`_ section.
+       in the `results array`_ section.
    * - ``links``
      - object array
      - This array includes one or more links to sub-resources
@@ -30,5 +30,5 @@ array of :guilabel:`link` objects and a count of the total number of
        be greater than the number of objects in the :guilabel:`results` 
        array if the entire result set is paginated.
 
-`results` Embedded Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`results` array
+~~~~~~~~~~~~~~~
