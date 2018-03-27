@@ -1,3 +1,19 @@
+.. _automation-5.1.0.5350:
+
+Automation Agent 5.1.0.5350
+---------------------------
+
+*Released 2018-03-27*
+
+- When performing maintenance on a shard member (for example, oplog
+  resizing) start the node * with ``--recoverShardingState false``
+
+- Within a replica set, allow the SSL mode to be modified for each node
+  individually.
+
+- Add support for ``security.ldap.validateLDAPServerConfig`` configuration
+  option for MongoDB 3.4.14+ and MongoDB 3.6.3+.
+
 .. _automation-5.0.3.2562:
 
 Automation Agent 5.0.3.2562

@@ -1,3 +1,12 @@
+.. _backup-6.6.0.959:
+
+Backup Agent 6.6.0.959
+----------------------
+
+*Released 2018-03-27*
+
+- Logging enhancements.
+
 .. _backup-6.5.0.756:
 
 Backup Agent 6.5.0.756

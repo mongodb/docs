@@ -1,3 +1,12 @@
+.. _monitoring-6.4.0.433:
+
+Monitoring Agent 6.4.0.433
+--------------------------
+
+*Released 2018-03-27*
+
+- Logging enhancements.
+
 .. _monitoring-6.3.0.401:
 
 Monitoring Agent 6.3.0.401
