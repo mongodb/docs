@@ -17,4 +17,4 @@ This data flow is shown in the following diagram:
 .. note::
 
    For more information on *stores*, refer to the
-   `Redux documentation <https://redux.js.org/docs/api/Store.html>`_.
+   `Redux documentation <https://redux.js.org/docs/api/Store.html>`__.

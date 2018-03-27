@@ -25,14 +25,12 @@ The following procedure outlines how to install these dependencies:
 
 3. Install `NodeJS <https://nodejs.org/en/>`_ via NVM:
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
       nvm install stable
 
 4. Install the `Khaos <http://khaos.io/>`__ templating engine:
 
-   .. cssclass:: copyable-code
    .. code-block:: sh
 
       npm install -g khaos
@@ -41,13 +39,11 @@ The following procedure outlines how to install these dependencies:
    directory:
 
    |compass|
-     .. cssclass:: copyable-code
      .. code-block:: sh
 
         mkdir -p ~/.mongodb/compass/plugins
 
    |compass| Community Edition
-     .. cssclass:: copyable-code
      .. code-block:: sh
 
         mkdir -p ~/.mongodb/compass-community/plugins

@@ -5,4 +5,4 @@ method.
 .. note::
 
    For more information on *components*, refer to the
-   `ReactJS documentation <https://reactjs.org/docs/components-and-props.html>`_.
+   `ReactJS documentation <https://reactjs.org/docs/components-and-props.html>`__.
