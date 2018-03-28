@@ -31,3 +31,11 @@ publish: ## Builds this branch's publishable HTML and other artifacts under buil
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s 
+
+screenshots:
+	giza generate assets
+	@echo "Running screenshot tool"
+	-rm -r screenshots-temp/charts/
+	mkdir -p screenshots-temp/charts/
+	cd build/docs-tools/tools/screenshot-tool && npm install
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/data-sources.js
