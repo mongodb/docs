@@ -1,3 +1,13 @@
+.. _monitoring-6.4.1.439:
+
+Monitoring Agent 6.4.1.439
+--------------------------
+
+*Released 2018-03-28*
+
+- Fix corrupted build for RHEL6.
+
+
 .. _monitoring-6.4.0.433:
 
 Monitoring Agent 6.4.0.433

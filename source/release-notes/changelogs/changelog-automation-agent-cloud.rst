@@ -1,3 +1,12 @@
+.. _automation-5.1.1.5353:
+
+Automation Agent 5.1.1.5353
+---------------------------
+
+*Released 2018-03-28*
+
+- Fix corrupted build for RHEL6.
+
 .. _automation-5.1.0.5350:
 
 Automation Agent 5.1.0.5350

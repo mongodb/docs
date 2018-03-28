@@ -1,3 +1,12 @@
+.. _backup-6.6.1.965:
+
+Backup Agent 6.6.1.965
+----------------------
+
+*Released 2018-03-28*
+
+- Fix corrupted build for RHEL6.
+
 .. _backup-6.6.0.959:
 
 Backup Agent 6.6.0.959
