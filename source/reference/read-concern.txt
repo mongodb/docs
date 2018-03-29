@@ -4,8 +4,6 @@
 Read Concern
 ============
 
-.. versionadded:: 3.2
-
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -14,24 +12,19 @@ Read Concern
    :depth: 1
    :class: singlecol
 
-.. versionchanged:: 3.4
-   Adds support for :readconcern:`"linearizable"` read concern level.
+The ``readConcern`` option allows you to control the recency,
+consistency, and isolation properties of the data read from replica
+sets and replica set shards.
 
-.. versionchanged:: 3.6
-   Adds support for:
+Through the effective use of :doc:`write concerns
+</reference/write-concern>` and read concerns, you can adjust the level
+of consistency and availability guarantees as appropriate, such as
+waiting for stronger consistency guarantees, or loosening consistency
+requirements to provide higher availability.
 
-   - :readconcern:`"available"` read concern level.
 
-   - :ref:`afterClusterTime` for :readconcern:`"local"` and
-     :readconcern:`"majority"` read concern levels.
-
-The ``readConcern`` query option for replica sets and replica set
-shards determines which data to return from a query.
-
-.. code-block:: javascript
-
-   readConcern: { level: <"majority"|"local"|"linearizable"|"available"> }
-   readConcern: { level: <"majority"|"local"> , afterClusterTime: <Timestamp> }
+MongoDB drivers updated for MongoDB 3.2 or later support specifying
+read concern.
 
 .. _read-concern-levels:
 
@@ -47,52 +40,63 @@ The following read concern levels are available:
    * - ``level``
      - Description
 
-   * - .. readconcern:: "local"
+   * - :readconcern:`"local"`
 
-     - Default for reads against primary if ``level`` is unspecified
-       and for reads against secondaries if ``level`` is unspecified but
-       :ref:`afterClusterTime` is specified.
-
-       The query returns the instance's most recent data. Provides no
+     - The query returns the instance's most recent data. Provides no
        guarantee that the data has been written to a majority of the
        replica set members (i.e. may be rolled back).
 
-   * - .. readconcern:: "available"
+       Default for:
+          - reads against primary
 
-     - Default for reads against secondaries when
-       :ref:`afterClusterTime` and ``level`` are unspecified. 
+          - reads against secondaries if the reads are
+            associated with :ref:`causally consistent sessions <sessions>`.
 
-       The query returns the instance's most recent data. Provides no
+       Read concern :readconcern:`local` is available for use with
+       causally consistent sessions.
+
+       For more information, see the :readconcern:`"local"` reference
+       page.
+
+   * - :readconcern:`"available"`
+
+     - The query returns the instance's most recent data. Provides no
        guarantee that the data has been written to a majority of the
        replica set members (i.e. may be rolled back).
 
-       For unsharded collections (including collections in a standalone
-       deployment or a replica set deployment), :readconcern:`"local"`
-       and :readconcern:`"available"` read concerns behave identically.
+       Default for reads against secondaries if the reads are not
+       associated with :ref:`causally consistent sessions <sessions>`.
 
-       For a sharded cluster, :readconcern:`"available"` read concern
-       provides greater tolerance for partitions since it does not wait
-       to ensure consistency guarantees. However, a query with
-       :readconcern:`"available"` read concern may return orphan
-       documents if the shard is undergoing chunk migrations since the
-       :readconcern:`"available"` read concern, unlike
-       :readconcern:`"local"` read concern, does not contact the
-       shard's primary nor the config servers for updated
-       :doc:`metadata </core/sharded-cluster-config-servers>`.
+       For sharded collections, :readconcern:`"available"` read concern
+       provides the lowest latency reads possible among the various read
+       concerns but at the expense of consistency as 
+       :readconcern:`"available"` read concern can return orphan
+       documents.
 
-       .. seealso:: :parameter:`orphanCleanupDelaySecs`
+       Read concern :readconcern:`available` is unavailable for use
+       with causally consistent sessions.
+
+       For more information, see the :readconcern:`"available"`
+       reference page.
 
        .. versionadded:: 3.6
 
-   * - .. readconcern:: "majority"
+   * - :readconcern:`"majority"`
 
-     - The query returns the instance's most recent data acknowledged
-       as having been written to a majority of members in the replica
-       set.
+     - The query returns the instance's most recent data that has been
+       acknowledged by a majority of the replica set members. The
+       documents returned by the read operation are durable, even in
+       the event of failure.
 
        .. include:: /includes/fact-enable-majority-readConcern.rst
 
-   * - .. readconcern:: "linearizable"
+       Read concern :readconcern:`majority` is available for use with
+       causally consistent sessions.
+
+       For more information, see the :readconcern:`"majority"`
+       reference page.
+
+   * - :readconcern:`"linearizable"`
 
      - The query returns data that reflects all successful 
        majority-acknowledged writes that completed prior to the start
@@ -110,6 +114,9 @@ The following read concern levels are available:
        You can specify linearizable read concern for read operations on
        the :replstate:`primary <PRIMARY>` only.
 
+       Read concern :readconcern:`linearizable` is unavailable for use
+       with causally consistent sessions.
+
        Linearizable read concern guarantees only apply if read
        operations specify a query filter that uniquely identifies a
        single document.
@@ -122,62 +129,38 @@ The following read concern levels are available:
           indefinitely and instead ensures that the operation returns
           an error if the read concern cannot be fulfilled.
 
-       Linearizable read concern is available for both MMAPv1 and
-       WiredTiger. See :ref:`read-concern-storage-engine-drivers`.
-
-       .. versionadded:: 3.4
+       For more information, see the :readconcern:`"linearizable"`
+       reference page.
 
 .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
 
-.. _read-concern-storage-engine-drivers:
+For more information on each read concern level, see:
 
-Storage Engine and Drivers Support
-----------------------------------
+.. toctree::
+   :titlesonly:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 50 30 20
+   /reference/read-concern-local
+   /reference/read-concern-available
+   /reference/read-concern-majority
+   /reference/read-concern-linearizable
 
-   * - Read Concern
-     - WiredTiger
-     - MMAPv1
-     
-   * - :readconcern:`"local"`
-     - |checkmark|
-     - |checkmark|
-
-   * - :readconcern:`"majority"`
-     - |checkmark|
-     -
-
-   * - :readconcern:`"linearizable"`
-     - |checkmark|
-     - |checkmark|
-
-.. tip::
-
-   The :dbcommand:`serverStatus` command returns the
-   :serverstatus:`storageEngine.supportsCommittedReads` field which
-   indicates whether the storage engine supports ``"majority"`` read
-   concern.
-
-MongoDB drivers updated for 3.2 and later versions support specifying
-a read concern option.
-
-.. include:: /includes/unicode-checkmark.rst
-
-``readConcern`` Option
+``readConcern`` Syntax
 ----------------------
 
-.. versionchanged:: 3.6
-
-Use the ``readConcern`` option to specify the read concern level [#after-cluster-time]_ :
+You can specify a ``readConcern`` level [#after-cluster-time]_ as an
+option:
 
 .. code-block:: javascript
 
-   readConcern: { level: <"majority"|"local"|"linearizable"> }
+   readConcern: { level: <"majority"|"local"|"linearizable"|"available"> }
 
-The ``readConcern`` option is available for the following operations:
+.. note::
+
+   For operations in :ref:`causally consistent sessions
+   <causal-consistency>`, only :readconcern:`"local"` and
+   :readconcern:`"majority"` levels are available.
+   
+The following operations support the ``readConcern`` option:
 
 - :dbcommand:`find` command
 
@@ -194,15 +177,21 @@ The ``readConcern`` option is available for the following operations:
 
 - :dbcommand:`geoSearch` command
 
+- :dbcommand:`group` command
+
 To specify the read concern level for the :binary:`~bin.mongo` shell method
 :method:`db.collection.find()`, use the :method:`cursor.readConcern()`
-method.
+method:
+
+.. code-block:: javascript
+
+   db.collection.find().readConcern(<"majority"|"local"|"linearizable"|"available">)
 
 .. [#after-cluster-time]
 
    For :ref:`causally consistent sessions <causal-consistency>`,
-   MongoDB drivers automatically specifies the :ref:`afterClusterTime`
-   value in the read concern.
+   MongoDB drivers automatically specifies the :ref:`afterClusterTime
+   <afterClusterTime>` value in the read concern.
 
 Considerations
 --------------
@@ -252,22 +241,26 @@ For example:
         maxTimeMS: 10000
    } )
 
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+
 .. _afterClusterTime:
 
-``afterClusterTime``
-~~~~~~~~~~~~~~~~~~~~
+Read Operations and Causally Consistent Sessions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 3.6
 
-MongoDB 3.6 introduces the ``afterClusterTime`` option that can be set
-by the drivers. To satisfy a read request with an ``afterClusterTime``
-value of ``T``, a :binary:`~bin.mongod` must perform the request after
-its oplog reaches time ``T``. If its oplog has not reached time ``T``,
-the :binary:`~bin.mongod` must wait to service the request.
+MongoDB 3.6 introduces support for :ref:`causally consistent sessions
+<sessions>`. For read operations associated with causally consistent
+session, MongoDB 3.6 introduces the ``afterClusterTime`` read concern
+option to be set automatically by the drivers for operations associated
+with causally consistent sessions.
 
-Read operations with a specified ``afterClusterTime``
-return data that meet both the :ref:`read concern level <read-concern-levels>` 
-requirement and the specified ``afterClusterTime`` requirement.
+The ``afterClusterTime`` read concern option is available for
+:readconcern:`"local"` and :readconcern:`"majority"` read
+concern levels:
 
 .. important::
 
@@ -275,24 +268,18 @@ requirement and the specified ``afterClusterTime`` requirement.
    this value automatically for operations associated with
    causally consistent sessions.
 
-Causally consistent sessions use the ``afterClusterTime`` value to
-provide causal consistency.
-
-``afterClusterTime`` is available for :readconcern:`"local"` (default)
-and :readconcern:`"majority"` read concern levels:
-
 .. code-block:: javascript
 
    readConcern: { level: <"majority"|"local"> , afterClusterTime: <Timestamp> }
 
+To satisfy a read request with an ``afterClusterTime`` value of ``T``,
+a :binary:`~bin.mongod` must perform the request after its oplog
+reaches time ``T``. If its oplog has not reached time ``T``, the
+:binary:`~bin.mongod` must wait to service the request.
+
+Read operations with a specified ``afterClusterTime`` return data that
+meet both the :ref:`read concern level <read-concern-levels>`
+requirement and the specified ``afterClusterTime`` requirement.
+
 For read operations not associated with causally consistent sessions,
-i.e. where ``afterClusterTime`` is unset, reads against secondary
-members have the default read concern level :readconcern:`"available"`,
-meaning that queries will return the instance’s most recent data.
-:readconcern:`"available"` provides no guarantee that data has been
-written to a majority of the replica set members. It might be rolled
-back.
-
-.. [#edge-cases-2-primaries]
-
-   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+``afterClusterTime`` is unset.
