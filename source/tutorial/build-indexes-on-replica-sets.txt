@@ -74,9 +74,23 @@ Stop One Secondary and Restart as a Standalone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Stop the :binary:`~bin.mongod` process on one secondary. Restart the
-:binary:`~bin.mongod` process *without* the :option:`--replSet <mongod --replSet>`
-option and running on a different port. [#different-port]_ This
-instance is now in "standalone" mode.
+:binary:`~bin.mongod` process, making the following modifications to the 
+configuration file.
+
+- Comment out the :setting:`replication.replSetName` option.
+- For :term:`shard` or :term:`config server` replica sets, comment out
+  the :setting:`sharding.clusterRole` option.
+- Change the :setting:`net.port` to a different port. Make a note
+  of the original port setting as a comment. [#different-port]_
+
+If using command line options, modify :option:`--port <mongod --port>` 
+and remove the :option:`--replSetName <mongod --replSet>`, 
+:option:`--shardsvr <mongod --shardsvr>`, and
+:option:`--configsvr <mongod --configsvr>` options.
+  
+.. include:: /includes/warning-bind-ip-security-considerations.rst
+
+This instance is now in "standalone" mode.
 
 For example, if your :binary:`~bin.mongod` *normally* runs with on the
 default port of ``27017`` with the :option:`--replSet
@@ -115,18 +129,14 @@ Restart the Program ``mongod`` as a Replica Set Member
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When the index build completes, restart the :binary:`~bin.mongod`
-instance as a member of the replica set. Set the :option:`--replSet
-<mongod --replSet>` option to its replica set name and :option:`--port
-<mongod --port>` set to its usual port.
+instance as a member of the replica set using its normal
+configuration file or command-line arguments.
 
 For example:
 
 .. code-block:: sh
 
    mongod --port 27017 --replSet rs0
-
-Modify the port number (e.g. ``27017``) as needed. Include any other
-options as appropriate for this member.
 
 Allow replication to catch up on this member.
 
@@ -146,7 +156,8 @@ Build the Index on the Primary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When all the secondaries have the new index, step down the primary,
-restart it as a standalone, and build the index on the former primary:
+restart it as a standalone using the procedure described above, 
+and build the index on the former primary:
 
 #. Use the :method:`rs.stepDown()` method in the :binary:`~bin.mongo` shell
    to step down the primary. Upon successful stepdown, the current primary
