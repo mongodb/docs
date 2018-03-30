@@ -270,14 +270,53 @@
 
    * - ``diskSizeGB``
      - double
-     - The size in gigabytes of the server's root volume. You can add capacity
-       by increasing this number, up to a maximum possible value of ``16384``
-       (i.e., 16 TB).
+     - ** AWS / GCP Only ** The size in gigabytes of the server's root 
+       volume. You can add capacity by increasing this number, up to a 
+       maximum possible value of ``4096`` (i.e., 4 TB).
 
        Each instance size has its own default value. To view default values:
        open the |service| web interface; click the button to add a new
        cluster; view the available default sizes; close the window without
        saving changes.
+
+   * - ``diskTypeName``
+     - string
+     - **Azure Only** The disk type of the server's root volume.
+
+       The following table lists the possible values for this field,
+       and their corresponding storage size.
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 40 60
+
+          * - ``diskTypeName``
+            - Storage Size
+
+          * - ``P4`` :sup:`1`
+            - 32GB 
+          
+          * - ``P6``
+            - 64GB
+
+          * - ``P10`` :sup:`2`
+            - 128GB 
+
+          * - ``P20``
+            - 512GB
+
+          * - ``P30``
+            - 1024GB
+
+          * - ``P40``
+            - 2048GB
+
+          * - ``P50``
+            - 4095GB
+
+       :sup:`1` Default for ``M20`` and ``M30`` Azure instances
+
+       :sup:`2` Default for ``M40+`` Azure instances
 
    * - ``backupEnabled``
      - Boolean
