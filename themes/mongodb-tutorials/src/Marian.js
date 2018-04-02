@@ -180,7 +180,7 @@ export class MarianUI {
         if (this.query) {
             newURL = `${locationSansQuery}?searchProperty=${encodeURIComponent(this.searchProperty)}&query=${encodeURIComponent(this.query)}`
         } else {
-            newURL = locationSansQuery
+            newURL = window.location.href
         }
 
         window.history.replaceState({href: newURL}, null, newURL)
