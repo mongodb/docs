@@ -1,3 +1,22 @@
+.. _automation-4.5.13.5261-1:
+
+Automation Agent 4.5.13.5261-1
+------------------------------
+
+
+:ref:`Released with Ops Manager 3.6.5 on 2018-04-05 <opsmgr-server-3.6.5>`
+
+- Fix: Disable MongoDB's TTL monitor thread while applying oplogs
+  during a point in time restore.
+
+- When performing maintenance on a MongoDB 3.2 shard member for oplog
+  resizing, start the node with ``--recoverShardingState`` false.
+
+- When the Automation Agent performs a resize on a MongoDB 3.2 sharded
+  cluster, disable sharding recovery while the node is started up as a
+  standalone.
+
+
 .. _automation-4.5.12.2514-1:
 
 Automation Agent 4.5.12.2514-1
