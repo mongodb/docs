@@ -29,6 +29,7 @@ stage:
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
 publish:
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
