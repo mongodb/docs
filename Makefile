@@ -21,6 +21,7 @@ html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
