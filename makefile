@@ -61,11 +61,6 @@ ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
 
-	@echo "Copying over landing page"
-	cp -p build/landing/landing.html build/public/cloud/
-	cp -p build/landing/style.min.css build/public/cloud/_static/
-	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
-
 	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
