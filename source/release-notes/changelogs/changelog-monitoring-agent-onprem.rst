@@ -25,6 +25,15 @@ Monitoring Agent 6.1.1.395
 
 - Support for new Agent API Key model.
 
+.. _monitoring-5.4.5.415:
+
+Monitoring Agent ``5.4.5.415``
+------------------------------
+
+*Released with Ops Manager 3.4.13 on 2018-04-05*
+
+- Build system improvements.
+
 .. _monitoring-5.4.5.370:
 
 Monitoring Agent 5.4.5.370

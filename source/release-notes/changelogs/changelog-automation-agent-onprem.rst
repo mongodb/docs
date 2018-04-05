@@ -114,9 +114,9 @@ Automation Agent 4.5.7.2375
 
 - Support for new Agent API Key model.
 
-.. _automation-3.2.17.4936-1:
+.. _automation-3.2.17.4936:
 
-Automation Agent ``3.2.17.4936-1``
+Automation Agent ``3.2.17.4936``
 ----------------------------------
 
 *Released with Ops Manager 3.4.13 on 2018-04-05*
@@ -126,25 +126,25 @@ Automation Agent ``3.2.17.4936-1``
   parameter. This is now resolved and rolling changes will proceed
   correctly on these deployments.
      
-.. _automation-3.2.16.2444-1:
+.. _automation-3.2.16.2444:
 
-Automation Agent 3.2.16.2444-1
+Automation Agent 3.2.16.2444
 ------------------------------
 
 *Released with Ops Manager 3.4.12 on 2018-02-01*
 
 - Logging enhancements
 
-.. _automation-3.2.16.2263-1:
+.. _automation-3.2.16.2263:
 
-Automation Agent 3.2.16.2263-1
+Automation Agent 3.2.16.2263
 ------------------------------
 
 *Released with Ops Manager 3.4.10 on 2017-11-02*
 
-.. _automation-3.2.15.2257-1:
+.. _automation-3.2.15.2257:
 
-Automation Agent 3.2.15.2257-1
+Automation Agent 3.2.15.2257
 ------------------------------
 
 *Released with Ops Manager 3.4.9 on 2017-10-05*
@@ -156,9 +156,9 @@ Automation Agent 3.2.15.2257-1
   perform maintenance operations on a ``mongod``, remove the service
   when the maintenance is completed.
 
-.. _automation-3.2.14.2187-1:
+.. _automation-3.2.14.2187:
 
-Automation Agent 3.2.14.2187-1
+Automation Agent 3.2.14.2187
 ------------------------------
 
 *Released with Ops Manager 3.4.7 on 2017-08-03*
@@ -169,9 +169,9 @@ Automation Agent 3.2.14.2187-1
 - Improve state detection during conversions to config server
   replica sets.
 
-.. _automation-3.2.13.2141-1:
+.. _automation-3.2.13.2141:
 
-Automation Agent 3.2.13.2141-1
+Automation Agent 3.2.13.2141
 ------------------------------
 
 *Released with Ops Manager 3.4.6 on 2017-07-06*

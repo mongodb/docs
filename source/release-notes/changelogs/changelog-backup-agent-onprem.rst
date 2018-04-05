@@ -49,9 +49,18 @@ Backup Agent 6.0.3.689
 
 - Support for new Agent API Key model.
 
-.. _backup-5.0.12.725-1:
+.. _backup-5.0.12.840:
 
-Backup Agent 5.0.12.725-1
+Backup Agent 5.0.12.840
+-------------------------
+
+*Released with Ops Manager 3.4.13 on 2018-04-05*
+
+- Build system improvements.
+
+.. _backup-5.0.12.725:
+
+Backup Agent 5.0.12.725
 -------------------------
 
 *Released with Ops Manager 3.4.12 on 2018-02-01*
@@ -60,16 +69,16 @@ Backup Agent 5.0.12.725-1
   could fail creating an index on a collection with a collation 
   specified.
 
-.. _backup-5.0.11.663-1:
+.. _backup-5.0.11.663:
 
-Backup Agent 5.0.11.663-1
+Backup Agent 5.0.11.663
 -------------------------
 
 *Released with Ops Manager 3.4.9 on 2017-10-05*
 
-.. _backup-5.0.10.634-1:
+.. _backup-5.0.10.634:
 
-Backup Agent 5.0.10.634-1
+Backup Agent 5.0.10.634
 -------------------------
 
 *Released with Ops Manager 3.4.7 on 2017-08-03*
@@ -77,9 +86,9 @@ Backup Agent 5.0.10.634-1
 - Improve state management when executing an administrative error
   retrieval task.
 
-.. _backup-5.0.8.601-1:
+.. _backup-5.0.8.601:
 
-Backup Agent 5.0.8.601-1
+Backup Agent 5.0.8.601
 ------------------------
 
 *Released with Ops Manager 3.4.6 on 2017-07-06*
