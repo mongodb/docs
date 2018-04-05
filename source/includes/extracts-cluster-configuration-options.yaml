@@ -1,9 +1,9 @@
 ref: cluster-option-clusterProviderRegionOnly
 content: |
 
-  For clusters with :guilabel:`Instance Size` of ``M10`` or greater, you can
-  specify additional regions to distribute your cluster across for high
-  availability or local reads.
+  To deploy a cross-region cluster, toggle 
+  :guilabel:`Configure clusters across multiple regions (M10 and up)`
+  to :guilabel:`Yes`.
        
   .. admonition:: AWS Only
      :class: note
@@ -12,11 +12,66 @@ content: |
      region or regions *and* you plan on creating one or more :abbr:`VPC
      peering connections`, please review the documentation on :doc:`VPC
      Peering Connections </security-vpc-peering>` before continuing.
+
+  The following options are available when configuring cross-region 
+  clusters:
+
+  :guilabel:`Deploy across multiple regions`
+     Click :guilabel:`Add a node` to add a new row for region selection 
+     and select the region from the dropdown. Specify the desired 
+     number of :guilabel:`Nodes` for the region.
+
+     The first row lists the :guilabel:`Preferred Region`. |service|
+     prioritizes nodes in the preferred region for primary elegibility.
+
+     .. admonition:: Backup Data Center Location
+        :class: note
+
+        If this is the first cluster in the project *and* you 
+        intend to enable 
+        :ref:`continuous snapshot backups <create-cluster-backups>`,
+        |service| selects the backup data center location for the 
+        project based on the geographical location of the 
+        cluster's :guilabel:`Preferred Region`. See 
+        :doc:`Backup a Cluster </backup-cluster>` for more information.
+
+     When selecting a :guilabel:`Region`, regions marked as 
+     :guilabel:`Recommended` provide higher availability compared to 
+     other regions. For more information, see: 
+
+     - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.          
+     - :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.          
+     - :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`.
      
-  To deploy a cross-region cluster, click :guilabel:`Enable cross-region
-  configuration options`. Cross-region clusters deploy with each node using
-  the same configuration options as specified during cluster configuration.
-  
+     Each node in the selected regions can participate in 
+     :term:`elections <election>`, and can become the :term:`primary` 
+     as long as the majority of nodes in the replica set are available. 
+     The total number of electable nodes across all regions, excluding 
+     read-only regions, must be 3, 5, or 7.
+     
+     You can also use this option to increase the replication factor of
+     single-region clusters by modifying the number of :guilabel:`Nodes` for
+     your :guilabel:`Preferred Region` only. You do not have to add additional
+     regions to modify the replication factor of your :guilabel:`Preferred
+     Region`.
+     
+     To remove a region, click the :guilabel:`X` next to that region. 
+     You cannot remove the :guilabel:`Preferred Region`.  
+     
+     |service| provides checks for whether your selected cross-regional
+     configuration provides availability during partial or whole regional
+     outages.
+
+  :guilabel:`Deploy read-only replicas`
+     Click :guilabel:`Add a node` to deploy read-only nodes to the
+     selected region.
+     
+     Each node in the region cannot participate in :term:`elections
+     <election>`, and cannot become the :term:`primary`. Read-only regions do
+     not provide high availability.
+     
+     To remove a read-only region, click the :guilabel:`X` next to that region.
+
   .. note::
     
      Having a large number of regions or having nodes spread across
@@ -25,73 +80,6 @@ content: |
   .. important::
   
      .. include:: /includes/fact-cross-region-limits.rst
-  
-  The following options are available when configuring cross-region clusters,
-  and are only available for clusters using an :guilabel:`Instance Size` of
-  ``M10`` or greater:
-       
-  :guilabel:`Deploy across multiple regions`
-     Toggle this field to ``Yes`` to enable distributing your cluster across
-     multiple regions in the specified cloud provider, increasing availability
-     of a cluster during a partial or total region outage. By default
-     |service| displays a :guilabel:`Preferred Region`, which replaces the
-     :guilabel:`Region` dropdown. The :guilabel:`Preferred Region` is the
-     region |service| places your primary node on deployment.
-  
-     .. admonition:: Backup Data Center Location
-        :class: note
-
-        If this cluster is the first backup-enabled cluster in the project,
-        |service| selects the backup data center location for the project
-        based on the geographical location of the cluster's Preferred Region.
-        See :doc:`Backup a Cluster </backup-cluster>` for more information.
-
-     Click :guilabel:`Add Region` to add a new row for region selection and
-     select the region from the dropdown. Specify the desired number of
-     :guilabel:`Nodes` for the region.
-     
-     Each node in the region can participate in :term:`elections <election>`,
-     and can become the :term:`primary` as long as the majority of nodes in
-     the replica set are available. The total number of electable nodes across
-     all regions, excluding read-only regions, must be 3, 5, or 7.
-     
-     You can also use this option to increase the replication factor of
-     single-region clusters by modifying the number of :guilabel:`Nodes` for
-     your :guilabel:`Preferred Region` only. You do not have to add additional
-     regions to modify the replication factor of your :guilabel:`Preferred
-     Region`.
-     
-     To remove a region, click the :guilabel:`X` next to that region. You
-     cannot remove the :guilabel:`Preferred Region`.  
-     
-     |service| provides checks for whether your selected cross-regional
-     configuration provides availability during partial or whole regional
-     outages.
-
-  :guilabel:`Deploy read-only replicas`
-     Toggle this field to ``Yes`` to enable creating regions for deploying
-     read-only nodes for facilitating local secondary reads.
-     
-     Click :guilabel:`Add Read-Only Region` to add a new row for region
-     selection and select the region from the dropdown. Specify the desired
-     number of :guilabel:`Nodes` for the region.
-     
-     Each node in the region cannot participate in :term:`elections
-     <election>`, and cannot become the :term:`primary`. Read-only regions do
-     not provide high availability.
-     
-     To remove a read-only region, click the :guilabel:`X` next to that region.
-       
-  Regions marked as :guilabel:`Recommended` provide higher availability
-  compared to other regions. For more information, see:
-       
-  - :ref:`AWS Recommended Regions <amazon-aws-availability-zones>`.
-       
-  - :ref:`GCP Recommended Regions <google-gcp-availability-zones>`.
-       
-  - :ref:`Azure Recommended Regions <microsoft-azure-availability-zones>`
-  
-  .. include:: /includes/extracts/fact-no-node-restriction-base.rst
   
 ---
 ref: cluster-option-clusterProviderRegion
@@ -109,29 +97,25 @@ content: |
 ref: cluster-option-clusterInstance
 content: |
 
-  The memory, storage, and IOPS specification for each data-bearing server
-  [#data-bearing]_ for your |service| cluster.
-
   .. include:: /includes/fact-instance-size-groupings.rst
 
-  .. include:: /includes/enable-sharding-requirements.rst
+---
+ref: cluster-option-customizeStorage
+content: |
 
-  Each instance size comes with a default set of resources. Depending on the
-  selected cloud service provider and instance size, |service| can provide the
-  following configuration options:
+  Each cluster tier comes with a default set of resources. Depending on the
+  selected cloud service provider and instance size, |service| can provides
+  following configuration options under 
+  :guilabel:`Customize Your Storage`:
 
-  - :guilabel:`Custom Storage Capacity`: The size of the server root volume.
+  - :guilabel:`Storage Capacity`
+    You can change the size of the server root volume.
     Changes to storage capacity affects :ref:`cost <instance-size-costs>`.
 
-  - :guilabel:`Custom Storage Speed`: The input/output operations per second
-    (IOPS) the system can perform. Changes to storage speed affects :ref:`cost
-    <instance-size-costs>`.
-
-  - :guilabel:`Use encrypted storage volumes`: Encrypts root volume for data at
-    rest inside the volume and all data moving between the volume and the
-    instance.
-
-    As of July 11th, 2017, new |service| clusters are encrypted by default.
+  - :guilabel:`Storage Speed` 
+    The input/output operations per second (IOPS) the system can 
+    perform. Changes to storage speed affects 
+    :ref:`cost <instance-size-costs>`.
 
   .. include:: /includes/fact-auto-expand-storage.rst
 
@@ -144,30 +128,6 @@ content: |
     <microsoft-azure-configuration-options>`.
 
   .. seealso:: :ref:`connection-limits`
-
----
-ref: cluster-option-clusterReplication
-content: |
-
-  The replication factor of your cluster is the number of :term:`replica set`
-  nodes in the cluster. Each node keeps a copy of your database, providing
-  high availability and data redundancy. If your deployment is a sharded
-  cluster, each shard is a replica set, and the replication factor determines
-  the number of nodes in each shard replica set.
-  
-  This option is only available for clusters using an :guilabel:`Instance Size`
-  of ``M10`` or greater.
-
-  To modify this value, under :guilabel:`Region` select
-  :guilabel:`Enable cross-region configuration options`. Modify the number
-  of :guilabel:`Nodes` for your :guilabel:`Primary Region`. You must
-  select either 3, 5, or 7 nodes.
-
-  Each node runs on a separate instance. For details on how the number of
-  server instances affects cost, see :ref:`server-number-costs`.
-
-  For more information on replica sets, see :manual:`Replication
-  </replication>` in the MongoDB manual.
 
 ---
 ref: cluster-option-clusterSharding
@@ -260,19 +220,32 @@ content: |
 ref: cluster-option-clusterSecurity
 content: |
 
-  These fields appear only if no MongoDB user exists for your |service|
-  project, such as if you are creating the first cluster in the project and
-  have not yet set up MongoDB users. Fill them in to create a MongoDB admin
-  user with the specified username and password.
+  |service| provides a series of pop-up dialogs to walk you through 
+  configuring basic cluster security if you have not
+  configured :ref:`IP whitelisting <whitelist>` and at least one
+  :ref:`MongoDB database user <mongodb-users>` for your project. Follow
+  the directions in the dialogs to configure the IP whitelist and
+  MongoDB database users for the project.
 
-  **When creating a new admin user, be sure to save the credentials.**
+  You can configure the IP whitelisting and MongoDB database users
+  for the project at any time by clicking on the :guilabel:`Security`
+  tab from the :guilabel:`Clusters` view. 
 
-  The admin user has the :atlasrole:`Atlas admin` role for the |service|
-  project. This includes read and write access to any cluster in the project.
+  - For IP whitelisting, click :guilabel:`IP Whitelist` to view the
+    configured whitelist for the project. You can add, edit, or
+    delete entries from this view. For more information on |service|
+    IP whitelisting, see :ref:`whitelist`.
 
-  To have |service| generate the password for the admin user, click
-  :guilabel:`Autogenerate Secure Password`. If you choose to have |service|
-  generate the password, |service| displays it only once.
+  - For MongoDB database users, click :guilabel:`MongoDB Users` to view
+    the configured database users for the project. You can add, edit,
+    or delete users from this view. For more information on |service|
+    MongoDB database users, see :ref:`mongodb-users`.
+
+  |service| also supports using an external LDAP service for
+  authentication and/or authorization of MongoDB database users. See
+  :ref:`ldaps-authentication-authorization` for complete documentation
+  on |service| LDAP support.
+
 ---
 ref: cluster-option-bi-cluster-requirements
 content: |

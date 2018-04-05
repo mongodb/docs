@@ -1,12 +1,38 @@
-|service| provides various instance sizes to support different use
-cases:
+The :guilabel:`Cluster Tier` section of the 
+:guilabel:`Create New Cluster` dialog displays the available
+|service| instance sizes. |service| categorizes the instance
+sizes into tiers as follows:
 
-- For starter environments, ``M0``, ``M2``, and ``M5`` instance sizes.
-  These instances provide access to a subset of |service| features
-  and functionality. For a complete list of ``M0``, ``M2``, and
-  ``M5`` instance limitations, see :ref:`atlas-free-tier`.
+:guilabel:`Shared Clusters`
+  Sandbox instances for getting started with MongoDB, such as the 
+  ``M0`` Free Tier instance.
 
-- For low traffic websites and development, ``M10`` and ``M20`` instance sizes.
+  These instances support replica set deployments in a shared 
+  environment with access to a subset of |service| features and
+  functionality.
 
-- For production environments that support high traffic applications or
-  large datasets, ``M30`` or larger instances sizes.
+:guilabel:`Dedicated Development Clusters`
+  Instances that support development environments and low-traffic
+  applications.
+
+  These instances support replica set deployments only, but otherwise
+  provide full access to |service| features and functionality.
+
+:guilabel:`Dedicated Production Clusters`
+  Instances that support production environments with high traffic
+  applications and large datasets. 
+
+  These instances support replica set and sharded cluster
+  deployments with full access to |service| features and functionality.
+
+  Some instances have variants, denoted by the |angle| character. 
+  When you select these instances, |service| lists the variants 
+  and tags each instance to distinguish their key characteristics.
+
+  .. |angle| unicode:: U+276F
+
+The selected instance size dictates the 
+memory, storage, and IOPS specification for each data-bearing 
+server [#data-bearing]_ in the cluster. 
+
+.. include:: /includes/fact-free-tier-paid-tier.rst

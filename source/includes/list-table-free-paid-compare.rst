@@ -13,7 +13,7 @@
      - | ``M2``: 2 GB
        | ``M5``: 5 GB
 
-     - | 10 - 1000 GB
+     - | 10 - 4000 GB
 
    * - Data Visualization
      - No
