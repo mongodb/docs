@@ -1,7 +1,16 @@
-.. _backup-6.0.8.752-1:
+.. _backup-6.0.8.960:
 
-Backup Agent 6.0.8.752-1:
--------------------------
+Backup Agent 6.0.8.960
+----------------------
+
+*Released with Ops Manager 3.6.5 on 2018-04-05*
+
+- Build system improvements
+
+.. _backup-6.0.8.752:
+
+Backup Agent 6.0.8.752
+----------------------
 
 *Released with Ops Manager 3.6.4*
 
@@ -9,9 +18,9 @@ Backup Agent 6.0.8.752-1:
   when erroneous authentication credentials are provided for a source 
   cluster.
 
-.. _backup-6.0.6.724-1:
+.. _backup-6.0.6.724:
 
-Backup Agent 6.0.6.724-1
+Backup Agent 6.0.6.724
 ------------------------
 
 *Released with Ops Manager 3.6.3*
@@ -20,10 +29,10 @@ Backup Agent 6.0.6.724-1
   could fail creating an index on a collection with a collation 
   specified.
 
-.. _backup-6.0.5.716-1:
+.. _backup-6.0.5.716:
 
-Backup Agent 6.0.5.716-1
-------------------------
+Backup Agent 6.0.5.716
+----------------------
 
 *Released with Ops Manager 3.6.2 on 2018-01-11*
 

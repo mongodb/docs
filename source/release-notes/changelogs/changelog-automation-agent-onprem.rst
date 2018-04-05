@@ -1,7 +1,7 @@
-.. _automation-4.5.13.5261-1:
+.. _automation-4.5.13.5261:
 
-Automation Agent 4.5.13.5261-1
-------------------------------
+Automation Agent 4.5.13.5261
+----------------------------
 
 
 :ref:`Released with Ops Manager 3.6.5 on 2018-04-05 <opsmgr-server-3.6.5>`
@@ -17,9 +17,9 @@ Automation Agent 4.5.13.5261-1
   standalone.
 
 
-.. _automation-4.5.12.2514-1:
+.. _automation-4.5.12.2514:
 
-Automation Agent 4.5.12.2514-1
+Automation Agent 4.5.12.2514
 ------------------------------
 
 :ref:`Released with Ops Manager 3.6.4 on 2018-03-01 <opsmgr-server-3.6.4>`
@@ -54,9 +54,9 @@ Automation Agent 4.5.12.2514-1
    configuration via Automation, always perform a rolling restart.
 
 
-.. _automation-4.5.11.2453-1:
+.. _automation-4.5.11.2453:
 
-Automation Agent 4.5.11.2453-1
+Automation Agent 4.5.11.2453
 ------------------------------
 
 :ref:`Released with Ops Manager 3.6.3 on 2018-02-01 <opsmgr-server-3.6.3>`
@@ -69,9 +69,9 @@ Automation Agent 4.5.11.2453-1
 - **Fix:** Rotation of :bic:`BI Connector </>` logs by the Automation 
   Agent for timezones with positive GMT offsets.
 
-.. _automation-4.5.10.2429-1:
+.. _automation-4.5.10.2429:
 
-Automation Agent 4.5.10.2429-1
+Automation Agent 4.5.10.2429
 ------------------------------
 
 *Released with Ops Manager 3.6.2 on 2018-01-11*

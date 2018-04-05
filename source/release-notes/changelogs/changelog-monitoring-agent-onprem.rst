@@ -1,6 +1,15 @@
-.. _monitoring-6.1.2.402-1:
+.. _monitoring-6.1.3.436:
 
-Monitoring Agent 6.1.2.402-1
+Monitoring Agent 6.1.3.436
+----------------------------
+
+*Released with Ops Manager 3.6.5 on 2018-04-05*
+
+- Build system improvements
+
+.. _monitoring-6.1.2.402:
+
+Monitoring Agent 6.1.2.402
 ----------------------------
 
 *Released with Ops Manager 3.6.2 on 2018-01-11*
