@@ -34,10 +34,12 @@ html: ##build both cloud/ops manager html files
 publish: publish-cloud publish-onprem ## Build all publishable artifacts
 
 publish-cloud: ## Build cloud publishable artifacts
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish-cloud
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-cloud -o build/public/cloud/.htaccess; fi
 
 publish-onprem: ## Build ops magnager publishable artifacts
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish-onprem
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-onprem -o build/public/onprem/.htaccess; fi
 
