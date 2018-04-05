@@ -42,6 +42,7 @@ markdown: examples ## Build markdown and merge into docs-tutorials
 	./build/docs-tools/tools/migrate-markdown.py build/${GIT_BRANCH}/markdown
 
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
