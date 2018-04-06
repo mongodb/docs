@@ -19,14 +19,8 @@ Replica Set Elections
    :depth: 1
    :class: singlecol
 
-:term:`Replica sets <replica set>` use elections to select the 
-:term:`primary` for the cluster. Replica set elections support
-high availability by allowing clusters to automatically recover 
-normal operations after a primary failover event. Applications can
-continue to interact with the cluster during elections, mitigating
-the risk of downtime due to critical errors such as network 
-disruptions and hardware failure.
-
+Replica sets support high availability by automatically calling 
+for elections to select the :term:`primary` member for the cluster. 
 Replica sets can trigger an election in response to a variety of events,
 such as:
 
@@ -35,40 +29,28 @@ such as:
 - performing replica set maintenance using methods such as :method:`rs.stepDown()` or :method:`rs.reconfig()`, and
 - the :term:`secondary` members losing connectivity to the primary for more than the configured :rsconf:`timeout <settings.electionTimeoutMillis>` (10 seconds by default).
 
-In the following diagram, the primary node unavailability
-exceeded the 
-:rsconf:`configured timeout <settings.electionTimeoutMillis>`.
-One of the remaining secondaries calls for an election in response to
-primary node availability. The cluster attempts to elects a new primary 
-and ensure continued write availability.
+In the following diagram, the primary node was unavailable for longer
+than the :rsconf:`configured timeout <settings.electionTimeoutMillis>`
+and triggers the :ref:`automatic failover <replication-auto-failover>`
+process. One of the remaining secondaries calls for an election to
+select a new primary and automatically resume normal operations.
 
 .. include:: /images/replica-set-trigger-election.rst
 
-During an election the replica set can continue to serve read queries 
-if such queries are configured to 
-:ref:`run on secondaries <replica-set-read-preference>`. The
-replica set cannot process write operations until the election completes
-successfully. 
+The replica set cannot process write operations until the
+election completes successfully. The replica set can continue to serve 
+read queries if such queries are configured to 
+:ref:`run on secondaries <replica-set-read-preference>`.
 
-.. include:: /includes/fact-retryable-writes-election.rst
+.. include:: /includes/fact-retryable-writes-failover-election.rst
 
-The median time in which a cluster may operate without a primary
-should not typically exceed 11.5 seconds, assuming default
-:rsconf:`replica configuration settings <settings>`. 
-This includes time required to mark the primary as
-:ref:`unavailable <replication-auto-failover>`.
+The median time before a cluster elects a new primary should not
+typically exceed 11.5 seconds, assuming default :rsconf:`replica
+configuration settings <settings>`. This includes time required to
+mark the primary as :ref:`unavailable <replication-auto-failover>` and
+call and complete an :ref:`election <replica-set-elections>`.
 
 .. include:: /includes/fact-election-latency.rst
-
-If a majority of replica set members are inaccessible or unavailable,
-the remaining minority of replica set membrers cannot meet quorum for
-electing a new primary. If the primary node is among the remaining
-minority of replica set, it steps down and the cluster becomes 
-read-only. When a majority of replica set members are available, the 
-members can meet quurom for electing a new primary. Until that time, 
-the cluster can continue to serve read queries if such queries are 
-configured to run on secondaries. See :ref:`replica-set-read-preference`
-for complete documentation on secondary read operations.
 
 Factors and Conditions that Affect Elections
 --------------------------------------------

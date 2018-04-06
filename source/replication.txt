@@ -105,18 +105,13 @@ Automatic Failover
 
 When a primary does not communicate with the other members of the set
 for more than the configured :rsconf:`electionTimeoutMillis` period 
-(10 seconds by default), an eligible secondary holds an election
+(10 seconds by default), an eligible secondary calls for an election
 to elect itself the new primary. The first secondary to hold an
 election and receive a majority of the members' votes becomes primary.
 
 .. include:: /includes/fact-replica-set-protocolVersion1.rst
 
 .. include:: /images/replica-set-trigger-election.rst
-
-Lowering the :rsconf:`~settings.electionTimeoutMillis` 
-replication configuration option from the default ``10000`` (10 seconds)
-can result in faster automated failover at the cost of increased
-frequency of elections.
 
 The replica set can continue to serve read queries 
 if such queries are configured to 
@@ -126,13 +121,22 @@ until the election completes successfully.
 
 .. include:: /includes/fact-retryable-writes-failover-election.rst 
 
-The median time in which a cluster may operate without a primary
-should not typically exceed 11.5 seconds, assuming default
-:rsconf:`replica configuration settings <settings>`. 
-This includes time required to call and complete an 
-:ref:`election <replica-set-elections>`.
+The median time before a cluster elects a new primary should not
+typically exceed 11.5 seconds, assuming default :rsconf:`replica
+configuration settings <settings>`. This includes time required to
+mark the primary as :ref:`unavailable <replication-auto-failover>` and
+call and complete an :ref:`election <replica-set-elections>`.
 
 .. include:: /includes/fact-election-latency.rst
+
+Lowering the :rsconf:`~settings.electionTimeoutMillis` 
+replication configuration option from the default ``10000`` (10 seconds)
+can result in faster detection of primary failure. However,
+the cluster may call elections more frequently due to factors such as
+temporary network latency even if the primary is otherwise healthy.
+This can also result in increased 
+:ref:`rollbacks <replica-set-rollback>` for 
+:ref:`w : 1 <wc-w>` write operations.
 
 See :ref:`replica-set-elections` for complete documentation on
 replica set elections.  
