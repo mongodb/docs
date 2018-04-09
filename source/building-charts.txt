@@ -1,0 +1,344 @@
+===============
+Building Charts
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Introduction
+------------
+
+Charts provide visual representations of the data in your
+:doc:`data source <data-sources>`. A chart maps to a *single*
+data source, and can display correlations between several fields in the
+data. MongoDB Charts provides the following visualizations for
+your collection data:
+
+- Bar Charts
+
+  - Colored Bar
+
+  - Stacked Bar
+
+  - Grouped Bar
+
+- Column Charts
+
+  - Colored Column
+
+  - Stacked Column
+
+  - Grouped Column
+
+- Line Charts
+
+  - Discrete Line
+
+  - Continuous Line
+
+- Area Charts
+
+  - Stacked Discrete Area
+
+  - Continuous Area
+
+- Scatter Charts
+
+- Donut Charts
+
+Create a Chart
+--------------
+
+To begin building a new chart:
+
+1. From the :guilabel:`Dashboards` tab, select the dashboard where you
+   wish to add a new chart. For instructions on setting up a dashboard,
+   see :doc:`Dashboards </dashboards>`.
+
+2. Click the :guilabel:`Add Chart` button at the top-right corner of
+   the dashboard view.
+
+3. In the :guilabel:`Data Source` dropdown, select the data source to
+   be used for this chart. For information on adding data sources in
+   MongoDB Charts, see
+   :doc:`Data Sources <data-sources>`.
+
+4. In the :guilabel:`Chart Type` dropdown, select the type for this
+   chart.
+
+   .. note::
+
+      Each chart type provides different visualization options
+      for the fields in your data, reflected by various
+      *encoding channels*. These channels dictate how your data is
+      visualized and enable powerful
+      :manual:`aggregations </reference/operator/aggregation/>` for
+      your data. For details on the different encoding channel types,
+      refer to the :ref:`Encoding Channels <encoding-channels>`
+      section.
+
+5. Drag fields from the :guilabel:`Fields` section to the desired
+   encoding channels below the :guilabel:`Chart Type` dropdown. The
+   fields listed correspond to the fields in your data source. You can
+   search for a specific field in your data source by using the
+   :guilabel:`Filter` search bar at the top of the :guilabel:`Fields`
+   section.
+
+   .. note::
+
+      For details on how MongoDB Charts handles nested objects and nested
+      arrays in fields, see the
+      :ref:`Nested Objects and Arrays <nested-objects-arrays>` section.
+
+6. Give your chart a title by hovering over the
+   :guilabel:`Enter a title for your chart` text clicking the
+   :guilabel:`Pencil Icon`. Click the :guilabel:`Green Check Mark` to
+   save your title.
+
+7. Once you are satisfied with your chart, click
+   :guilabel:`Save Changes`. This saves your chart to your dashboard
+   and redirects you to the dashboard view.
+
+.. _encoding-channels:
+
+Encoding Channels
+-----------------
+
+MongoDB Charts provides various encoding channels to visualize
+your data based on the type of chart selected. Each encoding channel
+type provides different capabilities for processing and visualizing
+your data. The following table provides a brief description for each
+encoding channel type in MongoDB Charts:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Encoding Channel Type
+     - Description
+
+   * - Value
+     - A point on the chart is created from the chosen field for each
+       document in the collection. You may only assign fields with a
+       ``numeric`` or ``date`` type to a :guilabel:`Value` channel.
+
+   * - Category
+     - Each *unique* value from this field in the collection is used
+       as a chart category. The :guilabel:`Category` encoding channel
+       provides the following additional visualization options:
+
+       - For fields with a ``string`` data type, you can specify a field
+         to sort on and the sort order.
+
+       - For fields with a ``numeric`` data type, you can toggle
+         `data binning <https://en.wikipedia.org/wiki/Data_binning>`_
+         and select the bin size.
+
+       - For fields with a ``date`` data type, you can toggle date
+         grouping and select the grouping period.
+
+   * - Aggregation
+     - A point on the chart is created by applying an
+       :manual:`aggregation <aggregation>` function over the values of
+       this field from multiple documents; for example
+       :manual:`$count </reference/operator/aggregation/count/>` and
+       :manual:`$sum </reference/operator/aggregation/sum/>`.
+
+Dragging a field onto an :guilabel:`aggregation` encoding channel
+allows you to use an
+:manual:`aggregation pipeline operator </reference/operator/aggregation/>`
+on that field. The aggregation operators available in the chart
+builder change based on the :manual:`data type </reference/bson-types/>`
+of the selected field. MongoDB Charts categorizes the field data as
+either a ``number``, ``string``, or ``date`` and displays appropriate
+aggregation options accordingly.
+
+.. example::
+
+   Donut charts provide two encoding channels:
+
+   - A :guilabel:`category` channel called :guilabel:`Label` dictating
+     which field to use when dividing the sections of the chart
+
+     and
+
+   - An :guilabel:`aggregation` channel called :guilabel:`Arc` dictating
+     the aggregation operation to perform on the :guilabel:`Label`
+     category.
+
+   The following donut chart examines NASA's Landslide data source to
+   show the frequency of various landslide triggers by performing a
+   :manual:`$count </reference/operator/aggregation/count/>` aggregation
+   on the ``trigger`` field:
+
+   .. figure:: /images/charts/donut-chart-example-2.png
+      :figwidth: 721px
+      :alt: Donut chart example
+
+   We see from the chart that the most common landslide trigger is
+   ``Downpour`` followed by ``Continuous_rain``.
+
+.. _charts-filter-documents:
+
+Filter Documents in the Visualization
+-------------------------------------
+
+To display a subset of results in your data that match a given
+criteria, use the :guilabel:`Filters` input bar above the chart
+display. The filters used here employ the same syntax used in the
+:manual:`db.collection.find() </tutorial/query-documents/>`
+command. After entering a filter document, click :guilabel:`Apply` to
+see the filter reflected in your visualization.
+
+.. note::
+
+   Filters on large collections may have performance issues if there
+   are not appropriate :manual:`indexes <indexes>` on the collection.
+
+.. example::
+
+   The following chart shows the average runtime of movies by genre.
+   The filter of ``{runtime: {$gte: 120 }}`` means that we are only
+   taking into account movies which have a runtime greater than or
+   equal to 120 minutes.
+
+   .. figure:: /images/charts/charts-dashboard-filter-2.png
+      :figwidth: 721px
+      :alt: Charts dashboard filter
+
+.. _nested-objects-arrays:
+
+Nested Objects and Arrays
+-------------------------
+
+MongoDB Charts elegantly handles nested objects and array fields in
+your data, meaning you can create data visualizations while still
+structuring your data in the best way for your application.
+
+Nested Objects
+``````````````
+
+Nested objects in the :guilabel:`Fields` section of the Chart Builder
+are indicated by curly brackets (``{}``) next to their name. To expand
+an object field, click the arrow to the left of the field name. You can
+drag nested object fields onto the desired
+:guilabel:`encoding channels` just like any other field to visualize
+those fields in your chart.
+
+.. example::
+
+   The ``video.movieDetails`` data source in the following example
+   contains nested objects named ``awards`` and ``imdb``. We expand the
+   objects by clicking the arrows to the left of their names, then in
+   the bar chart we compare the
+   mean ``imdb.rating`` in the :guilabel:`Y-axis` with
+   ``awards.wins`` in the :guilabel:`X-axis`.
+
+   .. figure:: /images/charts/charts-nested-obj-3.png
+      :figwidth: 721px
+      :alt: Create chart nested object
+
+   .. note::
+
+      Notice the :guilabel:`filter` provided above the chart of
+      ``{'awards.wins': {$gt: 0}}``, meaning only movies which have won
+      at least one award are included in the visualization. For more
+      information on filtering documents in MongoDB Charts, see the
+      :ref:`Filter Documents <charts-filter-documents>` section.
+
+Array Fields
+````````````
+
+Array fields the :guilabel:`Fields` section of the Chart Builder page
+are indicated by square brackets (``[]``) next to their name. When
+adding an array field to an encoding channel, select an
+:guilabel:`array reduction` option to process the data in the best way
+for your visualization. The following array reduction options are
+available in MongoDB Charts:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Array Reduction Option
+     - Description
+
+   * - Unwind array
+     - Deconstructs the array field from the input documents to
+       output a document for *each* element. Each output document is
+       the input document with the value of the array field replaced by
+       the element.
+
+   * - Array length
+     - Counts and returns the total number of items in the array.
+
+   * - Array element by index
+     - The zero-based index of the array to use in the visualization.
+
+You are also required to select an array reduction option when adding a
+field which exists *inside* of an array to an encoding channel. In this
+case, the selected reduction is applied to the array containing the
+target field. Additionally, in the case of nested arrays, you must
+select a reduction option for the top-level array and all sub-arrays.
+Note that different reduction options may be used for each nested
+array.
+
+Below the array reduction options in the dropdown, MongoDB also
+provides many :guilabel:`numeric accumulate` and
+:guilabel:`string accumulate` options for handling your array data.
+These accumulators indicate how the array should be processed in the
+visualization, and what elements of the array to visualize if
+appropriate. For example, the ``max`` numeric accumulate outputs the
+greatest value in the array, and the ``count of occurrences``
+string accumulate outputs the number of times the input string
+occurs in the array.
+
+.. note::
+
+   MongoDB Charts only displays accumulate options which match the data
+   type of the field used in the visualization (i.e., only showing
+   string accumulate options for string data and numeric accumulate
+   options for numeric data).
+
+Sample Mode
+-----------
+
+Enabling :guilabel:`Sample Mode` in MongoDB Charts restricts the input
+collection to ``1000`` randomly selected documents. To toggle
+:guilabel:`Sample Mode`, use the toggle above the
+:guilabel:`Data Source` dropdown. The sample mode setting for a chart
+persists when the chart is rendered on a dashboard, meaning that if
+you enable sample mode when building a chart, the data rendered in the
+dashboard will also be sampled.
+
+.. note::
+
+   When sampling mode is enabled and you have specified a
+   :ref:`filter <charts-filter-documents>`, the sample of ``1000``
+   documents is taken *before* the filter is applied, meaning there may
+   be fewer than ``1000`` documents used to plot the chart.
+
+Consider using sample mode in the following scenarios:
+
+- When drafting a chart and heavily modifying chart options. In this
+  situation, sampling mode allows the chart to render quickly during
+  the building process. Once you are satisfied with your chart you can
+  disable sample mode to have all documents included in your
+  final visualization if desired.
+
+- When visualizing a large data source and the chosen data is
+  sufficiently aggregated (e.g. showing averages of fields) so
+  not all documents are needed to obtain a useful visualization.
+  In this case, leaving sample mode enabled for the rendered dashboard
+  allows you to retain a useful chart.
+
+.. note::
+
+   Due to the random nature of sampling, when Sample Mode is enabled,
+   it is possible your visualizations will change each time the
+   chart is loaded.
