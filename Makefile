@@ -9,7 +9,7 @@ PRODUCTION_BUCKET=
 
 PROJECT=charts
 
-.PHONY: help html stage publish  deploy-search-index publish 
+.PHONY: help html stage publish  deploy-search-index publish
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -30,7 +30,7 @@ publish: ## Builds this branch's publishable HTML and other artifacts under buil
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s 
+	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s
 
 screenshots:
 	giza generate assets
@@ -38,4 +38,5 @@ screenshots:
 	-rm -r screenshots-temp/charts/
 	mkdir -p screenshots-temp/charts/
 	cd build/docs-tools/tools/screenshot-tool && npm install
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/dashboard-landing.js
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/data-sources.js
