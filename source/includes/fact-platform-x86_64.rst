@@ -28,7 +28,7 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - |checkmark|
+     - *Removed support in 3.4.15*
      - |checkmark|
      - |checkmark|
    * - SLES 12
@@ -40,7 +40,7 @@
      - Community only
      - Community only
    * - Ubuntu 12.04
-     - |checkmark|
+     - *Removed support in 3.4.15*
      - |checkmark|
      - |checkmark|
    * - Ubuntu 14.04
