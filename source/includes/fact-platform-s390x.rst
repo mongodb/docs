@@ -8,7 +8,7 @@
    * - RHEL/CentOS 7.2
      - |checkmark|
    * - SLES 11
-     - |checkmark|
+     - *Removed Support in 3.4.15*
    * - SLES 12
      - |checkmark|
    * - Ubuntu 16.04
