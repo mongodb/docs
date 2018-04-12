@@ -34,7 +34,7 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - |checkmark|
+     - *Removed support in 3.6.4*
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -49,7 +49,7 @@
      - Community only
      - Community only
    * - Ubuntu 12.04
-     - deprecated
+     - *Removed support in 3.6.4*
      - |checkmark|
      - |checkmark|
      - |checkmark|
