@@ -20,9 +20,9 @@ array of :guilabel:`link` objects, and a count of the total number of
        in the `results array`_ section.
    * - ``links``
      - object array
-     - This array includes one or more links to sub-resources
-       and/or related resources. The relations between URLs are
-       explained in the `Web Linking Specification
+     - This array includes one or more :ref:`links <api-linking>` to 
+       sub-resources and/or related resources. The relations between 
+       URLs are explained in the `Web Linking Specification
        <http://tools.ietf.org/html/rfc5988>`__.
    * - ``totalCount``
      - number
