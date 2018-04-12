@@ -11,7 +11,7 @@
      - |checkmark|
    * - SLES 11
      - *Removed support in 3.6.4*
-     - |checkmark|
+     - *Removed Support in 3.4.15*
    * - SLES 12
      - |checkmark|
      - |checkmark|
