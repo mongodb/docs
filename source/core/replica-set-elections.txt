@@ -17,28 +17,31 @@ Replica Set Elections
    :class: singlecol
 
 :term:`Replica sets <replica set>` use elections to determine which
-set member will become :term:`primary`. Elections occur after
-initiating a replica set, and also any time the primary becomes
-unavailable. The primary is the only member in the set that can accept
-write operations. If a primary becomes unavailable, elections allow
-the set to recover normal operations without manual
-intervention.
-In the following three-member replica set, the primary is unavailable.
-One of the remaining secondaries holds an election to elect itself as a
-new primary.
+set member will become :term:`primary`. Replica sets can trigger an 
+election in response to a variety of events, such as:
+
+- Adding a new node to the replica set,
+- :method:`initiating a replica set <rs.initiate()>`,
+- performing replica set maintenance using methods such as :method:`rs.stepDown()` or :method:`rs.reconfig()`, and
+- the :term:`secondary` members losing connectivity to the primary for more than the configured :rsconf:`timeout <settings.electionTimeoutMillis>` (10 seconds by default).
+
+In the following diagram, the primary node was unavailable for longer
+than the :rsconf:`configured timeout <settings.electionTimeoutMillis>`
+and triggers the :ref:`automatic failover <replication-auto-failover>`
+process. One of the remaining secondaries calls for an election to
+select a new primary and automatically resume normal operations.
 
 .. include:: /images/replica-set-trigger-election.rst
 
-Elections are essential for independent operation of a
-replica set; however, elections take time to complete. While an
-election is in process, the replica set has no primary and cannot
-accept writes and all remaining members become read-only.
+The replica set cannot process write operations until the
+election completes successfully. The replica set can continue to serve 
+read queries if such queries are configured to 
+:ref:`run on secondaries <replica-set-read-preference>`.
 
-If a majority of the replica set is inaccessible or unavailable to the
-current primary, the primary will step down and become a secondary. The
-replica set cannot accept writes after this occurs, but remaining
-members can continue to serve read queries if such queries are
-configured to run on secondaries.
+.. include:: /includes/fact-election-latency.rst
+
+.. include:: /includes/fact-retryable-writes-failover-election.rst
+
 
 Factors and Conditions that Affect Elections
 --------------------------------------------
