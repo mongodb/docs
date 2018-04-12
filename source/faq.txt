@@ -102,8 +102,12 @@ clusters where each shard is a replica set. For complete documentation
 on MongoDB replica sets and replication, see :manual:`Replication
 </replication>`.
 
-For maintenance or infrastructure operations, |service| uses a rolling
-upgrade strategy:
+|service| uses a rolling upgrade strategy for executing maintenance
+or infrastructure operations, such as applying security patches or
+scaling up a |service| cluster. The rolling upgrade strategy ensures 
+that the cluster can process reads and writes for the majority of the 
+maintenance or infrastructure operation. During the rolling upgrade 
+procedure:
 
 - |service| applies the changes to each secondary node in the cluster.
 - |service| directs the primary node to step down to the secondary state
@@ -111,10 +115,16 @@ upgrade strategy:
 - Once the cluster has a new primary, |service| applies the changes to
   the former primary node.
 
-This strategy ensures that the cluster remains available for the
-majority of the operation, with only a brief period during the replica
-set elections where applications must hold writes until the election
-completes.
+Applications must hold write operations while the cluster elects a new
+primary. The cluster can continue to process 
+:manual:`secondary read operations </core/read-preference>`
+during this period. Elections on |service| clusters typically complete
+within a few seconds. Factors such as network latency may extend the
+time required for replica set elections to complete, which in turn
+affects the amount of time your cluster may operate without a primary.
+These factors are dependent on your particular cluster architecture.
+
+.. include:: /includes/fact-retry-writes.rst
 
 For ``M10+`` clusters, |service| provides a :doc:`Test Failover
 </tutorial/test-failover>` feature for application developers to check
@@ -129,8 +139,8 @@ Infrastructure operations include repair operations required to replace
 faulty infrastructure, and scheduled infrastructure replacements
 such as changing the cluster size.
 
-Please contact |service| support if your organization has specific 
-needs or requirements for maintenance or infrastructure operations.
+Please contact |service| support if you would like help architecting your
+application to use |service-fullname| with optimal availability.
 
 How can I pay for |service-fullname| without a credit card?
 -----------------------------------------------------------
