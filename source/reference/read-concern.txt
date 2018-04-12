@@ -132,6 +132,26 @@ The following read concern levels are available:
        For more information, see the :readconcern:`"linearizable"`
        reference page.
 
+   * - :readconcern:`"snapshot"`
+
+     -  Only available for operations within multi-document transactions.
+
+        - If the transaction is not part of a :ref:`causally consistent session
+          <sessions>`, operations with read concern ``"snapshot"`` read data
+          from a snapshot of the most recent majority committed data at
+          transaction start.
+
+        - If the transaction is part of a :ref:`causally consistent session
+          <sessions>`, operations with read concern ``"snapshot"`` reads data
+          from a snapshot of the first majority committed data that guarantees
+          causal consistency with the operation immediately prior to the
+          transaction start. The time of the snapshot may be after the
+          transaction start to guarantee causal consistency.
+        
+        Read concern :readconcern:`snapshot` is available for
+        multi-document transactions associated with causally consistent
+        sessions.
+
 .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
 
 For more information on each read concern level, see:
@@ -143,55 +163,190 @@ For more information on each read concern level, see:
    /reference/read-concern-available
    /reference/read-concern-majority
    /reference/read-concern-linearizable
+   /reference/read-concern-snapshot
 
-``readConcern`` Syntax
-----------------------
+.. _read-concern-operations:
 
-You can specify a ``readConcern`` level [#after-cluster-time]_ as an
-option:
+``readConcern`` Support
+-----------------------
+
+
+You can specify a ``readConcern`` level as an option to commands and
+methods that support read concern:
 
 .. code-block:: javascript
 
-   readConcern: { level: <"majority"|"local"|"linearizable"|"available"> }
+   readConcern: { level: <level> }
+
+To specify the read concern level for the :binary:`~bin.mongo` shell
+method :method:`db.collection.find()`, use the
+:method:`cursor.readConcern()` method:
+
+.. code-block:: javascript
+
+   db.collection.find().readConcern(<level>)
+
+The following operations support read concern:
 
 .. note::
 
-   For operations in :ref:`causally consistent sessions
-   <causal-consistency>`, only :readconcern:`"local"` and
-   :readconcern:`"majority"` levels are available.
-   
-The following operations support the ``readConcern`` option:
+   - For operations in a multi-document transaction, read concern
+     levels :readconcern:`"local"` and :readconcern:`"snapshot"` are
+     available. Read concern level :readconcern:`"snapshot"` is only
+     available for operations in a multi-document transaction.
 
-- :dbcommand:`find` command
+   - Write commands that are part of a multi-document transaction can
+     support read concern of either :readconcern:`"local"` or
+     :readconcern:`"snapshot"`.
 
-- :dbcommand:`aggregate` command and the
-  :method:`db.collection.aggregate()` method
+   - For operations in a :ref:`causally consistent session
+     <causal-consistency>`, :readconcern:`"local"` and
+     :readconcern:`"majority"` levels are available. If a
+     multi-document transaction is associated with a causally
+     consistent session, :readconcern:`"snapshot"` is also available for
+     the operations in the transaction.
 
-- :dbcommand:`distinct` command
+.. important::
 
-- :dbcommand:`count` command
+   To set read concern for operations in a transaction, you set the
+   read concern at the transaction level, not at the individual
+   operation level.
 
-- :dbcommand:`parallelCollectionScan` command
+.. list-table::
+   :header-rows: 1
 
-- :dbcommand:`geoNear` command
+   * - Operation
+     - :readconcern:`"local"`
+     - :readconcern:`"available"`
+     - :readconcern:`"majority"` 
+     - :readconcern:`"snapshot"`
+     - :readconcern:`"linearizable"`
 
-- :dbcommand:`geoSearch` command
+   * - :dbcommand:`count`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
-- :dbcommand:`group` command
+   * - :dbcommand:`distinct`
 
-To specify the read concern level for the :binary:`~bin.mongo` shell method
-:method:`db.collection.find()`, use the :method:`cursor.readConcern()`
-method:
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
-.. code-block:: javascript
 
-   db.collection.find().readConcern(<"majority"|"local"|"linearizable"|"available">)
+   * - :dbcommand:`find`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
 
-.. [#after-cluster-time]
+   * - :method:`db.collection.find()` 
+       shell method using
+       :method:`cursor.readConcern()`
 
-   For :ref:`causally consistent sessions <causal-consistency>`,
-   MongoDB drivers automatically specifies the :ref:`afterClusterTime
-   <afterClusterTime>` value in the read concern.
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - :dbcommand:`geoNear`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - 
+     - |checkmark|
+
+   * - :dbcommand:`geoSearch`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - :dbcommand:`getMore`
+     - |checkmark|
+     - 
+     - 
+     - 
+     - |checkmark|
+
+   * - :dbcommand:`group`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - 
+     - |checkmark|
+
+   * - :dbcommand:`aggregate`
+       :method:`db.collection.aggregate()` shell method
+
+       *Only when against a collection, not a view.*
+
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - :dbcommand:`parallelCollectionScan`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - 
+     - |checkmark|
+
+The following write operations can also accept a read concern if part
+of a multi-document transaction:
+
+.. important::
+
+   To set read concern for operations in a transaction, you set the
+   read concern at the transaction level, not at the individual
+   operation level.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Command
+     - :readconcern:`"local"`
+     - :readconcern:`"available"`
+     - :readconcern:`"majority"`
+     - :readconcern:`"snapshot"`
+     - :readconcern:`"linearizable"`
+
+   * - :dbcommand:`delete`
+     - |checkmark|
+     - 
+     - 
+     - |checkmark| 
+     - 
+
+   * - :dbcommand:`findAndModify`
+     - |checkmark|
+     - 
+     - 
+     - |checkmark| 
+     - 
+
+   * - :dbcommand:`insert`
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark| 
+     - 
+
+   * - :dbcommand:`update`
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark|
+     - 
 
 Considerations
 --------------
@@ -258,19 +413,11 @@ session, MongoDB 3.6 introduces the ``afterClusterTime`` read concern
 option to be set automatically by the drivers for operations associated
 with causally consistent sessions.
 
-The ``afterClusterTime`` read concern option is available for
-:readconcern:`"local"` and :readconcern:`"majority"` read
-concern levels:
-
 .. important::
 
    Do not manually set ``afterClusterTime``. MongoDB drivers set
    this value automatically for operations associated with
    causally consistent sessions.
-
-.. code-block:: javascript
-
-   readConcern: { level: <"majority"|"local"> , afterClusterTime: <Timestamp> }
 
 To satisfy a read request with an ``afterClusterTime`` value of ``T``,
 a :binary:`~bin.mongod` must perform the request after its oplog
@@ -283,3 +430,5 @@ requirement and the specified ``afterClusterTime`` requirement.
 
 For read operations not associated with causally consistent sessions,
 ``afterClusterTime`` is unset.
+
+.. include:: /includes/unicode-checkmark.rst
