@@ -46,7 +46,7 @@
      -
      -
    * - SLES 11
-     - |checkmark|
+     - *Removed Support in 3.2.20*
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -64,7 +64,7 @@
      - |checkmark|
      - |checkmark|
    * - Ubuntu 12.04
-     - |checkmark|
+     - *Removed Support in 3.2.20*
      - |checkmark|
      - |checkmark|
      - |checkmark|
