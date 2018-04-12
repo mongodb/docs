@@ -10,7 +10,7 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - |checkmark|
+     - *Removed support in 3.6.4*
      - |checkmark|
    * - SLES 12
      - |checkmark|
