@@ -91,6 +91,76 @@ content: |
           Must be the full DN, such as ``CN=BindUser,CN=Users,DC=myldapserver,DC=mycompany,DC=com``.
           Required.
 
+      * - ``ldap.userToDNMapping``
+        - document array
+        - Maps an LDAP username for authentication to an LDAP Distinguished
+          Name (DN). Each document contains a ``match`` regular expression 
+          and either a ``substitution`` or ``ldapQuery`` template used to
+          transform the LDAP username extracted from the regular expression.
+          |service| steps through the each document in the array in the
+          given order, checking the authentication username against the
+          ``match`` filter. If a match is found, |service| applies the
+          transformation and uses the output to authenticate the user. 
+          |service| does not check the remaining documents in the array.
+          See :setting:`security.ldap.userToDNMapping` for more information.
+
+          The following example provides a ``match`` regular expression that
+          matches all users and substitutes the username into the ``{0}``
+          argument of the ``substitution`` template to create an LDAP DN.
+
+          .. code-block:: json
+
+             "userToDNMapping": [
+               {
+                "match":"(.*)",
+                "substitution":"CN={0},CN=Users,DC=my-atlas-ldap-server,DC=myteam,DC=com"
+               }
+             ]
+
+      * - ``ldap.userToDNMapping[i].match``
+        - string
+        - A regular expression to match against a provided LDAP username.
+          Each parenthesis-enclosed section represents a `regular expression capture
+          group <http://www.regular-expressions.info/refcapture.html>`_
+          used by the ``substitution`` or ``ldapQuery`` template.
+
+
+      * - ``ldap.userToDNMapping[i].substitution``
+        - string
+        - An LDAP Distinguished Name (DN) formatting template that converts
+          the LDAP name matched by the ``match`` regular
+          expression into an LDAP Distinguished Name. Each bracket-enclosed
+          numeric value is replaced by the corresponding `regular expression capture
+          group <http://www.regular-expressions.info/refcapture.html>`_
+          extracted from the LDAP username that matched the
+          ``match`` regular expression.
+
+          Example:
+
+          ``"substitution":"CN={0},CN=Users,DC=my-atlas-ldap-server,DC=myteam,DC=com"``
+
+          Each document in the ``ldap.userToDNMapping.match`` array must
+          contain either a ``substitution`` or ``ldapQuery`` field, but
+          not both.
+      * - ``ldap.userToDNMapping[i].ldapQuery``
+        - string
+        - An LDAP query formatting template that inserts the LDAP
+          name matched by the ``match`` regular expression into an LDAP
+          query URI as specified by `RFC 4515 <https://tools.ietf.org/search/rfc4515>`_
+          and `RFC 4516 <https://tools.ietf.org/html/rfc4516>`_. Each 
+          numeric value is replaced by the corresponding `regular expression
+          capture group <http://www.regular-expressions.info/refcapture.html>`_
+          extracted from the LDAP username that matched the
+          ``match`` regular expression.
+
+          Example:
+
+          ``"ou=engineering,dc=example, dc=com??one?(user={0})"``
+
+
+          Each document in the ``ldap.userToDNMapping.match`` array must
+          contain either a ``substitution`` or ``ldapQuery`` field, but
+          not both.
       * - ``bindPassword`` 
         - string
         - The password used to authenticate the ``bindUsername``. Required.
