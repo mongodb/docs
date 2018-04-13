@@ -29,7 +29,7 @@ repository contains the following packages:
      - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
        :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
        :binary:`~bin.mongofiles`,
-       :binary:`~bin.mongoperf`, :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
+       :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
        and :binary:`~bin.mongotop`.
 
 The ``mongodb-org-server`` package provides an initialization script
