@@ -6,5 +6,6 @@
    goes down, the replica set becomes read-only.
 
    If possible, distribute members across at least three data centers.
-   For config server replica sets (CSRS), distribute across three (or
-   more depending on the number of members) centers if possible.
+   For config server replica sets (CSRS), the best practice is to
+   distribute across three (or more depending on the number of members)
+   centers.
