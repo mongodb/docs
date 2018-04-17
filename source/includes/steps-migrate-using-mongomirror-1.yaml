@@ -66,12 +66,37 @@ content: |
   - If set up for VPC peering, either the peer's VPC CIDR block (or a
     subnet) or the peer VPC's Security Group.
 ---
-title: "Copy the target cluster URI / host information."
+title: "Copy the target cluster host information."
 level: 4
 ref: connect
 content: |
 
-   .. include:: /includes/extracts/uri-connection-mongomirror.rst
+   #. Click :guilabel:`Connect Your Application`.
+   #. Click :guilabel:`I am using driver 3.4 or earlier`. 
+   #. Copy the connection string and paste into your preferred text editor.
+   
+   The connection string should look similar to the following example. 
+   This example has been broken into multiple lines for readability:
+
+   .. code-block:: shell
+      :copyable: false
+
+      mongodb://<username>:<PASSWORD>@
+        00.foo.mongodb.net:27017,
+        01.foo.mongodb.net:27017,
+        02.foo.mongodb.net:27017/test?
+        ssl=true&replicaSet=myAtlasRS&authSource=admin
+
+   Copy the value of ``replicaSet`` and append the host list as comma
+   separated values, similar to the following:
+
+   .. code-block:: shell
+      :copyable: false
+
+      myAtlasRS/00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017
+
+   Use this value for the :option:`--destination <--destination>` option
+   in the next step.
  
 ---
 title: "Start ``mongomirror``."
@@ -79,18 +104,31 @@ level: 4
 ref: mongomirror-run
 pre: |
 
-   From a terminal, start :binary:`~bin.mongomirror` with the appropriate
-   options.
+   Start :binary:`~bin.mongomirror` with the following options:
 
-   For example, if the source replica set uses SCRAM-SHA1 authentication
-   and you are using the :binary:`~bin.mongomirror` ``--uri`` option,
+   - :option:`--host <--host>` set to the host string of the source cluster.
+   - :option:`--ssl <--ssl>` set to true if the source cluster has TLS/SSL enabled.
+   - :option:`--username <--username>` to the source cluster username created for this procedure.
+   - :option:`--password <--password>` to the password for the source cluster username.
+   - :option:`--authenticationDatabase <--authenticationDatabase>` to the database in the source cluster where the username specified to `--username` was created.
+   - :option:`--destination <--destination>` to the |service| cluster host string.
+   - :option:`--destinationUsername <--destinationUsername>` to the target |service| cluster username.
+   - :option:`--destinationPassword <--destinationPassword>` to the password for the target |service| cluster username.
+
+   Your final command should resemble the following example:
+
 action:
    copyable: true
    language: sh
    code: |
-      mongomirror --uri "mongodb://root:<PASSWORD>@atlas-host1:27017,atlas-host2:27017,atlas-host3:27017/<DATABASE>?ssl=true&replicaSet=myAtlasRS&authSource=admin" \
-         --destinationUsername myAtlasAdminUser \
-         --destinationPassword 'atlasPassword'
+      mongomirror --host "MySourceRS/host1.example.net:27017,host2.example.net:27017,host3.example.net:27017" \
+         --ssl "true" \
+         --username "mySourceUser" \
+         --password "mySourceP@$$word" \
+         --authenticationDatabase "admin" \
+         --destination "myAtlasRS/00.foo.mongodb.net:27017,01.foo.mongodb.net:27017,02.foo.mongodb.net:27017" \
+         --destinationUsername "myAtlasAdminUser" \
+         --destinationPassword "atlasPassword"
 post: |
    See :ref:`mongomirror-options` for more :binary:`~bin.mongomirror`
    options.
