@@ -1,14 +1,14 @@
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 USER=$(shell whoami)
+
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 
-PRODUCTION_BUCKET=docs-tutorials
-PROJECT=docs-tutorials
+PRODUCTION_BUCKET=docs-mongodb-org-prod
+PRODUCTION_URL=https://docs.mongodb.com/guides
 
-# Parse our published-branches configuration file to get the name of
-# the current "stable" branch. This is weird and dumb, yes.
-STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
+PROJECT=guides
+
 
 .PHONY: help html publish stage deploy deploy-search-index
 
@@ -22,6 +22,7 @@ html: ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
 publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
@@ -30,7 +31,7 @@ stage: ## Host online for review
 	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 deploy: build/public ## Deploy to the production bucket
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='bi-connector' ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --all-subdirectories ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
 
@@ -38,8 +39,4 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-current.json --aliases bi-connector-${GIT_BRANCH} -u ${PRODUCTION_URL}/${PROJECT}/current -g -s; \
-	else \
-		mut-index upload build/public/${GIT_BRANCH} -o bi-connector-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
-	fi
+	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s 
