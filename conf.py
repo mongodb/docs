@@ -55,9 +55,6 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: https://docs.mongodb.com/bi-connector/',
-    '.. |bi| replace:: MongoDB Connector for BI',
-    '.. |bi-short| replace:: BI Connector',
 ])
 
 extlinks = {
@@ -123,10 +120,10 @@ html_theme_options = {
     'project': sconf.project,
     'epubpath': manual_edition_path.format(conf.project.url,
                                            conf.project.basepath,
-                                           'mongodb-bi-connector', 'epub'),
+                                           'mongodb-guides', 'epub'),
     'nav_excluded': sconf.theme.nav_excluded,
     'version_selector': get_versions(conf),
-    'is_upcoming': False,
+
 }
 
 html_sidebars = sconf.sidebars
@@ -144,7 +141,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = 'en'
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/bi-connector/'
+epub_identifier = 'http://docs.mongodb.org/guides/'
 epub_exclude_files = []
 epub_pre_files = []
 epub_post_files = []
