@@ -3,7 +3,7 @@
 Automation Agent 5.2.0.5382
 ---------------------------
 
-*Released 2018-04-17*
+*Released 2018-04-18*
 
 - Fix: After performing an automated restore of a sharded cluster,
   re-enable the balancer.
