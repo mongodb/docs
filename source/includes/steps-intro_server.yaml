@@ -1,0 +1,204 @@
+title: Define Your Data Set
+ref: define_ds
+level: 4
+stepnum: 1
+content: |
+  
+  When setting up a data store, your first task is to answer the
+  question: "What data would I like to store and how do the fields
+  relate to each other?".         
+
+  This guide uses a hypothetical inventory database to track items and
+  their quantities, sizes, tags, and ratings.
+  
+  Here is an example of the types of fields you might wish to capture:
+  
+  .. list-table::
+     :header-rows: 1
+     :widths: auto
+
+     * - name
+       - quantity
+       - size
+       - status
+       - tags
+       - ratings
+
+     * - journal
+       - 25
+       - 14x21,cm
+       - A
+       - brown, lined
+       - A, 9
+       
+     * - notebook
+       - 50
+       - 8.5x11,in
+       - A
+       - college-ruled,perforated
+       - B, 8
+       
+     * - paper
+       - 100
+       - 8.5x11,in
+       - D
+       - watercolor
+       - C, 10
+
+     * - planner
+       - 75
+       - 22.85x30,cm
+       - D
+       - 2019
+       - D, 10
+       
+     * - postcard
+       - 45
+       - 10x,cm
+       - D
+       - double-sided,white   
+       - F, 2
+
+---
+       
+title: Start Thinking in JSON
+ref: id_message
+level: 4
+stepnum: 2
+content: |
+  
+  While a table might seem like a good place to store data, as you can
+  see from the example above, there are fields in this data set that
+  require multiple values and would not be easy to search or display if
+  modeled in a single column (for example -- ``size``, ``tags``, and ``ratings``).
+  
+  In a SQL database you might solve this problem by creating a
+  ``relational table``.
+
+  In MongoDB, data is stored as documents. These documents are stored in
+  MongoDB in ``JSON`` format (though they are actually stored as a
+  binary form of JSON). JSON documents support embedded fields, so
+  related data and lists of data can be stored with the document instead
+  of an external table.
+
+  JSON (JavaScript Object Notation) is formatted as name/value pairs. In
+  JSON documents, fieldnames and values are separated by a colon,
+  fieldname and value pairs are separated by commans, and sets of fields
+  are encapsulated in "curly braces" ({}).
+
+  .. code-block:: javascript
+
+     {"name": "Bricksoil", "qty": 134}
+
+---      
+title: Identify Candidates for Embedded Data and Model Your Data
+ref: json_implement
+level: 4
+stepnum: 3
+content: |
+
+  Once you have identified what fields you would like to store, decide
+  which fields require multiple values. These fields will be candidates
+  for embedded documents or lists/arrays of embedded documents within the
+  document.
+  
+  For example, in the data above, ``size`` might consist of three
+  fields:
+  
+  .. code-block:: javascript
+  
+     { "h": 14, "w": 21, "uom": "cm" }
+     
+  And ``ratings`` might be split into:
+
+  .. code-block:: javascript
+  
+     { "letter": A, "score": 9 }
+  
+  And you might need to handle multiple ratings per item. So you might
+  store them in a list:
+  
+  .. code-block:: javascript
+  
+     [
+       { 
+          "letter": A,
+          "score": 9
+       },
+       { 
+          "letter": B,
+          "score": 7
+       },
+       { 
+          "letter": D,
+          "score": 5
+       }
+     ]
+  
+  A JSON document that stores an inventory item might look like this:
+
+  .. note:: 
+  
+  .. class:: copyable-code
+  .. code-block:: javascript
+  
+    
+     {
+      "name": "Bricksoil",
+      "qty": 134,
+      "rating": [
+        {
+          "letter": "A",
+          "score": 7
+        },
+        {
+          "letter": "B",
+          "score": 6
+        },
+        {
+          "letter": "C",
+        "  score": 5
+        },
+        {
+          "letter": "D",
+          "score": 4
+        },
+        {
+          "letter": "A",
+          "score": 3
+        },
+        {
+          "letter": "B",
+          "score": 2
+        },
+        {
+          "letter": "C",
+          "score": 1
+        }
+      ],
+      "size": {
+        "height": 480,
+        "length": 240,
+        "unit": "in",
+        "width": 428
+      },
+      "status": "C",
+      "tags": [
+        "messy",
+        "productive"
+      ]
+    }
+
+  This looks very different from the tabular data  structure you started
+  with in Step 1.
+
+  .. note:: 
+
+     It's good practice to quote field names.
+
+  
+  
+     
+  
+  
+  
