@@ -1,3 +1,18 @@
+.. _automation-5.2.0.5382:
+
+Automation Agent 5.2.0.5382
+---------------------------
+
+*Released 2018-04-17*
+
+- Fix: After performing an automated restore of a sharded cluster,
+  re-enable the balancer.
+
+- Fix: Improved handling for shutdown of mongosqld processes.
+
+- When managing sharded collections, attempt to shard all desired
+  collections before returning any error.
+
 .. _automation-5.1.1.5353:
 
 Automation Agent 5.1.1.5353
