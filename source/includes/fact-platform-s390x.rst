@@ -10,8 +10,8 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - *Removed support in 3.6.4*
-     - *Removed Support in 3.4.15*
+     - MongoDB 3.6 is no longer supported on this platform.
+     - |checkmark|
    * - SLES 12
      - |checkmark|
      - |checkmark|
