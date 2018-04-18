@@ -60,6 +60,15 @@ rst_epilog = '\n'.join([
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('http://docs.mongodb.com/manual%s', ''),
+    'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
+    'node-docs': ('http://mongodb.github.io/node-mongodb-native/3.0/%s', ''),
+    'node-api': ('http://mongodb.github.io/node-mongodb-native/3.0/api/%s', ''),
+    'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
+    'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.2/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
+    'csharp-api': ('https://mongodb.github.io/mongo-csharp-driver/2.5/apidocs/html/%s.htm', ''),
+    'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.5/reference/%s', ''),
+    'java-async-docs': ('http://mongodb.github.io/mongo-java-driver/3.7/%s', ''),
+    'java-async-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', '')
 }
 
 intersphinx_mapping = {}
