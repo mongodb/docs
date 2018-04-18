@@ -22,8 +22,8 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - *Removed support in 3.4.15*
-     - *Removed Support in 3.2.20*
+     - MongoDB 3.4 is no longer supported on this platform.
+     -|checkmark|
    * - SLES 12
      - |checkmark|
      -
@@ -31,8 +31,8 @@
      - Community only
      - Community only
    * - Ubuntu 12.04
-     - *Removed support in 3.4.15*
-     - *Removed Support in 3.2.20*
+     - MongoDB 3.4 is no longer supported on this platform.
+     - |checkmark|
    * - Ubuntu 14.04
      - |checkmark|
      - |checkmark|
