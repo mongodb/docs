@@ -46,7 +46,7 @@
      -
      -
    * - SLES 11
-     - *Removed Support in 3.2.20*
+     - MongoDB 3.2 is no longer supported on this platform.
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -64,7 +64,7 @@
      - |checkmark|
      - |checkmark|
    * - Ubuntu 12.04
-     - *Removed Support in 3.2.20*
+     - MongoDB 3.2 is no longer supported on this platform.
      - |checkmark|
      - |checkmark|
      - |checkmark|
