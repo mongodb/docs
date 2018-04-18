@@ -5,44 +5,100 @@ Seed with ``mongorestore``
 .. default-domain:: mongodb
 
 
-You can use :binary:`mongodump <bin.mongodump>` and
+You can use :binary:`mongodump <bin.mongodump>` and 
 :binary:`mongorestore <bin.mongorestore>` to seed |service-fullname|
-cluster with data from an existing MongoDB standalone, replica set or a
-sharded cluster.
+cluster with data from an existing MongoDB standalone or replica set.
+For guidance on seeding data from an existing MongoDB sharded cluster,
+contact |service| support by clicking :guilabel:`Support` in the
+left-hand navigation of the |service| UI.
 
 Considerations
+--------------
+
+Minimum Recommended ``mongodump`` and ``mongorestore`` Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the 3.4.0 or greater version of :binary:`mongodump <bin.mongodump>`
+and :binary:`mongorestore <bin.mongorestore>` for this procedure.
+If possible, use the latest stable release of both programs. 
+
+Downtime Required
 ~~~~~~~~~~~~~~~~~
 
-- :binary:`mongorestore <bin.mongorestore>` errors when merging in
-  MongoDB users and roles data into |service|. If using
-  :binary:`mongorestore <bin.mongorestore>` version 3.4 or greater,
-  you can exclude specific collections from the restore using
-  ``--nsExclude`` option.
+To ensure a completely up-to-date migration, schedule a maintenance
+window where you can stop all writes to your source cluster. 
+Any write operations issued to the source cluster after the 
+:binary:`mongodump <bin.mongodump>` portion of the procedure completes 
+are not migrated to the target cluster.
 
-- :binary:`mongodump` excludes the content of the ``local`` database
-  in its output.
+You must cut-over your applications to the target |service| cluster
+after :binary:`mongorestore <bin.mongorestore>` completes the
+data restoration before resuming write operations. 
+See :doc:`/connect-to-cluster` for complete
+documentation on connecting to a |service| cluster.
 
-- :binary:`mongodump` can adversely affect performance of the
-  :binary:`mongod`. If your data is larger than system memory, the
-  :binary:`mongodump` will push the working set out of memory.
+The total amount of downtime required depends on factors such as the
+size of data being migrated and the network connection between your
+source cluster and |service|. If you have questions or concerns about
+extended downtime, contact |service| support by clicking
+:guilabel:`Support` from the left-hand navigation of the |service| UI.
 
-  If you are performing a switch-over from a non-|service| deployment
-  to an |service| cluster, you should consider your downtime tolerance
-  and the required state of the data (e.g. being fully up to date) at
-  the time of the switch-over.
+For a guided minimal-downtime migration procedure, see 
+:ref:`Replica Set Live Migration <live-import-replica>` or
+:ref:`Sharded Cluster Live Migration <live-import-sharded>`.
 
-- If the data must be fully in sync with the non-|service| deployment
-  before switching over, after uploading via :binary:`mongorestore`,
-  additional steps must be taken to bring the |service| cluster in sync
-  with an existing cluster.
+Cluster Security
+~~~~~~~~~~~~~~~~
+
+|service| fully manages MongoDB database user creation. If the source 
+cluster enforces authentication,
+use the :binary:`mongorestore <bin.mongorestore>` 
+:option:`--nsExclude <mongorestore.--nsExclude>` to exclude the
+``admin.system.*`` namespace. You cannot migrate any existing user or
+role information to |service|.
+
+For the target |service| cluster, create the appropriate |service| 
+MongoDB database users for supporting your application's usage patterns.
+Update your applications as part of the cut-over procedure to use
+the new |service| database users.
+See :ref:`mongodb-users` for complete documentation on
+|service| database user management.
+
+Performance
+~~~~~~~~~~~
+
+This procedure requires running :binary:`mongodump <bin.mongodump>` and
+:binary:`mongorestore <bin.mongorestore>` on a host in the source
+cluster. These programs use system resources such as CPU and memory,
+and may impact the performance of the host.
+
+Consider executing this procedure during non-peak system usage,
+or during a scheduled maintenance window. If the source is a replica 
+set, you can run this procedure from the host of a :term:`secondary` 
+member. After stopping writes to the cluster, allow the secondary to
+catch up to the primary before starting this procedure.
+
+Pipe Behavior
+~~~~~~~~~~~~~
+
+This procedure uses 
+`linux pipes <http://man7.org/linux/man-pages/man2/pipe.2.html>`__ to 
+stream the output of :binary:`mongodump <bin.mongodump>`
+to :binary:`mongorestore <bin.mongorestore>`. If the
+:binary:`mongorestore <bin.mongorestore>` process cannot keep up with 
+the :binary:`mongodump <bin.mongodump>` process, you may encounter
+broken pipe errors. 
+
+For guidance on addressing persistent broken pipe errors, 
+contact |service| support by clicking :guilabel:`Support` from the
+left-hand navigation of the |service| UI.
 
 Procedure
 ---------
 
 The following tutorial uses :binary:`mongodump <bin.mongodump>` and
-:binary:`mongorestore <bin.mongorestore>` to stream data over a
-network device via a pipe to upload data from an existing deployment to
-an |service| cluster:
+:binary:`mongorestore <bin.mongorestore>` to upload data from an
+existing MongoDB cluster to an |service| cluster:
 
 .. include:: /includes/steps/migrate-using-mongorestore.rst
 
