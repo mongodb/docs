@@ -1,16 +1,27 @@
-- |service| deploys each shard as a replica set, consisting of the number of
-  nodes specified by the replication factor. The shard servers have the
-  selected instance size. For cross-region clusters, the nodes of each shard
-  replica set are distributed across the selected regions.
+- |service| deploys each :manual:`shard </core/sharded-cluster-shards>` 
+  as a three-node replica set by default. |service| deploys each 
+  node using the selected instance size. 
+
+  For cross-region clusters, the number of nodes per shard 
+  is equal to the total number of electable and read-only nodes across
+  all configured regions. |service| distributes the shard nodes across
+  the selected regions.
 
 - |service| deploys the :ref:`config servers <sharding-config-server>`
   as a three-node replica set. The config servers run on
-  M30 instances. For cross-region clusters, the nodes of the config 
-  server replica set are distributed to ensure optimal availability. For
-  example, |service| might deploy the config servers across three distinct
-  availability zones and three distinct regions, if possible.
+  M30 instances. 
 
-- |service| deploys six routers (:binary:`mongos <bin.mongos>` programs) for a
-  sharded cluster. |service| runs the routers on the shard servers. 
-  For cross-region clusters, |service| spreads the routers across the
-  selected regions.
+  For cross-region clusters, |service| distributes the config server
+  replia set nodes to ensure optimal availability. For example, 
+  |service| might deploy the config servers across three distinct 
+  availability zones and three distinct regions if supported by
+  the selected cloud service provider and region configuration.
+
+- |service| deploys one :binary:`mongos <bin.mongos>`  router for each 
+  node in each shard. For cross-region clusters, this allows clients 
+  using a MongoDB driver to connect to the geographically "nearest" 
+  :binary:`mongos <bin.mongos>`.
+
+  To calculate the number of :binary:`mongos <bin.mongos>` 
+  routers in a cluster, multiply the number of shards by the number of 
+  replica set nodes per shard.
