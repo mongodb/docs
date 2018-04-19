@@ -4,14 +4,14 @@
 
   .. code-block:: sh
 
-     sysctl net.inet.tcp.keepinit
+     sysctl net.inet.tcp.keepidle
 
-- To change the ``net.inet.tcp.keepinit`` value, you can use the
+- To change the ``net.inet.tcp.keepidle`` value, you can use the
   following command:
 
   .. code-block:: sh
 
-     sysctl -w net.inet.tcp.keepinit=<value>
+     sysctl net.inet.tcp.keepidle=<value>
 
   The above method for setting the TCP keepalive is not persistent; you
   will need to reset the value each time you reboot or restart a
