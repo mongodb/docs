@@ -65,94 +65,72 @@ User Permissions for Cached Sampling
 
 If your MongoDB instance uses :manual:`authentication
 </core/authentication/>` and you wish to use cached sampling, your
-|bi-short| instance must also use authentication. The user that
+|bi-short| instance must also use authentication. The admin user that
 connects to MongoDB via the :binary:`~bin.mongosqld` program must
-have permission to read from all the namespaces you wish to sample data
-from.
+have permission to read from all the :term:`namespaces <namespace>`
+from which you want to sample data.
 
-The :authaction:`listCollections` and :authaction:`find` privileges
-are required to do data sampling with :binary:`~bin.mongosqld`.
-To create a user with the necessary privileges, you can use one of the
-following two methods:
+Sample All Namespaces
+~~~~~~~~~~~~~~~~~~~~~
 
-- Create a :manual:`custom role </core/security-user-defined-roles/>`
-  with the minimum necessary privileges. The following
-  :manual:`mongo shell </mongo>` example creates a custom role
-  called ``samplingReader`` and assigns it to a new user:
+If you wish to sample all namespaces, the admin user requires the
+following privileges:
 
-  .. code-block:: javascript
+- :authaction:`listDatabases` on the cluster
+- :authaction:`listCollections` on each database
+- :authaction:`find` on each database
 
-     use admin
+.. _sample-all-example:
 
-     db.createRole(
-       {
-         role: "samplingReader",
-         privileges: [
-           {
-             resource: {
-               db: "test",
-               collection: ""
-             },
-             actions: [ "find", "listCollections" ]
-           }
-         ],
-         roles: []
-       }
-     )
+Alternatively, create a user with the built-in :manual:`readAnyDatabase
+</core/security-built-in-roles/>` role:
 
-    db.createUser(
-      {
-        user: "<username>",
-        pwd: "<password>",
-        roles: [ "samplingReader" ]
-      }
-    )
+.. code-block:: javascript
 
-  .. note::
+   use admin
 
-     The user in the example above does not have the
-     :authaction:`listDatabases` privilege, so you must specify a
-     database to sample data from with the
-     :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
-     option when running :binary:`~bin.mongosqld`.
+   db.createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [
+               { "role": "readAnyDatabase", "db": "admin"  }
+              ]
+     }
+   )
 
-- Create a user with the built-in :manual:`readAnyDatabase
-  </core/security-built-in-roles/>` role.
+.. include:: /includes/fact-sampling-readAnyDatabase.rst
 
-  .. code-block:: javascript
+To sample all namespaces, start :binary:`~bin.mongosqld` without the
+:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
 
-     use admin
+.. code-block:: sh
 
-     db.createUser(
-       {
-         user: "<username>",
-         pwd: "<password>",
-         roles: [
-                 { "role": "readAnyDatabase", "db": "admin"  }
-                ]
-       }
-     )
+   mongosqld --auth --mongo-username <username> --mongo-password <password>
 
-  The user in the example above may read from any database in your
-  MongoDB instance.
+Sample Specific Namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. note::
+If you wish to sample specific namespaces, the admin user requires the
+following privileges:
 
-     Be aware of all privileges included with the
-     :manual:`readAnyDatabase
-     </reference/built-in-roles/#readAnyDatabase>` role before
-     granting it to a user.
+- :authaction:`listCollections` for each database where all collections are sampled
+- :authaction:`find` on each collection or each database where all collections are sampled
 
-To run :binary:`~bin.mongosqld` with authentication enabled, use the
-:option:`--auth <mongosqld --auth>` option.
+Alternatively, create a user with the built-in :manual:`readAnyDatabase
+</core/security-built-in-roles/>` role. For an example of creating a
+user with this role, see the
+:ref:`Sample All Namespaces <sample-all-example>` section.
 
-In the following example, a user named ``bicUser`` with the password
-``myPass`` provides credentials to sample data from all collections
-in the ``test`` database.
+.. include:: /includes/fact-sampling-readAnyDatabase.rst
 
-.. code-block:: shell
+The following example creates a
+:manual:`custom role </core/security-user-defined-roles/>` in the
+:manual:`mongo shell </mongo>` with the
+minimum required privileges to sample every collection in the ``test``
+database:
 
-   mongosqld --auth --mongo-username bicUser --mongo-password myPass --sampleNamespaces 'test.*'
+.. include:: /includes/steps/create-user-cached-sampling.rst
 
 .. seealso::
 
