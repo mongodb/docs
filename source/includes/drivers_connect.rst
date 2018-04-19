@@ -149,7 +149,6 @@
 
             mongoClient.close();
 
-   
      - id: nodejs
        content: |
          
@@ -188,8 +187,6 @@
          .. code-block:: sh
 
             $test->close();
-            
-             
   
      - id: perl
        content: |
@@ -276,4 +273,4 @@
                     }
                 }
             }
-  
+
