@@ -1,17 +1,13 @@
-=============================
-Replica Set Protocol Versions
-=============================
+============================
+Replica Set Protocol Version
+============================
 
 .. default-domain:: mongodb
 
 
-MongoDB provides replica set protocol version 0 (``pv0``) and replica
-set protocol version 1 (``pv1``). ``pv1`` is the default for all new
-replica sets created with MongoDB 3.2 or later.
-
-The following outlines some differences between ``pv0`` and ``pv1``.
-
-.. include:: /includes/note-pv0-deprecation.rst
+Starting in version 4.0, MongoDB only supports replica set protocol
+version 1 (:rsconf:`pv1 <protocolVersion>`). ``pv1`` is the default for
+all new replica sets created with MongoDB 3.2 or later.
 
 Preservation of Writes
 ----------------------
@@ -19,27 +15,12 @@ Preservation of Writes
 ``w:1`` Writes
 ~~~~~~~~~~~~~~
 
-The deprecated ``pv0`` prioritizes preservation of :writeconcern:`w:1
-<\<number\>>` writes
-
-``pv1`` increases the likelihood of :writeconcern:`w:1 <\<number\>>`
-rollbacks compared to ``pv0`` for the following versions:
-
-- MongoDB 3.4.1
-
-- MongoDB 3.4.0
-
-- MongoDB 3.2.11 or earlier
-
-However, for ``pv1`` in MongoDB 3.4 and later, you can configure
-:rsconf:`~settings.catchUpTimeoutMillis` to prioritize preservation of
-:writeconcern:`w:1 <\<number\>>` writes.
+With :rsconf:`pv1 <protocolVersion>`, you can use
+:rsconf:`~settings.catchUpTimeoutMillis` to prioritize between faster
+failovers and preservation of :writeconcern:`w:1 <\<number\>>` writes.
 
 ``w: "majority"`` Writes
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
-The deprecated ``pv0`` can lose confirmed :writeconcern:`w: "majority"
-<"majority">` writes.
 
 ``pv1`` guarantees the preservation of confirmed :writeconcern:`w:
 "majority" <"majority">` writes.
@@ -47,51 +28,8 @@ The deprecated ``pv0`` can lose confirmed :writeconcern:`w: "majority"
 Availability
 ------------
 
-- The deprecated ``pv0`` is available in all MongoDB versions.
-
-- ``pv1`` is available in MongoDB version 3.2 or later and is the
-  default for all new replica sets created with version 3.2 or later.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 90 10 10
-
-   * - MongoDB Versions
-     - ``pv0`` (Deprecated)
-     - ``pv1``
-
-   * - ``3.2+``
-     - |checkmark|
-     - |checkmark|
-
-   * - ``< 3.2``
-     - |checkmark|
-     -
-
-.. include:: /includes/unicode-checkmark.rst
-
-Read Concern
-------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 90 10 10
-
-   * - Read Concern
-     - ``pv0`` (Deprecated)
-     - ``pv1``
-
-   * - :readconcern:`"local"`
-     - |checkmark|
-     - |checkmark|
-
-   * - :readconcern:`"majority"`
-     - 
-     - |checkmark|
-
-   * - :readconcern:`"linearizable"`
-     - |checkmark|
-     - |checkmark|
+``pv1`` is available in MongoDB version 3.2 or later and is the default
+for all new replica sets created with version 3.2 or later.
 
 Arbiters
 --------
@@ -106,11 +44,6 @@ Priorities
 Vetoes
 ------
 
-The deprecated ``pv0`` allows members to :ref:`veto elections
-<replica-set-vetoes>` based on member's :data:`optime
-<replSetGetStatus.members.optime>` and :rsconf:`~members[n].priority`
-values.
-
 ``pv1`` does not use vetoes. Individual members can vote for or against
 a candidate in a particular election, but cannot individually veto (abort)
 an election unilaterally.
@@ -122,34 +55,19 @@ Detection of Simultaneous Primaries
 
 .. include:: /includes/footnote-two-primaries-edge-cases.rst
 
-The deprecated ``pv0`` relies on clock synchronization to disambiguate
-when two members both think they are primary.
-
-.. warning::
-
-   Reliance on clock synchronization can lead to the loss of confirmed
-   :writeconcern:`w: "majority" <"majority">` writes.
-
-``pv1`` uses the concept of :term:`term` instead of clock
-synchronization. This allows for a faster detection of simultaneous
-primaries and for multiple successful elections in a short period of
-time.
+``pv1`` uses the concept of :term:`term`. This allows for a faster
+detection of simultaneous primaries and for multiple successful
+elections in a short period of time.
 
 Back to Back Elections
 ----------------------
-
-The deprecated ``pv0`` includes a 30 seconds buffer between
-back-to-back elections as a precaution against poor clock
-synchronization. This buffer helps reduce the number of back to back
-elections. However, ``pv0`` can leave a replica set with no primary if
-multiple elections are needed in a short period of time.
 
 ``pv1`` makes a "best-effort" attempt to have the secondary with the
 highest :rsconf:`~members[n].priority` available call an election. This
 could lead to back-to-back elections as eligible members with
 higher priority can call an election.
 
-However, in MongoDB 3.6 (as well as MongoDB 3.4.2+ and 3.2.12+), for ``pv1``:
+However, in MongoDB 3.6+ (as well as MongoDB 3.4.2+ and 3.2.12+), for ``pv1``:
 
 - Priority elections have been limited to occur only if the higher
   priority node is within 10 seconds of the current primary. 
@@ -167,16 +85,14 @@ Double Voting
 ``pv1`` prevents double voting in one member's call for election. This
 is achieved through its use of :term:`terms <term>`.
 
-The deprecated ``pv0`` lessens the likelihood of double-voting via the
-30-second buffer, but cannot guarantee that a member will not double
-vote if an election exceeds 30-seconds.
+.. _update-replica-set-protocol-version:
 
 Modify Replica Set Protocol Version
 ------------------------------------
 
 To change the replica set protocol version, reconfigure
 (:method:`rs.reconfig`) the replica set with the new
-:rsconf:`protocolVersion`. For example, to upgrade to ``pv1``, connect
+:rsconf:`protocolVersion`. To upgrade to ``pv1``, connect
 a :binary:`~bin.mongo` shell to the current primary and perform the
 following sequence of operations:
 
@@ -186,6 +102,6 @@ following sequence of operations:
    cfg.protocolVersion=1;
    rs.reconfig(cfg);
 
-To reduce the likelihood of :writeconcern:`w:1 <\<number\>>` rollbacks,
-you can also reconfigure the replica set to a higher
-:rsconf:`settings.catchUpTimeoutMillis` setting.
+You can use :rsconf:`~settings.catchUpTimeoutMillis` to prioritize
+between faster failovers and preservation of :writeconcern:`w:1
+<\<number\>>` writes.

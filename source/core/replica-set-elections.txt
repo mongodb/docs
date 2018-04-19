@@ -49,7 +49,21 @@ Factors and Conditions that Affect Elections
 Replication Election Protocol
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-replica-set-protocolVersion1.rst
+.. versionchanged:: 4.0
+
+   MongoDB 4.0 removes the deprecated replication protocol version 0.
+
+Replication :rsconf:`protocolVersion: 1 <protocolVersion>` reduces
+replica set failover time and accelerate the detection of multiple
+simultaneous primaries.
+
+With protocolVersion 1, you can use
+:rsconf:`~settings.catchUpTimeoutMillis` to prioritize between faster
+failovers and preservation of :writeconcern:`w:1 <\<number\>>` writes.
+
+For more information on ``pv1``, see
+:doc:`/reference/replica-set-protocol-versions`.
+
 
 Heartbeats
 ~~~~~~~~~~
@@ -102,48 +116,6 @@ itself) holds an election to become the new primary.
 
 .. index:: replica set members; non-voting
 
-.. _replica-set-vetoes:
-
-Vetoes in Elections
-~~~~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 3.2
-
-   The :rsconf:`protocolVersion: 1 <protocolVersion>` obviates the need
-   for vetoes. The following veto discussion applies to replica sets
-   that use the older :rsconf:`protocolVersion: 0 <protocolVersion>`.
-
-For replica sets using :rsconf:`protocolVersion: 0 <protocolVersion>`,
-all members of a replica set can veto an election, including
-:ref:`non-voting members <replica-set-non-voting-members>`. A member
-will veto an election:
-
-- If the member seeking an election is not a member of the voter's set.
-
-- If the current primary has more recent operations
-  (i.e. a higher :data:`optime <replSetGetStatus.members.optime>`) than
-  the member seeking election, from the perspective of another voting
-  member.
-
-- If the current primary has the same or more recent operations
-  (i.e. a higher or equal :data:`optime
-  <replSetGetStatus.members.optime>`) than the member seeking
-  election.
-
-- If a :ref:`priority 0 member <replica-set-secondary-only-members>`
-  [#imply-secondary-only]_ is the most current member at the time of
-  the election. In this case, another eligible member of the set will
-  catch up to the state of the :ref:`priority 0 member
-  <replica-set-secondary-only-members>` member and then attempt to
-  become primary.
-
-- If the member seeking an election has a lower priority than another member
-  in the set that is also eligible for election.
-
-.. [#imply-secondary-only] 
-   :ref:`Hidden <replica-set-hidden-members>` and
-   :ref:`delayed<replica-set-delayed-members>` imply :ref:`priority 0
-   <replica-set-secondary-only-members>` configuration.
 
 Voting Members
 --------------
