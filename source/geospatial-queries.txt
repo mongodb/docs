@@ -86,6 +86,15 @@ Geospatial Indexes and Sharded Collections
 
 .. include:: /includes/extracts/geospatial-index-shard-key-restriction-general.rst
 
+The following geospatial operations are supported on sharded
+collections:
+
+- :pipeline:`$geoNear` aggregation stage
+
+- |geo-operation| query operators (starting in MongoDB 4.0)
+
+- :dbcommand:`geoNear` command (deprecated in MongoDB 4.0)
+
 .. include:: /includes/fact-near-sharded-cluster.rst
 
 .. |geo-operation| replace:: :query:`$near` and :query:`$nearSphere`
@@ -126,14 +135,14 @@ MongoDB provides the following geospatial command:
    * - Command
      - Description
 
-   * - :dbcommand:`geoNear`
+   * - :dbcommand:`geoNear` (*Deprecated in MongoDB 4.0*)
 
      - Performs a geospatial query that returns the documents closest
        to a given point.
 
        .. include:: /includes/extracts/geoNear-command-index-requirement.rst
 
-For more details, including examples, see :dbcommand:`geoNear`
+For more details, including examples, see the :dbcommand:`geoNear`
 reference page.
 
 Geospatial Aggregation Stage
@@ -259,19 +268,19 @@ query, used by each geospatial operations:
 
      -
 
-   * - :dbcommand:`geoNear` (:ref:`2dsphere <geo-2dsphere>` index)
+   * - :dbcommand:`geoNear` command (:ref:`2dsphere <geo-2dsphere>` index)
      - Spherical
-     - 
+     - *Deprecated in MongoDB 4.0*
 
-   * - :dbcommand:`geoNear` (:ref:`2d <geo-2d>` index)
+   * - :dbcommand:`geoNear` command (:ref:`2d <geo-2d>` index)
      - Flat
-     - 
+     - *Deprecated in MongoDB 4.0*
 
-   * - :pipeline:`$geoNear` (:ref:`2dsphere <geo-2dsphere>` index)
+   * - :pipeline:`$geoNear` aggregation stage (:ref:`2dsphere <geo-2dsphere>` index)
      - Spherical
      - 
 
-   * - :pipeline:`$geoNear` (:ref:`2d <geo-2d>` index)
+   * - :pipeline:`$geoNear` aggregation stage (:ref:`2d <geo-2d>` index)
      - Flat
      - 
 
@@ -325,20 +334,24 @@ farthest:
       }
    )
 
-The following operation uses the :dbcommand:`geoNear` command to return
-documents that match the query filter ``{ category: "Parks" }``, sorted
-in order of nearest to farthest to the specified GeoJSON point:
+The following operation uses the :pipeline:`geoNear` aggregation
+operation to return documents that match the query filter ``{ category:
+"Parks" }``, sorted in order of nearest to farthest to the specified
+GeoJSON point:
 
 .. code-block:: javascript
 
-   db.runCommand(
-      {
-        geoNear: "places",
-        near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
-        spherical: true,
-        query: { category: "Parks" }
-      }
-   )
+   db.places.aggregate( [ 
+      { 
+         $geoNear: {  
+            near: { type: "Point", coordinates: [ -73.9667, 40.78 ] }, 
+            spherical: true, 
+            query: { category: "Parks" },
+            distanceField: "calcDistance"
+         }
+      } 
+   ] )
+   
 
 .. class:: hidden
 
