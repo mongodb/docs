@@ -18,7 +18,5 @@ To avoid this constraint, use a :ref:`hashed shard key
 <sharding-hashed-sharding>` or select a field that does not
 increase or decrease monotonically.
 
-.. versionchanged:: 2.4
-   :ref:`Hashed shard keys <sharding-hashed-sharding>` and
-   :ref:`hashed indexes <index-type-hashed>` store hashes of keys
-   with ascending values.
+:ref:`Hashed shard keys <sharding-hashed-sharding>` and :ref:`hashed
+indexes <index-type-hashed>` store hashes of keys with ascending values.
