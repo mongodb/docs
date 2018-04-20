@@ -1,17 +1,11 @@
-In MongoDB 2.4, :dbcommand:`map-reduce operations <mapReduce>`, the
-:dbcommand:`group` command, and :query:`$where` operator expressions
-**cannot** access certain global functions or properties, such as
-``db``, that are available in the :binary:`~bin.mongo` shell.
-
-When upgrading to MongoDB 2.4, you will need to refactor your code if
-your :dbcommand:`map-reduce operations <mapReduce>`, :dbcommand:`group`
-commands, or :query:`$where` operator expressions include any global
-shell functions or properties that are no longer available, such as
-``db``.
+:dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
+command, and :query:`$where` operator expressions **cannot** access
+certain global functions or properties, such as ``db``, that are
+available in the :binary:`~bin.mongo` shell.
 
 The following JavaScript functions and properties **are available** to
 :dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
-command, and :query:`$where` operator expressions in MongoDB 2.4:
+command, and :query:`$where` operator expressions:
 
 .. list-table::
   :header-rows: 1
