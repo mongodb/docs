@@ -1,5 +1,7 @@
 .. tabs-platforms::
 
+   hidden: true
+
    tabs:
 
      - id: windows
