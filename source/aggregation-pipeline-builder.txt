@@ -1,0 +1,218 @@
+============================
+Aggregation Pipeline Builder
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Aggregations Tab
+----------------
+
+*New in version 1.14.0*
+
+The :guilabel:`Aggregations` tab in |compass| provides the ability to
+create :manual:`aggregation pipelines </core/aggregation-pipeline/>` to
+process data. With aggregation pipelines, documents in a collection
+pass through multiple stages where they are processed into a set of
+aggregated results. The particular stages and results can be modified
+depending on your application's needs.
+
+When navigating to the :guilabel:`Aggregations` tab, you are presented
+with a blank aggregation pipeline. The :guilabel:`Preview of Documents in
+the Collection` section of the :guilabel:`Aggregations` view displays
+20 documents sampled from the current collection.
+
+Create an Aggregation Pipeline
+------------------------------
+
+To create an aggregation pipeline:
+
+1. In the aggregation pipeline pane in the bottom-left of the view,
+   click the :guilabel:`Select...` dropdown and select the
+   :manual:`aggregation pipeline stage
+   </reference/operator/aggregation-pipeline/>` to use for the first
+   stage of the pipeline:
+
+   .. raw:: html
+
+      <br>
+
+   .. figure:: /images/compass/agg-builder-select-stage.png
+      :alt: Aggregation Builder select stage
+
+   .. note::
+
+      The pre-filled content of the pipeline stage changes based on the
+      selected stage to provide syntactic guidelines.
+
+2. Fill in your selected stage. As you modify the pipeline stage, the
+   sample documents shown in the pane to the right of the stage
+   update automatically to reflect the results of your pipeline as it
+   progresses:
+
+   .. raw:: html
+
+      <br>
+
+   .. figure:: /images/compass/agg-builder-match-stage.png
+      :alt: Aggregation Builder match stage example
+
+3. Add additional aggregation stages as desired by clicking the
+   :guilabel:`Add Stage` button below your last aggregation stage.
+   Repeat steps 1 and 2 for each additional stage.
+
+.. note::
+
+   The toggle to the right of the name of each pipeline stage
+   dictates whether that stage is included in the pipeline. Toggling
+   a pipeline stage also updates the pipeline preview, which reflects
+   whether or not that stage is included.
+
+   .. example::
+
+      The following pipeline excludes the first
+      :manual:`$match </reference/operator/aggregation/match/>` stage
+      and only includes the
+      :manual:`$project </reference/operator/aggregation/project/>`
+      stage:
+
+      .. figure:: /images/compass/agg-builder-exclude-stage-example.png
+         :alt: Aggregation Builder exclude stage example
+
+Save a Pipeline
+---------------
+
+To save a pipeline:
+
+1. Name your pipeline using the
+   :guilabel:`Enter a pipeline name` input at the top of the
+   :guilabel:`Aggregations` view.
+
+2. Click :guilabel:`Save Pipeline`.
+
+Open a Saved Pipeline
+---------------------
+
+.. important::
+
+   Opening a saved pipeline abandons any **unsaved** changes to the
+   pipeline you are currently working on. If the circle at the
+   top-right of the :guilabel:`Aggregations` view is orange, this
+   means you have unsaved changes to your pipeline.
+
+To open a previously saved pipeline:
+
+1. Click the :guilabel:`Folder` icon to the left of the pipeline name
+   input.
+
+2. Hover over the pipeline you want to open and click :guilabel:`Open`.
+
+3. In the ensuing dialog, click :guilabel:`Open Pipeline`.
+
+Additional Pipeline Options
+---------------------------
+
+Click the :guilabel:`...` button to the right of the
+:guilabel:`Save Pipeline` button to access additional pipeline
+options:
+
+.. figure:: /images/compass/agg-builder-additional-pipeline-options.png
+   :alt: Aggregation Builder additional pipeline options
+
+The following additional options are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Option
+     - Description
+   * - Copy Pipeline to Clipboard
+     - Copy the current state of the pipeline to the clipboard as JSON.
+       Only pipeline stages enabled using their respective toggles are
+       included in the copied pipeline.
+   * - Clone Pipeline
+     - Creates a new version of the current pipeline by appending
+       ``(copy)`` to the current pipeline name, retaining the current
+       pipeline state. This allows you to modify and save a new version
+       of the pipeline.
+   * - New Pipeline
+     - Resets the pipeline to its initial state.
+
+.. important::
+
+   The :guilabel:`Clone Pipeline` and :guilabel:`New Pipeline` options
+   do not save your current pipeline state. If you wish to save your
+   current pipeline, you must do so before using one of these options.
+
+   If the circle at the top-right of the :guilabel:`Aggregations` view
+   is orange, this means you have unsaved changes to your pipeline.
+
+Example
+-------
+
+The following pipeline has two aggregation stages:
+:manual:`$match </reference/operator/aggregation/match/>` and
+:manual:`$group </reference/operator/aggregation/group/>`. The
+``$match`` stage returns documents with ``carrierFsCode`` equal to
+``1I``, and the ``$group`` stage groups the documents returned from
+the previous stage by the ``departureAirportFsCode`` property:
+
+.. figure:: /images/compass/agg-builder-full-example.png
+   :alt: Aggregation Builder Full Example
+
+Using the :guilabel:`Copy Pipeline to Clipboard` feature, the following
+JSON is copied to the system clipboard:
+
+.. code-block:: javascript
+
+   {
+     $match: {
+       carrierFsCode: "1I"
+     }
+   },
+   {
+     $group: {
+       _id: "$departureAirportFsCode",
+       flights: { $push: "$flightId" }
+     }
+   }
+
+Now that the pipeline is in the clipboard, we can execute it in the
+:manual:`mongo shell <mongo>`. After launching and connecting to a
+:manual:`mongod </reference/program/mongod/>` instance, we switch to
+the ``test`` database where our ``flightStats`` collection exists:
+
+.. code-block:: javascript
+
+   use test
+
+The following command executes the pipeline created in |compass|:
+
+.. code-block:: javascript
+
+   db.flightStats.aggregate([
+   {
+     $match: {
+       carrierFsCode: "1I"
+     }
+   },
+   {
+     $group: {
+       _id: "$departureAirportFsCode",
+       flights: { $push: "$flightId" }
+     }
+   }
+   ])
+
+The pipeline returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : "EWR", "flights" : [ 543184347, 544589251, 544589200, 543183182, 545515483, 544595864 ] }
+
