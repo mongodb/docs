@@ -15,6 +15,11 @@
 
      - | 10 - 4000 GB
 
+   * - MongoDB Version Support
+     - 3.6
+     - 3.6
+     - 3.2, 3.4, 3.6
+
    * - Data Visualization
      - No
      - No
