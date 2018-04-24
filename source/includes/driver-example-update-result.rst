@@ -41,29 +41,29 @@
        The operation returns a promise that provides a ``result``
        containing the status of the operation.
 
-   - id: php
-     content: |
-       The operation returns an instance of
-       :phpclass:`MongoDB\\UpdateResult <phpclass.MongoDB\\UpdateResult>` 
-       that contains the status of the operation.
-
-   - id: perl
-     content: |
-       Upon successful execution, the operation returns an instance of
-       :perl-api:`MongoDB::UpdateResult<UpdateResult>` that contains the
-       status of the operation.
-
-   - id: ruby
-     content: |
-       Upon successful execution, the operation returns an instance of
-       :ruby-api:`Mongo::Operation::Result<Operation/Result.html>`
-       that contains the status of the operation.
-
-   - id: scala
-     content: |
-       Upon successful execution, the operation returns an
-       `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
-       contains the status of the operation.
+   # - id: php
+   #   content: |
+   #     The operation returns an instance of
+   #     :phpclass:`MongoDB\\UpdateResult <phpclass.MongoDB\\UpdateResult>`
+   #     that contains the status of the operation.
+   #
+   # - id: perl
+   #   content: |
+   #     Upon successful execution, the operation returns an instance of
+   #     :perl-api:`MongoDB::UpdateResult<UpdateResult>` that contains the
+   #     status of the operation.
+   #
+   # - id: ruby
+   #   content: |
+   #     Upon successful execution, the operation returns an instance of
+   #     :ruby-api:`Mongo::Operation::Result<Operation/Result.html>`
+   #     that contains the status of the operation.
+   #
+   # - id: scala
+   #   content: |
+   #     Upon successful execution, the operation returns an
+   #     `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
+   #     contains the status of the operation.
 
    - id: csharp
      content: |
