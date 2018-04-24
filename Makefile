@@ -19,10 +19,11 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-html: examples ## Builds this branch's HTML under build/<branch>/html
+
+html: examples install-resources ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-publish: ## Builds this branch's publishable HTML and other artifacts under build/public
+publish: install-resources ## Builds this branch's publishable HTML and other artifacts under build/public
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
@@ -65,3 +66,9 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/skerschb/docs-samples/python/src/connecttest.py -o ${DRIVERS_PATH}/connecttest.py
 	curl -SfL https://raw.githubusercontent.com/skerschb/docs-samples/node/src/connect/connect.js -o ${DRIVERS_PATH}/connect.js
 	curl -SfL https://raw.githubusercontent.com/skerschb/docs-samples/php/src/connect/Connect.php -o ${DRIVERS_PATH}/connect.php
+
+install-resources: ## Retrieves the generated installation resources from the mongodb/docs repo
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-base.yaml -o source/includes/release-base.yaml
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-pinning.yaml -o source/includes/release-pinning.yaml
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-specifications.yaml -o source/includes/release-specifications.yaml
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/fact-install-windows.rst -o source/includes/fact-install-windows.rst
