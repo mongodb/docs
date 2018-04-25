@@ -56,7 +56,7 @@ fake-deploy-cloud: build/public/cloud ## Create a fake deployment in the staging
 	mut-publish build/public/cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX}  --all-subdirectories --deploy ${ARGS}
 	@echo "Hosted at ${STAGING_URL_CLOUDMGR}/index.html"
 
-deploy-cloud: build/public/cloud build/landing ## Deploy to the production bucket
+deploy-cloud: build/public/cloud  ## Deploy to the production bucket
 ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
