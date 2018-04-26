@@ -63,53 +63,54 @@
             
             const db = client.db("test");
          
-     - id: php
-       content: |
+     # - id: php
+     #  content: |
 
-         .. code-block:: php
+     #   .. code-block:: php
+     #   
+     #      $db = $manager->test;
+
+
+     # - id: perl
+     #  content: |
          
-            $db = $manager->test;
-
-
-     - id: perl
-       content: |
-         
-         .. code-block:: sh
+     #    .. code-block:: sh
             
-            use MongoDB;
+     #       use MongoDB;
 
-            my $client = MongoDB->connect('<URISTRING>');
+     #       my $client = MongoDB->connect('<URISTRING>');
 
-            my $db = $client->get_database('test');
+     #       my $db = $client->get_database('test');
             
 
-     - id: ruby
-       content: |
+     # - id: ruby
+     #   content: |
          
-         If you specified `test` as your database in your URI string,
-         you should already be connected to the `test` database.
+     #   If you specified `test` as your database in your URI string,
+     #   you should already be connected to the `test` database.
 
-         You can also use JSON to configure the connect options. Note
-         that you will need to pass in the authSource along with the
-         username and password, or as part of the URI String.
-
-         .. code-block:: sh         
-
-            client_options = {
-              database: 'test',
-              user: '<USERNAME>',
-              password: '<PASSWORD>',
-            }
-
-            client = Mongo::Client.new('mongodb://localhost:27017/?authSource=admin', client_options);
-  
-     - id: scala
-       content: |
-         
-         .. code-block:: sh
-         
-            val database: MongoDatabase = mongoClient.getDatabase("test")
-
+     #      You can also use JSON to configure the connect options. Note
+     #      that you will need to pass in the authSource along with the
+     #      username and password, or as part of the URI String.
+     # 
+     #      .. code-block:: sh         
+     # 
+     #         client_options = {
+     #           database: 'test',
+     #           user: '<USERNAME>',
+     #           password: '<PASSWORD>',
+     #         }
+     # 
+     #         client = Mongo::Client.new('mongodb://localhost:27017/?authSource=admin', client_options);
+     # 
+     #  - id: scala
+     #    content: |
+     #      
+     #      .. code-block:: sh
+     #      
+     #         val database: MongoDatabase = mongoClient.getDatabase("test")
+     # 
+     # 
 
      - id: csharp
        content: |
