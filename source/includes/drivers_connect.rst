@@ -19,8 +19,8 @@
          .. cssclass:: urilistener
          .. code-block:: sh
 
-            mongo <URISTRING> --password
-
+         mongo <URISTRING_NOUSER> --password
+              
          Alternatively you can skip the URI and authenticate username
          and password once you run the ``mongo`` command and execute the
          shell. Pass in a hostname and port to the mongo shell in order
@@ -42,7 +42,7 @@
 
 
      - id: compass
-       content: |
+       content: |  
 
          MongoDB Compass can detect whether you have a MongoDB URI
          connection string in your system clipboard and auto-populate
@@ -71,13 +71,13 @@
 
          .. note:: Errors related to connecting through Compass will
                    appear in red at the top of the Connect screen.
-
+         
      - id: python
        content: |
-
+         
          It's a good idea to put your connection code in a class so
          that it can be reused.
-
+         
          .. literalinclude:: /driver-examples/connect.py
             :language: python
             :dedent: 0
@@ -85,7 +85,7 @@
             :end-before: End Connect
 
          Now add code to call the class you just created.
-
+         
          .. literalinclude:: /driver-examples/connecttest.py
             :language: python
             :dedent: 0
@@ -98,15 +98,15 @@
 
          .. code-block:: sh
 
-            client.close();
-
+            client.close()
+         
      - id: motor
        content: |
-
+         
          The ``asyncio`` and ``pprint`` imports will be used as you add functionality to your example code.
-
+         
          .. code-block:: sh
-
+         
             import motor.motor_asyncio
             import asyncio
             import pprint
@@ -151,25 +151,28 @@
 
      - id: nodejs
        content: |
-
+        
          Note that you will need to modify the URI string
          manually below, as node requires URI encoding.
-
+         
          .. literalinclude:: /driver-examples/connect.js
             :language: javascript
             :dedent: 0
             :start-after: Start Connect
             :end-before: End Connect
+     
      - id: csharp
        content: |
 
+         The ``MongoDB.Bson`` package is used in the CRUD operation.
+         
          .. code-block:: sh
-
-
+        
+         
             using System;
             using MongoDB.Bson;
             using MongoDB.Driver;
-
+           
             namespace csharptest
             {
                 class Program
@@ -182,95 +185,78 @@
                 }
             }
 
-    # - id: php
-    #   content: |
-    #
-    #     The connection code has been separated into a class.
-    #
-    #     .. literalinclude:: /driver-examples/connect.php
-    #        :language: php
-    #        :dedent: 0
-    #        :start-after: Start Connect
-    #        :end-before: End Connect
-    #
-    #     And the caller script:
-    #
-    #     .. literalinclude:: /driver-examples/phpconnecttest.phpt
-    #        :language: php
-    #        :dedent: 0
-    #        :start-after: Start Connect Call
-    #        :end-before: End Connect Call
-    #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        $test->close();
-    #
-    # - id: perl
-    #   content: |
-    #
-    #     .. code-block:: sh
-    #
-    #        use MongoDB;
-    #
-    #        my $client = MongoDB->connect('<URISTRING>');
-    #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        $client->disconnect;
-    #
-    # - id: ruby
-    #   content: |
-    #
-    #     The MongoDB ruby driver will initiate a connection with the server when you run this command:
-    #
-    #     .. code-block:: sh
-    #
-    #        require 'mongo'
-    #
-    #        client = Mongo::Client.new('<URISTRING>')
-    #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        client.close
-    #
-    #
-    # - id: scala
-    #   content: |
-    #
-    #     The MongoClient instance below is a connection *pool* -- which
-    #     means per application you typically only need one instance. The
-    #     instance is then shared across operations whenever possible.
-    #
-    #     The close statement used below is to ensure that your script
-    #     does not leave connections open while you get acquainted with
-    #     coding to MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        import org.mongodb.scala._
-    #
-    #          object Main extends App {
-    #
-    #            val ages = Seq(42, 75, 29, 64)
-    #            println(s"The oldest person is ${ages.max}")
-    #
-    #            // Use a Connection String
-    #            val mongoClient: MongoClient = MongoClient("<URISTRING>")
-    #
-    #            mongoClient.close();
-    #
-    #          }
+     # - id: php
+     #   content: |
+     #     
+     #    The connection code has been separated into a class.
+     #    
+     #    .. literalinclude:: /driver-examples/connect.php
+     #       :language: php
+     #       :dedent: 0
+     #       :start-after: Start Connect
+     #       :end-before: End Connect
+     #       
+     #    And the caller script:
+     #    
+     #    .. literalinclude:: /driver-examples/phpconnecttest.phpt
+     #       :language: php
+     #       :dedent: 0
+     #       :start-after: Start Connect Call
+     #       :end-before: End Connect Ca#
+     #    While you wouldn't typically close a connection before you use
+     #    it to do anything, it is good form to include a close statement
+     #    in any code you are writing as you learn MongoD#
+     #    .. code-block:: #
+     #       $test->close();
 
 
+     # - id: perl
+     #   content: |
+     #     
+     #     .. code-block:: sh
+     #        
+     #        use MongoD#
+     #        my $client = MongoDB->connect('<URISTRING>'#
+     #     While you wouldn't typically close a connection before you use
+     #     it to do anything, it is good form to include a close statement
+     #     in any code you are writing as you learn MongoD#
+     #     .. code-block:: #
+     #        $client->disconnec#
+     # - id: ruby
+     #   content: |
+     #   
+     #     The MongoDB ruby driver will initiate a connection with the server when you run this command:
+     #   
+     #     .. code-block:: sh
+     #        
+     #        require 'mong#
+     #        client = Mongo::Client.new('<URISTRING>#
+     #     While you wouldn't typically close a connection before you use
+     #     it to do anything, it is good form to include a close statement
+     #     in any code you are writing as you learn MongoD#
+     #     .. code-block:: #
+     #        client.clo#
+     #
+     # - id: scala
+     #   content: |
+     #   
+     #     The MongoClient instance below is a connection *pool* -- which
+     #     means per application you typically only need one instance. The
+     #     instance is then shared across operations whenever possibl#
+     #     The close statement used below is to ensure that your script
+     #     does not leave connections open while you get acquainted with
+     #     coding to MongoDB.
+     #   
+     #     .. code-block:: sh
+     #        
+     #        import org.mongodb.scala#
+     #          object Main extends App {
+     #        
+     #            val ages = Seq(42, 75, 29, 64)
+     #            println(s"The oldest person is ${ages.max}")
+     #        
+     #            // Use a Connection String
+     #            val mongoClient: MongoClient = MongoClient("<URISTRING>")
+     #        
+     #            mongoClient.close(#
+     #          }#   
