@@ -2,7 +2,7 @@
 
    tabs:
      - id: shell
-       content: |       
+       content: |
          The following example inserts a new document into the
          ``inventory`` collection. If the document does not specify
          an ``_id`` field, MongoDB adds the ``_id`` field with an
@@ -65,26 +65,26 @@
          an ``_id`` field, the driver adds the ``_id`` field with an
          ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
-         
+
          First, bind to the ``inventory`` collection.
-         
+
          .. literalinclude:: /driver-examples/JavaConnectTest.java
             :language: java
             :dedent: 4
             :start-after: Start Collection Bind
             :end-before: End Collection Bind
-            
+
      - id: java-async
        content: |
-         
+
          The following example inserts a new document into the
          ``inventory`` collection. If the document does not specify
          an ``_id`` field, the driver adds the ``_id`` field with an
          ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
-         
+
          First, bind to the ``inventory`` collection.
-         
+
          .. literalinclude:: /driver-examples/JavaConnectTest.java
             :language: java
             :dedent: 4
@@ -99,38 +99,6 @@
          with an ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
 
-     - id: php
-       content: |
-         The following example inserts a new document into the
-         ``inventory`` collection. If the document does not specify
-         an ``_id`` field, the PHP driver adds the ``_id`` field
-         with an ObjectId value to the new document. See
-         :ref:`write-op-insert-behavior`.
-
-     - id: perl
-       content: |
-         The following example inserts a new document into the
-         ``inventory`` collection. If the document does not specify
-         an ``_id`` field, the Perl driver adds the ``_id`` field
-         with an ObjectId value to the new document. See
-         :ref:`write-op-insert-behavior`.
-
-     - id: ruby
-       content: |
-         The following example inserts a new document into the
-         ``inventory`` collection. If the document does not specify
-         an ``_id`` field, the Ruby driver adds the ``_id`` field
-         with an ObjectId value to the new document. See
-         :ref:`write-op-insert-behavior`.
-
-     - id: scala
-       content: |
-         The following example inserts a new document into the
-         ``inventory`` collection. If the document does not specify
-         an ``_id`` field, the Scala driver adds the ``_id`` field
-         with an ObjectId value to the new document. See
-         :ref:`write-op-insert-behavior`.
-
      - id: csharp
        content: |
          The following example inserts a new document into the
@@ -138,3 +106,36 @@
          an ``_id`` field, the C# driver adds the ``_id`` field
          with an ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
+
+     # - id: php
+     #   content: |
+     #     The following example inserts a new document into the
+     #     ``inventory`` collection. If the document does not specify
+     #     an ``_id`` field, the PHP driver adds the ``_id`` field
+     #     with an ObjectId value to the new document. See
+     #     :ref:`write-op-insert-behavior`.
+     #
+     # - id: perl
+     #   content: |
+     #     The following example inserts a new document into the
+     #     ``inventory`` collection. If the document does not specify
+     #     an ``_id`` field, the Perl driver adds the ``_id`` field
+     #     with an ObjectId value to the new document. See
+     #     :ref:`write-op-insert-behavior`.
+     #
+     # - id: ruby
+     #   content: |
+     #     The following example inserts a new document into the
+     #     ``inventory`` collection. If the document does not specify
+     #     an ``_id`` field, the Ruby driver adds the ``_id`` field
+     #     with an ObjectId value to the new document. See
+     #     :ref:`write-op-insert-behavior`.
+     #
+     # - id: scala
+     #   content: |
+     #     The following example inserts a new document into the
+     #     ``inventory`` collection. If the document does not specify
+     #     an ``_id`` field, the Scala driver adds the ``_id`` field
+     #     with an ObjectId value to the new document. See
+     #     :ref:`write-op-insert-behavior`.
+
