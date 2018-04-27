@@ -56,37 +56,6 @@
             :start-after: Start Example 1
             :end-before: End Example 1
 
-     - id: php
-       content: |
-         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-            :language: php
-            :dedent: 8
-            :start-after: Start Example 1
-            :end-before: End Example 1
-
-     - id: perl
-       content: |
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
-            :start-after: Start Example 1
-            :end-before: End Example 1
-
-     - id: ruby
-       content: |
-         .. literalinclude:: /driver-examples/shell_examples_spec.rb
-            :language: ruby
-            :dedent: 6
-            :start-after: Start Example 1
-            :end-before: End Example 1
-
-     - id: scala
-       content: |
-         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
-            :language: scala
-            :dedent: 4
-            :start-after: Start Example 1
-            :end-before: End Example 1
 
      - id: csharp
        content: |
@@ -95,3 +64,35 @@
             :dedent: 12
             :start-after: Start Example 1
             :end-before: End Example 1
+
+     # - id: php
+     #   content: |
+     #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+     #        :language: php
+     #        :dedent: 8
+     #        :start-after: Start Example 1
+     #        :end-before: End Example 1
+     # 
+     # - id: perl
+     #   content: |
+     #     .. literalinclude:: /driver-examples/driver-examples.t
+     #        :language: perl
+     #        :dedent: 4
+     #        :start-after: Start Example 1
+     #        :end-before: End Example 1
+     # 
+     # - id: ruby
+     #   content: |
+     #     .. literalinclude:: /driver-examples/shell_examples_spec.rb
+     #        :language: ruby
+     #        :dedent: 6
+     #        :start-after: Start Example 1
+     #        :end-before: End Example 1
+     # 
+     # - id: scala
+     #   content: |
+     #     .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+     #        :language: scala
+     #        :dedent: 4
+     #        :start-after: Start Example 1
+     #        :end-before: End Example 1
