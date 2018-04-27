@@ -10,7 +10,7 @@
 
      - id: compass
        content: |
-         To insert a single document using :ref:`MongoDB Compass <compass-index>`:
+         To insert a single document using MongoDB Compass:
 
          1. Navigate to the collection you wish to insert the document
             into:
