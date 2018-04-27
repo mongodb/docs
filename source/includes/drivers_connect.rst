@@ -19,7 +19,7 @@
          .. cssclass:: urilistener
          .. code-block:: sh
 
-         mongo <URISTRING_NOUSER> --password
+            mongo <URISTRING_NOUSER> --password
               
          Alternatively you can skip the URI and authenticate username
          and password once you run the ``mongo`` command and execute the
