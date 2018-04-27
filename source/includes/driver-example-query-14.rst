@@ -27,7 +27,7 @@
            ]
 
          For instructions on inserting documents in MongoDB Compass, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :doc:`Insert Documents </guides/server/insert>`.
 
      - id: python
        content: |
