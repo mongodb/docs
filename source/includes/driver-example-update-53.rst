@@ -6,7 +6,7 @@
        .. code-block:: javascript
        
           db.inventory.updateMany(
-              { "qty" : { $lt: 50 } },
+              { "qty" : { $lt: 50 } }, // specifies the documents to update
               {
                  $set: { "size.uom" : "cm", "status": "P" },
                  $currentDate : { "lastModified": true }
@@ -26,7 +26,7 @@
 
           .. figure:: /images/compass-example-update-53-edit.png
              :alt: Screenshot of the MongoDB Compass UI with a filter for all documents where the qty field values is less than 50. The edit button is moused over for the first returned document.
-             :figwidth: 500px
+             :width: 100%
 
        3. Make the following changes:
        
@@ -39,7 +39,7 @@
           
           .. figure:: /images/compass-example-update-53-set-and-currentDate.png
              :alt: Screenshot of the MongoDB Compass interface where the first returned document has been edited to change the status field value to P and add a lastModified date field with value 2018-04-17.
-             :figwidth: 500px
+             :width: 100%
 
        4. Click :guilabel:`Update`.
 

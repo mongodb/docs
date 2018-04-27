@@ -6,7 +6,7 @@
        .. code-block:: javascript
        
           db.inventory.deleteMany(
-              { "status" : "A" }
+              { "status" : "A" } // specifies the documents to delete
           )
 
    - id: compass
@@ -22,13 +22,14 @@
 
           .. figure:: /images/compass-example-delete-57-delete-icon.png
              :alt: Screenshot of the MongoDB Compass UI with a filter for all documents where the "status" field value is "A". The Delete icon is moused over for the first returned document.
-             :figwidth: 500px
+             :width: 100%
              
        3. The document will be "Flagged for Deletion", click
           :guilabel:`Delete` to confirm.
           
           .. figure:: /images/compass-example-delete-57-finalize.png
              :alt: Screenshot of the MongoDB Compass UI with a filter for all documents where the "status" field value is "D". The first document is flagged for deletion with a red bar and a button to cancel or confirm the deletion.
+             :width: 100%
 
    - id: python
      content: |
