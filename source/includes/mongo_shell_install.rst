@@ -8,12 +8,12 @@
          Download the `latest stable version
          <https://www.mongodb.com/download-center#community>`__ for your environment.
 
-         Extract the tar file and locate the ``mongo`` executable under the bin directory of your install root.
+         Extract the tar file and locate the ``mongo`` executable under
+         the ``bin`` directory of your install root.
 
-         .. cssclass:: copyable-code
          .. code-block:: sh
   
-            tar -xvzf /[mongodbstall]/bin/mongodb-shell-[version].tgz
+            tar -xvzf <tgz file>
 
      - id: macos
        name: MacOS
@@ -21,6 +21,8 @@
 
          Download the `latest stable version
          <https://www.mongodb.com/download-center#community>`__ for your environment.
+
+         Double click the ``tgz`` file to untar the file.
 
      - id: windows
        name: Windows
