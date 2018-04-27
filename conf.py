@@ -34,8 +34,7 @@ extensions = [
     'directives',
     'intermanual',
     'guides',
-    'tabs',
-    'uriwriter'
+    'tabs'
 ]
 
 templates_path = ['.templates']
