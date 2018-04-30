@@ -203,14 +203,8 @@
 
    * - ``providerSettings.diskIOPS``
      - integer
-     - The maximum input/output operations per second (IOPS) the system can
-       perform. The available :abbr:`IOPS (Input/Output Operations per
-       Second)` depend on the instance size: each instance size has a specific
-       set of available IOPS values. To view available values: open the
-       |service| web interface; select :guilabel:`Build a New Cluster`; select
-       your preferred cloud service provider and region; click an instance
-       size to view the available values for :guilabel:`Custom Storage Speed`; 
-       close the window without saving changes.
+     - The maximum input/output operations per second (IOPS) the system 
+       can perform.
 
    * - ``providerSettings.encryptEBSVolume``
      - Boolean
