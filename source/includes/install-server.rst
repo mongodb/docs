@@ -4,6 +4,10 @@
      - id: windows
        name: Windows
        content: |
+
+         Download the binaries from the `MongoDB Download Center
+         <https://www.mongodb.com/download-center#production>`_.
+
          .. include:: /includes/fact-install-windows.rst
 
      - id: macOS
@@ -17,33 +21,14 @@
        
          .. include:: /includes/steps/install-mongodb-on-macOS.rst
 
-     - id: RHEL
-       name: RHEL / CentOS
-       content: |
-         .. include:: /includes/steps/install-mongodb-on-red-hat.rst
-
-     - id: ubuntu
-       name: Ubuntu
-       content: |
-         .. include:: /includes/steps/install-mongodb-on-ubuntu.rst
-
-     - id: debian
-       name: Debian
-       content: |
-         .. include:: /includes/steps/install-mongodb-on-debian.rst
-
-     - id: amazon
-       name: Amazon Linux
-       content: |
-         .. include:: /includes/steps/install-mongodb-on-amazon.rst
-
-     - id: SUSE
-       name: SUSE
-       content: |
-         .. include:: /includes/steps/install-mongodb-on-suse.rst
-
      - id: linux
        name: Linux
        content: |
-         .. include:: /includes/steps/install-mongodb-on-linux-64.rst
+         .. note::
+            These instructions are for installing MongoDB directly from
+            an archive file. If you would rather use your linux
+            distribution's package manager, refer to the
+            :manual:`installation instructions </installation>` for your
+            distribution in the MongoDB Manual.
 
+         .. include:: /includes/steps/install-mongodb-on-linux-64.rst

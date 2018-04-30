@@ -17,48 +17,14 @@
        name: macOS
        content: |
          .. include:: /includes/steps/run-mongodb-on-linux.rst
-     - id: RHEL
-       name: RHEL / CentOS
-       content: |
-         .. important::
-            If you are using SELinux, you must configure SELinux to allow
-            MongoDB to start on Red Hat Linux-based systems (Red Hat Enterprise Linux
-            or CentOS Linux). Refer to :ref:`install-rhel-configure-selinux`
-            for instructions.
-
-         .. |mongod-user| replace:: ``mongodb``
-         .. |mongod-datadir| replace:: ``/var/lib/mongodb``
-
-         .. include:: /includes/extracts/installation-directory-rhel.rst
-
-         .. include:: /includes/steps/run-mongodb-on-a-linux-distro.rst
-     - id: ubuntu
-       name: Ubuntu
-       content: |
-         .. include:: /includes/extracts/installation-directory-ubuntu.rst
-
-         .. include:: /includes/steps/run-mongodb-on-a-linux-distro.rst
-     - id: debian
-       name: Debian
-       content: |
-         .. include:: /includes/extracts/installation-directory-debian.rst
-
-         .. include:: /includes/steps/run-mongodb-on-a-linux-distro.rst
-
-     - id: amazon
-       name: Amazon Linux
-       content: |
-         .. include:: /includes/extracts/installation-directory-amazon.rst
-
-         .. include:: /includes/steps/run-mongodb-on-a-linux-distro.rst
-     - id: SUSE
-       name: SUSE
-       content: |
-         .. include:: /includes/extracts/installation-directory-suse.rst
-
-         .. include:: /includes/steps/run-mongodb-on-a-linux-distro.rst
      - id: linux
        name: Linux
        content: |
+         .. important::
+            If you are using SELinux on a Red Hat Linux-based system,
+            (Red Hat Enterprise Linux or CentOS Linux), you must
+            configure SELinux to allow MongoDB to start. Refer to
+            :ref:`install-rhel-configure-selinux` for instructions.
+
          .. include:: /includes/steps/run-mongodb-on-linux.rst
 

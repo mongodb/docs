@@ -1,6 +1,6 @@
 In Windows Explorer, locate the downloaded MongoDB ``.msi`` file, which
 typically is located in the default ``Downloads`` folder. Double-click
-the ``.msi`` file. A set of screens will appear to guide you through the
+the ``.msi`` file. The Windows Installer guides you through the
 installation process.
 
 You may specify an installation directory if you choose the "Custom"
