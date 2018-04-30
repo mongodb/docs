@@ -35,7 +35,8 @@ extensions = [
     'intermanual',
     'guides',
     'tabs',
-    'uriwriter'
+    'uriwriter',
+    'fasthtml'
 ]
 
 templates_path = ['.templates']
