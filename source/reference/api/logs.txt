@@ -17,19 +17,22 @@ messages for a particular host in an |service| cluster.
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
+.. include:: /includes/fact-projects-groups-synonyms.rst
+
 .. important::
 
-   You must be an Owner of the project that the cluster belongs to in
+   You must be an :authrole:`owner <Project Owner>` of the project that the cluster belongs to in
    order to retrieve the log.
 
-.. include:: /includes/api-base-url.rst
+.. include:: /includes/api-base-url-new.rst
 
 Syntax
 ------
 
 .. code-block:: none
 
-   GET /groups/{GROUP-ID}/clusters/{HOSTNAME}/logs/mongodb.gz
+   GET /groups/{GROUP-ID}/clusters/{HOSTNAME}/logs/{LOG-NAME}
+
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,6 +53,25 @@ Request Path Parameters
 
      - Name of the host.
 
+   * - ``LOG-NAME``
+     - Required
+     - The name of the log file that you want to retrieve:
+       
+       - :manual:`mongod.gz </reference/program/mongod>`
+         
+       - :manual:`mongos.gz </reference/program/mongos>`
+         
+       - `mongosqld.gz <https://docs.mongodb.com/bi-connector/current/reference/mongosqld/index.html>`_
+         
+       - ``mongodb-audit-log.gz``
+         
+       - ``mongos-audit-log.gz``
+
+         .. note:: 
+
+            Audit logs are only avaiable if you have enabled Database Auditing
+            for an |service| project.
+
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -64,49 +86,26 @@ Request Query Parameters
 
      - Optional.
 
-     - Timestamp that specifies starting point for the range of log
-       messages to retrieve.
-
-       Default is 24 hours prior to the current timestamp.
+     - Unix timestamp that specifies starting point for the range of log
+       messages to retrieve. Default is 24 hours prior to the current
+       timestamp.
 
    * - ``endDate``
 
      - Optional.
 
-     - Timestamp that specifies the end point for the range of log
+     - Unix timestamp that specifies the end point for the range of log
        messages to retrieve. Default is current timestamp.
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-This endpoint does not use HTTP request body parameters.
+.. include:: /includes/no-body-parameters.rst
 
 Response Elements
 -----------------
 
-The response includes the following elements:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Field
-     - Description
-
-   * - ``appName``
-     - MongoDB Cloud
-
-   * - ``build``
-     -  The SHA that corresponds to the GitHub commit for the |service|.
-
-   * - ``links``
-
-     - Array of links to related API resources. For more information on
-       links, see :ref:`api-linking`.
-
-   * - ``throttling``
-
-     - The field is obsolete and has the value ``false``.
+This endpoint does not return an HTTP response body.
 
 Example
 -------
@@ -114,15 +113,18 @@ Example
 Example Request
 ~~~~~~~~~~~~~~~
 
+The following example downloads the audit log for instance of ``mongod``
+running on the specified host:
+
 .. code-block:: sh
 
-   curl -X GET -u "username:apiKey" --digest -o downloadedLog.gz \
-   "https://cloud.mongodb.com/api/atlas/v1.0/groups/99999962187d9d67ca76b85f8/clusters/mycluster-shard-00-00-mptda.mongodb.net/logs/mongodb.gz?startDate=1500249600&endDate=1500422400"
+   curl -X GET -u "{username:apiKey}" --digest -o mongod-audit-log.gz \
+   "https://cloud.mongodb.com/api/atlas/v1.0/groups/99999962187d9d67ca76b85f8/clusters/mycluster-shard-00-00.mongodb.net/logs/mongodb-audit-log.gz?startDate=1500249600&endDate=1500422400"
 
 
 Example Response
 ~~~~~~~~~~~~~~~~
 
-The request should download the log file and save to
-:file:`downloadedLog.gz`.
+The request downloads the log file and saves it with the name
+:file:`mongod-audit-log.gz`.
 
