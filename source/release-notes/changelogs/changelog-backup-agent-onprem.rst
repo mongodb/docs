@@ -1,3 +1,12 @@
+.. _backup-6.0.9.969:
+
+Backup Agent 6.0.9.969
+----------------------
+
+*Released with Ops Manager 3.6.6 on 2018-05-03*
+
+- Provide option for Backup Agent to use persistent HTTPS connections.
+
 .. _backup-6.0.8.960:
 
 Backup Agent 6.0.8.960

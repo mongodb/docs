@@ -1,3 +1,13 @@
+.. _automation-4.5.14.5266:
+
+Automation Agent 4.5.14.5266
+----------------------------
+
+:ref:`Released with Ops Manager 3.6.6 on 2018-05-03 <opsmgr-server-3.6.6>`
+
+- Fix: Automation Agents should not attempt to rotate BI Connector log
+  files for BI Connectors on other servers.
+
 .. _automation-4.5.13.5261:
 
 Automation Agent 4.5.13.5261
