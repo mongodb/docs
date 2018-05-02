@@ -3,7 +3,6 @@
 Automation Agent 4.5.13.5261
 ----------------------------
 
-
 :ref:`Released with Ops Manager 3.6.5 on 2018-04-05 <opsmgr-server-3.6.5>`
 
 - Fix: Disable MongoDB's TTL monitor thread while applying oplogs
@@ -15,7 +14,6 @@ Automation Agent 4.5.13.5261
 - When the Automation Agent performs a resize on a MongoDB 3.2 sharded
   cluster, disable sharding recovery while the node is started up as a
   standalone.
-
 
 .. _automation-4.5.12.2514:
 
@@ -114,10 +112,17 @@ Automation Agent 4.5.7.2375
 
 - Support for new Agent API Key model.
 
+.. _automation-3.2.18.4938-1:
+
+Automation Agent 3.2.18.4938-1
+------------------------------
+
+*Released with Ops Manager 3.4.14 on 2018-05-03*
+
 .. _automation-3.2.17.4936:
 
-Automation Agent ``3.2.17.4936``
-----------------------------------
+Automation Agent 3.2.17.4936
+----------------------------
 
 *Released with Ops Manager 3.4.13 on 2018-04-05*
 
