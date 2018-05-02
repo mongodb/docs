@@ -40,13 +40,13 @@
             :start-after: Start Example 1
             :end-before: End Example 1
 
-     - id: java-async
-       content: |
-         .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
-            :language: java
-            :dedent: 8
-            :start-after: Start Example 1
-            :end-before: End Example 1
+     #- id: java-async
+     #  content: |
+     #    .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+     #       :language: java
+     #       :dedent: 8
+     #       :start-after: Start Example 1
+     #       :end-before: End Example 1
 
      - id: nodejs
        content: |   

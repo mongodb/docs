@@ -164,7 +164,7 @@
      - id: csharp
        content: |
 
-         The ``MongoDB.Bson`` package is used in the CRUD operation.
+         The ``MongoDB.Bson`` package is used in CRUD operations, so you'll import it here.
          
          .. code-block:: sh
         

@@ -9,7 +9,7 @@
          for users of Atlas as a client-only download.
 
          MongoDB binaries are located in a directory that starts with
-         "mongodb-"). You should see a file named ``mongo``, which is
+         "mongodb-". You should see a file named ``mongo``, which is
          the shell executable.
 
          If you do not have ``mongo`` shell installed, follow the
