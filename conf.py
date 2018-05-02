@@ -58,6 +58,8 @@ rst_epilog = '\n'.join([
     '.. |hardlink| replace:: https://docs.mongodb.com/bi-connector/',
     '.. |bi| replace:: MongoDB Connector for BI',
     '.. |bi-short| replace:: BI Connector',
+    '.. |bi-atlas| replace:: MongoDB Connector for Business Intelligence for MongoDB Atlas',
+    '.. |bi-atlas-short| replace:: BI Connector for Atlas',
     '.. |odbc-driver| replace:: ``MongoDB ODBC driver``'
 ])
 
