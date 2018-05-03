@@ -1,3 +1,12 @@
+.. _automation-5.2.1.5387:
+
+Automation Agent 5.2.1.5387
+---------------------------
+
+*Released 2018-05-03*
+
+- Allow option to rotate MongoDB audit logs along with MongoDB logs.
+
 .. _automation-5.2.0.5382:
 
 Automation Agent 5.2.0.5382
