@@ -8,7 +8,7 @@ PRODUCTION_URL="https://docs.atlas.mongodb.com"
 PRODUCTION_BUCKET=docs-atlas-prod
 PREFIX=
 
-.PHONY: help stage fake-deploy deploy publish deploy-search-index
+.PHONY: help stage fake-deploy deploy publish deploy-search-index remote-includes
 
 help:
 	@echo 'Targets'
@@ -21,14 +21,14 @@ help:
 	@echo 'Variables'
 	@echo '  ARGS         - Arguments to pass to mut-publish'
 
-html:
+html: remote-includes
 	giza make html
 
 stage:
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
-publish:
+publish: remote-includes
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
@@ -47,3 +47,7 @@ deploy: build/public
 deploy-search-index:
 	@echo "Building search index"
 	mut-index upload build/public -o atlas-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
+
+remote-includes:
+	mkdir -p source/includes/remote
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs-assets/atlas/fact-configure-api-access.rst -o source/includes/remote/fact-configure-api-access.rst
