@@ -7,7 +7,6 @@
      - Type
      - Description
 
-   * - ``description``
-     - string
-
-     - Description of the API key, which may be an empty string. Required.
+   * - ``enabled``
+     - boolean
+     - Indicates whether the API key is enabled or disabled. Required.
