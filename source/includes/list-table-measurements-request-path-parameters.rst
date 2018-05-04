@@ -7,7 +7,7 @@
 
    * - ``GROUP-ID``
      - Required
-     - ID of the group that owns this |service| MongoDB process.
+     - ID of the project that owns this |service| MongoDB process.
 
    * - ``HOST``
      - Required

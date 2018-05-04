@@ -17,7 +17,7 @@
 
    * - ``groupId``
      - string
-     - The unique identifier of the group that owns the checkpoint.
+     - The unique identifier of the project that owns the checkpoint.
 
    * - ``id``
      - string

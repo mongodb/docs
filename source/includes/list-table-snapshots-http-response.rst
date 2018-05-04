@@ -50,7 +50,7 @@
 
    * - ``groupId``
      - objectId
-     - ID of the group that owns the snapshot.
+     - ID of the project that owns the snapshot.
 
    * - ``id``
      - objectId

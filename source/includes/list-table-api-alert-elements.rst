@@ -12,7 +12,7 @@
 
    * - ``groupId``
      - string
-     - ID of the group that this alert was opened for.
+     - ID of the project that this alert was opened for.
 
    * - ``alertConfigId``
      - string

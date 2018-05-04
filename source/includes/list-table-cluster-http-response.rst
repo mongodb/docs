@@ -45,7 +45,7 @@
 
    * - ``groupId``
      - string
-     - ID of the group the cluster belongs to.
+     - ID of the project the cluster belongs to.
        
    * - ``id``
      - string
