@@ -58,10 +58,9 @@
        
    * - ``mongoDBMajorVersion``
      - string
-     - The major version of MongoDB the cluster runs. |service| supports
-       the following MongoDB versions:
+     - The major version of MongoDB the cluster runs:
        
-       - 3.2
+       - 3.2 [1]_
        - 3.4
        - 3.6
 
