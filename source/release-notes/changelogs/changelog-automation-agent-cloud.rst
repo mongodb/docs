@@ -3,7 +3,7 @@
 Automation Agent 5.3.0.5394
 ---------------------------
 
-*Released 2018-05-08*
+*Released 2018-05-09*
 
 - Improved retry behavior during an automated restore.
 

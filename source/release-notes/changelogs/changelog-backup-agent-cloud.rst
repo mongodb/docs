@@ -3,7 +3,7 @@
 Backup Agent 6.7.0.985
 ----------------------
 
-*Released 2018-05-08*
+*Released 2018-05-09*
 
 - Support for persistent HTTPS connections (default to off).
 
