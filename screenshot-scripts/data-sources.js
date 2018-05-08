@@ -23,9 +23,9 @@ exports.run = async function (options) {
 exports.nightmare_props = {
     show: true,
     typeInterval: 20,
-    height: 1000,
+    height: 800,
     width: 1500,
     webPreferences: {
-      zoomFactor: 1.4
+      zoomFactor: 1.0
     }
 }
