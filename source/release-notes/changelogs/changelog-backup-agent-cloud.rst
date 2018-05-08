@@ -1,3 +1,12 @@
+.. _backup-6.7.0.985:
+
+Backup Agent 6.7.0.985
+----------------------
+
+*Released 2018-05-08*
+
+- Support for persistent HTTPS connections (default to off).
+
 .. _backup-6.6.1.965:
 
 Backup Agent 6.6.1.965

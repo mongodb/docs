@@ -1,3 +1,14 @@
+.. _automation-5.3.0.5394:
+
+Automation Agent 5.3.0.5394
+---------------------------
+
+*Released 2018-05-08*
+
+- Improved retry behavior during an automated restore.
+
+- Incremental work to support MongoDB 4.0.
+
 .. _automation-5.2.1.5387:
 
 Automation Agent 5.2.1.5387
