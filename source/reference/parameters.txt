@@ -66,50 +66,17 @@ Authentication Parameters
    values, use a comma-separated list and no spaces. For descriptions
    of the authentication mechanisms, see :doc:`/core/authentication`.
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 40
+   .. include:: /includes/list-table-auth-mechanisms.rst
 
-      * - Value
+   You can only set :parameter:`authenticationMechanisms` during
+   start-up.
 
-        - Description
-
-      * - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
-
-        - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard
-          Salted Challenge Response Authentication Mechanism using the SHA-1
-          hash function.
-
-
-      * - :ref:`MONGODB-X509 <security-auth-x509>`
-
-        - MongoDB TLS/SSL certificate authentication.
-
-      * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
-
-        - External authentication using Kerberos. This mechanism is
-          available only in `MongoDB Enterprise
-          <http://www.mongodb.com/products/mongodb-enterprise?jmp=docs>`_.
-
-      * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
-
-        - ``PLAIN`` transmits passwords in plain text. Required for
-          :ref:`security-ldap`. Optional for authenticating non-``$external``
-          users.
-
-   .. todo:: Per DOCS-2940, combine this with similar info in
-             /includes/options-conf
-             /includes/options-shared
-             /reference/connection-string
-             /tutorial/control-access-to-mongodb-windows-with-kerberos-authentication
-             /tutorial/control-access-to-mongodb-with-kerberos-authentication.txt
-
-   For example, to specify ``PLAIN`` as the authentication mechanism, use
-   the following command:
+   For example, to specify both ``PLAIN`` and ``SCRAM-SHA-256`` as the
+   authentication mechanisms, use the following command:
 
    .. code-block:: sh
 
-      mongod --setParameter authenticationMechanisms=PLAIN --auth
+      mongod --setParameter authenticationMechanisms=PLAIN,SCRAM-SHA-256 --auth
 
 .. parameter:: clusterAuthMode
 
@@ -259,15 +226,73 @@ Authentication Parameters
 
    |both|
 
-   Changes the number of hashing iterations used for all new stored
-   passwords. More iterations increase the amount of time required for
-   clients to authenticate to MongoDB, but makes passwords less
-   susceptible to brute-force attempts. The default value is ideal for most
-   common use cases and requirements. If you modify this value, it
-   does not change the number of iterations for existing passwords.
+   Changes the number of hashing iterations used for all new
+   ``SCRAM-SHA-1`` passwords. More iterations increase the amount of
+   time required for clients to authenticate to MongoDB, but makes
+   passwords less susceptible to brute-force attempts. The default
+   value is ideal for most common use cases and requirements.
 
-   You can set :parameter:`scramIterationCount` when starting MongoDB
-   or on running :binary:`~bin.mongod` instances.
+   If you modify this value, it does not change the iteration count for
+   existing passwords. The :parameter:`scramIterationCount` value must
+   be ``5000`` or greater.
+
+   For example, the following sets the :parameter:`scramIterationCount`
+   to ``12000``.
+
+   .. code-block:: sh
+
+      mongod --setParameter scramIterationCount=12000
+
+   Or, if using the :dbcommand:`setParameter` command within the
+   :binary:`~bin.mongo` shell:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, scramIterationCount: 12000 } )
+
+   .. seealso::
+
+      - :method:`db.changeUserPassword()`
+      - :method:`db.createUser()`
+      - :method:`db.updateUser()`
+
+.. parameter:: scramSHA256IterationCount
+
+   .. versionadded:: 4.0
+
+   *Default*: ``15000``
+
+   |both|
+
+   Changes the number of hashing iterations used for all new
+   ``SCRAM-SHA-256`` passwords. More iterations increase the amount of
+   time required for clients to authenticate to MongoDB, but makes
+   passwords less susceptible to brute-force attempts. The default
+   value is ideal for most common use cases and requirements.
+
+   If you modify this value, it does not change iteration count for
+   existing passwords. The :parameter:`scramSHA256IterationCount` value
+   must be ``5000`` or greater.
+
+   For example, the following sets the :parameter:`scramSHA256IterationCount`
+   to ``20000``.
+
+   .. code-block:: sh
+
+      mongod --setParameter scramSHA256IterationCount=20000
+
+   Or, if using the :dbcommand:`setParameter` command within the
+   :binary:`~bin.mongo` shell:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, scramSHA256IterationCount: 20000 } )
+
+   .. seealso::
+
+      - :method:`db.changeUserPassword()`
+      - :method:`db.createUser()`
+      - :method:`db.updateUser()`
 
 .. parameter:: sslMode
 
