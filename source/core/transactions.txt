@@ -1,0 +1,139 @@
+============
+Transactions
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: transactions, multi-document transactions, multi-statement transactions
+   :keywords: transactions, multi-document transactions, multi-statement transactions
+
+.. versionadded:: 4.0
+
+In MongoDB, an operation on a single document is atomic. Because you can
+use embedded documents and arrays to capture relationships between data
+in a single document structure instead of normalizing across multiple
+documents and collections, this single-document atomicity obviates the
+need for multi-document transactions for many practical use cases.
+
+However, for situations that require atomicity for updates to multiple
+documents or consistency between reads to multiple documents, MongoDB
+provides the ability to perform multi-document transactions against
+replica sets. Multi-document transactions can be used across multiple
+operations, collections, and documents. Multi-document transactions
+provide an "all-or-nothing" proposition. When a transaction commits,
+all data changes made in the transaction are saved. If any operation in
+the transaction fails, the transaction aborts and all data changes made
+in the transaction are discarded without ever becoming visible. Until a
+transaction commits, no write operations in the transaction are visible
+outside the transaction.
+
+.. important::
+
+   Multi-document transaction incurs a greater performance cost over
+   single document writes, and the availability of multi-document
+   transaction should not be a replacement for effective schema design.
+   For many scenarios, the denormalized data model will continue to be
+   optimal for your data and use cases.
+
+Transaction and Replica Sets
+----------------------------
+
+Multi-document transactions are available for replica sets only. 
+
+The ``featureCompatibilityVersion`` of all members of the replica set
+must be ``4.0`` or greater. To check the
+``featureCompatibilityVersion`` for a member, connect to the member and
+run the following command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+For more information on the ``featureCompatibilityVersion`` flag, see
+:dbcommand:`setFeatureCompatibilityVersion`.
+
+.. _txn-operations:
+
+Transaction and CRUD Operations
+-------------------------------
+
+For multi-document transactions, you can only specify read/write (CRUD)
+operations on existing collections.
+
+Operations that affect the database catalog, such as creating or
+dropping a collection or an index, are not allowed in multi-document
+transactions. For example, a multi-document transaction cannot include
+an insert operation that would result in the creation of a new
+collection.
+
+.. include:: /includes/transaction-operations.rst
+
+Transactions and Sessions
+-------------------------
+
+Transactions are associated with a session. That is, you start a
+transaction for a session. At any given time, you can have at most one
+open transaction for a session.
+
+
+Atomicity
+---------
+
+Multi-document transactions are atomic:
+
+- When a transaction commits, all data changes made in the transaction
+  are saved and visible outside the transaction. Until a transaction
+  commits, the data changes made in the transaction are not visible
+  outside the transaction.
+
+- When a transaction aborts, all data changes made in the transaction
+  are discarded without ever becoming visible. For example, if any
+  operation in the transaction fails, the transaction aborts and all
+  data changes made in the transaction are discarded without ever
+  becoming visible.
+
+Transactions and MongoDB Drivers
+--------------------------------
+
+Clients require MongoDB drivers updated for MongoDB 4.0.
+
+To associate read and write operations with an open transaction, you
+pass the session to the operations.
+
+Transactions and the ``mongo`` Shell
+------------------------------------
+
+The following :binary:`~bin.mongo` shell methods are available for
+transactions:
+
+- :method:`Session.startTransaction()`
+
+- :method:`Session.commitTransaction()`
+
+- :method:`Session.abortTransaction()`
+
+.. _txn-read-concern:
+
+Read Concern
+------------
+
+Multi-document transactions support read concern
+:readconcern:`"snapshot"`, :readconcern:`"local"`, and
+:readconcern:`"majority"`. For :readconcern:`"local"` and
+:readconcern:`"majority"` read concern, MongoDB may sometimes
+substitute a stronger read concern.
+
+.. note:: 
+
+   You set the read concern at the transaction level, not at the
+   individual operation level. The operations in the transaction will
+   use the the transaction level read concern; i.e. the transaction
+   level read concern overrides specific operation level read concern.
+
