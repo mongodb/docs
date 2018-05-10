@@ -8,7 +8,7 @@
    * - RHEL/CentOS 7.2
      - |checkmark|
    * - SLES 11
-     - |checkmark|
+     - MongoDB 3.4 is no longer supported on this platform.
    * - SLES 12
      - |checkmark|
    * - Ubuntu 16.04
