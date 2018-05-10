@@ -29,7 +29,7 @@
      - |checkmark|
    * - SLES 11
      - |checkmark|
-     - |checkmark|
+     - MongoDB 3.2 is no longer supported on this platform.
      - |checkmark|
    * - SLES 12
      - |checkmark|
@@ -41,7 +41,7 @@
      - Community only
    * - Ubuntu 12.04
      - |checkmark|
-     - |checkmark|
+     - MongoDB 3.2 is no longer supported on this platform.
      - |checkmark|
    * - Ubuntu 14.04
      - |checkmark|
