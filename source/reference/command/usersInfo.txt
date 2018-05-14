@@ -15,21 +15,70 @@ Definition
 
 .. dbcommand:: usersInfo
 
-   Returns information about one or more users. To match a single user
-   on the database, use the following form:
+   Returns information about one or more users. 
+
+   The :dbcommand:`usersInfo` command has the following form:
 
    .. code-block:: javascript
 
-      { usersInfo: { user: <name>, db: <db> },
+      {
+        usersInfo: <various>,
         showCredentials: <Boolean>,
         showPrivileges: <Boolean>,
-        showAuthenticationRestrictions: <Boolean>
+        showAuthenticationRestrictions: <Boolean>,
+        filter: <document>
       }
 
    The command has the following fields:
 
    .. include:: /includes/apiargs/dbcommand-usersInfo-field.rst
 
+.. _usersInfo-field-specification:
+
+``usersInfo: <varous>``
+-----------------------
+
+.. code-block:: javascript
+
+   { usersInfo: <various> }
+
+The argument to ``usersInfo`` has multiple forms depending on the
+requested information:
+
+.. list-table::
+   :widths: 65 35
+
+   * - ``{ usersInfo: 1 }``
+   
+     - Returns information about the users in the database where the
+       command is run.
+   
+       The :binary:`~bin.mongo` shell provides the
+       :method:`db.getUsers()` helper for this invocation of the command.
+   
+   * - ``{ usersInfo: <username> }``
+   
+     - Return information about the a specific user that exists in the
+       database where the command is run.
+   
+       The :binary:`~bin.mongo` shell provides the
+       :method:`db.getUser()` helper for this invocation of the command.
+   
+   * - ``{ usersInfo: { user: <name>, db: <db> } }``
+   
+     - Returns information about the user specified by the name and database.
+   
+   * - | ``{ usersInfo: [ { user: <name>, db: <db> }, ... ] }``
+       | ``{ usersInfo: [ <username1>, ... ] }``
+   
+     - Returns information about the specified users.
+   
+   * - ``{ forAllDBs: true }``
+   
+     - Returns information about users in all databases.
+   
+       .. versionadded:: 4.0
+   
 Required Access
 ---------------
 
@@ -39,48 +88,41 @@ To view another user's information, the user running the command must
 have privileges that include the :authaction:`viewUser` action on the
 other user's database.
 
-.. _usersInfo-field-specification:
 
-Behavior
---------
+.. _usersInfo-output:
 
-The argument to the :dbcommand:`usersInfo` command has multiple forms
-depending on the requested information:
+Output
+------
 
-Specify a Single User
-~~~~~~~~~~~~~~~~~~~~~
+The following information can be returned by the
+:dbcommand:`usersInfo` depending on the options specified:
 
-In the ``usersInfo`` field, specify a document with the user's name and
-database:
+.. versionchanged:: 4.0
 
-.. code-block:: javascript
-
-   { usersInfo: { user: <name>, db: <db> } }
-
-Alternatively, for a user that exists on the same database where the
-command runs, you can specify the user by its name only.
+   Starting in MongoDB 4.0, :dbcommand:`usersInfo` returns the
+   ``mechanisms`` field.
 
 .. code-block:: javascript
 
-   { usersInfo: <name> }
-
-Specify Multiple Users
-~~~~~~~~~~~~~~~~~~~~~~
-
-In the ``usersInfo`` field, specify an array of documents:
-
-.. code-block:: javascript
-
-   { usersInfo: [ { user: <name>, db: <db> },  { user: <name>, db: <db> }, ... ] }
-
-Specify All Users for a Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the ``usersInfo`` field, specify ``1``:
-
-.. code-block:: javascript
-
-   { usersInfo: 1 }
+   {
+      "users" : [
+         {
+            "_id" : "<db>.<username>",
+            "user" : "<username>",
+            "db" : "<db>",
+            "mechanisms" : [ ... ],
+            "customData" : <document>,
+            "roles" : [ ... ],
+            "credentials": { ... }, // only if showCredentials: true
+            "inheritedRoles" : [ ... ],  // only if showPrivileges: true
+            "inheritedPrivileges" : [ ... ], // only if showPrivileges: true
+            "inheritedAuthenticationRestrictions" : [ ] // only if showPrivileges: true
+            "authenticationRestrictions" : [ ... ] // only if showAuthenticationRestrictions: true
+         },
+         ...
+      ],
+      "ok" : 1
+   }
 
 Examples
 --------
@@ -95,10 +137,10 @@ run the following command:
 .. code-block:: javascript
 
    db.runCommand(
-                  {
-                    usersInfo:  { user: "Kari", db: "home" },
-                    showPrivileges: true
-                  }
+      {
+        usersInfo:  { user: "Kari", db: "home" },
+        showPrivileges: true
+      }
    )
 
 To view a user that exists in the *current* database, you can specify
@@ -109,10 +151,10 @@ you can run the following command:
 .. code-block:: javascript
 
    db.getSiblingDB("home").runCommand(
-                                       {
-                                         usersInfo:  "Kari",
-                                         showPrivileges: true
-                                       }
+      {
+        usersInfo:  "Kari",
+        showPrivileges: true
+      }
    )
 
 View Multiple Users
@@ -123,9 +165,10 @@ optional fields ``showPrivileges`` and ``showCredentials``. For example:
 
 .. code-block:: javascript
 
-   db.runCommand( { usersInfo: [ { user: "Kari", db: "home" }, { user: "Li", db: "myApp" } ],
-                    showPrivileges: true
-                } )
+   db.runCommand( {
+      usersInfo: [ { user: "Kari", db: "home" }, { user: "Li", db: "myApp" } ],
+      showPrivileges: true
+   } )
 
 View All Users for a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,5 +180,47 @@ that resembles the following:
 
     db.runCommand( { usersInfo: 1 } )
 
-When viewing all users, you can specify the ``showCredentials``
-field but not the ``showPrivileges`` field.
+When viewing all users, you can specify the ``showCredentials`` option
+but not the ``showPrivileges`` or the
+``showAuthenticationRestrictions`` options.
+
+View All Users for a Database that Match the Specified Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+   The :dbcommand:`usersInfo` command can accept a ``filter`` document
+   to return information for users that match the filter condition.
+
+To view all users in the current database who have the specified role,
+use a command document that resembles the following:
+
+.. code-block:: javascript
+
+   db.runCommand( { usersInfo: 1, filter: { roles: { role: "root", db: "admin" } } } )
+
+When viewing all users, you can specify the ``showCredentials`` option
+but not the ``showPrivileges`` or the
+``showAuthenticationRestrictions`` options.
+
+View All Users with ``SCRAM-SHA-1`` Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+   The :dbcommand:`usersInfo` command can accept a ``filter`` document
+   to return information for users that match the filter condition.
+
+The following operation returns all users that have ``SCRAM-SHA-1``
+credentials. Specifically, the command returns all users across all
+databases and then uses the :pipeline:`$match` stage to apply the
+specified filter to the users.
+
+.. code-block:: javascript
+
+   db.runCommand( { usersInfo: { forAllDBs: true}, filter: { mechanisms: "SCRAM-SHA-1" } } )
+
+When viewing all users, you can specify the ``showCredentials`` option
+but not the ``showPrivileges`` or the
+``showAuthenticationRestrictions`` options.
+
