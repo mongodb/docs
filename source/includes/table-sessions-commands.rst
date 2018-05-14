@@ -5,6 +5,18 @@
    * - Commands
      - Descriptions
 
+   * - :dbcommand:`abortTransaction`
+
+     - Abort transaction.
+
+       .. versionadded:: 4.0
+
+   * - :dbcommand:`commitTransaction`
+
+     - Commit transaction.
+
+       .. versionadded:: 4.0
+
    * - :dbcommand:`endSessions`
 
      - Expire sessions before the sessions' timeout period.

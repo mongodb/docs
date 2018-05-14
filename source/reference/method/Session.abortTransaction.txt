@@ -28,13 +28,6 @@ Definition
 Behavior
 --------
 
-Write Concern
-~~~~~~~~~~~~~
-
-When aborting the transaction, the session uses the write concern
-specified at the transaction start. See
-:method:`Session.startTransaction()`.
-
 Atomicity
 ~~~~~~~~~
 
@@ -42,6 +35,12 @@ When a transaction aborts, all data changes made by the writes in the
 transaction are discarded without ever becoming visible and the
 transaction ends.
 
+Security
+~~~~~~~~
+
+If running with :doc:`auditing </core/auditing>`, operations in an
+aborted transaction are still audited.
+  
 Example
 -------
 
@@ -60,7 +59,11 @@ documents:
    { "_id" : ObjectId("5af0776263426f87dd693198"), "employee" : 1, "name" : { "title" : "Miss", "name" : "Ann Thrope" }, "status" : "Active", "department" : "ABC" }
    { "_id" : ObjectId("5af0776263426f87dd693199"), "employee" : 2, "name" : { "title" : "Mrs.", "name" : "Eppie Delta" }, "status" : "Active", "department" : "XYZ" }
 
-The ``employees`` collection has a unique index on the ``employee`` field.
+The ``employees`` collection has a unique index on the ``employee`` field:
+
+.. code-block:: javascript
+
+   db.employees.createIndex( { employee: 1 }, { unique: true } )
 
 The ``events`` collection in the ``reporting`` database has the
 following documents:
@@ -78,46 +81,47 @@ or in committing the transaction, the session aborts the transaction.
 
 .. code-block:: javascript
 
+   function updateEmployeeInfo(session) {
+      employeesCollection = session.getDatabase("hr").employees;
+      eventsCollection = session.getDatabase("reporting").events;
+
+      // Start a transaction for the session that uses:
+      // - read concern "snapshot" 
+      // - write concern "majority"
+      session.startTransaction( { 
+         readConcern: { level: "snapshot" }, 
+         writeConcern: { w: "majority" } 
+      } );
+
+      try{
+         eventsCollection.insertOne( 
+            { employee: 3, status: { new: "Active", old: null },  department: { new: "XYZ", old: null } }
+         );
+
+         // Count number of events for employee 3
+         var count = eventsCollection.find( { employee: 3 } ).count();
+         print( "events count (in active transaction): " + count );
+
+         // The following operations should fail as an employee ``3`` already exist in employees collection
+         employeesCollection.insertOne( 
+            { employee: 3, name: { title: "Miss", name: "Terri Bachs" }, status: "Active", department: "XYZ" }
+         ); 
+      } catch (error) {
+         print("Abort transaction.");
+         session.abortTransaction();  // Uses write concern "majority"
+      }
+   } // End of updateEmployeeInfo function
+
    // Start a session.
-   session = db.getMongo().startSession( );
-
-   employeesCollection = session.getDatabase("hr").employees;
-   eventsCollection = session.getDatabase("reporting").events;
-
-   // Start a transaction for the session that uses:
-   // - read concern "snapshot" 
-   // - write concern "majority"
-   session.startTransaction( { 
-      readConcern: { level: "snapshot" }, 
-      writeConcern: { w: "majority" } 
-   } );
-
-   try{
-
-      eventsCollection.insertOne( 
-         { employee: 3, status: { new: "Active", old: null },  department: { new: "XYZ", old: null }  }
-      );
-
-      // Count number of events for employee 3
-      var count = eventsCollection.find( { employee: 3 } ).count();
-      print ( "Within open transaction: " + count );
-
-      // The following operations should fail as an employee ``3`` already exist in employees collection
-      employeesCollection.insertOne( 
-         { employee: 3, name: { title: "Miss", name: "Terri Bachs" }, status: "Active", department: "XYZ" }
-      ); 
-
+   session = db.getMongo().startSession( { mode: "primary" });
+   
+   try {
+      // call the employeeEvents function
+      updateEmployeeInfo(session);
+      session.commitTransaction(); // Uses write concern "majority"
    } catch (error) {
-      print ("Abort transaction.")
-      session.abortTransaction();  // Uses write concern "majority"
+      print("Did not commit Transaction.");
    }
-
-   // Until commit, the data changes are not visible outside this transaction
-   session.commitTransaction(); // Uses write concern "majority"
-
-   var employeeCount = eventsCollection.find( { employees: 3 } ).count();
-
-   print ("After abort transaction: " + employeeCount);
 
    session.endSession();
 

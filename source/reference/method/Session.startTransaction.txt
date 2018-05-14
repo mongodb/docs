@@ -89,6 +89,18 @@ are allowed on **existing** collections:
 
 .. include:: /includes/transaction-operations.rst
 
+.. note::
+
+   If running with :doc:`access control </core/authorization>`, you
+   must have privileges for the :ref:`operations in the transaction
+   <txn-operations>`.
+  
+Read Preference
+~~~~~~~~~~~~~~~
+
+:doc:`Transactions </core/transactions>` support read preference
+:readmode:`primary`.
+
 Atomicity
 ~~~~~~~~~
 
@@ -137,34 +149,40 @@ collections, and commits the two operations as a single transaction.
 
 .. code-block:: javascript
 
+   function updateEmployeeInfo(session) {
+      employeesCollection = session.getDatabase("hr").employees;
+      eventsCollection = session.getDatabase("reporting").events;
+
+      // Start a transaction for the session that uses:
+      // - read concern "snapshot" 
+      // - write concern "majority"
+      session.startTransaction( {
+         readConcern: { level: "snapshot" },
+         writeConcern: { w: "majority" } 
+      } );
+
+      try{
+         employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } ); 
+         eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
+      } catch (error) {
+         print("Abort transaction.");
+         session.abortTransaction();  // Uses write concern "majority"
+      }
+   } // End of updateEmployeeInfo function
+         
    // Start a session.
-   session = db.getMongo().startSession( );
+   session = db.getMongo().startSession( { mode: "primary" } );
 
-   employeesCollection = session.getDatabase("hr").employees;
-   eventsCollection = session.getDatabase("reporting").events;
+   try {
+      // call the employeeEvents function
+      updateEmployeeInfo(session);
 
-   // Start a transaction for the session that uses:
-   // - read concern "snapshot" 
-   // - write concern "majority"
-   session.startTransaction( {
-      readConcern: { level: "snapshot" },
-      writeConcern: { w: "majority" } 
-   } );
-
-   try{
-
-      employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } ); 
-      eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
-
+      // Until commit, no data changes from the two operations in the transaction are visible outside the transaction
+      session.commitTransaction(); // Uses write concern "majority"
+      print ("Commit transaction.");
    } catch (error) {
-      print ("Abort transaction.")
-      session.abortTransaction();  // Uses write concern "majority"
+      print("Did not commit Transaction.");
    }
-
-   // Until commit, no data changes from the two operations in the transaction are visible outside the transaction
-
-   session.commitTransaction(); // Uses write concern "majority"
-
 
    session.endSession();
 

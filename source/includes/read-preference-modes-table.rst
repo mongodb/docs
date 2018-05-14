@@ -7,10 +7,14 @@
    * - :readmode:`primary`
      - Default mode. All operations read from the current replica set
        :term:`primary`.
+
+       .. include:: /includes/extracts/transactions-read-pref.rst
+
    * - :readmode:`primaryPreferred`
      - In most situations, operations read from the :term:`primary` but
        if it is unavailable, operations read from :term:`secondary`
        members.
+
    * - :readmode:`secondary`
      - All operations read from the :term:`secondary` members of the
        replica set.
