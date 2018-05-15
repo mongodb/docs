@@ -4,12 +4,6 @@ Map Relational Schemas to MongoDB
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
-
 Business intelligence tools connect to a data source and, given a fixed
 tabular schema, allow users to visually explore their data.
 MongoDB uses a :manual:`flexible schema </data-modeling>`, so some
@@ -20,337 +14,78 @@ To use MongoDB with a relational business intelligence tool such as
 mapping for your MongoDB data. |bi| provides several methods for
 creating and managing a relational schema.
 
-|bi-short|'s proxy server, :binary:`~bin.mongosqld`, has startup options
-which determine how it handles schema management. These are covered in
-detail in the :binary:`~bin.mongosqld` usage documentation.
+For complete documentation on |bi-short|'s schema management options,
+see the :binary:`~bin.mongosqld` reference documentation.
 
-.. _bi-cached-sampling:
+:ref:`Cached Sampling <bi-cached-sampling>`
+-------------------------------------------
 
-Cached Sampling
----------------
+.. container:: admonition
 
-*New in version 2.3:*
+   The default sampling mode which :binary:`~bin.mongosqld` uses to
+   analyze your collections and derive a static schema. In this mode,
+   :binary:`~bin.mongosqld` derives the schema on startup and holds the
+   schema in memory.
+   
+:ref:`Persist a Schema in MongoDB <bi-persistent-schema>`
+---------------------------------------------------------
 
-When :binary:`~bin.mongosqld` starts up, it can sample documents on
-a MongoDB instance to generate a relational representation of the
-schema, which it caches in memory. This is the default mode, which
-:binary:`~bin.mongosqld` uses unless you specify a schema file with
-the :option:`--schema <mongosqld --schema>` option or a schema
-database with the
-:option:`--sampleSource <mongosqld --sampleSource>` option.
+.. container:: admonition
 
-.. note::
+   :binary:`~bin.mongosqld` samples your MongoDB collections and
+   creates a schema at the time of startup and writes it to a
+   MongoDB collection. Available via the :option:`--sampleSource
+   <mongosqld --sampleSource>` option.
 
-   If you have :option:`authentication <mongosqld --auth>` enabled,
-   ensure that your MongoDB user has the correct permissions. See
-   :ref:`User Permissions <cached-sampling-user-permissions>` below.
+:ref:`Use MongoDB Views <schema-with-views>`
+--------------------------------------------
 
-You can configure :binary:`~bin.mongosqld` to automatically resample on a
-fixed schedule with the :option:`--sampleRefreshIntervalSecs
-<mongosqld --sampleRefreshIntervalSecs>`
-option. If you do not specify a resampling interval,
-:binary:`~bin.mongosqld` uses its initial schema for as long as the
-process runs.
+.. container:: admonition
 
-If you need to manually edit your schema to ensure correct
-representation of your data, you can use a
-:ref:`schema file <schema-with-drdl-file>` instead.
+   :manual:`MongoDB views </core/views/>` allow you to control the
+   display of information from a collection by restricting access
+   to certain fields, renaming fields, sorting data, and other
+   techniques. |bi-short| can read data from a view just as it does
+   from a standard collection.
 
-.. include:: /includes/sampling-ref-chart-link.rst
+:ref:`Load a Schema from a DRDL File <schema-with-drdl-file>`
+-------------------------------------------------------------
 
-.. _cached-sampling-user-permissions:
+.. container:: admonition
 
-User Permissions for Cached Sampling
-------------------------------------
+  You can generate a text schema for :binary:`~bin.mongosqld` to use
+  with the :binary:`~bin.mongodrdl` program. You can edit a text
+  schema manually to suit your particular data needs.
 
-If your MongoDB instance uses :manual:`authentication
-</core/authentication/>` and you wish to use cached sampling, your
-|bi-short| instance must also use authentication. The admin user that
-connects to MongoDB via the :binary:`~bin.mongosqld` program must
-have permission to read from all the :term:`namespaces <namespace>`
-from which you want to sample data.
+:ref:`Resample Schema Data with "FLUSH SAMPLE" <resample-schema-data>`
+----------------------------------------------------------------------
 
-Sample All Namespaces
-~~~~~~~~~~~~~~~~~~~~~
+.. container:: admonition
 
-If you wish to sample all namespaces, the admin user requires the
-following privileges:
+   If the data in your MongoDB instance changes shape significantly
+   with new fields or collections, you may wish to regenerate the
+   schema |bi-short| uses. You can regenerate the schema either by
+   restarting :binary:`~bin.mongosqld` or by issuing the "FLUSH
+   SAMPLE" command from within the MySQL shell.
 
-- :authaction:`listDatabases` on the cluster
-- :authaction:`listCollections` on each database
-- :authaction:`find` on each database
+:ref:`Geospatial Data <geospatial-data>`
+----------------------------------------
 
-.. _sample-all-example:
+.. container:: admonition
 
-Alternatively, create a user with the built-in :manual:`readAnyDatabase
-</core/security-built-in-roles/>` role:
+  |bi-short| handles collections which contain a ``2d`` or ``2dsphere``
+  :manual:`geospatial index </applications/geospatial-indexes>` such
+  that longitude and latitude data are represented within a single
+  table along with other collection data.
 
-.. code-block:: javascript
+.. class:: hidden
 
-   use admin
+   .. toctree::
+      :titlesonly:
 
-   db.createUser(
-     {
-       user: "<username>",
-       pwd: "<password>",
-       roles: [
-               { "role": "readAnyDatabase", "db": "admin"  }
-              ]
-     }
-   )
-
-.. include:: /includes/fact-sampling-readAnyDatabase.rst
-
-To sample all namespaces, start :binary:`~bin.mongosqld` without the
-:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
-
-.. code-block:: sh
-
-   mongosqld --auth --mongo-username <username> --mongo-password <password>
-
-Sample Specific Namespaces
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you wish to sample specific namespaces, the admin user requires the
-following privileges:
-
-- :authaction:`listCollections` for each database where all collections are sampled
-- :authaction:`find` on each collection or each database where all collections are sampled
-
-Alternatively, create a user with the built-in :manual:`readAnyDatabase
-</core/security-built-in-roles/>` role. For an example of creating a
-user with this role, see the
-:ref:`Sample All Namespaces <sample-all-example>` section.
-
-.. include:: /includes/fact-sampling-readAnyDatabase.rst
-
-The following example creates a
-:manual:`custom role </core/security-user-defined-roles/>` in the
-:manual:`mongo shell </mongo>` with the
-minimum required privileges to sample every collection in the ``test``
-database:
-
-.. include:: /includes/steps/create-user-cached-sampling.rst
-
-.. seealso::
-
-   - :option:`--auth <mongosqld --auth>`
-   - :manual:`Enable Authentication </tutorial/enable-authentication>`
-
-.. _bi-persistent-schema:
-
-Persist a Schema in MongoDB
----------------------------
-
-The :option:`--sampleSource <mongosqld --sampleSource>`
-option directs :binary:`~bin.mongosqld` to
-use a particular database for schema storage. :binary:`~bin.mongosqld`
-can either create a new database to use for schema storage or use
-an existing database.
-
-If you specify an existing database which has been used previously
-for schema storage, the :option:`--sampleMode 
-<mongosqld --sampleMode>` option determines
-whether :binary:`~bin.mongosqld` writes new schema data to the specified
-database or only reads from it. If you specify a database which
-doesn't currently exist, you must set :option:`--sampleMode
-<mongosqld --sampleMode>` to
-``write``.
-
-.. include:: /includes/sampleSource-example.rst
-
-The :option:`--sampleRefreshIntervalSecs
-<mongosqld --sampleRefreshIntervalSecs>`
-option determines how frequently :binary:`~bin.mongosqld` resamples data
-to update the schema.
-
-.. include:: /includes/fact-resample-schema-data.rst
-
-.. include:: /includes/sampling-ref-chart-link.rst
-
-User Permissions for Persisted Schemas
---------------------------------------
-
-When using a persisted schema, the required user permissions are
-similar to those for :ref:`cached sampling <bi-cached-sampling>`, with
-the addition of a required ``write`` permission on the specified
-schema database.
-
-To create a user with the necessary permissions to run
-:binary:`~bin.mongosqld` with a persisted schema, you can either create
-a custom role with the minimum required permissions as described in
-:ref:`User Permissions for Cached Sampling
-<cached-sampling-user-permissions>`, or use the built-in
-:manual:`readAnyDatabase </core/security-built-in-roles/>` role. In
-either case, the user also needs ``write`` permission on the
-specified schema database.
-
-.. code-block:: javascript
-
-   db.getSiblingDB("admin").createUser(
-     {
-       user: "<username>",
-       pwd: "<password>",
-       roles: [
-                { "role": "readAnyDatabase", "db": "admin"  },
-                { "role": "readWrite", "db": "<dbname>"  }
-              ]
-     }
-   )
-
-In the following example, a user named ``bicUser`` with the password
-``myPass`` provides credentials to read from and update a schema
-database called ``schemaDb``.
-
-.. code-block:: shell
-
-   mongosqld --auth -u bicUser -p myPass --sampleSource schemaDb --sampleMode write
-
-.. _resample-schema-data:
-
-Resample Schema Data with ``FLUSH SAMPLE``
-------------------------------------------
-
-When the :binary:`~bin.mongosqld` process starts it creates a
-:doc:`schema </schema-configuration>`, either from a
-:ref:`schema file <msqld-schema-options>` or by sampling data from a
-MongoDB instance. If the data in your MongoDB instance changes shape
-significantly with new fields or collections, you may wish to
-regenerate the schema |bi-short| uses. You can regenerate
-the schema either by restarting :binary:`~bin.mongosqld` or by issuing
-the ``FLUSH SAMPLE`` command from within the
-:ref:`MySQL shell <connect-with-mysql>`.
-
-The :option:`--sampleRefreshIntervalSecs
-<mongosqld --sampleRefreshIntervalSecs>` option provides another way
-for :binary:`~bin.mongosqld` to regenerate the schema by resampling data
-at a user-specified interval.
-
-.. note::
-
-   You cannot use the ``FLUSH SAMPLE`` command if :binary:`~bin.mongosqld`
-   starts with a :ref:`schema file <schema-with-drdl-file>`
-   via the :option:`--schema <mongosqld --schema>` option.
-
-.. seealso::
-
-   :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
-
-   :option:`--sampleSource <mongosqld --sampleSource>`
-
-   :option:`--sampleMode <mongosqld --sampleMode>`
-
-.. _schema-with-views:
-
-Managing Schema with MongoDB Views
-----------------------------------
-
-Another way to control the data visible to |bi-short| without
-using a :ref:`.drdl file <schema-with-drdl-file>` is to read from a
-:manual:`view </core/views/>`. Views allow you to take a source
-collection and choose which fields to display, change the names of
-fields, sort data, and perform any kind of transformation that
-the :manual:`aggregation pipeline </aggregation>` can accomplish.
-
-You can use the :binary:`~bin.mongo`
-shell method :manual:`createView </reference/method/db.createView>`
-to define a view on a collection and then use that view as a
-specified namespace when starting :binary:`~bin.mongosqld`.
-
-Examples
-~~~~~~~~
-
-Consider a collection named ``salaries`` in the
-``employees`` database. By creating a view on the ``salaries``
-collection that excludes all personally identifiable information,
-|bi-short| can safely facilitate data analysis on the view without
-compromising the private data in the source collection.
-
-The following command starts :binary:`~bin.mongosqld`
-with data from a view named ``salaries_redacted`` in the
-``employees`` database:
-
-.. code-block:: shell
-
-   mongosqld --sampleNamespaces "employees.salaries_redacted"
-
-.. seealso::
-
-   - :option:`--sampleNamespaces <mongosqld --sampleNamespaces>`
-
-Another use case for managing your schema with a MongoDB view is
-if your working data set includes a sparsely populated but important
-field which may be excluded in the |bi-short| sampling process.
-
-Consider a collection named ``sparseCollection`` which contains one
-field which occurs in every document and another field which occurs
-only occasionally. A portion of the collection might look like this:
-
-.. code-block:: javascript
-
-   { "_id" : 0, "mainField": 247 }
-   { "_id" : 1, "mainField": 71 }
-   { "_id" : 2, "mainField": 981 }
-   { "_id" : 3, "mainField": 712 }
-   { "_id" : 4, "mainField": 781, "sparseField": 1000 }
-   { "_id" : 5, "mainField": 256 }
-   { "_id" : 6, "mainField": 910 }
-
-To ensure that ``sparseField`` is included when |bi-short| creates
-its schema, create a view in which ``sparseField`` is populated with
-zeroes in every document in which it does not occur.
-
-.. code-block:: javascript
-
-   db.runCommand (
-     {
-       create: "denseCollection",
-       viewOn: "sparseCollection",
-       pipeline: [
-         {
-           $addFields: {
-              rareField: { $ifNull: [ "$rareField", 0 ] }
-           }
-         }
-       ]
-     }
-   )
-
-To use the view as a data source when starting
-:binary:`~bin.mongosqld`, specify it with the
-:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
-
-.. code-block:: shell
-
-   mongosqld --sampleNamespaces "myDatabase.denseCollection"
-
-.. include:: /includes/fact-geospatial-views.rst
-
-.. _schema-with-drdl-file:
-
-Load a Schema from a DRDL File
-------------------------------
-
-The :option:`--schema <mongosqld --schema>` option allows you
-to specify a schema file for :binary:`~bin.mongosqld` to use.
-
-The schema generation tool :binary:`~bin.mongodrdl` outputs a schema file
-in :ref:`Document Relational Definition Language <drdl>` (DRDL)
-format, but you should verify that the schema it proposes matches your
-data requirements. Examine both the table structure and field types
-to ensure that you can generate your intended reports.
-
-It is possible to manually edit the schema
-definition files to perform the following actions:
-
-- Add :ref:`aggregation pipeline <aggregation-pipeline>` stages
-- Add fields that :binary:`~bin.mongodrdl` did not discover within
-  the subset of documents that it sampled
-- Remove fields
-- Remove tables
-- Rename tables, so long as the ``collection`` field remains the same
-- Rename fields using the ``sqlname`` option
-
-.. include:: /includes/fact-restart-mongosqld.rst
-
-.. include:: /includes/geospatial-data.rst
+      /schema/cached-sampling
+      /schema/persist-schema
+      /schema/use-views
+      /schema/load-schema-from-drdl
+      /schema/resample-schema
+      /schema/geospatial-data

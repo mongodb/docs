@@ -1,5 +1,3 @@
-.. _bi-geospatial:
-
 Geospatial Data
 ---------------
 

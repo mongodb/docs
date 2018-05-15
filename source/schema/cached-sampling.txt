@@ -1,0 +1,115 @@
+.. _bi-cached-sampling:
+
+===============
+Cached Sampling
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+*New in version 2.3:*
+
+By default, :binary:`~bin.mongosqld` samples each collection on the
+connected MongoDB instance and generates a relational representation
+of the schema which it then caches in memory.
+
+.. note::
+
+   If you have :option:`authentication <mongosqld --auth>` enabled,
+   ensure that your MongoDB user has the correct permissions. See
+   :ref:`User Permissions <cached-sampling-user-permissions>` below.
+
+.. include:: /includes/fact-sampleRefresh.rst
+
+If the schema which :binary:`~bin.mongosqld` creates does not meet your
+BI workload needs, you can manually generate a :ref:`schema file
+<schema-with-drdl-file>` file and edit it as necessary.
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+.. _cached-sampling-user-permissions:
+
+User Permissions for Cached Sampling
+------------------------------------
+
+If your MongoDB instance uses :manual:`authentication
+</core/authentication/>` and you wish to use cached sampling, your
+|bi-short| instance must also use authentication. The admin user that
+connects to MongoDB via the :binary:`~bin.mongosqld` program must
+have permission to read from all the :term:`namespaces <namespace>`
+from which you want to sample data.
+
+Sample All Namespaces
+~~~~~~~~~~~~~~~~~~~~~
+
+If you wish to sample all namespaces, the admin user requires the
+following privileges:
+
+- :authaction:`listDatabases` on the cluster
+- :authaction:`listCollections` on each database
+- :authaction:`find` on each database
+
+.. _sample-all-example:
+
+Alternatively, create a user with the built-in :manual:`readAnyDatabase
+</core/security-built-in-roles/>` role:
+
+.. code-block:: javascript
+
+   use admin
+
+   db.createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [
+               { "role": "readAnyDatabase", "db": "admin"  }
+              ]
+     }
+   )
+
+.. include:: /includes/fact-sampling-readAnyDatabase.rst
+
+To sample all namespaces, start :binary:`~bin.mongosqld` without the
+:option:`--sampleNamespaces <mongosqld --sampleNamespaces>` option.
+
+.. code-block:: sh
+
+   mongosqld --auth --mongo-username <username> --mongo-password <password>
+
+Sample Specific Namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you wish to sample specific namespaces, the admin user requires the
+following privileges:
+
+- :authaction:`listCollections` for each database where all collections are sampled
+- :authaction:`find` on each collection or each database where all collections are sampled
+
+Alternatively, create a user with the built-in :manual:`readAnyDatabase
+</core/security-built-in-roles/>` role. For an example of creating a
+user with this role, see the
+:ref:`Sample All Namespaces <sample-all-example>` section.
+
+.. include:: /includes/fact-sampling-readAnyDatabase.rst
+
+The following example creates a
+:manual:`custom role </core/security-user-defined-roles/>` in the
+:manual:`mongo shell </mongo>` with the
+minimum required privileges to sample every collection in the ``test``
+database:
+
+.. include:: /includes/steps/create-user-cached-sampling.rst
+
+.. seealso::
+
+   - :option:`--auth <mongosqld --auth>`
+   - :manual:`Enable Authentication </tutorial/enable-authentication>`

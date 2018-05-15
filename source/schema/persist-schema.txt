@@ -1,0 +1,77 @@
+.. _bi-persistent-schema:
+
+========================================
+Persist a BI Connector Schema in MongoDB
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The :option:`--sampleSource <mongosqld --sampleSource>`
+option directs :binary:`~bin.mongosqld` to
+use a particular database on the connected MongoDB instance for schema
+storage. :binary:`~bin.mongosqld` can either create a new database to
+use for schema storage or use an existing database.
+
+If you specify an existing database which has been used previously
+for schema storage, the :option:`--sampleMode 
+<mongosqld --sampleMode>` option determines
+whether :binary:`~bin.mongosqld` writes new schema data to the specified
+database or only reads from it. If you specify a database which
+doesn't currently exist, you must set :option:`--sampleMode
+<mongosqld --sampleMode>` to
+``write``.
+
+.. include:: /includes/sampleSource-example.rst
+
+.. include:: /includes/fact-sampleRefresh.rst
+
+.. include:: /includes/fact-resample-schema-data.rst
+
+.. include:: /includes/sampling-ref-chart-link.rst
+
+User Permissions for Persisted Schemas
+--------------------------------------
+
+If your MongoDB instance uses authentication, you must specify a
+MongoDB user with ``write`` permission on the specified schema database
+in addition to the permissions described under
+:ref:`cached sampling <bi-cached-sampling>`.
+
+To create a user with the necessary permissions to run
+:binary:`~bin.mongosqld` with a persisted schema, you can either create
+a custom role with the minimum required permissions as described in
+:ref:`User Permissions for Cached Sampling
+<cached-sampling-user-permissions>`, or use the built-in
+:manual:`readAnyDatabase </core/security-built-in-roles/>` role. In
+either case, the user also needs ``write`` permission on the
+specified schema database.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [
+                { "role": "readAnyDatabase", "db": "admin"  },
+                { "role": "readWrite", "db": "<dbname>"  }
+              ]
+     }
+   )
+
+In the following example, a user named ``bicUser`` with the password
+``myPass`` provides credentials to read from and update a schema
+database called ``schemaDb``.
+
+.. code-block:: shell
+
+   mongosqld --auth -u bicUser -p myPass --sampleSource schemaDb --sampleMode write
