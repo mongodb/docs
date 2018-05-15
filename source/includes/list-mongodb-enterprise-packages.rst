@@ -8,21 +8,21 @@ repository. This repository contains the following packages:
    * - Package Name
      - Description
 
-   * - ``mongodb-enterprise``
+   * - ``{+package-name-enterprise+}``
      - A ``metapackage`` that will automatically install
        the four component packages listed below.
 
-   * - ``mongodb-enterprise-server``
+   * - ``{+package-name-enterprise+}-server``
      - Contains the :binary:`~bin.mongod` daemon and associated
        configuration and init scripts.
 
-   * - ``mongodb-enterprise-mongos``
+   * - ``{+package-name-enterprise+}-mongos``
      - Contains the :binary:`~bin.mongos` daemon.
 
-   * - ``mongodb-enterprise-shell``
+   * - ``{+package-name-enterprise+}-shell``
      - Contains the :binary:`~bin.mongo` shell.
 
-   * - ``mongodb-enterprise-tools``
+   * - ``{+package-name-enterprise+}-tools``
      - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
        :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
        :binary:`~bin.mongofiles`,

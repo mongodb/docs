@@ -11,28 +11,28 @@ repository contains the following packages:
    * - Package Name
      - Description
 
-   * - ``mongodb-org``
+   * - ``{+package-name-org+}``
      - A ``metapackage`` that will automatically install
        the four component packages listed below.
 
-   * - ``mongodb-org-server``
+   * - ``{+package-name-org+}-server``
      - Contains the :binary:`~bin.mongod` daemon and associated
        configuration and init scripts.
 
-   * - ``mongodb-org-mongos``
+   * - ``{+package-name-org+}-mongos``
      - Contains the :binary:`~bin.mongos` daemon.
 
-   * - ``mongodb-org-shell``
+   * - ``{+package-name-org+}-shell``
      - Contains the :binary:`~bin.mongo` shell.
 
-   * - ``mongodb-org-tools``
+   * - ``{+package-name-org+}-tools``
      - Contains the following MongoDB tools: :binary:`~bin.mongoimport`
        :binary:`~bin.bsondump`, :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
        :binary:`~bin.mongofiles`,
        :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
        and :binary:`~bin.mongotop`.
 
-The ``mongodb-org-server`` package provides an initialization script
+The ``{+package-name-org+}-server`` package provides an initialization script
 that starts :binary:`~bin.mongod` with the ``/etc/mongod.conf``
 configuration file.
 

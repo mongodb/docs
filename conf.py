@@ -41,7 +41,8 @@ extensions = [
     'testcode',
     'tabs',
     'markdown',
-    'fasthtml'
+    'fasthtml',
+    'source_constants'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
@@ -69,6 +70,15 @@ rst_epilog = '\n'.join([
     '.. |version| replace:: {0}'.format(version),
     '.. |compass| replace:: MongoDB Compass'
 ])
+
+source_constants = {
+    'package-branch': 'development',
+    'package-name-org': 'mongodb-org-unstable',
+    'package-name-enterprise': 'mongodb-enterprise-unstable',
+    'version': version,
+    'pgp-version': '3.8',
+    'pgp-fingerprint': 'BD8C80D9C729D00524E068E03DAB71713396F72B'
+}
 
 pygments_style = 'sphinx'
 
