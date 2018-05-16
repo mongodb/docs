@@ -10,7 +10,7 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - MongoDB 3.6 is no longer supported on this platform.
+     - :abbr:`MongoDB 3.6 is no longer supported on this platform. (EOL'd as of 3.6.4)`
      - |checkmark|
    * - SLES 12
      - |checkmark|
