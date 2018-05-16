@@ -1,3 +1,8 @@
+.. admonition:: Platform Support EOL Notice
+
+   - Support for SLES 11 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
+   - Support for Ubuntu 12.04 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
