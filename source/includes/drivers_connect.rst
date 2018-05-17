@@ -19,8 +19,8 @@
          .. cssclass:: urilistener
          .. code-block:: sh
 
-            mongo <URISTRING_NOUSER> --password
-              
+            mongo <URISTRING_NOUSER>
+
          Alternatively you can skip the URI and authenticate username
          and password once you run the ``mongo`` command and execute the
          shell. Pass in a hostname and port to the mongo shell in order
@@ -42,7 +42,7 @@
 
 
      - id: compass
-       content: |  
+       content: |
 
          MongoDB Compass can detect whether you have a MongoDB URI
          connection string in your system clipboard and auto-populate
@@ -71,13 +71,13 @@
 
          .. note:: Errors related to connecting through Compass will
                    appear in red at the top of the Connect screen.
-         
+
      - id: python
        content: |
-         
+
          It's a good idea to put your connection code in a class so
          that it can be reused.
-         
+
          .. literalinclude:: /driver-examples/connect.py
             :language: python
             :dedent: 0
@@ -85,7 +85,7 @@
             :end-before: End Connect
 
          Now add code to call the class you just created.
-         
+
          .. literalinclude:: /driver-examples/connecttest.py
             :language: python
             :dedent: 0
@@ -99,14 +99,14 @@
          .. code-block:: sh
 
             client.close()
-         
+
      - id: motor
        content: |
-         
+
          The ``asyncio`` and ``pprint`` imports will be used as you add functionality to your example code.
-         
+
          .. code-block:: sh
-         
+
             import motor.motor_asyncio
             import asyncio
             import pprint
@@ -151,28 +151,28 @@
 
      - id: nodejs
        content: |
-        
+
          Note that you will need to modify the URI string
          manually below, as node requires URI encoding.
-         
+
          .. literalinclude:: /driver-examples/connect.js
             :language: javascript
             :dedent: 0
             :start-after: Start Connect
             :end-before: End Connect
-     
+
      - id: csharp
        content: |
 
          The ``MongoDB.Bson`` package is used in CRUD operations, so you'll import it here.
-         
+
          .. code-block:: sh
-        
-         
+
+
             using System;
             using MongoDB.Bson;
             using MongoDB.Driver;
-           
+
             namespace csharptest
             {
                 class Program
