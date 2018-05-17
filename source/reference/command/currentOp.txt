@@ -29,6 +29,22 @@ Definition
    The :binary:`~bin.mongo` shell provides the :method:`db.currentOp()`
    wrapper for the :dbcommand:`currentOp` command.
 
+   .. note::
+
+      Because :dbcommand:`currentOp` command and
+      :method:`db.currentOp()` helper returns the results in a single
+      document, this single return document is subject to the maximum
+      16MB BSON size limit for documents.
+
+      Starting in version 3.6, MongoDB provides :pipeline:`$currentOp`
+      aggregation stage. The :pipeline:`$currentOp` stage returns a
+      cursor to documents, and each operation document, not the
+      combined result, is subject to the maximum 16MB BSON size limit.
+
+      The :pipeline:`$currentOp` aggregation stage is preferred over
+      the :dbcommand:`currentOp` command and its :binary:`~bin.mongo`
+      shell helper :method:`db.currentOp()`.
+
 Behavior
 --------
 
@@ -201,6 +217,10 @@ The following is a prototype of :dbcommand:`currentOp` output.
 Output Fields
 -------------
 
+.. data:: currentOp.host
+
+   The name of the host against which the operation is run.
+
 .. data:: currentOp.desc
 
    A description of the client. This string includes the
@@ -218,6 +238,33 @@ Output Fields
 
    A string with information about the type of client which made the
    request.
+
+.. data:: currentOp.clientMetadata
+
+   Additional information on the client.
+
+.. data:: currentOp.currentOpTime
+
+   The start time of the operation.
+
+   .. versionadded:: 3.6
+
+.. data:: currentOp.lsid
+
+   The session identifier.
+
+   Only appears in documents if the operation is associated with a
+   session.
+
+   .. versionadded:: 3.6
+
+.. data:: currentOp.txnNumber
+
+   The transaction number.
+
+   Only appears in documents if the operation is part of a transaction.
+
+   .. versionadded:: 4.0
 
 .. data:: currentOp.opid
 
@@ -251,8 +298,6 @@ Output Fields
    :data:`~currentOp.active` is ``true``.
 
 .. data:: currentOp.microsecs_running
-
-   .. versionadded:: 2.6
 
    The duration of the operation in microseconds. MongoDB calculates this
    value by subtracting the current time from the start time of the
