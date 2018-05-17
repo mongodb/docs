@@ -33,6 +33,7 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
+    'tabs'
 ]
 
 locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]

@@ -12,190 +12,60 @@ Installation
    :depth: 1
    :class: singlecol
 
-Thank you for evaluating the beta release of |charts|! This
-document describes what you need to do to get |charts-short| installed
-within your environment. For the latest info on |charts-short|, please
-visit http://mongodb.com/charts. If you run into problems installing or
-using |charts-short|, please let us know by emailing us at
-charts@mongodb.com, or clicking the Chat button from within the
-|charts-short| website.
+The following document describes how to install |charts| within your
+environment. For the latest information on |charts-short|, please visit
+the `Charts <http://mongodb.com/charts>`_ web page.
+
 
 System Requirements
 -------------------
 
-|charts| Beta must be installed on a single server within your
-environment, in a network location that can communicate with the MongoDB
-servers that contain the data your users will wish to visualize.
+Metadata Database
+~~~~~~~~~~~~~~~~~
 
-|charts| runs within a Docker Linux container, and you must have
-Docker CE or EE installed on your target server. |charts-short| should
-run on any OS or distribution supported by Docker, including Windows and
-MacOS.
+|charts| requires a MongoDB deployment to store |charts-short| metadata.
+The |charts-short| metadata database can be a cluster running on
+`MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_, the cloud-hosted
+service for running, monitoring, and maintaining MongoDB deployments.
 
-End users accessing |charts-short| must use a desktop web browser
-running in a network location that can communicate with the
-|charts-short| server. Current versions of Chrome, Firefox, Edge and
-Safari on any OS can be used.
+.. note::
+
+   |charts-short| does not require its own dedicated MongoDB
+   deployment. If |charts-short| uses an existing MongoDB deployment,
+   it will create and use the following databases: ``metadata``,
+   ``app``, ``auth``, and ``log``.
+
+Charts Server
+~~~~~~~~~~~~~
+
+|charts| must be installed on a single server running Docker CE or EE
+(v17.06 or higher). The server must be in a network location that can
+communicate with the metadata database and MongoDB servers that contain
+the data you wish to visualize.
+
+Supported Browsers
+~~~~~~~~~~~~~~~~~~
+
+End users accessing |charts| must use a current desktop version of
+Chrome, Firefox, Edge or Safari on any operating system.
 
 Before You Install
 ------------------
 
-This section lists the manual and prerequisite steps that must be
-completed before installing |charts-short|.
+This section lists the required steps to complete before installing
+|charts-short|.
 
-1. Identify or install a MongoDB server instance to store the
-   |charts-short| metadata. This instance should be deployed and secured
-   in a manner appropriate for the intended use of |charts-short|. For
-   any serious deployment, we recommend deploying MongoDB in a replica
-   set of 3 nodes and enabling authentication.
+.. include:: /includes/steps/pre-installation.rst
 
-   You will need to provide a connection URI to this deployment in a
-   later step.
+Install |charts|
+----------------
 
-2. `Download <https://www.docker.com/get-docker>`_ and install Docker
-   (CE or EE) on your target server, if it isn’t already present.
+Use the following procedure to install |charts|:
 
-Installing MongoDB Charts Beta
-------------------------------
+.. include:: /includes/steps/installation.rst
 
-1. Locate `MongoDB Charts in the Docker Store <http://store.docker.com>`_, accept the licence
-   agreement and register with your Docker ID.
-
-2. On your target server, sign in to Docker with the Docker ID you used
-   to register for |charts|:
-
-   .. code-block:: sh
-
-      docker login
-
-3. Pull down the |charts| Image from the Docker Store:
-
-   .. code-block:: sh
-
-      docker pull store/mongodb/charts:beta``
-
-4. Create and change to an appropriate directory to store your |charts-short|
-   configuration.
-
-   .. code-block:: sh
-
-      mkdir mongodb-charts
-      cd mongodb-charts
-
-5. Download the `MongoDB Charts Docker Compose file <https://download.mongodb.com/charts-docker-compose.yml>`_
-   and place it in the created folder, or use ``curl`` to get the file via the command
-   line:
-
-   .. code-block:: sh
-
-       curl https://download.mongodb.com/charts-docker-compose.yml -o charts-docker-compose.yml
-
-6. Create a Docker Secret to hold the Connection URI of the MongoDB
-   Server instance you will use to store the |charts-short| metadata. The
-   MongoDB deployment must be reachable from this server. If the server
-   is authenticated, the credentials must be provided in the connection
-   string, and the MongoDB user must have the ``readWriteAnyDatabase``
-   privilege.
-
-   .. code-block:: sh
-
-      echo "mongodb://foo:bar@myhost.com/" | docker secret create charts-mongodb-uri -
-
-7. (Optional) If you want to enable or disable the Support widget
-   within the MongoDB Charts web app and allow or prevent transmission
-   of anonymized usage statistics from users’ browsers, you can set the
-   ``charts-support-widget-and-metrics`` configuration key to ``on`` or
-   ``off``. If you do not set this key, the Support widget and
-   statistics are enabled.
-
-   .. code-block:: sh
-
-       echo "on" | docker config create charts-support-widget-and-metrics -
-
-   *or*
-
-   .. code-block:: sh
-
-      echo "off" | docker config create charts-support-widget-and-metrics -
-
-8. Download the MongoDB Charts Key Generator script for
-   `Linux/MacOS <https://download.mongodb.com/generate-charts-keys.sh>`_
-   or for
-   `Windows <https://download.mo.ngodb.com/generate-charts-keys.ps1>`_
-   and place it in the created folder, or use ``curl`` to get the file
-   via the command line:
-
-   -  Linux/MacOS:
-
-      .. code-block:: sh
-
-          curl https://download.mongodb.com/generate-charts-keys.sh -o generate-charts-keys.sh
-          chmod u+x ./generate-charts-keys.sh
-
-   -  Windows:
-
-      .. code-block:: sh
-
-          curl https://download.mo.ngodb.com/generate-charts-keys.ps1 -o generate-charts-keys.ps1
-
-9. Run the Key Generator Script to create some random keys to use for
-   encryption and security within MongoDB Charts.
-
-   -  Linux/MacOS:
-
-      .. code-block:: sh
-
-          ./generate-charts-keys.sh --path ./charts-keys.yml
-
-   -  Windows:
-
-      .. code-block:: sh
-
-          .\generate-charts-keys.ps1 -path .\charts-keys.yml
-
-10. Create a Docker Secret to securely store the keys generated in the
-    prevoius step. After importing the keys into a secret you should
-    store the original ``charts-keys.yml`` file somewhere safe as you
-    will need to use the same keys should you wish to deploy a new
-    Charts container leveraging the same backend database.
-
-    .. code-block:: sh
-
-       docker secret create charts-keys ./charts-keys.yml
-
-11. Enable Docker Swarm mode, if you haven’t done so already:
-
-    .. code-block:: sh
-
-       docker swarm init
-
-12. Launch the Charts container as a Docker Stack using the Compose
-    file:
-
-    .. code-block:: sh
-
-       docker stack deploy -c charts-docker-compose.yml mongodb-charts
-
-13. Run ``docker ps`` to verify the container is running and identify
-    the full container name, e.g.
-    ``mongodb-charts_mongodb-charts.1.jlkxcj533dxelohprwvp53j3o``
-
-14. Once the container is running, execute the ``charts-create-user``
-    script within the container once for each user account you want to
-    create within MongoDB Charts, replacing the placeholders in angle
-    brackets with appropriate values:
-
-    .. code-block:: sh
-
-       docker exec -it <mongodb-charts-container-name> create-charts-user <someuser@example.com> <somePassword@1!>
-
-15. Access MongoDB Charts by opening a web browser and connecting to the
-    name of the server running the container. Note that Charts runs on
-    HTTP port 80 unless you have modified the Docker Compose file to use
-    a different port.
-
-Starting and Stopping MongoDB Charts Beta
------------------------------------------
+Start and Stop |charts|
+-----------------------
 
 MongoDB Charts executes within a single Docker container managed by
 Docker Swarm.
@@ -212,3 +82,20 @@ To stop Charts, ask Docker to remove the stack:
 .. code-block:: sh
 
    docker stack rm mongodb-charts
+
+.. _charts-install-troubleshooting:
+
+Troubleshooting
+---------------
+
+If MongoDB Charts does not successfully load in a browser after starting the
+Docker stack, try the following steps:
+
+.. include:: /includes/steps/troubleshooting.rst
+
+.. class:: hidden
+
+   .. toctree::
+      :titlesonly:
+
+      /backup-and-restore-keys
