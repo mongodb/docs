@@ -44,18 +44,18 @@
      - id: compass
        content: |
 
-         MongoDB Compass can detect whether you have a MongoDB URI
-         connection string in your system clipboard and auto-populate
-         the connection dialog from the URI.
+         If you wish to manually configure your Compass connection, load
+         Compass and select the ``New Connection`` link. You will see a
+         form where you can enter connection information for MongoDB.
 
-         First, copy the URI string below.
+         Atlas users can copy a URI string from the Atlas
+         console into Compass. MongoDB Compass can detect whether you have a MongoDB
+         URI connection string in your system clipboard and auto-
+         populate the connection dialog from the URI.
 
-         .. code-block:: sh
-
-            <URISTRING>
-
-         Now start Compass. Compass will be able to access the URI and
-         use it for the connection.
+         See :doc:`/guides/cloud/connectionstring` for information on
+         how to get the Atlas connection string URI into your copy
+         buffer.
 
          If Compass was already running when you copied the URI string,
          click the :guilabel:`NEW CONNECTION` button.
