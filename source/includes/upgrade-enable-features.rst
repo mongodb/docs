@@ -1,6 +1,5 @@
 At this point, you can run the |newversion| binaries without the
-|newversion| :ref:`features that are incompatible
-<3.6-compatibility-enabled>` with |oldversion|.
+|newversion| |features|  with |oldversion|.
 
 To enable these |newversion| features, set the feature compatibility
 version (``FCV``) to |newversion|.
