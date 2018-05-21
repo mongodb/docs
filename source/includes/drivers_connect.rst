@@ -9,7 +9,7 @@
          .. cssclass:: urilistener
          .. code-block:: sh
 
-            mongo <URISTRING>
+            mongo <URISTRING_SHELL>
 
          If you would rather not provide your password on the command
          line, you can remove it from the URI string and pass the
@@ -19,7 +19,7 @@
          .. cssclass:: urilistener
          .. code-block:: sh
 
-            mongo <URISTRING_NOUSER>
+            mongo <URISTRING_SHELL_NOUSER>
 
          Alternatively you can skip the URI and authenticate username
          and password once you run the ``mongo`` command and execute the
@@ -61,7 +61,7 @@
          click the :guilabel:`NEW CONNECTION` button.
 
          .. figure:: /images/connect-to-host.png
-            :scale: 100 %
+            :figwidth: 740px
 
          You will be prompted to populate the connection dialog.
          Click :guilabel:`Yes`.
