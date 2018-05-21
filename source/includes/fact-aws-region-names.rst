@@ -5,6 +5,7 @@
 - ``CA_CENTRAL_1``
 - ``EU_WEST_1``
 - ``EU_WEST_2``
+- ``EU_WEST_3``
 - ``EU_CENTRAL_1``
 - ``AP_NORTHEAST_1``
 - ``AP_NORTHEAST_2``
