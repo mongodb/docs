@@ -11,7 +11,7 @@ PROJECT=guides
 
 DRIVERS_PATH=source/driver-examples
 
-.PHONY: help html publish stage deploy deploy-search-index
+.PHONY: examples help html publish stage deploy deploy-search-index
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -57,15 +57,28 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/functional/operation_changestream_example_tests.js -o ${DRIVERS_PATH}/ChangeStreamNodeExamples.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
+	#curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
-	cp /examples/java/ConnectExample.java  ${DRIVERS_PATH}/JavaConnectDocumentationSamples.java
-	cp /examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
-	cp /examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
-	cp /examples/node/connect/connect.js  ${DRIVERS_PATH}/connect.js
+	cp examples/java/ConnectExample.java  ${DRIVERS_PATH}/JavaConnectExample.java
+	cp examples/java/Connect.java  ${DRIVERS_PATH}/JavaConnectTest.java
+	cp examples/csharp/Connect.cs  ${DRIVERS_PATH}/csharpconnect.cs
+	cp examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
+	cp examples/motor/connect/connect.py  ${DRIVERS_PATH}/motorconnect.py
+	cp examples/python/connect/connecttest.py  ${DRIVERS_PATH}/connecttest.py
+	cp examples/node/connect/connect.js  ${DRIVERS_PATH}/connect.js
 
 
 install-resources: ## Retrieves the generated installation resources from the mongodb/docs repo
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-base.yaml -o source/includes/release-base.yaml
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-specifications.yaml -o source/includes/release-specifications.yaml
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/fact-install-windows.rst -o source/includes/fact-install-windows.rst
+
+screenshots:
+	giza generate assets
+	@echo "Running screenshot tool"
+	-rm -r screenshots-temp/guides
+	mkdir -p screenshots-temp/guides
+	cd build/docs-tools/tools/screenshot-tool && npm install
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringcompass.js `pwd`/screenshot-scripts/.properties.ini	
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringdrivers.js `pwd`/screenshot-scripts/.properties.ini	
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstring.js `pwd`/screenshot-scripts/.properties.ini

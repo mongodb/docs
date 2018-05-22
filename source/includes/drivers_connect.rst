@@ -4,16 +4,8 @@
      - id: shell
        content: |
 
-         Replace the password in the URI string and run the following:
 
-         .. cssclass:: urilistener
-         .. code-block:: sh
-
-            mongo <URISTRING_SHELL>
-
-         If you would rather not provide your password on the command
-         line, you can remove it from the URI string and pass the
-         remaining URI to the mongo shell followed by the ``--password``
+         Pass the URI to the mongo shell followed by the ``--password``
          option. You will then be prompted for your password.
 
          .. cssclass:: urilistener
@@ -84,6 +76,13 @@
             :start-after: Start Connect
             :end-before: End Connect
 
+
+         If your URI string starts with `mongodb+srv`, you need to install the dnspython module with
+           
+         .. code-block:: sh
+            
+            python -m pip install dnspython 
+
          Now add code to call the class you just created.
 
          .. literalinclude:: /driver-examples/connecttest.py
@@ -104,50 +103,57 @@
        content: |
 
          The ``asyncio`` and ``pprint`` imports will be used as you add functionality to your example code.
-
-         .. code-block:: sh
-
-            import motor.motor_asyncio
-            import asyncio
-            import pprint
-
-            client = motor.motor_asyncio.AsyncIOMotorClient('<URISTRING>')
+         
+         .. literalinclude:: /driver-examples/motorconnect.py
+            :language: python
+            :dedent: 0
+            :start-after: Start Connect
+            :end-before: End Connect
 
          While you wouldn't typically close a connection before you use
          it to do anything, it is good form to include a close statement
          in any code you are writing as you learn MongoDB.
 
-         .. code-block:: sh
-
-            client.close()
+         .. literalinclude:: /driver-examples/motorconnect.py
+            :language: python
+            :dedent: 0
+            :start-after: Start Close
+            :end-before: End Close
 
      - id: java-sync
        content: |
 
          This example uses a static utility method to make a connection.
+         This same utility has a ``closeConnection()`` method that takes
+         a MongoClient as its argument. This is just one way to
+         instantiate a MongoClient.
 
-         .. literalinclude:: /driver-examples/JavaConnectDocumentationSamples.java
+         .. literalinclude:: /driver-examples/JavaConnect.java
             :language: java
-            :dedent: 4
+            :dedent: 0
             :start-after: Start Connect
             :end-before: End Connect
 
          The code below calls the static utility method above
          to return a connection.
 
-         .. literalinclude:: /driver-examples/JavaConnectTest.java
+         .. literalinclude:: /driver-examples/JavaConnectExample.java
             :language: java
             :dedent: 4
-            :start-after: Start Call Example
-            :end-before: End Call Example
+            :start-after: Start Connection
+            :end-before: End Connection
 
          While you wouldn't typically close a connection before you use
          it to do anything, it is good form to include a close statement
-         in any code you are writing as you learn MongoDB.
+         in any code you are writing as you learn MongoDB. Note that we
+         are once again using the Connect utility class we created
+         above, this time to close the connection.
 
-         .. code-block:: sh
-
-            mongoClient.close();
+         .. literalinclude:: /driver-examples/JavaConnectExample.java
+            :language: java
+            :dedent: 4
+            :start-after: Start Close
+            :end-before: End Close
 
      - id: nodejs
        content: |
@@ -165,25 +171,12 @@
        content: |
 
          The ``MongoDB.Bson`` package is used in CRUD operations, so you'll import it here.
-
-         .. code-block:: sh
-
-
-            using System;
-            using MongoDB.Bson;
-            using MongoDB.Driver;
-
-            namespace csharptest
-            {
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                       var client = new MongoClient("<URISTRING>");
-
-                    }
-                }
-            }
+         
+         .. literalinclude:: /driver-examples/csharpconnect.cs
+            :language: javascript
+            :dedent: 0
+            :start-after: Start Connect
+            :end-before: End Connect
 
     # - id: php
     #   content: |

@@ -1,6 +1,5 @@
 package com.mongodb.docs.guides.examples.crud;
 
-
 import org.bson.Document;
 
 import com.mongodb.Block;
@@ -29,18 +28,20 @@ public class ConnectExample {
 
     private static void testCollectionBinding() {
 
-        final String uriString = "mongodb://testuser:<PASSWORD>@localhost:27017/test?authSource=admin";
+        // final String uriString = "mongodb://testuser:password@localhost:27017/test?authSource=admin";
 
-        MongoClientURI uri = new MongoClientURI(uriString);
+        // MongoClientURI uri = new MongoClientURI(uriString);
         // note that java connections are not initialized unless an operation
         // such as a find() or count() is executed
 
-        MongoClient  mongoClient =  new MongoClient(uri);
-
+        // Start Connection
+        MongoClient  mongoClient =  Connect.getConnection();
+        // End Connection
+        // Start Collection Bind 
         MongoDatabase db = mongoClient.getDatabase("test");
         MongoCollection<Document> collection = db
                 .getCollection("inventory");
-
+        // End Collection Bind
         collection.drop();
 
         // Insert Guide test
@@ -109,6 +110,7 @@ public class ConnectExample {
 
         findIterable.forEach(printBlock);
 
+
         findIterable = collection.find(or(eq("status", "A"), lt("qty", 30)));
 
         System.out.println("READ GUIDE 3: example 3 results");
@@ -123,10 +125,11 @@ public class ConnectExample {
 
         findIterable.forEach(printBlock);
 
-        mongoClient.close();
+        // Start Close
+        Connect.closeConnection(mongoClient);
 
+        // End Close
     }
+
 }
-
-
 

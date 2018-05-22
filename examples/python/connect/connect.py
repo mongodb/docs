@@ -1,14 +1,9 @@
-# Start Connection
+#Start Connect
 from pymongo import MongoClient
-from pprint import pprint
-import json
 
-connection_string = "mongodb://testuser:<PASSWORD>@localhost:27017/test?authSource=admin"
-client = MongoClient(connection_string)
-# End Connection
-
-# Start DatabaseBind
-db = client.test
-# End DatabaseBind
-
-client.close()
+class Connect():
+    def get_connection(self):
+        connection_string = "<URISTRING>"
+        client = MongoClient(connection_string)
+        return client
+#End Connect

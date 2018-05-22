@@ -68,7 +68,7 @@
 
          First, bind to the ``inventory`` collection.
 
-         .. literalinclude:: /driver-examples/JavaConnectTest.java
+         .. literalinclude:: /driver-examples/JavaConnectExample.java
             :language: java
             :dedent: 4
             :start-after: Start Collection Bind
