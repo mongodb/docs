@@ -72,12 +72,12 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'package-branch': 'development',
-    'package-name-org': 'mongodb-org-unstable',
-    'package-name-enterprise': 'mongodb-enterprise-unstable',
+    'package-branch': 'testing',
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
-    'pgp-version': '3.8',
-    'pgp-fingerprint': 'BD8C80D9C729D00524E068E03DAB71713396F72B'
+    'pgp-version': '4.0',
+    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
 }
 
 pygments_style = 'sphinx'
