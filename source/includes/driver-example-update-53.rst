@@ -59,17 +59,24 @@
           :start-after: Start Example 53
           :end-before: End Example 53
 
+       Run the loop to execute both the ``update_one`` and ``update_many``
+       operations:
+       
+       .. code-block:: python
+       
+          loop = asyncio.get_event_loop()
+
+          tasks = [ 
+              asyncio.ensure_future(do_update_one()),
+              asyncio.ensure_future(do_update_many()), 
+          ]
+
+          loop.run_until_complete(asyncio.wait(tasks))
+          loop.close()
+
    - id: java-sync
      content: |
        .. literalinclude:: /driver-examples/DocumentationSamples.java
-          :language: java
-          :dedent: 8
-          :start-after: Start Example 53
-          :end-before: End Example 53
-
-   - id: java-async
-     content: |
-       .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 53
@@ -82,7 +89,14 @@
           :dedent: 8
           :start-after: Start Example 53
           :end-before: End Example 53
-
+   #  - id: java-async
+   #    content: |
+   #      .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #         :language: java
+   #         :dedent: 8
+   #         :start-after: Start Example 53
+   #         :end-before: End Example 53
+   #  
    # - id: php
    #   content: |
    #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php

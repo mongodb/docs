@@ -46,6 +46,21 @@
           :dedent: 8
           :start-after: Start Example 57
           :end-before: End Example 57
+       
+       Run the loop to execute both the ``delete_one`` and ``delete_many``
+       operations:
+       
+       .. code-block:: python
+       
+          loop = asyncio.get_event_loop()
+
+          tasks = [ 
+              asyncio.ensure_future(do_delete_one()),
+              asyncio.ensure_future(do_delete_many()), 
+          ]
+
+          loop.run_until_complete(asyncio.wait(tasks))
+          loop.close()
 
    - id: java-sync
      content: |
@@ -55,13 +70,6 @@
           :start-after: Start Example 57
           :end-before: End Example 57
 
-   - id: java-async
-     content: |
-       .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
-          :language: java
-          :dedent: 8
-          :start-after: Start Example 57
-          :end-before: End Example 57
 
    - id: nodejs
      content: |
@@ -71,6 +79,15 @@
           :start-after: Start Example 57
           :end-before: End Example 57
 
+
+   # - id: java-async
+   #   content: |
+   #     .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #        :language: java
+   #        :dedent: 8
+   #        :start-after: Start Example 57
+   #        :end-before: End Example 57
+   # 
    # - id: php
    #   content: |
    #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php

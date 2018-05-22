@@ -90,15 +90,6 @@
             :dedent: 0
             :start-after: Start Caller Connect
             :end-before: End Caller Connect
-
-         While you wouldn't typically close a connection before you use
-         it to do anything, it is good form to include a close statement
-         in any code you are writing as you learn MongoDB.
-
-         .. code-block:: sh
-
-            client.close()
-
      - id: motor
        content: |
 
@@ -109,16 +100,6 @@
             :dedent: 0
             :start-after: Start Connect
             :end-before: End Connect
-
-         While you wouldn't typically close a connection before you use
-         it to do anything, it is good form to include a close statement
-         in any code you are writing as you learn MongoDB.
-
-         .. literalinclude:: /driver-examples/motorconnect.py
-            :language: python
-            :dedent: 0
-            :start-after: Start Close
-            :end-before: End Close
 
      - id: java-sync
        content: |
@@ -142,18 +123,6 @@
             :dedent: 4
             :start-after: Start Connection
             :end-before: End Connection
-
-         While you wouldn't typically close a connection before you use
-         it to do anything, it is good form to include a close statement
-         in any code you are writing as you learn MongoDB. Note that we
-         are once again using the Connect utility class we created
-         above, this time to close the connection.
-
-         .. literalinclude:: /driver-examples/JavaConnectExample.java
-            :language: java
-            :dedent: 4
-            :start-after: Start Close
-            :end-before: End Close
 
      - id: nodejs
        content: |
@@ -197,14 +166,6 @@
     #        :start-after: Start Connect Call
     #        :end-before: End Connect Call
     #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        $test->close();
-    #
     # - id: perl
     #   content: |
     #
@@ -213,14 +174,6 @@
     #        use MongoDB;
     #
     #        my $client = MongoDB->connect('<URISTRING>');
-    #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        $client->disconnect;
     #
     # - id: ruby
     #   content: |
@@ -233,14 +186,6 @@
     #
     #        client = Mongo::Client.new('<URISTRING>')
     #
-    #     While you wouldn't typically close a connection before you use
-    #     it to do anything, it is good form to include a close statement
-    #     in any code you are writing as you learn MongoDB.
-    #
-    #     .. code-block:: sh
-    #
-    #        client.close
-    #
     #
     # - id: scala
     #   content: |
@@ -248,10 +193,6 @@
     #     The MongoClient instance below is a connection *pool* -- which
     #     means per application you typically only need one instance. The
     #     instance is then shared across operations whenever possible.
-    #
-    #     The close statement used below is to ensure that your script
-    #     does not leave connections open while you get acquainted with
-    #     coding to MongoDB.
     #
     #     .. code-block:: sh
     #
@@ -264,7 +205,5 @@
     #
     #            // Use a Connection String
     #            val mongoClient: MongoClient = MongoClient("<URISTRING>")
-    #
-    #            mongoClient.close();
     #
     #          }

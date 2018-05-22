@@ -33,7 +33,7 @@
 
          To access the ``test`` database:
 
-         .. code-block:: sh
+         .. code-block:: python
 
              db = client.test
 
@@ -42,7 +42,7 @@
 
          To access the ``test`` database:
 
-         .. code-block:: sh
+         .. code-block:: python
 
             db = client.test
 
@@ -50,9 +50,13 @@
      - id: java-sync
        content: |
 
-         .. code-block:: sh
+         Switch to the ``test`` database and
+         access the ``inventory`` collection.
+
+         .. code-block:: java
 
             MongoDatabase mongoDB = mongoClient.getDatabase("test");
+            MongoCollection<Document> collection = mongoDB.getCollection("inventory");
 
      - id: nodejs
        content: |
@@ -66,12 +70,13 @@
      - id: csharp
        content: |
 
-         Switch to the ``test`` database. Note that this example also
-         specifies the collection name.
+         Switch to the ``test`` database and
+         access the ``inventory`` collection.
 
-         .. code-block:: sh
+         .. code-block:: csharp
 
             var database = client.GetDatabase("test");
+            var collection = database.GetCollection<BsonDocument>("inventory");
 
      # - id: php
      #  content: |
@@ -84,7 +89,7 @@
      # - id: perl
      #  content: |
 
-     #    .. code-block:: sh
+     #    .. code-block:: perl
 
      #       use MongoDB;
      #       my $client = MongoDB->connect('<URISTRING>');
@@ -99,7 +104,7 @@
      #      that you will need to pass in the authSource along with the
      #      username and password, or as part of the URI String.
      #
-     #      .. code-block:: sh
+     #      .. code-block:: ruby
      #
      #         client_options = {
      #           database: 'test',
@@ -112,7 +117,7 @@
      # - id: scala
      #   content: |
      #
-     #      .. code-block:: sh
+     #      .. code-block:: scala
      #
      #         val database: MongoDatabase = mongoClient.getDatabase("test")
      #

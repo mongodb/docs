@@ -18,7 +18,7 @@
 
      - id: motor
        content: |
-         The operation asynchronously returns an instance of
+         The operations asynchronously return instances of
          :py:class:`pymongo.results.DeleteResult` with the status of the
          operation.
 
@@ -29,12 +29,6 @@
          with the status of the
          operation.
 
-     - id: java-async
-       content: |
-         The operation returns a `Publisher <http://www.reactive-streams.org/reactive-streams-1.0.1-javadoc/org/reactivestreams/Publisher.html>`_
-         object of type com.mongodb.client.result.DeleteResult_ if
-         successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful.
-
      - id: nodejs
        content: |
          The operation returns a
@@ -42,6 +36,12 @@
          property contains the number of documents that matched the
          filter.
 
+     # - id: java-async
+     #   content: |
+     #     The operation returns a `Publisher <http://www.reactive-streams.org/reactive-streams-1.0.1-javadoc/org/reactivestreams/Publisher.html>`_
+     #     object of type com.mongodb.client.result.DeleteResult_ if
+     #     successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful.
+     #     
      # - id: php
      #   content: |
      #     The

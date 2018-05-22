@@ -6,7 +6,11 @@
          .. code-block:: javascript
 
             db.inventory.insertOne(
-               { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
+               { "item" : "canvas", 
+                 "qty" : 100, 
+                 "tags" : ["cotton"], 
+                 "size" : { "h" : 28, "w" : 35.5, "uom" : "cm" } 
+               }
             )
 
      - id: compass
@@ -28,6 +32,13 @@
             :dedent: 8
             :start-after: Start Example 1
             :end-before: End Example 1
+
+         Run the loop:
+         .. code-block:: python
+         
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_insert_one())
+            loop.close()
 
      - id: java-sync
        content: |

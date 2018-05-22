@@ -18,18 +18,11 @@
  
    - id: motor
      content: |
-       The operation asynchronously returns an instance of
+       The operations asynchronously return instances of
        :py:class:`pymongo.results.UpdateResult` that contains the
        status of the operation.
  
    - id: java-sync
-     content: |
-       The operation returns an instance of 
-       com.mongodb.client.result.UpdateResult_
-       with the status of the
-       operation.
-
-   - id: java-async
      content: |
        The operation returns an instance of 
        com.mongodb.client.result.UpdateResult_
@@ -41,6 +34,13 @@
        The operation returns a promise that provides a ``result``
        containing the status of the operation.
 
+   # - id: java-async
+   #   content: |
+   #     The operation returns an instance of 
+   #     com.mongodb.client.result.UpdateResult_
+   #     with the status of the
+   #     operation.
+   # 
    # - id: php
    #   content: |
    #     The operation returns an instance of

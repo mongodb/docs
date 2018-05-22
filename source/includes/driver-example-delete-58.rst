@@ -56,14 +56,6 @@
           :start-after: Start Example 58
           :end-before: End Example 58
 
-   - id: java-async
-     content: |
-       .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
-          :language: java
-          :dedent: 8
-          :start-after: Start Example 58
-          :end-before: End Example 58
-
    - id: nodejs
      content: |
        .. literalinclude:: /driver-examples/examples_tests.js
@@ -72,6 +64,15 @@
           :start-after: Start Example 58
           :end-before: End Example 58
 
+
+   # - id: java-async
+   #   content: |
+   #     .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #        :language: java
+   #        :dedent: 8
+   #        :start-after: Start Example 58
+   #        :end-before: End Example 58
+   # 
    # - id: php
    #   content: |
    #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php

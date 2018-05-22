@@ -15,7 +15,7 @@
      - id: python
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
           
             from pprint import pprint
                 
@@ -25,10 +25,17 @@
      - id: motor
        content: |
          
-         .. code-block:: sh
+         .. code-block:: python
 
             async for doc in cursor:
                 print(doc)
+         
+         Run the loop:
+         
+         .. code-block:: python
+         
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_update_one())
 
      - id: java-sync
        content: |
@@ -36,8 +43,7 @@
          You can implement a ``com.mongodb.Block`` to print the results
          of the iteration
          
-         .. class: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
          
             Block<Document> printBlock = new Block<Document>() {
                 @Override
@@ -49,15 +55,13 @@
          Then iterate the cursor for documents, passing the
          ``printBlock`` as a parameter.
          
-         .. class: copyable-code
-         .. code-block:: sh
+         .. code-block:: java
        
             findIterable.forEach(printBlock);
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. code-block:: sh
+         .. code-block:: javascript
             
             cursor.each(function(err, doc) {
                 console.log(doc);
@@ -66,7 +70,7 @@
 
      - id: csharp
        content: |
-         .. code-block:: sh
+         .. code-block:: csharp
            
             foreach (var doc in result) {
                Console.WriteLine(doc.ToJson());

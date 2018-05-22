@@ -70,7 +70,8 @@ extlinks = {
     'csharp-api': ('https://mongodb.github.io/mongo-csharp-driver/2.5/apidocs/html/%s.htm', ''),
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.5/reference/%s', ''),
     'java-async-docs': ('http://mongodb.github.io/mongo-java-driver/3.7/%s', ''),
-    'java-async-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', '')
+    'java-async-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', ''),
+    'java-sync-api': ('http://mongodb.github.io/mongo-java-driver/3.7/javadoc/%s', ''),
 }
 
 intersphinx_mapping = {}

@@ -1,8 +1,19 @@
+The following operation updates the **first** document with ``item`` equal
+to ``paper``. The operation uses:
+
 .. tabs-drivers::
 
    tabs:
    - id: shell
      content: |
+       - :update:`~up.$set` to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
+
+       - :update:`~up.$currentDate` to set the ``lastModified`` field to the
+         current date.
+
        .. code-block:: javascript
        
           db.inventory.updateOne(
@@ -50,14 +61,37 @@
 
    - id: python
      content: |
+       - ``$set`` to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
+
+       - :``$currentDate`` to set the ``lastModified`` field to the
+         current date.
+       
        .. literalinclude:: /driver-examples/test_examples.py
           :language: python
           :dedent: 8
           :start-after: Start Example 52
           :end-before: End Example 52
+       
+       Run the loop:
+       
+       .. code-block:: python
+       
+          loop = asyncio.get_event_loop()
+          loop.run_until_complete(do_update_one())
 
    - id: motor
      content: |
+       - ``$set`` to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
+
+       - :``$currentDate`` to set the ``lastModified`` field to the
+         current date.
+
        .. literalinclude:: /driver-examples/test_examples_motor.py
           :language: python
           :dedent: 8
@@ -66,15 +100,17 @@
 
    - id: java-sync
      content: |
-       .. literalinclude:: /driver-examples/DocumentationSamples.java
-          :language: java
-          :dedent: 8
-          :start-after: Start Example 52
-          :end-before: End Example 52
+       - :java-sync-api:`set <com/mongodb/client/model/Updates.html#set-java.lang.String-TItem->` 
+         to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
 
-   - id: java-async
-     content: |
-       .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+       - :java-sync-api:`currentDate <com/mongodb/client/model/Updates.html#currentDate-java.lang.String->` 
+         to set the ``lastModified`` field to the
+         current date.
+       
+       .. literalinclude:: /driver-examples/DocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 52
@@ -88,6 +124,22 @@
           :start-after: Start Example 52
           :end-before: End Example 52
 
+       - ``$set`` to update the ``status`` field and the ``uom``
+         field embedded in the ``size`` document. To access the fields within
+         embedded documents, the operation uses :ref:`dot notation
+         <document-dot-notation>`.
+
+       - :``$currentDate`` to set the ``lastModified`` field to the
+         current date.
+
+   # - id: java-async
+   #   content: |
+   #     .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #        :language: java
+   #        :dedent: 8
+   #        :start-after: Start Example 52
+   #        :end-before: End Example 52
+   # 
    # - id: php
    #   content: |
    #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php

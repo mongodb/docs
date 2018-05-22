@@ -3,6 +3,7 @@
    tabs:
      - id: shell
        content: |
+
          .. code-block:: javascript
 
             myCursor = db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
@@ -48,6 +49,14 @@
             :start-after: Start Example 12
             :end-before: End Example 12
 
+     - id: csharp
+       content: |
+         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+            :language: c#
+            :dedent: 12
+            :start-after: Start Example 12
+            :end-before: End Example 12
+
      #- id: php
      #  content: |
      #    .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
@@ -80,10 +89,3 @@
      #       :start-after: Start Example 12
      #       :end-before: End Example 12
 
-     - id: csharp
-       content: |
-         .. literalinclude:: /driver-examples/DocumentationExamples.cs
-            :language: c#
-            :dedent: 12
-            :start-after: Start Example 12
-            :end-before: End Example 12
