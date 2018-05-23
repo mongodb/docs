@@ -4,7 +4,7 @@
      - id: shell
        content: |
 
-         In step 2 in the modal, and select the version of the
+         In step 2 in the modal, select the version of the
          shell you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -16,7 +16,7 @@
      - id: compass
        content: |  
 
-         In step 2 in the window, and select the version of
+         In step 2 in the window, select the version of
          compass you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -28,7 +28,7 @@
      - id: python
        content: |
          
-         In step 1 in the window, and select the version of
+         In step 1 in the window, select the version of
          the driver you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -39,7 +39,7 @@
      - id: motor
        content: |
          
-         In step 1 in the window, and select the version of
+         In step 1 in the window, select the version of
          the driver you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -51,7 +51,7 @@
      - id: java-sync
        content: |
 
-         In step 1 in the window, and select the version of
+         In step 1 in the window, select the version of
          the driver you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -63,7 +63,7 @@
      - id: nodejs
        content: |
         
-         In step 1 in the window, and select the version of
+         In step 1 in the window, select the version of
          the driver you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.
@@ -75,7 +75,7 @@
      - id: csharp
        content: |
 
-         In step 1 in the window, and select the version of
+         In step 1 in the window, select the version of
          the driver you are using. You will see a connection string appear in
          the gray block. Click the copy button to the right of the
          string. The connection string is now in your copy buffer.

@@ -4,10 +4,6 @@
      - id: shell
        content: |
 
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
-
          Pass the URI to the mongo shell followed by the ``--password``
          option. You will then be prompted for your password.
 
@@ -43,17 +39,39 @@
          Compass and select the ``New Connection`` link. You will see a
          form where you can enter connection information for MongoDB.
 
-         Atlas users can copy a URI string from the Atlas
-         console into Compass. MongoDB Compass can detect whether you have a MongoDB
-         URI connection string in your system clipboard and auto-
-         populate the connection dialog from the URI.
+         .. tabs::
 
-         See :doc:`/guides/cloud/connectionstring` for information on
-         how to get the Atlas connection string URI into your copy
-         buffer.
+            hidden: true
 
-         If Compass was already running when you copied the URI string,
-         click the :guilabel:`NEW CONNECTION` button.
+            tabs:
+
+              - id: linux
+                name: Linux
+                content: |
+
+              - id: macos
+                name: MacOS
+                content: |
+
+              - id: windows
+                name: Windows
+                content: |
+
+              - id: atlas
+                name: Atlas (Cloud)
+                content: |
+
+                  Atlas users can copy a URI string from the Atlas
+                  console into Compass. MongoDB Compass can detect whether you have a MongoDB
+                  URI connection string in your system clipboard and auto-
+                  populate the connection dialog from the URI.
+         
+                  See :doc:`/guides/cloud/connectionstring` for information on
+                  how to get the Atlas connection string URI into your copy
+                  buffer.
+         
+                  If Compass was already running when you copied the URI string,
+                  click the :guilabel:`NEW CONNECTION` button.
 
          .. figure:: /images/connect-to-host.png
             :figwidth: 740px
@@ -69,10 +87,6 @@
 
      - id: python
        content: |
-
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
 
          It's a good idea to put your connection code in a class so
          that it can be reused.
@@ -100,10 +114,6 @@
      - id: motor
        content: |
 
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
-
          The ``asyncio`` and ``pprint`` imports will be used as you add functionality to your example code.
          
          .. literalinclude:: /driver-examples/motorconnect.py
@@ -114,10 +124,6 @@
 
      - id: java-sync
        content: |
-
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
 
          This example uses a static utility method to make a connection.
          This same utility has a ``closeConnection()`` method that takes
@@ -142,10 +148,6 @@
      - id: nodejs
        content: |
 
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
-
          Note that you will need to modify the URI string
          manually below, as node requires URI encoding.
 
@@ -157,10 +159,6 @@
 
      - id: csharp
        content: |
-
-         If you haven't already done so, use :doc:`the connection URI form
-         </guides/server/drivers>` to construct the connection string
-         required for this guide.
          
          The ``MongoDB.Bson`` package is used in CRUD operations, so you'll import it here.
          

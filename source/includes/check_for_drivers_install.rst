@@ -1,12 +1,15 @@
-Ensure that your MongoDB instance is running and accessible.
+Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  is running and accessible.
 
 .. tabs::
 
    tabs:
-     - id: atlas (cloud)
-       name: atlas
+     - id: atlas
+       name: Atlas (Cloud)
        content: |
-         Atlas Check
+         
+         Check that you have an Atlas account and have deployed a MongoDB database
+         cluster. See :doc:`/guides/cloud/atlas` for information on how to
+         login and create a cluster in Atlas.
 
      - id: windows
        name: Windows
