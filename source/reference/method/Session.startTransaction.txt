@@ -153,35 +153,36 @@ collections, and commits the two operations as a single transaction.
       employeesCollection = session.getDatabase("hr").employees;
       eventsCollection = session.getDatabase("reporting").events;
 
-      // Start a transaction for the session that uses:
-      // - read concern "snapshot" 
-      // - write concern "majority"
-      session.startTransaction( {
-         readConcern: { level: "snapshot" },
-         writeConcern: { w: "majority" } 
-      } );
-
       try{
+         // Start a transaction for the session that uses:
+         // - read concern "snapshot" 
+         // - write concern "majority"
+         session.startTransaction( {
+            readConcern: { level: "snapshot" },
+            writeConcern: { w: "majority" } 
+         } );
+
          employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } ); 
          eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
       } catch (error) {
-         print("Abort transaction.");
+         print("Caught exception during transaction, aborting.");
          session.abortTransaction();  // Uses write concern "majority"
+         throw error;
       }
+
+      // Until commit, no data changes from the two operations in the transaction are visible outside the transaction
+      session.commitTransaction(); // Uses write concern "majority"
+
    } // End of updateEmployeeInfo function
-         
+
    // Start a session.
    session = db.getMongo().startSession( { mode: "primary" } );
 
    try {
       // call the employeeEvents function
       updateEmployeeInfo(session);
-
-      // Until commit, no data changes from the two operations in the transaction are visible outside the transaction
-      session.commitTransaction(); // Uses write concern "majority"
-      print ("Commit transaction.");
    } catch (error) {
-      print("Did not commit Transaction.");
+      print("Caught exception during transaction.");
    }
 
    session.endSession();

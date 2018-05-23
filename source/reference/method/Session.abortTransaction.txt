@@ -85,15 +85,15 @@ or in committing the transaction, the session aborts the transaction.
       employeesCollection = session.getDatabase("hr").employees;
       eventsCollection = session.getDatabase("reporting").events;
 
-      // Start a transaction for the session that uses:
-      // - read concern "snapshot" 
-      // - write concern "majority"
-      session.startTransaction( { 
-         readConcern: { level: "snapshot" }, 
-         writeConcern: { w: "majority" } 
-      } );
-
       try{
+         // Start a transaction for the session that uses:
+         // - read concern "snapshot" 
+         // - write concern "majority"
+         session.startTransaction( { 
+            readConcern: { level: "snapshot" }, 
+            writeConcern: { w: "majority" } 
+         } );
+
          eventsCollection.insertOne( 
             { employee: 3, status: { new: "Active", old: null },  department: { new: "XYZ", old: null } }
          );
@@ -107,20 +107,23 @@ or in committing the transaction, the session aborts the transaction.
             { employee: 3, name: { title: "Miss", name: "Terri Bachs" }, status: "Active", department: "XYZ" }
          ); 
       } catch (error) {
-         print("Abort transaction.");
+         print("Caught exception during transaction, aborting.");
          session.abortTransaction();  // Uses write concern "majority"
+         throw error;
       }
+
+      session.commitTransaction(); // Uses write concern "majority"
+
    } // End of updateEmployeeInfo function
 
    // Start a session.
    session = db.getMongo().startSession( { mode: "primary" });
-   
+
    try {
       // call the employeeEvents function
       updateEmployeeInfo(session);
-      session.commitTransaction(); // Uses write concern "majority"
    } catch (error) {
-      print("Did not commit Transaction.");
+      print("Caught exception during transaction.");
    }
 
    session.endSession();
