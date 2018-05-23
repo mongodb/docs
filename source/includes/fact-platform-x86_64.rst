@@ -18,6 +18,11 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Amazon Linux 2
+     - |checkmark|
+     -
+     -
+     -
    * - Debian 7
      - |checkmark|
      - |checkmark|
@@ -39,7 +44,7 @@
      - |checkmark|
      - |checkmark|
    * - SLES 11
-     - 
+     -
      - EOL'd as of 3.6.4
      - EOL'd as of 3.4.15.
      - EOL'd as of 3.2.20.
