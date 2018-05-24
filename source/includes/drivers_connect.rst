@@ -45,18 +45,6 @@
 
             tabs:
 
-              - id: linux
-                name: Linux
-                content: |
-
-              - id: macos
-                name: MacOS
-                content: |
-
-              - id: windows
-                name: Windows
-                content: |
-
               - id: atlas
                 name: Atlas (Cloud)
                 content: |
@@ -72,6 +60,20 @@
          
                   If Compass was already running when you copied the URI string,
                   click the :guilabel:`NEW CONNECTION` button.
+
+              - id: windows
+                name: Windows
+                content: |
+
+              - id: linux
+                name: Linux
+                content: |
+
+              - id: macos
+                name: MacOS
+                content: |
+
+
 
          .. figure:: /images/connect-to-host.png
             :figwidth: 740px
@@ -147,9 +149,6 @@
 
      - id: nodejs
        content: |
-
-         Note that you will need to modify the URI string
-         manually below, as node requires URI encoding.
 
          .. literalinclude:: /driver-examples/connect.js
             :language: javascript

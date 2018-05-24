@@ -79,6 +79,7 @@ screenshots:
 	-rm -r screenshots-temp/guides
 	mkdir -p screenshots-temp/guides
 	cd build/docs-tools/tools/screenshot-tool && npm install
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-importatlas.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringcompass.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringdrivers.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstring.js `pwd`/screenshot-scripts/.properties.ini

@@ -12,13 +12,16 @@ exports.run = async function (options) {
   await options.loginToAtlas()
   await nightmare.wait(2000)
   await nightmare.wait('.mms-body-main')
-  await nightmare.click('div.cluster-info-panel > div.js-options-menu > div > div > div > div > button')
+  await nightmare.click('.cluster-options-menu-dropdown-button')
+  await nightmare.wait('.js-command-line-tools')
+  // await nightmare.mouseover('div.cluster-detail-content-main > div.cluster-info-panel > div.js-options-menu > div > div > div > div > div > ul > li:nth-child(2)')
+  await nightmare.click('.js-command-line-tools')
   await nightmare.wait(2000)
-  await nightmare.click('div.cluster-info-panel > div.js-options-menu > div > div > div > div > div > ul > li:nth-child(2) > a');
-  await nightmare.wait('body > div.mms-body-application > div > div > main > div > div > div > div:nth-child(4)')
+  await nightmare.scrollTo(567,0)
   const button_clip = await nightmare.evaluate(() => {
-  // store the button in a variable
-  const build_cluster_btn = document.querySelector('body > div.mms-body-application > div > div > main > div > div > div > div:nth-child(4)');
+// store the button in a variablebody 
+  const build_cluster_btn = document.querySelector('div.nds-command-line-tools-page-section:nth-child(4)');
+
   // use the getClientRects() function on the button to determine
   // the size and location
   const [rect] = build_cluster_btn.getClientRects();
@@ -34,7 +37,7 @@ exports.run = async function (options) {
   };
   })
   const buildClip = {
-    x: Math.floor(button_clip.left)-20,
+    x: Math.floor(button_clip.left)-40,
     y: Math.floor(button_clip.top)-20,
     width: Math.floor(button_clip.width)+40,
     height: Math.floor(button_clip.height)+40
