@@ -33,6 +33,11 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Debian 9
+     - |checkmark|
+     - 3.6.5 and later
+     -
+     -
    * - RHEL/CentOS 6.2 and later
      - |checkmark|
      - |checkmark|
