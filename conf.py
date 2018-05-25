@@ -61,7 +61,8 @@ rst_epilog = '\n'.join([
     '.. |bi-atlas| replace:: MongoDB Connector for Business Intelligence for MongoDB Atlas',
     '.. |bi-atlas-short| replace:: BI Connector for Atlas',
     '.. |bi-atlas-short-link| replace:: :doc:`BI Connector for Atlas </atlas-bi-connector>`',
-    '.. |odbc-driver| replace:: ``MongoDB ODBC driver``'
+    '.. |odbc-driver| replace:: ``MongoDB ODBC driver``',
+    '.. |odbc-driver-name| replace:: MongoDB ODBC driver'
 ])
 
 extlinks = {
