@@ -1,13 +1,13 @@
-===============
-Building Charts
-===============
+============
+Build Charts
+============
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Introduction
@@ -83,11 +83,11 @@ To begin building a new chart:
       section.
 
 5. Drag fields from the :guilabel:`Fields` section to the desired
-   encoding channels below the :guilabel:`Chart Type` dropdown. The
-   fields listed correspond to the fields in your data source. You can
-   search for a specific field in your data source by using the
-   :guilabel:`Filter` search bar at the top of the :guilabel:`Fields`
-   section.
+   :ref:`encoding channels <encoding-channels>` below the
+   :guilabel:`Chart Type` dropdown. The fields listed correspond to the
+   fields in your data source. You can search for a specific field in
+   your data source by using the :guilabel:`Filter` search bar at the
+   top of the :guilabel:`Fields` section.
 
    .. note::
 
@@ -115,8 +115,10 @@ type provides different capabilities for processing and visualizing
 your data. The following table provides a brief description for each
 encoding channel type in MongoDB Charts:
 
+.. _charts-channel-type-table:
+
 .. list-table::
-   :widths: 20 80
+   :widths: 30 70
    :header-rows: 1
 
    * - Encoding Channel Type
@@ -147,25 +149,30 @@ encoding channel type in MongoDB Charts:
        :manual:`aggregation <aggregation>` function over the values of
        this field from multiple documents; for example
        :manual:`$count </reference/operator/aggregation/count/>` and
-       :manual:`$sum </reference/operator/aggregation/sum/>`.
+       :manual:`$sum </reference/operator/aggregation/sum/>`. For more
+       information on aggregation in |charts-short|, see the
+       :ref:`Aggregation <building-charts-aggregation>` section.
 
-Dragging a field onto an :guilabel:`aggregation` encoding channel
-allows you to use an
+.. _building-charts-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+Dragging a field onto an :guilabel:`aggregation`
+:ref:`encoding channel <encoding-channels>` allows you to use an
 :manual:`aggregation pipeline operator </reference/operator/aggregation/>`
 on that field. The aggregation operators available in the chart
 builder change based on the :manual:`data type </reference/bson-types/>`
-of the selected field. MongoDB Charts categorizes the field data as
-either a ``number``, ``string``, or ``date`` and displays appropriate
-aggregation options accordingly.
+of the selected field. MongoDB Charts categorizes the field data type
+as either a ``number``, ``string``, or ``date`` and displays
+appropriate aggregation options accordingly.
 
 .. example::
 
    Donut charts provide two encoding channels:
 
    - A :guilabel:`category` channel called :guilabel:`Label` dictating
-     which field to use when dividing the sections of the chart
-
-     and
+     which field to use when dividing the sections of the chart.
 
    - An :guilabel:`aggregation` channel called :guilabel:`Arc` dictating
      the aggregation operation to perform on the :guilabel:`Label`
@@ -182,6 +189,102 @@ aggregation options accordingly.
 
    We see from the chart that the most common landslide trigger is
    ``Downpour`` followed by ``Continuous_rain``.
+
+Multi-Series Charts
+~~~~~~~~~~~~~~~~~~~
+
+|charts| supports building *multi-series* charts, which split your
+chart data into groups, or *series*, to compare additional
+fields within your schema. There are two ways to create multi-series
+charts:
+
+- :ref:`Using multiple aggregation or value field mappings
+  <multiple-field-mappings>`
+
+- :ref:`Using the Series field in the chart builder
+  <charts-series-encoding>`
+
+.. _multiple-field-mappings:
+
+Multiple Field Mappings
+```````````````````````
+
+|charts| allows you to map multiple :ref:`aggregation
+<building-charts-aggregation>` or :guilabel:`value`
+:ref:`encoding channels <encoding-channels>` to a single chart property
+(e.g. :guilabel:`X Axis` or :guilabel:`Y Axis`). This allows you to
+compare additional fields in your visualization by creating new series
+based on the encoding channels added.
+
+After dragging a field to an :guilabel:`aggregation`
+or :guilabel:`value` :ref:`encoding channel <encoding-channels>`, an
+additional optional encoding channel of the same type appears below the
+one which was just added, allowing you to add additional series to your
+visualization. This process repeats with each channel you add, so
+you can map as many fields as desired to your chart.
+
+.. example::
+
+   The following multi-series column chart shows average movie ratings
+   by genre from two different sources: `IMDB <https://www.imdb.com/>`_
+   and `Rotten Tomatoes <https://www.rottentomatoes.com/>`_:
+
+   .. figure:: /images/charts/multi-series-agg.png
+      :figwidth: 721px
+      :alt: Movie Ratings Multiseries Chart
+
+   There are two :guilabel:`aggregation` encoding channels on
+   the chart's :guilabel:`Y Axis`, one for each of the site's rating
+   fields. By selecting the :guilabel:`mean` aggregation option, the
+   chart aggregates these two fields using the
+   :manual:`$avg </reference/operator/aggregation/avg/>` operator to
+   provide a comparison of the average of two fields in the same
+   column.
+
+.. tip::
+
+   Use multiple field mappings to create a multi-series chart when
+   the values being compared in the visualization come from two or more
+   separate fields in the schema.
+
+   In the example above, there is one series for Rotten Tomato ratings
+   and one series for IMDB ratings. Since these are separate fields
+   within the schema, adding multiple :guilabel:`aggregation` encoding
+   channels to map the data is the best choice to compare the fields.
+
+.. _charts-series-encoding:
+
+Series Encoding Channel
+```````````````````````
+
+You can also create multi-series charts by using the :guilabel:`Series`
+field in the chart builder. The :guilabel:`Series` field differs from
+:guilabel:`aggregation` :ref:`encoding channels <encoding-channels>`
+because it instead utilizes a :ref:`Category encoding channel
+<charts-channel-type-table>`. When creating a series using the
+:guilabel:`category` encoding channel, each unique value from the
+data field becomes a series in the visualization.
+
+.. tip::
+
+   The :guilabel:`Series` field is useful when you are grouping data
+   based on a discrete list of items. This approach should be used when
+   the values for all series are stored in a single field, with a
+   separate field used to establish the discrete categories.
+
+.. example::
+
+   The following multi-series column chart shows order data from an
+   office supply store, showing the most common items sold by
+   store location:
+
+   .. figure:: /images/charts/series-encoding-channel-example.png
+      :figwidth: 680px
+      :alt: Supply Store Series Encoding Channel Example
+
+   By using the ``item.name`` in the :guilabel:`Series` encoding
+   channel, a series within each location group is added for each
+   item name.
 
 .. _charts-filter-documents:
 
@@ -221,14 +324,14 @@ your data, meaning you can create data visualizations while still
 structuring your data in the best way for your application.
 
 Nested Objects
-``````````````
+~~~~~~~~~~~~~~
 
 Nested objects in the :guilabel:`Fields` section of the Chart Builder
 are indicated by curly brackets (``{}``) next to their name. To expand
 an object field, click the arrow to the left of the field name. You can
 drag nested object fields onto the desired
-:guilabel:`encoding channels` just like any other field to visualize
-those fields in your chart.
+:ref:`encoding channels <encoding-channels>` just like any other field
+to visualize those fields in your chart.
 
 .. example::
 
@@ -252,14 +355,14 @@ those fields in your chart.
       :ref:`Filter Documents <charts-filter-documents>` section.
 
 Array Fields
-````````````
+~~~~~~~~~~~~
 
 Array fields the :guilabel:`Fields` section of the Chart Builder page
 are indicated by square brackets (``[]``) next to their name. When
-adding an array field to an encoding channel, select an
-:guilabel:`array reduction` option to process the data in the best way
-for your visualization. The following array reduction options are
-available in MongoDB Charts:
+adding an array field to an :ref:`encoding channel
+<encoding-channels>`, select an :guilabel:`array reduction` option to
+process the data in the best way for your visualization. The following
+array reduction options are available in MongoDB Charts:
 
 .. list-table::
    :widths: 30 70
@@ -281,12 +384,12 @@ available in MongoDB Charts:
      - The zero-based index of the array to use in the visualization.
 
 You are also required to select an array reduction option when adding a
-field which exists *inside* of an array to an encoding channel. In this
-case, the selected reduction is applied to the array containing the
-target field. Additionally, in the case of nested arrays, you must
-select a reduction option for the top-level array and all sub-arrays.
-Note that different reduction options may be used for each nested
-array.
+field which exists *inside* of an array to an
+:ref:`encoding channel <encoding-channels>`. In this case, the selected
+reduction is applied to the array containing the target field.
+Additionally, in the case of nested arrays, you must select a reduction
+option for the top-level array and all sub-arrays. Note that different
+reduction options may be used for each nested array.
 
 Below the array reduction options in the dropdown, MongoDB also
 provides many :guilabel:`numeric accumulate` and
