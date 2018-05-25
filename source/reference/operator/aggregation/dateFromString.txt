@@ -23,10 +23,12 @@ Definition
 
    .. code-block:: javascript
 
-      { $dateFromString: { 
-           dateString: <dateStringExpression>, 
+      { $dateFromString: {
+           dateString: <dateStringExpression>,
            format: <formatStringExpression>,
-           timezone: <tzExpression> 
+           timezone: <tzExpression>,
+           onError: <onErrorExpression>,
+           onNull: <onNullExpression>
       } }
 
    The :pipeline:`$dateFromString` takes a document with the following fields:
@@ -40,13 +42,13 @@ Definition
 
       * - ``dateString``
 
-        - The date/time string to convert to a date object. See 
-          :doc:`Date </reference/method/Date>` for 
-          more information on date/time formats. 
+        - The date/time string to convert to a date object. See
+          :doc:`Date </reference/method/Date>` for
+          more information on date/time formats.
 
-          .. note:: 
-          
-            If specifying the ``timezone`` option to the operator, do not include 
+          .. note::
+
+            If specifying the ``timezone`` option to the operator, do not include
             time zone information in the ``dateString``.
 
       * - ``format``
@@ -65,19 +67,19 @@ Definition
 
       * - ``timezone``
 
-        - Optional. The time zone to use to format the date. 
+        - Optional. The time zone to use to format the date.
 
           .. note::
 
-            If the ``dateString`` argument is formatted like 
+            If the ``dateString`` argument is formatted like
             '2017-02-08T12:10:40.787Z', in which the 'Z' at the end indicates Zulu
             time (UTC time zone), you cannot specify the ``timezone`` argument.
 
-          ``<timezone>`` allows for the following options and expressions 
+          ``<timezone>`` allows for the following options and expressions
           that evaluate to them:
 
           - an `Olson Timezone Identifier
-            <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_, 
+            <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_,
             such as ``"Europe/London"`` or ``"America/New_York"``, or
 
           - a UTC offset in the form:
@@ -93,8 +95,26 @@ Definition
           For more information on expressions, see
           :ref:`aggregation-expressions`.
 
-If the ``dateStringExpression`` or ``tzExpression`` evaluate to null, missing or 
-undefined, the result of the $dateFromString expression is null.
+      * - ``onError``
+
+        - Optional. If :expression:`$dateFromString` encounters an error while
+          parsing the given ``dateString``, it outputs the result value
+          of the provided ``onError`` :ref:`expression <aggregation-expressions>`.
+          This result value can be of any type.
+
+          If you do not specify ``onError``, :expression:`$dateFromString`
+          throws an error if it cannot parse ``dateString``.
+
+      * - ``onNull``
+
+        - Optional. If the ``dateString`` provided to
+          :expression:`$dateFromString` is ``null`` or missing, it outputs
+          the result value of the provided ``onNull``
+          :ref:`expression <aggregation-expressions>`.
+          This result value can be of any type.
+
+          If you do not specify ``onNull`` and ``dateString`` is ``null``
+          or missing, then :expression:`$dateFromString` outputs ``null``.
 
 .. seealso:: :expression:`$toDate` and :expression:`$convert`
 
@@ -107,13 +127,13 @@ Behavior
 
    * - Example
      - Results
-     
+
    * - .. code-block:: javascript
           :copyable: false
 
-   
-          { $dateFromString: { 
-              dateString: "2017-02-08T12:10:40.787" 
+
+          { $dateFromString: {
+              dateString: "2017-02-08T12:10:40.787"
           } }
 
      - ``ISODate("2017-02-08T12:10:40.787Z")``
@@ -121,7 +141,7 @@ Behavior
    * - .. code-block:: javascript
           :copyable: false
 
-          { $dateFromString: { 
+          { $dateFromString: {
                dateString: "2017-02-08T12:10:40.787",
                timezone: "America/New_York"
           } }
@@ -131,7 +151,7 @@ Behavior
    * - .. code-block:: javascript
           :copyable: false
 
-          { $dateFromString: { 
+          { $dateFromString: {
                dateString: "2017-02-08"
           } }
 
@@ -140,26 +160,35 @@ Behavior
    * - .. code-block:: javascript
           :copyable: false
 
-          { $dateFromString: { 
+          { $dateFromString: {
                dateString: "06-15-2018",
                format: "%m-%d-%Y"
           } }
 
      - ``ISODate("2018-06-15T00:00:00Z")``
- 
+
    * - .. code-block:: javascript
           :copyable: false
 
-          { $dateFromString: { 
+          { $dateFromString: {
                dateString: "15-06-2018",
                format: "%d-%m-%Y"
           } }
 
      - ``ISODate("2018-06-15T00:00:00Z")``
 
-Example
--------
+.. _dateFromString-format-specifiers:
 
+Format Specifiers
+-----------------
+
+.. include:: /includes/extracts/date-format-specifiers-dateFromString.rst
+
+Examples
+--------
+
+Converting Dates
+~~~~~~~~~~~~~~~~
 
 Consider a collection ``logmessages`` that contains the following
 documents with dates.
@@ -171,7 +200,7 @@ documents with dates.
    { _id: 3, message:  " Step 1: Ended " },
    { _id: 4, date: "2017-02-09", timezone: "Europe/London", message: "Step 2: Started"}
    { _id: 5, date: "2017-02-09T03:35:02.055", timezone: "+0530", message: "Step 2: In Progress"}
- 
+
 The following aggregation uses $dateFromString to convert the ``date`` value
 to a date object:
 
@@ -192,14 +221,14 @@ The above aggregation returns the following documents and converts each ``date``
 to the Eastern Time Zone:
 
 .. code-block:: javascript
-   
+
     { "_id" : 1, "date" : ISODate("2017-02-08T17:10:40.787Z") }
     { "_id" : 2, "date" : ISODate("2017-02-08T05:00:00Z") }
     { "_id" : 3, "date" : null }
     { "_id" : 4, "date" : ISODate("2017-02-09T05:00:00Z") }
     { "_id" : 5, "date" : ISODate("2017-02-09T08:35:02.055Z") }
 
-The ``timezone`` argument can also be provided through a document field instead of a 
+The ``timezone`` argument can also be provided through a document field instead of a
 hard coded argument. For example:
 
 .. code-block:: javascript
@@ -216,7 +245,7 @@ hard coded argument. For example:
   } ] )
 
 The above aggregation returns the following documents and converts each ``date`` field
-to their respective UTC representations. 
+to their respective UTC representations.
 
 .. code-block:: javascript
 
@@ -226,10 +255,82 @@ to their respective UTC representations.
     { "_id" : 4, "date" : ISODate("2017-02-09T00:00:00Z") }
     { "_id" : 5, "date" : ISODate("2017-02-08T22:05:02.055Z") }
 
+``onError``
+~~~~~~~~~~~
 
-.. _dateFromString-format-specifiers:
+If your collection contains documents with unparsable date strings,
+:expression:`$dateFromString` throws an error unless you provide an
+:ref:`aggregation expression <aggregation-expressions>` to the optional
+``onError`` parameter.
 
-Format Specifiers
------------------
+For example, given a collection ``dates`` with the following
+documents:
 
-.. include:: /includes/extracts/date-format-specifiers-dateFromString.rst
+.. code-block:: javascript
+
+   { "_id" : 1, "date" : "2017-02-08T12:10:40.787", timezone: "America/New_York" },
+   { "_id" : 2, "date" : "20177-02-09T03:35:02.055", timezone: "America/New_York" }
+
+You can use the ``onError`` parameter to return the invalid date in
+its original string form:
+
+.. code-block:: javascript
+
+   db.dates.aggregate( [ {
+      $project: {
+         date: {
+            $dateFromString: {
+               dateString: '$date',
+               timezone: '$timezone',
+               onError: '$date'
+            }
+         }
+      }
+   } ] )
+
+This returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "date" : ISODate("2017-02-08T17:10:40.787Z") }
+   { "_id" : 2, "date" : "20177-02-09T03:35:02.055" }
+
+``onNull``
+~~~~~~~~~~~
+
+If your collection contains documents with ``null`` date strings,
+:expression:`$dateFromString` returns ``null`` unless you provide an
+:ref:`aggregation expression <aggregation-expressions>` to the optional
+``onNull`` parameter.
+
+For example, given a collection ``dates`` with the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "date" : "2017-02-08T12:10:40.787", timezone: "America/New_York" },
+   { "_id" : 2, "date" : null, timezone: "America/New_York" }
+
+You can use the ``onNull`` parameter to have :expression:`$dateFromString`
+return a date representing the :term:`unix epoch` instead of ``null``:
+
+.. code-block:: javascript
+
+   db.dates.aggregate( [ {
+      $project: {
+         date: {
+            $dateFromString: {
+               dateString: '$date',
+               timezone: '$timezone',
+               onNull: new Date(0)
+            }
+         }
+      }
+   } ] )
+
+This returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "date" : ISODate("2017-02-08T17:10:40.787Z") }
+   { "_id" : 2, "date" : ISODate("1970-01-01T00:00:00Z") }
