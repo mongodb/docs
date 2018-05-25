@@ -31,7 +31,8 @@ extensions = [
     'mongodb',
     'fasthtml',
     'fixed_only',
-    'tabs'
+    'tabs',
+    'icon'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
