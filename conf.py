@@ -34,7 +34,8 @@ extensions = [
     'directives',
     'intermanual',
     'fasthtml',
-    'tabs'
+    'tabs',
+    'source_constants'
 ]
 
 templates_path = ['.templates']
@@ -61,9 +62,12 @@ rst_epilog = '\n'.join([
     '.. |bi-atlas| replace:: MongoDB Connector for Business Intelligence for MongoDB Atlas',
     '.. |bi-atlas-short| replace:: BI Connector for Atlas',
     '.. |bi-atlas-short-link| replace:: :doc:`BI Connector for Atlas </atlas-bi-connector>`',
-    '.. |odbc-driver| replace:: ``MongoDB ODBC driver``',
     '.. |odbc-driver-name| replace:: MongoDB ODBC driver'
 ])
+
+source_constants = {
+    'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/tag/v1.0.0>`_'
+}
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),

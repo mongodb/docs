@@ -1,5 +1,5 @@
-The MongoDB authentication plugin is embedded in the |odbc-driver|.
-If your BI tool connects using the |odbc-driver| through a
+The MongoDB authentication plugin is embedded in the {+odbc-driver+}.
+If your BI tool connects using the {+odbc-driver+} through a
 :doc:`DSN </tutorial/create-system-dsn>` or the driver
 directly, you do not need to install the authentication plugin
 separately. Install the standalone authentication plugin if your BI
