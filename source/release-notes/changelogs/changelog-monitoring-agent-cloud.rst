@@ -3,7 +3,7 @@
 Monitoring Agent 6.6.0.460
 --------------------------
 
-*Released 2018-05-30*
+*Released 2018-05-31*
 
 - Support for upcoming MongoDB 4.0 release.
 

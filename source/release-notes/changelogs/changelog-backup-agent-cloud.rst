@@ -3,7 +3,7 @@
 Backup Agent 6.8.0.993
 ----------------------
 
-*Released 2018-05-30*
+*Released 2018-05-31*
 
 - Make responseHeaderTimeout configurable.
 

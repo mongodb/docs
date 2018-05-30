@@ -3,7 +3,7 @@
 Automation Agent 5.4.0.5435
 ---------------------------
 
-*Released 2018-05-30*
+*Released 2018-05-31*
 
 - Support for upcoming MongoDB 4.0 release.
 
