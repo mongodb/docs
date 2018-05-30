@@ -1,3 +1,14 @@
+.. _backup-6.8.0.993:
+
+Backup Agent 6.8.0.993
+----------------------
+
+*Released 2018-05-30*
+
+- Make responseHeaderTimeout configurable.
+
+- Support for upcoming MongoDB 4.0 release.
+
 .. _backup-6.7.0.985:
 
 Backup Agent 6.7.0.985

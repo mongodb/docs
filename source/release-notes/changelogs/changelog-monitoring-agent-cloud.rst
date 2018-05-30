@@ -1,3 +1,12 @@
+.. _monitoring-6.6.0.460:
+
+Monitoring Agent 6.6.0.460
+--------------------------
+
+*Released 2018-05-30*
+
+- Support for upcoming MongoDB 4.0 release.
+
 .. _monitoring-6.5.0.456:
 
 Monitoring Agent 6.5.0.456
