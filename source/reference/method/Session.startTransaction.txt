@@ -84,17 +84,25 @@ Behavior
 Operations Supported within a Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Within a transaction, the following read and write (CRUD) operations
-are allowed on **existing** collections:
-
-.. include:: /includes/transaction-operations.rst
-
 .. note::
 
    If running with :doc:`access control </core/authorization>`, you
    must have privileges for the :ref:`operations in the transaction
-   <txn-operations>`.
-  
+   <transactions-operations>`.
+
+For multi-document transactions:
+
+- You can specify read/write (CRUD) operations on **existing**
+  collections.
+
+- You cannot read/write to collections in the ``config``, ``admin``,
+  or ``local`` databases.
+
+.. include:: /includes/table-transactions-operations.rst
+
+.. include:: /includes/extracts/transactions-operations-restrictions-info.rst
+
+
 Read Preference
 ~~~~~~~~~~~~~~~
 
@@ -133,7 +141,6 @@ documents:
    { "_id" : ObjectId("5af0776263426f87dd693198"), "employee" : 1, "name" : { "title" : "Miss", "name" : "Ann Thrope" }, "status" : "Active", "department" : "ABC" }
    { "_id" : ObjectId("5af0776263426f87dd693199"), "employee" : 2, "name" : { "title" : "Mrs.", "name" : "Eppie Delta" }, "status" : "Active", "department" : "XYZ" }
 
-
 The ``events`` collection in the ``reporting`` database has the
 following documents:
 
@@ -150,43 +157,76 @@ as a single transaction.
 
 .. code-block:: javascript
 
-   function updateEmployeeInfo(session) {
-      employeesCollection = session.getDatabase("hr").employees;
-      eventsCollection = session.getDatabase("reporting").events;
+   // Runs the txnFunc and retries if TransientTransactionError encountered
 
-      try{
-         // Start a transaction for the session that uses:
-         // - read concern "snapshot" 
-         // - write concern "majority"
-         session.startTransaction( {
-            readConcern: { level: "snapshot" },
-            writeConcern: { w: "majority" } 
-         } );
-
-         employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } ); 
-         eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
-      } catch (error) {
-         print("Caught exception during transaction, aborting.");
-         session.abortTransaction();  // Uses write concern "majority"
-         throw error;
-      }
-
-      // Until commit, no data changes from the two operations in the transaction are visible outside the transaction
-      session.commitTransaction(); // Uses write concern "majority"
-
-   } // End of updateEmployeeInfo function
-
-   // Start a session.
-   session = db.getMongo().startSession( { mode: "primary" } );
-
-   try {
-      // call the employeeEvents function
-      updateEmployeeInfo(session);
-   } catch (error) {
-      print("Caught exception during transaction.");
+   function runTransactionWithRetry(txnFunc, session) {
+       while (true) {
+           try {
+               txnFunc(session);  // performs transaction
+               break;
+           } catch (error) {
+               // If transient error, retry the whole transaction
+               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes("TransientTransactionError")  ) {
+                   print("TransientTransactionError, retrying transaction ...");
+                   continue;
+               } else {
+                   throw error;
+               }
+           }
+       }   
    }
 
-   session.endSession();
+   // Retries commit if UnknownTransactionCommitResult encountered
+
+   function commitWithRetry(session) {
+       while (true) {
+           try {
+               session.commitTransaction(); // Uses write concern set at transaction start.
+               print("Transaction committed.");
+               break;
+           } catch (error) {
+               // Can retry commit
+               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes("UnknownTransactionCommitResult") ) {
+                   print("UnknownTransactionCommitResult, retrying commit operation ...");
+                   continue;
+               } else {
+                   print("Error during commit ...");
+                   throw error;
+               }
+          }
+       }
+   }
+
+   // Updates two collections in a transactions
+
+   function updateEmployeeInfo(session) {
+       employeesCollection = session.getDatabase("hr").employees;
+       eventsCollection = session.getDatabase("reporting").events;
+
+       session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+       try{
+           employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } );
+           eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
+       } catch (error) {
+           print("Caught exception during transaction, aborting.");
+           session.abortTransaction();
+           throw error;
+       }
+
+       commitWithRetry(session);
+   }
+
+   // Start a session.
+   session = db.getMongo("myRepl/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017").startSession( { mode: "primary" } );
+
+   try{
+      runTransactionWithRetry(updateEmployeeInfo, session);
+   } catch (error) {
+      // Do something with error
+   } finally {
+      session.endSession();
+   }
 
 .. seealso::
 

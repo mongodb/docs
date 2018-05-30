@@ -8,7 +8,7 @@ Transactions
    :local:
    :backlinks: none
    :depth: 1
-   :class: singlecol
+   :class: twocols
 
 .. meta::
    :description: transactions, multi-document transactions, multi-statement transactions
@@ -34,62 +34,89 @@ in the transaction are discarded without ever becoming visible. Until a
 transaction commits, no write operations in the transaction are visible
 outside the transaction.
 
-.. important::
+.. include:: /includes/extracts/transactions-usage.rst
 
-   Multi-document transaction incurs a greater performance cost over
-   single document writes, and the availability of multi-document
-   transaction should not be a replacement for effective schema design.
-   For many scenarios, the denormalized data model will continue to be
-   optimal for your data and use cases.
+Transactions and Replica Sets
+-----------------------------
 
-Transaction and Replica Sets
-----------------------------
+Multi-document transactions are available for replica sets only.
+Transactions for sharded clusters are scheduled for MongoDB 4.2
+[#upcoming]_.
 
-Multi-document transactions are available for replica sets only. 
+.. [#upcoming]
 
-The ``featureCompatibilityVersion`` of all members of the replica set
-must be ``4.0`` or greater. To check the
-``featureCompatibilityVersion`` for a member, connect to the member and
-run the following command:
+   .. include:: /includes/fact-upcoming.rst
+
+Feature Compatibility Version (FCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``featureCompatibilityVersion`` (fCV) of all members of the replica
+set must be ``4.0`` or greater. To check the fCV for a member, connect
+to the member and run the following command:
 
 .. code-block:: javascript
 
    db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
 
-For more information on the ``featureCompatibilityVersion`` flag, see
+For more information on fCV, see
 :dbcommand:`setFeatureCompatibilityVersion`.
 
-.. _txn-operations:
+Storage Engines
+~~~~~~~~~~~~~~~
+
+Multi-document transactions are available for the WiredTiger storage
+engine and in-memory storage engines. 
+
+If any voting member of a replica set uses the in-memory storage
+engine, you must set :rsconf:`writeConcernMajorityJournalDefault` to
+``false``.
+
+.. _transactions-operations:
 
 Transactions and CRUD Operations
 --------------------------------
 
 For multi-document transactions:
 
-- You can only specify read/write (CRUD) operations on existing
+- You can specify read/write (CRUD) operations on **existing**
   collections.
 
 - You cannot read/write to collections in the ``config``, ``admin``,
   or ``local`` databases.
 
-Operations that affect the database catalog, such as creating or
-dropping a collection or an index, are not allowed in multi-document
-transactions. For example, a multi-document transaction cannot include
-an insert operation that would result in the creation of a new
-collection.
+.. include:: /includes/table-transactions-operations.rst
 
-.. include:: /includes/transaction-operations.rst
+.. _transactions-ops-count:
+
+Count Operation
+~~~~~~~~~~~~~~~
+
+To perform a count operation within a transaction, use the
+:pipeline:`$count` aggregation stage.
+
+.. _transactions-ops-info:
+
+Informational Operations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-operations-restrictions-info.rst
+
+.. _transactions-ops-restricted:
+
+Restricted Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-operations-restrictions.rst
 
 Transactions and Security
 -------------------------
 
 - If running with :doc:`access control </core/authorization>`, you must
   have privileges for the :ref:`operations in the transaction
-  <txn-operations>`.
+  <transactions-operations>`.
 
 - If running with :doc:`auditing </core/auditing>`, operations in an
-  aborted transaction still generate audit events. However, there is no
-  audit event that indicates that the transaction aborted.
+  aborted transaction are still audited.
 
 Transactions and Sessions
 -------------------------
@@ -98,6 +125,39 @@ Transactions are associated with a session. That is, you start a
 transaction for a session. At any given time, you can have at most one
 open transaction for a session.
 
+If a session ends and it has an open transaction, the transaction
+aborts.
+
+.. important::
+
+   When using the drivers, you **must** pass the session to each
+   operation in the transaction to the operations with a transaction.
+   For more information, see :ref:`transactions-drivers`.
+
+.. _transactions-drivers:
+
+Transactions and MongoDB Drivers
+--------------------------------
+
+Clients require MongoDB drivers updated for MongoDB 4.0.
+
+.. important::
+
+   To associate read and write operations with a transaction, you **must**
+   pass the session to each operation in the transaction.
+
+
+Transactions and the ``mongo`` Shell
+------------------------------------
+
+The following :binary:`~bin.mongo` shell methods are available for
+transactions:
+
+- :method:`Session.startTransaction()`
+
+- :method:`Session.commitTransaction()`
+
+- :method:`Session.abortTransaction()`
 
 Atomicity
 ---------
@@ -115,27 +175,178 @@ Multi-document transactions are atomic:
   data changes made in the transaction are discarded without ever
   becoming visible.
 
-Transactions and MongoDB Drivers
---------------------------------
+.. _transactions-retry:
 
-Clients require MongoDB drivers updated for MongoDB 4.0.
+Transactions and Retryable Writes
+---------------------------------
 
-.. important::
+.. admonition:: Highly Available Applications
+   :class: important
 
-   To associate read and write operations with an open transaction, you
-   **must** pass the session to the operations.
+   Regardless of the database system, whether MongoDB or relational
+   databases, applications should take measures to handle errors during
+   transaction commits and incorporate retry logic for transactions.
 
-Transactions and the ``mongo`` Shell
-------------------------------------
+Retry Transaction
+~~~~~~~~~~~~~~~~~~
 
-The following :binary:`~bin.mongo` shell methods are available for
-transactions:
+The individual write operations inside the transaction are not
+retryable, regardless of whether :urioption:`retryWrites` is set to
+``true``.
 
-- :method:`Session.startTransaction()`
+If an operation encounters an error, the returned error may have an
+``errorLabels`` array field. If the error is a transient error, the
+``errorLabels`` array field contains ``"TransientTransactionError"`` as
+an element and the transaction as a whole can be retried.
 
-- :method:`Session.commitTransaction()`
+For example, the following helper runs a function and retries the
+function if a ``"TransientTransactionError"`` is encountered:
 
-- :method:`Session.abortTransaction()`
+.. code-block:: javascript
+
+   // Runs the txnFunc and retries if TransientTransactionError encountered
+
+   function runTransactionWithRetry(txnFunc, session) {
+       while (true) {
+           try {
+               txnFunc(session);  // performs transaction
+               break;
+           } catch (error) {
+               print("Transaction aborted. Caught exception during transaction.");
+    
+               // If transient error, retry the whole transaction
+               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes( "TransientTransactionError")  ) {
+                   print("TransientTransactionError, retrying transaction ...");
+                   continue;
+               } else {
+                   throw error;
+               }
+           }
+       }
+   }
+
+Retry Commit Operation
+~~~~~~~~~~~~~~~~~~~~~~
+
+The commit operations are :doc:`retryable write operations
+</core/retryable-writes>`. If the commit operation operation encounters
+an error, MongoDB drivers retry the operation a single time regardless
+of whether :urioption:`retryWrites` is set to ``true``.
+
+If the commit operation encounters an error, MongoDB returns an error
+with an ``errorLabels`` array field. If the error is a transient commit
+error, the ``errorLabels`` array field contains
+``"UnknownTransactionCommitResult"`` as an element and the commit
+operation can be retried.
+
+In addition to the single retry behavior provided by the MongoDB
+drivers, applications should take measures to handle
+``"UnknownTransactionCommitResult"`` errors during transaction commits.
+
+For example, the following helper commits a transaction and retries if
+a ``"UnknownTransactionCommitResult"`` is encountered:
+
+.. code-block:: javascript
+
+   // Retries commit if UnknownTransactionCommitResult encountered
+
+   function commitWithRetry(session) {
+       while (true) {
+           try {
+               session.commitTransaction(); // Uses write concern set at transaction start.
+               print("Transaction committed.");
+               break;
+           } catch (error) {
+               // Can retry commit
+               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes( "UnknownTransactionCommitResult") ) {
+                   print("UnknownTransactionCommitResult, retrying commit operation ...");
+                   continue;
+               } else {
+                   print("Error during commit ...");
+                   throw error;
+               }
+          }
+       }
+   }
+
+Retry Transaction and Commit Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Incorporating logic to retrying the transaction for transient errors
+and retrying the commit, the full code example is:
+
+.. code-block:: javascript
+
+   // Runs the txnFunc and retries if TransientTransactionError encountered
+
+   function runTransactionWithRetry(txnFunc, session) {
+       while (true) {
+           try {
+               txnFunc(session);  // performs transaction
+               break;
+           } catch (error) {
+               // If transient error, retry the whole transaction
+               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes("TransientTransactionError")  ) {
+                   print("TransientTransactionError, retrying transaction ...");
+                   continue;
+               } else {
+                   throw error;
+               }
+           }
+       }   
+   }
+
+   // Retries commit if UnknownTransactionCommitResult encountered
+
+   function commitWithRetry(session) {
+       while (true) {
+           try {
+               session.commitTransaction(); // Uses write concern set at transaction start.
+               print("Transaction committed.");
+               break;
+           } catch (error) {
+               // Can retry commit
+               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes("UnknownTransactionCommitResult") ) {
+                   print("UnknownTransactionCommitResult, retrying commit operation ...");
+                   continue;
+               } else {
+                   print("Error during commit ...");
+                   throw error;
+               }
+          }
+       }
+   }
+
+   // Updates two collections in a transactions
+
+   function updateEmployeeInfo(session) {
+       employeesCollection = session.getDatabase("hr").employees;
+       eventsCollection = session.getDatabase("reporting").events;
+
+       session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+       try{
+           employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } );
+           eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
+       } catch (error) {
+           print("Caught exception during transaction, aborting.");
+           session.abortTransaction();
+           throw error;
+       }
+
+       commitWithRetry(session);
+   }
+
+   // Start a session.
+   session = db.getMongo("myRepl/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017").startSession( { mode: "primary" } );
+
+   try{
+      runTransactionWithRetry(updateEmployeeInfo, session);
+   } catch (error) {
+      // Do something with error
+   } finally {
+      session.endSession();
+   }
 
 Read Preference
 ---------------
@@ -149,23 +360,85 @@ Read Concern
 
 Multi-document transactions support read concern
 :readconcern:`"snapshot"`, :readconcern:`"local"`, and
-:readconcern:`"majority"`. For :readconcern:`"local"` and
-:readconcern:`"majority"` read concern, MongoDB may sometimes
-substitute a stronger read concern.
+:readconcern:`"majority"`:
 
-.. note:: 
+- For :readconcern:`"local"` and :readconcern:`"majority"` read
+  concern, MongoDB may sometimes substitute a stronger read concern.
 
-   You set the read concern at the transaction level, not at the
-   individual operation level. The operations in the transaction will
-   use the the transaction level read concern; i.e. the transaction
-   level read concern overrides specific operation level read concern.
+- For :readconcern:`"majority"` read concern, if the transaction
+  commits with :ref:`write concern "majority"
+  <transactions-write-concern>`, transaction operations are guaranteed
+  to have read majority-committed data. Otherwise, the
+  :readconcern:`"majority"` read concern provides no guarantees that
+  read operations read majority-committed data.
+
+- For :readconcern:`"snapshot"` read concern, if the transaction
+  commits with :ref:`write concern "majority"
+  <transactions-write-concern>`, the transaction operations are
+  guaranteed to have read from a snapshot of majority committed data.
+  Otherwise, the :readconcern:`"snapshot"` read concern provides no
+  guarantee that read operations used a snapshot of majority-committed
+  data.
+
+You set the read concern at the transaction level, not at the
+individual operation level. The operations in the transaction will use
+the transaction-level read concern. Any read concern set at the
+collection, database, or connection level are ignored inside the
+transaction. Do not explicitly set the read concern for the individual
+operations.
+
+You can set the transaction :doc:`read concern
+</reference/read-concern>` at the transaction start.
+
+If unspecified at the transaction start, transactions use the
+session-level read concern or, if that is unset, the client-level read
+concern.
+
+.. _transactions-write-concern:
 
 Write Concern
 -------------
 
-You set the :doc:`write concern </reference/write-concern>` for the
+You set the write concern at the transaction level, not at the
+individual operation level. Any write concern set at the collection,
+database, or client level is ignored inside the transaction. Do not
+explicitly set the write concern for the individual write operations.
+
+At the time of the commit, transactions use the transaction level
+:doc:`write concern </reference/write-concern>` to commit the write
+operations.
+
+You can set the :doc:`write concern </reference/write-concern>` for the
 transaction commit at the transaction start.
 
-If you commit using :writeconcern:`"w: 1" <\<number\>>` write concern,
-your transaction can be :doc:`rolled back if there is a failover
-</core/replica-set-rollbacks>`.
+- If unspecified at the transaction start, transactions use the
+  session-level write concern for the commit or, if that is unset, the
+  client-level write concern.
+
+- Write concern :writeconcern:`w: 0 <\<number\>>` is not supported
+  for transactions.
+
+- If you commit using :writeconcern:`w: 1 <\<number\>>` write concern,
+  your transaction can be :doc:`rolled back if there is a failover
+  </core/replica-set-rollbacks>`.
+
+- If the transaction commits with :ref:`write concern "majority"
+  <transactions-write-concern>` and has specified read concern
+  :readconcern:`"snapshot"` read concern, transaction operations are
+  guaranteed to have read from a snapshot of majority-committed data.
+  Otherwise, the :readconcern:`"snapshot"` read concern provides no
+  guarantees that read operations used a snapshot of majority-committed
+  data.
+
+- If the transaction commits with :ref:`write concern "majority"
+  <transactions-write-concern>` and has specified read concern
+  :readconcern:`"majority"` read concern, transaction operations are
+  guaranteed to have read majority-committed data. Otherwise, the
+  :readconcern:`"majority"` read concern provides no guarantees that
+  read operations read majority-committed data.
+
+.. toctree::
+   :hidden:
+   :titlesonly:
+
+   /core/transactions-production-consideration

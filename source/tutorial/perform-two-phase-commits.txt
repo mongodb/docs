@@ -13,21 +13,21 @@ Perform Two Phase Commits
 Synopsis
 --------
 
-This document provides a pattern for doing multi-document updates or
-"multi-document transactions" using a two-phase commit approach for
-writing data to multiple documents. Additionally, you can extend this
-process to provide a :ref:`rollback-like <2-phase-commits-rollback>`
-functionality.
+Starting in version 4.0, MongoDB provides :doc:`multi-document
+transactions </core/transactions>` for replica sets.
+
+This document provides an alternative pattern for doing multi-document
+updates using a two-phase commit approach for writing data to multiple
+documents. Additionally, you can extend this process to provide a
+:ref:`rollback-like <2-phase-commits-rollback>` functionality.
 
 Background
 ----------
 
 Operations on a single :term:`document` are always atomic with MongoDB
-databases; however, operations that involve multiple documents, which
-are often referred to as "multi-document transactions", are not atomic.
-Since documents can be fairly complex and contain multiple "nested"
-documents, single-document atomicity provides the necessary support for
-many practical use cases.
+databases. Since documents can be fairly complex and contain multiple
+"nested" documents, single-document atomicity provides the necessary
+support for many practical use cases.
 
 Despite the power of single-document atomic operations, there are cases
 that require multi-document transactions. When executing a transaction
@@ -41,20 +41,22 @@ composed of sequential operations, certain issues arise, such as:
   the transaction, the database must be able to recover a consistent
   state.
 
-For situations that require multi-document transactions, you can
-implement two-phase commit in your application to provide support for
-these kinds of multi-document updates. Using two-phase commit ensures
-that data is consistent and, in case of an error, the state that
-preceded the transaction is :ref:`recoverable
+.. include:: /includes/extracts/transactions-intro.rst
+
+For situations that require multi-document transactions but are not
+suitable for :doc:`multi-document transactions </core/transactions>`,
+you can implement two-phase commit in your application to provide
+support for these kinds of multi-document updates. Using two-phase
+commit ensures that data is consistent and, in case of an error, the
+state that preceded the transaction is :ref:`recoverable
 <2-phase-commits-rollback>`. During the procedure, however, documents
 can represent pending data and states.
 
-.. note::
+.. warning::
 
-   Because only single-document operations are atomic with MongoDB,
-   two-phase commits can only offer transaction-*like* semantics. It is
-   possible for applications to return intermediate data at
-   intermediate points during the two-phase commit or rollback.
+   Using this procedure, it is possible for applications to return
+   intermediate data at intermediate points during the two-phase commit
+   or rollback.
 
 Pattern
 -------

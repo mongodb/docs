@@ -40,7 +40,15 @@ Security
 
 If running with :doc:`auditing </core/auditing>`, operations in an
 aborted transaction are still audited.
-  
+
+Retryable
+~~~~~~~~~
+
+If the abort operation encounters an error, MongoDB drivers retry the
+abort operation a single time regardless of whether
+:urioption:`retryWrites` is set to ``true``. For more information, see
+:ref:`transactions-retry`.
+
 Example
 -------
 
@@ -81,26 +89,67 @@ or in committing the transaction, the session aborts the transaction.
 
 .. code-block:: javascript
 
+   // Runs the txnFunc and retries if TransientTransactionError encountered
+
+   function runTransactionWithRetry(txnFunc, session) {
+       while (true) {
+           try {
+               txnFunc(session);  // performs transaction
+               break;
+           } catch (error) {
+               // If transient error, retry the whole transaction
+               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes("TransientTransactionError")  ) {
+                   print("TransientTransactionError, retrying transaction ...");
+                   continue;
+               } else {
+                   throw error;
+               }
+           }
+       }   
+   }
+
+   // Retries commit if UnknownTransactionCommitResult encountered
+
+   function commitWithRetry(session) {
+       while (true) {
+           try {
+               session.commitTransaction(); // Uses write concern set at transaction start.
+               print("Transaction committed.");
+               break;
+           } catch (error) {
+               // Can retry commit
+               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes("UnknownTransactionCommitResult") ) {
+                   print("UnknownTransactionCommitResult, retrying commit operation ...");
+                   continue;
+               } else {
+                   print("Error during commit ...");
+                   throw error;
+               }
+          }
+       }
+   }
+
+   // Performs inserts and count in a transaction 
    function updateEmployeeInfo(session) {
       employeesCollection = session.getDatabase("hr").employees;
       eventsCollection = session.getDatabase("reporting").events;
 
-      try{
-         // Start a transaction for the session that uses:
-         // - read concern "snapshot" 
-         // - write concern "majority"
-         session.startTransaction( { 
-            readConcern: { level: "snapshot" }, 
-            writeConcern: { w: "majority" } 
-         } );
+      // Start a transaction for the session that uses:
+      // - read concern "snapshot" 
+      // - write concern "majority"
 
+      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+      try{
          eventsCollection.insertOne( 
             { employee: 3, status: { new: "Active", old: null },  department: { new: "XYZ", old: null } }
          );
 
          // Count number of events for employee 3
-         var count = eventsCollection.find( { employee: 3 } ).count();
-         print( "events count (in active transaction): " + count );
+
+         var countDoc = eventsCollection.aggregate( [ { $match:  { employee: 3 } }, { $count: "eventCounts" } ] ).next();
+
+         print( "events count (in active transaction): " + countDoc.eventCounts );
 
          // The following operations should fail as an employee ``3`` already exist in employees collection
          employeesCollection.insertOne( 
@@ -108,25 +157,25 @@ or in committing the transaction, the session aborts the transaction.
          ); 
       } catch (error) {
          print("Caught exception during transaction, aborting.");
-         session.abortTransaction();  // Uses write concern "majority"
+         session.abortTransaction();
          throw error;
       }
 
-      session.commitTransaction(); // Uses write concern "majority"
+      commitWithRetry(session);
 
    } // End of updateEmployeeInfo function
 
    // Start a session.
-   session = db.getMongo().startSession( { mode: "primary" });
+   session = db.getMongo("myRepl/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017").startSession( { mode: "primary" } );
 
-   try {
-      // call the employeeEvents function
-      updateEmployeeInfo(session);
+   try{
+      runTransactionWithRetry(updateEmployeeInfo, session);
    } catch (error) {
-      print("Caught exception during transaction.");
+      // Do something with error
+   } finally {
+      session.endSession();
    }
 
-   session.endSession();
 
 .. seealso::
 

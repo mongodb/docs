@@ -8,12 +8,14 @@
 
    * - :method:`db.collection.aggregate()` 
      - :dbcommand:`aggregate`
-     - 
-   
-   * - :method:`cursor.count()`
-     - :dbcommand:`count`
-     - 
+     - Excluding the following stages:
 
+       - :pipeline:`$collStats`
+       - :pipeline:`$currentOp`
+       - :pipeline:`$indexStats`
+       - :pipeline:`$listLocalSessions`
+       - :pipeline:`$listSessions`
+       - :pipeline:`$out`
 
    * - :method:`db.collection.distinct()`
      - :dbcommand:`distinct`
