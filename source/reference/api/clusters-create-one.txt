@@ -150,8 +150,8 @@ Request Body Parameters
      - The physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
-       |service| ignores this value if you pass the
-       ``replicationSpec`` document.
+       Do *not* specify this field when creating a multi-region cluster
+       using the ``replicationSpec`` document.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -340,6 +340,9 @@ Request Body Parameters
        The number of :term:`replica set` members. Each member keeps a copy of
        your databases, providing high availability and data redundancy.
 
+       Do *not* specify this field when creating a multi-region cluster
+       using the ``replicationSpec`` document.
+
        If your cluster is a sharded cluster, each shard is a replica set with
        the specified replication factor.
 
@@ -366,9 +369,8 @@ Request Body Parameters
        ``providerSettings.regionName`` and ``replicationFactor``, *or* you can
        use the ``replicationSpec`` document to define a single region.
 
-       If you specify ``replicationSpec``, |service| overrides any values you
-       specify to the ``providerSettings.regionName`` or ``replicationFactor``
-       field with values derived from ``replicationSpec``.
+       For multi-region clusters, omit the 
+       ``providerSettings.regionName`` field.
 
        .. important::
 
@@ -384,7 +386,8 @@ Request Body Parameters
        
        Each ``<region>`` document describes the region's priority in
        elections and the number and type of MongoDB nodes |service| deploys
-       to the region.
+       to the region. You must order each ``<region>`` by 
+       ``replicationSpec.priority`` descending.
 
        You must specify at least one ``replicationSpec.<region>`` document.
 
@@ -430,14 +433,27 @@ Request Body Parameters
      - integer
      - *Required*
 
-       The election priority of the region. The highest possible priority is
-       ``7``, which identifies the **Preferred Region** of the cluster.
-       |service| places the :term:`primary` node in the **Preferred Region**.
-       The lowest possible priority is ``0``, which identifies a read only region.
+       The election priority of the region. For regions with only
+       ``replicationSpec.<region>.readOnlyNodes``, set this value to 
+       ``0``.
 
-       You can have any number of priority ``0`` read only regions. 
-       Priorities ``1`` through ``7`` are exclusive - no more than one
-       region per cluster can be assigned a given priority.
+       For regions where ``replicationSpec.<region>.electableNodes`` 
+       is at least ``1``, each ``replicationSpec.<region>`` must have 
+       a priority of exactly one **(1)** less than the previous region. 
+       The first region **must** have a priority of ``7``. The lowest 
+       possible priority is ``1``.
+
+       The priority ``7`` region identifies the **Preferred Region** of 
+       the cluster. |service| places the :term:`primary` node in the 
+       **Preferred Region**.  Priorities ``1`` through ``7`` are 
+       exclusive - no more than one region per cluster can be assigned 
+       a given priority. 
+
+       For example, if you have three regions, their 
+       priorities would be ``7``, ``6``, and ``5`` respectively.
+       If you added two more regions for supporting electable nodes,
+       the priorities of those regions would be ``4`` and ``3`` 
+       respectively.
 
    * - ``replicationSpec.<region>.readOnlyNodes``
      - integer

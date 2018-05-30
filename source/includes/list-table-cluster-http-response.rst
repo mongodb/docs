@@ -172,6 +172,9 @@
      - The physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
+       For multi-region clusters, see
+       ``replicationSpec.<region>``.
+
        .. include:: /includes/fact-group-region-association.rst
 
        .. list-table::
@@ -254,6 +257,10 @@
      - number
      - The number of :term:`replica set` members. Each member keeps a copy of
        your databases, providing high availability and data redundancy.
+
+       For multi-region clusters, add the total number of 
+       ``replicationSpec.<region>.electableNodes`` to calculate the
+       replication factor of the cluster.
 
        If your cluster is a sharded cluster, each shard is a replica set with
        the specified replication factor.
