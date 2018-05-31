@@ -23692,8 +23692,10 @@
 			},
 	
 			h: function hydrate() {
+				a.id = "rate-up";
 				a.className = "deluge-vote-button";
 				addListener(a, "click", click_handler);
+				a_1.id = "rate-down";
 				a_1.className = "deluge-vote-button";
 				addListener(a_1, "click", click_handler_1);
 			},
