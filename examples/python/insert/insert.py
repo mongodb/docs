@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from pprint import pprint
 import json
 
-connection_string = "mongodb://testuser:<PASSWORD>@localhost:27017/test?authSource=admin"
+connection_string = "mongodb://<USERNAME>:<PASSWORD>@localhost:27017/test?authSource=admin"
 client = MongoClient(connection_string)
 # End Connection
 
@@ -12,11 +12,14 @@ db = client.test
 # End DatabaseBind
 
 # Start InsertOne
+# Subdocument key order matters in a few of these examples so we have
+# to use bson.son.SON instead of a Python dict.
+from bson.son import SON
 db.inventory.insert_one(
     {"item": "canvas",
      "qty": 101,
      "tags": ["cotton"],
-     "size": {"h": 28, "w": 35.5, "uom": "cm"}})
+     "size": SON({"h": 28, "w": 35.5, "uom": "cm"})})
 # End InsertOne
 
 cursor = db.inventory.find({})
