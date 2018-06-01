@@ -14,48 +14,159 @@ Cloud Provider Snapshots
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-.. important::
+|service| Cloud Provider Snapshots provide 
+localized backup storage using the native snapshot functionality of the 
+cluster's cloud service provider.
 
-   :ref:`Azure <microsoft-azure>`-backed clusters only.
+|service| only supports cloud provider snapshots for 
+:ref:`Microsoft Azure <microsoft-azure>` or 
+:ref:`Amazon Web Services (AWS) <amazon-aws>` backed replica sets. 
 
-|service| cloud provider backup service takes full-copy snapshots
-of data in your cluster and allows you to restore from those stored
-snapshots.
-   
-|service| only supports cloud provider snapshots on  
-:term:`replica set` clusters.
+A project using the |service| Cloud Provider Snapshots
+*cannot* create backups of sharded clusters *or* any cluster hosted
+on :ref:`Google Cloud Provider (GCP) <google-gcp>`.
 
-Enable Backup
--------------
 
-You can enable backup during the 
+You can enable cloud provider snapshots during the 
 :doc:`cluster creation </create-new-cluster>` or during the 
 :doc:`modification of an existing cluster </scale-cluster>`. 
 From the cluster configuration modal, toggle 
 ``Do you want to enable backup?`` to ``Yes`` and select the
 :guilabel:`Cloud Provider Snapshots` card.
 
-.. include:: /includes/fact-backup-method-selection.rst
+.. include:: /includes/extracts/backup-selection-cloud-provider.rst
 
-.. warning::
+Single Region Cluster Backups
+-----------------------------
 
-   |service| only supports cloud provider backups for 
-   :ref:`Azure <microsoft-azure>`-backed replica sets. 
-   A project with cloud provider backups
-   *cannot* provide snapshot backups of sharded clusters *or* clusters
-   backed by other cloud service providers.
+.. tabs::
 
-.. _cloud-provider-snapshot-storage-location:
+     tabs:
+  
+     - id: azure
+       name: Azure
+       content: |
+  
+         |service| always selects the :term:`primary` member of the
+         replica set for backup snapshots. |service| stores the 
+         snapshots in the same cloud region as the cluster. |service| 
+         retains snapshots based on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
 
-Snapshot Storage Location
--------------------------
+         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
 
-|service| cloud provider snapshots are stored in the same region as the
-corresponding cluster. For multi-region clusters, snapshots are
-stored in the cluster's preferred region.
+         If that member steps down
+         to a :term:`secondary`, |service| changes the snapshot
+         target to the current :term:`primary`.
 
-|service| retains these snapshots based on the :ref:`retention policy
-<cloud-provider-retention-policy>`.
+         .. include:: /images/cloud-provider-snapshot-single-region-moved-primary.rst
+  
+     - id: aws
+       name: AWS
+       content: |
+  
+         |service| selects the :term:`primary` member of the replica 
+         set *at the time you enable backups for the cluster* for backup 
+         snapshots. |service| stores the snapshots in the same
+         cloud region as the cluster. |service| retains snapshots based 
+         on the :ref:`retention policy <cloud-provider-retention-policy>`.
+
+         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
+
+         |service| continues to use that member and its 
+         corresponding region for snapshots and snapshot storage, even 
+         if that member is no longer the primary.
+
+         .. include:: /images/cloud-provider-snapshot-single-region-secondary.rst
+
+         |service| automatically creates a new snapshot storage volume 
+         if the existing snapshot storage volume becomes invalid. 
+         |service| creates the new volume in the same region as the 
+         cluster's current primary. |service| then takes a full-copy 
+         snapshot to maintain backup availability and continues using 
+         that member and its corresponding region for further 
+         incremental snapshots.
+
+         Events that can trigger storage invalidation include:
+
+         - Changing the |service| cluster instance size,
+         - Modifying the |service| cluster's storage volume or speed,
+         - Changing the |service| cluster's :abbr:`AWS (Amazon Web Services)` region, and
+         - Maintenance performed by |service| or :abbr:`AWS (Amazon Web Services)`.
+  
+         To manually reset the snapshot target and storage, disable and 
+         re-enable backups for the cluster. Disabling |service| backups 
+         removes all snapshots for the cluster. 
+         For more information on snapshot retention, see
+         :ref:`cloud-provider-retention-policy`.
+
+Multi-Region Cluster Backups
+----------------------------
+
+.. tabs::
+
+     tabs:
+  
+     - id: azure
+       name: Azure
+       content: |
+  
+         |service| always selects the :term:`primary` member of the
+         replica set for backup snapshots. |service| stores snapshots
+         in the same region as the primary member. |service| retains 
+         snapshots based on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
+
+         If that member steps down
+         to a :term:`secondary`, |service| changes the snapshot
+         target to the current :term:`primary`.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-moved-primary.rst
+
+         |service| stores subsequent snapshots in the region of the
+         new primary member.
+  
+     - id: aws
+       name: AWS
+       content: |
+  
+         |service| selects the :term:`primary` member of the replica 
+         set *at the time you enable backups for the cluster* for backup 
+         snapshots. |service| stores snapshots in the same region as
+         the primary member. |service| retains snapshots based on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
+
+         If the member steps down to a :term:`secondary`, |service|
+         continues to use that member for snapshots. |service|
+         continues storing snapshots in the same region as that member,
+         even if the primary is in a different region.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-secondary.rst
+
+         |service| automatically creates a new snapshot storage volume 
+         if the existing snapshot storage volume becomes invalid. 
+         |service| creates the new volume in the same region as the 
+         cluster's current primary. |service| then takes a full-copy 
+         snapshot to maintain backup availability and continues using 
+         that member and its corresponding region for further 
+         incremental snapshots.
+
+         Events that can trigger storage invalidation include:
+
+         - Changing the |service| cluster instance size,
+         - Modifying the |service| cluster's storage volume or speed,
+         - Changing the |service| cluster's :abbr:`AWS (Amazon Web Services)` region, and
+         - Maintenance performed by |service| or :abbr:`AWS (Amazon Web Services)`.
+  
+         To manually reset the snapshot target and storage, disable and 
+         re-enable backups for the cluster. Disabling |service| backups 
+         removes all snapshots for the cluster. 
+         For more information on snapshot retention, see
+         :ref:`cloud-provider-retention-policy`.
 
 .. _cloud-provider-backup-schedule:
 
