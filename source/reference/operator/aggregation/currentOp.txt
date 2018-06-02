@@ -39,61 +39,84 @@ Definition
    transformations of the results as the documents pass through the 
    pipeline.
 
-   :pipeline:`$currentOp` takes an options document as its operand.
+   :pipeline:`$currentOp` takes an options document as its operand:
+
+   .. versionchanged:: 4.0
 
    .. code-block:: javascript
 
-      { $currentOp: { allUsers: <boolean>, idleConnections: <boolean>, idleSessions: <boolean> } }
+      { $currentOp: { allUsers: <boolean>, idleConnections: <boolean>, idleSessions: <boolean>, localOps: <boolean> } }
 
-   Specify an empty document to use the default values.
-
-Behavior
---------
-
-.. list-table::
-   :header-rows: 1
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
  
-   * - Option
-     - Description
+      * - Option
+        - Description
 
-   * - ``allUsers``
+      * - ``allUsers``
 
-     - Boolean. If set to ``false``, :pipeline:`$currentOp` will only
-       report operations belonging to the user who ran the command. If
-       set to ``true``, :pipeline:`$currentOp` will report operations
-       belonging to all users.
+        - Boolean. If set to ``false``, :pipeline:`$currentOp` will only
+          report operations belonging to the user who ran the command. If
+          set to ``true``, :pipeline:`$currentOp` will report operations
+          belonging to all users.
 
-       .. note::
+          .. note::
 
-          The ``inprog`` privilege is necessary to run 
-          :pipeline:`$currentOp` with ``{ allUsers : true }``.
+             The ``inprog`` privilege is necessary to run 
+             :pipeline:`$currentOp` with ``{ allUsers : true }``.
 
-       Defaults to ``false``.
+          Defaults to ``false``.
 
-   * - ``idleConnections``
-     - Boolean. If set to ``false``, :pipeline:`$currentOp` will 
-       only report active operations. If set to ``true``, all 
-       operations including idle connections will be returned.
+      * - ``idleConnections``
+        - Boolean. If set to ``false``, :pipeline:`$currentOp` will 
+          only report active operations. If set to ``true``, all 
+          operations including idle connections will be returned.
 
-       Defaults to ``false``.
+          Defaults to ``false``.
 
-   * - ``idleSessions``
+      * - ``idleSessions``
 
-     - Boolean. If set to ``true``, then in addition to reporting on
-       the active/dormant operations, :pipeline:`$currentOp` returns
-       information on inactive sessions that are holding locks as part
-       of a transaction. Each inactive session will appear as a
-       separate document in the ``$currentOp`` stream.
+        - Boolean. If set to ``true``, then in addition to reporting on
+          the active/dormant operations, :pipeline:`$currentOp` returns
+          information on inactive sessions that are holding locks as part
+          of a transaction. Each inactive session will appear as a
+          separate document in the ``$currentOp`` stream.
 
-       The document for a session includes information on the session
-       id ``lsid`` and the transaction number ``txnNumber``.
+          The document for a session includes information on the session
+          id ``lsid`` and the transaction number ``txnNumber``.
 
-       If set to ``false``, :pipeline:`$currentOp` will not report on
-       inactive sessions.
+          If set to ``false``, :pipeline:`$currentOp` will not report on
+          inactive sessions.
 
-       Defaults to ``true``.
+          Defaults to ``true``.
 
-       .. versionadded:: 4.0
+          .. versionadded:: 4.0
+
+      * - ``localOps``
+
+        - Boolean. If set to ``true`` for an aggregation running on
+          :binary:`~bin.mongos`, :pipeline:`$currentOp` reports only
+          those operations running locally on that
+          :binary:`~bin.mongos`. If ``false``, then the
+          :pipeline:`$currentOp` will instead report operations running
+          on the shards. 
+
+          The ``localOps`` parameter has no effect for
+          :pipeline:`$currentOp` aggregations running on
+          :binary:`~bin.mongod`.
+
+          Defaults to ``false``.
+
+          .. versionadded:: 4.0
+
+   Omitting any of the above parameters will cause $currentOp to use
+   that parameter's default value. Specify an empty document, as shown
+   below, to use the default values of all parameters.
+
+   .. code-block:: javascript
+
+      { $currentOp: { } }
 
 Constraints
 -----------
@@ -186,6 +209,12 @@ relevant for the operation:
 
    The name of the host against which the operation is run.
 
+.. data:: $currentOp.shard
+
+   The name of the shard where the operation is running.
+
+   Only present for sharded clusters.
+
 .. data:: $currentOp.desc
 
    A description of the operation.
@@ -199,6 +228,15 @@ relevant for the operation:
 
    The IP address (or hostname) and the ephemeral port of the client
    connection where the operation originates.
+
+   *For standalone and replica sets only*
+
+.. data:: $currentOp.client_s
+
+   The IP address (or hostname) and the ephemeral port of the
+   :binary:`~bin.mongos` where the operation originates.
+
+   *For sharded clusters only*
 
 .. data:: $currentOp.clientMetadata
 
@@ -391,3 +429,4 @@ relevant for the operation:
 
       Number of times the operation encountered deadlocks while waiting
       for lock acquisitions.
+
