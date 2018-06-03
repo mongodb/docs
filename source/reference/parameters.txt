@@ -1249,6 +1249,21 @@ Replication Parameters
 Sharding Parameters
 ~~~~~~~~~~~~~~~~~~~
 
+.. parameter:: AsyncRequestsSenderUseBaton
+
+   Type: boolean
+
+   Default: true
+
+   A flag that enables performance optimization on Linux for
+   scatter/gather operations on :binary:`~bin.mongos` when using a
+   single :parameter:`Task Executor connection pool
+   <taskExecutorPoolSize>`.
+
+   .. seealso:: :parameter:`taskExecutorPoolSize`
+
+   .. versionadded:: 4.0
+
 .. parameter:: recoverShardingState
 
    |mongod-only|
@@ -1468,15 +1483,32 @@ Sharding Parameters
 
 .. parameter:: taskExecutorPoolSize
 
+   .. versionchanged:: 4.0
+
    Type: integer
 
-   Default: Number of cores
+   Default: 1
+
 
    |mongos-only|
 
    The number of Task Executor connection pools to use for a given
-   :binary:`~bin.mongos`. The parameter has a minimum value of ``4`` and a
-   maximum value of ``64``.
+   :binary:`~bin.mongos`.
+
+   If the parameter value is ``0`` or less, the number of Task Executor
+   connection pools is the number of cores with the following
+   exceptions:
+
+   - If the number of cores is less than 4, the number of Task Executor
+     connection pools is 4.
+
+   - If the number of cores is greater than 64, the number of Task
+     Executor connection pools is 64.
+
+   Starting in MongoDB 4.0, the default value of
+   :parameter:`taskExecutorPoolSize` is ``1``. For the previous
+   behavior, set :parameter:`taskExecutorPoolSize` to 0 and, on Linux,
+   set :parameter:`AsyncRequestsSenderUseBaton` to ``false``.
 
    You can only set this parameter during start-up and cannot change
    this setting using the :dbcommand:`setParameter` database command.
@@ -1490,6 +1522,7 @@ Sharding Parameters
       - :parameter:`ShardingTaskExecutorPoolMaxSize`
 
       - :parameter:`ShardingTaskExecutorPoolMinSize`
+
 
 .. parameter:: orphanCleanupDelaySecs
 
