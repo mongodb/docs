@@ -3,7 +3,7 @@ repository. This repository contains the following packages:
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 75
+   :widths: 30 75
 
    * - Package Name
      - Description

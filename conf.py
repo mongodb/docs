@@ -77,6 +77,7 @@ source_constants = {
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
+    'release': release,
     'pgp-version': '4.0',
     'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
 }
