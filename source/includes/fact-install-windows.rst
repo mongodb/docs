@@ -3,13 +3,13 @@ typically is located in the default ``Downloads`` folder. Double-click
 the ``.msi`` file. The Windows Installer guides you through the
 installation process.
 
-You may specify an installation directory if you choose the "Custom"
-installation option.
+You may specify an installation directory if you choose the 
+:guilabel:`Custom` installation option.
 
 .. note::
 
    These instructions assume that you have installed MongoDB
-   to ``C:\Program Files\MongoDB\Server\3.6\``.
+   to ``C:\Program Files\MongoDB\Server\{+version+}\``.
 
 During the installation process you will be given the option to install
 :ref:`MongoDB Compass <compass-index>` in addition to MongoDB Server.
