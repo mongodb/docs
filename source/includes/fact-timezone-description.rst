@@ -8,7 +8,7 @@ If no ``timezone`` is provided, the result is displayed in ``UTC``.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 30 70
 
    * - ``Format``
      - ``Examples``
