@@ -66,7 +66,7 @@ Output
    For the :dbcommand:`serverStatus` output specific to the version of
    your MongoDB, refer to the appropriate version of the MongoDB Manual.
 
-.. include:: /includes/extracts/serverStatus-command-output-change-v3.0.rst
+.. include:: /includes/extracts/serverStatus-command-output-change.rst
 
 .. _server-status-instance-information:
 
@@ -616,7 +616,7 @@ logicalSessionRecordCache
 .. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobEntriesEnded"
 
    The number of sessions that ended during the last refresh.
- 
+
 .. serverstatus:: logicalSessionRecordCache.lastSessionsCollectionJobCursorsClosed"
 
    The number of cursors that were closed during the last
@@ -1205,7 +1205,7 @@ sharding
    the shard member has seen. The optime document includes:
 
    .. include:: /includes/fact-optime.rst
-   
+
    The :serverstatus:`~sharding.lastSeenConfigServerOpTime` is present
    only if the sharded cluster uses CSRS.
 
@@ -1217,6 +1217,142 @@ sharding
    the chunk size has been updated recently on the config server, the
    :serverstatus:`~sharding.maxChunkSizeInBytes` may not reflect the
    most recent value.
+
+.. _server-status-sharding-statistics:
+
+shardingStatistics
+~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+.. code-block:: javascript
+
+   "shardingStatistics" : {
+      "countStaleConfigErrors" : NumberLong(<num>),
+      "countDonorMoveChunkStarted" : NumberLong(<num>),
+      "totalDonorChunkCloneTimeMillis" : NumberLong(<num>),
+      "totalCriticalSectionCommitTimeMillis" : NumberLong(<num>),
+      "totalCriticalSectionTimeMillis" : NumberLong(<num>),
+      "catalogCache" : {
+         "numDatabaseEntries" : NumberLong(<num>),
+         "numCollectionEntries" : NumberLong(<num>),
+         "countStaleConfigErrors" : NumberLong(<num>),
+         "totalRefreshWaitTimeMicros" : NumberLong(<num>),
+         "numActiveIncrementalRefreshes" : NumberLong(<num>),
+         "countIncrementalRefreshesStarted" : NumberLong(<num>),
+         "numActiveFullRefreshes" : NumberLong(<num>),
+         "countFullRefreshesStarted" : NumberLong(<num>),
+         "countFailedRefreshes" : NumberLong(<num>)
+      }
+   },
+
+.. serverstatus:: shardingStatistics
+
+   A document which contains metrics on metadata refresh on sharded
+   clusters.
+
+.. serverstatus:: shardingStatistics.countStaleConfigErrors
+
+   The total number of times that threads hit stale config exception.
+   Since a stale config exception triggers a refresh of the metadata,
+   this number is roughly proportional to the number of metadata
+   refreshes.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.countDonorMoveChunkStarted
+
+   The total number of times that the :dbcommand:`moveChunk` command
+   has started on the shard, of which this node is a member, as part of
+   a :ref:`chunk migration process <chunk-migration-procedure>`. This
+   increasing number does not consider whether the chunk migrations
+   succeed or not.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalDonorChunkCloneTimeMillis
+
+   The cumulative time, in milliseconds, taken by the :ref:`clone phase
+   of the chunk migrations <chunk-migration-procedure>` from this
+   shard, of which this node is a member. Specifically, for each
+   migration from this shard, the tracked time starts with the
+   :dbcommand:`moveChunk` command and ends before the destination shard
+   enters a catch-up phase to apply changes that occurred during the
+   :ref:`chunk migrations <chunk-migration-procedure>`.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalCriticalSectionCommitTimeMillis
+
+   The cumulative time, in milliseconds, taken by the :ref:`update
+   metadata phase of the chunk migrations <chunk-migration-procedure>`
+   from this shard, of which this node is a member. During the update
+   metadata phase, all operations on the collection are blocked.
+
+   *Only present when run on a shard.*
+
+.. serverstatus:: shardingStatistics.totalCriticalSectionTimeMillis
+
+   The cumulative time, in milliseconds, taken by the :ref:`catch-up
+   phase and the update metadata phase of the chunk migrations
+   <chunk-migration-procedure>` from this shard, of which this node is
+   a member.
+
+   To calculate the duration of the catch-up phase, subtract
+   :serverstatus:`~shardingStatistics.totalCriticalSectionCommitTimeMillis` from
+   :serverstatus:`~shardingStatistics.totalCriticalSectionTimeMillis`
+
+   .. code-block:: none
+
+      totalCriticalSectionTimeMillis - totalCriticalSectionCommitTimeMillis
+
+   Only present when run on a shard.
+
+.. serverstatus:: shardingStatistics.catalogCache
+
+   A document with statistics about the cluster's routing information cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.numDatabaseEntries
+
+   The total number of database entries that are currently in the
+   catalog cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.numCollectionEntries
+
+   The total number of collection entries (across all databases) that
+   are currently in the catalog cache.
+
+.. serverstatus:: shardingStatistics.catalogCache.countStaleConfigErrors
+
+   The total number of times that threads hit stale config exception. A
+   stale config exception triggers a refresh of the metadata.
+
+.. serverstatus:: shardingStatistics.catalogCache.totalRefreshWaitTimeMicros
+
+   The cumulative time, in microseconds, that threads had to wait for a
+   refresh of the metadata.
+
+.. serverstatus:: shardingStatistics.catalogCache.numActiveIncrementalRefreshes
+
+   The number of incremental catalog cache refreshes that are currently
+   waiting to complete.
+
+.. serverstatus:: shardingStatistics.countIncrementalRefreshesStarted
+
+   The cumulative number of incremental refreshes that have started.
+
+.. serverstatus:: shardingStatistics.catalogCache.numActiveFullRefreshes
+
+   The number of full catalog cache refreshes that are currently
+   waiting to complete.
+
+.. serverstatus:: shardingStatistics.catalogCache.countFullRefreshesStarted
+
+   The cumulative number of full refreshes that have started.
+
+.. serverstatus:: shardingStatistics.catalogCache.countFailedRefreshes
+
+   The cumulative number of full or incremental refreshes that have failed.
 
 .. _server-status-storage-engine:
 
