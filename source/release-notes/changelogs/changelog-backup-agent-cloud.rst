@@ -1,3 +1,12 @@
+.. _backup-6.8.1.996:
+
+Backup Agent 6.8.1.996
+----------------------
+
+*Released 2018-06-04*
+
+- Fix deadlock in underlying Go driver.
+
 .. _backup-6.8.0.993:
 
 Backup Agent 6.8.0.993

@@ -1,3 +1,12 @@
+.. _monitoring-6.6.1.462:
+
+Monitoring Agent 6.6.1.462
+--------------------------
+
+*Released 2018-06-04*
+
+- Fix deadlock in underlying Go driver.
+
 .. _monitoring-6.6.0.460:
 
 Monitoring Agent 6.6.0.460
