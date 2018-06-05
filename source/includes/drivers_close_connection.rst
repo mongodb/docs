@@ -4,14 +4,7 @@
          
      - id: python
        content: |
-         
-         When you are done working with your MongoDB data, close your
-         connection to MongoDB:
 
-         .. code-block:: python
-
-            client.close()
-         
      - id: motor
        content: |
 
