@@ -33,6 +33,18 @@
             :start-after: Start Example 12
             :end-before: End Example 12
 
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+            
+            async def do_retrieve_or():
+                cursor = db.inventory.find({"$or": [{"status": "A"}, {"qty": {"$lt": 30}}]})
+                async for doc in cursor:
+                    pprint.pprint(doc)
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_or())
+
      - id: java-sync
        content: |
          .. literalinclude:: /driver-examples/DocumentationSamples.java

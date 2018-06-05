@@ -33,12 +33,20 @@
             :start-after: Start Example 1
             :end-before: End Example 1
 
-         Run the loop:
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
          .. code-block:: python
          
+            async def do_insert_one():
+                document = await db.inventory.insert_one(
+                    {"item": "canvas",
+                     "qty": 100,
+                     "tags": ["cotton"],
+                     "size": {"h": 28, "w": 35.5, "uom": "cm"}})
+ 
             loop = asyncio.get_event_loop()
             loop.run_until_complete(do_insert_one())
-            loop.close()
 
      - id: java-sync
        content: |

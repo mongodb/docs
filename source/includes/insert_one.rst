@@ -52,10 +52,11 @@
 
      - id: motor
        content: |
-         The following example inserts a new document into the
-         ``inventory`` collection. If the document does not specify
-         an ``_id`` field, the Motor driver adds the ``_id`` field
-         with an ObjectId value to the new document. See
+         
+         The following example shows the api call required to insert a
+         new document into the ``inventory`` collection. If the document
+         does not specify an ``_id`` field, the Motor driver adds the
+         ``_id`` field with an ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
 
      - id: java-sync
@@ -66,13 +67,13 @@
          ObjectId value to the new document. See
          :ref:`write-op-insert-behavior`.
 
-         First, bind to the ``inventory`` collection.
+         First, get the inventory collection.
 
          .. literalinclude:: /driver-examples/JavaConnectExample.java
             :language: java
             :dedent: 4
-            :start-after: Start Collection Bind
-            :end-before: End Collection Bind
+            :start-after: Start Collection
+            :end-before: End Collection
 
      #- id: java-async
      #  content: |

@@ -32,6 +32,20 @@
             :start-after: Start Example 17
             :end-before: End Example 17
 
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+
+            async def do_retrieve_embedded_dot():
+                cursor = db.inventory.find({"size.uom": "in"})
+                async for doc in cursor:
+                    pprint.pprint(doc)
+
+
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_embedded_dot())
+
      - id: java-sync
        content: |
        

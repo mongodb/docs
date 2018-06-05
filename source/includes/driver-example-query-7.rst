@@ -30,6 +30,18 @@
             :start-after: Start Example 7
             :end-before: End Example 7
 
+         For completeness, this is how you might wrap the call and run it in an asyncio loop:
+
+         .. code-block:: python
+            
+            async def do_find():
+                cursor = db.inventory.find({})
+                async for doc in cursor:
+                   pprint.pprint(doc)
+
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_find())
+
      - id: java-sync
        content: |
  

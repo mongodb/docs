@@ -33,6 +33,19 @@
             :dedent: 8
             :start-after: Start Example 18
             :end-before: End Example 18
+         
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+
+            async def do_retrieve_operator():
+                cursor = db.inventory.find({"size.h": {"$lt": 15}})
+                async for doc in cursor:
+                    pprint.pprint(doc)
+            
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_operator())    
 
      - id: java-sync
        content: |

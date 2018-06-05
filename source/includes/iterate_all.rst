@@ -38,18 +38,14 @@
 
      - id: motor
        content: |
+
+         In the code snippet above you may have noticed the code that
+         iterates the results and prints them to the command line:
          
          .. code-block:: python
 
             async for doc in cursor:
                 print(doc)
-
-         Run the loop:
-         
-         .. code-block:: python
-         
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(do_update_one())
 
      - id: java-sync
        content: |
@@ -57,21 +53,11 @@
 
          .. code-block:: java
          
-            Block<Document> printBlock = new Block<Document>() {
-                @Override
-                public void apply(final Document document) {
-                    System.out.println(document.toJson());
+            try (MongoCursor<Document> cursor = collection.find().iterator()) {
+                while (cursor.hasNext()) {
+                    System.out.println(cursor.next().toJson());
                 }
-            };
-         
-         
-            
-         Then iterate the cursor for documents, passing the
-         ``printBlock`` as a parameter.
-         
-         .. code-block:: java
-       
-            findIterable.forEach(printBlock);
+            }
 
      - id: nodejs
        content: |

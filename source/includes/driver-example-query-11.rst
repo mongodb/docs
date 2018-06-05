@@ -32,6 +32,18 @@
             :dedent: 8
             :start-after: Start Example 11
             :end-before: End Example 11
+ 
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+            
+            async def do_retrieve_implied_and():
+               cursor = db.inventory.find({"status": "A", "qty": {"$lt": 30}})
+               async for doc in cursor:
+                   pprint.pprint
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_implied_and())
 
      - id: java-sync
        content: |

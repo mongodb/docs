@@ -32,6 +32,19 @@
             :start-after: Start Example 9
             :end-before: End Example 9
 
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+
+            async def do_retrieve_status():
+                cursor = db.inventory.find({"status": "D"})
+                async for doc in cursor:
+                    åpprint.pprint(doc)
+            
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_status())
+
      - id: java-sync
        content: |
          

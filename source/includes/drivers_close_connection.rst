@@ -15,12 +15,6 @@
      - id: motor
        content: |
 
-         When you are done working with your MongoDB data, close your
-         connection to MongoDB:
-
-         .. code-block:: python
-
-            client.close()
 
      - id: java-sync
        content: |

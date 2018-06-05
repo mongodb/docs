@@ -36,6 +36,20 @@
             :start-after: Start Example 13
             :end-before: End Example 13
 
+         For completeness, this is how you might wrap this call and run
+         it with the asyncio event loop.
+
+         .. code-block:: python
+
+            async def do_retrieve_regex():
+                cursor = db.inventory.find({
+                       "status": "A",
+                       "$or": [{"qty": {"$lt": 30}}, {"item": {"$regex": "^p"}}]})
+                async for doc in cursor:
+                    pprint.pprint(doc)
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_retrieve_regex())
+
      - id: java-sync
        content: |
          .. literalinclude:: /driver-examples/DocumentationSamples.java

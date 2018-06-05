@@ -24,18 +24,14 @@
 
      - id: motor
        content: |
+
+         In the code snippet above you may have noticed the code that
+         iterates the results and prints them to the command line:
          
          .. code-block:: python
 
             async for doc in cursor:
                 print(doc)
-         
-         Run the loop:
-         
-         .. code-block:: python
-         
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(do_update_one())
 
      - id: java-sync
        content: |
