@@ -443,15 +443,33 @@
 
        Set to ``true`` to enable |service| 
        :doc:`continuous backups </backup/continuous-backups>` for the
-       cluster.
+       cluster. Defaults to ``false``.
 
-       Set to ``false`` to disable continuous backups for the cluster.
-       |service| deletes any stored snapshots. See the continuous
-       backup :ref:`retention-policy` for more information.
-
-       You cannot enable continuous backups if you have an 
+       You cannot enable continuous backups if you have an
        existing cluster in the project with 
-       :doc:`/backup/cloud-provider-snapshots` enabled.
+       ``providerBackupEnabled`` set to ``true``. 
+
+       ``backupEnabled`` is mutually exclusive with 
+       ``providerBackupEnabled``. |service| returns an error if both
+       ``backupEnabled`` and ``providerBackupEnabled`` are ``true``.
+
+   * - ``providerBackupEnabled``
+     - Boolean
+     - *Optional*
+
+       Only valid for clusters where
+       ``providerSettings.providerName`` is ``AWS`` or ``AZURE``.
+
+       Set to ``true`` to enable |service| :ref:`backup-cloud-provider`
+       for the cluster. Defaults to ``false``.
+
+       You cannot enable cloud provider snapshots if you have an 
+       existing cluster in the project with ``backupEnabled`` set to 
+       ``true``. 
+
+       ``providerBackupEnabled`` is mutually exclusive with
+       ``backupEnabled``.  |service| returns an error if both
+       ``providerbackupEnabled`` and ``backupEnabled`` are ``true``.
 
    * - ``biConnector``
      - document

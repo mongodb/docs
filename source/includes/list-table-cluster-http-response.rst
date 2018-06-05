@@ -330,6 +330,30 @@
      - The number of read-only nodes in the region. Read-only nodes can never
        become the :term:`primary`, but can facilitate local-reads.
 
+   * - ``diskSizeGB``
+     - double
+     - ** AWS / GCP Only ** The size in gigabytes of the server's root 
+       volume. You can add capacity by increasing this number, up to a 
+       maximum possible value of ``4096`` (i.e., 4 TB).
+
+       Each instance size has its own default value. To view default values:
+       open the |service| web interface; click the button to add a new
+       cluster; view the available default sizes; close the window without
+       saving changes.
+
+   * - ``backupEnabled``
+     - Boolean
+     - If ``true``, the cluster uses |service| :ref:`backup-continuous`
+       for backing up cluster data. If ``backupEnabled`` and 
+       ``providerBackupEnabled`` are ``false``, the cluster does not 
+       use |service| backups.
+
+   * - ``providerBackupEnabled``
+     - Boolean
+     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for 
+       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` are
+       ``false``, the cluster does not use |service| backups.
+
    * - ``stateName``
      - string
      - The current state of the cluster. The possible
