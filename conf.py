@@ -41,7 +41,9 @@ extensions = [
     'testcode',
     'tabs',
     'markdown',
-    'fasthtml'
+    'fasthtml',
+    'source_constants',
+    'icon'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
