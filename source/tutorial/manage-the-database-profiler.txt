@@ -114,7 +114,7 @@ current database to ``1`` and sets the slow operation threshold for the
 .. important::
    The slow operation threshold applies to all databases in a
    :binary:`~bin.mongod` instance. It is used by both the database profiler
-   and the system log and should be set to the highest useful value to
+   and the diagnostic log [#mongos-systemlog]_ and should be set to the highest useful value to
    avoid performance degradation.
 
 Profile a Random Sample of Slow Operations
@@ -128,8 +128,9 @@ desired sample rate in one of the following ways:
 - Set the value of ``sampleRate`` using the :dbcommand:`profile` command
   or :method:`db.setProfilingLevel()` shell helper method.
 
-- Set the value of :option:`--slowOpSampleRate <mongod --slowOpSampleRate>` from the command line at
-  startup.
+- Set the value of :option:`--slowOpSampleRate <mongod --slowOpSampleRate>` 
+  for :binary:`~bin.mongod` or :option:`--slowOpSampleRate <mongos --slowOpSampleRate>`
+  for :binary:`~bin.mongos` from the command line at startup.
 
 - Set the value of :setting:`~operationProfiling.slowOpSampleRate` in a
   :ref:`configuration file <configuration-options>`.
@@ -149,10 +150,23 @@ current database to ``1`` and sets the profiler to sample 42% of all *slow* oper
 .. important::
    The sample rate value applies to all databases in a
    :binary:`~bin.mongod` instance. It is used by both the database profiler
-   and the system log.
+   and the system log. [#mongos-systemlog]_
 
 .. important::
    .. include:: /includes/fact-log-slow-queries.rst
+
+.. |replace| binary:: :binary:`~bin.mongod` or :binary:`~bin.mongos`
+
+.. [#mongos-systemlog]
+
+   Starting in MongoDB 4.0, you can use
+   :method:`db.setProfilingLevel()` to configure``slowms`` and
+   ``sampleRate`` for :binary:`~bin.mongos`. The ``slowms`` and
+   ``sampleRate`` configuration settings only affect the diagnostic log and
+   not the profiler since profiling is not available on
+   :binary:`~bin.mongos`.
+
+   See :ref:`db-profiling-sharding`.
 
 .. _database-profiling-view-status:
 .. _database-profiling-check-level:
@@ -219,14 +233,19 @@ file </reference/configuration-options>`.
 
 This sets the profiling level to ``1``, defines slow operations as those
 that last longer than ``15`` milliseconds, and specifies that only 50%
-of *slow* operations should be profiled. These settings also affect
-which operations are recorded to the system log when
-:setting:`~param.logLevel` is set to ``0``.
+of *slow* operations should be profiled.
+
+The ``slowms`` and ``slowOpSampleRate`` also affect which operations
+are recorded to the diagnostic log when :setting:`~param.logLevel` is
+set to ``0``. The ``slowms`` and ``slowOpSampleRate`` are also
+available to configure dignostic logging for :binary:`~bin.mongos`.
 
 .. seealso::
    :setting:`~operationProfiling.mode`,
    :setting:`~operationProfiling.slowOpThresholdMs`, and
    :setting:`~operationProfiling.slowOpSampleRate`.
+
+.. _db-profiling-sharding:
 
 Database Profiling and Sharding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -234,6 +253,11 @@ Database Profiling and Sharding
 You *cannot* enable profiling on a :binary:`~bin.mongos` instance. To enable
 profiling in a sharded cluster, you must enable profiling for each
 :binary:`~bin.mongod` instance in the cluster.
+
+However, starting in MongoDB 4.0, you can set the :option:`--slowms
+<mongos --slowms>` and :option:`slowOpSampleRate <mongos
+--slowOpSampleRate>` on :binary:`~bin.mongos` to configure the diagnostic
+log for slow operations.
 
 View Profiler Data
 ------------------
