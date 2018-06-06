@@ -72,6 +72,15 @@ rst_epilog = '\n'.join([
     '.. |compass| replace:: MongoDB Compass'
 ])
 
+source_constants = {
+    'package-branch': 'testing',
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
+    'version': version,
+    'pgp-version': '3.6',
+    'pgp-fingerprint': '2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5'
+}
+
 pygments_style = 'sphinx'
 
 extlinks = {
