@@ -16,15 +16,15 @@ For the following |onprem| release series, you may run its
      - 2.6.6
      - 3.0.6
      - 3.2.0
-     - 3.4.0
-     - 3.6.0
+     - 
+     - 
 
    * - 3.4
      - 
      - 3.0.8
      - 3.2.0
      - 3.4.0
-     - 3.6.0
+     - 
 
    * - 3.6
      - 
