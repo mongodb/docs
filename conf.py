@@ -34,7 +34,8 @@ extensions = [
     'directives',
     'intermanual',
     'fasthtml',
-    'tabs'
+    'tabs',
+    'icon'
 ]
 
 locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]

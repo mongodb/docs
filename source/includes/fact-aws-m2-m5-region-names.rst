@@ -1,4 +1,6 @@
 - ``US_EAST_1``
 - ``US_WEST_2``
 - ``EU_WEST_1``
+- ``AP_SOUTHEAST_1``
 - ``AP_SOUTHEAST_2``
+- ``AP_SOUTH_1``
