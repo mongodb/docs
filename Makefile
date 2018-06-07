@@ -28,6 +28,12 @@ publish: ## Builds this branch's publishable HTML and other artifacts under buil
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
+deploy: ## Deploy to the production bucket
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
+	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
+
+	$(MAKE) deploy-search-index
+
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s
