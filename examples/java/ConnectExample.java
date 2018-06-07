@@ -7,6 +7,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCursor;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -15,6 +16,8 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.regex;
 
 import static java.util.Collections.singletonList;
+import static java.util.Arrays.asList;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
@@ -28,30 +31,21 @@ public class ConnectExample {
 
     private static void testCollectionBinding() {
 
-        // final String uriString = "mongodb://testuser:password@localhost:27017/test?authSource=admin";
-
-        // MongoClientURI uri = new MongoClientURI(uriString);
-        // note that java connections are not initialized unless an operation
-        // such as a find() or count() is executed
-
         // Start Connection
-        MongoClient  mongoClient =  Connect.getConnection();
+        final String uriString = "<URISTRING>";
+        MongoClientURI uri = new MongoClientURI(uriString);
+        MongoClient mongoClient = new MongoClient(uri);
         // End Connection
-        // Start Collection Bind 
+
+        // Start Collection
         MongoDatabase db = mongoClient.getDatabase("test");
         MongoCollection<Document> collection = db
                 .getCollection("inventory");
-        // End Collection Bind
+        // End Collection
         collection.drop();
 
         // Insert Guide test
-        Document canvas = new Document("item", "canvas")
-                .append("qty", 100)
-                .append("tags", singletonList("cotton"));
-
-        Document size = new Document("h", 28).append("w", 35.5)
-                .append("uom", "cm");
-        canvas.put("size", size);
+        Document canvas = Document.parse("{ item: 'canvas', qty: 100, tags: ['cotton'], size: { h: 28, w: 35.5, uom: 'cm' } }");
 
         collection.insertOne(canvas);
 
@@ -59,17 +53,15 @@ public class ConnectExample {
         FindIterable<Document> findIterable = collection
                 .find(new Document());
 
-        Block<Document> printBlock = new Block<Document>() {
-            @Override
-            public void apply(final Document document) {
-                System.out.println(document.toJson());
-            }
-        };
-
         System.out.println("READ GUIDE 1: example 1 results");
-        findIterable.forEach(printBlock);
 
-        collection.insertMany(java.util.Arrays.asList(Document.parse(
+        try (MongoCursor<Document> cursor = collection.find().iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
+
+        collection.insertMany(asList(Document.parse(
                 "{ item: 'journal', qty: 25, size: { h: 14, w: 21, uom: 'cm' }, status: 'A' }"),
                 Document.parse(
                         "{ item: 'notebook', qty: 50, size: { h: 8.5, w: 11, uom: 'in' }, status: 'A' }"),
@@ -80,56 +72,73 @@ public class ConnectExample {
                 Document.parse(
                         "{ item: 'postcard', qty: 45, size: { h: 10, w: 15.25, uom: 'cm' }, status: 'A' }")));
 
-        findIterable = collection.find(eq("status", "D"));
-
         System.out.println("READ GUIDE 2: example 1 results");
-        findIterable.forEach(printBlock);
 
-        findIterable = collection.find(eq("size",
-                Document.parse("{ h: 14, w: 21, uom: 'cm' }")));
+        try (MongoCursor<Document> cursor =  collection.find(eq("status", "D")).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
         System.out.println("READ GUIDE 2: example 2 results");
 
-        findIterable.forEach(printBlock);
+        try (MongoCursor<Document> cursor =  collection.find(eq("size",
+                Document.parse("{ h: 14, w: 21, uom: 'cm' }"))).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
-        findIterable = collection.find(eq("size.uom", "in"));
 
         System.out.println("READ GUIDE 2: example 3 results");
 
-        findIterable.forEach(printBlock);
-
-        findIterable = collection.find(lt("size.h", 15));
+        try (MongoCursor<Document> cursor =  collection.find(eq("size.uom", "in")).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
         System.out.println("READ GUIDE 3: example 1 results");
-        findIterable.forEach(printBlock);
 
-        findIterable = collection
-                .find(and(eq("status", "A"), lt("qty", 30)));
+        try (MongoCursor<Document> cursor =  collection.find(lt("size.h", 15)).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
         System.out.println("READ GUIDE 3: example 2 results");
 
-        findIterable.forEach(printBlock);
+        try (MongoCursor<Document> cursor =  collection
+                .find(and(eq("status", "A"), lt("qty", 30))).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
-
-        findIterable = collection.find(or(eq("status", "A"), lt("qty", 30)));
 
         System.out.println("READ GUIDE 3: example 3 results");
 
-        findIterable.forEach(printBlock);
-
+        try (MongoCursor<Document> cursor =  collection.
+                find(or(eq("status", "A"), lt("qty", 30))).iterator()) {
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
         System.out.println("READ GUIDE 3: example 4 results");
 
-        findIterable = collection.find(and(eq("status", "A"),
-                or(lt("qty", 30), regex("item", "^p"))));
-
-        findIterable.forEach(printBlock);
+        try (MongoCursor<Document> cursor =  collection.find(and(eq("status", "A"),
+                or(lt("qty", 30), regex("item", "^p")))).iterator()){
+            while (cursor.hasNext()) {
+                System.out.println(cursor.next().toJson());
+            }
+        }
 
         // Start Close
-        Connect.closeConnection(mongoClient);
-
+        mongoClient.close();
         // End Close
     }
 
 }
+
 

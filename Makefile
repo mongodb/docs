@@ -60,7 +60,6 @@ examples:
 	#curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
 	cp examples/java/ConnectExample.java  ${DRIVERS_PATH}/JavaConnectExample.java
-	cp examples/java/Connect.java  ${DRIVERS_PATH}/JavaConnectTest.java
 	cp examples/csharp/Connect.cs  ${DRIVERS_PATH}/csharpconnect.cs
 	cp examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
 	cp examples/motor/connect/connect.py  ${DRIVERS_PATH}/motorconnect.py

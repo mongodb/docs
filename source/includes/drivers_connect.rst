@@ -127,20 +127,6 @@
      - id: java-sync
        content: |
 
-         This example uses a static utility method to make a connection.
-         This same utility has a ``closeConnection()`` method that takes
-         a MongoClient as its argument. This is just one way to
-         instantiate a MongoClient.
-
-         .. literalinclude:: /driver-examples/JavaConnect.java
-            :language: java
-            :dedent: 0
-            :start-after: Start Connect
-            :end-before: End Connect
-
-         The code below calls the static utility method above
-         to return a connection.
-
          .. literalinclude:: /driver-examples/JavaConnectExample.java
             :language: java
             :dedent: 4
