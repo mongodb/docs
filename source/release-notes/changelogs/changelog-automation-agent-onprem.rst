@@ -1,3 +1,21 @@
+.. _automation-4.5.15.5279-1:
+
+Automation Agent 4.5.15.5279-1
+------------------------------
+
+- Ends support for SLES 11 and Ubuntu 12.04.
+
+- Automation Agent support for BI Connector 2.5.
+
+- Compound Text Indexes through Automation.
+
+- **Fix:** When collecting logs, ignore errors for files that have 
+  disappeared.
+
+- Replace evergreen Ubuntu 12 testing with Ubuntu 14.
+
+- Update version of BI Connector tested to 2.5.0.
+
 .. _automation-4.5.14.5266:
 
 Automation Agent 4.5.14.5266
@@ -5,8 +23,8 @@ Automation Agent 4.5.14.5266
 
 :ref:`Released with Ops Manager 3.6.6 on 2018-05-03 <opsmgr-server-3.6.6>`
 
-- Fix: Automation Agents should not attempt to rotate BI Connector log
-  files for BI Connectors on other servers.
+- **Fix:** Automation Agents should not attempt to rotate BI Connector
+  log files for BI Connectors on other servers.
 
 .. _automation-4.5.13.5261:
 
@@ -15,7 +33,7 @@ Automation Agent 4.5.13.5261
 
 :ref:`Released with Ops Manager 3.6.5 on 2018-04-05 <opsmgr-server-3.6.5>`
 
-- Fix: Disable MongoDB's TTL monitor thread while applying oplogs
+- **Fix:** Disable MongoDB's TTL monitor thread while applying oplogs
   during a point in time restore.
 
 - When performing maintenance on a MongoDB 3.2 shard member for oplog
@@ -136,7 +154,7 @@ Automation Agent 3.2.17.4936
 
 *Released with Ops Manager 3.4.13 on 2018-04-05*
 
-- Fix: Automation Agent determination of Goal State was incorrect
+- **Fix:** Automation Agent determination of Goal State was incorrect
   for multi-server deployments using the ldap.bind.queryPassword
   parameter. This is now resolved and rolling changes will proceed
   correctly on these deployments.
