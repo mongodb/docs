@@ -14,6 +14,8 @@
 
 - :setting:`replication <systemLog.component.replication.verbosity>`
 
+- :setting:`recovery <systemLog.component.storage.recovery.verbosity>`
+
 - :setting:`sharding <systemLog.component.sharding.verbosity>`
 
 - :setting:`storage <systemLog.component.storage.verbosity>`
