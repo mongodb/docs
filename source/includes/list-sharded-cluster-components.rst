@@ -1,6 +1,8 @@
 - |service| deploys each :manual:`shard </core/sharded-cluster-shards>` 
-  as a three-node replica set by default. |service| deploys each 
-  node using the selected instance size. 
+  as a three-node replica set, where each node deploys using the 
+  configured :guilabel:`Cloud Provider & Region`, 
+  :guilabel:`Cluster Tier`, and :guilabel:`Additional Settings`. 
+  |service| deploys one :binary:`~bin.mongod` per shard node.
 
   For cross-region clusters, the number of nodes per shard 
   is equal to the total number of electable and read-only nodes across
@@ -17,7 +19,7 @@
   availability zones and three distinct regions if supported by
   the selected cloud service provider and region configuration.
 
-- |service| deploys one :binary:`mongos <bin.mongos>`  router for each 
+- |service| deploys one :binary:`mongos <bin.mongos>` router for each 
   node in each shard. For cross-region clusters, this allows clients 
   using a MongoDB driver to connect to the geographically "nearest" 
   :binary:`mongos <bin.mongos>`.
