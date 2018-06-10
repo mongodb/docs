@@ -73,8 +73,8 @@ engine, you must set :rsconf:`writeConcernMajorityJournalDefault` to
 
 .. _transactions-operations:
 
-Transactions and CRUD Operations
---------------------------------
+Transactions and Operations
+---------------------------
 
 For multi-document transactions:
 
@@ -124,6 +124,22 @@ Transactions and Security
 - If running with :doc:`auditing </core/auditing>`, operations in an
   aborted transaction are still audited.
 
+Transactions and Locks
+----------------------
+
+By default, transactions waits ``5`` milliseconds to acquire locks
+required by the operations in the transaction. If the transaction
+cannot acquire its required locks within the ``5`` milliseconds, the
+transaction aborts.
+
+You can use the :parameter:`maxTransactionLockRequestTimeoutMillis`
+parameter to adjust how long transactions wait to acquire locks.
+
+You can also use operation-specific timeout by setting
+:parameter:`maxTransactionLockRequestTimeoutMillis` to ``-1``.
+
+Transactions release all locks upon abort.
+
 Transactions and Sessions
 -------------------------
 
@@ -164,22 +180,6 @@ transactions:
 - :method:`Session.commitTransaction()`
 
 - :method:`Session.abortTransaction()`
-
-Atomicity
----------
-
-Multi-document transactions are atomic:
-
-- When a transaction commits, all data changes made in the transaction
-  are saved and visible outside the transaction. Until a transaction
-  commits, the data changes made in the transaction are not visible
-  outside the transaction.
-
-- When a transaction aborts, all data changes made in the transaction
-  are discarded without ever becoming visible. For example, if any
-  operation in the transaction fails, the transaction aborts and all
-  data changes made in the transaction are discarded without ever
-  becoming visible.
 
 .. _transactions-retry:
 
@@ -353,6 +353,22 @@ and retrying the commit, the full code example is:
    } finally {
       session.endSession();
    }
+
+Atomicity
+---------
+
+Multi-document transactions are atomic:
+
+- When a transaction commits, all data changes made in the transaction
+  are saved and visible outside the transaction. Until a transaction
+  commits, the data changes made in the transaction are not visible
+  outside the transaction.
+
+- When a transaction aborts, all data changes made in the transaction
+  are discarded without ever becoming visible. For example, if any
+  operation in the transaction fails, the transaction aborts and all
+  data changes made in the transaction are discarded without ever
+  becoming visible.
 
 Read Preference
 ---------------
