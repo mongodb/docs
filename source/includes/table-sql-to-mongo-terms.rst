@@ -36,3 +36,16 @@
      - aggregation pipeline
 
        See the :doc:`/reference/sql-aggregation-comparison`.
+
+   * - transactions
+
+     - :doc:`/core/transactions`
+
+       .. tip::
+
+          For many scenarios, the :ref:`denormalized data model
+          (embedded documents and arrays) <data-modeling-embedding>`
+          will continue to be optimal for your data and use cases
+          instead of multi-document transactions. That is, for many
+          scenarios, modeling your data appropriately will minimize the
+          need for multi-document transactions.

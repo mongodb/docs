@@ -41,7 +41,8 @@
        | :method:`db.collection.findOneAndUpdate()`
 
      - :dbcommand:`findAndModify`
-     - 
+     - For ``upsert``, only when run against an existing collection.
+
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -51,9 +52,13 @@
 
      - Only when run against an existing collection.
 
+   * - :method:`db.collection.save()`
+     - 
+     - If an insert, only when run against an existing collection.
 
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
+       | :method:`db.collection.replaceOne()`
        | :method:`db.collection.update()`
 
      - :dbcommand:`update`

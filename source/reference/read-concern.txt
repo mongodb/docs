@@ -175,9 +175,12 @@ For more information on each read concern level, see:
 ``readConcern`` Support
 -----------------------
 
+Read Concern Option
+~~~~~~~~~~~~~~~~~~~~
 
-You can specify a ``readConcern`` level as an option to commands and
-methods that support read concern:
+For operations not in :doc:`multi-document transactions
+</core/transactions>`, you can specify a ``readConcern`` level as an
+option to commands and methods that support read concern:
 
 .. code-block:: javascript
 
@@ -191,41 +194,76 @@ method :method:`db.collection.find()`, use the
 
    db.collection.find().readConcern(<level>)
 
+Transactions and Available Read Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :doc:`multi-document transactions </core/transactions>`, you set
+the read concern at the transaction level, not at the individual
+operation level. The operations in the transaction will use the
+transaction-level read concern. Any read concern set at the collection
+and database level iss ignored inside the transaction. If the
+transaction-level read concern is explicitly specified, the client
+level read concern is also ignored inside the transaction.
+
+.. important::
+
+   Do not explicitly set the read concern for the individual
+   operations. To set the read concern for transactions, see
+   :ref:`transaction-options`.
+
+You can set the read concern at the transaction start:
+
+- For multi-document transaction, read concern levels
+  :readconcern:`"snapshot"`, :readconcern:`"local"` and
+  :readconcern:`"majority"` are available.
+
+  .. tip::
+
+     .. include:: /includes/extracts/transactions-read-concern-tip.rst
+
+- Write commands that are part of a :doc:`multi-document transactions
+  </core/transactions>` can support the transaction-level read concern.
+  
+If unspecified at the transaction start, transactions use the
+session-level read concern or, if that is unset, the client-level read
+concern.
+
+For more information, see :ref:`Transaction Read Concern
+<txn-read-concern>`.
+
+Causally Consistent Sessions and Available Read Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For operations in a :ref:`causally consistent session
+<causal-consistency>`, :readconcern:`"local"` and
+:readconcern:`"majority"` levels are available. 
+
+If a multi-document transaction is associated with a causally
+consistent session, :readconcern:`"snapshot"` is also available for the
+the transaction.
+
+Operations That Support Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The following operations support read concern:
-
-.. note::
-
-   - For multi-document transaction, read concern levels
-     :readconcern:`"snapshot"` (available only for multi-document
-     transactions), :readconcern:`"local"` and
-     :readconcern:`"majority"` are available. For
-     :readconcern:`"local"` and :readconcern:`"majority"` read concern,
-     MongoDB may sometimes substitute a stronger read concern.
-
-   - Write commands that are part of a multi-document transaction can
-     support the transaction-level read concern.
-
-   - For operations in a :ref:`causally consistent session
-     <causal-consistency>`, :readconcern:`"local"` and
-     :readconcern:`"majority"` levels are available. If a
-     multi-document transaction is associated with a causally
-     consistent session, :readconcern:`"snapshot"` is also available for
-     the operations in the transaction.
 
 .. important::
 
    To set read concern for operations in a transaction, you set the
    read concern at the transaction level, not at the individual
-   operation level.
+   operation level. Do not explicitly set the read concern for the
+   individual operations in a transaction. For more information, see
+   :ref:`Transaction Read Concern <txn-read-concern>`.
 
 .. list-table::
    :header-rows: 1
+   :widths: 35 5 10 10 20 20
 
    * - Command/Method
      - :readconcern:`"local"`
      - :readconcern:`"available"`
      - :readconcern:`"majority"` 
-     - :readconcern:`"snapshot"`
+     - :readconcern:`"snapshot"` [#snapshot]_
      - :readconcern:`"linearizable"`
 
    * - :dbcommand:`count`
@@ -252,7 +290,7 @@ The following operations support read concern:
      - |checkmark|
 
    * - :method:`db.collection.find()` 
-       shell method using
+       via
        :method:`cursor.readConcern()`
 
      - |checkmark|
@@ -292,9 +330,7 @@ The following operations support read concern:
      - |checkmark|
 
    * - :dbcommand:`aggregate`
-       :method:`db.collection.aggregate()` shell method
-
-       *Only when against a collection, not a view.*
+       :method:`db.collection.aggregate()`
 
      - |checkmark|
      - |checkmark|
@@ -309,6 +345,14 @@ The following operations support read concern:
      - 
      - |checkmark|
 
+   * - :method:`Session.startTransaction()`
+
+     - |checkmark|
+     - 
+     - |checkmark|
+     - |checkmark|
+     - 
+
 The following write operations can also accept a read concern if part
 of a multi-document transaction:
 
@@ -320,41 +364,68 @@ of a multi-document transaction:
 
 .. list-table::
    :header-rows: 1
+   :widths: 35 5 10 10 20 20
 
    * - Command
      - :readconcern:`"local"`
      - :readconcern:`"available"`
      - :readconcern:`"majority"`
-     - :readconcern:`"snapshot"`
+     - :readconcern:`"snapshot"` [#snapshot]_
      - :readconcern:`"linearizable"`
 
-   * - :dbcommand:`delete`
+   * - | :dbcommand:`delete`
+       | :method:`db.collection.deleteMany()`
+       | :method:`db.collection.deleteOne()`
+       | :method:`db.collection.remove()`
      - |checkmark|
-     - 
-     - 
-     - |checkmark| 
-     - 
-
-   * - :dbcommand:`findAndModify`
-     - |checkmark|
-     - 
-     - 
-     - |checkmark| 
-     - 
-
-   * - :dbcommand:`insert`
-     - |checkmark| 
-     - 
-     - 
-     - |checkmark| 
-     - 
-
-   * - :dbcommand:`update`
-     - |checkmark| 
      - 
      - 
      - |checkmark|
      - 
+
+   * - | :dbcommand:`findAndModify`
+       | :method:`db.collection.findAndModify()`
+       | :method:`db.collection.findOneAndDelete()`
+       | :method:`db.collection.findOneAndReplace()`
+       | :method:`db.collection.findOneAndUpdate()`
+
+     - |checkmark|
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`insert`
+       | :method:`db.collection.insert()`
+       | :method:`db.collection.insertOne()`
+       | :method:`db.collection.insertMany()`
+
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`update`
+       | :method:`db.collection.update()`
+       | :method:`db.collection.updateMany()`
+       | :method:`db.collection.updateOne()`
+       | :method:`db.collection.replaceOne()`
+
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark|
+     - 
+
+.. [#snapshot]
+
+   Read concern :readconcern:`"snapshot"` is available only for
+   multi-document transactions, and for transactions, you set the read
+   concern at the transaction level. The operations that support
+   :readconcern:`"snapshot"` correspond to the CRUD operations
+   available in transactions. For more information, see
+   :ref:`Transaction Read Concern <txn-read-concern>`.
 
 Considerations
 --------------
@@ -410,8 +481,8 @@ For example:
 
 .. _afterClusterTime:
 
-Read Operations and Causally Consistent Sessions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Read Operations and ``afterClusterTime``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 3.6
 
@@ -440,3 +511,5 @@ For read operations not associated with causally consistent sessions,
 ``afterClusterTime`` is unset.
 
 .. include:: /includes/unicode-checkmark.rst
+
+

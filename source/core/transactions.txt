@@ -26,7 +26,7 @@ However, for situations that require atomicity for updates to multiple
 documents or consistency between reads to multiple documents, MongoDB
 provides the ability to perform multi-document transactions against
 replica sets. Multi-document transactions can be used across multiple
-operations, collections, and documents. Multi-document transactions
+operations, collections, databases, and documents. Multi-document transactions
 provide an "all-or-nothing" proposition. When a transaction commits,
 all data changes made in the transaction are saved. If any operation in
 the transaction fails, the transaction aborts and all data changes made
@@ -65,7 +65,7 @@ Storage Engines
 ~~~~~~~~~~~~~~~
 
 Multi-document transactions are available for the WiredTiger storage
-engine and in-memory storage engines. 
+engine and in-memory storage engines.
 
 If any voting member of a replica set uses the in-memory storage
 engine, you must set :rsconf:`writeConcernMajorityJournalDefault` to
@@ -76,19 +76,17 @@ engine, you must set :rsconf:`writeConcernMajorityJournalDefault` to
 Transactions and Operations
 ---------------------------
 
-For multi-document transactions:
+For transactions:
 
-- You can specify read/write (CRUD) operations on **existing**
-  collections. 
-
-- You cannot read/write to collections in the ``config``, ``admin``,
-  or ``local`` databases.
+.. include:: /includes/extracts/transactions-operations-crud.rst
 
 Operations that affect the database catalog, such as creating or
-dropping a collection or an index, are not allowed in multi-document	
-transactions. For example, a multi-document transaction cannot include	
-an insert operation that would result in the creation of a new	
+dropping a collection or an index, are not allowed in multi-document
+transactions. For example, a multi-document transaction cannot include
+an insert operation that would result in the creation of a new
 collection. See :ref:`transactions-ops-restricted`.
+
+For multi-document transactions:
 
 .. include:: /includes/table-transactions-operations.rst
 
@@ -219,7 +217,7 @@ function if a ``"TransientTransactionError"`` is encountered:
                break;
            } catch (error) {
                print("Transaction aborted. Caught exception during transaction.");
-    
+
                // If transient error, retry the whole transaction
                if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes( "TransientTransactionError")  ) {
                    print("TransientTransactionError, retrying transaction ...");
@@ -299,7 +297,7 @@ and retrying the commit, the full code example is:
                    throw error;
                }
            }
-       }   
+       }
    }
 
    // Retries commit if UnknownTransactionCommitResult encountered
@@ -375,10 +373,22 @@ Read Preference
 
 .. include:: /includes/extracts/transactions-read-pref.rst
 
+.. _transaction-options:
+
+Transaction Options
+-------------------
+
+.. code-block:: javascript
+
+   session.startTransaction( {
+      readConcern: { level: <level>},
+      writeConcern: { w: <value>, j: <boolean>, wtimeout: <number> } 
+   } );
+
 .. _txn-read-concern:
 
 Read Concern
-------------
+~~~~~~~~~~~~
 
 Multi-document transactions support read concern
 :readconcern:`"snapshot"`, :readconcern:`"local"`, and
@@ -419,7 +429,7 @@ concern.
 .. _transactions-write-concern:
 
 Write Concern
--------------
+~~~~~~~~~~~~~
 
 You set the write concern at the transaction level, not at the
 individual operation level. At the time of the commit, transactions use
