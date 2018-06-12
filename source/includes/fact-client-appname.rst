@@ -1,5 +1,7 @@
 .. versionadded:: 3.4
 
-The identifier of the client application which ran the operation. Use
-the :urioption:`appName` connection string option to set a custom value
-for the ``appName`` field.
+The identifier of the client application which ran the operation.
+If the operation was run in :doc:`the MongoDB shell</mongo>`,
+the appName is always ``"MongoDB Shell"``. If the operation
+originated from a :ecosystem:`driver</drivers>`, ``appName`` may
+be set to a custom string.
