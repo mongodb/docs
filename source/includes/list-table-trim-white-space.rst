@@ -2,7 +2,7 @@
    :header-rows: 1
    
    * - Unicode
-     - Ascii/Escape sequence
+     - Escape sequence
      - Description
 
    * - U+0000
