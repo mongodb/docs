@@ -14,11 +14,13 @@
      - 3.6 Community & Enterprise
      - 3.4 Community & Enterprise
      - 3.2 Community & Enterprise
+
    * - Amazon Linux 2013.03 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
+
    * - Amazon Linux 2
      - |checkmark|
      -
@@ -80,6 +82,11 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Ubuntu 18.04
+     - |checkmark|
+     - 
+     - 
+     -
 
    * - Windows Vista
      -
@@ -87,12 +94,19 @@
      - |checkmark|
      - |checkmark|
 
-   * - Windows 7/Server 2008 R2 and later
+   * - Windows 7/Server 2008 R2
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
-   * - macOS 10.7 and later
+
+   * - Windows 8/2012 R2 and later
+     - |checkmark|
+     - 
+     - 
+     - 
+
+   * - macOS 10.11 and later
      - |checkmark|
      - |checkmark|
      - |checkmark|
