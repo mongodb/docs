@@ -12,7 +12,10 @@ newly created directory on the host system:
          .. code-block:: ps1
 
             mkdir c:\temp\charts-keys-backup
-            docker run -it -v mongodb-charts_keys:/volume -v /c/temp/charts-keys-backup:/backup alpine sh -c 'cp /volume/* /backup'
+            docker run -it ^
+              --volume mongodb-charts_keys:/volume ^
+              --volume /c/temp/charts-keys-backup:/backup ^
+              alpine sh -c 'cp /volume/* /backup'
 
          .. include:: /includes/fact-docker-unix-paths-windows.rst
 
@@ -22,7 +25,10 @@ newly created directory on the host system:
          .. code-block:: sh
 
             mkdir /tmp/charts-keys-backup
-            docker run -it -v mongodb-charts_keys:/volume -v /tmp/charts-keys-backup:/backup alpine sh -c 'cp /volume/* /backup'
+            docker run -it \
+              --volume mongodb-charts_keys:/volume \
+              --volume /tmp/charts-keys-backup:/backup \
+              alpine sh -c 'cp /volume/* /backup'
 
      - id: linux
        content: |
@@ -30,7 +36,10 @@ newly created directory on the host system:
          .. code-block:: sh
 
             mkdir /tmp/charts-keys-backup
-            docker run -it -v mongodb-charts_keys:/volume -v /tmp/charts-keys-backup:/backup alpine sh -c 'cp /volume/* /backup'
+            docker run -it \
+              --volume mongodb-charts_keys:/volume \
+              --volume /tmp/charts-keys-backup:/backup \
+              alpine sh -c 'cp /volume/* /backup'
 
 .. important::
 
