@@ -21,7 +21,7 @@ Prerequisites
          - A running :manual:`mongod </reference/program/mongod/>` instance or `Atlas
            deployment <https://docs.atlas.mongodb.com/>`_
          - A running :binary:`~bin.mongosqld` instance
-         - `ODBC Manager <http://www.odbcmanager.net/>`_ installed
+         - `ODBC Manager <http://www.odbcmanager.net/>`__ installed
          - The `MySQL Connector/ODBC driver (Version 5.3.10)
            <https://dev.mysql.com/downloads/connector/odbc/5.3.html>`_
 
