@@ -21,20 +21,61 @@ Change Streams
 Change streams allow applications to access real-time data changes
 without the complexity and risk of tailing the :term:`oplog`.
 Applications can use change streams to subscribe to all data changes on
-a collection and immediately react to them.
+a single collection, a database, or an entire deployment, and
+immediately react to them. Because change streams use the aggregation
+framework, applications can also filter for specific changes or
+transform the notifications at will.
+
+Change stream is available for :doc:`replica sets <replication>` and
+:doc:`sharded clusters </sharding>` that use :ref:`WiredTiger
+<storage-wiredtiger>` storage engine and replica set protocol version 1
+(:rsconf:`pv1 <protocolVersion>`). Change streams can also be used on
+deployments which employ MongoDB's
+:ref:`encryption-at-rest<encrypted-storage-engine>` feature.
+
+Watch Collection/Database/Deployment
+------------------------------------
+
+You can open change streams against:
+
+- A single collection (except ``system`` collections, or any
+  collections in the ``admin``, ``local``, and ``config`` databases)
+
+  See the :binary:`~bin.mongo` shell method
+  :method:`db.collection.watch()`.
+
+  For the corresponding MongoDB driver method, refer to your driver
+  documentation.
+
+- .. versionadded:: 4.0 
+
+     A database (excluding the ``admin``, ``local``, ``config``
+     databases). The change stream watches for changes to all
+     non-``system`` collections in the database.
+
+     :binary:`~bin.mongo` shell provides the method
+     :method:`db.watch()`. For the corresponding MongoDB driver method,
+     refer to your driver documentation.
+
+- .. versionadded:: 4.0
+
+     An entire deployment, either a replica set or a sharded cluster.
+     The change stream watches for changes to all non-``system``
+     collections across all databases, except for the ``admin``.
+     ``local``, and ``config`` databases.
+
+     :binary:`~bin.mongo` shell provides the
+     method :method:`Mongo.watch()`. For the corresponding MongoDB
+     driver method, refer to your driver documentation.
 
 Open A Change Stream
 --------------------
 
-You can only open a change stream against :doc:`replica sets
-<replication>` or :doc:`sharded clusters </sharding>`. For a sharded
-cluster, you must issue the open change stream operation against the
-:binary:`~bin.mongos`.
+For a replica set, you can open change stream for any of the
+data-bearing members.
 
-The replica set or the sharded cluster must use replica set protocol
-version 1 (:rsconf:`pv1 <protocolVersion>`) and :ref:`WiredTiger
-<storage-wiredtiger>` storage engine (can be :ref:`encrypted
-<encrypted-storage-engine>`).
+For a sharded cluster, you must issue the open change stream operation
+against the :binary:`~bin.mongos`.
 
 .. tabs-drivers::
 
@@ -89,9 +130,9 @@ version 1 (:rsconf:`pv1 <protocolVersion>`) and :ref:`WiredTiger
           <https://docs.mongodb.com/ruby-driver/master/tutorials/ruby-driver-create-client/>`__
           that contains an ``inventory`` collection.
 
-The following example opens a change stream against a replica set. The change stream is bound to a collection and
-change stream documents are iterated with a cursor. This cursor remains open until it is explicitly closed,
-as long as a connection to the MongoDB deployment remains open *and* the collection exists.
+The following example opens a change stream for a collection and iterates over the cursor to retrieve the 
+change stream documents . As long as the connection to the MongoDB deployment remains open *and* the collection exists, 
+this cursor remains open until it is explicitly closed.
 
 .. tabs-drivers::
 
@@ -611,8 +652,33 @@ Access Control
 --------------
 
 For deployments enforcing :ref:`authentication` and :ref:`authorization
-<authorization>`, applications can only open change streams against
-collections they have read access to.
+<authorization>`:
+
+- To open a change stream against specific collection, applications
+  must have privileges that grant :authaction:`changeStream` and
+  :authaction:`find` actions on the corresponding collection.
+
+  .. code-block:: javascript
+
+     { resource: { db: <dbname>, collection: <collection> }, actions: [ "find", "changeStream" ] }
+
+- To open a change stream on a single databases, applications must have
+  privileges that grant :authaction:`changeStream` and
+  :authaction:`find` actions on all non-``system`` collections in a
+  database.
+
+  .. code-block:: javascript
+
+     { resource: { db: <dbname>, collection: "" }, actions: [ "find", "changeStream" ] }
+
+- To open a change stream on an entire deployment, applications must
+  have privileges that grant :authaction:`changeStream` and
+  :authaction:`find` actions on all non-``system`` collections for all
+  databases in the deployment.
+
+  .. code-block:: javascript
+
+     { resource: { db: "", collection: "" }, actions: [ "find", "changeStream" ] }
 
 Event Notification
 ------------------

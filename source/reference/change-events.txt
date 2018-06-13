@@ -20,6 +20,8 @@ Change Events
 The following document represents all possible fields that a change
 stream response document can have.
 
+.. versionchanged:: 4.0
+
 .. code-block:: json
 
    {
@@ -35,6 +37,7 @@ stream response document can have.
          "updatedFields" : { <document> },
          "removedFields" : [ "<field>", ... ]
       }
+      "clusterTime" : <Timestamp>,
    }
 
 Some fields are only available for certain operations, such as updates. The
@@ -123,6 +126,14 @@ following table describes each field in the change stream response document:
      - array
      - An array of fields that were removed by the update operation.
 
+   * - ``clusterTime``
+
+     - Timestamp
+
+     - The timestamp from the oplog entry associated with the event.
+
+       .. versionadded:: 4.0
+
 ``insert`` Event
 ----------------
 
@@ -133,6 +144,7 @@ The following example illustrates an ``insert`` event:
    {
       _id: { < Resume Token > },
       operationType: 'insert',
+      clusterTime: <Timestamp>,
       ns: {
          db: 'engineering', 
          coll: 'users'
@@ -167,6 +179,7 @@ The following example illustrates an ``update`` event:
    {
       _id: { < Resume Token > },
       operationType: 'update',
+      clusterTime: <Timestamp>,
       ns: { 
          db: 'engineering', 
          coll: 'users'
@@ -190,6 +203,7 @@ opened with the ``fullDocument : updateLookup`` option:
    {
       _id: { < Resume Token > },
       operationType: 'update',
+      clusterTime: <Timestamp>,
       ns: { 
          db: 'engineering', 
          coll: 'users'
@@ -228,6 +242,7 @@ The following example illustrates a ``replace`` event:
    {
       _id: { < Resume Token > },
       operationType: 'replace',
+      clusterTime: <Timestamp>,
       ns: {
          db: 'engineering', 
          coll: 'users'
@@ -260,6 +275,7 @@ The following example illustrates a ``delete`` event:
    {
       _id: { < Resume Token > },
       operationType: 'delete',
+      clusterTime: <Timestamp>,
       ns: {
          db: 'engineering',
          coll: 'users'
@@ -284,15 +300,24 @@ The following example illustrates an ``invalidate`` event:
 
    {
       _id: { < Resume Token > },
-      operationType: 'invalidate'
+      operationType: 'invalidate',
+      clusterTime: <Timestamp>
    }
 
-All fields except for ``_id`` and ``operationType`` are omitted.
-
-``invalidate`` events occur after a :dbcommand:`dropDatabase`,
-:dbcommand:`drop`, or :dbcommand:`renameCollection` command that
-affects the watched collection. ``invalidate`` events close the change
-stream cursor and signal that any locally cached data is out
-of sync with the server.
+``invalidate`` events close the change stream cursor.  
 
 .. include:: /includes/fact-cannot-resume-invalidated-change-stream.rst
+
+For change stream opened against a collection, 
+``invalidate`` events occur after a :dbcommand:`dropDatabase`,
+:dbcommand:`drop`, or :dbcommand:`renameCollection` command that
+affects the watched collection.
+
+For change stream opened against a database, ``invalidate`` events
+occur after a :dbcommand:`dropDatabase`, :dbcommand:`drop`, or
+:dbcommand:`renameCollection` command that affects the watched database.
+
+For change stream opened against the deployment, ``invalidate`` events
+occur after a :dbcommand:`dropDatabase`, :dbcommand:`drop`, or
+:dbcommand:`renameCollection` command occurs in the deployment.
+
