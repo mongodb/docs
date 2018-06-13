@@ -95,6 +95,11 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+   * - Ubuntu 18.04
+     - |checkmark|
+     - 
+     - 
+     -
 
    * - Windows Vista
      -
