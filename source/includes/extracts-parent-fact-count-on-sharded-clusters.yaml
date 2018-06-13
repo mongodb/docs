@@ -5,29 +5,48 @@ content: |
   :doc:`chunk migration </core/sharding-balancer-administration>` is in progress.
 
   To avoid these situations, on a sharded cluster, use the
-  :pipeline:`$group` stage of the :method:`db.collection.aggregate()`
-  method to :group:`$sum` the documents. For example, the following
-  operation counts the documents in a collection:
+  :method:`db.collection.aggregate()` method:
 
-  .. code-block:: javascript
+  - You can use the :pipeline:`$count` stage to count the documents.
+    For example, the following operation counts the documents in a
+    collection:
 
-     db.collection.aggregate(
-        [
-           { $group: { _id: null, count: { $sum: 1 } } }
-        ]
-     )
+    .. code-block:: javascript
 
-  To get a count of documents that match a query condition, include the
-  :pipeline:`$match` stage as well:
+       db.collection.aggregate([
+          { $count: "myCount" }
+       ])
 
-  .. code-block:: javascript
+    The :pipeline:`$count` stage is equivalent to the following
+    :pipeline:`$group` + :pipeline:`$project` sequence:
 
-     db.collection.aggregate(
-        [
-           { $match: <query condition> },
-           { $group: { _id: null, count: { $sum: 1 } } }
-        ]
-     )
+    .. code-block:: javascript
 
-  See :ref:`match-perform-a-count` for an example.
+       db.collection.aggregate( [
+          { $group: { _id: null, myCount: { $sum: 1 } } },
+          { $project: { _id: 0 } }
+       ] )
+
+  - To get a count of documents that match a query condition, include
+    the :pipeline:`$match` stage as well:
+
+    .. code-block:: javascript
+
+       db.collection.aggregate( [
+          { $match: <query condition> },
+          { $count: "myCount" }
+       ] )
+
+    Or, if using the ``$group + $project`` equivalent:
+
+    .. code-block:: javascript
+
+       db.collection.aggregate( [
+          { $match: <query condition> },
+          { $group: { _id: null, myCount: { $sum: 1 } } },
+          { $project: { _id: 0 } }
+       ] )
+
+  .. seealso:: :pipeline:`$collStats` to return an approximate count based on the collection's metadata.
+ 
 ...
