@@ -166,6 +166,11 @@ Clients require MongoDB drivers updated for MongoDB 4.0.
    To associate read and write operations with a transaction, you **must**
    pass the session to each operation in the transaction.
 
+The following example assumes that the collections exists.
+
+.. include:: /includes/driver-examples/driver-example-transactions-intro-1.rst
+
+Note that the session is passed to each operation in the transaction.
 
 Transactions and the ``mongo`` Shell
 ------------------------------------
@@ -206,28 +211,7 @@ an element and the transaction as a whole can be retried.
 For example, the following helper runs a function and retries the
 function if a ``"TransientTransactionError"`` is encountered:
 
-.. code-block:: javascript
-
-   // Runs the txnFunc and retries if TransientTransactionError encountered
-
-   function runTransactionWithRetry(txnFunc, session) {
-       while (true) {
-           try {
-               txnFunc(session);  // performs transaction
-               break;
-           } catch (error) {
-               print("Transaction aborted. Caught exception during transaction.");
-
-               // If transient error, retry the whole transaction
-               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes( "TransientTransactionError")  ) {
-                   print("TransientTransactionError, retrying transaction ...");
-                   continue;
-               } else {
-                   throw error;
-               }
-           }
-       }
-   }
+.. include:: /includes/driver-examples/driver-example-transactions-retry-1.rst
 
 Retry Commit Operation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -250,28 +234,7 @@ drivers, applications should take measures to handle
 For example, the following helper commits a transaction and retries if
 a ``"UnknownTransactionCommitResult"`` is encountered:
 
-.. code-block:: javascript
-
-   // Retries commit if UnknownTransactionCommitResult encountered
-
-   function commitWithRetry(session) {
-       while (true) {
-           try {
-               session.commitTransaction(); // Uses write concern set at transaction start.
-               print("Transaction committed.");
-               break;
-           } catch (error) {
-               // Can retry commit
-               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes( "UnknownTransactionCommitResult") ) {
-                   print("UnknownTransactionCommitResult, retrying commit operation ...");
-                   continue;
-               } else {
-                   print("Error during commit ...");
-                   throw error;
-               }
-          }
-       }
-   }
+.. include:: /includes/driver-examples/driver-example-transactions-retry-2.rst
 
 Retry Transaction and Commit Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,78 +242,7 @@ Retry Transaction and Commit Operation
 Incorporating logic to retrying the transaction for transient errors
 and retrying the commit, the full code example is:
 
-.. code-block:: javascript
-
-   // Runs the txnFunc and retries if TransientTransactionError encountered
-
-   function runTransactionWithRetry(txnFunc, session) {
-       while (true) {
-           try {
-               txnFunc(session);  // performs transaction
-               break;
-           } catch (error) {
-               // If transient error, retry the whole transaction
-               if ( error.hasOwnProperty("errorLabels") && error.errorLabels.includes("TransientTransactionError")  ) {
-                   print("TransientTransactionError, retrying transaction ...");
-                   continue;
-               } else {
-                   throw error;
-               }
-           }
-       }
-   }
-
-   // Retries commit if UnknownTransactionCommitResult encountered
-
-   function commitWithRetry(session) {
-       while (true) {
-           try {
-               session.commitTransaction(); // Uses write concern set at transaction start.
-               print("Transaction committed.");
-               break;
-           } catch (error) {
-               // Can retry commit
-               if (error.hasOwnProperty("errorLabels") && error.errorLabels.includes("UnknownTransactionCommitResult") ) {
-                   print("UnknownTransactionCommitResult, retrying commit operation ...");
-                   continue;
-               } else {
-                   print("Error during commit ...");
-                   throw error;
-               }
-          }
-       }
-   }
-
-   // Updates two collections in a transactions
-
-   function updateEmployeeInfo(session) {
-       employeesCollection = session.getDatabase("hr").employees;
-       eventsCollection = session.getDatabase("reporting").events;
-
-       session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
-
-       try{
-           employeesCollection.updateOne( { employee: 3 }, { $set: { status: "Inactive" } } );
-           eventsCollection.insertOne( { employee: 3, status: { new: "Inactive", old: "Active" } } );
-       } catch (error) {
-           print("Caught exception during transaction, aborting.");
-           session.abortTransaction();
-           throw error;
-       }
-
-       commitWithRetry(session);
-   }
-
-   // Start a session.
-   session = db.getMongo("myRepl/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017").startSession( { mode: "primary" } );
-
-   try{
-      runTransactionWithRetry(updateEmployeeInfo, session);
-   } catch (error) {
-      // Do something with error
-   } finally {
-      session.endSession();
-   }
+.. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
 
 Atomicity
 ---------
