@@ -9,8 +9,7 @@
 
          - :method:`db.collection.dropIndexes()`
 
-         To rebuild indexes, see :ref:`rebuild-indexes` instead.
-
+ 
          Remove Specific Index
          ~~~~~~~~~~~~~~~~~~~~~
 
