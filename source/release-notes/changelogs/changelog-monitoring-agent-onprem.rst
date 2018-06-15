@@ -1,3 +1,10 @@
+.. _monitoring-6.1.4.442-1:
+
+Monitoring Agent 6.1.4.442-1
+----------------------------
+
+*Released with Ops Manager 3.6.7 on 2018-06-06*
+
 .. _monitoring-6.1.3.436:
 
 Monitoring Agent 6.1.3.436

@@ -47,18 +47,17 @@
 
    .. code-block:: javascript
 
-      use admin
-
-      db.createUser(
+      db.getSiblingDB("admin").createUser(
          {
            user: "mms-automation",
            pwd: <password>,
            roles: [ 
-              'clusterAdmin',
-              'dbAdminAnyDatabase',
-              'readWriteAnyDatabase',
-              'userAdminAnyDatabase',
-              'restore'
+             'clusterAdmin',
+             'dbAdminAnyDatabase',
+             'readWriteAnyDatabase',
+             'userAdminAnyDatabase',
+             'restore',
+             'backup'
            ]
          }
       )

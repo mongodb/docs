@@ -1,3 +1,21 @@
+.. _monitoring-6.6.1.462:
+
+Monitoring Agent 6.6.1.462
+--------------------------
+
+*Released 2018-06-04*
+
+- Fix deadlock in underlying Go driver.
+
+.. _monitoring-6.6.0.460:
+
+Monitoring Agent 6.6.0.460
+--------------------------
+
+*Released 2018-05-31*
+
+- Support for upcoming MongoDB 4.0 release.
+
 .. _monitoring-6.5.0.456:
 
 Monitoring Agent 6.5.0.456

@@ -1,3 +1,21 @@
+.. _automation-5.4.2.5440:
+
+Automation Agent 5.4.2.5440
+---------------------------
+
+*Released 2018-06-04*
+
+- Fix deadlock in underlying Go driver.
+
+.. _automation-5.4.0.5435:
+
+Automation Agent 5.4.0.5435
+---------------------------
+
+*Released 2018-05-31*
+
+- Support for upcoming MongoDB 4.0 release.
+
 .. _automation-5.3.0.5394:
 
 Automation Agent 5.3.0.5394
