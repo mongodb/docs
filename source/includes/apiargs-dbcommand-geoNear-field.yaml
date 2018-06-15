@@ -28,16 +28,17 @@ type:
 ---
 arg_name: field
 description: |
-  Required if using a ``2dsphere`` index. Determines how MongoDB
-  calculates the distance. The default value is ``false``.
+  Determines how MongoDB calculates the distance between two points: 
+  
+  - When ``true``, MongoDB uses :query:`$nearSphere` semantics and
+    calculates distances using spherical geometry.
+  
+  - When ``false``, MongoDB uses :query:`$near` semantics:
+    spherical geometry for :doc:`2dsphere </core/2dsphere>`
+    indexes and planar geometry for :doc:`2d </core/2d>` indexes.
 
-  .. include:: /includes/extracts/geoNear-distance-calculation-spherical-field.rst
+  *Default: false.*
 
-  If ``false``, then MongoDB uses 2d planar geometry to calculate
-  distance between points.
-
-  If using a :doc:`2dsphere </core/2dsphere>` index, ``spherical`` must
-  be ``true``.
 interface: command
 name: spherical
 operation: geoNear
@@ -73,8 +74,6 @@ description: |
   The minimum distance from the center point that the documents *must*
   be. MongoDB filters the results to those documents that are *at
   least* the specified distance from the center point.
-
-  Only available for use with :doc:`2dsphere </core/2dsphere>` index.
 
   Specify the distance in meters if the specified point is
   :term:`GeoJSON` and in radians if the specified point is
@@ -173,4 +172,28 @@ optional: true
 operation: geoNear
 arg_name: field
 interface: dbcommand
+---
+arg_name: field
+name: key
+type: string
+operation: geoNear
+interface: dbcommand
+position: 13
+description: |
+  Specify the geospatial index to use when calculating the distance.
+  If your collection has multiple geospatial indexes, you **must**
+  use the ``key`` option to specify the indexed field path to use.
+  {{example}} provides a full example.
+  
+  If you do not specify the field over which to perform the search with
+  ``key``, MongoDB will attempt to look for a usable ``2d`` or
+  ``2dsphere`` index, in that order. If there is more than one ``2d``
+  index or more than one ``2dsphere`` index, MongoDB will return an
+  error.
+  
+  .. versionadded:: 4.0
+
+replacement:
+  example: ":ref:`dbcommand-geoNear-key-param-example`"
+optional: true
 ...

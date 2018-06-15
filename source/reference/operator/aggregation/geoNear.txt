@@ -44,19 +44,10 @@ When using :pipeline:`$geoNear`, consider that:
   the calculated distance.
 
 - .. include:: /includes/extracts/geoNear-stage-index-requirement.rst
-
-- The :pipeline:`$geoNear` requires that a collection have *at most*
-  only one :doc:`2d index </core/2d>` and/or only one
-  :doc:`2dsphere index </core/2dsphere>`.
-
-- You do not need to specify which field in
-  the documents hold the coordinate pair or point. Because
-  :pipeline:`$geoNear` requires that the collection have a single
-  geospatial index, :pipeline:`$geoNear` implicitly uses the indexed
-  field.
-
-- If using a :doc:`2dsphere index </core/2dsphere>`, you must specify
-  ``spherical: true``.
+  If you have more than one geospatial index on the collection, use the
+  ``keys`` parameter to specify which field to use in the calculation.
+  If you have only one geospatial index, :pipeline:`$geoNear` implicitly
+  uses the indexed field for the calculation.
 
 .. |geoNear| replace:: :pipeline:`$geoNear` stage
 
@@ -152,3 +143,86 @@ specified distance from the center point.
         }
       }
    ])
+
+.. _pipeline-geoNear-key-param-example:
+
+Specify Which Geospatial Index to Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+Consider a ``places`` collection that has a :doc:`2dsphere
+</core/2dsphere>` index on the ``location`` field and a
+:doc:`2d </core/2d>` index on the ``legacy`` field.
+
+A document in the ``places`` collection resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "name" : "Polo Grounds",
+      "location": {
+         "type" : "Point",
+         "coordinates" : [ -73.9375, 40.8303 ]
+      },
+      "legacy" : [ -73.9375, 40.8303 ],
+      "category" : "Stadiums"
+   }
+
+The following example uses the ``keys`` option to specify that the
+aggregation should use the ``location`` field values for the
+:pipeline:`$geoNear` operation rather than the ``legacy`` field values.
+
+.. code-block:: javascript
+
+   db.places.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [ -73.98142 , 40.71782 ] },
+           key: "location",
+           distanceField: "dist.calculated",
+           query: { "category": "Parks" }
+        }
+      }
+   ])
+
+The aggregation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 2,
+      "name" : "Sara D. Roosevelt Park",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [
+            -73.9928,
+            40.7193
+         ]
+      },
+      "category" : "Parks",
+      "dist" : {
+         "calculated" : 974.175764916902
+      }
+   }
+   {
+      "_id" : 1,
+      "name" : "Central Park",
+      "location" : {
+         "type" : "Point",
+         "coordinates" : [
+            -73.97,
+            40.77
+         ]
+      },
+      "legacy" : [
+         -73.97,
+         40.77
+      ],
+      "category" : "Parks",
+      "dist" : {
+         "calculated" : 5887.92792958097
+      }
+   }
+
