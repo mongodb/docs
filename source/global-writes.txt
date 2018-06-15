@@ -1,0 +1,226 @@
+=============
+Global Writes
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| |global-write| uses a highly curated implementation of
+sharded cluster :manual:`zones </core/zone-sharding>` to support 
+location-aware read and write operations for globally distributed 
+application instances and clients. |global-write-clusters| support 
+deployment patterns such as:
+
+- Low-latency read and write operations for globally distributed
+  clients.
+
+- Uptime protection during partial or full regional outages.
+
+- Location-aware data storage in specific geographic regions.
+
+|service| supports enabling |global-write| when deploying an ``M30`` or 
+greater sharded cluster. For replica sets, 
+:doc:`scale </scale-cluster>` the cluster to at least an ``M30``
+instance and enable |global-write|. All shard nodes deploy with the 
+selected instance size. You cannot enable |global-write| on an existing
+standard |service| sharded cluster.
+
+.. include:: /images/global-writes-map.rst
+
+|service| |global-write-clusters| require developers to define 
+single or multi-region :guilabel:`Zones`, where each zone supports
+write and read operations from geographically local shards. You can also
+configure zones to support global low-latency secondary reads. For more 
+information on |global-write| zones, see :ref:`global-writes-zones`.
+
+|service| does not auto-configure or auto-shard collections.
+Sharded collections must meet specific compatibility
+requirements to utilize |global-write|. For more information on guidance 
+and requirements for sharding collections for |global-write|, 
+see :ref:`global-writes-collections`.
+
+.. important::
+
+   You cannot disable |global-write| for a cluster once deployed.
+
+.. _global-writes-zones:
+
+Global Write Zones and Zone Mapping
+-----------------------------------
+
+Each |service| |global-write-clusters| supports up to 9 distinct 
+zones. Each zone consists of one :guilabel:`Preferred` region and one or 
+more :guilabel:`Electable` or :guilabel:`Read-only` regions. The 
+available regions depend on the selected cloud service provider. 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Region Type
+     - Description
+
+   * - :guilabel:`Preferred`
+     - Dictates where |service| deploys the :term:`primary` replica set 
+       member for the shard or shards associated with that zone. Clients 
+       can only issue write operations to the :term:`primary`.
+
+       |service| uses the geographic location of the 
+       :guilabel:`Preferred` region for constructing a map of
+       geographically-near countries and subdivisions. The 
+       |global-write| cluster uses this map for directing write
+       operations to the correct zone.
+
+   * - :guilabel:`Electable` 
+     - Dictates where |service| deploys electable :term:`secondary` 
+       replica set members for the shard or shards associated to that 
+       zone. :guilabel:`Electable` regions add additional fault 
+       tolerance in the event of a partial or total regional outage in 
+       the :guilabel:`Preferred` region.
+
+   * - :guilabel:`Read-only` 
+     - Dictates where |service| deploys non-electable :term:`secondary`
+       replica set members for supporting secondary read operations. 
+       For each zone in the cluster, add a :guilabel:`Read-only` node 
+       in the :guilabel:`Preferred Region` of every other zone
+       to facilitate low-latency local secondary reads of globally 
+       distributed data.
+
+For each shard associated to a zone, |service| distributes the
+shard nodes across the configured regions. While |service| allows
+more than one shard per zone, users should instead consider 
+creating additional zones to address high user volume in a concentrated
+geographic area.
+
+.. note::
+   
+   |service| supports up to
+   :ref:`12 shards per sharded cluster 
+   <can-i-deploy-more-than-12-shards>` regardless of the number of 
+   zones.
+
+.. _global-writes-collections:
+
+Sharding Collections for Global Writes
+--------------------------------------
+
+Unsharded collections must meet the following compatibility 
+requirements **prior to sharding** to utilize |global-write| when 
+sharded:
+
+- Every document in the collection **must** include a 
+  ``location`` field.
+
+- The value of the ``location`` field **must** be either an
+  `ISO-3166-1 alpha 2 <https://en.wikipedia.org/wiki/ISO_3166-1>`_
+  country code *or* a supported
+  `ISO-3166-2 <https://en.wikipedia.org/wiki/ISO_3166-2>`_ 
+  subdivision code. Documents that do not match this criteria can be
+  routed to any shard in the cluster. To view the complete list of
+  currently supported country or subdivision codes, visit
+  https://cloud.mongodb.com/static/atlas/country_iso_codes.txt.
+
+For collections that meet the stated requirements, you **must** shard 
+the collection using the following pattern:
+
+.. code-block:: json
+
+   { "location" : 1, "<secondary_field>" : 1 }
+
+A shard key on the ``location`` field alone may result in bottlenecks,
+especially for workloads where a subset of countries or subdivisions
+receive the majority of write operations. The ``<secondary_field>`` 
+ensures the cluster can efficiently create and distribute chunks of 
+sharded data across the cluster. For guidance on choosing a secondary 
+shard key field and the effect of shard key choice on data distribution, 
+see :manual:`Choosing a Shard Key 
+</core/sharding-shard-key/#choosing-a-shard-key>`.
+
+The :ref:`data-explorer` adds a :guilabel:`Global Writes` tab that 
+includes a sharding interface with validations for 
+|global-write|. For documentation on accessing the
+:guilabel:`Data Explorer`, see :ref:`data-explorer-access`.
+
+You can also use the
+:binary:`~bin.mongo` shell to execute the
+:method:`sh.shardCollection() <sh.shardCollection>`.
+
+Global Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+For each document in a write operation, MongoDB uses the ``location`` 
+field of the shard key to determine the zone to which to route the data.
+MongoDB selects a shard associated to that zone as the target for
+writing the document, facilitating geographically isolated and
+segmented data storage.
+
+MongoDB can only guarantee this behavior for inserted documents that 
+meet the criteria defined in :ref:`global-writes-collections`. 
+Specifically, MongoDB can route a document whose ``location`` field does 
+not conform to 
+`ISO-3166-1 alpha 2 <https://en.wikipedia.org/wiki/ISO_3166-1>`_ *or*
+`ISO-3166-2 <https://en.wikipedia.org/wiki/ISO_3166-2>`_ to any shard
+in the cluster.
+
+Global Read Operations
+~~~~~~~~~~~~~~~~~~~~~~
+
+For each client issuing a read operation with the full shard key as 
+part of the query *and* a 
+:manual:`Read Preference </core/read-preference/>` of 
+:readmode:`nearest`, MongoDB can route that query to the geographically
+nearest :term:`secondary` for the zone associated to that shard key.
+While the :guilabel:`primary` for that zone may be geographically
+distant, an additional :guilabel:`Read-only` node can facilitate
+low-latency local secondary reads.
+
+.. important::
+
+   Secondary reads may return stale data depending on the level
+   of replication lag between the secondary node and the primary.
+   For complete documentation on MongODB read preference,
+   see :manual:`Read Preference </core/read-preference/>`.
+
+For more information on MongoDB query routing, see 
+:manual:`mongos </core/sharded-cluster-query-router/>`.  
+
+Sharding Collections without Global Writes
+------------------------------------------
+
+|global-write| clusters support the same
+:manual:`Ranged </core/ranged-sharding>` and 
+:manual:`Hashed </core/hashed-sharding>` sharding strategies
+as a standard |service| sharded cluster. For sharded collections whose 
+shard keys and document schema do not support |global-write|, 
+MongoDB distributes the sharded data evenly across the available shards 
+in the cluster with respect to the chosen 
+:manual:`shard key </core/sharding-shard-key/>`.
+
+You cannot modify a collection to support |global-write| after
+sharding. Consider whether you might want to use |global-write|
+for a collection in the future before choosing an incompatible shard
+key. For more information on |global-write| sharding requirements, see 
+:ref:`global-writes-collections`.
+
+Unsharded Collections in Global Write Clusters
+----------------------------------------------
+
+|global-write-clusters| provide the same support for unsharded 
+collections as a standard |service| sharded cluster. For each database 
+in the cluster, MongoDB stores its unsharded collections on a 
+:term:`primary shard`. Use :method:`sh.status() <sh.status>` from
+the :binary:`~bin.mongo` shell to determine the primary shard for the 
+database. 
+
+.. important::
+
+   |service| does not support the :dbcommand:`movePrimary` command for
+   moving the primary shard for a database. If you require assistance
+   with changing the primary shard of a database, contact |service|
+   support by clicking the :guilabel:`Support` link in the left hand
+   navigation of the |service| UI.

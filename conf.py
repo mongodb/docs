@@ -68,6 +68,8 @@ rst_epilog = [
     '.. _stitch-docs: https://docs.mongodb.com/stitch',
     '.. |bic| replace:: BI Connector for Atlas',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
+    '.. |global-write| replace:: Global Writes',
+    '.. |global-write-clusters| replace:: Global Write Clusters'
     
 ]
 
