@@ -16,11 +16,9 @@ Definition
 .. dbcommand:: dbHash
 
    Returns the hash values of the collections in a database and an
-   MD5 value for the list of collections. :dbcommand:`dbHash` is useful
+   MD5 value for these collections. :dbcommand:`dbHash` is useful
    to compare databases across :binary:`~bin.mongod` instances, such as
-   mirrored :doc:`config servers
-   </core/sharded-cluster-config-servers>` for sharded clusters or
-   members of replica sets.
+   across members of replica sets.
 
    :dbcommand:`dbHash` has the following syntax:
 
@@ -35,6 +33,63 @@ Behavior
 
 If a collection in the ``collections`` array is non-existent,
 :dbcommand:`dbHash` does not return a hash value for that collection.
+
+The command returns a document with the following fields:
+
+.. list-table::
+   :header: 1
+   :widths: 20 80
+
+   * - host
+
+     - The host and port of the :binary:`~bin.mongod` instance on which
+       the command is run.
+
+   * - ``collections``
+
+     - A document with the collections and their corresponding hash values.
+
+       .. code-block:: javascript
+
+          {
+             <collection1>: <hash1>,
+             <collection2>: <hash2>,
+             ...
+          }
+
+   * - ``capped``
+
+     - An array that lists the capped collections.
+
+       .. versionadded:: 4.0
+
+   * - ``uuids``
+
+     - A document with the collections and their corresponding UUID values.
+
+       .. code-block:: javascript
+   
+          {
+             <collection1>: <UUID1>,
+             <collection2>: <UUID2>,
+             ...
+          }
+
+       .. versionadded:: 4.0
+
+   * - ``md5``
+     - The aggregate hash value for these collections.
+
+   * - ``timeMillis``
+     - Number of milliseconds to generate the hash.
+
+   * - | ``ok``
+       | ``operationTime`` 
+       | ``$clusterTime``
+
+     - Returned with every command. See also :ref:`command-response`
+       for details.
+
 
 Examples
 --------
@@ -55,55 +110,76 @@ The operation returns the following document:
 .. code-block:: json
 
    {
-      "numCollections" : 7,
-      "host" : "myHostName.local",
+      "host" : "myHostName.local:27017",
       "collections" : {
-         "bar" : "0a8089b7134801ab74d5f1310c27f161",
-         "foo" : "f49ff19aa6959d96b43961a595ae550e",
-         "foo2" : "a4f0e61c26af65d7efa0d0ad173db801",
-         "inventory" : "4f6d23309dcc059232d0e4383fcedfa1",
-         "orders" : "083def5adf48686a732ee07b8ffaf228",
-         "restaurants" : "407a4f24cfafa40641e20098929c5632",
-         "zipcodes" : "679530b9b79d529d79bd143435135f25"
+         "foo" : "d27b769230edc551d869060ec3fb68bd",
+         "inventory" : "ec3d821581ea1bd3aa8196c94b946874",
+         "log" : "d41d8cd98f00b204e9800998ecf8427e",
+         "orders" : "0242c0a128c284ea9576a34db2306c12",
+         "restaurants" : "5dc9b88091c36f0d529567b5b6e3fc92",
+         "zipcodes" : "31ede812bf397509a87359c65bf2a08c"
       },
-      "md5" : "2e3b201903d60cdc1eedfd58f4c014d4",
-      "timeMillis" : 71,
-      "fromCache" : [ ],
-      "ok" : 1
+      "capped" : [
+         "log"
+      ],
+      "uuids" : {
+         "foo" : UUID("469592fe-3bfe-425e-975f-cedbe0c4741d"),
+         "inventory" : UUID("0830e0ad-cc24-4fc7-80d0-8e22fe45e382"),
+         "log" : UUID("4be024ff-711b-4ab8-836b-dee662e090f1"),
+         "orders" : UUID("755be489-745f-400c-ac3b-f27525ad0108"),
+         "restaurants" : UUID("520b56ec-3276-4904-b6e5-286bc9bfa648"),
+         "zipcodes" : UUID("12e97b70-c174-40af-a178-5d83a241fe20")
+      },
+      "md5" : "0cb7417ae9d9eb865000b4debdc671da",
+      "timeMillis" : 53,
+      "ok" : 1,
+      "operationTime" : Timestamp(1529208582, 4),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1529208582, 4),
+         "signature" : {
+            "hash" : BinData(0,"X3MmevDqUgCVvN1AhnT+fiOL/Lc="),
+            "keyId" : NumberLong("6567898567824900097")
+         }
+      }
    }
 
 Return Hash Values for Specified Collections in a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example returns the hash value for the collections ``foo``
-and ``bar`` in the database ``test``:
+The following example returns the hash value for the collections ``inventory``
+and ``orders`` in the database ``test``:
 
 .. code-block:: javascript
 
    use test
-   db.runCommand( { dbHash: 1, collections: [ "foo", "bar" ] } )
+   db.runCommand( { dbHash: 1, collections: [ "inventory", "orders" ] } )
 
 The operation returns the following document:
 
 .. code-block:: json
 
    {
-      "numCollections" : 7,
-      "host" : "myHostName.local",
+      "host" : "myHostName.local:27017",
       "collections" : {
-         "bar" : "0a8089b7134801ab74d5f1310c27f161",
-         "foo" : "f49ff19aa6959d96b43961a595ae550e"
+         "inventory" : "ec3d821581ea1bd3aa8196c94b946874",
+         "orders" : "0242c0a128c284ea9576a34db2306c12"
       },
-      "md5" : "94f296621d5ed4ed35088257ce0c9d99",
+      "capped" : [ ],
+      "uuids" : {
+         "inventory" : UUID("0830e0ad-cc24-4fc7-80d0-8e22fe45e382"),
+         "orders" : UUID("755be489-745f-400c-ac3b-f27525ad0108")
+      },
+      "md5" : "cb4676f316ff2ff29c701a5edd18afe3",
       "timeMillis" : 0,
-      "fromCache" : [ ],
-      "ok" : 1
+      "ok" : 1,
+      "operationTime" : Timestamp(1529208801, 1),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1529208801, 1),
+         "signature" : {
+            "hash" : BinData(0,"I4z4a4Mgs+tcx0MP5xIU8DYAMB0="),
+            "keyId" : NumberLong("6567898567824900097")
+         }
+      }
    }
-
-.. note:: 
-
-   The ``numCollections`` is the total number of collections in the
-   database where as the ``md5`` calculation incorporates the hash
-   values of the specified list of collections.
 
 .. slave-ok, read-lock
