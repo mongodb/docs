@@ -1,36 +1,63 @@
 ref: concurrent-operations-read-uncommitted
 content: |
-  In MongoDB, clients can see the results of writes before the writes
-  are :term:`durable`:
+
+  Depending on the read concern, clients can see the results of writes
+  before the writes are :term:`durable`:
 
   .. include:: /includes/list-visibility-of-data.rst
-
-# The include file has the following content:
+  
+# The above include file has the following content:
 #
 #  - Regardless of :doc:`write concern </reference/write-concern>`,
 #    other clients can see the result of the write operations before
 #    the write operation is acknowledged to the issuing client.
 #
+#  - For operations in a :doc:`multi-document transactions
+#    </core/transactions>`, although other clients cannot see the
+#    results while the transaction is open, they can see the result at
+#    the time of the commit, before the commit operation is
+#    acknowledged to the issuing client.
+#
 #  - Clients can read data which may be subsequently :doc:`rolled back
-#    </core/replica-set-rollbacks>`.
+#    </core/replica-set-rollbacks>`  during replica set failovers.
 
 ---
 ref: concurrent-operations-single-document-write
 content: |
    Write operations are atomic with respect to a single document; i.e.
-   if a write is updating multiple fields in the document, a reader
+   if a write is updating multiple fields in the document, a read operation
    will never see the document with only some of the fields updated.
+   However, although a client may not see a *partially* updated
+   document, read uncommitted means that concurrent read operations may still
+   see the updated document before the changes are made :term:`durable`.
 
    With a standalone :binary:`~bin.mongod` instance, a set of read and write
    operations to a single document is serializable. With a replica set,
    a set of read and write operations to a single document is serializable
    *only* in the absence of a rollback.
+
 ---
 ref: concurrent-operations-multi-document-writes
 content: |
-   When a single write operation modifies multiple documents, the
-   modification of each document is atomic, but the operation as a whole
-   is not atomic and other operations may interleave.
+
+   When a single write operation (e.g.
+   :method:`db.collection.updateMany()`) modifies multiple documents,
+   the modification of each document is atomic, but the operation as a
+   whole is not atomic.
+
+   When performing multi-document write operations, whether through a
+   single write operation or multiple write operations, other
+   operations may interleave.
+
+   .. include:: /includes/extracts/transactions-intro-blurb.rst
+
+# The above include file has the following content:
+#
+# Starting in version 4.0, for situations that require atomicity for
+# updates to multiple documents or consistency between reads to multiple
+# documents, MongoDB provides :doc:`multi-document transactions
+# </core/transactions>` for replica sets.
+   
 ---
 ref: concurrent-operations-multi-document-writes-no-isolation
 content: |
@@ -75,7 +102,7 @@ content: |
    situations. As a cursor returns documents other operations may
    interleave with the query. If some of these operations are
    :doc:`updates </tutorial/update-documents>` that cause the document to
-   move (in the case of MMAPv1, caused by document growth) or that
+   move (in the case of the deprecated MMAPv1, caused by document growth) or that
    change the indexed field on the index used by the query; then the
    cursor will return the same document more than once.
 

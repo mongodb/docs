@@ -64,12 +64,11 @@ For more information on fCV, see
 Storage Engines
 ~~~~~~~~~~~~~~~
 
-Multi-document transactions are available for the WiredTiger storage
-engine and in-memory storage engines.
+Multi-document transactions are only available for deployments that use
+WiredTiger storage engine.
 
-If any voting member of a replica set uses the in-memory storage
-engine, you must set :rsconf:`writeConcernMajorityJournalDefault` to
-``false``.
+Multi-document transactions are not available for deployments that use
+in-memory storage engine or the deprecated MMAPv1 storage engine.
 
 .. _transactions-operations:
 
@@ -86,6 +85,8 @@ transactions. For example, a multi-document transaction cannot include
 an insert operation that would result in the creation of a new
 collection. See :ref:`transactions-ops-restricted`.
 
+.. include:: /includes/extracts/transactions-operations-catalog-tip.rst
+
 For multi-document transactions:
 
 .. include:: /includes/table-transactions-operations.rst
@@ -96,7 +97,13 @@ Count Operation
 ~~~~~~~~~~~~~~~
 
 To perform a count operation within a transaction, use the
-:pipeline:`$count` aggregation stage.
+:pipeline:`$count` aggregation stage or the :pipeline:`$group` (with a
+:expression:`$sum` expression) aggregation stage.
+
+MongoDB drivers compatible with the 4.0 features provide a
+collection-level API ``countDocuments(filter, options)`` as a helper
+method that uses the :pipeline:`$group` with a :expression:`$sum`
+expression to perform a count.
 
 .. _transactions-ops-info:
 
@@ -135,13 +142,15 @@ required by the operations in the transaction. If the transaction
 cannot acquire its required locks within the ``5`` milliseconds, the
 transaction aborts.
 
+.. include:: /includes/extracts/transactions-operations-catalog-tip.rst
+
 You can use the :parameter:`maxTransactionLockRequestTimeoutMillis`
 parameter to adjust how long transactions wait to acquire locks.
 
 You can also use operation-specific timeout by setting
 :parameter:`maxTransactionLockRequestTimeoutMillis` to ``-1``.
 
-Transactions release all locks upon abort.
+Transactions release all locks upon abort or commit.
 
 Transactions and Sessions
 -------------------------
@@ -275,8 +284,8 @@ Read Preference
 
 .. _transaction-options:
 
-Transaction Options
--------------------
+Transaction Options (Read Concern/Write Concern)
+------------------------------------------------
 
 .. code-block:: javascript
 

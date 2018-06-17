@@ -10,49 +10,15 @@ Operational Factors and Data Models
    :depth: 1
    :class: singlecol
 
-Modeling application data for MongoDB depends on both the data itself,
-as well as the characteristics of MongoDB itself. For example,
-different data models may allow applications to use more efficient
-queries, increase the throughput of insert and update operations, or
-distribute activity to a sharded cluster more effectively.
+Modeling application data for MongoDB should consider various
+operational factors that impact the performance of MongoDB. For
+instance, different data models can allow for more efficent queries,
+increase the throughput of insert and update operations, or distribute
+activity to a sharded cluster more effectively.
 
-These factors are *operational* or address requirements that arise
-outside of the application but impact the performance of MongoDB based
-applications. When developing a data model, analyze all of your
-application's :doc:`read and write operations </crud>` in conjunction
-with the following considerations.
-
-.. _data-model-document-growth:
-
-Document Growth
----------------
-
-.. versionchanged:: 3.0.0
-
-Some updates to documents can increase the size of documents. These
-updates include pushing elements to an array (i.e. :update:`$push`) and
-adding new fields to a document.
-
-When using the MMAPv1 storage engine, document growth can be a
-consideration for your data model. For MMAPv1, if the document size
-exceeds the allocated space for that document, MongoDB will relocate
-the document on disk. With MongoDB 3.0.0, however, the default use of
-the :ref:`power-of-2-allocation` minimizes the occurrences of such
-re-allocations as well as allows for the effective reuse of the freed
-record space.
-
-When using MMAPv1, if your applications require updates that will
-frequently cause document growth to exceeds the current power of 2
-allocation, you may want to refactor your data model to use references
-between data in distinct documents rather than a denormalized data
-model.
-
-You may also use a *pre-allocation* strategy to explicitly avoid
-document growth. Refer to the :ecosystem:`Pre-Aggregated Reports Use
-Case </use-cases/pre-aggregated-reports>` for an example of the
-*pre-allocation* approach to handling document growth.
-
-See :doc:`/core/mmapv1` for more information on MMAPv1.
+When developing a data model, analyze all of your application's
+:doc:`read and write operations </crud>` in conjunction with the
+following considerations.
 
 .. _data-model-atomicity:
 .. _data-modeling-atomicity:
@@ -60,28 +26,31 @@ See :doc:`/core/mmapv1` for more information on MMAPv1.
 Atomicity
 ---------
 
-In MongoDB, operations are atomic at the :term:`document` level. No
-**single** write operation can change more than one document.
-Operations that modify more than a single document in a collection
-still operate on one document at a time. [#record-atomicity]_ Ensure
-that your application stores all fields with atomic dependency
-requirements in the same document. If the application can tolerate
-non-atomic updates for two pieces of data, you can store these data in
-separate documents.
+In MongoDB, a write operation is atomic on the level of a single
+document, even if the operation modifies multiple embedded documents
+*within* a single document. When a single write operation modifies
+multiple documents (e.g. :method:`db.collection.updateMany()`), the
+modification of each document is atomic, but the operation as a whole
+is not atomic.
 
-A data model that embeds related data in a single document
-facilitates these kinds of atomic operations. For data models that
-store references between related pieces of data, the application must
-issue separate read and write operations to retrieve and modify these
-related pieces of data.
+Embedded Data Model
+~~~~~~~~~~~~~~~~~~~
+
+The embedded data model combines all related data in a single document
+instead of normalizing across multiple documents and collections. This
+data model facilitates atomic operations.
 
 See :ref:`data-modeling-atomic-operation` for an example data model
 that provides atomic updates for a single document.
 
-.. [#record-atomicity] Document-level atomic operations include all
-   operations within a single MongoDB document record: operations that
-   affect multiple embedded documents within that single record are still
-   atomic.
+Multi-Document Transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For data models that store references between related
+pieces of data, the application must issue separate read and write
+operations to retrieve and modify these related pieces of data.
+
+.. include:: /includes/extracts/transactions-intro.rst
 
 Sharding
 --------
@@ -305,3 +274,36 @@ documents, consider :doc:`/core/capped-collections`. Capped collections
 provide *first-in-first-out* (FIFO) management of inserted documents
 and efficiently support operations that insert and read documents based
 on insertion order.
+
+.. _data-model-document-growth:
+
+Document Growth and MMAPv1
+--------------------------
+
+.. versionchanged:: 3.0.0
+
+Some updates to documents can increase the size of documents. These
+updates include pushing elements to an array (i.e. :update:`$push`) and
+adding new fields to a document.
+
+When using the deprecated MMAPv1 storage engine, document growth can be
+a consideration for your data model. For MMAPv1, if the document size
+exceeds the allocated space for that document, MongoDB will relocate
+the document on disk. Starting with MongoDB 3.0, however, the default
+use of the :ref:`power-of-2-allocation` minimizes the occurrences of
+such re-allocations as well as allows for the effective reuse of the
+freed record space.
+
+When using MMAPv1, if your applications require updates that will
+frequently cause document growth to exceeds the current power of 2
+allocation, you may want to refactor your data model to use references
+between data in distinct documents rather than a denormalized data
+model.
+
+You may also use a *pre-allocation* strategy to explicitly avoid
+document growth. Refer to the :ecosystem:`Pre-Aggregated Reports Use
+Case </use-cases/pre-aggregated-reports>` for an example of the
+*pre-allocation* approach to handling document growth.
+
+See :doc:`/core/mmapv1` for more information on MMAPv1.
+

@@ -407,57 +407,15 @@ Does MongoDB support transactions?
 What isolation guarantees does MongoDB provide?
 -----------------------------------------------
 
-MongoDB provides the following guarantees in the presence of concurrent read and
-write operations. These guarantees hold on systems configured with either the
-MMAPv1 or WiredTiger storage engines.
+Depending on the read concern, clients can see the results of writes
+before the writes are :term:`durable`. To control whether the data read
+may be rolled back or not, clients can use the ``readConcern`` option.
 
-#. .. include:: /includes/extracts/concurrent-operations-single-document-write.rst
+For information, see:
 
-#. Correctness with respect to query predicates, e.g.
-   :method:`db.collection.find()` will only return documents that match and
-   :method:`db.collection.update()` will only write to matching documents.
+- :doc:`/core/read-isolation-consistency-recency`
 
-#. Correctness with respect to sort. For read operations that request a sort
-   order (e.g. :method:`db.collection.find()` or
-   :method:`db.collection.aggregate()`), the sort order will not be violated due
-   to concurrent writes.
+- :doc:`/core/write-operations-atomicity`
 
-Although MongoDB provides these strong guarantees for single-document
-operations, read and write operations may access an arbitrary number of
-documents during execution.  Multi-document operations do *not* occur
-transactionally and are not isolated from concurrent writes. This means that the
-following behaviors are expected under the normal operation of the system,
-for both the MMAPv1 and WiredTiger storage engines:
-
-.. include:: /includes/extracts/concurrent-operations-multi-document-writes-no-isolation.rst
-
-.. seealso:: :doc:`/core/write-operations-atomicity`
-
-Can reads see changes that have not been committed to disk?
------------------------------------------------------------
-
-.. versionchanged:: 3.2
-
-   MongoDB 3.2 introduced the :ref:`3.2-rel-notes-readConcern` option.
-   Clients using :readconcern:`majority` ``readConcern`` cannot see the
-   results of writes before they are made :term:`durable`.
-
-Readers using :readconcern:`"local"` ``readConcern`` can see the
-results of writes before they are made :term:`durable`, regardless of
-write concern level or journaling configuration. As a result,
-applications may observe the following behaviors:
-
-#. MongoDB will allow a concurrent reader to see the result of the write
-   operation before the write is acknowledged to the client application. For details
-   on when writes are acknowledged for different write concern levels, see
-   :doc:`/reference/write-concern`.
-
-#. Reads can see data which may subsequently be rolled back in cases such
-   as replica set failover or power loss. It does *not* mean that read operations
-   can see documents in a partially written or otherwise inconsistent state.
-
-Other systems refer to these semantics as *read uncommitted*.
-
-.. versionchanged:: 3.2
-
+- :doc:`/reference/read-concern`
 
