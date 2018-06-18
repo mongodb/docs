@@ -1,0 +1,99 @@
+.. _security_aws_kms:
+
+==================
+Encryption at Rest
+==================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| enables you to use the :abbr:`AWS (Amazon Web Services)` Key
+Management Service (AWS KMS) to encrypt your MongoDB cluster's storage
+engines and backup snapshots from cloud providers. MongoDB uses your AWS
+customer master key (CMK) to encrypt and decrypt your MongoDB master keys,
+which are used to encrypt your database keys.
+
+|service| users with the :authrole:`Project Owner` role can rotate the
+CMK at any time by repeating this procedure and updating their |service|
+project with the new CMK. |service| automatically  rotates your MongoDB
+master keys every ninety days.
+
+Prerequisites
+-------------
+
+The following prerequisites are required to enable Encryption at Rest
+for a MongoDB project:
+
+* An AWS customer master key. See `Creating Keys <https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html>`_
+  in the AWS documentation for instructions.
+
+* An AWS IAM user in the same account used to create the AWS CMK.
+  You must update the key policy to give |service| the following permissions
+  to access your AWS customer master key:
+
+  * `DescribeKey <https://docs.aws.amazon.com/kms/latest/APIReference/API_DescribeKey.html>`_
+
+  * `GetKeyPolicy <https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyPolicy.html>`_
+
+  * `Encrypt <https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html>`_
+
+  * `Decrypt <https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html>`_ 
+
+  See `IAM Users <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html>`_
+  in the AWS documentation for instructions on creating an IAM user.
+
+|service| uses the same IAM user credentials and CMK settings for all 
+clusters in a project for which Encryption at Rest is enabled.
+
+Restrictions
+------------
+
+The following restrictions apply to Encyption at Rest on an |service|
+cluster:
+    
+* Clusters must use M10 or larger servers.
+
+* Sharded clusters are not supported. Your deployment must be a replica
+  set.
+    
+* :doc:`Continuous Backups </backup/continuous-backups>` are not supported. 
+  When enabling backup for a cluster using Encryption at Rest, you must
+  use :doc:`Cloud Provider Snapshots </backup/cloud-provider-snapshots>`
+  from AWS or Azure to encrypt your backup snapshots.
+    
+* You cannot enable Encryption at Rest for clusters running on GCP.
+
+.. note::
+
+   Administrators who deploy clusters on GCP and want to enable backup
+   should keep those clusters in a separate project from deployments
+   that use Encryption at Rest or Cloud Provider Snapshots.
+
+Procedure
+---------
+
+You must enable Encryption at Rest for a project before you can
+enable Encryption at Rest for a cluster in that project. See :ref:`create-cluster-enable-encryption`
+for instructions on deploying a cluster with Encryption at Rest.  See
+:ref:`Modify a Cluster </scale-cluster>` for instructions on enabling
+Encryption at Rest for an existing cluster.
+
+.. note::
+
+   You must disable Encryption at Rest on each cluster in a project
+   before you can disable the feature for the project.
+    
+To enable Encryption at Rest for a project:
+    
+.. include:: /includes/steps/enable-encryption-for-project.rst
+   
