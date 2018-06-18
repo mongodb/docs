@@ -193,6 +193,9 @@ following parameters:
   database, the map-reduce operation will shard the output collection
   using the ``_id`` field as the shard key.
 
+  If ``true`` and ``collectionName`` is an existing unsharded collection,
+  map-reduce fails.
+
 - ``nonAtomic``:
 
   Optional. Specify output operation as non-atomic. This applies **only**
