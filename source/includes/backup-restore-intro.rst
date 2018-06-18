@@ -1,7 +1,8 @@
 |charts| uses a number of keys and tokens to secure your
 deployment and encrypt sensitive data stored in the |charts-short|
 metadata database. When you first deploy |charts-short|, new random
-keys are automatically generated and saved to a Docker Volume which
+keys are automatically generated and saved to a
+`Docker volume <https://docs.docker.com/storage/volumes/>`_ which
 persists the keys across container deployments.
 
 .. important::

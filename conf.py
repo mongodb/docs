@@ -58,6 +58,7 @@ rst_epilog = [
     '.. |charts| replace:: MongoDB Charts',
     '.. |charts-short| replace:: Charts',
     '.. |checkmark| unicode:: U+2713',
+    '.. |tls-ssl| replace:: :abbr:`TLS (Transport Layer Security)`/:abbr:`SSL (Secure Sockets Layer)`'
 ]
 
 rst_epilog.extend(get_replacements(conf))
