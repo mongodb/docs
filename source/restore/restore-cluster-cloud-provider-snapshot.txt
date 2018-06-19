@@ -1,8 +1,16 @@
+.. _restoration-cloud-provider-snapshot:
+
 ================================================
 Restore a Cluster from a Cloud Provider Snapshot
 ================================================
 
 .. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
@@ -17,16 +25,32 @@ For instructions on restoring data from a
 Restore a Cluster
 -----------------
 
-#. From the :guilabel:`Clusters` view, click :guilabel:`Backup` in the left-hand navigation.
+.. admonition:: Restoring Snapshots for Clusters using Encryption at Rest
+   :class: important
 
-   If the :guilabel:`Status` field for the cluster you want to restore
-   a backup for is :guilabel:`Inactive`, then |service| backups are
-   disabled for that cluster and no snapshots are available. 
+   |service| automatically encrypts
+   :ref:`Cloud Provider Snapshots <backup-cloud-provider>` for 
+   clusters using :doc:`/security-aws-kms`, in addition to the
+   existing encryption applied to all |service| storage and snapshot
+   volumes. For documentation on restoring an encrypted snapshot, see 
+   :ref:`restore-encrypted-snapshot`
+
+   The following instructions only apply to snapshots for
+   clusters not using Encryption at Rest.
+
+#. From the :guilabel:`Clusters` view, click on the cluster name.
+
+#. Click :guilabel:`Backup` in the left-hand navigation.
+
+   If the cluster has no :guilabel:`Backup` tab, then |service| backups 
+   are disabled for that cluster and no snapshots are available. 
+   You can enable backups when 
+   :ref:`scaling the cluster <scale-cluster-backups>`.
 
 #. Select a cluster's snapshot to restore.
 
    Hover over the :guilabel:`Active` status of the cluster and click
-   :guilabel:`Restore or Download`.
+   :guilabel:`Restore` or :guilabel:`Download`.
 
    Alternatively, you can click the ``...`` button for the cluster and
    select the :guilabel:`Restore`.
@@ -69,8 +93,10 @@ Restore your Snapshot to an Atlas Project
 
 From the :guilabel:`Restore` dialog, click :guilabel:`Restore` to have 
 |service| restore to a selected cluster. |service| can only restore to 
-a replica set cluster. The target cluster must run the same or newer 
-version of MongoDB as the snapshot MongoDB version.
+a replica set cluster that does *not* use
+:doc:`Encryption at Rest </security-aws-kms>`. 
+The target cluster must run the same or newer version of MongoDB as the 
+snapshot MongoDB version.
 
 You can restore to any |service| project for which the authenticated
 |service| user has the :authrole:`Project Owner` role.
@@ -105,3 +131,85 @@ If the current project whitelist ranges do not cover the target |mms|
 project IP or :abbr:`CIDR (Classless Inter-Domain Routing)` addresses,
 click  :guilabel:`Add or Modify your IP Addresses` to make changes to 
 your |service| project whitelist.
+
+.. _restore-encrypted-snapshot:
+
+Restore a Snapshot of a Cluster with Encryption at Rest
+-------------------------------------------------------
+
+.. important:: 
+  
+   Snapshots of clusters using 
+   :doc:`Encryption at Rest </security-aws-kms>` can only restore to 
+   other clusters that use Encryption at Rest. You cannot restore a 
+   snapshot with Encryption at Rest to a |mms| project, nor can you 
+   download the snapshot.
+
+#. From the :guilabel:`Clusters` view, click on the cluster name.
+
+#. Click :guilabel:`Backup` in the left-hand navigation.
+
+   If the cluster has no :guilabel:`Backup` tab, then |service| backups 
+   are disabled for that cluster and no snapshots are available. 
+   You can enable backups when 
+   :ref:`scaling the cluster <scale-cluster-backups>`.
+
+#. Click :guilabel:`Restore` in the :guilabel:`Actions` column 
+   for the snapshot you want to restore.
+
+#. From the :guilabel:`Restore` dialog, select the
+   |service| :guilabel:`Project` to restore to. You can restore to any 
+   |service| project for which the authenticated |service| user has 
+   the :authrole:`Project Owner` role.
+
+#. Select the :guilabel:`Cluster` to restore to. 
+   You can only restore to a |service| replica set running
+   Encryption at Rest. The target cluster must run the same or
+   greater version of MongoDB as the :guilabel:`MongoDB Version`
+   of the snapshot.
+
+   If the target project does not have a cluster with
+   Encryption at Rest enabled, you can either 
+   :ref:`deploy <create-cluster-enable-encryption>` a cluster with
+   Encryption at Rest, or 
+   :ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+   in an existing cluster.
+
+After the restoration procedure, |service| triggers a key rotation
+for MongoDB encryption key. |service| then encrypts the new MongoDB 
+encryption keys using the target project 
+:abbr:`CMK (Customer Master Key)`. 
+
+If |service| cannot access the snapshot 
+:abbr:`CMK (Customer Master Key)`, |service| cannot restore the
+snapshot. :abbr:`CMK (Customer Master Key)` access validation 
+may fail for any of the following reasons:
+
+- The AWS :abbr:`IAM (Identity and Access Management)` credentials for
+  the snapshot, source project, or destination project do not
+  provide access to the enabled :abbr:`CMK (Customer Master Key)`.
+
+  Configure the :abbr:`IAM (Identity and Access Management)` user
+  which the source or target project uses to have access to the
+  :abbr:`CMK (Customer Master Key)` identified by the snapshot
+  :guilabel:`CMK ID`. For complete documentation on configuring
+  the :abbr:`IAM (Identity and Access Management)` user for
+  |service| Encryption at Rest, see
+  :doc:`/security-aws-kms`.
+
+- The :abbr:`CMK (Customer Master Key)` is accessible, but not enabled.
+
+  You must enable the :abbr:`CMK (Customer Master Key)` from the
+  AWS :abbr:`IAM (Identity and Access Management)` interface for
+  |service| to restore the snapshot.
+
+- The :abbr:`CMK (Customer Master Key)` is deleted.
+  |service| cannot restore a snapshot whose 
+  :abbr:`CMK (Customer Master Key)` was deleted. 
+
+For complete documentation on configuring Encryption at Rest,
+see :doc:`/security-aws-kms`. You can either
+:ref:`deploy <create-cluster-enable-encryption>` a cluster with
+Encryption at Rest, or 
+:ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+in an existing cluster.
