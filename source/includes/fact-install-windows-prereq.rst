@@ -52,7 +52,9 @@ Install all Windows Updates
 
 The Windows installer (``.msi``) file includes all other
 software dependencies and automatically upgrades any previous version 
-of MongoDB that was installed using an ``.msi`` file.
+of MongoDB in the :ref:`same release series <release-version-numbers>`
+(3.4.1 to 3.4.2) that was installed using an ``.msi`` file. Upgrading 
+a full release series (3.4 to 3.6) requires a new installation. 
 
 Security
 ~~~~~~~~
