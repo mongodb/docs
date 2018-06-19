@@ -17,9 +17,4 @@
       This tutorial assumes that you installed MongoDB
       in ``C:\Program Files\MongoDB\Server\{+version+}\``.
 
-   During the installation process you will be given the option to
-   install :ref:`MongoDB Compass <compass-index>` after installing
-   MongoDB Server. Clear the checkbox for this option. At this time, 
-   there is an installation error that occurs when installing Compass 
-   using the MongoDB Server installer. 
 
