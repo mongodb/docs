@@ -18,7 +18,7 @@ Install on Windows 7 / Server 2008 R2 or Later
 
    .. code-block:: powershell
 
-      PS C:\> systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"System Type"
+      systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"System Type"
 
    .. code-block:: powershell
       :copyable: false
@@ -62,5 +62,5 @@ Security
 .. warning::
 
    Do not expose :binary:`~bin.mongod.exe` to a public network without 
-   configuring authentication. MongoDB is designed to be run in 
-   trusted environments.
+   :docs:`configuring authentication </core/authentication>`. MongoDB 
+   is designed to be run in trusted environments.
