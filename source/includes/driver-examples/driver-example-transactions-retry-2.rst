@@ -36,3 +36,25 @@
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2
 
+     - id: java
+       content: |
+         .. code-block:: java
+
+            void commitWithRetry(ClientSession clientSession) {
+                while (true) {
+                    try {
+                        clientSession.commitTransaction();
+                        System.out.println("Transaction committed");
+                        break;
+                    } catch (MongoException e) {
+                        // can retry commit
+                        if (e.hasErrorLabel(MongoException.UNKNOWN_TRANSACTION_COMMIT_RESULT_LABEL)) {
+                            System.out.println("UnknownTransactionCommitResult, retrying commit operation ...");
+                            continue;
+                        } else {
+                            System.out.println("Exception during commit ...");
+                            throw e;
+                        }
+                    }
+                }
+            }

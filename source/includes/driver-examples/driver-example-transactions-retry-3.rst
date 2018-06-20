@@ -86,3 +86,67 @@
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
 
+     - id: java
+       content: |
+
+         .. code-block:: java
+
+            void runTransactionWithRetry(Runnable transactional) {
+                while (true) {
+                    try {
+                        transactional.run();
+                        break;
+                    } catch (MongoException e) {
+                        System.out.println("Transaction aborted. Caught exception during transaction.");
+
+                        if (e.hasErrorLabel(MongoException.TRANSIENT_TRANSACTION_ERROR_LABEL)) {
+                            System.out.println("TransientTransactionError, aborting transaction and retrying ...");
+                            continue;
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+            }
+
+            void commitWithRetry(ClientSession clientSession) {
+                while (true) {
+                    try {
+                        clientSession.commitTransaction();
+                        System.out.println("Transaction committed");
+                        break;
+                    } catch (MongoException e) {
+                        // can retry commit
+                        if (e.hasErrorLabel(MongoException.UNKNOWN_TRANSACTION_COMMIT_RESULT_LABEL)) {
+                            System.out.println("UnknownTransactionCommitResult, retrying commit operation ...");
+                            continue;
+                        } else {
+                            System.out.println("Exception during commit ...");
+                            throw e;
+                        }
+                    }
+                }
+            }
+            
+            void updateEmployeeInfo() {
+                MongoCollection<Document> employeesCollection = client.getDatabase("hr").getCollection("employees");
+                MongoCollection<Document> eventsCollection = client.getDatabase("hr").getCollection("events");
+
+                try (ClientSession clientSession = client.startSession()) {
+                    clientSession.startTransaction();
+
+                    employeesCollection.updateOne(clientSession,
+                            Filters.eq("employee", 3),
+                            Updates.set("status", "Inactive"));
+                    eventsCollection.insertOne(clientSession,
+                            new Document("employee", 3).append("status", new Document("new", "Inactive").append("old", "Active")));
+
+                    commitWithRetry(clientSession);
+                }
+            }
+            
+            
+            void updateEmployeeInfoWithRetry() {
+                runTransactionWithRetry(this::updateEmployeeInfo);
+            }
+

@@ -11,3 +11,20 @@
             :start-after: Start Transactions Intro Example 1
             :end-before: End Transactions Intro Example 1
 
+
+     - id: java
+       content: |
+
+          .. code-block:: java
+
+             try (ClientSession clientSession = client.startSession()) {
+                 clientSession.startTransaction();
+
+                 employeesCollection.updateOne(clientSession,
+                         Filters.eq("employee", 3),
+                         Updates.set("status", "Inactive"));
+                 eventsCollection.insertOne(clientSession,
+                         new Document("employee", 3).append("status", new Document("new", "Inactive").append("old", "Active")));
+
+                 commitWithRetry(clientSession);
+             }

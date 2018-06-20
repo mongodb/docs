@@ -36,3 +36,25 @@
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
 
+     - id: java
+       content: |
+         .. code-block:: javascript
+
+
+             void runTransactionWithRetry(Runnable transactional) {
+                 while (true) {
+                     try {
+                         transactional.run();
+                         break;
+                     } catch (MongoException e) {
+                         System.out.println("Transaction aborted. Caught exception during transaction.");
+
+                         if (e.hasErrorLabel(MongoException.TRANSIENT_TRANSACTION_ERROR_LABEL)) {
+                             System.out.println("TransientTransactionError, aborting transaction and retrying ...");
+                             continue;
+                         } else {
+                             throw e;
+                         }
+                     }
+                 }
+             }
