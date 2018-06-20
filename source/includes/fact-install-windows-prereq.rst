@@ -64,5 +64,5 @@ Security
 .. warning::
 
    Do not expose :binary:`~bin.mongod.exe` to a public network without 
-   :docs:`configuring authentication </core/authentication>`. MongoDB 
+   :doc:`configuring authentication </core/authentication>`. MongoDB 
    is designed to be run in trusted environments.
