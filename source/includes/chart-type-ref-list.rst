@@ -6,3 +6,5 @@ for each chart type in MongoDB Charts:
 - :ref:`Line and Area Chart Reference <line-area-chart-ref>`
 
 - :ref:`Heatmap Reference <heatmap-chart-ref>`
+
+- :ref:`Scatter Chart Reference <scatter-chart-ref>`
