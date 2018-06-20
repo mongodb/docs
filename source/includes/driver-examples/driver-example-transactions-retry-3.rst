@@ -86,7 +86,7 @@
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
 
-     - id: java
+     - id: java-sync
        content: |
 
          .. code-block:: java

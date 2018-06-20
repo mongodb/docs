@@ -12,7 +12,7 @@
             :end-before: End Transactions Intro Example 1
 
 
-     - id: java
+     - id: java-sync
        content: |
 
           .. code-block:: java
