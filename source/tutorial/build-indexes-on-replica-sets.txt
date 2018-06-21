@@ -74,31 +74,83 @@ Stop One Secondary and Restart as a Standalone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Stop the :binary:`~bin.mongod` process on one secondary. Restart the
-:binary:`~bin.mongod` process, making the following modifications to the 
-configuration file.
+:binary:`~bin.mongod` process, making the following configuration updates:
 
-- Comment out the :setting:`replication.replSetName` option.
-- For :term:`shard` or :term:`config server` replica sets, comment out
-  the :setting:`sharding.clusterRole` option.
-- Change the :setting:`net.port` to a different port. Make a note
-  of the original port setting as a comment. [#different-port]_
+.. tabs::
 
-If using command line options, modify :option:`--port <mongod --port>` 
-and remove the :option:`--replSetName <mongod --replSet>`, 
-:option:`--shardsvr <mongod --shardsvr>`, and
-:option:`--configsvr <mongod --configsvr>` options.
-  
-.. include:: /includes/warning-bind-ip-security-considerations.rst
+   tabs:
+      - id: config-file
+        name: Configuration File
+        content: |
 
-This instance is now in "standalone" mode.
+           If you are using a configuration file, make the following
+           configuration updates:
 
-For example, if your :binary:`~bin.mongod` *normally* runs with on the
-default port of ``27017`` with the :option:`--replSet
-<mongod --replSet>` option you would use the following invocation:
+           - Comment out the :setting:`replication.replSetName` option.
 
-.. code-block:: sh
+           - Change the :setting:`net.port` to a different port. [#different-port]_
+             Make a note of the original port setting as a comment.
 
-   mongod --port 47017
+           - If the :binary:`~bin.mongod` is a :term:`shard` or
+             :term:`config server` member, you must also:
+
+             - Comment out the :setting:`sharding.clusterRole` option.
+
+             - Set parameter :parameter:`skipShardingConfigurationChecks`
+               (available for MongoDB 4.0+, 3.6.3+, 3.4.11+, 3.2.19+) to
+               ``true`` in the :setting:`setParameter` section.
+
+           For example, for a shard/config server replica set member,
+           the updated configuration file will include content like the
+           following example:
+
+           .. code-block:: yaml
+
+              net:
+                 bindIp: localhost,<ip address of the mongod host>
+                 port: 27218
+              #   port: 27018
+              #replication:
+              #   replSetName: shardA
+              #sharding:
+              #   clusterRole: shardsvr
+              setParameter:
+                 skipShardingConfigurationChecks: true
+
+      - id: command-line
+        name: Command-line Options
+        content: |
+
+           If using command-line options, make the following
+           configuration updates:
+
+           - Remove :option:`--replSetName <mongod --replSet>`.
+
+           - Modify :option:`--port <mongod --port>` to a different port. [#different-port]_
+
+           - If the :binary:`~bin.mongod` is a :term:`shard` or
+             :term:`config server` member, you must also:
+
+             - Remove :option:`--shardsvr <mongod --shardsvr>` if a
+               shard member and :option:`--configsvr <mongod
+               --configsvr>` if a config server member.
+
+             - Set parameter
+               :parameter:`skipShardingConfigurationChecks`
+               (available for MongoDB 4.0+, 3.6.3+, 3.4.11+,
+               3.2.19+) to ``true`` in the :setting:`setParameter`
+               section.
+
+       This instance is now in "standalone" mode.
+
+       For example, if your :binary:`~bin.mongod` *normally* runs with
+       on the default port of ``27017`` with the :option:`--replSet
+       <mongod --replSet>` option you would use the following
+       invocation:
+
+       .. code-block:: sh
+
+          mongod --port 47017
 
 .. [#different-port] By running the :binary:`~bin.mongod` on a different
    port, you ensure that the other members of the replica set and all
@@ -130,7 +182,11 @@ Restart the Program ``mongod`` as a Replica Set Member
 
 When the index build completes, restart the :binary:`~bin.mongod`
 instance as a member of the replica set using its normal
-configuration file or command-line arguments.
+configuration file or command-line arguments. That is, undo the configuration
+changes made when starting as a standalone.
+
+For shard or config server members, be sure to remove the
+:parameter:`skipShardingConfigurationChecks` parameter.
 
 For example:
 
