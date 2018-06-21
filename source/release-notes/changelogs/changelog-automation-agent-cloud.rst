@@ -1,3 +1,13 @@
+.. _automation-5.4.5.5460:
+
+Automation Agent 5.4.5.5460
+---------------------------
+
+*Released 2018-06-19*
+
+- Further support for the upcoming release of MongoDB 4.0.
+
+
 .. _automation-5.4.2.5440:
 
 Automation Agent 5.4.2.5440
