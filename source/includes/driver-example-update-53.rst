@@ -59,7 +59,19 @@
           :start-after: Start Example 53
           :end-before: End Example 53
 
-       Run the loop to execute both the ``update_one`` and ``update_many``
+       For completeness, the following example shows how you might wrap
+       the update many operation with the asyncio event loop:
+
+       .. code-block:: python
+       
+          async def do_update_many():
+              document = await db.inventory.update_many(
+                             {"qty": {"$lt": 50}},
+                             {"$set": {"size.uom": "in", "status": "P"},
+                              "$currentDate": {"lastModified": True}})
+              pprint.pprint(document.raw_result)
+
+       Run the asyncio loop to execute both the ``update_one`` and ``update_many``
        operations:
        
        .. code-block:: python

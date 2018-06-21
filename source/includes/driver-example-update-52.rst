@@ -89,7 +89,7 @@ to ``paper``. The operation uses:
          embedded documents, the operation uses :ref:`dot notation
          <document-dot-notation>`.
 
-       - :``$currentDate`` to set the ``lastModified`` field to the
+       - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
        .. literalinclude:: /driver-examples/test_examples_motor.py
@@ -97,6 +97,18 @@ to ``paper``. The operation uses:
           :dedent: 8
           :start-after: Start Example 52
           :end-before: End Example 52
+       
+       For completeness, the following example shows how you might wrap
+       the update one operation with the asyncio event loop:
+       
+       .. code-block:: python
+       
+          async def do_update_one():
+              document = await db.inventory.update_one(
+                             {"item": "paper"},
+                             {"$set": {"size.uom": "cm", "status": "P"},
+                              "$currentDate": {"lastModified": True}})
+              pprint.pprint(document.raw_result)
 
    - id: java-sync
      content: |

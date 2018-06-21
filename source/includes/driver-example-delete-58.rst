@@ -47,6 +47,15 @@
           :dedent: 8
           :start-after: Start Example 58
           :end-before: End Example 58
+       
+       For completeness, the following example shows how you might wrap
+       the delete one operation with the asyncio event loop:
+
+       .. code-block:: python
+
+          async def do_delete_one():
+              document = await db.inventory.delete_one({"status": "D"})
+              pprint.pprint(document.raw_result)
 
    - id: java-sync
      content: |

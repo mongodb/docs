@@ -47,6 +47,15 @@
           :start-after: Start Example 57
           :end-before: End Example 57
        
+       For completeness, the following example shows how you might wrap
+       the delete many operation with the asyncio event loop:
+
+       .. code-block:: python
+
+          async def do_delete_many():
+              document = await db.inventory.delete_many({"status": "A"})
+              pprint.pprint(document.raw_result)
+
        Run the loop to execute both the ``delete_one`` and ``delete_many``
        operations:
        
