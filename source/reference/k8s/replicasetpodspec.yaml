@@ -1,0 +1,46 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDbReplicaSet
+metadata:
+  name: my-replica-set
+  namespace: mongodb
+spec:
+  members: 3
+  version: 3.6.4
+  # service allows to override the name of Kubernetes service that is created for stateful set
+  service: my-service
+
+  ## Please Note: Kubernetes cluster default name is `cluster.local`.
+  ## If your cluster has been configured with another name, you can specify
+  ## it with the `clusterName` attribute.
+  #
+  # clusterName: mycompany.net
+
+  project: my-project
+  credentials: my-credentials
+
+  persistent: true
+  podSpec:
+    cpu: '0.25'
+    memory: 512M
+    storage: 12G
+    storageClass: standard
+    podAntiAffinityTopologyKey: nodeId
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: security
+            operator: In
+            values:
+            - S1
+        topologyKey: failure-domain.beta.kubernetes.io/zone
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/e2e-az-name
+            operator: In
+            values:
+            - e2e-az1
+            - e2e-az2
