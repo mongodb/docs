@@ -45,4 +45,5 @@ screenshots:
 	mkdir -p screenshots-temp/charts/
 	cd build/docs-tools/tools/screenshot-tool && npm install
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/order-tutorial-dashboard-final.js
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/user-management.js
+	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/user-management.js
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/movie-tutorial.js

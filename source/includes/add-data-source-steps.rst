@@ -1,6 +1,3 @@
-Add the Data Collection as a Data Source
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Now that the data is in the desired collection, add the collection as a
 :doc:`data source </data-sources>` in |charts|. Adding a
 collection as a data source links the collection to |charts-short| and
