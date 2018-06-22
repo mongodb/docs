@@ -12,7 +12,7 @@ import logging
 
 from giza.config.runtime import RuntimeStateConfig
 from giza.content.replacements import get_replacements
-from giza.config.helper import fetch_config
+from giza.config.helper import fetch_config, get_versions
 
 logging.basicConfig(level=logging.INFO)
 conf = fetch_config(RuntimeStateConfig())
@@ -111,11 +111,12 @@ html_theme_options = {
     'google_analytics': sconf.theme.google_analytics,
     'project': sconf.theme.project,
     'version': version,
+    'version_selector':  get_versions(conf),
+    'active_branches': conf.version.active,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'is_upcoming' : False,
-    'is_private': True,
-    'privacy_warning': "MongoDB Charts is currently approved for internal use only, and is not to be distributed to any customer, prospect, or user outside of MongoDB.",
+    'is_upcoming' : True,
+    'is_private': False
 }
 
 html_sidebars = sconf.sidebars
