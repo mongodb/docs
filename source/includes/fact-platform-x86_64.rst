@@ -9,15 +9,11 @@
    In future releases, MongoDB will end support for the following
    platforms:
 
-   - Windows 7
+   - Windows 7/2008R2
 
-   - Windows 2008R2
+   - Windows 8/20012
 
-   - Windows 8
-
-   - Windows 8.1
-
-   - Windows 20012R2
+   - Windows 8.1/20012R2
 
    - Ubuntu 14.04
 
