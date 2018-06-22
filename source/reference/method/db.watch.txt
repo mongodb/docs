@@ -1,0 +1,149 @@
+==========
+db.watch()
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.watch( pipeline, options )
+
+   .. versionadded:: 4.0
+
+      Requires ``featureCompatibilityVersion`` (fCV) set to
+      ``"4.0"`` or greater. For more information on fCV, see
+      :dbcommand:`setFeatureCompatibilityVersion`.
+
+   Opens a :ref:`change stream cursor <changeStreams>` for a database
+   to report on all its non-``system`` collections.
+
+   .. include:: /includes/apiargs/method-db.watch-param.rst
+
+   The ``options`` document can contain the following fields and values:
+
+   .. include:: /includes/apiargs/method-db.watch-options.rst
+
+   :returns:
+      A :term:`cursor` over the change event documents.
+      See :doc:`/reference/change-events` for examples of change
+      event documents.
+
+   .. seealso::  :method:`db.collection.watch()` and :method:`Mongo.watch()`
+
+Behavior
+--------
+
+- You cannot run :method:`db.watch()` on the ``admin``, ``local``, or
+  ``config`` database.
+
+- :method:`db.watch()` only notifies on data changes that have
+  persisted to a majority of data-bearing members.
+
+- The :ref:`change stream cursor <changeStreams>` remains open as long
+  as a connection to the MongoDB deployment remains open and no
+  database or collection is dropped.
+
+- You can run :method:`db.watch()` for a database that does not exist.
+  However, once the database is created and you drop the database, the
+  change stream cursor closes.
+
+- :method:`db.watch()` is available for replica sets and sharded
+  clusters:
+
+  - For a replica set, you can issue :method:`db.watch()` on any
+    data-bearing member.
+
+  - For a sharded cluster, you must issue :method:`db.watch()` on a
+    :binary:`~bin.mongos` instance.
+
+- You can only use :method:`db.watch()` with the :ref:`Wired Tiger
+  storage engine <storage-wiredtiger>`.
+
+Resumability
+~~~~~~~~~~~~
+
+Unlike the MongoDB :ecosystem:`drivers </drivers>`, the
+:binary:`~bin.mongo` shell does not automatically attempt to resume a
+change stream cursor after an error. The MongoDB drivers make *one*
+attempt to automatically resume a change stream cursor after certain
+errors.
+
+If the operation identified by the resume token passed to the
+``resumeAfter`` option has already dropped off the :term:`oplog`,
+:method:`db.watch()` cannot resume the change stream.
+
+:method:`db.watch()` uses information stored in the oplog
+to produce the change event
+description and generate a resume token associated to that operation. If
+enough time has passed such that the data changing operation which
+generated the resume token is no longer present in the oplog, you cannot
+use that token to resume the change stream.
+
+
+See :ref:`change-stream-resume` for complete documentation on
+resuming a change stream.
+
+Full Document Lookup of Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the :ref:`change stream cursor <changeStreams>` returns
+specific field changes/deltas for update operations. You can also
+configure the change stream to look up and return the current
+majority-committed version of the changed document. Depending on other
+write operations that may have occurred between the update and the
+lookup, the returned document may differ significantly from the
+document at the time of the update.
+
+Depending on the number of changes applied during the update operation
+and the size of the full document, there is a risk that the size of the
+change event document for an update operation is greater than the 16MB
+BSON document limit. If this occurs, the server closes the change stream
+cursor and returns an error.
+
+Access Control
+--------------
+
+When running with access control, the user must have the
+:authaction:`find` and :authaction:`changeStream` privilege actions on
+the :ref:`database resource <resource-document>`. That is, a user must
+have a :ref:`role <roles>` that grants the following :ref:`privilege
+<privileges>`:
+
+.. code-block:: javascript
+
+   { resource: { db: <dbname>, collection: "" }, actions: [ "find", "changeStream"] }
+ 
+Example
+-------
+
+The following operation in the :binary:`~bin.mongo` shell opens a
+change stream cursor on the ``hr`` database. The returned cursor
+reports on data changes to all the non-``system`` collections in that
+database.
+
+.. code-block:: javascript
+
+   watchCursor = db.getSiblingDB("hr").watch()
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!watchCursor.isExhausted()){
+      if (watchCursor.hasNext()){
+         printjson(watchCursor.next());
+      }
+   }
+
+For complete documentation on change stream output, see
+:ref:`change-stream-output`.

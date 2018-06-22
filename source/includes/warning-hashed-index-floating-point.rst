@@ -7,3 +7,6 @@
    point numbers that cannot be reliably converted to 64-bit
    integers (and then back to floating point). MongoDB ``hashed`` indexes do
    not support floating point values larger than 2\ :sup:`53`.
+
+   To see what the hashed value would be for a key, see
+   :method:`convertShardKeyToHashed()`.

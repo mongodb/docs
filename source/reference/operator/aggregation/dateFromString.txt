@@ -24,10 +24,10 @@ Definition
    .. code-block:: javascript
 
       { $dateFromString: { 
-            'dateString': <dateStringExpression>, 
-            'timezone': <tzExpression> 
-        } 
-      }
+           dateString: <dateStringExpression>, 
+           format: <formatStringExpression>,
+           timezone: <tzExpression> 
+      } }
 
    The :pipeline:`$dateFromString` takes a document with the following fields:
 
@@ -48,6 +48,20 @@ Definition
           
             If specifying the ``timezone`` option to the operator, do not include 
             time zone information in the ``dateString``.
+
+      * - ``format``
+
+        - Optional. The date format specification of the
+          ``dateString``. The ``format`` can be any expression
+          that evaluates to a string literal,
+          containing 0 or more format specifiers. For a list of
+          specifiers available, see
+          :ref:`dateFromString-format-specifiers`.
+
+          If unspecified, :expression:`$dateFromString` uses
+          ``"%Y-%m-%dT%H:%M:%S.%LZ"`` as the default format.
+
+          .. versionadded:: 4.0
 
       * - ``timezone``
 
@@ -84,10 +98,71 @@ undefined, the result of the $dateFromString expression is null.
 
 .. seealso:: :expression:`$toDate` and :expression:`$convert`
 
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Example
+     - Results
+     
+   * - .. code-block:: javascript
+          :copyable: false
+
+   
+          { $dateFromString: { 
+              dateString: "2017-02-08T12:10:40.787" 
+          } }
+
+     - ``ISODate("2017-02-08T12:10:40.787Z")``
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $dateFromString: { 
+               dateString: "2017-02-08T12:10:40.787",
+               timezone: "America/New_York"
+          } }
+
+     - ``ISODate("2017-02-08T17:10:40.787Z")``
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $dateFromString: { 
+               dateString: "2017-02-08"
+          } }
+
+     - ``ISODate("2017-02-08T00:00:00Z")``
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $dateFromString: { 
+               dateString: "06-15-2018",
+               format: "%m-%d-%Y"
+          } }
+
+     - ``ISODate("2018-06-15T00:00:00Z")``
+ 
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $dateFromString: { 
+               dateString: "15-06-2018",
+               format: "%d-%m-%Y"
+          } }
+
+     - ``ISODate("2018-06-15T00:00:00Z")``
+
 Example
 -------
 
-Consider a collection ``logmessages`` that contains the following documents: 
+
+Consider a collection ``logmessages`` that contains the following
+documents with dates.
 
 .. code-block:: javascript
 
@@ -96,7 +171,7 @@ Consider a collection ``logmessages`` that contains the following documents:
    { _id: 3, message:  " Step 1: Ended " },
    { _id: 4, date: "2017-02-09", timezone: "Europe/London", message: "Step 2: Started"}
    { _id: 5, date: "2017-02-09T03:35:02.055", timezone: "+0530", message: "Step 2: In Progress"}
-
+ 
 The following aggregation uses $dateFromString to convert the ``date`` value
 to a date object:
 
@@ -151,3 +226,10 @@ to their respective UTC representations.
     { "_id" : 4, "date" : ISODate("2017-02-09T00:00:00Z") }
     { "_id" : 5, "date" : ISODate("2017-02-08T22:05:02.055Z") }
 
+
+.. _dateFromString-format-specifiers:
+
+Format Specifiers
+-----------------
+
+.. include:: /includes/extracts/date-format-specifiers-dateFromString.rst
