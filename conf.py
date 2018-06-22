@@ -69,7 +69,8 @@ rst_epilog = [
     '.. |bic| replace:: BI Connector for Atlas',
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     '.. |global-write| replace:: Global Writes',
-    '.. |global-write-clusters| replace:: Global Write Clusters'
+    '.. |global-write-clusters| replace:: Global Clusters',
+    '.. |global-write-cluster| replace:: Global Cluster'
     
 ]
 
