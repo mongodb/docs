@@ -1,0 +1,318 @@
+=====================
+Install |k8s-op-full|
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|k8s-op-full| allows you to deploy MongoDB deployment items with |k8s|
+and |onprem| from a macOS or Linux host. This Operator uses |k8s| and
+|onprem| |api| methods to deploy standalone, replica set, and sharded
+cluster deployments that |onprem| manages.
+
+.. note::
+
+   This tutorial presumes some knowledge of |k8s|, but does link to relevant |k8s| documentation where possible. If you are unfamiliar with |k8s|, please review that documentation first.
+
+Prerequisites
+-------------
+
+To install the |k8s-op-full|, you must:
+
+1. Have a |k8s| solution available to use.
+
+   If you need a |k8s| solution, see the |k8s| `documentation on picking the right solution <https://kubernetes.io/docs/setup/pick-right-solution/>`__.
+
+2. Clone the `MongoDB Enterprise Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes.git>`__.
+
+   .. note::
+
+      You can use `Helm <https://helm.sh/>`__ to install the
+      |k8s-op-short|. To learn how to install Helm, see its
+      `documentation on GitHub <https://github.com/kubernetes/helm>`__
+
+3. Have or create an |onprem|
+   :doc:`Project </tutorial/manage-projects>`.
+
+4. Have or generate a :ref:`Public API Key <generate-public-api-key>`.
+
+5. Add the |ipaddr| or |cidr| block of any hosts that serve the
+   |k8s-op-short| to the
+   :ref:`API Whitelist <configure-access-to-whitelisted-ops>`.
+
+Considerations
+--------------
+
+|k8s| Compatibility
+~~~~~~~~~~~~~~~~~~~
+
+|k8s-op-full| is compatible with |k8s| v1.9 or later.
+
+|k8s| ClusterRole with Administrative Rights
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |k8s-op-short| must have a |k8s|
+`ClusterRole <https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole>`__ with admin rights, default name=cluster-admin. Edit the Helm Chart `roles.yaml <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/helm_chart/templates/roles.yaml>`__ if it has a different name.
+
+
+.. _install-k8s-operator:
+
+Install the |k8s-op-full|
+-------------------------
+
+.. _install-k8s-operator-helm:
+
+Using Helm
+~~~~~~~~~~
+
+1. Change to the directory in which you cloned the repository.
+
+2. Invoke the following Helm command:
+
+   .. code-block:: sh
+
+      helm install helm_chart/ --name mongodb-enterprise
+
+.. _install-k8s-operator-kubectl:
+
+Using kubectl
+~~~~~~~~~~~~~
+
+1. Change to the directory in which you cloned the repository.
+
+2. Invoke the following `kubectl <https://kubernetes.io/docs/reference/kubectl/kubectl/>`__ command:
+
+   .. code-block:: sh
+
+      kubectl apply -f mongodb-enterprise.yaml
+
+.. _create-k8s-project:
+
+Create |onprem| Project
+-----------------------
+
+A Project for |k8s-op-full| uses a |k8s-configmap| that links to your
+|mms| :doc:`Project </tutorial/manage-projects>`. To create a
+Project for |k8s-op-short|, you need to edit 4 lines of the
+:ref:`example ConfigMap <example-k8s-configmap>` |yaml| file and apply
+the ConfigMap:
+
+1. Copy the :ref:`example ConfigMap <example-k8s-configmap>`.
+
+   .. _example-k8s-configmap:
+
+   .. literalinclude:: /reference/k8s/example-configmap.yaml
+      :language: yaml
+      :emphasize-lines: 5-6, 8-9
+
+#. Open your preferred text editor and paste the example ConfigMap
+   into a new text file.
+
+#. Change the following four lines:
+
+   .. list-table::
+      :widths: 20 20 40 20
+      :header-rows: 1
+
+      * - Key
+        - Type
+        - Description
+        - Example
+
+      * - ``metadata.name``
+        - string
+        - Label for a |k8s| |k8s-obj|.
+
+          .. seealso::
+
+             |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
+
+        - ``my-project``
+
+      * - ``metadata.namespace``
+        - string
+        - Scope of object names. Used to limit what can be managed to
+          a subset of all |k8s-objs|. In this tutorial, ``mongodb`` is
+          only a namespace example because it is the default value;
+          you do not need to label your namespace as ``mongodb``.
+
+          .. important::
+             The |k8s-nss| for the |k8s-op-short| and MongoDB |k8s|
+             resources should be in different namespaces.
+
+             The |k8s-configmap| *must* be created in the same
+             |k8s-ns| as the |k8s-secret| and MongoDB |k8s| resources.
+
+          .. seealso::
+
+             |k8s| documentation on |k8s-nss|.
+
+        - ``mongodb``
+
+      * - ``data.projectId``
+        - string
+        - 24 character hex string that uniquely identifies your
+          MongoDB :doc:`Project </tutorial/manage-projects>`. It can
+          be found in the |url| when |onprem| is open to your
+          :guilabel:`Deployment` page:
+
+          .. code-block:: sh
+
+             https://<my-ops-cloud-manager-url>/v2/*<project-id>*#deployment/topology
+
+        - ``5953c5f380eef53887615f9a``
+
+      * - ``data.baseUrl``
+        - string
+        - |url| to your |application|.
+
+        - ``https://ops-manager.example.com``
+
+#. Save this file with a ``.yaml`` file extension.
+
+#. Invoke the following |k8s| command to create your project:
+
+   .. code-block:: sh
+
+      kubectl apply -f my-project.yaml
+
+#. Invoke the following |k8s| command to verify your project:
+
+   .. code-block:: sh
+
+      kubectl describe configmaps my-project
+
+   This command returns a ConfigMap description in the shell:
+
+   .. code-block:: sh
+
+      Name:           my-project
+      Namespace:      mongodb
+      Labels:         <none>
+      Annotations:    <none>
+
+.. _create-k8s-credentials:
+.. _create-k8s-secret:
+
+Create Credentials
+------------------
+
+For the |k8s-op-short| to create or update |k8s-objs| in your |onprem|
+Project, you need to store your username and Public API Key as a |k8s|
+|k8s-secret|. Creating a secret stores authentication credentials in a
+way that only |k8s| can access.
+
+Multiple secrets can exist in the same namespace. Each user should
+have their own secret.
+
+To create your |k8s| secret:
+
+1. Make sure you have your |onprem| username and Public API Key.
+
+   If you do not have your Public API Key, you need to generate a new
+   :ref:`Public API Key <generate-public-api-key>`.
+
+2. Invoke the following |k8s| command to create your secret:
+
+   .. code-block:: sh
+
+      kubectl -n mongodb create secret generic \
+        my-credentials --from-literal="user=<first.last@example.com>" \
+        --from-literal="publicApiKey=<my-public-api-key>"
+
+   .. note::
+
+      The ``-n`` flag limits the |k8s-ns| to which this secret
+      applies. All MongoDB |k8s| resources must be in the same
+      namespace with the |k8s-secrets| and |k8s-configmaps|. The
+      |k8s-op-short| does not use either the secrets or ConfigMaps.
+
+3. Invoke the following |k8s| command to verify your secret:
+
+   .. code-block:: sh
+
+      kubectl describe secrets/my-credentials -n mongodb
+
+   This command returns a secret description in the shell:
+
+   .. code-block:: sh
+
+      Name:         my-credentials
+      Namespace:    mongodb
+      Labels:       <none>
+      Annotations:  <none>
+
+      Type:  Opaque
+
+      Data
+      ====
+      publicApiKey:  31 bytes
+      user:          22 bytes
+
+.. _k8s-troubleshooting:
+
+Troubleshooting
+---------------
+
+Review the logs
+~~~~~~~~~~~~~~~
+
+If you have an issue with your |k8s| resources, invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs
+
+.. seealso::
+   |k8s| documentation `kubectl logs <https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#logs>`__.
+
+If you want to narrow your review to a specific |k8s-pod|, you can invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs <podInStatefulset>
+
+.. example::
+
+   If your :term:`replica set` is labeled ``myrs``, the |k8s-pod| log command is invoked as:
+
+   .. code-block:: sh
+
+      kubectl logs myrs-0
+
+To find which pods are available, invoke this command first:
+
+.. code-block:: sh
+
+   kubectl get pods -n <yourNamespace>
+
+To review the |k8s-op-short| logs, invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs -f deployment/mongodb-enterprise-operator -n <yourOperatorNamespace>
+
+.. seealso::
+   |k8s| documentation on `kubectl get <https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get>`__.
+
+You could check the :doc:`Agent Logs </tutorial/view-logs>` to see if
+any issues were reported to |onprem|.
+
+Next Steps
+----------
+
+After installing your |k8s-op-short| then creating your ConfigMap and
+secret, you can create your deployment items:
+
+- :doc:`Deploy a Standalone Instance </tutorial/deploy-standalone>`
+- :doc:`Deploy a Replica Set </tutorial/deploy-replica-set>`
+- :doc:`Deploy a Sharded Cluster </tutorial/deploy-sharded-cluster>`
+
+.. note::
+
+   .. include:: /includes/extracts/k8s-bic-exception.rst
