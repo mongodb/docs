@@ -3,6 +3,23 @@
    - Support for SLES 11 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
    - Support for Ubuntu 12.04 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
    - Support for Debian 7 has been removed in MongoDB 4.0.
+   
+.. admonition:: Platform Support Upcoming EOL Notice
+
+   In future releases, MongoDB will end support for the following
+   platforms:
+
+   - Windows 7
+
+   - Windows 2008R2
+
+   - Windows 8
+
+   - Windows 8.1
+
+   - Windows 20012R2
+
+   - Ubuntu 14.04
 
 .. list-table::
    :header-rows: 1
