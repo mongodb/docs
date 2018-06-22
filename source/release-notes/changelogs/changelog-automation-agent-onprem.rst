@@ -1,3 +1,24 @@
+.. _automation-5.4.6.5465-1:
+
+Automation Agent 5.4.6.5465-1
+-----------------------------
+
+:ref:`Released with Ops Manager 4.0.0 on 2018-06-27 <opsmgr-server-4.0.0>`
+
+- Added support for MongoDB 4.0.
+- Added support for SCRAM-SHA-256
+- Added platform support for:
+
+  - zLinux on :abbr:`RHEL (Red Hat Enterprise Linux)` 6
+  - Debian 9
+  - Amazon Linux 2
+
+.. important::
+
+   MongoDB 4.0 Community Edition requires
+   `libcurl <https://curl.haxx.se/libcurl/>`__. Install ``libcurl``
+   before using |onprem| to install MongoDB 4.0 Community.
+
 .. _automation-4.5.15.5279-1:
 
 Automation Agent 4.5.15.5279-1
