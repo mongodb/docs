@@ -33,6 +33,7 @@ extensions = [
     'mongodb',
     'directives',
     'intermanual',
+    'source_constants',
     'tabs'
 ]
 
@@ -69,6 +70,10 @@ pygments_style = 'sphinx'
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
+}
+
+source_constants = {
+    'version': 'v0.9.0'
 }
 
 # add `extlinks` for each published version.

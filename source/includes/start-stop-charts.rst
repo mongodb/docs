@@ -6,7 +6,9 @@ file:
 
 .. code-block:: sh
 
-   docker stack deploy -c charts-docker-compose.yml mongodb-charts
+   docker stack deploy -c charts-docker-compose-{+version+}.yml mongodb-charts
+
+.. include:: /includes/different-versions.rst
 
 To stop Charts, ask Docker to remove the stack:
 
