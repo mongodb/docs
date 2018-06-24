@@ -1,3 +1,16 @@
+.. _automation-5.4.7.5469-1:
+
+Automation Agent 5.4.7.5469-1
+-----------------------------
+
+*Released: 2018-06-25*
+
+- Fix issue with automated restores for Atlas Snapshot Backup and 
+  MongoDB 3.6.
+- Support automated restores for Atlas Snapshot Backup and MongoDB 4.0.
+- Fix issue with automated restores to a new |mms| cluster 
+  that does not have MongoDB authentication enabled.
+
 .. _automation-5.4.5.5460:
 
 Automation Agent 5.4.5.5460
