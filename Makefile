@@ -41,7 +41,11 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	mut-index upload build/public -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s 
+	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s; \
+	else \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
+	fi
 
 examples:
 	mkdir -p ${DRIVERS_PATH}
@@ -80,7 +84,7 @@ screenshots:
 	cd build/docs-tools/tools/screenshot-tool && npm install
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-provider.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-clusterselect.js `pwd`/screenshot-scripts/.properties.ini
-        node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-importatlas.js `pwd`/screenshot-scripts/.properties.ini	
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-importatlas.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringcompass.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringdrivers.js `pwd`/screenshot-scripts/.properties.ini	
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringwhitelist.js `pwd`/screenshot-scripts/.properties.ini	
