@@ -18,7 +18,7 @@
    * - MongoDB Version Support
      - 3.6
      - 3.6
-     - 3.2, 3.4, 3.6
+     - 3.2, 3.4, 3.6, 4.0
 
    * - Data Visualization
      - No

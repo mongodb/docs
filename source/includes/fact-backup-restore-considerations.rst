@@ -7,8 +7,8 @@ process to maintain cluster :ref:`availability<high-availability>`.
 .. tip::
 
    You can still use backups made before an upgrade. For example,
-   you can :doc:`restore a 3.4 cluster </restore-cluster>` to 3.6
+   you can :doc:`restore a 3.6 cluster </restore-cluster>` to 4.0
    with the following procedure:
 
-   1.  Restore the old 3.4 backup to another 3.4 cluster.
-   2.  Upgrade the restored cluster to 3.6.
+   1.  Restore the old 3.6 backup to another 3.6 cluster.
+   2.  Upgrade the restored cluster to 4.0.
