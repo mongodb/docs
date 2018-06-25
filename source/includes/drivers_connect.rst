@@ -4,32 +4,7 @@
      - id: shell
        content: |
 
-         Pass the URI to the mongo shell followed by the ``--password``
-         option. You will then be prompted for your password.
-
-         .. cssclass:: urilistener
-         .. code-block:: sh
-
-            mongo <URISTRING_SHELL_NOUSER>
-
-         Alternatively you can skip the URI and authenticate username
-         and password once you run the ``mongo`` command and execute the
-         shell. Pass in a hostname and port to the mongo shell in order
-         to direct the shell to the server.
-
-         .. code-block:: sh
-
-            mongo --hostname <hostname> --port <port>
-
-         Once you see the mongo prompt, you will need to authenticate
-         in order to conduct any database operations. First, switch to
-         the authentication database/authSource database and then call
-         the authenticate function. For example:
-
-         .. code-block:: sh
-
-            use admin
-            db.auth({user:"<username>", pwd:"<password>"})
+         .. include:: /includes/mongo-shell-platform-connect.rst
 
 
      - id: compass
@@ -39,14 +14,13 @@
          Compass and select the ``New Connection`` link. You will see a
          form where you can enter connection information for MongoDB.
 
-         .. tabs::
+         .. tabs-cloud::
 
             hidden: true
 
             tabs:
 
-              - id: atlas
-                name: Atlas (Cloud)
+              - id: cloud
                 content: |
 
                   Atlas users can copy a URI string from the Atlas
@@ -60,20 +34,6 @@
          
                   If Compass was already running when you copied the URI string,
                   click the :guilabel:`NEW CONNECTION` button.
-
-              - id: windows
-                name: Windows
-                content: |
-
-              - id: linux
-                name: Linux
-                content: |
-
-              - id: macos
-                name: MacOS
-                content: |
-
-
 
          .. figure:: /images/connect-to-host.png
             :figwidth: 740px
@@ -100,7 +60,7 @@
             :end-before: End Connect
 
 
-         If your URI string starts with `mongodb+srv`, you need to install the dnspython module with
+         If your ``connection_string`` starts with `mongodb+srv`, you need to install the dnspython module with
            
          .. code-block:: sh
             

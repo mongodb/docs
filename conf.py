@@ -36,7 +36,8 @@ extensions = [
     'guides',
     'tabs',
     'uriwriter',
-    'fasthtml'
+    'fasthtml',
+    'source_constants'
 ]
 
 templates_path = ['.templates']
@@ -58,6 +59,16 @@ rst_epilog = '\n'.join([
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
 ])
+
+source_constants = {
+    'package-branch': 'testing',
+    'package-name-org': 'mongodb-org',
+    'package-name-enterprise': 'mongodb-enterprise',
+    'version': '4.0',
+    'release': 'release',
+    'pgp-version': '4.0',
+    'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
+}
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),

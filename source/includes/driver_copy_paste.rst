@@ -10,7 +10,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstring.png
-            :scale: 50 %
+            :figwidth: 700px
 
 
      - id: compass
@@ -22,7 +22,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringcompass.png
-            :scale: 50 %
+            :figwidth: 700px
 
          
      - id: python
@@ -34,7 +34,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringdriver.png
-            :scale: 50 %
+            :figwidth: 700px
          
      - id: motor
        content: |
@@ -45,7 +45,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringdriver.png
-            :scale: 50 %
+            :figwidth: 700px
 
 
      - id: java-sync
@@ -57,7 +57,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringdriver.png
-            :scale: 50 %
+            :figwidth: 700px
 
 
      - id: nodejs
@@ -69,7 +69,7 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringdriver.png
-            :scale: 50 %
+            :figwidth: 700px
 
      
      - id: csharp
@@ -81,4 +81,4 @@
          string. The connection string is now in your copy buffer.
 
          .. figure:: /images/connectionstringdriver.png
-            :scale: 50 %
+            :figwidth: 700px

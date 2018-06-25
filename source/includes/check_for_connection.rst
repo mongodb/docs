@@ -26,7 +26,7 @@ Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  
                   
                   .. code-block:: bat
                   
-                     tasklist /FI "IMAGENAME eq mongod.exe"
+                     tasklist /FI "IMAGE\ NAME eq mongod.exe"
                   
                   If a :binary:`mongod.exe <bin.mongod.exe>` instance is running, you will
                   see something like:
@@ -40,7 +40,7 @@ Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  
               - id: linux
                 content: |
                 
-                  To make sure your MongoDB instance is running on Linux, run the
+                  To make sure your MongoDB instance is running on linux, run the
                   following command from your terminal:
                     
                   .. code-block:: sh
@@ -57,7 +57,7 @@ Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  
               - id: macos
                 content: |
                 
-                  To make sure your MongoDB instance is running on Mac, run the
+                  To make sure your MongoDB instance is running on mac, run the
                   following command from your terminal:
                     
                   .. code-block:: sh

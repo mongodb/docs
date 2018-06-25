@@ -1,3 +1,20 @@
-If you have not already installed a client (e.g. a driver, MongoDB
-Compass, or the :binary:`~bin.mongo` shell), complete the
-:doc:`/guides/server/drivers` guide before attempting this guide.
+.. tabs-cloud::
+
+   hidden: true
+
+   tabs:
+     - id: local
+       content: |
+
+         - If you have not already installed a client (e.g. a driver, :ref:`MongoDB Compass <compass-index>`, or the :binary:`~bin.mongo` shell), complete the :doc:`/guides/server/drivers` guide before attempting this guide.
+
+         - :doc:`Enable Auth </guides/server/auth>` on your local instance of MongoDB.
+
+         .. warning::
+
+            If you are running MongoDB locally and have not enabled authentication, your MongoDB instance is not secure.
+
+     - id: cloud
+       content: |
+
+         - If you have not already installed a client (e.g. a driver, :ref:`MongoDB Compass <compass-index>`, or the :binary:`~bin.mongo` shell), complete the :doc:`/guides/server/drivers` guide before attempting this guide.

@@ -16,6 +16,7 @@
      - id: compass
        content: |
          .. figure:: /images/compass-insert-document-inventory.png
+            :figwidth: 700px
 
      - id: python
        content: |
@@ -36,6 +37,8 @@
          For completeness, this is how you might wrap this call and run
          it with the asyncio event loop.
 
+         Run the loop:
+         
          .. code-block:: python
          
             async def do_insert_one():

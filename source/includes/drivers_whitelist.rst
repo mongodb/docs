@@ -1,11 +1,10 @@
-.. tabs::
+.. tabs-cloud::
 
    hidden: true
 
    tabs:
 
-     - id: atlas
-       name: Atlas (Cloud)
+     - id: cloud
        content: |
         
          .. tip::
@@ -15,18 +14,9 @@
             and Select Your Connection Method`` in
             :doc:`/guides/cloud/connectionstring`.
 
-
-     - id: windows
-       name: Windows
+     - id: local
        content: |
 
-     - id: linux
-       name: Linux
-       content: |
-         
-     - id: macos
-       name: MacOS
-       content: |
 
 
        

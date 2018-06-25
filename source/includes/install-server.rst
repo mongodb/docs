@@ -5,6 +5,7 @@
        name: Windows
        content: |
 
+
          Download the binaries from the `MongoDB Download Center
          <https://www.mongodb.com/download-center#production>`_.
 
@@ -16,8 +17,7 @@
 
          .. admonition:: Platform Support
 
-            MongoDB 3.6 is not tested on APFS, the new filesystem in macOS
-            10.13 and may encounter errors.
+            MongoDB only supports macOS versions 10.11 and later on Intel x86-64.
        
          .. include:: /includes/steps/install-mongodb-on-macOS.rst
 

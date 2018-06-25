@@ -37,17 +37,17 @@
      - id: java-sync
        content: |
          To install the Java driver, see the `Java Driver documentation
-         <http://mongodb.github.io/mongo-java-driver/3.6/driver/getting-started/installation/>`__
+         <https://mongodb.github.io/mongo-java-driver/>`__
 
      - id: nodejs
        content: |
           To install the node.js driver, see the `Node.js Driver documentation
-          <http://mongodb.github.io/node-mongodb-native/3.0/installation-guide/installation-guide/>`__
+          <http://mongodb.github.io/node-mongodb-native/>`__
 
      - id: csharp
        content: |
          To install the C#/.NET driver, see the `C# Driver documentation
-         <http://mongodb.github.io/mongo-csharp-driver/2.2/getting_started/installation/>`__
+         <http://mongodb.github.io/mongo-csharp-driver/>`__
 
      # - id: php
      #   content: |

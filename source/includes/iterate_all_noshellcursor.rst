@@ -4,7 +4,8 @@
      - id: shell
        content: |
 
-         This query does not require cursor iteration in ``mongo`` shell.
+         This query does not require cursor iteration in ``mongo`` shell
+         because the shell returns up to 20 results.
 
      - id: compass
        content: |

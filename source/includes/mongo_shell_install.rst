@@ -1,9 +1,9 @@
-.. tabs::
+.. tabs-cloud::
+
+   hidden: true
 
    tabs:
-
-     - id: atlas
-       name: Atlas (Cloud)
+     - id: cloud
        content: |
        
          If you do not already have a ``mongo`` shell, you can download
@@ -11,7 +11,7 @@
          ``Connect``.
 
          .. figure:: /images/connect_panel.png
-            :scale: 50%
+            :figwidth: 200px
             
          Under ``Check the IP Whitelist``, add the IP address of the
          client you wish to have connecting to Atlas. Then click the
@@ -19,43 +19,10 @@
          the dialog to download and install the shell.
 
          .. figure:: /images/whitelistpanel.png
-            :scale: 50% 
+            :figwidth: 600px
 
-
-
-     - id: windows
-       name: Windows
+     - id: local
        content: |
 
-         Download the `latest stable version
-         <https://www.mongodb.com/download-center#community>`__ for your environment.
-
-         After downloading, click on the downloaded ``.msi`` file. The
-         Windows Installer will guide you through the installation.
-     
-     - id: linux
-       name: Linux
-       content: |
-
-         Download the `latest stable version
-         <https://www.mongodb.com/download-center#community>`__ for your environment.
-
-         Extract the tar file and locate the ``mongo`` executable under
-         the ``bin`` directory of your install root.
-
-         .. code-block:: sh
-  
-            tar -xvzf <tgz file>
-
-     - id: macos
-       name: MacOS
-       content: |
-
-         Download the `latest stable version
-         <https://www.mongodb.com/download-center#community>`__ for your environment.
-
-         Double click the ``tgz`` file to untar the file.
-
-
-       
-
+         .. include:: /includes/download-shell-tabs.rst
+   
