@@ -73,7 +73,7 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'package-branch': 'testing',
+    'package-branch': '4.0',
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
