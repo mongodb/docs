@@ -39,8 +39,8 @@ exports.run = async function (options) {
   const buildClip = {
     x: Math.floor(button_clip.left)-20,
     y: Math.floor(button_clip.top)-20,
-    width: Math.floor(button_clip.width)+40,
-    height: Math.floor(button_clip.height)+40
+    width: Math.floor(button_clip.width)+10,
+    height: Math.floor(button_clip.height)+10
   };
   await nightmare.screenshot(screenshotPath, buildClip)
   await nightmare.wait(500)

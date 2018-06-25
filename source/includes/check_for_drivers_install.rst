@@ -1,4 +1,4 @@
-Ensure that your MongoDB instance -- whether standalone or on Atlas (cloud) --  is running and accessible.
+You will need to ensure that your MongoDB instance is running and accessible.
 
 .. tabs-cloud::
 

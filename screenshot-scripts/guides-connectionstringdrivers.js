@@ -12,6 +12,7 @@ exports.run = async function (options) {
   await options.loginToAtlas()
   await nightmare.wait(2000)
   await nightmare.wait('.mms-body-main')
+  await nightmare.wait('.js-connect') 
   await nightmare.click('.js-connect')
   await nightmare.wait(2000)
   await nightmare.click('div.js-modal-container > div > div > div > div > div.view-modal-layout > div > div > div > ol > li:nth-child(2) > div > button:nth-child(1)');
@@ -38,8 +39,8 @@ exports.run = async function (options) {
   const buildClip = {
     x: Math.floor(button_clip.left)-20,
     y: Math.floor(button_clip.top)-20,
-    width: Math.floor(button_clip.width)+40,
-    height: Math.floor(button_clip.height)+40
+    width: Math.floor(button_clip.width)+10,
+    height: Math.floor(button_clip.height)+10
   };
   await nightmare.screenshot(screenshotPath, buildClip)
   await nightmare.wait(500)

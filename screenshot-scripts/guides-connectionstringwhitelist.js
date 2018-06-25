@@ -1,6 +1,6 @@
 'use strict';
 
-const screenshotNames = ['clusterselect.png'];
+const screenshotNames = ['connectionstringwhitelist.png'];
 const screenshotDir = './screenshots-temp';
 const origImageDir = './source/images';
 
@@ -12,18 +12,13 @@ exports.run = async function (options) {
   await options.loginToAtlas()
   await nightmare.wait(2000)
   await nightmare.wait('.mms-body-main')
-  await nightmare.wait('a[name=buildCluster]')
-  await nightmare.click('a[name=buildCluster]')
+  await nightmare.wait('.js-connect') 
+  await nightmare.click('.js-connect')
   await nightmare.wait(2000)
-  await nightmare.wait('.mms-body-main')
-  await nightmare.wait('section.accordion:nth-child(2) > div:nth-child(1) > div:nth-child(1)')
-  await nightmare.click('section.accordion:nth-child(2) > div:nth-child(1) > div:nth-child(1)')
-  await nightmare.wait(1000)
-
+  await nightmare.wait('.view-modal-content') 
   const button_clip = await nightmare.evaluate(() => {
   // store the button in a variable
-  const build_cluster_btn = document.querySelector('section.accordion:nth-child(2)');
-  
+  const build_cluster_btn = document.querySelector('.view-modal-content');
   // use the getClientRects() function on the button to determine
   // the size and location
   const [rect] = build_cluster_btn.getClientRects();
@@ -34,15 +29,15 @@ exports.run = async function (options) {
     right: rect.right,
     bottom: rect.bottom,
     left: rect.left,
-    width: rect.width+800,
+    width: rect.width,
     height: rect.height
   };
   })
   const buildClip = {
     x: Math.floor(button_clip.left)-20,
     y: Math.floor(button_clip.top)-20,
-    width: Math.floor(button_clip.width)+40,
-    height: Math.floor(button_clip.height)+40
+    width: Math.floor(button_clip.width)+10,
+    height: Math.floor(button_clip.height)+10
   };
   await nightmare.screenshot(screenshotPath, buildClip)
   await nightmare.wait(500)

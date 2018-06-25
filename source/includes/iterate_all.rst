@@ -4,7 +4,7 @@
      - id: shell
        content: |
 
-         By default, the shell will only show the first set of documents
+         By default, the shell will only show the first 20 documents
          and return a cursor. This is adequate when the result set only
          contains a few documents.
 
@@ -49,15 +49,25 @@
 
      - id: java-sync
        content: |
-         Create a method to print the results of the iteration 
 
+         You can implement a ``com.mongodb.Block`` to print the results
+         of the iteration
+         
          .. code-block:: java
          
-            try (MongoCursor<Document> cursor = collection.find().iterator()) {
-                while (cursor.hasNext()) {
-                    System.out.println(cursor.next().toJson());
+            Block<Document> printBlock = new Block<Document>() {
+                @Override
+                public void apply(final Document document) {
+                    System.out.println(document.toJson());
                 }
-            }
+            };
+         
+         Then iterate the cursor for documents, passing the
+         ``printBlock`` as a parameter.
+         
+         .. code-block:: java
+       
+            findIterable.forEach(printBlock);
 
      - id: nodejs
        content: |
