@@ -16,6 +16,12 @@
 
        Default is true.
 
+   * - ``backupEnabled``
+     - Boolean
+     - ``true`` if you enabled 
+       :doc:`continuous backups </backup/continuous-backups>` for the 
+       cluster.
+
    * - ``biConnector``
      - document
      - Information on whether |bic| is enabled or disabled for the cluster.
@@ -39,9 +45,22 @@
             - | ``"primary"`` if |bic| reads from the primary.
               | ``"secondary"`` if |bic| reads from a secondary.
 
-   * - ``name``
+   * - ``diskSizeGB``
+     - double
+     - ** AWS / GCP Only ** The size in gigabytes of the server's root 
+       volume. You can add capacity by increasing this number, up to a 
+       maximum possible value of ``4096`` (i.e., 4 TB).
+
+       Each instance size has its own default value. To view default values:
+       open the |service| web interface; click the button to add a new
+       cluster; view the available default sizes; close the window without
+       saving changes.
+
+   * - ``encryptionAtRestProvider``
      - string
-     - The name of the cluster as it appears in |service|.
+     - Specifies whether :doc:`Encryption at Rest </security-aws-kms>` is
+       enabled for the |service| cluster and, if enabled, the encryption
+       provider.
 
    * - ``groupId``
      - string
@@ -119,6 +138,10 @@
 
        |service| only displays this field after the cluster is
        operational, not while it builds the cluster.
+
+   * - ``name``
+     - string
+     - The name of the cluster as it appears in |service|.
 
    * - ``numShards``
      - integer
@@ -306,23 +329,6 @@
      - integer
      - The number of read-only nodes in the region. Read-only nodes can never
        become the :term:`primary`, but can facilitate local-reads.
-
-   * - ``diskSizeGB``
-     - double
-     - ** AWS / GCP Only ** The size in gigabytes of the server's root 
-       volume. You can add capacity by increasing this number, up to a 
-       maximum possible value of ``4096`` (i.e., 4 TB).
-
-       Each instance size has its own default value. To view default values:
-       open the |service| web interface; click the button to add a new
-       cluster; view the available default sizes; close the window without
-       saving changes.
-
-   * - ``backupEnabled``
-     - Boolean
-     - ``true`` if you enabled 
-       :doc:`continuous backups </backup/continuous-backups>` for the 
-       cluster.
 
    * - ``stateName``
      - string
