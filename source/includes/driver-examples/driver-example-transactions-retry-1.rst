@@ -29,6 +29,12 @@
          
      - id: python
        content: |
+
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
@@ -38,8 +44,12 @@
 
      - id: java-sync
        content: |
-         .. code-block:: javascript
+         .. important::
 
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
+         .. code-block:: javascript
 
              void runTransactionWithRetry(Runnable transactional) {
                  while (true) {
@@ -61,6 +71,12 @@
 
      - id: nodejs
        content: |
+
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
          .. class:: copyable-code
          .. literalinclude:: /driver-examples/node-promises-examples.js
             :language: javascript

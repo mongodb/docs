@@ -1,17 +1,20 @@
-- Java 3.8.0
+.. list-table::
+   :class: index-table
 
-- Python 3.7.0
+   * - Java 3.8.0
 
-- C 1.11.0
+       Python 3.7.0
 
-- C# 2.7
+       C 1.11.0
 
-- Node 3.1.0
+     - C# 2.7
 
-- Ruby 2.6.0
+       Node 3.1.0
 
-- Perl 2.0.0
+       Ruby 2.6.0
 
-- PHPC 1.5.0
+     - Perl 2.0.0
 
-- Scala 2.4.0
+       PHPC 1.5.0
+
+       Scala 2.4.0
