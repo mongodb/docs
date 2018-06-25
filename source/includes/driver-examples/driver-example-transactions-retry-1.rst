@@ -58,3 +58,11 @@
                      }
                  }
              }
+
+     - id: nodejs
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/node-promises-examples.js
+            :language: javascript
+            :start-after: Start Transactions Retry Example 1
+            :end-before: End Transactions Retry Example 1

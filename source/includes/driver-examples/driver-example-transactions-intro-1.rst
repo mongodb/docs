@@ -28,3 +28,11 @@
 
                  commitWithRetry(clientSession);
              }
+
+     - id: nodejs
+       content: |
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/node-promises-examples.js
+            :language: javascript
+            :start-after: Start Transactions Intro Example 1
+            :end-before: End Transactions Intro Example 1
