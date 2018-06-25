@@ -27436,7 +27436,7 @@
 	            if (this.query) {
 	                newURL = locationSansQuery + '?searchProperty=' + encodeURIComponent(this.searchProperty) + '&query=' + encodeURIComponent(this.query);
 	            } else {
-	                newURL = locationSansQuery;
+	                newURL = window.location.href;
 	            }
 	
 	            window.history.replaceState({ href: newURL }, null, newURL);
@@ -27810,8 +27810,8 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: 'https://docs.mongodb.com/compass/current/' },
-	                        'MongoDB Compass'
+	                        { href: 'https://docs.mongodb.com/bi-connector/current/' },
+	                        'MongoDB BI Connector'
 	                      )
 	                    ),
 	                    _react2.default.createElement(
@@ -27819,8 +27819,17 @@
 	                      { className: 'submenu__item' },
 	                      _react2.default.createElement(
 	                        'a',
-	                        { href: 'https://docs.mongodb.com/bi-connector/current/' },
-	                        'MongoDB BI Connector'
+	                        { href: 'https://docs.mongodb.com/charts/current/' },
+	                        'MongoDB Charts'
+	                      )
+	                    ),
+	                    _react2.default.createElement(
+	                      'li',
+	                      { className: 'submenu__item' },
+	                      _react2.default.createElement(
+	                        'a',
+	                        { href: 'https://docs.mongodb.com/compass/current/' },
+	                        'MongoDB Compass'
 	                      )
 	                    ),
 	                    _react2.default.createElement(
@@ -27839,8 +27848,8 @@
 	                  { className: 'submenu__item' },
 	                  _react2.default.createElement(
 	                    'a',
-	                    { href: 'https://docs.mongodb.com/tutorials/' },
-	                    'Tutorials'
+	                    { href: 'https://docs.mongodb.com/guides/' },
+	                    'Guides'
 	                  )
 	                )
 	              )
