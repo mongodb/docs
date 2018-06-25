@@ -68,9 +68,9 @@ examples:
 
 
 install-resources: ## Retrieves the generated installation resources from the mongodb/docs repo
-	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-base.yaml -o source/includes/release-base.yaml
-	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/release-specifications.yaml -o source/includes/release-specifications.yaml
-	curl -SfL https://raw.githubusercontent.com/mongodb/docs/v3.6/source/includes/fact-install-windows.rst -o source/includes/fact-install-windows.rst
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/master/source/includes/release-base.yaml -o source/includes/release-base.yaml
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/master/source/includes/release-specifications.yaml -o source/includes/release-specifications.yaml
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs/master/source/includes/fact-install-windows.rst -o source/includes/fact-install-windows.rst
 
 screenshots:
 	giza generate assets
