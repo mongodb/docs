@@ -28,7 +28,7 @@
                   URI connection string in your system clipboard and auto-
                   populate the connection dialog from the URI.
          
-                  See :doc:`/guides/cloud/connectionstring` for information on
+                  See :doc:`/cloud/connectionstring` for information on
                   how to get the Atlas connection string URI into your copy
                   buffer.
          

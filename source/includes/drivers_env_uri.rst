@@ -15,7 +15,7 @@
             relevant code examples within the MongoDB Guides will be
             populated with a URI string.  If you have not already
             retrieved your Atlas connection string, see
-            :doc:`/guides/cloud/connectionstring` guide.
+            :doc:`/cloud/connectionstring` guide.
 
      - id: local
        content: |
