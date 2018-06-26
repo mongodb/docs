@@ -35,7 +35,7 @@ stage: ## Host online for review
 deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --all-subdirectories ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
+	@echo "Hosted at ${PRODUCTION_URL}/index.html"
 
 	$(MAKE) deploy-search-index
 
