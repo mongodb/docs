@@ -104,4 +104,4 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/functional/operation_promises_example_tests.js -o ${DRIVERS_PATH}/node-promises-examples.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-perl-driver/master/t/examples/transaction.t -o ${DRIVERS_PATH}/perl-transactions-examples.t
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationTransactionsExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationTransactionsExampleSpec.scala
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/mongo/transactions_examples_spec.rb ${DRIVERS_PATH}/transactions_examples_spec.rb
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/mongo/transactions_examples_spec.rb -o ${DRIVERS_PATH}/transactions_examples_spec.rb
