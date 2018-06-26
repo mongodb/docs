@@ -196,3 +196,17 @@
          .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
             :language: scala
             :lines: 50-
+
+     - id: ruby
+       content: |
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/transactions_examples_spec.rb
+            :language: ruby
+            :dedent: 4
+            :start-after: Start Transactions Retry Example 3
+            :end-before: End Transactions Example 3
