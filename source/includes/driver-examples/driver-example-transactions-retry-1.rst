@@ -93,3 +93,14 @@
             :language: perl
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
+
+     - id: scala
+       content: |
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
+         .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
+            :language: scala
+            :lines: 79-87
