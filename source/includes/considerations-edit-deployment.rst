@@ -1,118 +1,100 @@
-.. h3::
-   title: Apply Changes to Cluster or Member
+Apply Changes to Cluster or Member
+  If you make configuration changes to an individual MongoDB
+  process within a cluster, any future changes to the cluster no longer apply to the child process.
 
-If you make configuration changes to an individual MongoDB
-process within a cluster, any future changes to the cluster no longer apply to the child process.
+  .. example::
 
-.. example::
+     If you turn off journaling for a replica set member and
+     then later change the journal commit interval for the
+     replica set, the change does not apply to the member.
 
-   If you turn off journaling for a replica set member and
-   then later change the journal commit interval for the
-   replica set, the change does not apply to the member.
+MongoDB Version
+  To choose which versions of MongoDB are available to |mms|, see
+  :doc:`/tutorial/configure-available-mongodb-version`.
 
-.. h3::
-   title: MongoDB Version
-~~~~~~~~~~~~~~~
+  .. include:: /includes/considerations-change-mongodb-version.rst
 
-To choose which versions of MongoDB are available to |mms|, see
-:doc:`/tutorial/configure-available-mongodb-version`.
+Storage Engine
+  If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
+  storage engine, |mms| shuts down and restarts the MongoDB process. For 
+  a multi-member replica set, |mms| performs a rolling 
+  :term:`initial sync` of each member.
 
-.. include:: /includes/considerations-change-mongodb-version.rst
+  |mms| creates backup directories during the migration from one storage
+  engine to the other if the host has adequate disk space. If disk space
+  is insufficient, no backups are taken. |mms| *does not* delete the
+  backup directories once the migration is complete. You can keep or
+  delete the previous backup directories. The backup directories are
+  located in  the :program:`mongod`'s data directory.
 
-.. h3::
-   title: Storage Engine
-~~~~~~~~~~~~~~
+  .. example::
 
-If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
-storage engine, |mms| shuts down and restarts the MongoDB process. For 
-a multi-member replica set, |mms| performs a rolling 
-:term:`initial sync` of each member.
+     If the data directory was ``/data/process``, the backup would be
+     ``/data/process.bak.UNIQUENAME``. The ``UNIQUENAME`` is a random
+     string that |mms| generates.
 
-|mms| creates backup directories during the migration from one storage
-engine to the other if the host has adequate disk space. If disk space
-is insufficient, no backups are taken. |mms| *does not* delete the
-backup directories once the migration is complete. You can keep or
-delete the previous backup directories. The backup directories are
-located in  the :program:`mongod`'s data directory.
+  Before you can change the :term:`storage engine` for a standalone
+  instance or replica set, you must give the :term:`Automation Agent`
+  write access to the MongoDB :term:`data directory`'s *parent* directory.
+  The agent creates a temporary backup of the data in parent directory
+  when  updating the storage engine.
 
-.. example::
+  You cannot change the storage engine on a :term:`config server`. For
+  more information on storage engines and the available options, see
+  :manual:`Storage </core/storage>` in the MongoDB manual.
 
-   If the data directory was ``/data/process``, the backup would be
-   ``/data/process.bak.UNIQUENAME``. The ``UNIQUENAME`` is a random
-   string that |mms| generates.
+Fixed Properties
+  You cannot modify the following settings after a deployment has been 
+  created:
 
-Before you can change the :term:`storage engine` for a standalone
-instance or replica set, you must give the :term:`Automation Agent`
-write access to the MongoDB :term:`data directory`'s *parent* directory.
-The agent creates a temporary backup of the data in parent directory
-when  updating the storage engine.
+  - :option:`database path <mongod.--dbpath>`
+  - :option:`host <--host>`, :option:`bind_ip <mongod.--bind_ip>` or 
+    :option:`port <mongod.--port>` to which a MongoDB process is 
+    assigned
 
-You cannot change the storage engine on a :term:`config server`. For
-more information on storage engines and the available options, see
-:manual:`Storage </core/storage>` in the MongoDB manual.
+  You *can* modify the following deployment settings:
 
-.. h3::
-   title: Fixed Properties
-~~~~~~~~~~~~~~~~
+  - :option:`log path <mongod.--logpath>` at the process level
+  - :doc:`advanced options </reference/deployment-advanced-options>`
 
-You cannot modify the following settings after a deployment has been 
-created:
+Deployment Topology
+  You can make modifications at all levels of a deployment's topology,
+  including child processes. 
 
-- :option:`database path <mongod.--dbpath>`
-- :option:`host <--host>`, :option:`bind_ip <mongod.--bind_ip>` or 
-  :option:`port <mongod.--port>` to which a MongoDB process is 
-  assigned
+  To modify the topology or processes, use this tutorial or one of the
+  more specific tutorials:
 
-You *can* modify the following deployment settings:
+  - :doc:`/tutorial/migrate-member-to-new-hardware`
+  - :doc:`/tutorial/convert-standalone-to-replica-set`
 
-- :option:`log path <mongod.--logpath>` at the process level
-- :doc:`advanced options </reference/deployment-advanced-options>`
+Project-Level Modifications
+  Some modifications that affect a deployment occur at the project level.
+  The following changes affect every MongoDB process in the project. For
+  these changes, use the specified tutorials:
 
-.. h3::
-   title: Deployment Topology
-~~~~~~~~~~~~~~~~~~~
+  - To enable SSL for the deployment, see
+    :doc:`/tutorial/enable-ssl-for-a-deployment`.
 
-You can make modifications at all levels of a deployment's topology,
-including child processes. 
+  - To enable authentication for the deployment, see
+    :doc:`/tutorial/nav/security-enable-authentication`.
 
-To modify the topology or processes, use this tutorial or one of the
-more specific tutorials:
+  - To add or modify MongoDB users and roles for the deployment, see
+    :doc:`/tutorial/manage-mongodb-users`.
 
-- :doc:`/tutorial/migrate-member-to-new-hardware`
-- :doc:`/tutorial/convert-standalone-to-replica-set`
+Multiple Modifications
+  You can combine multiple modifications into one deployment. 
 
-.. h3::
-   title: Project-Level Modifications
+  .. example::
+     You could make all the following modifications before clicking the
+     :guilabel:`Review Changes` button:
 
-Some modifications that affect a deployment occur at the project level.
-The following changes affect every MongoDB process in the project. For
-these changes, use the specified tutorials:
+     - Add the latest stable version of MongoDB to the 
+       :ref:`version-manager`.
 
-- To enable SSL for the deployment, see
-  :doc:`/tutorial/enable-ssl-for-a-deployment`.
+     - Enable SSL for the deployment's MongoDB processes.
 
-- To enable authentication for the deployment, see
-  :doc:`/tutorial/nav/security-enable-authentication`.
+     - Add a new sharded cluster running the latest stable version of 
+       MongoDB from above.
 
-- To add or modify MongoDB users and roles for the deployment, see
-  :doc:`/tutorial/manage-mongodb-users`.
-
-.. h3::
-   title: Multiple Modifications
-
-You can combine multiple modifications into one deployment. 
-
-.. example::
-   You could make all the following modifications before clicking the
-   :guilabel:`Review Changes` button:
-
-   - Add the latest stable version of MongoDB to the 
-     :ref:`version-manager`.
-
-   - Enable SSL for the deployment's MongoDB processes.
-
-   - Add a new sharded cluster running the latest stable version of 
-     MongoDB from above.
-
-When you click :guilabel:`Review Changes`, the review displays all the
-changes on one screen for you to confirm before deploying.
+  When you click :guilabel:`Review Changes`, the review displays all the
+  changes on one screen for you to confirm before deploying.
