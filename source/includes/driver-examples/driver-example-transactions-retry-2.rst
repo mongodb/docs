@@ -29,8 +29,6 @@
 
      - id: python
        content: |
-       
-         .. class:: copyable-code
          .. literalinclude:: /driver-examples/test_examples.py
             :language: python
             :dedent: 8
@@ -62,8 +60,21 @@
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
          .. literalinclude:: /driver-examples/node-promises-examples.js
+            :dedent: 2
             :language: javascript
+            :start-after: Start Transactions Retry Example 2
+            :end-before: End Transactions Retry Example 2
+
+     - id: perl
+       content: |
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
+         .. class:: copyable-code
+         .. literalinclude:: /driver-examples/perl-transactions-examples.t
+            :language: perl
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2
