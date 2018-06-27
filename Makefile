@@ -41,11 +41,7 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT} -g -s; \
-	else \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
-	fi
+	mut-index upload build/public -o tutorials-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
 
 examples:
 	mkdir -p ${DRIVERS_PATH}
