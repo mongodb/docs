@@ -124,6 +124,10 @@
 
        The default value is ``1``.
 
+       .. note::
+
+          Do not include in the request body for :doc:`Global Clusters </global-clusters>`.
+
    * - ``paused``
 
      - boolean
@@ -378,6 +382,14 @@
           You **must** order each element in this document by
           ``replicationSpec.<region>.priority`` descending.
 
+       Use the ``replicationSpecs`` parameter to modify a
+       :doc:`Global Cluster </global-clusters>`.
+
+       .. note::
+
+          You cannot specify both the ``replicationSpec`` and ``replicationSpecs``
+          parameters in the same request body.      
+
    * - ``replicationSpec.<region>``
      - document
      - *Required if specifying* ``replicationSpec``
@@ -458,9 +470,109 @@
 
        Specify ``0`` if you do not want any read-only nodes in the region.
 
+   * - ``replicationSpecs``
+     - array of documents
+     - *Optional*
+       
+       The configuration for each zone in a :doc:`Global Cluster </global-clusters>`.
+       Each document in this array represents a zone where |service| deploys
+       nodes for your Global Cluster. You must specify all fields of
+       ``replicationSpecs`` to modify any single field.
+
+       Use the ``replicationSpec`` parameter to modify a multi-region
+       cluster.
+
+       .. note::
+
+          You cannot specify both the ``replicationSpec`` and ``replicationSpecs``
+          parameters in the same request body.
+
+   * - ``replicationSpecs[n].id``
+     - string
+     - *Required only when modifying the ``replicationSpecs`` parameter* 
+       
+       Unique identifer of the replication document for a zone in a
+       |global-write-cluster|. Required for all existing zones included
+       in a cluster modification request body. Not required for a replication
+       spec that defines a new zone that you want to add to an existing
+       |global-write-cluster|.
+
+       .. warning::
+
+          |service| deletes any existing zones in a |global-write-cluster|
+          that are not included in a cluster modification request.
+
+   * - ``replicationSpecs[n].zoneName``
+     - string
+     - *Required* 
+       
+       The name for the zone in a |global-write-cluster|.
+       
+   * - ``replicationSpecs[n].numShards``
+     - int
+     - *Required* 
+       
+       The number of shards to deploy in the specified zone.
+       
+   * - ``replicationSpecs[n].regionsConfig``
+     - document
+     - *Required*
+     
+       The physical location of the region. Each ``regionsConfig`` 
+       document describes the region's priority in elections and the
+       number and type of MongoDB nodes |service| deploys to the region.
+       You must order each ``regionsConfigs`` document by ``regionsConfig.priority``,
+       descending.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 50
+
+          * - Provider
+            - Region Names
+
+          * - AWS
+            - .. include:: /includes/fact-aws-region-names.rst
+
+          * - GCP
+            - .. include:: /includes/fact-gcp-region-names.rst
+
+          * - AZURE
+            - .. include:: /includes/fact-azure-region-names.rst
+
+   * - ``replicationSpecs[n].
+       regionsConfig.electableNodes``
+     - ingteger
+     - *Required*
+     
+       The number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the :term:`primary` and can facilitate
+       local reads.
+
+   * - ``replicationSpecs[n].
+       regionsConfig.readOnlyNodes``
+     - integer
+     - *Required*
+
+       The number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify ``0`` if you do not want any read-only nodes in the region.
+
+   * - ``replicationSpecs[n]
+       .regionsConfig.priority``
+     - integer
+     - *Required*
+
+       The election priority of the region. For regions with only
+       read-only nodes, set this value to ``0``.
+
    * - ``diskSizeGB``
      - double
-     - ** AWS / GCP ONLY**
+     - **AWS / GCP ONLY**
 
        The size in gigabytes of the server's root volume. You can add capacity
        by increasing this number, up to a maximum possible value of ``4096``
