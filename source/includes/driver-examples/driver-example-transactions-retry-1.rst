@@ -127,7 +127,7 @@
 
          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
             :language: php
-            :dedent: 8
+            :dedent: 2
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
 
