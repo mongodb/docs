@@ -78,7 +78,7 @@
             pass the session to each operation in the transaction.
 
          .. literalinclude:: /driver-examples/node-promises-examples.js
-            :dedent: 2
+            :dedent: 4
             :language: javascript
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
@@ -102,6 +102,7 @@
             pass the session to each operation in the transaction.
 
          .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
+            :dedent: 2
             :language: scala
             :lines: 79-87
 
@@ -114,7 +115,7 @@
 
          .. literalinclude:: /driver-examples/transactions_examples_spec.rb
             :language: ruby
-            :dedent: 4
+            :dedent: 6
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
 
@@ -127,7 +128,7 @@
 
          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
             :language: php
-            :dedent: 2
+            :dedent: 4
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
 
