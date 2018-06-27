@@ -82,7 +82,6 @@ source_constants = {
     'pgp-fingerprint': '9DA31620334BD75D9DCB49F368818C72E52529D4'
 }
 
-pygments_style = 'sphinx'
 
 extlinks = {
     'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
@@ -181,6 +180,12 @@ html_theme_options = {
 }
 
 html_sidebars = sconf.sidebars
+
+# Set up PHP syntax highlights
+from sphinx.highlighting import lexers
+from pygments.lexers.web import PhpLexer
+lexers["php"] = PhpLexer(startinline=True)
+lexers["php-annotations"] = PhpLexer(startinline=True)
 
 # -- Options for LaTeX output --------------------------------------------------
 
