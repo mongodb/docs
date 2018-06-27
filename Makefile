@@ -41,7 +41,12 @@ deploy: build/public ## Deploy to the production bucket
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
-	mut-index upload build/public -o tutorials-${GIT_BRANCH}.json -u ${PRODUCTION_URL} -g -s
+	mut-index upload build/public \
+		-o tutorials-${GIT_BRANCH}.json \
+		-u ${PRODUCTION_URL} \
+		-g \
+		-s \
+		--exclude build/public/index.html
 
 examples:
 	mkdir -p ${DRIVERS_PATH}
