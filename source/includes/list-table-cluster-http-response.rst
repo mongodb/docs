@@ -8,13 +8,16 @@
 
    * - ``autoScaling``
      - document
-     - Information on whether disk auto-scaling is enabled. The document contains
-       ``diskGBEnabled`` field set to:
+     -  Contains the ``diskGBEnabled`` field which specifies whether to
+        enable or disable disk auto-scaling.
 
-       - ``true`` if enabled.
-       - ``false`` if disabled.
+   * - ``autoScaling.diskGBEnabled``
+     - boolean
+     - Specifies whether disk auto-scaling is enabled. The default
+       is ``true``.
 
-       Default is true.
+       - Set to ``true`` to enable disk auto-scaling.
+       - Set to ``false`` to disable disk auto-scaling.
 
    * - ``backupEnabled``
      - Boolean
@@ -45,6 +48,14 @@
             - | ``"primary"`` if |bic| reads from the primary.
               | ``"secondary"`` if |bic| reads from a secondary.
 
+   * - ``clusterType``
+     - string
+     - Specifies the type of the cluster:
+       
+       - ``REPLICASET`` - :term:`replica set`
+       - ``SHARDED`` - :term:`sharded cluster`
+       - ``GEOSHARDED`` - :doc:`Global Cluster </global-clusters>`
+
    * - ``diskSizeGB``
      - double
      - ** AWS / GCP Only ** The size in gigabytes of the server's root 
@@ -58,9 +69,23 @@
 
    * - ``encryptionAtRestProvider``
      - string
-     - Specifies whether :doc:`Encryption at Rest </security-aws-kms>` is
-       enabled for the |service| cluster and, if enabled, the encryption
-       provider.
+     - Specify ``AWS`` to enable 
+       :doc:`Encryption at Rest </security-aws-kms>` using the
+       |service| project AWS Key Management System settings. The
+       cluster must meet the following restrictions:
+
+       - ``providerSettings.providerName`` must be ``AWS`` or ``AZURE``.
+       - ``providerSettings.instanceSizeName`` must be ``M10`` or greater.
+       - ``clusterType`` must be ``REPLICASET``.
+       - ``backupEnabled`` must be ``false`` or omitted. 
+
+       For complete documentation on Encryption at Rest restrictions,
+       see :ref:`security-aws-kms-restrictions`.
+
+       You must configure encryption at rest for the |service| project 
+       before enabling it on any cluster in the project. For
+       complete documentation on configuring Encryption at Rest,
+       see :ref:`security-aws-kms`.
 
    * - ``groupId``
      - string
