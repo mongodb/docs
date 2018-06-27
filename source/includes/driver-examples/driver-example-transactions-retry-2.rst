@@ -102,3 +102,12 @@
             :dedent: 4
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2
+
+     - id: php
+       content: |
+
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
+            :dedent: 8
+            :start-after: Start Transactions Retry Example 2
+            :end-before: End Transactions Retry Example 2

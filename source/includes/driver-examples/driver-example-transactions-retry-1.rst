@@ -117,3 +117,16 @@
             :dedent: 4
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
+
+     - id: php
+       content: |
+         .. important::
+
+            To associate read and write operations with a transaction, you **must**
+            pass the session to each operation in the transaction.
+
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
+            :dedent: 8
+            :start-after: Start Transactions Retry Example 1
+            :end-before: End Transactions Retry Example 1
