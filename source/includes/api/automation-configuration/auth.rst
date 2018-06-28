@@ -32,7 +32,7 @@ The ``auth`` object is optional and defines :manual:`authentication-related
                      "clientSource": ["<IP>" | "<CIDR range>", ...],
                      "serverAddress": ["<IP>" | "<CIDR range>", ...]
                   }, ...
-               ]    
+               ]
            }
        ]
    }
@@ -146,21 +146,22 @@ The ``auth`` object is optional and defines :manual:`authentication-related
 
    * - ``auth.usersWanted[n].roles``
      - array
-     - String values that list the :term:`roles <role>` to be assigned the
-       user from the user's database, which is specified in ``auth.usersWanted.db``.
+     - List of the :term:`roles <role>` to be assigned to the user
+       from the user's database, which is specified in
+       ``auth.usersWanted.db``.
 
    * - ``auth.usersWanted[n].pwd``
-     - 32-character hex string
-     - The :ref:`MONGODB-CR <mongodb-cr>` hash of the password
-       assigned to the user. If you set this field, **do not** set the
+     - string
+     - The 32-character hex ``SCRAM-SHA-1`` hash of the password
+       currently assigned to the user. This field is *not* used to set or change a password. If you set this field, *do not* set
        ``auth.usersWanted.initPwd`` or
-       ``auth.usersWanted.userSource`` fields.
+       ``auth.usersWanted.userSource``.
 
    * - ``auth.usersWanted[n].initPwd``
      - string
-     - An initial cleartext password assigned to the user. If you set this
-       field, **do not** set the ``auth.usersWanted.pwd`` or
-       ``auth.usersWanted.userSource`` fields.
+     - The cleartext password that you want to assign to the user. If
+       you set this field, *do not* set ``auth.usersWanted.pwd`` or
+       ``auth.usersWanted.userSource``.
 
    * - ``auth.usersWanted[n].userSource``
      - string
@@ -203,8 +204,3 @@ The ``auth`` object is optional and defines :manual:`authentication-related
        from an IP address in the given array. If the connection was accepted
        from an unrecognized IP address, the server does not authenticate
        the user.
-       
-       
-       
-       
-        
