@@ -103,7 +103,8 @@
           PagerDuty dashboard.
  
       * - Webhook
-        - Project only
+        - :doc:`Global </tutorial/manage-global-alerts>` or 
+          Project only
         - Sends an :abbr:`HTTP (HyperText Transport Protocol)` POST
           request to an endpoint for programmatic processing. The 
           request body contains a 
