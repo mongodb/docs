@@ -92,7 +92,7 @@ The components of this string are:
 
    * - ``?options``
 
-     - Connection specific options. See
+     - A query string that specifies connection specific options. See
        :ref:`connections-connection-options` for a full description of
        these options.
 
@@ -133,34 +133,41 @@ The components of this string are:
 
 .. index:: connections; dns-seedlist
 .. _connections-dns-seedlist:
-      
-      
+
+
 DNS Seedlist Connection Format
 ------------------------------
 
 .. versionadded:: 3.6
 
 In addition to the standard connection format, MongoDB supports a
-DNS-constructed seedlist. Using DNS to construct the available servers
-list allows more flexibility of deployment and the ability to change the
-servers in rotation without reconfiguring clients.
+:abbr:`DNS (Domain Name Service)`-constructed seed list. Using DNS to
+construct the available servers list allows more flexibility of
+deployment and the ability to change the servers in rotation without
+reconfiguring clients.
 
 In order to leverage the DNS seedlist, use a connection string prefix of
-``mongodb+srv:`` in place of the ``mongodb:`` string above.
+``mongodb+srv:`` rather than the standard ``mongodb:``. The ``+srv``
+indicates to the client that the hostname that follows corresponds to a
+DNS SRV record. The driver or :binary:`~bin.mongo` shell will then
+query the DNS for the record to determine which hosts are running the
+:binary:`~bin.mongod` instances.
 
-The ``+srv`` indicates to the mongo client that the hostname that
-follows corresponds to a DNS SRV record. The client driver will then
-query the DNS for the record to determine the hosts that are running the
-mongod instances.
+.. note:: 
 
-For example, to connect to a DNS-listed hostname:
+   Use of the ``+srv`` connection string modifier
+   automatically sets the ``ssl`` option to ``true`` for the connection.
+   You can override this behavior by explicitly setting the ``ssl``
+   option to ``false`` with ``ssl=false`` in the query string.
+
+The following example shows a typical connection string for a DNS
+seedlist connection string:
 
 .. code-block:: none
  
-    mongodb+srv://server.example.com/
+   mongodb+srv://server.example.com/
  
-A typical DNS configuration for the connection string above might look
-something like this:
+The corresponding DNS configuration might resemble:
 
 .. code-block:: none
 
@@ -168,37 +175,42 @@ something like this:
    _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27317 mongodb1.example.com.
    _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27017 mongodb2.example.com.
 
-.. note::
-  The hostnames returned in SRV records must share the same parent
-  domain (in this example, ``example.com``) as the given hostname.
+.. important::
+
+   The hostnames returned in SRV records must share the same parent
+   domain (in this example, ``example.com``) as the given hostname. If
+   the parent domains and hostname do not match, you will not be able to
+   connect.
   
-The DNS seedlist connection string can also provide options as a query
-string, with a trailing "/?" as in the standard connection string above.
-However, the ``+srv`` appended to the standard connection string signals
-the driver to query the DNS for options as a configured TXT record.
+Like the standard connection string, the DNS seedlist connection string
+supports specifying options as a query string. With a DNS seedlist
+connection string, you can *also* specify the following options via a
+TXT record:
 
-Only two options are available for configuration via a TXT record:
-``replicaSet`` and ``authSource``, and only one TXT record is allowed
-per server. If multiple TXT records appear in the DNS and/or if the TXT
+- ``replicaSet``,
+- ``authSource``.
+
+You may only specify one TXT record per :binary:`~bin.mongod` instance.
+If multiple TXT records appear in the DNS and/or if the TXT
 record contains an option other than ``replicaSet`` or ``authSource``,
-an error will be thrown by the driver.
+the client will return an error.
 
-An example of a properly configured TXT record:
+The TXT record for the ``server.example.com`` DNS entry would resemble:
 
 .. code-block:: none
 
    Record              TTL   Class    Text
    server.example.com. 86400 IN TXT   "replicaSet=mySet&authSource=authDB"
 
-In this case, taking into account both the DNS SRV records and the
-options retrieved from the TXT records, the parsed string will look like:
+Taken together, the DNS SRV records and the options specified in the TXT
+record resolve to the following standard format connection string:
 
 .. code-block:: none
 
    mongodb://mongodb1.example.com:27317,mongodb2.example.com:27017/?replicaSet=mySet&authSource=authDB
 
-Options set in a TXT record can be overridden by passing in a query
-string with the URI. In the example below, the query string has provided
+You can override the options specified in a TXT record by passing the option
+in the query string. In the following example, the query string has provided
 an override for the ``authSource`` option configured in the TXT record
 of the DNS entry above.
 
@@ -206,8 +218,8 @@ of the DNS entry above.
 
    mongodb+srv://server.example.com/?connectTimeoutMS=300000&authSource=aDifferentAuthDB
        
-The rest of the option string will remain, and we can expect that the
-resulting URI would look like this (after parse).
+Given the override for the ``authSource``, the equivalent connection
+string in the standard format would be:
 
 .. code-block:: none
 
@@ -217,10 +229,15 @@ resulting URI would look like this (after parse).
    The ``mongodb+srv`` option will fail if there is no available DNS
    with records that correspond to the hostname identified in the
    connection string. In addition, use of the ``+srv`` connection string
-   modifier sets the ``ssl`` option to ``true`` automatically for the
-   connection. This can be overridden by explicitly setting the ``ssl``
-   option to ``false`` with ``ssl=false`` in the query string.
+   modifier automatically sets the ``ssl`` option to ``true`` for the
+   connection. You can override this behavior by explicitly setting the
+   ``ssl`` option to ``false`` with ``ssl=false`` in the query string.
 
+.. see::
+
+   :ref:`example-connect-mongo-using-srv` provides an example of
+   connecting the :binary:`~bin.mongo` shell to a replica set using
+   the DNS Seedlist Connection Format.
 
 .. index:: connections; options
 .. _connections-connection-options:
@@ -849,5 +866,3 @@ The following connects to a sharded cluster with three :binary:`~bin.mongos` ins
 .. code-block:: none
 
    mongodb://router1.example.com:27017,router2.example2.com:27017,router3.example3.com:27017/
-
-
