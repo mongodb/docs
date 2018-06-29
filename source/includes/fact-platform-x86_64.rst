@@ -11,9 +11,9 @@
 
    - Windows 7/2008R2
 
-   - Windows 8/20012
+   - Windows 8/2012
 
-   - Windows 8.1/20012R2
+   - Windows 8.1/2012R2
 
    - Ubuntu 14.04
 
