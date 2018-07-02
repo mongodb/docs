@@ -1,4 +1,4 @@
-1. Open Windows Explorer.
+1. Open Windows Explorer/File Explorer.
 
 2. Change the directory path to where you downloaded the MongoDB 
    ``.msi`` file. By default, this is ``%HOMEPATH%\Downloads``.  

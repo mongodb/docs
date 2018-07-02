@@ -28,13 +28,13 @@ Install on Windows 7 / Server 2008 R2 or Later
       System Type:               x64-based PC
 
 Show All File Name Extensions
-   Make certain that you set Windows Explorer to show file name 
+   Make certain that you set Windows Explorer/File Explorer to show file name 
    extensions for all file types. This can prevent issues where the 
    file type displayed to the user differs from the actual file type.
 
    .. example::
 
-      If Windows Explorer has known file extensions hidden, what may 
+      If Windows Explorer/File Explorer has known file extensions hidden, what may 
       appear to be ``mongod.cfg`` is actually ``mongod.cfg.txt``.
 
 Install all Windows Updates
