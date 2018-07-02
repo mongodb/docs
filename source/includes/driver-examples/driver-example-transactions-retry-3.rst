@@ -194,7 +194,6 @@
             pass the session to each operation in the transaction.
 
          .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
-            :dedent: 2
             :language: scala
             :lines: 50-
 
@@ -230,5 +229,13 @@
          .. literalinclude:: /driver-examples/TransactionsRetryExample3.cs
             :language: c#
             :dedent: 8
+            :start-after: Start Transactions Retry Example 3
+            :end-before: End Transactions Retry Example 3
+
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
+            :language: c
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
