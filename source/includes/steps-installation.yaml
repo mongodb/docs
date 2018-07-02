@@ -45,25 +45,72 @@ content: |
    you must provide the credentials in the connection string, and the
    MongoDB user must have the :authrole:`readWriteAnyDatabase` role.
 
-   .. code-block:: sh
-
-      echo "mongodb://<username>:<password>@myhost.com/" | docker secret create charts-mongodb-uri -
-
    .. important::
 
-      If the database is running on the same host as the |charts-short|
-      Docker container but not in Docker, it will not be reachable via
-      ``mongodb://localhost``. |charts-short| interprets ``localhost``
-      as the Docker container |charts-short| is running in.
+      |charts-short| interprets ``localhost`` as the Docker container
+      |charts-short| is running in. If the database is running on the
+      same host as the |charts-short| Docker container but not in
+      Docker, it will not be reachable via
+      ``mongodb://localhost``. Instead, use one of the following URIs
+      depending on your Docker version when creating the Docker secret
+      in the command below:
 
-      - For Docker versions 18.03 and later, use
-        ``mongodb://host.docker.internal`` for Windows and macOS. For
-        Linux, use the IP address of the ``docker0`` interface.
+      - For Docker versions 18.03 and later:
 
-      - For Docker versions 17.06 up to but not including 18.03, use
-        ``mongodb://docker.for.mac.localhost`` for macOS or
-        ``mongodb://docker.for.win.localhost`` for Windows. For Linux,
-        use the IP address of the ``docker0`` interface.
+        - For Windows and macOS, use ``mongodb://host.docker.internal``
+
+        - For Linux, use the IP address of the ``docker0`` interface
+
+      - For Docker versions 17.06 up to but not including 18.03:
+
+        - For Windows, use ``mongodb://docker.for.win.localhost``
+
+        - For macOS, use ``mongodb://docker.for.mac.localhost``
+
+        - For Linux, use the IP address of the ``docker0`` interface
+
+   Depending on whether your MongoDB deployment is a standalone instance
+   or a replica set, select the appropriate tab and run the following
+   command to create the Docker secret:
+
+   .. tabs-deployments::
+
+      tabs:
+
+        - id: standalone
+          name: Standalone
+          content: |
+            .. code-block:: sh
+
+               echo "mongodb://<username>:<password>@myhost.com/" | docker secret create charts-mongodb-uri -
+
+        - id: repl
+          name: Replica Set
+          content: |
+            .. code-block:: sh
+
+               echo "mongodb://<username>:<password>@myhost.com/?replicaSet=<name>" | docker secret create charts-mongodb-uri -
+
+            .. note::
+
+               When connecting to a replica set, the
+               :urioption:`replicaSet` URI option is required.
+
+            If your replica set uses hostnames and they are not routable
+            inside the container, specify the
+            `extra_hosts <https://docs.docker.com/compose/compose-file/#extra_hosts>`_
+            option in the Docker Compose file:
+
+            .. code-block:: yaml
+
+               services:
+                 charts:
+                   # Other settings will be set here
+                   extra_hosts:
+                     - "somehost:198.51.100.16"
+                     - "otherhost: 198.51.100.17"
+                     - "anotherhost:203.0.113.0"
+
 ---
 title: Enable or disable the Feedback and Support widget.
 ref: feedback-support-widget
