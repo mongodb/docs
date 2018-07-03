@@ -89,15 +89,35 @@ examples:
 	mkdir -p ${DRIVERS_PATH}
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-python-driver/3.6.0/test/test_examples.py -o ${DRIVERS_PATH}/test_examples.py
 	curl -SfL https://raw.githubusercontent.com/mongodb/motor/master/test/asyncio_tests/test_examples.py -o ${DRIVERS_PATH}/test_examples_motor.py
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-perl-driver/master/t/examples/driver-examples.t -o ${DRIVERS_PATH}/driver-examples.t
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-php-library/v1.3/tests/DocumentationExamplesTest.php -o ${DRIVERS_PATH}/DocumentationExamplesTest.php
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/3.6.x/driver/src/examples/documentation/DocumentationSamples.java -o ${DRIVERS_PATH}/DocumentationSamples.java
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/3.0/test/functional/examples_tests.js -o ${DRIVERS_PATH}/examples_tests.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/2.5-stable/spec/mongo/shell_examples_spec.rb -o ${DRIVERS_PATH}/shell_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/2.5-stable/spec/mongo/change_stream_examples_spec.rb -o ${DRIVERS_PATH}/change_stream_examples_spec.rb
+
+# node
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/3.0/test/functional/operation_changestream_example_tests.js -o ${DRIVERS_PATH}/ChangeStreamNodeExamples.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/array_filters.js                              -o ${DRIVERS_PATH}/node_array_filters.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/causal_consistency.js                         -o ${DRIVERS_PATH}/node_causal_consistency.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/insert.js                                     -o ${DRIVERS_PATH}/node_insert.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/project_fields_from_query_results.js          -o ${DRIVERS_PATH}/node_project.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query.js                                      -o ${DRIVERS_PATH}/node_query.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_embedded_documents.js                   -o ${DRIVERS_PATH}/node_query_embedded_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_arrays.js                               -o ${DRIVERS_PATH}/node_query_arrays.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_array_of_documents.js                   -o ${DRIVERS_PATH}/node_query_array_of_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_for_null_fields.js                      -o ${DRIVERS_PATH}/node_query_for_null_fields.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/remove_documents.js                           -o ${DRIVERS_PATH}/node_remove.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/transactions.js                               -o ${DRIVERS_PATH}/node_transactions.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/update_documents.js                           -o ${DRIVERS_PATH}/node_update.js
+
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/v2.5.x/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/v2.5.x/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/3.0/test/functional/operation_changestream_example_tests.js -o ${DRIVERS_PATH}/ChangeStreamNodeExamples.js
+
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/r1.9/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c 
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
+
