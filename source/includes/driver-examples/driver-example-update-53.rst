@@ -60,10 +60,9 @@
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /driver-examples/node_update.js
             :language: javascript
-            :dedent: 8
+            :dedent: 6
             :start-after: Start Example 53
             :end-before: End Example 53
 

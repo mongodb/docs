@@ -67,10 +67,9 @@
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /driver-examples/node_query_for_null_fields.js
             :language: javascript
-            :dedent: 8
+            :dedent: 4
             :start-after: Start Example 38
             :end-before: End Example 38
 

@@ -60,9 +60,9 @@
 
      - id: nodejs
        content: |
-         .. literalinclude:: /driver-examples/node-promises-examples.js
-            :dedent: 4
+         .. literalinclude:: /driver-examples/node_transactions.js
             :language: javascript
+            :dedent: 6
             :start-after: Start Transactions Retry Example 2
             :end-before: End Transactions Retry Example 2
 
