@@ -67,4 +67,5 @@
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
      - 
-     - For insert operations, only when run against an existing collection.
+     - | For insert operations, only when run against an existing collection.
+       | For ``upsert``, only when run against an existing collection.
