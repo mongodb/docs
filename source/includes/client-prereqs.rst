@@ -6,23 +6,21 @@ Prerequisites
    tabs:
      - id: windows
        content: |
-         Before using Tableau with |bi-short| you should have:
+         Connecting Tableau to the |bi| requires the following:
 
-         - A running :manual:`mongod </reference/program/mongod/>` instance or `Atlas
-           deployment <https://docs.atlas.mongodb.com/>`_
+         - Tableau version 10.3 or later
+
+         - A running :manual:`mongod </reference/program/mongod/>` instance
+
          - A running :binary:`~bin.mongosqld` instance
-         - The `MySQL Connector/ODBC driver (Version 5.3.10)
-           <https://dev.mysql.com/downloads/connector/odbc/5.3.html>`_
+
 
      - id: macos
        content: |
-         Before using Tableau with |bi-short| you should have:
+         Connecting Tableau to the |bi| requires the following:
 
-         - A running :manual:`mongod </reference/program/mongod/>` instance or `Atlas
-           deployment <https://docs.atlas.mongodb.com/>`_
+         - Tableau version 10.4 or later
+
+         - A running :manual:`mongod </reference/program/mongod/>` instance
+
          - A running :binary:`~bin.mongosqld` instance
-         - `ODBC Manager <http://www.odbcmanager.net/>`__ installed
-         - The `MySQL Connector/ODBC driver (Version 5.3.10)
-           <https://dev.mysql.com/downloads/connector/odbc/5.3.html>`_
-
-.. include:: /includes/fact-mysql-odbc-version-reqs.rst
