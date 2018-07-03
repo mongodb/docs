@@ -77,9 +77,9 @@
             To associate read and write operations with a transaction, you **must**
             pass the session to each operation in the transaction.
 
-         .. literalinclude:: /driver-examples/node-promises-examples.js
-            :dedent: 4
+         .. literalinclude:: /driver-examples/node_transactions.js
             :language: javascript
+            :dedent: 6
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
 

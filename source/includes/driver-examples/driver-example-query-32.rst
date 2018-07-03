@@ -58,10 +58,9 @@
 
      - id: nodejs
        content: |
-         .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /driver-examples/node_query_array_of_documents.js
             :language: javascript
-            :dedent: 8
+            :dedent: 6
             :start-after: Start Example 32
             :end-before: End Example 32
 

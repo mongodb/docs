@@ -80,9 +80,9 @@
      - id: nodejs
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /driver-examples/node_remove.js
             :language: javascript
-            :dedent: 8
+            :dedent: 4
             :start-after: Start Example 55
             :end-before: End Example 55
 
