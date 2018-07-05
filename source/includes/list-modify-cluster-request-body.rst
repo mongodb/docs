@@ -61,6 +61,28 @@
        - ``SHARDED`` - :term:`sharded cluster`
        - ``GEOSHARDED`` - Global Cluster
 
+   * - ``encryptionAtRestProvider``
+     - string
+     - Specify ``AWS`` to enable 
+       :doc:`Encryption at Rest </security-aws-kms>` using the
+       |service| project AWS Key Management System settings. The
+       cluster must meet the following restrictions:
+
+       - ``providerSettings.providerName`` must be ``AWS`` or ``AZURE``.
+       - ``providerSettings.instanceSizeName`` must be ``M10`` or greater.
+       - ``clusterType`` must be ``REPLICASET``.
+       - ``backupEnabled`` must be ``false``.
+
+       For complete documentation on Encryption at Rest restrictions,
+       see :ref:`security-aws-kms-restrictions`.
+
+       You must configure encryption at rest for the |service| project 
+       before enabling it on any cluster in the project. For
+       complete documentation on configuring Encryption at Rest,
+       see :ref:`security-aws-kms`.
+
+       Set to ``NONE`` to disable Encryption at Rest for the cluster.
+
    * - ``name``
      - string
      - The name of the cluster as it appears in |service|. Once the cluster is
