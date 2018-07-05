@@ -239,11 +239,13 @@
 
    * - ``providerSettings.diskTypeName``
      - string
-     - *Required*
+     - *Optional*
 
        **Azure ONLY**
 
-       The Azure disk type of the server's root volume. 
+       The Azure disk type of the server's root volume. If ommitted,
+       |service| uses the default disk type for the selected 
+       ``providerSettings.instanceSizeName``.
 
        The following table lists the possible values for this field,
        and their corresponding storage size.
