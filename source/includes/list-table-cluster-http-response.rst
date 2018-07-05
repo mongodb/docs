@@ -188,6 +188,10 @@
 
        The possible values are ``1`` through ``12``.
 
+       .. note::
+
+          Not present in the response body for :doc:`Global Clusters </global-clusters>`.
+
    * - ``paused``
      - boolean
      - A flag that indicates whether the cluster is paused or not.
@@ -223,22 +227,6 @@
        For multi-region clusters, see
        ``replicationSpec.<region>``.
 
-       .. include:: /includes/fact-group-region-association.rst
-
-       .. list-table::
-          :header-rows: 1
-          
-          * - Provider
-            - Regions
-            
-          * - AWS 
-            - .. include:: /includes/fact-aws-region-names.rst
-              
-          * - GCP
-            - .. include:: /includes/fact-gcp-region-names.rst
-              
-          * - Azure
-            - .. include:: /includes/fact-azure-region-names.rst
 
    * - ``providerSettings.instanceSizeName``
      - string
@@ -355,29 +343,29 @@
      - The number of read-only nodes in the region. Read-only nodes can never
        become the :term:`primary`, but can facilitate local-reads.
 
-   * - ``diskSizeGB``
-     - double
-     - ** AWS / GCP Only ** The size in gigabytes of the server's root 
-       volume. You can add capacity by increasing this number, up to a 
-       maximum possible value of ``4096`` (i.e., 4 TB).
+   * - ``replicationSpecs``
+     - array of documents
+     - The configuration for each zone in a :doc:`Global Cluster </global-clusters>`.
+       Each document in this array represents a zone where |service| deploys
+       nodes for your Global Cluster.
 
-       Each instance size has its own default value. To view default values:
-       open the |service| web interface; click the button to add a new
-       cluster; view the available default sizes; close the window without
-       saving changes.
+   * - ``replicationSpecs[n].id``
+     - string
+     - Unique identifier of the the replication document.
 
-   * - ``backupEnabled``
-     - Boolean
-     - If ``true``, the cluster uses |service| :ref:`backup-continuous`
-       for backing up cluster data. If ``backupEnabled`` and 
-       ``providerBackupEnabled`` are ``false``, the cluster does not 
-       use |service| backups.
-
-   * - ``providerBackupEnabled``
-     - Boolean
-     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for 
-       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` are
-       ``false``, the cluster does not use |service| backups.
+   * - ``replicationSpecs[n].zoneName``
+     - string
+     - The name for the zone.
+       
+   * - ``replicationSpecs[n].numShards``
+     - int
+     - The number of shards to deploy in the specified zone.
+       
+   * - ``replicationSpecs[n].regionsConfig``
+     - document
+     - The physical location of the region. Each ``regionsConfig`` 
+       document describes the region's priority in elections and the
+       number and type of MongoDB nodes |service| deploys to the region.
 
    * - ``stateName``
      - string

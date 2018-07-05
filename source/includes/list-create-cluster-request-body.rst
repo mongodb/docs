@@ -106,7 +106,7 @@
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
        version of MongoDB when you :doc:`modify a cluster
-       </reference/api/clusters-modify-one>`
+       </reference/api/clusters-modify-one>`.
 
    * - ``numShards``
      - integer
@@ -129,6 +129,10 @@
        The possible values are ``1`` through ``12``.
 
        The default value is ``1``.
+
+       .. note::
+
+          Do not include in the request body for :doc:`Global Clusters </global-clusters>`.
 
    * - ``paused``
 
@@ -171,7 +175,8 @@
        can affect network latency for clients accessing your databases.
 
        Do *not* specify this field when creating a multi-region cluster
-       using the ``replicationSpec`` document.
+       using the ``replicationSpec`` document or a :doc:`Global Cluster </global-clusters>`
+       with the ``replicationSpecs`` array.
 
        .. include:: /includes/fact-group-region-association.rst
 
@@ -390,10 +395,21 @@
        For multi-region clusters, omit the 
        ``providerSettings.regionName`` field.
 
+       For Global Clusters, specify the ``replicationSpecs`` parameter rather
+       than a ``replicationSpec`` parameter.
+
        .. important::
 
           You **must** order each element in this document by
           ``replicationSpec.<region>.priority`` descending.
+
+       Use the ``replicationSpecs`` parameter to create a
+       :doc:`Global Cluster </global-clusters>`.
+
+       .. note::
+
+          You cannot specify both the ``replicationSpec`` and ``replicationSpecs``
+          parameters in the same request body.
 
    * - ``replicationSpec.<region>``
      - document
@@ -481,11 +497,97 @@
 
        Specify ``0`` if you do not want any read-only nodes in the region.
 
+   * - ``replicationSpecs``
+     - array of documents
+     - *Optional*
+       
+       The configuration for each zone in a :doc:`Global Cluster </global-clusters>`.
+       Each document in this array represents a zone where |service| deploys
+       nodes for your Global Cluster.
+
+       Use the ``replicationSpec`` parameter to create a multi-region cluster.
+
+       .. note::
+
+          You cannot specify both the ``replicationSpec`` and ``replicationSpecs``
+          parameters in the same request body.    
+
+   * - ``replicationSpecs[n].id``
+     - string
+     - *Optional* 
+       
+       Unique identifier of the replication document.
+
+   * - ``replicationSpecs[n].zoneName``
+     - string
+     - *Required* 
+       
+       The name for the zone.
+       
+   * - ``replicationSpecs[n].numShards``
+     - int
+     - *Required* 
+       
+       The number of shards to deploy in the specified zone.
+       
+   * - ``replicationSpecs[n].regionsConfig``
+     - document
+     - *Required*
+     
+       The physical location of the region. Each ``regionsConfig`` 
+       document describes the region's priority in elections and the
+       number and type of MongoDB nodes |service| deploys to the region.
+       You must order each ``regionsConfigs`` document by ``regionsConfig.priority``,
+       descending.
+
+       .. include:: /includes/fact-group-region-association.rst
+
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 50
+
+          * - Provider
+            - Region Names
+
+          * - AWS
+            - .. include:: /includes/fact-aws-region-names.rst
+
+          * - GCP
+            - .. include:: /includes/fact-gcp-region-names.rst
+
+          * - AZURE
+            - .. include:: /includes/fact-azure-region-names.rst
+
+   * - ``replicationSpecs[n] .regionsConfig.electableNodes``
+     - ingteger
+     - *Required*
+     
+       The number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the :term:`primary` and can facilitate
+       local reads.
+
+   * - ``replicationSpecs[n] .regionsConfig.readOnlyNodes``
+     - integer
+     - *Required*
+
+       The number of read-only nodes for |service| to deploy to the region.
+       Read-only nodes can never become the :term:`primary`, but can
+       facilitate local-reads.
+
+       Specify ``0`` if you do not want any read-only nodes in the region.
+
+   * - ``replicationSpecs[n] .regionsConfig.priority``
+     - integer
+     - *Required*
+
+       The election priority of the region. For regions with only
+       read-only nodes, set this value to ``0``.
+
    * - ``diskSizeGB``
      - double
      - *Optional*
 
-       ** AWS / GCP ONLY**
+       **AWS / GCP ONLY**
 
        The size in gigabytes of the server's root volume. You can add capacity
        by increasing this number, up to a maximum possible value of ``4096``
