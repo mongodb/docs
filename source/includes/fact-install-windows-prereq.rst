@@ -1,7 +1,8 @@
 Hardware Requirements
 ~~~~~~~~~~~~~~~~~~~~~
 
-|mdb-edition| requires an x86 64-bit architecture. 
+|mdb-edition| requires an x86 64-bit architecture. See
+:ref:`mongodb-supported-platforms` for more information.
 
 Software Requirements
 ~~~~~~~~~~~~~~~~~~~~~
