@@ -63,10 +63,10 @@ migrate: get-assets
 	mkdir ${TARGET_DIR}
 	
 	@echo "Copying over ruby-driver docs files"
-	cp -R build/ruby-driver-${GIT_BRANCH}/docs/ ${TARGET_DIR}
+	cp -R build/ruby-driver-${GIT_BRANCH}/docs/* ${TARGET_DIR}
 	
 	@echo "Copying over bson  docs files"
-	cp -R build/bson-ruby/docs/ ${TARGET_DIR}	
+	cp -R build/bson-ruby/docs/* ${TARGET_DIR}
 	
 get-assets:
 	giza generate assets
