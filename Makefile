@@ -37,10 +37,6 @@ test: html ## Runs test framework over the corpus
 html: examples ## Builds this branch's HTML under build/<branch>/html
 	giza make html
 
-markdown: examples ## Build markdown and merge into docs-tutorials
-	giza make markdown
-	./build/docs-tools/tools/migrate-markdown.py build/${GIT_BRANCH}/markdown
-
 publish: examples ## Builds this branch's publishable HTML and other artifacts under build/public
 	if [ ${GIT_BRANCH} = master ]; then rm -rf build/master build/public; fi
 	giza make publish

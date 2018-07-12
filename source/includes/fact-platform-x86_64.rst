@@ -2,8 +2,8 @@
 
    - Support for SLES 11 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
    - Support for Ubuntu 12.04 has been removed in MongoDB 3.2.20+, 3.4.15+, and 3.6.4+.
-   - Support for Debian 7 has been removed in MongoDB 4.0.
-   
+   - Support for Debian 7 has been removed in MongoDB 3.4.16+, 3.6.6+, and 4.0+.
+
 .. admonition:: Platform Support Upcoming EOL Notice
 
    In future releases, MongoDB will end support for the following
@@ -41,8 +41,8 @@
      -
    * - Debian 7
      -
-     - |checkmark|
-     - |checkmark|
+     - EOL'd as of 3.6.6
+     - EOL'd as of 3.4.16
      - |checkmark|
    * - Debian 8
      - |checkmark|
@@ -67,8 +67,8 @@
    * - SLES 11
      -
      - EOL'd as of 3.6.4
-     - EOL'd as of 3.4.15.
-     - EOL'd as of 3.2.20.
+     - EOL'd as of 3.4.15
+     - EOL'd as of 3.2.20
    * - SLES 12
      - |checkmark|
      - |checkmark|
@@ -83,8 +83,8 @@
    * - Ubuntu 12.04
      -
      - EOL'd as of 3.6.4
-     - EOL'd as of 3.4.15.
-     - EOL'd as of 3.2.20.
+     - EOL'd as of 3.4.15
+     - EOL'd as of 3.2.20
    * - Ubuntu 14.04
      - |checkmark|
      - |checkmark|
@@ -110,9 +110,9 @@
 
    * - Windows 8/2012 R2 and later
      - |checkmark|
-     - 
-     - 
-     - 
+     -
+     -
+     -
 
    * - macOS 10.11 and later
      - |checkmark|
