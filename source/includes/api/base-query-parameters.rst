@@ -1,6 +1,5 @@
 .. list-table::
    :widths: 10 10 70 10
-   :header-rows: 1
    :stub-columns: 1
 
    * - Name
