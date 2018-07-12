@@ -1,0 +1,51 @@
+.. list-table::
+   :widths: 10 10 70 10
+   :header-rows: 1
+   :stub-columns: 1
+ 
+   * - Name
+     - Type
+     - Description
+     - Default
+ 
+   * - ``pageNum``
+     - integer
+     - Page number (1-based).
+     - ``1``
+ 
+   * - ``itemsPerPage``
+     - integer
+     - Maximum number of items to return, up to a maximum of 100.
+     - ``100``
+ 
+   * - ``pretty``
+     - boolean
+     - Display response in a `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+     - ``false``
+ 
+   * - ``envelope``
+     - boolean
+     - Specifies whether or not to wrap the response in an :ref:`envelope <api-envelope>`.
+     - ``false``
+ 
+   * - ``eventType``
+     - string
+     - Returns events whose event type matches the specified value.
+ 
+       Possible values include:
+ 
+       .. include:: /includes/possibleValues-api-eventTypeName.rst
+
+     -
+ 
+   * - ``minDate``
+     - date
+     - Returns events whose created date is greater than or equal to the 
+       specified ISO-8601 ``minDate``.
+     - 
+ 
+   * - ``maxDate``
+     - date
+     - Returns events whose created date is less than or equal to the
+       specified ISO-8601  ``maxDate``.
+     - 
