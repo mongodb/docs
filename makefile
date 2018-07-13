@@ -51,3 +51,12 @@ deploy-search-index:
 remote-includes:
 	mkdir -p source/includes/remote
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs-assets/atlas/fact-configure-api-access.rst -o source/includes/remote/fact-configure-api-access.rst
+
+screenshots:
+	giza generate assets
+	@echo "Running screenshot tool"
+	-rm -r screenshots-temp/
+	mkdir -p screenshots-temp/
+	cd build/screencapture-tool && npm install
+	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/create-cluster2.js `pwd`/screenshot-scripts/.properties.ini
+	node build/screencapture-tool/screenshots.js `pwd`/screenshot-scripts/atlas-metrics.js `pwd`/screenshot-scripts/.properties.ini
