@@ -21,7 +21,8 @@ content: |
    .. important::
 
       By default, these instances are available for up to 24 hours. You
-      can configure the duration using :setting:`Expiration (Hours) <Expiration>`.
+      can configure the duration using 
+      :setting:`Expiration (Hours) <Expiration>`.
       For other queryable backup settings, see
       :ref:`queryable-snapshot-settings`.
 ---
@@ -29,41 +30,76 @@ ref: queryable-backup-prerequisites
 edition: onprem
 content: |
 
-   MongoDB Version
-   ~~~~~~~~~~~~~~~
+   MongoDB Version Compatibility between Snapshot and Target Database
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Queryable backups are available for:
-      
-   - MongoDB 3.2 or later replica sets or
+   You can only query snapshots made from
+   :term:`replica sets <replica set>` or
+   :term:`sharded clusters <sharded cluster>` with
+   :abbr:`CSRS (replica set config servers)` running MongoDB 3.2 or
+   later.
 
-   - MongoDB 3.2 or later sharded clusters with replica set config
-     servers (CSRS).
+   For a queryable backup to succeed, the MongoDB instance that is the
+   target of a restore must run a compatible MongoDB version.
+   The following table lists the compatibility requirements for each
+   deployment type and MongoDB version.
 
-   For queryable backups/restores of:
-      
-   - MongoDB 3.6 sharded clusters, backup daemons require MongoDB
-     Enterprise 3.6.2 or later.
+   **Sharded Clusters**
 
-   - MongoDB 3.6 replica sets, backup daemons require:
+   .. list-table::
+      :header-rows: 1
 
-     - MongoDB 3.4.11 Enterprise or later (Windows)
+      * - Snapshot Data MongoDB Version
+        - Compatible MongoDB Version for Target Database
+        - Platform
 
-     - MongoDB 3.4.2 Enterprise or later (Linux/macOS)
+      * - 3.6.x
+        - 3.6.5 Enterprise or later
+        - Any
 
-   - MongoDB 3.4 replica sets or sharded clusters, backup daemons require:
+      * - 3.4.x
+        - 3.4.11 Enterprise or later
+        - Windows
 
-     - MongoDB 3.4.11 Enterprise or later (Windows)
+      * - 3.4.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
 
-     - MongoDB 3.4.2 Enterprise or later (Linux/macOS)
+   **Replica Sets**
 
-   - MongoDB 3.2 replica sets, backup daemons require:
-      
-     - MongoDB 3.4.11 Enterprise or later (Windows)
+   .. list-table::
+      :header-rows: 1
 
-     - MongoDB 3.4.2 Enterprise or later (Linux/macOS)
+      * - Snapshot Data MongoDB Version
+        - Compatible MongoDB Version for Target Database
+        - Platform
 
-   PEM file
-   ~~~~~~~~
+      * - 3.6.x
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.6.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+      * - 3.4.x
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.4.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+      * - 3.2
+        - 3.4.11 Enterprise or later
+        - Windows
+
+      * - 3.2.x
+        - 3.4.2 Enterprise or later
+        - Linux or macOS
+
+   PEM File Location
+   ~~~~~~~~~~~~~~~~~
 
    For the queryable backup host, you must specify the location of the
    PEM file (which contains both a public key certificate and its
@@ -79,11 +115,11 @@ content: |
    #. Scroll to the :guilabel:`Queryable Snapshot Configuration` and
       specify the :setting:`Proxy Server PEM File` that the tunnel or
       clients can use to connect to the queryable :program:`mongod`
-      instance. 
-      
+      instance.
+
       If the file is encrypted, specify the :setting:`Proxy Server PEM File Password`.
 
-   #. Optional.  Update other queryable snapshot settings as
+   #. Optional. Update other queryable snapshot settings as
       appropriate. For description of the settings, see
       :ref:`queryable-snapshot-settings`.
 
@@ -91,12 +127,20 @@ content: |
 
          .. include:: /includes/extracts/queryable-backup-proxy-requirements.rst
 
-   App Server
-   ~~~~~~~~~~
+   Open Ports for App Server
+   ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - The app server requires that ports 27700-27719 be open for communication
-     with queryable backup snapshots. See :doc:`Firewall Configuration 
-     </reference/firewall-configuration>` for more information.
+   The app server requires that ports 27700-27719 be open for
+   communication with queryable backup snapshots.
+
+   To learn more about port requirements, see
+   :doc:`Firewall Configuration </reference/firewall-configuration>`.
+
+
+   Sufficient Workers for the |mms| Backup Daemon
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/extracts/queryable-backup-workers.rst
 
    Hostname
    ~~~~~~~~
@@ -116,6 +160,38 @@ content: |
    config servers (CSRS).
 
 ---
+ref: queryable-backup-workers
+edition: onprem
+content: |
+
+  To query a snapshot of a :term:`sharded cluster`, the
+  :term:`Backup Daemon` requires at least one worker for the
+  :manual:`config server</core/sharded-cluster-config-servers>`, one
+  worker for each :term:`shard`, and one worker for each
+  :binary:`~bin.mongos` instance.
+
+  To query a snapshot of a :term:`replica set`, the Backup Daemon
+  requires at least one worker for the replica set.
+
+  .. example::
+
+     If you restore a queryable backup from a 3-shard cluster with
+     1 shard router (:program:`mongos`), you would need this value to
+     be at least ``5``:
+
+     - 1 per shard (``3``) +
+     - 1 for the config server (``1``) +
+     - 1 for the :binary:`~bin.mongos`
+
+     When the queryable backup begins, the Backup Daemon spins
+     up 5 or more workers to manage these components.
+
+---
+ref: queryable-backup-workers
+edition: cloud
+content: ""
+
+---
 ref: queryable-backup-pem-restriction
 edition: onprem
 content: |
@@ -125,7 +201,7 @@ content: |
    - The PEM should use a key length greater than 512-bit. Using a
      2048-bit RSA key is recommended.
 
-   - The PEM should use a message digest stronger than ``sha1``, such as ``sha256``. 
+   - The PEM should use a message digest stronger than ``sha1``, such as ``sha256``.
 
 ---
 ref: queryable-backup-pem-restriction
@@ -136,7 +212,7 @@ ref: queryable-backup-certificate-duration
 edition: cloud
 content: |
 
-   The X.509 certificates are valid for 24 hours. 
+   The X.509 certificates are valid for 24 hours.
 
 ---
 ref: queryable-backup-certificate-duration
@@ -150,45 +226,46 @@ content: |
 ref: queryable-backup-proxy-requirements
 edition: onprem
 content: |
-   
-   - .. include:: /includes/extracts/queryable-backup-proxy-port.rst
+   You must restart the Web Server if you change any of the
+   following settings:
 
-   - .. include:: /includes/extracts/queryable-backup-proxy-pem-file.rst
+   - :setting:`Proxy Server Port`
 
-   - .. include:: /includes/extracts/queryable-backup-proxy-pem-password.rst
+   - :setting:`Proxy Server PEM File`
 
+   - :setting:`Proxy Server PEM File Password`
 ---
 ref: queryable-backup-proxy-requirements
 edition: cloud
 content: ""
----
 ref: queryable-backup-proxy-port
-edition: onprem
+edition: onprem  
 content: |
-   After updating :setting:`Proxy Server Port`, the Web Server needs
-   a restart for the new port to take effect.
----
-ref: queryable-backup-proxy-port
-edition: cloud
-content: ""
----
-ref: queryable-backup-proxy-pem-file
-edition: onprem
+   After updating :setting:`Proxy Server Port`, restart the Web
+   Server for the change to take effect. 
+---  
+ref: queryable-backup-proxy-port 
+edition: cloud 
+content: ""  
+---  
+ref: queryable-backup-proxy-pem-file 
+edition: onprem  
 content: |
-   After updating :setting:`Proxy Server PEM File`, the Web Server needs
-   a restart for the change  to take effect.
----
-ref: queryable-backup-proxy-pem-file
-edition: cloud
-content: ""
----
-ref: queryable-backup-proxy-pem-password
-edition: onprem
+   After updating :setting:`Proxy Server PEM File`, restart the Web
+   Server for the change to take effect.
+---  
+ref: queryable-backup-proxy-pem-file 
+edition: cloud 
+content: ""  
+---  
+ref: queryable-backup-proxy-pem-password 
+edition: onprem  
 content: |
-   After updating :setting:`Proxy Server PEM File Password`, the Web Server needs
-   a restart for the change  to take effect.
----
-ref: queryable-backup-proxy-pem-password
-edition: cloud
+   After updating :setting:`Proxy Server PEM File Password`, restart
+   the Web Server for the change to take effect.
+---  
+ref: queryable-backup-proxy-pem-password 
+edition: cloud 
 content: ""
+
 ...
