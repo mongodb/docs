@@ -41,9 +41,11 @@ deploy-search-index: ## Update the search index for this branch
 screenshots:
 	giza generate assets
 	@echo "Running screenshot tool"
-	-rm -r screenshots-temp/charts/
-	mkdir -p screenshots-temp/charts/
-	cd build/docs-tools/tools/screenshot-tool && npm install
+	-rm -r screenshots-temp/
+	mkdir -p screenshots-temp/
+	cd build/screencapture-tool && npm install
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/order-tutorial-dashboard-final.js
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/user-management.js
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/movie-tutorial.js
+	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/movie-tutorial.js
+	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/data-sources.js `pwd`/screenshot-scripts/.properties.ini
+	node build/screencapture-tool/screenshots.js `pwd`/screenshot-scripts/edit-chart-add-filter.js `pwd`/screenshot-scripts/.properties.ini

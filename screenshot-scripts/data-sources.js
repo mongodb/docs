@@ -1,6 +1,6 @@
 'use strict';
 
-const screenshotNames = ['data-sources-view.png'];
+const screenshotNames = ['data-sources-view-new.png'];
 const screenshotDir = './screenshots-temp';
 const origImageDir = './source/images/charts';
 
@@ -9,7 +9,7 @@ exports.run = async function (options) {
   const originalPath = `${origImageDir}/${screenshotNames[0]}`;
   const screenshotPath = `${screenshotDir}/${screenshotNames[0]}`;
 
-  await nightmare.goto('http://charts.mongodb.parts')
+  await options.loginToCharts();
   await nightmare.wait('a[href="/data-sources"]')
   await nightmare.click('a[href="/data-sources"]')
   await nightmare.wait('td.sortable-table-td')

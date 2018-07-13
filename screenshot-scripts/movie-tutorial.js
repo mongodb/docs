@@ -16,10 +16,9 @@ exports.run = async function (options) {
   await nightmare.click('[data-test-id="login-form-submit-button"]')
   await nightmare.wait('a[href="/dashboards"]')
   await nightmare.click('a[href="/dashboards"]')
-  // await nightmare.wait('[class^="Charts_dashboard-overview_list"]')
-  await nightmare.wait('a[href="/dashboards/983843bf-2aee-4ac1-bf39-37e4814e2fd9"]')
-  await nightmare.click('a[href="/dashboards/983843bf-2aee-4ac1-bf39-37e4814e2fd9"]')
-  await nightmare.wait(5000)
+  await nightmare.wait('a[href="/dashboards/b3757c09-9de3-43e9-acc8-7d3afe4699bf"]')
+  await nightmare.click('a[href="/dashboards/b3757c09-9de3-43e9-acc8-7d3afe4699bf"]')
+  await nightmare.wait(2000)
   await nightmare.screenshot(screenshotPath)
   await nightmare.wait(500)
   await nightmare.end();
