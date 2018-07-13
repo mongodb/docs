@@ -93,6 +93,73 @@ Using kubectl
 
       kubectl apply -f mongodb-enterprise.yaml
 
+.. topic:: Install the Operator on a host not connected to the Internet
+
+
+   .. note::
+
+      Install `Helm <https://helm.sh/>`__ before installing the
+      |k8s-op-short|. To learn how to install Helm, see its
+      `documentation on GitHub <https://github.com/kubernetes/helm>`__
+
+   You have two options:
+
+   **Download Operator Files from Internet**
+
+   1. Connect to the Internet.
+
+   #. Use ``docker`` to request the files.
+
+      .. code-block:: sh
+
+         docker pull quay.io/mongodb/mongodb-enterprise-operator:0.1; \
+         docker pull quay.io/mongodb/mongodb-enterprise-database:0.1
+
+   #. Disconnect from the Internet.
+
+   #. Install the |k8s-op-short| with modified pull policy values.
+
+      .. code-block:: sh
+
+         helm install helm_chart/ --name mongodb-enterprise \
+           --set database.pullPolicy=IfNotPresent \
+           --set operator.pullPolicy=IfNotPresent
+
+   **Download Operator Files from Another Host**
+
+   #. Use ``docker`` to request the files on a host connected to the
+      Internet.
+
+      .. code-block:: sh
+
+         docker pull quay.io/mongodb/mongodb-enterprise-operator:0.1; \
+         docker pull quay.io/mongodb/mongodb-enterprise-database:0.1
+
+   #. Save the Operator files to transferrable files.
+
+      .. code-block:: sh
+
+         docker save quay.io/mongodb/mongodb-enterprise-operator:0.1 -o mongodb-enterprise-operator.tar; \
+         docker save quay.io/mongodb/mongodb-enterprise-database:0.1 -o mongodb-enterprise-database.tar
+
+   #. Copy these ``.tar`` files to the host running the |k8s| 
+      ``docker`` daemon.
+
+   #. Import the ``.tar`` files into ``docker``.
+
+      .. code-block:: sh
+
+         docker import mongodb-enterprise-operator.tar quay.io/mongodb/mongodb-enterprise-operator:0.1; \
+         docker import mongodb-enterprise-database.tar quay.io/mongodb/mongodb-enterprise-database:0.1
+
+   #. Install the |k8s-op-short| with modified pull policy values.
+
+      .. code-block:: sh
+
+         helm install helm_chart/ --name mongodb-enterprise \
+           --set database.pullPolicy=IfNotPresent \
+           --set operator.pullPolicy=IfNotPresent
+
 .. _create-k8s-project:
 
 Create |onprem| Project
@@ -163,17 +230,18 @@ the ConfigMap:
           be found in the |url| when |onprem| is open to your
           :guilabel:`Deployment` page:
 
-          .. code-block:: sh
+          .. example::
 
-             https://<my-ops-cloud-manager-url>/v2/*<project-id>*#deployment/topology
+             https://<my-ops-cloud-manager-url>/v2/5953c5f380eef53887615f9a#deployment/topology
 
         - ``5953c5f380eef53887615f9a``
 
       * - ``data.baseUrl``
         - string
-        - |url| to your |application|.
+        - |url| to your |application| including the |fqdn| and port
+          number.
 
-        - ``https://ops-manager.example.com``
+        - ``https://ops-manager.example.com:8080``
 
 #. Save this file with a ``.yaml`` file extension.
 
