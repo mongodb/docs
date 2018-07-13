@@ -67,9 +67,9 @@
        account. Enter only the PagerDuty service key. Define escalation rules
        and alert assignments directly in PagerDuty.
 
-       This option is available only for alerts that require acknowledgement.
-       Informational alerts, such as the alert that a user has joined a project,
-       cannot use this notification method.
+       This option is available only for alerts that require 
+       acknowledegment. Informational alerts, such as the alert that a 
+       user has joined a project, cannot use this notification method.
 
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
@@ -86,6 +86,34 @@
 
        If prompted, enter your DataDog API key under :guilabel:`API Key`
        and click :guilabel:`Validate Datadog API Key`. 
+
+   * - VictorOps
+
+     - Sends the alert to a `VictorOps <https://victorops.com/>`_ 
+       account. Enter a VictorOps API key and an optional
+       `routing key <https://help.victorops.com/knowledge-base/routing-keys/>`_
+       for routing alerts to a specific VictorOps group. Define
+       escalation and routing rules directly in VictorOps.
+
+       This option is available only for alerts that require 
+       acknowledgement. Informational alerts, such as the alert that a 
+       user has joined a project, cannot use this notification method.
+
+       Users can acknowledge VictorOps alerts only from the VictorOps 
+       dashboard.
+
+   * - OpsGenie
+
+     - Sends the alert to an `OpsGenie <https://www.opsgenie.com/>`_
+       account. Enter only the OpsGenie API key. Define escalation
+       rules and alert assignments directly in OpsGenie.
+
+       This option is available only for alerts that require 
+       acknowledgement. Informational alerts, such as the alert that a 
+       user has joined a project, cannot use this notification method.
+
+       Users can acknowledge OpsGenie alerts only from the OpsGenie
+       dashboard.
 
    * - Webhook
 
