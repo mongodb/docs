@@ -29,7 +29,8 @@ extensions = [
     'sphinx.ext.todo',
     'mongodb',
     'directives',
-    'intermanual'
+    'intermanual',
+    'fasthtml'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
