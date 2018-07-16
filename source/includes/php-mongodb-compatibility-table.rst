@@ -17,7 +17,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
-     - |checkmark|
+     -
 
    * - PHPLIB 1.3 + mongodb-1.4
      -
