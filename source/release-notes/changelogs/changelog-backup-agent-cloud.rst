@@ -1,3 +1,13 @@
+.. _backup-6.9.0.1004-1:
+
+Backup Agent 6.9.0.1004-1
+-------------------------
+
+*Released 2018-07-16*
+
+- Maintain UUID for ``system.views`` collection by copying it on
+  initial sync.
+
 .. _backup-6.8.1.996:
 
 Backup Agent 6.8.1.996

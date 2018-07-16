@@ -1,3 +1,15 @@
+.. _automation-5.4.8.5478-1:
+
+Automation Agent 5.4.8.5478-1
+-----------------------------
+
+*Released 2018-07-16*
+
+- Allow recreation of previously deleted sharded collections.
+- Support additional configuration options for the |bic-full|.
+- If, when downloading a file, no bytes have been retrieved in the
+  stream in a certain amount of time, the download fails.
+
 .. _automation-5.4.7.5469-1:
 
 Automation Agent 5.4.7.5469-1
@@ -7,8 +19,9 @@ Automation Agent 5.4.7.5469-1
 
 - Fix issue with automated restores for Atlas Snapshot Backup and 
   MongoDB 3.6.
-- Support automated restores for Atlas Snapshot Backup and MongoDB 4.0.
-- Fix issue with automated restores to a new |mms| cluster 
+- Support automated restores for Atlas Snapshot Backup and MongoDB
+  4.0. 
+- Fix issue with automated restores to a new |mms| cluster
   that does not have MongoDB authentication enabled.
 
 .. _automation-5.4.5.5460:
@@ -19,7 +32,6 @@ Automation Agent 5.4.5.5460
 *Released 2018-06-19*
 
 - Further support for the upcoming release of MongoDB 4.0.
-
 
 .. _automation-5.4.2.5440:
 
