@@ -4,6 +4,8 @@
 
 - :setting:`control <systemLog.component.control.verbosity>`
 
+- :setting:`ftdc <systemLog.component.ftdc.verbosity>`
+
 - :setting:`geo <systemLog.component.geo.verbosity>`
 
 - :setting:`index <systemLog.component.index.verbosity>`
