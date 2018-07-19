@@ -30,13 +30,13 @@
  
    * - id
      - string
-     - The unique name that labels this :term:`S3 blockstore`.
+     - The unique name that labels this :term:`S3 Snapshot Store`.
    
    * - labels
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 blockstore>`. 
+       :term:`S3 blockstores <S3 Snapshot Store>`. 
 
        Setting these tags limits which backup jobs this S3 blockstore 
        can process. If omitted, this S3 blockstore can only process 

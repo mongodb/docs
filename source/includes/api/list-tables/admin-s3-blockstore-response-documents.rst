@@ -36,7 +36,7 @@
      - array of strings
      - Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 blockstore>`. 
+       :term:`S3 blockstores <S3 Snapshot Store>`. 
  
    * - links
      - object array

@@ -168,20 +168,50 @@
 
    * - timestamp
      - object
-     - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
-       the latest :term:`oplog <Oplog Store Database>`
-       entry in the restored :term:`snapshot`.
+     - 
+       .. cond:: onprem
+
+          :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
+          the latest :term:`oplog <Oplog Store Database>`
+          entry in the restored :term:`snapshot`.
+
+       .. cond:: cloud
+
+          :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
+          the latest :term:`oplog <oplog>`
+          entry in the restored :term:`snapshot`.
  
    * - timestamp.date
      - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` of
-       the latest :term:`oplog <Oplog Store Database>` entry in the
-       restored :term:`snapshot`.
+     - 
+       .. cond:: onprem
+
+          Timestamp in `ISO 8601
+          <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+          and time format in :abbr:`UTC (Coordinated Universal Time)` of
+          the latest :term:`oplog <Oplog Store Database>` entry in the
+          restored :term:`snapshot`.
+
+       .. cond:: cloud
+
+          Timestamp in `ISO 8601
+          <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
+          and time format in :abbr:`UTC (Coordinated Universal Time)` of
+          the latest :term:`oplog <oplog>` entry in the
+          restored :term:`snapshot`.
  
    * - timestamp.increment
      - number
-     - Order of all operations completed at the latest
-       :term:`oplog <Oplog Store Database>` entry in the restored
-       :term:`snapshot`.
+     - 
+
+       .. cond:: onprem
+
+          Order of all operations completed at the latest
+          :term:`oplog <Oplog Store Database>` entry in the restored
+          :term:`snapshot`.
+
+       .. cond:: cloud
+
+          Order of all operations completed at the latest
+          :term:`oplog <oplog>` entry in the restored
+          :term:`snapshot`.

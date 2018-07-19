@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - *Optional.* Flag indicating whether this :term:`oplog store` can 
+     - *Optional.* Flag indicating whether this :term:`oplog store <Oplog Store Database>` can 
        be assigned backup jobs.
    
    * - encryptedCredentials
@@ -22,7 +22,7 @@
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`oplog stores <oplog store>`. 
+       :term:`oplog stores <Oplog Store Database>`. 
 
        Setting these tags limits which backup jobs this oplog
        store can process. If omitted, this oplog store can only
@@ -32,12 +32,12 @@
    * - maxCapacityGB
      - number
      - *Optional.* The maximum amount of data in GB this 
-       :term:`oplog store` can store.
+       :term:`oplog store <Oplog Store Database>` can store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :term:`oplog store`.
+       format that can be used to access this :term:`oplog store <Oplog Store Database>`.
    
    * - ssl
      - boolean
@@ -47,7 +47,7 @@
    
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this :term:`oplog store`.
+     - *Optional.* The write concern used for this :term:`oplog store <Oplog Store Database>`.
 
        The accepted values for this option are:
        

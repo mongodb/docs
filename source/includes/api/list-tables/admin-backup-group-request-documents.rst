@@ -53,7 +53,7 @@
    * - oplogStoreFilter
      - array of strings
      - *Optional.* An array of unique identifiers representing 
-       :term:`oplog stores <oplog store>` that can be used 
+       :term:`oplog stores <Oplog Store Database>` that can be used 
        with this project's backup jobs. If omitted, all available 
        oplog stores are used.
 
