@@ -133,7 +133,7 @@ Backup Agent 6.0.0.680
 
 - Support for upcoming release of MongoDB 3.6.
 
-.. _backup-6.0.0.676:
+.. _backup-6.0.676:
 
 Backup Agent 6.0.0.676
 ----------------------

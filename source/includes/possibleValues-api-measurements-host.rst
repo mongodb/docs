@@ -19,8 +19,7 @@ Host Measurements
 
    * - - ``BACKGROUND_FLUSH_AVG``
 
-     - Measurement found on the host's ``background flush avg`` chart. To view the
-       chart, see :ref:`access-host-statistics`.
+     - Measurement found on the host's ``background flush avg`` chart.
 
    * - - ``CACHE_BYTES_READ_INTO``
        - ``CACHE_BYTES_WRITTEN_FROM``
@@ -54,7 +53,7 @@ Host Measurements
        - ``GLOBAL_PAGE_FAULT_EXCEPTIONS_THROWN``
 
      - Measurements found on the host's ``Record Stats`` and ``Page Faults``
-       charts. To view the charts, see :ref:`access-host-statistics`.
+       charts.
 
    * - - ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
        - ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
@@ -75,16 +74,14 @@ Host Measurements
        - ``INDEX_COUNTERS_BTREE_MISSES``
        - ``INDEX_COUNTERS_BTREE_MISS_RATIO``
 
-     - Measurements found on the host's ``btree`` chart. To view the chart, see
-       :ref:`access-host-statistics`.
+     - Measurements found on the host's ``btree`` chart.
 
    * - - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
        - ``JOURNALING_MB``
        - ``JOURNALING_WRITE_DATA_FILES_MB``
 
      - Measurements found on the host's ``journal - commits in write lock`` chart
-       and ``journal stats`` chart. To view the charts, see
-       :ref:`access-host-statistics`.
+       and ``journal stats`` chart.
 
    * - - ``MEMORY_RESIDENT``
        - ``MEMORY_VIRTUAL``
@@ -114,8 +111,7 @@ Host Measurements
    * - - ``DB_STORAGE_TOTAL``
        - ``DB_DATA_SIZE_TOTAL``
 
-     - Measurements displayed on the host's ``db storage`` chart. To view the
-       chart, see :ref:`access-host-statistics`.
+     - Measurements displayed on the host's ``db storage`` chart.
 
    * - - ``OPCOUNTER_CMD``
        - ``OPCOUNTER_QUERY``
@@ -146,15 +142,13 @@ Host Measurements
 
      - The average rate per second of documents returned, inserted, updated,
        or deleted for a selected time period. These measurements are found on
-       the host's ``Document Metrics`` chart. To view the chart, see
-       :ref:`access-host-statistics`.
+       the host's ``Document Metrics`` chart.
 
    * - - ``OPERATIONS_SCAN_AND_ORDER``
 
      - For a selected time period, the average rate per second for operations
        that perform a sort but cannot perform the sort using an index. This
-       measurement is found on the host's ``Scan and Order`` chart. To view
-       the chart, see :ref:`access-host-statistics`.
+       measurement is found on the host's ``Scan and Order`` chart.
 
    * - - ``OP_EXECUTION_TIME_READS``
        - ``OP_EXECUTION_TIME_WRITES``
@@ -163,5 +157,4 @@ Host Measurements
      - Available to hosts running MongoDB v3.4+. The average execution
        time in milliseconds per read, write, or command operation
        over the selected time period. These measurements are found
-       on the host's ``Operation Execution Times`` chart. To view the chart,
-       see :ref:`access-host-statistics`.
+       on the host's ``Operation Execution Times`` chart.

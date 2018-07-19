@@ -17,8 +17,9 @@
        the same value as ``totalKeysExamined`` in the output of
        :manual:`explain </reference/command/explain>`. This
        measurement is found on the host's ``Query Executor``
-       chart, accessed when :ref:`viewing metrics
-       <access-host-statistics>`.
+       chart. To learn more about creating charts for host 
+       metrics in |mms|, see :doc:`/tutorial/view-diagnostics` and click
+       the :guilabel:`MongoDB Process Metrics` tab.
 
    * - - ``QUERY_EXECUTOR_SCANNED_OBJECTS``
 
@@ -26,19 +27,25 @@
        and query-plan evaluations. |mms| derives the rate using the
        :manual:`explain </reference/command/explain>` output's
        ``totalDocsExamined`` value. This measurement is found on the
-       host's ``Query Executor`` chart, accessed when :ref:`viewing
-       metrics <access-host-statistics>`.
+       host's ``Query Executor`` chart. To learn more about 
+       creating charts for host metrics in |mms|, 
+       see :doc:`/tutorial/view-diagnostics` and click the 
+       :guilabel:`MongoDB Process Metrics` tab.
 
    * - - ``QUERY_TARGETING_SCANNED_PER_RETURNED``
 
      - The ratio of the number of index items scanned to the number of
        documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart, accessed when :ref:`viewing metrics
-       <access-host-statistics>`.
+       ``Query Targeting`` chart. To learn more about
+       charts for host metrics in |mms|, see 
+       :doc:`/tutorial/view-diagnostics` and click
+       the :guilabel:`MongoDB Process Metrics` tab.
 
    * - - ``QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED``
 
      - The ratio of the number of documents scanned to the number of
        documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart, accessed when :ref:`viewing metrics
-       <access-host-statistics>`.
+       ``Query Targeting`` chart. To learn more about creating
+       charts for host metrics in |mms|, see 
+       :doc:`/tutorial/view-diagnostics` and click
+       the :guilabel:`MongoDB Process Metrics` tab.
