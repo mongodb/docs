@@ -782,7 +782,7 @@ post: |
 optional: true
 replacement:
   intro: "Specifies a"
-  dbpath: "option:`--dbpath`"
+  dbpath: ":option:`--dbpath`"
 ---
 program: mongod
 name: setParameter
@@ -1212,16 +1212,23 @@ description: |
 
   .. versionadded:: 4.0
 
-  Specifies the selector and value to search when using Windows or 
-  Mac system certificate store mechanisms.
-  
-  This option must be followed by a key value pair indicated by
-  <parameter>=<value>. In this case, <parameter> is the name of the
-  selector.
+     Available on Windows and macOS as an alternative to {{file}}.
+     
+     {{file}} and {{role}} options are mutually exclusive. You can only
+     specify one.
 
-  .. include:: /includes/option-ssl-certificateSelector.rst
+  Specifies a certificate property in order to select a matching
+  certificate from the operating system's certificate store.
+
+  {{role}} accepts an argument of the format ``<property>=<value>``
+  where the property can be one of the following:
+
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
+
   
 optional: true
+replacement:
+   file: ":option:`--sslPEMKeyFile`"
 ---
 program: mongod
 name: sslClusterCertificateSelector
@@ -1230,21 +1237,27 @@ directive: option
 description: |
 
   .. versionadded:: 4.0
-
-  Specifies the selector and value to search when using Windows or 
-  Mac system certificate store mechanisms for internal SSL authentication.
-
-  This option must be followed by a key value pair indicated by
-  <parameter>=<value>. In this case, <parameter> is the name of the
-  selector.
-
-  This option is only valid when set in conjuction with a
-  :setting:`~net.ssl.certificateSelector` and associated selector <parameter>=<value>
-  pair to indicate which certificate should be used for non-internal connections.
-
-  .. include:: /includes/option-ssl-clusterCertificateSelector.rst
   
+     Available on Windows and macOS as an alternative to
+     {{file}}.      
+     
+     {{file}} and {{role}} options are mutually exclusive. You can only
+     specify one.
+
+
+  Specifies a certificate property in order to select a matching
+  certificate from the operating system's certificate store to use for
+  internal authentication.
+
+  {{role}} accepts an argument of the format ``<property>=<value>``
+  where the property can be one of the following:
+
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
+
 optional: true
+replacement:
+   file: ":option:`--sslClusterFile`"
+
 ---
 program: mongod
 name: sslOnNormalPorts
@@ -1317,16 +1330,26 @@ name: sslPEMKeyFile
 args: <filename>
 directive: option
 description: |
-  {{intro}} :file:`.pem` file that contains both the TLS/SSL certificate
-  and key. Specify the file name of the :file:`.pem` file using relative
-  or absolute paths.
 
-  You must specify {{role}} when TLS/SSL is enabled.
+  .. note::
+
+   Starting in 4.0, on macOS or Windows, you can use a certificate from
+   the operating system's secure store instead of a PEM key file. See
+   {{selector}}.
+
+  {{intro}} :file:`.pem` file that contains both the TLS/SSL certificate
+  and key.
+
+  - On Linux/BSD, you must specify {{role}} when TLS/SSL is enabled.
+  
+  - On Windows or macOS, you must specify either {{role}} or
+    {{selector}} when TLS/SSL is enabled.
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
+  selector: ":option:`--sslCertificateSelector`"
 ---
 program: mongod
 name: sslPEMKeyPassword
@@ -1338,31 +1361,46 @@ description: |
   certificate-key file is encrypted. In all cases, the {{program}} will
   redact the password from all logging and reporting output.
 
-  .. versionchanged:: 2.6
-     If the private key in the PEM file is encrypted and you do not
-     specify the {{role}} option, the {{program}} will prompt for a
-     passphrase. See :ref:`ssl-certificate-password`.
+  Starting in MongoDB 4.0:
+
+  - On Linux/BSD, if the private key in the PEM file is encrypted and
+    you do not specify the {{role}} option, MongoDB will prompt for a
+    passphrase. See :ref:`ssl-certificate-password`.
+
+  - On macOS or Windows, if the private key in the PEM file is
+    encrypted, you must explicitly specify the {{role}} option.
+    Alternatively, you can use a certificate from the secure system
+    store (see {{selector}}) instead of a PEM key file or use an
+    unencrypted PEM file.
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
   pemKeyOption: ":option:`--sslPEMKeyFile`"
+  selector: ":option:`--sslCertificateSelector`"
 ---
 program: mongod
 name: sslClusterFile
 args: <filename>
 directive: option
 description: |
-  .. versionadded:: 2.6
+  .. note::
+
+     Starting in 4.0, on macOS or Windows, you can use a certificate
+     from the operating system's secure store instead of a PEM key
+     file. See {{selector}}.
 
   {{intro}} :file:`.pem` file that contains the x.509 certificate-key
   file for :ref:`membership authentication <x509-internal-authentication>`
   for the cluster or replica set.
+  
 
   If {{role}} does not specify the ``.pem`` file for internal cluster
-  authentication, the cluster uses the ``.pem`` file specified in the
-  {{pemKeyOption}} {{directive}}.
+  authentication or the alternative
+  {{selector}}, the cluster uses the
+  ``.pem`` file specified in the {{pemKeyOption}} {{directive}} or
+  the certificate returned by the {{serverselector}}.
 
   .. include:: /includes/extracts/ssl-facts-x509-ca-file.rst
 
@@ -1372,6 +1410,8 @@ replacement:
   pemKeyOption: ":option:`--sslPEMKeyFile`"
   intro: "Specifies the"
   directive: "option"
+  selector: ":option:`--sslClusterCertificateSelector`"
+  serverselector: ":option:`--sslCertificateSelector`"
 ---
 program: mongod
 name: sslClusterPassword
@@ -1385,14 +1425,24 @@ description: |
   if the certificate-key file is encrypted. In all cases, the {{program}}
   will redact the password from all logging and reporting output.
 
-  If the x.509 key file is encrypted and you do not specify the
-  {{role}} option, the {{program}} will prompt for a passphrase. See
-  :ref:`ssl-certificate-password`.
+  Starting in MongoDB 4.0:
+
+  - On Linux/BSD, if the private key in the x.509 file is encrypted and
+    you do not specify the {{role}} option, MongoDB will prompt for a
+    passphrase. See :ref:`ssl-certificate-password`.
+
+  - On macOS or Windows, if the private key in the x.509 file is
+    encrypted, you must explicitly specify the {{role}} option.
+    Alternatively, you can either use a certificate from the secure
+    system store (see {{selector}}) instead of a cluster PEM file or
+    use an unencrypted PEM file.
+
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
+  selector: ":option:`--sslClusterCertificateSelector`"
 ---
 program: mongod
 name: sslCAFile
@@ -1404,12 +1454,17 @@ description: |
   from the Certificate Authority. Specify the file name of the
   :file:`.pem` file using relative or absolute paths.
 
-  .. include:: /includes/extracts/ssl-facts-ca-file.rst
+  Starting in 4.0, on macOS or Windows, you can use a certificate from
+  the operating system's secure store instead of a PEM key file. See
+  {{selector}}. When using the secure store, you
+  do not need to, but can, also specify the {{role}}.
+
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 
 optional: true
 replacement:
   intro: "Specifies the"
+  selector: ":option:`--sslCertificateSelector`"
 ---
 program: mongod
 name: sslCRLFile
@@ -1420,11 +1475,17 @@ description: |
   {{intro}} the :file:`.pem` file that contains the Certificate Revocation
   List. Specify the file name of the :file:`.pem` file using relative or
   absolute paths.
+  
+  .. note::
+     
+     Starting in MongoDB 4.0, you cannot specify {{role}} on macOS.  Use {{selector}} instead.
 
   .. include:: /includes/extracts/ssl-facts-see-more.rst
 optional: true
 replacement:
   intro: "Specifies the"
+  selector: ":option:`--sslCertificateSelector`"
+ 
 ---
 program: mongod
 name: sslAllowInvalidCertificates
@@ -1533,9 +1594,9 @@ name: sslFIPSMode
 args: null
 directive: option
 description: |
-  {{intro}} the FIPS mode of the installed OpenSSL
+  {{intro}} the FIPS mode of the  TLS/SSL
   library{{setting_continuation}}. Your system must have a FIPS
-  compliant OpenSSL library to use the {{role}} option.
+  compliant library to use the {{role}} option.
 
   .. include:: /includes/note-fips-is-enterprise-only.rst
 optional: true
@@ -1971,7 +2032,7 @@ description: |
 
           .. versionchanged:: 4.0
 
-             MongoDB Enterprise on Windows no longer supports ``AES256-GCM``.
+             .. include:: /includes/fact-aes.rst
 
    .. include:: /includes/fact-enterprise-only-admonition.rst
 ---
@@ -2077,8 +2138,15 @@ description: |
    authenticating MongoDB to the KMIP server. Requires that a
    :setting:`kmipServerName` be provided.
 
-   .. include:: /includes/fact-enterprise-only-admonition.rst
+   .. note::
+      
+      Starting in 4.0, on macOS or Windows, you can use a certificate
+      from the operating system's secure store instead of a PEM key
+      file. See {{selector}}.
 
+   .. include:: /includes/fact-enterprise-only-admonition.rst
+replacement:
+   selector: ":option:`--kmipClientCertificateSelector`"
 ---
 program: mongod
 name: kmipClientCertificatePassword
@@ -2108,6 +2176,17 @@ description: |
 
    Path to CA File. Used for validating secure client connection to
    KMIP server.
+   
+
+   .. note::
+      
+      Starting in 4.0, on macOS or Windows, you can use a certificate
+      from the operating system's secure store instead of a PEM key
+      file. See {{selector}}. When using the secure store, you do not
+      need to, but can, also specify the {{role}}.
+replacement:
+  selector: ":option:`--kmipClientCertificateSelector`"
+
 ---
 program: mongod
 name: enableMajorityReadConcern
@@ -2884,16 +2963,25 @@ optional: true
 description: |
 
   .. versionadded:: 4.0
-
-  Specifies the selector and value to search when using Windows or 
-  macOS system certificate store mechanisms for client certificates.
   
-  This option must be followed by a key value pair indicated by
-  <parameter>=<value>. In this case, <parameter> is the name of the
-  selector.
+     Available on Windows and macOS as an alternative to
+     {{file}}. 
+     
+     {{file}} and {{role}} options are mutually exclusive. You can only
+     specify one.
 
-  .. include:: /includes/option-ssl-certificateSelector.rst
+  Specifies a certificate property in order to select a matching
+  certificate from the operating system's certificate store to
+  authenticate MongoDB to the KMIP server.
+
+  {{role}} accepts an argument of the format ``<property>=<value>``
+  where the property can be one of the following:
+
+  .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
 
   .. include:: /includes/fact-enterprise-only-admonition.rst
-
+  
+optional: true
+replacement:
+   file: ":option:`--kmipClientCertificateFile`"
 ...
