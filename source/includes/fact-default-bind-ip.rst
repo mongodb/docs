@@ -1,8 +1,8 @@
 Starting in MongoDB 3.6, MongoDB binaries, :binary:`~bin.mongod` and
-:binary:`~bin.mongos`, bind to localhost (``127.0.0.1``) by default. If the
+:binary:`~bin.mongos`, bind to localhost by default. If the
 :setting:`net.ipv6` configuration file setting or the ``--ipv6``
 command line option is set for the binary, the binary additionally binds
-to the IPv6 address ``::1``.
+to the localhost IPv6 address.
 
 Previously, starting from MongoDB 2.6, only the binaries from the
 official MongoDB RPM (Red Hat, CentOS, Fedora Linux, and derivatives)
