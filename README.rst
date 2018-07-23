@@ -14,7 +14,7 @@ To build the documentation locally,
 
 - Run the following to download and build this documentation locally::
 
-     git clone git@github.com:mongodb/docs-ruby.git
+     git clone git@github.com:mongodb/docs-ruby
      cd docs-ruby/
      giza make html
 
