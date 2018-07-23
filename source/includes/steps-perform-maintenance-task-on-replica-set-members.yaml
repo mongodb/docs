@@ -107,6 +107,17 @@ pre: |
 action:
   language: sh
   code: mongo --port 27218
+post: |
+   .. important::
+
+      While the member is a standalone, no writes are replicated to
+      this member nor are writes on this member replicated to the other
+      members of the replica set.
+
+      Ensure that any writes on this standalone do not conflict with
+      oplog writes that will be applied to the member when it rejoins
+      the replica set.
+
 ---
 title: Restart ``mongod`` as a member of the replica set.
 stepnum: 4
@@ -129,8 +140,10 @@ action:
       member with its original configuration; that is, undo the
       configuration changes made when starting as a standalone.
 
-      For shard or config server members, be sure to remove the
-      :parameter:`skipShardingConfigurationChecks` parameter.
+      .. tip::
+
+         For shard or config server members, be sure to remove the
+         :parameter:`skipShardingConfigurationChecks` parameter.
 
       When it has started, connect the :binary:`~bin.mongo` shell to the
       restarted instance.
@@ -146,22 +159,25 @@ action:
 title: Perform maintenance on the primary last.
 stepnum: 5
 ref: maintenance-on-primary
-pre: |
-  To perform maintenance on the primary after completing maintenance
-  tasks on all secondaries, use :method:`rs.stepDown()` in the
-  :binary:`~bin.mongo` shell to step down the primary and allow one of
-  the secondaries to be elected the new primary. Specify a 300 second
-  waiting period to prevent the member from being elected primary again
-  for five minutes:
-action:
-  language: javascript
-  code: rs.stepDown(300)
-post: |
-   After the primary steps down, the replica set will :ref:`elect a new
-   primary <replica-set-elections>`.
+content: |
 
-   Restart :binary:`~bin.mongod` as a standalone instance, making the
-   following configuration updates.
+   a. To perform maintenance on the primary after completing
+      maintenance tasks on all secondaries, connect a
+      :binary:`~bin.mongo` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and allow one of
+      the secondaries to be elected the new primary. Specify a 300
+      second waiting period to prevent the member from being elected
+      primary again for five minutes:
+
+      .. code-block:: javascript
+
+         rs.stepDown(300)
+
+      After the primary steps down, the replica set will :ref:`elect a
+      new primary <replica-set-elections>`.
+
+   b. Restart :binary:`~bin.mongod` as a standalone instance, making
+      the following configuration updates.
 
    .. tabs::
 
@@ -205,6 +221,8 @@ post: |
                  setParameter:
                     skipShardingConfigurationChecks: true
 
+              .. include:: /includes/warning-bind-ip-security-considerations.rst
+
          - id: command-line
            name: Command-line Options
            content: |
@@ -241,14 +259,27 @@ post: |
 
                  mongod --port 27218 --dbpath /srv/mongodb --bind_ip localhost,<ip address of the mongod host> --setParameter skipShardingConfigurationChecks=true
 
-   .. include:: /includes/warning-bind-ip-security-considerations.rst
+              .. include:: /includes/warning-bind-ip-security-considerations.rst
 
-   After performing all maintenance tasks, restart the
-   :binary:`~bin.mongod` instance as a replica set member with its
-   original configuration; that is, undo the configuration changes made
-   when starting as a standalone.
+   c. Perform maintentance task on the now standalone.
 
-   For shard or config server members, be sure to remove the
-   :parameter:`skipShardingConfigurationChecks` parameter.
- 
+      .. important::
+
+         While the member is a standalone, no writes are replicated to
+         this member nor are writes on this member replicated to the other
+         members of the replica set.
+
+         Ensure that any writes on this standalone do not conflict with
+         oplog writes that will be applied to the member when it rejoins
+         the replica set.
+   
+   d. After performing all maintenance tasks, restart the
+      :binary:`~bin.mongod` instance as a replica set member with its
+      original configuration; that is, undo the configuration changes made
+      when starting as a standalone.
+
+      .. tip::
+
+         For shard or config server members, be sure to remove the
+         :parameter:`skipShardingConfigurationChecks` parameter.
 ...
