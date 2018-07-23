@@ -18,6 +18,8 @@ To build the documentation locally,
      cd docs-ruby/
      giza make html
 
+The generated HTML will be placed in `build/master/html/`.
+
 Contribute
 ----------
 
