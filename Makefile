@@ -72,4 +72,4 @@ get-assets:
 	giza generate assets
 
 clean:
-	rm -rf build
+	rm -rf build giza.log source-master
