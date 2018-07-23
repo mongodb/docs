@@ -16,7 +16,7 @@ To build the documentation locally,
 
      git clone git@github.com:mongodb/docs-ruby
      cd docs-ruby/
-     giza make html
+     make html
 
 The generated HTML will be placed in `build/master/html/`.
 
