@@ -14,9 +14,14 @@ To build the documentation locally,
 
 - Run the following to download and build this documentation locally::
 
-     git clone git@github.com:10gen/docs-mongoid.git
+     git clone git@github.com:mongodb/docs-mongoid
      cd docs-mongoid/
      make html
+
+The generated HTML will be placed in `build/master/html/`.
+
+*Note*: The build process invokes Sphinx and expects Sphinx's various
+binaries to be in PATH.
 
 Contribute
 ----------
