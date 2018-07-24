@@ -21,6 +21,8 @@
 
      - ``NO_PRIMARY``
 
+       ``TOO_MANY_ELECTIONS``
+
    * - Sharded cluster
 
      - ``CLUSTER_MONGOS_IS_MISSING``
@@ -44,7 +46,7 @@
    * - Team
 
      - ``JOINED_TEAM``
-       
+
        ``REMOVED_FROM_TEAM``
 
    * - Organization
@@ -56,7 +58,7 @@
    * - Billing
 
      - ``CREDIT_CARD_ABOUT_TO_EXPIRE``
-       
+
        ``CHARGE_SUCCEEDED``
-       
+
        ``INVOICE_CLOSED``
