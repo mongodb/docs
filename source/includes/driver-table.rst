@@ -78,6 +78,13 @@
      - `JIRA <https://jira.mongodb.org/browse/RUBY>`__
      -
 
+   * - `Mongoid (Ruby ODM) <https://docs.mongodb.com/mongoid/master/>`_
+     - `Releases <https://rubygems.org/gems/mongoid>`__
+     - `Source <https://github.com/mongodb/mongoid>`__
+     - `API <https://docs.mongodb.com/mongoid/7.0/api/>`__
+     - `JIRA <https://jira.mongodb.org/browse/MONGOID>`__
+     -
+
    * - :doc:`Scala </drivers/scala>`
      - `Releases <https://mongodb.github.io/mongo-scala-driver/>`__
      - `Source <https://github.com/mongodb/mongo-scala-driver>`__
