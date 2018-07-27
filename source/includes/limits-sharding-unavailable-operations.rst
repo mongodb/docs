@@ -1,6 +1,3 @@
-The :dbcommand:`group` does not work with sharding. Use
-:dbcommand:`mapReduce` or :dbcommand:`aggregate` instead.
-
 :query:`$where` does not permit references to the ``db`` object
 from the :query:`$where` function. This is uncommon in
 un-sharded collections.

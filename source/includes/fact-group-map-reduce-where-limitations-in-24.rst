@@ -1,11 +1,11 @@
-:dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
-command, and :query:`$where` operator expressions **cannot** access
-certain global functions or properties, such as ``db``, that are
-available in the :binary:`~bin.mongo` shell.
+:dbcommand:`map-reduce operations <mapReduce>` and :query:`$where`
+operator expressions **cannot** access certain global functions or
+properties, such as ``db``, that are available in the
+:binary:`~bin.mongo` shell.
 
 The following JavaScript functions and properties **are available** to
-:dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
-command, and :query:`$where` operator expressions:
+:dbcommand:`map-reduce operations <mapReduce>` and :query:`$where`
+operator expressions:
 
 .. list-table::
   :header-rows: 1
