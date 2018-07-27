@@ -12,3 +12,7 @@ for each chart type in MongoDB Charts:
   - :ref:`Scatter Chart Reference <scatter-chart-ref>`
 
 - :ref:`Donut Chart Reference <donut-chart-ref>`
+
+- Text Charts
+
+  - :ref:`Number Chart Reference <number-chart-ref>`
