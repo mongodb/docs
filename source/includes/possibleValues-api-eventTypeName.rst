@@ -8,13 +8,13 @@
    * - Host
 
      - ``OUTSIDE_METRIC_THRESHOLD``
-       
+
        ``HOST_RESTARTED``
-       
+
        ``HOST_UPGRADED``
-       
+
        ``HOST_NOW_SECONDARY``
-       
+
        ``HOST_NOW_PRIMARY``
 
    * - Replica set
