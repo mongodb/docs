@@ -57,6 +57,10 @@ extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'v2.2': ('https://docs.mongodb.com/v2.2%s', ''),
     'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
+    'v2.6': ('https://docs.mongodb.com/v2.6%s', ''),
+    'v3.0': ('https://docs.mongodb.com/v3.0%s', ''),
+    'v3.2': ('https://docs.mongodb.com/v3.2%s', ''),
+    'v3.4': ('https://docs.mongodb.com/v3.4%s', ''),
     'bic': ('https://docs.mongodb.com/bi-connector/current%s','')
 }
 
