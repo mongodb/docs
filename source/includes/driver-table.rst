@@ -71,14 +71,14 @@
      - `JIRA <https://jira.mongodb.org/browse/MOTOR>`__
      -
 
-   * - `Ruby <https://docs.mongodb.com/ruby-driver/master/>`_
+   * - `Ruby <https://docs.mongodb.com/ruby-driver/current/>`_
      - `Releases <https://rubygems.org/gems/mongo>`__
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`__
      - `API <http://api.mongodb.com/ruby/current/>`__
      - `JIRA <https://jira.mongodb.org/browse/RUBY>`__
      -
 
-   * - `Mongoid (Ruby ODM) <https://docs.mongodb.com/mongoid/master/>`_
+   * - `Mongoid (Ruby ODM) <https://docs.mongodb.com/mongoid/current/>`_
      - `Releases <https://rubygems.org/gems/mongoid>`__
      - `Source <https://github.com/mongodb/mongoid>`__
      - `API <https://docs.mongodb.com/mongoid/7.0/api/>`__
