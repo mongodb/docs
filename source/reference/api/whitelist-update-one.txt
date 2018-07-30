@@ -55,6 +55,12 @@ Specify an array of documents, where each document represents one
 whitelist entry you want to update. You must specify
 an array even if you are only updating a single whitelist entry.
 
+For each whitelist entry specified in the request body whose
+``ipAddress`` or ``cidrBlock`` value match an existing entry,
+|service| will only update the specified matching entries. |service|
+will *not* set the whitelist to only contain the entries specified in
+the request.
+
 .. list-table::
    :widths: 10 10 80
    :header-rows: 1
@@ -65,22 +71,44 @@ an array even if you are only updating a single whitelist entry.
 
    * - ``cidrBlock``
      - string
-     - The whitelist entry in Classless Inter-Domain Routing (CIDR) 
+     - The whitelist entry in Classless Inter-Domain Routing (CIDR)
        notation. Mutually exclusive with ``ipAddress``. Must match
-       the :abbr:`CIDR (Classless Inter-Domain Routing)` 
+       the :abbr:`CIDR (Classless Inter-Domain Routing)`
        address of the target whitelist entry.
 
    * - ``ipAddress``
      - string
-     - The whitelisted IP address. Mutually exclusive with 
+     - The whitelisted IP address. Mutually exclusive with
        ``cidrBlock``. Must match the IP address of the target
        whitelist entry.
-     
+
    * - ``comment``
      - string
      - *Optional* The comment associated with the whitelist entry.
-       Specify an empty string ``""`` to delete the comment 
+       Specify an empty string ``""`` to delete the comment
        associated to an IP address.
+
+   * - ``deleteAfterDate``
+     - date
+     - *Optional* The `ISO-8601
+       <https://en.wikipedia.org/wiki/ISO_8601>`_-formatted UTC date
+       after which |service| removes the entry from the whitelist. The
+       specified date must be in the future and within one week of the
+       time you make the API request. To update a  temporary whitelist
+       entry to be permanent, set the value of this field to ``null``.
+
+       .. note::
+
+          You may include an ISO-8601 time zone designator to ensure
+          that the expiration date occurs with respect to the local
+          time in the specified time zone.
+
+       .. important::
+
+          You can only modify the expiration date for a whitelist entry
+          if an expiration date was specified when creating the entry.
+          You cannot assign a ``deleteAfterDate`` to a permanent
+          whitelist entry.
 
 Response
 --------
@@ -90,39 +118,7 @@ Response
 Each element in the ``result`` array is one whitelist entry associated
 to the project IP whitelist.
 
-.. list-table::
-   :widths: 10 10 80
-   :header-rows: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - ``cidrBlock``
-     - string
-     - The whitelist entry in Classless Inter-Domain Routing (CIDR) 
-       notation.
-
-   * - ``ipAddress``
-     - string
-     - The whitelisted IP address. Only present for entries
-       not created using :abbr:`CIDR (Classless Inter-Domain Routing)`
-       notation.
-
-   * - ``groupId``
-     - string
-     - ID of the project containing the whitelist entry.
-     
-   * - ``comment``
-     - string
-     - The comment associated with the whitelist entry.
-
-   * - ``links``
-     - object array
-     - This array includes a :ref:`link <api-linking>`
-       to the whitelist entry, including the HTML-escaped IP or 
-       :abbr:`CIDR (Classless Inter-Domain Routing)` address.
-
+.. include:: /includes/list-table-whitelist-response-body.rst
 
 Example Request
 ---------------
@@ -136,11 +132,11 @@ Example Request
      --data '
        [
          {
-           "ipAddress" : "192.0.2.15", 
+           "ipAddress" : "192.0.2.15",
            "comment" : "IP address for Dev Application Server A"
          },
          {
-           "cidrBlock" : "203.0.113.0/24", 
+           "cidrBlock" : "203.0.113.0/24",
            "comment" : "IP address for Dev Application Server A"
          }
        ]'
@@ -149,7 +145,7 @@ Example Response
 ----------------
 
 .. code-block:: json
-   
+
    {
      "links": [
        {
