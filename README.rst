@@ -45,6 +45,11 @@ File JIRA Tickets
 File issue reports or requests at the `Documentation Jira Project
 <https://jira.mongodb.org/browse/DOCS>`_.
 
+Listed Mongoid Branches
+-----------------------
+
+The branch list as well as which is the current one is maintained here: https://github.com/mongodb/docs-tools/blob/master/data/mongoid-published-branches.yaml
+
 Licenses
 --------
 
