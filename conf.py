@@ -62,6 +62,7 @@ extlinks = {
     'gettingstarted': ('http://docs.mongodb.org/getting-started%s', ''),
     'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
     'mms-home': ('https://cloud.mongodb.com%s', ''),
+    'guides': ('https://docs.mongodb.com/guides%s', ''),
 }
 
 intersphinx_mapping = {}
