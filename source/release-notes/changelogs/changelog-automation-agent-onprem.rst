@@ -558,8 +558,8 @@ Automation Agent 2.0.9.1201
   details.
 
 - **Fix:** Can derive the default port for config servers
-  started with the :option:`--configsvr` option but with no port
-  specified. See: :issue:`MMS-2489`.
+  started with the :option:`--configsvr <mongod.--configsvr>` option but
+  with no port specified. See: :issue:`MMS-2489`.
 
 - **Fix:** Can configure :term:`oplog` sizes greater than 1TB.
 
@@ -583,7 +583,7 @@ Automation Agent 1.4.18.1199-1
 - **Fix:** Logic used for performing a rolling restart.
 
 - **Fix:** with deriving the default port for config servers started
-  with the :option:`--configsvr` option but with no port specified. See
+  with the :option:`--configsvr <mongod.--configsvr>` option but with no port specified. See
   :issue:`MMS-2489`.
 
 .. _automation-1.4.16.1075:

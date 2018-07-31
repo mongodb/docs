@@ -1102,7 +1102,7 @@ Automation Agent 1.9.3.1109
 
 - Added fix for :issue:`MMS-2489`: fixed issue deriving the default
   port for config servers started with the
-  :option:`--configsvr` option but with no port specified.
+  :option:`--configsvr <mongod.--configsvr>` option but with no port specified.
 
 .. _automation-1.9.1.1100:
 

@@ -48,7 +48,7 @@ Fixed Properties
   created:
 
   - :option:`database path <mongod.--dbpath>`
-  - :option:`host <--host>`, :option:`bind_ip <mongod.--bind_ip>` or 
+  - The hostname, :option:`bind_ip <mongod.--bind_ip>` or 
     :option:`port <mongod.--port>` to which a MongoDB process is 
     assigned
 

@@ -1,4 +1,4 @@
-.. only:: onprem
+.. cond:: onprem
 
    .. list-table::
       :widths: 20 15 65
@@ -136,7 +136,7 @@
         - Sends a summary email of all global alerts to the specified 
           email address.
  
-.. only:: cloud
+.. cond:: cloud
 
    .. list-table::
       :widths: 35 65

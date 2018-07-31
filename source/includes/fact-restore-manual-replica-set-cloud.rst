@@ -115,8 +115,8 @@
    * - ``--ssl``
      - Optional
      - Use if you need :abbr:`TLS (Transport Security Layer)` /
-       :abbr:`SSL (Secure Sockets Layer)` to apply :term:`oplogs
-       <Oplog Store Database>` to the :program:`mongod`.
+       :abbr:`SSL (Secure Sockets Layer)` to apply :term:`oplog
+       <oplog>` to the :program:`mongod`.
        Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.
  
    * - ``--sslCAFile``

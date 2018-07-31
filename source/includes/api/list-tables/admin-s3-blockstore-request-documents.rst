@@ -32,7 +32,7 @@
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`S3 blockstores <S3 blockstore>`. 
+       :term:`S3 blockstores <blockstore>`. 
 
        Setting these tags limits which backup jobs this S3 blockstore 
        can process. If omitted, this S3 blockstore can only process 
