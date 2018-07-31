@@ -1,6 +1,6 @@
 'use strict';
 
-const screenshotNames = ['data-sources-view-new.png'];
+const screenshotNames = ['data-sources-view.png'];
 const screenshotDir = './screenshots-temp';
 const origImageDir = './source/images/charts';
 
