@@ -9,43 +9,28 @@
    in a separate table here.
 
 .. list-table::
+   :widths: 40 60
 
    * - - ``QUERY_EXECUTOR_SCANNED``
 
-     - The average rate per second to scan index items during
-       queries and query-plan evaluations. This rate is driven by
-       the same value as ``totalKeysExamined`` in the output of
-       :manual:`explain </reference/command/explain>`. This
-       measurement is found on the host's ``Query Executor``
-       chart. To learn more about creating charts for host 
-       metrics in |mms|, see :doc:`/tutorial/view-diagnostics` and click
-       the :guilabel:`MongoDB Process Metrics` tab.
+     - Average rate per second to scan index items during
+       queries and query-plan evaluations found in the value of
+       ``totalKeysExamined`` from the 
+       :manual:`explain </reference/command/explain>` command.
 
    * - - ``QUERY_EXECUTOR_SCANNED_OBJECTS``
 
-     - The average rate per second to scan documents during queries
-       and query-plan evaluations. |mms| derives the rate using the
-       :manual:`explain </reference/command/explain>` output's
-       ``totalDocsExamined`` value. This measurement is found on the
-       host's ``Query Executor`` chart. To learn more about 
-       creating charts for host metrics in |mms|, 
-       see :doc:`/tutorial/view-diagnostics` and click the 
-       :guilabel:`MongoDB Process Metrics` tab.
+     - Average rate of documents scanned per second during queries
+       and query-plan evaluations found in the value of
+       ``totalDocsExamined`` from the
+       :manual:`explain </reference/command/explain>` command.
 
    * - - ``QUERY_TARGETING_SCANNED_PER_RETURNED``
 
-     - The ratio of the number of index items scanned to the number of
-       documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart. To learn more about
-       charts for host metrics in |mms|, see 
-       :doc:`/tutorial/view-diagnostics` and click
-       the :guilabel:`MongoDB Process Metrics` tab.
+     - Ratio of the number of index items scanned to the number of
+       documents returned.
 
    * - - ``QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED``
 
-     - The ratio of the number of documents scanned to the number of
-       documents returned. This measurement is found on the host's
-       ``Query Targeting`` chart. To learn more about creating
-       charts for host metrics in |mms|, see 
-       :doc:`/tutorial/view-diagnostics` and click
-       the :guilabel:`MongoDB Process Metrics` tab.
+     - Ratio of the number of documents scanned to the number of
+       documents returned.

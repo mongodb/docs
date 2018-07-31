@@ -7,19 +7,21 @@ Host Measurements
 ~~~~~~~~~~~~~~~~~
 
 .. list-table::
+   :widths: 40 60
 
    * - - ``ASSERT_REGULAR``
        - ``ASSERT_WARNING``
        - ``ASSERT_MSG``
        - ``ASSERT_USER``
 
-     - Measure the rate of asserts for a MongoDB process, as collected from
-       the MongoDB :manual:`serverStatus </reference/command/serverStatus>`
-       command's :serverstatus:`asserts` document.
+     - Rate of asserts for a MongoDB process found in the 
+       :serverstatus:`asserts` document that the
+       :manual:`serverStatus </reference/command/serverStatus>`
+       command generates.
 
    * - - ``BACKGROUND_FLUSH_AVG``
 
-     - Measurement found on the host's ``background flush avg`` chart.
+     - Amount of data flushed in the background.
 
    * - - ``CACHE_BYTES_READ_INTO``
        - ``CACHE_BYTES_WRITTEN_FROM``
@@ -28,90 +30,90 @@ Host Measurements
        - ``TICKETS_AVAILABLE_READS``
        - ``TICKETS_AVAILABLE_WRITE``
 
-     - Apply to a MongoDB process's :manual:`WiredTiger </core/wiredtiger>`
-       storage engine, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
+     - Amount of bytes in the :manual:`WiredTiger </core/wiredtiger>`
+       storage engine cache and tickets found in the
        :serverstatus:`wiredTiger.cache` and
-       :serverstatus:`wiredTiger.concurrentTransactions` documents.
+       :serverstatus:`wiredTiger.concurrentTransactions` documents
+       that the
+       :manual:`serverStatus </reference/command/serverStatus>`
+       command generates.
 
    * - - ``CONNECTIONS``
 
-     - Measures connections to a MongoDB process, as collected from the
-       MongoDB :manual:`serverStatus </reference/command/serverStatus>`
-       command's :serverstatus:`connections` document.
+     - Number of connections to a MongoDB process found in the
+       :serverstatus:`connections` document that the
+       :manual:`serverStatus </reference/command/serverStatus>`
+       command generates.
 
    * - - ``CURSORS_TOTAL_OPEN``
        - ``CURSORS_TOTAL_TIMED_OUT``
 
-     - Measure the number of :manual:`cursors </core/cursors>` for a MongoDB
-       process, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
-       :serverstatus:`metrics.cursor` document.
+     - Number of :manual:`cursors </core/cursors>` for a MongoDB
+       process found in the :serverstatus:`metrics.cursor` document 
+       that the 
+       :manual:`serverStatus </reference/command/serverStatus>`
+       command generates.
 
    * - - ``EXTRA_INFO_PAGE_FAULTS``
        - ``GLOBAL_ACCESSES_NOT_IN_MEMORY``
        - ``GLOBAL_PAGE_FAULT_EXCEPTIONS_THROWN``
 
-     - Measurements found on the host's ``Record Stats`` and ``Page Faults``
-       charts.
+     - Numbers of ``Memory Issues`` and ``Page Faults`` for a MongoDB
+       process.
 
    * - - ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
        - ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
        - ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
 
-     - Measure operations waiting on locks, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command.
-       |mms| computes these values based on the type of storage engine.
-
-   * - - ``GLOBAL_LOCK_PERCENTAGE``
-
-     - Applicable only to hosts running MongoDB 2.0 and earlier. Measures
-       operations waiting on the global lock, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command.
+     - Number of operations waiting on locks for the MongoDB process
+       that the 
+       :manual:`serverStatus </reference/command/serverStatus>` 
+       command generates. |mms| computes these values based on the
+       type of storage engine.
 
    * - - ``INDEX_COUNTERS_BTREE_ACCESSES``
        - ``INDEX_COUNTERS_BTREE_HITS``
        - ``INDEX_COUNTERS_BTREE_MISSES``
        - ``INDEX_COUNTERS_BTREE_MISS_RATIO``
 
-     - Measurements found on the host's ``btree`` chart.
+     - Number of index btree operations.
 
    * - - ``JOURNALING_COMMITS_IN_WRITE_LOCK``
        - ``JOURNALING_MB``
        - ``JOURNALING_WRITE_DATA_FILES_MB``
 
-     - Measurements found on the host's ``journal - commits in write lock`` chart
-       and ``journal stats`` chart.
+     - Number of journaling operations.
 
    * - - ``MEMORY_RESIDENT``
        - ``MEMORY_VIRTUAL``
        - ``MEMORY_MAPPED``
        - ``COMPUTED_MEMORY``
 
-     - Measure memory for a MongoDB process, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`mem` document.
+     - Amount of memory for a MongoDB process found in the
+       :serverstatus:`mem` document that the
+       :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``NETWORK_BYTES_IN``
        - ``NETWORK_BYTES_OUT``
        - ``NETWORK_NUM_REQUESTS``
 
-     - Measure throughput for MongoDB process, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`network` document.
+     - Amount of throughput for MongoDB process found in the
+       :serverstatus:`network` document that the 
+       :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``OPLOG_SLAVE_LAG_MASTER_TIME``
        - ``OPLOG_MASTER_TIME``
        - ``OPLOG_MASTER_LAG_TIME_DIFF``
        - ``OPLOG_RATE_GB_PER_HOUR``
 
-     - Measurements that apply to the MongoDB process's :manual:`oplog
-       </core/replica-set-oplog>`.
+     - Durations and throughput of the MongoDB process' 
+       :manual:`oplog </core/replica-set-oplog>`.
 
    * - - ``DB_STORAGE_TOTAL``
        - ``DB_DATA_SIZE_TOTAL``
 
-     - Measurements displayed on the host's ``db storage`` chart.
+     - Number of database operations on a MongoDB process since the
+       process last started.
 
    * - - ``OPCOUNTER_CMD``
        - ``OPCOUNTER_QUERY``
@@ -120,44 +122,43 @@ Host Measurements
        - ``OPCOUNTER_GETMORE``
        - ``OPCOUNTER_INSERT``
 
-     - Measure the rate of database operations on a MongoDB process since the
-       process last started, as collected from the MongoDB
-       :manual:`serverStatus </reference/command/serverStatus>` command's
-       :serverstatus:`opcounters` document.
+     - Rate of database operations on a MongoDB process since the
+       process last started found in the :serverstatus:`opcounters` document that the 
+       :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``OPCOUNTER_REPL_CMD``
        - ``OPCOUNTER_REPL_UPDATE``
        - ``OPCOUNTER_REPL_DELETE``
        - ``OPCOUNTER_REPL_INSERT``
 
-     - Measure the rate of database operations on MongoDB :term:`secondaries
-       <secondary>`, as collected from the MongoDB :manual:`serverStatus
-       </reference/command/serverStatus>` command's
-       :serverstatus:`opcountersRepl` document.
+     - Rate of database operations on MongoDB
+       :term:`secondaries <secondary>` found in the
+       :serverstatus:`opcountersRepl` document that the
+       :manual:`serverStatus </reference/command/serverStatus>`
+       command collects.
 
    * - - ``DOCUMENT_METRICS_RETURNED``
        - ``DOCUMENT_METRICS_INSERTED``
        - ``DOCUMENT_METRICS_UPDATED``
        - ``DOCUMENT_METRICS_DELETED``
 
-     - The average rate per second of documents returned, inserted, updated,
-       or deleted for a selected time period. These measurements are found on
-       the host's ``Document Metrics`` chart.
+     - Average rate of documents returned, inserted, updated, or
+       deleted per second during a selected time period.
 
    * - - ``OPERATIONS_SCAN_AND_ORDER``
 
-     - For a selected time period, the average rate per second for operations
-       that perform a sort but cannot perform the sort using an index. This
-       measurement is found on the host's ``Scan and Order`` chart.
+     - Average rate for operations per second during a selected time
+       period that perform a sort but cannot perform the sort using an
+       index.
 
    * - - ``OP_EXECUTION_TIME_READS``
        - ``OP_EXECUTION_TIME_WRITES``
        - ``OP_EXECUTION_TIME_COMMANDS``
 
-     - Available to hosts running MongoDB v3.4+. The average execution
-       time in milliseconds per read, write, or command operation
-       over the selected time period. These measurements are found
-       on the host's ``Operation Execution Times`` chart.
+     - Average execution time in milliseconds per read, write, or
+       command operation during a selected time period.
+
+       *Available to hosts running MongoDB 3.4 or later.*
 
    * - - ``RESTARTS_IN_LAST_HOUR``
 
