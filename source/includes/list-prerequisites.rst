@@ -4,6 +4,6 @@
 
 - Running MongoDB instance (version 2.6 or later).
 
-- Spark 2.2.x.
+- Spark 2.3.x.
 
 - Scala 2.11.x  
