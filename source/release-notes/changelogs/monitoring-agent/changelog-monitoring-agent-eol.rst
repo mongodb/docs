@@ -1,119 +1,9 @@
-.. _monitoring-6.6.2.464-1:
-
-Monitoring Agent 6.6.2.464-1
-----------------------------
-
-:ref:`Released with Ops Manager 4.0.0 on 2018-06-27 <opsmgr-server-4.0.0>`
-
-- Added support for MongoDB 4.0.
-- Added support for SCRAM-SHA-256.
-- Added platform support for:
-
-  - zLinux on :abbr:`RHEL (Red Hat Enterprise Linux)` 6
-  - Debian 9
-  - Amazon Linux 2
-
-.. _monitoring-6.1.4.442-1:
-
-Monitoring Agent 6.1.4.442-1
-----------------------------
-
-*Released with Ops Manager 3.6.7 on 2018-06-06*
-
-.. _monitoring-6.1.3.436:
-
-Monitoring Agent 6.1.3.436
-----------------------------
-
-*Released with Ops Manager 3.6.5 on 2018-04-05*
-
-- Build system improvements
-
-.. _monitoring-6.1.2.402:
-
-Monitoring Agent 6.1.2.402
-----------------------------
-
-*Released with Ops Manager 3.6.2 on 2018-01-11*
-
-.. _monitoring-6.1.1.395:
-
-Monitoring Agent 6.1.1.395
---------------------------
-
-*Released with Ops Manager 3.6.0 on 2017-12-05*
-
-- Support for MongoDB 3.6.
-
-- Support for new Agent API Key model.
-
-.. _monitoring-5.4.5.415:
-
-Monitoring Agent ``5.4.5.415``
-------------------------------
-
-*Released with Ops Manager 3.4.13 on 2018-04-05*
-
-- Build system improvements.
-
-.. _monitoring-5.4.5.370:
-
-Monitoring Agent 5.4.5.370
---------------------------
-
-*Released with Ops Manager 3.4.5 on 2017-05-18*
-
-- Tolerate no config.settings document present without printing error
-  message.
-
-.. _monitoring-5.4.4.366:
-
-Monitoring Agent 5.4.4.366
---------------------------
-
-*Released with Ops Manager 3.4.3 on 2017-02-17*
-
-- Built with Go 1.7.
-
-- Support for MacOS Sierra.
-
-.. _monitoring-5.4.3.361:
-
-Monitoring Agent 5.4.3.361
---------------------------
-
-*Released with Ops Manager 3.4.1 on 2016-12-27*
-
-- Fix collecting monitoring information for a MongoD in STARTUP2.
-
-.. _monitoring-5.4.2.354:
-
-Monitoring Agent 5.4.2.354
---------------------------
-
-*Released with Ops Manager 3.4.0 on 2016-11-29*
-
-- Added support for monitoring of MongoDB 3.4 deployments.
-
-- Added support for monitoring at higher resolutions, including support 
-  for gathering of metrics by multiple active Monitoring Agents.
-
-- Built using Go 1.6.
-
-- Added ability to run managed Monitoring Agents as a service on 
-  Windows.
-
-- Added enhancement to manage appropriate ``ulimits`` in the package.
-
-- Added enhancement to run ``systemd`` management on RHEL7 and Ubuntu
-  16.04.
-
 .. _monitoring-3.9.1.326:
 
 Monitoring Agent 3.9.1.326
 --------------------------
 
-*Released with Ops Manager 2.0.5 on 2016-07-14*
+:ref:`Released with Ops Manager 2.0.5 on 2016-07-14 <opsmgr-server-2.0.5>`
 
 - Fixed expired code-signing certificate in MSI. This is a packaging
   change only, the agent version did not change.
@@ -123,7 +13,7 @@ Monitoring Agent 3.9.1.326
 Monitoring Agent 3.9.1.238
 --------------------------
 
-*Released with Ops Manager 2.0.0 on 2015-12-08*
+:ref:`Released with Ops Manager 2.0.0 on 2015-12-08 <opsmgr-server-2.0.0>`
 
 - Added support for MongoDB 3.2.0 config servers as replica sets.
 
@@ -132,7 +22,7 @@ Monitoring Agent 3.9.1.238
 Monitoring Agent 3.7.1.227
 --------------------------
 
-*Released with Ops Manager 1.8.2 on 2015-10-20*
+:ref:`Released with Ops Manager 1.8.2 on 2015-10-20 <opsmgr-server-1.8.2>`
 
 - Fixed potential memory leak when profiler is enabled.
 
@@ -141,7 +31,7 @@ Monitoring Agent 3.7.1.227
 Monitoring Agent 3.7.0.212
 --------------------------
 
-*Released with Ops Manager 1.8.1 on 2015-08-17*
+:ref:`Released with Ops Manager 1.8.1 on 2015-08-17 <opsmgr-server-1.8.1>`
 
 - Avoid harmless authentication in ``mongod`` log files when reading
   ``oplog`` stats using the ``clusterMonitor`` role.
@@ -151,7 +41,7 @@ Monitoring Agent 3.7.0.212
 Monitoring Agent 3.3.1.193
 --------------------------
 
-*Released with Ops Manager 1.8 on 2015-06-23*
+:ref:`Released with Ops Manager 1.8.0 on 2015-06-23 <opsmgr-server-1.8.0>`
 
 - Added support for x.509 Client Certificate authentication. For
   configuration details, see:
@@ -216,7 +106,7 @@ Monitoring Agent 2.9.1.176
 Monitoring Agent 2.4.2.113
 --------------------------
 
-*Released with OnPrem 1.5.0*
+:ref:`Released with OnPrem 1.5.0 <opsmgr-server-1.5.0>`
 
 - Upgraded agent to use Go 1.3.
 
@@ -237,7 +127,7 @@ Monitoring Agent 2.4.2.113
 Monitoring Agent 2.3.1.89-1
 ---------------------------
 
-*Released with OnPrem 1.4.3*
+:ref:`Released with OnPrem 1.4.3 <opsmgr-server-1.4.3>`
 
 - Improved logging for MongoDB 2.6 config servers when connecting with
   a user that has the built-in clusterMonitor role.
@@ -255,7 +145,7 @@ Monitoring Agent 2.3.1.89-1
 Monitoring Agent 2.1.4.51-1
 ---------------------------
 
-*Released with |mms| OnPrem 1.4.2*
+:ref:`Released with OnPrem 1.4.2 <opsmgr-server-1.4.2>`
 
 Prevent high CPU use when monitoring unreachable :program:`mongod`.
 
@@ -264,7 +154,7 @@ Prevent high CPU use when monitoring unreachable :program:`mongod`.
 Monitoring Agent 2.1.3.48-1
 ---------------------------
 
-*Released with OnPrem 1.4.1*
+:ref:`Released with OnPrem 1.4.1 <opsmgr-server-1.4.1>`
 
 Reduction in unnecessary log messages for unsupported operations on
 monitored MongoDB 2.2 instances.
@@ -274,7 +164,7 @@ monitored MongoDB 2.2 instances.
 Monitoring Agent 2.1.1.41-1
 ---------------------------
 
-*Released with OnPrem 1.4.0*
+:ref:`Released with OnPrem 1.4.0 <opsmgr-server-1.4.0>`
 
 Ability to monitor hosts using Kerberos authentication.
 
@@ -283,7 +173,7 @@ Ability to monitor hosts using Kerberos authentication.
 Monitoring Agent 1.6.6
 ----------------------
 
-*Released with OnPrem1.3*
+:ref:`Released with OnPrem 1.3.0 <opsmgr-server-1.3.0>`
 
 - Added kerberos support for agents running on Python 2.4.x.
 
