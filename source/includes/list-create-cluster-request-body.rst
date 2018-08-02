@@ -224,7 +224,10 @@
        For definitions of data-bearing servers, see
        :ref:`server-number-costs`.
 
-       |service| supports the following instance sizes:
+       |service| supports the following instance sizes.
+       |service| supports deploying ``M2`` and ``M5`` instances
+       into a subset of available regions. The documentation for
+       ``providersettings.regionName`` includes a list of these regions.
 
        .. list-table::
           :header-rows: 1
@@ -242,25 +245,6 @@
           * - AZURE
 
             - .. include:: /includes/extracts/fact-cluster-instance-sizes-AZURE.rst
-
-       .. |ast| unicode:: U+002A
-       .. |dag| unicode:: U+2020
-       .. |ddag| unicode:: U+2021
-
-       |ast| :abbr:`AWS (Amazon Web Services)`, 
-       :abbr:`GCP (Google Cloud Platform)`, 
-       and :abbr:`Azure (Microsoft Azure)` only support 
-       ``M2`` and ``M5`` in certain regions. 
-       For a complete list of the regions that support ``M2`` and ``M5``
-       instances, see ``providerSettings.regionName``.
-
-       |dag| ``R`` instances are :abbr:`AWS (Amazon Web Services)` only.
-       Ensure that ``providerSetting.providerName`` is ``AWS``. 
-       In the |service| UI, ``R`` instance correspond with
-       :guilabel:`Low CPU` variants of their associated ``M`` instance. 
-
-       |ddag| These instances are only supported in the
-       :abbr:`AWS (Amazon Web Services)` ``EU-WEST-3`` (Paris) region.
 
        .. include:: /includes/fact-m2-m5-multi-tenant.rst
 
@@ -307,11 +291,13 @@
 
    * - ``providerSettings.diskTypeName``
      - string
-     - *Required*
+     - *Optional*
 
        **Azure ONLY**
 
-       The Azure disk type of the server's root volume. 
+       The Azure disk type of the server's root volume. If ommitted,
+       |service| uses the default disk type for the selected 
+       ``providerSettings.instanceSizeName``.
 
        The following table lists the possible values for this field,
        and their corresponding storage size.
