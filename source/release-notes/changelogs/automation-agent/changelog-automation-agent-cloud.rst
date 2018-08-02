@@ -1,3 +1,22 @@
+.. _automation-5.5.0.5499:
+
+Automation Agent 5.5.0.5499
+---------------------------
+
+*Released 2018-08-01*
+
+- Performance improvements.
+
+- Improve determination of when a mongod process is running.
+
+- Fix issue in which a replica set configuration change fails to
+  complete if the primary is removed from the replica set.
+
+- Enforce a pause between nodes when doing a rolling oplog size.
+
+- Prevent issues completing an oplog resize if the mongod is very slow
+  to start-up.
+
 .. _automation-5.4.8.5478-1:
 
 Automation Agent 5.4.8.5478-1

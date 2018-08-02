@@ -1,3 +1,16 @@
+.. _backup-7.0.0.1008-1:
+
+Backup Agent 7.0.0.1008-1
+---------------------------
+
+*Released 2018-08-01*
+
+- Fix file extension when downloading a Backup Agent in Microsoft Edge
+  and Firefox.
+
+- Ensure that the UUID of the ``system.views`` collection is preserved
+  during a Backup initial sync.
+
 .. _backup-6.9.0.1004-1:
 
 Backup Agent 6.9.0.1004-1
