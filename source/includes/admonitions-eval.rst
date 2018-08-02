@@ -1,6 +1,10 @@
 .. \|object| defined in included parameters-eval ..
 .. \|nolockobject| defined in included parameters-eval ..
 
+You must run |object| against the :term:`primary` member of a
+replica set. If you attempt to run |object| on a :term:`secondary`
+member, MongoDB will return an error.
+
 Write Lock
 ~~~~~~~~~~
 
