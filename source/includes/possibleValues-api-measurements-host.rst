@@ -158,3 +158,7 @@ Host Measurements
        time in milliseconds per read, write, or command operation
        over the selected time period. These measurements are found
        on the host's ``Operation Execution Times`` chart.
+
+   * - - ``RESTARTS_IN_LAST_HOUR``
+
+     - Number of times the host restarted within the previous hour.
