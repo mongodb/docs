@@ -27293,6 +27293,15 @@
 	                return;
 	            }
 	
+	            try {
+	                window.analytics.track('Search Queried', {
+	                    'query': query,
+	                    'searchProperties': properties
+	                });
+	            } catch (err) {
+	                console.error(err);
+	            }
+	
 	            if (this.currentRequest !== null) {
 	                this.currentRequest.abort();
 	            }
