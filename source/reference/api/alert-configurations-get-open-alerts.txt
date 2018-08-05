@@ -19,10 +19,12 @@ Resource
 
 .. code-block:: http
 
-   GET /groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts
+   GET /groups/{PROJECT-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+All request path parameters are *required*.
 
 .. list-table::
    :widths: 20 20 60
@@ -33,13 +35,13 @@ Request Path Parameters
      - Type
      - Description
 
-   * - GROUP-ID
+   * - PROJECT-ID
      - string
-     - *(Required.)* Group identifier.
+     - Unique identifier for this Project.
 
    * - ALERT-CONFIG-ID
      - string
-     - *(Required.)* Alert configuiration identifier.
+     - Unique identifier for this alert configuration.
 
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,31 +74,123 @@ Each **result** is one alert configuration.
      - Type
      - Description
 
+   * - acknowledgedUntil
+     - string
+     - |iso8601-time| when through which the alert has been
+       acknowledged. Populated if the alert has been acknowledged.
+
+   * - acknowledgingUsername
+     - string
+     - Username of the user who acknowledged the alert. Populated if
+       the alert has been acknowledged.
+
+   * - acknowledgementComment
+     - string
+     - Comment user who acknowledged the alert left. Populated
+       if the alert has been acknowledged.
+
+   * - alertConfigId
+     - string
+     - Unique identifier of the alert configuration that triggered
+       this alert.
+
+   * - clusterId
+     - string
+     - Unique identifier of the cluster to which this alert applies.
+       Populated for ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``
+       alerts.
+
+   * - clusterName
+     - string
+     - Name the cluster to which this alert applies.
+       Populated for ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``
+       alerts.
+
+   * - created
+     - string
+     - |iso8601-time| when the alert was opened.
+
+   * - currentValue
+     - object
+     - Current value of the metric that triggered the alert. Populated
+       for ``HOST_METRIC`` alerts.
+
+   * - currentValue.number
+     - number
+     - Value of the metric.
+
+   * - currentValue.units
+     - string
+     - Units for the value. Depends on the type of metric. 
+
+       .. example:: 
+
+          A metric that measures memory consumption would have a byte measurement, while a metric that measures time would have a time unit. Accepted values are:
+
+       .. include:: /includes/possibleValues-api-units.rst
+
+   * - eventTypeName
+     - string
+     - Name of the event that triggered the alert.
+
+       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
+
+   * - groupId
+     - string
+     - Unique identifier of the project that this alert was opened for.
+
+   * - hostId
+     - string
+     - Unique identifier of the host to which the metric pertains.
+       Populated for ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``
+       alerts.
+
+   * - hostnameAndPort
+     - string
+     - Hostname and port of each host to which the alert applies.
+       Populated for ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``
+       alerts.
+
    * - id
      - string
      - Unique identifier for the alert.
 
-   * - groupId
+   * - lastNotified
      - string
-     - Unique identifier of the group that this alert was opened for.
+     - |iso8601-time| when the last notification was sent for this
+       alert. Populated if notifications have been sent.
 
-   * - alertConfigId
+   * - metricName
      - string
-     - Unique identifier of the alert configuration that triggered this alert.
+     - Name of the measurement whose value went outside the threshold.
+       Populated if ``"eventTypeName" : "OUTSIDE_METRIC_THRESHOLD"``.
 
-   * - eventTypeName
+       For accepted values, see :ref:`measurement-types-for-alerts-api`
+       on this page.
+
+   * - replicaSetName
      - string
-     - The name of the event that triggered the alert.
+     - Name of the replica set.
+       Populated for ``HOST``, ``HOST_METRIC``, ``BACKUP``, and
+       ``REPLICA_SET`` alerts.
 
-       .. include:: /includes/extracts/possibleValues-api-eventTypeName.rst
-
-   * - typeName
+   * - resolved
      - string
-     - *This field is deprecated and will be ignored.*
+     - |iso8601-time| when the alert was closed. Populated if
+       ``"status" : "CLOSED"``.
+
+   * - sourceTypeName
+     - string
+     - For ``BACKUP`` alerts, the type of server being backed
+       up. Accepted values are:
+
+       - ``REPLICA_SET``
+       - ``SHARDED_CLUSTER``
+       - ``CONFIG_SERVER``
 
    * - status
      - string
-     - The current state of the alert. Possible values are:
+     - Current state of the alert. Accepted values are:
 
        - ``TRACKING``
 
@@ -107,116 +201,36 @@ Each **result** is one alert configuration.
        - ``CLOSED``
        - ``CANCELLED``
 
-   * - acknowledgedUntil
-     - date
-     - The date through which the alert has been acknowledged. Will not be
-       present if the alert has never been acknowledged.
-
-   * - acknowledgementComment
+   * - typeName
      - string
-     - The comment left by the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
+     - *This field is deprecated and will be ignored.*
 
-   * - acknowledgingUsername
-     - string
-     - The username of the user who acknowledged the alert. Will not be
-       present if the alert has never been acknowledged.
-   * - created
-     - date
-     - When the alert was opened.
    * - updated
-     - date
-     - When the alert was last updated.
-   * - resolved
-     - date
-     - When the alert was closed. Only present if the status is ``CLOSED``.
-   * - lastNotified
-     - date
-     - When the last notification was sent for this alert. Only present if
-       notifications have been sent.
-   * - hostnameAndPort
      - string
-     - The hostname and port of each host to which the alert applies. Only
-       present for alerts of type ``HOST``, ``HOST_METRIC``, and
-       ``REPLICA_SET``.
-
-   * - hostId
-     - string
-     - Unique identifier of the host to which the metric pertains. Only present for
-       alerts of type ``HOST``, ``HOST_METRIC``, and ``REPLICA_SET``.
-
-   * - replicaSetName
-     - string
-     - Name of the replica set. Only present for alerts of type ``HOST``,
-       ``HOST_METRIC``, ``BACKUP``, and ``REPLICA_SET``.
-
-   * - metricName
-     - string
-     - The name of the measurement whose value went outside the threshold. Only
-       present if ``eventTypeName`` is set to ``OUTSIDE_METRIC_THRESHOLD``.
-
-       For possible values, see :ref:`measurement-types-for-alerts-api` on
-       this page.
-
-   * - currentValue
-     - object
-     - The current value of the metric that triggered the alert. Only present for
-       alerts of type ``HOST_METRIC``.
-   * - currentValue.number
-     - number
-     - The value of the metric.
-   * - currentValue.units
-     - string
-     - The units for the value. Depends on the type of metric. For example, a
-       metric that measures memory consumption would have a byte measurement,
-       while a metric that measures time would have a time unit. Possible values
-       are:
-
-       .. include:: /includes/possibleValues-api-units.rst
-
-   * - clusterId
-     - string
-     - The Unique identifier of the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
-   * - clusterName
-     - string
-     - The name the cluster to which this alert applies. Only present for
-       alerts of type ``BACKUP``, ``REPLICA_SET``, and ``CLUSTER``.
-
-   * - sourceTypeName
-     - string
-     - For alerts of the type ``BACKUP``, the type of server being backed
-       up. Possible values are:
-
-       - ``REPLICA_SET``
-       - ``SHARDED_CLUSTER``
-       - ``CONFIG_SERVER``
+     - |iso8601-time| when the alert was last updated.
 
 Example Request
 ---------------
 
 .. only:: cloud
 
-   .. class:: copyable-code
    .. code-block:: sh
 
 
        curl --user '{USERNAME}:{APIKEY}' --digest \ 
          --header 'Accept: application/json' \ 
          --include \ 
-         --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts"
+         --request GET "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts"
 
 .. only:: onprem
 
-   .. class:: copyable-code
    .. code-block:: sh
 
 
        curl --user '{USERNAME}:{APIKEY}' --digest \ 
          --header 'Accept: application/json' \ 
          --include \ 
-         --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{GROUP-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts"
+         --request GET "https://<ops-manager-host>/api/public/v1.0/groups/{PROJECT-ID}/alertConfigs/{ALERT-CONFIG-ID}/alerts"
 
 Example Response
 ----------------
@@ -234,38 +248,38 @@ Response Body
 .. code-block:: json
 
    {
-     "totalCount" : 2,
+     "links" : [],
      "results" : [ {
-       "id" : "53569159300495c7702ee3a3",
-       "alertConfigId":"{ALERT-CONFIG-ID}"
-       "groupId" : "4d1b6314e528c81a1f200e03",
-       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "status" : "OPEN",
        "acknowledgedUntil" : "2014-05-01T14:00:00Z",
+       "alertConfigId":"{ALERT-CONFIG-ID}",
        "created" : "2014-04-22T15:57:13.562Z",
-       "updated" : "2014-04-22T20:14:11.388Z",
-       "lastNotified" : "2014-04-22T15:57:24.126Z",
-       "metricName" : "ASSERT_REGULAR",
        "currentValue" : {
          "number" : 0.0,
          "units" : "RAW"
        },
-       "links" : []
-     }, {
-       "id" : "5356ca0e300495c770333340",
-       "alertConfigId":"{ALERT-CONFIG-ID}"
-       "groupId" : "4d1b6314e528c81a1f200e03",
        "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
-       "status" : "OPEN",
-       "created" : "2014-04-22T19:59:10.657Z",
-       "updated" : "2014-04-22T20:14:11.388Z",
-       "lastNotified" : "2014-04-22T20:14:19.313Z",
+       "groupId" : "4d1b6314e528c81a1f200e03",
+       "id" : "53569159300495c7702ee3a3",
+       "lastNotified" : "2014-04-22T15:57:24.126Z",
+       "links" : [],
        "metricName" : "ASSERT_REGULAR",
+       "status" : "OPEN",
+       "updated" : "2014-04-22T20:14:11.388Z"
+     }, {
+       "alertConfigId":"{ALERT-CONFIG-ID}",
+       "created" : "2014-04-22T19:59:10.657Z",
        "currentValue" : {
          "number" : 0.0,
          "units" : "RAW"
        },
-       "links" : []
+       "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD",
+       "groupId" : "4d1b6314e528c81a1f200e03",
+       "id" : "5356ca0e300495c770333340",
+       "lastNotified" : "2014-04-22T20:14:19.313Z",
+       "links" : [],
+       "metricName" : "ASSERT_REGULAR",
+       "status" : "OPEN",
+       "updated" : "2014-04-22T20:14:11.388Z"
      } ],
-     "links" : []
+     "totalCount" : 2
    }
