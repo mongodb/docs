@@ -31,21 +31,40 @@ content: |
 
      docker swarm init
 ---
-title: Create a Docker Secret for the |charts-short| metadata database.
-ref: create-docker-secret-mongodb
+title: Pull down the |charts-short| image.
+ref: pull-charts-image
 level: 4
 stepnum: 4
 content: |
-   Create a Docker Secret to hold the
-   :manual:`Connection String URI </reference/connection-string>` of the
-   MongoDB deployment you will use to store the |charts-short| metadata.
-   The MongoDB deployment must be reachable from the |charts-short|
-   host. If the MongoDB deployment is running with
-   :manual:`authentication enabled </tutorial/enable-authentication>`,
-   you must provide the credentials in the connection string, and the
-   MongoDB user must have the :authrole:`readWriteAnyDatabase` role.
+  .. code-block:: sh
 
-   .. important::
+     docker pull quay.io/mongodb/charts:{+version+}
+
+  .. include:: /includes/different-versions.rst
+
+  .. note::
+
+     This command may take a while as it downloads a large file to the
+     host server.
+---
+title: Test your connection to the |charts-short| metadata database.
+ref: test-mongodb-connection
+level: 4
+stepnum: 5
+content: |
+
+   |charts| requires a :manual:`Connection String URI
+   </reference/connection-string>` to connect to a MongoDB deployment
+   which will store the |charts-short| metadata. The MongoDB deployment
+   must be reachable from the |charts-short| host. If the MongoDB
+   deployment is running with :manual:`authentication enabled
+   </tutorial/enable-authentication>`, you must provide the credentials
+   in the connection string, and the MongoDB user must have the
+   :authrole:`readWriteAnyDatabase` role. When connecting to a replica
+   set, the :urioption:`replicaSet` URI option is required.
+
+   .. admonition:: Running Metadata Database on localhost
+      :class: important
 
       |charts-short| interprets ``localhost`` as the Docker container
       |charts-short| is running in. If the database is running on the
@@ -57,59 +76,66 @@ content: |
 
       - For Docker versions 18.03 and later:
 
-        - For Windows and macOS, use ``mongodb://host.docker.internal``
+        - For Windows and macOS, use ``mongodb://host.docker.internal``.
 
-        - For Linux, use the IP address of the ``docker0`` interface
+        - For Linux, use the IP address of the ``docker0`` interface.
+          Normally, this address is ``172.17.0.1``.
 
       - For Docker versions 17.06 up to but not including 18.03:
 
-        - For Windows, use ``mongodb://docker.for.win.localhost``
+        - For Windows, use ``mongodb://docker.for.win.localhost``.
 
-        - For macOS, use ``mongodb://docker.for.mac.localhost``
+        - For macOS, use ``mongodb://docker.for.mac.localhost``.
 
-        - For Linux, use the IP address of the ``docker0`` interface
+        - For Linux, use the IP address of the ``docker0`` interface.
+          Normally, this address is ``172.17.0.1``.
 
-   Depending on whether your MongoDB deployment is a standalone instance
-   or a replica set, select the appropriate tab and run the following
-   command to create the Docker secret:
+   Run the following command to test your connection string. Replace
+   the placeholder connection string at the end of the command with
+   your connection string URI:
 
-   .. tabs-deployments::
+   .. code-block:: sh
 
-      tabs:
+      docker run -it quay.io/mongodb/charts:{+version+} charts-cli test-connection mongodb://<username>:<password>@myhost.com/
 
-        - id: standalone
-          name: Standalone
-          content: |
-            .. code-block:: sh
+   .. include:: /includes/different-versions.rst
 
-               echo "mongodb://<username>:<password>@myhost.com/" | docker secret create charts-mongodb-uri -
+   If the |charts| successfully connects to the specified MongoDB
+   deployment, |charts-short| displays the following message in the
+   command line:
 
-        - id: repl
-          name: Replica Set
-          content: |
-            .. code-block:: sh
+   .. code-block:: sh
+      :copyable: false
 
-               echo "mongodb://<username>:<password>@myhost.com/?replicaSet=<name>" | docker secret create charts-mongodb-uri -
+      MongoDB connection URI successfully verified.
 
-            .. note::
+   .. note::
 
-               When connecting to a replica set, the
-               :urioption:`replicaSet` URI option is required.
+      Pay careful attention to the output of this command, as it
+      may include warnings of potential issues which could impact
+      the deployment process.
 
-            If your replica set uses hostnames and they are not routable
-            inside the container, specify the
-            `extra_hosts <https://docs.docker.com/compose/compose-file/#extra_hosts>`_
-            option in the Docker Compose file:
+   If |charts| cannot connect using the specified connection URI,
+   |charts-short| outlines possible troubleshooting actions to take
+   to create a successful connection. For detailed troubleshooting
+   information, refer to the :ref:`Troubleshooting
+   <charts-install-troubleshooting>` section.
+---
+title: Create a Docker Secret for the |charts-short| metadata database.
+ref: create-docker-secret-mongodb
+level: 4
+stepnum: 6
+content: |
+   Once you have verified that |charts| can successfully connect to
+   your MongoDB deployment, create a Docker Secret to hold the
+   :manual:`Connection String URI </reference/connection-string>`.
 
-            .. code-block:: yaml
+   Run the following command to create the Docker secret, substituting
+   your connection string from the previous step:
 
-               services:
-                 charts:
-                   # Other settings will be set here
-                   extra_hosts:
-                     - "somehost:198.51.100.16"
-                     - "otherhost:198.51.100.17"
-                     - "anotherhost:203.0.113.0"
+   .. code-block:: sh
+
+      echo "<Verified connection string URI from step 5>" | docker secret create charts-mongodb-uri -
 
    .. cssclass:: important
    .. admonition:: Windows Installation
@@ -122,7 +148,7 @@ content: |
 title: Enable or disable the Feedback and Support widget.
 ref: feedback-support-widget
 level: 4
-stepnum: 5
+stepnum: 7
 content: |
   By default, the Feedback and Support widget is enabled. It allows
   |charts-short| to collect and transmit usage data including operations
@@ -139,26 +165,10 @@ content: |
 
      CHARTS_SUPPORT_WIDGET_AND_METRICS: "off"
 ---
-title: Pull down the |charts-short| image.
-ref: pull-charts-image
-level: 4
-stepnum: 6
-content: |
-  .. code-block:: sh
-
-     docker pull quay.io/mongodb/charts:{+version+}
-
-  .. include:: /includes/different-versions.rst
-
-  .. note::
-
-     This command may take a while as it downloads a large file to the
-     host server.
----
 title: Launch the |charts-short| container.
 ref: launch-charts-container
 level: 4
-stepnum: 7
+stepnum: 8
 content: |
   Launch the |charts-short| container as a Docker Stack using the
   Compose file:
@@ -173,7 +183,7 @@ content: |
 title: Verify the container is running.
 ref: verify-container
 level: 4
-stepnum: 8
+stepnum: 9
 content: |
   Check that the container is running by executing:
 
@@ -204,7 +214,7 @@ post: |
 title: Create |charts-short| users.
 ref: create-users
 level: 4
-stepnum: 9
+stepnum: 10
 content: |
   Once the container is running, execute the ``charts-cli add-user``
   script within the container once for each |charts-short| user account
@@ -225,7 +235,7 @@ content: |
 title: Launch the |charts-short| web application.
 ref: launch-charts-app
 level: 4
-stepnum: 10
+stepnum: 11
 content: |
   Access |charts| by opening a web browser and connecting to the
   name of the server running the container. Note that |charts-short|
@@ -235,7 +245,7 @@ content: |
 title: Back up your |charts-short| installation keys.
 ref: backup-charts-keys
 level: 4
-stepnum: 11
+stepnum: 12
 content: |
 
   .. include:: /includes/backup-restore-intro.rst
