@@ -63,3 +63,36 @@ transaction operations.
 
 .. include:: /includes/extracts/transactions-operations-catalog-tip.rst
 
+.. _txn-prod-considerations-ddl:
+
+Pending DDL Operations and Transactions
+---------------------------------------
+
+If a multi-document transaction is in progress, new DDL operations that
+affect the same database(s) wait behind the transaction. While these
+pending DDL operations exist, new transactions that access the same
+database as the pending DDL operations cannot obtain the required locks
+and will abort after waiting
+:parameter:`maxTransactionLockRequestTimeoutMillis`. In addition, new
+non-transaction operations that access the same database will block
+until they reach their ``maxTimeMS`` limit.
+
+To illustrate, compare the following two situations:
+
+Consider a situation where an in-progress transaction performs various
+CRUD operations on the ``employees`` collection in the ``hr`` database.
+While that transaction is in progress, a separate transaction that
+accesses the ``foobar`` collection in the ``hr`` database can start and
+complete.
+
+However, consider a situation where an in-progress transaction performs
+various CRUD operations on the ``employees`` collection in the ``hr``
+database and a separate DDL operation is issued to create an index on
+the ``fluffy`` collection in the ``hr`` database. The DDL operation
+waits for the transaction to finish.
+
+While the DDL operation is pending, a new transaction attempts to
+access the ``foobar`` collection in the ``hr`` database. If the DDL
+operation remains pending for
+:parameter:`maxTransactionLockRequestTimeoutMillis`, the new
+transaction aborts.
