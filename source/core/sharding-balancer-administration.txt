@@ -235,35 +235,29 @@ Chunk Migration and Replication
 
 .. versionchanged:: 3.4
 
-During chunk migration, the ``_secondaryThrottle`` value determines when
-the balancer proceeds with the next document in the chunk:
+During chunk migration, the ``_secondaryThrottle`` value determines
+when the migration proceeds with next document in the chunk.
 
-- If ``true``, then by default, each document move during chunk
-  migration propagates to at least one secondary before the balancer
-  proceeds with the next document. This is equivalent to a write
-  concern of :writeconcern:`{ w: 2 } <\<number\>>`.
- 
-  .. note:: 
+In the :data:`config.settings` collection:
 
-     The ``writeConcern`` field in the balancer configuration document
-     allows you to specify a different :doc:`write concern
-     </reference/write-concern>` semantics with the
-     ``_secondaryThrottle`` option. For an example, see
-     :ref:`sharded-cluster-config-secondary-throttle`.
+- If the ``_secondaryThrottle`` setting for the balancer is set to a
+  write concern, each document move during chunk migration must receive
+  the requested acknowledgement before proceeding with the next
+  document.
 
-- If ``false``, the balancer does not wait for replication to a
-  secondary and instead continues with the next document.
+- If the ``_secondaryThrottle`` setting is unset, the migration process
+  does not wait for replication to a secondary and instead continues
+  with the next document.
 
-Starting in MongoDB 3.4, for :ref:`WiredTiger <storage-wiredtiger>`,
-the default value ``_secondaryThrottle`` is ``false`` for all chunk
-migrations.
+  Default behavior for :ref:`WiredTiger <storage-wiredtiger>` starting
+  in MongoDB 3.4.
 
-The default value remains ``true`` for :ref:`MMAPv1 <storage-mmapv1>`.
+For the :dbcommand:`moveChunk` command, you can use the command's
+``_secondaryThrottle`` and ``writeConcern`` options to specify the
+behavior during the command. For details, see :dbcommand:`moveChunk`
+command.
 
-To update the ``_secondaryThrottle`` parameter for the balancer, see
-:ref:`sharded-cluster-config-secondary-throttle` for an example.
-
-Independent of the ``secondaryThrottle`` setting, certain phases of
+Independent of any ``_secondaryThrottle`` setting, certain phases of
 the chunk migration have the following replication policy:
 
 - MongoDB briefly pauses all application reads and writes to the
@@ -278,6 +272,10 @@ the chunk migration have the following replication policy:
   writes must be replicated to a majority of servers before further
   cleanup (from other outgoing migrations) or new incoming migrations
   can proceed.
+
+To update the ``_secondaryThrottle`` setting in the
+:data:`config.settings` collection, see
+:ref:`sharded-cluster-config-secondary-throttle` for an example.
 
 .. _migration-chunk-size-limit:
 
