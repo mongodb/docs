@@ -566,12 +566,6 @@ description: |
   values increase the durability of the journal, at the expense of disk
   performance.  The default journal commit interval is 100 milliseconds.
 
-  On MMAPv1, if the journal is on a different block device (e.g. physical
-  volume, RAID device, or LVM volume) than the data files, the default journal
-  commit interval is 30 milliseconds. Additionally, on MMAPv1, when a write
-  operation with ``j:true`` is pending, {{program}} will reduce
-  :setting:`~storage.journal.commitIntervalMs` to a third of the set value.
-
   On WiredTiger, the default journal commit interval is 100 milliseconds. Additionally,
   a write with ``j:true`` will cause an immediate sync of the journal.
 
@@ -759,30 +753,6 @@ description: |
   files in the :setting:`~storage.repairPath` and then replaces the original data
   files with the repaired data files.
 optional: true
----
-program: mongod
-name: repairpath
-args: <path>
-default: |
-  A ``_tmp_repairDatabase_<num>`` directory under the :setting:`~storage.dbPath`.
-directive: option
-description: |
-  {{intro}} working directory that MongoDB will use during the
-  :option:`--repair <mongod --repair>` operation. When ``--repair`` completes, the
-  {{role}} directory is empty, and
-  :setting:`~storage.dbPath` contains the repaired files.
-post: |
-  The {{role}} must be within the :setting:`~storage.dbPath`. You can
-  specify a symlink to {{role}} to use a path on a different file
-  system.
-
-  Only available for :binary:`~bin.mongod` instance using the MMAPv1 storage engine.
-
-  .. SEE: SERVER-4266
-optional: true
-replacement:
-  intro: "Specifies a"
-  dbpath: ":option:`--dbpath`"
 ---
 program: mongod
 name: setParameter
@@ -1041,47 +1011,6 @@ description: |
      secondary or slave will be permanently out of sync with the
      primary, which may cause significant consistency problems.
 optional: true
----
-program: mongod
-name: replIndexPrefetch
-args: null
-default: all
-directive: option
-description: |
-  .. |feature| replace:: {{role}}
-  .. include:: /includes/fact-feature-is-mmapv1-only.rst
-
-  {{intro}} :term:`secondary` members of a :term:`replica
-  set` load into memory before applying operations from the oplog. By
-  default secondaries load all indexes related to an operation into memory
-  before applying operations from the oplog.
-
-  Set this {{directive}} to one of the following:
-
-  .. list-table::
-     :header-rows: 1
-     :widths: 20 40
-
-     * - Value
-
-       - Description
-
-     * - ``none``
-
-       - Secondaries do not load indexes into memory.
-
-     * - ``all``
-
-       - Secondaries load all indexes related to an operation.
-
-     * - ``_id_only``
-
-       - Secondaries load no additional indexes into memory beyond the
-         already existing ``_id`` index.
-optional: true
-replacement:
-  intro: "Determines which indexes"
-  directive: option
 ---
 program: mongod
 name: master
@@ -2274,9 +2203,9 @@ args: string
 directive: option
 description: |
 
-  .. versionchanged:: 4.0
+  .. note:: 
 
-     MongoDB deprecates the MMAPv1 storage engine.
+     .. include:: /includes/fact-4.2-mmapv1-removed.rst
 
   {{intro}} storage engine for the {{program}} database. Available
   values include:
@@ -2297,9 +2226,6 @@ description: |
 
          .. versionadded:: 3.2
             Available in MongoDB Enterprise only.
-
-     * - ``mmapv1`` (Deprecated in MongoDB 4.0)
-       - To specify the :doc:`/core/mmapv1`.
 
 post: |
   If you attempt to start a {{program}} with a

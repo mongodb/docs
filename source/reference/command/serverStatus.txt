@@ -189,80 +189,6 @@ asserts
    value to provide context to the other values in the
    :serverstatus:`asserts` data structure.
 
-.. _server-status-backgroundflushing:
-.. _server-status-background-flushing:
-
-backgroundFlushing
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-
-   "backgroundFlushing" : {
-      "flushes" : <num>,
-      "total_ms" : <num>,
-      "average_ms" : <num>,
-      "last_ms" : <num>,
-      "last_finished" : ISODate("...")
-   },
-
-.. note::
-
-   ``backgroundFlushing`` information only appears for instances that
-   use the :doc:`MMAPv1 </core/mmapv1>` storage engine.
-
-.. serverstatus:: backgroundFlushing
-
-   A document that reports on the :binary:`~bin.mongod` process's periodic
-   writes to disk. Consider these values if you have concerns about
-   write performance and :ref:`journaling <journaling-status>`.
-
-
-.. serverstatus:: backgroundFlushing.flushes
-
-   The number of times the database has flushed all writes to disk.
-   This value will grow as database runs for longer periods of time.
-
-.. serverstatus:: backgroundFlushing.total_ms
-
-   The total number of milliseconds (ms) that the :binary:`~bin.mongod`
-   processes have spent writing (i.e. flushing) data to disk. Because
-   :serverstatus:`~backgroundFlushing.total_ms` is an absolute value,
-   consider the :serverstatus:`~backgroundFlushing.flushes` and
-   :serverstatus:`~backgroundFlushing.average_ms` values to provide
-   context.
-
-.. serverstatus:: backgroundFlushing.average_ms
-
-   The average time in milliseconds for each flush to disk, calculated
-   by dividing :serverstatus:`~backgroundFlushing.total_ms` by
-   :serverstatus:`~backgeroundFlushing.flushes`.
-
-   The :serverstatus:`~backgroundFlushing.average_ms` is more likely to
-   to represent a "normal" time as the value of the
-   :serverstatus:`~backgroundFlushing.flushes` increases. However,
-   abnormal data can skew this value. Use the
-   :serverstatus:`backgroundFlushing.last_ms` to check that a high
-   average is not skewed by transient historical issue or a random
-   write distribution.
-
-.. serverstatus:: backgroundFlushing.last_ms
-
-   The amount of time, in milliseconds, that the last flush operation
-   took to complete. Use this value to verify that the current
-   performance of the server is in line with the historical data
-   provided by :serverstatus:`backgroundFlushing.average_ms` and
-   :serverstatus:`backgroundFlushing.total_ms`.
-
-.. serverstatus:: backgroundFlushing.last_finished
-
-   The timestamp of the last completed flush operation in the
-   :term:`ISODate` format. If this value is more than a few minutes
-   past your server's current time and accounting for differences in
-   time zone, restarting the database may result in some data loss.
-
-   Also consider ongoing operations that might skew this value by
-   routinely blocking write operations.
-
 .. _server-status-connections:
 
 connections
@@ -306,131 +232,6 @@ connections
    Count of **all** incoming connections created to the server. This
    number includes connections that have since closed.
 
-.. _durability-status:
-.. _journaling-status:
-.. _server-status-journaling:
-
-dur (Journaling)
-~~~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-
-   "dur" : {
-      "commits" : <num>,
-      "journaledMB" : <num>,
-      "writeToDataFilesMB" : <num>,
-      "compression" : <num>,
-      "commitsInWriteLock" : <num>,
-      "earlyCommits" : <num>,
-      "timeMs" : {
-         "dt" : <num>,
-         "prepLogBuffer" : <num>,
-         "writeToJournal" : <num>,
-         "writeToDataFiles" : <num>,
-         "remapPrivateView" : <num>,
-         "commits" : <num>,
-         "commitsInWriteLock" : <num>
-      }
-   },
-
-.. note::
-
-   :serverstatus:`dur` (journaling) information only appears for
-   :binary:`~bin.mongod` instances that use the :doc:`MMAPv1
-   </core/mmapv1>` storage engine and have journaling enabled.
-
-.. serverstatus:: dur
-
-   A document that reports the :binary:`~bin.mongod` instance's
-   :doc:`journaling-related operations </core/journaling>` and
-   performance. MongoDB reports on this data based on 3 second
-   intervals, collected between 3 and 6 seconds in the past.
-
-.. serverstatus:: dur.commits
-
-   The number of transactions written to the :term:`journal` during the
-   last :ref:`journal group commit interval
-   <journaling-journal-commit-interval>`.
-
-.. serverstatus:: dur.journaledMB
-
-   The amount of data in megabytes (MB) written to :term:`journal`
-   during the last :ref:`journal group commit interval
-   <journaling-record-write-operation>`.
-
-.. serverstatus:: dur.writeToDataFilesMB
-
-   The amount of data in megabytes (MB) written from :term:`journal` to
-   the data files during the last :ref:`journal group commit interval
-   <journaling-record-write-operation>`.
-
-.. serverstatus:: dur.compression
-
-   The compression ratio of the data written to the :term:`journal`:
-
-   .. code-block:: javascript
-
-      ( journaled_size_of_data / uncompressed_size_of_data )
-
-.. serverstatus:: dur.commitsInWriteLock
-
-   The count of the commits that occurred while a write lock was held.
-   Commits in a write lock indicate a MongoDB node under a heavy write
-   load and call for further diagnosis.
-
-.. serverstatus:: dur.earlyCommits
-
-   The number of times MongoDB requested a commit before the scheduled
-   :ref:`journal group commit interval
-   <journaling-record-write-operation>`. Use this value to ensure that
-   your :ref:`journal group commit interval
-   <journaling-journal-commit-interval>` is not too long for your
-   deployment.
-
-.. serverstatus:: dur.timeMS
-
-   A document that reports on the performance of the :binary:`~bin.mongod`
-   instance during the various phases of journaling in the last
-   :ref:`journal group commit interval
-   <journaling-journal-commit-interval>`.
-
-.. serverstatus:: dur.timeMS.dt
-
-   The amount of time, in milliseconds, over which MongoDB collected
-   the :serverstatus:`dur.timeMS` data. Use this field to provide
-   context to the other :serverstatus:`dur.timeMS` field values.
-
-.. serverstatus:: dur.timeMS.prepLogBuffer
-
-   The amount of time, in milliseconds, spent preparing to write to the
-   journal. Smaller values indicate better journal performance.
-
-.. serverstatus:: dur.timeMS.writeToJournal
-
-   The amount of time, in milliseconds, spent actually writing to the
-   journal. File system speeds and device interfaces can affect
-   performance.
-
-.. serverstatus:: dur.timeMS.writeToDataFiles
-
-   The amount of time, in milliseconds, spent writing to data files
-   after journaling. File system speeds and device interfaces can
-   affect performance.
-
-.. serverstatus:: dur.timeMS.remapPrivateView
-
-   The amount of time, in milliseconds, spent remapping copy-on-write
-   memory mapped views. Smaller values indicate better journal
-   performance.
-
-.. serverstatus:: dur.timeMS.commits
-
-   The amount of time, in milliseconds, spent for commits.
-
-.. serverstatus:: dur.timeMS.commitsInWriteLock
-
-   The amount of time, in milliseconds, spent for commits that
-   occurred while a write lock was held.
 
 .. _server-status-extra-info:
 .. _server-status-extra_info:
@@ -1974,13 +1775,6 @@ mem
    :serverstatus:`mem.virtual` displays the quantity, in megabytes
    (MB), of virtual memory used by the :binary:`~bin.mongod` process.
 
-   With :term:`journaling <journal>` enabled and if using MMAPv1
-   storage engine, the value of :serverstatus:`mem.virtual` is at least
-   twice the value of :serverstatus:`mem.mapped`. If
-   :serverstatus:`mem.virtual` value is significantly larger than
-   :serverstatus:`mem.mapped` (e.g. 3 or more times), this may indicate
-   a memory leak.
-
 .. serverstatus:: mem.supported
 
    A boolean that indicates whether the underlying system supports
@@ -1989,23 +1783,6 @@ mem
    :serverstatus:`mem` values may not be accessible to the database
    server.
 
-.. serverstatus:: mem.mapped
-
-   *Only for the MMAPv1 storage engine.*
-
-   The amount of mapped memory, in megabytes (MB), by the database.
-   Because MongoDB uses memory-mapped files, this value is likely to be
-   to be roughly equivalent to the total size of your database or
-   databases.
-
-.. serverstatus:: mem.mappedWithJournal
-
-   *Only for the MMAPv1 storage engine.*
-
-   The amount of mapped memory, in megabytes (MB), including the memory
-   used for journaling. This value will always be twice the value of
-   :serverstatus:`mem.mapped`. This field is only included if
-   journaling is enabled.
 
 .. serverstatus:: mem.note
 
@@ -2233,24 +2010,6 @@ metrics
    A document that holds counters for several types of update and query
    operations that MongoDB handles using special operation types.
 
-.. serverstatus:: metrics.operation.fastmod
-
-   *Removed in 3.4.*
-
-   If using MMAPv1 storage engine, the number of :doc:`update
-   </tutorial/update-documents>` operations that neither cause documents to
-   grow nor require updates to the index. For example, this counter
-   would record an update operation that use the :update:`$inc`
-   operator to increment the value of a field that is not indexed.
-
-.. serverstatus:: metrics.operation.idhack
-
-   *Removed in 3.4.*
-
-   The number of queries that contain the ``_id`` field. For these
-   queries, MongoDB will use default index on the ``_id`` field and
-   skip all query plan analysis.
-
 .. serverstatus:: metrics.operation.scanAndOrder
 
    The total number of queries that return sorted numbers that cannot
@@ -2282,14 +2041,6 @@ metrics
 
    A document that reports on data related to record allocation in the
    on-disk memory files.
-
-.. serverstatus:: metrics.record.moves
-
-   For :doc:`/core/mmapv1`, :serverstatus:`metrics.record.moves`
-   reports the total number of times documents move within the on-disk
-   representation of the MongoDB data set. Documents move as a result
-   of operations that increase the size of the document beyond their
-   allocated record size.
 
 .. _server-status-replnetworkqueue:
 .. _server-status-repl-network-queue:

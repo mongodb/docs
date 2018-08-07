@@ -28,15 +28,6 @@ indexes on the collection, depending on the keys affected by the update.
    :ref:`partial <index-type-partial>` index if the documents involved
    in a write operation are included in the index.
 
-On :binary:`~bin.mongod` instances that use the
-:ref:`MMAPv1 <storage-mmapv1>` storage engine, update operations may
-cause a document to grow beyond its allocated space.
-When a document outgrows its allocated space, MMAPv1 moves
-the document to a new location on disk, and must
-update each index on the collection to point to the new document
-location. These move operations can be expensive but occur
-infrequently.
-
 In general, the performance gains that indexes provide for *read
 operations* are worth the insertion penalty. However, in order to
 optimize write performance when possible, be careful when creating new
@@ -46,39 +37,6 @@ actually use these indexes.
 For indexes and queries, see :doc:`/core/query-optimization`. For more
 information on indexes, see :doc:`/indexes` and
 :doc:`/applications/indexes`.
-
-.. _write-performance-and-document-growth:
-
-Document Growth and the MMAPv1 Storage Engine
----------------------------------------------
-
-Some update operations can increase the size of the document; for
-instance, if an update adds a new field to the document.
-
-For the MMAPv1 storage engine, if an update operation causes a document
-to exceed the currently allocated :term:`record size`, MongoDB
-relocates the document on disk with enough contiguous space to hold the
-document. Updates that require relocations take longer than updates
-that do not, particularly if the collection has indexes. If a
-collection has indexes, MongoDB must update all index entries. Thus,
-for a collection with many indexes, the move will impact the write
-throughput.
-
-.. versionchanged:: 3.0.0
-
-   By default, MongoDB uses :ref:`power-of-2-allocation` to add
-   :ref:`padding automatically <record-allocation-strategies>` for the
-   MMAPv1 storage engine. The :ref:`power-of-2-allocation` ensures that
-   MongoDB allocates document space in sizes that are powers of 2,
-   which helps ensure that MongoDB can efficiently reuse free space
-   created by document deletion or relocation as well as reduce the
-   occurrences of reallocations in many cases.
-
-Although :ref:`power-of-2-allocation` minimizes the
-occurrence of re-allocation, it does not eliminate document
-re-allocation.
-
-See :doc:`/core/mmapv1` for more information.
 
 Storage Performance
 -------------------

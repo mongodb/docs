@@ -13,10 +13,17 @@ Production Notes
 This page details system configurations that affect MongoDB,
 especially when running in production.
 
-.. admonition:: Deprecated
+.. admonition:: MMAPv1 Removed
    :class: warning
 
-   .. include:: /includes/fact-4.0-mmapv1-deprecated.rst
+   MongoDB 4.2 removes the deprecated MMAPv1 storage engine. To change
+   your MMAPv1 storage engine deployment to :doc:`/core/wiredtiger`, see:
+
+   - :doc:`/tutorial/change-standalone-wiredtiger`
+
+   - :doc:`/tutorial/change-replica-set-wiredtiger`
+
+   - :doc:`/tutorial/change-sharded-cluster-wiredtiger`
 
 .. include:: /includes/fact-mms-summary.rst
 
@@ -58,7 +65,6 @@ s390x
 
 .. include:: /includes/fact-platform-s390x.rst
 
-.. include:: /includes/fact-mmapv1-big-endian.rst
 
 .. _prod-notes-recommended-platforms:
 
@@ -120,21 +126,6 @@ can modify different documents in a collection at the same time.
    takes advantage of multiple CPU cores and how to improve operation
    throughput.
 
-MMAPv1 (*Deprecated in MongoDB 4.0*)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Beginning with MongoDB 3.0, :ref:`MMAPv1 <storage-mmapv1>` provides
-*collection-level locking*: All collections have a unique
-readers-writer lock that allows multiple clients to modify documents in
-different collections at the same time.
-
-For MongoDB versions 2.2 through 2.6 series, each database has a
-readers-writer lock that allows concurrent read access to a database,
-but gives exclusive access to a single write operation per database.
-See the :doc:`Concurrency </faq/concurrency>` page for more
-information. In earlier versions of MongoDB, all write operations
-contended for a single readers-writer lock for the entire
-:binary:`~bin.mongod` instance.
 
 Data Consistency
 ----------------
@@ -244,18 +235,6 @@ libraries (i.e. drivers) can run on big or little endian systems.
 Allocate Sufficient RAM and CPU
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MMAPv1 (*Deprecated in MongoDB 4.0*)
-````````````````````````````````````
-
-Due to its concurrency model, the :ref:`MMAPv1 <storage-mmapv1>` storage engine does not
-require many CPU cores. As such, increasing the number of cores can
-improve performance but does not provide significant return.
-
-At a minimum, ensure that your :binary:`~bin.mongod` or :binary:`~bin.mongos`
-has access to two real cores or one physical CPU.
-
-Increasing the amount of RAM accessible to MongoDB may help reduce the
-frequency of page faults.
 
 WiredTiger
 ``````````
@@ -296,9 +275,7 @@ Use Solid State Disks (SSDs)
 MongoDB has good results and a good price-performance ratio with
 SATA SSD (Solid State Disk).
 
-Use SSD if available and economical. Spinning disks can be
-performant, but SSDs' capacity for random I/O operations works well
-with the update model of MMAPv1.
+Use SSD if available and economical.
 
 Commodity (SATA) spinning drives are often a good option, as the
 random I/O performance increase with more expensive spinning drives
@@ -382,12 +359,6 @@ Assign swap space for your systems. Allocating swap space can avoid issues
 with memory contention and can prevent the OOM Killer on Linux systems
 from killing :binary:`~bin.mongod`.
 
-For the MMAPv1 storage engine, the method :binary:`~bin.mongod` uses
-to map files to memory ensures that the operating system will never
-store MongoDB data in swap space.  On Windows systems, using MMAPv1
-requires extra swap space due to commitment limits. For details,
-see :ref:`MongoDB on Windows <production-windows-pagefile>`.
-
 For the WiredTiger storage engine, given sufficient memory pressure,
 WiredTiger may store data in swap space.
 
@@ -407,12 +378,6 @@ Amazon's EBS volumes.
 
 Remote Filesystems
 ``````````````````
-
-With the MMAPv1 storage engine, the Network File System protocol (NFS)
-is not recommended as you may see performance problems when both the
-data files and the journal files are hosted on NFS. You may experience
-better performance if you place the journal on local or ``iscsi``
-volumes.
 
 With the WiredTiger storage engine, WiredTiger objects may be stored on
 remote file systems if the remote file system conforms to ISO/IEC
@@ -532,11 +497,6 @@ With the :ref:`WiredTiger storage engine <storage-wiredtiger>`, using
 XFS is **strongly recommended** for data bearing nodes to avoid
 performance issues that may occur when using EXT4 with WiredTiger.
 
-With the :ref:`MMAPv1 storage engine <storage-mmapv1>`, MongoDB
-preallocates its database files before using them and often creates
-large files. As such, you should use the XFS or EXT4 file systems. If
-possible, use XFS as it generally performs better with MongoDB.
-
 - In general, if you use the XFS file system, use at least version
   ``2.6.25`` of the Linux Kernel.
 
@@ -604,7 +564,7 @@ For **all** MongoDB deployments:
 - Use the Network Time Protocol (NTP) to synchronize time among
   your hosts. This is especially important in sharded clusters.
 
-For the **WiredTiger and MMAPv1** storage engines,
+For the **WiredTiger** storage engines,
 consider the following recommendations:
 
 - Turn off ``atime`` for the storage volume containing the :term:`database
@@ -653,16 +613,6 @@ For the **WiredTiger** storage engine:
   <https://www.mongodb.com/products/enterprise-grade-support>`_ can provide
   advice and guidance on non-zero readahead configurations.
 
-For the **MMAPv1** storage engine (*Deprecated in MongoDB 4.0*):
-
-- Ensure that readahead settings for the block devices that store the
-  database files are appropriate. For random access use patterns, set
-  low readahead values. A readahead of 32 (16 kB) often works well.
-
-  For a standard block device, you can run ``sudo blockdev --report``
-  to get the readahead settings and ``sudo blockdev --setra <value>
-  <device>`` to change the readahead settings. Refer to your specific
-  operating system manual for more information.
 
 MongoDB and TLS/SSL Libraries
 `````````````````````````````
@@ -713,53 +663,8 @@ MongoDB on Windows
 ~~~~~~~~~~~~~~~~~~
 
 
-MongoDB Using WiredTiger
-````````````````````````
-
 For MongoDB instances using the WiredTiger storage engine, performance
 on Windows is comparable to performance on Linux.
-
-MongoDB Using MMAPv1 (*Deprecated in MongoDB 4.0*)
-``````````````````````````````````````````````````
-
-Install Hotfix for MongoDB 2.6.6 and Later
-++++++++++++++++++++++++++++++++++++++++++
-
-Microsoft has released a hotfix for Windows 7 and Windows Server 2008
-R2, `KB2731284 <http://support.microsoft.com/kb/2731284>`_, that repairs a bug
-in these operating systems' use of memory-mapped files that adversely affects
-the performance of MongoDB using the MMAPv1 storage engine.
-
-Install this hotfix to obtain significant performance improvements on MongoDB
-2.6.6 and later releases in the 2.6 series, which use MMAPv1 exclusively,
-and on 3.0 and later when using MMAPv1 as the storage engine.
-
-.. _production-windows-pagefile:
-
-Configure Windows Page File For MMAPv1
-++++++++++++++++++++++++++++++++++++++
-
-Configure the page file such that the minimum and maximum page file
-size are equal and at least 32 GB. Use a multiple of this size if,
-during peak usage, you expect concurrent writes to many databases or
-collections. However, the page file size does not need to exceed the
-maximum size of the database.
-
-A large page file is needed as Windows requires enough space to
-accommodate all regions of memory mapped files made writable during
-peak usage, regardless of whether writes actually occur.
-
-The page file is not used for database storage and will not receive
-writes during normal MongoDB operation. As such, the page file will not
-affect performance, but it must exist and be large enough to
-accommodate Windows' commitment rules during peak database use.
-
-.. note::
-
-   Dynamic page file sizing is too slow to accommodate the rapidly
-   fluctuating commit charge of an active MongoDB deployment. This can
-   result in transient overcommitment situations that may lead to
-   abrupt server shutdown with a VirtualProtect error 1455.
 
 MongoDB on Virtual Environments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -822,28 +727,6 @@ Microsoft Azure offers two general types of storage:
 Standard storage, and Premium storage. MongoDB on Azure has better
 performance when using Premium storage than it does with Standard
 storage.
-
-For all :ref:`MMAPv1 <storage-mmapv1>` MongoDB deployments using Azure,
-you **must** mount the volume
-that hosts the :binary:`~bin.mongod` instance's :setting:`~storage.dbPath`
-with the *Host Cache Preference* ``READ/WRITE``.
-This applies to all Azure deployments running MMAPv1, using any guest operating
-system.
-
-If your volumes have inappropriate cache settings, MongoDB may
-eventually shut down with the following error:
-
-.. code-block:: none
-
-   [DataFileSync] FlushViewOfFile for <data file> failed with error 1 ...
-   [DataFileSync] Fatal Assertion 16387
-
-These shut downs do not produce data loss when
-:setting:`storage.journal.enabled` is set to ``true``. You can safely
-restart :binary:`~bin.mongod` at any time following this event.
-
-The performance characteristics of MongoDB may change with
-``READ/WRITE`` caching enabled.
 
 The TCP idle timeout on the Azure load balancer is 240 seconds by
 default, which can cause it to silently drop connections if the TCP

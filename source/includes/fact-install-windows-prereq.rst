@@ -47,10 +47,6 @@ Install all Windows Updates
      `KB2999226 <https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows>`__ 
      to provide Universal C Runtime support for Windows.
 
-   - Windows Server 2008 R2 and Windows 7 need 
-     `KB2731284 <http://support.microsoft.com/kb/2731284>`__ to resolve
-     an issue with memory mapped files on Windows.
-
 The Windows installer (``.msi``) file includes all other
 software dependencies and automatically upgrades any previous version 
 of MongoDB in the :ref:`same release series <release-version-numbers>`
