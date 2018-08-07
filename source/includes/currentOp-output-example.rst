@@ -28,7 +28,6 @@
             "numYields" : <number>,
             "locks" : {
                 "Global" : <string>,
-                "MMAPV1Journal" : <string>,
                 "Database" : <string>,
                 "Collection" : <string>,
                 "Metadata" : <string>,
@@ -61,9 +60,6 @@
                       "R" : NumberLong(0),
                       "W" : NumberLong(0)
                    }
-                },
-                "MMAPV1Journal": {
-                   ...
                 },
                 "Database" : {
                    ...
