@@ -49,15 +49,17 @@ export class Marian {
             return
         }
 
+        // Report on this search to Segment
         try {
             window.analytics.track('Search Queried', {
                 'query': query,
-                'searchProperties': properties
+                'searchProperties': (properties.length > 0) ? properties : 'all'
             });
         } catch (err) {
-            console.error(err);
+            console.error(err)
         }
 
+        // Make the search request
         if (this.currentRequest !== null) { this.currentRequest.abort() }
         const request = new XMLHttpRequest()
         this.currentRequest = request
