@@ -4,6 +4,6 @@
 
 - :ref:`Debian <install-debian-from-tarball>`
 
-- :ref:`SUSE <install-suse-from-tarball>`
+- :ref:`SUSE <install-enterprise-suse-from-tarball>`
 
 - :ref:`Amazon AMI <install-amazon-from-tarball>`
