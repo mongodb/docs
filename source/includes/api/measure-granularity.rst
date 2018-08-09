@@ -1,3 +1,3 @@
 Each measurement request must include either the
-``period`` :ref:`query parameter <measurements-query-parameters>`
+``period`` query parameter
 or both the ``start`` and ``end`` query parameters.
