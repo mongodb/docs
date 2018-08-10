@@ -114,10 +114,10 @@ Normally, if you add or change an advanced option and apply it, the members of
 the :term:`replica set` or :term:`sharded cluster` restart to apply the new
 settings. If certain advanced options are set and then applied, the
 :term:`Automation Agent` restarts the member as it should, but the
-:program:`mongod` does not start. The Automation Agent keeps trying to start
-the :program:`mongod` until you :doc:`edit the configuration </tutorial/edit-deployment>`
+:binary:`~bin.mongod` does not start. The Automation Agent keeps trying to start
+the :binary:`~bin.mongod` until you :doc:`edit the configuration </tutorial/edit-deployment>`
 and revert the :doc:`Advanced Option </reference/deployment-advanced-options>`
-that prevents the :program:`mongod` from starting.
+that prevents the :binary:`~bin.mongod` from starting.
 
 The following advanced options cannot be enabled using Automation:
 
@@ -253,20 +253,19 @@ Backup has full support for replica sets and sharded clusters.
 Why doesn't the Backup feature support standalone deployments?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-After an initial sync of your data, |mms| copies
-data from the :term:`oplog` to provide a continuous backup with
-point-in-time recovery. |mms| does not support backup of standalone servers,
-which do not have an oplog. To support backup with a single
-:program:`mongod` instance, you can run a one-member
-replica set.
+After an initial sync of your data, |mms| copies data from the
+:term:`oplog` to provide a continuous backup with point-in-time
+recovery. |mms| does not support backup of standalone hosts because
+they do not have an :term:`oplog`. To support backup with a single
+:binary:`~bin.mongod` instance, you can run a one-member replica set.
 
 .. seealso:: :doc:`/tutorial/convert-standalone-to-replica-set`
 
 How Does |mms| Measure Data Size?
 +++++++++++++++++++++++++++++++++
 
-|mms| uses the following conversions to measure snapshot size and to measure
-how much oplog data has been processed:
+|mms| uses the following conversions to measure snapshot size and to
+measure how much oplog data has been processed:
 
 - 1 MB = 1024\ :sup:`2` bytes
 
@@ -291,14 +290,17 @@ Where should I run the Backup Agent?
 
 Run the Backup Agent on a host that:
 
-- Is separate from your MongoDB instances. This avoids system resource contention.
+- Is separate from your MongoDB instances. This avoids system resource
+  contention.
 
 - Can connect to your MongoDB instances. Check network settings for
-  connections between the agent and MongoDB hosts. For a list of needed ports,
-  see :doc:`open ports for agents </reference/firewall-configuration>`.
+  connections between the agent and MongoDB hosts. For a list of
+  needed ports, see
+  :doc:`open ports for agents </reference/firewall-configuration>`.
 
-- Has at least 2 CPU cores and 3 GB of RAM above platform requirements. With each
-  backup job it runs, the Backup Agent further impacts host performance.
+- Has at least 2 CPU cores and 3 GB of RAM above platform
+  requirements. With each backup job it runs, the Backup Agent further
+  impacts host performance.
 
 Can I run the Backup and Monitoring Agents on a Single System?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -306,20 +308,21 @@ Can I run the Backup and Monitoring Agents on a Single System?
 There is no technical restriction that prevents the Backup Agent and
 the Monitoring Agent from running on a single system or host. However,
 both agents have resource requirements, and running both on a single
-system can affect the ability of these agents to support your deployment
-in |mms|.
+system can affect the ability of these agents to support your
+deployment in |mms|.
 
 The resources required by the Backup Agent depend on rate and size
 of new oplog entries (i.e. total oplog gigabyte/hour produced.)
-The resources required by the Monitoring Agent depend on the number of
-monitored :program:`mongod` instances and the total number of
-:term:`databases <database>` provided by the :program:`mongod` instances.
+The resources that the Monitoring Agent requires depends on the number
+of monitored :binary:`~bin.mongod` instances and the total number of
+:term:`databases <database>` provided by the :binary:`~bin.mongod`
+instances.
 
 Can I run multiple Backup Agents to achieve high availability?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You can run multiple Backup Agents for high availability. If you do, the
-Backup Agents must run on different hosts.
+You can run multiple Backup Agents for high availability. If you do,
+the Backup Agents must run on different hosts.
 
 When you run multiple Backup Agents, only one agent per project is the
 **primary agent**. The primary agent performs the backups. The
@@ -443,8 +446,9 @@ How does |mms| provide point-in-time restores?
 ++++++++++++++++++++++++++++++++++++++++++++++
 
 |mms| first creates a local restore of a snapshot preceding the point
-in time and then applies the stored oplog entries to reach the
-specified point in time.
+in time and downloads it to your target host. The MongoDB Backup
+Restore Utility running on that host then downloads and applies oplog
+entries to reach the specified point in time.
 
 .. cond:: onprem
 
@@ -452,7 +456,7 @@ specified point in time.
    depends on the retention policy of the snapshots and the configured
    point-in-time window.
 
-   For information on retention policy and the point-in-time window,
+   To learn more about retention policy and the point-in-time window,
    see :ref:`edit-snapshot-schedule`.
 
 .. cond:: cloud
@@ -460,7 +464,7 @@ specified point in time.
    |mms| can build a restore to any point in time within a 24-hour
    period by replaying the oplog to the desired time.
 
-   For procedures on restoring replica sets and sharded clusters, see
+   To learn how to restore replica sets and sharded clusters, see
    :doc:`/tutorial/nav/backup-restore-deployments`
 
 Can I take snapshots more frequently than every 6 hours?
@@ -493,14 +497,12 @@ to your infrastructure.
 .. cond:: cloud
 
    Within the US, |mms| sends snapshots at 50-100 Mbps. Assuming a
-   compression factor of 4x and transmission speeds of 50 Mbps, a 250 GB
-   snapshot will take 2.5 hours.
+   compression factor of 4x and transmission speeds of 50 Mbps, a 250
+   GB snapshot will take 2.5 hours.
 
-In addition, point-in-time restores that require creating a new
-snapshot take additional time, which depends on the size of the
-scheduled snapshot and the amount the oplog entries that |mms| must
-apply to the preceding snapshot to roll forward to the requested
-point-in-time of the backup.
+In addition, point-in-time restores depend upon the amount the oplog
+entries that your host must apply to the received snapshot to roll
+forward to the requested point-in-time of the backup.
 
 Does the Backup feature perform any data validation?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
