@@ -10,10 +10,8 @@ Any users or roles you do not choose to manage in an |mms| project have their
 MongoDB deployments.
 
 .. note::
-   If you toggle :guilabel:`Synced` to ``OFF`` after import, any users or
-   roles you create are deleted.
-
-.. _consistent-users-and-roles:
+   If you toggle :guilabel:`Synced` to ``OFF`` after import, any users
+   or roles you create are deleted.
 
 Consistent Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
