@@ -1,3 +1,29 @@
+// This does NOT include guides landing: we need a new design for how that
+// should look
+const setupAdapters = {
+  'manual': {
+    rootElementSelector: '.main-column',
+    pageContentSelector: '.document'
+  },
+  'guides': {
+    rootElementSelector: '.main-column',
+    pageContentSelector: '.body'
+  },
+  'landing': {
+    rootElementSelector: '.main__content',
+    pageContentSelector: '.main__cards'
+  },
+}
+
+function getSetupAdapter() {
+    const property = document.body.getAttribute('data-project')
+    if (property === 'landing' || property === 'guides') {
+        return setupAdapters[property]
+    }
+
+    return setupAdapters.manual
+}
+
 function decodeUrlParameter(uri) {
     return decodeURIComponent(uri.replace(/\+/g, '%20'))
 }
@@ -159,25 +185,22 @@ export class MarianUI {
 
         this.query = this.parseUrl()
 
-        this.bodyElement = null
+        // The element containg page content to show/hide when hiding/showing
+        // the search panel.
+        this.pageContentElement = null
+
         document.addEventListener('DOMContentLoaded', () => {
-            const rootElement = [
-                document.querySelector('.main-column'),
-                document.querySelector('.main'),
-                document.body].filter((el) => Boolean(el))[0]
-
-            rootElement.appendChild(this.container)
-
-            const candidates = ['.main__cards', '.main__content', '.document']
-            for (let i = 0; i < candidates.length; i += 1) {
-                const candidate = candidates[i]
-                this.bodyElement = document.querySelector(candidate)
-                if (this.bodyElement) { break }
-            }
-
-            // If we can't find a page body, just use a dummy element
-            if (!this.bodyElement) {
-                this.bodyElement = document.createElement('div')
+            const adapter = getSetupAdapter()
+            const rootElement = document.querySelector(adapter.rootElementSelector)
+            const pageContentCandidate = document.querySelector(adapter.pageContentSelector)
+            if (rootElement !== null && pageContentCandidate !== null) {
+                this.pageContentElement = pageContentCandidate
+                rootElement.appendChild(this.container)
+            } else {
+                // If we can't find a page body, just use a dummy element
+                if (!this.pageContentElement) {
+                    this.pageContentElement = document.createElement('div')
+                }
             }
 
             this.search(this.query)
@@ -211,12 +234,12 @@ export class MarianUI {
 
     show() {
         this.container.className = 'marian marian--shown'
-        this.bodyElement.style.display = 'none'
+        this.pageContentElement.style.display = 'none'
     }
 
     hide() {
         this.container.className = 'marian'
-        this.bodyElement.style.removeProperty('display')
+        this.pageContentElement.style.removeProperty('display')
     }
 
     search(query) {

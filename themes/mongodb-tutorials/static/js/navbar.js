@@ -27227,6 +27227,32 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	// This does NOT include guides landing: we need a new design for how that
+	// should look
+	var setupAdapters = {
+	    'manual': {
+	        rootElementSelector: '.main-column',
+	        pageContentSelector: '.document'
+	    },
+	    'guides': {
+	        rootElementSelector: '.main-column',
+	        pageContentSelector: '.body'
+	    },
+	    'landing': {
+	        rootElementSelector: '.main__content',
+	        pageContentSelector: '.main__cards'
+	    }
+	};
+	
+	function getSetupAdapter() {
+	    var property = document.body.getAttribute('data-project');
+	    if (property === 'landing' || property === 'guides') {
+	        return setupAdapters[property];
+	    }
+	
+	    return setupAdapters.manual;
+	}
+	
 	function decodeUrlParameter(uri) {
 	    return decodeURIComponent(uri.replace(/\+/g, '%20'));
 	}
@@ -27412,26 +27438,22 @@
 	
 	        this.query = this.parseUrl();
 	
-	        this.bodyElement = null;
+	        // The element containg page content to show/hide when hiding/showing
+	        // the search panel.
+	        this.pageContentElement = null;
+	
 	        document.addEventListener('DOMContentLoaded', function () {
-	            var rootElement = [document.querySelector('.main-column'), document.querySelector('.main'), document.body].filter(function (el) {
-	                return Boolean(el);
-	            })[0];
-	
-	            rootElement.appendChild(_this3.container);
-	
-	            var candidates = ['.main__cards', '.main__content', '.document'];
-	            for (var i = 0; i < candidates.length; i += 1) {
-	                var candidate = candidates[i];
-	                _this3.bodyElement = document.querySelector(candidate);
-	                if (_this3.bodyElement) {
-	                    break;
+	            var adapter = getSetupAdapter();
+	            var rootElement = document.querySelector(adapter.rootElementSelector);
+	            var pageContentCandidate = document.querySelector(adapter.pageContentSelector);
+	            if (rootElement !== null && pageContentCandidate !== null) {
+	                _this3.pageContentElement = pageContentCandidate;
+	                rootElement.appendChild(_this3.container);
+	            } else {
+	                // If we can't find a page body, just use a dummy element
+	                if (!_this3.pageContentElement) {
+	                    _this3.pageContentElement = document.createElement('div');
 	                }
-	            }
-	
-	            // If we can't find a page body, just use a dummy element
-	            if (!_this3.bodyElement) {
-	                _this3.bodyElement = document.createElement('div');
 	            }
 	
 	            _this3.search(_this3.query);
@@ -27469,13 +27491,13 @@
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
-	            this.bodyElement.style.display = 'none';
+	            this.pageContentElement.style.display = 'none';
 	        }
 	    }, {
 	        key: 'hide',
 	        value: function hide() {
 	            this.container.className = 'marian';
-	            this.bodyElement.style.removeProperty('display');
+	            this.pageContentElement.style.removeProperty('display');
 	        }
 	    }, {
 	        key: 'search',

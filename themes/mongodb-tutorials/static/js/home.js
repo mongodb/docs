@@ -22265,6 +22265,32 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	// This does NOT include guides landing: we need a new design for how that
+	// should look
+	var setupAdapters = {
+	    'manual': {
+	        rootElementSelector: '.main-column',
+	        pageContentSelector: '.document'
+	    },
+	    'guides': {
+	        rootElementSelector: '.main-column',
+	        pageContentSelector: '.body'
+	    },
+	    'landing': {
+	        rootElementSelector: '.main__content',
+	        pageContentSelector: '.main__cards'
+	    }
+	};
+	
+	function getSetupAdapter() {
+	    var property = document.body.getAttribute('data-project');
+	    if (property === 'landing' || property === 'guides') {
+	        return setupAdapters[property];
+	    }
+	
+	    return setupAdapters.manual;
+	}
+	
 	function decodeUrlParameter(uri) {
 	    return decodeURIComponent(uri.replace(/\+/g, '%20'));
 	}
@@ -22450,26 +22476,22 @@
 	
 	        this.query = this.parseUrl();
 	
-	        this.bodyElement = null;
+	        // The element containg page content to show/hide when hiding/showing
+	        // the search panel.
+	        this.pageContentElement = null;
+	
 	        document.addEventListener('DOMContentLoaded', function () {
-	            var rootElement = [document.querySelector('.main-column'), document.querySelector('.main'), document.body].filter(function (el) {
-	                return Boolean(el);
-	            })[0];
-	
-	            rootElement.appendChild(_this3.container);
-	
-	            var candidates = ['.main__cards', '.main__content', '.document'];
-	            for (var i = 0; i < candidates.length; i += 1) {
-	                var candidate = candidates[i];
-	                _this3.bodyElement = document.querySelector(candidate);
-	                if (_this3.bodyElement) {
-	                    break;
+	            var adapter = getSetupAdapter();
+	            var rootElement = document.querySelector(adapter.rootElementSelector);
+	            var pageContentCandidate = document.querySelector(adapter.pageContentSelector);
+	            if (rootElement !== null && pageContentCandidate !== null) {
+	                _this3.pageContentElement = pageContentCandidate;
+	                rootElement.appendChild(_this3.container);
+	            } else {
+	                // If we can't find a page body, just use a dummy element
+	                if (!_this3.pageContentElement) {
+	                    _this3.pageContentElement = document.createElement('div');
 	                }
-	            }
-	
-	            // If we can't find a page body, just use a dummy element
-	            if (!_this3.bodyElement) {
-	                _this3.bodyElement = document.createElement('div');
 	            }
 	
 	            _this3.search(_this3.query);
@@ -22507,13 +22529,13 @@
 	        key: 'show',
 	        value: function show() {
 	            this.container.className = 'marian marian--shown';
-	            this.bodyElement.style.display = 'none';
+	            this.pageContentElement.style.display = 'none';
 	        }
 	    }, {
 	        key: 'hide',
 	        value: function hide() {
 	            this.container.className = 'marian';
-	            this.bodyElement.style.removeProperty('display');
+	            this.pageContentElement.style.removeProperty('display');
 	        }
 	    }, {
 	        key: 'search',
@@ -22981,12 +23003,34 @@
 	
 	var FEEDBACK_URL = 'http://deluge.us-east-1.elasticbeanstalk.com/';
 	
-	function addQueryParameters(url /*: string*/, parameters /*: Map<string, string|boolean>*/) /*: string*/{
+	function addQueryParameters(url /*: string*/, parameters) /*: string*/{
 	    var queryComponents = [];
 	
-	    parameters.forEach(function (value, key) {
-	        queryComponents.push(encodeURIComponent(key) + '=' + encodeURIComponent(JSON.stringify(value)));
-	    });
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+	
+	    try {
+	        for (var _iterator = Object.keys(parameters)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	            var key = _step.value;
+	
+	            var value = parameters[key];
+	            queryComponents.push(encodeURIComponent(key) + '=' + encodeURIComponent(JSON.stringify(value)));
+	        }
+	    } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	    } finally {
+	        try {
+	            if (!_iteratorNormalCompletion && _iterator.return) {
+	                _iterator.return();
+	            }
+	        } finally {
+	            if (_didIteratorError) {
+	                throw _iteratorError;
+	            }
+	        }
+	    }
 	
 	    return url + '?' + queryComponents.join('&');
 	}
@@ -23036,12 +23080,46 @@
 	        }
 	    }, {
 	        key: 'sendRating',
-	        value: function sendRating(vote /*: boolean*/, fields /*: Map<string, string|boolean>*/) /*: Promise<void>*/{
-	            var _this2 = this;
+	        value: function sendRating(vote /*: boolean*/, fields) /*: Promise<void>*/{
+	            var path = this.project + '/' + this.path;
 	
+	            // Report to Segment
+	            var analyticsData = { 'useful': vote };
+	            var _iteratorNormalCompletion2 = true;
+	            var _didIteratorError2 = false;
+	            var _iteratorError2 = undefined;
+	
+	            try {
+	                for (var _iterator2 = Object.keys(fields)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	                    var fieldName = _step2.value;
+	
+	                    analyticsData[fieldName] = fields[fieldName];
+	                }
+	            } catch (err) {
+	                _didIteratorError2 = true;
+	                _iteratorError2 = err;
+	            } finally {
+	                try {
+	                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	                        _iterator2.return();
+	                    }
+	                } finally {
+	                    if (_didIteratorError2) {
+	                        throw _iteratorError2;
+	                    }
+	                }
+	            }
+	
+	            try {
+	                window.analytics.track('Feedback Submitted', analyticsData);
+	            } catch (err) {
+	                console.error(err);
+	            }
+	
+	            // Report to Deluge
 	            return new Promise(function (resolve, reject) {
-	                fields.set('v', vote);
-	                fields.set('p', _this2.project + '/' + _this2.path);
+	                fields.v = vote;
+	                fields.p = path;
 	                var url = addQueryParameters(FEEDBACK_URL, fields);
 	
 	                // Report this rating using an image GET to work around the
@@ -23076,7 +23154,7 @@
 		value: true
 	});
 	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /* ../src/components/MainWidget.html generated by Svelte v1.40.0 */
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /* ../src/components/MainWidget.html generated by Svelte v1.64.1 */
 	
 	
 	var _BinaryQuestion = __webpack_require__(191);
@@ -23150,7 +23228,7 @@
 				throw new Error('Assertion failed: Feedback submitted without vote');
 			}
 	
-			var fields = new Map();
+			var fields = {};
 			var answers = this.get('answers');
 			var _iteratorNormalCompletion = true;
 			var _didIteratorError = false;
@@ -23162,7 +23240,7 @@
 	
 					var answer = answers[question];
 					if (answer !== null && answer !== undefined) {
-						fields.set(question, answer);
+						fields[question] = answer;
 					}
 				}
 			} catch (err) {
@@ -23228,21 +23306,29 @@
 		}
 	};
 	
-	function create_main_fragment(state, component) {
+	function create_main_fragment(component, state) {
 		var div, div_1, text, span, text_2, text_4, div_2, text_5;
+	
+		var if_block = state.state === 'Initial' && create_if_block(component, state);
+	
+		var if_block_1 = state.state !== 'Initial' && create_if_block_1(component, state);
 	
 		function click_handler(event) {
 			component.toggle();
 		}
 	
-		var if_block = state.state === 'Initial' && create_if_block(state, component);
+		var if_block_2 = (state.state === 'Voted-Up' || state.state === 'Voted-Down') && create_if_block_2(component, state);
 	
-		var if_block_1 = state.state !== 'Initial' && create_if_block_1(state, component);
-	
-		var if_block_2 = (state.state === 'Voted-Up' || state.state === 'Voted-Down') && create_if_block_2(state, component);
+		function select_block_type_1(state) {
+			if (state.state === 'Voted-Down') return create_if_block_3;
+			if (state.state == 'Pending ') return create_if_block_4;
+			if (state.state === 'NotVoted') return create_if_block_5;
+			if (typeof state.state === 'boolean') return create_if_block_6;
+			return null;
+		}
 	
 		var current_block_type = select_block_type_1(state);
-		var if_block_3 = current_block_type && current_block_type(state, component);
+		var if_block_3 = current_block_type && current_block_type(component, state);
 	
 		return {
 			c: function create() {
@@ -23263,11 +23349,11 @@
 			},
 	
 			h: function hydrate() {
-				div.className = state.delugeClass;
-				div_1.className = state.delugeHeaderClass;
-				addListener(div_1, "click", click_handler);
 				span.className = "deluge-helpful";
+				addListener(div_1, "click", click_handler);
+				div_1.className = state.delugeHeaderClass;
 				div_2.className = state.delugeBodyClass;
+				div.className = state.delugeClass;
 			},
 	
 			m: function mount(target, anchor) {
@@ -23286,17 +23372,9 @@
 			},
 	
 			p: function update(changed, state) {
-				if (changed.delugeClass) {
-					div.className = state.delugeClass;
-				}
-	
-				if (changed.delugeHeaderClass) {
-					div_1.className = state.delugeHeaderClass;
-				}
-	
 				if (state.state === 'Initial') {
 					if (!if_block) {
-						if_block = create_if_block(state, component);
+						if_block = create_if_block(component, state);
 						if_block.c();
 						if_block.m(div_1, text);
 					}
@@ -23308,7 +23386,7 @@
 	
 				if (state.state !== 'Initial') {
 					if (!if_block_1) {
-						if_block_1 = create_if_block_1(state, component);
+						if_block_1 = create_if_block_1(component, state);
 						if_block_1.c();
 						if_block_1.m(div_1, null);
 					}
@@ -23318,13 +23396,13 @@
 					if_block_1 = null;
 				}
 	
-				if (changed.delugeBodyClass) {
-					div_2.className = state.delugeBodyClass;
+				if (changed.delugeHeaderClass) {
+					div_1.className = state.delugeHeaderClass;
 				}
 	
 				if (state.state === 'Voted-Up' || state.state === 'Voted-Down') {
 					if (!if_block_2) {
-						if_block_2 = create_if_block_2(state, component);
+						if_block_2 = create_if_block_2(component, state);
 						if_block_2.c();
 						if_block_2.m(div_2, text_5);
 					}
@@ -23341,9 +23419,17 @@
 						if_block_3.u();
 						if_block_3.d();
 					}
-					if_block_3 = current_block_type && current_block_type(state, component);
+					if_block_3 = current_block_type && current_block_type(component, state);
 					if (if_block_3) if_block_3.c();
 					if (if_block_3) if_block_3.m(div_2, null);
+				}
+	
+				if (changed.delugeBodyClass) {
+					div_2.className = state.delugeBodyClass;
+				}
+	
+				if (changed.delugeClass) {
+					div.className = state.delugeClass;
 				}
 			},
 	
@@ -23356,9 +23442,9 @@
 			},
 	
 			d: function destroy() {
-				removeListener(div_1, "click", click_handler);
 				if (if_block) if_block.d();
 				if (if_block_1) if_block_1.d();
+				removeListener(div_1, "click", click_handler);
 				if (if_block_2) if_block_2.d();
 				if (if_block_3) if_block_3.d();
 			}
@@ -23366,7 +23452,7 @@
 	}
 	
 	// (3:4) {{ #if state === 'Initial' }}
-	function create_if_block(state, component) {
+	function create_if_block(component, state) {
 		var span;
 	
 		return {
@@ -23392,7 +23478,7 @@
 	}
 	
 	// (9:4) {{ #if state !== 'Initial' }}
-	function create_if_block_1(state, component) {
+	function create_if_block_1(component, state) {
 		var span;
 	
 		return {
@@ -23418,7 +23504,7 @@
 	}
 	
 	// (15:4) {{ #if state === 'Voted-Up' || state === 'Voted-Down' }}
-	function create_if_block_2(state, component) {
+	function create_if_block_2(component, state) {
 		var p;
 	
 		return {
@@ -23440,7 +23526,7 @@
 	}
 	
 	// (29:12) {{ #if state === false }}
-	function create_if_block_7(state, component) {
+	function create_if_block_7(component, state) {
 		var li;
 	
 		return {
@@ -23462,11 +23548,20 @@
 	}
 	
 	// (32:12) {{ #each questions as question }}
-	function create_each_block(state, questions, question, question_index, component) {
+	function create_each_block(component, state) {
+		var question = state.question,
+		    each_value = state.each_value,
+		    question_index = state.question_index;
 		var li;
 	
-		var current_block_type = select_block_type(state, questions, question, question_index);
-		var if_block = current_block_type && current_block_type(state, questions, question, question_index, component);
+		function select_block_type(state) {
+			if (question.type === 'binary') return create_if_block_8;
+			if (question.type === 'freeform') return create_if_block_9;
+			return null;
+		}
+	
+		var current_block_type = select_block_type(state);
+		var if_block = current_block_type && current_block_type(component, state);
 	
 		return {
 			c: function create() {
@@ -23479,15 +23574,18 @@
 				if (if_block) if_block.m(li, null);
 			},
 	
-			p: function update(changed, state, questions, question, question_index) {
-				if (current_block_type === (current_block_type = select_block_type(state, questions, question, question_index)) && if_block) {
-					if_block.p(changed, state, questions, question, question_index);
+			p: function update(changed, state) {
+				question = state.question;
+				each_value = state.each_value;
+				question_index = state.question_index;
+				if (current_block_type === (current_block_type = select_block_type(state)) && if_block) {
+					if_block.p(changed, state);
 				} else {
 					if (if_block) {
 						if_block.u();
 						if_block.d();
 					}
-					if_block = current_block_type && current_block_type(state, questions, question, question_index, component);
+					if_block = current_block_type && current_block_type(component, state);
 					if (if_block) if_block.c();
 					if (if_block) if_block.m(li, null);
 				}
@@ -23505,28 +23603,23 @@
 	}
 	
 	// (34:16) {{ #if question.type === 'binary' }}
-	function create_if_block_8(state, questions, question, question_index, component) {
+	function create_if_block_8(component, state) {
+		var question = state.question,
+		    each_value = state.each_value,
+		    question_index = state.question_index;
 	
+		var binaryquestion_initial_data = {
+			name: question.name,
+			caption: question.caption
+		};
 		var binaryquestion = new _BinaryQuestion2.default({
-			_root: component._root,
-			data: {
-				name: question.name,
-				caption: question.caption
-			}
+			root: component.root,
+			data: binaryquestion_initial_data
 		});
 	
 		binaryquestion.on("change", function (event) {
-			var questions = binaryquestion_context.questions,
-			    question_index = binaryquestion_context.question_index,
-			    question = questions[question_index];
-	
 			component.update(question.name, event);
 		});
-	
-		var binaryquestion_context = {
-			questions: questions,
-			question_index: question_index
-		};
 	
 		return {
 			c: function create() {
@@ -23537,14 +23630,14 @@
 				binaryquestion._mount(target, anchor);
 			},
 	
-			p: function update(changed, state, questions, question, question_index) {
+			p: function update(changed, state) {
+				question = state.question;
+				each_value = state.each_value;
+				question_index = state.question_index;
 				var binaryquestion_changes = {};
 				if (changed.questions) binaryquestion_changes.name = question.name;
 				if (changed.questions) binaryquestion_changes.caption = question.caption;
 				binaryquestion._set(binaryquestion_changes);
-	
-				binaryquestion_context.questions = questions;
-				binaryquestion_context.question_index = question_index;
 			},
 	
 			u: function unmount() {
@@ -23558,28 +23651,23 @@
 	}
 	
 	// (36:57) 
-	function create_if_block_9(state, questions, question, question_index, component) {
+	function create_if_block_9(component, state) {
+		var question = state.question,
+		    each_value = state.each_value,
+		    question_index = state.question_index;
 	
+		var freeformquestion_initial_data = {
+			name: question.name,
+			caption: question.caption
+		};
 		var freeformquestion = new _FreeformQuestion2.default({
-			_root: component._root,
-			data: {
-				name: question.name,
-				caption: question.caption
-			}
+			root: component.root,
+			data: freeformquestion_initial_data
 		});
 	
 		freeformquestion.on("change", function (event) {
-			var questions = freeformquestion_context.questions,
-			    question_index = freeformquestion_context.question_index,
-			    question = questions[question_index];
-	
 			component.update(question.name, event);
 		});
-	
-		var freeformquestion_context = {
-			questions: questions,
-			question_index: question_index
-		};
 	
 		return {
 			c: function create() {
@@ -23590,14 +23678,14 @@
 				freeformquestion._mount(target, anchor);
 			},
 	
-			p: function update(changed, state, questions, question, question_index) {
+			p: function update(changed, state) {
+				question = state.question;
+				each_value = state.each_value;
+				question_index = state.question_index;
 				var freeformquestion_changes = {};
 				if (changed.questions) freeformquestion_changes.name = question.name;
 				if (changed.questions) freeformquestion_changes.caption = question.caption;
 				freeformquestion._set(freeformquestion_changes);
-	
-				freeformquestion_context.questions = questions;
-				freeformquestion_context.question_index = question_index;
 			},
 	
 			u: function unmount() {
@@ -23611,7 +23699,7 @@
 	}
 	
 	// (19:4) {{ #if state === 'Voted-Down' }}
-	function create_if_block_3(state, component) {
+	function create_if_block_3(component, state) {
 		var p, text, a, a_title_value;
 	
 		function click_handler(event) {
@@ -23628,10 +23716,10 @@
 			},
 	
 			h: function hydrate() {
+				addListener(a, "click", click_handler);
 				a.className = "deluge-fix-button jira-link jirafeedback";
 				a.target = "_blank";
 				a.title = a_title_value = "Report a problem with " + state.pagename + " on Jira";
-				addListener(a, "click", click_handler);
 			},
 	
 			m: function mount(target, anchor) {
@@ -23657,7 +23745,7 @@
 	}
 	
 	// (21:35) 
-	function create_if_block_4(state, component) {
+	function create_if_block_4(component, state) {
 		var p;
 	
 		return {
@@ -23681,7 +23769,7 @@
 	}
 	
 	// (23:37) 
-	function create_if_block_5(state, component) {
+	function create_if_block_5(component, state) {
 		var a, text_1, a_1;
 	
 		function click_handler(event) {
@@ -23703,12 +23791,12 @@
 			},
 	
 			h: function hydrate() {
+				addListener(a, "click", click_handler);
 				a.id = "rate-up";
 				a.className = "deluge-vote-button";
-				addListener(a, "click", click_handler);
+				addListener(a_1, "click", click_handler_1);
 				a_1.id = "rate-down";
 				a_1.className = "deluge-vote-button";
-				addListener(a_1, "click", click_handler_1);
 			},
 	
 			m: function mount(target, anchor) {
@@ -23733,17 +23821,21 @@
 	}
 	
 	// (26:43) 
-	function create_if_block_6(state, component) {
+	function create_if_block_6(component, state) {
 		var div, ul, if_block_anchor, text, div_1, button, text_2, button_1;
 	
-		var if_block = state.state === false && create_if_block_7(state, component);
+		var if_block = state.state === false && create_if_block_7(component, state);
 	
-		var questions = state.questions;
+		var each_value = state.questions;
 	
 		var each_blocks = [];
 	
-		for (var i = 0; i < questions.length; i += 1) {
-			each_blocks[i] = create_each_block(state, questions, questions[i], i, component);
+		for (var i = 0; i < each_value.length; i += 1) {
+			each_blocks[i] = create_each_block(component, assign(assign({}, state), {
+				each_value: each_value,
+				question: each_value[i],
+				question_index: i
+			}));
 		}
 	
 		function click_handler(event) {
@@ -23776,12 +23868,12 @@
 			},
 	
 			h: function hydrate() {
-				div.className = "deluge-questions";
 				setAttribute(ul, "ref", true);
-				div_1.className = "deluge-button-group";
 				addListener(button, "click", click_handler);
-				button_1.className = "primary";
 				addListener(button_1, "click", click_handler_1);
+				button_1.className = "primary";
+				div_1.className = "deluge-button-group";
+				div.className = "deluge-questions";
 			},
 	
 			m: function mount(target, anchor) {
@@ -23804,7 +23896,7 @@
 			p: function update(changed, state) {
 				if (state.state === false) {
 					if (!if_block) {
-						if_block = create_if_block_7(state, component);
+						if_block = create_if_block_7(component, state);
 						if_block.c();
 						if_block.m(ul, if_block_anchor);
 					}
@@ -23814,14 +23906,20 @@
 					if_block = null;
 				}
 	
-				var questions = state.questions;
+				var each_value = state.questions;
 	
-				if (changed.questions || changed.event) {
-					for (var i = 0; i < questions.length; i += 1) {
+				if (changed.questions) {
+					for (var i = 0; i < each_value.length; i += 1) {
+						var each_context = assign(assign({}, state), {
+							each_value: each_value,
+							question: each_value[i],
+							question_index: i
+						});
+	
 						if (each_blocks[i]) {
-							each_blocks[i].p(changed, state, questions, questions[i], i);
+							each_blocks[i].p(changed, each_context);
 						} else {
-							each_blocks[i] = create_each_block(state, questions, questions[i], i, component);
+							each_blocks[i] = create_each_block(component, each_context);
 							each_blocks[i].c();
 							each_blocks[i].m(ul, null);
 						}
@@ -23831,7 +23929,7 @@
 						each_blocks[i].u();
 						each_blocks[i].d();
 					}
-					each_blocks.length = questions.length;
+					each_blocks.length = each_value.length;
 				}
 			},
 	
@@ -23855,36 +23953,22 @@
 		};
 	}
 	
-	function select_block_type(state, questions, question, question_index) {
-		if (question.type === 'binary') return create_if_block_8;
-		if (question.type === 'freeform') return create_if_block_9;
-		return null;
-	}
-	
-	function select_block_type_1(state) {
-		if (state.state === 'Voted-Down') return create_if_block_3;
-		if (state.state == 'Pending ') return create_if_block_4;
-		if (state.state === 'NotVoted') return create_if_block_5;
-		if (typeof state.state === 'boolean') return create_if_block_6;
-		return null;
-	}
-	
 	function MainWidget(options) {
 		init(this, options);
 		this._state = assign(data(), options.data);
 		this._recompute({ state: 1 }, this._state);
 	
-		if (!options._root) {
+		if (!options.root) {
 			this._oncreate = [];
 			this._beforecreate = [];
 			this._aftercreate = [];
 		}
 	
-		this._fragment = create_main_fragment(this._state, this);
+		this._fragment = create_main_fragment(this, this._state);
 	
 		if (options.target) {
 			this._fragment.c();
-			this._fragment.m(options.target, options.anchor || null);
+			this._mount(options.target, options.anchor);
 	
 			this._lock = true;
 			callAll(this._beforecreate);
@@ -23894,7 +23978,7 @@
 		}
 	}
 	
-	assign(MainWidget.prototype, methods, {
+	assign(MainWidget.prototype, {
 		destroy: destroy,
 		get: get,
 		fire: fire,
@@ -23904,14 +23988,16 @@
 		teardown: destroy,
 		_set: _set,
 		_mount: _mount,
-		_unmount: _unmount
+		_unmount: _unmount,
+		_differs: _differs
 	});
+	assign(MainWidget.prototype, methods);
 	
 	MainWidget.prototype._recompute = function _recompute(changed, state) {
 		if (changed.state) {
-			if (differs(state.delugeClass, state.delugeClass = delugeClass(state.state))) changed.delugeClass = true;
-			if (differs(state.delugeHeaderClass, state.delugeHeaderClass = delugeHeaderClass(state.state))) changed.delugeHeaderClass = true;
-			if (differs(state.delugeBodyClass, state.delugeBodyClass = delugeBodyClass(state.state))) changed.delugeBodyClass = true;
+			if (this._differs(state.delugeClass, state.delugeClass = delugeClass(state.state))) changed.delugeClass = true;
+			if (this._differs(state.delugeHeaderClass, state.delugeHeaderClass = delugeHeaderClass(state.state))) changed.delugeHeaderClass = true;
+			if (this._differs(state.delugeBodyClass, state.delugeBodyClass = delugeBodyClass(state.state))) changed.delugeBodyClass = true;
 		}
 	};
 	
@@ -23945,6 +24031,12 @@
 	
 	function noop() {}
 	
+	function assign(tar, src) {
+		for (var k in src) {
+			tar[k] = src[k];
+		}return tar;
+	}
+	
 	function createComment() {
 		return document.createComment('');
 	}
@@ -23960,33 +24052,17 @@
 	}
 	
 	function init(component, options) {
-		component.options = options;
-	
-		component._observers = { pre: blankObject(), post: blankObject() };
 		component._handlers = blankObject();
-		component._root = options._root || component;
-		component._yield = options._yield;
 		component._bind = options._bind;
-	}
 	
-	function assign(target) {
-		var k,
-		    source,
-		    i = 1,
-		    len = arguments.length;
-		for (; i < len; i++) {
-			source = arguments[i];
-			for (k in source) {
-				target[k] = source[k];
-			}
-		}
-	
-		return target;
+		component.options = options;
+		component.root = options.root || component;
+		component.store = component.root.store || options.store;
 	}
 	
 	function callAll(fns) {
 		while (fns && fns.length) {
-			fns.pop()();
+			fns.shift()();
 		}
 	}
 	
@@ -24009,27 +24085,26 @@
 		if (!handlers) return;
 	
 		for (var i = 0; i < handlers.length; i += 1) {
-			handlers[i].call(this, data);
+			var handler = handlers[i];
+	
+			if (!handler.__calling) {
+				handler.__calling = true;
+				handler.call(this, data);
+				handler.__calling = false;
+			}
 		}
 	}
 	
 	function observe(key, callback, options) {
-		var group = options && options.defer ? this._observers.post : this._observers.pre;
-	
-		(group[key] || (group[key] = [])).push(callback);
+		var fn = callback.bind(this);
 	
 		if (!options || options.init !== false) {
-			callback.__calling = true;
-			callback.call(this, this._state[key]);
-			callback.__calling = false;
+			fn(this.get()[key], undefined);
 		}
 	
-		return {
-			cancel: function cancel() {
-				var index = group[key].indexOf(callback);
-				if (~index) group[key].splice(index, 1);
-			}
-		};
+		return this.on(options && options.defer ? 'update' : 'state', function (event) {
+			if (event.changed[key]) fn(event.current[key], event.previous && event.previous[key]);
+		});
 	}
 	
 	function on(eventName, handler) {
@@ -24048,12 +24123,12 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		if (this._root._lock) return;
-		this._root._lock = true;
-		callAll(this._root._beforecreate);
-		callAll(this._root._oncreate);
-		callAll(this._root._aftercreate);
-		this._root._lock = false;
+		if (this.root._lock) return;
+		this.root._lock = true;
+		callAll(this.root._beforecreate);
+		callAll(this.root._oncreate);
+		callAll(this.root._aftercreate);
+		this.root._lock = false;
 	}
 	
 	function _set(newState) {
@@ -24062,53 +24137,35 @@
 		    dirty = false;
 	
 		for (var key in newState) {
-			if (differs(newState[key], oldState[key])) changed[key] = dirty = true;
+			if (this._differs(newState[key], oldState[key])) changed[key] = dirty = true;
 		}
 		if (!dirty) return;
 	
-		this._state = assign({}, oldState, newState);
+		this._state = assign(assign({}, oldState), newState);
 		this._recompute(changed, this._state);
 		if (this._bind) this._bind(changed, this._state);
-		dispatchObservers(this, this._observers.pre, changed, this._state, oldState);
-		this._fragment.p(changed, this._state);
-		dispatchObservers(this, this._observers.post, changed, this._state, oldState);
+	
+		if (this._fragment) {
+			this.fire("state", { changed: changed, current: this._state, previous: oldState });
+			this._fragment.p(changed, this._state);
+			this.fire("update", { changed: changed, current: this._state, previous: oldState });
+		}
 	}
 	
 	function _mount(target, anchor) {
-		this._fragment.m(target, anchor);
+		this._fragment[this._fragment.i ? 'i' : 'm'](target, anchor || null);
 	}
 	
 	function _unmount() {
-		this._fragment.u();
+		if (this._fragment) this._fragment.u();
 	}
 	
-	function differs(a, b) {
-		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
+	function _differs(a, b) {
+		return a != a ? b == b : a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
 	}
 	
 	function blankObject() {
 		return Object.create(null);
-	}
-	
-	function dispatchObservers(component, group, changed, newState, oldState) {
-		for (var key in group) {
-			if (!changed[key]) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			var callbacks = group[key];
-			if (!callbacks) continue;
-	
-			for (var i = 0; i < callbacks.length; i += 1) {
-				var callback = callbacks[i];
-				if (callback.__calling) continue;
-	
-				callback.__calling = true;
-				callback.call(component, newValue, oldValue);
-				callback.__calling = false;
-			}
-		}
 	}
 	exports.default = MainWidget;
 
@@ -24124,7 +24181,7 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	/* ../src/components/BinaryQuestion.html generated by Svelte v1.40.0 */
+	/* ../src/components/BinaryQuestion.html generated by Svelte v1.64.1 */
 	
 	function upvoteSelected(answer) {
 		return answer === true ? 'selected' : '';
@@ -24149,7 +24206,7 @@
 		}
 	};
 	
-	function create_main_fragment(state, component) {
+	function create_main_fragment(component, state) {
 		var div, text, div_1, span, span_class_value, text_1, span_1, span_1_class_value;
 	
 		function click_handler(event) {
@@ -24172,10 +24229,10 @@
 			},
 	
 			h: function hydrate() {
-				span.className = span_class_value = "switch fa fa-thumbs-up good " + state.upvoteSelected;
 				addListener(span, "click", click_handler);
-				span_1.className = span_1_class_value = "switch fa fa-thumbs-down bad " + state.downvoteSelected;
+				span.className = span_class_value = "switch fa fa-thumbs-up good " + state.upvoteSelected;
 				addListener(span_1, "click", click_handler_1);
+				span_1.className = span_1_class_value = "switch fa fa-thumbs-down bad " + state.downvoteSelected;
 			},
 	
 			m: function mount(target, anchor) {
@@ -24222,15 +24279,15 @@
 		this._state = assign(data(), options.data);
 		this._recompute({ answer: 1 }, this._state);
 	
-		this._fragment = create_main_fragment(this._state, this);
+		this._fragment = create_main_fragment(this, this._state);
 	
 		if (options.target) {
 			this._fragment.c();
-			this._fragment.m(options.target, options.anchor || null);
+			this._mount(options.target, options.anchor);
 		}
 	}
 	
-	assign(BinaryQuestion.prototype, methods, {
+	assign(BinaryQuestion.prototype, {
 		destroy: destroy,
 		get: get,
 		fire: fire,
@@ -24240,13 +24297,15 @@
 		teardown: destroy,
 		_set: _set,
 		_mount: _mount,
-		_unmount: _unmount
+		_unmount: _unmount,
+		_differs: _differs
 	});
+	assign(BinaryQuestion.prototype, methods);
 	
 	BinaryQuestion.prototype._recompute = function _recompute(changed, state) {
 		if (changed.answer) {
-			if (differs(state.upvoteSelected, state.upvoteSelected = upvoteSelected(state.answer))) changed.upvoteSelected = true;
-			if (differs(state.downvoteSelected, state.downvoteSelected = downvoteSelected(state.answer))) changed.downvoteSelected = true;
+			if (this._differs(state.upvoteSelected, state.upvoteSelected = upvoteSelected(state.answer))) changed.upvoteSelected = true;
+			if (this._differs(state.downvoteSelected, state.downvoteSelected = downvoteSelected(state.answer))) changed.downvoteSelected = true;
 		}
 	};
 	
@@ -24279,28 +24338,18 @@
 	}
 	
 	function init(component, options) {
-		component.options = options;
-	
-		component._observers = { pre: blankObject(), post: blankObject() };
 		component._handlers = blankObject();
-		component._root = options._root || component;
-		component._yield = options._yield;
 		component._bind = options._bind;
+	
+		component.options = options;
+		component.root = options.root || component;
+		component.store = component.root.store || options.store;
 	}
 	
-	function assign(target) {
-		var k,
-		    source,
-		    i = 1,
-		    len = arguments.length;
-		for (; i < len; i++) {
-			source = arguments[i];
-			for (k in source) {
-				target[k] = source[k];
-			}
-		}
-	
-		return target;
+	function assign(tar, src) {
+		for (var k in src) {
+			tar[k] = src[k];
+		}return tar;
 	}
 	
 	function destroy(detach) {
@@ -24322,27 +24371,26 @@
 		if (!handlers) return;
 	
 		for (var i = 0; i < handlers.length; i += 1) {
-			handlers[i].call(this, data);
+			var handler = handlers[i];
+	
+			if (!handler.__calling) {
+				handler.__calling = true;
+				handler.call(this, data);
+				handler.__calling = false;
+			}
 		}
 	}
 	
 	function observe(key, callback, options) {
-		var group = options && options.defer ? this._observers.post : this._observers.pre;
-	
-		(group[key] || (group[key] = [])).push(callback);
+		var fn = callback.bind(this);
 	
 		if (!options || options.init !== false) {
-			callback.__calling = true;
-			callback.call(this, this._state[key]);
-			callback.__calling = false;
+			fn(this.get()[key], undefined);
 		}
 	
-		return {
-			cancel: function cancel() {
-				var index = group[key].indexOf(callback);
-				if (~index) group[key].splice(index, 1);
-			}
-		};
+		return this.on(options && options.defer ? 'update' : 'state', function (event) {
+			if (event.changed[key]) fn(event.current[key], event.previous && event.previous[key]);
+		});
 	}
 	
 	function on(eventName, handler) {
@@ -24361,12 +24409,12 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		if (this._root._lock) return;
-		this._root._lock = true;
-		callAll(this._root._beforecreate);
-		callAll(this._root._oncreate);
-		callAll(this._root._aftercreate);
-		this._root._lock = false;
+		if (this.root._lock) return;
+		this.root._lock = true;
+		callAll(this.root._beforecreate);
+		callAll(this.root._oncreate);
+		callAll(this.root._aftercreate);
+		this.root._lock = false;
 	}
 	
 	function _set(newState) {
@@ -24375,28 +24423,31 @@
 		    dirty = false;
 	
 		for (var key in newState) {
-			if (differs(newState[key], oldState[key])) changed[key] = dirty = true;
+			if (this._differs(newState[key], oldState[key])) changed[key] = dirty = true;
 		}
 		if (!dirty) return;
 	
-		this._state = assign({}, oldState, newState);
+		this._state = assign(assign({}, oldState), newState);
 		this._recompute(changed, this._state);
 		if (this._bind) this._bind(changed, this._state);
-		dispatchObservers(this, this._observers.pre, changed, this._state, oldState);
-		this._fragment.p(changed, this._state);
-		dispatchObservers(this, this._observers.post, changed, this._state, oldState);
+	
+		if (this._fragment) {
+			this.fire("state", { changed: changed, current: this._state, previous: oldState });
+			this._fragment.p(changed, this._state);
+			this.fire("update", { changed: changed, current: this._state, previous: oldState });
+		}
 	}
 	
 	function _mount(target, anchor) {
-		this._fragment.m(target, anchor);
+		this._fragment[this._fragment.i ? 'i' : 'm'](target, anchor || null);
 	}
 	
 	function _unmount() {
-		this._fragment.u();
+		if (this._fragment) this._fragment.u();
 	}
 	
-	function differs(a, b) {
-		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
+	function _differs(a, b) {
+		return a != a ? b == b : a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
 	}
 	
 	function blankObject() {
@@ -24407,28 +24458,7 @@
 	
 	function callAll(fns) {
 		while (fns && fns.length) {
-			fns.pop()();
-		}
-	}
-	
-	function dispatchObservers(component, group, changed, newState, oldState) {
-		for (var key in group) {
-			if (!changed[key]) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			var callbacks = group[key];
-			if (!callbacks) continue;
-	
-			for (var i = 0; i < callbacks.length; i += 1) {
-				var callback = callbacks[i];
-				if (callback.__calling) continue;
-	
-				callback.__calling = true;
-				callback.call(component, newValue, oldValue);
-				callback.__calling = false;
-			}
+			fns.shift()();
 		}
 	}
 	exports.default = BinaryQuestion;
@@ -24445,7 +24475,7 @@
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	/* ../src/components/FreeformQuestion.html generated by Svelte v1.40.0 */
+	/* ../src/components/FreeformQuestion.html generated by Svelte v1.64.1 */
 	
 	function data() {
 		return {
@@ -24461,7 +24491,7 @@
 		}
 	};
 	
-	function create_main_fragment(state, component) {
+	function create_main_fragment(component, state) {
 		var textarea,
 		    textarea_updating = false;
 	
@@ -24483,9 +24513,9 @@
 			},
 	
 			h: function hydrate() {
-				textarea.placeholder = state.caption;
 				addListener(textarea, "input", textarea_input_handler);
 				addListener(textarea, "input", input_handler);
+				textarea.placeholder = state.caption;
 			},
 	
 			m: function mount(target, anchor) {
@@ -24495,12 +24525,9 @@
 			},
 	
 			p: function update(changed, state) {
+				if (!textarea_updating) textarea.value = state.answer;
 				if (changed.caption) {
 					textarea.placeholder = state.caption;
-				}
-	
-				if (!textarea_updating) {
-					textarea.value = state.answer;
 				}
 			},
 	
@@ -24519,15 +24546,15 @@
 		init(this, options);
 		this._state = assign(data(), options.data);
 	
-		this._fragment = create_main_fragment(this._state, this);
+		this._fragment = create_main_fragment(this, this._state);
 	
 		if (options.target) {
 			this._fragment.c();
-			this._fragment.m(options.target, options.anchor || null);
+			this._mount(options.target, options.anchor);
 		}
 	}
 	
-	assign(FreeformQuestion.prototype, methods, {
+	assign(FreeformQuestion.prototype, {
 		destroy: destroy,
 		get: get,
 		fire: fire,
@@ -24537,8 +24564,10 @@
 		teardown: destroy,
 		_set: _set,
 		_mount: _mount,
-		_unmount: _unmount
+		_unmount: _unmount,
+		_differs: _differs
 	});
+	assign(FreeformQuestion.prototype, methods);
 	
 	FreeformQuestion.prototype._recompute = noop;
 	
@@ -24563,28 +24592,18 @@
 	}
 	
 	function init(component, options) {
-		component.options = options;
-	
-		component._observers = { pre: blankObject(), post: blankObject() };
 		component._handlers = blankObject();
-		component._root = options._root || component;
-		component._yield = options._yield;
 		component._bind = options._bind;
+	
+		component.options = options;
+		component.root = options.root || component;
+		component.store = component.root.store || options.store;
 	}
 	
-	function assign(target) {
-		var k,
-		    source,
-		    i = 1,
-		    len = arguments.length;
-		for (; i < len; i++) {
-			source = arguments[i];
-			for (k in source) {
-				target[k] = source[k];
-			}
-		}
-	
-		return target;
+	function assign(tar, src) {
+		for (var k in src) {
+			tar[k] = src[k];
+		}return tar;
 	}
 	
 	function destroy(detach) {
@@ -24606,27 +24625,26 @@
 		if (!handlers) return;
 	
 		for (var i = 0; i < handlers.length; i += 1) {
-			handlers[i].call(this, data);
+			var handler = handlers[i];
+	
+			if (!handler.__calling) {
+				handler.__calling = true;
+				handler.call(this, data);
+				handler.__calling = false;
+			}
 		}
 	}
 	
 	function observe(key, callback, options) {
-		var group = options && options.defer ? this._observers.post : this._observers.pre;
-	
-		(group[key] || (group[key] = [])).push(callback);
+		var fn = callback.bind(this);
 	
 		if (!options || options.init !== false) {
-			callback.__calling = true;
-			callback.call(this, this._state[key]);
-			callback.__calling = false;
+			fn(this.get()[key], undefined);
 		}
 	
-		return {
-			cancel: function cancel() {
-				var index = group[key].indexOf(callback);
-				if (~index) group[key].splice(index, 1);
-			}
-		};
+		return this.on(options && options.defer ? 'update' : 'state', function (event) {
+			if (event.changed[key]) fn(event.current[key], event.previous && event.previous[key]);
+		});
 	}
 	
 	function on(eventName, handler) {
@@ -24645,12 +24663,12 @@
 	
 	function set(newState) {
 		this._set(assign({}, newState));
-		if (this._root._lock) return;
-		this._root._lock = true;
-		callAll(this._root._beforecreate);
-		callAll(this._root._oncreate);
-		callAll(this._root._aftercreate);
-		this._root._lock = false;
+		if (this.root._lock) return;
+		this.root._lock = true;
+		callAll(this.root._beforecreate);
+		callAll(this.root._oncreate);
+		callAll(this.root._aftercreate);
+		this.root._lock = false;
 	}
 	
 	function _set(newState) {
@@ -24659,24 +24677,31 @@
 		    dirty = false;
 	
 		for (var key in newState) {
-			if (differs(newState[key], oldState[key])) changed[key] = dirty = true;
+			if (this._differs(newState[key], oldState[key])) changed[key] = dirty = true;
 		}
 		if (!dirty) return;
 	
-		this._state = assign({}, oldState, newState);
+		this._state = assign(assign({}, oldState), newState);
 		this._recompute(changed, this._state);
 		if (this._bind) this._bind(changed, this._state);
-		dispatchObservers(this, this._observers.pre, changed, this._state, oldState);
-		this._fragment.p(changed, this._state);
-		dispatchObservers(this, this._observers.post, changed, this._state, oldState);
+	
+		if (this._fragment) {
+			this.fire("state", { changed: changed, current: this._state, previous: oldState });
+			this._fragment.p(changed, this._state);
+			this.fire("update", { changed: changed, current: this._state, previous: oldState });
+		}
 	}
 	
 	function _mount(target, anchor) {
-		this._fragment.m(target, anchor);
+		this._fragment[this._fragment.i ? 'i' : 'm'](target, anchor || null);
 	}
 	
 	function _unmount() {
-		this._fragment.u();
+		if (this._fragment) this._fragment.u();
+	}
+	
+	function _differs(a, b) {
+		return a != a ? b == b : a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
 	}
 	
 	function noop() {}
@@ -24687,32 +24712,7 @@
 	
 	function callAll(fns) {
 		while (fns && fns.length) {
-			fns.pop()();
-		}
-	}
-	
-	function differs(a, b) {
-		return a !== b || a && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' || typeof a === 'function';
-	}
-	
-	function dispatchObservers(component, group, changed, newState, oldState) {
-		for (var key in group) {
-			if (!changed[key]) continue;
-	
-			var newValue = newState[key];
-			var oldValue = oldState[key];
-	
-			var callbacks = group[key];
-			if (!callbacks) continue;
-	
-			for (var i = 0; i < callbacks.length; i += 1) {
-				var callback = callbacks[i];
-				if (callback.__calling) continue;
-	
-				callback.__calling = true;
-				callback.call(component, newValue, oldValue);
-				callback.__calling = false;
-			}
+			fns.shift()();
 		}
 	}
 	exports.default = FreeformQuestion;
