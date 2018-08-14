@@ -23,6 +23,13 @@ The generated HTML will be placed in ``build/master/html/``.
 *Note*: The build process invokes Sphinx and expects Sphinx's various
 binaries to be in PATH.
 
+Changing Active Versions
+------------------------
+
+This is done in mongodb/docs-tools repo, see
+https://github.com/mongodb/docs-tools/commit/6765172dbe5cb60fafd511be000dd99d653ab038
+and https://github.com/mongodb/docs-tools/commit/240dac304afbdcfc5c698ebb6a7d260bd14cd48b.
+
 Contribute
 ----------
 
