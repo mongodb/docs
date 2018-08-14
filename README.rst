@@ -18,7 +18,7 @@ To build the documentation locally,
      cd docs-ruby/
      make html
 
-The generated HTML will be placed in `build/master/html/`.
+The generated HTML will be placed in ``build/master/html/``.
 
 *Note*: The build process invokes Sphinx and expects Sphinx's various
 binaries to be in PATH.
