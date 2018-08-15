@@ -28,25 +28,19 @@ Download ``mongomirror``
 
 .. include:: /includes/list-table-mongomirror-downloads.rst
 
-Release Notes for ``mongomirror`` 0.3.1
+Release Notes for ``mongomirror`` 0.4.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This release adds the following features and improvements:
+This release adds support for MongoDB 4.0 as both a source
+and destination for ``mongomirror``.
 
-- Support for destination |service| clusters running MongoDB 4.0.
-- Support for tolerating elections and network errors on the 
-  destination cluster during initial sync.
-- Support for syncing ``system.js`` collections.
-- Use Go-native TLS on MacOS instead of OpenSSL 0.9.8.
-- Ignore no-ops when reporting the latest oplog timestamp and 
-  replication lag.
 
 .. admonition:: Debian 7 End of Life
    :class: note
 
    Debian 7 reached 
    `End of Life <https://www.debian.org/News/2018/20180601>`_ on 
-   May 31, 2018. ``mongomirror`` 0.3.1 removes support for
+   May 31, 2018. ``mongomirror`` 0.3.1 removed support for
    Debian 7 systems.
 
 
@@ -162,7 +156,7 @@ Source MongoDB Deployment
   use :binary:`~bin.mongomirror`. See :manual:`Convert a Standalone to a Replica Set
   </tutorial/convert-standalone-to-replica-set/>`.
 
-- The source replica set must run MongoDB version 2.6 through 3.6.
+- The source replica set must run MongoDB version 2.6 through 4.0.
 
 - The source MongoDB replica set cannot be an 
   ``M0`` (Free Tier) or ``M2/M5`` shared cluster.
@@ -186,6 +180,9 @@ Target |service| Cluster
 
 - The target |service| cluster must be a replica set, but cannot be an ``M0``
   (Free Tier) or ``M2/M5`` shared cluster.
+
+- The target |service| cluster MongoDB version must be the same as
+  or later than the source cluster MongoDB version.
 
 - For the initial sync stage of :binary:`~bin.mongomirror`, the target
   |service| cluster should be empty or you should run
@@ -211,15 +208,27 @@ Required Access on Source Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the source replica set requires authentication, you must include
-user credentials when running :binary:`~bin.mongomirror`. You must specify
-a MongoDB user that has the following privileges in the source replica
-set:
+user credentials when running :binary:`~bin.mongomirror`. You must 
+specify a MongoDB user that has the :authrole:`backup` role. If no 
+such user exists, create the user in your source MongoDB replica set. 
+For example, if the source replica set uses SCRAM-SHA1 
+authentication:
 
-- Read any database, including the ``local`` database.
+#. Connect a :binary:`mongo <bin.mongo>` shell to the primary.
 
-A MongoDB user with the :manual:`backup
-</reference/built-in-roles/#backup>` role in the source provides these
-privileges.
+#. Switch to the ``admin`` database and create a user with the  
+   :authrole:`backup` role.
+
+   .. code-block:: javascript
+
+      use admin
+      db.createUser( 
+        { 
+          user: "mySourceUser", 
+          pwd: "mySourceP@$$word", 
+          roles: [ "backup" ] 
+        } 
+      )
 
 .. _destination-authorization:
 
