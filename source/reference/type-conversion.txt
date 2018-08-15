@@ -1,0 +1,138 @@
+.. _type-conversion-modes:
+
+=====================
+Type Conversion Modes
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+.. versionadded:: 2.6
+
+The |bi| attempts to convert SQL queries into MongoDB
+:manual:`aggregation pipelines </core/aggregation-pipeline>`.
+When the |bi-short| cannot translate a query into an aggregation
+pipeline, it executes the query in memory resulting in increased
+latency. Prior to version 2.6, :binary:`~bin.mongosqld` could not
+translate type conversions to aggregation expressions, which
+prevented the translation of any query relying on type conversions.
+
+Starting in version 2.6, the ``mongosql`` type conversion mode pushes
+all type conversions down to MongoDB servers running version 4.0
+or later for improved expression performance. This mode is enabled by
+default but you can configure it on a per-session basis by setting the
+``type_conversion_mode`` session variable to one of the following
+values:
+
+.. list-table::
+   :widths: 15 85
+   :header-rows: 1
+
+   * - Mode
+     - Description
+
+   * - ``mongosql``
+     - *Default.* Pushes all type conversions down to MongoDB servers
+       running version 4.0 or later. For MongoDB versions prior
+       to 4.0, the |bi-short| performs type conversions in memory.
+
+   * - ``mysql``
+     - Instructs the |bi-short| to match MySQL's type conversion
+       semantics as closely as possible. If the |bi-short| can reproduce
+       MySQL's type casting behavior in the aggregation language, it
+       will push the expression down to the MongoDB server for
+       execution. Otherwise, :binary:`~bin.mongosqld` executes the
+       expression in memory.
+
+The following example sets the ``type_conversion_mode`` variable to
+``mysql``:
+
+.. code-block:: sql
+
+   SET SESSION type_conversion_mode = 'mysql';
+
+.. important::
+
+   ``mongosql`` is the recommended type casting mode unless you require
+   close replication of MySQL's behavior. The example above sets
+   the ``mysql`` type conversion mode because ``mongosql`` is the
+   default and does not need to be explicitly set.
+
+The type conversion mode applies to both:
+
+- Explicit type conversions. For example:
+
+  .. code-block:: sql
+     :copyable: false
+
+     CAST("123" AS unsigned)
+
+- Implicit type conversions. For example, ``"123" + 456``
+
+Mode Comparison Table
+---------------------
+
+The following table provides an overview of how MySQL's type conversion
+behavior differs from the |bi-short|'s default type
+conversion behavior (``mongosql`` mode):
+
+.. list-table::
+   :widths: 10 10 40 40
+   :header-rows: 1
+
+   * - From Type
+     - To Type
+     - MySQL Behavior
+     - ``mongosql``-mode Behavior
+
+   * - Varchar
+     - Numeric
+     - Parse the number from a string in a variety of different formats.
+       For more information, see the MySQL
+       `Numeric Literals <https://dev.mysql.com/doc/refman/5.7/en/number-literals.html>`_
+       documentation.
+     - Parse the number from a string in decimal format with optional
+       leading sign character.
+
+   * - Varchar
+     - Timestamp
+     - Parse the date from a string in a variety of different formats.
+       For more information, see the MySQL
+       `Date and Time Literals <https://dev.mysql.com/doc/refman/5.7/en/date-and-time-literals.html>`_.
+     - Parse the date from a string in the ``"%Y-%m-%dT%H:%M:%S.%LZ"``
+       format.
+
+   * - Int
+     - Timestamp
+     - Attemps to parse the date from the varchar representation of the
+       int. For example, the integer ``20180809183456`` becomes the date
+       ``2018-08-09 18:34:56.000000``.
+     - Treats the input as milliseconds since the unix epoch. For
+       example, ``1533839696000``.
+
+   * - Timestamp
+     - Long
+     - Parse the timestamp as a long in the ``YYYYMMDDHHMMSS`` format.
+       For example, ``20180701123400``.
+     - Parse the timestamp as a long representing the milliseconds since
+       the unix epoch. For example, ``1530448440000``.
+
+   * - Timestamp
+     - Varchar
+     - Parse the timestamp as a varchar in the
+       ``YYYY-MM-DD HH:MM:SS.MMMMMM`` format. For example,
+       ``“2018-07-01 12:34:00.000000”``.
+     - Parse the timestamp as a varchar in the
+       ``YYYY-MM-DDTHH:MM:SS:MMMZ`` format. For example,
+       ``“2018-07-01T12:34:00.000Z”``.
+
+.. note::
+
+   ``mongosql`` is the recommended type casting mode unless close
+   replication of MySQL's behavior is required.
