@@ -1,0 +1,172 @@
+.. _type-conflict-resolution:
+
+=======================
+Sampling Type Conflicts
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionchanged:: 2.6
+
+The flexible schema model of MongoDB allows a given field to contain
+data of multiple types, while relational databases restrict columns to a
+single data type. The |bi-short| samples data from MongoDB to generate a
+relational schema model, but
+:ref:`type conversion <type-conversion-modes>` conflicts may occur
+when the |bi-short| samples different data types from a field in
+MongoDB documents.
+
+There are two main categories of type conversion conflicts that may
+occur in the presence of multiple data types: conflicts
+between scalar types and conflicts involving composite types like
+documents and arrays.
+
+.. note::
+
+   The |bi-short| only uses the sampled subset of your data to
+   detect type conflicts during schema generation. If your data set
+   contains type conflicts on a field and the conflicting types were
+   not both present in the sample, the generated schema will not be
+   prepared to resolve these conflicts and may result in increased query
+   latency.
+
+   For more information on sampling configuration, such as setting
+   the :option:`--samplesize <mongosqld --sampleSize>` and
+   :option:`sampleRefreshIntervalSecs <mongosqld --sampleRefreshIntervalSecs>`,
+   see :ref:`msqld-schema-options`.
+
+Scalar-Scalar Conflicts
+-----------------------
+
+When a scalar-scalar confict occurs, the |bi-short| uses the following
+lattice to determine the least upper bound of the two different data
+types:
+
+.. figure:: /images/bi-connector/scalar-lattice.png
+   :alt: Scalar-scalar type lattice
+   :figwidth: 500px
+   :align: center
+
+.. example::
+
+   If a given field contains ``int``, ``double``, and ``string`` types,
+   the least upper bound is ``string``.
+
+When a scalar-scalar conflict occurs, the |bi-short| inserts a row into
+the ``information_schema.COLUMNS`` table and lists the different sampled
+types in the ``COLUMN_COMMENT`` column.
+
+Composite Conflicts
+-------------------
+
+Composite conflicts are type conversion conflicts involving a document
+or an array. The following sections describe how the |bi-short| resolves
+both types of composite conflicts.
+
+Document Conflicts
+~~~~~~~~~~~~~~~~~~
+
+When a conflict occurs involving a document, the |bi-short|
+displays the fields of the document type as separate columns using
+dot notation. For example, the ``conflict`` collection contains the
+following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 0, a: "foo" } // "a" is scalar (string)
+   { _id: 1, a: { a: "bar", b: "baz" } } // "a" is composite (document)
+
+The |bi-short| detects a scalar-composite conflict and generates the
+following relational schema:
+
+**Table:** ``conflict``
+
+.. list-table::
+   :widths: 25 25 25 25
+   :header-rows: 1
+
+   * - _id
+     - a
+     - a.a
+     - a.b
+
+   * - 0
+     - "foo"
+     - ``NULL``
+     - ``NULL``
+
+   * - 1
+     - ``NULL``
+     - "bar"
+     - "baz"
+
+When a conflict occurs involving a document, the |bi-short| inserts a
+row into the ``information_schema.COLUMNS`` table and lists the
+different sampled types in the ``COLUMN_COMMENT`` column.
+
+Array Conflicts
+~~~~~~~~~~~~~~~
+
+When a conflict occurs involving an array, the |bi-short| creates a new
+table for the conflict field with a column for the foreign key, array
+index, and value. The |bi-short| unwinds the array into multiple rows in
+new table and fills in the columns accordingly. For example, the
+``conflict`` collection contains the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 0, a: "foo" } // "a" is scalar (string)
+   { _id: 1, a: ["bar", "baz"] } // "a" is composite (array)
+
+The |bi-short| renders the above into the following two tables:
+
+**Table:** ``conflict``
+
+.. list-table::
+   :widths: 100
+   :header-rows: 1
+
+   * - _id
+
+   * - 0
+
+   * - 1
+
+**Table:** ``conflict_a``
+
+.. list-table::
+   :widths: 33 34 33 
+   :header-rows: 1
+
+   * - _id
+     - a_idx
+     - a
+
+   * - 0
+     - ``NULL``
+     - "foo"
+
+   * - 1
+     - 0
+     - "bar"
+
+   * - 1
+     - 1
+     - "baz"
+
+When a conflict occurs involving an array, the |bi-short|:
+
+- Inserts a row into the ``information_schema.COLUMNS`` table and lists
+  any different types sampled in the ``COLUMN_COMMENT`` column
+
+- Inserts a row into the ``information_schema.TABLES`` table containing
+  information on how the array maps to the row in the
+  ``information_schema.COLUMNS`` table
