@@ -40,7 +40,7 @@ publish: migrate ## Builds this branch's publishable HTML and other artifacts un
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc ${SOURCE_FILE_DIR}   --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
+	yard doc ${SOURCE_FILE_DIR} --exclude ${SOURCE_FILE_DIR}/spec --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 stage: ## Host online for review
@@ -76,7 +76,7 @@ api-docs:
 	if [ -d build/public/${GIT_BRANCH}/api ]; then rm -rf build/public/${GIT_BRANCH}/api ; fi;
 	mkdir build/public/${GIT_BRANCH}/api
 
-	yard doc ${SOURCE_FILE_DIR}   --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
+	yard doc ${SOURCE_FILE_DIR} --exclude ${SOURCE_FILE_DIR}/spec --readme ${SOURCE_FILE_DIR}/README.md -o build/public/${GIT_BRANCH}/api/
 
 
 migrate: get-assets
