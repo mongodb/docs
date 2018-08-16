@@ -6,7 +6,6 @@
 - :dbcommand:`distinct`
 - ``getMore`` (:ref:`OP_GET_MORE<wire-op-query>` and
   :dbcommand:`command<getMore>`)
-- :dbcommand:`geoNear`
 - :dbcommand:`mapReduce`
 - :dbcommand:`delete`
 - :dbcommand:`update`
