@@ -42,7 +42,7 @@ deploy: build/public ## Deploy to the production bucket
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	mut-index upload build/public \
-		-o tutorials-${GIT_BRANCH}.json \
+		-o ${PROJECT}-${GIT_BRANCH}.json \
 		-u ${PRODUCTION_URL} \
 		-g \
 		-s \
