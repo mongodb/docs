@@ -55,4 +55,43 @@ MongoDB removes the deprecated option ``maxScan`` for the
 ``cursor.maxScan()``. Use either the ``maxTimeMS`` option for the
 :dbcommand:`find` command or the helper :method:`cursor.maxTimeMS()` instead.
 
+.. _4.2-compat-remove-geoNear:
+
+Remove Support for the ``geoNear`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the ``geoNear`` command. Use
+the :pipeline:`$geoNear` aggregation stage instead.
+
+The options for :pipeline:`$geoNear` are similar to the removed
+``geoNear`` command with the following exceptions:
+
+- The removed ``geoNear`` command includes in its output a field named
+  ``dis`` that included the distance information.
+
+  For the :pipeline:`$geoNear` stage, specify the distance field name
+  in ``distanceField``.
+
+- The removed ``geoNear`` command accepts a ``boolean`` value for the
+  ``includeLocs`` option to include the ``loc`` field.
+
+  For the :pipeline:`$geoNear` stage, specify the location field name
+  in ``includeLocs``.
+
+- The removed ``geoNear`` command includes the ``avgDistance`` and
+  ``maxDistance`` of the returned results.
+
+  You can use the aggregation pipeline to return the ``avgDistance``
+  and ``maxDistance`` as well. Specifically, after the
+  :pipeline:`$geoNear` stage, include a :pipeline:`$group` stage to
+  calculate the ``avgDistance`` and ``maxDistance``:
+
+  .. code-block:: javascript
+     :emphasize-lines: 3-4
+
+     db.places.aggregate([ 
+        { $geoNear: { near: <...>, distanceField: "dis", includeLocs: "loc", spherical: true, ... } },
+        { $group: { _id: null, objectsLoaded: { $sum: 1 }, maxDistance:
+              { $max: "$dis" }, avgDistance: { $avg: "$dis" } } }
+     ])
 

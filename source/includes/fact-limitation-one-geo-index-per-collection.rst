@@ -1,9 +1,8 @@
-The :pipeline:`$geoNear` pipeline stage and the deprecated
-:dbcommand:`geoNear` command require that a collection have *at most*
-only one |first-geo-index| and/or only one |second-geo-index| whereas
-:ref:`geospatial query operators <geospatial-query-selectors>` (e.g.
-:query:`$near` and :query:`$geoWithin`) permit collections to have
-multiple geospatial indexes.
+The :pipeline:`$geoNear` pipeline stage requires that a collection has
+*at most* only one |first-geo-index| and/or only one |second-geo-index|
+whereas :ref:`geospatial query operators <geospatial-query-selectors>`
+(e.g. :query:`$near` and :query:`$geoWithin`) permit collections to
+have multiple geospatial indexes.
 
 The geospatial index restriction for the command and the pipeline stage
 exists because neither the command nor the pipeline stage syntax
