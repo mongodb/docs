@@ -52,6 +52,7 @@ rst_epilog = '\n'.join([
     '.. |ent-build| replace:: MongoDB Enterprise',
     '.. |hardlink| replace:: http://docs.mongodb.com/compass/',
     '.. |compass| replace:: MongoDB Compass',
+    '.. |compass-short| replace:: Compass',
     '.. |checkmark| unicode:: U+2713'
 ])
 
