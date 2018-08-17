@@ -117,7 +117,6 @@ html_theme_options = {
     'project': sconf.theme.project,
     'version': version,
     'version_selector':  get_versions(conf),
-    'active_branches': conf.version.active,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
     'is_upcoming' : True,
