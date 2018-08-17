@@ -6,20 +6,26 @@ Filter Documents in the Visualization
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
 To display a subset of results in your data that match a given
 criteria, use the :guilabel:`Filters` input bar above the chart
-display. The filters used here employ the same syntax used in the
-:manual:`db.collection.find() </tutorial/query-documents/>`
-command. After entering a filter document, click :guilabel:`Apply` to
-see the filter reflected in your visualization.
+display. Input a filter document employing the same syntax used in the
+query portion of the :manual:`db.collection.find()
+</tutorial/query-documents/>` method. After entering a filter document,
+click :guilabel:`Apply` to see the filter reflected in your visualization.
 
 .. note::
 
    Filters on large collections may have performance issues if there
    are not appropriate :manual:`indexes <indexes>` on the collection.
 
-Example
--------
+Basic Filter Example
+--------------------
 
 The following chart shows the average runtime of movies by genre.
 The filter of ``{runtime: {$gte: 120 }}`` means that we are only
@@ -29,3 +35,94 @@ equal to 120 minutes.
 .. figure:: /images/charts/charts-dashboard-filter-2.png
    :figwidth: 720px
    :alt: Charts dashboard filter
+
+Relative Date Filter
+--------------------
+
+Relative Date Filters allow you to specify a date from which |charts|
+restricts the data displayed. For example, you can set a Relative Date
+Filter to display data from only the last month or last year. To
+create a filter spanning from the specified date to the current date,
+specify the number of milliseconds since the Unix epoch of January 1,
+1970. Use this date in conjunction with a
+:manual:`comparison query operator
+</reference/operator/query-comparison/>` to set the inclusive or
+exclusive time range of the data displayed.
+
+.. example::
+
+   The following Relative Date Filter returns documents that have a
+   ``timestamp`` field which resolves to a date less than 30 days from
+   the current date:
+
+   .. code-block:: javascript
+
+      { timestamp: {  $gt: Date(Date() - 30 * 24 * 60 * 60 * 1000 ) } }
+
+   First, the inner ``Date()`` constructor generates the current date
+   in milliseconds since the Unix epoch of January 1, 1970. The
+   mathematical series ``30 * 24 * 60 * 60 * 1000`` results in
+   the number of milliseconds elapsed in 30 days. The filter takes the
+   current date in milliseconds since the Unix epoch and subtracts the
+   number of milliseconds in 30 days. This results in a new millisecond
+   value which the filter passes to an outer ``Date()``
+   constructor and resolves to the date 30 days prior to the time
+   the user executes the filter.
+
+   Using a mathematical series as shown here allows the filter to
+   always span a relative timeframe of 30 days prior to the time
+   the user executes the filter.
+
+For a more complete example of a relative date filter, see the
+:ref:`Relative Date Filter Example <relative-date-example>`.
+
+.. admonition:: ISO-8601 Dates
+   :class: note
+
+   The date functions utilized in |charts| filters are consistent and
+   compatible with the date functions used in the
+   :manual:`mongo shell </mongo>`. As a result, you can also use
+   the ``ISODate()`` constructor in your |charts-short| query filters.
+   Specifying an ``ISODate()`` constructor with no parameters
+   exhibits the same behavior as specifying a``Date()`` constructor
+   with no paramters, both returning the current date in their
+   respective formats.
+
+   For example, the following filter returns documents that have a
+   ``timestamp`` field between January 1, 2017 and December 31, 2017
+   inclusively:
+
+   .. code-block:: javascript
+
+      {$and: [{timestamp: {$gte: ISODate("2017-01-01")}}, {timestamp: {$lte: ISODate("2017-12-31")}}]}
+
+.. _relative-date-example:
+
+Relative Date Filter Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following chart visualizes workout data. Each document in the
+collection represents an individual workout activity, which contains
+information such as the type of workout and various exercise
+statistics. This line chart shows the distance per month covered
+across all workouts over the past year (365 days):
+
+.. figure:: /images/charts/relative-date-example.png
+   :figwidth: 720px
+   :alt: Charts dashboard filter
+
+The chart utilizes the following filter:
+
+.. code-block:: javascript
+
+   { "Workout Date (As Date)": {$gte: Date(Date() - 365 * 24 * 60 * 60 * 1000 ) }}
+
+This filter returns documents where the ``Workout Date (As Date)``
+field is within one year prior to the time |charts-short| executes the
+query. The ``(Date() - 365 * 24 * 60 * 60 * 1000 )`` parameter results
+in the date one year prior to the current date as expressed in
+milliseconds since the Unix epoch. |charts-short| returns documents
+with a value greater than or equal to this date, as signified by the
+:manual:`$gte </reference/operator/query/gte/>` operator.
+
+
