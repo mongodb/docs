@@ -73,7 +73,7 @@ extlinks = {
 }
 
 source_constants = {
-    'version': 'v0.9.0'
+    'version': 'v0.10.0'
 }
 
 # add `extlinks` for each published version.
