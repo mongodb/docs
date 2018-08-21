@@ -1,15 +1,22 @@
-The :pipeline:`$geoNear` pipeline stage and the deprecated
-:dbcommand:`geoNear` command require that a collection have *at most*
-only one |first-geo-index| and/or only one |second-geo-index| whereas
-:ref:`geospatial query operators <geospatial-query-selectors>` (e.g.
-:query:`$near` and :query:`$geoWithin`) permit collections to have
-multiple geospatial indexes.
+Starting in MongoDB 4.0, you can specify a ``key`` option to the
+:pipeline:`$geoNear` pipeline stage and the deprecated
+:dbcommand:`geoNear` command to indicate the indexed field path to use.
+This allows the :pipeline:`$geoNear` stage and the :dbcommand:`geoNear`
+command to be used on a collection that has multiple |first-geo-index|
+and/or multiple |second-geo-index|:
 
-The geospatial index restriction for the command and the pipeline stage
-exists because neither the command nor the pipeline stage syntax
-includes the location field. As such, index selection among multiple
-``2d`` indexes or ``2dsphere`` indexes is ambiguous.
+- If your collection has multiple |first-geo-index| and/or multiple
+  |second-geo-index|, you must use the ``key`` option to specify the
+  indexed field path to use.
 
-No such restriction applies for :ref:`geospatial query operators
-<geospatial-query-selectors>` since these operators take a location
-field, eliminating the ambiguity.
+- If you do not specify the ``key``, you cannot have multiple
+  |first-geo-index| and/or multiple |second-geo-index| since without
+  the ``key``, index selection among multiple ``2d`` indexes or
+  ``2dsphere`` indexes is ambiguous.
+
+.. note::
+
+   If you do not specify the ``key``, and you have at most only one
+   |first-geo-index| index and/or only one |first-geo-index| index,
+   MongoDB looks first for a ``2d`` index to use. If a ``2d`` index
+   does not exists, then MongoDB looks for a ``2dsphere`` index to use.
