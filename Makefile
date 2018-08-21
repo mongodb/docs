@@ -30,7 +30,7 @@ deploy: build
 
 	@echo "Deployed"
 
-build: style.min.css
+build:
 	# Clean build directory
 	rm -rf $@
 	# Create output directories
@@ -39,16 +39,8 @@ build: style.min.css
 	mkdir -p $@/tools
 	@# Copy CSS and JS files to output directories
 	cp static/favicon.png $@/favicon.ico
-	cp -r static/images static/fonts static/css static/js $@/
-	cp -r static/images static/fonts static/css static/js $@/tools
-	cp -r static/images static/fonts static/css static/js $@/cloud
+	cp -r static/images static/css static/js $@/
+	cp -r static/images static/css static/js $@/tools
+	cp -r static/images static/css static/js $@/cloud
 	@# Run the script to generate each landing page
 	python3 ./gen_landings.py $@
-
-# Don't grab node_modules unless we have to
-style.min.css: src/sass/style.scss node_modules/.npm_pulled
-	./node_modules/.bin/node-sass src/sass/style.scss | ./node_modules/.bin/cleancss --skip-rebase --semantic-merging -o ./static/css/$@
-
-node_modules/.npm_pulled: package.json
-	npm install
-	touch node_modules/.npm_pulled
