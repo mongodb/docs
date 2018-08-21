@@ -4,9 +4,18 @@ name: near
 operation: geoNear
 optional: false
 position: 1
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: near
+description: |
+  The point for which to find the closest documents.
+
+  If using a :doc:`2dsphere </core/2dsphere>` index, you can specify
+  the point as either a GeoJSON point or legacy coordinate pair.
+
+  If using a :doc:`2d </core/2d>` index, specify the point as a legacy
+  coordinate pair.
+type:
+  - GeoJSON point
+  - :term:`legacy coordinate pair <legacy coordinate pairs>`
+
 ---
 #### This option does not exist for geoNear command
 #### As such, cannot inherit from geoNear command
@@ -19,50 +28,92 @@ interface: pipeline
 name: distanceField
 operation: geoNear
 optional: false
-position: 2
 type: string
 ---
+name: spherical
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: spherical
+description: |
+
+  Determines how MongoDB calculates the distance between two points: 
+  
+  - When ``true``, MongoDB uses :query:`$nearSphere` semantics and
+    calculates distances using spherical geometry.
+  
+  - When ``false``, MongoDB uses :query:`$near` semantics:
+    spherical geometry for :doc:`2dsphere </core/2dsphere>`
+    indexes and planar geometry for :doc:`2d </core/2d>` indexes.
+
+  *Default: false.*
+
+type: boolean
+optional: true
 ---
+name: limit
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: limit
+description: |
+  The maximum number of documents to return. The default value is ``100``.
+  See also the ``num`` option.
+optional: true
+type: number
+
 ---
+name: num
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: num
+description: |
+  The ``num`` option provides the same function as the ``limit`` option.
+  Both define the maximum number of documents to return. If both options
+  are included, the ``num`` value overrides the ``limit`` value.
+optional: true
+type: number
+
 ---
+name: maxDistance
+description: |
+  The maximum distance from the center point that the documents *can*
+  be. MongoDB limits the results to those documents that fall within
+  the specified distance from the center point.
+
+  Specify the distance in meters if the specified point is
+  :term:`GeoJSON` and in radians if the specified point is
+  :term:`legacy coordinate pairs <legacy coordinate pairs>`.
+
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: maxDistance
+optional: true
+type: number
 ---
+name: query
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: query
+description: |
+  Limits the results to the documents that match the query. The query
+  syntax is the usual MongoDB :ref:`read operation query
+  <read-operations-query-argument>` syntax.
+
+  .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+
+optional: true
+type: document
 ---
+name: distanceMultiplier
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: distanceMultiplier
+description: |
+  The factor to multiply all distances returned by the query. For
+  example, use the ``distanceMultiplier`` to convert radians, as
+  returned by a spherical query, to kilometers by multiplying by the
+  radius of the Earth.
+optional: true
+type: number
 ---
 ### COMMENT The field is different from geoNear command
 ### as such, do not inherit from command
@@ -76,17 +127,21 @@ interface: pipeline
 name: includeLocs
 operation: geoNear
 optional: true
-position: 9
 type: string
 ---
+name: uniqueDocs
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: uniqueDocs
+description: |
+  If this value is ``true``, the query returns a matching document once,
+  even if more than one of the document's location fields match the
+  query.
+
+  .. include:: /includes/deprecation-uniqueDocs.rst
+optional: true
+type: boolean
 ---
-position: 11
 name: minDistance
 type: number
 optional: true
@@ -104,13 +159,23 @@ interface: pipeline
 operation: geoNear
 arg_name: field
 ---
+name: key
 arg_name: field
 interface: pipeline
 operation: geoNear
-source:
-  file: apiargs-dbcommand-geoNear-field.yaml
-  ref: key
-replacement:
-  example: ":ref:`pipeline-geoNear-key-param-example`"
-position: 12
+description: |
+  Specify the geospatial index to use when calculating the distance.
+  If your collection has multiple geospatial indexes, you **must**
+  use the ``key`` option to specify the indexed field path to use.
+  :ref:`pipeline-geoNear-key-param-example` provides a full example.
+  
+  If you do not specify the field over which to perform the search with
+  ``key``, MongoDB will attempt to look for a usable ``2d`` or
+  ``2dsphere`` index, in that order. If there is more than one ``2d``
+  index or more than one ``2dsphere`` index, MongoDB will return an
+  error.
+
+  .. versionadded:: 4.0
+
+optional: true
 ...
