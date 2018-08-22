@@ -25,6 +25,7 @@ username as URI-style query parameters:
        authenticate the connection. Accepted values include:
 
        - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` (default)
+       - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>`
        - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
        LDAP requires `MongoDB Enterprise
