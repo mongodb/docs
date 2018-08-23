@@ -35,7 +35,9 @@ extensions = [
     'intermanual',
     'fasthtml',
     'tabs',
-    'icon'
+    'icon',
+    'landing_cards',
+    'div'
 ]
 
 locale_dirs = [os.path.join(conf.paths.projectroot, conf.paths.locale)]
@@ -84,7 +86,9 @@ extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'driver' : ('https://docs.mongodb.com/ecosystem/drivers%s', ''),
-    'compass': ('https://docs.mongodb.com/compass%s', '')
+    'compass': ('https://docs.mongodb.com/compass%s', ''),
+    'stitch': ('https://docs.mongodb.com/stitch%s', ''),
+    'charts': ('https://docs.mongodb.com/charts/current%s', '')
 }
 
 # add `extlinks` for each published version.
