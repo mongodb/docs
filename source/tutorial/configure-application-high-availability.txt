@@ -10,55 +10,72 @@ Configure a Highly Available |application|
    :depth: 1
    :class: singlecol
 
-Overview
---------
+The |application| provides high availability through use of multiple
+|application| servers behind a load balancer and through use of a
+:term:`replica set` to host the :ref:`mms-application-database`.
 
-The |application| provides high availability through
-use of multiple |application| servers behind a load balancer
-and through use of a :term:`replica set`
-to host the :ref:`mms-application-database`.
+Considerations
+--------------
 
 Multiple |application| Servers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The |application|'s :ref:`components <mms-application-package>` are
-stateless between requests. Any |application| server can
-handle requests as long as all the servers read from the same |application|
+stateless between requests. Any |application| server can handle
+requests as long as all the servers read from the same |application|
 Database. If one |application| becomes unavailable, another
 fills requests.
 
-To take advantage of this for high availability, configure a load balancer
-of your choice to balance between the pool of |application| servers. 
-In |mms|, set the :setting:`URL to Access Ops Manager` property to the load
-balancer URL. Set the :setting:`Load Balancer Remote IP Header` property to
-the HTTP header field the load balancer uses to identify the originating
-client's IP address (for example, ``X-Forwarded-For``).
-The |application| uses the client's IP address for auditing,
-logging, and white listing for the API.
+To take advantage of this for high availability, configure a load 
+balancer of your choice to balance between the pool of |application| 
+hosts. In |mms|, set the :setting:`URL to Access Ops Manager` property
+to the load balancer |url|. Set the
+:setting:`Load Balancer Remote IP Header` property to the |http|
+header field the load balancer uses to identify the originating
+client's IP address (such as ``X-Forwarded-For``). The |
+application| uses the client's IP address for auditing, logging, and
+white listing for the |api|.
+
+After the load balancer is configured and started, you cannot log in
+to the |application| from its individual host |url|\s.
+
+.. example::
+
+   If you have two |onprem| hosts serving the following |url|\s:
+
+   - ``ops1.example.com``
+   - ``ops2.example.com``
+
+   and put them behind a load balancer at the following |url|:
+
+   - ``opsmanager.example.com``
+
+   After you configure and start that load balancer, you cannot log in
+   to ``ops1.example.com``. You can only log in to
+   ``opsmanager.example.com``.
 
 
 Replica Set for the |application| Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Deploy a :term:`replica set` rather than a standalone to host the
-:ref:`mms-application-database`.
-Replica sets have automatic :manual:`failover
-</core/replica-set-high-availability>` if the :term:`primary` becomes
-unavailable.
+:ref:`mms-application-database`. Replica sets have automatic
+:manual:`failover </core/replica-set-high-availability>` if the
+:term:`primary` becomes unavailable.
 
-If the replica set has members in multiple facilities, ensure
-that a single facility has enough votes to elect a :term:`primary` if
-needed. Choose the facility that hosts the core application systems. Place
-a majority of voting members and all the members that can become primary
-in this facility. Otherwise, network partitions could prevent the set from
-being able to form a majority. For details on how replica sets elect
-primaries, see :manual:`Replica Set Elections
-</core/replica-set-elections>`.
+If the replica set has members in multiple facilities, ensure that a
+single facility has enough votes to elect a :term:`primary` if needed.
+Choose the facility that hosts the core application systems. Place a
+majority of voting members and all the members that can become primary
+in this facility. Otherwise, network partitions could prevent the set
+from being able to form a majority. For details on how replica sets
+elect primaries, see
+:manual:`Replica Set Elections </core/replica-set-elections>`.
 
-You can create backups of the replica set using :manual:`file system
-snapshots </tutorial/backup-with-filesystem-snapshots>`. File system
-snapshots use system-level tools to create copies of the device that holds
-replica set's data files.
+You can back up the replica set using
+:manual:`file system snapshots </tutorial/backup-with-filesystem-snapshots>`.
+File system snapshots use system-level tools to create copies of the
+device that holds replica set's data files.
 
 To deploy the replica set that hosts the |application| Database, see
 :doc:`backing MongoDB instance </tutorial/prepare-backing-mongodb-instances>`.
@@ -70,8 +87,8 @@ The ``gen.key`` File
 
 ``gen.key`` file is a 24-byte binary file used to encrypt and decrypt
 |onprem|\'s backing databases and user credentials. An identical
-``gen.key`` file must be stored on every server that is part of a highly
-available |onprem| deployment.
+``gen.key`` file must be stored on every server that is part of a
+highly available |onprem| deployment.
 
 The ``gen.key`` file can be generated automatically or manually.
 
@@ -80,12 +97,15 @@ To have |onprem| generate the file:
    if none exists.
 
 To create the file manually:
-   Generate a 24-byte binary file. For
-   example, the following creates the ``gen.key`` file using ``openssl``:
+   Generate a 24-byte binary file.
 
-   .. code-block:: sh
+   .. example::
 
-      openssl rand 24 > /<keyPath>/gen.key
+      The following creates the ``gen.key`` file using ``openssl``:
+
+      .. code-block:: sh
+
+         openssl rand 24 > /<keyPath>/gen.key
 
    Protect the ``gen.key`` file like any sensitive file. Change the
    owner to the user running |onprem| and set the file permission to
@@ -118,10 +138,11 @@ appropriate directory on the other |onprem| servers:
      on the first |onprem| server, back up the ``gen.key`` file to a
      secure location.
 
+
 Prerequisites
 -------------
 
-Deploy the replica set that hosts the :ref:`mms-application-database`.
+Deploy the replica set that serves the :ref:`mms-application-database`.
 To deploy a replica set, see 
 :manual:`Deploy a Replica Set </tutorial/deploy-replica-set>` in the
 MongoDB manual.
@@ -129,14 +150,16 @@ MongoDB manual.
 Procedure
 ---------
 
-The following procedure assumes you will let one of the |application|\ s
-create the ``gen.key``. If you instead create your own ``gen.key``,
-distribute it to the servers before starting any of the |application|\ s.
+The following procedure assumes you created the first ``gen.key`` 
+using one of the |application| hosts. If you instead create your
+own ``gen.key``, distribute it to the |onprem| hosts before starting
+any of the |application|\ s.
 
 .. important::
 
-   The load balancer placed in front of the |application| servers must not
-   return cached content. The load balancer must have caching turned off.
+   The load balancer placed in front of the |application| servers must
+   not return cached content. The load balancer must have caching
+   disabled.
 
 To configure multiple |application|\ s with load balancing:
 
