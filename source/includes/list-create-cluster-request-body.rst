@@ -13,13 +13,15 @@
        Contains the ``diskGBEnabled`` field which specifies whether to
        enable or disable disk auto-scaling. 
 
-   * - ``autoScaling.diskGBenabled``
+   * - ``autoScaling.diskGBEnabled``
      - boolean
      - Specifies whether disk auto-scaling is enabled. The default
        is ``true``.
 
        - Set to ``true`` to enable disk auto-scaling.
        - Set to ``false`` to disable disk auto-scaling.
+
+       .. include:: /includes/fact-ram-to-storage-ratio.rst
    
    * - ``backupEnabled``
      - Boolean
@@ -588,3 +590,5 @@
        .. important:: |service| calculates storage charges differently
           depending on whether you choose the default value or a custom value.
           For details, see :ref:`storage-capacity`.
+
+       .. include:: /includes/fact-storage-limitation.rst
