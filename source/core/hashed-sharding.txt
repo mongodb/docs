@@ -21,14 +21,9 @@ chunk or shard - the :binary:`~bin.mongos` is more likely to perform
 :ref:`sharding-mongos-broadcast` to fulfill a given ranged query.
 :binary:`~bin.mongos` can target queries with equality matches to a single shard.
 
-If you shard an empty collection using a hashed shard key, MongoDB
-automatically creates two empty chunks per shard, to cover the entire range
-of the hashed shard key value across the cluster. You can control how many
-chunks MongoDB creates with the ``numInitialChunks`` parameter to
-:dbcommand:`shardCollection` or by manually creating chunks on the empty
-collection using the :dbcommand:`split` command.
-
 .. include:: /includes/tip-applications-do-not-need-to-compute-hashes.rst
+
+.. include:: /includes/warning-hashed-index-floating-point.rst
 
 .. [#hashvalue]
    Starting in version 4.0, the :binary:`~bin.mongo` shell provides the
@@ -84,17 +79,50 @@ to use as the :term:`shard key`.
 
    sh.shardCollection( "database.collection", { <field> : "hashed" } )
 
+Shard a Populated Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Specify the Initial Number of Chunks
-------------------------------------
+If you shard a populated collection using a hashed shard key:
 
-If you shard an empty collection using a hashed shard key, MongoDB
-automatically creates and migrates empty chunks so that each shard
-has two chunks. To control how many chunks MongoDB creates when
-sharding the collection, use :dbcommand:`shardCollection` with the
-``numInitialChunks`` parameter.
+- The sharding operation creates the initial chunk(s) to cover the
+  entire range of the shard key values. The number of chunks created
+  depends on the :ref:`configured chunk size <sharding-chunk-size>`.
 
-.. include:: /includes/warning-hashed-index-floating-point.rst
+- After the initial chunk creation, the balancer migrates these initial
+  chunks across the shards as appropriate as well as manages the chunk
+  distribution going forward.
+
+Shard an Empty Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you shard an empty collection using a hashed shard key:
+
+- With no :doc:`zones and zone ranges </core/zone-sharding>` specified for
+  the empty or non-existing collection:
+
+  - The sharding operation creates empty chunks to cover the entire
+    range of the shard key values and performs an initial chunk
+    distribution. By default, the operation
+    creates 2 chunks per shard and migrates across the cluster. You can
+    use ``numInitialChunks`` option to specify a different number of
+    initial chunks. This initial creation and distribution of
+    chunks allows for faster setup of sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
+
+- With :doc:`zones and zone ranges </core/zone-sharding>` specified for the
+  empty or a non-existing collection (Available starting in MongoDB
+  4.0.3),
+
+  - The sharding operation creates empty chunks for the defined zone
+    ranges as well as any additional chunks to cover the entire range
+    of the shard key values and performs an initial chunk distribution
+    based on the zone ranges. This initial creation and distribution of
+    chunks allows for faster setup of zoned sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
 
 .. toctree::
    :titlesonly:
