@@ -32,7 +32,8 @@ extensions = [
     'fasthtml',
     'fixed_only',
     'tabs',
-    'icon'
+    'icon',
+    'source_constants'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale + '-onprem'),
@@ -66,6 +67,15 @@ extlinks = {
     'bic': ('https://docs.mongodb.com/bi-connector/current%s',''),
     'product': ('http://www.mongodb.com/products/%s?jmp=docs',''),
     'dl': ('http://www.mongodb.com/download-center/%s?jmp=docs','')
+}
+
+source_constants = {
+    'version': version,
+    'release': release,
+    'opsmgr-url': '<OpsManagerHost>:<Port>',
+    'autoagent-version': '6.1.0.5603-1',
+    'bagent-version': '6.8.4.1009',
+    'magent-version': '6.6.2.464',
 }
 
 languages = [

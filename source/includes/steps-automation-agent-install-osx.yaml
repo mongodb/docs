@@ -97,10 +97,35 @@ source:
   file: steps-automation-agent-install-from-archive.yaml
   ref: create-automation-directory
 ---
+title: "Assign permissions to the system user that runs the Automation Agent."
 stepnum: 9
-source:
-  file: steps-automation-agent-install-from-archive.yaml
-  ref: assign-automation-agent-permissions
+ref: assign-automation-agent-permissions
+content: |
+  Run the following commands:
+
+  .. code-block:: shell
+
+    # Create mongodb user and group if they do not exist
+ 
+    if ! sudo /usr/bin/id -g mongodb &>/dev/null; then
+        sudo /usr/sbin/groupadd -r mongodb
+    fi
+ 
+    # Create mongodb user if they do not exist and assign 
+    # them to the mongodb group
+ 
+    if ! sudo /usr/bin/id mongodb &>/dev/null; then
+        sudo /usr/sbin/useradd -M -r -g mongodb \
+          -d /var/lib/mongo -s /bin/false \
+          -c mongodb mongodb > /dev/null 2>&1
+    fi
+ 
+    # Grant the mongodb:mongodb user and group permissions 
+    # to manage deployments.
+ 
+    sudo chown mongodb:mongodb /var/lib/mongodb-mms-automation
+    sudo chown mongodb:mongodb /var/log/mongodb-mms-automation
+    sudo chown mongodb:mongodb /data
 ---
 title: "Start the Automation Agent."
 stepnum: 10
