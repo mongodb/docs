@@ -35,7 +35,7 @@
 
           For New Zealand enter ``01164`` before the phone number. As
           an alternative, use a 
-          `Google Voice number <https://voice.google.com>`__. |service
+          `Google Voice number <https://voice.google.com>`__. |service|
           uses the U.S.-based `Twilio <https://www.twilio.com>`_ to
           send SMS messages.
 
@@ -135,9 +135,9 @@
 
    * - Webhook
 
-     - Sends an |http| ``POST`` request to an endpoint for
+     - Sends an HTTP ``POST`` request to an endpoint for
        programmatic processing. The request body contains a JSON
-       document that uses the same format as the |service| |api|
+       document that uses the same format as the |service| API
        ``Alerts`` resource. This option is available only if you have
        configured Webhook settings on the ``Project Settings`` page.
        
