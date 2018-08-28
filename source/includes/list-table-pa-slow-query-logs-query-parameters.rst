@@ -8,18 +8,18 @@
 
    * - ``since``
      - long
-     - Point in time from which to retrieve suggested indexes,
+     - Point in time from which to retrieve slow query logs,
        stated in `milliseconds since epoch
        <https://currentmillis.com/>`_.
 
    * - ``duration``
      - long
      - Length of time in milliseconds during which to find
-       suggested indexes among the managed namespaces in the cluster.
+       slow query logs among the managed namespaces in the cluster.
 
    * - ``namespaces``
      - string
-     - Namespaces from which to retrieve suggested indexes. A namespace
+     - Namespaces from which to retrieve slow query logs. A namespace
        consists of the database and collection resource separated by a
        ``.``, such as ``<database>.<collection>``.
 
