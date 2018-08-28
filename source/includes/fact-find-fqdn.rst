@@ -1,22 +1,45 @@
-For macOS or Linux hosts, the |fqdn| can be found using the
-following command:
 
-.. code-block:: shell
+.. tabs::
 
-   > hostname -f
+   tabs:
+     - id: mac-linux
+       name: Linux or macOS
+       content: |
 
-   mongodb.example.com
+         Use the following command to find the host |fqdn|:
 
-For Windows hosts, the host must be connected to the internet and
-attached to a domain. The |fqdn| can then be found using the following
-command:
+         .. code-block:: shell
 
-.. code-block:: powershell
+            > hostname -f
 
-   PS C:\> systeminfo | findstr /B /C:"Host" /C:"Domain"
-   Host Name:                 mongodb
-   Domain:                    example.com
+         Your result should look like this:
 
-Combine the ``Host Name`` and ``Domain`` with a ``.`` to get the
-|fqdn|. With the previous example, the |fqdn| is
-``mongoodb.example.com``.
+         .. code-block:: shell
+            :copyable: false
+
+            mongodb.example.com
+
+     - id: windows
+       name: Windows
+       content: |
+
+         Windows hosts host must be connected to the internet and
+         attached to a Active Directory domain. 
+
+         Use the following command to find the host |fqdn|:
+
+         .. code-block:: powershell
+
+            PS C:\> systeminfo | findstr /B /C:"Host" /C:"Domain"
+
+         Your result should look like this:
+
+         .. code-block:: powershell
+            :copyable: false
+
+            Host Name:                 mongodb
+            Domain:                    example.com
+
+         Combine the ``Host Name`` and ``Domain`` with a ``.`` to get
+         the |fqdn|. With the previous example, the |fqdn| is
+         ``mongoodb.example.com``.
