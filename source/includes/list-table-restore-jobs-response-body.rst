@@ -21,13 +21,13 @@
      - string
      - Type of restore job to create. Possible values are:
 
-       ``AUTOMATION_PULL``
+       ``automated``
          |service| automatically restores the snapshot with
          ``snapshotId`` to the |service| cluster with name
          ``targetClusterName`` in the |service| project with 
          ``targetGroupId``.
 
-       ``MANUAL_DOWNLOAD``
+       ``download``
          |service| provides a URL to download a ``.tar.gz`` of the
          snapshot with ``snapshotId``. The contents of the archive
          contain the data files for your |service| cluster. 
@@ -37,7 +37,7 @@
    * - ``deliveryUrl``
      - string
      - URL to the ``.tar.gz`` of the snapshot for manual download. 
-       Only visible if ``deliveryType`` is ``MANUAL_DOWNLOAD``.
+       Only visible if ``deliveryType`` is ``download``.
 
    * - ``expired``
      - boolean
@@ -72,13 +72,13 @@
    * - ``targetGroupId``
      - string
      - Name of the target |service| project of the restore job. Only
-       visible if ``deliveryType`` is ``AUTOMATION_PULL``.
+       visible if ``deliveryType`` is ``automated``.
 
    * - ``targetClusterName``
      - string
      - Name of the target |service| cluster to which the restore
        job restores the snapshot. Only visible if ``deliveryType``
-       is ``AUTOMATION_PULL``.
+       is ``automated``.
 
    * - ``timestamp``
      - Date
