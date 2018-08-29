@@ -1,0 +1,117 @@
+.. _security-azure-kms:
+
+======================================
+Encryption at Rest via Azure Key Vault
+======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| supports using a Key Identifier
+provided by Azure Key Vault to configure the
+:manual:`encrypted storage engine </core/security-encryption-at-rest>`
+on ``M10`` or greater replica set clusters.
+
+This procedure covers configuring Encryption at Rest via 
+Azure Key Vault for an |service| project. You must configure
+Encryption at Rest for the |service| project before enabling
+Encryption at Rest on clusters in that project. For instructions on
+enabling Encryption at Rest when deploying an |service| cluster, see
+:ref:`create-cluster-enable-encryption`. For instructions on
+enabling Encryption at Rest for an existing |service| cluster,
+see :ref:`scale-cluster-enable-encryption`.
+
+To learn more about Encryption at Rest in |service|, see
+:ref:`security-kms-encryption`.
+
+.. important::
+
+   To disable Encryption at Rest in an |service| project, you must
+   disable Encryption at Rest for every cluster in the project 
+   *before* removing all configuration details in the project. Do
+   **not** disable or delete any Azure Key Vault keys used by any 
+   cluster in your |service| project before you have completely disabled
+   Encryption at Rest within the |service| project. If |service|
+   cannot access an Azure Key Vault key, any data encrypted by that
+   key becomes inaccessible.
+
+.. _azure-kms-prereqs:
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-azure-kms-prereqs.rst
+
+.. _security-azure-kms-restrictions:
+
+Restrictions
+------------
+
+The following restrictions apply to Encyption at Rest on an |service|
+cluster:
+    
+* Clusters must use ``M10`` or larger servers.
+
+* Sharded clusters are not supported. Your deployment must be a replica
+  set.
+
+* For clusters that require backups, you must select
+  :ref:`backup-cloud-provider` when
+  :ref:`deploying <create-cluster-backups>` or 
+  :ref:`modifying <scale-cluster-backups>` the cluster. 
+  |service| does not support encrypting 
+  :ref:`backup-continuous`.
+    
+* You cannot enable Encryption at Rest for clusters running on Google 
+  Cloud Project (GCP). Support for Encryption at Rest for GCP clusters 
+  is in development.
+
+.. note::
+
+   Administrators who deploy clusters on GCP and want to enable backup
+   should keep those clusters in a separate project from deployments
+   that use Encryption at Rest or Cloud Provider Snapshots.
+
+.. _azure-kms-configure-project:
+
+Configure Encryption at Rest for an |service| project
+-----------------------------------------------------
+    
+
+
+.. include:: /includes/steps/configure-azure-encryption-for-project.rst
+   
+|service| automatically creates a
+:alert:`customer master key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
+once you configure Encryption at Rest for a project. You can reset
+this alert at any time by 
+:ref:`rotating your customer encryption key <azure-kms-rotate-key>`.
+
+.. _azure-kms-rotate-key:
+
+Rotate your Azure Key Identifier
+--------------------------------
+
+For clusters using |service| :ref:`security-azure-kms`, |service|
+automatically rotates the MongoDB master keys every 90 days. However,
+|service| does **not** automatically rotate the Key Identifier
+used for Encryption at Rest. This procedure documents manually 
+rotating your |service| project Key Identifier by 
+specifying a new key identifier in |service|. This procedure
+assumes you have already created a new key in the Azure Key Vault
+associated to the |service| project.
+
+.. include:: /includes/steps/rotate-azure-encryption-key.rst
+
+|service| resets the :alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
+timer at the completion of this procedure. 

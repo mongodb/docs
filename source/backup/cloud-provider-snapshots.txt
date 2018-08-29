@@ -40,58 +40,99 @@ From the cluster configuration modal, toggle
 Cloud Provider Snapshots with Encryption at Rest
 ------------------------------------------------
 
-For clusters using :doc:`Encryption at Rest </security-aws-kms>`,
-|service| uses the project's customer master key (CMK) and
-AWS Identity and Access Management (IAM) user credentials at the time of
-the snapshot to automatically encrypt the snapshot data files.
-This is an additional layer of encryption on the existing
-encryption applied to all |service| storage and snapshot volumes.
+|service| encrypts all snapshot volumes, ensuring the security of
+cluster data at rest (Encryption at Rest). For projects and clusters
+using :ref:`security-kms-encryption`, |service| applies an additional
+layer of encryption to your snapshot storage volumes using the 
+Key Management Service (KMS) provider configured for the cluster.
 
-|service| stores the unique ID of the :abbr:`CMK (customer master key)`
-and the AWS :abbr:`IAM (Identity and Access Management)` user
-credentials used to access the :abbr:`CMK (customer master key)`.
-|service| uses this information when restoring the snapshot. For
-complete documentation on restoring an encrypted snapshot, see
-:ref:`restore-encrypted-snapshot`.
+.. tabs::
 
-To view the ID of the :abbr:`CMK (Cluster Master Key)` used to encrypt
-a snapshot:
+   tabs:
 
-#. From the :guilabel:`Clusters` view of the |service| UI, click on the
-   cluster name.
+   - id: aws-kms
 
-#. Click the :guilabel:`Backup` tab, then click :guilabel:`Snapshots`.
+     name: "AWS Identity and Access Management (IAM)"
 
-#. Note the :guilabel:`CMK ID` for each snapshot in the cluster.
-   Snapshots without Encryption at Rest enabled display
-   :guilabel:`Not enabled`.
+     content: |
 
-.. important::
+       For clusters using :doc:`AWS IAM </security-aws-kms>` as their
+       Key Management Service, |service| uses the project's 
+       customer master key (CMK) and AWS 
+       :abbr:`IAM (Identity and Access Management)` user credentials at 
+       the time of the snapshot to automatically encrypt the snapshot 
+       data files. This is an additional layer of encryption on the 
+       existing encryption applied to all |service| storage and snapshot 
+       volumes.
 
-   |service| requires access to the enabled
-   :abbr:`CMK (customer master key)` used to encrypt a snapshot to
-   successfully
-   :ref:`restore that snapshot <restore-encrypted-snapshot>`.
+       |service| stores the unique ID of the 
+       :abbr:`CMK (customer master key)` and the AWS 
+       :abbr:`IAM (Identity and Access Management)` user credentials 
+       used to access the :abbr:`CMK (customer master key)`. |service| 
+       uses this information when restoring the snapshot. For complete 
+       documentation on restoring an encrypted snapshot, 
+       see :ref:`restore-encrypted-snapshot`.
 
-   Before deleting a :abbr:`CMK (customer master key)`
-   used with |service| Encryption at Rest, check **every**
-   backup-enabled cluster in the project for any snapshots still
-   using that :abbr:`CMK (customer master key)`. |service|
-   automatically deletes backups in accordance to the
-   :ref:`cloud-provider-retention-policy`. Once |service| deletes
-   all snapshots depending on a given :abbr:`CMK (customer master key)`,
-   you can delete it safely.
+       To view the key used to encrypt a snapshot:
 
-   If disabling a :abbr:`CMK (customer master key)`, you must
-   re-enable the key before restoring a snapshot encrypted with
-   that key.
+       #. From the :guilabel:`Clusters` view of the |service| UI, click 
+          on the cluster name.
 
-For complete documentation on configuring Encryption at Rest,
-see :doc:`/security-aws-kms`. You can either
-:ref:`deploy <create-cluster-enable-encryption>` a cluster with
-Encryption at Rest, or
-:ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
-in an existing cluster.
+       #. Click the :guilabel:`Backup` tab, then click 
+          :guilabel:`Snapshots`.
+
+       #. Note the :guilabel:`Encryption Key ID` for each snapshot in 
+          the cluster. |service| lists the 
+          :abbr:`CMK (Customer Master Key)` used to encrypt the 
+          snapshot. Unencrypted snapshots display
+          :guilabel:`Not enabled`.
+
+       .. include:: /includes/fact-encrypted-backups-master-key-requirements.rst
+
+   - id: azure-kms
+
+     name: "Azure Key Vault"
+
+     content: |
+
+       For clusters using :doc:`Azure Key Vault </security-azure-kms>`
+       as their Key Management Service, |service| uses the project's
+       Key Identifier, Key Vault Credentials, and Active Directory
+       application account credentials at the time of the snapshot to
+       automatically encrypt the snapshot data files. This is an
+       additional layer of encryption on the existing encryption 
+       applied to all |service| storage and snapshot volumes.
+
+       |service| stores the unique ID of the 
+       Azure Key Identifier used the encrypt the snapshot. |service|
+       also stores the Azure Key Vault
+       credentials and the Active Domain application account
+       credentials used to access the Key Identifier. 
+       |service| uses this information when restoring the snapshot. 
+       For complete documentation on restoring an encrypted snapshot, 
+       see :ref:`restore-encrypted-snapshot`.
+
+       To view the key used to encrypt a snapshot:
+
+       #. From the :guilabel:`Clusters` view of the |service| UI, click 
+          on the cluster name.
+
+       #. Click the :guilabel:`Backup` tab, then click 
+          :guilabel:`Snapshots`.
+
+       #. Note the :guilabel:`Encryption Key ID` for each snapshot in 
+          the cluster. |service| lists the Key Identifier
+          used to encrypt the snapshot. Unencrypted snapshots display
+          :guilabel:`Not enabled`.
+
+       .. include:: /includes/fact-encrypted-backups-master-key-requirements.rst
+
+For complete documentation on configuring Encryption at Rest using
+your Key Management for an |service| project,
+see :doc:`/security-kms-encryption`. You can then either
+:ref:`deploy <create-cluster-enable-encryption>` a new cluster
+:ref:`enable <scale-cluster-enable-encryption>` an existing cluster
+with Encryption at Rest using your Key Management.
 
 Single Region Cluster Backups
 -----------------------------
@@ -99,25 +140,6 @@ Single Region Cluster Backups
 .. tabs::
 
      tabs:
-
-     - id: azure
-       name: Azure
-       content: |
-
-         |service| always selects the :term:`primary` member of the
-         replica set for backup snapshots. |service| stores the
-         snapshots in the same cloud region as the cluster. |service|
-         retains snapshots based on the
-         :ref:`retention policy <cloud-provider-retention-policy>`.
-
-         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
-
-         If that member steps down
-         to a :term:`secondary`, |service| changes the snapshot
-         target to the current :term:`primary`.
-
-         .. include:: /images/cloud-provider-snapshot-single-region-moved-primary.rst
-
      - id: aws
        name: AWS
        content: |
@@ -125,8 +147,9 @@ Single Region Cluster Backups
          |service| selects the :term:`primary` member of the replica
          set *at the time you enable backups for the cluster* for backup
          snapshots. |service| stores the snapshots in the same
-         cloud region as the cluster. |service| retains snapshots based
-         on the :ref:`retention policy <cloud-provider-retention-policy>`.
+         cloud region as the cluster. |service| retains snapshots based 
+         on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
 
          .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
 
@@ -157,34 +180,31 @@ Single Region Cluster Backups
          For more information on snapshot retention, see
          :ref:`cloud-provider-retention-policy`.
 
+     - id: azure
+       name: Azure
+       content: |
+
+         |service| always selects the :term:`primary` member of the
+         replica set for backup snapshots. |service| stores the 
+         snapshots in the same cloud region as the cluster. |service| 
+         retains snapshots based on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
+
+         .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
+
+         If that member steps down
+         to a :term:`secondary`, |service| changes the snapshot
+         target to the current :term:`primary`.
+
+         .. include:: /images/cloud-provider-snapshot-single-region-moved-primary.rst
+
 Multi-Region Cluster Backups
 ----------------------------
 
 .. tabs::
 
      tabs:
-
-     - id: azure
-       name: Azure
-       content: |
-
-         |service| always selects the :term:`primary` member of the
-         replica set for backup snapshots. |service| stores snapshots
-         in the same region as the primary member. |service| retains
-         snapshots based on the
-         :ref:`retention policy <cloud-provider-retention-policy>`.
-
-         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
-
-         If that member steps down
-         to a :term:`secondary`, |service| changes the snapshot
-         target to the current :term:`primary`.
-
-         .. include:: /images/cloud-provider-snapshot-multi-region-moved-primary.rst
-
-         |service| stores subsequent snapshots in the region of the
-         new primary member.
-
+  
      - id: aws
        name: AWS
        content: |
@@ -224,6 +244,27 @@ Multi-Region Cluster Backups
          removes all snapshots for the cluster.
          For more information on snapshot retention, see
          :ref:`cloud-provider-retention-policy`.
+  
+     - id: azure
+       name: Azure
+       content: |
+  
+         |service| always selects the :term:`primary` member of the
+         replica set for backup snapshots. |service| stores snapshots
+         in the same region as the primary member. |service| retains 
+         snapshots based on the 
+         :ref:`retention policy <cloud-provider-retention-policy>`.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
+
+         If that member steps down
+         to a :term:`secondary`, |service| changes the snapshot
+         target to the current :term:`primary`.
+
+         .. include:: /images/cloud-provider-snapshot-multi-region-moved-primary.rst
+
+         |service| stores subsequent snapshots in the region of the
+         new primary member.
 
 .. _cloud-provider-backup-schedule:
 .. _cloud-provider-retention-policy:
@@ -266,7 +307,7 @@ the snapshot schedule or retention settings.
    If you disable cloud provider snapshots for a cluster or terminate a
    cluster that had snapshots enabled, |service| immediately
    deletes the backup snapshots for that cluster. For clusters not
-   using :ref:`Encryption at Rest via Customer KMS <security-aws-kms>`
-   you can :ref:`download the latest snapshot
+   using :ref:`security-kms-encryption`
+   you can :ref:`download the latest snapshot 
    <restore-cloud-provider-snapshot-download>` to preserve any data
    stored in the cluster.
