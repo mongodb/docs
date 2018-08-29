@@ -7,7 +7,7 @@
      - Billing Alerts
      - Description
 
-   * - Organization
+   * - |service| Organization
 
      - :icon:`check`
 
@@ -16,14 +16,16 @@
      - Sends the alert to users with specific roles in the
        organization, either by email or text message.
 
-       - Check the Organization roles from the
-         :guilabel:`Organization Roles to Send to` dropdown menu.
+       - Select the Organization roles that should receive the
+         alerts from the :guilabel:`Select Role(s)` check boxes or
+         select :guilabel:`All Roles` for all users in the
+         Organization to receive the alert.
 
-       - Check :guilabel:`SMS` to send these alerts to the mobile
-         number configured for each |service| user's account.
+       - Select :guilabel:`SMS` to send these alerts to the mobile
+         number configured for each |mms| user's account.
 
-       - Check :guilabel:`Email` to send these alerts to the email
-         address configured for each |service| user's account.
+       - Select :guilabel:`Email` to send these alerts to the email
+         address configured for each |mms| user's account.
          :guilabel:`Email` is checked by default.
 
    * - |service| User
@@ -35,10 +37,10 @@
      - Sends the alert to a user who belongs to the Organization,
        either by email or text message. 
 
-       - Check :guilabel:`SMS` to send these alerts to the mobile
+       - Select :guilabel:`SMS` to send these alerts to the mobile
          number configured for each |service| user's account.
 
-       - Check :guilabel:`Email` to send these alerts to the email
+       - Select :guilabel:`Email` to send these alerts to the email
          address configured for each |service| user's account.
          :guilabel:`Email` is checked by default.
 

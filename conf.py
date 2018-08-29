@@ -72,8 +72,10 @@ rst_epilog = [
     '.. |bic-official| replace:: MongoDB Connector for Business Intelligence for Atlas',
     '.. |global-write| replace:: Global Writes',
     '.. |global-write-clusters| replace:: Global Clusters',
-    '.. |global-write-cluster| replace:: Global Cluster'
-    
+    '.. |global-write-cluster| replace:: Global Cluster',
+    '.. |iso8601-time| replace:: Timestamp in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`__ date and time format in |utc|',
+    '.. |iso8601-duration| replace:: Duration in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=851138376#Durations>`__ notation',
+    '.. |utc| replace:: :abbr:`UTC (Coordinated Universal Time)`'
 ]
 
 rst_epilog.extend(get_replacements(conf))

@@ -43,7 +43,7 @@
 
        Possible values are:
 
-       .. include:: /includes/possibleValues-api-eventTypename.rst
+       .. include:: /includes/possibleValues-api-eventTypeName.rst
 
    * - ``groupId``
      - string
