@@ -71,6 +71,7 @@ pygments_style = 'sphinx'
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'v0.10': ('https://docs.mongodb.com/charts/v0.10%s', '')
 }
 
 source_constants = {
