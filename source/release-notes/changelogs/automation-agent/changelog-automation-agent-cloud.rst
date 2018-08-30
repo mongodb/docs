@@ -1,3 +1,38 @@
+.. _automation-5.6.1.5525:
+
+Automation Agent 5.6.1.5525
+---------------------------
+
+*Released 2018-08-30*
+
+- Fix issue performing point in time restores for MongoDB 4.0
+
+.. _automation-5.6.0.5523:
+
+Automation Agent 5.6.0.5523
+---------------------------
+
+*Released 2018-08-21*
+
+- Critical Fix: During a rolling change of a storage-affecting field 
+  (for example the storage engine), data loss could occur if an external 
+  process caused replica set nodes to restart unexpectedly.
+
+- Automation Agent now built using Go 1.9.
+
+- Support for Ubuntu 18.
+
+- Allow simultaneous disabling of multiple config servers.
+
+- Don't remove binaries that are currently in use by unmanaged processes.
+
+- Performance improvement for clusters with lots of sharding tags.
+
+- Only block rolling updates if there are not enough rs members without 
+  replication lag to do majority writes.
+
+- Handle rolling index build on non-existent collections.
+
 .. _automation-5.5.0.5499:
 
 Automation Agent 5.5.0.5499
