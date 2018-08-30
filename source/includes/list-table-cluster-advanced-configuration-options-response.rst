@@ -1,0 +1,69 @@
+.. list-table::
+   :widths: 20 10 70
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``failIndexKeyTooLong``
+     - boolean
+     - When ``true``, documents can only be updated or inserted if, for 
+       all indexed fields on the target collection, the corresponding 
+       index entries do not exceed 1024 bytes. When ``false``, 
+       :binary:`~bin.mongod` writes documents that breach the limit
+       but does *not* index them. 
+
+       This option corresponds to the 
+       :parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
+       :binary:`~bin.mongod` parameter.
+
+   * - ``javascriptEnabled``
+     - boolean
+     - When ``true``, the cluster allows execution of operations that
+       perform server-side executions of JavaScript. When ``false``,
+       the cluster disables execution of those operations.
+
+       This option corresponds to the 
+       :setting:`security.javascriptEnabled` :binary:`~bin.mongod` 
+       configuration file option.
+
+   * - ``minimumEnabledTlsProtocol``
+     - string
+     - The minimum Transport Layer Security (TLS) version the 
+       cluster accepts for incoming connections. 
+
+       Clusters using the deprecated TLS 1.0 protocol version
+       should consider setting TLS 1.1 or later as the minimum
+       TLS protocol version. To learn more about TLS 1.0 deprecation,
+       see :ref:`faq-tls-1.0-deprecation`.
+
+       This option corresponds to the
+       :setting:`net.ssl.disabledProtocols` :binary:`~bin.mongod`
+       configuration file option.
+
+   * - ``noTableScan``
+     - boolean
+     - When ``true``, the cluster disables the execution of any query 
+       that requires a collection scan to return results. When 
+       ``false``, the cluster allows the execution of those operations.
+
+       This option corresponds to the
+       :parameter:`notablescan <param.notablescan>` 
+       :binary:`~bin.mongod` parameter.
+
+   * - ``oplogSizeMB``
+     - integer
+     - The custom oplog size of the cluster. A value of ``null``
+       indicates that the cluster uses the default oplog size calculated
+       by |service|. 
+
+       You can check the oplog size by connecting to your cluster
+       via the :binary:`~bin.mongo` shell and authenticating as a user
+       with the :authrole:`Atlas admin` role. Run the
+       :method:`rs.printReplicationInfo() <rs.printReplicationInfo>` 
+       method to view the current oplog size and time.
+
+       This option corresponds to the 
+       :setting:`replication.oplogSizeMB <replication.oplogSizeMB>`
+       :binary:`~bin.mongod` configuration file option.
