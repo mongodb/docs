@@ -13,20 +13,22 @@
 
      - :icon:`check`
 
-     - Sends the alert to users with specific roles in the
-       organization, either by email or text message.
+     - Sends the alert by email or text message to users with
+       specific roles in the Organization.
 
-       - Select the Organization roles that should receive the
-         alerts from the :guilabel:`Select Role(s)` check boxes or
-         select :guilabel:`All Roles` for all users in the
-         Organization to receive the alert.
+       1. Select the Organization roles that should receive the
+          alerts from the :guilabel:`Select Role(s)` check boxes or
+          select :guilabel:`All Roles` for all users in the
+          Organization to receive the alert.
 
-       - Select :guilabel:`SMS` to send these alerts to the mobile
-         number configured for each |mms| user's account.
+       2. Select :guilabel:`SMS` to send these alerts to the mobile
+          number configured for each |service| Organization user in
+          their :ref:`Account page <profile-page>`.
 
-       - Select :guilabel:`Email` to send these alerts to the email
-         address configured for each |mms| user's account.
-         :guilabel:`Email` is checked by default.
+       3. Select :guilabel:`Email` to send these alerts to the email
+          address configured for each |service| Organization user in
+          their :ref:`Account page <profile-page>`.
+          :guilabel:`Email` is checked by default.
 
    * - |service| User
 
@@ -34,15 +36,17 @@
 
      - :icon:`check`
 
-     - Sends the alert to a user who belongs to the Organization,
-       either by email or text message. 
+     - Sends the alert by email or text message to a specified
+       |service| user.
 
-       - Select :guilabel:`SMS` to send these alerts to the mobile
-         number configured for each |service| user's account.
+       1. Select :guilabel:`SMS` to send these alerts to the mobile
+          number configured for the |service| user in their
+          :ref:`Account page <profile-page>`.
 
-       - Select :guilabel:`Email` to send these alerts to the email
-         address configured for each |service| user's account.
-         :guilabel:`Email` is checked by default.
+       2. Select :guilabel:`Email` to send these alerts to the email
+          address configured for the |service| user in their
+          :ref:`Account page <profile-page>`.
+          :guilabel:`Email` is checked by default.
 
    * - Email
 
@@ -78,7 +82,7 @@
      - :icon:`check`
 
      - Sends the alert to a HipChat room message stream. Enter the
-       HipChat room name and API token.
+       HipChat room name and |api| token.
 
    * - Slack
 
@@ -100,23 +104,20 @@
 
      - Sends the alert to a Flowdock account. Enter the following:
 
-       .. list-table::
-          :widths: 20 80
+       :guilabel:`Org Name`:
+          The Flowdock organization name in lower-case letters. This
+          is the name that appears after ``www.flowdock.com/app/`` in
+          the |url| string.
 
-          * - :guilabel:`Org Name`
-            - The Flowdock organization name in lower-case letters.
-              This is the name that appears after
-              ``www.flowdock.com/app/`` in the URL string.
+       :guilabel:`Flow Name`:
+          The flow name in lower-case letters. The flow name appears
+          after the organization name in the |url| string:
 
-          * - :guilabel:`Flow Name`
-            - The flow name in lower-case letters. The flow name
-              appears after the organization name in the URL string:
-              ``www.flowdock.com/app/<organization-name>/<flow-name>``
+          ``www.flowdock.com/app/<organization-name>/<flow-name>``
 
-          * - :guilabel:`User API Token`
-            - Your Flowdock "personal API token" found on the
-              `Flowdock Tokens <https://www.flowdock.com/account/tokens>`_ 
-              page of your Flowdock account.
+       :guilabel:`User API Token`:
+          Your Flowdock personal |api| token found on the 
+          `<https://www.flowdock.com/account/tokens>`_ page of your Flowdock account.
 
    * - PagerDuty
 
@@ -143,15 +144,15 @@
 
      - :icon:`check`
 
-     - Sends the alert to a 
-       `DataDog <https://www.datadoghq.com/alerts/>`_ account as a
-       DataDog `event <https://docs.datadoghq.com/graphing/event_stream/>`_.
+     - Sends the alert to a `DataDog <https://www.datadoghq.com/alerts/>`_
+       account as a DataDog
+       `event <https://docs.datadoghq.com/graphing/event_stream/>`_. 
 
        When the alert is first opened, |service| sends the alert as an
        "error" event. Subsequent updates are sent as "info" events.
        When the alert is closed, |service| sends a "success" event.
 
-       If prompted, enter your DataDog API key under
+       If prompted, enter your DataDog |api| key under 
        :guilabel:`API Key` and click
        :guilabel:`Validate Datadog API Key`.
 
