@@ -9,21 +9,20 @@ Amazon EC2
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
-   :class: twocols
+   :depth: 2
+   :class: singlecol
 
 To deploy MongoDB on `Amazon EC2 <http://aws.amazon.com/ec2/>`_, you
 can either:
 
-* :ref:`Set up a new instance manually <deploy-mongodb-ec2>`, or
+- Use `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_, or
 
-* Use MongoDB Atlas.
- 
+- :ref:`Set up a new instance manually install MongoDB <deploy-mongodb-ec2>`.
 
-MongoDB Atlas and EC2
----------------------
+Deploy MongoDB on EC2 with MongoDB Atlas
+----------------------------------------
 
-`MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_ is a hosted
+`MongoDB Atlas`_ is a hosted
 database as a service from the team that engineers the database. Atlas
 deploys MongoDB on AWS EC2 instances. The MongoDB Atlas GUI allows you:
 
@@ -40,10 +39,21 @@ deploys MongoDB on AWS EC2 instances. The MongoDB Atlas GUI allows you:
 .. image:: /figures/ec2-atlas.png
    :width: 697px
 
+.. _deploy-mongodb-ec2:
+
+Manually Deploy MongoDB on EC2
+------------------------------
+
+.. admonition:: Installation
+   :class: Warning
+   
+   To install MongoDB on Amazon Linux, refer to the :manual:`installation
+   instructions in the MongoDB manual </tutorial/install-mongodb-on-amazon>`.
+
 .. _storage-considerations:
 
 Storage Considerations
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 EC2 instances can be configured with either ephemeral storage or
 persistent storage using the Elastic Block Store (EBS). Ephemeral
@@ -76,173 +86,13 @@ performance, it also provides limited availability and can lead to
 reduced performance on read operations, particularly when using
 Amazon’s EBS volumes.
 
-.. _deploy-mongodb-ec2:
-
-Manually Deploy MongoDB on EC2
-------------------------------
-
-The following steps can be used to deploy MongoDB on EC2 yourself. The
-instances will be configured with the following characteristics:
-
-* Amazon Linux
-* MongoDB installed via ``yum``
-* Individual PIOPS EBS volumes for data (1000 IOPS), journal (250 IOPS),
-  and log (100 IOPS)
-* Updated read-ahead values for each block device
-* Update ulimit settings
-
-Before continuing be sure to have the following:
-
-* Install `EC2 command line tools <http://aws.amazon.com/developertools/351>`_
-* `Generate an EC2 key pair <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/generating-a-keypair.html>`_ for connecting to the instance via SSH
-* `Create a security group <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#creating-security-group>`_ that allows SSH connections
-
-Create the instance using the key pair and security group previously
-created and also include the :setting:`--ebs-optimized` flag and
-specify individual PIOPS EBS volumes (:file:`/dev/xvdf` for data,
-:file:`/dev/xvdg` for journal, :file:`/dev/xvdh` for log). Refer to the
-documentation for `ec2-run-instances
-<http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_
-for more information on devices and parameters.:
-
-.. code-block:: sh
-
-   ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xvdf=:200:false:io1:1000" -b "/dev/xvdg=:25:false:io1:250" -b "/dev/xvdh=:10:false:io1:100" --ebs-optimized true
-
-You can use the returned instance-id to ascertain the IP Address or
-DNS information for the instance:
-
-.. code-block:: sh
-
-   ec2-describe-instances [INSTANCE-ID]
-
-Now SSH into the instance:
-
-.. code-block:: sh
-
-   ssh -i /path/to/keypair.pem ec2-user@ec2-1-2-3-4.amazonaws.com
-
-After login, update installed packages, add the MongoDB yum repo, and install MongoDB:
-
-.. code-block:: sh
-
-   echo "[mongodb-org-3.4]
-   name=MongoDB Repository
-   baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.4/x86_64/
-   gpgcheck=1
-   enabled=1
-   gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc" |
-     sudo tee -a /etc/yum.repos.d/mongodb-org-3.4.repo
-
-.. code-block:: sh
-
-   sudo yum -y update && sudo yum install -y mongodb-org-server \
-       mongodb-org-shell mongodb-org-tools
-
-Next, create/configure the mount points, mount each volume, set
-ownership (MongoDB runs under the :setting:`mongod` user/group), and
-set the :file:`/journal` link:
-
-.. code-block:: sh
-
-   sudo mkdir /data /log /journal
-
-   sudo mkfs.xfs /dev/xvdf
-   sudo mkfs.xfs /dev/xvdg
-   sudo mkfs.xfs /dev/xvdh
-
-   echo '/dev/xvdf /data xfs defaults,auto,noatime,noexec 0 0
-   /dev/xvdg /journal xfs defaults,auto,noatime,noexec 0 0
-   /dev/xvdh /log xfs defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
-
-   sudo mount /data
-   sudo mount /journal
-   sudo mount /log
-
-   sudo chown mongod:mongod /data /journal /log
-
-   sudo ln -s /journal /data/journal
-
-Now configure the following MongoDB parameters by editing the
-configuration file :file:`/etc/mongod.conf` so that it contains the
-following:
-
-.. code-block:: ini
-
-   dbpath = /data
-   logpath = /log/mongod.log
-
-If you don't want MongoDB to start at boot, you can issue the following
-command:
-
-.. code-block:: sh
-
-   sudo chkconfig mongod off
-
-By default Amazon Linux uses :program:`ulimit` settings that are not
-appropriate for MongoDB. To setup :program:`ulimit` to match the
-documented :manual:`ulimit settings </reference/ulimit>`, run the
-following command:
-
-.. code-block:: sh
-
-   echo '* soft nofile 64000
-   * hard nofile 64000
-   * soft nproc 64000
-   * hard nproc 64000' | sudo tee /etc/security/limits.d/90-mongodb.conf
-
-Additionally, default read ahead settings on EC2 may not be optimized for
-MongoDB. Refer to the :manual:`Production
-Notes </administration/production-notes>` for the recommended configuration
-for your Linux distribution and selected MongoDB storage engine.
-For example, to set readahead to 0 for use with the WiredTiger storage engine,
-
-.. code-block:: sh
-
-   sudo blockdev --setra 0 /dev/xvdf
-
-To make this change persistent across system boot, issue the following
-command:
-
-.. code-block:: sh
-
-   echo 'ACTION=="add|change", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="0"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
-
-Once again, repeat the above command for all required volumes (note:
-the device we created was named :file:`/dev/xvdf` but the name used by
-the system is :file:`xvdf`).
-
-To start :program:`mongod`, issue the following command:
-
-.. code-block:: sh
-
-   sudo service mongod start
-
-Then connect to the MongoDB instance using the :program:`mongo` shell:
-
-.. code-block:: sh
-
-   mongo
-
-To have MongoDB startup automatically at boot issue the following command:
-
-.. code-block:: sh
-
-   sudo chkconfig mongod on
-
-For production deployments consider using :manual:`Replica Sets
-</replication/>` or :manual:`Sharding </sharding/>`.
-
 Backup, Restore, Verify
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Depending upon the configuration of your EC2 instances, there are a
 number of ways to conduct regular backups of your data. For specific
 instructions on backing up, restoring and verifying refer to
 :ref:`ec2-backup-and-restore`.
-
-Deployment Notes
-----------------
 
 Instance Types
 ~~~~~~~~~~~~~~
@@ -253,7 +103,7 @@ to ensure your selected platform is compatible with your version
 of MongoDB.
 
 Running MongoDB
-```````````````
+~~~~~~~~~~~~~~~
 
 Before starting a :program:`mongod` instance, decide where to put your
 data files.  Run :program:`df -h` to see a list of available
@@ -280,7 +130,7 @@ start the :program:`mongod` server:
 
 
 Operating System
-````````````````
+~~~~~~~~~~~~~~~~
 
 Refer to the MongoDB on Virtual Environments section of the
 :manual:`Production Notes </administration/production-notes>` for
@@ -326,7 +176,7 @@ app servers or clients.
 
 Create a rule in your MongoDB security group with the "source" field set
 to the Security Group name containing your app servers and the port set
-to 27017 (or whatever port you use for your MongoDB). This will ensure
+to ``27017`` (or whatever port you use for your MongoDB). This will ensure
 that only your app servers have permission to connect to your MongoDB
 instances.
 
