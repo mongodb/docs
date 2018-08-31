@@ -5,15 +5,9 @@
       :header-rows: 1
  
       * - Notification Method
-        - Project
-        - Global
-        - System
         - Description
  
       * - |mms| Project 
-        - :icon:`check`
-        - :icon:`check`
-        -
         - Sends the alert by email or text message to users with
           specific roles in the Project.
 
@@ -32,9 +26,6 @@
              :guilabel:`Email` is checked by default.
 
       * - |mms| Organization
-        - :icon:`check`
-        - :icon:`check`
-        -
         - Sends the alert by email or text message to users with
           specific roles in the Organization.
 
@@ -53,9 +44,6 @@
              :guilabel:`Email` is checked by default.
 
       * - |mms| User
-        - :icon:`check`
-        -
-        -
         - Sends the alert by email or text message to a specified |mms|
           user. 
 
@@ -67,11 +55,8 @@
              address configured for the |mms| user in their
              :ref:`Account page <profile-page>`.
              :guilabel:`Email` is checked by default.
-
+ 
       * - |mms| Team
-        - :icon:`check`
-        -
-        -
         - Sends the alert by email or text message to a specified |mms|
           team.
 
@@ -89,9 +74,6 @@
              :guilabel:`Email` is checked by default.
 
       * - :abbr:`SNMP (Simple Network Management Protocol)` Host
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Specify the hostname that will receive the v2c trap on 
           standard port ``162``. The 
           :abbr:`MIB (management information base)` file for 
@@ -99,32 +81,20 @@
           `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_.
  
       * - Email
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a specified email address.
  
       * - :abbr:`SMS (Short Message Service)`
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a specified mobile number.
  
           Available only if |onprem| is configured for 
           :ref:`Twilio <twilio-sms-alert-settings>` integration.
  
       * - `HipChat <https://www.atlassian.com/software/hipchat/enterprise/data-center>`_
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a HipChat room message stream. Enter the 
           HipChat room name and 
           |api| token.
  
       * - `Slack <https://slack.com/>`_
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a Slack channel. Enter the channel name 
           and either an |api|
           token or a Bot token. To create an 
@@ -134,9 +104,6 @@
           `Bot Users <https://api.slack.com/bot-users>`_.
  
       * - `FlowDock <https://www.flowdock.com/>`_
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a Flowdock account. Enter the following:
  
           - :guilabel:`Organization Name`: The Flowdock organization 
@@ -153,9 +120,6 @@
             of your Flowdock account.
  
       * - `PagerDuty <https://www.pagerduty.com/>`__
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a 
           `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
           account. Enter only the PagerDuty service key. Define 
@@ -170,9 +134,6 @@
           PagerDuty dashboard.
  
       * - Webhook
-        - :icon:`check`
-        - :icon:`check`
-        - 
         - Sends an |http| POST
           request to an endpoint for programmatic processing. The 
           request body contains a |json| document that uses the same
@@ -182,30 +143,12 @@
           the :ref:`Project Settings <group-settings-page>` page.
  
       * - `DataDog <https://www.datadoghq.com/>`_
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
         - Sends the alert to a DataDog account. Enter the following:
 
           - :guilabel:`datadogApiKey`: The DataDog 
             `API Key <https://docs.datadoghq.com/api/?lang=python#authentication>`_.
             This key can be found in
             `your DataDog account <https://app.datadoghq.com/account/settings#api>`_.
-
-      * - Administrators
-        - 
-        - :icon:`check`
-        - :icon:`check`
-        - Sends the alert to the email address specified in the 
-          :guilabel:`Admin Email Address` field in the |onprem| 
-          configuration options.
- 
-      * - Global Alerts Summary Email
-        - 
-        - :icon:`check`
-        - 
-        - Sends a summary email of all global alerts to the specified 
-          email address.
  
 .. cond:: cloud
 
@@ -219,7 +162,7 @@
       * - |mms| Project
 
         - Sends the alert to users with specific roles in the
-          project, either by email or text message.
+          Project, either by email or text message.
 
           - Select the Project roles that should receive the alerts
             from the :guilabel:`Select Role(s)` check boxes or select
