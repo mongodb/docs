@@ -121,8 +121,7 @@ html_theme_options = {
     'version_selector':  get_versions(conf),
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'is_upcoming' : True,
-    'is_private': False
+    'is_upcoming' : True
 }
 
 html_sidebars = sconf.sidebars
