@@ -5,6 +5,7 @@ pre: |
 action:
   language: sh
   code: |
+    use admin
     db.shutdownServer()
 ---
 title: "Prepare a data directory for the new ``mongod`` running with WiredTiger."
@@ -21,7 +22,7 @@ pre: |
 ---
 title: "Start ``mongod`` with WiredTiger."
 ref: change-wt-repl-sync-start-mongod-w-wiredtiger
-pre: |
+content: |
    Start :binary:`~bin.mongod`, specifying ``wiredTiger`` as the
    :option:`--storageEngine <mongod --storageEngine>` and the prepared data directory for
    WiredTiger as the :option:`--dbpath <mongod --dbpath>`. Specify additional options,
@@ -29,11 +30,33 @@ pre: |
    member.
 
    .. include:: /includes/warning-bind-ip-security-considerations.rst
+    
+   .. tabs::
+      
+      tabs:
+         - id: general
+           name: General Use (For Most Architectures)
+           content: |
+             .. code-block:: sh
 
-action:
-  language: sh
-  code: |
-    mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<hostname(s)|ip address(es)>
+                mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+
+         - id: psa36
+           name: PSA Architecture
+           content: |
+
+             .. important::
+
+                If you are running a three-member PSA architecture and
+                MongoDB version 4.0.3+, include
+                :option:`--enableMajorityReadConcern false <mongod
+                --enableMajorityReadConcern>` to disable read concern ``majority``. |seemore|
+
+             .. code-block:: sh
+
+                mongod --storageEngine wiredTiger --dbpath <newWiredTigerDBPath> --replSet <replSetName> --bind_ip localhost,<hostname(s)|ip address(es)> --enableMajorityReadConcern false
+
 post: |
   Since no data exists in the ``--dbpath``, the ``mongod`` will perform an
   :doc:`initial sync </tutorial/resync-replica-set-member>`. The length of the
