@@ -29,7 +29,8 @@ extensions = [
     'sphinx.ext.todo',
     'mongodb',
     'directives',
-    'intermanual'
+    'intermanual',
+    'tabs'
 ]
 
 templates_path = ['.templates']
