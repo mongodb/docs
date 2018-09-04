@@ -17,6 +17,38 @@ Change Replica Set to WiredTiger
 Considerations
 --------------
 
+Replica sets can have members with different storage engines. As such,
+you can update members to use the WiredTiger storage engine in a
+rolling fashion.
+
+.. _rs-mmapv1-wt-4.0-psa:
+
+PSA 3-member Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 3.6, :readconcern:`"majority"` read concern,
+available for WiredTiger, is enabled by default. However, for MongoDB
+4.0.3+, if you have a three-member replica set with a
+primary-secondary-arbiter (PSA) architecture, you can disable
+:readconcern:`"majority"` read concern. Disabling
+:readconcern:`"majority"` for a three member PSA architecture avoids
+possible cache-pressure build up.
+
+The procedure below disables :readconcern:`"majority"` read concern for
+MongoDB 4.0.3 PSA  architecture by including
+:option:`--enableMajorityReadConcern false <mongod
+--enableMajorityReadConcern>`.  If you are running a MongoDB 4.0.1 or
+4.0.2 PSA architecture, first upgrade to the latest 4.0 version in
+order to disable this read concern.
+
+.. note::
+
+   Disabling :readconcern:`"majority"` read concern disables support
+   for :doc:`/changeStreams`.
+
+For more information on PSA architecture and read concern
+:readconcern:`"majority"`, see :ref:`4.0-disable-read-concern-majority`.
+
 MongoDB 3.0 or Greater
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -45,6 +77,7 @@ The following procedure updates the replica set in a rolling fashion.
 The procedure updates the :term:`secondary` members first, then steps
 down the :term:`primary`, and updates the stepped-down member.
 
+
 To update a member to WiredTiger, the procedure removes a member's
 data, starts :binary:`~bin.mongod` with WiredTiger, and performs an
 :doc:`initial sync </tutorial/resync-replica-set-member>`.
@@ -53,9 +86,10 @@ data, starts :binary:`~bin.mongod` with WiredTiger, and performs an
 A. Update the secondary members to WiredTiger.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 Update the secondary members one at a time:
 
-.. container:: admonition
+.. container::
 
    .. include:: /includes/steps/change-replica-set-wiredtiger.rst
 
@@ -64,6 +98,12 @@ at a time.
 
 B. Step down the primary.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   If updating all members of the replica set to use WiredTiger, ensure
+   that all secondary members have been updated first before updating
+   the primary.
 
 Once all the secondary members have been upgraded to WiredTiger,
 connect a :binary:`~bin.mongo` shell to the primary and use
@@ -76,8 +116,8 @@ of a new primary.
 
       rs.stepDown()
 
-C. Update the old primary.
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+C. Update the stepped down primary.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When the primary has stepped down and become a secondary, update the
 secondary to use WiredTiger as before:
@@ -86,3 +126,5 @@ secondary to use WiredTiger as before:
 
    .. include:: /includes/steps/change-replica-set-wiredtiger.rst
 
+
+.. |seemore| replace:: See :ref:`rs-mmapv1-wt-4.0-psa`.
