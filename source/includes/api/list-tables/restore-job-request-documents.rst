@@ -7,6 +7,21 @@
      - Type
      - Description
 
+   * - checkpointId
+     - string
+     - *Conditional: Sharded Clusters Only.* Unique identifier for the
+       :term:`sharded cluster` :term:`checkpoint <checkpoint>` that
+       represents the point in time to which your data will be
+       restored.
+
+       .. note::
+
+          If you set **checkpointId**, you cannot set **oplogInc**,
+          **oplogTs**, or **pointInTimeUTCMillis**.
+
+       If you provide this setting, this endpoint your database with
+       all data up to a specific :term:`checkpoint <checkpoint>`.
+
    * - delivery
      - object
      - Method and details of how the restored :term:`snapshot` data
@@ -14,8 +29,7 @@
 
    * - delivery.expires
      - timestamp
-     - Date after which the :abbr:`URL (Uniform Resource Locator)` is 
-       no longer available.
+     - Date after which the |url| is no longer available.
 
        Only present if ``"delivery.methodName" : "HTTP"``.
 
@@ -70,6 +84,51 @@
        restored snapshot data can be downloaded.
 
        Only needed if ``"delivery.methodName" : "HTTP"``.
+
+   * - oplogTs
+     - string
+     - *Conditional: Replica Sets Only.* Oplog timestamp that, when
+       paired with **oplogInc**, represents the point in time to which
+       your data will be restored.
+
+       .. note::
+
+          If you set **oplogTs**, you:
+
+          - Must set **oplogInc**. 
+          - Cannot set **checkpointId** or **pointInTimeUTCMillis**.
+
+   * - oplogInc
+     - string
+     - *Conditional: Replica Sets Only.* Oplog increment that, when
+       paired with **oplogTs**, represents the point in time to which
+       your data will be restored.
+
+       .. note::
+
+          If you set **oplogInc**, you:
+
+          - Must set **oplogTs**. 
+          - Cannot set **checkpointId** or **pointInTimeUTCMillis**.
+
+       If you provide this setting, this endpoint restores your
+       database with all data up to a specific Oplog timestamp.
+
+   * - pointInTimeUTCMillis
+     - long
+     - *Conditional: Replica Sets Only.* A |epoch-time| that
+       represents the point in time to which your data will be
+       restored. This timestamp must be within last 24 hours from the
+       current time.
+
+       If you provide this setting, this endpoint your database with
+       all data up to a specific
+       :term:`Point in Time <point-in-time restore>`.
+
+       .. note::
+
+          If you set **pointInTimeUTCMillis**, you cannot set
+          **oplogInc**, **oplogTs**, or **checkpointId**.
 
    * - snapshotId
      - string
