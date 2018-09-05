@@ -16,11 +16,12 @@
 
        .. note::
 
-          If you set **checkpointId**, you cannot set **oplogInc**,
-          **oplogTs**, or **pointInTimeUTCMillis**.
+          If you set ``checkpointId``, you cannot set ``oplogInc``,
+          ``oplogTs``, or ``pointInTimeUTCMillis``.
 
-       If you provide this setting, this endpoint your database with
-       all data up to a specific :term:`checkpoint <checkpoint>`.
+       If you provide this setting, this endpoint restores all data up
+       to this :term:`checkpoint <checkpoint>` to the database you
+       specified in the ``delivery`` object.
 
    * - delivery
      - object
@@ -87,48 +88,58 @@
 
    * - oplogTs
      - string
-     - *Conditional: Replica Sets Only.* Oplog timestamp that, when
-       paired with **oplogInc**, represents the point in time to which
-       your data will be restored.
+     - *Conditional: Replica Sets Only.* Oplog
+       :manual:`timestamp </reference/bson-types>` given as a
+       |epoch-time|. When paired with ``oplogInc``, they represent the
+       point in time to which your data will be restored.
+
+       Run a query against :data:`local.oplog.rs` on your
+       :term:`replica set` to find the desired timestamp.
 
        .. note::
 
-          If you set **oplogTs**, you:
+          If you set ``oplogTs``, you:
 
-          - Must set **oplogInc**. 
-          - Cannot set **checkpointId** or **pointInTimeUTCMillis**.
+          - Must set ``oplogInc``. 
+          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+
+       If you provide this setting, this endpoint restores all data up
+       to *and including* this Oplog timestamp to the database you
+       specified in the ``delivery`` object.
 
    * - oplogInc
      - string
-     - *Conditional: Replica Sets Only.* Oplog increment that, when
-       paired with **oplogTs**, represents the point in time to which
+     - *Conditional: Replica Sets Only.* 32-bit incrementing ordinal
+       that represents operations within a given second. When paired
+       with ``oplogTs``, they represent the point in time to which
        your data will be restored.
 
        .. note::
 
-          If you set **oplogInc**, you:
+          If you set ``oplogInc``, you:
 
-          - Must set **oplogTs**. 
-          - Cannot set **checkpointId** or **pointInTimeUTCMillis**.
+          - Must set ``oplogTs``. 
+          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
 
-       If you provide this setting, this endpoint restores your
-       database with all data up to a specific Oplog timestamp.
+       If you provide this setting, this endpoint restores all data up
+       to *and including* this Oplog timestamp to the database you
+       specified in the ``delivery`` object.
 
    * - pointInTimeUTCMillis
      - long
      - *Conditional: Replica Sets Only.* A |epoch-time| that
        represents the point in time to which your data will be
-       restored. This timestamp must be within last 24 hours from the
+       restored. This timestamp must be within last 24 hours of the
        current time.
 
-       If you provide this setting, this endpoint your database with
-       all data up to a specific
-       :term:`Point in Time <point-in-time restore>`.
+       If you provide this setting, this endpoint restores all data up
+       to this :term:`Point in Time <point-in-time restore>` to the
+       database you specified in the ``delivery`` object.
 
        .. note::
 
-          If you set **pointInTimeUTCMillis**, you cannot set
-          **oplogInc**, **oplogTs**, or **checkpointId**.
+          If you set ``pointInTimeUTCMillis``, you cannot set
+          ``oplogInc``, ``oplogTs``, or ``checkpointId``.
 
    * - snapshotId
      - string
