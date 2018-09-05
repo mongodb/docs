@@ -1,3 +1,46 @@
+.. _opsmgr-server-4.0.2:
+
+|onprem| Server 4.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2018-09-06*
+
+Critical Fixes
+``````````````
+
+- Added support for management of MongoDB processes
+  on Ubuntu 18.04.
+
+- User alerts are now available.
+
+- When performing a point in time restore for MongoDB 4.0, drop the
+  ``minOptimeRecovery`` document before bringing up the target cluster.
+
+- Show MongoDB start-up warnings on the cluster overview page.
+
+Fixes
+`````
+
+- Log Collection was unable to complete if one of the
+  requested files was an empty file.
+
+- Real Time Performance Panel adds support for killing
+  sessions in MongoDB 4.0+.
+
+- Support additional schema-related options when configuring
+  the MongoDB BI Connector.
+
+Improvements
+````````````
+
+- **Config Ownership:** perform additional validation for deployment in
+  the projects managed by external provider (Kubernetes).
+
+Agent Upgrades
+``````````````
+
+- :ref:`automation-5.4.10.5496-1`
+
 .. _opsmgr-server-4.0.1:
 
 |onprem| Server 4.0.1
@@ -30,7 +73,7 @@
   to Distinguished Name Mapping without setting the Authorization Query
   Template.
 
-- Agent Upgrades: :ref:`automation-5.4.9.5483`,  :ref:`backup-6.8.4.1009`
+- **Agent Upgrades:** :ref:`automation-5.4.9.5483`,  :ref:`backup-6.8.4.1009`
 
 .. _opsmgr-server-4.0.0:
 
@@ -109,4 +152,4 @@
   - Ubuntu 16.04
   - :abbr:`RHEL (Red Hat Enterprise Linux)` 7.x
 
-- Agent Upgrades: :ref:`automation-5.4.6.5465-1`,  :ref:`backup-6.8.3.1002-1`, :ref:`monitoring-6.6.2.464-1`
+- **Agent Upgrades:** :ref:`automation-5.4.6.5465-1`,  :ref:`backup-6.8.3.1002-1`, :ref:`monitoring-6.6.2.464-1`

@@ -1,3 +1,18 @@
+.. _automation-5.4.10.5496-1:
+
+Automation Agent 5.4.10.5496-1
+------------------------------
+
+- **Critical Fix:** Storage affecting field changes in a replica set
+  could result in data loss if processes were restarted unexpectedly.
+
+- **Critical Fix:** Allow :abbr:`CSRS (Config Server Replica Set)`
+  members to be shut down.
+
+- **Fix:** Automation Agent was unable to properly determine state if
+  the process ID previously used by a MongoDB process was reclaimed by
+  a different process after an unexpected server reboot.
+
 .. _automation-5.4.9.5483:
 
 Automation Agent 5.4.9.5483
