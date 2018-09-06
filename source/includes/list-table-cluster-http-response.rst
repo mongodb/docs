@@ -21,9 +21,10 @@
 
    * - ``backupEnabled``
      - Boolean
-     - ``true`` if you enabled 
-       :doc:`continuous backups </backup/continuous-backups>` for the 
-       cluster.
+     - If ``true``, the cluster uses |service| :ref:`backup-continuous`
+       for backing up cluster data. If ``backupEnabled`` and 
+       ``providerBackupEnabled`` are ``false``, the cluster does not 
+       use |service| backups.
 
    * - ``biConnector``
      - document
@@ -195,6 +196,15 @@
    * - ``paused``
      - boolean
      - A flag that indicates whether the cluster is paused or not.
+
+   * - ``providerBackupEnabled``
+     - Boolean
+     - If ``true``, the cluster uses :ref:`backup-cloud-provider` for 
+       backups. If ``providerBackupEnabled`` *and* ``backupEnabled`` are
+       ``false``, the cluster does not use |service| backups.
+
+       If ``numShards`` is greater than ``1``, you cannot enable
+       this option.
 
    * - ``providerSettings``
      - document
