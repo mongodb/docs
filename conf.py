@@ -67,7 +67,7 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/tag/v1.0.0>`_',
+    'odbc-driver': '`MongoDB ODBC Driver for BI Connector <https://github.com/mongodb/mongo-odbc-driver/releases/>`_',
     'bi-atlas-short': 'BI Connector for Atlas',
     'bi-short': 'BI Connector'
 }
