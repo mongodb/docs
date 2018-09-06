@@ -5,21 +5,16 @@
 
 *Released 2018-09-06*
 
-Critical Fixes
-``````````````
-
 - Added support for management of MongoDB processes
   on Ubuntu 18.04.
 
 - User alerts are now available.
 
-- When performing a point in time restore for MongoDB 4.0, drop the
-  ``minOptimeRecovery`` document before bringing up the target cluster.
+- **Fix:** When performing a point in time restore for MongoDB 4.0,
+  drop the ``minOptimeRecovery`` document before bringing up the
+  target cluster.
 
 - Show MongoDB start-up warnings on the cluster overview page.
-
-Fixes
-`````
 
 - Log Collection was unable to complete if one of the
   requested files was an empty file.
@@ -30,16 +25,11 @@ Fixes
 - Support additional schema-related options when configuring
   the MongoDB BI Connector.
 
-Improvements
-````````````
+- Perform additional validations for deployments managed by external
+  orchestration platforms (such as the
+  :doc:`MongoDB Enterprise Operator for Kubernetes </tutorial/install-k8s-operator>`).
 
-- **Config Ownership:** perform additional validation for deployment in
-  the projects managed by external provider (Kubernetes).
-
-Agent Upgrades
-``````````````
-
-- :ref:`automation-5.4.10.5496-1`
+- **Agent Upgrades:** :ref:`automation-5.4.10.5496-1`
 
 .. _opsmgr-server-4.0.1:
 
