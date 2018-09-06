@@ -20,9 +20,15 @@ Definition
 .. pipeline:: $out
 
    Takes the documents returned by the aggregation pipeline and writes
-   them to a specified collection. The :pipeline:`$out` operator must
-   be *the last stage* in the pipeline. The :pipeline:`$out` operator
+   them to a specified collection. The :pipeline:`$out` operator
    lets the aggregation framework return result sets of any size.
+
+   .. important::
+
+      - The :pipeline:`$out` operator must be *the last stage* in the pipeline.
+
+      - The :pipeline:`$out` operator cannot write results to a
+        :doc:`capped collection </core/capped-collections>`.
 
    .. versionchanged:: 3.2.0
 
@@ -34,41 +40,187 @@ Definition
       Specify ``bypassDocumentValidation`` as an option on the aggregation
       method or command.
 
-   The :pipeline:`$out` stage has the following prototype form:
+   .. versionchanged:: 4.2.0
+   
+      MongoDB 4.2 adds a new syntax structure that implements expanded 
+      functionality and flexibility around merging aggregation pipeline results
+      into a target collection, including support for sharded collections and
+      output modes that preserve the existing collection data. 
 
-   .. code-block:: javascript
+      MongoDB 4.2 continues support for the legacy $out syntax, which does not
+      support any of the new functionality of the updated $out syntax.
 
-      { $out: "<output-collection>" }
+Syntax
+------
 
-   :pipeline:`$out` takes a string that specifies the output collection
-   name.
+The. :pipeline:`$out` stage can have one of the following syntaxes:
 
-   .. important::
+- .. versionadded:: 4.2
 
-      - You cannot specify a sharded collection as the output collection.
-        The input collection for a pipeline can be sharded.
+     .. code-block:: javascript
+       
+        {
+           $out: 
+             {
+               to : "<output-collection>",
+               mode : "insertDocuments" | "replaceDocuments" | "replaceCollection",
+               db : "<output-database>",
+               uniqueKey: <document>
+             }
+        }
 
-      - The :pipeline:`$out` operator cannot write results to a
-        :doc:`capped collection </core/capped-collections>`.
+     The :pipeline:`$out` takes a document with the following fields:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 20 80
+
+        * - Field
+          - Description
+
+        * - ``to``
+
+          - Specifies the target collection.
+
+            If the mode is ``replaceDocuments`` or ``insertDocuments``, the
+            target collection can only appear in the :pipeline:`$out` stage of
+            the aggregation pipeline; i.e. the other stages in the pipeline
+            must not access the collection.
+
+            To output to a  sharded collection:
+            
+            - The collection must already exist.
+            - The mode must be ``replaceDocuments`` or ``insertDocuments``.
+
+        * - ``mode``
+
+          - Specifies the mode for merging the aggregation pipeline output with
+            the target collection:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 20 80
+
+               * - Mode
+                 - Description
+
+               * - ``replaceCollection`` 
+
+                 - :pipeline:`$out` replaces the ``to`` collection wholesale
+                   with the output from the aggregation pipeline. The ``to``
+                   collection cannot be in a different database than the
+                   aggregation in this mode.
+                   
+                   Specifically, it writes documents to a temporary
+                   collection. If the ``to`` collection exists, it copies over
+                   indexes and collection options. Finally, :pipeline:`$out`
+                   renames the temporary collection to the ``to`` collection
+                   name. 
+
+                   This is the same functionality as the 
+                   :ref:`old syntax <2.6-out-syntax>`.
+
+               * - ``replaceDocuments`` 
+
+                 - :pipeline:`$out` writes documents directly to the ``to``
+                   collection, performing a replacement-style update on any
+                   document in the ``to`` collection with the same 
+                   ``uniqueKey`` pattern as the document from the pipeline.
+
+               * - ``insertDocuments`` 
+
+                 - :pipeline:`$out` writes documents directly to the ``to``
+                   collection, raising an error if a document exists in the
+                   ``to`` collection with the same ``uniqueKey`` pattern as
+                   one being written.
+
+            To learn more about the behavior of ``mode``, see 
+            :ref:`aggregation-out-behavior`.
+
+        * - ``db``
+
+          - Optional. Specifies the database of the ``to`` collection. Defaults
+            to the database against which the aggregation was run. In
+            ``replaceCollection`` mode this must be the same database as the
+            aggregation.
+
+        * - ``uniqueKey``
+
+          - Optional. Specifies the fields that uniquely identify a document in
+            the ``to`` collection for replacement or merge. Defaults to the
+            document key ``{ _id : 1 }`` for an unsharded ``to`` collection or
+            ``_id`` and all the fields of the shard key for a sharded ``to``
+            collection. All fields must have a value of ``1``. Duplicate keys
+            are forbidden.
+        
+            If the ``to`` collection is sharded, the ``uniqueKey`` must contain
+            all the of the fields of the shard key. If the output collection
+            does not exist, ``uniqueKey`` must be ``{ _id : 1 }``, the default 
+            ``uniqueKey``.
+
+            There must exist a :ref:`unique <index-type-unique>` index that
+            covers the ``uniqueKey``, for any ordering of the ``uniqueKey``
+            fields.
+
+            .. _uniqueKey-requirements:
+
+            This :ref:`unique <index-type-unique>` index:
+
+            - must have the same :doc:`collation </reference/collation>` as the
+              aggregation's collation
+            - can be :ref:`sparse <index-type-sparse>`
+            - can be a :ref:`multikey index <index-type-multikey>`
+            - cannot be :ref:`partial <index-type-partial>`
+            - cannot be :ref:`hashed <index-type-hashed>`
+            - cannot be a :ref:`text <index-feature-text>` index
+            - cannot be a :doc:`geo </core/geospatial-indexes>` index
+
+            See :ref:`uniqueKey-behavior` for more details.
+
+.. _2.6-out-syntax:
+
+- .. versionadded:: 2.6
+
+     The :pipeline:`$out` stage also has the following form:
+
+     .. code-block:: javascript
+
+        { $out: "<output-collection>" }
+
+     It is an alias with the same effect as:
+
+     .. code-block:: javascript
+
+        {$out: {to: "<output-collection>", mode: "replaceCollection"}}
+
+.. _aggregation-out-behavior:
 
 Behaviors
 ---------
 
-Create New Collection
-~~~~~~~~~~~~~~~~~~~~~
+Replacing a Collection with the Aggregation Pipeline Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$out` operation creates a new collection in the current
-database if one does not already exist. The collection is not visible
-until the aggregation completes. If the aggregation fails, MongoDB does
-not create the collection.
+The following behavior applies when specifying the ``replaceCollection`` mode
+(or using the older syntax).
 
-Replace Existing Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. important::
 
-If the collection specified by the :pipeline:`$out` operation already
-exists, then upon completion of the aggregation, the :pipeline:`$out`
-stage atomically replaces the existing collection with the new results
-collection. Specifically, the :pipeline:`$out` operation:
+   This mode is prohibited if the target collection is sharded or in a
+   different database than the aggregation, as it can only create new unsharded
+   collections in the aggregation database. To use a sharded collection or a
+   collection in a different database than the aggregation, use either the
+   ``replaceDocuments`` or ``insertDocuments`` mode.
+
+If the output collection does not exist, the :pipeline:`$out` operation
+creates a new unsharded collection in the same database as the aggregation.
+This collection is not visible until the aggregation completes. If the
+aggregation fails, MongoDB does not create the collection.
+
+If the output collection already exists, then upon completion of the
+aggregation the :pipeline:`$out` stage atomically replaces the existing
+collection with the new results collection. Specifically, the :pipeline:`$out`
+operation:
 
 #. Creates a temp collection.
 #. Copies the indexes from the existing collection to the temp collection.
@@ -80,12 +232,78 @@ The :pipeline:`$out` operation does not change any indexes that existed on the
 previous collection. If the aggregation fails, the :pipeline:`$out` operation
 makes no changes to the pre-existing collection.
 
+Using $out to Replace Documents in an Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following behavior applies when specifying the ``replaceDocuments`` mode.
+
+If the output collection doesn't already exist, the :pipeline:`$out` operation
+creates a new unsharded collection in the ``db`` database. Otherwise, it uses
+the existing collection, which can be sharded. The :pipeline:`$out` stage
+writes each document in the aggregation pipeline result set directly to the
+``to`` collection.
+
+If an existing document has the same ``uniqueKey`` pattern as a document from
+the :pipeline:`$out` stage, the existing document is overwritten with a
+replacement-style update. If the :pipeline:`$out` stage produces multiple
+documents with the same ``uniqueKey`` pattern, it is indeterminate which of
+those multiple documents is stored for that ``uniqueKey`` pattern.
+
+If there is no existing document with the same ``uniqueKey`` pattern, 
+:pipeline:`$out` inserts the document instead.
+
+Using $out to Insert Documents into an Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following behavior applies when specifying the ``insertDocuments`` mode.
+
+If the output collection doesn't already exist, the :pipeline:`$out` operation
+creates a new unsharded collection in the ``db`` database. Otherwise, it uses
+the existing collection, which can be sharded. The :pipeline:`$out` stage
+writes each document in the aggregation pipeline result set directly to the
+``to`` collection.
+
+If an existing document has the same ``uniqueKey`` pattern as a document from
+the :pipeline:`$out` stage, the pipeline raises an error and stops
+execution. The exact stop point is unspecified. Some inserts may have
+completed and will not roll back.
+
 Index Constraints
 ~~~~~~~~~~~~~~~~~
 
 The pipeline will fail to complete if the documents produced by the
 pipeline would violate any unique indexes, including the index on the
-``_id`` field of the original output collection.
+``_id`` field of the original output collection. 
+
+$out Generates the _id Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``_id`` field is not present in a document from the aggregation pipeline
+results at the time of writing, the :pipeline:`$out` stage generates it
+automatically.
+
+.. _uniqueKey-behavior:
+
+$out Collision Detection with ``uniqueKey``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$out` stage uses the ``uniqueKey`` to check for collison between
+documents to replace them (for ``replaceDocuments``) or to throw an error (for
+``insertDocuments``). At plan time, MongoDB verifies that there exists an index
+that covers the ``uniqueKey``, for any ordering of the ``uniqueKey`` fields,
+and fulfills the previously listed
+:ref:`requirements <uniqueKey-requirements>`.
+
+.. important::
+
+   If the unique index used by ``uniqueKey`` is dropped mid-aggregation, there
+   is no guarantee that the aggregation will be killed. If the aggregation
+   continues, there is no guarantee that at most one document in the collection
+   will match a ``uniqueKey`` pattern.
+  
+Other than the ``_id`` field, all fields in the ``uniqueKey`` must exist in the
+output documents and must not be null or an array. If one of the ``uniqueKey``
+fields is or is inside an array, use :pipeline:`$unwind` to transform it.
 
 Transactions
 ~~~~~~~~~~~~
@@ -93,8 +311,11 @@ Transactions
 ``$out`` is not allowed in :doc:`transactions </core/transactions>`.
 
 
-Example
--------
+Examples
+--------
+
+replaceCollection
+~~~~~~~~~~~~~~~~~
 
 A collection ``books`` contains the following documents:
 
@@ -114,6 +335,15 @@ the results to the ``authors`` collection.
 
    db.books.aggregate( [
                          { $group : { _id : "$author", books: { $push: "$title" } } },
+                         { $out : { to : "authors", mode : "replaceCollection" } }
+                     ] )
+
+This aggregation is equivalent to:
+
+.. code-block:: javascript
+
+   db.books.aggregate( [
+                         { $group : { _id : "$author", books: { $push: "$title" } } },
                          { $out : "authors" }
                      ] )
 
@@ -124,3 +354,111 @@ documents:
 
    { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
    { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+
+replaceDocuments
+~~~~~~~~~~~~~~~~
+
+A collection ``phonebook`` holds employee names and phone numbers for a company's
+employees. It contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "Susan", "phone" : "55555" }
+   { "_id" : "Bob", "phone" : "12121" }
+   { "_id" : "Anna", "phone" : "33344" }
+
+A collection ``employees`` has:
+
+.. code-block:: javascript
+
+   { "_id" : 8, "name": "Susan", "phone" : "55555", "title" : "developer", "updated" : 2016 }
+   { "_id" : 9, "name": "Bob", "phone" : "12121", "title" : "developer", "updated" : 2017 }
+   { "_id" : 10, "name": "Jake", "phone" : "63636", "title" : "intern", "updated" : 2018 }
+   { "_id" : 11, "name": "Anna", "phone" : "88888", "title" : "lead", "updated" : 2018 }
+
+The following aggregation pipeline:
+
+- Matches all users whose ``updated`` field is greater than or equal to 2018
+- Sorts by the document ``_id`` number
+- Groups by their ``name`` and the :operator:`$last` ``phone`` value associated
+  to that user
+- Outputs the result set to ``phonebook`` using the ``replaceDocuments`` mode.
+
+.. code-block:: javascript
+
+   db.employees.aggregate( [
+                         { $match : { updated:  { $gte : 2018 } } },
+                         { $sort : { _id : 1 } },
+                         { $group : { _id : "$name", phone: {$last: "$phone" } } },
+                         { $out : { to : "phonebook", mode : "replaceDocuments" } }
+                     ] )
+
+``uniqueKey`` is unspecified, so the pipeline uses the default value of
+``{ _id : 1 }`` to identify documents for replacement. As ``_id`` is redefined
+to ``name``, ``Anna`` matches to ``Anna``. After the operation, the
+``phonebook`` collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "Susan", "phone" : "55555" }
+   { "_id" : "Bob", "phone" : "12121" }
+   { "_id" : "Anna", "phone" : "88888" }
+   { "_id" : "Jake", "phone" : "63636" }
+
+Where Anna has been replaced and Jake is added.
+
+insertDocuments and uniqueKey
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``tickets`` contains the following documents:
+
+.. code-block:: javascript
+
+   {_id: "Bill", seat: 12, cost: 20, daySold: 14}
+   {_id: "Sarah", seat: 2, cost: 25, daySold: 16}
+
+A sharded collection ``seats`` is sharded on ``{ seat : 1 }`` and has the
+unique index ``{ seat : 1 }``. It contains the following documents:
+
+.. code-block:: javascript
+
+   {_id: "Bill", seat: 12}
+   {_id: "Sarah", seat: 2}
+
+Two more tickets are sold and added to the ``tickets`` collection, such that
+the ``tickets`` collection now holds the following documents:
+
+.. code-block:: javascript
+
+   {_id: "Bill", seat: 12, cost: 20, daySold: 14}
+   {_id: "Sarah", seat: 2, cost: 25, daySold: 16}
+   {_id: "Jake", seat: 5, cost:25, daySold: 17}
+   {_id: "Beth", seat: 8, cost: 20, daySold: 19}
+
+The following aggregation pipeline:
+
+- Matches all users whose ``daySold`` field is greater than ``16``.
+- projects the ``_id`` and ``seat`` to get each person and their assigned seat.
+- Outputs the result set to ``seats`` using the ``insertDocuments`` mode.
+
+The ``uniqueKey`` of ``{ seat : 1}`` makes sure that no seat gets assigned
+twice.
+
+.. code-block:: javascript
+
+   db.tickets.aggregate( [
+                       { $match : { daySold : { $gt : 16 } } },
+                       { $project: { seat: 1 } },
+                       { $out : { to : "seats", mode : "insertDocuments",
+                         uniqueKey: { seat : 1 } } }
+                   ] )
+
+After the operation, the ``seats`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   {_id: "Bill", seat: 12}
+   {_id: "Sarah", seat: 2}
+   {_id: "Jake", seat: 5}
+   {_id: "Beth", seat: 8}
