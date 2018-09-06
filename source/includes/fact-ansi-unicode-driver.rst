@@ -7,7 +7,7 @@
        content: |
          .. important::
 
-            Tableau requires the ``MongoDB ODBC 1.0 ANSI Driver``.
+            Tableau requires the ``MongoDB ODBC 1.1.0 ANSI Driver``.
 
 
      - id: macos
