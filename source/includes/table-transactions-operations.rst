@@ -17,6 +17,12 @@
        - :pipeline:`$listSessions`
        - :pipeline:`$out`
 
+   * - :method:`db.collection.countDocuments()` 
+     -
+
+     - Uses the :pipeline:`$group` aggregation stage with a
+       :group:`$sum` expression to perform a count.
+
    * - :method:`db.collection.distinct()`
      - :dbcommand:`distinct`
      - 
