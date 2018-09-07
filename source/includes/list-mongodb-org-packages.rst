@@ -16,8 +16,15 @@ repository contains the following packages:
        the four component packages listed below.
 
    * - ``{+package-name-org+}-server``
-     - Contains the :binary:`~bin.mongod` daemon and associated
-       configuration and init scripts.
+
+     - Contains the :binary:`~bin.mongod` daemon, associated init
+       script, and a :doc:`configuration file
+       </reference/configuration-options>` (``/etc/mongod.conf``). You
+       can use the initialization script to start :binary:`~bin.mongod`
+       with the configuration file. For details, see `Run MongoDB
+       Community Edition`_.
+
+       .. include:: /includes/fact-installation-bind-ip-default-in-config.rst
 
    * - ``{+package-name-org+}-mongos``
      - Contains the :binary:`~bin.mongos` daemon.
@@ -32,11 +39,3 @@ repository contains the following packages:
        :binary:`~bin.mongorestore`, :binary:`~bin.mongostat`,
        and :binary:`~bin.mongotop`.
 
-The ``{+package-name-org+}-server`` package provides an initialization script
-that starts :binary:`~bin.mongod` with the ``/etc/mongod.conf``
-configuration file.
-
-.. Links to the section in the including page having this title.
-
-See `Run MongoDB Community Edition`_ for details on using this
-initialization script.
