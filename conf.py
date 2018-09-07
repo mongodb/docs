@@ -35,6 +35,7 @@ extensions = [
     'intermanual',
     'fasthtml',
     'tabs',
+    'landing_cards',
     'source_constants',
     'xmlrole'
 ]
