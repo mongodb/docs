@@ -38,7 +38,8 @@
 
    * - 5
      - :replstate:`STARTUP2`
-     - The member has joined the set and is running an initial sync.
+     - The member has joined the set and is running an initial sync. Eligible to
+       vote.
 
    * - 6
      - :replstate:`UNKNOWN`
@@ -46,7 +47,7 @@
 
    * - 7
      - :replstate:`ARBITER`
-     - :ref:`Arbiters <replica-set-arbiters>` do not replicate data and exist solely to participate in elections.
+     - :ref:`Arbiters <replica-set-arbiters>` do not replicate data and exist solely to participate in elections. Eligible to vote.
 
    * - 8
      - :replstate:`DOWN`
@@ -54,7 +55,8 @@
 
    * - 9
      - :replstate:`ROLLBACK`
-     - This member is actively performing a :doc:`rollback </core/replica-set-rollbacks>`.  Data is not available for reads.
+     - This member is actively performing a :doc:`rollback </core/replica-set-rollbacks>`.  Eligible to
+       vote. Data is not available for reads from this member.
 
    * - 10
      - :replstate:`REMOVED`
