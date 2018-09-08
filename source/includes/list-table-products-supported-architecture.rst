@@ -4,27 +4,35 @@ version of MongoDB products:
 
 .. list-table::
    :header-rows: 1
+   :widths: 40 15 15 15 15
    
    * - Product
      - x86_64/amd64
+     - ppc64le
      - s390x
-     - POWER8 (little endian)
      - ARMv8-A
 
-   * - MongoDB 3.4
+   * - MongoDB Community (3.4 and later)
      - |checkmark|
-     - MongoDB Enterprise only
-     - MongoDB Enterprise only
+     - 
+     - 
      - |checkmark|
 
 
-   * - `BI Connector <https://docs.mongodb.com/bi-connector/v2.0/>`__
+   * - MongoDB Enterprise (3.4 and later)
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+
+   * - :bic:`BI Connector </installation/>`
      - |checkmark|
      - |checkmark|
      - |checkmark|
      - 
 
-   * - `Compass <https://docs.mongodb.com/compass/current/>`__
+   * - `Compass <https://docs.mongodb.com/compass/current/install/>`__
      - |checkmark|
      -
      -
@@ -36,26 +44,26 @@ version of MongoDB products:
      -
      -
 
-   * - `Ops Manager <https://docs.opsmanager.mongodb.com/current/>`__
+   * - :opsmgr:`Ops Manager </core/requirements/index.html#hardware-compatibility-matrix-for-onprem-hosts>`
      - |checkmark|
-     -
+     - |checkmark|
      -
      -
 
-   * - Automation Agent
+   * - :opsmgr:`Automation Agent </core/requirements/index.html#compatibility-matrix-for-onprem-hosts>`
+     - |checkmark|
      - |checkmark|
      -
-     - |checkmark|
-     -
-
-   * - Monitoring Agent
-     - |checkmark|
-     -
-     - |checkmark|
      -
 
-   * - Backup Agent
+   * - :opsmgr:`Monitoring Agent </core/requirements/index.html#compatibility-matrix-for-onprem-hosts>`
+     - |checkmark|
      - |checkmark|
      -
+     -
+
+   * - :opsmgr:`Backup Agent </core/requirements/index.html#compatibility-matrix-for-onprem-hosts>`
      - |checkmark|
+     - |checkmark|
+     -
      -

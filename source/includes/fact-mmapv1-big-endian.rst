@@ -1,5 +1,6 @@
 .. important::
 
-   MMAPv1 is not supported on big-endian architectures such as s390x.
-   MongoDB returns an error if you set MMAPv1 as the
-   storage engine on a big-endian system.
+   :doc:`MMAPv1 </core/mmapv1>` is supported on 64-bit Intel
+   architectures (``x86_64``) only. MongoDB returns an error when
+   starting a :binary:`~bin.mongod` using MMAPv1 on an unsupported
+   architecture.
