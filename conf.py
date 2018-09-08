@@ -41,7 +41,8 @@ extensions = [
     'testcode',
     'tabs',
     'icon',
-    'xmlrole'
+    'xmlrole',
+    'guides'
 ]
 
 locale_dirs = [ os.path.join(conf.paths.projectroot, conf.paths.locale) ]
