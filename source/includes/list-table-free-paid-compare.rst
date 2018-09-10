@@ -20,11 +20,6 @@
      - 3.6
      - 3.2, 3.4, 3.6, 4.0
 
-   * - Data Visualization
-     - No
-     - No
-     - |service| :ref:`Data Explorer <data-explorer>`
-   
    * - Metrics and Alerts
    
      - Limited
