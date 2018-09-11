@@ -1,12 +1,17 @@
-:doc:`Documents </core/document>` have the following restrictions on field
-names:
+- Field names **cannot** contain the ``null`` character.
 
-- The field name ``_id`` is reserved for use as a primary key; its
-  value must be unique in the collection, is immutable, and may be of
-  any type other than an array.
+- Top-level field names **cannot** start with the dollar sign (``$``) character.
 
-- The field names **cannot** start with the dollar sign (``$``) character.
+  Otherwise, starting in MongoDB 3.6, the server permits storage of
+  field names that contain dots (i.e. ``.``) and dollar signs (i.e.
+  ``$``).
 
-- The field names **cannot** contain the dot (``.``) character.
+  .. important::
 
-- The field names **cannot** contain the ``null`` character.
+     The MongoDB Query Language cannot always meaningfully express
+     queries over documents whose field names contain these characters
+     (see :issue:`SERVER-30575`).
+
+     Until support is added in the query language, the use of ``$`` and
+     ``.`` in field names is not recommended and is not supported by
+     the official MongoDB drivers.
