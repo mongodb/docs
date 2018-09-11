@@ -1,5 +1,6 @@
 .. list-table::
    :header-rows: 1
+   :widths: 20 80
 
    * - Alert type
 

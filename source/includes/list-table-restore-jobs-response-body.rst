@@ -81,8 +81,6 @@
        is ``automated``.
 
    * - ``timestamp``
-     - Date
-     - :abbr:`UTC (Coordinated Universal Time)` 
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ formatted
-       point in time when the snapshot associated to ``snapshotId``
+     - string
+     - |iso8601-time| when the snapshot associated to ``snapshotId``
        was taken.

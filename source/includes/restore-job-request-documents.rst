@@ -3,72 +3,152 @@
    :header-rows: 1
    :stub-columns: 1
 
-   * - Name
+   * - ``Name``
      - Type
      - Description
 
+   * - ``checkpointId``
+     - string
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Sharded Clusters Only.* Unique identifier for the
+       :term:`sharded cluster` checkpoint that represents the point in
+       time to which your data will be restored.
+
+       .. note::
+
+          If you set ``checkpointId``, you cannot set ``oplogInc``,
+          ``oplogTs``, or ``pointInTimeUTCMillis``.
+
+       If you provide this setting, this endpoint restores all data up
+       to this checkpoint to the database you specify in the
+       ``delivery`` object.
+
    * - ``delivery``
      - object
-     - The method and details of how the restored snapshot data
+     - Method and details of how the restored snapshot data
        will be delivered.
 
    * - ``delivery.expirationHours``
      - number
-     - The number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
-
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     - *Conditional:* ``delivery.methodName" : "HTTP"``. 
+       Number of hours the download |url| is valid once the restore
+       job is complete.
 
    * - ``delivery.maxDownloads``
      - number
-     - The number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
-
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     - *Conditional:* ``delivery.methodName" : "HTTP"``. 
+       Number of times the download |url| can be used. This must be
+       ``1`` or greater.
 
    * - ``delivery.methodName``
      - string
-     - How the data will be delivered. Value may be one of the
-       following:
+     - Means by which the data is delivered. Accepted values are:
 
        - ``AUTOMATED_RESTORE``
        - ``HTTP``
 
        .. note::
 
-          If you specify ``AUTOMATED_RESTORE``, you must also include
-          the ``delivery.targetGroupId`` parameter and either the 
-          ``delivery.targetClusterName`` or ``delivery.targetClusterId``
-          parameter in the request body.   In addition, the
-          response shows the ``delivery.methodName`` as ``HTTP``. An
-          automated restore uses the ``HTTP`` method to deliver the
-          restore job to the target host.
+          If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
+          you must also set:
+
+          - ``delivery.targetGroupId`` and
+          - ``delivery.targetClusterName`` or 
+            ``delivery.targetClusterId``
+
+          In addition, the response shows the ``delivery.methodName``
+          as ``HTTP``. An automated restore uses the ``HTTP`` method
+          to deliver the restore job to the target host.
 
    * - ``delivery.targetClusterId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
-     - The unique identifier of the target cluster. Use the ``clusterId``
-       returned in the response body of the :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+     - string
+     - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       Unique identifier of the target cluster. Use the ``clusterId``
+       returned in the response body of the
+       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
        and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
        endpoints. For use only with automated restore jobs.
 
        .. note::
 
-          If backup is not enabled on the target cluster, the :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
-          endpoint returns an empty ``results`` array without ``clusterId``
-          elements, and the :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
-          endpoint also does not return a ``clusterId`` element. Use the 
-          ``delivery.targetClusterName`` parameter instead or enable backup
-          on the target cluster.
+          If backup is not enabled on the target cluster, the 
+          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          endpoint returns an empty ``results`` array without
+          ``clusterId`` elements, and the
+          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          endpoint also does not return a ``clusterId`` element. Use
+          the ``delivery.targetClusterName`` parameter instead or
+          enable backup on the target cluster.
 
    * - ``delivery.targetClusterName``
      - string
-     - The name of the target cluster.
+     - Name of the target cluster.
        
    * - ``delivery.targetGroupId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
-     - The unique identifer of the group that contains the target cluster.
-       For use only with the automated restore jobs.
+     - string
+     - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       Unique identifier of the project that contains the destination 
+       cluster for the restore job.
+
+   * - ``oplogTs``
+     - string
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* Oplog
+       :manual:`timestamp </reference/bson-types>` given as a
+       |epoch-time|. When paired with ``oplogInc``, they represent the
+       point in time to which your data will be restored.
+
+       Run a query against :data:`local.oplog.rs` on your
+       :term:`replica set` to find the desired timestamp.
+
+       .. note::
+
+          If you set ``oplogTs``, you:
+
+          - Must set ``oplogInc``. 
+          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+
+       If you provide this setting, this endpoint restores all data up
+       to *and including* this Oplog timestamp to the database you
+       specified in the ``delivery`` object.
+
+   * - ``oplogInc``
+     - string
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* 32-bit incrementing ordinal
+       that represents operations within a given second. When paired
+       with ``oplogTs``, they represent the point in time to which
+       your data will be restored.
+
+       .. note::
+
+          If you set ``oplogInc``, you:
+
+          - Must set ``oplogTs``. 
+          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+
+       If you provide this setting, this endpoint restores all data up
+       to *and including* this Oplog timestamp to the database you
+       specified in the ``delivery`` object.
+
+   * - ``pointInTimeUTCMillis``
+     - long
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* A |epoch-time-ms| that
+       represents the point in time to which your data will be
+       restored. This timestamp must be within last 24 hours of the
+       current time.
+
+       If you provide this setting, this endpoint restores all data up
+       to this :term:`Point in Time <point-in-time restore>`  to the
+       database you specified in the ``delivery`` object.
+
+       .. note::
+
+          If you set ``pointInTimeUTCMillis``, you cannot set
+          ``oplogInc``, ``oplogTs``, or ``checkpointId``.
 
    * - ``snapshotId``
-     - :ref:`ObjectId <document-bson-type-object-id>`
-     - ID of the snapshot to restore.
+     - string
+     - *Conditional:* ``"delivery.methodName" : "HTTP"`` 
+       Unique identifier of the snapshot to restore.
