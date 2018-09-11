@@ -35,7 +35,8 @@ Request Path Parameters
 
    * - GROUP-ID
      - string
-     - Unique identifier of the :term:`group` that owns the job.
+     - Unique identifier of the :ref:`project <group-id>` that owns
+       the job.
 
    * - CLUSTER-ID
      - string
@@ -59,56 +60,79 @@ Response
 Example Request
 ---------------
 
-Create a restore job that transfers a compressed snapshot using |http|.
+.. tabs::
 
-.. only:: cloud
+   tabs:
+     - id: http
+       name: HTTP Restore
+       content: |
 
-   .. code-block:: sh
-      :emphasize-lines: 6-17
+         Create a restore job that transfers a compressed snapshot
+         using |http|.
+         
+         .. cond:: cloud
 
-      curl --user "{USERNAME}:{APIKEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request POST "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
-       --data '
-        {
-          "delivery" : {
-            "expirationHours" : 1,
-            "expires" : "2017-04-21T04:49:57Z",
-            "maxDownloads" : 1,
-            "methodName" : "HTTP",
-            "statusName" : "READY",
-            "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/{JOB-ID}/OTY0ZmFiNmEzZjEzNGUyMTlhZjJjNjM3NGMyNGM4ZTM=/electron_0-1492636465-{JOB-ID}.tar.gz"
-          },
-          "snapshotId" : "{SNAPSHOT-ID}"
-        }'
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-http-cloud.sh
+               :language: sh
 
-.. only:: onprem
+         .. cond:: onprem
 
-   .. code-block:: sh
-      :emphasize-lines: 7-17
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-http-ops.sh
+               :language: sh
 
-      curl --user "{USERNAME}:{APIKEY}" --digest \
-       --header "Accept: application/json" \
-       --header "Content-Type: application/json" \
-       --include \
-       --request POST "https://{HOSTNAME}/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/restoreJobs?pretty=true" \
-       --data '
-        {
-          "delivery" : {
-            "expirationHours" : 1,
-            "expires" : "2017-04-21T04:49:57Z",
-            "maxDownloads" : 1,
-            "methodName" : "HTTP",
-            "statusName" : "READY",
-            "url" : "https://restore.example.com/backup/restore/v2/pull/{JOB-ID}/OTY0ZmFiNmEzZjEzNGUyMTlhZjJjNjM3NGMyNGM4ZTM=/electron_0-1492636465-{JOB-ID}.tar.gz"
-          },
-          "snapshotId" : "{SNAPSHOT-ID}"
-        }'
+     - id: auto-oplog
+       name: Automated Oplog Restore
+       content: |
 
-Example Response
-----------------
+         Create an automated restore from an Oplog timestamp. Valid for
+         :term:`replica sets <replica set>` only.
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-oplog-cloud.sh
+               :language: sh
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-oplog-ops.sh
+               :language: sh
+
+     - id: auto-pit
+       name: Automated PIT Restore
+       content: |
+
+         Create an automated restore from a specific point in time.
+         Valid for :term:`replica sets <replica set>` only.
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-pit-cloud.sh
+               :language: sh
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-pit-ops.sh
+               :language: sh
+
+     - id: auto-checkpoint
+       name: Automated Checkpoint Restore
+       content: |
+
+         Create an automated restore from a checkpoint. Valid for
+         :term:`sharded clusters <sharded cluster>` only.
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-checkpoint-ops.sh
+               :language: sh
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/requests/create-one-restore-job-auto-checkpoint-ops.sh
+               :language: sh
+
+Example Responses
+-----------------
 
 Response Header
 ~~~~~~~~~~~~~~~
@@ -120,78 +144,63 @@ Response Header
 Response Body
 ~~~~~~~~~~~~~
 
-.. only:: cloud
+.. tabs::
 
-   .. code-block:: json
-      :emphasize-lines: 4-13,29
-      :copyable: false
+   hidden: true
 
-      {
-        "clusterId" : "{CLUSTER-ID}",
-        "created" : "2017-08-25T16:22:15Z",
-        "delivery" : {
-          "expirationHours" : 1,
-          "expires" : "2017-04-21T04:49:57Z",
-          "maxDownloads" : 1,
-          "methodName" : "HTTP",
-          "statusName" : "READY",
-          "url" : "https://api-backup.mongodb.com/backup/restore/v2/pull/{JOB-ID}/OTY0ZmFiNmEzZjEzNGUyMTlhZjJjNjM3NGMyNGM4ZTM=/electron_0-1492636465-{JOB-ID}.tar.gz"
-        },
-        "encryptionEnabled" : true,
-        "groupId" : "{GROUP-ID}",
-        "id" : "{JOB-ID}",
-        "links" : [ {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/restoreJobs/{JOB-ID}",
-          "rel" : "self"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}",
-          "rel" : "http://mms.mongodb.com/cluster"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{hostId}/snapshots/{SNAPSHOT-ID}",
-          "rel" : "http://mms.mongodb.com/snapshot"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}",
-          "rel" : "http://mms.mongodb.com/group"
-        } ],
-        "masterKeyUUID" : "{UUID}",
-        "snapshotId" : "{SNAPSHOT-ID}",
-        "statusName" : "IN_PROGRESS"
-      }
+   tabs:
+     - id: http
+       name: HTTP Restore
+       content: |
+         
+         .. cond:: cloud
 
-.. only:: onprem
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-http-cloud.json
+               :language: json
 
-   .. code-block:: json
-      :emphasize-lines: 4-13,29
-      :copyable: false
+         .. cond:: onprem
 
-      {
-        "clusterId" : "{CLUSTER-ID}",
-        "created" : "2017-08-25T16:22:15Z",
-        "delivery" : {
-          "expirationHours" : 1,
-          "expires" : "2017-04-21T04:49:57Z",
-          "maxDownloads" : 1,
-          "methodName" : "HTTP",
-          "statusName" : "READY",
-          "url" : "https://restore.example.com/backup/restore/v2/pull/{JOB-ID}/OTY0ZmFiNmEzZjEzNGUyMTlhZjJjNjM3NGMyNGM4ZTM=/electron_0-1492636465-{JOB-ID}.tar.gz"
-        },
-        "encryptionEnabled" : true,
-        "groupId" : "{GROUP-ID}",
-        "id" : "{JOB-ID}",
-        "links" : [ {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/restoreJobs/{JOB-ID}",
-          "rel" : "self"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}",
-          "rel" : "http://mms.mongodb.com/cluster"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}/clusters/{CLUSTER-ID}/snapshots/{SNAPSHOT-ID}",
-          "rel" : "http://mms.mongodb.com/snapshot"
-        }, {
-          "href" : "https://cloud.mongodb.com/api/public/v1.0/groups/{GROUP-ID}",
-          "rel" : "http://mms.mongodb.com/group"
-        } ],
-        "masterKeyUUID" : "{UUID}",
-        "snapshotId" : "{SNAPSHOT-ID}",
-        "statusName" : "IN_PROGRESS"
-      }
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-http-ops.json
+               :language: json
+
+     - id: auto-oplog
+       name: Automated Oplog Restore
+       content: |
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-oplog-cloud.json
+               :language: json
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-oplog-ops.json
+               :language: json
+
+     - id: auto-pit
+       name: Automated PIT Restore
+       content: |
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-pit-cloud.json
+               :language: json
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-pit-ops.json
+               :language: json
+
+     - id: auto-checkpoint
+       name: Automated Checkpoint Restore
+       content: |
+         
+         .. cond:: cloud
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-checkpoint-cloud.json
+               :language: json
+
+         .. cond:: onprem
+
+            .. literalinclude:: /includes/api/responses/create-one-restore-job-auto-checkpoint-ops.json
+               :language: json

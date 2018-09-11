@@ -9,10 +9,10 @@
 
    * - checkpointId
      - string
-     - *Conditional: Sharded Clusters Only.* Unique identifier for the
-       :term:`sharded cluster` :term:`checkpoint <checkpoint>` that
-       represents the point in time to which your data will be
-       restored.
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Sharded Clusters Only.* Unique identifier for the
+       :term:`sharded cluster` checkpoint that represents the point in
+       time to which your data will be restored.
 
        .. note::
 
@@ -29,24 +29,21 @@
        is delivered.
 
    * - delivery.expires
-     - timestamp
-     - Date after which the |url| is no longer available.
-
-       Only present if ``"delivery.methodName" : "HTTP"``.
+     - string
+     - *Conditional:* ``delivery.methodName" : "HTTP"``. 
+       |iso8601-time| after which the |url| is no longer available.
 
    * - delivery.expirationHours
      - number
-     - Number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
-
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     - *Conditional:* ``delivery.methodName" : "HTTP"``. 
+       Number of hours the download |url| is valid once the restore
+       job is complete.
 
    * - delivery.maxDownloads
      - number
-     - Number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
-
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     - *Conditional:* ``delivery.methodName" : "HTTP"``. 
+       Number of times the download |url| can be used. This must be
+       ``1`` or greater.
 
    * - delivery.methodName
      - string
@@ -58,37 +55,47 @@
 
        .. note::
 
-          If you specify ``AUTOMATED_RESTORE`` in the request , the
-          response shows the ``delivery.methodName`` as ``HTTP``. An
-          automated restore uses the ``HTTP`` method to deliver the
-          restore job to the target host.
+          If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
+          you must also set:
+
+          - ``delivery.targetGroupId`` and
+          - ``delivery.targetClusterName`` or 
+            ``delivery.targetClusterId``
+
+          In addition, the response shows the ``delivery.methodName``
+          as ``HTTP``. An automated restore uses the ``HTTP`` method
+          to deliver the restore job to the target host.
 
        .. include:: /includes/note-scp-removed.rst
 
    * - delivery.targetClusterId
      - string
-     - Unique identifier of the destination cluster to perform the
-       restore job. 
-       
-       Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
-       
+     - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       Unique identifier of the target cluster. Use the ``clusterId``
+       returned in the response body of the
+       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+       and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+       endpoints. For use only with automated restore jobs.
+
+       .. note::
+
+          If backup is not enabled on the target cluster, the 
+          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          endpoint returns an empty ``results`` array without
+          ``clusterId`` elements, and the
+          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          endpoint also does not return a ``clusterId`` element.
+
    * - delivery.targetGroupId
      - string
-     - Unique identifier of the project that contains the destination 
+     - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+       Unique identifier of the project that contains the destination 
        cluster for the restore job.
-
-       Only required if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
-
-   * - delivery.url
-     - string
-     - The :abbr:`URL (Uniform Resource Locator)` from which the
-       restored snapshot data can be downloaded.
-
-       Only needed if ``"delivery.methodName" : "HTTP"``.
 
    * - oplogTs
      - string
-     - *Conditional: Replica Sets Only.* Oplog
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* Oplog
        :manual:`timestamp </reference/bson-types>` given as a
        |epoch-time|. When paired with ``oplogInc``, they represent the
        point in time to which your data will be restored.
@@ -109,7 +116,8 @@
 
    * - oplogInc
      - string
-     - *Conditional: Replica Sets Only.* 32-bit incrementing ordinal
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* 32-bit incrementing ordinal
        that represents operations within a given second. When paired
        with ``oplogTs``, they represent the point in time to which
        your data will be restored.
@@ -127,13 +135,14 @@
 
    * - pointInTimeUTCMillis
      - long
-     - *Conditional: Replica Sets Only.* A |epoch-time| that
+     - *Conditional:* ``"delivery.methodName" : "AUTOMATED_RESTORE"``
+       *for Replica Sets Only.* A |epoch-time-ms| that
        represents the point in time to which your data will be
        restored. This timestamp must be within last 24 hours of the
        current time.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`Point in Time <point-in-time restore>` to the
+       to this :term:`Point in Time <point-in-time restore>`  to the
        database you specified in the ``delivery`` object.
 
        .. note::
@@ -143,5 +152,6 @@
 
    * - snapshotId
      - string
-     - Unique identifier of the :term:`snapshot` to restore.
+     - *Conditional:* ``"delivery.methodName" : "HTTP"``. 
+       Unique identifier of the snapshot to restore.
 

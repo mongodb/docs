@@ -3,340 +3,307 @@ edition: cloud
 content: |
 
   .. list-table::
-   :widths: 15 15 70
-   :header-rows: 1
-   :stub-columns: 1
+     :widths: 15 15 70
+     :header-rows: 1
+     :stub-columns: 1
 
-   * - Name
-     - Type
-     - Description
+     * - Name
+       - Type
+       - Description
 
-   * - batchId
-     - string
-     - Unique identifier of the :term:`batch` to which this restore 
-       job belongs.
+     * - batchId
+       - string
+       - *Conditional:* :term:`sharded cluster` only.
+         Unique identifier of the :term:`batch` to which this restore 
+         job belongs.
 
-       Only present for a restore of a :term:`sharded cluster`.
+     * - clusterId
+       - string
+       - *Conditional:* :term:`cluster` only.
+         Unique identifier of the :term:`cluster` that the
+         restore job represents.
 
-   * - clusterId
-     - string
-     - Unique identifier of the :term:`cluster` that the restore job 
-       represents.
+     * - created
+       - string
+       - |iso8601-time| when the restore job was requested.
 
-       Only present for a restore of a :term:`cluster`.
+     * - delivery
+       - object
+       - Method and details of how the restored :term:`snapshot` data
+         is delivered.
 
-   * - created
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` when the restore job was requested.
+     * - delivery.expirationHours
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of hours the download |url| is valid once the restore
+         job is complete.
 
-   * - delivery
-     - object
-     - Method and details of how the restored :term:`snapshot` data
-       is delivered.
+     * - delivery.expires
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |iso8601-time| after which the |url| is no longer available.
 
-   * - delivery.expirationHours
-     - number
-     - Number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
+     * - delivery.maxDownloads
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of times the download |url| can be used. This must be
+         ``1`` or greater.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - delivery.methodName
+       - string
+       - Means by which the data is delivered. Accepted values are:
 
-   * - delivery.expires
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` 
-       after which the :abbr:`URL (Uniform Resource Locator)` is 
-       no longer available.
+         - ``HTTP``
+         - ``QUERY``
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         .. include:: /includes/note-scp-removed.rst
 
-   * - delivery.maxDownloads
-     - number
-     - Number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
+     * - delivery.statusName
+       - string
+       - Current status of the downloadable file. Accepted values are:
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+         - ``NOT_STARTED``
+         - ``IN_PROGRESS``
+         - ``READY``
+         - ``FAILED``
+         - ``INTERRUPTED``
+         - ``EXPIRED``
+         - ``MAX_DOWNLOADS_EXCEEDED``
 
-   * - delivery.methodName
-     - string
-     - Means by which the data is delivered. Accepted values are:
+     * - delivery.targetClusterId
+       - string
+       - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+         Unique identifier of the destination cluster to perform the 
+         restore job. 
+         
+     * - delivery.targetGroupId
+       - string
+       - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+         Unique identifier of the project that contains the
+         destination cluster for the restore job.
 
-       - ``HTTP``
-       - ``QUERY``
+     * - delivery.url
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |url| from which the restored :term:`snapshot` data can be
+         downloaded.
 
-       .. include:: /includes/note-scp-removed.rst
+     * - groupId
+       - string
+       - Unique identifier of the :term:`group` that owns the restore 
+         job.
 
-   * - delivery.statusName
-     - string
-     - Current status of the downloadable file. Accepted values are:
+     * - hashes
+       - object array
+       - If the corresponding ``delivery.url`` has been downloaded,
+         each document in this array is a mapping of a restore file to
+         a hashed checksum. This array is present *only after* the
+         file is downloaded.
 
-       - ``NOT_STARTED``
-       - ``IN_PROGRESS``
-       - ``READY``
-       - ``FAILED``
-       - ``INTERRUPTED``
-       - ``EXPIRED``
-       - ``MAX_DOWNLOADS_EXCEEDED``
+         .. note::
+            For an ``HTTP`` restore, this array only contains a single
+            object that represents the hash of the ``.tar.gz`` file.
 
-   * - delivery.targetClusterId
-     - string
-     - Unique identifier of the destination cluster to perform the 
-       restore job. 
-       
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
-       
-   * - delivery.targetGroupId
-     - string
-     - Unique identifier of the project that contains the destination 
-       cluster for the restore job.
+     * - hashes.fileName
+       - string
+       - Name of the snapshot file that has been hashed.
 
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+     * - hashes.hash
+       - string
+       - Hash of the snapshot file.
 
-   * - delivery.url
-     - string
-     - :abbr:`URL (Uniform Resource Locator)` from which the
-       restored :term:`snapshot` data can be downloaded.
+     * - hashes.typeName
+       - string
+       - Hashing algorithm used to compute the hash value. If 
+         present, this value is ``SHA1``.
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+     * - hostId
+       - string
+       - *Conditional:* mirrored :term:`config server`
+         (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+         Unique identifier of the :term:`config server` to which this 
+         restore job belongs.
 
-   * - groupId
-     - string
-     - Unique identifier of the :term:`group` that owns the restore 
-       job.
+     * - id
+       - string
+       - Unique identifier of the restore job.
 
-   * - hashes
-     - object array
-     - If the corresponding ``delivery.url`` has been downloaded,
-       each document in this array is a mapping of a restore file to
-       a hashed checksum. This array is present *only after* the
-       file is downloaded.
+     * - links
+       - object array
+       - .. include:: /includes/api/links-explanation.rst
 
-       .. note::
-          For an ``HTTP`` restore, this array only contains a single
-          object that represents the hash of the ``.tar.gz`` file.
+     * - snapshotId
+       - string
+       - Unique identifier of the :term:`snapshot` to restore.
 
-   * - hashes.fileName
-     - string
-     - Name of the snapshot file that has been hashed.
+     * - statusName
+       - string
+       - Current status of the job. Accepted values are:
 
-   * - hashes.hash
-     - string
-     - Hash of the snapshot file.
-
-   * - hashes.typeName
-     - string
-     - Hashing algorithm used to compute the hash value. If 
-       present, this value is ``SHA1``.
-
-   * - hostId
-     - string
-     - Unique identifier of the :term:`config server` to which this 
-       restore job belongs.
-
-       Only present for a restore of a mirrored :term:`config server`
-       (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
-
-   * - id
-     - string
-     - Unique identifier of the restore job.
-
-   * - links
-     - object array
-     - .. include:: /includes/api/links-explanation.rst
-
-   * - snapshotId
-     - string
-     - Unique identifier of the :term:`snapshot` to restore.
-
-   * - statusName
-     - string
-     - Current status of the job. Accepted values are:
-
-       - ``FINISHED``
-       - ``IN_PROGRESS``
-       - ``BROKEN``
-       - ``KILLED``
-
+         - ``FINISHED``
+         - ``IN_PROGRESS``
+         - ``BROKEN``
+         - ``KILLED``
 
 ---
 ref: restore-job-create-response-documents
 edition: onprem
 content: |
 
+
   .. list-table::
-   :widths: 15 15 70
-   :header-rows: 1
-   :stub-columns: 1
+     :widths: 15 15 70
+     :header-rows: 1
+     :stub-columns: 1
 
-   * - Name
-     - Type
-     - Description
+     * - Name
+       - Type
+       - Description
 
-   * - batchId
-     - string
-     - Unique identifier of the :term:`batch` to which this restore 
-       job belongs.
+     * - batchId
+       - string
+       - *Conditional:* :term:`sharded cluster` only.
+         Unique identifier of the :term:`batch` to which this restore 
+         job belongs.
 
-       Only present for a restore of a :term:`sharded cluster`.
+     * - clusterId
+       - string
+       - *Conditional:* :term:`cluster` only.
+         Unique identifier of the :term:`cluster` that the
+         restore job represents.
 
-   * - clusterId
-     - string
-     - Unique identifier of the :term:`cluster` that the restore job 
-       represents.
+     * - created
+       - string
+       - |iso8601-time| when the restore job was requested.
 
-       Only present for a restore of a :term:`cluster`.
+     * - delivery
+       - object
+       - Method and details of how the restored :term:`snapshot` data
+         is delivered.
 
-   * - created
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` when the restore job was requested.
+     * - delivery.expirationHours
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of hours the download |url| is valid once the restore
+         job is complete.
 
-   * - delivery
-     - object
-     - Method and details of how the restored :term:`snapshot` data
-       is delivered.
+     * - delivery.expires
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |iso8601-time| after which the |url| is no longer available.
 
-   * - delivery.expirationHours
-     - number
-     - Number of hours the download :abbr:`URL (Uniform Resource
-       Locator)` is valid once the restore job is complete.
+     * - delivery.maxDownloads
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of times the download |url| can be used. This must be
+         ``1`` or greater.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - delivery.methodName
+       - string
+       - Means by which the data is delivered. Accepted values are:
 
-   * - delivery.expires
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` 
-       after which the :abbr:`URL (Uniform Resource Locator)` is 
-       no longer available.
+         - ``HTTP``
+         - ``QUERY``
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         .. include:: /includes/note-scp-removed.rst
 
-   * - delivery.maxDownloads
-     - number
-     - Number of times the download :abbr:`URL (Uniform Resource
-       Locator)` can be used. This must be ``1`` or greater.
+     * - delivery.statusName
+       - string
+       - Current status of the downloadable file. Accepted values are:
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+         - ``NOT_STARTED``
+         - ``IN_PROGRESS``
+         - ``READY``
+         - ``FAILED``
+         - ``INTERRUPTED``
+         - ``EXPIRED``
+         - ``MAX_DOWNLOADS_EXCEEDED``
 
-   * - delivery.methodName
-     - string
-     - Means by which the data is delivered. Accepted values are:
+     * - delivery.targetClusterId
+       - string
+       - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+         Unique identifier of the destination cluster to perform the 
+         restore job. 
+         
+     * - delivery.targetGroupId
+       - string
+       - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+         Unique identifier of the project that contains the
+         destination cluster for the restore job.
 
-       - ``HTTP``
-       - ``QUERY``
+     * - delivery.url
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |url| from which the restored :term:`snapshot` data can be
+         downloaded.
 
-       .. include:: /includes/note-scp-removed.rst
+     * - encryptionEnabled
+       - boolean
+       - Flag indicating whether the restored snapshot data is
+         encrypted.
 
-   * - delivery.statusName
-     - string
-     - Current status of the downloadable file. Accepted values are:
+     * - groupId
+       - string
+       - Unique identifier of the :term:`group` that owns the restore 
+         job.
 
-       - ``NOT_STARTED``
-       - ``IN_PROGRESS``
-       - ``READY``
-       - ``FAILED``
-       - ``INTERRUPTED``
-       - ``EXPIRED``
-       - ``MAX_DOWNLOADS_EXCEEDED``
+     * - hashes
+       - object array
+       - If the corresponding ``delivery.url`` has been downloaded,
+         each document in this array is a mapping of a restore file to
+         a hashed checksum. This array is present *only after* the
+         file is downloaded.
 
-   * - delivery.targetClusterId
-     - string
-     - Unique identifier of the destination cluster to perform the 
-       restore job. 
-       
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
-       
-   * - delivery.targetGroupId
-     - string
-     - Unique identifier of the project that contains the destination 
-       cluster for the restore job.
+         .. note::
+            For an ``HTTP`` restore, this array only contains a single
+            object that represents the hash of the ``.tar.gz`` file.
 
-       Only present if ``delivery.methodName" : "AUTOMATED_RESTORE"``.
+     * - hashes.fileName
+       - string
+       - Name of the snapshot file that has been hashed.
 
-   * - delivery.url
-     - string
-     - :abbr:`URL (Uniform Resource Locator)` from which the
-       restored :term:`snapshot` data can be downloaded.
+     * - hashes.hash
+       - string
+       - Hash of the snapshot file.
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+     * - hashes.typeName
+       - string
+       - Hashing algorithm used to compute the hash value. If 
+         present, this value is ``SHA1``.
 
-   * - encryptionEnabled
-     - boolean
-     - Flag indicating whether the restored snapshot data is encrypted.
+     * - hostId
+       - string
+       - *Conditional:* mirrored :term:`config server`
+         (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+         Unique identifier of the :term:`config server` to which this 
+         restore job belongs.
 
-   * - groupId
-     - string
-     - Unique identifier of the :term:`group` that owns the restore 
-       job.
+     * - id
+       - string
+       - Unique identifier of the restore job.
 
-   * - hashes
-     - object array
-     - If the corresponding ``delivery.url`` has been downloaded,
-       each document in this array is a mapping of a restore file to
-       a hashed checksum. This array is present *only after* the
-       file is downloaded.
+     * - links
+       - object array
+       - .. include:: /includes/api/links-explanation.rst
 
-       .. note::
-          For an ``HTTP`` restore, this array only contains a single
-          object that represents the hash of the ``.tar.gz`` file.
+     * - masterKeyUUID
+       - string
+       - *Conditional:* ``"encryptionEnabled" : true``.
+         |kmip| :doc:`master key ID </tutorial/encrypt-snapshots>`
+         used to encrypt the :term:`snapshot` data.
 
-   * - hashes.fileName
-     - string
-     - Name of the snapshot file that has been hashed.
+     * - snapshotId
+       - string
+       - Unique identifier of the :term:`snapshot` to restore.
 
-   * - hashes.hash
-     - string
-     - Hash of the snapshot file.
+     * - statusName
+       - string
+       - Current status of the job. Accepted values are:
 
-   * - hashes.typeName
-     - string
-     - Hashing algorithm used to compute the hash value. If 
-       present, this value is ``SHA1``.
-
-   * - hostId
-     - string
-     - Unique identifier of the :term:`config server` to which this 
-       restore job belongs.
-
-       Only present for a restore of a mirrored :term:`config server`
-       (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
-
-   * - id
-     - string
-     - Unique identifier of the restore job.
-
-   * - links
-     - object array
-     - .. include:: /includes/api/links-explanation.rst
-
-   * - masterKeyUUID
-     - string
-     - :abbr:`KMIP (Key Management Interoperability Protocol)`
-       :doc:`master key ID </tutorial/encrypt-snapshots>` used to
-       encrypt the :term:`snapshot` data. 
-
-       Only present only if ``"encryptionEnabled" : true``.
-
-   * - snapshotId
-     - string
-     - Unique identifier of the :term:`snapshot` to restore.
-
-   * - statusName
-     - string
-     - Current status of the job. Accepted values are:
-
-       - ``FINISHED``
-       - ``IN_PROGRESS``
-       - ``BROKEN``
-       - ``KILLED``
-
-
+         - ``FINISHED``
+         - ``IN_PROGRESS``
+         - ``BROKEN``
+         - ``KILLED``
 
 ---
 ref: restore-job-response-documents
@@ -344,180 +311,155 @@ edition: cloud
 content: |
 
   .. list-table::
-   :widths: 15 15 70
-   :header-rows: 1
-   :stub-columns: 1
+     :widths: 15 15 70
+     :header-rows: 1
+     :stub-columns: 1
 
-   * - Name
-     - Type
-     - Description
+     * - Name
+       - Type
+       - Description
 
-   * - batchId
-     - string
-     - Unique identifier of the :term:`batch` to which this restore 
-       job belongs.
+     * - batchId
+       - string
+         - *Conditional:* :term:`sharded cluster` only.
+           Unique identifier of the :term:`batch` to which this 
+           restore job belongs.
 
-       Only present for a restore of a :term:`sharded cluster`.
+     * - clusterId
+       - string
+       - *Conditional:* :term:`cluster` only.
+         Unique identifier of the :term:`cluster` that the
+         restore job represents.
 
-   * - clusterId
-     - string
-     - Unique identifier of the :term:`cluster` that the restore job 
-       represents.
+     * - created
+       - string
+       - |iso8601-time| when the restore job was requested.
 
-       Only present for a restore of a :term:`cluster`.
+     * - delivery
+       - object
+       - Method and details of how the restored :term:`snapshot` data
+         is delivered.
 
-   * - created
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` when the restore job was requested.
+     * - delivery.expirationHours
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of hours the download |url| is valid once the restore
+         job is complete.
 
-   * - delivery
-     - object
-     - Method and details of how the restored :term:`snapshot` data
-       is delivered.
+     * - delivery.expires
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |iso8601-time| after which the |url| is no longer available.
 
-   * - delivery.expirationHours
-     - number
-     - Number of hours the download |url| is valid once the restore 
-       job is complete.
+     * - delivery.maxDownloads
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of times the download |url| can be used. This must be
+         ``1`` or greater.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - delivery.methodName
+       - string
+       - Means by which the data is delivered. Accepted values are:
 
-   * - delivery.expires
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` 
-       after which the :abbr:`URL (Uniform Resource Locator)` is 
-       no longer available.
+         - ``HTTP``
+         - ``QUERY``
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         .. include:: /includes/note-scp-removed.rst
 
-   * - delivery.expirationHours
-     - number
-     - The number of hours the download |url| is valid once the 
-       restore job is complete.
+     * - delivery.statusName
+       - string
+       - Current status of the downloadable file. Accepted values are:
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         - ``NOT_STARTED``
+         - ``IN_PROGRESS``
+         - ``READY``
+         - ``FAILED``
+         - ``INTERRUPTED``
+         - ``EXPIRED``
+         - ``MAX_DOWNLOADS_EXCEEDED``
 
-   * - delivery.maxDownloads
-     - number
-     - Number of times the download |url| can be used. This must be 
-       ``1`` or greater.
+     * - delivery.url
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |url| from which the restored :term:`snapshot` data can be
+         downloaded.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - groupId
+       - string
+       - Unique identifier of the :term:`group` that owns the restore 
+         job.
 
-   * - delivery.methodName
-     - string
-     - Means by which the data is delivered. Accepted values are:
+     * - hashes
+       - object array
+       - If the corresponding ``delivery.url`` has been downloaded,
+         each document in this array is a mapping of a restore file to
+         a hashed checksum. This array is present *only after* the
+         file is downloaded.
 
-       - ``HTTP``
-       - ``QUERY``
+         .. note::
+            For an ``HTTP`` restore, this array only contains a single
+            object that represents the hash of the ``.tar.gz`` file.
 
-       .. include:: /includes/note-scp-removed.rst
+     * - hashes.fileName
+       - string
+       - Name of the snapshot file that has been hashed.
 
-   * - delivery.statusName
-     - string
-     - Current status of the downloadable file. Accepted values are:
+     * - hashes.hash
+       - string
+       - Hash of the snapshot file.
 
-       - ``NOT_STARTED``
-       - ``IN_PROGRESS``
-       - ``READY``
-       - ``FAILED``
-       - ``INTERRUPTED``
-       - ``EXPIRED``
-       - ``MAX_DOWNLOADS_EXCEEDED``
+     * - hashes.typeName
+       - string
+       - Hashing algorithm used to compute the hash value. If 
+         present, this value is ``SHA1``.
 
-   * - delivery.url
-     - string
-     - :abbr:`URL (Uniform Resource Locator)` from which the
-       restored :term:`snapshot` data can be downloaded.
+     * - hostId
+       - string
+       - *Conditional:* mirrored :term:`config server`
+         (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+         Unique identifier of the :term:`config server` to which this 
+         restore job belongs.
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+     * - id
+       - string
+       - Unique identifier of the restore job.
 
-   * - groupId
-     - string
-     - Unique identifier of the :term:`group` that owns the restore 
-       job.
+     * - links
+       - object array
+       - .. include:: /includes/api/links-explanation.rst
 
-   * - hashes
-     - object array
-     - If the corresponding ``delivery.url`` has been downloaded,
-       each document in this array is a mapping of a restore file to
-       a hashed checksum. This array is present *only after* the
-       file is downloaded.
+     * - pointInTime
+       - boolean
+       - Flag indicating that the job for a 
+         :abbr:`PIT (point-in-time)` restore.
 
-       .. note::
-          For an ``HTTP`` restore, this array only contains a single
-          object that represents the hash of the ``.tar.gz`` file.
+     * - snapshotId
+       - string
+       - Unique identifier of the :term:`snapshot` to restore.
 
-   * - hashes.fileName
-     - string
-     - Name of the snapshot file that has been hashed.
+     * - statusName
+       - string
+       - Current status of the job. Accepted values are:
 
-   * - hashes.hash
-     - string
-     - Hash of the snapshot file.
+         - ``FINISHED``
+         - ``IN_PROGRESS``
+         - ``BROKEN``
+         - ``KILLED``
 
-   * - hashes.typeName
-     - string
-     - Hashing algorithm used to compute the hash value. If 
-       present, this value is ``SHA1``.
+     * - ``timestamp``
+       - object
+       - Timestamp of the Oplog entry when the snapshot was created.
 
-   * - hostId
-     - string
-     - Unique identifier of the :term:`config server` to which this 
-       restore job belongs.
+     * - ``timestamp.date``
+       - string
+       - |iso8601-time| of the latest oplog entry in the restored
+         snapshot.
 
-       Only present for a restore of a mirrored :term:`config server`
-       (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+     * - ``timestamp.increment``
+       - string
+       - Order of all operations completed at the latest oplog entry in
+         the restored snapshot.
 
-   * - id
-     - string
-     - Unique identifier of the restore job.
-
-   * - links
-     - object array
-     - .. include:: /includes/api/links-explanation.rst
-
-   * - pointInTime
-     - boolean
-     - Flag indicating that the job for a :abbr:`PIT (point-in-time)` 
-       restore.
-
-   * - snapshotId
-     - string
-     - Unique identifier of the :term:`snapshot` to restore.
-
-   * - statusName
-     - string
-     - Current status of the job. Accepted values are:
-
-       - ``FINISHED``
-       - ``IN_PROGRESS``
-       - ``BROKEN``
-       - ``KILLED``
-
-   * - timestamp
-     - object
-     - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
-       the latest :term:`oplog <oplog>`
-       entry in the restored :term:`snapshot`.
- 
-   * - timestamp.date
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` of
-       the latest :term:`oplog <oplog>` entry in the
-       restored :term:`snapshot`.
- 
-   * - timestamp.increment
-     - number
-     - Order of all operations completed at the latest
-       :term:`oplog <oplog>` entry in the restored
-       :term:`snapshot`.
 
 ---
 ref: restore-job-response-documents
@@ -525,188 +467,162 @@ edition: onprem
 content: |
 
   .. list-table::
-   :widths: 15 15 70
-   :header-rows: 1
-   :stub-columns: 1
+     :widths: 15 15 70
+     :header-rows: 1
+     :stub-columns: 1
 
-   * - Name
-     - Type
-     - Description
+     * - Name
+       - Type
+       - Description
 
-   * - batchId
-     - string
-     - Unique identifier of the :term:`batch` to which this restore 
-       job belongs.
+     * - batchId
+       - string
+         - *Conditional:* :term:`sharded cluster` only.
+           Unique identifier of the :term:`batch` to which this
+           restore job belongs.
 
-       Only present for a restore of a :term:`sharded cluster`.
+     * - clusterId
+       - string
+       - *Conditional:* :term:`cluster` only.
+         Unique identifier of the :term:`cluster` that the
+         restore job represents.
 
-   * - clusterId
-     - string
-     - Unique identifier of the :term:`cluster` that the restore job 
-       represents.
+     * - created
+       - string
+       - |iso8601-time| when the restore job was requested.
 
-       Only present for a restore of a :term:`cluster`.
+     * - delivery
+       - object
+       - Method and details of how the restored :term:`snapshot` data
+         is delivered.
 
-   * - created
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` when the restore job was requested.
+     * - delivery.expirationHours
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of hours the download |url| is valid once the restore
+         job is complete.
 
-   * - delivery
-     - object
-     - Method and details of how the restored :term:`snapshot` data
-       is delivered.
+     * - delivery.expires
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |iso8601-time| after which the |url| is no longer available.
 
-   * - delivery.expirationHours
-     - number
-     - Number of hours the download |url| is valid once the restore 
-       job is complete.
+     * - delivery.maxDownloads
+       - number
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         Number of times the download |url| can be used. This must be
+         ``1`` or greater.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - delivery.methodName
+       - string
+       - Means by which the data is delivered. Accepted values are:
 
-   * - delivery.expires
-     - string
-     - Timestamp in `ISO 8601
-       <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` 
-       after which the :abbr:`URL (Uniform Resource Locator)` is 
-       no longer available.
+         - ``HTTP``
+         - ``QUERY``
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         .. include:: /includes/note-scp-removed.rst
 
-   * - delivery.expirationHours
-     - number
-     - The number of hours the download |url| is valid once the 
-       restore job is complete.
+     * - delivery.statusName
+       - string
+       - Current status of the downloadable file. Accepted values are:
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+         - ``NOT_STARTED``
+         - ``IN_PROGRESS``
+         - ``READY``
+         - ``FAILED``
+         - ``INTERRUPTED``
+         - ``EXPIRED``
+         - ``MAX_DOWNLOADS_EXCEEDED``
 
-   * - delivery.maxDownloads
-     - number
-     - Number of times the download |url| can be used. This must be 
-       ``1`` or greater.
+     * - delivery.url
+       - string
+       - *Conditional:* ``"delivery.methodName" : "HTTP"``.
+         |url| from which the restored :term:`snapshot` data can be
+         downloaded.
 
-       Only needed if ``"delivery.methodName" : "HTTP"``.
+     * - encryptionEnabled
+       - boolean
+       - Flag indicating whether the restored snapshot data is
+         encrypted.
 
-   * - delivery.methodName
-     - string
-     - Means by which the data is delivered. Accepted values are:
+     * - groupId
+       - string
+       - Unique identifier of the :term:`group` that owns the restore 
+         job.
 
-       - ``HTTP``
-       - ``QUERY``
+     * - hashes
+       - object array
+       - If the corresponding ``delivery.url`` has been downloaded,
+         each document in this array is a mapping of a restore file to
+         a hashed checksum. This array is present *only after* the
+         file is downloaded.
 
-       .. include:: /includes/note-scp-removed.rst
+         .. note::
+            For an ``HTTP`` restore, this array only contains a single
+            object that represents the hash of the ``.tar.gz`` file.
 
-   * - delivery.statusName
-     - string
-     - Current status of the downloadable file. Accepted values are:
+     * - hashes.fileName
+       - string
+       - Name of the snapshot file that has been hashed.
 
-       - ``NOT_STARTED``
-       - ``IN_PROGRESS``
-       - ``READY``
-       - ``FAILED``
-       - ``INTERRUPTED``
-       - ``EXPIRED``
-       - ``MAX_DOWNLOADS_EXCEEDED``
+     * - hashes.hash
+       - string
+       - Hash of the snapshot file.
 
-   * - delivery.url
-     - string
-     - :abbr:`URL (Uniform Resource Locator)` from which the
-       restored :term:`snapshot` data can be downloaded.
+     * - hashes.typeName
+       - string
+       - Hashing algorithm used to compute the hash value. If 
+         present, this value is ``SHA1``.
 
-       Only present if ``"delivery.methodName" : "HTTP"``.
+     * - hostId
+       - string
+       - *Conditional:* mirrored :term:`config server`
+         (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+         Unique identifier of the :term:`config server` to which this 
+         restore job belongs.
 
-   * - encryptionEnabled
-     - boolean
-     - Flag indicating whether the restored snapshot data is encrypted.
+     * - id
+       - string
+       - Unique identifier of the restore job.
 
-   * - groupId
-     - string
-     - Unique identifier of the :term:`group` that owns the restore 
-       job.
+     * - links
+       - object array
+       - .. include:: /includes/api/links-explanation.rst
 
-   * - hashes
-     - object array
-     - If the corresponding ``delivery.url`` has been downloaded,
-       each document in this array is a mapping of a restore file to
-       a hashed checksum. This array is present *only after* the
-       file is downloaded.
+     * - masterKeyUUID
+       - string
+       - *Conditional:* ``"encryptionEnabled" : true``.
+         |kmip| :doc:`master key ID </tutorial/encrypt-snapshots>`
+         used to encrypt the :term:`snapshot` data.
 
-       .. note::
-          For an ``HTTP`` restore, this array only contains a single
-          object that represents the hash of the ``.tar.gz`` file.
+     * - pointInTime
+       - boolean
+       - Flag indicating that the job for a 
+         :abbr:`PIT (point-in-time)` restore.
 
-   * - hashes.fileName
-     - string
-     - Name of the snapshot file that has been hashed.
+     * - snapshotId
+       - string
+       - Unique identifier of the :term:`snapshot` to restore.
 
-   * - hashes.hash
-     - string
-     - Hash of the snapshot file.
+     * - statusName
+       - string
+       - Current status of the job. Accepted values are:
 
-   * - hashes.typeName
-     - string
-     - Hashing algorithm used to compute the hash value. If 
-       present, this value is ``SHA1``.
+         - ``FINISHED``
+         - ``IN_PROGRESS``
+         - ``BROKEN``
+         - ``KILLED``
 
-   * - hostId
-     - string
-     - Unique identifier of the :term:`config server` to which this 
-       restore job belongs.
+     * - ``timestamp``
+       - object
+       - Timestamp of the Oplog entry when the snapshot was created.
 
-       Only present for a restore of a mirrored :term:`config server`
-       (:abbr:`SCCC (Sync Cluster Connection Configuration)`).
+     * - ``timestamp.date``
+       - string
+       - |iso8601-time| of the latest oplog entry in the restored
+         snapshot.
 
-   * - id
-     - string
-     - Unique identifier of the restore job.
-
-   * - links
-     - object array
-     - .. include:: /includes/api/links-explanation.rst
-
-   * - masterKeyUUID
-     - string
-     - :abbr:`KMIP (Key Management Interoperability Protocol)`
-       :doc:`master key ID </tutorial/encrypt-snapshots>` used to
-       encrypt the :term:`snapshot` data. 
-
-       Only present only if ``"encryptionEnabled" : true``.
-
-   * - pointInTime
-     - boolean
-     - Flag indicating that the job for a :abbr:`PIT (point-in-time)` 
-       restore.
-
-   * - snapshotId
-     - string
-     - Unique identifier of the :term:`snapshot` to restore.
-
-   * - statusName
-     - string
-     - Current status of the job. Accepted values are:
-
-       - ``FINISHED``
-       - ``IN_PROGRESS``
-       - ``BROKEN``
-       - ``KILLED``
-
-   * - timestamp
-     - object
-     - :abbr:`BSON (Binary JavaScript Object Notation)` Timestamp of 
-       the latest :term:`oplog <Oplog Store Database>`
-       entry in the restored :term:`snapshot`.
- 
-   * - timestamp.date
-     - string
-     - Timestamp in 
-       `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ 
-       date and time format in :abbr:`UTC (Coordinated Universal Time)` 
-       of the latest :term:`oplog <Oplog Store Database>` entry in the
- 
-   * - timestamp.increment
-     - number
-     - Order of all operations completed at the latest
-       :term:`oplog <Oplog Store Database>` entry in the restored
-       :term:`snapshot`.
+     * - ``timestamp.increment``
+       - string
+       - Order of all operations completed at the latest oplog entry in
+         the restored snapshot.
