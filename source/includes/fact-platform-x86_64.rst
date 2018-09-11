@@ -2,7 +2,7 @@
 
    - Support for SLES 11 has been removed in MongoDB 3.2.20+ and 3.4.15+.
    - Support for Ubuntu 12.04 has been removed in MongoDB 3.2.20+ and 3.4.15+.
-   - Support for Debian 7 has been removed in MongoDB 3.4.16+.
+   - Support for Debian 7 has been removed in MongoDB 3.2.21+ and 3.4.16+.
 
 .. list-table::
    :header-rows: 1
@@ -17,7 +17,7 @@
      - |checkmark|
    * - Debian 7
      - EOL'd as of 3.4.16
-     - |checkmark|
+     - EOL'd as of 3.2.21
    * - Debian 8
      - |checkmark|
      - |checkmark|
