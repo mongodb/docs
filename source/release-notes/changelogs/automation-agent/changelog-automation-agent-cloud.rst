@@ -1,3 +1,14 @@
+.. _automation-5.7.0.5532:
+
+Automation Agent 5.7.0.5532
+---------------------------
+
+*Released 2018-09-11*
+
+- Added support for Ubuntu 18.04
+- *Fix:* When determining desired balancer settings, perform a merge
+  between new settings and old settings.
+
 .. _automation-5.6.1.5525:
 
 Automation Agent 5.6.1.5525
@@ -15,8 +26,8 @@ Automation Agent 5.6.0.5523
 *Released 2018-08-21*
 
 - Critical Fix: During a rolling change of a storage-affecting field 
-  (for example the storage engine), data loss could occur if an external 
-  process caused replica set nodes to restart unexpectedly.
+  (for example the storage engine), data loss could occur if an
+  external process caused replica set nodes to restart unexpectedly.
 
 - Automation Agent now built using Go 1.9.
 
@@ -24,12 +35,13 @@ Automation Agent 5.6.0.5523
 
 - Allow simultaneous disabling of multiple config servers.
 
-- Don't remove binaries that are currently in use by unmanaged processes.
+- Don't remove binaries that are currently in use by unmanaged
+  processes.
 
 - Performance improvement for clusters with lots of sharding tags.
 
-- Only block rolling updates if there are not enough rs members without 
-  replication lag to do majority writes.
+- Only block rolling updates if there are not enough replica set
+  members without replication lag to do majority writes.
 
 - Handle rolling index build on non-existent collections.
 
