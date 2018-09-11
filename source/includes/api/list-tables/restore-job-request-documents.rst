@@ -58,8 +58,7 @@
           If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
           you must also set:
 
-          - ``delivery.targetGroupId`` and
-          - ``delivery.targetClusterName`` or 
+          - ``delivery.targetGroupId`` or 
             ``delivery.targetClusterId``
 
           In addition, the response shows the ``delivery.methodName``
