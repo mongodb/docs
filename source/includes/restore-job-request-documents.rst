@@ -140,8 +140,8 @@
        current time.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`Point in Time <point-in-time restore>`  to the
-       database you specified in the ``delivery`` object.
+       to this Point in Time to the database you specified in the
+       ``delivery`` object.
 
        .. note::
 

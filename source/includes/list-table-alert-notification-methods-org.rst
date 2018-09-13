@@ -23,11 +23,11 @@
 
        2. Select :guilabel:`SMS` to send these alerts to the mobile
           number configured for each |service| Organization user in
-          their :ref:`Account page <profile-page>`.
+          their Account page.
 
        3. Select :guilabel:`Email` to send these alerts to the email
           address configured for each |service| Organization user in
-          their :ref:`Account page <profile-page>`.
+          their Account page.
           :guilabel:`Email` is checked by default.
 
    * - |service| User
@@ -41,11 +41,11 @@
 
        1. Select :guilabel:`SMS` to send these alerts to the mobile
           number configured for the |service| user in their
-          :ref:`Account page <profile-page>`.
+          Account page.
 
        2. Select :guilabel:`Email` to send these alerts to the email
           address configured for the |service| user in their
-          :ref:`Account page <profile-page>`.
+          Account page.
           :guilabel:`Email` is checked by default.
 
    * - Email
