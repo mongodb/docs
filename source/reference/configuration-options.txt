@@ -114,6 +114,121 @@ If you installed from a package and have started MongoDB using your
 system's :term:`init script`, you are already using a configuration
 file.
 
+.. _externally-sourced-values:
+
+Externally Sourced Values
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+MongoDB 4.2 and later allows users to use an external source for defining the
+value of configuration file options in a MongoDB configuration file.
+
+You must use the :option:`--configExpand <mongod --configExpand>`
+option for the mongod/mongos to enable parsing of expansion directives. If you
+specify any expansion directives in the configuration file and start the mongod
+without this option, the mongod fails to start. This option must be configured
+on the command line only, and can not be expressed in either YAML or INI
+configuration files.
+ 
+.. configexpansion:: __rest
+
+   The ``__rest`` expansion directive allows users to use externally sourced
+   values in a configuration file.  ``__rest`` makes http(s) calls for values
+   and supports the following syntax:
+
+   .. code-block:: yaml
+
+      <field> : 
+         __rest: <string>
+         type: < string | yaml >
+         trim: < none | whitespace >
+
+   The ``__rest`` expansion directive takes a string representing the url for
+   which the mongod or mongos issues a ``GET`` request to retrieve the value.
+
+   .. note::
+
+      - ``__rest`` URLs must be HTTPS unless they are referring to
+        localhost, in which case they can use unencrypted HTTP URLs.
+      - If the REST endpoint requires authentication, encode credentials into the
+        URL with standard
+        `RFC 3986 User Information <https://tools.ietf.org/html/rfc3986#section-3.2.1>`_
+        format.
+      - HTTPS requests require TLS 1.1 or later on the client and the host.
+
+   The following optional fields affect the behavior of the ``__rest``
+   expansion directive:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``type``
+ 
+        - Optional. Defaults to ``string``
+
+          For `string`, the mongod/mongos uses the value returned from the
+          endpoint as a literal string. This value is not parsed for additional
+          structure beyond what is specific to the setting.
+
+          For `yaml`, the __rest directive must be the *only* block in the
+          entire configuration file. Users must define their entire
+          configuration file within the specified endpoint, and the return type
+          must be YAML. See the :ref:`yaml example<rest-yaml-example>`.
+
+          .. warning::
+             Recursive ``__rest`` expansion directives are forbidden. If the
+             value returned from a ``__rest`` expansion directive contains an
+             expansion directive, the mongod/mongos throws an error and fails
+             to start.
+
+      * - ``trim``
+
+        - Optional. Defaults to ``none``. Specify ``whitespace`` to trim any
+          leading or trailing whitespace from the resulting response.
+
+   .. _rest-yaml-example:
+
+   YAML Example
+     The configuration file ``mongod.conf`` contains the following ``__rest``
+     expansion directive. 
+
+     .. code-block:: yaml
+
+        __rest: "https://mongoconf.example.net:8080/record/1"
+        type: yaml
+ 
+     When using the ``__rest`` expansion directive, the configuration file must
+     include only the expansion directive and its related options. All other
+     required configuration options must exist on the remote resource specified
+     in ``__rest``.
+
+     The YAML document recorded at the URL is:
+
+     .. code-block:: yaml
+
+        net:
+           port: 20128
+
+     After starting the mongod with:
+
+     .. code-block:: yaml
+
+        mongod -f mongod.conf --configExpand rest
+
+     The configuration of the mongod is:
+
+     .. code-block:: yaml
+
+        config: mongod.conf
+        configExpand: rest
+        net:
+          port: 20128
+
 Core Options
 ------------
 
