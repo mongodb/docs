@@ -2,24 +2,26 @@ To back up the keys, use the following commands to launch a temporary
 container that copies the key files from the Charts volume to a
 newly created directory on the host system:
 
-.. tabs-platforms::
+.. tabs::
 
    tabs:
 
      - id: windows
+       name: Windows PowerShell
        content: |
 
          .. code-block:: ps1
 
             mkdir c:\temp\charts-keys-backup
-            docker run -it ^
-              --volume mongodb-charts_keys:/volume ^
-              --volume /c/temp/charts-keys-backup:/backup ^
+            docker run -it `
+              --volume mongodb-charts_keys:/volume `
+              --volume /c/temp/charts-keys-backup:/backup `
               alpine sh -c 'cp /volume/* /backup'
 
          .. include:: /includes/fact-docker-unix-paths-windows.rst
 
      - id: macos
+       name: macOS
        content: |
 
          .. code-block:: sh
@@ -31,6 +33,7 @@ newly created directory on the host system:
               alpine sh -c 'cp /volume/* /backup'
 
      - id: linux
+       name: Linux
        content: |
 
          .. code-block:: sh
