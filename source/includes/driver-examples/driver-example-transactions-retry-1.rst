@@ -146,3 +146,12 @@
          .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
             :language: c
             :lines: 3057-3087
+
+     - id: cpp
+       content: |
+
+         .. literalinclude:: /driver-examples/cpp-transactions.cpp
+            :language: cpp
+            :dedent: 8
+            :start-after: Start Transactions Retry Example 1
+            :end-before: End Transactions Retry Example 1

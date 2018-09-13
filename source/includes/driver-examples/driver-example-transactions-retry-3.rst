@@ -239,3 +239,12 @@
             :language: c
             :start-after: Start Transactions Retry Example 3
             :end-before: End Transactions Retry Example 3
+
+     - id: cpp
+       content: |
+
+         .. literalinclude:: /driver-examples/cpp-transactions.cpp
+            :language: cpp
+            :dedent: 8
+            :start-after: Start Transactions Retry Example 3
+            :end-before: End Transactions Retry Example 3

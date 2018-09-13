@@ -129,3 +129,6 @@ examples:
 
 # c
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c 
+
+# c++
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp 

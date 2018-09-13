@@ -36,3 +36,12 @@
             :language: javascript
             :start-after: Start Transactions Intro Example 1
             :end-before: End Transactions Intro Example 1
+
+     - id: cpp
+       content: |
+
+         .. literalinclude:: /driver-examples/cpp-transactions.cpp
+            :language: cpp
+            :dedent: 8
+            :start-after:  Start Transactions Intro Example 1
+            :end-before: End Transactions Intro Example 1
