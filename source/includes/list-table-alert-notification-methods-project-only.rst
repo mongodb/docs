@@ -1,7 +1,7 @@
 .. cond:: onprem
 
    .. list-table::
-      :widths: 15 5 5 5 70
+      :widths: 20 80
       :header-rows: 1
  
       * - Notification Method
@@ -144,11 +144,10 @@
  
       * - `DataDog <https://www.datadoghq.com/>`_
         - Sends the alert to a DataDog account. Enter the following:
-
-          - :guilabel:`datadogApiKey`: The DataDog 
-            `API Key <https://docs.datadoghq.com/api/?lang=python#authentication>`_.
-            This key can be found in
-            `your DataDog account <https://app.datadoghq.com/account/settings#api>`_.
+          :guilabel:`datadogApiKey`: The DataDog 
+          `API Key <https://docs.datadoghq.com/api/?lang=python#authentication>`_.
+          This key can be found in
+          `your DataDog account <https://app.datadoghq.com/account/settings#api>`_.
  
 .. cond:: cloud
 

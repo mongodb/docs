@@ -72,17 +72,17 @@
      - *Conditional:* ``delivery.methodName" : "AUTOMATED_RESTORE"``.
        Unique identifier of the target cluster. Use the ``clusterId``
        returned in the response body of the
-       :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
-       and :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+       :doc:`Get All Snapshots </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
+       and :doc:`Get a Snapshot </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
        endpoints. For use only with automated restore jobs.
 
        .. note::
 
           If backup is not enabled on the target cluster, the 
-          :doc:`Get All Snapshots </reference/api/snapshots-get-all>`
+          :doc:`Get All Snapshots </reference/api/snapshots/get-all-snapshots-for-one-cluster/>`
           endpoint returns an empty ``results`` array without
           ``clusterId`` elements, and the
-          :doc:`Get a Snapshot </reference/api/snapshots-get-one>`
+          :doc:`Get a Snapshot </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
           endpoint also does not return a ``clusterId`` element.
 
    * - delivery.targetGroupId

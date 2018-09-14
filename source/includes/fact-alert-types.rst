@@ -9,7 +9,7 @@ Global alerts
   :doc:`all Organizations and Projects </tutorial/manage-global-alerts>`.
 
 System alerts
-  Apply to the :doc:`health </tutorial/manage-global-alerts>` of |mms|
+  Apply to the :doc:`health </core/system-alerts>` of |mms|
   and its backing databases.
 
 The alert notifications methods are as follows:
