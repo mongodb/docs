@@ -32,6 +32,8 @@ except NameError:
 
 needs_sphinx = '1.0'
 
+#--- the following is a list of python files 
+
 extensions = [
     'sphinx.ext.extlinks',
     'sphinx.ext.todo',
