@@ -6,6 +6,11 @@ and if possible bind to the standard MongoDB port of ``27017``.
 
 See :doc:`/core/replica-set-architectures` for more information.
 
+Hostnames
+~~~~~~~~~
+
+.. include:: /includes/tip-hostnames.rst
+
 IP Binding
 ~~~~~~~~~~
 

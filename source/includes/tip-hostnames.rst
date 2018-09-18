@@ -1,5 +1,7 @@
-.. tip:: To avoid downtime, give each config server a logical DNS name
-   (unrelated to the server's physical or virtual hostname). Without
-   logical DNS names, moving or renaming a config server requires
-   shutting down every :binary:`~bin.mongod` and :binary:`~bin.mongos` instance
-   in the sharded cluster.
+.. tip:: 
+
+   When possible, use a logical DNS hostname instead of an ip address,
+   particularly when configuring replica set members or sharded cluster
+   members. The use of logical DNS hostnames avoids configuration
+   changes due to ip address changes.
+

@@ -17,25 +17,25 @@ the binaries bound only to localhost.
 
 To override and bind to other ip addresses, you can use the
 :setting:`net.bindIp` configuration file setting or the
-``--bind_ip`` command-line option to specify a list of ip
+``--bind_ip`` command-line option to specify a list of hostnames or ip
 addresses.
 
 .. include:: /includes/warning-bind-ip-security-considerations.rst
 
-For example, the following :binary:`~bin.mongod` instance binds to both the
-localhost and the sample ip address ``198.51.100.1``:
+For example, the following :binary:`~bin.mongod` instance binds to both
+the localhost and the hostname ``My-Example-Associated-Hostname``, which is
+associated with the ip address ``198.51.100.1``:
 
 .. code-block:: none
 
-   mongod --bind_ip localhost,198.51.100.1
+   mongod --bind_ip localhost,My-Example-Associated-Hostname
 
-In order to connect to this instance, remote clients must specify the
-ip address ``198.51.100.1`` or the hostname associated with the ip
-address:
+In order to connect to this instance, remote clients must specify
+the hostname  or its associated ip address ``198.51.100.1``:
 
 .. code-block:: none
-
-   mongo --host 198.51.100.1
 
    mongo --host My-Example-Associated-Hostname
+
+   mongo --host 198.51.100.1
 
