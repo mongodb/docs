@@ -43,13 +43,14 @@ field is required for deployments with replica sets.
        configuration documents, see :manual:`replSetGetConfig
        </reference/command/replSetGetConfig>` in the MongoDB manual.
 
-   * - ``replicaSets._id``
+   * - replicaSets._id
      - string
      - The name of the replica set.
 
-   * - replicaSets.version
+   * - replicaSets.protocolVersion
      - integer
-     - The version of the replica set configuration.
+     - The :manual:`protocol version </reference/replica-set-protocol-versions>`
+       of the replica set.
 
    * - replicaSets.members
      - object array
