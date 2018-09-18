@@ -72,10 +72,16 @@
      - id: nodejs
        content: |
          .. code-block:: javascript
+
+            function iterateFunc(doc) {
+               console.log(JSON.stringify(doc, null, 4));
+            }
+
+            function errorFunc(error) {
+               console.log(error);
+            }
             
-            cursor.each(function(err, doc) {
-                console.log(doc);
-            });
+            cursor.forEach(iterateFunc, errorFunc);
 
      - id: csharp
        content: |
